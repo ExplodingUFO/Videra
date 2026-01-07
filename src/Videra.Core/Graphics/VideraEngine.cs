@@ -9,6 +9,17 @@ namespace Videra.Core.Graphics;
 
 public class VideraEngine : IDisposable
 {
+
+    #region 平面网格
+
+    // 1. 实例化组件
+    private readonly GridRenderer _gridRenderer = new GridRenderer();
+
+    // 2. 暴露给外部控制的属性
+    public GridRenderer Grid => _gridRenderer; // 直接暴露组件，方便访问其属性
+
+    #endregion
+
     public GraphicsDevice GraphicsDevice => _gd;
     private readonly object _lock = new();
     private CommandList _cl;
@@ -40,6 +51,7 @@ public class VideraEngine : IDisposable
 
     public void Dispose()
     {
+        _gridRenderer.Dispose();
         _axisRenderer.Dispose();
         _gd?.Dispose();
         _factory = null;
@@ -137,6 +149,7 @@ void main() { Out = vCol; }";
 
         // 初始化轴组件
         _axisRenderer.Initialize(_gd, _gd.SwapchainFramebuffer.OutputDescription);
+        _gridRenderer.Initialize(_gd, _gd.SwapchainFramebuffer.OutputDescription);
     }
 
     // --- 新增：场景操作 API ---
@@ -205,9 +218,14 @@ void main() { Out = vCol; }";
             _cl.ClearColorTarget(0, BackgroundColor);
             _cl.ClearDepthStencil(1f);
 
+            // 画网格 (通常在物体之前或之后都可以，因为有深度测试)
+            // 建议放在物体之前画，这样如果有物体在网格下方，逻辑更清晰
+            _gridRenderer.Draw(_cl, Camera);
+
             // 更新全局相机
             _cl.UpdateBuffer(_projViewBuffer, 0, Camera.ViewMatrix);
             _cl.UpdateBuffer(_projViewBuffer, 64, Camera.ProjectionMatrix);
+
 
             // 遍历渲染所有物体
             foreach (var obj in _sceneObjects)

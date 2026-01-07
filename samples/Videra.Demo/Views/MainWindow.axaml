@@ -15,12 +15,16 @@
 
    <Grid ColumnDefinitions="*, 320">
         
-        <controls:VideraView Name="View3D" 
-                      Grid.Column="0"
-                      Items="{Binding SceneObjects}"
-                      BackgroundColor="{Binding BgColor}"
-                      CameraInvertX="{Binding Camera.InvertX}"
-                      CameraInvertY="{Binding Camera.InvertY}"/>
+       <controls:VideraView Name="View3D" 
+                     Grid.Column="0"
+                     Items="{Binding SceneObjects}"
+                     BackgroundColor="{Binding BgColor}"
+                     CameraInvertX="{Binding Camera.InvertX}"
+                     CameraInvertY="{Binding Camera.InvertY}"
+              
+                     IsGridVisible="{Binding IsGridVisible}"
+                     GridHeight="{Binding GridHeight, Converter={StaticResource DecimalToFloatConverter}}" 
+                     GridColor="{Binding GridColor}"/>
 
         <Border Grid.Column="1" Background="#252526" BorderBrush="#3E3E42" BorderThickness="1,0,0,0">
             <ScrollViewer>
@@ -53,6 +57,21 @@
                             </ListBox.ItemTemplate>
                         </ListBox>
                     </StackPanel>
+
+                    <TextBlock Text="Grid Helper" FontWeight="Bold" Foreground="White" Margin="0,10,0,0"/>
+
+                    <CheckBox IsChecked="{Binding IsGridVisible}" Content="Show Grid" Foreground="#CCCCCC"/>
+
+                    <Grid ColumnDefinitions="Auto, *">
+                        <TextBlock Text="Height (Y)" Foreground="Gray" VerticalAlignment="Center"/>
+                        <NumericUpDown Grid.Column="1" Value="{Binding GridHeight}" Increment="0.1" FormatString="0.00"/>
+                    </Grid>
+
+                    <Grid ColumnDefinitions="Auto, *">
+                        <TextBlock Text="Color" Foreground="Gray" VerticalAlignment="Center"/>
+                        <ColorPicker Grid.Column="1" Color="{Binding GridColor}" HorizontalAlignment="Right"/>
+                    </Grid>
+
                     <Separator Background="#3E3E42"/>
 
                     <StackPanel IsVisible="{Binding SelectedObject, Converter={x:Static ObjectConverters.IsNotNull}}" Spacing="15">

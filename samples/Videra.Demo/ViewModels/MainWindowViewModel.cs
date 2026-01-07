@@ -12,6 +12,29 @@ namespace Videra.Demo.ViewModels;
 
 public partial class MainWindowViewModel : ViewModelBase
 {
+    #region 网格控制
+
+    // ==========================================
+    // 网格控制 (Grid Settings)
+    // ==========================================
+
+    // 显隐
+    [ObservableProperty] private bool _isGridVisible = true;
+
+    // 高度
+    [ObservableProperty] private decimal _gridHeight = 0;
+
+    // 颜色
+    [ObservableProperty] private Color _gridColor = Color.Parse("#66808080"); // 默认带一点透明的灰
+
+    //// 当属性改变时，同步到 Engine (在 View 层通过 PropertyChanged 监听，或使用 partial method)
+    //// 推荐使用 partial method 钩子
+    //partial void OnIsGridVisibleChanged(bool value) => RequestGridUpdate();
+    //partial void OnGridHeightChanged(decimal value) => RequestGridUpdate();
+    //partial void OnGridColorChanged(Color value) => RequestGridUpdate();
+
+    #endregion
+
     private readonly IModelImporter _importer;
     private const float DegToRad = (float)(Math.PI / 180.0);
     private const float RadToDeg = (float)(180.0 / Math.PI);
