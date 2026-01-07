@@ -1,48 +1,79 @@
+using System.Linq;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Data.Core;
 using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
-using System.Linq;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Videra.Demo.Services;
 using Videra.Demo.ViewModels;
 using Videra.Demo.Views;
 
-namespace Videra.Demo
+namespace Videra.Demo;
+
+public class App : Application
 {
-    public partial class App : Application
+    // 你也可以做成 public static 方便全局访问
+    private IHost? _host;
+
+    public override void Initialize()
     {
-        public override void Initialize()
+        AvaloniaXamlLoader.Load(this);
+    }
+
+    public override void OnFrameworkInitializationCompleted()
+    {
+        if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            AvaloniaXamlLoader.Load(this);
+            // 避免 Avalonia 和 CommunityToolkit 重复验证
+            DisableAvaloniaDataAnnotationValidation();
+
+            // 1) 构建 Host（DI 容器）
+            _host = Host.CreateDefaultBuilder()
+                .ConfigureServices(ConfigureServices)
+                .Build();
+
+            // 2) 启动 Host（如果你有 HostedService/后台任务会需要）
+            _host.Start();
+
+            // 3) 从容器取出 MainWindow（MainWindow 的 DataContext 也由 DI 注入）
+            desktop.MainWindow = _host.Services.GetRequiredService<MainWindow>();
+
+            // 4) 退出时优雅停止
+            desktop.Exit += OnDesktopExit;
         }
 
-        public override void OnFrameworkInitializationCompleted()
+        base.OnFrameworkInitializationCompleted();
+    }
+
+    private void ConfigureServices(IServiceCollection services)
+    {
+        // ViewModels
+        services.AddSingleton<MainWindowViewModel>();
+        services.AddSingleton<MainWindow>(); // 会自动注入 MainWindowViewModel
+        services.AddSingleton<IModelImporter, AvaloniaModelImporter>();
+    }
+
+    private async void OnDesktopExit(object? sender, ControlledApplicationLifetimeExitEventArgs e)
+    {
+        if (_host is null) return;
+
+        try
         {
-            if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
-            {
-                // Avoid duplicate validations from both Avalonia and the CommunityToolkit. 
-                // More info: https://docs.avaloniaui.net/docs/guides/development-guides/data-validation#manage-validationplugins
-                DisableAvaloniaDataAnnotationValidation();
-                desktop.MainWindow = new MainWindow
-                {
-                    DataContext = new MainWindowViewModel(),
-                };
-            }
-
-            base.OnFrameworkInitializationCompleted();
+            await _host.StopAsync();
         }
-
-        private void DisableAvaloniaDataAnnotationValidation()
+        finally
         {
-            // Get an array of plugins to remove
-            var dataValidationPluginsToRemove =
-                BindingPlugins.DataValidators.OfType<DataAnnotationsValidationPlugin>().ToArray();
-
-            // remove each entry found
-            foreach (var plugin in dataValidationPluginsToRemove)
-            {
-                BindingPlugins.DataValidators.Remove(plugin);
-            }
+            _host.Dispose();
+            _host = null;
         }
+    }
+
+    private void DisableAvaloniaDataAnnotationValidation()
+    {
+        var dataValidationPluginsToRemove =
+            BindingPlugins.DataValidators.OfType<DataAnnotationsValidationPlugin>().ToArray();
+
+        foreach (var plugin in dataValidationPluginsToRemove) BindingPlugins.DataValidators.Remove(plugin);
     }
 }

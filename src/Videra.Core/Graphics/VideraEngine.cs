@@ -29,6 +29,15 @@ public class VideraEngine : IDisposable
     public OrbitCamera Camera { get; } = new();
     public bool IsInitialized { get; private set; }
 
+    public void ClearObjects()
+    {
+        lock (_lock)
+        {
+            foreach (var obj in _sceneObjects) obj.Dispose();
+            _sceneObjects.Clear();
+        }
+    }
+
     public void Dispose()
     {
         _axisRenderer.Dispose();

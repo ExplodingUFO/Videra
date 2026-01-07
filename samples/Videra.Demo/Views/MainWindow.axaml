@@ -1,58 +1,110 @@
-<Window xmlns="https://github.com/avaloniaui"
+﻿<Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:Videra.Demo.ViewModels"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:controls="clr-namespace:Videra.Avalonia.Controls;assembly=Videra.Avalonia"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="600"
         x:Class="Videra.Demo.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Icon="/Assets/avalonia-logo.ico"
-        Title="Videra.Demo">
-
+        Title="Videra 3D Editor">
     <Design.DataContext>
-        <!-- This only sets the DataContext for the previewer in an IDE,
-             to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
         <vm:MainWindowViewModel/>
     </Design.DataContext>
 
-    <Grid ColumnDefinitions="*, 250">
-        <controls:VideraView Name="View3D" Grid.Column="0"/>
+   <Grid ColumnDefinitions="*, 320">
+        
+        <controls:VideraView Name="View3D" 
+                      Grid.Column="0"
+                      Items="{Binding SceneObjects}"
+                      BackgroundColor="{Binding BgColor}"
+                      CameraInvertX="{Binding Camera.InvertX}"
+                      CameraInvertY="{Binding Camera.InvertY}"/>
 
-        <Border Grid.Column="1" Background="#252526" Padding="10">
-            <StackPanel Spacing="10">
-                <TextBlock Text="Scene Control" FontWeight="Bold" Foreground="White"/>
-            
-                <Button Content="Import Model" Click="OnImportClick" HorizontalAlignment="Stretch"/>
-            
-                <TextBlock Text="Background Color" Foreground="LightGray"/>
-                <ColorPicker Color="{Binding BgColor}" HorizontalAlignment="Left"/>
-            
-                <Separator Background="Gray"/>
-            
-                <TextBlock Text="Models List" FontWeight="Bold" Foreground="White"/>
-                <ListBox ItemsSource="{Binding Models}" 
-                         SelectedItem="{Binding SelectedModel}"
-                         Height="150">
-                    <ListBox.ItemTemplate>
-                        <DataTemplate>
-                            <TextBlock Text="{Binding Name}"/>
-                        </DataTemplate>
-                    </ListBox.ItemTemplate>
-                </ListBox>
+        <Border Grid.Column="1" Background="#252526" BorderBrush="#3E3E42" BorderThickness="1,0,0,0">
+            <ScrollViewer>
+                <StackPanel Margin="15" Spacing="20">
+                    
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="ENVIRONMENT" FontWeight="Bold" Foreground="#007ACC" FontSize="12"/>
+                        <Grid ColumnDefinitions="Auto, *">
+                            <TextBlock Text="Background" Foreground="#CCCCCC" VerticalAlignment="Center"/>
+                            <ColorPicker Grid.Column="1" Color="{Binding BgColor}" IsAlphaEnabled="False" HorizontalAlignment="Right"/>
+                        </Grid>
+                        <CheckBox IsChecked="{Binding Camera.InvertX}" Content="Invert Camera X" Foreground="#CCCCCC"/>
+                        <CheckBox IsChecked="{Binding Camera.InvertY}" Content="Invert Camera Y" Foreground="#CCCCCC"/>
+                    </StackPanel>
+                    <Separator Background="#3E3E42"/>
 
-                <StackPanel IsVisible="{Binding SelectedModel, Converter={x:Static ObjectConverters.IsNotNull}}" Spacing="5">
-                    <TextBlock Text="Position X" Foreground="Gray"/>
-                    <Slider Value="{Binding SelectedModel.PosX}" Minimum="-10" Maximum="10"/>
-                
-                    <TextBlock Text="Scale" Foreground="Gray"/>
-                    <Slider Value="{Binding SelectedModel.Scale}" Minimum="0.1" Maximum="5"/>
-                
-                    <TextBlock Text="Rotation Y" Foreground="Gray"/>
-                    <Slider Value="{Binding SelectedModel.RotY}" Minimum="-3.14" Maximum="3.14"/>
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="SCENE GRAPH" FontWeight="Bold" Foreground="#007ACC" FontSize="12"/>
+                        <Button Content="Import Model" Command="{Binding ImportCommand}" HorizontalAlignment="Stretch"/>
+                        <ListBox ItemsSource="{Binding SceneObjects}" 
+                                 SelectedItem="{Binding SelectedObject}" 
+                                 Height="150" Background="#1E1E1E" BorderBrush="#3E3E42" BorderThickness="1">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" Spacing="5">
+                                        <TextBlock Text="📦" />
+                                        <TextBlock Text="{Binding Name}" Foreground="#E0E0E0"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </StackPanel>
+                    <Separator Background="#3E3E42"/>
+
+                    <StackPanel IsVisible="{Binding SelectedObject, Converter={x:Static ObjectConverters.IsNotNull}}" Spacing="15">
+                        <TextBlock Text="TRANSFORM" FontWeight="Bold" Foreground="#007ACC" FontSize="12"/>
+
+                        <StackPanel Spacing="5">
+                            <TextBlock Text="Position" FontWeight="SemiBold" Foreground="White"/>
+                            <Grid ColumnDefinitions="20, *" RowDefinitions="Auto,Auto,Auto" RowSpacing="5">
+                                <TextBlock Grid.Row="0" Grid.Column="0" Text="X" Foreground="#FF5555" VerticalAlignment="Center"/>
+                                <NumericUpDown Grid.Row="0" Grid.Column="1" Value="{Binding SelectedPosX}" Increment="0.1" FormatString="0.00"/>
+                                
+                                <TextBlock Grid.Row="1" Grid.Column="0" Text="Y" Foreground="#55FF55" VerticalAlignment="Center"/>
+                                <NumericUpDown Grid.Row="1" Grid.Column="1" Value="{Binding SelectedPosY}" Increment="0.1" FormatString="0.00"/>
+
+                                <TextBlock Grid.Row="2" Grid.Column="0" Text="Z" Foreground="#5555FF" VerticalAlignment="Center"/>
+                                <NumericUpDown Grid.Row="2" Grid.Column="1" Value="{Binding SelectedPosZ}" Increment="0.1" FormatString="0.00"/>
+                            </Grid>
+                        </StackPanel>
+
+                        <StackPanel Spacing="5">
+                            <TextBlock Text="Rotation (°)" FontWeight="SemiBold" Foreground="White"/>
+                            
+                            <Grid ColumnDefinitions="20, *" RowDefinitions="Auto,Auto,Auto" RowSpacing="5">
+                                <TextBlock Grid.Row="0" Grid.Column="0" Text="X" Foreground="#FF5555" VerticalAlignment="Center"/>
+                                <NumericUpDown Grid.Row="0" Grid.Column="1" Value="{Binding SelectedRotX}" Increment="5" FormatString="0"/>
+                                
+                                <TextBlock Grid.Row="1" Grid.Column="0" Text="Y" Foreground="#55FF55" VerticalAlignment="Center"/>
+                                <NumericUpDown Grid.Row="1" Grid.Column="1" Value="{Binding SelectedRotY}" Increment="5" FormatString="0"/>
+
+                                <TextBlock Grid.Row="2" Grid.Column="0" Text="Z" Foreground="#5555FF" VerticalAlignment="Center"/>
+                                <NumericUpDown Grid.Row="2" Grid.Column="1" Value="{Binding SelectedRotZ}" Increment="5" FormatString="0"/>
+                            </Grid>
+                        </StackPanel>
+
+                        <StackPanel Spacing="5">
+                            <TextBlock Text="Scale" FontWeight="SemiBold" Foreground="White"/>
+                            <Grid ColumnDefinitions="20, *">
+                                <TextBlock Text="S" Foreground="White" VerticalAlignment="Center"/>
+                                <NumericUpDown Grid.Column="1" Value="{Binding SelectedScale}" Increment="0.1" Minimum="0.01" FormatString="0.00"/>
+                            </Grid>
+                        </StackPanel>
+
+                    </StackPanel>
+                    
+                    <TextBlock IsVisible="{Binding SelectedObject, Converter={x:Static ObjectConverters.IsNull}}" 
+                               Text="No model selected" 
+                               Foreground="Gray" 
+                               HorizontalAlignment="Center" 
+                               Margin="0,20"/>
+                    
                 </StackPanel>
-            </StackPanel>
+            </ScrollViewer>
         </Border>
     </Grid>
-
 </Window>
