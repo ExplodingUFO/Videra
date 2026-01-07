@@ -2,16 +2,34 @@
 using Assimp;
 using Veldrid;
 using Videra.Core.Geometry;
+using Videra.Core.Graphics;
 
 namespace Videra.Core.IO;
 
 public static class ModelImporter
 {
-    public static MeshData Load(string filePath)
+    /// <summary>
+    ///     支持的格式
+    /// </summary>
+    public static string[] SupportedFormats => new[]
+        { "*.obj", "*.stl", "*.3mf", "*.ply", "*.xyz", "*.stp", "*.gltf", "*.glb" };
+
+    // 返回 Object3D 而不是 MeshData
+    public static Object3D Load(string filePath, GraphicsDevice gd)
     {
-        // 这里封装了之前讨论过的“中文路径替身法”和 Assimp 解析逻辑
-        // 为了篇幅简洁，我保留核心逻辑结构
-        return LoadWithAssimp(filePath);
+        // 1. 调用之前的 LoadWithAssimp 获取 MeshData
+        var meshData = LoadWithAssimp(filePath); // (复用之前的逻辑)
+
+        // 2. 包装成 Object3D
+        var obj = new Object3D
+        {
+            Name = Path.GetFileName(filePath)
+        };
+
+        // 3. 立即初始化显存资源
+        if (gd != null) obj.Initialize(gd.ResourceFactory, gd, meshData);
+
+        return obj;
     }
 
     private static MeshData LoadWithAssimp(string originalPath)
