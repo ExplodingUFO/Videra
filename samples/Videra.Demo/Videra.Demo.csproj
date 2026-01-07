@@ -12,6 +12,13 @@
     <AvaloniaResource Include="Assets\**" />
   </ItemGroup>
 
+  <ItemGroup Condition="$([MSBuild]::IsOSPlatform('OSX'))">
+    <None Include="/opt/homebrew/lib/libassimp.dylib">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>libassimp.dylib</Link>
+    </None>
+  </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="11.3.9" />
     <PackageReference Include="Avalonia.Controls.ColorPicker" Version="11.3.9" />

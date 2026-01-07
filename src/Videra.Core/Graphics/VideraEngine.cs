@@ -1,4 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
 using Veldrid;
 using Veldrid.SPIRV;
@@ -9,23 +10,10 @@ namespace Videra.Core.Graphics;
 
 public class VideraEngine : IDisposable
 {
-
-    #region 平面网格
-
-    // 1. 实例化组件
-    private readonly GridRenderer _gridRenderer = new GridRenderer();
-
-    // 2. 暴露给外部控制的属性
-    public GridRenderer Grid => _gridRenderer; // 直接暴露组件，方便访问其属性
-
-    #endregion
-
-    public GraphicsDevice GraphicsDevice => _gd;
     private readonly object _lock = new();
     private CommandList _cl;
     private MeshTopology _currentTopology;
     private ResourceFactory _factory;
-    private GraphicsDevice _gd;
     private DeviceBuffer _indexBuffer;
 
     private uint _indexCount;
@@ -37,8 +25,18 @@ public class VideraEngine : IDisposable
 
     private DeviceBuffer _vertexBuffer;
 
+    public GraphicsDevice GraphicsDevice { get; private set; }
+
     public OrbitCamera Camera { get; } = new();
     public bool IsInitialized { get; private set; }
+
+    public void Dispose()
+    {
+        Grid.Dispose();
+        _axisRenderer.Dispose();
+        GraphicsDevice?.Dispose();
+        _factory = null;
+    }
 
     public void ClearObjects()
     {
@@ -49,25 +47,19 @@ public class VideraEngine : IDisposable
         }
     }
 
-    public void Dispose()
-    {
-        _gridRenderer.Dispose();
-        _axisRenderer.Dispose();
-        _gd?.Dispose();
-        _factory = null;
-    }
-
     // 初始化：平台无关，只接收 options 和 swapchainDesc
-    public void Initialize(GraphicsDeviceOptions options, SwapchainDescription swapchainDesc, PlatformID platform)
+    public void Initialize(GraphicsDeviceOptions options, SwapchainDescription swapchainDesc)
     {
-        if (platform == PlatformID.Win32NT)
-            _gd = GraphicsDevice.CreateD3D11(options, swapchainDesc);
-        else if (platform == PlatformID.MacOSX)
-            _gd = GraphicsDevice.CreateMetal(options, swapchainDesc);
-        else
-            _gd = GraphicsDevice.CreateVulkan(options, swapchainDesc);
+        if (IsInitialized) return; // 防止重复初始化
 
-        _factory = _gd.ResourceFactory;
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            GraphicsDevice = GraphicsDevice.CreateMetal(options, swapchainDesc);
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            GraphicsDevice = GraphicsDevice.CreateD3D11(options, swapchainDesc);
+        else
+            GraphicsDevice = GraphicsDevice.CreateVulkan(options, swapchainDesc);
+
+        _factory = GraphicsDevice.ResourceFactory;
         _cl = _factory.CreateCommandList();
 
         CreateResources();
@@ -135,7 +127,7 @@ void main() { Out = vCol; }";
             PrimitiveTopology = PrimitiveTopology.TriangleList,
             ResourceLayouts = new[] { _viewProjLayout, _worldLayout },
             ShaderSet = new ShaderSetDescription(new[] { vLayout }, shaders),
-            Outputs = _gd.SwapchainFramebuffer.OutputDescription
+            Outputs = GraphicsDevice.SwapchainFramebuffer.OutputDescription
         };
         _meshPipeline = _factory.CreateGraphicsPipeline(pipeDesc);
 
@@ -148,8 +140,8 @@ void main() { Out = vCol; }";
         _projViewSet = _factory.CreateResourceSet(new ResourceSetDescription(_viewProjLayout, _projViewBuffer));
 
         // 初始化轴组件
-        _axisRenderer.Initialize(_gd, _gd.SwapchainFramebuffer.OutputDescription);
-        _gridRenderer.Initialize(_gd, _gd.SwapchainFramebuffer.OutputDescription);
+        _axisRenderer.Initialize(GraphicsDevice, GraphicsDevice.SwapchainFramebuffer.OutputDescription);
+        Grid.Initialize(GraphicsDevice, GraphicsDevice.SwapchainFramebuffer.OutputDescription);
     }
 
     // --- 新增：场景操作 API ---
@@ -185,11 +177,11 @@ void main() { Out = vCol; }";
 
             var vSize = (uint)(mesh.Vertices.Length * Unsafe.SizeOf<VertexPositionNormalColor>());
             _vertexBuffer = _factory.CreateBuffer(new BufferDescription(vSize, BufferUsage.VertexBuffer));
-            _gd.UpdateBuffer(_vertexBuffer, 0, mesh.Vertices);
+            GraphicsDevice.UpdateBuffer(_vertexBuffer, 0, mesh.Vertices);
 
             var iSize = (uint)(mesh.Indices.Length * sizeof(uint));
             _indexBuffer = _factory.CreateBuffer(new BufferDescription(iSize, BufferUsage.IndexBuffer));
-            _gd.UpdateBuffer(_indexBuffer, 0, mesh.Indices);
+            GraphicsDevice.UpdateBuffer(_indexBuffer, 0, mesh.Indices);
 
             _indexCount = (uint)mesh.Indices.Length;
         }
@@ -197,13 +189,27 @@ void main() { Out = vCol; }";
 
     public void Resize(uint width, uint height)
     {
-        if (_gd == null) return;
+        if (!IsInitialized || GraphicsDevice == null || width == 0 || height == 0)
+        {
+            Console.WriteLine($"[Videra] Resize ignored: Init={IsInitialized}, {width}x{height}");
+            return;
+        }
+
+        if (_width == width && _height == height) return;
 
         _width = width;
         _height = height;
 
-        _gd.MainSwapchain.Resize(width, height);
-        Camera.UpdateProjection(width, height);
+        try
+        {
+            Console.WriteLine($"[Videra] Resizing to: {width}x{height}");
+            GraphicsDevice.MainSwapchain.Resize(width, height);
+            Camera.UpdateProjection(width, height);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[Videra Warning] Resize failed: {ex.Message}");
+        }
     }
 
     public void Draw()
@@ -212,7 +218,14 @@ void main() { Out = vCol; }";
         lock (_lock)
         {
             _cl.Begin();
-            _cl.SetFramebuffer(_gd.SwapchainFramebuffer);
+            _cl.SetFramebuffer(GraphicsDevice.SwapchainFramebuffer);
+            
+            // =========================================================
+            // 【修复关键点】必须设置 Viewport！
+            // 否则 GPU 不知道画在哪里，或者画在 0x0 的区域里
+            // =========================================================
+            _cl.SetViewport(0, new Viewport(0, 0, _width, _height, 0, 1));
+            _cl.SetFullScissorRects(); // 设置裁剪区域为全屏
 
             // 使用自定义背景色
             _cl.ClearColorTarget(0, BackgroundColor);
@@ -220,7 +233,7 @@ void main() { Out = vCol; }";
 
             // 画网格 (通常在物体之前或之后都可以，因为有深度测试)
             // 建议放在物体之前画，这样如果有物体在网格下方，逻辑更清晰
-            _gridRenderer.Draw(_cl, Camera);
+            Grid.Draw(_cl, Camera);
 
             // 更新全局相机
             _cl.UpdateBuffer(_projViewBuffer, 0, Camera.ViewMatrix);
@@ -252,10 +265,19 @@ void main() { Out = vCol; }";
 
             _axisRenderer.Draw(_cl, Camera, _width, _height);
             _cl.End();
-            _gd.SubmitCommands(_cl);
-            _gd.SwapBuffers();
+            GraphicsDevice.SubmitCommands(_cl);
+            GraphicsDevice.SwapBuffers();
         }
     }
+
+    #region 平面网格
+
+    // 1. 实例化组件
+
+    // 2. 暴露给外部控制的属性
+    public GridRenderer Grid { get; } = new();
+
+    #endregion
 
     #region 轴显隐
 

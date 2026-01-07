@@ -1,0 +1,4 @@
+<key>NSDocumentsFolderUsageDescription</key>
+<string>需要访问文档以加载3D模型</string>
+<key>NSDesktopFolderUsageDescription</key>
+<string>需要访问桌面以加载3D模型</string>

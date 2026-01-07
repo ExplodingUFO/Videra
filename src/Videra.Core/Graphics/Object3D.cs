@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using System.Runtime.CompilerServices;
 using Veldrid;
 using Videra.Core.Geometry;
 
@@ -38,26 +39,71 @@ public class Object3D : IDisposable
     // 初始化 GPU 资源 (由 Engine 调用)
     public void Initialize(ResourceFactory factory, GraphicsDevice gd, MeshData mesh)
     {
-        Topology = mesh.Topology;
-        IndexCount = (uint)mesh.Indices.Length;
+        try
+        {
+            // ✅ 验证输入
+            if (mesh == null || mesh.Vertices == null || mesh.Vertices.Length == 0)
+                throw new ArgumentException("Invalid mesh data");
 
-        // 1. 创建顶点/索引 Buffer
-        var vSize = (uint)(mesh.Vertices.Length * VertexPositionNormalColor.SizeInBytes);
-        VertexBuffer = factory.CreateBuffer(new BufferDescription(vSize, BufferUsage.VertexBuffer));
-        gd.UpdateBuffer(VertexBuffer, 0, mesh.Vertices);
+            if (mesh.Indices == null || mesh.Indices.Length == 0)
+                throw new ArgumentException("Invalid index data");
 
-        var iSize = (uint)(mesh.Indices.Length * sizeof(uint));
-        IndexBuffer = factory.CreateBuffer(new BufferDescription(iSize, BufferUsage.IndexBuffer));
-        gd.UpdateBuffer(IndexBuffer, 0, mesh.Indices);
+            Console.WriteLine($"[Object3D '{Name}'] Initializing: {mesh.Vertices.Length} verts, {mesh.Indices.Length} indices");
 
-        // 2. 创建 World Uniform Buffer (存放该对象的变换矩阵)
-        WorldBuffer = factory.CreateBuffer(new BufferDescription(64, BufferUsage.UniformBuffer | BufferUsage.Dynamic));
+            Topology = mesh.Topology;
+            IndexCount = (uint)mesh.Indices.Length;
+
+            // ✅ 安全的大小计算 - 使用 Unsafe.SizeOf 而不是 SizeInBytes
+            var vertexSize = Unsafe.SizeOf<VertexPositionNormalColor>();
+            
+            // 检查是否会溢出
+            if ((long)mesh.Vertices.Length * vertexSize > uint.MaxValue)
+                throw new InvalidOperationException($"Vertex buffer too large: {mesh.Vertices.Length} vertices");
+
+            var vSize = (uint)(mesh.Vertices.Length * vertexSize);
+            
+            Console.WriteLine($"[Object3D '{Name}'] Vertex buffer size: {vSize:N0} bytes ({vSize / 1024.0 / 1024.0:F2} MB)");
+
+            VertexBuffer = factory.CreateBuffer(new BufferDescription(vSize, BufferUsage.VertexBuffer));
+            gd.UpdateBuffer(VertexBuffer, 0, mesh.Vertices);
+
+            // ✅ 索引 Buffer
+            if ((long)mesh.Indices.Length * sizeof(uint) > uint.MaxValue)
+                throw new InvalidOperationException($"Index buffer too large: {mesh.Indices.Length} indices");
+
+            var iSize = (uint)(mesh.Indices.Length * sizeof(uint));
+            
+            Console.WriteLine($"[Object3D '{Name}'] Index buffer size: {iSize:N0} bytes ({iSize / 1024.0 / 1024.0:F2} MB)");
+
+            IndexBuffer = factory.CreateBuffer(new BufferDescription(iSize, BufferUsage.IndexBuffer));
+            gd.UpdateBuffer(IndexBuffer, 0, mesh.Indices);
+
+            // ✅ World Uniform Buffer
+            WorldBuffer = factory.CreateBuffer(new BufferDescription(64, BufferUsage.UniformBuffer | BufferUsage.Dynamic));
+
+            Console.WriteLine($"[Object3D '{Name}'] ✓ Initialized successfully");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[Object3D '{Name}'] ✗ Initialization failed: {ex.Message}");
+            
+            // 清理已创建的资源
+            VertexBuffer?.Dispose();
+            IndexBuffer?.Dispose();
+            WorldBuffer?.Dispose();
+            
+            throw;
+        }
     }
 
     // 创建资源集 (Pipeline 创建后调用)
     public void CreateResourceSet(ResourceFactory factory, ResourceLayout worldLayout)
     {
+        if (WorldBuffer == null)
+            throw new InvalidOperationException("WorldBuffer not initialized. Call Initialize first.");
+
         WorldResourceSet = factory.CreateResourceSet(new ResourceSetDescription(worldLayout, WorldBuffer));
+        Console.WriteLine($"[Object3D '{Name}'] ResourceSet created");
     }
 
     public void UpdateUniforms(CommandList cl)
