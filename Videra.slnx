@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="samples/Videra.Demo/Videra.Demo.csproj" />
+  <Project Path="src/Videra.Avalonia/Videra.Avalonia.csproj" />
+  <Project Path="src/Videra.Core/Videra.Core.csproj" />
+</Solution>
