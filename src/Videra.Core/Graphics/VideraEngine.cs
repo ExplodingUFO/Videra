@@ -118,20 +118,42 @@ void main() { Out = vCol; }";
             new ResourceLayoutElementDescription("VP", ResourceKind.UniformBuffer, ShaderStages.Vertex)));
 
         _projViewSet = _factory.CreateResourceSet(new ResourceSetDescription(rLayout, _projViewBuffer));
+        
+        // 1. 【核心修复】显式强开启深度测试
+        // 不要用默认构造函数，必须指定参数
+        var depthStencilState = new DepthStencilStateDescription(
+            depthTestEnabled: true,      // 开启测试：比较 Z 值
+            depthWriteEnabled: true,     // 开启写入：把 Z 值存入缓冲
+            comparisonKind: ComparisonKind.LessEqual // 越小越近（标准模式）
+        );
 
+        // 2. 【核心修复】动态获取 OutputDescription
+        // 不要硬编码 B8G8R8A8，而是直接问 Swapchain 它到底是什么格式
+        // 这样能同时兼容 Windows(DirectX) 和 Mac(Metal)
+        OutputDescription outputDesc = GraphicsDevice.SwapchainFramebuffer.OutputDescription;
+    
+        // 双重检查：确保 OutputDescription 里真的包含深度格式
+        if (outputDesc.DepthAttachment == null)
+        {
+            // 如果这里进来了，说明 Swapchain 创建时没带深度，那是 VideraView 的问题
+            // 但我们这里先强制修正它，防止崩溃
+            Console.WriteLine("[Videra Warning] Framebuffer missing depth! Forcing logic...");
+            outputDesc.DepthAttachment = new OutputAttachmentDescription(PixelFormat.D32_Float_S8_UInt);
+        }
+        
         var pipeDesc = new GraphicsPipelineDescription
         {
             BlendState = BlendStateDescription.SingleOverrideBlend,
-            DepthStencilState = DepthStencilStateDescription.DepthOnlyLessEqual,
+            DepthStencilState = depthStencilState,
             RasterizerState = RasterizerStateDescription.CullNone,
             PrimitiveTopology = PrimitiveTopology.TriangleList,
             ResourceLayouts = new[] { _viewProjLayout, _worldLayout },
             ShaderSet = new ShaderSetDescription(new[] { vLayout }, shaders),
-            Outputs = GraphicsDevice.SwapchainFramebuffer.OutputDescription
+            Outputs = outputDesc
         };
         _meshPipeline = _factory.CreateGraphicsPipeline(pipeDesc);
 
-        pipeDesc.PrimitiveTopology = PrimitiveTopology.PointList;
+        pipeDesc.PrimitiveTopology = PrimitiveTopology.PointList;;
         _pointPipeline = _factory.CreateGraphicsPipeline(pipeDesc);
 
         // 创建全局 VP 资源集

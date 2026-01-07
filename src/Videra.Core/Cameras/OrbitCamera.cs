@@ -31,7 +31,9 @@ public class OrbitCamera
     public void UpdateProjection(float width, float height)
     {
         if (height < 1) height = 1;
-        ProjectionMatrix = Matrix4x4.CreatePerspectiveFieldOfView(0.8f, width / height, 0.1f, 1000f);
+        var fov = 0.8f;
+        var ratio = width / height;
+        ProjectionMatrix = Matrix4x4.CreatePerspectiveFieldOfView(fov, ratio, 0.1f, 1000f);
     }
 
     public void Rotate(float deltaX, float deltaY)
