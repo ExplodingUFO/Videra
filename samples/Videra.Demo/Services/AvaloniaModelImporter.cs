@@ -4,20 +4,21 @@ using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Platform.Storage;
 using Videra.Core.Graphics;
+using Videra.Core.Graphics.Abstractions;
 using Videra.Core.IO;
 
 namespace Videra.Demo.Services;
 
 public class AvaloniaModelImporter : IModelImporter
 {
-    private readonly VideraEngine _engine;
+    private readonly IResourceFactory _factory;
     private readonly TopLevel _topLevel;
 
-    // 构造函数注入 View 的关键组件
-    public AvaloniaModelImporter(TopLevel topLevel, VideraEngine engine)
+    // 构造函数注入资源工厂
+    public AvaloniaModelImporter(TopLevel topLevel, IResourceFactory factory)
     {
         _topLevel = topLevel;
-        _engine = engine;
+        _factory = factory;
     }
 
     public async Task<IEnumerable<Object3D>> ImportModelsAsync()
@@ -35,13 +36,13 @@ public class AvaloniaModelImporter : IModelImporter
 
         var results = new List<Object3D>();
 
-        // 2. 加载模型 (使用 Engine 的 GraphicsDevice)
+        // 2. 加载模型
         foreach (var file in files)
             try
             {
                 var path = file.Path.LocalPath;
                 // 在后台线程加载，避免卡顿 UI
-                var obj = await Task.Run(() => ModelImporter.Load(path, _engine.GraphicsDevice));
+                var obj = await Task.Run(() => ModelImporter.Load(path, _factory));
                 results.Add(obj);
             }
             catch (Exception ex)

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Numerics;
-using Veldrid;
 
 namespace Videra.Core.Cameras;
 
@@ -72,6 +71,23 @@ public class OrbitCamera
         
         // 注意：如果你发现画面依然上下颠倒，可以尝试将 M22 (f) 改为 -f
         // 但如果只是前后遮挡问题，上面的公式是正确的。
+    }
+    
+    /// <summary>
+    /// 更新宽高比（用于窗口大小改变时）
+    /// </summary>
+    public void UpdateAspectRatio(float aspectRatio)
+    {
+        float near = 0.1f;
+        float far = 1000f;
+        float f = 1.0f / MathF.Tan(FieldOfView * 0.5f);
+
+        _projectionMatrix = new Matrix4x4(
+            f / aspectRatio, 0,  0,  0,
+            0,               f,  0,  0,
+            0,               0,  far / (near - far), -1,
+            0,               0,  (near * far) / (near - far), 0
+        );
     }
 
     // ==========================================

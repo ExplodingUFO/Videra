@@ -1,7 +1,7 @@
 ﻿using System.Numerics;
 using System.Runtime.CompilerServices;
-using Veldrid;
 using Videra.Core.Geometry;
+using Videra.Core.Graphics.Abstractions;
 
 namespace Videra.Core.Graphics;
 
@@ -15,10 +15,9 @@ public class Object3D : IDisposable
     public Vector3 Scale { get; set; } = Vector3.One;
 
     // --- GPU 资源 (每个模型自己管理) ---
-    internal DeviceBuffer VertexBuffer { get; private set; }
-    internal DeviceBuffer IndexBuffer { get; private set; }
-    internal DeviceBuffer WorldBuffer { get; private set; } // 存放 World 矩阵
-    internal ResourceSet WorldResourceSet { get; private set; }
+    internal IBuffer? VertexBuffer { get; private set; }
+    internal IBuffer? IndexBuffer { get; private set; }
+    internal IBuffer? WorldBuffer { get; private set; } // 存放 World 矩阵
     internal uint IndexCount { get; private set; }
     internal MeshTopology Topology { get; private set; }
 
@@ -33,11 +32,10 @@ public class Object3D : IDisposable
         VertexBuffer?.Dispose();
         IndexBuffer?.Dispose();
         WorldBuffer?.Dispose();
-        WorldResourceSet?.Dispose();
     }
 
     // 初始化 GPU 资源 (由 Engine 调用)
-    public void Initialize(ResourceFactory factory, GraphicsDevice gd, MeshData mesh)
+    public void Initialize(IResourceFactory factory, MeshData mesh)
     {
         try
         {
@@ -53,10 +51,9 @@ public class Object3D : IDisposable
             Topology = mesh.Topology;
             IndexCount = (uint)mesh.Indices.Length;
 
-            // ✅ 安全的大小计算 - 使用 Unsafe.SizeOf 而不是 SizeInBytes
+            // ✅ 安全的大小计算
             var vertexSize = Unsafe.SizeOf<VertexPositionNormalColor>();
             
-            // 检查是否会溢出
             if ((long)mesh.Vertices.Length * vertexSize > uint.MaxValue)
                 throw new InvalidOperationException($"Vertex buffer too large: {mesh.Vertices.Length} vertices");
 
@@ -64,8 +61,8 @@ public class Object3D : IDisposable
             
             Console.WriteLine($"[Object3D '{Name}'] Vertex buffer size: {vSize:N0} bytes ({vSize / 1024.0 / 1024.0:F2} MB)");
 
-            VertexBuffer = factory.CreateBuffer(new BufferDescription(vSize, BufferUsage.VertexBuffer));
-            gd.UpdateBuffer(VertexBuffer, 0, mesh.Vertices);
+            VertexBuffer = factory.CreateVertexBuffer(vSize);
+            VertexBuffer.SetData(mesh.Vertices, 0);
 
             // ✅ 索引 Buffer
             if ((long)mesh.Indices.Length * sizeof(uint) > uint.MaxValue)
@@ -75,11 +72,11 @@ public class Object3D : IDisposable
             
             Console.WriteLine($"[Object3D '{Name}'] Index buffer size: {iSize:N0} bytes ({iSize / 1024.0 / 1024.0:F2} MB)");
 
-            IndexBuffer = factory.CreateBuffer(new BufferDescription(iSize, BufferUsage.IndexBuffer));
-            gd.UpdateBuffer(IndexBuffer, 0, mesh.Indices);
+            IndexBuffer = factory.CreateIndexBuffer(iSize);
+            IndexBuffer.SetData(mesh.Indices, 0);
 
             // ✅ World Uniform Buffer
-            WorldBuffer = factory.CreateBuffer(new BufferDescription(64, BufferUsage.UniformBuffer | BufferUsage.Dynamic));
+            WorldBuffer = factory.CreateUniformBuffer(64);
 
             Console.WriteLine($"[Object3D '{Name}'] ✓ Initialized successfully");
         }
@@ -96,19 +93,12 @@ public class Object3D : IDisposable
         }
     }
 
-    // 创建资源集 (Pipeline 创建后调用)
-    public void CreateResourceSet(ResourceFactory factory, ResourceLayout worldLayout)
-    {
-        if (WorldBuffer == null)
-            throw new InvalidOperationException("WorldBuffer not initialized. Call Initialize first.");
-
-        WorldResourceSet = factory.CreateResourceSet(new ResourceSetDescription(worldLayout, WorldBuffer));
-        Console.WriteLine($"[Object3D '{Name}'] ResourceSet created");
-    }
-
-    public void UpdateUniforms(CommandList cl)
+    public void UpdateUniforms(ICommandExecutor executor)
     {
         // 每次绘制前，把最新的 SRT 矩阵传给 GPU
-        cl.UpdateBuffer(WorldBuffer, 0, WorldMatrix);
+        if (WorldBuffer != null)
+        {
+            WorldBuffer.SetData(WorldMatrix, 0);
+        }
     }
 }

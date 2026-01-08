@@ -1,7 +1,7 @@
 ﻿using System.Numerics;
-using Veldrid;
 using Videra.Core.Geometry;
 using Videra.Core.Graphics;
+using Videra.Core.Graphics.Abstractions;
 using SharpGLTF.Schema2;
 
 namespace Videra.Core.IO;
@@ -11,7 +11,7 @@ public static class ModelImporter
     public static string[] SupportedFormats => new[]
         { "*.gltf", "*.glb", "*.obj" };
 
-    public static Object3D Load(string filePath, GraphicsDevice gd)
+    public static Object3D Load(string filePath, IResourceFactory factory)
     {
         try
         {
@@ -33,12 +33,9 @@ public static class ModelImporter
                 Name = Path.GetFileName(filePath)
             };
 
-            if (gd != null)
-            {
-                Console.WriteLine($"[ModelImporter] Initializing GPU resources...");
-                obj.Initialize(gd.ResourceFactory, gd, meshData);
-                Console.WriteLine($"[ModelImporter] ✓ Success");
-            }
+            Console.WriteLine($"[ModelImporter] Initializing GPU resources...");
+            obj.Initialize(factory, meshData);
+            Console.WriteLine($"[ModelImporter] ✓ Success");
 
             return obj;
         }

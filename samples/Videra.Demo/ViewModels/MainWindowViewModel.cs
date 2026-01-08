@@ -35,7 +35,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
     #endregion
 
-    private readonly IModelImporter _importer;
+    private readonly IModelImporter? _importer;
     private const float DegToRad = (float)(Math.PI / 180.0);
     private const float RadToDeg = (float)(180.0 / Math.PI);
 
@@ -44,7 +44,7 @@ public partial class MainWindowViewModel : ViewModelBase
         _importer = importer;
     }
 
-    public MainWindowViewModel() { }
+    public MainWindowViewModel() : this(null!) { }
 
     public ObservableCollection<Object3D> SceneObjects { get; } = new();
 
@@ -129,6 +129,14 @@ public partial class MainWindowViewModel : ViewModelBase
     [RelayCommand]
     private async Task ImportAsync()
     {
+        if (_importer == null)
+        {
+            // 如果没有 importer，显示警告消息
+            // TODO: 使用 Avalonia 的消息框或通知系统
+            System.Diagnostics.Debug.WriteLine("[Videra] Import functionality not available - waiting for backend implementation");
+            return;
+        }
+        
         var models = await _importer.ImportModelsAsync();
         foreach (var model in models)
         {
