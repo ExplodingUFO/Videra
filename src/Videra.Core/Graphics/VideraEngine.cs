@@ -107,6 +107,8 @@ public class VideraEngine : IDisposable
         }
     }
 
+    private int _frameCount = 0;
+    
     public void Draw()
     {
         if (!IsInitialized || _backend == null || _executor == null || _meshPipeline == null)
@@ -116,6 +118,12 @@ public class VideraEngine : IDisposable
 
         lock (_lock)
         {
+            _frameCount++;
+            bool shouldLog = _frameCount % 60 == 0; // 每秒记录一次（60 FPS）
+            
+            if (shouldLog)
+                Console.WriteLine($"[VideraEngine] Frame {_frameCount}: Drawing {_sceneObjects.Count} objects, Grid visible: {Grid.IsVisible}");
+            
             // 更新后端的清除颜色
             _backend.SetClearColor(new Vector4(BackgroundColor.R, BackgroundColor.G, BackgroundColor.B, BackgroundColor.A));
             
@@ -133,33 +141,70 @@ public class VideraEngine : IDisposable
             {
                 _cameraBuffer.SetData(Camera.ViewMatrix, 0);
                 _cameraBuffer.SetData(Camera.ProjectionMatrix, 64);
+                
+                if (shouldLog)
+                {
+                    Console.WriteLine($"[VideraEngine] Camera Position: {Camera.Position}, Target: {Camera.Target}");
+                    Console.WriteLine($"[VideraEngine] Camera Yaw: {Camera.Yaw:F2}, Pitch: {Camera.Pitch:F2}");
+                    
+                    // 输出View矩阵的第一行来验证数据
+                    var viewMatrix = Camera.ViewMatrix;
+                    Console.WriteLine($"[VideraEngine] ViewMatrix M11={viewMatrix.M11:F2}, M12={viewMatrix.M12:F2}, M13={viewMatrix.M13:F2}, M14={viewMatrix.M14:F2}");
+                    
+                    var projMatrix = Camera.ProjectionMatrix;
+                    Console.WriteLine($"[VideraEngine] ProjMatrix M11={projMatrix.M11:F2}, M22={projMatrix.M22:F2}, M33={projMatrix.M33:F2}, M43={projMatrix.M43:F2}");
+                }
             }
             
-            // 绑定Pipeline
+            // 绑定Pipeline用于模型渲染
             _executor.SetPipeline(_meshPipeline);
             
-            // 渲染网格
-            Grid.Draw(_executor, Camera, _width, _height);
+            // 绑定相机 uniform buffer 到索引 1（shader中的 [[buffer(1)]]）
+            if (_cameraBuffer != null)
+            {
+                _executor.SetVertexBuffer(_cameraBuffer, 1);
+                if (shouldLog)
+                    Console.WriteLine("[VideraEngine] Camera uniform buffer bound to index 1");
+            }
+            
+            // 渲染网格（传入pipeline）
+            if (shouldLog)
+                Console.WriteLine($"[VideraEngine] Calling Grid.Draw, IsVisible={Grid.IsVisible}");
+            Grid.Draw(_executor, _meshPipeline, Camera, _width, _height);
+            
+            // 绑定Pipeline用于模型渲染
+            _executor.SetPipeline(_meshPipeline);
             
             // 渲染所有物体
+            if (shouldLog && _sceneObjects.Count > 0)
+                Console.WriteLine($"[VideraEngine] Starting to render {_sceneObjects.Count} objects");
+            
             foreach (var obj in _sceneObjects)
             {
                 if (obj.VertexBuffer == null || obj.IndexBuffer == null || obj.WorldBuffer == null)
+                {
+                    if (shouldLog)
+                        Console.WriteLine($"[VideraEngine] Skipping object '{obj.Name}' - missing buffers");
                     continue;
+                }
 
                 // 更新物体的World矩阵
                 obj.UpdateUniforms(_executor);
                 
                 // 绑定缓冲区
-                _executor.SetVertexBuffer(obj.VertexBuffer);
+                _executor.SetVertexBuffer(obj.VertexBuffer, 0); // 顶点数据在索引 0
+                _executor.SetVertexBuffer(obj.WorldBuffer, 2);  // World矩阵在索引 2
                 _executor.SetIndexBuffer(obj.IndexBuffer);
+                
+                if (shouldLog)
+                    Console.WriteLine($"[VideraEngine] Drawing object '{obj.Name}' with {obj.IndexCount} indices");
                 
                 // 绘制
                 _executor.DrawIndexed(obj.IndexCount, 1, 0, 0, 0);
             }
             
             // 渲染坐标轴
-            _axisRenderer.Draw(_executor, Camera, _width, _height);
+            _axisRenderer.Draw(_executor, _meshPipeline, Camera, _width, _height);
             
             // 结束帧并呈现
             _backend.EndFrame();

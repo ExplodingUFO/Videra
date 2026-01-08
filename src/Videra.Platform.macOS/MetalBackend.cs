@@ -13,10 +13,12 @@ public unsafe class MetalBackend : IGraphicsBackend
     private IntPtr _commandQueue;
     private IntPtr _metalLayer;
     private IntPtr _depthStencilState;
+    private IntPtr _nsView;
     
     private Vector4 _clearColor = new(0.1f, 0.1f, 0.15f, 1.0f);
     private int _width;
     private int _height;
+    private double _scaleFactor = 1.0;
     
     private MetalResourceFactory _resourceFactory;
     private MetalCommandExecutor _commandExecutor;
@@ -31,7 +33,11 @@ public unsafe class MetalBackend : IGraphicsBackend
         _height = height;
         
         // 获取 NSView
-        var nsView = windowHandle;
+        _nsView = windowHandle;
+        
+        // 获取 Retina 缩放因子
+        _scaleFactor = GetBackingScaleFactor(_nsView);
+        Console.WriteLine($"[Metal] Backing scale factor: {_scaleFactor}");
         
         // 创建 Metal Device
         _device = MTLCreateSystemDefaultDevice();
@@ -44,13 +50,19 @@ public unsafe class MetalBackend : IGraphicsBackend
             throw new Exception("Failed to create Metal command queue");
 
         // 获取或创建 CAMetalLayer
-        _metalLayer = GetOrCreateMetalLayer(nsView);
+        _metalLayer = GetOrCreateMetalLayer(_nsView);
         
         // 配置 MetalLayer
         SetLayerDevice(_metalLayer, _device);
         SetLayerPixelFormat(_metalLayer, 80); // MTLPixelFormatBGRA8Unorm
         SetLayerFramebufferOnly(_metalLayer, false);
+        
+        // 设置 contentsScale 以支持 Retina（绘制尺寸已经是像素，不再二次缩放）
+        SetLayerContentsScale(_metalLayer, _scaleFactor);
+        
+        // 设置 drawable 尺寸（直接使用像素尺寸）
         SetLayerDrawableSize(_metalLayer, width, height);
+        Console.WriteLine($"[Metal] Initialize: pixel {width}x{height}, scale {_scaleFactor}");
 
         // 创建深度模板状态
         CreateDepthStencilState();
@@ -96,10 +108,14 @@ public unsafe class MetalBackend : IGraphicsBackend
     {
         if (width <= 0 || height <= 0) return;
 
+        // 重新获取缩放因子（窗口可能移动到不同 DPI 的显示器）；drawable 尺寸保持像素输入
+        _scaleFactor = GetBackingScaleFactor(_nsView);
+
         _width = width;
         _height = height;
         
         SetLayerDrawableSize(_metalLayer, width, height);
+        Console.WriteLine($"[Metal] Resize: pixel {width}x{height}, scale {_scaleFactor}");
     }
 
     public void BeginFrame()
@@ -192,9 +208,35 @@ public unsafe class MetalBackend : IGraphicsBackend
         var size = new CGSize { width = width, height = height };
         objc_msgSend_CGSize(layer, selector, size);
     }
+    
+    private static void SetLayerContentsScale(IntPtr layer, double scale)
+    {
+        objc_msgSend_double(layer, SEL("setContentsScale:"), scale);
+    }
+    
+    private static double GetBackingScaleFactor(IntPtr nsView)
+    {
+        // 获取 NSView 所在的 window
+        var window = SendMessage(nsView, SEL("window"));
+        if (window == IntPtr.Zero)
+        {
+            Console.WriteLine("[Metal] No window found, using scale factor 2.0 (Retina default)");
+            return 2.0; // macOS Retina 默认值
+        }
+        
+        // 获取 window 的 backingScaleFactor
+        var scale = objc_msgSend_double_ret(window, SEL("backingScaleFactor"));
+        return scale > 0 ? scale : 2.0;
+    }
 
     [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_msgSend")]
     private static extern void objc_msgSend_CGSize(IntPtr receiver, IntPtr selector, CGSize size);
+    
+    [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_msgSend")]
+    private static extern void objc_msgSend_double(IntPtr receiver, IntPtr selector, double arg);
+    
+    [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_msgSend")]
+    private static extern double objc_msgSend_double_ret(IntPtr receiver, IntPtr selector);
 
     [StructLayout(LayoutKind.Sequential)]
     private struct CGSize

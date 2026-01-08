@@ -13,41 +13,50 @@ public partial class VideraViewNew
 {
     private void SetupInput(IntPtr handle)
     {
-        // 使用 Avalonia 的输入事件系统
-        var top = TopLevel.GetTopLevel(this);
-        if (top != null)
-        {
-            // 添加隧道事件监听器
-            top.AddHandler(PointerPressedEvent, OnAvaPress, RoutingStrategies.Tunnel);
-            top.AddHandler(PointerReleasedEvent, OnAvaRelease, RoutingStrategies.Tunnel);
-            top.AddHandler(PointerMovedEvent, OnAvaMove, RoutingStrategies.Tunnel);
-            top.AddHandler(PointerWheelChangedEvent, OnAvaWheel, RoutingStrategies.Tunnel);
-        }
-
-        // 确保控件可以接收焦点
+        // NativeControlHost 需要覆盖方法而不是订阅事件
         Focusable = true;
+        Console.WriteLine("[VideraViewNew] Input setup completed");
     }
 
     private void CleanupInput()
     {
-        var top = TopLevel.GetTopLevel(this);
-        if (top != null)
-        {
-            top.RemoveHandler(PointerPressedEvent, OnAvaPress);
-            top.RemoveHandler(PointerReleasedEvent, OnAvaRelease);
-            top.RemoveHandler(PointerMovedEvent, OnAvaMove);
-            top.RemoveHandler(PointerWheelChangedEvent, OnAvaWheel);
-        }
+        // 不需要取消订阅
     }
 
     private bool _isLeftButtonDown;
     private bool _isRightButtonDown;
     private Point _lastPos;
 
-    private void OnAvaPress(object? sender, PointerPressedEventArgs e)
+    protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
     {
-        if (!IsPointerOverThis(e)) return;
+        base.OnAttachedToVisualTree(e);
+        var top = TopLevel.GetTopLevel(this);
+        if (top != null)
+        {
+            top.AddHandler(PointerPressedEvent, OnTopPointerPressed, RoutingStrategies.Tunnel | RoutingStrategies.Bubble);
+            top.AddHandler(PointerReleasedEvent, OnTopPointerReleased, RoutingStrategies.Tunnel | RoutingStrategies.Bubble);
+            top.AddHandler(PointerMovedEvent, OnTopPointerMoved, RoutingStrategies.Tunnel | RoutingStrategies.Bubble);
+            top.AddHandler(PointerWheelChangedEvent, OnTopPointerWheel, RoutingStrategies.Tunnel | RoutingStrategies.Bubble);
+        }
+    }
 
+    protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        var top = TopLevel.GetTopLevel(this);
+        if (top != null)
+        {
+            top.RemoveHandler(PointerPressedEvent, OnTopPointerPressed);
+            top.RemoveHandler(PointerReleasedEvent, OnTopPointerReleased);
+            top.RemoveHandler(PointerMovedEvent, OnTopPointerMoved);
+            top.RemoveHandler(PointerWheelChangedEvent, OnTopPointerWheel);
+        }
+        base.OnDetachedFromVisualTree(e);
+    }
+
+    protected override void OnPointerPressed(PointerPressedEventArgs e)
+    {
+        base.OnPointerPressed(e);
+        
         var props = e.GetCurrentPoint(this).Properties;
         _lastPos = e.GetPosition(this);
 
@@ -55,38 +64,42 @@ public partial class VideraViewNew
         {
             _isLeftButtonDown = true;
             e.Handled = true;
+            Console.WriteLine("[Input] Left button down");
         }
         else if (props.IsRightButtonPressed)
         {
             _isRightButtonDown = true;
             e.Handled = true;
+            Console.WriteLine("[Input] Right button down");
         }
 
         Focus();
+        e.Pointer.Capture(this);
     }
 
-    private void OnAvaRelease(object? sender, PointerReleasedEventArgs e)
+    protected override void OnPointerReleased(PointerReleasedEventArgs e)
     {
-        if (!IsPointerOverThis(e)) return;
-
-        var props = e.GetCurrentPoint(this).Properties;
-
-        if (props.PointerUpdateKind == PointerUpdateKind.LeftButtonReleased)
+        base.OnPointerReleased(e);
+        
+        if (e.InitialPressMouseButton == MouseButton.Left)
         {
             _isLeftButtonDown = false;
             e.Handled = true;
         }
-        else if (props.PointerUpdateKind == PointerUpdateKind.RightButtonReleased)
+        else if (e.InitialPressMouseButton == MouseButton.Right)
         {
             _isRightButtonDown = false;
             e.Handled = true;
         }
+        
+        e.Pointer.Capture(null);
     }
 
-    private void OnAvaMove(object? sender, PointerEventArgs e)
+    protected override void OnPointerMoved(PointerEventArgs e)
     {
+        base.OnPointerMoved(e);
+        
         if (!_isLeftButtonDown && !_isRightButtonDown) return;
-        if (!IsPointerOverThis(e)) return;
 
         var pos = e.GetPosition(this);
         var dx = (float)(pos.X - _lastPos.X);
@@ -97,13 +110,43 @@ public partial class VideraViewNew
         e.Handled = true;
     }
 
-    private void OnAvaWheel(object? sender, PointerWheelEventArgs e)
+    protected override void OnPointerWheelChanged(PointerWheelEventArgs e)
     {
-        if (!IsPointerOverThis(e)) return;
-
+        base.OnPointerWheelChanged(e);
+        
         var delta = e.Delta.Y;
-        Engine.Camera.Zoom((float)(delta * 0.1));
+        Engine.Camera.Zoom((float)(delta * 0.5));
         e.Handled = true;
+        Console.WriteLine($"[Input] Wheel: {delta}");
+    }
+
+    // TopLevel event handlers to ensure delivery when NativeControlHost misses direct hits
+    private void OnTopPointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (e.Handled) return;
+        if (!IsPointerOverThis(e)) return;
+        OnPointerPressed(e);
+    }
+
+    private void OnTopPointerReleased(object? sender, PointerReleasedEventArgs e)
+    {
+        if (e.Handled) return;
+        if (!IsPointerOverThis(e)) return;
+        OnPointerReleased(e);
+    }
+
+    private void OnTopPointerMoved(object? sender, PointerEventArgs e)
+    {
+        if (e.Handled) return;
+        if (!IsPointerOverThis(e)) return;
+        OnPointerMoved(e);
+    }
+
+    private void OnTopPointerWheel(object? sender, PointerWheelEventArgs e)
+    {
+        if (e.Handled) return;
+        if (!IsPointerOverThis(e)) return;
+        OnPointerWheelChanged(e);
     }
 
     private bool IsPointerOverThis(PointerEventArgs e)

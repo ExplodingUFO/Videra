@@ -212,27 +212,30 @@ public partial class VideraViewNew : NativeControlHost
     {
         base.OnSizeChanged(e);
 
-        var width = (uint)Math.Max(1, e.NewSize.Width);
-        var height = (uint)Math.Max(1, e.NewSize.Height);
+        var scaling = VisualRoot?.RenderScaling ?? 1.0;
+        var widthPx = (uint)Math.Max(64, Math.Round(e.NewSize.Width * scaling));
+        var heightPx = (uint)Math.Max(64, Math.Round(e.NewSize.Height * scaling));
+        
+        Console.WriteLine($"[VideraViewNew] OnSizeChanged: logical {e.NewSize.Width}x{e.NewSize.Height}, scale {scaling}, pixel {widthPx}x{heightPx}");
 
         Dispatcher.UIThread.Post(() =>
         {
-            TryInitializeOrResize(width, height);
+            TryInitializeOrResize(widthPx, heightPx);
         }, DispatcherPriority.Background);
     }
 
-    private void TryInitializeOrResize(uint width, uint height, int retryCount = 0)
+    private void TryInitializeOrResize(uint widthPx, uint heightPx, int retryCount = 0)
     {
-        if (_nativeHandle == IntPtr.Zero || width == 0 || height == 0) return;
+        if (_nativeHandle == IntPtr.Zero || widthPx == 0 || heightPx == 0) return;
 
         if (!_isInitialized)
         {
             try
             {
-                Console.WriteLine($"[Videra] Attempting Init (Try #{retryCount + 1}): {width}x{height}");
+                Console.WriteLine($"[Videra] Attempting Init (Try #{retryCount + 1}): {widthPx}x{heightPx} (pixel)");
                 Console.WriteLine($"[Videra] Platform: {GraphicsBackendFactory.GetPlatformName()}");
                 
-                InitializeGraphicsDevice(width, height);
+                InitializeGraphicsDevice(widthPx, heightPx);
                 _isInitialized = true;
                 _isReady = true;
                 
@@ -246,7 +249,7 @@ public partial class VideraViewNew : NativeControlHost
                 {
                     Task.Delay(100).ContinueWith(_ =>
                     {
-                        Dispatcher.UIThread.Post(() => TryInitializeOrResize(width, height, retryCount + 1));
+                        Dispatcher.UIThread.Post(() => TryInitializeOrResize(widthPx, heightPx, retryCount + 1));
                     });
                 }
                 else
@@ -258,45 +261,29 @@ public partial class VideraViewNew : NativeControlHost
         else
         {
             // 已初始化，执行 Resize
-            if (_backend != null && (width != _width || height != _height))
+            if (_backend != null && (widthPx != _width || heightPx != _height))
             {
-                _backend.Resize((int)width, (int)height);
-                Engine.Resize(width, height);
-                _width = width;
-                _height = height;
+                _backend.Resize((int)widthPx, (int)heightPx);
+                Engine.Resize(widthPx, heightPx);
+                _width = widthPx;
+                _height = heightPx;
             }
         }
     }
 
-    private void InitializeGraphicsDevice(uint width, uint height)
+    private void InitializeGraphicsDevice(uint widthPx, uint heightPx)
     {
         if (_nativeHandle == IntPtr.Zero)
             throw new InvalidOperationException("Native Handle is null");
 
-        uint actualWidth = width;
-        uint actualHeight = height;
+        uint actualWidth = Math.Max(64, widthPx);
+        uint actualHeight = Math.Max(64, heightPx);
 
-        // macOS 特殊处理
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-        {
-            var frame = GetNSViewFrame(_nativeHandle);
-            actualWidth = (uint)Math.Max(64, frame.width);
-            actualHeight = (uint)Math.Max(64, frame.height);
-
-            if (actualWidth < 64 || actualHeight < 64)
-                throw new InvalidOperationException($"NSView too small: {actualWidth}x{actualHeight}");
-        }
-        else
-        {
-            actualWidth = Math.Max(64, width);
-            actualHeight = Math.Max(64, height);
-        }
-
-        // 创建平台特定的后端
+        // 创建平台特定的后端（传入像素尺寸）
         _backend = GraphicsBackendFactory.CreateBackend();
         _backend.Initialize(_nativeHandle, (int)actualWidth, (int)actualHeight);
 
-        // 初始化Engine
+        // 初始化Engine（使用像素尺寸确保视口与 drawable 匹配）
         Engine.Initialize(_backend);
         Engine.Resize(actualWidth, actualHeight);
 

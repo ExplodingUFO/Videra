@@ -1,12 +1,13 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using System;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Numerics;
 using System.Threading.Tasks;
 using Avalonia.Media;
 using Videra.Core.Graphics;
 using Videra.Demo.Services;
-using System;
 
 namespace Videra.Demo.ViewModels;
 
@@ -134,14 +135,22 @@ public partial class MainWindowViewModel : ViewModelBase
             // 如果没有 importer，显示警告消息
             // TODO: 使用 Avalonia 的消息框或通知系统
             System.Diagnostics.Debug.WriteLine("[Videra] Import functionality not available - waiting for backend implementation");
+            Console.WriteLine("[MainWindow] Import error: No importer service available");
             return;
         }
         
+        Console.WriteLine("[MainWindow] Starting model import...");
         var models = await _importer.ImportModelsAsync();
-        foreach (var model in models)
+        var modelList = models.ToList();
+        Console.WriteLine($"[MainWindow] Imported {modelList.Count} models");
+        
+        foreach (var model in modelList)
         {
+            Console.WriteLine($"[MainWindow] Adding model '{model.Name}' to scene");
             SceneObjects.Add(model);
             SelectedObject = model;
         }
+        
+        Console.WriteLine($"[MainWindow] Scene now has {SceneObjects.Count} objects");
     }
 }

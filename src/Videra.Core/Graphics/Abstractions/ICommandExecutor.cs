@@ -15,7 +15,7 @@ public interface ICommandExecutor
     /// <summary>
     /// 设置顶点缓冲区
     /// </summary>
-    void SetVertexBuffer(IBuffer buffer);
+    void SetVertexBuffer(IBuffer buffer, uint index = 0);
     
     /// <summary>
     /// 设置索引缓冲区
@@ -31,6 +31,11 @@ public interface ICommandExecutor
     /// 绘制索引图元
     /// </summary>
     void DrawIndexed(uint indexCount, uint instanceCount = 1, uint firstIndex = 0, int vertexOffset = 0, uint firstInstance = 0);
+    
+    /// <summary>
+    /// 绘制索引图元（指定图元类型）
+    /// </summary>
+    void DrawIndexed(uint primitiveType, uint indexCount, uint instanceCount = 1, uint firstIndex = 0, int vertexOffset = 0, uint firstInstance = 0);
     
     /// <summary>
     /// 绘制非索引图元

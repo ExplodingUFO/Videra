@@ -100,6 +100,10 @@ internal class MetalResourceFactory : IResourceFactory
             var colorAttachment = GetObjectAtIndex(colorAttachments, 0);
             SendMessageWithInt(colorAttachment, SEL("setPixelFormat:"), 80); // MTLPixelFormatBGRA8Unorm
             
+            // 【重要】不设置深度附件格式，因为我们没有深度纹理
+            // 这样深度测试不会生效，但至少能显示
+            // SendMessageWithInt(pipelineDescriptor, SEL("setDepthAttachmentPixelFormat:"), 252); // MTLPixelFormatDepth32Float
+            
             // 创建顶点描述符
             var vertexDescriptor = CreateVertexDescriptor(vertexSize, hasNormals, hasColors);
             SendMessageWithPtr(pipelineDescriptor, SEL("setVertexDescriptor:"), vertexDescriptor);
@@ -154,39 +158,52 @@ struct VertexOut {
     float4 color;
 };
 
-struct Uniforms {
+struct CameraUniforms {
     float4x4 viewMatrix;
     float4x4 projectionMatrix;
+};
+
+struct WorldUniforms {
     float4x4 worldMatrix;
 };
 
 vertex VertexOut vertex_main(
     VertexIn in [[stage_in]],
-    constant Uniforms& uniforms [[buffer(1)]])
+    constant CameraUniforms& camera [[buffer(1)]],
+    constant WorldUniforms& world [[buffer(2)]],
+    uint vid [[vertex_id]])
 {
     VertexOut out;
-    float4 worldPos = uniforms.worldMatrix * float4(in.position, 1.0);
-    float4 viewPos = uniforms.viewMatrix * worldPos;
-    out.position = uniforms.projectionMatrix * viewPos;
+    
+    // Normal MVP path for all geometry
+    float4 worldPos = world.worldMatrix * float4(in.position, 1.0);
+    float4 viewPos = camera.viewMatrix * worldPos;
+    out.position = camera.projectionMatrix * viewPos;
+    
+    // Debug Color Generation based on ID if color is black/missing
+    if (in.color.a == 0.0) {
+        if (vid % 3 == 0) out.color = float4(1, 0, 0, 1);
+        else if (vid % 3 == 1) out.color = float4(0, 1, 0, 1);
+        else out.color = float4(0, 0, 1, 1);
+    } else {
+        out.color = in.color;
+    }
+    
     out.normal = in.normal;
-    out.color = in.color;
     return out;
 }
 
 fragment float4 fragment_main(VertexOut in [[stage_in]])
 {
-    float3 lightDir = normalize(float3(0.5, 1.0, 0.3));
-    float diffuse = max(dot(normalize(in.normal), lightDir), 0.0);
-    float ambient = 0.3;
-    float3 lighting = float3(ambient + diffuse);
-    float3 finalColor = in.color.rgb * lighting;
-    return float4(finalColor, in.color.a);
+    // DIRECT COLOR OUTPUT - No lighting, no complex math
+    return in.color;
 }
 ";
     }
     
     private IntPtr CreateLibraryFromSource(IntPtr device, string source)
     {
+        Console.WriteLine("[Metal] Compiling shader from source...");
         var sourceStr = CreateNSString(source);
         IntPtr error = IntPtr.Zero;
         
@@ -199,6 +216,12 @@ fragment float4 fragment_main(VertexOut in [[stage_in]])
             var errorDesc = SendMessage(error, SEL("localizedDescription"));
             var errorCStr = SendMessage(errorDesc, SEL("UTF8String"));
             Console.WriteLine($"[Metal] Library creation error: {Marshal.PtrToStringAnsi(errorCStr)}");
+            return IntPtr.Zero;
+        }
+        
+        if (library != IntPtr.Zero)
+        {
+            Console.WriteLine("[Metal] Shader library compiled successfully");
         }
         
         return library;

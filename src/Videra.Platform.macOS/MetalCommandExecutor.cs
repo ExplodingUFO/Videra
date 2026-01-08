@@ -10,6 +10,7 @@ internal class MetalCommandExecutor : ICommandExecutor
     private IntPtr _commandBuffer;
     private IntPtr _renderEncoder;
     private IntPtr _currentDrawable;
+    private static int _frameDebugCount = 0;
 
     public MetalCommandExecutor(IntPtr commandQueue)
     {
@@ -43,6 +44,15 @@ internal class MetalCommandExecutor : ICommandExecutor
             return;
         }
         
+        // 输出 texture 信息（仅首次）
+        if (_frameDebugCount == 0)
+        {
+            var textureWidth = SendMessage(texture, SEL("width"));
+            var textureHeight = SendMessage(texture, SEL("height"));
+            Console.WriteLine($"[Metal] BeginFrame: Texture size {textureWidth}x{textureHeight}");
+            _frameDebugCount++;
+        }
+        
         // 创建 Render Pass Descriptor
         var renderPassDesc = AllocInit("MTLRenderPassDescriptor");
         var colorAttachments = SendMessage(renderPassDesc, SEL("colorAttachments"));
@@ -57,9 +67,39 @@ internal class MetalCommandExecutor : ICommandExecutor
         // 创建 Render Command Encoder
         _renderEncoder = SendMessageWithPtr(_commandBuffer, SEL("renderCommandEncoderWithDescriptor:"), renderPassDesc);
         
-        // 设置深度模板状态
+        if (_renderEncoder == IntPtr.Zero)
+        {
+            Console.WriteLine("[Metal] Failed to create render encoder");
+        }
+        else if (_frameDebugCount <= 1)
+        {
+            Console.WriteLine("[Metal] Render encoder created successfully");
+        }
+        
+        // 设置渲染状态
+        if (_renderEncoder != IntPtr.Zero)
+        {
+            // 禁用背面剪裁，这样可以看到所有面
+            SendMessageWithInt(_renderEncoder, SEL("setCullMode:"), 0); // MTLCullModeNone = 0
+            
+            // 设置为填充模式
+            SendMessageWithInt(_renderEncoder, SEL("setTriangleFillMode:"), 0); // MTLTriangleFillModeFill = 0
+            
+            // 设置 front face 为逆时针
+            SendMessageWithInt(_renderEncoder, SEL("setFrontFacingWinding:"), 1); // MTLWindingCounterClockwise = 1
+            
+            if (_frameDebugCount == 0)
+                Console.WriteLine("[Metal] Render states set: CullMode=None, FillMode=Fill, Winding=CCW");
+        }
+        
+        // 设置深度模板状态（暂时禁用，因为没有深度缓冲区）
         if (depthStencilState != IntPtr.Zero)
-            SendMessageWithPtr(_renderEncoder, SEL("setDepthStencilState:"), depthStencilState);
+        {
+            if (_frameDebugCount <= 1)
+                Console.WriteLine("[Metal] Depth stencil DISABLED (no depth buffer configured)");
+            // 因为没有深度缓冲区，设置深度状态会导致验证错误
+            // SendMessageWithPtr(_renderEncoder, SEL("setDepthStencilState:"), depthStencilState);
+        }
         
         // 释放 descriptor
         SendMessage(renderPassDesc, SEL("release"));
@@ -99,14 +139,20 @@ internal class MetalCommandExecutor : ICommandExecutor
         }
     }
 
-    public void SetVertexBuffer(IBuffer buffer)
+    private static int _setBufferCallCount = 0;
+    
+    public void SetVertexBuffer(IBuffer buffer, uint index = 0)
     {
         if (buffer is not MetalBuffer metalBuffer)
             throw new ArgumentException("Buffer must be a MetalBuffer");
 
         if (_renderEncoder != IntPtr.Zero)
         {
-            SetVertexBufferAtIndex(_renderEncoder, SEL("setVertexBuffer:offset:atIndex:"), metalBuffer.NativeBuffer, 0, 0);
+            SetVertexBufferAtIndex(_renderEncoder, SEL("setVertexBuffer:offset:atIndex:"), metalBuffer.NativeBuffer, 0, index);
+            
+            _setBufferCallCount++;
+            if (_setBufferCallCount % 300 == 0) // 每5秒记录一次（60fps * 5）
+                Console.WriteLine($"[MetalCommandExecutor] SetVertexBuffer at index {index}, buffer size: {metalBuffer.SizeInBytes}");
         }
     }
 
@@ -126,18 +172,43 @@ internal class MetalCommandExecutor : ICommandExecutor
         // Placeholder: Would set resource bindings here
     }
 
+    private static int _drawCallCount = 0;
+    
     public void DrawIndexed(uint indexCount, uint instanceCount = 1, uint firstIndex = 0, int vertexOffset = 0, uint firstInstance = 0)
     {
-        if (_renderEncoder == IntPtr.Zero || _currentIndexBuffer == IntPtr.Zero)
+        // 默认使用三角形模式
+        DrawIndexed(3, indexCount, instanceCount, firstIndex, vertexOffset, firstInstance);
+    }
+    
+    public void DrawIndexed(uint primitiveType, uint indexCount, uint instanceCount = 1, uint firstIndex = 0, int vertexOffset = 0, uint firstInstance = 0)
+    {
+        if (_renderEncoder == IntPtr.Zero)
+        {
+            Console.WriteLine("[MetalCommandExecutor] DrawIndexed failed: _renderEncoder is Zero");
             return;
+        }
+        
+        if (_currentIndexBuffer == IntPtr.Zero)
+        {
+            Console.WriteLine("[MetalCommandExecutor] DrawIndexed failed: _currentIndexBuffer is Zero");
+            return;
+        }
+        
+        string primitiveTypeName = primitiveType switch
+        {
+            1 => "line",
+            3 => "triangle",
+            _ => $"unknown({primitiveType})"
+        };
             
-        // Metal draw indexed primitives
-        // MTLPrimitiveTypeTriangle = 3
-        // MTLIndexTypeUInt32 = 1
+        _drawCallCount++;
+        if (_drawCallCount % 60 == 0)
+            Console.WriteLine($"[MetalCommandExecutor] DrawIndexed: {indexCount} indices, primitiveType={primitiveTypeName}");
+        
         DrawIndexedPrimitives(
             _renderEncoder,
             SEL("drawIndexedPrimitives:indexCount:indexType:indexBuffer:indexBufferOffset:"),
-            3, // primitiveType: triangle
+            primitiveType,
             indexCount, 
             1, // indexType: uint32
             _currentIndexBuffer, 
@@ -159,6 +230,8 @@ internal class MetalCommandExecutor : ICommandExecutor
         );
     }
 
+    private static int _viewportCallCount = 0;
+    
     public void SetViewport(float x, float y, float width, float height, float minDepth = 0f, float maxDepth = 1f)
     {
         var viewport = new MTLViewport
@@ -170,6 +243,11 @@ internal class MetalCommandExecutor : ICommandExecutor
             znear = minDepth,
             zfar = maxDepth
         };
+        
+        _viewportCallCount++;
+        if (_viewportCallCount % 60 == 0)
+            Console.WriteLine($"[MetalCommandExecutor] SetViewport: ({x}, {y}, {width}, {height}), depth: [{minDepth}, {maxDepth}]");
+        
         SetViewportStruct(_renderEncoder, SEL("setViewport:"), viewport);
     }
 
