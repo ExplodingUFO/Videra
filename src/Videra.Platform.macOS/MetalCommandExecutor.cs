@@ -31,6 +31,7 @@ internal class MetalCommandExecutor : ICommandExecutor
         if (_currentDrawable == IntPtr.Zero)
         {
             // 这是正常情况，可能是窗口最小化或不可见
+            _commandBuffer = IntPtr.Zero;
             return;
         }
 
@@ -72,10 +73,14 @@ internal class MetalCommandExecutor : ICommandExecutor
             _renderEncoder = IntPtr.Zero;
         }
 
-        if (_currentDrawable != IntPtr.Zero && _commandBuffer != IntPtr.Zero)
+        if (_commandBuffer != IntPtr.Zero)
         {
-            SendMessageWithPtr(_commandBuffer, SEL("presentDrawable:"), _currentDrawable);
+            if (_currentDrawable != IntPtr.Zero)
+            {
+                SendMessageWithPtr(_commandBuffer, SEL("presentDrawable:"), _currentDrawable);
+            }
             SendMessage(_commandBuffer, SEL("commit"));
+            SendMessage(_commandBuffer, SEL("waitUntilCompleted"));
             
             _currentDrawable = IntPtr.Zero;
             _commandBuffer = IntPtr.Zero;
@@ -84,7 +89,14 @@ internal class MetalCommandExecutor : ICommandExecutor
 
     public void SetPipeline(IPipeline pipeline)
     {
-        // Placeholder: Metal pipeline state would be set here
+        if (pipeline is MetalPipeline metalPipeline && _renderEncoder != IntPtr.Zero)
+        {
+            var pipelineState = metalPipeline.NativePipelineState;
+            if (pipelineState != IntPtr.Zero)
+            {
+                SendMessageWithPtr(_renderEncoder, SEL("setRenderPipelineState:"), pipelineState);
+            }
+        }
     }
 
     public void SetVertexBuffer(IBuffer buffer)
@@ -92,13 +104,22 @@ internal class MetalCommandExecutor : ICommandExecutor
         if (buffer is not MetalBuffer metalBuffer)
             throw new ArgumentException("Buffer must be a MetalBuffer");
 
-        SetVertexBuffer(_renderEncoder, SEL("setVertexBuffer:offset:atIndex:"), metalBuffer.NativeBuffer, 0, 0);
+        if (_renderEncoder != IntPtr.Zero)
+        {
+            SetVertexBufferAtIndex(_renderEncoder, SEL("setVertexBuffer:offset:atIndex:"), metalBuffer.NativeBuffer, 0, 0);
+        }
     }
 
     public void SetIndexBuffer(IBuffer buffer)
     {
-        // Metal 在 drawIndexed 时设置索引缓冲区，这里只记录
+        // Metal 在 drawIndexed 时需要索引缓冲区，这里先存储
+        if (buffer is MetalBuffer metalBuffer)
+        {
+            _currentIndexBuffer = metalBuffer.NativeBuffer;
+        }
     }
+    
+    private IntPtr _currentIndexBuffer = IntPtr.Zero;
 
     public void SetResourceSet(uint slot, IResourceSet resourceSet)
     {
@@ -107,12 +128,35 @@ internal class MetalCommandExecutor : ICommandExecutor
 
     public void DrawIndexed(uint indexCount, uint instanceCount = 1, uint firstIndex = 0, int vertexOffset = 0, uint firstInstance = 0)
     {
-        // Metal draw indexed primitive (placeholder)
+        if (_renderEncoder == IntPtr.Zero || _currentIndexBuffer == IntPtr.Zero)
+            return;
+            
+        // Metal draw indexed primitives
+        // MTLPrimitiveTypeTriangle = 3
+        // MTLIndexTypeUInt32 = 1
+        DrawIndexedPrimitives(
+            _renderEncoder,
+            SEL("drawIndexedPrimitives:indexCount:indexType:indexBuffer:indexBufferOffset:"),
+            3, // primitiveType: triangle
+            indexCount, 
+            1, // indexType: uint32
+            _currentIndexBuffer, 
+            firstIndex * 4 // indexBufferOffset (4 bytes per uint32)
+        );
     }
 
     public void Draw(uint vertexCount, uint instanceCount = 1, uint firstVertex = 0, uint firstInstance = 0)
     {
-        DrawPrimitives(_renderEncoder, SEL("drawPrimitives:vertexStart:vertexCount:"), 3, firstVertex, vertexCount); // MTLPrimitiveTypeTriangle = 3
+        if (_renderEncoder == IntPtr.Zero)
+            return;
+            
+        DrawPrimitivesCall(
+            _renderEncoder,
+            SEL("drawPrimitives:vertexStart:vertexCount:"),
+            3, // primitiveType: triangle
+            firstVertex,
+            vertexCount
+        );
     }
 
     public void SetViewport(float x, float y, float width, float height, float minDepth = 0f, float maxDepth = 1f)
@@ -170,10 +214,13 @@ internal class MetalCommandExecutor : ICommandExecutor
     private static IntPtr SEL(string name) => sel_registerName(name);
 
     [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_msgSend")]
-    private static extern void SetVertexBuffer(IntPtr encoder, IntPtr selector, IntPtr buffer, nuint offset, nuint index);
+    private static extern void SetVertexBufferAtIndex(IntPtr encoder, IntPtr selector, IntPtr buffer, nuint offset, nuint index);
 
     [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_msgSend")]
-    private static extern void DrawPrimitives(IntPtr encoder, IntPtr selector, nuint primitiveType, nuint vertexStart, nuint vertexCount);
+    private static extern void DrawPrimitivesCall(IntPtr encoder, IntPtr selector, nuint primitiveType, nuint vertexStart, nuint vertexCount);
+    
+    [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_msgSend")]
+    private static extern void DrawIndexedPrimitives(IntPtr encoder, IntPtr selector, nuint primitiveType, nuint indexCount, nuint indexType, IntPtr indexBuffer, nuint indexBufferOffset);
 
     [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_msgSend")]
     private static extern void SetViewportStruct(IntPtr encoder, IntPtr selector, MTLViewport viewport);

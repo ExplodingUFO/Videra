@@ -16,4 +16,14 @@
     <ProjectReference Include="..\Videra.Core\Videra.Core.csproj" />
   </ItemGroup>
 
+  <!-- 编译 Metal 着色器 -->
+  <Target Name="CompileMetalShaders" BeforeTargets="BeforeBuild" Condition="'$(OS)' == 'Unix'">
+    <Exec Command="xcrun -sdk macosx metal -c $(MSBuildProjectDirectory)/Shaders.metal -o $(MSBuildProjectDirectory)/Shaders.air" 
+          IgnoreExitCode="true" 
+          ContinueOnError="true" />
+    <Exec Command="xcrun -sdk macosx metallib $(MSBuildProjectDirectory)/Shaders.air -o $(OutputPath)/default.metallib" 
+          IgnoreExitCode="true" 
+          ContinueOnError="true" />
+  </Target>
+
 </Project>

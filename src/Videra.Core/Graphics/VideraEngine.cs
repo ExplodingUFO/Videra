@@ -116,6 +116,9 @@ public class VideraEngine : IDisposable
 
         lock (_lock)
         {
+            // 更新后端的清除颜色
+            _backend.SetClearColor(new Vector4(BackgroundColor.R, BackgroundColor.G, BackgroundColor.B, BackgroundColor.A));
+            
             // 开始帧
             _backend.BeginFrame();
             
