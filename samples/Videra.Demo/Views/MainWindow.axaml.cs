@@ -30,8 +30,20 @@ public partial class MainWindow : Window
             if (topLevel != null && factory != null)
             {
                 var importerService = new AvaloniaModelImporter(topLevel, factory);
-                DataContext = new MainWindowViewModel(importerService);
+                var viewModel = new MainWindowViewModel(importerService);
+                DataContext = viewModel;
                 Console.WriteLine("[MainWindow] ViewModel created with importer service");
+
+                try
+                {
+                    var cube = DemoMeshFactory.CreateCube(factory);
+                    viewModel.SceneObjects.Add(cube);
+                    viewModel.SelectedObject = cube;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[MainWindow] Demo cube creation failed: {ex.Message}");
+                }
             }
             else
             {

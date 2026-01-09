@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:controls="clr-namespace:Videra.Avalonia.Controls;assembly=Videra.Avalonia"
+        xmlns:converters="clr-namespace:Videra.Demo.Converters"
         mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="600"
         x:Class="Videra.Demo.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
@@ -74,7 +75,7 @@
 
                     <Separator Background="#3E3E42"/>
 
-                    <StackPanel IsVisible="{Binding SelectedObject, Converter={x:Static ObjectConverters.IsNotNull}}" Spacing="15">
+                    <StackPanel IsVisible="{Binding SelectedObject, Converter={x:Static converters:ObjectConverters.IsNotNull}}" Spacing="15">
                         <TextBlock Text="TRANSFORM" FontWeight="Bold" Foreground="#007ACC" FontSize="12"/>
 
                         <StackPanel Spacing="5">
@@ -116,7 +117,7 @@
 
                     </StackPanel>
                     
-                    <TextBlock IsVisible="{Binding SelectedObject, Converter={x:Static ObjectConverters.IsNull}}" 
+                    <TextBlock IsVisible="{Binding SelectedObject, Converter={x:Static converters:ObjectConverters.IsNull}}" 
                                Text="No model selected" 
                                Foreground="Gray" 
                                HorizontalAlignment="Center" 

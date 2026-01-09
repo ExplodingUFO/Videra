@@ -1,57 +1,78 @@
 using System.Runtime.InteropServices;
 using Videra.Core.Graphics.Abstractions;
+using Videra.Core.Graphics.Software;
 
 namespace Videra.Core.Graphics;
 
 /// <summary>
-/// 平台后端工厂 - 根据运行时平台创建对应的图形后端
+/// å¹³å°åŽç«¯å·¥åŽ‚ - æ ¹æ®è¿è¡Œæ—¶å¹³å°åˆ›å»ºå¯¹åº”çš„å›¾å½¢åŽç«¯
 /// </summary>
 public static class GraphicsBackendFactory
 {
     /// <summary>
-    /// 创建当前平台对应的图形后端
+    /// åˆ›å»ºå½“å‰å¹³å°å¯¹åº”çš„å›¾å½¢åŽç«?
     /// </summary>
     public static IGraphicsBackend CreateBackend()
     {
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        var backendMode = Environment.GetEnvironmentVariable("VIDERA_BACKEND");
+        var preferNative = string.Equals(backendMode, "native", StringComparison.OrdinalIgnoreCase);
+        var preferSoftware = string.IsNullOrWhiteSpace(backendMode) ||
+                             string.Equals(backendMode, "software", StringComparison.OrdinalIgnoreCase);
+
+        if (preferSoftware)
+            return new SoftwareBackend();
+
+        if (preferNative)
         {
-            // 动态加载 Windows D3D11 后端
-            var windowsAssembly = System.Reflection.Assembly.Load("Videra.Platform.Windows");
-            var backendType = windowsAssembly.GetType("Videra.Platform.Windows.D3D11Backend");
-            return (IGraphicsBackend)Activator.CreateInstance(backendType!)!;
+            try
+            {
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    var windowsAssembly = System.Reflection.Assembly.Load("Videra.Platform.Windows");
+                    var backendType = windowsAssembly.GetType("Videra.Platform.Windows.D3D11Backend");
+                    return (IGraphicsBackend)Activator.CreateInstance(backendType!)!;
+                }
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                {
+                    var macOSAssembly = System.Reflection.Assembly.Load("Videra.Platform.macOS");
+                    var backendType = macOSAssembly.GetType("Videra.Platform.macOS.MetalBackend");
+                    return (IGraphicsBackend)Activator.CreateInstance(backendType!)!;
+                }
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                {
+                    var linuxAssembly = System.Reflection.Assembly.Load("Videra.Platform.Linux");
+                    var backendType = linuxAssembly.GetType("Videra.Platform.Linux.VulkanBackend");
+                    return (IGraphicsBackend)Activator.CreateInstance(backendType!)!;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[Videra] Native backend load failed, falling back to software: {ex.Message}");
+            }
         }
-        else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-        {
-            // 动态加载 macOS Metal 后端
-            var macOSAssembly = System.Reflection.Assembly.Load("Videra.Platform.macOS");
-            var backendType = macOSAssembly.GetType("Videra.Platform.macOS.MetalBackend");
-            return (IGraphicsBackend)Activator.CreateInstance(backendType!)!;
-        }
-        else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-        {
-            // 动态加载 Linux Vulkan 后端
-            var linuxAssembly = System.Reflection.Assembly.Load("Videra.Platform.Linux");
-            var backendType = linuxAssembly.GetType("Videra.Platform.Linux.VulkanBackend");
-            return (IGraphicsBackend)Activator.CreateInstance(backendType!)!;
-        }
-        else
-        {
-            throw new PlatformNotSupportedException($"Unsupported platform: {RuntimeInformation.OSDescription}");
-        }
+
+        return new SoftwareBackend();
     }
 
     /// <summary>
-    /// 获取当前平台名称
+    /// èŽ·å–å½“å‰å¹³å°åç§°
     /// </summary>
     public static string GetPlatformName()
     {
+        var backendMode = Environment.GetEnvironmentVariable("VIDERA_BACKEND");
+        if (string.IsNullOrWhiteSpace(backendMode) ||
+            string.Equals(backendMode, "software", StringComparison.OrdinalIgnoreCase))
+        {
+            return "Software (CPU)";
+        }
+
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             return "Windows (Direct3D 11)";
-        else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             return "macOS (Metal)";
-        else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             return "Linux (Vulkan)";
-        else
-            return "Unknown Platform";
+
+        return "Unknown Platform";
     }
 }

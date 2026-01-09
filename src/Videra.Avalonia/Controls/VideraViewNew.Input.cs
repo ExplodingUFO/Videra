@@ -1,4 +1,3 @@
-using System.Runtime.InteropServices;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -7,22 +6,10 @@ using Avalonia.Interactivity;
 namespace Videra.Avalonia.Controls;
 
 /// <summary>
-/// VideraViewNew 的输入处理部分
+/// VideraViewNew 的输入处理部分。
 /// </summary>
 public partial class VideraViewNew
 {
-    private void SetupInput(IntPtr handle)
-    {
-        // NativeControlHost 需要覆盖方法而不是订阅事件
-        Focusable = true;
-        Console.WriteLine("[VideraViewNew] Input setup completed");
-    }
-
-    private void CleanupInput()
-    {
-        // 不需要取消订阅
-    }
-
     private bool _isLeftButtonDown;
     private bool _isRightButtonDown;
     private Point _lastPos;
@@ -30,6 +17,8 @@ public partial class VideraViewNew
     protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
     {
         base.OnAttachedToVisualTree(e);
+        OnViewAttached();
+
         var top = TopLevel.GetTopLevel(this);
         if (top != null)
         {
@@ -50,13 +39,15 @@ public partial class VideraViewNew
             top.RemoveHandler(PointerMovedEvent, OnTopPointerMoved);
             top.RemoveHandler(PointerWheelChangedEvent, OnTopPointerWheel);
         }
+
+        OnViewDetached();
         base.OnDetachedFromVisualTree(e);
     }
 
     protected override void OnPointerPressed(PointerPressedEventArgs e)
     {
         base.OnPointerPressed(e);
-        
+
         var props = e.GetCurrentPoint(this).Properties;
         _lastPos = e.GetPosition(this);
 
@@ -64,13 +55,11 @@ public partial class VideraViewNew
         {
             _isLeftButtonDown = true;
             e.Handled = true;
-            Console.WriteLine("[Input] Left button down");
         }
         else if (props.IsRightButtonPressed)
         {
             _isRightButtonDown = true;
             e.Handled = true;
-            Console.WriteLine("[Input] Right button down");
         }
 
         Focus();
@@ -80,7 +69,7 @@ public partial class VideraViewNew
     protected override void OnPointerReleased(PointerReleasedEventArgs e)
     {
         base.OnPointerReleased(e);
-        
+
         if (e.InitialPressMouseButton == MouseButton.Left)
         {
             _isLeftButtonDown = false;
@@ -91,15 +80,16 @@ public partial class VideraViewNew
             _isRightButtonDown = false;
             e.Handled = true;
         }
-        
+
         e.Pointer.Capture(null);
     }
 
     protected override void OnPointerMoved(PointerEventArgs e)
     {
         base.OnPointerMoved(e);
-        
-        if (!_isLeftButtonDown && !_isRightButtonDown) return;
+
+        if (!_isLeftButtonDown && !_isRightButtonDown)
+            return;
 
         var pos = e.GetPosition(this);
         var dx = (float)(pos.X - _lastPos.X);
@@ -113,39 +103,41 @@ public partial class VideraViewNew
     protected override void OnPointerWheelChanged(PointerWheelEventArgs e)
     {
         base.OnPointerWheelChanged(e);
-        
+
         var delta = e.Delta.Y;
         Engine.Camera.Zoom((float)(delta * 0.5));
         e.Handled = true;
-        Console.WriteLine($"[Input] Wheel: {delta}");
     }
 
-    // TopLevel event handlers to ensure delivery when NativeControlHost misses direct hits
     private void OnTopPointerPressed(object? sender, PointerPressedEventArgs e)
     {
-        if (e.Handled) return;
-        if (!IsPointerOverThis(e)) return;
+        if (e.Handled || !IsPointerOverThis(e))
+            return;
+
         OnPointerPressed(e);
     }
 
     private void OnTopPointerReleased(object? sender, PointerReleasedEventArgs e)
     {
-        if (e.Handled) return;
-        if (!IsPointerOverThis(e)) return;
+        if (e.Handled || !IsPointerOverThis(e))
+            return;
+
         OnPointerReleased(e);
     }
 
     private void OnTopPointerMoved(object? sender, PointerEventArgs e)
     {
-        if (e.Handled) return;
-        if (!IsPointerOverThis(e)) return;
+        if (e.Handled || !IsPointerOverThis(e))
+            return;
+
         OnPointerMoved(e);
     }
 
     private void OnTopPointerWheel(object? sender, PointerWheelEventArgs e)
     {
-        if (e.Handled) return;
-        if (!IsPointerOverThis(e)) return;
+        if (e.Handled || !IsPointerOverThis(e))
+            return;
+
         OnPointerWheelChanged(e);
     }
 
@@ -159,14 +151,8 @@ public partial class VideraViewNew
     private void ProcessMove(float dx, float dy, bool isLeft)
     {
         if (isLeft)
-        {
-            // 左键：旋转
             Engine.Camera.Rotate(dx * 0.5f, dy * 0.5f);
-        }
         else
-        {
-            // 右键：平移
             Engine.Camera.Pan(-dx * 0.01f, dy * 0.01f);
-        }
     }
 }

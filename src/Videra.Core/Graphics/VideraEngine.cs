@@ -200,7 +200,18 @@ public class VideraEngine : IDisposable
                     Console.WriteLine($"[VideraEngine] Drawing object '{obj.Name}' with {obj.IndexCount} indices");
                 
                 // 绘制
-                _executor.DrawIndexed(obj.IndexCount, 1, 0, 0, 0);
+                switch (obj.Topology)
+                {
+                    case MeshTopology.Lines:
+                        _executor.DrawIndexed(1, obj.IndexCount, 1, 0, 0, 0);
+                        break;
+                    case MeshTopology.Points:
+                        _executor.DrawIndexed(2, obj.IndexCount, 1, 0, 0, 0);
+                        break;
+                    default:
+                        _executor.DrawIndexed(obj.IndexCount, 1, 0, 0, 0);
+                        break;
+                }
             }
             
             // 渲染坐标轴
