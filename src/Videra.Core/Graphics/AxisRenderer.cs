@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System;
+using System.Numerics;
 using Videra.Core.Cameras;
 using Videra.Core.Geometry;
 using Videra.Core.Graphics.Abstractions;
@@ -17,6 +18,8 @@ public class AxisRenderer : IDisposable
     public RgbaFloat ZColor { get; set; } = RgbaFloat.Blue;
     public bool IsVisible { get; set; } = true;
     public float AxisLength { get; set; } = 1.0f;
+    public float AxisViewportSizeMm { get; set; } = 20f;
+    public float AxisViewportMarginMm { get; set; } = 4f;
 
     public void Initialize(IResourceFactory? factory)
     {
@@ -52,14 +55,17 @@ public class AxisRenderer : IDisposable
         Console.WriteLine($"[AxisRenderer] Initialized with {vertices.Count} vertices, {_indexCount} indices");
     }
 
-    public void Draw(ICommandExecutor? executor, IPipeline? pipeline, OrbitCamera camera, uint width, uint height)
+    public void Draw(ICommandExecutor? executor, IPipeline? pipeline, OrbitCamera camera, uint width, uint height, float renderScale)
     {
         if (!IsVisible || executor == null || pipeline == null || _vertexBuffer == null || _indexBuffer == null || _worldBuffer == null)
             return;
         
         // 使用左下角的小视口渲染坐标轴
-        float viewportSize = 100f; // 100x100像素
-        executor.SetViewport(10, height - viewportSize - 10, viewportSize, viewportSize);
+        var dpi = 96f * MathF.Max(0.1f, renderScale);
+        var viewportSize = AxisViewportSizeMm * dpi / 25.4f;
+        var margin = AxisViewportMarginMm * dpi / 25.4f;
+        viewportSize = MathF.Min(viewportSize, MathF.Min(width, height));
+        executor.SetViewport(margin, height - viewportSize - margin, viewportSize, viewportSize);
         
         executor.SetPipeline(pipeline);
         executor.SetVertexBuffer(_vertexBuffer, 0);

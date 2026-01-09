@@ -3,11 +3,14 @@ using Videra.Core.Graphics.Abstractions;
 
 namespace Videra.Platform.Linux;
 
-internal class VulkanCommandExecutor : ICommandExecutor
+internal unsafe class VulkanCommandExecutor : ICommandExecutor
 {
     private readonly Device _device;
     private readonly CommandBuffer _commandBuffer;
     private readonly Vk _vk;
+    private VulkanPipeline? _pipeline;
+    private VulkanBuffer? _cameraBuffer;
+    private VulkanBuffer? _worldBuffer;
 
     public VulkanCommandExecutor(Device device, CommandBuffer commandBuffer, Vk vk)
     {
@@ -18,17 +21,41 @@ internal class VulkanCommandExecutor : ICommandExecutor
 
     public void SetPipeline(IPipeline pipeline)
     {
-        throw new NotImplementedException();
+        if (pipeline is not VulkanPipeline vkPipeline)
+            throw new ArgumentException("Pipeline must be a VulkanPipeline");
+
+        _pipeline = vkPipeline;
+        BindPipeline(0);
+        BindDescriptorSet();
     }
 
-    public void SetVertexBuffer(IBuffer buffer)
+    public void SetVertexBuffer(IBuffer buffer, uint index = 0)
     {
-        throw new NotImplementedException();
+        if (buffer is not VulkanBuffer vkBuffer)
+            throw new ArgumentException("Buffer must be a VulkanBuffer");
+
+        if (index == 0)
+        {
+            var nativeBuffer = vkBuffer.NativeBuffer;
+            ulong offset = 0;
+            _vk.CmdBindVertexBuffers(_commandBuffer, 0, 1, &nativeBuffer, &offset);
+            return;
+        }
+
+        if (index == 1)
+            _cameraBuffer = vkBuffer;
+        else if (index == 2)
+            _worldBuffer = vkBuffer;
+
+        UpdateDescriptorSet();
     }
 
     public void SetIndexBuffer(IBuffer buffer)
     {
-        throw new NotImplementedException();
+        if (buffer is not VulkanBuffer vkBuffer)
+            throw new ArgumentException("Buffer must be a VulkanBuffer");
+
+        _vk.CmdBindIndexBuffer(_commandBuffer, vkBuffer.NativeBuffer, 0, IndexType.Uint32);
     }
 
     public void SetResourceSet(uint slot, IResourceSet resourceSet)
@@ -38,6 +65,12 @@ internal class VulkanCommandExecutor : ICommandExecutor
 
     public void DrawIndexed(uint indexCount, uint instanceCount = 1, uint firstIndex = 0, int vertexOffset = 0, uint firstInstance = 0)
     {
+        _vk.CmdDrawIndexed(_commandBuffer, indexCount, instanceCount, firstIndex, vertexOffset, firstInstance);
+    }
+
+    public void DrawIndexed(uint primitiveType, uint indexCount, uint instanceCount = 1, uint firstIndex = 0, int vertexOffset = 0, uint firstInstance = 0)
+    {
+        BindPipeline(primitiveType);
         _vk.CmdDrawIndexed(_commandBuffer, indexCount, instanceCount, firstIndex, vertexOffset, firstInstance);
     }
 
@@ -68,5 +101,70 @@ internal class VulkanCommandExecutor : ICommandExecutor
             Extent = new Extent2D((uint)width, (uint)height)
         };
         _vk.CmdSetScissor(_commandBuffer, 0, 1, in scissor);
+    }
+
+    public void Clear(float r, float g, float b, float a)
+    {
+    }
+
+    private void BindPipeline(uint primitiveType)
+    {
+        if (_pipeline == null)
+            return;
+
+        var pipeline = _pipeline.GetPipeline(primitiveType);
+        _vk.CmdBindPipeline(_commandBuffer, PipelineBindPoint.Graphics, pipeline);
+        BindDescriptorSet();
+    }
+
+    private void BindDescriptorSet()
+    {
+        if (_pipeline == null)
+            return;
+
+        var descriptorSet = _pipeline.DescriptorSet;
+        _vk.CmdBindDescriptorSets(_commandBuffer, PipelineBindPoint.Graphics, _pipeline.PipelineLayout, 0, 1, &descriptorSet, 0, null);
+    }
+
+    private void UpdateDescriptorSet()
+    {
+        if (_pipeline == null || _cameraBuffer == null || _worldBuffer == null)
+            return;
+
+        var cameraInfo = new DescriptorBufferInfo
+        {
+            Buffer = _cameraBuffer.NativeBuffer,
+            Offset = 0,
+            Range = _cameraBuffer.SizeInBytes
+        };
+
+        var worldInfo = new DescriptorBufferInfo
+        {
+            Buffer = _worldBuffer.NativeBuffer,
+            Offset = 0,
+            Range = _worldBuffer.SizeInBytes
+        };
+
+        var writes = stackalloc WriteDescriptorSet[2];
+        writes[0] = new WriteDescriptorSet
+        {
+            SType = StructureType.WriteDescriptorSet,
+            DstSet = _pipeline.DescriptorSet,
+            DstBinding = 0,
+            DescriptorCount = 1,
+            DescriptorType = DescriptorType.UniformBuffer,
+            PBufferInfo = &cameraInfo
+        };
+        writes[1] = new WriteDescriptorSet
+        {
+            SType = StructureType.WriteDescriptorSet,
+            DstSet = _pipeline.DescriptorSet,
+            DstBinding = 1,
+            DescriptorCount = 1,
+            DescriptorType = DescriptorType.UniformBuffer,
+            PBufferInfo = &worldInfo
+        };
+
+        _vk.UpdateDescriptorSets(_device, 2, writes, 0, null);
     }
 }

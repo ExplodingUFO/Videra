@@ -20,6 +20,7 @@ public unsafe class VulkanBackend : IGraphicsBackend
     
     private KhrSurface _khrSurface;
     private KhrSwapchain _khrSwapchain;
+    private KhrXlibSurface _khrXlibSurface;
     private SurfaceKHR _surface;
     private SwapchainKHR _swapchain;
     
@@ -49,6 +50,7 @@ public unsafe class VulkanBackend : IGraphicsBackend
     
     private VulkanResourceFactory _resourceFactory;
     private VulkanCommandExecutor _commandExecutor;
+    private IntPtr _x11Display;
 
     public bool IsInitialized { get; private set; }
 
@@ -98,7 +100,7 @@ public unsafe class VulkanBackend : IGraphicsBackend
         CreateSyncObjects();
         
         // 创建工厂和命令执行器
-        _resourceFactory = new VulkanResourceFactory(_device, _physicalDevice, _vk);
+        _resourceFactory = new VulkanResourceFactory(_device, _physicalDevice, _vk, _renderPass);
         _commandExecutor = new VulkanCommandExecutor(_device, _commandBuffers[0], _vk);
 
         IsInitialized = true;
@@ -142,31 +144,27 @@ public unsafe class VulkanBackend : IGraphicsBackend
 
     private void CreateSurface(IntPtr windowHandle)
     {
-        // 这里需要平台特定的 Surface 创建代码
-        // 对于 X11: vkCreateXlibSurfaceKHR
-        // 对于 Wayland: vkCreateWaylandSurfaceKHR
-        
-        // 简化实现，假设使用 X11
+        _vk.TryGetInstanceExtension(_instance, out _khrXlibSurface);
+
+        if (windowHandle == IntPtr.Zero)
+            throw new Exception("Vulkan requires a valid X11 window handle.");
+
+        _x11Display = XOpenDisplay(IntPtr.Zero);
+        if (_x11Display == IntPtr.Zero)
+            throw new Exception("Failed to open X11 display");
+
         var createInfo = new XlibSurfaceCreateInfoKHR
         {
             SType = StructureType.XlibSurfaceCreateInfoKhr,
-            Dpy = GetX11Display(),
+            Dpy = _x11Display,
             Window = (nuint)windowHandle
         };
 
         fixed (SurfaceKHR* surface = &_surface)
         {
-            // Note: 需要使用 vkCreateXlibSurfaceKHR
-            // 这里简化处理
-            throw new NotImplementedException("X11 Surface creation needs platform-specific implementation");
+            if (_khrXlibSurface.CreateXlibSurface(_instance, in createInfo, null, surface) != Result.Success)
+                throw new Exception("Failed to create X11 Vulkan surface");
         }
-    }
-
-    private IntPtr GetX11Display()
-    {
-        // 获取 X11 Display
-        // 需要 libX11.so
-        return IntPtr.Zero; // Placeholder
     }
 
     private void PickPhysicalDevice()
@@ -440,8 +438,68 @@ public unsafe class VulkanBackend : IGraphicsBackend
 
     private void CreateDepthResources()
     {
-        // 简化实现 - 实际需要完整的深度图像创建逻辑
-        // 包括内存分配、图像视图创建等
+        var depthFormat = Format.D32Sfloat;
+
+        var imageInfo = new ImageCreateInfo
+        {
+            SType = StructureType.ImageCreateInfo,
+            ImageType = ImageType.Type2D,
+            Extent = new Extent3D((uint)_width, (uint)_height, 1),
+            MipLevels = 1,
+            ArrayLayers = 1,
+            Format = depthFormat,
+            Tiling = ImageTiling.Optimal,
+            InitialLayout = ImageLayout.Undefined,
+            Usage = ImageUsageFlags.DepthStencilAttachmentBit,
+            SharingMode = SharingMode.Exclusive,
+            Samples = SampleCountFlags.Count1Bit
+        };
+
+        fixed (Image* image = &_depthImage)
+        {
+            if (_vk.CreateImage(_device, in imageInfo, null, image) != Result.Success)
+                throw new Exception("Failed to create depth image");
+        }
+
+        MemoryRequirements memRequirements;
+        _vk.GetImageMemoryRequirements(_device, _depthImage, out memRequirements);
+
+        var allocInfo = new MemoryAllocateInfo
+        {
+            SType = StructureType.MemoryAllocateInfo,
+            AllocationSize = memRequirements.Size,
+            MemoryTypeIndex = FindMemoryType(memRequirements.MemoryTypeBits, MemoryPropertyFlags.DeviceLocalBit)
+        };
+
+        fixed (DeviceMemory* memory = &_depthImageMemory)
+        {
+            if (_vk.AllocateMemory(_device, in allocInfo, null, memory) != Result.Success)
+                throw new Exception("Failed to allocate depth memory");
+        }
+
+        _vk.BindImageMemory(_device, _depthImage, _depthImageMemory, 0);
+
+        var viewInfo = new ImageViewCreateInfo
+        {
+            SType = StructureType.ImageViewCreateInfo,
+            Image = _depthImage,
+            ViewType = ImageViewType.Type2D,
+            Format = depthFormat,
+            SubresourceRange = new ImageSubresourceRange
+            {
+                AspectMask = ImageAspectFlags.DepthBit,
+                BaseMipLevel = 0,
+                LevelCount = 1,
+                BaseArrayLayer = 0,
+                LayerCount = 1
+            }
+        };
+
+        fixed (ImageView* view = &_depthImageView)
+        {
+            if (_vk.CreateImageView(_device, in viewInfo, null, view) != Result.Success)
+                throw new Exception("Failed to create depth image view");
+        }
     }
 
     private void CreateFramebuffers()
@@ -546,6 +604,8 @@ public unsafe class VulkanBackend : IGraphicsBackend
         CleanupSwapchain();
         CreateSwapchain();
         CreateImageViews();
+        CleanupDepthResources();
+        CreateDepthResources();
         CreateFramebuffers();
     }
 
@@ -558,6 +618,16 @@ public unsafe class VulkanBackend : IGraphicsBackend
             _vk.DestroyImageView(_device, imageView, null);
 
         _khrSwapchain.DestroySwapchain(_device, _swapchain, null);
+    }
+
+    private void CleanupDepthResources()
+    {
+        if (_depthImageView.Handle != 0)
+            _vk.DestroyImageView(_device, _depthImageView, null);
+        if (_depthImage.Handle != 0)
+            _vk.DestroyImage(_device, _depthImage, null);
+        if (_depthImageMemory.Handle != 0)
+            _vk.FreeMemory(_device, _depthImageMemory, null);
     }
 
     public void BeginFrame()
@@ -675,6 +745,20 @@ public unsafe class VulkanBackend : IGraphicsBackend
 
     public ICommandExecutor GetCommandExecutor() => _commandExecutor;
 
+    private uint FindMemoryType(uint typeFilter, MemoryPropertyFlags properties)
+    {
+        PhysicalDeviceMemoryProperties memProperties;
+        _vk.GetPhysicalDeviceMemoryProperties(_physicalDevice, out memProperties);
+
+        for (uint i = 0; i < memProperties.MemoryTypeCount; i++)
+        {
+            if ((typeFilter & (1u << (int)i)) != 0 && (memProperties.MemoryTypes[(int)i].PropertyFlags & properties) == properties)
+                return i;
+        }
+
+        throw new Exception("Failed to find suitable memory type");
+    }
+
     public void Dispose()
     {
         _vk.DeviceWaitIdle(_device);
@@ -688,15 +772,21 @@ public unsafe class VulkanBackend : IGraphicsBackend
         CleanupSwapchain();
 
         _vk.DestroyRenderPass(_device, _renderPass, null);
-
-        _vk.DestroyImageView(_device, _depthImageView, null);
-        _vk.DestroyImage(_device, _depthImage, null);
-        _vk.FreeMemory(_device, _depthImageMemory, null);
+        CleanupDepthResources();
 
         _vk.DestroyDevice(_device, null);
         _khrSurface.DestroySurface(_instance, _surface, null);
         _vk.DestroyInstance(_instance, null);
 
+        if (_x11Display != IntPtr.Zero)
+            XCloseDisplay(_x11Display);
+
         _vk?.Dispose();
     }
+
+    [DllImport("libX11.so.6")]
+    private static extern IntPtr XOpenDisplay(IntPtr display);
+
+    [DllImport("libX11.so.6")]
+    private static extern int XCloseDisplay(IntPtr display);
 }
