@@ -24,6 +24,7 @@ public class VideraEngine : IDisposable
     public bool IsInitialized { get; private set; }
     public RgbaFloat BackgroundColor { get; set; } = new(0.1f, 0.1f, 0.1f, 1f);
     public float RenderScale { get; set; } = 1f;
+    public bool EnableFrameLogging { get; set; } = false;
     
     // 网格和坐标轴渲染器
     public GridRenderer Grid { get; } = new();
@@ -120,7 +121,7 @@ public class VideraEngine : IDisposable
         lock (_lock)
         {
             _frameCount++;
-            bool shouldLog = _frameCount % 60 == 0; // 每秒记录一次（60 FPS）
+            bool shouldLog = EnableFrameLogging && _frameCount % 60 == 0; // 每秒记录一次（60 FPS）
             
             if (shouldLog)
                 Console.WriteLine($"[VideraEngine] Frame {_frameCount}: Drawing {_sceneObjects.Count} objects, Grid visible: {Grid.IsVisible}");

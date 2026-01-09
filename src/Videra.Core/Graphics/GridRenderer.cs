@@ -16,6 +16,7 @@ public class GridRenderer : IDisposable
     public bool IsVisible { get; set; } = true;
     public float Height { get; set; } = 0.0f;
     public RgbaFloat GridColor { get; set; } = new(0.4f, 0.4f, 0.4f, 0.5f);
+    public bool EnableDiagnostics { get; set; } = false;
 
     public void Initialize(IResourceFactory? factory)
     {
@@ -95,7 +96,7 @@ public class GridRenderer : IDisposable
         if (executor == null || pipeline == null || _vertexBuffer == null || _indexBuffer == null || _worldBuffer == null)
             return;
 
-        if (_drawCallCount % 60 == 0)
+        if (EnableDiagnostics && _drawCallCount % 60 == 0)
             Console.WriteLine($"[GridRenderer] Drawing grid with {_indexCount} indices");
         _drawCallCount++;
 
