@@ -9,9 +9,12 @@ namespace Videra.Avalonia.Controls;
 internal sealed class VideraNativeHost : NativeControlHost
 {
     private IntPtr _handle;
+    private IntPtr _oldWndProc;
+    private WndProcDelegate? _wndProc;
 
     public event Action<IntPtr>? HandleCreated;
     public event Action? HandleDestroyed;
+    public event Action<NativePointerEvent>? NativePointer;
 
     protected override IPlatformHandle CreateNativeControlCore(IPlatformHandle parent)
     {
@@ -22,7 +25,7 @@ internal sealed class VideraNativeHost : NativeControlHost
             throw new PlatformNotSupportedException($"Expected HWND parent, got '{parent.HandleDescriptor}'.");
 
         const int exStyle = 0;
-        const int style = 0x40000000 | 0x10000000 | 0x04000000 | 0x02000000 | 0x08000000; // WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_DISABLED
+        const int style = 0x40000000 | 0x10000000 | 0x04000000 | 0x02000000; // WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN
 
         Console.WriteLine($"[VideraNativeHost] Creating child HWND under 0x{parent.Handle.ToInt64():X}");
         _handle = CreateWindowExW(
@@ -42,6 +45,7 @@ internal sealed class VideraNativeHost : NativeControlHost
         if (_handle == IntPtr.Zero)
             throw new Win32Exception(Marshal.GetLastWin32Error(), "Failed to create native child window.");
 
+        HookWndProc();
         UpdateNativeSize();
         Console.WriteLine($"[VideraNativeHost] Created HWND 0x{_handle.ToInt64():X}");
         HandleCreated?.Invoke(_handle);
@@ -52,6 +56,7 @@ internal sealed class VideraNativeHost : NativeControlHost
     {
         if (_handle != IntPtr.Zero)
         {
+            UnhookWndProc();
             DestroyWindow(_handle);
             _handle = IntPtr.Zero;
             HandleDestroyed?.Invoke();
@@ -81,6 +86,67 @@ internal sealed class VideraNativeHost : NativeControlHost
         Console.WriteLine($"[VideraNativeHost] Resize HWND to {width}x{height}");
     }
 
+    private void HookWndProc()
+    {
+        if (_handle == IntPtr.Zero || _oldWndProc != IntPtr.Zero)
+            return;
+
+        _wndProc = WndProc;
+        _oldWndProc = SetWindowLongPtr(_handle, GwlWndProc, Marshal.GetFunctionPointerForDelegate(_wndProc));
+    }
+
+    private void UnhookWndProc()
+    {
+        if (_handle == IntPtr.Zero || _oldWndProc == IntPtr.Zero)
+            return;
+
+        SetWindowLongPtr(_handle, GwlWndProc, _oldWndProc);
+        _oldWndProc = IntPtr.Zero;
+        _wndProc = null;
+    }
+
+    private IntPtr WndProc(IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam)
+    {
+        switch (msg)
+        {
+            case WmLButtonDown:
+                SetCapture(hWnd);
+                RaisePointer(NativePointerKind.LeftDown, lParam, 0);
+                return IntPtr.Zero;
+            case WmLButtonUp:
+                ReleaseCapture();
+                RaisePointer(NativePointerKind.LeftUp, lParam, 0);
+                return IntPtr.Zero;
+            case WmRButtonDown:
+                SetCapture(hWnd);
+                RaisePointer(NativePointerKind.RightDown, lParam, 0);
+                return IntPtr.Zero;
+            case WmRButtonUp:
+                ReleaseCapture();
+                RaisePointer(NativePointerKind.RightUp, lParam, 0);
+                return IntPtr.Zero;
+            case WmMouseMove:
+                RaisePointer(NativePointerKind.Move, lParam, 0);
+                return IntPtr.Zero;
+            case WmMouseWheel:
+                var delta = (short)((long)wParam >> 16);
+                RaisePointer(NativePointerKind.Wheel, lParam, delta);
+                return IntPtr.Zero;
+        }
+
+        return CallWindowProc(_oldWndProc, hWnd, msg, wParam, lParam);
+    }
+
+    private const int GwlWndProc = -4;
+    private const int WmMouseMove = 0x0200;
+    private const int WmLButtonDown = 0x0201;
+    private const int WmLButtonUp = 0x0202;
+    private const int WmRButtonDown = 0x0204;
+    private const int WmRButtonUp = 0x0205;
+    private const int WmMouseWheel = 0x020A;
+
+    private delegate IntPtr WndProcDelegate(IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam);
+
     [DllImport("user32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
     private static extern IntPtr CreateWindowExW(
         int dwExStyle,
@@ -108,4 +174,23 @@ internal sealed class VideraNativeHost : NativeControlHost
         int cx,
         int cy,
         uint uFlags);
+
+    [DllImport("user32.dll", EntryPoint = "SetWindowLongPtrW", SetLastError = true)]
+    private static extern IntPtr SetWindowLongPtr(IntPtr hWnd, int nIndex, IntPtr dwNewLong);
+
+    [DllImport("user32.dll", EntryPoint = "CallWindowProcW")]
+    private static extern IntPtr CallWindowProc(IntPtr lpPrevWndFunc, IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam);
+
+    [DllImport("user32.dll")]
+    private static extern IntPtr SetCapture(IntPtr hWnd);
+
+    [DllImport("user32.dll")]
+    private static extern bool ReleaseCapture();
+
+    private void RaisePointer(NativePointerKind kind, IntPtr lParam, int wheelDelta)
+    {
+        var x = (short)((long)lParam & 0xFFFF);
+        var y = (short)(((long)lParam >> 16) & 0xFFFF);
+        NativePointer?.Invoke(new NativePointerEvent(kind, x, y, wheelDelta));
+    }
 }

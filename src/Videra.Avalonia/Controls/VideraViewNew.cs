@@ -26,6 +26,8 @@ public partial class VideraViewNew : Decorator
     private bool _isSoftwareBackend;
     private DispatcherTimer? _renderTimer;
     private VideraNativeHost? _nativeHost;
+    private Grid? _nativeContainer;
+    private Border? _inputOverlay;
     private IntPtr _renderHandle;
     private int _renderTickCount;
 
@@ -479,8 +481,18 @@ public partial class VideraViewNew : Decorator
         };
         host.HandleCreated += OnNativeHandleCreated;
         host.HandleDestroyed += OnNativeHandleDestroyed;
+        host.NativePointer += OnNativePointer;
+        var overlay = new Border
+        {
+            Background = Brushes.Transparent,
+            IsHitTestVisible = false
+        };
+        _inputOverlay = overlay;
+        _nativeContainer = new Grid();
+        _nativeContainer.Children.Add(host);
+        _nativeContainer.Children.Add(overlay);
         _nativeHost = host;
-        Child = host;
+        Child = _nativeContainer;
         Console.WriteLine("[VideraViewNew] Native host created");
     }
 
@@ -491,8 +503,11 @@ public partial class VideraViewNew : Decorator
 
         _nativeHost.HandleCreated -= OnNativeHandleCreated;
         _nativeHost.HandleDestroyed -= OnNativeHandleDestroyed;
+        _nativeHost.NativePointer -= OnNativePointer;
         Child = null;
         _nativeHost = null;
+        _nativeContainer = null;
+        _inputOverlay = null;
         _renderHandle = IntPtr.Zero;
     }
 

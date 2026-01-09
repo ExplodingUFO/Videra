@@ -10,6 +10,10 @@ namespace Videra.Avalonia.Controls;
 /// </summary>
 public partial class VideraViewNew
 {
+    private static readonly bool InputLogEnabled =
+        string.Equals(Environment.GetEnvironmentVariable("VIDERA_INPUTLOG"), "1", StringComparison.OrdinalIgnoreCase) ||
+        string.Equals(Environment.GetEnvironmentVariable("VIDERA_INPUTLOG"), "true", StringComparison.OrdinalIgnoreCase);
+
     private bool _isLeftButtonDown;
     private bool _isRightButtonDown;
     private Point _lastPos;
@@ -51,6 +55,9 @@ public partial class VideraViewNew
         var props = e.GetCurrentPoint(this).Properties;
         _lastPos = e.GetPosition(this);
 
+        if (InputLogEnabled)
+            Console.WriteLine($"[VideraInput] Pressed at {_lastPos}, Left={props.IsLeftButtonPressed}, Right={props.IsRightButtonPressed}");
+
         if (props.IsLeftButtonPressed)
         {
             _isLeftButtonDown = true;
@@ -70,6 +77,9 @@ public partial class VideraViewNew
     {
         base.OnPointerReleased(e);
 
+        if (InputLogEnabled)
+            Console.WriteLine($"[VideraInput] Released at {e.GetPosition(this)} ({e.InitialPressMouseButton})");
+
         if (e.InitialPressMouseButton == MouseButton.Left)
         {
             _isLeftButtonDown = false;
@@ -88,6 +98,9 @@ public partial class VideraViewNew
     {
         base.OnPointerMoved(e);
 
+        if (InputLogEnabled && (_isLeftButtonDown || _isRightButtonDown))
+            Console.WriteLine($"[VideraInput] Moved to {e.GetPosition(this)}");
+
         if (!_isLeftButtonDown && !_isRightButtonDown)
             return;
 
@@ -103,6 +116,9 @@ public partial class VideraViewNew
     protected override void OnPointerWheelChanged(PointerWheelEventArgs e)
     {
         base.OnPointerWheelChanged(e);
+
+        if (InputLogEnabled)
+            Console.WriteLine($"[VideraInput] Wheel delta {e.Delta}");
 
         var delta = e.Delta.Y;
         Engine.Camera.Zoom((float)(delta * 0.5));
@@ -139,6 +155,78 @@ public partial class VideraViewNew
             return;
 
         OnPointerWheelChanged(e);
+    }
+
+    private void OnOverlayPointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        OnPointerPressed(e);
+    }
+
+    private void OnOverlayPointerReleased(object? sender, PointerReleasedEventArgs e)
+    {
+        OnPointerReleased(e);
+    }
+
+    private void OnOverlayPointerMoved(object? sender, PointerEventArgs e)
+    {
+        OnPointerMoved(e);
+    }
+
+    private void OnOverlayPointerWheel(object? sender, PointerWheelEventArgs e)
+    {
+        OnPointerWheelChanged(e);
+    }
+
+    private void OnNativePointer(NativePointerEvent e)
+    {
+        var scale = VisualRoot?.RenderScaling ?? 1.0;
+        var pos = new Point(e.X / scale, e.Y / scale);
+
+        switch (e.Kind)
+        {
+            case NativePointerKind.LeftDown:
+                _isLeftButtonDown = true;
+                _lastPos = pos;
+                if (InputLogEnabled)
+                    Console.WriteLine($"[VideraInput] Native LeftDown at {pos}");
+                Focus();
+                break;
+            case NativePointerKind.LeftUp:
+                _isLeftButtonDown = false;
+                if (InputLogEnabled)
+                    Console.WriteLine($"[VideraInput] Native LeftUp at {pos}");
+                break;
+            case NativePointerKind.RightDown:
+                _isRightButtonDown = true;
+                _lastPos = pos;
+                if (InputLogEnabled)
+                    Console.WriteLine($"[VideraInput] Native RightDown at {pos}");
+                Focus();
+                break;
+            case NativePointerKind.RightUp:
+                _isRightButtonDown = false;
+                if (InputLogEnabled)
+                    Console.WriteLine($"[VideraInput] Native RightUp at {pos}");
+                break;
+            case NativePointerKind.Move:
+                if (!_isLeftButtonDown && !_isRightButtonDown)
+                    return;
+
+                var dx = (float)(pos.X - _lastPos.X);
+                var dy = (float)(pos.Y - _lastPos.Y);
+                _lastPos = pos;
+                if (InputLogEnabled)
+                    Console.WriteLine($"[VideraInput] Native Move {pos} dx={dx} dy={dy}");
+                ProcessMove(dx, dy, _isLeftButtonDown);
+                break;
+            case NativePointerKind.Wheel:
+                var normalized = e.WheelDelta / 120.0f;
+                if (InputLogEnabled)
+                    Console.WriteLine($"[VideraInput] Native Wheel delta {e.WheelDelta}");
+                if (Math.Abs(normalized) > float.Epsilon)
+                    Engine.Camera.Zoom(normalized * 0.5f);
+                break;
+        }
     }
 
     private bool IsPointerOverThis(PointerEventArgs e)
