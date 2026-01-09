@@ -236,11 +236,12 @@ public partial class VideraViewNew : Control
     private void InitializeGraphicsDevice(uint widthPx, uint heightPx)
     {
         _backend = GraphicsBackendFactory.CreateBackend();
-        //var topLevel = TopLevel.GetTopLevel(this);
-        //var handle = topLevel?.PlatformImpl?.Handle?.Handle ?? IntPtr.Zero;
-        //_backend.Initialize(handle, (int)widthPx, (int)heightPx);
+        var topLevel = TopLevel.GetTopLevel(this);
+        var handle = topLevel?.TryGetPlatformHandle()?.Handle ?? IntPtr.Zero;
+        //System.Diagnostics.Debug.WriteLine($"Current handle is {handle}");
+        _backend.Initialize(handle, (int)widthPx, (int)heightPx);
 
-        _backend.Initialize(IntPtr.Zero, (int)widthPx, (int)heightPx);
+        //_backend.Initialize(IntPtr.Zero, (int)widthPx, (int)heightPx);
 
         Engine.Initialize(_backend);
         Engine.Resize(widthPx, heightPx);
