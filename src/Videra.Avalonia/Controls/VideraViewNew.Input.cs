@@ -22,10 +22,10 @@ public partial class VideraViewNew
         var top = TopLevel.GetTopLevel(this);
         if (top != null)
         {
-            top.AddHandler(PointerPressedEvent, OnTopPointerPressed, RoutingStrategies.Tunnel | RoutingStrategies.Bubble);
-            top.AddHandler(PointerReleasedEvent, OnTopPointerReleased, RoutingStrategies.Tunnel | RoutingStrategies.Bubble);
-            top.AddHandler(PointerMovedEvent, OnTopPointerMoved, RoutingStrategies.Tunnel | RoutingStrategies.Bubble);
-            top.AddHandler(PointerWheelChangedEvent, OnTopPointerWheel, RoutingStrategies.Tunnel | RoutingStrategies.Bubble);
+            top.AddHandler(PointerPressedEvent, OnTopPointerPressed, RoutingStrategies.Tunnel | RoutingStrategies.Bubble, true);
+            top.AddHandler(PointerReleasedEvent, OnTopPointerReleased, RoutingStrategies.Tunnel | RoutingStrategies.Bubble, true);
+            top.AddHandler(PointerMovedEvent, OnTopPointerMoved, RoutingStrategies.Tunnel | RoutingStrategies.Bubble, true);
+            top.AddHandler(PointerWheelChangedEvent, OnTopPointerWheel, RoutingStrategies.Tunnel | RoutingStrategies.Bubble, true);
         }
     }
 
@@ -111,7 +111,7 @@ public partial class VideraViewNew
 
     private void OnTopPointerPressed(object? sender, PointerPressedEventArgs e)
     {
-        if (e.Handled || !IsPointerOverThis(e))
+        if (!IsPointerOverThis(e))
             return;
 
         OnPointerPressed(e);
@@ -119,7 +119,7 @@ public partial class VideraViewNew
 
     private void OnTopPointerReleased(object? sender, PointerReleasedEventArgs e)
     {
-        if (e.Handled || !IsPointerOverThis(e))
+        if (!IsPointerOverThis(e))
             return;
 
         OnPointerReleased(e);
@@ -127,7 +127,7 @@ public partial class VideraViewNew
 
     private void OnTopPointerMoved(object? sender, PointerEventArgs e)
     {
-        if (e.Handled || !IsPointerOverThis(e))
+        if (!IsPointerOverThis(e))
             return;
 
         OnPointerMoved(e);
@@ -135,7 +135,7 @@ public partial class VideraViewNew
 
     private void OnTopPointerWheel(object? sender, PointerWheelEventArgs e)
     {
-        if (e.Handled || !IsPointerOverThis(e))
+        if (!IsPointerOverThis(e))
             return;
 
         OnPointerWheelChanged(e);

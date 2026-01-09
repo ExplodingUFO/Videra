@@ -443,11 +443,10 @@ public partial class VideraViewNew : Decorator
         StopRenderLoop();
         if (Items is INotifyCollectionChanged incc)
             incc.CollectionChanged -= OnCollectionChanged;
-        _backend?.Dispose();
+        Engine.Dispose();
         _backend = null;
         _isSoftwareBackend = false;
         ReleaseNativeHost();
-        Engine.Dispose();
         _bitmap?.Dispose();
         _bitmap = null;
         _isReady = false;
