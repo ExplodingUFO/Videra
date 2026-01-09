@@ -97,6 +97,13 @@ internal unsafe class D3D11Buffer : IBuffer
 
     public void Dispose()
     {
-        _buffer.Dispose();
+        try
+        {
+            _buffer?.Dispose();
+        }
+        catch (Exception e)
+        {
+            System.Console.WriteLine(e);
+        }
     }
 }

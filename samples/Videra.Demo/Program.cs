@@ -1,5 +1,7 @@
 ﻿using Avalonia;
 using System;
+using Avalonia.Win32;
+using System.Runtime.InteropServices;
 
 namespace Videra.Demo
 {
@@ -14,9 +16,29 @@ namespace Videra.Demo
 
         // Avalonia configuration, don't remove; also used by visual designer.
         public static AppBuilder BuildAvaloniaApp()
-            => AppBuilder.Configure<App>()
+            => ConfigurePlatformOptions(AppBuilder.Configure<App>()
                 .UsePlatformDetect()
                 .WithInterFont()
-                .LogToTrace();
+                .LogToTrace());
+
+        private static AppBuilder ConfigurePlatformOptions(AppBuilder builder)
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                builder = builder.With(new Win32PlatformOptions
+                {
+                    CompositionMode = new[]
+                    {
+                        Win32CompositionMode.RedirectionSurface
+                    },
+                    RenderingMode = new[]
+                    {
+                        Win32RenderingMode.Software
+                    }
+                });
+            }
+
+            return builder;
+        }
     }
 }

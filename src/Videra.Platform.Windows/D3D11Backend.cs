@@ -75,10 +75,10 @@ public unsafe class D3D11Backend : IGraphicsBackend
             },
             SampleDesc = new SampleDesc(1, 0),
             BufferUsage = DXGI.UsageRenderTargetOutput,
-            BufferCount = 2,
+            BufferCount = 1,
             OutputWindow = windowHandle,
             Windowed = true,
-            SwapEffect = SwapEffect.FlipDiscard,
+            SwapEffect = SwapEffect.Discard,
             Flags = 0
         };
 

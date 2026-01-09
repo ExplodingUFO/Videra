@@ -15,7 +15,7 @@ namespace Videra.Avalonia.Controls;
 /// <summary>
 /// 3D 渲染视图控件 - 使用跨平台软件后端渲染。
 /// </summary>
-public partial class VideraViewNew : Control
+public partial class VideraViewNew : Decorator
 {
     private IGraphicsBackend? _backend;
     private bool _isInitialized;
@@ -25,6 +25,11 @@ public partial class VideraViewNew : Control
     private WriteableBitmap? _bitmap;
     private bool _isSoftwareBackend;
     private DispatcherTimer? _renderTimer;
+    private VideraNativeHost? _nativeHost;
+    private IntPtr _renderHandle;
+    private int _renderTickCount;
+
+    public event EventHandler? BackendReady;
 
     public static readonly StyledProperty<Color> BackgroundColorProperty =
         AvaloniaProperty.Register<VideraViewNew, Color>(nameof(BackgroundColor), Colors.Black);
@@ -46,6 +51,11 @@ public partial class VideraViewNew : Control
 
     public static readonly StyledProperty<Color> GridColorProperty =
         AvaloniaProperty.Register<VideraViewNew, Color>(nameof(GridColor), Colors.Gray);
+
+    public static readonly StyledProperty<GraphicsBackendPreference> PreferredBackendProperty =
+        AvaloniaProperty.Register<VideraViewNew, GraphicsBackendPreference>(
+            nameof(PreferredBackend),
+            GraphicsBackendPreference.Auto);
 
     public VideraViewNew()
     {
@@ -101,6 +111,12 @@ public partial class VideraViewNew : Control
     {
         get => GetValue(GridColorProperty);
         set => SetValue(GridColorProperty, value);
+    }
+
+    public GraphicsBackendPreference PreferredBackend
+    {
+        get => GetValue(PreferredBackendProperty);
+        set => SetValue(PreferredBackendProperty, value);
     }
 
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
@@ -177,6 +193,13 @@ public partial class VideraViewNew : Control
 
         Dispatcher.UIThread.Post(() =>
         {
+            if (WantsNativeBackend() && _renderHandle == IntPtr.Zero)
+            {
+                Console.WriteLine("[VideraViewNew] OnSizeChanged: native backend without handle, ensuring host");
+                EnsureNativeHost();
+                if (_renderHandle == IntPtr.Zero)
+                    return;
+            }
             TryInitializeOrResize(widthPx, heightPx);
         }, DispatcherPriority.Background);
     }
@@ -215,6 +238,7 @@ public partial class VideraViewNew : Control
                 InitializeGraphicsDevice(widthPx, heightPx);
                 _isInitialized = true;
                 _isReady = true;
+                BackendReady?.Invoke(this, EventArgs.Empty);
             }
             catch (Exception ex)
             {
@@ -244,10 +268,21 @@ public partial class VideraViewNew : Control
 
     private void InitializeGraphicsDevice(uint widthPx, uint heightPx)
     {
-        _backend = GraphicsBackendFactory.CreateBackend(preferSoftware: true);
+        Console.WriteLine($"[VideraViewNew] InitializeGraphicsDevice {widthPx}x{heightPx}, PreferredBackend={PreferredBackend}");
+        _backend = GraphicsBackendFactory.CreateBackend(PreferredBackend);
         _isSoftwareBackend = _backend is ISoftwareBackend;
+        Console.WriteLine($"[VideraViewNew] Backend={_backend.GetType().Name}, IsSoftware={_isSoftwareBackend}");
+        if (_isSoftwareBackend)
+        {
+            _renderHandle = IntPtr.Zero;
+            ReleaseNativeHost();
+        }
+
         var topLevel = TopLevel.GetTopLevel(this);
-        var handle = topLevel?.TryGetPlatformHandle()?.Handle ?? IntPtr.Zero;
+        var handle = _isSoftwareBackend
+            ? topLevel?.TryGetPlatformHandle()?.Handle ?? IntPtr.Zero
+            : _renderHandle;
+        Console.WriteLine($"[VideraViewNew] Init handle=0x{handle.ToInt64():X}, TopLevel={(topLevel != null)}");
         //System.Diagnostics.Debug.WriteLine($"Current handle is {handle}");
         _backend.Initialize(handle, (int)widthPx, (int)heightPx);
 
@@ -255,6 +290,12 @@ public partial class VideraViewNew : Control
 
         Engine.Initialize(_backend);
         Engine.Resize(widthPx, heightPx);
+
+        var frameLogEnv = Environment.GetEnvironmentVariable("VIDERA_FRAMELOG");
+        Engine.EnableFrameLogging = string.Equals(frameLogEnv, "1", StringComparison.OrdinalIgnoreCase) ||
+                                    string.Equals(frameLogEnv, "true", StringComparison.OrdinalIgnoreCase);
+        if (Engine.EnableFrameLogging)
+            Console.WriteLine("[VideraViewNew] Frame logging enabled");
 
         var color = BackgroundColor;
         Engine.BackgroundColor = new RgbaFloat(color.R / 255f, color.G / 255f, color.B / 255f, color.A / 255f);
@@ -308,6 +349,7 @@ public partial class VideraViewNew : Control
         };
         _renderTimer.Tick += OnRenderTick;
         _renderTimer.Start();
+        Console.WriteLine("[VideraViewNew] Render loop started");
     }
 
     private void StopRenderLoop()
@@ -324,6 +366,9 @@ public partial class VideraViewNew : Control
 
     private void OnRenderTick(object? sender, EventArgs e)
     {
+        if (_renderTickCount == 0)
+            Console.WriteLine("[VideraViewNew] First render tick");
+        _renderTickCount++;
         RenderFrame();
     }
 
@@ -365,8 +410,97 @@ public partial class VideraViewNew : Control
 
     private void OnViewAttached()
     {
+        Console.WriteLine("[VideraViewNew] OnViewAttached");
+        if (WantsNativeBackend())
+        {
+            Console.WriteLine("[VideraViewNew] Wants native backend, ensuring native host");
+            EnsureNativeHost();
+        }
+
         if (Bounds.Width <= 0 || Bounds.Height <= 0)
             return;
+
+        var scaling = VisualRoot?.RenderScaling ?? 1.0;
+        var widthPx = (uint)Math.Max(64, Math.Round(Bounds.Width * scaling));
+        var heightPx = (uint)Math.Max(64, Math.Round(Bounds.Height * scaling));
+        Engine.RenderScale = (float)scaling;
+
+        if (WantsNativeBackend())
+        {
+            if (_renderHandle != IntPtr.Zero)
+                TryInitializeOrResize(widthPx, heightPx);
+        }
+        else
+        {
+            _renderHandle = IntPtr.Zero;
+            TryInitializeOrResize(widthPx, heightPx);
+        }
+    }
+
+    private void OnViewDetached()
+    {
+        Console.WriteLine("[VideraViewNew] OnViewDetached");
+        StopRenderLoop();
+        if (Items is INotifyCollectionChanged incc)
+            incc.CollectionChanged -= OnCollectionChanged;
+        _backend?.Dispose();
+        _backend = null;
+        _isSoftwareBackend = false;
+        ReleaseNativeHost();
+        Engine.Dispose();
+        _bitmap?.Dispose();
+        _bitmap = null;
+        _isReady = false;
+        _isInitialized = false;
+    }
+
+    private bool WantsNativeBackend()
+    {
+        if (PreferredBackend == GraphicsBackendPreference.Software)
+            return false;
+
+        if (PreferredBackend == GraphicsBackendPreference.Auto)
+        {
+            var backendMode = Environment.GetEnvironmentVariable("VIDERA_BACKEND");
+            if (string.Equals(backendMode, "software", StringComparison.OrdinalIgnoreCase))
+                return false;
+        }
+
+        return OperatingSystem.IsWindows();
+    }
+
+    private void EnsureNativeHost()
+    {
+        if (_nativeHost != null)
+            return;
+
+        var host = new VideraNativeHost
+        {
+            IsHitTestVisible = false
+        };
+        host.HandleCreated += OnNativeHandleCreated;
+        host.HandleDestroyed += OnNativeHandleDestroyed;
+        _nativeHost = host;
+        Child = host;
+        Console.WriteLine("[VideraViewNew] Native host created");
+    }
+
+    private void ReleaseNativeHost()
+    {
+        if (_nativeHost == null)
+            return;
+
+        _nativeHost.HandleCreated -= OnNativeHandleCreated;
+        _nativeHost.HandleDestroyed -= OnNativeHandleDestroyed;
+        Child = null;
+        _nativeHost = null;
+        _renderHandle = IntPtr.Zero;
+    }
+
+    private void OnNativeHandleCreated(IntPtr handle)
+    {
+        _renderHandle = handle;
+        Console.WriteLine($"[VideraViewNew] Native handle created: 0x{handle.ToInt64():X}");
 
         var scaling = VisualRoot?.RenderScaling ?? 1.0;
         var widthPx = (uint)Math.Max(64, Math.Round(Bounds.Width * scaling));
@@ -375,18 +509,8 @@ public partial class VideraViewNew : Control
         TryInitializeOrResize(widthPx, heightPx);
     }
 
-    private void OnViewDetached()
+    private void OnNativeHandleDestroyed()
     {
-        StopRenderLoop();
-        if (Items is INotifyCollectionChanged incc)
-            incc.CollectionChanged -= OnCollectionChanged;
-        _backend?.Dispose();
-        _backend = null;
-        _isSoftwareBackend = false;
-        Engine.Dispose();
-        _bitmap?.Dispose();
-        _bitmap = null;
-        _isReady = false;
-        _isInitialized = false;
+        _renderHandle = IntPtr.Zero;
     }
 }

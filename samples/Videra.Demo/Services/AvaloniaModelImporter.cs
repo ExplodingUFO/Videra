@@ -19,10 +19,12 @@ public class AvaloniaModelImporter : IModelImporter
     {
         _topLevel = topLevel;
         _factory = factory;
+        Console.WriteLine("[AvaloniaModelImporter] Created");
     }
 
     public async Task<IEnumerable<Object3D>> ImportModelsAsync()
     {
+        Console.WriteLine("[AvaloniaModelImporter] ImportModelsAsync start");
         // 1. 调用 Avalonia 文件选择器
         var files = await _topLevel.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
         {
