@@ -236,9 +236,11 @@ public partial class VideraViewNew : Control
     private void InitializeGraphicsDevice(uint widthPx, uint heightPx)
     {
         _backend = GraphicsBackendFactory.CreateBackend();
-        var topLevel = TopLevel.GetTopLevel(this);
-        var handle = topLevel?.PlatformImpl?.Handle?.Handle ?? IntPtr.Zero;
-        _backend.Initialize(handle, (int)widthPx, (int)heightPx);
+        //var topLevel = TopLevel.GetTopLevel(this);
+        //var handle = topLevel?.PlatformImpl?.Handle?.Handle ?? IntPtr.Zero;
+        //_backend.Initialize(handle, (int)widthPx, (int)heightPx);
+
+        _backend.Initialize(IntPtr.Zero, (int)widthPx, (int)heightPx);
 
         Engine.Initialize(_backend);
         Engine.Resize(widthPx, heightPx);
@@ -292,11 +294,12 @@ public partial class VideraViewNew : Control
 
     private void StopRenderLoop()
     {
-        if (_renderTimer != null)
+        if (_renderTimer == null)
         {
-            _renderTimer.Stop();
-            _renderTimer = null;
+            return;
         }
+        _renderTimer.Stop();
+        _renderTimer = null;
     }
 
     private void RenderFrame()
