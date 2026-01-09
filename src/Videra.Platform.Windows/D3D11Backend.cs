@@ -55,7 +55,8 @@ public unsafe class D3D11Backend : IGraphicsBackend
         
         // 设置工厂和命令执行器
         _resourceFactory = new D3D11ResourceFactory(_device, _context, _d3d11);
-        _commandExecutor = new D3D11CommandExecutor(_context, _d3d11);
+        _commandExecutor = new D3D11CommandExecutor(_context);
+        _commandExecutor.UpdateRenderTargets(_backBufferRTV, _depthStencilView);
 
         IsInitialized = true;
     }
@@ -215,6 +216,7 @@ public unsafe class D3D11Backend : IGraphicsBackend
         // 重新创建资源
         CreateBackBufferRTV();
         CreateDepthStencil();
+        _commandExecutor.UpdateRenderTargets(_backBufferRTV, _depthStencilView);
     }
 
     public void BeginFrame()

@@ -173,6 +173,7 @@ public partial class VideraViewNew : Control
         var scaling = VisualRoot?.RenderScaling ?? 1.0;
         var widthPx = (uint)Math.Max(64, Math.Round(e.NewSize.Width * scaling));
         var heightPx = (uint)Math.Max(64, Math.Round(e.NewSize.Height * scaling));
+        Engine.RenderScale = (float)scaling;
 
         Dispatcher.UIThread.Post(() =>
         {
@@ -235,7 +236,9 @@ public partial class VideraViewNew : Control
     private void InitializeGraphicsDevice(uint widthPx, uint heightPx)
     {
         _backend = GraphicsBackendFactory.CreateBackend();
-        _backend.Initialize(IntPtr.Zero, (int)widthPx, (int)heightPx);
+        var topLevel = TopLevel.GetTopLevel(this);
+        var handle = topLevel?.PlatformImpl?.Handle?.Handle ?? IntPtr.Zero;
+        _backend.Initialize(handle, (int)widthPx, (int)heightPx);
 
         Engine.Initialize(_backend);
         Engine.Resize(widthPx, heightPx);
@@ -337,6 +340,7 @@ public partial class VideraViewNew : Control
         var scaling = VisualRoot?.RenderScaling ?? 1.0;
         var widthPx = (uint)Math.Max(64, Math.Round(Bounds.Width * scaling));
         var heightPx = (uint)Math.Max(64, Math.Round(Bounds.Height * scaling));
+        Engine.RenderScale = (float)scaling;
         TryInitializeOrResize(widthPx, heightPx);
     }
 

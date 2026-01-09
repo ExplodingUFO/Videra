@@ -23,6 +23,7 @@ public class VideraEngine : IDisposable
     public OrbitCamera Camera { get; } = new();
     public bool IsInitialized { get; private set; }
     public RgbaFloat BackgroundColor { get; set; } = new(0.1f, 0.1f, 0.1f, 1f);
+    public float RenderScale { get; set; } = 1f;
     
     // 网格和坐标轴渲染器
     public GridRenderer Grid { get; } = new();
@@ -215,7 +216,7 @@ public class VideraEngine : IDisposable
             }
             
             // 渲染坐标轴
-            _axisRenderer.Draw(_executor, _meshPipeline, Camera, _width, _height);
+            _axisRenderer.Draw(_executor, _meshPipeline, Camera, _width, _height, RenderScale);
             
             // 结束帧并呈现
             _backend.EndFrame();

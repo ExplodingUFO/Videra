@@ -1,5 +1,7 @@
 using Silk.NET.Core.Native;
 using Silk.NET.Direct3D11;
+using Silk.NET.DXGI;
+using Videra.Core.Geometry;
 using Videra.Core.Graphics.Abstractions;
 
 namespace Videra.Platform.Windows;
@@ -7,30 +9,48 @@ namespace Videra.Platform.Windows;
 internal unsafe class D3D11CommandExecutor : ICommandExecutor
 {
     private readonly ComPtr<ID3D11DeviceContext> _context;
-    private readonly D3D11 _d3d11;
+    private ID3D11RenderTargetView* _renderTargetView;
+    private ID3D11DepthStencilView* _depthStencilView;
 
-    public D3D11CommandExecutor(ComPtr<ID3D11DeviceContext> context, D3D11 d3d11)
+    public D3D11CommandExecutor(ComPtr<ID3D11DeviceContext> context)
     {
         _context = context;
-        _d3d11 = d3d11;
+    }
+
+    public void UpdateRenderTargets(ComPtr<ID3D11RenderTargetView> rtv, ComPtr<ID3D11DepthStencilView> dsv)
+    {
+        _renderTargetView = rtv.Handle;
+        _depthStencilView = dsv.Handle;
     }
 
     public void SetPipeline(IPipeline pipeline)
     {
-        // TODO: Implement pipeline binding
-        throw new NotImplementedException();
+        if (pipeline is not D3D11Pipeline d3dPipeline)
+            throw new ArgumentException("Pipeline must be a D3D11Pipeline");
+
+        _context.Handle->IASetInputLayout(d3dPipeline.InputLayout.Handle);
+        _context.Handle->VSSetShader(d3dPipeline.VertexShader.Handle, null, 0);
+        _context.Handle->PSSetShader(d3dPipeline.PixelShader.Handle, null, 0);
+        _context.Handle->RSSetState(d3dPipeline.RasterizerState.Handle);
+        _context.Handle->IASetPrimitiveTopology(Silk.NET.Direct3D.PrimitiveTopology.PrimitiveTopologyTriangleList);
     }
 
-    public void SetVertexBuffer(IBuffer buffer)
+    public void SetVertexBuffer(IBuffer buffer, uint index = 0)
     {
         if (buffer is not D3D11Buffer d3dBuffer)
             throw new ArgumentException("Buffer must be a D3D11Buffer");
 
-        var bufferPtr = d3dBuffer.NativeBuffer;
-        uint stride = 40; // sizeof(VertexPositionNormalColor) = 40 bytes
-        uint offset = 0;
-        
-        _context.Handle->IASetVertexBuffers(0, 1, &bufferPtr, &stride, &offset);
+        if (index == 0)
+        {
+            var bufferPtr = d3dBuffer.NativeBuffer;
+            uint stride = VertexPositionNormalColor.SizeInBytes;
+            uint offset = 0;
+            _context.Handle->IASetVertexBuffers(0, 1, &bufferPtr, &stride, &offset);
+            return;
+        }
+
+        var constantBuffer = d3dBuffer.NativeBuffer;
+        _context.Handle->VSSetConstantBuffers(index, 1, &constantBuffer);
     }
 
     public void SetIndexBuffer(IBuffer buffer)
@@ -43,12 +63,17 @@ internal unsafe class D3D11CommandExecutor : ICommandExecutor
 
     public void SetResourceSet(uint slot, IResourceSet resourceSet)
     {
-        // TODO: Implement resource set binding
         throw new NotImplementedException();
     }
 
     public void DrawIndexed(uint indexCount, uint instanceCount = 1, uint firstIndex = 0, int vertexOffset = 0, uint firstInstance = 0)
     {
+        _context.Handle->DrawIndexedInstanced(indexCount, instanceCount, firstIndex, vertexOffset, firstInstance);
+    }
+
+    public void DrawIndexed(uint primitiveType, uint indexCount, uint instanceCount = 1, uint firstIndex = 0, int vertexOffset = 0, uint firstInstance = 0)
+    {
+        _context.Handle->IASetPrimitiveTopology(MapTopology(primitiveType));
         _context.Handle->DrawIndexedInstanced(indexCount, instanceCount, firstIndex, vertexOffset, firstInstance);
     }
 
@@ -71,8 +96,21 @@ internal unsafe class D3D11CommandExecutor : ICommandExecutor
 
     public void Clear(float r, float g, float b, float a)
     {
-        // TODO: 需要获取RenderTargetView和DepthStencilView来清除
-        // 这需要在Backend中保存这些视图的引用
-        Console.WriteLine($"[D3D11] Clear called with color ({r}, {g}, {b}, {a})");
+        if (_renderTargetView == null || _depthStencilView == null)
+            return;
+
+        var color = stackalloc float[4] { r, g, b, a };
+        _context.Handle->ClearRenderTargetView(_renderTargetView, color);
+        _context.Handle->ClearDepthStencilView(_depthStencilView, (uint)ClearFlag.Depth, 1.0f, 0);
+    }
+
+    private static Silk.NET.Direct3D.PrimitiveTopology MapTopology(uint primitiveType)
+    {
+        return primitiveType switch
+        {
+            1 => Silk.NET.Direct3D.PrimitiveTopology.PrimitiveTopologyLineList,
+            2 => Silk.NET.Direct3D.PrimitiveTopology.PrimitiveTopologyPointList,
+            _ => Silk.NET.Direct3D.PrimitiveTopology.PrimitiveTopologyTriangleList
+        };
     }
 }

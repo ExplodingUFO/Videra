@@ -15,9 +15,9 @@ public static class GraphicsBackendFactory
     public static IGraphicsBackend CreateBackend()
     {
         var backendMode = Environment.GetEnvironmentVariable("VIDERA_BACKEND");
-        var preferNative = string.Equals(backendMode, "native", StringComparison.OrdinalIgnoreCase);
-        var preferSoftware = string.IsNullOrWhiteSpace(backendMode) ||
-                             string.Equals(backendMode, "software", StringComparison.OrdinalIgnoreCase);
+        var preferSoftware = string.Equals(backendMode, "software", StringComparison.OrdinalIgnoreCase);
+        var preferNative = string.IsNullOrWhiteSpace(backendMode) ||
+                           string.Equals(backendMode, "native", StringComparison.OrdinalIgnoreCase);
 
         if (preferSoftware)
             return new SoftwareBackend();
