@@ -5,6 +5,7 @@ using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
+using Avalonia.Rendering;
 using Avalonia.Threading;
 using Videra.Core.Geometry;
 using Videra.Core.Graphics;
@@ -22,9 +23,8 @@ public partial class VideraViewNew : Control
     private bool _isReady;
     private uint _width;
     private uint _height;
-    private DispatcherTimer? _renderTimer;
     private WriteableBitmap? _bitmap;
-    private const int TargetFPS = 60;
+    private EventHandler<RenderingEventArgs>? _renderingHandler;
 
     public static readonly StyledProperty<Color> BackgroundColorProperty =
         AvaloniaProperty.Register<VideraViewNew, Color>(nameof(BackgroundColor), Colors.Black);
@@ -282,25 +282,22 @@ public partial class VideraViewNew : Control
 
     private void StartRenderLoop()
     {
-        if (_renderTimer != null)
+        if (_renderingHandler != null)
             return;
 
-        _renderTimer = new DispatcherTimer
-        {
-            Interval = TimeSpan.FromMilliseconds(1000.0 / TargetFPS)
-        };
-        _renderTimer.Tick += (s, e) => RenderFrame();
-        _renderTimer.Start();
+        _renderingHandler = (_, _) => RenderFrame();
+        CompositionTarget.Rendering += _renderingHandler;
     }
 
     private void StopRenderLoop()
     {
-        if (_renderTimer == null)
+        if (_renderingHandler == null)
         {
             return;
         }
-        _renderTimer.Stop();
-        _renderTimer = null;
+
+        CompositionTarget.Rendering -= _renderingHandler;
+        _renderingHandler = null;
     }
 
     private void RenderFrame()
