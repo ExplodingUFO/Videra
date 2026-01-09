@@ -116,7 +116,7 @@ public unsafe class D3D11Backend : IGraphicsBackend
         // 获取 BackBuffer
         ComPtr<ID3D11Texture2D> backBuffer = default;
         
-        var result = _swapchain.Handle->GetBuffer(0, out backBuffer.Handle);
+        var result = _swapchain.Handle->GetBuffer<ID3D11Texture2D>(0, out backBuffer);
         if (result != 0)
             throw new Exception($"Failed to get swapchain back buffer. HRESULT: 0x{result:X8}");
 
@@ -230,7 +230,8 @@ public unsafe class D3D11Backend : IGraphicsBackend
         _context.Handle->OMSetDepthStencilState(_depthStencilState.Handle, 0);
 
         // 清屏
-        _context.Handle->ClearRenderTargetView(_backBufferRTV.Handle, (float*)&_clearColor);
+        var clearColor = _clearColor;
+        _context.Handle->ClearRenderTargetView(_backBufferRTV.Handle, (float*)&clearColor);
         _context.Handle->ClearDepthStencilView(_depthStencilView.Handle, 
             (uint)(ClearFlag.Depth | ClearFlag.Stencil), 1.0f, 0);
 

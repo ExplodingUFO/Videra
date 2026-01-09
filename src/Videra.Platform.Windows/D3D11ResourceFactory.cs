@@ -45,12 +45,10 @@ internal unsafe class D3D11ResourceFactory : IResourceFactory
             };
 
             ComPtr<ID3D11Buffer> buffer = default;
-            fixed (ID3D11Buffer** bufferPtr = &buffer.Handle)
-            {
-                var result = _device.Handle->CreateBuffer(in bufferDesc, in subresourceData, bufferPtr);
-                if (result != 0)
-                    throw new Exception($"Failed to create vertex buffer. HRESULT: 0x{result:X8}");
-            }
+            var bufferPtr = &buffer.Handle;
+            var result = _device.Handle->CreateBuffer(in bufferDesc, in subresourceData, bufferPtr);
+            if (result != 0)
+                throw new Exception($"Failed to create vertex buffer. HRESULT: 0x{result:X8}");
 
             return new D3D11Buffer(buffer, sizeInBytes, _context, _d3d11);
         }
@@ -69,12 +67,10 @@ internal unsafe class D3D11ResourceFactory : IResourceFactory
         };
 
         ComPtr<ID3D11Buffer> buffer = default;
-        fixed (ID3D11Buffer** bufferPtr = &buffer.Handle)
-        {
-            var result = _device.Handle->CreateBuffer(in bufferDesc, null, bufferPtr);
-            if (result != 0)
-                throw new Exception($"Failed to create vertex buffer. HRESULT: 0x{result:X8}");
-        }
+        var bufferPtr = &buffer.Handle;
+        var result = _device.Handle->CreateBuffer(in bufferDesc, null, bufferPtr);
+        if (result != 0)
+            throw new Exception($"Failed to create vertex buffer. HRESULT: 0x{result:X8}");
 
         return new D3D11Buffer(buffer, sizeInBytes, _context, _d3d11);
     }
@@ -101,12 +97,10 @@ internal unsafe class D3D11ResourceFactory : IResourceFactory
             };
 
             ComPtr<ID3D11Buffer> buffer = default;
-            fixed (ID3D11Buffer** bufferPtr = &buffer.Handle)
-            {
-                var result = _device.Handle->CreateBuffer(in bufferDesc, in subresourceData, bufferPtr);
-                if (result != 0)
-                    throw new Exception($"Failed to create index buffer. HRESULT: 0x{result:X8}");
-            }
+            var bufferPtr = &buffer.Handle;
+            var result = _device.Handle->CreateBuffer(in bufferDesc, in subresourceData, bufferPtr);
+            if (result != 0)
+                throw new Exception($"Failed to create index buffer. HRESULT: 0x{result:X8}");
 
             return new D3D11Buffer(buffer, sizeInBytes, _context, _d3d11);
         }
@@ -125,12 +119,10 @@ internal unsafe class D3D11ResourceFactory : IResourceFactory
         };
 
         ComPtr<ID3D11Buffer> buffer = default;
-        fixed (ID3D11Buffer** bufferPtr = &buffer.Handle)
-        {
-            var result = _device.Handle->CreateBuffer(in bufferDesc, null, bufferPtr);
-            if (result != 0)
-                throw new Exception($"Failed to create index buffer. HRESULT: 0x{result:X8}");
-        }
+        var bufferPtr = &buffer.Handle;
+        var result = _device.Handle->CreateBuffer(in bufferDesc, null, bufferPtr);
+        if (result != 0)
+            throw new Exception($"Failed to create index buffer. HRESULT: 0x{result:X8}");
 
         return new D3D11Buffer(buffer, sizeInBytes, _context, _d3d11);
     }
@@ -150,12 +142,10 @@ internal unsafe class D3D11ResourceFactory : IResourceFactory
         };
 
         ComPtr<ID3D11Buffer> buffer = default;
-        fixed (ID3D11Buffer** bufferPtr = &buffer.Handle)
-        {
-            var result = _device.Handle->CreateBuffer(in bufferDesc, null, bufferPtr);
-            if (result != 0)
-                throw new Exception($"Failed to create uniform buffer. HRESULT: 0x{result:X8}");
-        }
+        var bufferPtr = &buffer.Handle;
+        var result = _device.Handle->CreateBuffer(in bufferDesc, null, bufferPtr);
+        if (result != 0)
+            throw new Exception($"Failed to create uniform buffer. HRESULT: 0x{result:X8}");
 
         return new D3D11Buffer(buffer, sizeInBytes, _context, _d3d11);
     }
@@ -171,33 +161,74 @@ internal unsafe class D3D11ResourceFactory : IResourceFactory
         var vertexShader = CompileShader(hlsl, "main_vs", "vs_5_0");
         var pixelShader = CompileShader(hlsl, "main_ps", "ps_5_0");
 
+        var vsBytecodePtr = vertexShader.GetBufferPointer();
+        var vsBytecodeSize = (nuint)vertexShader.GetBufferSize();
         ComPtr<ID3D11VertexShader> vs = default;
-        fixed (ID3D11VertexShader** vsPtr = &vs.Handle)
+        var vsPtr = &vs.Handle;
         {
-            var result = _device.Handle->CreateVertexShader(vertexShader.BufferPointer, vertexShader.BufferSize, null, vsPtr);
+            var result = _device.Handle->CreateVertexShader(vsBytecodePtr, vsBytecodeSize, null, vsPtr);
             if (result != 0)
                 throw new Exception($"Failed to create vertex shader. HRESULT: 0x{result:X8}");
         }
 
+        var psBytecodePtr = pixelShader.GetBufferPointer();
+        var psBytecodeSize = (nuint)pixelShader.GetBufferSize();
         ComPtr<ID3D11PixelShader> ps = default;
-        fixed (ID3D11PixelShader** psPtr = &ps.Handle)
+        var psPtr = &ps.Handle;
         {
-            var result = _device.Handle->CreatePixelShader(pixelShader.BufferPointer, pixelShader.BufferSize, null, psPtr);
+            var result = _device.Handle->CreatePixelShader(psBytecodePtr, psBytecodeSize, null, psPtr);
             if (result != 0)
                 throw new Exception($"Failed to create pixel shader. HRESULT: 0x{result:X8}");
         }
 
-        var inputElements = stackalloc InputElementDesc[3];
-        inputElements[0] = new InputElementDesc("POSITION", 0, Format.FormatR32G32B32Float, 0, 0, InputClassification.PerVertexData, 0);
-        inputElements[1] = new InputElementDesc("NORMAL", 0, Format.FormatR32G32B32Float, 0, 12, InputClassification.PerVertexData, 0);
-        inputElements[2] = new InputElementDesc("COLOR", 0, Format.FormatR32G32B32A32Float, 0, 24, InputClassification.PerVertexData, 0);
-
+        var positionPtr = SilkMarshal.StringToPtr("POSITION", NativeStringEncoding.UTF8);
+        var normalPtr = SilkMarshal.StringToPtr("NORMAL", NativeStringEncoding.UTF8);
+        var colorPtr = SilkMarshal.StringToPtr("COLOR", NativeStringEncoding.UTF8);
         ComPtr<ID3D11InputLayout> inputLayout = default;
-        fixed (ID3D11InputLayout** layoutPtr = &inputLayout.Handle)
+        try
         {
-            var result = _device.Handle->CreateInputLayout(inputElements, 3, vertexShader.BufferPointer, vertexShader.BufferSize, layoutPtr);
+            var inputElements = stackalloc InputElementDesc[3];
+            inputElements[0] = new InputElementDesc
+            {
+                SemanticName = (byte*)positionPtr,
+                SemanticIndex = 0,
+                Format = Format.FormatR32G32B32Float,
+                InputSlot = 0,
+                AlignedByteOffset = 0,
+                InputSlotClass = InputClassification.PerVertexData,
+                InstanceDataStepRate = 0
+            };
+            inputElements[1] = new InputElementDesc
+            {
+                SemanticName = (byte*)normalPtr,
+                SemanticIndex = 0,
+                Format = Format.FormatR32G32B32Float,
+                InputSlot = 0,
+                AlignedByteOffset = 12,
+                InputSlotClass = InputClassification.PerVertexData,
+                InstanceDataStepRate = 0
+            };
+            inputElements[2] = new InputElementDesc
+            {
+                SemanticName = (byte*)colorPtr,
+                SemanticIndex = 0,
+                Format = Format.FormatR32G32B32A32Float,
+                InputSlot = 0,
+                AlignedByteOffset = 24,
+                InputSlotClass = InputClassification.PerVertexData,
+                InstanceDataStepRate = 0
+            };
+
+            var layoutPtr = &inputLayout.Handle;
+            var result = _device.Handle->CreateInputLayout(inputElements, 3, vsBytecodePtr, vsBytecodeSize, layoutPtr);
             if (result != 0)
                 throw new Exception($"Failed to create input layout. HRESULT: 0x{result:X8}");
+        }
+        finally
+        {
+            SilkMarshal.Free(positionPtr);
+            SilkMarshal.Free(normalPtr);
+            SilkMarshal.Free(colorPtr);
         }
 
         var rasterDesc = new RasterizerDesc
@@ -215,7 +246,7 @@ internal unsafe class D3D11ResourceFactory : IResourceFactory
         };
 
         ComPtr<ID3D11RasterizerState> rasterizer = default;
-        fixed (ID3D11RasterizerState** rasterPtr = &rasterizer.Handle)
+        var rasterPtr = &rasterizer.Handle;
         {
             var result = _device.Handle->CreateRasterizerState(in rasterDesc, rasterPtr);
             if (result != 0)
@@ -238,23 +269,46 @@ internal unsafe class D3D11ResourceFactory : IResourceFactory
         throw new NotImplementedException("ResourceSet creation will be implemented in full backend");
     }
 
-    private ComPtr<ID3DBlob> CompileShader(string source, string entryPoint, string profile)
+    private ComPtr<ID3D10Blob> CompileShader(string source, string entryPoint, string profile)
     {
-        ComPtr<ID3DBlob> shaderBlob = default;
-        ComPtr<ID3DBlob> errorBlob = default;
+        ComPtr<ID3D10Blob> shaderBlob = default;
+        ComPtr<ID3D10Blob> errorBlob = default;
 
         var sourceBytes = System.Text.Encoding.UTF8.GetBytes(source);
-        fixed (byte* sourcePtr = sourceBytes)
+        var entryPointPtr = SilkMarshal.StringToPtr(entryPoint, NativeStringEncoding.UTF8);
+        var profilePtr = SilkMarshal.StringToPtr(profile, NativeStringEncoding.UTF8);
+        try
         {
-            var result = _compiler.D3DCompile(sourcePtr, (nuint)sourceBytes.Length, null, null, null, entryPoint, profile, 0, 0, ref shaderBlob, ref errorBlob);
-            if (result != 0)
+            fixed (byte* sourcePtr = sourceBytes)
             {
-                var errorMsg = errorBlob.Handle != null
-                    ? Marshal.PtrToStringAnsi((IntPtr)errorBlob.Handle->GetBufferPointer())
-                    : "Unknown shader compilation error";
-                errorBlob.Dispose();
-                throw new Exception($"D3D11 shader compilation failed ({entryPoint}/{profile}): {errorMsg}");
+                var shaderBlobPtr = &shaderBlob.Handle;
+                var errorBlobPtr = &errorBlob.Handle;
+                var result = _compiler.Compile(
+                    sourcePtr,
+                    (nuint)sourceBytes.Length,
+                    (byte*)null,
+                    null,
+                    null,
+                    (byte*)entryPointPtr,
+                    (byte*)profilePtr,
+                    0,
+                    0,
+                    shaderBlobPtr,
+                    errorBlobPtr);
+                if (result != 0)
+                {
+                    var errorMsg = errorBlob.Handle != null
+                        ? Marshal.PtrToStringAnsi((IntPtr)errorBlob.Handle->GetBufferPointer())
+                        : "Unknown shader compilation error";
+                    errorBlob.Dispose();
+                    throw new Exception($"D3D11 shader compilation failed ({entryPoint}/{profile}): {errorMsg}");
+                }
             }
+        }
+        finally
+        {
+            SilkMarshal.Free(entryPointPtr);
+            SilkMarshal.Free(profilePtr);
         }
 
         errorBlob.Dispose();

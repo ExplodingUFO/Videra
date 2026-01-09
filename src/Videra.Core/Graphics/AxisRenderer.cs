@@ -83,8 +83,7 @@ public class AxisRenderer : IDisposable
         var viewMatrix = Matrix4x4.CreateLookAt(axisCameraPosition, Vector3.Zero, up);
         var projectionMatrix = CreatePerspective(camera.FieldOfView, 1f, 0.1f, 100f);
 
-        _cameraBuffer.SetData(viewMatrix, 0);
-        _cameraBuffer.SetData(projectionMatrix, 64);
+        _cameraBuffer.Update(new CameraUniform(viewMatrix, projectionMatrix));
 
         executor.SetPipeline(pipeline);
         executor.SetVertexBuffer(_vertexBuffer, 0);

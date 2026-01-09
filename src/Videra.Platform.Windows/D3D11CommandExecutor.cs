@@ -8,6 +8,10 @@ namespace Videra.Platform.Windows;
 
 internal unsafe class D3D11CommandExecutor : ICommandExecutor
 {
+    private const D3DPrimitiveTopology TopologyPointList = (D3DPrimitiveTopology)1;
+    private const D3DPrimitiveTopology TopologyLineList = (D3DPrimitiveTopology)2;
+    private const D3DPrimitiveTopology TopologyTriangleList = (D3DPrimitiveTopology)4;
+
     private readonly ComPtr<ID3D11DeviceContext> _context;
     private ID3D11RenderTargetView* _renderTargetView;
     private ID3D11DepthStencilView* _depthStencilView;
@@ -32,7 +36,7 @@ internal unsafe class D3D11CommandExecutor : ICommandExecutor
         _context.Handle->VSSetShader(d3dPipeline.VertexShader.Handle, null, 0);
         _context.Handle->PSSetShader(d3dPipeline.PixelShader.Handle, null, 0);
         _context.Handle->RSSetState(d3dPipeline.RasterizerState.Handle);
-        _context.Handle->IASetPrimitiveTopology(Silk.NET.Direct3D.PrimitiveTopology.PrimitiveTopologyTriangleList);
+        _context.Handle->IASetPrimitiveTopology(TopologyTriangleList);
     }
 
     public void SetVertexBuffer(IBuffer buffer, uint index = 0)
@@ -104,13 +108,13 @@ internal unsafe class D3D11CommandExecutor : ICommandExecutor
         _context.Handle->ClearDepthStencilView(_depthStencilView, (uint)ClearFlag.Depth, 1.0f, 0);
     }
 
-    private static Silk.NET.Direct3D.PrimitiveTopology MapTopology(uint primitiveType)
+    private static D3DPrimitiveTopology MapTopology(uint primitiveType)
     {
         return primitiveType switch
         {
-            1 => Silk.NET.Direct3D.PrimitiveTopology.PrimitiveTopologyLineList,
-            2 => Silk.NET.Direct3D.PrimitiveTopology.PrimitiveTopologyPointList,
-            _ => Silk.NET.Direct3D.PrimitiveTopology.PrimitiveTopologyTriangleList
+            1 => TopologyLineList,
+            2 => TopologyPointList,
+            _ => TopologyTriangleList
         };
     }
 }

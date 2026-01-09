@@ -5,7 +5,6 @@ using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
-using Avalonia.Rendering;
 using Avalonia.Threading;
 using Videra.Core.Geometry;
 using Videra.Core.Graphics;
@@ -24,7 +23,8 @@ public partial class VideraViewNew : Control
     private uint _width;
     private uint _height;
     private WriteableBitmap? _bitmap;
-    private EventHandler<RenderingEventArgs>? _renderingHandler;
+    private bool _isSoftwareBackend;
+    private DispatcherTimer? _renderTimer;
 
     public static readonly StyledProperty<Color> BackgroundColorProperty =
         AvaloniaProperty.Register<VideraViewNew, Color>(nameof(BackgroundColor), Colors.Black);
@@ -185,6 +185,15 @@ public partial class VideraViewNew : Control
     {
         base.Render(context);
 
+        if (!_isInitialized)
+        {
+            context.FillRectangle(new SolidColorBrush(BackgroundColor), new Rect(Bounds.Size));
+            return;
+        }
+
+        if (!_isSoftwareBackend)
+            return;
+
         if (_bitmap == null)
         {
             context.FillRectangle(new SolidColorBrush(BackgroundColor), new Rect(Bounds.Size));
@@ -235,7 +244,8 @@ public partial class VideraViewNew : Control
 
     private void InitializeGraphicsDevice(uint widthPx, uint heightPx)
     {
-        _backend = GraphicsBackendFactory.CreateBackend();
+        _backend = GraphicsBackendFactory.CreateBackend(preferSoftware: true);
+        _isSoftwareBackend = _backend is ISoftwareBackend;
         var topLevel = TopLevel.GetTopLevel(this);
         var handle = topLevel?.TryGetPlatformHandle()?.Handle ?? IntPtr.Zero;
         //System.Diagnostics.Debug.WriteLine($"Current handle is {handle}");
@@ -265,6 +275,13 @@ public partial class VideraViewNew : Control
         if (widthPx == 0 || heightPx == 0)
             return;
 
+        if (!_isSoftwareBackend)
+        {
+            _bitmap?.Dispose();
+            _bitmap = null;
+            return;
+        }
+
         if (_bitmap != null &&
             _bitmap.PixelSize.Width == widthPx &&
             _bitmap.PixelSize.Height == heightPx)
@@ -282,22 +299,32 @@ public partial class VideraViewNew : Control
 
     private void StartRenderLoop()
     {
-        if (_renderingHandler != null)
+        if (_renderTimer != null)
             return;
 
-        _renderingHandler = (_, _) => RenderFrame();
-        CompositionTarget.Rendering += _renderingHandler;
+        _renderTimer = new DispatcherTimer(DispatcherPriority.Render)
+        {
+            Interval = TimeSpan.FromMilliseconds(16)
+        };
+        _renderTimer.Tick += OnRenderTick;
+        _renderTimer.Start();
     }
 
     private void StopRenderLoop()
     {
-        if (_renderingHandler == null)
+        if (_renderTimer == null)
         {
             return;
         }
 
-        CompositionTarget.Rendering -= _renderingHandler;
-        _renderingHandler = null;
+        _renderTimer.Stop();
+        _renderTimer.Tick -= OnRenderTick;
+        _renderTimer = null;
+    }
+
+    private void OnRenderTick(object? sender, EventArgs e)
+    {
+        RenderFrame();
     }
 
     private void RenderFrame()
@@ -309,13 +336,16 @@ public partial class VideraViewNew : Control
         {
             Engine.Draw();
 
-            if (_backend is ISoftwareBackend softwareBackend && _bitmap != null)
+            if (_isSoftwareBackend && _backend is ISoftwareBackend softwareBackend)
             {
-                using var locked = _bitmap.Lock();
-                softwareBackend.CopyFrameTo(locked.Address, locked.RowBytes);
-            }
+                if (_bitmap != null)
+                {
+                    using var locked = _bitmap.Lock();
+                    softwareBackend.CopyFrameTo(locked.Address, locked.RowBytes);
+                }
 
-            InvalidateVisual();
+                InvalidateVisual();
+            }
         }
         catch (Exception ex)
         {
@@ -352,6 +382,7 @@ public partial class VideraViewNew : Control
             incc.CollectionChanged -= OnCollectionChanged;
         _backend?.Dispose();
         _backend = null;
+        _isSoftwareBackend = false;
         Engine.Dispose();
         _bitmap?.Dispose();
         _bitmap = null;

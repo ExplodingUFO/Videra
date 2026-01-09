@@ -141,18 +141,17 @@ public class VideraEngine : IDisposable
             // 更新相机数据
             if (_cameraBuffer != null)
             {
-                _cameraBuffer.SetData(Camera.ViewMatrix, 0);
-                _cameraBuffer.SetData(Camera.ProjectionMatrix, 64);
-                
+                _cameraBuffer.Update(new CameraUniform(Camera.ViewMatrix, Camera.ProjectionMatrix));
+
                 if (shouldLog)
                 {
                     Console.WriteLine($"[VideraEngine] Camera Position: {Camera.Position}, Target: {Camera.Target}");
                     Console.WriteLine($"[VideraEngine] Camera Yaw: {Camera.Yaw:F2}, Pitch: {Camera.Pitch:F2}");
-                    
+
                     // 输出View矩阵的第一行来验证数据
                     var viewMatrix = Camera.ViewMatrix;
                     Console.WriteLine($"[VideraEngine] ViewMatrix M11={viewMatrix.M11:F2}, M12={viewMatrix.M12:F2}, M13={viewMatrix.M13:F2}, M14={viewMatrix.M14:F2}");
-                    
+
                     var projMatrix = Camera.ProjectionMatrix;
                     Console.WriteLine($"[VideraEngine] ProjMatrix M11={projMatrix.M11:F2}, M22={projMatrix.M22:F2}, M33={projMatrix.M33:F2}, M43={projMatrix.M43:F2}");
                 }

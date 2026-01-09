@@ -65,7 +65,8 @@ internal unsafe class D3D11Buffer : IBuffer
             throw new InvalidOperationException($"Data with offset ({offset + dataSize}) exceeds buffer size ({SizeInBytes})");
 
         MappedSubresource mapped;
-        var result = _context.Handle->Map((ID3D11Resource*)_buffer.Handle, 0, Map.WriteDiscard, 0, &mapped);
+        var mapType = offset + dataSize < SizeInBytes ? Map.WriteNoOverwrite : Map.WriteDiscard;
+        var result = _context.Handle->Map((ID3D11Resource*)_buffer.Handle, 0, mapType, 0, &mapped);
         if (result != 0)
             throw new Exception($"Failed to map buffer. HRESULT: 0x{result:X8}");
 
@@ -81,7 +82,8 @@ internal unsafe class D3D11Buffer : IBuffer
             throw new InvalidOperationException($"Data with offset ({offset + dataSize}) exceeds buffer size ({SizeInBytes})");
 
         MappedSubresource mapped;
-        var result = _context.Handle->Map((ID3D11Resource*)_buffer.Handle, 0, Map.WriteDiscard, 0, &mapped);
+        var mapType = offset + dataSize < SizeInBytes ? Map.WriteNoOverwrite : Map.WriteDiscard;
+        var result = _context.Handle->Map((ID3D11Resource*)_buffer.Handle, 0, mapType, 0, &mapped);
         if (result != 0)
             throw new Exception($"Failed to map buffer. HRESULT: 0x{result:X8}");
 

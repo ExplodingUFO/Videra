@@ -12,14 +12,20 @@ public static class GraphicsBackendFactory
     /// <summary>
     /// åˆ›å»ºå½“å‰å¹³å°å¯¹åº”çš„å›¾å½¢åŽç«?
     /// </summary>
-    public static IGraphicsBackend CreateBackend()
+    public static IGraphicsBackend CreateBackend(bool preferSoftware = false)
     {
         var backendMode = Environment.GetEnvironmentVariable("VIDERA_BACKEND");
-        var preferSoftware = string.Equals(backendMode, "software", StringComparison.OrdinalIgnoreCase);
-        var preferNative = string.IsNullOrWhiteSpace(backendMode) ||
-                           string.Equals(backendMode, "native", StringComparison.OrdinalIgnoreCase);
+        if (string.IsNullOrWhiteSpace(backendMode))
+        {
+            if (preferSoftware)
+                return new SoftwareBackend();
+            backendMode = "native";
+        }
 
-        if (preferSoftware)
+        var preferSoftwareMode = string.Equals(backendMode, "software", StringComparison.OrdinalIgnoreCase);
+        var preferNative = string.Equals(backendMode, "native", StringComparison.OrdinalIgnoreCase);
+
+        if (preferSoftwareMode)
             return new SoftwareBackend();
 
         if (preferNative)

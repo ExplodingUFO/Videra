@@ -49,12 +49,33 @@ internal class MetalBuffer : IBuffer
 
     public void SetData<T>(T data, uint offset) where T : unmanaged
     {
-        Update(data);
+        unsafe
+        {
+            var dataSize = (uint)Marshal.SizeOf<T>();
+            if (offset + dataSize > SizeInBytes)
+                throw new InvalidOperationException($"Data size ({dataSize}) with offset exceeds buffer size ({SizeInBytes})");
+
+            var contents = GetBufferContents(_buffer, SEL("contents"));
+            var target = IntPtr.Add(contents, checked((int)offset));
+            Marshal.StructureToPtr(data, target, false);
+        }
     }
 
     public void SetData<T>(T[] data, uint offset) where T : unmanaged
     {
-        UpdateArray(data);
+        unsafe
+        {
+            var dataSize = (uint)(data.Length * Marshal.SizeOf<T>());
+            if (offset + dataSize > SizeInBytes)
+                throw new InvalidOperationException($"Data size ({dataSize}) with offset exceeds buffer size ({SizeInBytes})");
+
+            var contents = GetBufferContents(_buffer, SEL("contents"));
+            var target = IntPtr.Add(contents, checked((int)offset));
+            fixed (T* dataPtr = data)
+            {
+                Buffer.MemoryCopy(dataPtr, target.ToPointer(), SizeInBytes - offset, dataSize);
+            }
+        }
     }
 
     public void Dispose()

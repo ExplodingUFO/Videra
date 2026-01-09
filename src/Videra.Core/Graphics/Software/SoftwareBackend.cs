@@ -56,6 +56,12 @@ internal sealed class SoftwareBackend : IGraphicsBackend, ISoftwareBackend
         var src = _frameBuffer.ColorBufferArray;
         var rowBytes = _frameBuffer.Width * 4;
 
+        if (destinationStride == rowBytes)
+        {
+            Marshal.Copy(src, 0, destination, src.Length);
+            return;
+        }
+
         for (int y = 0; y < _frameBuffer.Height; y++)
         {
             var srcOffset = y * rowBytes;
