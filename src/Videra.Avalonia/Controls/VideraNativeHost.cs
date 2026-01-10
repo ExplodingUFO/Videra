@@ -25,7 +25,8 @@ internal sealed class VideraNativeHost : NativeControlHost
             throw new PlatformNotSupportedException($"Expected HWND parent, got '{parent.HandleDescriptor}'.");
 
         const int exStyle = 0;
-        const int style = 0x40000000 | 0x10000000 | 0x04000000 | 0x02000000; // WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN
+        const int ssNotify = 0x0100;
+        const int style = 0x40000000 | 0x10000000 | 0x04000000 | 0x02000000 | ssNotify; // WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | SS_NOTIFY
 
         Console.WriteLine($"[VideraNativeHost] Creating child HWND under 0x{parent.Handle.ToInt64():X}");
         _handle = CreateWindowExW(
@@ -93,6 +94,12 @@ internal sealed class VideraNativeHost : NativeControlHost
 
         _wndProc = WndProc;
         _oldWndProc = SetWindowLongPtr(_handle, GwlWndProc, Marshal.GetFunctionPointerForDelegate(_wndProc));
+        if (_oldWndProc == IntPtr.Zero)
+        {
+            var error = Marshal.GetLastWin32Error();
+            if (error != 0)
+                Console.WriteLine($"[VideraNativeHost] Failed to hook WndProc (err={error})");
+        }
     }
 
     private void UnhookWndProc()
@@ -110,6 +117,7 @@ internal sealed class VideraNativeHost : NativeControlHost
         switch (msg)
         {
             case WmLButtonDown:
+                SetFocus(hWnd);
                 SetCapture(hWnd);
                 RaisePointer(NativePointerKind.LeftDown, lParam, 0);
                 return IntPtr.Zero;
@@ -118,6 +126,7 @@ internal sealed class VideraNativeHost : NativeControlHost
                 RaisePointer(NativePointerKind.LeftUp, lParam, 0);
                 return IntPtr.Zero;
             case WmRButtonDown:
+                SetFocus(hWnd);
                 SetCapture(hWnd);
                 RaisePointer(NativePointerKind.RightDown, lParam, 0);
                 return IntPtr.Zero;
@@ -186,6 +195,9 @@ internal sealed class VideraNativeHost : NativeControlHost
 
     [DllImport("user32.dll")]
     private static extern bool ReleaseCapture();
+
+    [DllImport("user32.dll")]
+    private static extern IntPtr SetFocus(IntPtr hWnd);
 
     private void RaisePointer(NativePointerKind kind, IntPtr lParam, int wheelDelta)
     {

@@ -477,7 +477,7 @@ public partial class VideraViewNew : Decorator
 
         var host = new VideraNativeHost
         {
-            IsHitTestVisible = false
+            IsHitTestVisible = true
         };
         host.HandleCreated += OnNativeHandleCreated;
         host.HandleDestroyed += OnNativeHandleDestroyed;
