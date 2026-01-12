@@ -6,7 +6,7 @@ using Avalonia.Platform;
 
 namespace Videra.Avalonia.Controls;
 
-internal sealed class VideraNativeHost : NativeControlHost
+internal sealed class VideraNativeHost : NativeControlHost, IVideraNativeHost
 {
     private IntPtr _handle;
     private IntPtr _oldWndProc;

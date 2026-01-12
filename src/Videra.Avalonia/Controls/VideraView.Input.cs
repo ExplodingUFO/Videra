@@ -6,9 +6,9 @@ using Avalonia.Interactivity;
 namespace Videra.Avalonia.Controls;
 
 /// <summary>
-/// VideraViewNew 的输入处理部分。
+/// VideraView 的输入处理部分。
 /// </summary>
-public partial class VideraViewNew
+public partial class VideraView
 {
     private static readonly bool InputLogEnabled =
         string.Equals(Environment.GetEnvironmentVariable("VIDERA_INPUTLOG"), "1", StringComparison.OrdinalIgnoreCase) ||

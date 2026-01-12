@@ -52,8 +52,8 @@ Videra/
 │   │
 │   └── Videra.Avalonia/                # AvaloniaUI 集成
 │       └── Controls/
-│           ├── VideraViewNew.cs        # 新的渲染控件
-│           └── VideraViewNew.Input.cs
+│           ├── VideraView.cs        # 新的渲染控件
+│           └── VideraView.Input.cs
 │
 └── samples/
     └── Videra.Demo/                    # 示例应用程序
@@ -148,7 +148,7 @@ SetLayerDevice(_metalLayer, _device);
 ```xml
 <!-- MainWindow.axaml -->
 <Window xmlns:videra="using:Videra.Avalonia.Controls">
-    <videra:VideraViewNew 
+    <videra:VideraView 
         BackgroundColor="#1E1E1E"
         Items="{Binding Models}"
         CameraInvertY="True"
@@ -221,7 +221,7 @@ dotnet build -r linux-x64
 - Windows D3D11 后端基础框架
 - macOS Metal 后端基础框架
 - Linux Vulkan 后端基础框架
-- VideraViewNew 控件骨架
+- VideraView 控件骨架
 - 平台后端工厂
 - 输入处理系统
 

@@ -142,7 +142,7 @@ _projectionMatrix = new Matrix4x4(
 ### 已完成的准备工作
 - ✅ 抽象接口层（`IGraphicsBackend`, `IResourceFactory`, `ICommandExecutor`）
 - ✅ 平台后端框架（Windows D3D11, macOS Metal, Linux Vulkan）
-- ✅ `VideraViewNew` 控件模板
+- ✅ `VideraView` 控件模板
 
 ### 待完成的迁移工作
 - ⏳ Shader 编译系统（HLSL → DXIL/MSL/SPIR-V）

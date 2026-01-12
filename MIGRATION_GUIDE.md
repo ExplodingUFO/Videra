@@ -17,7 +17,7 @@
 - Linux: `VulkanBackend`
 
 ### 阶段 3: VideraView 重构 ✅
-- 创建 `VideraViewNew` 控件
+- 创建 `VideraView` 控件
 - 使用新的后端接口替代 Veldrid API
 - 保持与原有 API 的兼容性
 

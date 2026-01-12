@@ -16,7 +16,7 @@
 
    <Grid ColumnDefinitions="*, 320">
         
-       <controls:VideraViewNew Name="View3D" 
+       <controls:VideraView Name="View3D" 
                      Grid.Column="0"
                      Items="{Binding SceneObjects}"
                      BackgroundColor="{Binding BgColor}"

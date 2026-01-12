@@ -30,8 +30,8 @@
 
 ### 3. UI控件迁移
 - ✅ 删除旧的 `VideraView.cs` (基于Veldrid)
-- ✅ 使用 `VideraViewNew.cs` (基于Silk.NET)
-- ✅ 更新 `MainWindow.axaml` 使用VideraViewNew
+- ✅ 使用 `VideraView.cs` (基于Silk.NET)
+- ✅ 更新 `MainWindow.axaml` 使用VideraView
 - ✅ 更新 `AvaloniaModelImporter` 使用IResourceFactory
 - ✅ 移除所有Veldrid NuGet包依赖
 
@@ -174,8 +174,8 @@ src/Videra.Core/
 └── IO/ModelImporter.cs ⚠️ 需要修复API调用
 
 src/Videra.Avalonia/Controls/
-├── VideraViewNew.cs ✅ 完成
-├── VideraViewNew.Input.cs ✅ 完成
+├── VideraView.cs ✅ 完成
+├── VideraView.Input.cs ✅ 完成
 └── VideraView.cs ❌ 已删除
 
 src/Videra.Platform.Windows/

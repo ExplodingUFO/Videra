@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git mv:*)",
+      "Bash(dotnet build src/Videra.Avalonia/Videra.Avalonia.csproj)",
+      "Bash(dotnet build samples/Videra.Demo/Videra.Demo.csproj)",
+      "Bash(dotnet build)",
+      "Bash(find:*)",
+      "Bash(for file in ARCHITECTURE.md FIX_COMPLETE.md IMPLEMENTATION_STATUS.md MIGRATION_COMPLETE.md MIGRATION_GUIDE.md MIGRATION_STATUS.md RENDERING_COMPLETE.md \"samples/Videra.Demo/README.md\")",
+      "Bash(do if [ -f \"$file\" ])",
+      "Bash(then sed -i 's/VideraViewNew/VideraView/g' \"$file\")",
+      "Bash(fi)",
+      "Bash(done)"
+    ]
+  }
+}

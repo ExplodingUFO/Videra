@@ -112,8 +112,8 @@ backend.Initialize(windowHandle, width, height);
 ### 6. VideraView 重构 ✓
 
 **文件:**
-- `VideraViewNew.cs` - 新的 AvaloniaUI 控件
-- `VideraViewNew.Input.cs` - 输入处理
+- `VideraView.cs` - 新的 AvaloniaUI 控件
+- `VideraView.Input.cs` - 输入处理
 
 **特性:**
 - ✓ 使用 `IGraphicsBackend` 替代 Veldrid
@@ -327,7 +327,7 @@ public void Render()
 ### 优先级 4: 文档和示例 (Week 5)
 
 10. **更新示例项目**
-    - Videra.Demo 使用 VideraViewNew
+    - Videra.Demo 使用 VideraView
     - 添加性能监控面板
     - 增加更多模型格式支持
 

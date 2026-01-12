@@ -7,7 +7,7 @@
 ### ✅ 已完成
 - 抽象接口层实现
 - Windows/macOS/Linux 三个平台后端框架
-- VideraViewNew 控件创建
+- VideraView 控件创建
 - 项目编译成功
 
 ### ⚠️ 临时措施
@@ -67,10 +67,10 @@ dotnet run --project samples/Videra.Demo/Videra.Demo.csproj
 ### 3. 重写 VideraEngine 渲染循环
 使用新的抽象接口替代 Veldrid API
 
-### 4. 恢复 MainWindow.axaml 中的 VideraViewNew
+### 4. 恢复 MainWindow.axaml 中的 VideraView
 取消注释以下代码：
 ```xml
-<controls:VideraViewNew Name="View3D" 
+<controls:VideraView Name="View3D" 
              Grid.Column="0"
              Items="{Binding SceneObjects}"
              BackgroundColor="{Binding BgColor}"

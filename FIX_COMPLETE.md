@@ -6,7 +6,7 @@
 
 ## 🔧 已修复的问题
 
-### 1. VideraViewNew.Input.cs 编译错误
+### 1. VideraView.Input.cs 编译错误
 - ✅ 修复 `Point` 命名空间问题（添加 `using Avalonia;`）
 - ✅ 添加 nullable 注解到所有事件处理器 (`object?`)
 - ✅ 修复类型转换错误 (`(float)(delta * 0.1)`)
@@ -51,8 +51,8 @@ dotnet run --project samples/Videra.Demo/Videra.Demo.csproj
 ## 📁 修改的文件
 
 ### 核心修改
-1. `/src/Videra.Avalonia/Controls/VideraViewNew.Input.cs` - 修复所有编译错误
-2. `/src/Videra.Avalonia/Controls/VideraViewNew.cs` - 注释掉未实现的方法调用
+1. `/src/Videra.Avalonia/Controls/VideraView.Input.cs` - 修复所有编译错误
+2. `/src/Videra.Avalonia/Controls/VideraView.cs` - 注释掉未实现的方法调用
 3. `/samples/Videra.Demo/Views/MainWindow.axaml` - 临时替换为占位符
 4. `/samples/Videra.Demo/Views/MainWindow.axaml.cs` - 支持无 Engine 运行
 5. `/samples/Videra.Demo/ViewModels/MainWindowViewModel.cs` - 可选依赖
@@ -73,7 +73,7 @@ dotnet run --project samples/Videra.Demo/Videra.Demo.csproj
 - [x] Windows D3D11 后端框架
 - [x] macOS Metal 后端框架
 - [x] Linux Vulkan 后端框架
-- [x] VideraViewNew 控件创建
+- [x] VideraView 控件创建
 - [x] 项目编译通过
 - [x] Demo 程序可运行
 
