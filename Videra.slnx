@@ -2,4 +2,7 @@
   <Project Path="samples/Videra.Demo/Videra.Demo.csproj" />
   <Project Path="src/Videra.Avalonia/Videra.Avalonia.csproj" />
   <Project Path="src/Videra.Core/Videra.Core.csproj" />
+  <Project Path="src/Videra.Platform.Linux/Videra.Platform.Linux.csproj" />
+  <Project Path="src/Videra.Platform.macOS/Videra.Platform.macOS.csproj" />
+  <Project Path="src/Videra.Platform.Windows/Videra.Platform.Windows.csproj" />
 </Solution>
