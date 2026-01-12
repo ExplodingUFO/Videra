@@ -9,10 +9,10 @@ internal unsafe class VulkanBuffer : IBuffer
     private readonly Vk _vk;
     private readonly Device _device;
     private readonly DeviceMemory _memory;
-    public Buffer NativeBuffer { get; }
+    public Silk.NET.Vulkan.Buffer NativeBuffer { get; }
     public uint SizeInBytes { get; }
 
-    public VulkanBuffer(Vk vk, Device device, Buffer buffer, DeviceMemory memory, uint sizeInBytes)
+    public VulkanBuffer(Vk vk, Device device, Silk.NET.Vulkan.Buffer buffer, DeviceMemory memory, uint sizeInBytes)
     {
         _vk = vk;
         _device = device;
@@ -53,7 +53,7 @@ internal unsafe class VulkanBuffer : IBuffer
         _vk.MapMemory(_device, _memory, offset, size, 0, &mapped);
         fixed (T* dataPtr = data)
         {
-            Buffer.MemoryCopy(dataPtr, mapped, SizeInBytes - offset, size);
+            System.Buffer.MemoryCopy(dataPtr, mapped, SizeInBytes - offset, size);
         }
         _vk.UnmapMemory(_device, _memory);
     }

@@ -3,7 +3,7 @@ using Videra.Core.Graphics.Abstractions;
 
 namespace Videra.Platform.Linux;
 
-internal sealed class VulkanPipeline : IPipeline
+internal sealed unsafe class VulkanPipeline : IPipeline
 {
     private readonly Vk _vk;
     private readonly Device _device;

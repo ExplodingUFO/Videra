@@ -4,6 +4,8 @@ using Silk.NET.Shaderc;
 using Silk.NET.Vulkan;
 using Videra.Core.Geometry;
 using Videra.Core.Graphics.Abstractions;
+using VkBuffer = Silk.NET.Vulkan.Buffer;
+using CorePrimitiveTopology = Videra.Core.Graphics.Abstractions.PrimitiveTopology;
 
 namespace Videra.Platform.Linux;
 
@@ -124,21 +126,21 @@ internal unsafe class VulkanResourceFactory : IResourceFactory
         var inputAssemblyTriangle = new PipelineInputAssemblyStateCreateInfo
         {
             SType = StructureType.PipelineInputAssemblyStateCreateInfo,
-            Topology = PrimitiveTopology.TriangleList,
+            Topology = Silk.NET.Vulkan.PrimitiveTopology.TriangleList,
             PrimitiveRestartEnable = false
         };
 
         var inputAssemblyLine = new PipelineInputAssemblyStateCreateInfo
         {
             SType = StructureType.PipelineInputAssemblyStateCreateInfo,
-            Topology = PrimitiveTopology.LineList,
+            Topology = Silk.NET.Vulkan.PrimitiveTopology.LineList,
             PrimitiveRestartEnable = false
         };
 
         var inputAssemblyPoint = new PipelineInputAssemblyStateCreateInfo
         {
             SType = StructureType.PipelineInputAssemblyStateCreateInfo,
-            Topology = PrimitiveTopology.PointList,
+            Topology = Silk.NET.Vulkan.PrimitiveTopology.PointList,
             PrimitiveRestartEnable = false
         };
 
@@ -327,7 +329,7 @@ internal unsafe class VulkanResourceFactory : IResourceFactory
             SharingMode = SharingMode.Exclusive
         };
 
-        Buffer buffer;
+        VkBuffer buffer;
         if (_vk.CreateBuffer(_device, in bufferInfo, null, out buffer) != Result.Success)
             throw new Exception("Failed to create buffer");
 

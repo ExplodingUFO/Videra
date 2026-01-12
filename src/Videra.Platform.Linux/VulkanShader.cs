@@ -3,7 +3,7 @@ using Videra.Core.Graphics.Abstractions;
 
 namespace Videra.Platform.Linux;
 
-internal sealed class VulkanShader : IShader
+internal sealed unsafe class VulkanShader : IShader
 {
     private readonly Vk _vk;
     private readonly Device _device;

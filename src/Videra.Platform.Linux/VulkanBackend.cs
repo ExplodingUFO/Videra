@@ -3,6 +3,8 @@ using System.Runtime.InteropServices;
 using Silk.NET.Vulkan;
 using Silk.NET.Vulkan.Extensions.KHR;
 using Videra.Core.Graphics.Abstractions;
+using VkSemaphore = Silk.NET.Vulkan.Semaphore;
+using VkBuffer = Silk.NET.Vulkan.Buffer;
 
 namespace Videra.Platform.Linux;
 
@@ -36,8 +38,8 @@ public unsafe class VulkanBackend : IGraphicsBackend
     private DeviceMemory _depthImageMemory;
     private ImageView _depthImageView;
     
-    private Semaphore _imageAvailableSemaphore;
-    private Semaphore _renderFinishedSemaphore;
+    private VkSemaphore _imageAvailableSemaphore;
+    private VkSemaphore _renderFinishedSemaphore;
     private Fence _inFlightFence;
     
     private Vector4 _clearColor = new(0.1f, 0.1f, 0.15f, 1.0f);
@@ -112,9 +114,9 @@ public unsafe class VulkanBackend : IGraphicsBackend
         {
             SType = StructureType.ApplicationInfo,
             PApplicationName = (byte*)Marshal.StringToHGlobalAnsi("Videra"),
-            ApplicationVersion = new Version32(1, 0, 0),
+            ApplicationVersion = Vk.MakeVersion(1, 0, 0),
             PEngineName = (byte*)Marshal.StringToHGlobalAnsi("Videra Engine"),
-            EngineVersion = new Version32(1, 0, 0),
+            EngineVersion = Vk.MakeVersion(1, 0, 0),
             ApiVersion = Vk.Version12
         };
 
@@ -156,8 +158,8 @@ public unsafe class VulkanBackend : IGraphicsBackend
         var createInfo = new XlibSurfaceCreateInfoKHR
         {
             SType = StructureType.XlibSurfaceCreateInfoKhr,
-            Dpy = _x11Display,
-            Window = (nuint)windowHandle
+            Dpy = (nint*)_x11Display,
+            Window = (nint)windowHandle
         };
 
         fixed (SurfaceKHR* surface = &_surface)
@@ -200,7 +202,7 @@ public unsafe class VulkanBackend : IGraphicsBackend
                 _graphicsQueueFamily = i;
                 
                 // 检查是否支持 Present
-                Bool32 presentSupport = false;
+                Silk.NET.Core.Bool32 presentSupport = false;
                 _khrSurface.GetPhysicalDeviceSurfaceSupport(_physicalDevice, i, _surface, &presentSupport);
                 
                 if (presentSupport)
@@ -577,8 +579,8 @@ public unsafe class VulkanBackend : IGraphicsBackend
             Flags = FenceCreateFlags.SignaledBit
         };
 
-        fixed (Semaphore* imageAvailable = &_imageAvailableSemaphore)
-        fixed (Semaphore* renderFinished = &_renderFinishedSemaphore)
+        fixed (VkSemaphore* imageAvailable = &_imageAvailableSemaphore)
+        fixed (VkSemaphore* renderFinished = &_renderFinishedSemaphore)
         fixed (Fence* inFlight = &_inFlightFence)
         {
             if (_vk.CreateSemaphore(_device, in semaphoreInfo, null, imageAvailable) != Result.Success ||
@@ -706,31 +708,34 @@ public unsafe class VulkanBackend : IGraphicsBackend
         // 提交命令
         var waitStages = stackalloc PipelineStageFlags[] { PipelineStageFlags.ColorAttachmentOutputBit };
         var commandBuffer = _commandBuffers[0];
+        var imageAvailSem = _imageAvailableSemaphore;
+        var renderFinishSem = _renderFinishedSemaphore;
 
         var submitInfo = new SubmitInfo
         {
             SType = StructureType.SubmitInfo,
             WaitSemaphoreCount = 1,
-            PWaitSemaphores = &_imageAvailableSemaphore,
+            PWaitSemaphores = &imageAvailSem,
             PWaitDstStageMask = waitStages,
             CommandBufferCount = 1,
             PCommandBuffers = &commandBuffer,
             SignalSemaphoreCount = 1,
-            PSignalSemaphores = &_renderFinishedSemaphore
+            PSignalSemaphores = &renderFinishSem
         };
 
         _vk.QueueSubmit(_graphicsQueue, 1, in submitInfo, _inFlightFence);
 
         // 呈现
         var swapchain = _swapchain;
+        var imageIndex = _currentImageIndex;
         var presentInfo = new PresentInfoKHR
         {
             SType = StructureType.PresentInfoKhr,
             WaitSemaphoreCount = 1,
-            PWaitSemaphores = &_renderFinishedSemaphore,
+            PWaitSemaphores = &renderFinishSem,
             SwapchainCount = 1,
             PSwapchains = &swapchain,
-            PImageIndices = &_currentImageIndex
+            PImageIndices = &imageIndex
         };
 
         _khrSwapchain.QueuePresent(_presentQueue, in presentInfo);
