@@ -17,31 +17,32 @@ public partial class VideraView
     private bool _isLeftButtonDown;
     private bool _isRightButtonDown;
     private Point _lastPos;
+    private TopLevel? _cachedTopLevel;
 
     protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
     {
         base.OnAttachedToVisualTree(e);
         OnViewAttached();
 
-        var top = TopLevel.GetTopLevel(this);
-        if (top != null)
+        _cachedTopLevel = TopLevel.GetTopLevel(this);
+        if (_cachedTopLevel != null)
         {
-            top.AddHandler(PointerPressedEvent, OnTopPointerPressed, RoutingStrategies.Tunnel | RoutingStrategies.Bubble, true);
-            top.AddHandler(PointerReleasedEvent, OnTopPointerReleased, RoutingStrategies.Tunnel | RoutingStrategies.Bubble, true);
-            top.AddHandler(PointerMovedEvent, OnTopPointerMoved, RoutingStrategies.Tunnel | RoutingStrategies.Bubble, true);
-            top.AddHandler(PointerWheelChangedEvent, OnTopPointerWheel, RoutingStrategies.Tunnel | RoutingStrategies.Bubble, true);
+            _cachedTopLevel.AddHandler(PointerPressedEvent, OnTopPointerPressed, RoutingStrategies.Tunnel | RoutingStrategies.Bubble, true);
+            _cachedTopLevel.AddHandler(PointerReleasedEvent, OnTopPointerReleased, RoutingStrategies.Tunnel | RoutingStrategies.Bubble, true);
+            _cachedTopLevel.AddHandler(PointerMovedEvent, OnTopPointerMoved, RoutingStrategies.Tunnel | RoutingStrategies.Bubble, true);
+            _cachedTopLevel.AddHandler(PointerWheelChangedEvent, OnTopPointerWheel, RoutingStrategies.Tunnel | RoutingStrategies.Bubble, true);
         }
     }
 
     protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
     {
-        var top = TopLevel.GetTopLevel(this);
-        if (top != null)
+        if (_cachedTopLevel != null)
         {
-            top.RemoveHandler(PointerPressedEvent, OnTopPointerPressed);
-            top.RemoveHandler(PointerReleasedEvent, OnTopPointerReleased);
-            top.RemoveHandler(PointerMovedEvent, OnTopPointerMoved);
-            top.RemoveHandler(PointerWheelChangedEvent, OnTopPointerWheel);
+            _cachedTopLevel.RemoveHandler(PointerPressedEvent, OnTopPointerPressed);
+            _cachedTopLevel.RemoveHandler(PointerReleasedEvent, OnTopPointerReleased);
+            _cachedTopLevel.RemoveHandler(PointerMovedEvent, OnTopPointerMoved);
+            _cachedTopLevel.RemoveHandler(PointerWheelChangedEvent, OnTopPointerWheel);
+            _cachedTopLevel = null;
         }
 
         OnViewDetached();
