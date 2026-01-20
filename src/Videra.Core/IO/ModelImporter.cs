@@ -49,62 +49,26 @@ public static class ModelImporter
     private static MeshData LoadWithSharpGLTF(string filePath)
     {
         var model = ModelRoot.Load(filePath);
-        
+
         var allVertices = new List<VertexPositionNormalColor>();
         var allIndices = new List<uint>();
         uint indexOffset = 0;
 
-        foreach (var mesh in model.LogicalMeshes)
+        // 遍历场景中的所有节点，应用节点变换
+        var defaultScene = model.DefaultScene ?? model.LogicalScenes.FirstOrDefault();
+        if (defaultScene != null)
         {
-            Console.WriteLine($"[SharpGLTF] Processing mesh: {mesh.Name}");
-            
-            foreach (var primitive in mesh.Primitives)
+            foreach (var node in defaultScene.VisualChildren)
             {
-                // 获取顶点数据
-                var positions = primitive.GetVertexAccessor("POSITION")?.AsVector3Array();
-                var normals = primitive.GetVertexAccessor("NORMAL")?.AsVector3Array();
-                var colors = primitive.GetVertexAccessor("COLOR_0")?.AsVector4Array();
-                
-                if (positions == null)
-                {
-                    Console.WriteLine("[SharpGLTF] Skipping primitive without positions");
-                    continue;
-                }
-
-                // 获取材质颜色
-                var material = primitive.Material;
-                var baseColor = material?.FindChannel("BaseColor")?.Parameter ?? Vector4.One;
-                var defaultColor = new RgbaFloat(baseColor.X, baseColor.Y, baseColor.Z, baseColor.W);
-
-                // 处理顶点
-                for (int i = 0; i < positions.Count; i++)
-                {
-                    var pos = positions[i];
-                    var normal = normals != null && i < normals.Count 
-                        ? normals[i] 
-                        : Vector3.UnitY;
-                    
-                    var color = colors != null && i < colors.Count
-                        ? new RgbaFloat(colors[i].X, colors[i].Y, colors[i].Z, colors[i].W)
-                        : defaultColor;
-
-                    allVertices.Add(new VertexPositionNormalColor(pos, normal, color));
-                }
-
-                // 处理索引
-                var indices = primitive.GetIndices();
-                foreach (var idx in indices)
-                {
-                    if (indexOffset + idx > uint.MaxValue)
-                    {
-                        Console.WriteLine("[SharpGLTF] Index overflow, stopping");
-                        break;
-                    }
-                    allIndices.Add(indexOffset + (uint)idx);
-                }
-
-                indexOffset += (uint)positions.Count;
-                Console.WriteLine($"[SharpGLTF] Processed {positions.Count} vertices, current offset: {indexOffset}");
+                ProcessNodeRecursive(node, Matrix4x4.Identity, allVertices, allIndices, ref indexOffset);
+            }
+        }
+        else
+        {
+            // 回退：如果没有场景，直接处理 mesh（不带变换）
+            foreach (var mesh in model.LogicalMeshes)
+            {
+                ProcessMesh(mesh, Matrix4x4.Identity, allVertices, allIndices, ref indexOffset);
             }
         }
 
@@ -116,6 +80,95 @@ public static class ModelImporter
             Indices = allIndices.ToArray(),
             Topology = MeshTopology.Triangles
         };
+    }
+
+    private static void ProcessNodeRecursive(
+        SharpGLTF.Schema2.Node node,
+        Matrix4x4 parentTransform,
+        List<VertexPositionNormalColor> allVertices,
+        List<uint> allIndices,
+        ref uint indexOffset)
+    {
+        // 计算当前节点的世界变换
+        var localTransform = node.LocalMatrix;
+        var worldTransform = localTransform * parentTransform;
+
+        // 如果节点有 mesh，处理它
+        if (node.Mesh != null)
+        {
+            Console.WriteLine($"[SharpGLTF] Processing node: {node.Name} with mesh: {node.Mesh.Name}");
+            ProcessMesh(node.Mesh, worldTransform, allVertices, allIndices, ref indexOffset);
+        }
+
+        // 递归处理子节点
+        foreach (var child in node.VisualChildren)
+        {
+            ProcessNodeRecursive(child, worldTransform, allVertices, allIndices, ref indexOffset);
+        }
+    }
+
+    private static void ProcessMesh(
+        SharpGLTF.Schema2.Mesh mesh,
+        Matrix4x4 transform,
+        List<VertexPositionNormalColor> allVertices,
+        List<uint> allIndices,
+        ref uint indexOffset)
+    {
+        // 计算法线变换矩阵（逆转置）
+        Matrix4x4.Invert(transform, out var inverseTransform);
+        var normalTransform = Matrix4x4.Transpose(inverseTransform);
+
+        foreach (var primitive in mesh.Primitives)
+        {
+            // 获取顶点数据
+            var positions = primitive.GetVertexAccessor("POSITION")?.AsVector3Array();
+            var normals = primitive.GetVertexAccessor("NORMAL")?.AsVector3Array();
+            var colors = primitive.GetVertexAccessor("COLOR_0")?.AsVector4Array();
+
+            if (positions == null)
+            {
+                Console.WriteLine("[SharpGLTF] Skipping primitive without positions");
+                continue;
+            }
+
+            // 获取材质颜色
+            var material = primitive.Material;
+            var baseColor = material?.FindChannel("BaseColor")?.Parameter ?? Vector4.One;
+            var defaultColor = new RgbaFloat(baseColor.X, baseColor.Y, baseColor.Z, baseColor.W);
+
+            // 处理顶点
+            for (int i = 0; i < positions.Count; i++)
+            {
+                // 应用变换到位置
+                var pos = Vector3.Transform(positions[i], transform);
+
+                // 应用法线变换
+                var normal = normals != null && i < normals.Count
+                    ? Vector3.Normalize(Vector3.TransformNormal(normals[i], normalTransform))
+                    : Vector3.UnitY;
+
+                var color = colors != null && i < colors.Count
+                    ? new RgbaFloat(colors[i].X, colors[i].Y, colors[i].Z, colors[i].W)
+                    : defaultColor;
+
+                allVertices.Add(new VertexPositionNormalColor(pos, normal, color));
+            }
+
+            // 处理索引
+            var indices = primitive.GetIndices();
+            foreach (var idx in indices)
+            {
+                if (indexOffset + idx > uint.MaxValue)
+                {
+                    Console.WriteLine("[SharpGLTF] Index overflow, stopping");
+                    break;
+                }
+                allIndices.Add(indexOffset + (uint)idx);
+            }
+
+            indexOffset += (uint)positions.Count;
+            Console.WriteLine($"[SharpGLTF] Processed {positions.Count} vertices, current offset: {indexOffset}");
+        }
     }
 
     // 简单的 OBJ 加载器（备用）
