@@ -112,7 +112,7 @@ public class OrbitCamera
     public void Zoom(float delta)
     {
         _radius -= delta * 0.5f * ZoomSpeed;
-        _radius = Math.Clamp(_radius, 1f, 200f);
+        _radius = Math.Clamp(_radius, 0.1f, 200f);
         UpdatePosition();
     }
 
