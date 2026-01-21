@@ -3,6 +3,9 @@ using System.Runtime.CompilerServices;
 using Videra.Core.Cameras;
 using Videra.Core.Geometry;
 using Videra.Core.Graphics.Abstractions;
+using Videra.Core.Styles.Parameters;
+using Videra.Core.Styles.Presets;
+using Videra.Core.Styles.Services;
 
 namespace Videra.Core.Graphics;
 
@@ -12,40 +15,62 @@ public class VideraEngine : IDisposable
     private IGraphicsBackend? _backend;
     private IResourceFactory? _factory;
     private ICommandExecutor? _executor;
-    
+
     private IPipeline? _meshPipeline;
     private IBuffer? _cameraBuffer;
-    
+    private IBuffer? _styleUniformBuffer;
+
     private uint _width, _height;
-    
+
     private readonly List<Object3D> _sceneObjects = new();
-    
+    private readonly IRenderStyleService _styleService;
+
     public OrbitCamera Camera { get; } = new();
     public bool IsInitialized { get; private set; }
     public RgbaFloat BackgroundColor { get; set; } = new(0.1f, 0.1f, 0.1f, 1f);
     public float RenderScale { get; set; } = 1f;
     public bool EnableFrameLogging { get; set; } = false;
-    
+
+    /// <summary>渲染风格服务</summary>
+    public IRenderStyleService StyleService => _styleService;
+
     // 网格和坐标轴渲染器
     public GridRenderer Grid { get; } = new();
     private readonly AxisRenderer _axisRenderer = new();
-    
+
     public bool ShowAxis
     {
         get => _axisRenderer.IsVisible;
         set => _axisRenderer.IsVisible = value;
     }
 
+    public VideraEngine(IRenderStyleService? styleService = null)
+    {
+        _styleService = styleService ?? new RenderStyleService();
+        _styleService.StyleChanged += OnStyleChanged;
+    }
+
+    private void OnStyleChanged(object? sender, StyleChangedEventArgs e)
+    {
+        // 更新 GPU Uniform Buffer
+        if (_styleUniformBuffer != null)
+        {
+            _styleUniformBuffer.Update(e.UniformData);
+        }
+    }
+
     public void Dispose()
     {
+        _styleService.StyleChanged -= OnStyleChanged;
         Grid.Dispose();
         _axisRenderer.Dispose();
         ClearObjects();
-        
+
         _meshPipeline?.Dispose();
         _cameraBuffer?.Dispose();
+        _styleUniformBuffer?.Dispose();
         _backend?.Dispose();
-        
+
         IsInitialized = false;
     }
 
@@ -73,6 +98,10 @@ public class VideraEngine : IDisposable
 
         // 创建相机uniform buffer (View + Projection = 2 * 64 bytes)
         _cameraBuffer = _factory.CreateUniformBuffer(128);
+
+        // 创建风格 uniform buffer (128 bytes)
+        _styleUniformBuffer = _factory.CreateUniformBuffer(128);
+        _styleUniformBuffer.Update(_styleService.CurrentParameters.ToUniformData());
 
         // 创建Pipeline
         _meshPipeline = _factory.CreatePipeline(
@@ -167,7 +196,13 @@ public class VideraEngine : IDisposable
                 if (shouldLog)
                     Console.WriteLine("[VideraEngine] Camera uniform buffer bound to index 1");
             }
-            
+
+            // 绑定风格 uniform buffer 到索引 3（shader中的 [[buffer(3)]]）
+            if (_styleUniformBuffer != null)
+            {
+                _executor.SetVertexBuffer(_styleUniformBuffer, 3);
+            }
+
             // 渲染网格（传入pipeline）
             if (shouldLog)
                 Console.WriteLine($"[VideraEngine] Calling Grid.Draw, IsVisible={Grid.IsVisible}");

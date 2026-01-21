@@ -9,6 +9,8 @@ using Avalonia.Threading;
 using Videra.Core.Geometry;
 using Videra.Core.Graphics;
 using Videra.Core.Graphics.Abstractions;
+using Videra.Core.Styles.Parameters;
+using Videra.Core.Styles.Presets;
 
 namespace Videra.Avalonia.Controls;
 
@@ -58,6 +60,15 @@ public partial class VideraView : Decorator
         AvaloniaProperty.Register<VideraView, GraphicsBackendPreference>(
             nameof(PreferredBackend),
             GraphicsBackendPreference.Auto);
+
+    public static readonly StyledProperty<RenderStylePreset> RenderStyleProperty =
+        AvaloniaProperty.Register<VideraView, RenderStylePreset>(
+            nameof(RenderStyle),
+            defaultValue: RenderStylePreset.Realistic);
+
+    public static readonly StyledProperty<RenderStyleParameters?> RenderStyleParametersProperty =
+        AvaloniaProperty.Register<VideraView, RenderStyleParameters?>(
+            nameof(RenderStyleParameters));
 
     public VideraView()
     {
@@ -121,6 +132,18 @@ public partial class VideraView : Decorator
         set => SetValue(PreferredBackendProperty, value);
     }
 
+    public RenderStylePreset RenderStyle
+    {
+        get => GetValue(RenderStyleProperty);
+        set => SetValue(RenderStyleProperty, value);
+    }
+
+    public RenderStyleParameters? RenderStyleParameters
+    {
+        get => GetValue(RenderStyleParametersProperty);
+        set => SetValue(RenderStyleParametersProperty, value);
+    }
+
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {
         base.OnPropertyChanged(change);
@@ -152,6 +175,18 @@ public partial class VideraView : Decorator
                  change.Property == GridColorProperty)
         {
             ApplyGridSettings();
+        }
+        else if (change.Property == RenderStyleProperty)
+        {
+            Engine.StyleService.ApplyPreset(change.GetNewValue<RenderStylePreset>());
+        }
+        else if (change.Property == RenderStyleParametersProperty)
+        {
+            var parameters = change.GetNewValue<RenderStyleParameters?>();
+            if (parameters != null)
+            {
+                Engine.StyleService.UpdateParameters(parameters);
+            }
         }
     }
 

@@ -6,7 +6,7 @@ namespace Videra.Core.Geometry;
 /// <summary>
 /// RGBA浮点颜色，与Veldrid的RgbaFloat兼容
 /// </summary>
-public struct RgbaFloat
+public struct RgbaFloat : IEquatable<RgbaFloat>
 {
     public float R;
     public float G;
@@ -29,6 +29,18 @@ public struct RgbaFloat
     public static readonly RgbaFloat Grey = new(0.5f, 0.5f, 0.5f, 1);
     public static readonly RgbaFloat LightGrey = new(0.75f, 0.75f, 0.75f, 1);
     public static readonly RgbaFloat DarkGrey = new(0.25f, 0.25f, 0.25f, 1);
+
+    public readonly Vector4 ToVector4() => new(R, G, B, A);
+
+    public readonly bool Equals(RgbaFloat other) =>
+        R == other.R && G == other.G && B == other.B && A == other.A;
+
+    public override readonly bool Equals(object? obj) => obj is RgbaFloat other && Equals(other);
+
+    public override readonly int GetHashCode() => HashCode.Combine(R, G, B, A);
+
+    public static bool operator ==(RgbaFloat left, RgbaFloat right) => left.Equals(right);
+    public static bool operator !=(RgbaFloat left, RgbaFloat right) => !left.Equals(right);
 }
 
 public struct VertexPositionNormalColor
