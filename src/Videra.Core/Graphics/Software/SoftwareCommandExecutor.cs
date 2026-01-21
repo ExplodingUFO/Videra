@@ -126,6 +126,17 @@ internal sealed class SoftwareCommandExecutor : ICommandExecutor
         _frameBuffer.Clear(new Vector4(r, g, b, a));
     }
 
+    public void SetDepthState(bool testEnabled, bool writeEnabled)
+    {
+        // Software renderer doesn't need explicit depth state management
+        // Depth testing is handled per-pixel in draw calls
+    }
+
+    public void ResetDepthState()
+    {
+        // No-op for software renderer
+    }
+
     private Matrix4x4 ReadMatrixFromSlot(uint slot)
     {
         if (_vertexBuffers.TryGetValue(slot, out var buffer) && buffer.SizeInBytes >= 64)

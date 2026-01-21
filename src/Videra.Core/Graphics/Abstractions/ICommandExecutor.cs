@@ -56,4 +56,14 @@ public interface ICommandExecutor
     /// 清除颜色和深度缓冲
     /// </summary>
     void Clear(float r, float g, float b, float a);
+
+    /// <summary>
+    /// 设置深度状态
+    /// </summary>
+    void SetDepthState(bool testEnabled, bool writeEnabled);
+
+    /// <summary>
+    /// 重置深度状态为默认
+    /// </summary>
+    void ResetDepthState();
 }

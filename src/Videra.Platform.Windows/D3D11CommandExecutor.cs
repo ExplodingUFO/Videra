@@ -16,6 +16,11 @@ internal unsafe class D3D11CommandExecutor : ICommandExecutor
     private ID3D11RenderTargetView* _renderTargetView;
     private ID3D11DepthStencilView* _depthStencilView;
 
+    // 深度状态
+    private ComPtr<ID3D11DepthStencilState> _depthTestWriteState;    // 默认状态
+    private ComPtr<ID3D11DepthStencilState> _depthTestOnlyState;     // 只测试不写入
+    private ComPtr<ID3D11DepthStencilState> _depthDisabledState;     // 禁用深度
+
     public D3D11CommandExecutor(ComPtr<ID3D11DeviceContext> context)
     {
         _context = context;
@@ -25,6 +30,19 @@ internal unsafe class D3D11CommandExecutor : ICommandExecutor
     {
         _renderTargetView = rtv.Handle;
         _depthStencilView = dsv.Handle;
+    }
+
+    /// <summary>
+    /// 初始化深度状态（由Backend调用）
+    /// </summary>
+    public void InitializeDepthStates(
+        ComPtr<ID3D11DepthStencilState> depthTestWrite,
+        ComPtr<ID3D11DepthStencilState> depthTestOnly,
+        ComPtr<ID3D11DepthStencilState> depthDisabled)
+    {
+        _depthTestWriteState = depthTestWrite;
+        _depthTestOnlyState = depthTestOnly;
+        _depthDisabledState = depthDisabled;
     }
 
     public void SetPipeline(IPipeline pipeline)
@@ -79,7 +97,8 @@ internal unsafe class D3D11CommandExecutor : ICommandExecutor
 
     public void DrawIndexed(uint primitiveType, uint indexCount, uint instanceCount = 1, uint firstIndex = 0, int vertexOffset = 0, uint firstInstance = 0)
     {
-        _context.Handle->IASetPrimitiveTopology(MapTopology(primitiveType));
+        var topology = MapTopology(primitiveType);
+        _context.Handle->IASetPrimitiveTopology(topology);
         _context.Handle->DrawIndexedInstanced(indexCount, instanceCount, firstIndex, vertexOffset, firstInstance);
     }
 
@@ -118,5 +137,29 @@ internal unsafe class D3D11CommandExecutor : ICommandExecutor
             2 => TopologyPointList,
             _ => TopologyTriangleList
         };
+    }
+
+    public void SetDepthState(bool testEnabled, bool writeEnabled)
+    {
+        if (!testEnabled && _depthDisabledState.Handle != null)
+        {
+            _context.Handle->OMSetDepthStencilState(_depthDisabledState.Handle, 0);
+        }
+        else if (testEnabled && !writeEnabled && _depthTestOnlyState.Handle != null)
+        {
+            _context.Handle->OMSetDepthStencilState(_depthTestOnlyState.Handle, 0);
+        }
+        else if (_depthTestWriteState.Handle != null)
+        {
+            _context.Handle->OMSetDepthStencilState(_depthTestWriteState.Handle, 0);
+        }
+    }
+
+    public void ResetDepthState()
+    {
+        if (_depthTestWriteState.Handle != null)
+        {
+            _context.Handle->OMSetDepthStencilState(_depthTestWriteState.Handle, 0);
+        }
     }
 }

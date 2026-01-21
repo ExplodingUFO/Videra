@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Avalonia.Media;
 using Avalonia.Platform.Storage;
 using Videra.Core.Graphics;
+using Videra.Core.Graphics.Wireframe;
 using Videra.Core.Styles.Presets;
 using Videra.Demo.Services;
 
@@ -51,6 +52,55 @@ public partial class MainWindowViewModel : ViewModelBase
     // 可用预设列表 (用于 ComboBox)
     public IEnumerable<RenderStylePreset> AvailablePresets =>
         Enum.GetValues<RenderStylePreset>().Where(p => p != RenderStylePreset.Custom);
+
+    #endregion
+
+    #region 线框渲染
+
+    // ==========================================
+    // 线框渲染 (Wireframe)
+    // ==========================================
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsWireframeEnabled))]
+    private WireframeMode _wireframeMode = WireframeMode.None;
+
+    partial void OnWireframeModeChanged(WireframeMode value)
+    {
+        Console.WriteLine($"[MainWindowViewModel] WireframeMode changed to: {value}");
+    }
+
+    [ObservableProperty]
+    private Color _wireframeColor = Colors.Black;
+
+    // 可用线框模式列表
+    public IEnumerable<WireframeMode> AvailableWireframeModes =>
+        Enum.GetValues<WireframeMode>();
+
+    // 是否启用线框（用于UI显隐控制）
+    public bool IsWireframeEnabled => WireframeMode != WireframeMode.None;
+
+    [RelayCommand]
+    private void TestWireframe()
+    {
+        System.Diagnostics.Debug.WriteLine($"[TestWireframe] Current WireframeMode = {WireframeMode}");
+        Console.WriteLine($"[TestWireframe] Current WireframeMode = {WireframeMode}");
+
+        // 通过修改标题来确认按钮被点击（临时调试）
+        var oldMode = WireframeMode;
+
+        // 切换到AllEdges模式进行测试
+        WireframeMode = WireframeMode == WireframeMode.None
+            ? WireframeMode.AllEdges
+            : WireframeMode.None;
+
+        System.Diagnostics.Debug.WriteLine($"[TestWireframe] New WireframeMode = {WireframeMode}");
+        Console.WriteLine($"[TestWireframe] New WireframeMode = {WireframeMode}");
+
+        // 触发通知以确保UI更新
+        OnPropertyChanged(nameof(WireframeMode));
+        OnPropertyChanged(nameof(IsWireframeEnabled));
+    }
 
     #endregion
 

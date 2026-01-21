@@ -21,6 +21,8 @@ public unsafe class D3D11Backend : IGraphicsBackend
     private ComPtr<ID3D11DepthStencilView> _depthStencilView;
     private ComPtr<ID3D11Texture2D> _depthStencilTexture;
     private ComPtr<ID3D11DepthStencilState> _depthStencilState;
+    private ComPtr<ID3D11DepthStencilState> _depthTestOnlyState;     // 只测试不写入
+    private ComPtr<ID3D11DepthStencilState> _depthDisabledState;     // 禁用深度
     
     private D3D11 _d3d11;
     private DXGI _dxgi;
@@ -57,6 +59,7 @@ public unsafe class D3D11Backend : IGraphicsBackend
         _resourceFactory = new D3D11ResourceFactory(_device, _context, _d3d11);
         _commandExecutor = new D3D11CommandExecutor(_context);
         _commandExecutor.UpdateRenderTargets(_backBufferRTV, _depthStencilView);
+        _commandExecutor.InitializeDepthStates(_depthStencilState, _depthTestOnlyState, _depthDisabledState);
 
         IsInitialized = true;
     }
@@ -166,6 +169,15 @@ public unsafe class D3D11Backend : IGraphicsBackend
 
     private void CreateDepthStencilState()
     {
+        var stencilOp = new DepthStencilopDesc
+        {
+            StencilFailOp = StencilOp.Keep,
+            StencilDepthFailOp = StencilOp.Keep,
+            StencilPassOp = StencilOp.Keep,
+            StencilFunc = ComparisonFunc.Always
+        };
+
+        // 1. 默认状态：深度测试和写入都启用
         var depthStencilDesc = new DepthStencilDesc
         {
             DepthEnable = 1, // true
@@ -174,20 +186,8 @@ public unsafe class D3D11Backend : IGraphicsBackend
             StencilEnable = 0, // false
             StencilReadMask = 0xFF,
             StencilWriteMask = 0xFF,
-            FrontFace = new DepthStencilopDesc
-            {
-                StencilFailOp = StencilOp.Keep,
-                StencilDepthFailOp = StencilOp.Keep,
-                StencilPassOp = StencilOp.Keep,
-                StencilFunc = ComparisonFunc.Always
-            },
-            BackFace = new DepthStencilopDesc
-            {
-                StencilFailOp = StencilOp.Keep,
-                StencilDepthFailOp = StencilOp.Keep,
-                StencilPassOp = StencilOp.Keep,
-                StencilFunc = ComparisonFunc.Always
-            }
+            FrontFace = stencilOp,
+            BackFace = stencilOp
         };
 
         fixed (ID3D11DepthStencilState** dssPtr = &_depthStencilState.Handle)
@@ -195,6 +195,46 @@ public unsafe class D3D11Backend : IGraphicsBackend
             var result = _device.Handle->CreateDepthStencilState(in depthStencilDesc, dssPtr);
             if (result != 0)
                 throw new Exception($"Failed to create depth stencil state. HRESULT: 0x{result:X8}");
+        }
+
+        // 2. 只测试不写入状态
+        var testOnlyDesc = new DepthStencilDesc
+        {
+            DepthEnable = 1,
+            DepthWriteMask = DepthWriteMask.Zero, // 不写入深度
+            DepthFunc = ComparisonFunc.LessEqual,
+            StencilEnable = 0,
+            StencilReadMask = 0xFF,
+            StencilWriteMask = 0xFF,
+            FrontFace = stencilOp,
+            BackFace = stencilOp
+        };
+
+        fixed (ID3D11DepthStencilState** dssPtr = &_depthTestOnlyState.Handle)
+        {
+            var result = _device.Handle->CreateDepthStencilState(in testOnlyDesc, dssPtr);
+            if (result != 0)
+                throw new Exception($"Failed to create depth test-only state. HRESULT: 0x{result:X8}");
+        }
+
+        // 3. 禁用深度测试状态
+        var disabledDesc = new DepthStencilDesc
+        {
+            DepthEnable = 0, // 禁用深度测试
+            DepthWriteMask = DepthWriteMask.Zero,
+            DepthFunc = ComparisonFunc.Always,
+            StencilEnable = 0,
+            StencilReadMask = 0xFF,
+            StencilWriteMask = 0xFF,
+            FrontFace = stencilOp,
+            BackFace = stencilOp
+        };
+
+        fixed (ID3D11DepthStencilState** dssPtr = &_depthDisabledState.Handle)
+        {
+            var result = _device.Handle->CreateDepthStencilState(in disabledDesc, dssPtr);
+            if (result != 0)
+                throw new Exception($"Failed to create depth disabled state. HRESULT: 0x{result:X8}");
         }
     }
 

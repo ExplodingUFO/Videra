@@ -107,6 +107,17 @@ internal unsafe class VulkanCommandExecutor : ICommandExecutor
     {
     }
 
+    public void SetDepthState(bool testEnabled, bool writeEnabled)
+    {
+        // Vulkan depth state is managed through pipeline state objects
+        // Dynamic depth state would require VK_DYNAMIC_STATE_DEPTH_TEST_ENABLE extension
+    }
+
+    public void ResetDepthState()
+    {
+        // No-op for Vulkan - depth state is managed through pipeline state
+    }
+
     private void BindPipeline(uint primitiveType)
     {
         if (_pipeline == null)

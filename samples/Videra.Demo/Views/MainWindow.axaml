@@ -23,6 +23,8 @@
                      CameraInvertX="{Binding Camera.InvertX}"
                      CameraInvertY="{Binding Camera.InvertY}"
                      RenderStyle="{Binding RenderStyle}"
+                     WireframeMode="{Binding WireframeMode}"
+                     WireframeColor="{Binding WireframeColor}"
 
                      IsGridVisible="{Binding IsGridVisible}"
                      GridHeight="{Binding GridHeight, Converter={StaticResource DecimalToFloatConverter}}"
@@ -51,6 +53,23 @@
                                       ItemsSource="{Binding AvailablePresets}"
                                       SelectedItem="{Binding RenderStyle}"
                                       HorizontalAlignment="Stretch"/>
+                        </Grid>
+                    </StackPanel>
+                    <Separator Background="#3E3E42"/>
+
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="WIREFRAME" FontWeight="Bold" Foreground="#007ACC" FontSize="12"/>
+                        <Grid ColumnDefinitions="Auto, *">
+                            <TextBlock Text="Mode" Foreground="#CCCCCC" VerticalAlignment="Center"/>
+                            <ComboBox Grid.Column="1"
+                                      ItemsSource="{Binding AvailableWireframeModes}"
+                                      SelectedItem="{Binding WireframeMode}"
+                                      HorizontalAlignment="Stretch"/>
+                        </Grid>
+                        <Button Content="Test Wireframe" Command="{Binding TestWireframeCommand}"/>
+                        <Grid ColumnDefinitions="Auto, *" IsVisible="{Binding IsWireframeEnabled}">
+                            <TextBlock Text="Line Color" Foreground="#CCCCCC" VerticalAlignment="Center"/>
+                            <ColorPicker Grid.Column="1" Color="{Binding WireframeColor}" HorizontalAlignment="Right"/>
                         </Grid>
                     </StackPanel>
                     <Separator Background="#3E3E42"/>

@@ -3,6 +3,7 @@ using System.Runtime.CompilerServices;
 using Videra.Core.Cameras;
 using Videra.Core.Geometry;
 using Videra.Core.Graphics.Abstractions;
+using Videra.Core.Graphics.Wireframe;
 using Videra.Core.Styles.Parameters;
 using Videra.Core.Styles.Presets;
 using Videra.Core.Styles.Services;
@@ -38,6 +39,9 @@ public class VideraEngine : IDisposable
     public GridRenderer Grid { get; } = new();
     private readonly AxisRenderer _axisRenderer = new();
 
+    // 线框渲染器
+    public WireframeRenderer Wireframe { get; } = new();
+
     public bool ShowAxis
     {
         get => _axisRenderer.IsVisible;
@@ -64,6 +68,7 @@ public class VideraEngine : IDisposable
         _styleService.StyleChanged -= OnStyleChanged;
         Grid.Dispose();
         _axisRenderer.Dispose();
+        Wireframe.Dispose();
         ClearObjects();
 
         _meshPipeline?.Dispose();
@@ -87,6 +92,7 @@ public class VideraEngine : IDisposable
         // 初始化渲染器
         Grid.Initialize(_factory);
         _axisRenderer.Initialize(_factory);
+        Wireframe.Initialize(_factory);
         
         IsInitialized = true;
         Console.WriteLine("[VideraEngine] Initialized successfully");
@@ -210,46 +216,57 @@ public class VideraEngine : IDisposable
             
             // 绑定Pipeline用于模型渲染
             _executor.SetPipeline(_meshPipeline);
-            
-            // 渲染所有物体
-            if (shouldLog && _sceneObjects.Count > 0)
-                Console.WriteLine($"[VideraEngine] Starting to render {_sceneObjects.Count} objects");
-            
-            foreach (var obj in _sceneObjects)
-            {
-                if (obj.VertexBuffer == null || obj.IndexBuffer == null || obj.WorldBuffer == null)
-                {
-                    if (shouldLog)
-                        Console.WriteLine($"[VideraEngine] Skipping object '{obj.Name}' - missing buffers");
-                    continue;
-                }
 
-                // 更新物体的World矩阵
-                obj.UpdateUniforms(_executor);
-                
-                // 绑定缓冲区
-                _executor.SetVertexBuffer(obj.VertexBuffer, 0); // 顶点数据在索引 0
-                _executor.SetVertexBuffer(obj.WorldBuffer, 2);  // World矩阵在索引 2
-                _executor.SetIndexBuffer(obj.IndexBuffer);
-                
-                if (shouldLog)
-                    Console.WriteLine($"[VideraEngine] Drawing object '{obj.Name}' with {obj.IndexCount} indices");
-                
-                // 绘制
-                switch (obj.Topology)
+            // 渲染所有物体（WireframeOnly模式下跳过实体渲染）
+            bool shouldRenderSolid = Wireframe.ShouldRenderSolid();
+
+            if (shouldLog && _sceneObjects.Count > 0)
+                Console.WriteLine($"[VideraEngine] Starting to render {_sceneObjects.Count} objects, shouldRenderSolid={shouldRenderSolid}");
+
+            if (shouldRenderSolid)
+            {
+                foreach (var obj in _sceneObjects)
                 {
-                    case MeshTopology.Lines:
-                        _executor.DrawIndexed(1, obj.IndexCount, 1, 0, 0, 0);
-                        break;
-                    case MeshTopology.Points:
-                        _executor.DrawIndexed(2, obj.IndexCount, 1, 0, 0, 0);
-                        break;
-                    default:
-                        _executor.DrawIndexed(obj.IndexCount, 1, 0, 0, 0);
-                        break;
+                    if (obj.VertexBuffer == null || obj.IndexBuffer == null || obj.WorldBuffer == null)
+                    {
+                        if (shouldLog)
+                            Console.WriteLine($"[VideraEngine] Skipping object '{obj.Name}' - missing buffers");
+                        continue;
+                    }
+
+                    // 更新物体的World矩阵
+                    obj.UpdateUniforms(_executor);
+
+                    // 绑定缓冲区
+                    _executor.SetVertexBuffer(obj.VertexBuffer, 0); // 顶点数据在索引 0
+                    _executor.SetVertexBuffer(obj.WorldBuffer, 2);  // World矩阵在索引 2
+                    _executor.SetIndexBuffer(obj.IndexBuffer);
+
+                    if (shouldLog)
+                        Console.WriteLine($"[VideraEngine] Drawing object '{obj.Name}' with {obj.IndexCount} indices");
+
+                    // 绘制
+                    switch (obj.Topology)
+                    {
+                        case MeshTopology.Lines:
+                            _executor.DrawIndexed(1, obj.IndexCount, 1, 0, 0, 0);
+                            break;
+                        case MeshTopology.Points:
+                            _executor.DrawIndexed(2, obj.IndexCount, 1, 0, 0, 0);
+                            break;
+                        default:
+                            _executor.DrawIndexed(obj.IndexCount, 1, 0, 0, 0);
+                            break;
+                    }
                 }
             }
-            
+
+            // 渲染线框
+            if (Wireframe.Mode != WireframeMode.None)
+            {
+                Wireframe.RenderWireframes(_sceneObjects, _executor, _meshPipeline, Camera, _width, _height);
+            }
+
             // 渲染坐标轴
             _axisRenderer.Draw(_executor, _meshPipeline, Camera, _width, _height, RenderScale);
             
@@ -263,6 +280,12 @@ public class VideraEngine : IDisposable
         lock (_lock)
         {
             _sceneObjects.Add(obj);
+
+            // 自动初始化线框缓冲（如果工厂可用）
+            if (_factory != null)
+            {
+                obj.InitializeWireframe(_factory);
+            }
         }
         Console.WriteLine($"[VideraEngine] Added object: {obj.Name}");
     }

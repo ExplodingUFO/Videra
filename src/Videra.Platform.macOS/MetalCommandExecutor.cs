@@ -268,6 +268,17 @@ internal class MetalCommandExecutor : ICommandExecutor
         SetScissorRectStruct(_renderEncoder, SEL("setScissorRect:"), scissor);
     }
 
+    public void SetDepthState(bool testEnabled, bool writeEnabled)
+    {
+        // Metal depth state is managed through MTLDepthStencilState in BeginFrame
+        // For now, this is a no-op as depth state changes require creating new state objects
+    }
+
+    public void ResetDepthState()
+    {
+        // No-op for Metal - depth state is managed through MTLDepthStencilState
+    }
+
     #region Objective-C Interop
 
     [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_getClass")]

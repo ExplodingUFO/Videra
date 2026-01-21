@@ -9,6 +9,7 @@ using Avalonia.Threading;
 using Videra.Core.Geometry;
 using Videra.Core.Graphics;
 using Videra.Core.Graphics.Abstractions;
+using Videra.Core.Graphics.Wireframe;
 using Videra.Core.Styles.Parameters;
 using Videra.Core.Styles.Presets;
 
@@ -69,6 +70,16 @@ public partial class VideraView : Decorator
     public static readonly StyledProperty<RenderStyleParameters?> RenderStyleParametersProperty =
         AvaloniaProperty.Register<VideraView, RenderStyleParameters?>(
             nameof(RenderStyleParameters));
+
+    public static readonly StyledProperty<WireframeMode> WireframeModeProperty =
+        AvaloniaProperty.Register<VideraView, WireframeMode>(
+            nameof(WireframeMode),
+            defaultValue: WireframeMode.None);
+
+    public static readonly StyledProperty<Color> WireframeColorProperty =
+        AvaloniaProperty.Register<VideraView, Color>(
+            nameof(WireframeColor),
+            Colors.Black);
 
     public VideraView()
     {
@@ -144,6 +155,18 @@ public partial class VideraView : Decorator
         set => SetValue(RenderStyleParametersProperty, value);
     }
 
+    public WireframeMode WireframeMode
+    {
+        get => GetValue(WireframeModeProperty);
+        set => SetValue(WireframeModeProperty, value);
+    }
+
+    public Color WireframeColor
+    {
+        get => GetValue(WireframeColorProperty);
+        set => SetValue(WireframeColorProperty, value);
+    }
+
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {
         base.OnPropertyChanged(change);
@@ -187,6 +210,15 @@ public partial class VideraView : Decorator
             {
                 Engine.StyleService.UpdateParameters(parameters);
             }
+        }
+        else if (change.Property == WireframeModeProperty)
+        {
+            Engine.Wireframe.Mode = change.GetNewValue<WireframeMode>();
+        }
+        else if (change.Property == WireframeColorProperty)
+        {
+            var c = change.GetNewValue<Color>();
+            Engine.Wireframe.LineColor = new RgbaFloat(c.R / 255f, c.G / 255f, c.B / 255f, c.A / 255f);
         }
     }
 
