@@ -16,15 +16,16 @@
 
    <Grid ColumnDefinitions="*, 320">
         
-       <controls:VideraView Name="View3D" 
+       <controls:VideraView Name="View3D"
                      Grid.Column="0"
                      Items="{Binding SceneObjects}"
                      BackgroundColor="{Binding BgColor}"
                      CameraInvertX="{Binding Camera.InvertX}"
                      CameraInvertY="{Binding Camera.InvertY}"
-              
+                     RenderStyle="{Binding RenderStyle}"
+
                      IsGridVisible="{Binding IsGridVisible}"
-                     GridHeight="{Binding GridHeight, Converter={StaticResource DecimalToFloatConverter}}" 
+                     GridHeight="{Binding GridHeight, Converter={StaticResource DecimalToFloatConverter}}"
                      GridColor="{Binding GridColor}"/>
 
         <Border Grid.Column="1" Background="#252526" BorderBrush="#3E3E42" BorderThickness="1,0,0,0">
@@ -39,6 +40,18 @@
                         </Grid>
                         <CheckBox IsChecked="{Binding Camera.InvertX}" Content="Invert Camera X" Foreground="#CCCCCC"/>
                         <CheckBox IsChecked="{Binding Camera.InvertY}" Content="Invert Camera Y" Foreground="#CCCCCC"/>
+                    </StackPanel>
+                    <Separator Background="#3E3E42"/>
+
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="RENDER STYLE" FontWeight="Bold" Foreground="#007ACC" FontSize="12"/>
+                        <Grid ColumnDefinitions="Auto, *">
+                            <TextBlock Text="Preset" Foreground="#CCCCCC" VerticalAlignment="Center"/>
+                            <ComboBox Grid.Column="1"
+                                      ItemsSource="{Binding AvailablePresets}"
+                                      SelectedItem="{Binding RenderStyle}"
+                                      HorizontalAlignment="Stretch"/>
+                        </Grid>
                     </StackPanel>
                     <Separator Background="#3E3E42"/>
 

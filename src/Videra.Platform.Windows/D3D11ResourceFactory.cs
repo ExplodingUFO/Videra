@@ -330,6 +330,38 @@ cbuffer WorldBuffer : register(b2)
     row_major float4x4 worldMatrix;
 };
 
+cbuffer StyleBuffer : register(b3)
+{
+    // 光照 (offset 0-28, padded to 32)
+    float ambientIntensity;
+    float diffuseIntensity;
+    float specularIntensity;
+    float specularPower;
+    float3 lightDirection;
+    float _pad0;
+
+    // 色彩 (offset 32-56, padded to 64)
+    float3 tintColor;
+    float saturation;
+    float contrast;
+    float brightness;
+    float2 _pad1;
+
+    // 描边 (offset 64-88, padded to 96)
+    float4 outlineColor;
+    float outlineWidth;
+    int outlineEnabled;
+    float2 _pad2;
+
+    // 材质 (offset 96-124, padded to 128)
+    float opacity;
+    int useVertexColor;
+    float2 _pad3;
+    float4 overrideColor;
+    int wireframeMode;
+    float3 _pad4;
+};
+
 struct VSInput
 {
     float3 position : POSITION;
@@ -340,7 +372,9 @@ struct VSInput
 struct VSOutput
 {
     float4 position : SV_POSITION;
+    float3 worldNormal : NORMAL;
     float4 color : COLOR;
+    float3 worldPos : TEXCOORD0;
 };
 
 VSOutput main_vs(VSInput input)
@@ -349,13 +383,45 @@ VSOutput main_vs(VSInput input)
     float4 worldPos = mul(float4(input.position, 1.0f), worldMatrix);
     float4 viewPos = mul(worldPos, viewMatrix);
     output.position = mul(viewPos, projectionMatrix);
-    output.color = input.color;
+    output.worldNormal = normalize(mul(input.normal, (float3x3)worldMatrix));
+    output.color = useVertexColor ? input.color : overrideColor;
+    output.worldPos = worldPos.xyz;
     return output;
 }
 
 float4 main_ps(VSOutput input) : SV_TARGET
 {
-    return input.color;
+    float3 normal = normalize(input.worldNormal);
+    float3 lightDir = normalize(lightDirection);
+
+    // 基础光照
+    float ambient = ambientIntensity;
+    float diffuse = max(dot(normal, lightDir), 0.0f) * diffuseIntensity;
+
+    // 高光 (Blinn-Phong)
+    float3 viewDir = normalize(-input.worldPos);
+    float3 halfDir = normalize(lightDir + viewDir);
+    float specular = pow(max(dot(normal, halfDir), 0.0f), specularPower) * specularIntensity;
+
+    float lighting = ambient + diffuse + specular;
+
+    // 应用光照
+    float3 color = input.color.rgb * lighting;
+
+    // 色调叠加
+    color *= tintColor;
+
+    // 饱和度调整
+    float grey = dot(color, float3(0.299f, 0.587f, 0.114f));
+    color = lerp(float3(grey, grey, grey), color, saturation);
+
+    // 对比度调整
+    color = (color - 0.5f) * contrast + 0.5f;
+
+    // 亮度调整
+    color += brightness;
+
+    return float4(saturate(color), input.color.a * opacity);
 }
 ";
     }

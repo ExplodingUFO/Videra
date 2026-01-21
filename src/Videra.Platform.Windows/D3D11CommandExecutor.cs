@@ -53,8 +53,10 @@ internal unsafe class D3D11CommandExecutor : ICommandExecutor
             return;
         }
 
+        // Constant buffers need to be bound to both VS and PS
         var constantBuffer = d3dBuffer.NativeBuffer;
         _context.Handle->VSSetConstantBuffers(index, 1, &constantBuffer);
+        _context.Handle->PSSetConstantBuffers(index, 1, &constantBuffer);
     }
 
     public void SetIndexBuffer(IBuffer buffer)

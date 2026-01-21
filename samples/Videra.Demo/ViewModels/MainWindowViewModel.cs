@@ -1,12 +1,15 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Numerics;
 using System.Threading.Tasks;
 using Avalonia.Media;
+using Avalonia.Platform.Storage;
 using Videra.Core.Graphics;
+using Videra.Core.Styles.Presets;
 using Videra.Demo.Services;
 
 namespace Videra.Demo.ViewModels;
@@ -33,6 +36,21 @@ public partial class MainWindowViewModel : ViewModelBase
     //partial void OnIsGridVisibleChanged(bool value) => RequestGridUpdate();
     //partial void OnGridHeightChanged(decimal value) => RequestGridUpdate();
     //partial void OnGridColorChanged(Color value) => RequestGridUpdate();
+
+    #endregion
+
+    #region 渲染风格
+
+    // ==========================================
+    // 渲染风格 (Render Style)
+    // ==========================================
+
+    [ObservableProperty]
+    private RenderStylePreset _renderStyle = RenderStylePreset.Realistic;
+
+    // 可用预设列表 (用于 ComboBox)
+    public IEnumerable<RenderStylePreset> AvailablePresets =>
+        Enum.GetValues<RenderStylePreset>().Where(p => p != RenderStylePreset.Custom);
 
     #endregion
 
