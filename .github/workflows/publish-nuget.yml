@@ -1,0 +1,45 @@
+name: Publish NuGet Packages
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Package version (e.g. 1.0.0)'
+        required: true
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Determine version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+          else
+            echo "VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Pack all projects
+        run: |
+          dotnet pack src/Videra.Core/Videra.Core.csproj -c Release -o ./nupkgs /p:PackageVersion=${{ steps.version.outputs.VERSION }}
+          dotnet pack src/Videra.Platform.Windows/Videra.Platform.Windows.csproj -c Release -o ./nupkgs /p:PackageVersion=${{ steps.version.outputs.VERSION }}
+          dotnet pack src/Videra.Platform.Linux/Videra.Platform.Linux.csproj -c Release -o ./nupkgs /p:PackageVersion=${{ steps.version.outputs.VERSION }}
+          dotnet pack src/Videra.Platform.macOS/Videra.Platform.macOS.csproj -c Release -o ./nupkgs /p:PackageVersion=${{ steps.version.outputs.VERSION }}
+          dotnet pack src/Videra.Avalonia/Videra.Avalonia.csproj -c Release -o ./nupkgs /p:PackageVersion=${{ steps.version.outputs.VERSION }}
+
+      - name: Push to GitHub Packages
+        run: dotnet nuget push ./nupkgs/*.nupkg --source https://nuget.pkg.github.com/ExplodingUFO/index.json --api-key ${{ secrets.GITHUB_TOKEN }} --skip-duplicate
