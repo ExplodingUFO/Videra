@@ -1,4 +1,5 @@
 using System.Numerics;
+using Microsoft.Extensions.Logging;
 using Videra.Core.Cameras;
 using Videra.Core.Geometry;
 using Videra.Core.Graphics.Abstractions;
@@ -87,6 +88,7 @@ public class GridRenderer : IDisposable
     }
 
     private int _drawCallCount;
+    private readonly ILogger _logger = Microsoft.Extensions.Logging.Abstractions.NullLoggerFactory.Instance.CreateLogger<GridRenderer>();
 
     public void Draw(ICommandExecutor? executor, IPipeline? pipeline, OrbitCamera camera, uint width, uint height)
     {
@@ -97,7 +99,7 @@ public class GridRenderer : IDisposable
             return;
 
         if (EnableDiagnostics && _drawCallCount % 60 == 0)
-            Console.WriteLine($"[GridRenderer] Drawing grid with {_indexCount} indices");
+            _logger.LogDebug("[GridRenderer] Drawing grid with {IndexCount} indices", _indexCount);
         _drawCallCount++;
 
         executor.SetPipeline(pipeline);

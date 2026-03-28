@@ -1,5 +1,6 @@
 ﻿using System.Numerics;
 using System.Runtime.CompilerServices;
+using Microsoft.Extensions.Logging;
 using Videra.Core.Cameras;
 using Videra.Core.Geometry;
 using Videra.Core.Graphics.Abstractions;
@@ -13,6 +14,7 @@ namespace Videra.Core.Graphics;
 public class VideraEngine : IDisposable
 {
     private readonly object _lock = new();
+    private readonly ILogger _logger;
     private IGraphicsBackend? _backend;
     private IResourceFactory? _factory;
     private ICommandExecutor? _executor;
@@ -48,8 +50,9 @@ public class VideraEngine : IDisposable
         set => _axisRenderer.IsVisible = value;
     }
 
-    public VideraEngine(IRenderStyleService? styleService = null)
+    public VideraEngine(IRenderStyleService? styleService = null, ILogger<VideraEngine>? logger = null)
     {
+        _logger = logger ?? Microsoft.Extensions.Logging.Abstractions.NullLoggerFactory.Instance.CreateLogger<VideraEngine>();
         _styleService = styleService ?? new RenderStyleService();
         _styleService.StyleChanged += OnStyleChanged;
     }
@@ -95,7 +98,7 @@ public class VideraEngine : IDisposable
         Wireframe.Initialize(_factory);
         
         IsInitialized = true;
-        Console.WriteLine("[VideraEngine] Initialized successfully");
+        _logger.LogInformation("[VideraEngine] Initialized successfully");
     }
 
     private void CreateResources()
@@ -116,14 +119,14 @@ public class VideraEngine : IDisposable
             hasColors: true
         );
 
-        Console.WriteLine("[VideraEngine] Resources created");
+        _logger.LogInformation("[VideraEngine] Resources created");
     }
 
     public void Resize(uint width, uint height)
     {
         if (!IsInitialized || width == 0 || height == 0)
         {
-            Console.WriteLine($"[VideraEngine] Resize ignored: Init={IsInitialized}, {width}x{height}");
+            _logger.LogDebug("[VideraEngine] Resize ignored: Init={IsInitialized}, {Width}x{Height}", IsInitialized, $"{width}x{height}");
             return;
         }
 
@@ -134,13 +137,13 @@ public class VideraEngine : IDisposable
 
         try
         {
-            Console.WriteLine($"[VideraEngine] Resizing to: {width}x{height}");
+            _logger.LogInformation("[VideraEngine] Resizing to: {Width}x{Height}", width, height);
             _backend?.Resize((int)width, (int)height);
             Camera.UpdateProjection(width, height);
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[VideraEngine Warning] Resize failed: {ex.Message}");
+            _logger.LogWarning(ex, "[VideraEngine] Resize failed: {Error}", ex.Message);
         }
     }
 
@@ -159,7 +162,7 @@ public class VideraEngine : IDisposable
             bool shouldLog = EnableFrameLogging && _frameCount % 60 == 0; // 每秒记录一次（60 FPS）
             
             if (shouldLog)
-                Console.WriteLine($"[VideraEngine] Frame {_frameCount}: Drawing {_sceneObjects.Count} objects, Grid visible: {Grid.IsVisible}");
+                _logger.LogDebug("[VideraEngine] Frame {FrameCount}: Drawing {ObjectCount} objects, Grid visible: {GridVisible}", _frameCount, _sceneObjects.Count, Grid.IsVisible);
             
             // 更新后端的清除颜色
             _backend.SetClearColor(new Vector4(BackgroundColor.R, BackgroundColor.G, BackgroundColor.B, BackgroundColor.A));
@@ -180,15 +183,15 @@ public class VideraEngine : IDisposable
 
                 if (shouldLog)
                 {
-                    Console.WriteLine($"[VideraEngine] Camera Position: {Camera.Position}, Target: {Camera.Target}");
-                    Console.WriteLine($"[VideraEngine] Camera Yaw: {Camera.Yaw:F2}, Pitch: {Camera.Pitch:F2}");
+                    _logger.LogDebug("[VideraEngine] Camera Position: {Position}, Target: {Target}", Camera.Position, Camera.Target);
+                    _logger.LogDebug("[VideraEngine] Camera Yaw: {Yaw:F2}, Pitch: {Pitch:F2}", Camera.Yaw, Camera.Pitch);
 
                     // 输出View矩阵的第一行来验证数据
                     var viewMatrix = Camera.ViewMatrix;
-                    Console.WriteLine($"[VideraEngine] ViewMatrix M11={viewMatrix.M11:F2}, M12={viewMatrix.M12:F2}, M13={viewMatrix.M13:F2}, M14={viewMatrix.M14:F2}");
+                    _logger.LogDebug("[VideraEngine] ViewMatrix M11={M11:F2}, M12={M12:F2}, M13={M13:F2}, M14={M14:F2}", viewMatrix.M11, viewMatrix.M12, viewMatrix.M13, viewMatrix.M14);
 
                     var projMatrix = Camera.ProjectionMatrix;
-                    Console.WriteLine($"[VideraEngine] ProjMatrix M11={projMatrix.M11:F2}, M22={projMatrix.M22:F2}, M33={projMatrix.M33:F2}, M43={projMatrix.M43:F2}");
+                    _logger.LogDebug("[VideraEngine] ProjMatrix M11={M11:F2}, M22={M22:F2}, M33={M33:F2}, M43={M43:F2}", projMatrix.M11, projMatrix.M22, projMatrix.M33, projMatrix.M43);
                 }
             }
             
@@ -200,7 +203,7 @@ public class VideraEngine : IDisposable
             {
                 _executor.SetVertexBuffer(_cameraBuffer, 1);
                 if (shouldLog)
-                    Console.WriteLine("[VideraEngine] Camera uniform buffer bound to index 1");
+                    _logger.LogDebug("[VideraEngine] Camera uniform buffer bound to index 1");
             }
 
             // 绑定风格 uniform buffer 到索引 3（shader中的 [[buffer(3)]]）
@@ -211,7 +214,7 @@ public class VideraEngine : IDisposable
 
             // 渲染网格（传入pipeline）
             if (shouldLog)
-                Console.WriteLine($"[VideraEngine] Calling Grid.Draw, IsVisible={Grid.IsVisible}");
+                _logger.LogDebug("[VideraEngine] Calling Grid.Draw, IsVisible={GridVisible}", Grid.IsVisible);
             Grid.Draw(_executor, _meshPipeline, Camera, _width, _height);
             
             // 绑定Pipeline用于模型渲染
@@ -221,7 +224,7 @@ public class VideraEngine : IDisposable
             bool shouldRenderSolid = Wireframe.ShouldRenderSolid();
 
             if (shouldLog && _sceneObjects.Count > 0)
-                Console.WriteLine($"[VideraEngine] Starting to render {_sceneObjects.Count} objects, shouldRenderSolid={shouldRenderSolid}");
+                _logger.LogDebug("[VideraEngine] Starting to render {ObjectCount} objects, shouldRenderSolid={ShouldRenderSolid}", _sceneObjects.Count, shouldRenderSolid);
 
             if (shouldRenderSolid)
             {
@@ -230,7 +233,7 @@ public class VideraEngine : IDisposable
                     if (obj.VertexBuffer == null || obj.IndexBuffer == null || obj.WorldBuffer == null)
                     {
                         if (shouldLog)
-                            Console.WriteLine($"[VideraEngine] Skipping object '{obj.Name}' - missing buffers");
+                            _logger.LogDebug("[VideraEngine] Skipping object '{ObjectName}' - missing buffers", obj.Name);
                         continue;
                     }
 
@@ -243,7 +246,7 @@ public class VideraEngine : IDisposable
                     _executor.SetIndexBuffer(obj.IndexBuffer);
 
                     if (shouldLog)
-                        Console.WriteLine($"[VideraEngine] Drawing object '{obj.Name}' with {obj.IndexCount} indices");
+                        _logger.LogDebug("[VideraEngine] Drawing object '{ObjectName}' with {IndexCount} indices", obj.Name, obj.IndexCount);
 
                     // 绘制
                     switch (obj.Topology)
@@ -287,7 +290,7 @@ public class VideraEngine : IDisposable
                 obj.InitializeWireframe(_factory);
             }
         }
-        Console.WriteLine($"[VideraEngine] Added object: {obj.Name}");
+        _logger.LogInformation("[VideraEngine] Added object: {ObjectName}", obj.Name);
     }
 
     public void RemoveObject(Object3D obj)
@@ -297,7 +300,7 @@ public class VideraEngine : IDisposable
             _sceneObjects.Remove(obj);
             obj.Dispose();
         }
-        Console.WriteLine($"[VideraEngine] Removed object: {obj.Name}");
+        _logger.LogInformation("[VideraEngine] Removed object: {ObjectName}", obj.Name);
     }
 
     public void ClearObjects()
@@ -310,13 +313,13 @@ public class VideraEngine : IDisposable
             }
             _sceneObjects.Clear();
         }
-        Console.WriteLine("[VideraEngine] Cleared all objects");
+        _logger.LogInformation("[VideraEngine] Cleared all objects");
     }
 
     // 保留这个方法以兼容旧代码，但现在不再使用
     public void UpdateMesh(MeshData mesh)
     {
         // 这个方法在新架构中已不需要，因为每个Object3D自己管理mesh
-        Console.WriteLine("[VideraEngine] UpdateMesh is deprecated in new architecture");
+        _logger.LogWarning("[VideraEngine] UpdateMesh is deprecated in new architecture");
     }
 }

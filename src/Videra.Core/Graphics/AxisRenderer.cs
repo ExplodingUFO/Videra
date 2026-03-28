@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Numerics;
+using Microsoft.Extensions.Logging;
 using Videra.Core.Cameras;
 using Videra.Core.Geometry;
 using Videra.Core.Graphics.Abstractions;
@@ -54,8 +55,9 @@ public class AxisRenderer : IDisposable
         _worldBuffer = factory.CreateUniformBuffer(64);
         _worldBuffer.SetData(Matrix4x4.Identity, 0);
         _cameraBuffer = factory.CreateUniformBuffer(128);
-        
-        Console.WriteLine($"[AxisRenderer] Initialized with {vertices.Count} vertices, {_indexCount} indices");
+
+        var logger = Microsoft.Extensions.Logging.Abstractions.NullLoggerFactory.Instance.CreateLogger<AxisRenderer>();
+        logger.LogInformation("[AxisRenderer] Initialized with {VertexCount} vertices, {IndexCount} indices", vertices.Count, _indexCount);
     }
 
     public void Draw(ICommandExecutor? executor, IPipeline? pipeline, OrbitCamera camera, uint width, uint height, float renderScale)

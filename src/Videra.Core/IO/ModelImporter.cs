@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+using System.Numerics;
+using Microsoft.Extensions.Logging;
 using Videra.Core.Geometry;
 using Videra.Core.Graphics;
 using Videra.Core.Graphics.Abstractions;
@@ -11,42 +12,44 @@ public static class ModelImporter
     public static string[] SupportedFormats => new[]
         { "*.gltf", "*.glb", "*.obj" };
 
-    public static Object3D Load(string filePath, IResourceFactory factory)
+    public static Object3D Load(string filePath, IResourceFactory factory, ILogger? logger = null)
     {
+        var log = logger ?? Microsoft.Extensions.Logging.Abstractions.NullLoggerFactory.Instance.CreateLogger("ModelImporter");
+
         try
         {
-            Console.WriteLine($"[ModelImporter] Loading: {filePath}");
-            
+            log.LogInformation("[ModelImporter] Loading: {FilePath}", filePath);
+
             var ext = Path.GetExtension(filePath).ToLowerInvariant();
-            
+
             MeshData meshData = ext switch
             {
-                ".gltf" or ".glb" => LoadWithSharpGLTF(filePath),
+                ".gltf" or ".glb" => LoadWithSharpGLTF(filePath, log),
                 ".obj" => LoadSimpleObj(filePath),
                 _ => throw new NotSupportedException($"Format {ext} not supported")
             };
-            
-            Console.WriteLine($"[ModelImporter] Loaded {meshData.Vertices.Length} vertices, {meshData.Indices.Length} indices");
+
+            log.LogInformation("[ModelImporter] Loaded {VertexCount} vertices, {IndexCount} indices", meshData.Vertices.Length, meshData.Indices.Length);
 
             var obj = new Object3D
             {
                 Name = Path.GetFileName(filePath)
             };
 
-            Console.WriteLine($"[ModelImporter] Initializing GPU resources...");
-            obj.Initialize(factory, meshData);
-            Console.WriteLine($"[ModelImporter] ✓ Success");
+            log.LogDebug("[ModelImporter] Initializing GPU resources...");
+            obj.Initialize(factory, meshData, log);
+            log.LogInformation("[ModelImporter] Successfully loaded: {FilePath}", filePath);
 
             return obj;
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[ModelImporter] ✗ Failed: {ex.GetType().Name}: {ex.Message}");
+            log.LogError(ex, "[ModelImporter] Failed to load: {FilePath}: {Error}", filePath, ex.Message);
             throw;
         }
     }
 
-    private static MeshData LoadWithSharpGLTF(string filePath)
+    private static MeshData LoadWithSharpGLTF(string filePath, ILogger logger)
     {
         var model = ModelRoot.Load(filePath);
 
@@ -60,7 +63,7 @@ public static class ModelImporter
         {
             foreach (var node in defaultScene.VisualChildren)
             {
-                ProcessNodeRecursive(node, Matrix4x4.Identity, allVertices, allIndices, ref indexOffset);
+                ProcessNodeRecursive(node, Matrix4x4.Identity, allVertices, allIndices, ref indexOffset, logger);
             }
         }
         else
@@ -68,11 +71,11 @@ public static class ModelImporter
             // 回退：如果没有场景，直接处理 mesh（不带变换）
             foreach (var mesh in model.LogicalMeshes)
             {
-                ProcessMesh(mesh, Matrix4x4.Identity, allVertices, allIndices, ref indexOffset);
+                ProcessMesh(mesh, Matrix4x4.Identity, allVertices, allIndices, ref indexOffset, logger);
             }
         }
 
-        Console.WriteLine($"[SharpGLTF] Total: {allVertices.Count} vertices, {allIndices.Count} indices");
+        logger.LogInformation("[SharpGLTF] Total: {VertexCount} vertices, {IndexCount} indices", allVertices.Count, allIndices.Count);
 
         return new MeshData
         {
@@ -87,7 +90,8 @@ public static class ModelImporter
         Matrix4x4 parentTransform,
         List<VertexPositionNormalColor> allVertices,
         List<uint> allIndices,
-        ref uint indexOffset)
+        ref uint indexOffset,
+        ILogger logger)
     {
         // 计算当前节点的世界变换
         var localTransform = node.LocalMatrix;
@@ -96,14 +100,14 @@ public static class ModelImporter
         // 如果节点有 mesh，处理它
         if (node.Mesh != null)
         {
-            Console.WriteLine($"[SharpGLTF] Processing node: {node.Name} with mesh: {node.Mesh.Name}");
-            ProcessMesh(node.Mesh, worldTransform, allVertices, allIndices, ref indexOffset);
+            logger.LogDebug("[SharpGLTF] Processing node: {NodeName} with mesh: {MeshName}", node.Name, node.Mesh.Name);
+            ProcessMesh(node.Mesh, worldTransform, allVertices, allIndices, ref indexOffset, logger);
         }
 
         // 递归处理子节点
         foreach (var child in node.VisualChildren)
         {
-            ProcessNodeRecursive(child, worldTransform, allVertices, allIndices, ref indexOffset);
+            ProcessNodeRecursive(child, worldTransform, allVertices, allIndices, ref indexOffset, logger);
         }
     }
 
@@ -112,7 +116,8 @@ public static class ModelImporter
         Matrix4x4 transform,
         List<VertexPositionNormalColor> allVertices,
         List<uint> allIndices,
-        ref uint indexOffset)
+        ref uint indexOffset,
+        ILogger logger)
     {
         // 计算法线变换矩阵（逆转置）
         Matrix4x4.Invert(transform, out var inverseTransform);
@@ -127,7 +132,7 @@ public static class ModelImporter
 
             if (positions == null)
             {
-                Console.WriteLine("[SharpGLTF] Skipping primitive without positions");
+                logger.LogWarning("[SharpGLTF] Skipping primitive without positions");
                 continue;
             }
 
@@ -160,14 +165,14 @@ public static class ModelImporter
             {
                 if (indexOffset + idx > uint.MaxValue)
                 {
-                    Console.WriteLine("[SharpGLTF] Index overflow, stopping");
+                    logger.LogWarning("[SharpGLTF] Index overflow, stopping");
                     break;
                 }
                 allIndices.Add(indexOffset + (uint)idx);
             }
 
             indexOffset += (uint)positions.Count;
-            Console.WriteLine($"[SharpGLTF] Processed {positions.Count} vertices, current offset: {indexOffset}");
+            logger.LogDebug("[SharpGLTF] Processed {VertexCount} vertices, current offset: {IndexOffset}", positions.Count, indexOffset);
         }
     }
 
@@ -205,13 +210,13 @@ public static class ModelImporter
                     {
                         var indices = parts[i].Split('/');
                         var vIdx = int.Parse(indices[0]) - 1;
-                        var nIdx = indices.Length > 2 && !string.IsNullOrEmpty(indices[2]) 
-                            ? int.Parse(indices[2]) - 1 
+                        var nIdx = indices.Length > 2 && !string.IsNullOrEmpty(indices[2])
+                            ? int.Parse(indices[2]) - 1
                             : 0;
 
                         var v = vertices[vIdx];
                         var n = nIdx < normals.Count ? normals[nIdx] : Vector3.UnitY;
-                        
+
                         finalVertices.Add(new VertexPositionNormalColor(
                             v, n, new RgbaFloat(0.7f, 0.7f, 0.7f, 1f)));
                         finalIndices.Add((uint)finalVertices.Count - 1);

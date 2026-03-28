@@ -1,5 +1,6 @@
 ﻿using System.Numerics;
 using System.Runtime.CompilerServices;
+using Microsoft.Extensions.Logging;
 using Videra.Core.Geometry;
 using Videra.Core.Graphics.Abstractions;
 using Videra.Core.Graphics.Wireframe;
@@ -45,31 +46,32 @@ public class Object3D : IDisposable
     }
 
     // 初始化 GPU 资源 (由 Engine 调用)
-    public void Initialize(IResourceFactory factory, MeshData mesh)
+    public void Initialize(IResourceFactory factory, MeshData mesh, ILogger? logger = null)
     {
+        var log = logger ?? Microsoft.Extensions.Logging.Abstractions.NullLoggerFactory.Instance.CreateLogger<Object3D>();
         try
         {
-            // ✅ 验证输入
+            // 验证输入
             if (mesh == null || mesh.Vertices == null || mesh.Vertices.Length == 0)
                 throw new ArgumentException("Invalid mesh data");
 
             if (mesh.Indices == null || mesh.Indices.Length == 0)
                 throw new ArgumentException("Invalid index data");
 
-            Console.WriteLine($"[Object3D '{Name}'] Initializing: {mesh.Vertices.Length} verts, {mesh.Indices.Length} indices");
+            log.LogDebug("[Object3D '{Name}'] Initializing: {VertexCount} verts, {IndexCount} indices", Name, mesh.Vertices.Length, mesh.Indices.Length);
 
             Topology = mesh.Topology;
             IndexCount = (uint)mesh.Indices.Length;
 
-            // ✅ 安全的大小计算
+            // 安全的大小计算
             var vertexSize = Unsafe.SizeOf<VertexPositionNormalColor>();
-            
+
             if ((long)mesh.Vertices.Length * vertexSize > uint.MaxValue)
                 throw new InvalidOperationException($"Vertex buffer too large: {mesh.Vertices.Length} vertices");
 
             var vSize = (uint)(mesh.Vertices.Length * vertexSize);
-            
-            Console.WriteLine($"[Object3D '{Name}'] Vertex buffer size: {vSize:N0} bytes ({vSize / 1024.0 / 1024.0:F2} MB)");
+
+            log.LogDebug("[Object3D '{Name}'] Vertex buffer size: {BufferSize:N0} bytes ({BufferSizeMB:F2} MB)", Name, vSize, vSize / 1024.0 / 1024.0);
 
             VertexBuffer = factory.CreateVertexBuffer(vSize);
             VertexBuffer.SetData(mesh.Vertices, 0);
@@ -77,38 +79,38 @@ public class Object3D : IDisposable
             // 缓存顶点数据用于线框
             _cachedVertices = mesh.Vertices;
 
-            // ✅ 索引 Buffer
+            // 索引 Buffer
             if ((long)mesh.Indices.Length * sizeof(uint) > uint.MaxValue)
                 throw new InvalidOperationException($"Index buffer too large: {mesh.Indices.Length} indices");
 
             var iSize = (uint)(mesh.Indices.Length * sizeof(uint));
-            
-            Console.WriteLine($"[Object3D '{Name}'] Index buffer size: {iSize:N0} bytes ({iSize / 1024.0 / 1024.0:F2} MB)");
+
+            log.LogDebug("[Object3D '{Name}'] Index buffer size: {BufferSize:N0} bytes ({BufferSizeMB:F2} MB)", Name, iSize, iSize / 1024.0 / 1024.0);
 
             IndexBuffer = factory.CreateIndexBuffer(iSize);
             IndexBuffer.SetData(mesh.Indices, 0);
 
-            // ✅ 缓存三角形索引用于线框提取
+            // 缓存三角形索引用于线框提取
             if (mesh.Topology == MeshTopology.Triangles)
             {
                 _cachedTriangleIndices = mesh.Indices;
             }
 
-            // ✅ World Uniform Buffer
+            // World Uniform Buffer
             WorldBuffer = factory.CreateUniformBuffer(64);
 
-            Console.WriteLine($"[Object3D '{Name}'] ✓ Initialized successfully");
+            log.LogInformation("[Object3D '{Name}'] Initialized successfully", Name);
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[Object3D '{Name}'] ✗ Initialization failed: {ex.Message}");
-            
+            log.LogError(ex, "[Object3D '{Name}'] Initialization failed: {Error}", Name, ex.Message);
+
             // 清理已创建的资源
             VertexBuffer?.Dispose();
             IndexBuffer?.Dispose();
             WorldBuffer?.Dispose();
             LineIndexBuffer?.Dispose();
-            
+
             throw;
         }
     }
@@ -125,11 +127,13 @@ public class Object3D : IDisposable
     /// <summary>
     /// 初始化线框渲染资源（从三角形网格提取边缘）
     /// </summary>
-    public void InitializeWireframe(IResourceFactory factory)
+    public void InitializeWireframe(IResourceFactory factory, ILogger? logger = null)
     {
+        var log = logger ?? Microsoft.Extensions.Logging.Abstractions.NullLoggerFactory.Instance.CreateLogger<Object3D>();
+
         if (_cachedTriangleIndices == null || _cachedTriangleIndices.Length == 0)
         {
-            Console.WriteLine($"[Object3D '{Name}'] Wireframe: No triangle indices available");
+            log.LogDebug("[Object3D '{Name}'] Wireframe: No triangle indices available", Name);
             return;
         }
 
@@ -138,7 +142,7 @@ public class Object3D : IDisposable
 
         if (lineIndices.Length == 0)
         {
-            Console.WriteLine($"[Object3D '{Name}'] Wireframe: No edges extracted");
+            log.LogDebug("[Object3D '{Name}'] Wireframe: No edges extracted", Name);
             return;
         }
 
@@ -157,7 +161,7 @@ public class Object3D : IDisposable
             LineVertexBuffer.SetData(_cachedVertices, 0);
         }
 
-        Console.WriteLine($"[Object3D '{Name}'] Wireframe: {LineIndexCount / 2} edges initialized");
+        log.LogInformation("[Object3D '{Name}'] Wireframe: {EdgeCount} edges initialized", Name, LineIndexCount / 2);
     }
 
     /// <summary>

@@ -1,21 +1,25 @@
 using System.Runtime.InteropServices;
+using Microsoft.Extensions.Logging;
 using Videra.Core.Graphics.Abstractions;
 using Videra.Core.Graphics.Software;
 
 namespace Videra.Core.Graphics;
 
 /// <summary>
-/// å¹³å°åŽç«¯å·¥åŽ‚ - æ ¹æ®è¿è¡Œæ—¶å¹³å°åˆ›å»ºå¯¹åº”çš„å›¾å½¢åŽç«¯
+/// 平台后端工厂 - 根据运行时平台创建对应的图形后端
 /// </summary>
 public static class GraphicsBackendFactory
 {
     /// <summary>
-    /// åˆ›å»ºå½“å‰å¹³å°å¯¹åº”çš„å›¾å½¢åŽç«?
+    /// 创建当前平台对应的图形后端
     /// </summary>
-    public static IGraphicsBackend CreateBackend(GraphicsBackendPreference preference = GraphicsBackendPreference.Auto)
+    public static IGraphicsBackend CreateBackend(GraphicsBackendPreference preference = GraphicsBackendPreference.Auto, ILoggerFactory? loggerFactory = null)
     {
+        var logger = loggerFactory?.CreateLogger("GraphicsBackendFactory")
+            ?? Microsoft.Extensions.Logging.Abstractions.NullLoggerFactory.Instance.CreateLogger("GraphicsBackendFactory");
+
         var backendMode = Environment.GetEnvironmentVariable("VIDERA_BACKEND");
-        Console.WriteLine($"[GraphicsBackendFactory] Preference={preference}, Env={backendMode ?? "<null>"}");
+        logger.LogInformation("[GraphicsBackendFactory] Preference={Preference}, Env={EnvVar}", preference, backendMode ?? "<null>");
         if (preference == GraphicsBackendPreference.Auto && !string.IsNullOrWhiteSpace(backendMode))
             preference = ParsePreference(backendMode);
 
@@ -24,15 +28,15 @@ public static class GraphicsBackendFactory
 
         return preference switch
         {
-            GraphicsBackendPreference.D3D11 => TryCreateD3D11() ?? new SoftwareBackend(),
-            GraphicsBackendPreference.Vulkan => TryCreateVulkan() ?? new SoftwareBackend(),
-            GraphicsBackendPreference.Metal => TryCreateMetal() ?? new SoftwareBackend(),
-            _ => TryCreatePlatformDefault() ?? new SoftwareBackend()
+            GraphicsBackendPreference.D3D11 => TryCreateD3D11(logger) ?? new SoftwareBackend(),
+            GraphicsBackendPreference.Vulkan => TryCreateVulkan(logger) ?? new SoftwareBackend(),
+            GraphicsBackendPreference.Metal => TryCreateMetal(logger) ?? new SoftwareBackend(),
+            _ => TryCreatePlatformDefault(logger) ?? new SoftwareBackend()
         };
     }
 
     /// <summary>
-    /// èŽ·å–å½“å‰å¹³å°åç§°
+    /// 获取当前平台名称
     /// </summary>
     public static string GetPlatformName()
     {
@@ -69,23 +73,23 @@ public static class GraphicsBackendFactory
         };
     }
 
-    private static IGraphicsBackend? TryCreatePlatformDefault()
+    private static IGraphicsBackend? TryCreatePlatformDefault(ILogger logger)
     {
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            return TryCreateD3D11();
+            return TryCreateD3D11(logger);
         if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-            return TryCreateMetal();
+            return TryCreateMetal(logger);
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-            return TryCreateVulkan();
+            return TryCreateVulkan(logger);
 
         return null;
     }
 
-    private static IGraphicsBackend? TryCreateD3D11()
+    private static IGraphicsBackend? TryCreateD3D11(ILogger logger)
     {
         if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
-            Console.WriteLine("[Videra] D3D11 backend only supported on Windows.");
+            logger.LogWarning("[Videra] D3D11 backend only supported on Windows.");
             return null;
         }
 
@@ -97,16 +101,16 @@ public static class GraphicsBackendFactory
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[Videra] D3D11 backend load failed: {ex.Message}");
+            logger.LogError(ex, "[Videra] D3D11 backend load failed: {Error}", ex.Message);
             return null;
         }
     }
 
-    private static IGraphicsBackend? TryCreateMetal()
+    private static IGraphicsBackend? TryCreateMetal(ILogger logger)
     {
         if (!RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
         {
-            Console.WriteLine("[Videra] Metal backend only supported on macOS.");
+            logger.LogWarning("[Videra] Metal backend only supported on macOS.");
             return null;
         }
 
@@ -118,16 +122,16 @@ public static class GraphicsBackendFactory
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[Videra] Metal backend load failed: {ex.Message}");
+            logger.LogError(ex, "[Videra] Metal backend load failed: {Error}", ex.Message);
             return null;
         }
     }
 
-    private static IGraphicsBackend? TryCreateVulkan()
+    private static IGraphicsBackend? TryCreateVulkan(ILogger logger)
     {
         if (!RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
         {
-            Console.WriteLine("[Videra] Vulkan backend is only wired for Linux/X11 right now.");
+            logger.LogWarning("[Videra] Vulkan backend is only wired for Linux/X11 right now.");
             return null;
         }
 
@@ -139,7 +143,7 @@ public static class GraphicsBackendFactory
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[Videra] Vulkan backend load failed: {ex.Message}");
+            logger.LogError(ex, "[Videra] Vulkan backend load failed: {Error}", ex.Message);
             return null;
         }
     }

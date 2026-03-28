@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using Videra.Core.Cameras;
 using Videra.Core.Geometry;
 using Videra.Core.Graphics.Abstractions;
@@ -12,6 +13,7 @@ public class WireframeRenderer : IDisposable
     private IResourceFactory? _factory;
     private bool _isInitialized;
     private RgbaFloat _lastLineColor;
+    private readonly ILogger _logger = Microsoft.Extensions.Logging.Abstractions.NullLoggerFactory.Instance.CreateLogger<WireframeRenderer>();
 
     /// <summary>线框显示模式</summary>
     public WireframeMode Mode { get; set; } = WireframeMode.None;
@@ -31,7 +33,7 @@ public class WireframeRenderer : IDisposable
     {
         _factory = factory;
         _isInitialized = true;
-        Console.WriteLine("[WireframeRenderer] Initialized");
+        _logger.LogInformation("[WireframeRenderer] Initialized");
     }
 
     /// <summary>
