@@ -14,18 +14,14 @@ public class AvaloniaModelImporter : IModelImporter
     private readonly IResourceFactory _factory;
     private readonly TopLevel _topLevel;
 
-    // 构造函数注入资源工厂
     public AvaloniaModelImporter(TopLevel topLevel, IResourceFactory factory)
     {
         _topLevel = topLevel;
         _factory = factory;
-        Console.WriteLine("[AvaloniaModelImporter] Created");
     }
 
     public async Task<IEnumerable<Object3D>> ImportModelsAsync()
     {
-        Console.WriteLine("[AvaloniaModelImporter] ImportModelsAsync start");
-        // 1. 调用 Avalonia 文件选择器
         var files = await _topLevel.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
         {
             Title = "Import 3D Models",
@@ -38,20 +34,19 @@ public class AvaloniaModelImporter : IModelImporter
 
         var results = new List<Object3D>();
 
-        // 2. 加载模型
         foreach (var file in files)
+        {
             try
             {
                 var path = file.Path.LocalPath;
-                // 在后台线程加载，避免卡顿 UI
                 var obj = await Task.Run(() => ModelImporter.Load(path, _factory));
                 results.Add(obj);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                // 实际项目中这里可以弹窗提示错误
-                Console.WriteLine($"Load Error: {ex.Message}");
+                // 导入错误由调用方通过返回结果数量和状态消息处理
             }
+        }
 
         return results;
     }
