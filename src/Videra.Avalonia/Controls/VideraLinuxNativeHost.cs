@@ -2,6 +2,7 @@ using System.Runtime.InteropServices;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Platform;
+using Microsoft.Extensions.Logging;
 
 namespace Videra.Avalonia.Controls;
 
@@ -10,6 +11,7 @@ internal sealed class VideraLinuxNativeHost : NativeControlHost, IVideraNativeHo
     private IntPtr _display;
     private IntPtr _window;
     private bool _isDisposed;
+    private readonly ILogger _logger = Microsoft.Extensions.Logging.Abstractions.NullLoggerFactory.Instance.CreateLogger<VideraLinuxNativeHost>();
 
     public event Action<IntPtr>? HandleCreated;
     public event Action? HandleDestroyed;
@@ -64,7 +66,7 @@ internal sealed class VideraLinuxNativeHost : NativeControlHost, IVideraNativeHo
         XMapWindow(_display, _window);
         XFlush(_display);
 
-        Console.WriteLine($"[VideraLinuxNativeHost] Created X11 window 0x{_window.ToInt64():X}");
+        _logger.LogInformation("Created X11 window 0x{Window:X}", _window.ToInt64());
         HandleCreated?.Invoke(_window);
 
         return new PlatformHandle(_window, "XID");
@@ -110,7 +112,7 @@ internal sealed class VideraLinuxNativeHost : NativeControlHost, IVideraNativeHo
 
         XResizeWindow(_display, _window, width, height);
         XFlush(_display);
-        Console.WriteLine($"[VideraLinuxNativeHost] Resize to {width}x{height}");
+        _logger.LogDebug("Resize to {Width}x{Height}", width, height);
     }
 
     public IntPtr Display => _display;

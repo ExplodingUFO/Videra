@@ -6,6 +6,7 @@ using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using Avalonia.Threading;
+using Microsoft.Extensions.Logging;
 using Videra.Core.Geometry;
 using Videra.Core.Graphics;
 using Videra.Core.Graphics.Abstractions;
@@ -32,6 +33,7 @@ public partial class VideraView : Decorator
     private Grid? _nativeContainer;
     private Border? _inputOverlay;
     private IntPtr _renderHandle;
+    private readonly ILogger _logger = Microsoft.Extensions.Logging.Abstractions.NullLoggerFactory.Instance.CreateLogger<VideraView>();
     private int _renderTickCount;
 
     public event EventHandler? BackendReady;
@@ -264,7 +266,7 @@ public partial class VideraView : Decorator
         {
             if (WantsNativeBackend() && _renderHandle == IntPtr.Zero)
             {
-                Console.WriteLine("[VideraView] OnSizeChanged: native backend without handle, ensuring host");
+                _logger.LogDebug("OnSizeChanged: native backend without handle, ensuring host");
                 EnsureNativeHost();
                 if (_renderHandle == IntPtr.Zero)
                     return;
@@ -311,7 +313,7 @@ public partial class VideraView : Decorator
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[Videra] Init Failed (Try #{retryCount + 1}): {ex.Message}");
+                _logger.LogError(ex, "Init Failed (Try #{RetryCount}): {Error}", retryCount + 1, ex.Message);
 
                 if (retryCount < 5)
                 {
@@ -337,10 +339,10 @@ public partial class VideraView : Decorator
 
     private void InitializeGraphicsDevice(uint widthPx, uint heightPx)
     {
-        Console.WriteLine($"[VideraView] InitializeGraphicsDevice {widthPx}x{heightPx}, PreferredBackend={PreferredBackend}");
+        _logger.LogInformation("InitializeGraphicsDevice {Width}x{Height}, PreferredBackend={PreferredBackend}", widthPx, heightPx, PreferredBackend);
         _backend = GraphicsBackendFactory.CreateBackend(PreferredBackend);
         _isSoftwareBackend = _backend is ISoftwareBackend;
-        Console.WriteLine($"[VideraView] Backend={_backend.GetType().Name}, IsSoftware={_isSoftwareBackend}");
+        _logger.LogInformation("Backend={BackendType}, IsSoftware={IsSoftware}", _backend.GetType().Name, _isSoftwareBackend);
         if (_isSoftwareBackend)
         {
             _renderHandle = IntPtr.Zero;
@@ -351,7 +353,7 @@ public partial class VideraView : Decorator
         var handle = _isSoftwareBackend
             ? topLevel?.TryGetPlatformHandle()?.Handle ?? IntPtr.Zero
             : _renderHandle;
-        Console.WriteLine($"[VideraView] Init handle=0x{handle.ToInt64():X}, TopLevel={(topLevel != null)}");
+        _logger.LogDebug("Init handle=0x{Handle:X}, TopLevel={HasTopLevel}", handle.ToInt64(), topLevel != null);
         //System.Diagnostics.Debug.WriteLine($"Current handle is {handle}");
         _backend.Initialize(handle, (int)widthPx, (int)heightPx);
 
@@ -364,7 +366,7 @@ public partial class VideraView : Decorator
         Engine.EnableFrameLogging = string.Equals(frameLogEnv, "1", StringComparison.OrdinalIgnoreCase) ||
                                     string.Equals(frameLogEnv, "true", StringComparison.OrdinalIgnoreCase);
         if (Engine.EnableFrameLogging)
-            Console.WriteLine("[VideraView] Frame logging enabled");
+            _logger.LogInformation("Frame logging enabled");
 
         var color = BackgroundColor;
         Engine.BackgroundColor = new RgbaFloat(color.R / 255f, color.G / 255f, color.B / 255f, color.A / 255f);
@@ -418,7 +420,7 @@ public partial class VideraView : Decorator
         };
         _renderTimer.Tick += OnRenderTick;
         _renderTimer.Start();
-        Console.WriteLine("[VideraView] Render loop started");
+        _logger.LogInformation("Render loop started");
     }
 
     private void StopRenderLoop()
@@ -436,7 +438,7 @@ public partial class VideraView : Decorator
     private void OnRenderTick(object? sender, EventArgs e)
     {
         if (_renderTickCount == 0)
-            Console.WriteLine("[VideraView] First render tick");
+            _logger.LogDebug("First render tick");
         _renderTickCount++;
         RenderFrame();
     }
@@ -463,7 +465,7 @@ public partial class VideraView : Decorator
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[Videra] Render error: {ex.Message}");
+            _logger.LogError(ex, "Render error: {Error}", ex.Message);
             StopRenderLoop();
         }
     }
@@ -479,10 +481,10 @@ public partial class VideraView : Decorator
 
     private void OnViewAttached()
     {
-        Console.WriteLine("[VideraView] OnViewAttached");
+        _logger.LogDebug("OnViewAttached");
         if (WantsNativeBackend())
         {
-            Console.WriteLine("[VideraView] Wants native backend, ensuring native host");
+            _logger.LogDebug("Wants native backend, ensuring native host");
             EnsureNativeHost();
         }
 
@@ -508,7 +510,7 @@ public partial class VideraView : Decorator
 
     private void OnViewDetached()
     {
-        Console.WriteLine("[VideraView] OnViewDetached");
+        _logger.LogDebug("OnViewDetached");
         StopRenderLoop();
         if (Items is INotifyCollectionChanged incc)
             incc.CollectionChanged -= OnCollectionChanged;
@@ -563,7 +565,7 @@ public partial class VideraView : Decorator
         }
         else
         {
-            Console.WriteLine("[VideraView] No native host available for this platform");
+            _logger.LogWarning("No native host available for this platform");
             return;
         }
 
@@ -580,7 +582,7 @@ public partial class VideraView : Decorator
         _nativeContainer.Children.Add(_nativeHost);
         _nativeContainer.Children.Add(overlay);
         Child = _nativeContainer;
-        Console.WriteLine("[VideraView] Native host created");
+        _logger.LogInformation("Native host created");
     }
 
     private void ReleaseNativeHost()
@@ -604,7 +606,7 @@ public partial class VideraView : Decorator
     private void OnNativeHandleCreated(IntPtr handle)
     {
         _renderHandle = handle;
-        Console.WriteLine($"[VideraView] Native handle created: 0x{handle.ToInt64():X}");
+        _logger.LogInformation("Native handle created: 0x{Handle:X}", handle.ToInt64());
 
         var scaling = VisualRoot?.RenderScaling ?? 1.0;
         var widthPx = (uint)Math.Max(64, Math.Round(Bounds.Width * scaling));

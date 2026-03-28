@@ -3,6 +3,7 @@ using System.Runtime.InteropServices;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Platform;
+using Microsoft.Extensions.Logging;
 
 namespace Videra.Avalonia.Controls;
 
@@ -11,6 +12,7 @@ internal sealed class VideraNativeHost : NativeControlHost, IVideraNativeHost
     private IntPtr _handle;
     private IntPtr _oldWndProc;
     private WndProcDelegate? _wndProc;
+    private readonly ILogger _logger = Microsoft.Extensions.Logging.Abstractions.NullLoggerFactory.Instance.CreateLogger<VideraNativeHost>();
 
     public event Action<IntPtr>? HandleCreated;
     public event Action? HandleDestroyed;
@@ -28,7 +30,7 @@ internal sealed class VideraNativeHost : NativeControlHost, IVideraNativeHost
         const int ssNotify = 0x0100;
         const int style = 0x40000000 | 0x10000000 | 0x04000000 | 0x02000000 | ssNotify; // WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | SS_NOTIFY
 
-        Console.WriteLine($"[VideraNativeHost] Creating child HWND under 0x{parent.Handle.ToInt64():X}");
+        _logger.LogDebug("Creating child HWND under 0x{ParentHandle:X}", parent.Handle.ToInt64());
         _handle = CreateWindowExW(
             exStyle,
             "STATIC",
@@ -48,7 +50,7 @@ internal sealed class VideraNativeHost : NativeControlHost, IVideraNativeHost
 
         HookWndProc();
         UpdateNativeSize();
-        Console.WriteLine($"[VideraNativeHost] Created HWND 0x{_handle.ToInt64():X}");
+        _logger.LogInformation("Created HWND 0x{Handle:X}", _handle.ToInt64());
         HandleCreated?.Invoke(_handle);
         return new PlatformHandle(_handle, "HWND");
     }
@@ -84,7 +86,7 @@ internal sealed class VideraNativeHost : NativeControlHost, IVideraNativeHost
 
         const uint flags = 0x0010 | 0x0004; // SWP_NOACTIVATE | SWP_NOZORDER
         SetWindowPos(_handle, IntPtr.Zero, 0, 0, width, height, flags);
-        Console.WriteLine($"[VideraNativeHost] Resize HWND to {width}x{height}");
+        _logger.LogDebug("Resize HWND to {Width}x{Height}", width, height);
     }
 
     private void HookWndProc()
@@ -98,7 +100,7 @@ internal sealed class VideraNativeHost : NativeControlHost, IVideraNativeHost
         {
             var error = Marshal.GetLastWin32Error();
             if (error != 0)
-                Console.WriteLine($"[VideraNativeHost] Failed to hook WndProc (err={error})");
+                _logger.LogWarning("Failed to hook WndProc (err={Error})", error);
         }
     }
 

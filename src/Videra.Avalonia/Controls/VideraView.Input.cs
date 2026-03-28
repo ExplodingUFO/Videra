@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Microsoft.Extensions.Logging;
 
 namespace Videra.Avalonia.Controls;
 
@@ -57,7 +58,7 @@ public partial class VideraView
         _lastPos = e.GetPosition(this);
 
         if (InputLogEnabled)
-            Console.WriteLine($"[VideraInput] Pressed at {_lastPos}, Left={props.IsLeftButtonPressed}, Right={props.IsRightButtonPressed}");
+            _logger.LogDebug("Pressed at {Position}, Left={IsLeft}, Right={IsRight}", _lastPos, props.IsLeftButtonPressed, props.IsRightButtonPressed);
 
         if (props.IsLeftButtonPressed)
         {
@@ -79,7 +80,7 @@ public partial class VideraView
         base.OnPointerReleased(e);
 
         if (InputLogEnabled)
-            Console.WriteLine($"[VideraInput] Released at {e.GetPosition(this)} ({e.InitialPressMouseButton})");
+            _logger.LogDebug("Released at {Position} ({Button})", e.GetPosition(this), e.InitialPressMouseButton);
 
         if (e.InitialPressMouseButton == MouseButton.Left)
         {
@@ -100,7 +101,7 @@ public partial class VideraView
         base.OnPointerMoved(e);
 
         if (InputLogEnabled && (_isLeftButtonDown || _isRightButtonDown))
-            Console.WriteLine($"[VideraInput] Moved to {e.GetPosition(this)}");
+            _logger.LogDebug("Moved to {Position}", e.GetPosition(this));
 
         if (!_isLeftButtonDown && !_isRightButtonDown)
             return;
@@ -119,7 +120,7 @@ public partial class VideraView
         base.OnPointerWheelChanged(e);
 
         if (InputLogEnabled)
-            Console.WriteLine($"[VideraInput] Wheel delta {e.Delta}");
+            _logger.LogDebug("Wheel delta {Delta}", e.Delta);
 
         var delta = e.Delta.Y;
         Engine.Camera.Zoom((float)(delta * 0.5));
@@ -189,25 +190,25 @@ public partial class VideraView
                 _isLeftButtonDown = true;
                 _lastPos = pos;
                 if (InputLogEnabled)
-                    Console.WriteLine($"[VideraInput] Native LeftDown at {pos}");
+                    _logger.LogDebug("Native LeftDown at {Position}", pos);
                 Focus();
                 break;
             case NativePointerKind.LeftUp:
                 _isLeftButtonDown = false;
                 if (InputLogEnabled)
-                    Console.WriteLine($"[VideraInput] Native LeftUp at {pos}");
+                    _logger.LogDebug("Native LeftUp at {Position}", pos);
                 break;
             case NativePointerKind.RightDown:
                 _isRightButtonDown = true;
                 _lastPos = pos;
                 if (InputLogEnabled)
-                    Console.WriteLine($"[VideraInput] Native RightDown at {pos}");
+                    _logger.LogDebug("Native RightDown at {Position}", pos);
                 Focus();
                 break;
             case NativePointerKind.RightUp:
                 _isRightButtonDown = false;
                 if (InputLogEnabled)
-                    Console.WriteLine($"[VideraInput] Native RightUp at {pos}");
+                    _logger.LogDebug("Native RightUp at {Position}", pos);
                 break;
             case NativePointerKind.Move:
                 if (!_isLeftButtonDown && !_isRightButtonDown)
@@ -217,13 +218,13 @@ public partial class VideraView
                 var dy = (float)(pos.Y - _lastPos.Y);
                 _lastPos = pos;
                 if (InputLogEnabled)
-                    Console.WriteLine($"[VideraInput] Native Move {pos} dx={dx} dy={dy}");
+                    _logger.LogDebug("Native Move {Position} dx={Dx} dy={Dy}", pos, dx, dy);
                 ProcessMove(dx, dy, _isLeftButtonDown);
                 break;
             case NativePointerKind.Wheel:
                 var normalized = e.WheelDelta / 120.0f;
                 if (InputLogEnabled)
-                    Console.WriteLine($"[VideraInput] Native Wheel delta {e.WheelDelta}");
+                    _logger.LogDebug("Native Wheel delta {Delta}", e.WheelDelta);
                 if (Math.Abs(normalized) > float.Epsilon)
                     Engine.Camera.Zoom(normalized * 0.5f);
                 break;

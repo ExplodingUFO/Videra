@@ -2,6 +2,7 @@ using System.Runtime.InteropServices;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Platform;
+using Microsoft.Extensions.Logging;
 
 namespace Videra.Avalonia.Controls;
 
@@ -9,6 +10,7 @@ internal sealed class VideraMacOSNativeHost : NativeControlHost, IVideraNativeHo
 {
     private IntPtr _nsView;
     private bool _isDisposed;
+    private readonly ILogger _logger = Microsoft.Extensions.Logging.Abstractions.NullLoggerFactory.Instance.CreateLogger<VideraMacOSNativeHost>();
 
     public event Action<IntPtr>? HandleCreated;
     public event Action? HandleDestroyed;
@@ -28,7 +30,7 @@ internal sealed class VideraMacOSNativeHost : NativeControlHost, IVideraNativeHo
         if (_nsView == IntPtr.Zero)
             throw new Exception("Failed to create NSView");
 
-        Console.WriteLine($"[VideraMacOSNativeHost] Created NSView 0x{_nsView.ToInt64():X}");
+        _logger.LogInformation("Created NSView 0x{Handle:X}", _nsView.ToInt64());
         HandleCreated?.Invoke(_nsView);
 
         return new PlatformHandle(_nsView, "NSView");
@@ -69,7 +71,7 @@ internal sealed class VideraMacOSNativeHost : NativeControlHost, IVideraNativeHo
 
         var frame = new CGRect { x = 0, y = 0, width = width, height = height };
         objc_msgSend_CGRect(_nsView, SEL("setFrame:"), frame);
-        Console.WriteLine($"[VideraMacOSNativeHost] Resize to {width}x{height}");
+        _logger.LogDebug("Resize to {Width}x{Height}", width, height);
     }
 
     private static IntPtr CreateNSView(int width, int height)
