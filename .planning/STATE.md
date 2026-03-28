@@ -2,12 +2,12 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: unknown
-last_updated: "2026-03-28T10:12:04.302Z"
+status: in_progress
+last_updated: "2026-03-28T12:55:00.000Z"
 progress:
   total_phases: 4
-  completed_phases: 1
-  total_plans: 6
+  completed_phases: 0
+  total_plans: 7
   completed_plans: 6
 ---
 
@@ -36,21 +36,21 @@ progress:
 
 **当前阶段：** Phase 1 - 基础设施与清理
 
-**当前计划：** 01-06 (completed)
+**当前计划：** 01-07 (Windows 已推进，Linux/macOS 待对应环境执行)
 
-**状态：** Phase 1 complete
+**状态：** Phase 1 in progress
 
-**进度：** 1/4 阶段完成 (25%)
+**进度：** 0/4 阶段完成 (Phase 1 存在严格 gap)
 
 ```
-[██░░░░░░░░] 25%
+[░░░░░░░░░░] 0%
 ```
 
 ---
 
 ## 性能指标
 
-**需求覆盖：** 24/24 (100%)
+**需求覆盖：** 24/24 已映射；TEST-03 严格验证仍未完全关闭
 
 **阶段数：** 4
 
@@ -72,8 +72,9 @@ progress:
 | 仅本地构建 | 暂不需要 CI/CD | Pending |
 | Microsoft.NET.Test.Sdk 18.3.0 + 直接引用 | SDK 10.0.201 不兼容 17.12.0 的传递引用 | Done |
 | TreatWarningsAsErrors 配合 NoWarn 抑制 | 预先存在的分析器警告不应阻塞新基础设施的建立 | Done |
-| 平台后端 smoke tests 使用独立测试项目 + OS guards | 满足 TEST-03 且保证非匹配宿主机保持绿色 | Done |
+| 平台后端 smoke tests 使用独立测试项目 + OS guards | 作为过渡性结构补齐，不等于严格 TEST-03 完成 | Done |
 | VulkanBackend.Dispose 必须容忍未完成初始化的清理 | Linux smoke test 覆盖了失败前置条件路径 | Done |
+| Windows 先完成真实 HWND 宿主验证，Linux/macOS 保持环境阻塞 | 当前只有 Windows 环境，但不降低 TEST-03 标准 | Done |
 
 ### 关键约束
 
@@ -90,25 +91,29 @@ progress:
 
 **需要解决：**
 
-- 零测试覆盖
-- 大量调试代码混在生产代码中（40+ 处 Console.WriteLine）
 - 未实现的方法（10+ 处 NotImplementedException）
 - 脆弱的平台特定代码（尤其是 macOS Metal 互操作）
 - 缺少结构化错误处理
-- 性能瓶颈（热路径中的 Console I/O）
 - 缺少文档
 
 ### 阻塞问题
 
-当前无阻塞问题。
+- **TEST-03 严格 gap 仍未关闭**
+  - Windows：已具备真实 HWND-backed D3D11 lifecycle / draw-path 验证基础
+  - Linux：缺真实 X11 host fixture 与对应宿主执行环境
+  - macOS：缺真实 NSView host fixture 与对应宿主执行环境
+- **Phase 1 不能标记完成**，直到 Linux/macOS 的真实 native-host lifecycle/render-path 测试在对应环境执行完成
 
 ---
 
 ## 会话连续性
 
-**上次活动：** 01-06 计划完成（2026-03-28）
+**上次活动：** Windows 真实宿主验证增强 + Demo 第一轮完善（2026-03-28）
 
-**下一步：** Phase 1 已完成，进入下一阶段规划
+**下一步：**
+1. 保持 01-07 为严格 gap closure plan
+2. 继续在 Windows 上验证 Demo 与 D3D11 路径
+3. 为 Linux/macOS 形成可执行的环境阻塞说明与后续执行包
 
 **相关文件：**
 
@@ -116,7 +121,10 @@ progress:
 - REQUIREMENTS.md - 需求定义
 - PROJECT.md - 项目上下文
 - config.json - 配置设置
+- .planning/phases/01-基础设施与清理/01-VERIFICATION.md - 当前权威验证结论
+- .planning/phases/01-基础设施与清理/01-07-PLAN.md - 严格 gap closure plan
 
 ---
 
 *状态初始化：2026-03-28*
+*最近修订：2026-03-28 Windows validation + demo pass*

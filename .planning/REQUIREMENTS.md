@@ -155,12 +155,12 @@
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | TEST-01 | Phase 1 | Complete |
-| TEST-02 | Phase 1 | Pending |
-| TEST-03 | Phase 1 | Complete (01-06) |
-| TEST-04 | Phase 1 | Pending |
+| TEST-02 | Phase 1 | Complete (01-03) |
+| TEST-03 | Phase 1 | In progress (01-07 strict gap closure) |
+| TEST-04 | Phase 1 | Complete (01-03) |
 | LOG-01 | Phase 1 | Complete (01-02) |
-| LOG-02 | Phase 1 | Pending |
-| LOG-03 | Phase 1 | Pending |
+| LOG-02 | Phase 1 | Complete (01-04) |
+| LOG-03 | Phase 1 | Complete (01-04) |
 | QUAL-01 | Phase 1 | Complete |
 | CLEAN-01 | Phase 1 | Complete |
 | ERROR-01 | Phase 2 | Pending |
