@@ -4,6 +4,16 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <!-- Suppress pre-existing analyzer warnings until fixed in dedicated cleanup plans.
+         S112: throwing System.Exception
+         S1144: unused internal delegate
+         S125: commented out code
+         S1450: private field used as local
+         S4487: unread private fields
+         S4200: trivial native method wrappers
+         CA1062: missing null argument validation
+    -->
+    <NoWarn>S112;S1144;S125;S1450;S4487;S4200;CA1062;CS0067</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

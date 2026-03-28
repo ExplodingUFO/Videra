@@ -7,6 +7,22 @@
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <Platforms>AnyCPU;x64</Platforms>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <!-- Suppress pre-existing analyzer warnings until fixed in dedicated cleanup plans.
+         S1006: anonymous delegate usage
+         S112: throwing System.Exception
+         S1199: nested code block
+         S1854: dead stores
+         S1905: unnecessary casts
+         S2325: static method suggestion
+         S3265: using statement not bracketed
+         S3400: method returning constant
+         S3459: unassigned fields
+         S3881: IDisposable pattern
+         S4487: unread private fields
+         CS0618: obsolete API usage
+         CS8618: non-nullable field uninitialized
+    -->
+    <NoWarn>S1006;S112;S1199;S1854;S1905;S2325;S3265;S3400;S3459;S3881;S4487;CS0618;CS8618</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

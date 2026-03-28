@@ -5,6 +5,18 @@
     <Nullable>enable</Nullable>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+    <!-- Suppress pre-existing analyzer warnings until fixed in dedicated cleanup plans.
+         S1066: collapsible if statements
+         S1118: utility class should have static constructor
+         S1135: TODO comments
+         S125: commented out code
+         S1481: unused local variables
+         S2325: static method suggestion
+         S3267: loop variable captured
+         CA1062: missing null argument validation
+         CA2007: missing ConfigureAwait
+    -->
+    <NoWarn>S1066;S1118;S1135;S125;S1481;S2325;S3267;CA1062;CA2007</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

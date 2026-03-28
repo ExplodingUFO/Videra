@@ -1,0 +1,21 @@
+root = true
+
+[*.cs]
+# CA1062: Validate arguments of public methods
+dotnet_diagnostic.CA1062.severity = warning
+# CA1303: Do not pass literals as localized parameters
+dotnet_diagnostic.CA1303.severity = suggestion
+# CA2007: Consider calling ConfigureAwait
+dotnet_diagnostic.CA2007.severity = warning
+# CA1845: Use span-based string.Concat/Equals
+dotnet_diagnostic.CA1845.severity = suggestion
+# IDE0003: Remove unnecessary braces
+dotnet_diagnostic.IDE0003.severity = suggestion
+# Naming conventions
+dotnet_naming_rule.private_fields.severity = warning
+dotnet_naming_rule.private_fields.symbols = private_fields
+dotnet_naming_rule.private_fields.style = underscore_camel_case
+dotnet_naming_symbols.private_fields.applicable_kinds = field
+dotnet_naming_symbols.private_fields.applicable_accessibilities = private
+dotnet_naming_style.underscore_camel_case.capitalization = camel_case
+dotnet_naming_style.underscore_camel_case.required_prefix = _

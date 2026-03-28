@@ -7,6 +7,19 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <RuntimeIdentifier>linux-x64</RuntimeIdentifier>
     <Platforms>AnyCPU;x64</Platforms>
+    <!-- Suppress pre-existing analyzer warnings until fixed in dedicated cleanup plans.
+         S1006: anonymous delegate usage
+         S112: throwing System.Exception
+         S1450: private field used as local
+         S1905: unnecessary casts
+         S2325: static method suggestion
+         S3400: method returning constant
+         S3459: unassigned fields
+         S3881: IDisposable pattern
+         CA2014: stackalloc in loop
+         CS8618: non-nullable field uninitialized
+    -->
+    <NoWarn>S1006;S112;S1450;S1905;S2325;S3400;S3459;S3881;CA2014;CS8618</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
