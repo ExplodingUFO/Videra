@@ -1,4 +1,4 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System;
 using System.Collections.Generic;
@@ -19,37 +19,17 @@ public partial class MainWindowViewModel : ViewModelBase
 {
     #region 网格控制
 
-    // ==========================================
-    // 网格控制 (Grid Settings)
-    // ==========================================
-
-    // 显隐
     [ObservableProperty] private bool _isGridVisible = true;
-
-    // 高度
     [ObservableProperty] private decimal _gridHeight = 0;
-
-    // 颜色
-    [ObservableProperty] private Color _gridColor = Color.Parse("#66808080"); // 默认带一点透明的灰
-
-    //// 当属性改变时，同步到 Engine (在 View 层通过 PropertyChanged 监听，或使用 partial method)
-    //// 推荐使用 partial method 钩子
-    //partial void OnIsGridVisibleChanged(bool value) => RequestGridUpdate();
-    //partial void OnGridHeightChanged(decimal value) => RequestGridUpdate();
-    //partial void OnGridColorChanged(Color value) => RequestGridUpdate();
+    [ObservableProperty] private Color _gridColor = Color.Parse("#66808080");
 
     #endregion
 
     #region 渲染风格
 
-    // ==========================================
-    // 渲染风格 (Render Style)
-    // ==========================================
-
     [ObservableProperty]
     private RenderStylePreset _renderStyle = RenderStylePreset.Realistic;
 
-    // 可用预设列表 (用于 ComboBox)
     public IEnumerable<RenderStylePreset> AvailablePresets =>
         Enum.GetValues<RenderStylePreset>().Where(p => p != RenderStylePreset.Custom);
 
@@ -57,56 +37,27 @@ public partial class MainWindowViewModel : ViewModelBase
 
     #region 线框渲染
 
-    // ==========================================
-    // 线框渲染 (Wireframe)
-    // ==========================================
-
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsWireframeEnabled))]
     private WireframeMode _wireframeMode = WireframeMode.None;
 
-    partial void OnWireframeModeChanged(WireframeMode value)
-    {
-        Console.WriteLine($"[MainWindowViewModel] WireframeMode changed to: {value}");
-    }
-
     [ObservableProperty]
     private Color _wireframeColor = Colors.Black;
 
-    // 可用线框模式列表
     public IEnumerable<WireframeMode> AvailableWireframeModes =>
         Enum.GetValues<WireframeMode>();
 
-    // 是否启用线框（用于UI显隐控制）
     public bool IsWireframeEnabled => WireframeMode != WireframeMode.None;
-
-    [RelayCommand]
-    private void TestWireframe()
-    {
-        System.Diagnostics.Debug.WriteLine($"[TestWireframe] Current WireframeMode = {WireframeMode}");
-        Console.WriteLine($"[TestWireframe] Current WireframeMode = {WireframeMode}");
-
-        // 通过修改标题来确认按钮被点击（临时调试）
-        var oldMode = WireframeMode;
-
-        // 切换到AllEdges模式进行测试
-        WireframeMode = WireframeMode == WireframeMode.None
-            ? WireframeMode.AllEdges
-            : WireframeMode.None;
-
-        System.Diagnostics.Debug.WriteLine($"[TestWireframe] New WireframeMode = {WireframeMode}");
-        Console.WriteLine($"[TestWireframe] New WireframeMode = {WireframeMode}");
-
-        // 触发通知以确保UI更新
-        OnPropertyChanged(nameof(WireframeMode));
-        OnPropertyChanged(nameof(IsWireframeEnabled));
-    }
 
     #endregion
 
     private readonly IModelImporter? _importer;
     private const float DegToRad = (float)(Math.PI / 180.0);
     private const float RadToDeg = (float)(180.0 / Math.PI);
+
+    [ObservableProperty] private string _statusMessage = "等待渲染后端初始化...";
+    [ObservableProperty] private bool _isBackendReady;
+    [ObservableProperty] private string _backendDisplay = "Auto";
 
     public MainWindowViewModel(IModelImporter importer)
     {
@@ -130,9 +81,6 @@ public partial class MainWindowViewModel : ViewModelBase
     [NotifyPropertyChangedFor(nameof(SelectedScale))]
     private Object3D? _selectedObject;
 
-    // =========================================================
-    // 位置 (Position) - 直接映射
-    // =========================================================
     public decimal SelectedPosX
     {
         get => (decimal)(SelectedObject?.Position.X ?? 0f);
@@ -151,9 +99,6 @@ public partial class MainWindowViewModel : ViewModelBase
         set => UpdateTransform(v => { var p = SelectedObject!.Position; p.Z = (float)v; SelectedObject.Position = p; }, value);
     }
 
-    // =========================================================
-    // 旋转 (Rotation) - 【关键修改】弧度转角度
-    // =========================================================
     public decimal SelectedRotX
     {
         get => (decimal)((SelectedObject?.Rotation.X ?? 0f) * RadToDeg);
@@ -172,9 +117,6 @@ public partial class MainWindowViewModel : ViewModelBase
         set => UpdateTransform(v => { var r = SelectedObject!.Rotation; r.Z = (float)v * DegToRad; SelectedObject.Rotation = r; }, value);
     }
 
-    // =========================================================
-    // 缩放 (Scale)
-    // =========================================================
     public decimal SelectedScale
     {
         get => (decimal)(SelectedObject?.Scale.X ?? 1.0f);
@@ -183,7 +125,35 @@ public partial class MainWindowViewModel : ViewModelBase
             if (SelectedObject == null) return;
             SelectedObject.Scale = new Vector3((float)value);
             OnPropertyChanged();
+            StatusMessage = $"已更新对象 {SelectedObject.Name} 的缩放";
         }
+    }
+
+    public void SetBackendStatus(bool isReady, string backendDisplay, string statusMessage)
+    {
+        IsBackendReady = isReady;
+        BackendDisplay = backendDisplay;
+        StatusMessage = statusMessage;
+    }
+
+    public void SetStatusMessage(string message)
+    {
+        StatusMessage = message;
+    }
+
+    [RelayCommand]
+    private void TestWireframe()
+    {
+        WireframeMode = WireframeMode == WireframeMode.None
+            ? WireframeMode.AllEdges
+            : WireframeMode.None;
+
+        StatusMessage = WireframeMode == WireframeMode.None
+            ? "已关闭线框模式"
+            : $"已切换到线框模式: {WireframeMode}";
+
+        OnPropertyChanged(nameof(WireframeMode));
+        OnPropertyChanged(nameof(IsWireframeEnabled));
     }
 
     private void UpdateTransform(Action<decimal> updateAction, decimal value)
@@ -192,6 +162,7 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             updateAction(value);
             OnPropertyChanged();
+            StatusMessage = $"已更新对象 {SelectedObject.Name} 的变换";
         }
     }
 
@@ -200,25 +171,26 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         if (_importer == null)
         {
-            // 如果没有 importer，显示警告消息
-            // TODO: 使用 Avalonia 的消息框或通知系统
-            System.Diagnostics.Debug.WriteLine("[Videra] Import functionality not available - waiting for backend implementation");
-            Console.WriteLine("[MainWindow] Import error: No importer service available");
+            StatusMessage = "导入功能暂不可用：渲染后端尚未准备好。";
             return;
         }
-        
-        Console.WriteLine("[MainWindow] Starting model import...");
+
+        StatusMessage = "正在导入模型...";
         var models = await _importer.ImportModelsAsync();
         var modelList = models.ToList();
-        Console.WriteLine($"[MainWindow] Imported {modelList.Count} models");
-        
+
+        if (modelList.Count == 0)
+        {
+            StatusMessage = "未导入任何模型。";
+            return;
+        }
+
         foreach (var model in modelList)
         {
-            Console.WriteLine($"[MainWindow] Adding model '{model.Name}' to scene");
             SceneObjects.Add(model);
             SelectedObject = model;
         }
-        
-        Console.WriteLine($"[MainWindow] Scene now has {SceneObjects.Count} objects");
+
+        StatusMessage = $"已导入 {modelList.Count} 个模型，当前场景共 {SceneObjects.Count} 个对象。";
     }
 }

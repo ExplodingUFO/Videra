@@ -2,19 +2,16 @@
 using System;
 using Avalonia.Win32;
 using System.Runtime.InteropServices;
+using Videra.Core.Graphics;
 
 namespace Videra.Demo
 {
     internal sealed class Program
     {
-        // Initialization code. Don't use any Avalonia, third-party APIs or any
-        // SynchronizationContext-reliant code before AppMain is called: things aren't initialized
-        // yet and stuff might break.
         [STAThread]
         public static void Main(string[] args) => BuildAvaloniaApp()
             .StartWithClassicDesktopLifetime(args);
 
-        // Avalonia configuration, don't remove; also used by visual designer.
         public static AppBuilder BuildAvaloniaApp()
             => ConfigurePlatformOptions(AppBuilder.Configure<App>()
                 .UsePlatformDetect()
@@ -25,6 +22,8 @@ namespace Videra.Demo
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
+                Environment.SetEnvironmentVariable("VIDERA_BACKEND", GraphicsBackendPreference.D3D11.ToString().ToLowerInvariant());
+
                 builder = builder.With(new Win32PlatformOptions
                 {
                     CompositionMode = new[]
