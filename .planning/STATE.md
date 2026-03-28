@@ -1,3 +1,16 @@
+---
+gsd_state_version: 1.0
+milestone: v1.0
+milestone_name: milestone
+status: unknown
+last_updated: "2026-03-28T10:12:04.302Z"
+progress:
+  total_phases: 4
+  completed_phases: 1
+  total_plans: 6
+  completed_plans: 6
+---
+
 # Videra 开源准备 - 项目状态
 
 **项目目标：** 跨平台 3D 渲染引擎的可靠性 — 在三个主流平台上稳定运行，具备完整的测试覆盖和文档。
@@ -11,6 +24,7 @@
 **当前范围：** 开源准备 — 将 Videra 3D 渲染引擎打造成高质量的开源项目
 
 **技术栈：**
+
 - .NET 8.0
 - Silk.NET 2.21.0（图形 API 绑定）
 - Avalonia 11.3.9（UI 框架）
@@ -22,7 +36,7 @@
 
 **当前阶段：** Phase 1 - 基础设施与清理
 
-**当前计划：** 01-05 (completed)
+**当前计划：** 01-06 (completed)
 
 **状态：** Phase 1 complete
 
@@ -58,6 +72,8 @@
 | 仅本地构建 | 暂不需要 CI/CD | Pending |
 | Microsoft.NET.Test.Sdk 18.3.0 + 直接引用 | SDK 10.0.201 不兼容 17.12.0 的传递引用 | Done |
 | TreatWarningsAsErrors 配合 NoWarn 抑制 | 预先存在的分析器警告不应阻塞新基础设施的建立 | Done |
+| 平台后端 smoke tests 使用独立测试项目 + OS guards | 满足 TEST-03 且保证非匹配宿主机保持绿色 | Done |
+| VulkanBackend.Dispose 必须容忍未完成初始化的清理 | Linux smoke test 覆盖了失败前置条件路径 | Done |
 
 ### 关键约束
 
@@ -73,6 +89,7 @@
 从代码库分析中发现的问题：
 
 **需要解决：**
+
 - 零测试覆盖
 - 大量调试代码混在生产代码中（40+ 处 Console.WriteLine）
 - 未实现的方法（10+ 处 NotImplementedException）
@@ -89,11 +106,12 @@
 
 ## 会话连续性
 
-**上次活动：** 01-05 计划完成（2026-03-28）
+**上次活动：** 01-06 计划完成（2026-03-28）
 
-**下一步：** Phase 1 收尾检查 —— 01-03 与 01-04 摘要/进度一致性确认
+**下一步：** Phase 1 已完成，进入下一阶段规划
 
 **相关文件：**
+
 - ROADMAP.md - 项目路线图
 - REQUIREMENTS.md - 需求定义
 - PROJECT.md - 项目上下文

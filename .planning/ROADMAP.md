@@ -41,7 +41,7 @@ Plans:
 - [x] 01-03-PLAN.md — 核心单元测试编写、Coverlet 覆盖率配置
 - [x] 01-04-PLAN.md — 平台项目日志清理、macOS 调试计数器移除
 - [x] 01-05-PLAN.md — 渲染管线集成测试（Software backend）
-- [ ] 01-06-PLAN.md — 平台特定后端测试项目与 smoke/integration coverage 补齐
+- [x] 01-06-PLAN.md — 平台特定后端测试项目与 smoke/integration coverage 补齐
 
 ---
 
@@ -105,7 +105,7 @@ Plans:
 
 | Phase | 计划完成 | 状态 | 完成日期 |
 |-------|---------|------|---------|
-| 1. 基础设施与清理 | 5/6 | In progress | - |
+| 1. 基础设施与清理 | 6/6 | Complete | 2026-03-28 |
 | 2. 质量与可靠性 | 0/5 | Not started | - |
 | 3. 跨平台完善 | 0/4 | Not started | - |
 | 4. 文档与发布准备 | 0/5 | Not started | - |

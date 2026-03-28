@@ -156,7 +156,7 @@
 |-------------|-------|--------|
 | TEST-01 | Phase 1 | Complete |
 | TEST-02 | Phase 1 | Pending |
-| TEST-03 | Phase 1 | Complete (01-05) |
+| TEST-03 | Phase 1 | Complete (01-06) |
 | TEST-04 | Phase 1 | Pending |
 | LOG-01 | Phase 1 | Complete (01-02) |
 | LOG-02 | Phase 1 | Pending |
