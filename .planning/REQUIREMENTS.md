@@ -154,15 +154,15 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| TEST-01 | Phase 1 | Pending |
+| TEST-01 | Phase 1 | Complete |
 | TEST-02 | Phase 1 | Pending |
 | TEST-03 | Phase 1 | Pending |
 | TEST-04 | Phase 1 | Pending |
 | LOG-01 | Phase 1 | Complete (01-02) |
 | LOG-02 | Phase 1 | Pending |
 | LOG-03 | Phase 1 | Pending |
-| QUAL-01 | Phase 1 | Pending |
-| CLEAN-01 | Phase 1 | Pending |
+| QUAL-01 | Phase 1 | Complete |
+| CLEAN-01 | Phase 1 | Complete |
 | ERROR-01 | Phase 2 | Pending |
 | ERROR-02 | Phase 2 | Pending |
 | ERROR-03 | Phase 2 | Pending |

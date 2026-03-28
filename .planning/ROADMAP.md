@@ -36,7 +36,7 @@
 **Plans:** 5 plans
 
 Plans:
-- [ ] 01-01-PLAN.md — 测试项目创建、静态分析配置、临时文件清理
+- [x] 01-01-PLAN.md — 测试项目创建、静态分析配置、临时文件清理
 - [x] 01-02-PLAN.md — Serilog 集成、Videra.Core Console.WriteLine 替换
 - [ ] 01-03-PLAN.md — 核心单元测试编写、Coverlet 覆盖率配置
 - [ ] 01-04-PLAN.md — 平台项目日志清理、macOS 调试计数器移除
