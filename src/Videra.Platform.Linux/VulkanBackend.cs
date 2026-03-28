@@ -613,13 +613,20 @@ public unsafe class VulkanBackend : IGraphicsBackend
 
     private void CleanupSwapchain()
     {
-        foreach (var framebuffer in _framebuffers)
-            _vk.DestroyFramebuffer(_device, framebuffer, null);
+        if (_framebuffers is not null)
+        {
+            foreach (var framebuffer in _framebuffers)
+                _vk.DestroyFramebuffer(_device, framebuffer, null);
+        }
 
-        foreach (var imageView in _swapchainImageViews)
-            _vk.DestroyImageView(_device, imageView, null);
+        if (_swapchainImageViews is not null)
+        {
+            foreach (var imageView in _swapchainImageViews)
+                _vk.DestroyImageView(_device, imageView, null);
+        }
 
-        _khrSwapchain.DestroySwapchain(_device, _swapchain, null);
+        if (_swapchain.Handle != 0)
+            _khrSwapchain.DestroySwapchain(_device, _swapchain, null);
     }
 
     private void CleanupDepthResources()
