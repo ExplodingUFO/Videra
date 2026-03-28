@@ -5,4 +5,7 @@
   <Project Path="src/Videra.Platform.Linux/Videra.Platform.Linux.csproj" />
   <Project Path="src/Videra.Platform.macOS/Videra.Platform.macOS.csproj" />
   <Project Path="src/Videra.Platform.Windows/Videra.Platform.Windows.csproj" />
+  <Project Path="tests/Tests.Common/Tests.Common.csproj" />
+  <Project Path="tests/Videra.Core.Tests/Videra.Core.Tests.csproj" />
+  <Project Path="tests/Videra.Core.IntegrationTests/Videra.Core.IntegrationTests.csproj" />
 </Solution>
