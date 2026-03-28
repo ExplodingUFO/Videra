@@ -158,7 +158,7 @@
 | TEST-02 | Phase 1 | Pending |
 | TEST-03 | Phase 1 | Pending |
 | TEST-04 | Phase 1 | Pending |
-| LOG-01 | Phase 1 | Pending |
+| LOG-01 | Phase 1 | Complete (01-02) |
 | LOG-02 | Phase 1 | Pending |
 | LOG-03 | Phase 1 | Pending |
 | QUAL-01 | Phase 1 | Pending |

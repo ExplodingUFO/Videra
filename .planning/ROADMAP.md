@@ -37,7 +37,7 @@
 
 Plans:
 - [ ] 01-01-PLAN.md — 测试项目创建、静态分析配置、临时文件清理
-- [ ] 01-02-PLAN.md — Serilog 集成、Videra.Core Console.WriteLine 替换
+- [x] 01-02-PLAN.md — Serilog 集成、Videra.Core Console.WriteLine 替换
 - [ ] 01-03-PLAN.md — 核心单元测试编写、Coverlet 覆盖率配置
 - [ ] 01-04-PLAN.md — 平台项目日志清理、macOS 调试计数器移除
 - [ ] 01-05-PLAN.md — 渲染管线集成测试（Software backend）
@@ -104,7 +104,7 @@ Plans:
 
 | Phase | 计划完成 | 状态 | 完成日期 |
 |-------|---------|------|---------|
-| 1. 基础设施与清理 | 0/5 | In planning | - |
+| 1. 基础设施与清理 | 1/5 | In progress | 2026-03-28 |
 | 2. 质量与可靠性 | 0/5 | Not started | - |
 | 3. 跨平台完善 | 0/4 | Not started | - |
 | 4. 文档与发布准备 | 0/5 | Not started | - |
