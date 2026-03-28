@@ -1,6 +1,8 @@
-using FluentAssertions;
+using System.Numerics;
 using System.Runtime.InteropServices;
+using FluentAssertions;
 using Tests.Common.Platform;
+using Videra.Core.Geometry;
 using Videra.Platform.Windows;
 using Xunit;
 
@@ -37,6 +39,57 @@ public sealed class D3D11BackendSmokeTests
         {
             backend.Resize(96, 80);
             backend.BeginFrame();
+            backend.EndFrame();
+        };
+
+        act.Should().NotThrow();
+    }
+
+    [Fact]
+    public void D3D11Backend_RealHwnd_AllowsResourceCreationAndDrawLifecycle_OnWindows()
+    {
+        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            return;
+        }
+
+        using var window = NativeHostTestHelpers.CreateHiddenWin32Window();
+        using var backend = new D3D11Backend();
+
+        backend.Initialize(window.Handle, 128, 96);
+
+        var factory = backend.GetResourceFactory();
+        var executor = backend.GetCommandExecutor();
+
+        var vertices = new[]
+        {
+            new VertexPositionNormalColor(new Vector3(-0.5f, -0.5f, 0f), Vector3.UnitZ, RgbaFloat.Red),
+            new VertexPositionNormalColor(new Vector3(0f, 0.5f, 0f), Vector3.UnitZ, RgbaFloat.Green),
+            new VertexPositionNormalColor(new Vector3(0.5f, -0.5f, 0f), Vector3.UnitZ, RgbaFloat.Blue)
+        };
+        var indices = new uint[] { 0, 1, 2 };
+
+        using var vertexBuffer = factory.CreateVertexBuffer(vertices);
+        using var indexBuffer = factory.CreateIndexBuffer(indices);
+        using var cameraBuffer = factory.CreateUniformBuffer(128);
+        using var worldBuffer = factory.CreateUniformBuffer(64);
+        using var pipeline = factory.CreatePipeline(VertexPositionNormalColor.SizeInBytes, hasNormals: true, hasColors: true);
+
+        cameraBuffer.SetData(Matrix4x4.Identity, 0);
+        cameraBuffer.SetData(Matrix4x4.Identity, 64);
+        worldBuffer.SetData(Matrix4x4.Identity, 0);
+
+        var act = () =>
+        {
+            backend.BeginFrame();
+            executor.Clear(0.05f, 0.1f, 0.15f, 1f);
+            executor.SetViewport(0, 0, 128, 96);
+            executor.SetPipeline(pipeline);
+            executor.SetVertexBuffer(vertexBuffer, 0);
+            executor.SetVertexBuffer(cameraBuffer, 1);
+            executor.SetVertexBuffer(worldBuffer, 2);
+            executor.SetIndexBuffer(indexBuffer);
+            executor.DrawIndexed(3u);
             backend.EndFrame();
         };
 
