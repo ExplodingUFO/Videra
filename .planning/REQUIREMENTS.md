@@ -150,6 +150,40 @@
 
 ---
 
+## Traceability
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| TEST-01 | Phase 1 | Pending |
+| TEST-02 | Phase 1 | Pending |
+| TEST-03 | Phase 1 | Pending |
+| TEST-04 | Phase 1 | Pending |
+| LOG-01 | Phase 1 | Pending |
+| LOG-02 | Phase 1 | Pending |
+| LOG-03 | Phase 1 | Pending |
+| QUAL-01 | Phase 1 | Pending |
+| CLEAN-01 | Phase 1 | Pending |
+| ERROR-01 | Phase 2 | Pending |
+| ERROR-02 | Phase 2 | Pending |
+| ERROR-03 | Phase 2 | Pending |
+| QUAL-02 | Phase 2 | Pending |
+| QUAL-03 | Phase 2 | Pending |
+| RES-01 | Phase 2 | Pending |
+| RES-02 | Phase 2 | Pending |
+| RES-03 | Phase 2 | Pending |
+| SEC-01 | Phase 2 | Pending |
+| SEC-02 | Phase 2 | Pending |
+| MAC-01 | Phase 3 | Pending |
+| MAC-02 | Phase 3 | Pending |
+| PLAT-01 | Phase 3 | Pending |
+| PLAT-02 | Phase 3 | Pending |
+| PLAT-03 | Phase 3 | Pending |
+| DOC-01 | Phase 4 | Pending |
+| DOC-02 | Phase 4 | Pending |
+| DOC-03 | Phase 4 | Pending |
+
+---
+
 ## 反模式（明确不做的事）
 
 - **CI/CD 自动化** — 不使用 GitHub Actions，仅本地构建验证
@@ -165,5 +199,4 @@
 - **移动平台** — iOS/Android 超出范围
 
 ---
-
 *需求定义完成：2026-03-28*
