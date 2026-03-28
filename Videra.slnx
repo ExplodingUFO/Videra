@@ -8,4 +8,7 @@
   <Project Path="tests/Tests.Common/Tests.Common.csproj" />
   <Project Path="tests/Videra.Core.Tests/Videra.Core.Tests.csproj" />
   <Project Path="tests/Videra.Core.IntegrationTests/Videra.Core.IntegrationTests.csproj" />
+  <Project Path="tests/Videra.Platform.Windows.Tests/Videra.Platform.Windows.Tests.csproj" />
+  <Project Path="tests/Videra.Platform.Linux.Tests/Videra.Platform.Linux.Tests.csproj" />
+  <Project Path="tests/Videra.Platform.macOS.Tests/Videra.Platform.macOS.Tests.csproj" />
 </Solution>
