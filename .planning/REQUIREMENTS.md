@@ -163,21 +163,21 @@
 | LOG-03 | Phase 1 | Complete (01-04) |
 | QUAL-01 | Phase 1 | Complete |
 | CLEAN-01 | Phase 1 | Complete |
-| ERROR-01 | Phase 2 | Pending |
-| ERROR-02 | Phase 2 | Pending |
-| ERROR-03 | Phase 2 | Pending |
-| QUAL-02 | Phase 2 | Pending |
-| QUAL-03 | Phase 2 | Pending |
-| RES-01 | Phase 2 | Pending |
-| RES-02 | Phase 2 | Pending |
-| RES-03 | Phase 2 | Pending |
-| SEC-01 | Phase 2 | Pending |
-| SEC-02 | Phase 2 | Pending |
-| MAC-01 | Phase 3 | Pending |
-| MAC-02 | Phase 3 | Pending |
-| PLAT-01 | Phase 3 | Pending |
-| PLAT-02 | Phase 3 | Pending |
-| PLAT-03 | Phase 3 | Pending |
+| ERROR-01 | Phase 2 | Complete (02-01) |
+| ERROR-02 | Phase 2 | Complete (02-01) |
+| ERROR-03 | Phase 2 | Complete (02-01) |
+| QUAL-02 | Phase 2 | Complete (02-03) |
+| QUAL-03 | Phase 2 | Complete (02-02) |
+| RES-01 | Phase 2 | Complete (02-04) |
+| RES-02 | Phase 2 | Complete (02-04) |
+| RES-03 | Phase 2 | Complete (02-04) |
+| SEC-01 | Phase 2 | Complete (02-02) |
+| SEC-02 | Phase 2 | Complete (02-02) |
+| MAC-01 | Phase 3 | Complete (03-01) |
+| MAC-02 | Phase 3 | Complete (03-02) |
+| PLAT-01 | Phase 3 | Complete (03-03) |
+| PLAT-02 | Phase 3 | Complete (03-04) |
+| PLAT-03 | Phase 3 | Complete (03-01) |
 | DOC-01 | Phase 4 | Pending |
 | DOC-02 | Phase 4 | Pending |
 | DOC-03 | Phase 4 | Pending |
