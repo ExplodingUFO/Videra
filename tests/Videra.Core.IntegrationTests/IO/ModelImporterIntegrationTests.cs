@@ -9,6 +9,7 @@ namespace Videra.Core.IntegrationTests.IO;
 public class ModelImporterIntegrationTests : IDisposable
 {
     private readonly string _tempDir;
+    private bool _disposed;
 
     public ModelImporterIntegrationTests()
     {
@@ -18,8 +19,19 @@ public class ModelImporterIntegrationTests : IDisposable
 
     public void Dispose()
     {
-        try { Directory.Delete(_tempDir, true); } catch { /* temp dir cleanup - best effort */ }
+        Dispose(true);
         GC.SuppressFinalize(this);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (_disposed) return;
+        _disposed = true;
+
+        if (disposing)
+        {
+            try { Directory.Delete(_tempDir, true); } catch { /* temp dir cleanup - best effort */ }
+        }
     }
 
     private string WriteObj(string name, string content)
