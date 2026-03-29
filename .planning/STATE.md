@@ -34,23 +34,23 @@ progress:
 
 ## 当前位置
 
-**当前阶段：** Phase 4 - 文档与发布准备 (Complete)
+**当前阶段：** Phase 1 - 基础设施与清理 (TEST-03 gap closure)
 
-**当前计划：** 04-05 verification complete
+**当前计划：** 01-07 strict gap closure (Windows validated, Linux/macOS env-blocked)
 
-**状态：** All 4 phases complete (code-level); Phase 1 TEST-03 gap remains (env-blocked)
+**状态：** Phase 2/3/4 complete; Phase 1 TEST-03 strict gap: Windows real-host validated, Linux/macOS require native environments
 
-**进度：** 3/4 阶段完成 (Phase 1 TEST-03 简单阻塞)
+**进度：** 3/4 阶段完成 (Phase 1 TEST-03 env-blocked)
 
 ```
-[░░░░░░░░░░] 0%
+[████████░░] 75%
 ```
 
 ---
 
 ## 性能指标
 
-**需求覆盖：** 24/24 已映射；Phase 2+3+4 requirements 全部关闭（代码层面）；TEST-03 严格验证仍未完全关闭
+**需求覆盖：** 24/24 已映射；23/24 complete (all phases code-level); TEST-03 Windows real-host validated, Linux/macOS env-blocked
 
 **阶段数：** 4
 
@@ -112,12 +112,13 @@ progress:
 
 ## 会话连续性
 
-**上次活动：** Phase 4 complete — XML docs, CONTRIBUTING.md, README/ARCHITECTURE enhancement (2026-03-29)
+**上次活动：** Windows D3D11 real-host lifecycle tests validated; planning state corrected (2026-03-29)
 
 **下一步：**
-1. Phase 1 TEST-03 gap closure（需要 Linux/macOS 环境）
-2. CI/CD pipeline setup（未来考虑）
-3. NuGet package publishing（未来考虑）
+1. Phase 1 TEST-03 Linux gap closure（需要 Linux X11 运行环境）
+2. Phase 1 TEST-03 macOS gap closure（需要 macOS NSView 运行环境）
+3. CI/CD pipeline setup（未来考虑）
+4. NuGet package publishing（未来考虑）
 
 **相关文件：**
 
@@ -131,4 +132,4 @@ progress:
 ---
 
 *状态初始化：2026-03-28*
-*最近修订：2026-03-29 Phase 4 complete — 181 tests passing, all docs in place*
+*最近修订：2026-03-29 Phase 1 TEST-03 Windows validated, Linux/macOS env-blocked*

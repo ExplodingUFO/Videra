@@ -156,7 +156,7 @@
 |-------------|-------|--------|
 | TEST-01 | Phase 1 | Complete |
 | TEST-02 | Phase 1 | Complete (01-03) |
-| TEST-03 | Phase 1 | In progress (01-07 strict gap closure) |
+| TEST-03 | Phase 1 | In progress (Windows validated, Linux/macOS env-blocked) |
 | TEST-04 | Phase 1 | Complete (01-03) |
 | LOG-01 | Phase 1 | Complete (01-02) |
 | LOG-02 | Phase 1 | Complete (01-04) |

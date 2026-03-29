@@ -9,7 +9,7 @@ re_verification:
   gaps_closed:
     - "Dedicated Windows, Linux, and macOS platform test projects now exist in the solution"
   gaps_remaining:
-    - "TEST-03 still lacks end-to-end platform backend integration coverage; current platform tests are smoke/precondition checks and placeholder fixture assertions"
+    - "TEST-03 Linux/macOS: still lack real native-host lifecycle/render-path tests (Windows fully validated with 27 tests)"
   regressions: []
 gaps:
   - truth: "Phase 1 requirements declared in ROADMAP are fully covered"
@@ -56,7 +56,8 @@ gaps:
 | `F:/CodeProjects/DotnetCore/Videra/tests/Videra.Platform.Windows.Tests/Videra.Platform.Windows.Tests.csproj` | Windows platform test project | ✓ VERIFIED | Exists, references test SDK/coverage and `Videra.Platform.Windows` at `F:/CodeProjects/DotnetCore/Videra/tests/Videra.Platform.Windows.Tests/Videra.Platform.Windows.Tests.csproj:10-28` |
 | `F:/CodeProjects/DotnetCore/Videra/tests/Videra.Platform.Linux.Tests/Videra.Platform.Linux.Tests.csproj` | Linux platform test project | ✓ VERIFIED | Exists, references test SDK/coverage and `Videra.Platform.Linux` at `F:/CodeProjects/DotnetCore/Videra/tests/Videra.Platform.Linux.Tests/Videra.Platform.Linux.Tests.csproj:10-28` |
 | `F:/CodeProjects/DotnetCore/Videra/tests/Videra.Platform.macOS.Tests/Videra.Platform.macOS.Tests.csproj` | macOS platform test project | ✓ VERIFIED | Exists, references test SDK/coverage and `Videra.Platform.macOS` at `F:/CodeProjects/DotnetCore/Videra/tests/Videra.Platform.macOS.Tests/Videra.Platform.macOS.Tests.csproj:10-28` |
-| `F:/CodeProjects/DotnetCore/Videra/tests/Videra.Platform.Windows.Tests/Backend/D3D11BackendSmokeTests.cs` | Windows backend integration coverage | ✓ VERIFIED (Windows only) | Test file now performs real HWND-backed initialization, lifecycle operations, resource creation, pipeline binding, indexed draw submission, and disposal on Windows |
+| `F:/CodeProjects/DotnetCore/Videra/tests/Videra.Platform.Windows.Tests/Backend/D3D11BackendSmokeTests.cs` | Windows backend integration coverage | ✓ VERIFIED (Windows only) | Real HWND-backed smoke tests: initialization, lifecycle, full draw-path, UnsupportedOperationExceptions |
+| `F:/CodeProjects/DotnetCore/Videra/tests/Videra.Platform.Windows.Tests/Backend/D3D11BackendLifecycleTests.cs` | Windows backend lifecycle coverage | ✓ VERIFIED (Windows only) | Granular lifecycle tests: dispose safety, double-dispose, zero-handle/dimension guards, idempotent init, resize edge cases, multi-frame cycles, resource creation after resize, uniform buffer binding, backend reinitialization |
 | `F:/CodeProjects/DotnetCore/Videra/tests/Videra.Platform.Linux.Tests/Backend/VulkanBackendSmokeTests.cs` | Linux backend integration coverage | ⚠️ HOLLOW — wired but data disconnected | Test file exists and runs, with one real zero-handle precondition plus placeholder fixture assertion; no end-to-end render path at `...VulkanBackendSmokeTests.cs:10-45` |
 | `F:/CodeProjects/DotnetCore/Videra/tests/Videra.Platform.macOS.Tests/Backend/MetalBackendSmokeTests.cs` | macOS backend integration coverage | ⚠️ HOLLOW — wired but data disconnected | Test file exists and runs, but only checks uninitialized construction and a reusable fixture placeholder at `...MetalBackendSmokeTests.cs:10-28` |
 | `F:/CodeProjects/DotnetCore/Videra/Directory.Build.props` | Global analyzer configuration | ✓ VERIFIED | Enables NetAnalyzers, SonarAnalyzer, and build-time analyzer execution at `F:/CodeProjects/DotnetCore/Videra/Directory.Build.props:2-10` |
@@ -77,6 +78,7 @@ gaps:
 | Artifact | Data Variable | Source | Produces Real Data | Status |
 | --- | --- | --- | --- | --- |
 | `D3D11BackendSmokeTests.cs` | backend state + D3D11 resource/draw lifecycle | real HWND via `NativeHostTestHelpers.CreateHiddenWin32Window()`, real backend/resource factory/command executor | Yes on Windows | ✓ FLOWING |
+| `D3D11BackendLifecycleTests.cs` | granular lifecycle edge cases | real HWND via `NativeHostTestHelpers.CreateHiddenWin32Window()` | Yes on Windows | ✓ FLOWING |
 | `VulkanBackendSmokeTests.cs` | backend state / initialization exception | `new VulkanBackend()` and `Initialize(IntPtr.Zero, ...)` | Partial only — validates precondition, not render pipeline | ⚠️ STATIC |
 | `MetalBackendSmokeTests.cs` | backend state | `new MetalBackend()` only | No end-to-end backend data flow | ✗ DISCONNECTED |
 
@@ -85,7 +87,7 @@ gaps:
 | Behavior | Command | Result | Status |
 | --- | --- | --- | --- |
 | Full solution tests run with coverage | `dotnet test F:/CodeProjects/DotnetCore/Videra/Videra.slnx --collect:"XPlat Code Coverage"` | Passed; 132 tests total and Cobertura reports emitted | ✓ PASS |
-| Windows platform smoke suite runs | `dotnet test F:/CodeProjects/DotnetCore/Videra/tests/Videra.Platform.Windows.Tests/Videra.Platform.Windows.Tests.csproj --no-restore` | Passed; 3 tests including real HWND-backed lifecycle + draw-path coverage | ✓ PASS |
+| Windows platform smoke suite runs | `dotnet test F:/CodeProjects/DotnetCore/Videra/tests/Videra.Platform.Windows.Tests/Videra.Platform.Windows.Tests.csproj --no-restore` | Passed; 27 tests (14 smoke + 13 lifecycle) including real HWND-backed lifecycle + draw-path coverage | ✓ PASS |
 | Linux platform smoke suite runs | `dotnet test F:/CodeProjects/DotnetCore/Videra/tests/Videra.Platform.Linux.Tests/Videra.Platform.Linux.Tests.csproj --no-restore` | Passed; 3 tests | ✓ PASS |
 | macOS platform smoke suite runs | `dotnet test F:/CodeProjects/DotnetCore/Videra/tests/Videra.Platform.macOS.Tests/Videra.Platform.macOS.Tests.csproj --no-restore` | Passed; 2 tests | ✓ PASS |
 | Analyzer-enabled build works | `dotnet build F:/CodeProjects/DotnetCore/Videra/Videra.slnx -c Debug` | Succeeded with 0 warnings, 0 errors | ✓ PASS |
@@ -96,7 +98,7 @@ gaps:
 | --- | --- | --- | --- | --- |
 | TEST-01 | 01-01 | 集成 xUnit/Moq/FluentAssertions 测试框架 | ✓ SATISFIED | Test projects and package references remain present under `tests/**/*.csproj` |
 | TEST-02 | 01-03 | 为核心抽象编写单元测试 | ✓ SATISFIED | Abstraction tests remain in `F:/CodeProjects/DotnetCore/Videra/tests/Videra.Core.Tests/Graphics/Abstractions/*.cs` |
-| TEST-03 | 01-05 / 01-06 / 01-07 | 为平台特定后端编写集成测试，验证渲染管线端到端功能 | ✗ BLOCKED | Windows now has real HWND-backed backend lifecycle and draw-path validation, but Linux/macOS still remain smoke/placeholder-level and have not reached real native-host render-pipeline validation |
+| TEST-03 | 01-05 / 01-06 / 01-07 | 为平台特定后端编写集成测试，验证渲染管线端到端功能 | ⚠️ PARTIAL | Windows fully validated with 27 real HWND-backed tests (smoke + lifecycle). Linux still requires real X11 host fixture and execution environment. macOS still requires real NSView host fixture and execution environment. |
 | TEST-04 | 01-03 | 配置 Coverlet 生成覆盖率报告 | ✓ SATISFIED | Solution test run emitted Cobertura reports for current test projects |
 | LOG-01 | 01-02 | 集成 Serilog 结构化日志 | ✓ SATISFIED | Serilog references remain in `src/Videra.Core/Videra.Core.csproj` |
 | LOG-02 | 01-02 / 01-04 | 移除生产代码中的 Console.WriteLine | ✓ SATISFIED | No `Console.WriteLine` matches under `src/**/*.cs` |
@@ -108,7 +110,8 @@ gaps:
 
 | File | Line | Pattern | Severity | Impact |
 | --- | --- | --- | --- | --- |
-| `F:/CodeProjects/DotnetCore/Videra/tests/Videra.Platform.Windows.Tests/Backend/D3D11BackendSmokeTests.cs` | 20-97 | Real HWND-backed initialization/lifecycle/draw-path coverage now exists | ℹ️ Improved | Windows path now reaches real backend behavior; Linux/macOS placeholder blockers remain |
+| `F:/CodeProjects/DotnetCore/Videra/tests/Videra.Platform.Windows.Tests/Backend/D3D11BackendSmokeTests.cs` | 20-97 | Real HWND-backed initialization/lifecycle/draw-path coverage | ✓ Resolved | Windows path fully validated (14 smoke + 13 lifecycle tests) |
+| `F:/CodeProjects/DotnetCore/Videra/tests/Videra.Platform.Windows.Tests/Backend/D3D11BackendLifecycleTests.cs` | 1-228 | Granular lifecycle edge cases (dispose, resize, multi-frame, reinit) | ✓ Resolved | Comprehensive edge case coverage for D3D11 backend |
 | `F:/CodeProjects/DotnetCore/Videra/tests/Videra.Platform.Linux.Tests/Backend/VulkanBackendSmokeTests.cs` | 37-45 | `CurrentlyRequiresReusableX11Fixture` placeholder assertion | 🛑 Blocker | Confirms Linux suite does not yet validate a real render path |
 | `F:/CodeProjects/DotnetCore/Videra/tests/Videra.Platform.macOS.Tests/Backend/MetalBackendSmokeTests.cs` | 20-28 | `CurrentlyRequiresReusableNsViewFixture` placeholder assertion | 🛑 Blocker | Confirms macOS suite does not yet validate a real render path |
 | `F:/CodeProjects/DotnetCore/Videra/tests/Videra.Core.Tests/PlaceholderTest.cs` | 4-10 | Placeholder test still present | ℹ️ Info | Not a Phase 1 blocker by itself, but it adds non-substantive test count |
@@ -119,9 +122,13 @@ None. The blocking issue is programmatically visible in the current test code.
 
 ### Gaps Summary
 
-Plan 01-06 closed the previous structural gap: Phase 1 now has dedicated Windows, Linux, and macOS test projects, they are wired into the solution, and they run successfully. The Linux work also fixed a real disposal bug in `F:/CodeProjects/DotnetCore/Videra/src/Videra.Platform.Linux/VulkanBackend.cs:774-796`.
+Plan 01-06 closed the previous structural gap. Plan 01-07 continues gap closure: Windows now has 27 real HWND-backed tests covering initialization, lifecycle, resource creation, draw-path, and granular edge cases (dispose safety, double-init, resize, multi-frame cycles, reinitialization).
 
-But the requirements-level gap remains. `TEST-03` requires platform-specific integration tests that validate the rendering pipeline end to end. Windows now has real HWND-backed initialization, lifecycle, resource creation, and indexed draw-path coverage. However, Linux and macOS still stop at smoke/precondition/placeholder coverage and have not yet reached real native-host render-pipeline validation. So Phase 1's roadmap success criteria are still true, but the phase is not fully complete against its declared requirement set.
+However, Linux and macOS still require their native execution environments to close the remaining TEST-03 gap:
+- **Linux**: Needs a real X11 display server and window handle. The test fixture code in `NativeHostTestHelpers` would need X11 P/Invoke bindings. Must execute on a Linux host.
+- **macOS**: Needs a real NSView/NSWindow handle via Objective-C runtime. Must execute on a macOS host.
+
+These are environment constraints, not design gaps. The test infrastructure and patterns are established; the remaining work is mechanical once the environments are available.
 
 ---
 
