@@ -87,7 +87,7 @@ public class ExceptionHierarchyTests
     [Fact]
     public void UnsupportedOperationException_InheritsVideraException()
     {
-        var ex = new UnsupportedOperationException("not supported", "ComputeShaders");
+        var ex = new UnsupportedOperationException("not supported", "ComputeShaders", "TestPlatform");
         ex.Should().BeAssignableTo<VideraException>();
         ex.Message.Should().Be("not supported");
     }

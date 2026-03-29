@@ -3,6 +3,7 @@ using Silk.NET.Core.Native;
 using Silk.NET.Direct3D11;
 using Silk.NET.Direct3D.Compilers;
 using Silk.NET.DXGI;
+using Videra.Core.Exceptions;
 using Videra.Core.Geometry;
 using Videra.Core.Graphics.Abstractions;
 
@@ -261,12 +262,18 @@ internal unsafe class D3D11ResourceFactory : IResourceFactory
 
     public IShader CreateShader(ShaderStage stage, byte[] bytecode, string entryPoint)
     {
-        throw new NotImplementedException("Shader creation is handled internally for D3D11 backend.");
+        throw new UnsupportedOperationException(
+            "Shader creation is handled internally for the D3D11 backend. Use the pipeline creation methods instead.",
+            "CreateShader",
+            "Windows");
     }
 
     public IResourceSet CreateResourceSet(ResourceSetDescription description)
     {
-        throw new NotImplementedException("ResourceSet creation will be implemented in full backend");
+        throw new UnsupportedOperationException(
+            "ResourceSet creation is not yet supported on the D3D11 backend.",
+            "CreateResourceSet",
+            "Windows");
     }
 
     private ComPtr<ID3D10Blob> CompileShader(string source, string entryPoint, string profile)

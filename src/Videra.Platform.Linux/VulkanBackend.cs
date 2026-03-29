@@ -2,6 +2,7 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 using Silk.NET.Vulkan;
 using Silk.NET.Vulkan.Extensions.KHR;
+using Videra.Core.Exceptions;
 using Videra.Core.Graphics.Abstractions;
 using VkSemaphore = Silk.NET.Vulkan.Semaphore;
 using VkBuffer = Silk.NET.Vulkan.Buffer;
@@ -59,6 +60,18 @@ public unsafe class VulkanBackend : IGraphicsBackend
     public void Initialize(IntPtr windowHandle, int width, int height)
     {
         if (IsInitialized) return;
+
+        if (windowHandle == IntPtr.Zero)
+            throw new PlatformDependencyException(
+                "A valid X11 window handle is required for Vulkan initialization.",
+                "Initialize",
+                "Linux");
+
+        if (width <= 0 || height <= 0)
+            throw new PlatformDependencyException(
+                $"Invalid dimensions for Vulkan initialization: {width}x{height}. Both width and height must be positive.",
+                "Initialize",
+                "Linux");
 
         _width = width;
         _height = height;

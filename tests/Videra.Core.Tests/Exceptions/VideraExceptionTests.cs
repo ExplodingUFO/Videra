@@ -147,18 +147,37 @@ public class UnsupportedOperationExceptionTests
     [Fact]
     public void UnsupportedOperationException_InheritsFromVideraException()
     {
-        var ex = new UnsupportedOperationException("not supported", "ComputeShaders");
+        var ex = new UnsupportedOperationException("not supported", "ComputeShaders", "TestPlatform");
 
         ex.Should().BeAssignableTo<VideraException>();
         ex.Operation.Should().Be("ComputeShaders");
+        ex.Platform.Should().Be("TestPlatform");
     }
 
     [Fact]
-    public void UnsupportedOperationException_WithInnerException()
+    public void UnsupportedOperationException_WithPlatform_SetsPlatformField()
     {
-        var inner = new NotImplementedException();
-        var ex = new UnsupportedOperationException("not yet", "SomeOp", inner);
+        var ex = new UnsupportedOperationException(
+            "Shader creation is not directly supported for this backend.",
+            "CreateShader",
+            "Windows");
 
-        ex.InnerException.Should().BeSameAs(inner);
+        ex.Platform.Should().Be("Windows");
+        ex.Operation.Should().Be("CreateShader");
+        ex.Message.Should().Contain("Shader creation");
+    }
+
+    [Fact]
+    public void UnsupportedOperationException_WithPlatformAndContext_SetsAllFields()
+    {
+        var ctx = new Dictionary<string, string?> { ["Reason"] = "Use pipeline methods instead" };
+        var ex = new UnsupportedOperationException(
+            "Not available",
+            "SetResourceSet",
+            "Linux",
+            ctx);
+
+        ex.Platform.Should().Be("Linux");
+        ex.Context["Reason"].Should().Be("Use pipeline methods instead");
     }
 }

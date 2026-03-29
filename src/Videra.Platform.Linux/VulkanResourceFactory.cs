@@ -2,6 +2,7 @@ using System.Runtime.InteropServices;
 using Silk.NET.Core.Native;
 using Silk.NET.Shaderc;
 using Silk.NET.Vulkan;
+using Videra.Core.Exceptions;
 using Videra.Core.Geometry;
 using Videra.Core.Graphics.Abstractions;
 using VkBuffer = Silk.NET.Vulkan.Buffer;
@@ -316,7 +317,10 @@ internal unsafe class VulkanResourceFactory : IResourceFactory
 
     public IResourceSet CreateResourceSet(ResourceSetDescription description)
     {
-        throw new NotImplementedException("Resource set creation is handled internally for Vulkan backend");
+        throw new UnsupportedOperationException(
+            "Resource set creation is handled internally for the Vulkan backend. Use pipeline-level resource binding instead.",
+            "CreateResourceSet",
+            "Linux");
     }
 
     private VulkanBuffer CreateBuffer(uint sizeInBytes, BufferUsageFlags usage)

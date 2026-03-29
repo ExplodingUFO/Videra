@@ -1,6 +1,7 @@
 using System.Numerics;
 using System.Runtime.InteropServices;
 using Microsoft.Extensions.Logging;
+using Videra.Core.Exceptions;
 using Videra.Core.Graphics.Abstractions;
 
 namespace Videra.Platform.macOS;
@@ -31,6 +32,18 @@ public unsafe class MetalBackend : IGraphicsBackend
     {
         if (IsInitialized) return;
 
+        if (windowHandle == IntPtr.Zero)
+            throw new PlatformDependencyException(
+                "A valid NSView handle is required for Metal initialization.",
+                "Initialize",
+                "macOS");
+
+        if (width <= 0 || height <= 0)
+            throw new PlatformDependencyException(
+                $"Invalid dimensions for Metal initialization: {width}x{height}. Both width and height must be positive.",
+                "Initialize",
+                "macOS");
+
         _width = width;
         _height = height;
 
@@ -44,12 +57,18 @@ public unsafe class MetalBackend : IGraphicsBackend
         // Create Metal Device
         _device = MTLCreateSystemDefaultDevice();
         if (_device == IntPtr.Zero)
-            throw new Exception("Failed to create Metal device");
+            throw new PlatformDependencyException(
+                "Failed to create Metal device. Ensure Metal is supported on this hardware.",
+                "Initialize",
+                "macOS");
 
         // Create Command Queue
         _commandQueue = SendMessage(_device, SEL("newCommandQueue"));
         if (_commandQueue == IntPtr.Zero)
-            throw new Exception("Failed to create Metal command queue");
+            throw new PlatformDependencyException(
+                "Failed to create Metal command queue.",
+                "Initialize",
+                "macOS");
 
         // Get or create CAMetalLayer
         _metalLayer = GetOrCreateMetalLayer(_nsView);

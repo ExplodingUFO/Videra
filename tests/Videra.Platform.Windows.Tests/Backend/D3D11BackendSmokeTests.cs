@@ -2,7 +2,9 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 using FluentAssertions;
 using Tests.Common.Platform;
+using Videra.Core.Exceptions;
 using Videra.Core.Geometry;
+using Videra.Core.Graphics.Abstractions;
 using Videra.Platform.Windows;
 using Xunit;
 
@@ -94,5 +96,72 @@ public sealed class D3D11BackendSmokeTests
         };
 
         act.Should().NotThrow();
+    }
+
+    [Fact]
+    public void D3D11ResourceFactory_CreateShader_ThrowsUnsupportedOperationException()
+    {
+        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            return;
+        }
+
+        using var window = NativeHostTestHelpers.CreateHiddenWin32Window();
+        using var backend = new D3D11Backend();
+        backend.Initialize(window.Handle, 64, 64);
+
+        var factory = backend.GetResourceFactory();
+
+        var act = () => factory.CreateShader(ShaderStage.Vertex, Array.Empty<byte>(), "main");
+
+        act.Should().Throw<UnsupportedOperationException>()
+            .Which.Operation.Should().Be("CreateShader");
+    }
+
+    [Fact]
+    public void D3D11ResourceFactory_CreateResourceSet_ThrowsUnsupportedOperationException()
+    {
+        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            return;
+        }
+
+        using var window = NativeHostTestHelpers.CreateHiddenWin32Window();
+        using var backend = new D3D11Backend();
+        backend.Initialize(window.Handle, 64, 64);
+
+        var factory = backend.GetResourceFactory();
+        var desc = new ResourceSetDescription();
+
+        var act = () => factory.CreateResourceSet(desc);
+
+        act.Should().Throw<UnsupportedOperationException>()
+            .Which.Operation.Should().Be("CreateResourceSet");
+    }
+
+    [Fact]
+    public void D3D11CommandExecutor_SetResourceSet_ThrowsUnsupportedOperationException()
+    {
+        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            return;
+        }
+
+        using var window = NativeHostTestHelpers.CreateHiddenWin32Window();
+        using var backend = new D3D11Backend();
+        backend.Initialize(window.Handle, 64, 64);
+
+        var executor = backend.GetCommandExecutor();
+        var mockResourceSet = new MockResourceSet();
+
+        var act = () => executor.SetResourceSet(0, mockResourceSet);
+
+        act.Should().Throw<UnsupportedOperationException>()
+            .Which.Operation.Should().Be("SetResourceSet");
+    }
+
+    private sealed class MockResourceSet : IResourceSet
+    {
+        public void Dispose() { }
     }
 }

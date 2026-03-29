@@ -4,6 +4,7 @@ using Silk.NET.Core.Native;
 using Silk.NET.Direct3D11;
 using Silk.NET.DXGI;
 using Silk.NET.Maths;
+using Videra.Core.Exceptions;
 using Videra.Core.Graphics.Abstractions;
 using Videra.Core.Geometry;
 
@@ -39,6 +40,18 @@ public unsafe class D3D11Backend : IGraphicsBackend
     public void Initialize(IntPtr windowHandle, int width, int height)
     {
         if (IsInitialized) return;
+
+        if (windowHandle == IntPtr.Zero)
+            throw new PlatformDependencyException(
+                "A valid window handle is required for D3D11 initialization.",
+                "Initialize",
+                "Windows");
+
+        if (width <= 0 || height <= 0)
+            throw new PlatformDependencyException(
+                $"Invalid dimensions for D3D11 initialization: {width}x{height}. Both width and height must be positive.",
+                "Initialize",
+                "Windows");
 
         _width = width;
         _height = height;
