@@ -22,7 +22,7 @@
          CS0618: obsolete API usage
          CS8618: non-nullable field uninitialized
     -->
-    <NoWarn>S1006;S112;S1199;S1854;S1905;S2325;S3265;S3400;S3459;S3881;S4487;CS0618;CS8618</NoWarn>
+    <NoWarn>S1006;S112;S1199;S1854;S1905;S2325;S3265;S3400;S3459;S3881;S4487;CS0618;CS8618;CS1591</NoWarn>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 

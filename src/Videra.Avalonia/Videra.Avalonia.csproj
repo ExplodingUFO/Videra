@@ -13,7 +13,7 @@
          S4200: trivial native method wrappers
          CA1062: missing null argument validation
     -->
-    <NoWarn>S112;S1144;S125;S1450;S4487;S4200;CA1062;CS0067</NoWarn>
+    <NoWarn>S112;S1144;S125;S1450;S4487;S4200;CA1062;CS0067;CS1591</NoWarn>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 

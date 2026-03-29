@@ -17,7 +17,7 @@
          CA2017: logging template parameter count mismatch
          CS0618: obsolete API usage (MaterialChannel.Parameter)
     -->
-    <NoWarn>S1104;S3881;S4487;S1244;S1905;S2139;S2325;CA1062;CA2007;CA2017;CS0618</NoWarn>
+    <NoWarn>S1104;S3881;S4487;S1244;S1905;S2139;S2325;CA1062;CA2007;CA2017;CS0618;CS1591</NoWarn>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 

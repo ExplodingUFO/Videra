@@ -19,7 +19,7 @@
          CA2014: stackalloc in loop
          CS8618: non-nullable field uninitialized
     -->
-    <NoWarn>S1006;S112;S1450;S1905;S2325;S3400;S3459;S3881;CA2014;CS8618</NoWarn>
+    <NoWarn>S1006;S112;S1450;S1905;S2325;S3400;S3459;S3881;CA2014;CS8618;CS1591</NoWarn>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
