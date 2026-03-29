@@ -193,7 +193,7 @@ public class VideraEngine : IDisposable
 	{
         if (!IsInitialized || width == 0 || height == 0)
         {
-            _logger.LogDebug("[VideraEngine] Resize ignored: Init={IsInitialized}, {Width}x{Height}", IsInitialized, $"{width}x{height}");
+            _logger.LogDebug("[VideraEngine] Resize ignored: Init={IsInitialized}, {Width}x{Height}", IsInitialized, width, height);
             return;
         }
 
