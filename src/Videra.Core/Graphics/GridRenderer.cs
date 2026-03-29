@@ -142,6 +142,8 @@ public class GridRenderer : IDisposable
     /// <param name="height">The render target height in pixels.</param>
     public void Draw(ICommandExecutor? executor, IPipeline? pipeline, OrbitCamera camera, uint width, uint height)
     {
+        ArgumentNullException.ThrowIfNull(camera);
+
         if (!IsVisible)
             return;
 

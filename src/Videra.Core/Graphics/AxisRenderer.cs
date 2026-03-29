@@ -63,6 +63,8 @@ public class AxisRenderer : IDisposable
 
     public void Draw(ICommandExecutor? executor, IPipeline? pipeline, OrbitCamera camera, uint width, uint height, float renderScale)
     {
+        ArgumentNullException.ThrowIfNull(camera);
+
         if (!IsVisible || executor == null || pipeline == null || _vertexBuffer == null || _indexBuffer == null || _worldBuffer == null || _cameraBuffer == null)
             return;
         

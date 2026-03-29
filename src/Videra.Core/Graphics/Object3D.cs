@@ -216,6 +216,8 @@ public class Object3D : IDisposable
     /// <param name="executor">The command executor owning the active GPU context (reserved for future use).</param>
     public void UpdateUniforms(ICommandExecutor executor)
     {
+        ArgumentNullException.ThrowIfNull(executor);
+
         // 每次绘制前，把最新的 SRT 矩阵传给 GPU
         if (WorldBuffer != null)
         {
@@ -237,6 +239,8 @@ public class Object3D : IDisposable
     /// </param>
     public void InitializeWireframe(IResourceFactory factory, ILogger? logger = null)
     {
+        ArgumentNullException.ThrowIfNull(factory);
+
         var log = logger ?? Microsoft.Extensions.Logging.Abstractions.NullLoggerFactory.Instance.CreateLogger<Object3D>();
 
         if (_cachedTriangleIndices == null || _cachedTriangleIndices.Length == 0)

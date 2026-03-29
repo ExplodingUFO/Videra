@@ -48,6 +48,11 @@ public class WireframeRenderer : IDisposable
         uint width,
         uint height)
     {
+        ArgumentNullException.ThrowIfNull(objects);
+        ArgumentNullException.ThrowIfNull(executor);
+        ArgumentNullException.ThrowIfNull(pipeline);
+        ArgumentNullException.ThrowIfNull(camera);
+
         if (!_isInitialized || Mode == WireframeMode.None)
             return;
 

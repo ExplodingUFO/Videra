@@ -67,6 +67,8 @@ public sealed class RenderStyleService : IRenderStyleService, INotifyPropertyCha
 
     public void UpdateParameter<T>(Expression<Func<RenderStyleParameters, T>> selector, T value)
     {
+        ArgumentNullException.ThrowIfNull(selector);
+
         // 使用表达式树更新单个参数
         var newParams = _currentParameters.Clone();
         var memberExpr = (MemberExpression)selector.Body;
