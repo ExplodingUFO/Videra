@@ -178,9 +178,9 @@
 | PLAT-01 | Phase 3 | Complete (03-03) |
 | PLAT-02 | Phase 3 | Complete (03-04) |
 | PLAT-03 | Phase 3 | Complete (03-01) |
-| DOC-01 | Phase 4 | Pending |
-| DOC-02 | Phase 4 | Pending |
-| DOC-03 | Phase 4 | Pending |
+| DOC-01 | Phase 4 | Complete (04-01/04-02) |
+| DOC-02 | Phase 4 | Complete (04-03/04-04) |
+| DOC-03 | Phase 4 | Complete (04-04) |
 
 ---
 

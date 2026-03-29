@@ -109,7 +109,7 @@ Plans:
 | 1. Infrastructure & Cleanup | 6/7 | In progress (TEST-03 gap) | - |
 | 2. Quality & Reliability | 5/5 | **Complete** | 2026-03-29 |
 | 3. Cross-platform Refinement | 5/5 | **Complete** (code, env-blocked runtime) | 2026-03-29 |
-| 4. Documentation & Release Prep | 0/5 | Not started | - |
+| 4. Documentation & Release Prep | 5/5 | **Complete** | 2026-03-29 |
 
 ---
 
