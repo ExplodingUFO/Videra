@@ -232,4 +232,12 @@ public class RenderStyleServiceTests
         var act = () => service.LoadFromFileAsync(null!);
         await act.Should().ThrowAsync<ArgumentException>();
     }
+
+    [Fact]
+    public void UpdateParameter_NullSelector_ThrowsArgumentNullException()
+    {
+        var service = new RenderStyleService();
+        var act = () => service.UpdateParameter<float>(null!, 0.5f);
+        act.Should().Throw<ArgumentNullException>().WithParameterName("selector");
+    }
 }
