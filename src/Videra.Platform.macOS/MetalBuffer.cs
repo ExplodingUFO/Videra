@@ -6,6 +6,7 @@ namespace Videra.Platform.macOS;
 internal class MetalBuffer : IBuffer
 {
     private IntPtr _buffer;
+    private bool _disposed;
 
     public uint SizeInBytes { get; }
 
@@ -80,6 +81,9 @@ internal class MetalBuffer : IBuffer
 
     public void Dispose()
     {
+        if (_disposed) return;
+        _disposed = true;
+
         if (_buffer != IntPtr.Zero)
         {
             ObjCRuntime.SendMessageVoid(_buffer, ObjCRuntime.SEL("release"));

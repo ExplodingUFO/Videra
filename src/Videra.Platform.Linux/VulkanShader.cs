@@ -7,6 +7,7 @@ internal sealed unsafe class VulkanShader : IShader
 {
     private readonly Vk _vk;
     private readonly Device _device;
+    private bool _disposed;
     public ShaderModule ShaderModule { get; }
 
     public VulkanShader(Vk vk, Device device, ShaderModule shaderModule)
@@ -18,6 +19,9 @@ internal sealed unsafe class VulkanShader : IShader
 
     public void Dispose()
     {
+        if (_disposed) return;
+        _disposed = true;
+
         _vk.DestroyShaderModule(_device, ShaderModule, null);
     }
 }

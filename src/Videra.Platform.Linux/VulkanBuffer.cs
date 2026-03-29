@@ -9,6 +9,7 @@ internal unsafe class VulkanBuffer : IBuffer
     private readonly Vk _vk;
     private readonly Device _device;
     private readonly DeviceMemory _memory;
+    private bool _disposed;
     public Silk.NET.Vulkan.Buffer NativeBuffer { get; }
     public uint SizeInBytes { get; }
 
@@ -60,6 +61,9 @@ internal unsafe class VulkanBuffer : IBuffer
 
     public void Dispose()
     {
+        if (_disposed) return;
+        _disposed = true;
+
         _vk.DestroyBuffer(_device, NativeBuffer, null);
         _vk.FreeMemory(_device, _memory, null);
     }

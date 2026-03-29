@@ -11,6 +11,7 @@ internal unsafe class D3D11Buffer : IBuffer
     private ComPtr<ID3D11Buffer> _buffer;
     private readonly ComPtr<ID3D11DeviceContext> _context;
     private readonly D3D11 _d3d11;
+    private bool _disposed;
 
     public uint SizeInBytes { get; }
 
@@ -106,6 +107,9 @@ internal unsafe class D3D11Buffer : IBuffer
 
     public void Dispose()
     {
+        if (_disposed) return;
+        _disposed = true;
+
         if (_buffer.Handle != null)
             _buffer.Dispose();
     }

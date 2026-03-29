@@ -6,6 +6,8 @@ namespace Videra.Platform.Windows;
 
 internal sealed class D3D11Pipeline : IPipeline
 {
+    private bool _disposed;
+
     public ComPtr<ID3D11VertexShader> VertexShader { get; }
     public ComPtr<ID3D11PixelShader> PixelShader { get; }
     public ComPtr<ID3D11InputLayout> InputLayout { get; }
@@ -25,6 +27,9 @@ internal sealed class D3D11Pipeline : IPipeline
 
     public void Dispose()
     {
+        if (_disposed) return;
+        _disposed = true;
+
         VertexShader.Dispose();
         PixelShader.Dispose();
         InputLayout.Dispose();

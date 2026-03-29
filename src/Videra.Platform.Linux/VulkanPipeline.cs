@@ -7,6 +7,7 @@ internal sealed unsafe class VulkanPipeline : IPipeline
 {
     private readonly Vk _vk;
     private readonly Device _device;
+    private bool _disposed;
     public Pipeline TrianglePipeline { get; }
     public Pipeline LinePipeline { get; }
     public Pipeline PointPipeline { get; }
@@ -49,6 +50,9 @@ internal sealed unsafe class VulkanPipeline : IPipeline
 
     public void Dispose()
     {
+        if (_disposed) return;
+        _disposed = true;
+
         _vk.DestroyPipeline(_device, TrianglePipeline, null);
         _vk.DestroyPipeline(_device, LinePipeline, null);
         _vk.DestroyPipeline(_device, PointPipeline, null);

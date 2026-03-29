@@ -8,6 +8,7 @@ namespace Videra.Platform.macOS;
 internal class MetalPipeline : IPipeline
 {
     private IntPtr _pipelineState;
+    private bool _disposed;
 
     public IntPtr NativePipelineState => _pipelineState;
 
@@ -18,6 +19,9 @@ internal class MetalPipeline : IPipeline
 
     public void Dispose()
     {
+        if (_disposed) return;
+        _disposed = true;
+
         if (_pipelineState != IntPtr.Zero)
         {
             ObjCRuntime.SendMessageVoid(_pipelineState, ObjCRuntime.SEL("release"));
