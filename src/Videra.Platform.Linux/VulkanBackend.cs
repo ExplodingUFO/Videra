@@ -4,7 +4,6 @@ using Silk.NET.Vulkan;
 using Silk.NET.Vulkan.Extensions.KHR;
 using Videra.Core.Exceptions;
 using Videra.Core.Graphics.Abstractions;
-using Videra.Core.NativeLibrary;
 using VkSemaphore = Silk.NET.Vulkan.Semaphore;
 using VkBuffer = Silk.NET.Vulkan.Buffer;
 
@@ -15,11 +14,6 @@ namespace Videra.Platform.Linux;
 /// </summary>
 public unsafe class VulkanBackend : IGraphicsBackend
 {
-    // Register DllImport resolver so "libX11.so.6" falls back to "libX11.so" and "libX11"
-    static VulkanBackend()
-    {
-        NativeLibraryHelper.RegisterDllImportResolver("libX11.so.6", "libX11.so", "libX11");
-    }
     private Vk _vk;
     private Instance _instance;
     private PhysicalDevice _physicalDevice;
@@ -29,7 +23,6 @@ public unsafe class VulkanBackend : IGraphicsBackend
     
     private KhrSurface _khrSurface;
     private KhrSwapchain _khrSwapchain;
-    private KhrXlibSurface _khrXlibSurface;
     private SurfaceKHR _surface;
     private SwapchainKHR _swapchain;
     
@@ -59,10 +52,24 @@ public unsafe class VulkanBackend : IGraphicsBackend
     
     private VulkanResourceFactory _resourceFactory;
     private VulkanCommandExecutor _commandExecutor;
-    private IntPtr _x11Display;
+    private readonly ISurfaceCreator _surfaceCreator;
     private bool _disposed;
 
     public bool IsInitialized { get; private set; }
+
+    /// <summary>
+    /// Creates a VulkanBackend with the default X11 surface creator.
+    /// </summary>
+    public VulkanBackend() : this(new X11SurfaceCreator()) { }
+
+    /// <summary>
+    /// Creates a VulkanBackend with a specific surface creation strategy.
+    /// Pass an <see cref="X11SurfaceCreator"/> for X11, or a future WaylandSurfaceCreator for Wayland.
+    /// </summary>
+    internal VulkanBackend(ISurfaceCreator surfaceCreator)
+    {
+        _surfaceCreator = surfaceCreator;
+    }
 
     public void Initialize(IntPtr windowHandle, int width, int height)
     {
@@ -151,7 +158,7 @@ public unsafe class VulkanBackend : IGraphicsBackend
         var extensions = stackalloc IntPtr[]
         {
             Marshal.StringToHGlobalAnsi("VK_KHR_surface"),
-            Marshal.StringToHGlobalAnsi("VK_KHR_xlib_surface") // For X11 on Linux
+            Marshal.StringToHGlobalAnsi(_surfaceCreator.RequiredExtensionName)
         };
 
         var createInfo = new InstanceCreateInfo
@@ -176,35 +183,7 @@ public unsafe class VulkanBackend : IGraphicsBackend
 
     private void CreateSurface(IntPtr windowHandle)
     {
-        _vk.TryGetInstanceExtension(_instance, out _khrXlibSurface);
-
-        if (windowHandle == IntPtr.Zero)
-            throw new PlatformDependencyException(
-                "Vulkan requires a valid X11 window handle.",
-                "CreateSurface",
-                "Linux");
-
-        _x11Display = XOpenDisplay(IntPtr.Zero);
-        if (_x11Display == IntPtr.Zero)
-            throw new PlatformDependencyException(
-                "Failed to open X11 display.",
-                "CreateSurface",
-                "Linux");
-
-        var createInfo = new XlibSurfaceCreateInfoKHR
-        {
-            SType = StructureType.XlibSurfaceCreateInfoKhr,
-            Dpy = (nint*)_x11Display,
-            Window = (nint)windowHandle
-        };
-
-        fixed (SurfaceKHR* surface = &_surface)
-        {
-            if (_khrXlibSurface.CreateXlibSurface(_instance, in createInfo, null, surface) != Result.Success)
-                throw new GraphicsInitializationException(
-                    "Failed to create X11 Vulkan surface.",
-                    "CreateSurface");
-        }
+        _surface = _surfaceCreator.CreateSurface(_vk, _instance, windowHandle);
     }
 
     private void PickPhysicalDevice()
@@ -859,15 +838,8 @@ public unsafe class VulkanBackend : IGraphicsBackend
         _khrSurface.DestroySurface(_instance, _surface, null);
         _vk.DestroyInstance(_instance, null);
 
-        if (_x11Display != IntPtr.Zero)
-            XCloseDisplay(_x11Display);
+        _surfaceCreator.Cleanup();
 
         _vk?.Dispose();
     }
-
-    [DllImport("libX11.so.6")]
-    private static extern IntPtr XOpenDisplay(IntPtr display);
-
-    [DllImport("libX11.so.6")]
-    private static extern int XCloseDisplay(IntPtr display);
 }
