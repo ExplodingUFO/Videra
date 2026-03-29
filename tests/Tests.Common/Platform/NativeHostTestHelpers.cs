@@ -141,4 +141,157 @@ public static class NativeHostTestHelpers
     {
         public const int SW_HIDE = 0;
     }
+
+    // --- Linux X11 native-host fixture ---
+
+    /// <summary>
+    /// Creates a hidden X11 window suitable for Vulkan backend initialization on Linux.
+    /// Must be called on a Linux host with an X11 display server running.
+    /// </summary>
+    public static X11TestWindow CreateHiddenX11Window(int width = 64, int height = 64)
+        => new(width, height);
+
+    public sealed class X11TestWindow : IDisposable
+    {
+        private IntPtr _display;
+        private IntPtr _window;
+
+        /// <summary>
+        /// Gets the X11 window handle suitable for VulkanBackend.Initialize.
+        /// </summary>
+        public IntPtr WindowHandle => _window;
+
+        /// <summary>
+        /// Gets the X11 display pointer.
+        /// </summary>
+        public IntPtr Display => _display;
+
+        public X11TestWindow(int width, int height)
+        {
+            _display = XOpenDisplay(IntPtr.Zero);
+            if (_display == IntPtr.Zero)
+                throw new InvalidOperationException("Failed to open X11 display. Ensure an X11 display server is running.");
+
+            var screen = XDefaultScreen(_display);
+            _window = XCreateSimpleWindow(
+                _display,
+                XRootWindow(_display, screen),
+                0, 0,
+                (uint)width, (uint)height,
+                1,
+                IntPtr.Zero,
+                IntPtr.Zero);
+
+            if (_window == IntPtr.Zero)
+                throw new InvalidOperationException("Failed to create X11 test window.");
+        }
+
+        public void Dispose()
+        {
+            if (_window != IntPtr.Zero && _display != IntPtr.Zero)
+            {
+                XDestroyWindow(_display, _window);
+                _window = IntPtr.Zero;
+            }
+
+            if (_display != IntPtr.Zero)
+            {
+                XCloseDisplay(_display);
+                _display = IntPtr.Zero;
+            }
+        }
+
+        [DllImport("libX11.so.6", EntryPoint = "XOpenDisplay")]
+        private static extern IntPtr XOpenDisplay(IntPtr displayName);
+
+        [DllImport("libX11.so.6", EntryPoint = "XCloseDisplay")]
+        private static extern int XCloseDisplay(IntPtr display);
+
+        [DllImport("libX11.so.6", EntryPoint = "XDefaultScreen")]
+        private static extern int XDefaultScreen(IntPtr display);
+
+        [DllImport("libX11.so.6", EntryPoint = "XRootWindow")]
+        private static extern IntPtr XRootWindow(IntPtr display, int screen);
+
+        [DllImport("libX11.so.6", EntryPoint = "XCreateSimpleWindow")]
+        private static extern IntPtr XCreateSimpleWindow(
+            IntPtr display, IntPtr parent, int x, int y,
+            uint width, uint height, uint borderWidth,
+            IntPtr border, IntPtr background);
+
+        [DllImport("libX11.so.6", EntryPoint = "XDestroyWindow")]
+        private static extern int XDestroyWindow(IntPtr display, IntPtr window);
+    }
+
+    // --- macOS NSView native-host fixture ---
+
+    /// <summary>
+    /// Creates an NSView-backed window suitable for Metal backend initialization on macOS.
+    /// Must be called on a macOS host with the Metal framework available.
+    /// Uses Objective-C runtime P/Invoke to create real Cocoa objects.
+    /// </summary>
+    public static NSViewTestWindow CreateHiddenNSViewWindow(int width = 64, int height = 64)
+        => new(width, height);
+
+    public sealed class NSViewTestWindow : IDisposable
+    {
+        private IntPtr _nsWindow;
+        private IntPtr _nsView;
+
+        /// <summary>
+        /// Gets the NSView handle suitable for MetalBackend.Initialize.
+        /// </summary>
+        public IntPtr ViewHandle => _nsView;
+
+        public NSViewTestWindow(int width, int height)
+        {
+            // Create NSWindow via Objective-C runtime
+            var nsWindowClass = objc_getClass("NSWindow");
+            if (nsWindowClass == IntPtr.Zero)
+                throw new InvalidOperationException("Failed to get NSWindow class. Must run on macOS.");
+
+            var allocSel = sel_registerName("alloc");
+            var initSel = sel_registerName("initWithContentRect:styleMask:backing:defer:");
+
+            _nsWindow = objc_msgSend(objc_msgSend(nsWindowClass, allocSel), initSel,
+                0, 0, width, height,  // contentRect (x, y, w, h)
+                0,                     // styleMask: borderless
+                2,                     // backing: NSBackingStoreBuffered
+                0);                    // defer: NO
+
+            if (_nsWindow == IntPtr.Zero)
+                throw new InvalidOperationException("Failed to create NSWindow.");
+
+            // Get the content view
+            var contentViewSel = sel_registerName("contentView");
+            _nsView = objc_msgSend(_nsWindow, contentViewSel);
+
+            if (_nsView == IntPtr.Zero)
+                throw new InvalidOperationException("Failed to get content view from NSWindow.");
+        }
+
+        public void Dispose()
+        {
+            if (_nsWindow != IntPtr.Zero)
+            {
+                var releaseSel = sel_registerName("release");
+                objc_msgSend(_nsWindow, releaseSel);
+                _nsWindow = IntPtr.Zero;
+                _nsView = IntPtr.Zero;
+            }
+        }
+
+        [DllImport("/usr/lib/libobjc.A.dylib", EntryPoint = "objc_getClass")]
+        private static extern IntPtr objc_getClass(string name);
+
+        [DllImport("/usr/lib/libobjc.A.dylib", EntryPoint = "sel_registerName")]
+        private static extern IntPtr sel_registerName(string name);
+
+        [DllImport("/usr/lib/libobjc.A.dylib", EntryPoint = "objc_msgSend")]
+        private static extern IntPtr objc_msgSend(IntPtr receiver, IntPtr selector);
+
+        [DllImport("/usr/lib/libobjc.A.dylib", EntryPoint = "objc_msgSend")]
+        private static extern IntPtr objc_msgSend(IntPtr receiver, IntPtr selector,
+            int x, int y, int w, int h, ulong styleMask, int backing, int defer);
+    }
 }
