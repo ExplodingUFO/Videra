@@ -75,14 +75,14 @@ public class SoftwareRasterizerTests
         executor.DrawIndexed(obj.IndexCount);
         backend.EndFrame();
 
-        // Verify no exceptions thrown
-        true.Should().BeTrue();
+        // Verify frame completed without error
+        backend.IsInitialized.Should().BeTrue();
     }
 
     [Fact]
     public void DrawIndexed_WithLineTopology_DoesNotThrow()
     {
-        var (backend, factory, executor, pipeline) = CreateEnv();
+        var (backend, factory, executor, _) = CreateEnv();
         using var _ = backend;
 
         // Create line vertices
@@ -114,6 +114,9 @@ public class SoftwareRasterizerTests
         executor.Clear(0f, 0f, 0f, 1f);
         executor.DrawIndexed(primitiveType: 1, indexCount: obj.IndexCount); // primitiveType 1 = LineList
         backend.EndFrame();
+
+        // Verify line rendering completed without error
+        backend.IsInitialized.Should().BeTrue();
     }
 
     [Fact]
@@ -165,6 +168,10 @@ public class SoftwareRasterizerTests
             executor.DrawIndexed(obj.IndexCount);
             backend.EndFrame();
         }
+
+        // Verify backend still healthy after multiple frames
+        backend.IsInitialized.Should().BeTrue();
+        backend.Width.Should().Be(64);
     }
 
     [Fact]
