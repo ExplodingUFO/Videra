@@ -363,3 +363,9 @@ MigrationBackup/
 FodyWeavers.xsd
 
 tmpclaude*
+
+# Coverage reports
+coverage/
+
+# Claude Code
+.claude/

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Platform.Storage;
+using Microsoft.Extensions.Logging;
 using Videra.Core.Graphics;
 using Videra.Core.Graphics.Abstractions;
 using Videra.Core.IO;
@@ -13,6 +14,7 @@ public class AvaloniaModelImporter : IModelImporter
 {
     private readonly IResourceFactory _factory;
     private readonly TopLevel _topLevel;
+    private readonly ILogger _logger = Microsoft.Extensions.Logging.Abstractions.NullLoggerFactory.Instance.CreateLogger<AvaloniaModelImporter>();
 
     public AvaloniaModelImporter(TopLevel topLevel, IResourceFactory factory)
     {
@@ -42,9 +44,9 @@ public class AvaloniaModelImporter : IModelImporter
                 var obj = await Task.Run(() => ModelImporter.Load(path, _factory));
                 results.Add(obj);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                // 导入错误由调用方通过返回结果数量和状态消息处理
+                _logger.LogWarning(ex, "Failed to import model: {FilePath}", file.Path.LocalPath);
             }
         }
 
