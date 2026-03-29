@@ -18,7 +18,8 @@ public class ModelImporterIntegrationTests : IDisposable
 
     public void Dispose()
     {
-        try { Directory.Delete(_tempDir, true); } catch { }
+        try { Directory.Delete(_tempDir, true); } catch { /* temp dir cleanup - best effort */ }
+        GC.SuppressFinalize(this);
     }
 
     private string WriteObj(string name, string content)
