@@ -14,6 +14,7 @@ public class AxisRenderer : IDisposable
     private IBuffer? _worldBuffer;
     private IBuffer? _cameraBuffer;
     private uint _indexCount;
+    private bool _disposed;
     
     public RgbaFloat XColor { get; set; } = RgbaFloat.Red;
     public RgbaFloat YColor { get; set; } = RgbaFloat.Green;
@@ -102,6 +103,9 @@ public class AxisRenderer : IDisposable
 
     public void Dispose()
     {
+        if (_disposed) return;
+        _disposed = true;
+
         _vertexBuffer?.Dispose();
         _indexBuffer?.Dispose();
         _worldBuffer?.Dispose();

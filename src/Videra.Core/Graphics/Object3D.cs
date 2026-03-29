@@ -14,6 +14,8 @@ namespace Videra.Core.Graphics;
 /// </summary>
 public class Object3D : IDisposable
 {
+    private bool _disposed;
+
     /// <summary>
     /// Gets or sets the display name of this object, used for logging and identification.
     /// Defaults to <c>"Object"</c>.
@@ -109,6 +111,9 @@ public class Object3D : IDisposable
     /// </summary>
     public void Dispose()
     {
+        if (_disposed) return;
+        _disposed = true;
+
         VertexBuffer?.Dispose();
         IndexBuffer?.Dispose();
         WorldBuffer?.Dispose();

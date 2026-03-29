@@ -293,4 +293,20 @@ public class Object3DTests
         // Assert - buffers should be disposed (shared mock, multiple calls)
         mockBuffer.Verify(b => b.Dispose(), Times.AtLeast(3));
     }
+
+    [Fact]
+    public void Dispose_CalledTwice_DoesNotDoubleDispose()
+    {
+        var obj = new Object3D { Name = "TestObj" };
+        var mockFactory = CreateMockFactory(out var mockBuffer);
+        var mesh = CreateTestMesh();
+        obj.Initialize(mockFactory.Object, mesh);
+
+        obj.Dispose();
+        var firstDisposeCount = mockBuffer.Invocations.Count(i => i.Method.Name == "Dispose");
+        obj.Dispose();
+        var secondDisposeCount = mockBuffer.Invocations.Count(i => i.Method.Name == "Dispose");
+
+        secondDisposeCount.Should().Be(firstDisposeCount, "second dispose should be a no-op");
+    }
 }

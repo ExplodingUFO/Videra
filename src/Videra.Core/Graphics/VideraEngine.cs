@@ -29,6 +29,7 @@ public class VideraEngine : IDisposable
 	private IBuffer? _styleUniformBuffer;
 
 	private uint _width, _height;
+	private bool _disposed;
 
 	private readonly List<Object3D> _sceneObjects = new();
 	private readonly IRenderStyleService _styleService;
@@ -121,6 +122,9 @@ public class VideraEngine : IDisposable
 	/// </summary>
 	public void Dispose()
 	{
+	    if (_disposed) return;
+	    _disposed = true;
+
         _styleService.StyleChanged -= OnStyleChanged;
         Grid.Dispose();
         _axisRenderer.Dispose();
