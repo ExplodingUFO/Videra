@@ -8,6 +8,11 @@ using SharpGLTF.Schema2;
 
 namespace Videra.Core.IO;
 
+/// <summary>
+/// Static utility for loading 3D model files (glTF, GLB, OBJ) into <see cref="Object3D"/> instances
+/// ready for GPU rendering. Handles format detection, scene graph traversal, vertex transformations,
+/// and GPU resource allocation.
+/// </summary>
 public static class ModelImporter
 {
     private static readonly HashSet<string> AllowedExtensions = new(StringComparer.OrdinalIgnoreCase)
@@ -15,9 +20,30 @@ public static class ModelImporter
         ".gltf", ".glb", ".obj"
     };
 
+    /// <summary>
+    /// Gets the file glob patterns supported by this importer.
+    /// Returns <c>"*.gltf"</c>, <c>"*.glb"</c>, and <c>"*.obj"</c>.
+    /// </summary>
     public static string[] SupportedFormats => new[]
         { "*.gltf", "*.glb", "*.obj" };
 
+    /// <summary>
+    /// Loads a 3D model from disk and initializes it for rendering.
+    /// Supports glTF (<c>.gltf</c>/<c>.glb</c>) and Wavefront OBJ (<c>.obj</c>) formats.
+    /// The returned <see cref="Object3D"/> has its GPU buffers allocated and is ready to draw.
+    /// </summary>
+    /// <param name="filePath">Absolute or relative path to the model file.</param>
+    /// <param name="factory">The resource factory used to create GPU vertex and index buffers.</param>
+    /// <param name="logger">
+    /// Optional logger for diagnostic output. When <c>null</c>, a no-op logger is used.
+    /// </param>
+    /// <returns>A fully initialized <see cref="Object3D"/> containing the loaded mesh data.</returns>
+    /// <exception cref="InvalidModelInputException">
+    /// Thrown when the file path is invalid, the format is unsupported, or the file does not exist.
+    /// </exception>
+    /// <exception cref="Exception">
+    /// Re-thrown from the underlying parser when the model file is corrupt or cannot be read.
+    /// </exception>
     public static Object3D Load(string filePath, IResourceFactory factory, ILogger? logger = null)
     {
         var log = logger ?? Microsoft.Extensions.Logging.Abstractions.NullLoggerFactory.Instance.CreateLogger("ModelImporter");

@@ -17,6 +17,7 @@
          CA2007: missing ConfigureAwait
     -->
     <NoWarn>S1066;S1118;S1135;S125;S1481;S2325;S3267;CA1062;CA2007</NoWarn>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>

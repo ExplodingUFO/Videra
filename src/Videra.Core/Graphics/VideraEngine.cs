@@ -11,47 +11,95 @@ using Videra.Core.Styles.Services;
 
 namespace Videra.Core.Graphics;
 
+/// <summary>
+/// Central rendering engine that orchestrates graphics back-end resources, scene objects,
+/// cameras, and visual helpers (grid, axes, wireframe) to produce each frame.
+/// Implements <see cref="IDisposable"/> so that all GPU resources are released deterministically.
+/// </summary>
 public class VideraEngine : IDisposable
 {
-    private readonly object _lock = new();
-    private readonly ILogger _logger;
-    private IGraphicsBackend? _backend;
-    private IResourceFactory? _factory;
-    private ICommandExecutor? _executor;
+	private readonly object _lock = new();
+	private readonly ILogger _logger;
+	private IGraphicsBackend? _backend;
+	private IResourceFactory? _factory;
+	private ICommandExecutor? _executor;
 
-    private IPipeline? _meshPipeline;
-    private IBuffer? _cameraBuffer;
-    private IBuffer? _styleUniformBuffer;
+	private IPipeline? _meshPipeline;
+	private IBuffer? _cameraBuffer;
+	private IBuffer? _styleUniformBuffer;
 
-    private uint _width, _height;
+	private uint _width, _height;
 
-    private readonly List<Object3D> _sceneObjects = new();
-    private readonly IRenderStyleService _styleService;
+	private readonly List<Object3D> _sceneObjects = new();
+	private readonly IRenderStyleService _styleService;
 
-    public OrbitCamera Camera { get; } = new();
-    public bool IsInitialized { get; private set; }
-    public RgbaFloat BackgroundColor { get; set; } = new(0.1f, 0.1f, 0.1f, 1f);
-    public float RenderScale { get; set; } = 1f;
-    public bool EnableFrameLogging { get; set; } = false;
+	/// <summary>
+	/// Gets the orbit camera used to view the scene.
+	/// </summary>
+	public OrbitCamera Camera { get; } = new();
 
-    /// <summary>渲染风格服务</summary>
-    public IRenderStyleService StyleService => _styleService;
+	/// <summary>
+	/// Gets a value indicating whether the engine has been initialized and is ready to render.
+	/// </summary>
+	public bool IsInitialized { get; private set; }
 
-    // 网格和坐标轴渲染器
-    public GridRenderer Grid { get; } = new();
-    private readonly AxisRenderer _axisRenderer = new();
+	/// <summary>
+	/// Gets or sets the background color used to clear the render target each frame.
+	/// </summary>
+	public RgbaFloat BackgroundColor { get; set; } = new(0.1f, 0.1f, 0.1f, 1f);
 
-    // 线框渲染器
-    public WireframeRenderer Wireframe { get; } = new();
+	/// <summary>
+	/// Gets or sets the render scale factor applied during axis rendering.
+	/// A value of 1.0 uses the default scale.
+	/// </summary>
+	public float RenderScale { get; set; } = 1f;
 
-    public bool ShowAxis
-    {
-        get => _axisRenderer.IsVisible;
-        set => _axisRenderer.IsVisible = value;
-    }
+	/// <summary>
+	/// Gets or sets a value indicating whether periodic per-frame diagnostic logging is enabled.
+	/// When <see langword="true"/>, debug information is emitted every 60 frames.
+	/// </summary>
+	public bool EnableFrameLogging { get; set; } = false;
 
-    public VideraEngine(IRenderStyleService? styleService = null, ILogger<VideraEngine>? logger = null)
-    {
+	/// <summary>
+	/// Gets the render style service that manages visual style parameters
+	/// and notifies listeners when styles change.
+	/// </summary>
+	public IRenderStyleService StyleService => _styleService;
+
+	/// <summary>
+	/// Gets the grid renderer responsible for drawing the reference grid in the 3D viewport.
+	/// </summary>
+	public GridRenderer Grid { get; } = new();
+
+	private readonly AxisRenderer _axisRenderer = new();
+
+	/// <summary>
+	/// Gets the wireframe renderer that overlays wireframe geometry on scene objects.
+	/// </summary>
+	public WireframeRenderer Wireframe { get; } = new();
+
+	/// <summary>
+	/// Gets or sets a value indicating whether the origin axis helper is visible.
+	/// </summary>
+	public bool ShowAxis
+	{
+		get => _axisRenderer.IsVisible;
+		set => _axisRenderer.IsVisible = value;
+	}
+
+	/// <summary>
+	/// Initializes a new instance of the <see cref="VideraEngine"/> class.
+	/// </summary>
+	/// <param name="styleService">
+	/// An optional <see cref="IRenderStyleService"/> implementation.
+	/// When <see langword="null"/>, a default <see cref="RenderStyleService"/> is used.
+	/// </param>
+	/// <param name="logger">
+	/// An optional <see cref="ILogger{VideraEngine}"/> for diagnostic output.
+	/// When <see langword="null"/>, a no-op logger is used.
+	/// </param>
+	public VideraEngine(IRenderStyleService? styleService = null, ILogger<VideraEngine>? logger = null)
+	{
         _logger = logger ?? Microsoft.Extensions.Logging.Abstractions.NullLoggerFactory.Instance.CreateLogger<VideraEngine>();
         _styleService = styleService ?? new RenderStyleService();
         _styleService.StyleChanged += OnStyleChanged;
@@ -66,8 +114,13 @@ public class VideraEngine : IDisposable
         }
     }
 
-    public void Dispose()
-    {
+	/// <summary>
+	/// Releases all GPU resources held by the engine, including pipelines, buffers,
+	/// renderers, scene objects, and the graphics back-end.
+	/// Sets <see cref="IsInitialized"/> to <see langword="false"/>.
+	/// </summary>
+	public void Dispose()
+	{
         _styleService.StyleChanged -= OnStyleChanged;
         Grid.Dispose();
         _axisRenderer.Dispose();
@@ -82,8 +135,15 @@ public class VideraEngine : IDisposable
         IsInitialized = false;
     }
 
-    public void Initialize(IGraphicsBackend backend)
-    {
+	/// <summary>
+	/// Initializes the engine with the specified graphics back-end.
+	/// Creates GPU resources (camera buffer, style buffer, mesh pipeline) and
+	/// initializes all sub-renderers (grid, axis, wireframe).
+	/// If the engine is already initialized this method returns immediately.
+	/// </summary>
+	/// <param name="backend">The platform-specific graphics back-end to use for rendering.</param>
+	public void Initialize(IGraphicsBackend backend)
+	{
         if (IsInitialized) return;
 
         _backend = backend;
@@ -122,8 +182,15 @@ public class VideraEngine : IDisposable
         _logger.LogInformation("[VideraEngine] Resources created");
     }
 
-    public void Resize(uint width, uint height)
-    {
+	/// <summary>
+	/// Resizes the internal render target and updates the camera projection matrix.
+	/// Ignored when the engine is not initialized, when dimensions are zero, or when
+	/// the size has not changed.
+	/// </summary>
+	/// <param name="width">The new render target width in pixels.</param>
+	/// <param name="height">The new render target height in pixels.</param>
+	public void Resize(uint width, uint height)
+	{
         if (!IsInitialized || width == 0 || height == 0)
         {
             _logger.LogDebug("[VideraEngine] Resize ignored: Init={IsInitialized}, {Width}x{Height}", IsInitialized, $"{width}x{height}");
@@ -149,8 +216,14 @@ public class VideraEngine : IDisposable
 
     private int _frameCount = 0;
     
-    public void Draw()
-    {
+	/// <summary>
+	/// Renders a single frame: clears the back-end, updates camera and style uniforms,
+	/// draws the grid, solid scene objects, wireframe overlays, and axis helper,
+	/// then presents the result.
+	/// This method is thread-safe; calls are serialized via an internal lock.
+	/// </summary>
+	public void Draw()
+	{
         if (!IsInitialized || _backend == null || _executor == null || _meshPipeline == null)
         {
             return;
@@ -278,8 +351,13 @@ public class VideraEngine : IDisposable
         }
     }
 
-    public void AddObject(Object3D obj)
-    {
+	/// <summary>
+	/// Adds a 3D object to the scene. If the engine has been initialized the object's
+	/// wireframe buffers are created immediately.
+	/// </summary>
+	/// <param name="obj">The <see cref="Object3D"/> to add to the scene.</param>
+	public void AddObject(Object3D obj)
+	{
         lock (_lock)
         {
             _sceneObjects.Add(obj);
@@ -293,8 +371,12 @@ public class VideraEngine : IDisposable
         _logger.LogInformation("[VideraEngine] Added object: {ObjectName}", obj.Name);
     }
 
-    public void RemoveObject(Object3D obj)
-    {
+	/// <summary>
+	/// Removes a 3D object from the scene and disposes its GPU resources.
+	/// </summary>
+	/// <param name="obj">The <see cref="Object3D"/> to remove.</param>
+	public void RemoveObject(Object3D obj)
+	{
         lock (_lock)
         {
             _sceneObjects.Remove(obj);
@@ -303,8 +385,11 @@ public class VideraEngine : IDisposable
         _logger.LogInformation("[VideraEngine] Removed object: {ObjectName}", obj.Name);
     }
 
-    public void ClearObjects()
-    {
+	/// <summary>
+	/// Removes all objects from the scene and disposes their GPU resources.
+	/// </summary>
+	public void ClearObjects()
+	{
         lock (_lock)
         {
             foreach (var obj in _sceneObjects)
@@ -317,8 +402,13 @@ public class VideraEngine : IDisposable
     }
 
     // 保留这个方法以兼容旧代码，但现在不再使用
-    public void UpdateMesh(MeshData mesh)
-    {
+	/// <summary>
+	/// This method is deprecated in the current architecture where each
+	/// <see cref="Object3D"/> manages its own mesh. Calling it logs a warning.
+	/// </summary>
+	/// <param name="mesh">Mesh data (ignored).</param>
+	public void UpdateMesh(MeshData mesh)
+	{
         // 这个方法在新架构中已不需要，因为每个Object3D自己管理mesh
         _logger.LogWarning("[VideraEngine] UpdateMesh is deprecated in new architecture");
     }

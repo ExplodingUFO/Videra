@@ -11,7 +11,9 @@ using Videra.Core.Geometry;
 namespace Videra.Platform.Windows;
 
 /// <summary>
-/// Windows Direct3D 11 图形后端实现
+/// Windows Direct3D 11 graphics backend implementation.
+/// Provides hardware-accelerated rendering using the Direct3D 11 API via Silk.NET bindings.
+/// Requires a valid HWND window handle on the Windows operating system.
 /// </summary>
 public unsafe class D3D11Backend : IGraphicsBackend
 {
@@ -36,8 +38,30 @@ public unsafe class D3D11Backend : IGraphicsBackend
     private D3D11CommandExecutor _commandExecutor;
     private bool _disposed;
 
+    /// <summary>
+    /// Gets a value indicating whether the backend has been successfully initialized
+    /// and is ready for rendering operations.
+    /// </summary>
     public bool IsInitialized { get; private set; }
 
+    /// <summary>
+    /// Initializes the Direct3D 11 backend with the specified window handle and rendering dimensions.
+    /// Creates the D3D11 device, device context, swap chain, render target view, depth-stencil resources,
+    /// resource factory, and command executor.
+    /// </summary>
+    /// <param name="windowHandle">
+    /// A valid Win32 HWND handle for the target window. Must not be <see cref="IntPtr.Zero"/>.
+    /// </param>
+    /// <param name="width">The initial width of the rendering surface in pixels. Must be greater than zero.</param>
+    /// <param name="height">The initial height of the rendering surface in pixels. Must be greater than zero.</param>
+    /// <exception cref="PlatformDependencyException">
+    /// Thrown when <paramref name="windowHandle"/> is <see cref="IntPtr.Zero"/> or
+    /// when <paramref name="width"/> or <paramref name="height"/> is not positive.
+    /// </exception>
+    /// <exception cref="GraphicsInitializationException">
+    /// Thrown when the D3D11 device, swap chain, render target view, depth-stencil texture,
+    /// depth-stencil view, or depth-stencil state fails to be created.
+    /// </exception>
     public void Initialize(IntPtr windowHandle, int width, int height)
     {
         if (IsInitialized) return;
@@ -284,6 +308,12 @@ public unsafe class D3D11Backend : IGraphicsBackend
         }
     }
 
+    /// <summary>
+    /// Resizes the swap chain and recreates dependent resources (back buffer, depth-stencil)
+    /// to match the new dimensions. If either dimension is not positive, the call is silently ignored.
+    /// </summary>
+    /// <param name="width">The new width of the rendering surface in pixels.</param>
+    /// <param name="height">The new height of the rendering surface in pixels.</param>
     public void Resize(int width, int height)
     {
         if (width <= 0 || height <= 0) return;
@@ -305,6 +335,11 @@ public unsafe class D3D11Backend : IGraphicsBackend
         _commandExecutor.UpdateRenderTargets(_backBufferRTV, _depthStencilView);
     }
 
+    /// <summary>
+    /// Begins a new rendering frame. Binds the back buffer render target and depth-stencil view,
+    /// applies the default depth-stencil state, clears the render target with the current clear color,
+    /// clears the depth-stencil buffer, and sets the viewport and scissor rect to the current dimensions.
+    /// </summary>
     public void BeginFrame()
     {
         // 设置 RenderTarget 和 DepthStencil
@@ -330,21 +365,40 @@ public unsafe class D3D11Backend : IGraphicsBackend
         _context.Handle->RSSetScissorRects(1, &scissor);
     }
 
+    /// <summary>
+    /// Ends the current rendering frame by presenting the swap chain with vertical synchronization enabled.
+    /// </summary>
     public void EndFrame()
     {
         // 呈现
         _swapchain.Handle->Present(1, 0);
     }
 
+    /// <summary>
+    /// Sets the color used to clear the render target at the beginning of each frame.
+    /// </summary>
+    /// <param name="color">The clear color as a <see cref="Vector4"/> with RGBA components in the range [0, 1].</param>
     public void SetClearColor(Vector4 color)
     {
         _clearColor = color;
     }
 
+    /// <summary>
+    /// Gets the Direct3D 11 resource factory used to create GPU resources such as buffers, textures, and shaders.
+    /// </summary>
+    /// <returns>The <see cref="IResourceFactory"/> implementation for this backend.</returns>
     public IResourceFactory GetResourceFactory() => _resourceFactory;
 
+    /// <summary>
+    /// Gets the Direct3D 11 command executor used to issue rendering commands to the GPU.
+    /// </summary>
+    /// <returns>The <see cref="ICommandExecutor"/> implementation for this backend.</returns>
     public ICommandExecutor GetCommandExecutor() => _commandExecutor;
 
+    /// <summary>
+    /// Releases all Direct3D 11 resources including the device, device context, swap chain,
+    /// render target view, depth-stencil resources, and the underlying D3D11 and DXGI APIs.
+    /// </summary>
     public void Dispose()
     {
         if (_disposed) return;

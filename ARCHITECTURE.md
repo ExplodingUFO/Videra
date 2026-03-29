@@ -286,6 +286,37 @@ _khrSwapchain.AcquireNextImage(_device, _swapchain, ulong.MaxValue,
 2. **Vulkan Surface 创建**: X11/Wayland 双支持需要更多测试
 3. **Shader 交叉编译**: 目前缺少统一的 Shader 管理策略
 
+## 🔧 平台特定注意事项
+
+### Windows (Direct3D 11)
+- Uses Silk.NET.Direct3D11 for native D3D11 bindings
+- COM interop managed through `ComPtr<T>` smart pointers for automatic reference counting
+- Shader compilation via `Silk.NET.Direct3D.Compilers` (HLSL → DXBC)
+- SwapChain created with `BGRA8Unorm` format, discard/sequential presentation
+- Depth stencil uses `D24UnormS8Uint` format for compatibility across GPU vendors
+
+### Linux (Vulkan)
+- Uses Silk.NET.Vulkan for Vulkan API bindings
+- Surface creation via `ISurfaceCreator` strategy pattern — `X11SurfaceCreator` extracts X11 code, Wayland-ready
+- X11 library loading uses `NativeLibraryHelper` with fallback: `libX11.so.6` → `libX11.so` → `libX11`
+- Vulkan instance extensions: `VK_KHR_surface` + `VK_KHR_xlib_surface` (via `ISurfaceCreator.RequiredExtensionName`)
+- Swapchain uses `FifoKhr` present mode (VSync)
+- Depth format: `D32Sfloat`
+
+### macOS (Metal)
+- Uses Objective-C runtime P/Invoke through centralized `ObjCRuntime` helper
+- All `objc_msgSend` variants declared once in `ObjCRuntime.cs`, shared across Metal classes
+- `CAMetalLayer` created and configured with Retina scale factor (`backingScaleFactor`)
+- Shader source compiled inline via `newLibraryWithSource:options:error:`
+- Depth comparison: `LessEqual`, depth format `MTLPixelFormatDepth32Float` (252)
+- `CGSize`/`CGRect` structs co-located in `ObjCRuntime.cs`
+
+### Cross-Platform Depth Buffer
+All platforms use unified `DepthBufferConfiguration` value type:
+- ClearDepthValue: 1.0f
+- ClearStencilValue: 0
+- DepthComparisonFunction: LessEqual
+
 ## 📄 许可证
 
 请参考 LICENSE.txt

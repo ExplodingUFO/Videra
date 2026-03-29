@@ -10,7 +10,11 @@ using VkBuffer = Silk.NET.Vulkan.Buffer;
 namespace Videra.Platform.Linux;
 
 /// <summary>
-/// Linux Vulkan 图形后端实现
+/// Linux Vulkan graphics backend implementation.
+/// Provides hardware-accelerated rendering using the Vulkan API via Silk.NET bindings.
+/// Requires a valid X11 window handle on Linux. The constructor accepts an
+/// <see cref="ISurfaceCreator"/> (defaulting to <see cref="X11SurfaceCreator"/>) to abstract
+/// platform-specific surface creation.
 /// </summary>
 public unsafe class VulkanBackend : IGraphicsBackend
 {
@@ -55,6 +59,10 @@ public unsafe class VulkanBackend : IGraphicsBackend
     private readonly ISurfaceCreator _surfaceCreator;
     private bool _disposed;
 
+    /// <summary>
+    /// Gets a value indicating whether the backend has been successfully initialized
+    /// and is ready for rendering operations.
+    /// </summary>
     public bool IsInitialized { get; private set; }
 
     /// <summary>
@@ -71,6 +79,28 @@ public unsafe class VulkanBackend : IGraphicsBackend
         _surfaceCreator = surfaceCreator;
     }
 
+    /// <summary>
+    /// Initializes the Vulkan backend with the specified window handle and rendering dimensions.
+    /// Creates the Vulkan instance, surface, selects a physical device, creates a logical device
+    /// and queues, sets up the swap chain, image views, render pass, depth resources, framebuffers,
+    /// command pool, command buffers, synchronization objects, resource factory, and command executor.
+    /// </summary>
+    /// <param name="windowHandle">
+    /// A valid X11 window handle for the target surface. Must not be <see cref="IntPtr.Zero"/>.
+    /// </param>
+    /// <param name="width">The initial width of the rendering surface in pixels. Must be greater than zero.</param>
+    /// <param name="height">The initial height of the rendering surface in pixels. Must be greater than zero.</param>
+    /// <exception cref="PlatformDependencyException">
+    /// Thrown when <paramref name="windowHandle"/> is <see cref="IntPtr.Zero"/> or
+    /// when <paramref name="width"/> or <paramref name="height"/> is not positive.
+    /// </exception>
+    /// <exception cref="GraphicsInitializationException">
+    /// Thrown when the Vulkan instance, logical device, or physical device selection fails.
+    /// </exception>
+    /// <exception cref="ResourceCreationException">
+    /// Thrown when the swap chain, image views, render pass, depth resources, framebuffers,
+    /// command pool, command buffers, or synchronization objects fail to be created.
+    /// </exception>
     public void Initialize(IntPtr windowHandle, int width, int height)
     {
         if (IsInitialized) return;
@@ -633,6 +663,13 @@ public unsafe class VulkanBackend : IGraphicsBackend
         }
     }
 
+    /// <summary>
+    /// Resizes the swap chain and recreates dependent resources (image views, depth resources,
+    /// framebuffers) to match the new dimensions. Waits for the device to become idle before
+    /// performing the resize. If either dimension is not positive, the call is silently ignored.
+    /// </summary>
+    /// <param name="width">The new width of the rendering surface in pixels.</param>
+    /// <param name="height">The new height of the rendering surface in pixels.</param>
     public void Resize(int width, int height)
     {
         if (width <= 0 || height <= 0) return;
@@ -680,6 +717,11 @@ public unsafe class VulkanBackend : IGraphicsBackend
             _vk.FreeMemory(_device, _depthImageMemory, null);
     }
 
+    /// <summary>
+    /// Begins a new rendering frame. Waits for the previous frame's fence, acquires the next swap chain image,
+    /// resets the command buffer, begins command recording, starts the render pass with the current clear color,
+    /// and sets the viewport and scissor rect to the current dimensions.
+    /// </summary>
     public void BeginFrame()
     {
         // 等待上一帧完成
@@ -745,6 +787,11 @@ public unsafe class VulkanBackend : IGraphicsBackend
         _vk.CmdSetScissor(_commandBuffers[0], 0, 1, in scissor);
     }
 
+    /// <summary>
+    /// Ends the current rendering frame by finishing the render pass, ending command buffer recording,
+    /// submitting the command buffer to the graphics queue with proper semaphore synchronization,
+    /// and presenting the swap chain image to the presentation queue.
+    /// </summary>
     public void EndFrame()
     {
         // 结束 Render Pass
@@ -789,13 +836,25 @@ public unsafe class VulkanBackend : IGraphicsBackend
         _khrSwapchain.QueuePresent(_presentQueue, in presentInfo);
     }
 
+    /// <summary>
+    /// Sets the color used to clear the render target at the beginning of each frame.
+    /// </summary>
+    /// <param name="color">The clear color as a <see cref="Vector4"/> with RGBA components in the range [0, 1].</param>
     public void SetClearColor(Vector4 color)
     {
         _clearColor = color;
     }
 
+    /// <summary>
+    /// Gets the Vulkan resource factory used to create GPU resources such as buffers, textures, and shaders.
+    /// </summary>
+    /// <returns>The <see cref="IResourceFactory"/> implementation for this backend.</returns>
     public IResourceFactory GetResourceFactory() => _resourceFactory;
 
+    /// <summary>
+    /// Gets the Vulkan command executor used to issue rendering commands to the GPU.
+    /// </summary>
+    /// <returns>The <see cref="ICommandExecutor"/> implementation for this backend.</returns>
     public ICommandExecutor GetCommandExecutor() => _commandExecutor;
 
     private uint FindMemoryType(uint typeFilter, MemoryPropertyFlags properties)
@@ -814,6 +873,11 @@ public unsafe class VulkanBackend : IGraphicsBackend
             "FindMemoryType");
     }
 
+    /// <summary>
+    /// Releases all Vulkan resources including synchronization objects, command pool, swap chain,
+    /// render pass, depth resources, logical device, surface, instance, and the underlying Vulkan API.
+    /// Waits for the device to become idle before destroying resources.
+    /// </summary>
     public void Dispose()
     {
         if (_disposed) return;

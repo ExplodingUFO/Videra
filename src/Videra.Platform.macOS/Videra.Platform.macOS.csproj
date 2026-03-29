@@ -23,6 +23,7 @@
          CS8618: non-nullable field uninitialized
     -->
     <NoWarn>S101;S1066;S112;S125;S1450;S1854;S2325;S2696;S3400;S3881;S4136;S4144;S4200;S4487;CS8618</NoWarn>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
