@@ -1,6 +1,7 @@
 using System.Numerics;
 using System.Runtime.InteropServices;
 using Microsoft.Extensions.Logging;
+using Videra.Core.Exceptions;
 using Videra.Core.Graphics.Abstractions;
 
 namespace Videra.Platform.macOS;
@@ -23,6 +24,7 @@ public unsafe class MetalBackend : IGraphicsBackend
 
     private MetalResourceFactory _resourceFactory;
     private MetalCommandExecutor _commandExecutor;
+    private bool _disposed;
     private readonly ILogger _logger = Microsoft.Extensions.Logging.Abstractions.NullLoggerFactory.Instance.CreateLogger<MetalBackend>();
 
     public bool IsInitialized { get; private set; }
@@ -31,47 +33,73 @@ public unsafe class MetalBackend : IGraphicsBackend
     {
         if (IsInitialized) return;
 
+        if (windowHandle == IntPtr.Zero)
+            throw new PlatformDependencyException(
+                "A valid NSView handle is required for Metal initialization.",
+                "Initialize",
+                "macOS");
+
+        if (width <= 0 || height <= 0)
+            throw new PlatformDependencyException(
+                $"Invalid dimensions for Metal initialization: {width}x{height}. Both width and height must be positive.",
+                "Initialize",
+                "macOS");
+
         _width = width;
         _height = height;
 
-        // Get NSView
-        _nsView = windowHandle;
+        try
+        {
+            // Get NSView
+            _nsView = windowHandle;
 
-        // Get Retina scale factor
-        _scaleFactor = GetBackingScaleFactor(_nsView);
-        _logger.LogInformation("Backing scale factor: {ScaleFactor}", _scaleFactor);
+            // Get Retina scale factor
+            _scaleFactor = GetBackingScaleFactor(_nsView);
+            _logger.LogInformation("Backing scale factor: {ScaleFactor}", _scaleFactor);
 
-        // Create Metal Device
-        _device = MTLCreateSystemDefaultDevice();
-        if (_device == IntPtr.Zero)
-            throw new Exception("Failed to create Metal device");
+            // Create Metal Device
+            _device = MTLCreateSystemDefaultDevice();
+            if (_device == IntPtr.Zero)
+                throw new PlatformDependencyException(
+                    "Failed to create Metal device. Ensure Metal is supported on this hardware.",
+                    "Initialize",
+                    "macOS");
 
-        // Create Command Queue
-        _commandQueue = SendMessage(_device, SEL("newCommandQueue"));
-        if (_commandQueue == IntPtr.Zero)
-            throw new Exception("Failed to create Metal command queue");
+            // Create Command Queue
+            _commandQueue = SendMessage(_device, SEL("newCommandQueue"));
+            if (_commandQueue == IntPtr.Zero)
+                throw new PlatformDependencyException(
+                    "Failed to create Metal command queue.",
+                    "Initialize",
+                    "macOS");
 
-        // Get or create CAMetalLayer
-        _metalLayer = GetOrCreateMetalLayer(_nsView);
+            // Get or create CAMetalLayer
+            _metalLayer = GetOrCreateMetalLayer(_nsView);
 
-        // Configure MetalLayer
-        SetLayerDevice(_metalLayer, _device);
-        SetLayerPixelFormat(_metalLayer, 80); // MTLPixelFormatBGRA8Unorm
-        SetLayerFramebufferOnly(_metalLayer, false);
+            // Configure MetalLayer
+            SetLayerDevice(_metalLayer, _device);
+            SetLayerPixelFormat(_metalLayer, 80); // MTLPixelFormatBGRA8Unorm
+            SetLayerFramebufferOnly(_metalLayer, false);
 
-        // Set contentsScale for Retina support (draw dimensions are already in pixels, no secondary scaling)
-        SetLayerContentsScale(_metalLayer, _scaleFactor);
+            // Set contentsScale for Retina support (draw dimensions are already in pixels, no secondary scaling)
+            SetLayerContentsScale(_metalLayer, _scaleFactor);
 
-        // Set drawable size (using pixel dimensions directly)
-        SetLayerDrawableSize(_metalLayer, width, height);
-        _logger.LogInformation("Initialize: pixel {Width}x{Height}, scale {ScaleFactor}", width, height, _scaleFactor);
+            // Set drawable size (using pixel dimensions directly)
+            SetLayerDrawableSize(_metalLayer, width, height);
+            _logger.LogInformation("Initialize: pixel {Width}x{Height}, scale {ScaleFactor}", width, height, _scaleFactor);
 
-        // Create depth stencil state
-        CreateDepthStencilState();
+            // Create depth stencil state
+            CreateDepthStencilState();
 
-        // Create factory and command executor
-        _resourceFactory = new MetalResourceFactory(_device);
-        _commandExecutor = new MetalCommandExecutor(_commandQueue);
+            // Create factory and command executor
+            _resourceFactory = new MetalResourceFactory(_device);
+            _commandExecutor = new MetalCommandExecutor(_commandQueue);
+        }
+        catch
+        {
+            Dispose();
+            throw;
+        }
 
         IsInitialized = true;
     }
@@ -142,6 +170,10 @@ public unsafe class MetalBackend : IGraphicsBackend
 
     public void Dispose()
     {
+        if (_disposed) return;
+        _disposed = true;
+        IsInitialized = false;
+
         if (_depthStencilState != IntPtr.Zero)
             SendMessage(_depthStencilState, SEL("release"));
 

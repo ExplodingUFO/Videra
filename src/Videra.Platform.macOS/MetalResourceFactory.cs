@@ -1,5 +1,6 @@
 using System.Runtime.InteropServices;
 using Microsoft.Extensions.Logging;
+using Videra.Core.Exceptions;
 using Videra.Core.Geometry;
 using Videra.Core.Graphics.Abstractions;
 
@@ -306,17 +307,26 @@ fragment float4 fragment_main(VertexOut in [[stage_in]])
 
     public IPipeline CreatePipeline(PipelineDescription description)
     {
-        throw new NotImplementedException("Pipeline creation will be implemented in full backend");
+        throw new UnsupportedOperationException(
+            "Pipeline creation will be implemented in a future Metal backend release.",
+            "CreatePipeline",
+            "macOS");
     }
 
     public IShader CreateShader(ShaderStage stage, byte[] bytecode, string entryPoint)
     {
-        throw new NotImplementedException("Shader creation will be implemented in full backend");
+        throw new UnsupportedOperationException(
+            "Shader creation will be implemented in a future Metal backend release.",
+            "CreateShader",
+            "macOS");
     }
 
     public IResourceSet CreateResourceSet(ResourceSetDescription description)
     {
-        throw new NotImplementedException("ResourceSet creation will be implemented in full backend");
+        throw new UnsupportedOperationException(
+            "ResourceSet creation will be implemented in a future Metal backend release.",
+            "CreateResourceSet",
+            "macOS");
     }
 
     #region Metal Interop

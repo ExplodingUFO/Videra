@@ -1,4 +1,5 @@
 using Silk.NET.Vulkan;
+using Videra.Core.Exceptions;
 using Videra.Core.Graphics.Abstractions;
 
 namespace Videra.Platform.Linux;
@@ -60,7 +61,10 @@ internal unsafe class VulkanCommandExecutor : ICommandExecutor
 
     public void SetResourceSet(uint slot, IResourceSet resourceSet)
     {
-        throw new NotImplementedException();
+        throw new UnsupportedOperationException(
+            "Resource sets are managed directly through descriptor set binding in the Vulkan backend.",
+            "SetResourceSet",
+            "Linux");
     }
 
     public void DrawIndexed(uint indexCount, uint instanceCount = 1, uint firstIndex = 0, int vertexOffset = 0, uint firstInstance = 0)

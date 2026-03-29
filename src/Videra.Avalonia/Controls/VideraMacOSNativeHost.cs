@@ -3,6 +3,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Platform;
 using Microsoft.Extensions.Logging;
+using Videra.Core.Exceptions;
 
 namespace Videra.Avalonia.Controls;
 
@@ -28,7 +29,10 @@ internal sealed class VideraMacOSNativeHost : NativeControlHost, IVideraNativeHo
         // Create NSView for Metal rendering
         _nsView = CreateNSView(width, height);
         if (_nsView == IntPtr.Zero)
-            throw new Exception("Failed to create NSView");
+            throw new PlatformDependencyException(
+                "Failed to create NSView for Metal rendering.",
+                "CreateNativeControlCore",
+                "macOS");
 
         _logger.LogInformation("Created NSView 0x{Handle:X}", _nsView.ToInt64());
         HandleCreated?.Invoke(_nsView);

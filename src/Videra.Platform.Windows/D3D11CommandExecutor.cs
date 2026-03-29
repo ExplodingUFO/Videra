@@ -1,6 +1,7 @@
 using Silk.NET.Core.Native;
 using Silk.NET.Direct3D11;
 using Silk.NET.DXGI;
+using Videra.Core.Exceptions;
 using Videra.Core.Geometry;
 using Videra.Core.Graphics.Abstractions;
 
@@ -87,7 +88,10 @@ internal unsafe class D3D11CommandExecutor : ICommandExecutor
 
     public void SetResourceSet(uint slot, IResourceSet resourceSet)
     {
-        throw new NotImplementedException();
+        throw new UnsupportedOperationException(
+            "Resource sets are not supported on the D3D11 backend. Constant buffers are bound directly through SetVertexBuffer.",
+            "SetResourceSet",
+            "Windows");
     }
 
     public void DrawIndexed(uint indexCount, uint instanceCount = 1, uint firstIndex = 0, int vertexOffset = 0, uint firstInstance = 0)

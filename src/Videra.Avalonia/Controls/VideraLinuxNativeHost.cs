@@ -3,6 +3,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Platform;
 using Microsoft.Extensions.Logging;
+using Videra.Core.Exceptions;
 
 namespace Videra.Avalonia.Controls;
 
@@ -24,7 +25,10 @@ internal sealed class VideraLinuxNativeHost : NativeControlHost, IVideraNativeHo
 
         _display = XOpenDisplay(IntPtr.Zero);
         if (_display == IntPtr.Zero)
-            throw new Exception("Failed to open X11 display");
+            throw new PlatformDependencyException(
+                "Failed to open X11 display. Ensure X11 is available.",
+                "CreateNativeControl",
+                "Linux");
 
         var screen = XDefaultScreen(_display);
         var rootWindow = XRootWindow(_display, screen);
@@ -45,7 +49,10 @@ internal sealed class VideraLinuxNativeHost : NativeControlHost, IVideraNativeHo
         if (_window == IntPtr.Zero)
         {
             XCloseDisplay(_display);
-            throw new Exception("Failed to create X11 window");
+            throw new PlatformDependencyException(
+                "Failed to create X11 window for native rendering.",
+                "CreateNativeControl",
+                "Linux");
         }
 
         // Select input events

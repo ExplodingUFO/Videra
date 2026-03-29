@@ -3,6 +3,7 @@ using Silk.NET.Core.Native;
 using Silk.NET.Direct3D11;
 using Silk.NET.Direct3D.Compilers;
 using Silk.NET.DXGI;
+using Videra.Core.Exceptions;
 using Videra.Core.Geometry;
 using Videra.Core.Graphics.Abstractions;
 
@@ -48,7 +49,9 @@ internal unsafe class D3D11ResourceFactory : IResourceFactory
             var bufferPtr = &buffer.Handle;
             var result = _device.Handle->CreateBuffer(in bufferDesc, in subresourceData, bufferPtr);
             if (result != 0)
-                throw new Exception($"Failed to create vertex buffer. HRESULT: 0x{result:X8}");
+                throw new ResourceCreationException(
+                    $"Failed to create vertex buffer. HRESULT: 0x{result:X8}",
+                    "CreateVertexBuffer");
 
             return new D3D11Buffer(buffer, sizeInBytes, _context, _d3d11);
         }
@@ -70,7 +73,9 @@ internal unsafe class D3D11ResourceFactory : IResourceFactory
         var bufferPtr = &buffer.Handle;
         var result = _device.Handle->CreateBuffer(in bufferDesc, null, bufferPtr);
         if (result != 0)
-            throw new Exception($"Failed to create vertex buffer. HRESULT: 0x{result:X8}");
+            throw new ResourceCreationException(
+                $"Failed to create vertex buffer. HRESULT: 0x{result:X8}",
+                "CreateVertexBuffer");
 
         return new D3D11Buffer(buffer, sizeInBytes, _context, _d3d11);
     }
@@ -100,7 +105,9 @@ internal unsafe class D3D11ResourceFactory : IResourceFactory
             var bufferPtr = &buffer.Handle;
             var result = _device.Handle->CreateBuffer(in bufferDesc, in subresourceData, bufferPtr);
             if (result != 0)
-                throw new Exception($"Failed to create index buffer. HRESULT: 0x{result:X8}");
+                throw new ResourceCreationException(
+                    $"Failed to create index buffer. HRESULT: 0x{result:X8}",
+                    "CreateIndexBuffer");
 
             return new D3D11Buffer(buffer, sizeInBytes, _context, _d3d11);
         }
@@ -122,7 +129,9 @@ internal unsafe class D3D11ResourceFactory : IResourceFactory
         var bufferPtr = &buffer.Handle;
         var result = _device.Handle->CreateBuffer(in bufferDesc, null, bufferPtr);
         if (result != 0)
-            throw new Exception($"Failed to create index buffer. HRESULT: 0x{result:X8}");
+            throw new ResourceCreationException(
+                $"Failed to create index buffer. HRESULT: 0x{result:X8}",
+                "CreateIndexBuffer");
 
         return new D3D11Buffer(buffer, sizeInBytes, _context, _d3d11);
     }
@@ -145,7 +154,9 @@ internal unsafe class D3D11ResourceFactory : IResourceFactory
         var bufferPtr = &buffer.Handle;
         var result = _device.Handle->CreateBuffer(in bufferDesc, null, bufferPtr);
         if (result != 0)
-            throw new Exception($"Failed to create uniform buffer. HRESULT: 0x{result:X8}");
+            throw new ResourceCreationException(
+                $"Failed to create uniform buffer. HRESULT: 0x{result:X8}",
+                "CreateUniformBuffer");
 
         return new D3D11Buffer(buffer, sizeInBytes, _context, _d3d11);
     }
@@ -168,7 +179,9 @@ internal unsafe class D3D11ResourceFactory : IResourceFactory
         {
             var result = _device.Handle->CreateVertexShader(vsBytecodePtr, vsBytecodeSize, null, vsPtr);
             if (result != 0)
-                throw new Exception($"Failed to create vertex shader. HRESULT: 0x{result:X8}");
+                throw new PipelineCreationException(
+                    $"Failed to create vertex shader. HRESULT: 0x{result:X8}",
+                    "CreatePipeline");
         }
 
         var psBytecodePtr = pixelShader.GetBufferPointer();
@@ -178,7 +191,9 @@ internal unsafe class D3D11ResourceFactory : IResourceFactory
         {
             var result = _device.Handle->CreatePixelShader(psBytecodePtr, psBytecodeSize, null, psPtr);
             if (result != 0)
-                throw new Exception($"Failed to create pixel shader. HRESULT: 0x{result:X8}");
+                throw new PipelineCreationException(
+                    $"Failed to create pixel shader. HRESULT: 0x{result:X8}",
+                    "CreatePipeline");
         }
 
         var positionPtr = SilkMarshal.StringToPtr("POSITION", NativeStringEncoding.UTF8);
@@ -222,7 +237,9 @@ internal unsafe class D3D11ResourceFactory : IResourceFactory
             var layoutPtr = &inputLayout.Handle;
             var result = _device.Handle->CreateInputLayout(inputElements, 3, vsBytecodePtr, vsBytecodeSize, layoutPtr);
             if (result != 0)
-                throw new Exception($"Failed to create input layout. HRESULT: 0x{result:X8}");
+                throw new PipelineCreationException(
+                    $"Failed to create input layout. HRESULT: 0x{result:X8}",
+                    "CreatePipeline");
         }
         finally
         {
@@ -250,7 +267,9 @@ internal unsafe class D3D11ResourceFactory : IResourceFactory
         {
             var result = _device.Handle->CreateRasterizerState(in rasterDesc, rasterPtr);
             if (result != 0)
-                throw new Exception($"Failed to create rasterizer state. HRESULT: 0x{result:X8}");
+                throw new PipelineCreationException(
+                    $"Failed to create rasterizer state. HRESULT: 0x{result:X8}",
+                    "CreatePipeline");
         }
 
         vertexShader.Dispose();
@@ -261,12 +280,18 @@ internal unsafe class D3D11ResourceFactory : IResourceFactory
 
     public IShader CreateShader(ShaderStage stage, byte[] bytecode, string entryPoint)
     {
-        throw new NotImplementedException("Shader creation is handled internally for D3D11 backend.");
+        throw new UnsupportedOperationException(
+            "Shader creation is handled internally for the D3D11 backend. Use the pipeline creation methods instead.",
+            "CreateShader",
+            "Windows");
     }
 
     public IResourceSet CreateResourceSet(ResourceSetDescription description)
     {
-        throw new NotImplementedException("ResourceSet creation will be implemented in full backend");
+        throw new UnsupportedOperationException(
+            "ResourceSet creation is not yet supported on the D3D11 backend.",
+            "CreateResourceSet",
+            "Windows");
     }
 
     private ComPtr<ID3D10Blob> CompileShader(string source, string entryPoint, string profile)
@@ -301,7 +326,9 @@ internal unsafe class D3D11ResourceFactory : IResourceFactory
                         ? Marshal.PtrToStringAnsi((IntPtr)errorBlob.Handle->GetBufferPointer())
                         : "Unknown shader compilation error";
                     errorBlob.Dispose();
-                    throw new Exception($"D3D11 shader compilation failed ({entryPoint}/{profile}): {errorMsg}");
+                    throw new PipelineCreationException(
+                        $"D3D11 shader compilation failed ({entryPoint}/{profile}): {errorMsg}",
+                        "CompileShader");
                 }
             }
         }

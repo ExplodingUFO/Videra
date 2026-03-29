@@ -1,5 +1,6 @@
 using System.Numerics;
 using Microsoft.Extensions.Logging;
+using Videra.Core.Exceptions;
 using Videra.Core.Geometry;
 using Videra.Core.Graphics;
 using Videra.Core.Graphics.Abstractions;
@@ -9,6 +10,11 @@ namespace Videra.Core.IO;
 
 public static class ModelImporter
 {
+    private static readonly HashSet<string> AllowedExtensions = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ".gltf", ".glb", ".obj"
+    };
+
     public static string[] SupportedFormats => new[]
         { "*.gltf", "*.glb", "*.obj" };
 
@@ -18,6 +24,8 @@ public static class ModelImporter
 
         try
         {
+            ValidateFilePath(filePath);
+
             log.LogInformation("[ModelImporter] Loading: {FilePath}", filePath);
 
             var ext = Path.GetExtension(filePath).ToLowerInvariant();
@@ -26,7 +34,10 @@ public static class ModelImporter
             {
                 ".gltf" or ".glb" => LoadWithSharpGLTF(filePath, log),
                 ".obj" => LoadSimpleObj(filePath),
-                _ => throw new NotSupportedException($"Format {ext} not supported")
+                _ => throw new InvalidModelInputException(
+                    $"Format {ext} is not supported. Supported formats: {string.Join(", ", AllowedExtensions)}",
+                    "LoadModel",
+                    new Dictionary<string, string?> { ["Extension"] = ext })
             };
 
             log.LogInformation("[ModelImporter] Loaded {VertexCount} vertices, {IndexCount} indices", meshData.Vertices.Length, meshData.Indices.Length);
@@ -42,10 +53,52 @@ public static class ModelImporter
 
             return obj;
         }
+        catch (VideraException)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             log.LogError(ex, "[ModelImporter] Failed to load: {FilePath}: {Error}", filePath, ex.Message);
             throw;
+        }
+    }
+
+    private static void ValidateFilePath(string filePath)
+    {
+        if (string.IsNullOrWhiteSpace(filePath))
+        {
+            throw new InvalidModelInputException(
+                "File path must not be null or empty.",
+                "LoadModel",
+                new Dictionary<string, string?> { ["FilePath"] = filePath ?? "(null)" });
+        }
+
+        var fullPath = Path.GetFullPath(filePath);
+
+        if (Directory.Exists(fullPath))
+        {
+            throw new InvalidModelInputException(
+                $"Path is a directory, not a file: {fullPath}",
+                "LoadModel",
+                new Dictionary<string, string?> { ["NormalizedPath"] = fullPath });
+        }
+
+        var ext = Path.GetExtension(fullPath).ToLowerInvariant();
+        if (!AllowedExtensions.Contains(ext))
+        {
+            throw new InvalidModelInputException(
+                $"File extension '{ext}' is not supported. Supported formats: {string.Join(", ", AllowedExtensions)}",
+                "LoadModel",
+                new Dictionary<string, string?> { ["Extension"] = ext, ["NormalizedPath"] = fullPath });
+        }
+
+        if (!File.Exists(fullPath))
+        {
+            throw new InvalidModelInputException(
+                $"File not found: {fullPath}",
+                "LoadModel",
+                new Dictionary<string, string?> { ["NormalizedPath"] = fullPath });
         }
     }
 
