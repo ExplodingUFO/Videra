@@ -46,6 +46,7 @@ public static class ModelImporter
     /// </exception>
     public static Object3D Load(string filePath, IResourceFactory factory, ILogger? logger = null)
     {
+        ArgumentNullException.ThrowIfNull(factory);
         var log = logger ?? Microsoft.Extensions.Logging.Abstractions.NullLoggerFactory.Instance.CreateLogger("ModelImporter");
 
         try
@@ -288,13 +289,22 @@ public static class ModelImporter
                     for (int i = 1; i <= 3; i++)
                     {
                         var indices = parts[i].Split('/');
-                        var vIdx = int.Parse(indices[0]) - 1;
-                        var nIdx = indices.Length > 2 && !string.IsNullOrEmpty(indices[2])
-                            ? int.Parse(indices[2]) - 1
-                            : 0;
+                        if (!int.TryParse(indices[0], out var vIdxRaw))
+                            continue;
+                        var vIdx = vIdxRaw > 0 ? vIdxRaw - 1 : vIdxRaw + vertices.Count;
+                        if (vIdx < 0 || vIdx >= vertices.Count)
+                            continue;
+
+                        var nIdx = 0;
+                        if (indices.Length > 2 && !string.IsNullOrEmpty(indices[2]) && int.TryParse(indices[2], out var nIdxRaw))
+                        {
+                            nIdx = nIdxRaw > 0 ? nIdxRaw - 1 : nIdxRaw + normals.Count;
+                            if (nIdx < 0 || nIdx >= normals.Count)
+                                nIdx = 0;
+                        }
 
                         var v = vertices[vIdx];
-                        var n = nIdx < normals.Count ? normals[nIdx] : Vector3.UnitY;
+                        var n = normals.Count > 0 ? normals[nIdx] : Vector3.UnitY;
 
                         finalVertices.Add(new VertexPositionNormalColor(
                             v, n, new RgbaFloat(0.7f, 0.7f, 0.7f, 1f)));

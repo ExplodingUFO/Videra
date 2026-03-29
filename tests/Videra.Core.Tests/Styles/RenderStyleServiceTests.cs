@@ -192,4 +192,44 @@ public class RenderStyleServiceTests
         changedProperties.Should().Contain("CurrentPreset");
         changedProperties.Should().Contain("CurrentParameters");
     }
+
+    [Fact]
+    public void UpdateParameters_Null_ThrowsArgumentNullException()
+    {
+        var service = new RenderStyleService();
+        var act = () => service.UpdateParameters(null!);
+        act.Should().Throw<ArgumentNullException>();
+    }
+
+    [Fact]
+    public void ImportFromJson_Null_ThrowsArgumentException()
+    {
+        var service = new RenderStyleService();
+        var act = () => service.ImportFromJson(null!);
+        act.Should().Throw<ArgumentException>();
+    }
+
+    [Fact]
+    public void ImportFromJson_Empty_ThrowsArgumentException()
+    {
+        var service = new RenderStyleService();
+        var act = () => service.ImportFromJson(string.Empty);
+        act.Should().Throw<ArgumentException>();
+    }
+
+    [Fact]
+    public async Task SaveToFileAsync_NullPath_ThrowsArgumentException()
+    {
+        var service = new RenderStyleService();
+        var act = () => service.SaveToFileAsync(null!);
+        await act.Should().ThrowAsync<ArgumentException>();
+    }
+
+    [Fact]
+    public async Task LoadFromFileAsync_NullPath_ThrowsArgumentException()
+    {
+        var service = new RenderStyleService();
+        var act = () => service.LoadFromFileAsync(null!);
+        await act.Should().ThrowAsync<ArgumentException>();
+    }
 }

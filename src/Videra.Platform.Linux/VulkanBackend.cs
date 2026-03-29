@@ -175,20 +175,24 @@ public unsafe class VulkanBackend : IGraphicsBackend
 
     private void CreateInstance()
     {
+        var appName = Marshal.StringToHGlobalAnsi("Videra");
+        var engineName = Marshal.StringToHGlobalAnsi("Videra Engine");
         var appInfo = new ApplicationInfo
         {
             SType = StructureType.ApplicationInfo,
-            PApplicationName = (byte*)Marshal.StringToHGlobalAnsi("Videra"),
+            PApplicationName = (byte*)appName,
             ApplicationVersion = Vk.MakeVersion(1, 0, 0),
-            PEngineName = (byte*)Marshal.StringToHGlobalAnsi("Videra Engine"),
+            PEngineName = (byte*)engineName,
             EngineVersion = Vk.MakeVersion(1, 0, 0),
             ApiVersion = Vk.Version12
         };
 
+        var extSurface = Marshal.StringToHGlobalAnsi("VK_KHR_surface");
+        var extPlatform = Marshal.StringToHGlobalAnsi(_surfaceCreator.RequiredExtensionName);
         var extensions = stackalloc IntPtr[]
         {
-            Marshal.StringToHGlobalAnsi("VK_KHR_surface"),
-            Marshal.StringToHGlobalAnsi(_surfaceCreator.RequiredExtensionName)
+            extSurface,
+            extPlatform
         };
 
         var createInfo = new InstanceCreateInfo
@@ -199,16 +203,26 @@ public unsafe class VulkanBackend : IGraphicsBackend
             PpEnabledExtensionNames = (byte**)extensions
         };
 
-        fixed (Instance* instance = &_instance)
+        try
         {
-            if (_vk.CreateInstance(in createInfo, null, instance) != Result.Success)
-                throw new GraphicsInitializationException(
-                    "Failed to create Vulkan instance.",
-                    "CreateInstance");
-        }
+            fixed (Instance* instance = &_instance)
+            {
+                if (_vk.CreateInstance(in createInfo, null, instance) != Result.Success)
+                    throw new GraphicsInitializationException(
+                        "Failed to create Vulkan instance.",
+                        "CreateInstance");
+            }
 
-        // 获取 KHR Surface 扩展
-        _vk.TryGetInstanceExtension(_instance, out _khrSurface);
+            // 获取 KHR Surface 扩展
+            _vk.TryGetInstanceExtension(_instance, out _khrSurface);
+        }
+        finally
+        {
+            Marshal.FreeHGlobal(appName);
+            Marshal.FreeHGlobal(engineName);
+            Marshal.FreeHGlobal(extSurface);
+            Marshal.FreeHGlobal(extPlatform);
+        }
     }
 
     private void CreateSurface(IntPtr windowHandle)
@@ -266,7 +280,7 @@ public unsafe class VulkanBackend : IGraphicsBackend
     private void CreateLogicalDevice()
     {
         var queuePriority = 1.0f;
-        
+
         var queueCreateInfo = new DeviceQueueCreateInfo
         {
             SType = StructureType.DeviceQueueCreateInfo,
@@ -277,9 +291,10 @@ public unsafe class VulkanBackend : IGraphicsBackend
 
         var deviceFeatures = new PhysicalDeviceFeatures();
 
+        var extSwapchain = Marshal.StringToHGlobalAnsi("VK_KHR_swapchain");
         var extensions = stackalloc IntPtr[]
         {
-            Marshal.StringToHGlobalAnsi("VK_KHR_swapchain")
+            extSwapchain
         };
 
         var createInfo = new DeviceCreateInfo
@@ -292,27 +307,34 @@ public unsafe class VulkanBackend : IGraphicsBackend
             PpEnabledExtensionNames = (byte**)extensions
         };
 
-        fixed (Device* device = &_device)
+        try
         {
-            if (_vk.CreateDevice(_physicalDevice, in createInfo, null, device) != Result.Success)
-                throw new GraphicsInitializationException(
-                    "Failed to create logical device.",
-                    "CreateLogicalDevice");
-        }
+            fixed (Device* device = &_device)
+            {
+                if (_vk.CreateDevice(_physicalDevice, in createInfo, null, device) != Result.Success)
+                    throw new GraphicsInitializationException(
+                        "Failed to create logical device.",
+                        "CreateLogicalDevice");
+            }
 
-        // 获取队列
-        fixed (Queue* queue = &_graphicsQueue)
-        {
-            _vk.GetDeviceQueue(_device, _graphicsQueueFamily, 0, queue);
-        }
-        
-        fixed (Queue* queue = &_presentQueue)
-        {
-            _vk.GetDeviceQueue(_device, _presentQueueFamily, 0, queue);
-        }
+            // 获取队列
+            fixed (Queue* queue = &_graphicsQueue)
+            {
+                _vk.GetDeviceQueue(_device, _graphicsQueueFamily, 0, queue);
+            }
 
-        // 获取 Swapchain 扩展
-        _vk.TryGetDeviceExtension(_instance, _device, out _khrSwapchain);
+            fixed (Queue* queue = &_presentQueue)
+            {
+                _vk.GetDeviceQueue(_device, _presentQueueFamily, 0, queue);
+            }
+
+            // 获取 Swapchain 扩展
+            _vk.TryGetDeviceExtension(_instance, _device, out _khrSwapchain);
+        }
+        finally
+        {
+            Marshal.FreeHGlobal(extSwapchain);
+        }
     }
 
     private void CreateSwapchain()

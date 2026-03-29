@@ -31,6 +31,7 @@ public class WireframeRenderer : IDisposable
 
     public void Initialize(IResourceFactory factory)
     {
+        ArgumentNullException.ThrowIfNull(factory);
         _factory = factory;
         _isInitialized = true;
         _logger.LogInformation("[WireframeRenderer] Initialized");

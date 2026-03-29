@@ -170,6 +170,30 @@ public class VideraEngineIntegrationTests
         var act = () => engine.StyleService.ApplyPreset(RenderStylePreset.Cartoon);
         act.Should().NotThrow();
     }
+
+    [Fact]
+    public void VideraEngine_Initialize_NullBackend_ThrowsArgumentNullException()
+    {
+        using var engine = new VideraEngine();
+        var act = () => engine.Initialize(null!);
+        act.Should().Throw<ArgumentNullException>();
+    }
+
+    [Fact]
+    public void VideraEngine_AddObject_NullObject_ThrowsArgumentNullException()
+    {
+        using var engine = new VideraEngine();
+        var act = () => engine.AddObject(null!);
+        act.Should().Throw<ArgumentNullException>();
+    }
+
+    [Fact]
+    public void VideraEngine_RemoveObject_NullObject_ThrowsArgumentNullException()
+    {
+        using var engine = new VideraEngine();
+        var act = () => engine.RemoveObject(null!);
+        act.Should().Throw<ArgumentNullException>();
+    }
 }
 
 /// <summary>

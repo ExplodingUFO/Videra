@@ -144,6 +144,7 @@ public class VideraEngine : IDisposable
 	/// <param name="backend">The platform-specific graphics back-end to use for rendering.</param>
 	public void Initialize(IGraphicsBackend backend)
 	{
+	    ArgumentNullException.ThrowIfNull(backend);
         if (IsInitialized) return;
 
         _backend = backend;
@@ -357,6 +358,7 @@ public class VideraEngine : IDisposable
 	/// <param name="obj">The <see cref="Object3D"/> to add to the scene.</param>
 	public void AddObject(Object3D obj)
 	{
+	    ArgumentNullException.ThrowIfNull(obj);
         lock (_lock)
         {
             _sceneObjects.Add(obj);
@@ -376,6 +378,7 @@ public class VideraEngine : IDisposable
 	/// <param name="obj">The <see cref="Object3D"/> to remove.</param>
 	public void RemoveObject(Object3D obj)
 	{
+	    ArgumentNullException.ThrowIfNull(obj);
         lock (_lock)
         {
             _sceneObjects.Remove(obj);

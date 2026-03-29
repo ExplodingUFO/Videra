@@ -60,6 +60,7 @@ public sealed class RenderStyleService : IRenderStyleService, INotifyPropertyCha
 
     public void UpdateParameters(RenderStyleParameters parameters)
     {
+        ArgumentNullException.ThrowIfNull(parameters);
         CurrentPreset = RenderStylePreset.Custom;
         CurrentParameters = parameters.Clone();
     }
@@ -94,6 +95,7 @@ public sealed class RenderStyleService : IRenderStyleService, INotifyPropertyCha
 
     public void ImportFromJson(string json)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(json);
         var (parameters, preset) = StyleJsonConverter.Deserialize(json);
         CurrentPreset = preset;
         CurrentParameters = parameters;
@@ -101,12 +103,14 @@ public sealed class RenderStyleService : IRenderStyleService, INotifyPropertyCha
 
     public async Task SaveToFileAsync(string filePath)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(filePath);
         var json = ExportToJson();
         await File.WriteAllTextAsync(filePath, json);
     }
 
     public async Task LoadFromFileAsync(string filePath)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(filePath);
         var json = await File.ReadAllTextAsync(filePath);
         ImportFromJson(json);
     }

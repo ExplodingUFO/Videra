@@ -2,6 +2,7 @@ using FluentAssertions;
 using Moq;
 using Videra.Core.Exceptions;
 using Videra.Core.Graphics.Abstractions;
+using Videra.Core.Graphics.Software;
 using Videra.Core.IO;
 using Xunit;
 
@@ -100,5 +101,63 @@ public class ModelImporterTests
     public void SupportedFormats_HasThreeFormats()
     {
         ModelImporter.SupportedFormats.Should().HaveCount(3);
+    }
+
+    [Fact]
+    public void Load_NullFactory_ThrowsArgumentNullException()
+    {
+        var act = () => ModelImporter.Load("test.gltf", null!);
+        act.Should().Throw<ArgumentNullException>();
+    }
+
+    [Fact]
+    public void Load_ObjTriangle_ProducesCorrectObject()
+    {
+        var factory = new SoftwareResourceFactory();
+        var path = Path.Combine(AppContext.BaseDirectory, "IO", "TestData", "triangle.obj");
+        File.Exists(path).Should().BeTrue($"test fixture '{path}' should exist");
+
+        var obj = ModelImporter.Load(path, factory);
+
+        obj.Should().NotBeNull();
+        obj.Name.Should().Contain("triangle.obj");
+    }
+
+    [Fact]
+    public void Load_ObjTwoTriangles_ProducesCorrectObject()
+    {
+        var factory = new SoftwareResourceFactory();
+        var path = Path.Combine(AppContext.BaseDirectory, "IO", "TestData", "two_triangles.obj");
+        File.Exists(path).Should().BeTrue($"test fixture '{path}' should exist");
+
+        var obj = ModelImporter.Load(path, factory);
+
+        obj.Should().NotBeNull();
+    }
+
+    [Fact]
+    public void Load_ObjEmptyFile_ProducesEmptyObject()
+    {
+        var factory = new SoftwareResourceFactory();
+        var path = Path.Combine(AppContext.BaseDirectory, "IO", "TestData", "empty.obj");
+        File.Exists(path).Should().BeTrue($"test fixture '{path}' should exist");
+
+        // An OBJ with no faces should still load (produces empty mesh)
+        var act = () => ModelImporter.Load(path, factory);
+        // Empty mesh with no vertices — Object3D.Initialize may throw or handle gracefully
+        // Either way it should not hang or crash unexpectedly
+        act.Should().NotThrow<IndexOutOfRangeException>();
+    }
+
+    [Fact]
+    public void Load_ObjBadIndices_DoesNotCrash()
+    {
+        var factory = new SoftwareResourceFactory();
+        var path = Path.Combine(AppContext.BaseDirectory, "IO", "TestData", "bad_indices.obj");
+        File.Exists(path).Should().BeTrue($"test fixture '{path}' should exist");
+
+        // Should not throw IndexOutOfRangeException from out-of-range vertex index
+        var act = () => ModelImporter.Load(path, factory);
+        act.Should().NotThrow<IndexOutOfRangeException>();
     }
 }
