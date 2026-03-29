@@ -119,7 +119,7 @@ public class WireframeRendererIntegrationTests
     [Fact]
     public void WireframeRenderer_NotInitialized_SkipsRendering()
     {
-        var (backend, factory, executor, pipeline) = CreateTestEnvironment();
+        var (_, factory, executor, pipeline) = CreateTestEnvironment();
         var renderer = new WireframeRenderer { Mode = WireframeMode.AllEdges };
         // Not initialized - no factory set
 
