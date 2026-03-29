@@ -17,6 +17,7 @@ public class GridRenderer : IDisposable
     private IBuffer? _indexBuffer;
     private IBuffer? _worldBuffer;
     private uint _indexCount;
+    private bool _disposed;
 
     /// <summary>
     /// Gets or sets whether the grid is visible during rendering.
@@ -173,6 +174,8 @@ public class GridRenderer : IDisposable
     /// </summary>
     public void Dispose()
     {
+        if (_disposed) return;
+        _disposed = true;
         DisposeBuffers();
     }
 }
