@@ -4,6 +4,7 @@ using Silk.NET.Vulkan;
 using Silk.NET.Vulkan.Extensions.KHR;
 using Videra.Core.Exceptions;
 using Videra.Core.Graphics.Abstractions;
+using Videra.Core.NativeLibrary;
 using VkSemaphore = Silk.NET.Vulkan.Semaphore;
 using VkBuffer = Silk.NET.Vulkan.Buffer;
 
@@ -14,6 +15,11 @@ namespace Videra.Platform.Linux;
 /// </summary>
 public unsafe class VulkanBackend : IGraphicsBackend
 {
+    // Register DllImport resolver so "libX11.so.6" falls back to "libX11.so" and "libX11"
+    static VulkanBackend()
+    {
+        NativeLibraryHelper.RegisterDllImportResolver("libX11.so.6", "libX11.so", "libX11");
+    }
     private Vk _vk;
     private Instance _instance;
     private PhysicalDevice _physicalDevice;
