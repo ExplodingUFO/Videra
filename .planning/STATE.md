@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: in_progress
-last_updated: "2026-03-28T12:55:00.000Z"
+last_updated: "2026-03-29T16:00:00.000Z"
 progress:
   total_phases: 4
   completed_phases: 0
@@ -34,11 +34,11 @@ progress:
 
 ## 当前位置
 
-**当前阶段：** Phase 1 - 基础设施与清理
+**当前阶段：** Phase 2 - 质量与可靠性 (Complete)
 
-**当前计划：** 01-07 (Windows 已推进，Linux/macOS 待对应环境执行)
+**当前计划：** 02-05 verification matrix
 
-**状态：** Phase 1 in progress
+**状态：** Phase 2 complete; Phase 1 TEST-03 gap remains
 
 **进度：** 0/4 阶段完成 (Phase 1 存在严格 gap)
 
@@ -50,7 +50,7 @@ progress:
 
 ## 性能指标
 
-**需求覆盖：** 24/24 已映射；TEST-03 严格验证仍未完全关闭
+**需求覆盖：** 24/24 已映射；Phase 2 requirements (ERROR/QUAL/RES/SEC) 全部关闭；TEST-03 严格验证仍未完全关闭
 
 **阶段数：** 4
 
@@ -75,6 +75,8 @@ progress:
 | 平台后端 smoke tests 使用独立测试项目 + OS guards | 作为过渡性结构补齐，不等于严格 TEST-03 完成 | Done |
 | VulkanBackend.Dispose 必须容忍未完成初始化的清理 | Linux smoke test 覆盖了失败前置条件路径 | Done |
 | Windows 先完成真实 HWND 宿主验证，Linux/macOS 保持环境阻塞 | 当前只有 Windows 环境，但不降低 TEST-03 标准 | Done |
+| Phase 2 领域异常替换所有泛化异常入口 | ERROR-01/02/03 要求结构化错误语义 | Done |
+| Phase 2 不新增平台能力 | 质量阶段不引入功能扩展 | Done |
 
 ### 关键约束
 
@@ -87,14 +89,16 @@ progress:
 
 ### 已知问题
 
-从代码库分析中发现的问题：
+从代码库分析中发现的问题（Phase 2 后状态）：
 
-**需要解决：**
+**已解决：**
+- ~~未实现的方法（10+ 处 NotImplementedException）~~ → 全部替换为 UnsupportedOperationException
+- ~~缺少结构化错误处理~~ → 7 类领域异常覆盖所有失败路径
+- ~~缺少边界验证~~ → ModelImporter/backend handle/library 边界全部覆盖
 
-- 未实现的方法（10+ 处 NotImplementedException）
-- 脆弱的平台特定代码（尤其是 macOS Metal 互操作）
-- 缺少结构化错误处理
-- 缺少文档
+**仍需关注：**
+- 缺少完整文档（Phase 3 范围）
+- TEST-03 严格 gap: Linux/macOS 真实 native-host lifecycle 测试
 
 ### 阻塞问题
 
@@ -108,11 +112,11 @@ progress:
 
 ## 会话连续性
 
-**上次活动：** Windows 真实宿主验证增强 + Demo 第一轮完善（2026-03-28）
+**上次活动：** Phase 2 complete — domain exceptions, rollback safety, verification (2026-03-29)
 
 **下一步：**
-1. 保持 01-07 为严格 gap closure plan
-2. 继续在 Windows 上验证 Demo 与 D3D11 路径
+1. Merge Phase 2 branch to master
+2. 保持 01-07 为严格 gap closure plan (Phase 1 TEST-03 仍阻塞)
 3. 为 Linux/macOS 形成可执行的环境阻塞说明与后续执行包
 
 **相关文件：**
@@ -127,4 +131,4 @@ progress:
 ---
 
 *状态初始化：2026-03-28*
-*最近修订：2026-03-28 Windows validation + demo pass*
+*最近修订：2026-03-29 Phase 2 complete — 172 tests passing*

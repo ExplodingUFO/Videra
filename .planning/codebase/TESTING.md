@@ -21,7 +21,8 @@
 ## Test File Organization
 
 **Location:**
-- Not detected - No `*.test.cs` or `*.spec.cs` files found
+- Not detected - No `*.Test.cs`, `*.Tests.cs`, or `*.Spec.cs` files found
+- No `test/` or `tests/` directories
 
 **Naming:**
 - Not applicable
@@ -90,14 +91,19 @@ Not applicable
 
 **CI/CD:**
 - GitHub Actions workflow: `.github/workflows/publish-nuget.yml`
-- Triggered on version tags or manual dispatch
-- Steps: checkout, setup .NET 8.0, determine version, pack projects, push to GitHub Packages
-- No test execution step in workflow
-- Pack targets: Core, Platform.*, Avalonia projects
+- Triggered on version tags (`v*`) or manual dispatch
+- Steps:
+  1. Checkout code
+  2. Setup .NET 8.0 SDK
+  3. Determine version from tag or input
+  4. Pack all projects (`dotnet pack`) for Core, Platform.*, Avalonia
+  5. Push NuGet packages to GitHub Packages
+- **No test execution step in workflow**
+- No build verification step (only pack)
 
 **Build verification:**
 - `dotnet build` - compiles all projects but no explicit test stage
-- Platform-specific builds use runtime identifiers (win-x64, linux-x64, osx-x64)
+- Platform-specific builds use runtime identifiers (win-x64, linux-x64)
 
 ## Manual Testing
 
@@ -105,13 +111,21 @@ Not applicable
 - `samples/Videra.Demo` serves as manual test harness
 - Interactive 3D viewer with model loading
 - Camera controls: orbit, pan, zoom
-- Render style switching
-- Wireframe mode testing
+- Render style switching (Realistic, Tech, Cartoon, X-Ray, Clay, Wireframe)
+- Wireframe mode testing (None, AllEdges, SharpEdges)
+- Grid and axis rendering controls
 
 **Debug logging:**
 - Console.WriteLine extensively used for runtime observation
 - Debug.WriteLine for platform-specific diagnostics
-- Environment variables: `VIDERA_FRAMELOG`, `VIDERA_INPUTLOG` for frame/input logging
+- Conditional frame logging: `EnableFrameLogging` property on `VideraEngine`
+- Input event logging inferred from code comments
+
+**Manual test scenarios:**
+- Model import (GLTF, GLB, OBJ formats) via `AvaloniaModelImporter`
+- Transform editing (position, rotation, scale) through ViewModel bindings
+- Style preset application via `RenderStyleService`
+- Native window host creation (Windows only)
 
 ## Common Patterns
 
@@ -135,17 +149,22 @@ Not applicable
 5. No performance/benchmark tests
 
 **Observable testing gaps:**
-- Backend implementations (D3D11, Vulkan, Metal) have no automated tests
-- Model import logic (`ModelImporter`) has no tests
-- Shader compilation (Metal in build) has no verification tests
-- Camera matrix calculations have no validation tests
-- Wireframe edge extraction algorithm has no tests
+- Backend implementations (`D3D11Backend`, `VulkanBackend`, `MetalBackend`) have no automated tests
+- Model import logic (`ModelImporter.Load`, `LoadWithSharpGLTF`, `LoadSimpleObj`) has no tests
+- Shader compilation (Metal shaders embedded in code) has no verification tests
+- Camera matrix calculations (`OrbitCamera.UpdateProjection`) have no validation tests
+- Wireframe edge extraction algorithm (`EdgeExtractor.ExtractUniqueEdges`) has no tests
+- Style parameter serialization (`StyleJsonConverter`) has no tests
+- Resource factory methods have no tests
+- Buffer data upload/validation has no tests
 
 **Recommended additions:**
-- Unit test project for `Videra.Core` logic (camera, geometry, edge extraction)
-- Integration tests for model loading (sample GLTF/OBJ files)
-- Platform-specific tests using conditional compilation
-- CI workflow step for test execution
+- Unit test project for `Videra.Core` logic (camera, geometry, edge extraction, serialization)
+- Integration tests for model loading (sample GLTF/OBJ files in test assets)
+- Platform-specific tests using conditional compilation or test inheritance
+- CI workflow step for test execution before packaging
+- Mock implementations of `IGraphicsBackend` for headless testing
+- Visual regression tests for rendering (if applicable)
 
 ---
 

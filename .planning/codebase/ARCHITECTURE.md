@@ -1,162 +1,170 @@
 # Architecture
 
-**Analysis Date:** 2025-03-28
+**Analysis Date:** 2026-03-28
 
 ## Pattern Overview
 
-**Overall:** Layered architecture with platform abstraction backend pattern
+**Overall:** Multi-layered 3D rendering engine with platform-specific graphics backends
 
 **Key Characteristics:**
-- Platform-agnostic core rendering logic in `Videra.Core`
-- Platform-specific graphics backends implementing `IGraphicsBackend`
-- AvaloniaUI integration layer with native window hosting
-- Dependency inversion through abstract interfaces for all graphics operations
-- Software rendering fallback when hardware acceleration unavailable
+- Cross-platform graphics abstraction layer supporting native and software rendering
+- Modular subsystem separation (graphics, camera, geometry, styles, I/O)
+- Event-driven rendering style system with preset management
+- Orbit camera controller with projection/view matrix management
+- Wireframe rendering overlay system with multiple display modes
 
 ## Layers
 
-**Application Layer:**
-- Purpose: Example application demonstrating Videra usage
-- Location: `samples/Videra.Demo/`
-- Contains: MVVM ViewModels, Views, Services
-- Depends on: `Videra.Avalonia`
-- Used by: End users as reference
+**Core Graphics Layer:**
+- Purpose: Central rendering engine coordination and main draw loop
+- Location: `src/Videra.Core/Graphics/`
+- Contains: `VideraEngine.cs`, `Object3D.cs`, renderer components
+- Depends on: Platform-specific backends (via abstraction), geometry types, camera
+- Used by: Avalonia UI layer (`VideraView`), demo application
 
-**UI Integration Layer:**
-- Purpose: AvaloniaUI controls and native window hosting
-- Location: `src/Videra.Avalonia/`
-- Contains: `VideraView` control, platform-specific native hosts, input handling
-- Depends on: `Videra.Core`, `Avalonia 11.x`
-- Used by: Application layer
+**Graphics Abstraction Layer:**
+- Purpose: Interface definitions for cross-platform rendering backends
+- Location: `src/Videra.Core/Graphics/Abstractions/`
+- Contains: `IGraphicsBackend.cs`, `IResourceFactory.cs`, `IPipeline.cs`, `ICommandExecutor.cs`, `IBuffer.cs`
+- Depends on: System.Numerics types
+- Used by: Engine, software backend, platform backends
 
-**Core Layer:**
-- Purpose: Platform-independent 3D rendering engine
-- Location: `src/Videra.Core/`
-- Contains: `VideraEngine`, scene management, camera, abstract interfaces, software renderer
-- Depends on: System.Numerics, SharpGLTF.Toolkit
-- Used by: UI layer, platform backends
+**Backend Implementation Layer:**
+- Purpose: Concrete graphics backends (software and platform-specific)
+- Location: `src/Videra.Core/Graphics/Software/` and `src/Videra.Platform.*/`
+- Contains: `SoftwareBackend.cs`, platform-specific D3D11/Metal/Vulkan implementations
+- Depends on: Abstraction interfaces
+- Used by: Factory pattern selection based on platform/preference
 
-**Platform Layer:**
-- Purpose: Native graphics API implementations
-- Location: `src/Videra.Platform.{Windows/Linux/macOS}/`
-- Contains: D3D11/Vulkan/Metal backends, buffers, pipelines, command executors
-- Depends on: `Videra.Core`, Silk.NET (Windows/Linux), Objective-C Runtime (macOS)
-- Used by: Core layer via `IGraphicsBackend`
+**Camera & Geometry Layer:**
+- Purpose: 3D math and camera control
+- Location: `src/Videra.Core/Cameras/`, `src/Videra.Core/Geometry/`
+- Contains: `OrbitCamera.cs`, `VertexPositionNormalColor.cs`, `MeshData.cs`
+- Depends on: System.Numerics for matrix/vector operations
+- Used by: Engine, renderers
+
+**Style & Parameters Layer:**
+- Purpose: Render style configuration with presets and live updates
+- Location: `src/Videra.Core/Styles/`
+- Contains: `RenderStyleService.cs`, parameter types, presets, JSON serialization
+- Depends on: Engine (for GPU uniform updates via events)
+- Used by: UI controls, engine
+
+**Avalonia Integration Layer:**
+- Purpose: Bridge between Avalonia UI and 3D engine
+- Location: `src/Videra.Avalonia/Controls/`
+- Contains: `VideraView.cs`, platform-specific native hosts
+- Depends on: Core engine, platform interop
+- Used by: Demo application and end-user UIs
+
+**I/O Layer:**
+- Purpose: 3D model loading
+- Location: `src/Videra.Core/IO/`
+- Contains: `ModelImporter.cs` with SharpGLTF and simple OBJ parsers
+- Depends on: Geometry types, graphics resource factory
+- Used by: Demo application
 
 ## Data Flow
 
-**Initialization Flow:**
+**Model Loading:**
 
-1. `VideraView` attached to visual tree
-2. Platform-specific native host created (Windows HWND, Linux X11 Window, macOS NSView)
-3. `GraphicsBackendFactory` creates appropriate backend (D3D11/Vulkan/Metal/Software)
-4. Backend initialized with native window handle
-5. `VideraEngine` initialized with backend
-6. Resources created (camera buffer, style buffer, pipelines)
+1. User selects model file (GLTF/GLB/OBJ) via `ModelImporter.Load()`
+2. SharpGLTF or internal parser processes file into `MeshData` (vertices, indices, normals, colors)
+3. `Object3D.Initialize()` creates GPU buffers via `IResourceFactory`
+4. Wireframe edges are extracted via `EdgeExtractor.ExtractUniqueEdges()` and stored separately
+5. Object added to engine scene via `VideraEngine.AddObject()`
 
-**Render Loop (60 FPS):**
+**Render Frame:**
 
-1. `VideraView` render timer triggers
-2. `VideraEngine.Draw()` called
-3. Backend `BeginFrame()` - clears buffers
-4. Camera uniforms updated
-5. `GridRenderer.Draw()` - renders grid if visible
-6. `AxisRenderer.Draw()` - renders XYZ axes if enabled
-7. For each `Object3D` in scene:
-   - World matrix updated
-   - `ICommandExecutor.DrawIndexed()` called
-8. `WireframeRenderer.Draw()` - renders wireframe overlay if enabled
-9. Backend `EndFrame()` - presents to screen
+1. UI layer triggers `VideraView.OnRenderTick()` (16ms DispatcherTimer)
+2. `VideraEngine.Draw()` executes main render loop:
+   - Backend `BeginFrame()` clears buffers
+   - Camera uniforms (View/Projection matrices) updated to GPU buffer
+   - Style uniforms (lighting, materials) updated to GPU buffer
+   - Grid rendered (if visible)
+   - Scene objects rendered (solid pass, unless WireframeOnly mode)
+   - Wireframe overlay rendered (if mode enabled)
+   - Axis gizmo rendered
+   - Backend `EndFrame()` presents frame
+3. For software backend, `CopyFrameTo()` copies pixels to Avalonia `WriteableBitmap`
 
-**Input Handling Flow:**
+**Style Update:**
 
-1. Mouse/pointer events captured by `VideraView.Input`
-2. Events routed to `OrbitCamera`
-3. Camera updates view/projection matrices
-4. Next render frame uses updated camera state
+1. User changes property via `VideraView` (e.g., `RenderStyle="Toon"`)
+2. `RenderStyleService.ApplyPreset()` updates internal parameters
+3. `StyleChanged` event fires with `StyleChangedEventArgs`
+4. Engine handler updates GPU uniform buffer via `_styleUniformBuffer.Update()`
 
 **State Management:**
-- `OrbitCamera` maintains position, target, yaw, pitch, distance
-- Scene objects in `List<Object3D>` managed by engine
-- Render style parameters managed by `IRenderStyleService`
-- GPU buffers updated on each frame
+
+- Scene objects stored in `List<Object3D>` in engine (thread-locked)
+- Camera state maintained in `OrbitCamera` with lazy matrix updates
+- GPU resources owned by `Object3D` instances (buffers managed per-object)
+- Style state centralized in `RenderStyleService` with INotifyPropertyChanged
 
 ## Key Abstractions
 
 **IGraphicsBackend:**
-- Purpose: Platform-agnostic graphics operations interface
-- Examples: `src/Videra.Core/Graphics/Abstractions/IGraphicsBackend.cs`
-- Pattern: Interface segregation, single responsibility
-- Implementations: `D3D11Backend`, `VulkanBackend`, `MetalBackend`, `SoftwareBackend`
-
-**IResourceFactory:**
-- Purpose: Create GPU resources (buffers, pipelines, shaders)
-- Examples: `src/Videra.Core/Graphics/Abstractions/IResourceFactory.cs`
-- Pattern: Abstract factory
-- Implementations: `D3D11ResourceFactory`, `VulkanResourceFactory`, `MetalResourceFactory`, `SoftwareResourceFactory`
+- Purpose: Platform-agnostic rendering interface
+- Examples: `SoftwareBackend`, `D3D11Backend` (Windows), `MetalBackend` (macOS), `VulkanBackend` (Linux)
+- Pattern: Abstract factory + dependency injection via `GraphicsBackendFactory`
 
 **ICommandExecutor:**
-- Purpose: Execute draw commands and state changes
-- Examples: `src/Videra.Core/Graphics/Abstractions/ICommandExecutor.cs`
-- Pattern: Command pattern
-- Implementations: `D3D11CommandExecutor`, `VulkanCommandExecutor`, `MetalCommandExecutor`, `SoftwareCommandExecutor`
+- Purpose: Immediate-mode rendering command queue
+- Examples: `SoftwareCommandExecutor` (CPU rasterization)
+- Pattern: Command pattern with state binding (pipeline, buffers, uniforms)
 
-**IBuffer:**
-- Purpose: GPU buffer abstraction (vertex, index, uniform)
-- Examples: `src/Videra.Core/Graphics/Abstractions/IBuffer.cs`
-- Pattern: Bridge pattern
-- Implementations: Platform-specific buffer classes
+**IRenderStyleService:**
+- Purpose: Live style configuration with GPU sync
+- Examples: `RenderStyleService` implementation
+- Pattern: Event-driven state change propagation to GPU
+
+**OrbitCamera:**
+- Purpose: 3D navigation control
+- Examples: Single instance per engine
+- Pattern: State object with computed matrix properties (View, Projection)
 
 ## Entry Points
 
-**VideraDemo Application:**
-- Location: `samples/Videra.Demo/Program.cs`
-- Triggers: Application launch
-- Responsibilities: Avalonia app initialization, platform detection, composition mode configuration
-
-**VideraView Control:**
-- Location: `src/Videra.Avalonia/Controls/VideraView.cs`
-- Triggers: Added to visual tree
-- Responsibilities: Native host creation, backend initialization, render loop management, input handling
-
 **VideraEngine:**
 - Location: `src/Videra.Core/Graphics/VideraEngine.cs`
-- Triggers: Initialized by VideraView
-- Responsibilities: Scene management, render coordination, camera management, renderer coordination
+- Triggers: Programmatic initialization via `Initialize(IGraphicsBackend)`
+- Responsibilities: Scene graph management, main render loop, renderer coordination
 
-**Backend Selection:**
-- Location: `src/Videra.Core/Graphics/GraphicsBackendFactory.cs`
-- Triggers: VideraView initialization
-- Responsibilities: Environment variable check, OS detection, backend instantiation, fallback to software
+**VideraView (Avalonia):**
+- Location: `src/Videra.Avalonia/Controls/VideraView.cs`
+- Triggers: Avalonia visual tree attachment, size changes, property changes
+- Responsibilities: Backend creation, render loop management, input routing, bitmap presentation
+
+**Program (Demo):**
+- Location: `samples/Videra.Demo/Program.cs`
+- Triggers: Application launch
+- Responsibilities: Avalonia app builder configuration, platform-specific options
 
 ## Error Handling
 
-**Strategy:** Graceful degradation with fallback
+**Strategy:** Exception-based with console logging fallback
 
 **Patterns:**
-- Hardware backend initialization fails → Fallback to software rendering
-- Invalid mesh data → Exception with clear error message, resource cleanup
-- Window resize failures → Logged warning, render continues with previous size
+- Mesh validation throws `ArgumentException` for null/empty data
+- Buffer size overflow checks throw `InvalidOperationException`
+- Platform backend failures fallback to software backend via null-coalescing
+- Render errors caught in render loop with graceful shutdown (timer stop)
 
 ## Cross-Cutting Concerns
 
-**Logging:** Console-based logging with `[ComponentName]` prefix pattern
+**Logging:** Console-based output with `[ComponentName]` prefix pattern
+- Debug frame logging via `VIDERA_FRAMELOG` environment variable
+- Backend selection logged via `VIDERA_BACKEND` environment variable
 
-**Validation:**
-- Buffer size validation before GPU allocation
-- Null checks for backend/executor before render calls
-- Input validation in `Object3D.Initialize()`
+**Validation:** Null/size checks at GPU resource creation boundaries
+- Buffer creation validates size limits (uint.MaxValue check)
+- Mesh importer validates topology support
 
-**Threading:**
-- Render loop on UI thread via `DispatcherTimer`
-- Lock on `VideraEngine._lock` during draw
-- Native platform calls may be cross-platform (X11, Objective-C runtime)
-
-**Memory Management:**
-- `IDisposable` pattern for all GPU resources
-- Explicit disposal in `VideraEngine.Dispose()`
-- ComPtr usage for D3D11 reference counting
+**Threading:** Render loop synchronized via `lock (_lock)` on scene object list
+- DispatcherTimer ensures render calls on UI thread
+- No async rendering (single-threaded draw loop)
 
 ---
 
-*Architecture analysis: 2025-03-28*
+*Architecture analysis: 2026-03-28*

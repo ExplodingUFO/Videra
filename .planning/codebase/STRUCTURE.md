@@ -1,142 +1,154 @@
 # Codebase Structure
 
-**Analysis Date:** 2025-03-28
+**Analysis Date:** 2026-03-28
 
 ## Directory Layout
 
 ```
 Videra/
-├── src/                      # Source projects
-│   ├── Videra.Core/          # Platform-agnostic core
-│   ├── Videra.Avalonia/      # AvaloniaUI integration
+├── src/                          # Source code projects
+│   ├── Videra.Core/              # Core engine (platform-agnostic)
+│   ├── Videra.Avalonia/          # Avalonia UI integration
 │   ├── Videra.Platform.Windows/  # Windows D3D11 backend
+│   ├── Videra.Platform.macOS/    # macOS Metal backend
 │   ├── Videra.Platform.Linux/    # Linux Vulkan backend
-│   └── Videra.Platform.macOS/    # macOS Metal backend
-├── samples/                  # Example applications
-│   └── Videra.Demo/         # Demo application
-├── docs/                     # Documentation
-├── .github/                  # GitHub Actions workflows
-└── .planning/                # Planning documents
+├── samples/                      # Demo applications
+│   └── Videra.Demo/              # Sample Avalonia app
+├── docs/                         # Documentation
+│   └── plans/                    # Design documents (markdown)
+├── .github/                      # GitHub workflows
+│   └── workflows/                # CI/CD definitions
+├── .planning/                    # Planning artifacts (GSD)
+│   └── codebase/                 # Codebase analysis documents
+└── [build outputs]               # bin/, obj/, .vs/, .vs/ (gitignored)
 ```
 
 ## Directory Purposes
 
 **src/Videra.Core/:**
-- Purpose: Platform-independent rendering engine
-- Contains: Graphics abstractions, scene management, camera, software renderer, style system
-- Key files: `Graphics/VideraEngine.cs`, `Graphics/Abstractions/IGraphicsBackend.cs`, `Cameras/OrbitCamera.cs`
+- Purpose: Platform-agnostic 3D rendering engine
+- Contains: Graphics abstractions, software backend, camera, geometry, I/O, styles
+- Key files: `VideraEngine.cs`, `Object3D.cs`, `OrbitCamera.cs`, `ModelImporter.cs`
 
 **src/Videra.Avalonia/:**
-- Purpose: AvaloniaUI control integration
-- Contains: VideraView control, native window hosts, input handling, platform interop
-- Key files: `Controls/VideraView.cs`, `Controls/VideraNativeHost.cs`, `Controls/VideraView.Input.cs`
+- Purpose: Avalonia UI controls for embedding 3D views
+- Contains: `VideraView` control, platform-specific native hosts, interop
+- Key files: `VideraView.cs`, `VideraNativeHost.cs`, `VideraLinuxNativeHost.cs`, `VideraMacOSNativeHost.cs`
 
-**src/Videra.Platform.Windows/:**
-- Purpose: Windows Direct3D 11 graphics backend
-- Contains: D3D11 backend, buffers, pipelines, command executor, resource factory
-- Key files: `D3D11Backend.cs`, `D3D11Buffer.cs`, `D3D11ResourceFactory.cs`
-
-**src/Videra.Platform.Linux/:**
-- Purpose: Linux Vulkan graphics backend
-- Contains: Vulkan backend, buffers, pipelines, command executor, resource factory
-- Key files: `VulkanBackend.cs`, `VulkanBuffer.cs`, `VulkanResourceFactory.cs`
-
-**src/Videra.Platform.macOS/:**
-- Purpose: macOS Metal graphics backend
-- Contains: Metal backend, buffers, pipelines, command executor, resource factory
-- Key files: `MetalBackend.cs`, `MetalBuffer.cs`, `MetalResourceFactory.cs`
+**src/Videra.Platform.*/:**
+- Purpose: Platform-specific graphics backend implementations
+- Contains: D3D11/Metal/Vulkan backend implementations
+- Pattern: Each platform project loaded dynamically via reflection
 
 **samples/Videra.Demo/:**
-- Purpose: Example application demonstrating Videra usage
-- Contains: MVVM application, ViewModels, Views, services
-- Key files: `Program.cs`, `Views/MainWindow.axaml`, `ViewModels/MainWindowViewModel.cs`
+- Purpose: Example application showing engine usage
+- Contains: ViewModels, Views, Services, converters
+- Key files: `Program.cs`, `MainWindow.axaml`, `MainWindowViewModel.cs`
+
+**docs/plans/:**
+- Purpose: Design and planning documents
+- Contains: Render style system design, wireframe rendering design, shader update plans
+- Format: Markdown with date prefixes
+
+**.github/workflows/:**
+- Purpose: CI/CD automation
+- Contains: NuGet package publishing workflow
 
 ## Key File Locations
 
 **Entry Points:**
-- `samples/Videra.Demo/Program.cs`: Application entry point
-- `src/Videra.Avalonia/Controls/VideraView.cs`: Main 3D view control
+- `samples/Videra.Demo/Program.cs`: Demo application entry point
 - `src/Videra.Core/Graphics/VideraEngine.cs`: Core rendering engine
+- `src/Videra.Avalonia/Controls/VideraView.cs`: Main UI control
 
 **Configuration:**
-- `src/Videra.Avalonia/Videra.Avalonia.csproj`: Conditional platform references
-- `samples/Videra.Demo/Program.cs`: Platform-specific Avalonia options
+- `samples/Videra.Demo/Videra.Demo.csproj`: Demo project configuration
+- `src/Videra.Core/Videra.Core.csproj`: Core project dependencies (SharpGLTF.Toolkit)
+- `src/Videra.Avalonia/Videra.Avalonia.csproj`: UI layer (Avalonia 11.3.9)
 
 **Core Logic:**
-- `src/Videra.Core/Graphics/`: Rendering pipeline, engine, objects
-- `src/Videra.Core/Graphics/Abstractions/`: Graphics API interfaces
-- `src/Videra.Core/Cameras/`: Camera implementation
-- `src/Videra.Core/Styles/`: Render style system
+- `src/Videra.Core/Graphics/`: Main rendering subsystem
+- `src/Videra.Core/Graphics/Abstractions/`: Backend interfaces
+- `src/Videra.Core/Graphics/Software/`: CPU rasterization backend
+- `src/Videra.Core/Graphics/Wireframe/`: Edge extraction and wireframe rendering
+- `src/Videra.Core/Cameras/`: Orbit camera controller
+- `src/Videra.Core/IO/`: Model import (GLTF/GLB/OBJ)
+- `src/Videra.Core/Styles/`: Render style parameters and presets
+- `src/Videra.Core/Geometry/`: Vertex types and mesh data structures
 
-**Platform Implementations:**
-- `src/Videra.Platform.Windows/`: Direct3D 11 implementation
-- `src/Videra.Platform.Linux/`: Vulkan implementation
-- `src/Videra.Platform.macOS/`: Metal implementation
-- `src/Videra.Core/Graphics/Software/`: Software rendering fallback
+**Testing:**
+- No dedicated test directory (inferred: testing not present)
 
 ## Naming Conventions
 
 **Files:**
-- PascalCase: `VideraEngine.cs`, `OrbitCamera.cs`, `D3D11Backend.cs`
-- Partial classes: `VideraView.Input.cs`, `VideraNativeHost.cs`
+- PascalCase for classes: `VideraEngine.cs`, `OrbitCamera.cs`, `ModelImporter.cs`
 - Interface prefix: `IGraphicsBackend.cs`, `IResourceFactory.cs`
+- AXAML for UI: `MainWindow.axaml`, `MainWindow.axaml.cs`
 
 **Directories:**
-- PascalCase: `Graphics/`, `Cameras/`, `Controls/`
-- Platform suffix: `Videra.Platform.Windows/`, `Videra.Platform.Linux/`
+- PascalCase for features: `Graphics/`, `Cameras/`, `Styles/`
+- Platform suffix for backends: `Videra.Platform.Windows/`, `Videra.Platform.macOS/`
 
-**Namespaces:**
-- Match directory structure: `Videra.Core.Graphics`, `Videra.Avalonia.Controls`
-- Platform-specific: `Videra.Platform.Windows`, `Videra.Platform.Linux`, `Videra.Platform.macOS`
+**Types:**
+- Classes: PascalCase (`Object3D`, `RenderStyleService`)
+- Interfaces: IPrefix (`IGraphicsBackend`, `ICommandExecutor`)
+- Enums: PascalCase (`WireframeMode`, `MeshTopology`, `RenderStylePreset`)
+- Methods: PascalCase (`Initialize`, `Draw`, `UpdateUniforms`)
+- Properties: PascalCase (`IsInitialized`, `BackgroundColor`, `WorldMatrix`)
+- Fields: _camelCase for private (`_backend`, `_factory`, `_width`)
 
 ## Where to Add New Code
 
-**New Graphics Feature:**
-- Primary code: `src/Videra.Core/Graphics/[FeatureName].cs`
-- Abstractions: `src/Videra.Core/Graphics/Abstractions/I[FeatureName].cs`
-- Platform implementations: Each `Videra.Platform.*` project
+**New Feature:**
+- Primary code: `src/Videra.Core/` (appropriate subsystem directory)
+- Tests: Create `tests/Videra.Core.Tests/` (inferred - not present)
+- Demo usage: `samples/Videra.Demo/ViewModels/` or `Services/`
 
-**New UI Control:**
-- Implementation: `src/Videra.Avalonia/Controls/[ControlName].cs`
-- XAML (if needed): In consuming application
-
-**New Render Style:**
-- Parameters: `src/Videra.Core/Styles/Parameters/[Style]Parameters.cs`
-- Preset: `src/Videra.Core/Styles/Presets/RenderStylePresets.cs`
-
-**New Platform Backend:**
-- Project: `src/Videra.Platform.[PlatformName]/`
-- Reference: Add to `Videra.Avalonia.csproj` with condition
-- Implementation: Implement `IGraphicsBackend`, `IResourceFactory`, `ICommandExecutor`
+**New Component/Module:**
+- Implementation: `src/Videra.Core/[SubsystemName]/`
+- Example: New renderer → `src/Videra.Core/Graphics/NewRenderer/`
 
 **Utilities:**
-- Shared helpers: `src/Videra.Core/Utilities/` (create if needed)
+- Shared helpers: `src/Videra.Core/[Domain]/Utils/` or `src/Videra.Core/[Domain]/Helpers/`
+- Example: Mesh processing → `src/Videra.Core/Geometry/Utils/`
+
+**Platform-Specific Code:**
+- New platform backend: `src/Videra.Platform.[PlatformName]/`
+- Registration: Update `GraphicsBackendFactory.cs` with new backend type
+
+**New Style/Parameter:**
+- Parameter class: `src/Videra.Core/Styles/Parameters/[Feature]Parameters.cs`
+- Preset: Add to `src/Videra.Core/Styles/Presets/RenderStylePresets.cs`
+- Service integration: Update `RenderStyleParameters` aggregate class
 
 ## Special Directories
 
-**obj/ directories:**
-- Purpose: Build output, generated files
+**bin/ and obj/:**
+- Purpose: Build outputs (assemblies, intermediate compilation)
 - Generated: Yes
-- Committed: No (in .gitignore)
+- Committed: No (gitignored via standard .NET patterns)
 
-**Interop/:**
-- Purpose: Platform API declarations
-- Location: `src/Videra.Avalonia/Interop/Win32.cs`
-- Generated: No
-- Committed: Yes
-
-**docs/:**
-- Purpose: Design documentation
-- Contains: Architecture docs, design documents
-- Generated: No
-- Committed: Yes
+**.vs/ and .vs/:**
+- Purpose: IDE state (Visual Studio, Rider)
+- Generated: Yes
+- Committed: No
 
 **.github/workflows/:**
-- Purpose: CI/CD pipeline definitions
-- Contains: NuGet publishing workflow
+- Purpose: CI/CD automation
+- Generated: No (authored configuration)
+- Committed: Yes
+
+**docs/plans/:**
+- Purpose: Historical design documentation
 - Generated: No
 - Committed: Yes
+
+**.planning/codebase/:**
+- Purpose: GSD codebase analysis output (this directory)
+- Generated: Yes (by GSD agents)
+- Committed: Yes (consumed by other GSD commands)
 
 ---
 
-*Structure analysis: 2025-03-28*
+*Structure analysis: 2026-03-28*
