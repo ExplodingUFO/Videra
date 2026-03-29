@@ -141,6 +141,7 @@ public class Object3D : IDisposable
     /// </exception>
     public void Initialize(IResourceFactory factory, MeshData mesh, ILogger? logger = null)
     {
+        ArgumentNullException.ThrowIfNull(factory);
         var log = logger ?? Microsoft.Extensions.Logging.Abstractions.NullLoggerFactory.Instance.CreateLogger<Object3D>();
         try
         {
