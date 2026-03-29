@@ -8,7 +8,7 @@ internal class MetalBuffer : IBuffer
     private IntPtr _buffer;
 
     public uint SizeInBytes { get; }
-    
+
     internal IntPtr NativeBuffer => _buffer;
 
     public MetalBuffer(IntPtr buffer, uint sizeInBytes)
@@ -25,7 +25,7 @@ internal class MetalBuffer : IBuffer
             if (dataSize > SizeInBytes)
                 throw new InvalidOperationException($"Data size ({dataSize}) exceeds buffer size ({SizeInBytes})");
 
-            var contents = GetBufferContents(_buffer, SEL("contents"));
+            var contents = ObjCRuntime.SendMessage(_buffer, ObjCRuntime.SEL("contents"));
             Marshal.StructureToPtr(data, contents, false);
         }
     }
@@ -38,8 +38,8 @@ internal class MetalBuffer : IBuffer
             if (dataSize > SizeInBytes)
                 throw new InvalidOperationException($"Data size ({dataSize}) exceeds buffer size ({SizeInBytes})");
 
-            var contents = GetBufferContents(_buffer, SEL("contents"));
-            
+            var contents = ObjCRuntime.SendMessage(_buffer, ObjCRuntime.SEL("contents"));
+
             fixed (T* dataPtr = data)
             {
                 Buffer.MemoryCopy(dataPtr, contents.ToPointer(), SizeInBytes, dataSize);
@@ -55,7 +55,7 @@ internal class MetalBuffer : IBuffer
             if (offset + dataSize > SizeInBytes)
                 throw new InvalidOperationException($"Data size ({dataSize}) with offset exceeds buffer size ({SizeInBytes})");
 
-            var contents = GetBufferContents(_buffer, SEL("contents"));
+            var contents = ObjCRuntime.SendMessage(_buffer, ObjCRuntime.SEL("contents"));
             var target = IntPtr.Add(contents, checked((int)offset));
             Marshal.StructureToPtr(data, target, false);
         }
@@ -69,7 +69,7 @@ internal class MetalBuffer : IBuffer
             if (offset + dataSize > SizeInBytes)
                 throw new InvalidOperationException($"Data size ({dataSize}) with offset exceeds buffer size ({SizeInBytes})");
 
-            var contents = GetBufferContents(_buffer, SEL("contents"));
+            var contents = ObjCRuntime.SendMessage(_buffer, ObjCRuntime.SEL("contents"));
             var target = IntPtr.Add(contents, checked((int)offset));
             fixed (T* dataPtr = data)
             {
@@ -82,24 +82,8 @@ internal class MetalBuffer : IBuffer
     {
         if (_buffer != IntPtr.Zero)
         {
-            SendMessage(_buffer, SEL("release"));
+            ObjCRuntime.SendMessageVoid(_buffer, ObjCRuntime.SEL("release"));
             _buffer = IntPtr.Zero;
         }
     }
-
-    #region Metal Interop
-
-    [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "sel_registerName")]
-    private static extern IntPtr sel_registerName(string name);
-
-    [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_msgSend")]
-    private static extern IntPtr GetBufferContents(IntPtr buffer, IntPtr selector);
-
-    [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_msgSend")]
-    private static extern void SendMessage(IntPtr receiver, IntPtr selector);
-
-    // 辅助方法：将 selector 字符串转换为 SEL (IntPtr)
-    private static IntPtr SEL(string name) => sel_registerName(name);
-
-    #endregion
 }

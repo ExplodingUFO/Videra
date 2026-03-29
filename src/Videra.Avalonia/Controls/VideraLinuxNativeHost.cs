@@ -4,11 +4,17 @@ using Avalonia.Controls;
 using Avalonia.Platform;
 using Microsoft.Extensions.Logging;
 using Videra.Core.Exceptions;
+using Videra.Core.NativeLibrary;
 
 namespace Videra.Avalonia.Controls;
 
 internal sealed class VideraLinuxNativeHost : NativeControlHost, IVideraNativeHost
 {
+    // Register DllImport resolver so "libX11.so.6" falls back to "libX11.so" and "libX11"
+    static VideraLinuxNativeHost()
+    {
+        NativeLibraryHelper.RegisterDllImportResolver("libX11.so.6", "libX11.so", "libX11");
+    }
     private IntPtr _display;
     private IntPtr _window;
     private bool _isDisposed;

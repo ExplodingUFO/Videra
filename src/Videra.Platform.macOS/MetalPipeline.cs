@@ -1,4 +1,3 @@
-using System.Runtime.InteropServices;
 using Videra.Core.Graphics.Abstractions;
 
 namespace Videra.Platform.macOS;
@@ -9,9 +8,9 @@ namespace Videra.Platform.macOS;
 internal class MetalPipeline : IPipeline
 {
     private IntPtr _pipelineState;
-    
+
     public IntPtr NativePipelineState => _pipelineState;
-    
+
     public MetalPipeline(IntPtr pipelineState)
     {
         _pipelineState = pipelineState;
@@ -21,15 +20,8 @@ internal class MetalPipeline : IPipeline
     {
         if (_pipelineState != IntPtr.Zero)
         {
-            // Release pipeline state
-            objc_msgSend(_pipelineState, sel_registerName("release"));
+            ObjCRuntime.SendMessageVoid(_pipelineState, ObjCRuntime.SEL("release"));
             _pipelineState = IntPtr.Zero;
         }
     }
-    
-    [DllImport("/usr/lib/libobjc.dylib")]
-    private static extern IntPtr sel_registerName(string name);
-    
-    [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_msgSend")]
-    private static extern void objc_msgSend(IntPtr receiver, IntPtr selector);
 }
