@@ -119,16 +119,15 @@ internal class MetalResourceFactory : IResourceFactory
 
             if (pipelineState == IntPtr.Zero)
             {
+                string errorMsg = "Failed to create pipeline state.";
                 if (error != IntPtr.Zero)
                 {
                     var errorDesc = SendMessage(error, SEL("localizedDescription"));
                     _logger.LogError("Failed to create pipeline state. Error: {Error}", errorDesc);
+                    errorMsg = $"Failed to create pipeline state. Error: {errorDesc}";
                 }
-                else
-                {
-                    _logger.LogError("Failed to create pipeline state");
-                }
-                return new MetalPipeline(IntPtr.Zero);
+
+                throw new PipelineCreationException(errorMsg, "CreatePipeline");
             }
 
             _logger.LogInformation("Pipeline created successfully");
@@ -137,7 +136,7 @@ internal class MetalResourceFactory : IResourceFactory
         catch (Exception ex)
         {
             _logger.LogError(ex, "Exception creating pipeline: {Error}", ex.Message);
-            return new MetalPipeline(IntPtr.Zero);
+            throw new PipelineCreationException($"Exception creating pipeline: {ex.Message}", "CreatePipeline", ex);
         }
     }
 

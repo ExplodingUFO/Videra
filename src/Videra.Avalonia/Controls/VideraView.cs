@@ -354,10 +354,8 @@ public partial class VideraView : Decorator
             ? topLevel?.TryGetPlatformHandle()?.Handle ?? IntPtr.Zero
             : _renderHandle;
         _logger.LogDebug("Init handle=0x{Handle:X}, TopLevel={HasTopLevel}", handle.ToInt64(), topLevel != null);
-        //System.Diagnostics.Debug.WriteLine($"Current handle is {handle}");
         _backend.Initialize(handle, (int)widthPx, (int)heightPx);
 
-        //_backend.Initialize(IntPtr.Zero, (int)widthPx, (int)heightPx);
 
         Engine.Initialize(_backend);
         Engine.Resize(widthPx, heightPx);

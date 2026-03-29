@@ -199,14 +199,13 @@ public class VideraEngine : IDisposable
 
         if (_width == width && _height == height) return;
 
-        _width = width;
-        _height = height;
-
         try
         {
             _logger.LogInformation("[VideraEngine] Resizing to: {Width}x{Height}", width, height);
             _backend?.Resize((int)width, (int)height);
             Camera.UpdateProjection(width, height);
+            _width = width;
+            _height = height;
         }
         catch (Exception ex)
         {
@@ -407,6 +406,7 @@ public class VideraEngine : IDisposable
 	/// <see cref="Object3D"/> manages its own mesh. Calling it logs a warning.
 	/// </summary>
 	/// <param name="mesh">Mesh data (ignored).</param>
+	[Obsolete("UpdateMesh is deprecated. Each Object3D manages its own mesh in the current architecture.")]
 	public void UpdateMesh(MeshData mesh)
 	{
         // 这个方法在新架构中已不需要，因为每个Object3D自己管理mesh
