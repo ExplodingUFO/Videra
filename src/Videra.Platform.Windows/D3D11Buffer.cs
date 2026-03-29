@@ -1,6 +1,7 @@
 using System.Runtime.InteropServices;
 using Silk.NET.Core.Native;
 using Silk.NET.Direct3D11;
+using Videra.Core.Exceptions;
 using Videra.Core.Graphics.Abstractions;
 
 namespace Videra.Platform.Windows;
@@ -32,7 +33,9 @@ internal unsafe class D3D11Buffer : IBuffer
         MappedSubresource mapped;
         var result = _context.Handle->Map((ID3D11Resource*)_buffer.Handle, 0, Map.WriteDiscard, 0, &mapped);
         if (result != 0)
-            throw new Exception($"Failed to map buffer. HRESULT: 0x{result:X8}");
+            throw new ResourceCreationException(
+                $"Failed to map buffer. HRESULT: 0x{result:X8}",
+                "Update");
 
         Marshal.StructureToPtr(data, (IntPtr)mapped.PData, false);
 
@@ -48,7 +51,9 @@ internal unsafe class D3D11Buffer : IBuffer
         MappedSubresource mapped;
         var result = _context.Handle->Map((ID3D11Resource*)_buffer.Handle, 0, Map.WriteDiscard, 0, &mapped);
         if (result != 0)
-            throw new Exception($"Failed to map buffer. HRESULT: 0x{result:X8}");
+            throw new ResourceCreationException(
+                $"Failed to map buffer. HRESULT: 0x{result:X8}",
+                "UpdateArray");
 
         fixed (T* dataPtr = data)
         {
@@ -68,7 +73,9 @@ internal unsafe class D3D11Buffer : IBuffer
         var mapType = offset + dataSize < SizeInBytes ? Map.WriteNoOverwrite : Map.WriteDiscard;
         var result = _context.Handle->Map((ID3D11Resource*)_buffer.Handle, 0, mapType, 0, &mapped);
         if (result != 0)
-            throw new Exception($"Failed to map buffer. HRESULT: 0x{result:X8}");
+            throw new ResourceCreationException(
+                $"Failed to map buffer. HRESULT: 0x{result:X8}",
+                "SetData");
 
         Marshal.StructureToPtr(data, (IntPtr)((byte*)mapped.PData + offset), false);
 
@@ -85,7 +92,9 @@ internal unsafe class D3D11Buffer : IBuffer
         var mapType = offset + dataSize < SizeInBytes ? Map.WriteNoOverwrite : Map.WriteDiscard;
         var result = _context.Handle->Map((ID3D11Resource*)_buffer.Handle, 0, mapType, 0, &mapped);
         if (result != 0)
-            throw new Exception($"Failed to map buffer. HRESULT: 0x{result:X8}");
+            throw new ResourceCreationException(
+                $"Failed to map buffer. HRESULT: 0x{result:X8}",
+                "SetData");
 
         fixed (T* dataPtr = data)
         {

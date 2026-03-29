@@ -54,6 +54,7 @@ public unsafe class VulkanBackend : IGraphicsBackend
     private VulkanResourceFactory _resourceFactory;
     private VulkanCommandExecutor _commandExecutor;
     private IntPtr _x11Display;
+    private bool _disposed;
 
     public bool IsInitialized { get; private set; }
 
@@ -75,48 +76,56 @@ public unsafe class VulkanBackend : IGraphicsBackend
 
         _width = width;
         _height = height;
-        
+
         _vk = Vk.GetApi();
 
-        // 创建 Vulkan Instance
-        CreateInstance();
-        
-        // 创建 Surface (需要平台特定代码)
-        CreateSurface(windowHandle);
-        
-        // 选择物理设备
-        PickPhysicalDevice();
-        
-        // 创建逻辑设备
-        CreateLogicalDevice();
-        
-        // 创建 Swapchain
-        CreateSwapchain();
-        
-        // 创建 Image Views
-        CreateImageViews();
-        
-        // 创建 Render Pass
-        CreateRenderPass();
-        
-        // 创建深度资源
-        CreateDepthResources();
-        
-        // 创建 Framebuffers
-        CreateFramebuffers();
-        
-        // 创建 Command Pool
-        CreateCommandPool();
-        
-        // 创建 Command Buffers
-        CreateCommandBuffers();
-        
-        // 创建同步对象
-        CreateSyncObjects();
-        
-        // 创建工厂和命令执行器
-        _resourceFactory = new VulkanResourceFactory(_device, _physicalDevice, _vk, _renderPass);
-        _commandExecutor = new VulkanCommandExecutor(_device, _commandBuffers[0], _vk);
+        try
+        {
+            // 创建 Vulkan Instance
+            CreateInstance();
+
+            // 创建 Surface (需要平台特定代码)
+            CreateSurface(windowHandle);
+
+            // 选择物理设备
+            PickPhysicalDevice();
+
+            // 创建逻辑设备
+            CreateLogicalDevice();
+
+            // 创建 Swapchain
+            CreateSwapchain();
+
+            // 创建 Image Views
+            CreateImageViews();
+
+            // 创建 Render Pass
+            CreateRenderPass();
+
+            // 创建深度资源
+            CreateDepthResources();
+
+            // 创建 Framebuffers
+            CreateFramebuffers();
+
+            // 创建 Command Pool
+            CreateCommandPool();
+
+            // 创建 Command Buffers
+            CreateCommandBuffers();
+
+            // 创建同步对象
+            CreateSyncObjects();
+
+            // 创建工厂和命令执行器
+            _resourceFactory = new VulkanResourceFactory(_device, _physicalDevice, _vk, _renderPass);
+            _commandExecutor = new VulkanCommandExecutor(_device, _commandBuffers[0], _vk);
+        }
+        catch
+        {
+            Dispose();
+            throw;
+        }
 
         IsInitialized = true;
     }
@@ -150,7 +159,9 @@ public unsafe class VulkanBackend : IGraphicsBackend
         fixed (Instance* instance = &_instance)
         {
             if (_vk.CreateInstance(in createInfo, null, instance) != Result.Success)
-                throw new Exception("Failed to create Vulkan instance");
+                throw new GraphicsInitializationException(
+                    "Failed to create Vulkan instance.",
+                    "CreateInstance");
         }
 
         // 获取 KHR Surface 扩展
@@ -162,11 +173,17 @@ public unsafe class VulkanBackend : IGraphicsBackend
         _vk.TryGetInstanceExtension(_instance, out _khrXlibSurface);
 
         if (windowHandle == IntPtr.Zero)
-            throw new Exception("Vulkan requires a valid X11 window handle.");
+            throw new PlatformDependencyException(
+                "Vulkan requires a valid X11 window handle.",
+                "CreateSurface",
+                "Linux");
 
         _x11Display = XOpenDisplay(IntPtr.Zero);
         if (_x11Display == IntPtr.Zero)
-            throw new Exception("Failed to open X11 display");
+            throw new PlatformDependencyException(
+                "Failed to open X11 display.",
+                "CreateSurface",
+                "Linux");
 
         var createInfo = new XlibSurfaceCreateInfoKHR
         {
@@ -178,7 +195,9 @@ public unsafe class VulkanBackend : IGraphicsBackend
         fixed (SurfaceKHR* surface = &_surface)
         {
             if (_khrXlibSurface.CreateXlibSurface(_instance, in createInfo, null, surface) != Result.Success)
-                throw new Exception("Failed to create X11 Vulkan surface");
+                throw new GraphicsInitializationException(
+                    "Failed to create X11 Vulkan surface.",
+                    "CreateSurface");
         }
     }
 
@@ -188,7 +207,9 @@ public unsafe class VulkanBackend : IGraphicsBackend
         _vk.EnumeratePhysicalDevices(_instance, &deviceCount, null);
         
         if (deviceCount == 0)
-            throw new Exception("Failed to find GPUs with Vulkan support");
+            throw new GraphicsInitializationException(
+                "Failed to find GPUs with Vulkan support.",
+                "PickPhysicalDevice");
 
         var devices = stackalloc PhysicalDevice[(int)deviceCount];
         _vk.EnumeratePhysicalDevices(_instance, &deviceCount, devices);
@@ -259,7 +280,9 @@ public unsafe class VulkanBackend : IGraphicsBackend
         fixed (Device* device = &_device)
         {
             if (_vk.CreateDevice(_physicalDevice, in createInfo, null, device) != Result.Success)
-                throw new Exception("Failed to create logical device");
+                throw new GraphicsInitializationException(
+                    "Failed to create logical device.",
+                    "CreateLogicalDevice");
         }
 
         // 获取队列
@@ -322,7 +345,9 @@ public unsafe class VulkanBackend : IGraphicsBackend
         fixed (SwapchainKHR* swapchain = &_swapchain)
         {
             if (_khrSwapchain.CreateSwapchain(_device, in createInfo, null, swapchain) != Result.Success)
-                throw new Exception("Failed to create swapchain");
+                throw new ResourceCreationException(
+                    "Failed to create swapchain.",
+                    "CreateSwapchain");
         }
 
         // 获取 Swapchain Images
@@ -368,7 +393,9 @@ public unsafe class VulkanBackend : IGraphicsBackend
             fixed (ImageView* imageView = &_swapchainImageViews[i])
             {
                 if (_vk.CreateImageView(_device, in createInfo, null, imageView) != Result.Success)
-                    throw new Exception("Failed to create image view");
+                    throw new ResourceCreationException(
+                        "Failed to create image view.",
+                        "CreateImageViews");
             }
         }
     }
@@ -447,7 +474,9 @@ public unsafe class VulkanBackend : IGraphicsBackend
         fixed (RenderPass* renderPass = &_renderPass)
         {
             if (_vk.CreateRenderPass(_device, in renderPassInfo, null, renderPass) != Result.Success)
-                throw new Exception("Failed to create render pass");
+                throw new ResourceCreationException(
+                    "Failed to create render pass.",
+                    "CreateRenderPass");
         }
     }
 
@@ -473,7 +502,9 @@ public unsafe class VulkanBackend : IGraphicsBackend
         fixed (Image* image = &_depthImage)
         {
             if (_vk.CreateImage(_device, in imageInfo, null, image) != Result.Success)
-                throw new Exception("Failed to create depth image");
+                throw new ResourceCreationException(
+                    "Failed to create depth image.",
+                    "CreateDepthResources");
         }
 
         MemoryRequirements memRequirements;
@@ -489,7 +520,9 @@ public unsafe class VulkanBackend : IGraphicsBackend
         fixed (DeviceMemory* memory = &_depthImageMemory)
         {
             if (_vk.AllocateMemory(_device, in allocInfo, null, memory) != Result.Success)
-                throw new Exception("Failed to allocate depth memory");
+                throw new ResourceCreationException(
+                    "Failed to allocate depth memory.",
+                    "CreateDepthResources");
         }
 
         _vk.BindImageMemory(_device, _depthImage, _depthImageMemory, 0);
@@ -513,7 +546,9 @@ public unsafe class VulkanBackend : IGraphicsBackend
         fixed (ImageView* view = &_depthImageView)
         {
             if (_vk.CreateImageView(_device, in viewInfo, null, view) != Result.Success)
-                throw new Exception("Failed to create depth image view");
+                throw new ResourceCreationException(
+                    "Failed to create depth image view.",
+                    "CreateDepthResources");
         }
     }
 
@@ -539,7 +574,9 @@ public unsafe class VulkanBackend : IGraphicsBackend
             fixed (Framebuffer* framebuffer = &_framebuffers[i])
             {
                 if (_vk.CreateFramebuffer(_device, in framebufferInfo, null, framebuffer) != Result.Success)
-                    throw new Exception("Failed to create framebuffer");
+                    throw new ResourceCreationException(
+                        "Failed to create framebuffer.",
+                        "CreateFramebuffers");
             }
         }
     }
@@ -556,7 +593,9 @@ public unsafe class VulkanBackend : IGraphicsBackend
         fixed (CommandPool* commandPool = &_commandPool)
         {
             if (_vk.CreateCommandPool(_device, in poolInfo, null, commandPool) != Result.Success)
-                throw new Exception("Failed to create command pool");
+                throw new ResourceCreationException(
+                    "Failed to create command pool.",
+                    "CreateCommandPool");
         }
     }
 
@@ -575,7 +614,9 @@ public unsafe class VulkanBackend : IGraphicsBackend
         fixed (CommandBuffer* commandBuffers = _commandBuffers)
         {
             if (_vk.AllocateCommandBuffers(_device, in allocInfo, commandBuffers) != Result.Success)
-                throw new Exception("Failed to allocate command buffers");
+                throw new ResourceCreationException(
+                    "Failed to allocate command buffers.",
+                    "CreateCommandBuffers");
         }
     }
 
@@ -600,7 +641,9 @@ public unsafe class VulkanBackend : IGraphicsBackend
                 _vk.CreateSemaphore(_device, in semaphoreInfo, null, renderFinished) != Result.Success ||
                 _vk.CreateFence(_device, in fenceInfo, null, inFlight) != Result.Success)
             {
-                throw new Exception("Failed to create sync objects");
+                throw new ResourceCreationException(
+                    "Failed to create sync objects.",
+                    "CreateSyncObjects");
             }
         }
     }
@@ -781,12 +824,19 @@ public unsafe class VulkanBackend : IGraphicsBackend
                 return i;
         }
 
-        throw new Exception("Failed to find suitable memory type");
+        throw new ResourceCreationException(
+            "Failed to find suitable memory type.",
+            "FindMemoryType");
     }
 
     public void Dispose()
     {
-        _vk.DeviceWaitIdle(_device);
+        if (_disposed) return;
+        _disposed = true;
+        IsInitialized = false;
+
+        if (_device.Handle != 0)
+            _vk.DeviceWaitIdle(_device);
 
         _vk.DestroySemaphore(_device, _imageAvailableSemaphore, null);
         _vk.DestroySemaphore(_device, _renderFinishedSemaphore, null);

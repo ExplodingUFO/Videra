@@ -228,7 +228,9 @@ internal unsafe class VulkanResourceFactory : IResourceFactory
 
         DescriptorSetLayout descriptorSetLayout;
         if (_vk.CreateDescriptorSetLayout(_device, in descriptorSetLayoutInfo, null, out descriptorSetLayout) != Result.Success)
-            throw new Exception("Failed to create descriptor set layout");
+            throw new PipelineCreationException(
+                "Failed to create descriptor set layout.",
+                "CreatePipeline");
 
         var pipelineLayoutInfo = new PipelineLayoutCreateInfo
         {
@@ -239,7 +241,9 @@ internal unsafe class VulkanResourceFactory : IResourceFactory
 
         PipelineLayout pipelineLayout;
         if (_vk.CreatePipelineLayout(_device, in pipelineLayoutInfo, null, out pipelineLayout) != Result.Success)
-            throw new Exception("Failed to create pipeline layout");
+            throw new PipelineCreationException(
+                "Failed to create pipeline layout.",
+                "CreatePipeline");
 
         var pipelineInfo = new GraphicsPipelineCreateInfo
         {
@@ -261,17 +265,23 @@ internal unsafe class VulkanResourceFactory : IResourceFactory
         Pipeline trianglePipeline;
         pipelineInfo.PInputAssemblyState = &inputAssemblyTriangle;
         if (_vk.CreateGraphicsPipelines(_device, default, 1, in pipelineInfo, null, out trianglePipeline) != Result.Success)
-            throw new Exception("Failed to create triangle pipeline");
+            throw new PipelineCreationException(
+                "Failed to create triangle pipeline.",
+                "CreatePipeline");
 
         Pipeline linePipeline;
         pipelineInfo.PInputAssemblyState = &inputAssemblyLine;
         if (_vk.CreateGraphicsPipelines(_device, default, 1, in pipelineInfo, null, out linePipeline) != Result.Success)
-            throw new Exception("Failed to create line pipeline");
+            throw new PipelineCreationException(
+                "Failed to create line pipeline.",
+                "CreatePipeline");
 
         Pipeline pointPipeline;
         pipelineInfo.PInputAssemblyState = &inputAssemblyPoint;
         if (_vk.CreateGraphicsPipelines(_device, default, 1, in pipelineInfo, null, out pointPipeline) != Result.Success)
-            throw new Exception("Failed to create point pipeline");
+            throw new PipelineCreationException(
+                "Failed to create point pipeline.",
+                "CreatePipeline");
 
         var poolSizes = stackalloc DescriptorPoolSize[1];
         poolSizes[0] = new DescriptorPoolSize(DescriptorType.UniformBuffer, 2);
@@ -286,7 +296,9 @@ internal unsafe class VulkanResourceFactory : IResourceFactory
 
         DescriptorPool descriptorPool;
         if (_vk.CreateDescriptorPool(_device, in descriptorPoolInfo, null, out descriptorPool) != Result.Success)
-            throw new Exception("Failed to create descriptor pool");
+            throw new PipelineCreationException(
+                "Failed to create descriptor pool.",
+                "CreatePipeline");
 
         var allocateInfo = new DescriptorSetAllocateInfo
         {
@@ -298,7 +310,9 @@ internal unsafe class VulkanResourceFactory : IResourceFactory
 
         DescriptorSet descriptorSet;
         if (_vk.AllocateDescriptorSets(_device, in allocateInfo, out descriptorSet) != Result.Success)
-            throw new Exception("Failed to allocate descriptor set");
+            throw new PipelineCreationException(
+                "Failed to allocate descriptor set.",
+                "CreatePipeline");
 
         SilkMarshal.Free((nint)shaderStages[0].PName);
         SilkMarshal.Free((nint)shaderStages[1].PName);
@@ -335,7 +349,9 @@ internal unsafe class VulkanResourceFactory : IResourceFactory
 
         VkBuffer buffer;
         if (_vk.CreateBuffer(_device, in bufferInfo, null, out buffer) != Result.Success)
-            throw new Exception("Failed to create buffer");
+            throw new ResourceCreationException(
+                "Failed to create buffer.",
+                "CreateBuffer");
 
         MemoryRequirements memRequirements;
         _vk.GetBufferMemoryRequirements(_device, buffer, out memRequirements);
@@ -349,7 +365,9 @@ internal unsafe class VulkanResourceFactory : IResourceFactory
 
         DeviceMemory bufferMemory;
         if (_vk.AllocateMemory(_device, in allocInfo, null, out bufferMemory) != Result.Success)
-            throw new Exception("Failed to allocate buffer memory");
+            throw new ResourceCreationException(
+                "Failed to allocate buffer memory.",
+                "CreateBuffer");
 
         _vk.BindBufferMemory(_device, buffer, bufferMemory, 0);
 
@@ -367,7 +385,9 @@ internal unsafe class VulkanResourceFactory : IResourceFactory
                 return i;
         }
 
-        throw new Exception("Failed to find suitable memory type");
+        throw new ResourceCreationException(
+            "Failed to find suitable memory type.",
+            "FindMemoryType");
     }
 
     private ShaderModule CreateShaderModule(byte[] bytecode)
@@ -383,7 +403,9 @@ internal unsafe class VulkanResourceFactory : IResourceFactory
 
             ShaderModule shaderModule;
             if (_vk.CreateShaderModule(_device, in createInfo, null, out shaderModule) != Result.Success)
-                throw new Exception("Failed to create shader module");
+                throw new PipelineCreationException(
+                    "Failed to create shader module.",
+                    "CreateShaderModule");
 
             return shaderModule;
         }
@@ -403,7 +425,9 @@ internal unsafe class VulkanResourceFactory : IResourceFactory
             shaderc.ResultRelease(result);
             shaderc.CompileOptionsRelease(options);
             shaderc.CompilerRelease(compiler);
-            throw new Exception($"Vulkan shader compilation failed: {message}");
+            throw new PipelineCreationException(
+                $"Vulkan shader compilation failed: {message}",
+                "CompileShader");
         }
 
         var length = (int)shaderc.ResultGetLength(result);

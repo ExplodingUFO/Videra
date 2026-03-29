@@ -4,7 +4,6 @@ using Avalonia.Controls;
 using Avalonia.Platform;
 using Microsoft.Extensions.Logging;
 using Videra.Core.Exceptions;
-using Videra.Core.Exceptions;
 
 namespace Videra.Avalonia.Controls;
 

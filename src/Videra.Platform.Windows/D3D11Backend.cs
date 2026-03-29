@@ -34,6 +34,7 @@ public unsafe class D3D11Backend : IGraphicsBackend
     
     private D3D11ResourceFactory _resourceFactory;
     private D3D11CommandExecutor _commandExecutor;
+    private bool _disposed;
 
     public bool IsInitialized { get; private set; }
 
@@ -55,24 +56,32 @@ public unsafe class D3D11Backend : IGraphicsBackend
 
         _width = width;
         _height = height;
-        
-        _d3d11 = D3D11.GetApi();
-        _dxgi = DXGI.GetApi();
 
-        // 创建 Device 和 DeviceContext
-        CreateDeviceAndSwapchain(windowHandle);
-        
-        // 创建深度模板视图
-        CreateDepthStencil();
-        
-        // 创建深度模板状态
-        CreateDepthStencilState();
-        
-        // 设置工厂和命令执行器
-        _resourceFactory = new D3D11ResourceFactory(_device, _context, _d3d11);
-        _commandExecutor = new D3D11CommandExecutor(_context);
-        _commandExecutor.UpdateRenderTargets(_backBufferRTV, _depthStencilView);
-        _commandExecutor.InitializeDepthStates(_depthStencilState, _depthTestOnlyState, _depthDisabledState);
+        try
+        {
+            _d3d11 = D3D11.GetApi();
+            _dxgi = DXGI.GetApi();
+
+            // 创建 Device 和 DeviceContext
+            CreateDeviceAndSwapchain(windowHandle);
+
+            // 创建深度模板视图
+            CreateDepthStencil();
+
+            // 创建深度模板状态
+            CreateDepthStencilState();
+
+            // 设置工厂和命令执行器
+            _resourceFactory = new D3D11ResourceFactory(_device, _context, _d3d11);
+            _commandExecutor = new D3D11CommandExecutor(_context);
+            _commandExecutor.UpdateRenderTargets(_backBufferRTV, _depthStencilView);
+            _commandExecutor.InitializeDepthStates(_depthStencilState, _depthTestOnlyState, _depthDisabledState);
+        }
+        catch
+        {
+            Dispose();
+            throw;
+        }
 
         IsInitialized = true;
     }
@@ -120,7 +129,10 @@ public unsafe class D3D11Backend : IGraphicsBackend
             );
 
             if (result != 0)
-                throw new Exception($"Failed to create D3D11 device and swapchain. HRESULT: 0x{result:X8}");
+                throw new GraphicsInitializationException(
+                    $"Failed to create D3D11 device and swapchain. HRESULT: 0x{result:X8}",
+                    "CreateDeviceAndSwapchain",
+                    result);
         }
 
         // 创建 BackBuffer RenderTargetView
@@ -134,14 +146,20 @@ public unsafe class D3D11Backend : IGraphicsBackend
         
         var result = _swapchain.Handle->GetBuffer<ID3D11Texture2D>(0, out backBuffer);
         if (result != 0)
-            throw new Exception($"Failed to get swapchain back buffer. HRESULT: 0x{result:X8}");
+            throw new GraphicsInitializationException(
+                $"Failed to get swapchain back buffer. HRESULT: 0x{result:X8}",
+                "CreateBackBufferRTV",
+                result);
 
         // 创建 RenderTargetView
         fixed (ID3D11RenderTargetView** rtvPtr = &_backBufferRTV.Handle)
         {
             result = _device.Handle->CreateRenderTargetView((ID3D11Resource*)backBuffer.Handle, null, rtvPtr);
             if (result != 0)
-                throw new Exception($"Failed to create render target view. HRESULT: 0x{result:X8}");
+                throw new GraphicsInitializationException(
+                    $"Failed to create render target view. HRESULT: 0x{result:X8}",
+                    "CreateBackBufferRTV",
+                    result);
         }
 
         backBuffer.Dispose();
@@ -168,7 +186,10 @@ public unsafe class D3D11Backend : IGraphicsBackend
         {
             var result = _device.Handle->CreateTexture2D(in depthDesc, null, texPtr);
             if (result != 0)
-                throw new Exception($"Failed to create depth stencil texture. HRESULT: 0x{result:X8}");
+                throw new GraphicsInitializationException(
+                    $"Failed to create depth stencil texture. HRESULT: 0x{result:X8}",
+                    "CreateDepthStencil",
+                    result);
         }
 
         // 创建深度模板视图
@@ -176,7 +197,10 @@ public unsafe class D3D11Backend : IGraphicsBackend
         {
             var result = _device.Handle->CreateDepthStencilView((ID3D11Resource*)_depthStencilTexture.Handle, null, dsvPtr);
             if (result != 0)
-                throw new Exception($"Failed to create depth stencil view. HRESULT: 0x{result:X8}");
+                throw new GraphicsInitializationException(
+                    $"Failed to create depth stencil view. HRESULT: 0x{result:X8}",
+                    "CreateDepthStencil",
+                    result);
         }
     }
 
@@ -207,7 +231,10 @@ public unsafe class D3D11Backend : IGraphicsBackend
         {
             var result = _device.Handle->CreateDepthStencilState(in depthStencilDesc, dssPtr);
             if (result != 0)
-                throw new Exception($"Failed to create depth stencil state. HRESULT: 0x{result:X8}");
+                throw new GraphicsInitializationException(
+                    $"Failed to create depth stencil state. HRESULT: 0x{result:X8}",
+                    "CreateDepthStencilState",
+                    result);
         }
 
         // 2. 只测试不写入状态
@@ -227,7 +254,10 @@ public unsafe class D3D11Backend : IGraphicsBackend
         {
             var result = _device.Handle->CreateDepthStencilState(in testOnlyDesc, dssPtr);
             if (result != 0)
-                throw new Exception($"Failed to create depth test-only state. HRESULT: 0x{result:X8}");
+                throw new GraphicsInitializationException(
+                    $"Failed to create depth test-only state. HRESULT: 0x{result:X8}",
+                    "CreateDepthStencilState",
+                    result);
         }
 
         // 3. 禁用深度测试状态
@@ -247,7 +277,10 @@ public unsafe class D3D11Backend : IGraphicsBackend
         {
             var result = _device.Handle->CreateDepthStencilState(in disabledDesc, dssPtr);
             if (result != 0)
-                throw new Exception($"Failed to create depth disabled state. HRESULT: 0x{result:X8}");
+                throw new GraphicsInitializationException(
+                    $"Failed to create depth disabled state. HRESULT: 0x{result:X8}",
+                    "CreateDepthStencilState",
+                    result);
         }
     }
 
@@ -314,14 +347,20 @@ public unsafe class D3D11Backend : IGraphicsBackend
 
     public void Dispose()
     {
+        if (_disposed) return;
+        _disposed = true;
+        IsInitialized = false;
+
         _backBufferRTV.Dispose();
         _depthStencilView.Dispose();
         _depthStencilTexture.Dispose();
         _depthStencilState.Dispose();
+        _depthTestOnlyState.Dispose();
+        _depthDisabledState.Dispose();
         _swapchain.Dispose();
         _context.Dispose();
         _device.Dispose();
-        
+
         _d3d11?.Dispose();
         _dxgi?.Dispose();
     }
