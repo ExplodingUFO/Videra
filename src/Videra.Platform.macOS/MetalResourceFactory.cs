@@ -133,6 +133,10 @@ internal class MetalResourceFactory : IResourceFactory
             _logger.LogInformation("Pipeline created successfully");
             return new MetalPipeline(pipelineState);
         }
+        catch (PipelineCreationException)
+        {
+            throw; // Don't double-wrap
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Exception creating pipeline: {Error}", ex.Message);
