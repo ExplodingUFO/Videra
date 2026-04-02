@@ -367,5 +367,10 @@ tmpclaude*
 # Coverage reports
 coverage/
 
+# Local planning and workstation metadata
+.planning/
+.idea/
+.DS_Store
+
 # Claude Code
 .claude/
