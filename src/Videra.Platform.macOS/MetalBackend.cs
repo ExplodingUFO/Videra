@@ -14,6 +14,10 @@ namespace Videra.Platform.macOS;
 /// </summary>
 public unsafe class MetalBackend : IGraphicsBackend
 {
+    internal const int MetalCompareFunctionLessEqual = 4;
+    internal const int MetalPixelFormatDepth32Float = 252;
+    private static readonly DepthBufferConfiguration DepthConfig = DepthBufferConfiguration.Default;
+
     private IntPtr _device;
     private IntPtr _commandQueue;
     private IntPtr _metalLayer;
@@ -134,8 +138,9 @@ public unsafe class MetalBackend : IGraphicsBackend
     private void CreateDepthStencilState()
     {
         var descriptor = ObjCRuntime.AllocInit("MTLDepthStencilDescriptor");
-        ObjCRuntime.SendMessageInt(descriptor, ObjCRuntime.SEL("setDepthCompareFunction:"), 4); // MTLCompareFunctionLessEqual
+        ObjCRuntime.SendMessageInt(descriptor, ObjCRuntime.SEL("setDepthCompareFunction:"), MetalCompareFunctionLessEqual); // MTLCompareFunctionLessEqual
         ObjCRuntime.SendMessageBool(descriptor, ObjCRuntime.SEL("setDepthWriteEnabled:"), true);
+        ObjCRuntime.SendMessageInt(descriptor, ObjCRuntime.SEL("setDepthAttachmentPixelFormat:"), MetalPixelFormatDepth32Float);
         _depthStencilState = ObjCRuntime.SendMessagePtr(_device, ObjCRuntime.SEL("newDepthStencilStateWithDescriptor:"), descriptor);
         ObjCRuntime.SendMessageVoid(descriptor, ObjCRuntime.SEL("release"));
     }

@@ -142,11 +142,12 @@ public class Object3D : IDisposable
     public void Initialize(IResourceFactory factory, MeshData mesh, ILogger? logger = null)
     {
         ArgumentNullException.ThrowIfNull(factory);
+        ArgumentNullException.ThrowIfNull(mesh);
         var log = logger ?? Microsoft.Extensions.Logging.Abstractions.NullLoggerFactory.Instance.CreateLogger<Object3D>();
         try
         {
             // 验证输入
-            if (mesh == null || mesh.Vertices == null || mesh.Vertices.Length == 0)
+            if (mesh.Vertices == null || mesh.Vertices.Length == 0)
                 throw new ArgumentException("Invalid mesh data");
 
             if (mesh.Indices == null || mesh.Indices.Length == 0)

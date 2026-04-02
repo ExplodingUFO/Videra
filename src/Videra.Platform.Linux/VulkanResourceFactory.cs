@@ -12,6 +12,8 @@ namespace Videra.Platform.Linux;
 
 internal unsafe class VulkanResourceFactory : IResourceFactory
 {
+    private static readonly DepthBufferConfiguration DepthConfig = DepthBufferConfiguration.Default;
+
     private readonly Device _device;
     private readonly PhysicalDevice _physicalDevice;
     private readonly Vk _vk;
@@ -190,7 +192,7 @@ internal unsafe class VulkanResourceFactory : IResourceFactory
             SType = StructureType.PipelineDepthStencilStateCreateInfo,
             DepthTestEnable = true,
             DepthWriteEnable = true,
-            DepthCompareOp = CompareOp.LessOrEqual,
+            DepthCompareOp = MapDepthComparison(DepthConfig.DepthComparison),
             DepthBoundsTestEnable = false,
             StencilTestEnable = false
         };
@@ -335,6 +337,21 @@ internal unsafe class VulkanResourceFactory : IResourceFactory
             "Resource set creation is handled internally for the Vulkan backend. Use pipeline-level resource binding instead.",
             "CreateResourceSet",
             "Linux");
+    }
+
+    private static CompareOp MapDepthComparison(DepthComparisonFunction comparison)
+    {
+        return comparison switch
+        {
+            DepthComparisonFunction.Never => CompareOp.Never,
+            DepthComparisonFunction.Less => CompareOp.Less,
+            DepthComparisonFunction.Equal => CompareOp.Equal,
+            DepthComparisonFunction.LessEqual => CompareOp.LessOrEqual,
+            DepthComparisonFunction.Greater => CompareOp.Greater,
+            DepthComparisonFunction.NotEqual => CompareOp.NotEqual,
+            DepthComparisonFunction.GreaterEqual => CompareOp.GreaterOrEqual,
+            _ => CompareOp.Always
+        };
     }
 
     private VulkanBuffer CreateBuffer(uint sizeInBytes, BufferUsageFlags usage)

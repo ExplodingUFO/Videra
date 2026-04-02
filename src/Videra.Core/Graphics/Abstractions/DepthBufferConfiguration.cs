@@ -8,6 +8,11 @@ namespace Videra.Core.Graphics.Abstractions;
 public readonly record struct DepthBufferConfiguration
 {
     /// <summary>
+    /// Logical depth buffer format selected by the backend.
+    /// </summary>
+    public DepthBufferFormat DepthFormat { get; init; }
+
+    /// <summary>
     /// Depth clear value. All backends clear to this value at the start of each frame.
     /// Standard value: 1.0f (maximum depth, representing the far plane).
     /// </summary>
@@ -25,21 +30,35 @@ public readonly record struct DepthBufferConfiguration
     public DepthComparisonFunction DepthComparison { get; init; }
 
     /// <summary>
-    /// Default depth buffer configuration used across all backends.
+    /// Default shared depth configuration used across backends.
     /// </summary>
-    public static DepthBufferConfiguration Default => new()
-    {
-        ClearDepthValue = 1.0f,
-        ClearStencilValue = 0,
-        DepthComparison = DepthComparisonFunction.LessEqual
-    };
+    public static DepthBufferConfiguration Default => new(
+        DepthBufferFormat.Depth32Float,
+        1.0f,
+        0,
+        DepthComparisonFunction.LessEqual);
 
-    public DepthBufferConfiguration(float clearDepthValue, int clearStencilValue, DepthComparisonFunction depthComparison)
+    public DepthBufferConfiguration(
+        DepthBufferFormat depthFormat,
+        float clearDepthValue,
+        int clearStencilValue,
+        DepthComparisonFunction depthComparison)
     {
+        DepthFormat = depthFormat;
         ClearDepthValue = clearDepthValue;
         ClearStencilValue = clearStencilValue;
         DepthComparison = depthComparison;
     }
+}
+
+/// <summary>
+/// Logical depth buffer formats used by Videra.
+/// Individual backends map these to their nearest native format.
+/// </summary>
+public enum DepthBufferFormat
+{
+    Depth24UnormStencil8 = 0,
+    Depth32Float = 1
 }
 
 /// <summary>

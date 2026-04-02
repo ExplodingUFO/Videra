@@ -68,6 +68,24 @@ internal static class ObjCRuntime
     [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_msgSend")]
     public static extern IntPtr SendMessageWithLength(IntPtr receiver, IntPtr selector, nuint length, nuint options);
 
+    [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_msgSend")]
+    public static extern void SendMessageVertexBuffer(IntPtr receiver, IntPtr selector, IntPtr buffer, nuint offset, nuint index);
+
+    [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_msgSend")]
+    public static extern void SendMessageDrawPrimitives(IntPtr receiver, IntPtr selector, nuint primitiveType, nuint vertexStart, nuint vertexCount);
+
+    [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_msgSend")]
+    public static extern void SendMessageDrawIndexedPrimitives(IntPtr receiver, IntPtr selector, nuint primitiveType, nuint indexCount, nuint indexType, IntPtr indexBuffer, nuint indexBufferOffset);
+
+    [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_msgSend")]
+    public static extern void SendMessageViewport(IntPtr receiver, IntPtr selector, MTLViewport viewport);
+
+    [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_msgSend")]
+    public static extern void SendMessageScissorRect(IntPtr receiver, IntPtr selector, MTLScissorRect scissor);
+
+    [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_msgSend")]
+    public static extern void SendMessageClearColor(IntPtr receiver, IntPtr selector, MTLClearColor color);
+
     [DllImport("/System/Library/Frameworks/Metal.framework/Metal")]
     public static extern IntPtr MTLCreateSystemDefaultDevice();
 
@@ -131,10 +149,18 @@ internal static class ObjCRuntime
         return SendMessagePipelineState(device, SEL("newRenderPipelineStateWithDescriptor:error:"), descriptor, ref error);
     }
 
-    /// <summary>Create a library from source code.</summary>
-    public static IntPtr CreateLibraryFromSource(IntPtr device, IntPtr source, ref IntPtr error)
+    /// <summary>Create a library from source text.</summary>
+    public static IntPtr CreateLibraryFromSource(IntPtr device, string source, ref IntPtr error)
     {
-        return SendMessageNewLibrary(device, SEL("newLibraryWithSource:options:error:"), source, IntPtr.Zero, ref error);
+        var sourceStr = CreateNSString(source);
+        try
+        {
+            return SendMessageNewLibrary(device, SEL("newLibraryWithSource:options:error:"), sourceStr, IntPtr.Zero, ref error);
+        }
+        finally
+        {
+            SendMessageVoid(sourceStr, SEL("release"));
+        }
     }
 
     /// <summary>Get a shader function by name from a library.</summary>
@@ -144,6 +170,12 @@ internal static class ObjCRuntime
         var function = SendMessagePtr(library, SEL("newFunctionWithName:"), nameStr);
         SendMessageVoid(nameStr, SEL("release"));
         return function;
+    }
+
+    /// <summary>Set the clear color on a render pass color attachment.</summary>
+    public static void SetClearColor(IntPtr colorAttachment, MTLClearColor color)
+    {
+        SendMessageClearColor(colorAttachment, SEL("setClearColor:"), color);
     }
 
     #endregion
@@ -163,4 +195,33 @@ internal struct CGRect
     public double y;
     public double width;
     public double height;
+}
+
+[StructLayout(LayoutKind.Sequential)]
+internal struct MTLClearColor
+{
+    public double red;
+    public double green;
+    public double blue;
+    public double alpha;
+}
+
+[StructLayout(LayoutKind.Sequential)]
+internal struct MTLViewport
+{
+    public double originX;
+    public double originY;
+    public double width;
+    public double height;
+    public double znear;
+    public double zfar;
+}
+
+[StructLayout(LayoutKind.Sequential)]
+internal struct MTLScissorRect
+{
+    public nuint x;
+    public nuint y;
+    public nuint width;
+    public nuint height;
 }

@@ -153,7 +153,7 @@ public class Object3DTests
     }
 
     [Fact]
-    public void Initialize_CalledWithNullMesh_ThrowsArgumentException()
+    public void Initialize_CalledWithNullMesh_ThrowsArgumentNullException()
     {
         // Arrange
         var obj = new Object3D();
@@ -163,7 +163,7 @@ public class Object3DTests
         var act = () => obj.Initialize(mockFactory.Object, null!);
 
         // Assert
-        act.Should().Throw<ArgumentException>().WithMessage("*Invalid mesh data*");
+        act.Should().Throw<ArgumentNullException>().WithParameterName("mesh");
     }
 
     [Fact]

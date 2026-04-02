@@ -29,7 +29,13 @@ public unsafe class D3D11Backend : IGraphicsBackend
     
     private D3D11 _d3d11;
     private DXGI _dxgi;
-    
+
+    private static readonly DepthBufferConfiguration DepthConfig = new(
+        DepthBufferFormat.Depth24UnormStencil8,
+        clearDepthValue: 1.0f,
+        clearStencilValue: 0,
+        depthComparison: DepthComparisonFunction.LessEqual);
+
     private Vector4 _clearColor = new(0.1f, 0.1f, 0.15f, 1.0f);
     private int _width;
     private int _height;
@@ -198,7 +204,7 @@ public unsafe class D3D11Backend : IGraphicsBackend
             Height = (uint)_height,
             MipLevels = 1,
             ArraySize = 1,
-            Format = Format.FormatD24UnormS8Uint,
+            Format = Format.FormatD24UnormS8Uint, // Use D24S8 for broad D3D11 hardware compatibility.
             SampleDesc = new SampleDesc(1, 0),
             Usage = Usage.Default,
             BindFlags = (uint)BindFlag.DepthStencil,
@@ -243,7 +249,7 @@ public unsafe class D3D11Backend : IGraphicsBackend
         {
             DepthEnable = 1, // true
             DepthWriteMask = DepthWriteMask.All,
-            DepthFunc = ComparisonFunc.LessEqual,
+            DepthFunc = MapDepthComparison(DepthConfig.DepthComparison),
             StencilEnable = 0, // false
             StencilReadMask = 0xFF,
             StencilWriteMask = 0xFF,
@@ -266,7 +272,7 @@ public unsafe class D3D11Backend : IGraphicsBackend
         {
             DepthEnable = 1,
             DepthWriteMask = DepthWriteMask.Zero, // 不写入深度
-            DepthFunc = ComparisonFunc.LessEqual,
+            DepthFunc = MapDepthComparison(DepthConfig.DepthComparison),
             StencilEnable = 0,
             StencilReadMask = 0xFF,
             StencilWriteMask = 0xFF,
@@ -308,8 +314,21 @@ public unsafe class D3D11Backend : IGraphicsBackend
         }
     }
 
-    /// <summary>
-    /// Resizes the swap chain and recreates dependent resources (back buffer, depth-stencil)
+    private static ComparisonFunc MapDepthComparison(DepthComparisonFunction comparison)
+    {
+        return comparison switch
+        {
+            DepthComparisonFunction.Never => ComparisonFunc.Never,
+            DepthComparisonFunction.Less => ComparisonFunc.Less,
+            DepthComparisonFunction.Equal => ComparisonFunc.Equal,
+            DepthComparisonFunction.LessEqual => ComparisonFunc.LessEqual,
+            DepthComparisonFunction.Greater => ComparisonFunc.Greater,
+            DepthComparisonFunction.NotEqual => ComparisonFunc.NotEqual,
+            DepthComparisonFunction.GreaterEqual => ComparisonFunc.GreaterEqual,
+            _ => ComparisonFunc.Always
+        };
+    }
+
     /// to match the new dimensions. If either dimension is not positive, the call is silently ignored.
     /// </summary>
     /// <param name="width">The new width of the rendering surface in pixels.</param>
@@ -353,8 +372,8 @@ public unsafe class D3D11Backend : IGraphicsBackend
         // 清屏
         var clearColor = _clearColor;
         _context.Handle->ClearRenderTargetView(_backBufferRTV.Handle, (float*)&clearColor);
-        _context.Handle->ClearDepthStencilView(_depthStencilView.Handle, 
-            (uint)(ClearFlag.Depth | ClearFlag.Stencil), 1.0f, 0);
+        _context.Handle->ClearDepthStencilView(_depthStencilView.Handle,
+            (uint)(ClearFlag.Depth | ClearFlag.Stencil), DepthConfig.ClearDepthValue, (byte)DepthConfig.ClearStencilValue);
 
         // 设置 Viewport
         var viewport = new Viewport(0, 0, _width, _height, 0f, 1f);

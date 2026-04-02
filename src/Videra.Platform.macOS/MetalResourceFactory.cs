@@ -25,7 +25,7 @@ internal class MetalResourceFactory : IResourceFactory
         {
             fixed (VertexPositionNormalColor* dataPtr = vertices)
             {
-                var buffer = CreateMetalBuffer(_device, (IntPtr)dataPtr, sizeInBytes);
+                var buffer = ObjCRuntime.CreateMetalBuffer(_device, (IntPtr)dataPtr, sizeInBytes);
                 return new MetalBuffer(buffer, sizeInBytes);
             }
         }
@@ -39,7 +39,7 @@ internal class MetalResourceFactory : IResourceFactory
         {
             fixed (uint* dataPtr = indices)
             {
-                var buffer = CreateMetalBuffer(_device, (IntPtr)dataPtr, sizeInBytes);
+                var buffer = ObjCRuntime.CreateMetalBuffer(_device, (IntPtr)dataPtr, sizeInBytes);
                 return new MetalBuffer(buffer, sizeInBytes);
             }
         }
@@ -47,19 +47,19 @@ internal class MetalResourceFactory : IResourceFactory
 
     public IBuffer CreateUniformBuffer(uint sizeInBytes)
     {
-        var buffer = CreateMetalBufferEmpty(_device, sizeInBytes, 0); // MTLResourceStorageModeShared = 0
+        var buffer = ObjCRuntime.CreateMetalBufferEmpty(_device, sizeInBytes, 0); // MTLResourceStorageModeShared = 0
         return new MetalBuffer(buffer, sizeInBytes);
     }
 
     public IBuffer CreateVertexBuffer(uint sizeInBytes)
     {
-        var buffer = CreateMetalBufferEmpty(_device, sizeInBytes, 0);
+        var buffer = ObjCRuntime.CreateMetalBufferEmpty(_device, sizeInBytes, 0);
         return new MetalBuffer(buffer, sizeInBytes);
     }
 
     public IBuffer CreateIndexBuffer(uint sizeInBytes)
     {
-        var buffer = CreateMetalBufferEmpty(_device, sizeInBytes, 0);
+        var buffer = ObjCRuntime.CreateMetalBufferEmpty(_device, sizeInBytes, 0);
         return new MetalBuffer(buffer, sizeInBytes);
     }
 
@@ -71,7 +71,8 @@ internal class MetalResourceFactory : IResourceFactory
         {
             // Create library from source
             var shaderSource = GetMetalShaderSource();
-            var library = CreateLibraryFromSource(_device, shaderSource);
+            IntPtr libraryError = IntPtr.Zero;
+            var library = ObjCRuntime.CreateLibraryFromSource(_device, shaderSource, ref libraryError);
 
             if (library == IntPtr.Zero)
             {
@@ -80,49 +81,49 @@ internal class MetalResourceFactory : IResourceFactory
             }
 
             // Get vertex and fragment shader functions
-            var vertexFunction = GetFunction(library, "vertex_main");
-            var fragmentFunction = GetFunction(library, "fragment_main");
+            var vertexFunction = ObjCRuntime.GetFunction(library, "vertex_main");
+            var fragmentFunction = ObjCRuntime.GetFunction(library, "fragment_main");
 
             if (vertexFunction == IntPtr.Zero || fragmentFunction == IntPtr.Zero)
             {
                 _logger.LogError("Failed to get shader functions");
-                SendMessage(library, SEL("release"));
+                ObjCRuntime.SendMessageVoid(library, ObjCRuntime.SEL("release"));
                 return new MetalPipeline(IntPtr.Zero);
             }
 
             // Create render pipeline descriptor
-            var pipelineDescriptor = AllocInit("MTLRenderPipelineDescriptor");
+            var pipelineDescriptor = ObjCRuntime.AllocInit("MTLRenderPipelineDescriptor");
 
             // Set shader functions
-            SendMessageWithPtr(pipelineDescriptor, SEL("setVertexFunction:"), vertexFunction);
-            SendMessageWithPtr(pipelineDescriptor, SEL("setFragmentFunction:"), fragmentFunction);
+            ObjCRuntime.SendMessagePtr(pipelineDescriptor, ObjCRuntime.SEL("setVertexFunction:"), vertexFunction);
+            ObjCRuntime.SendMessagePtr(pipelineDescriptor, ObjCRuntime.SEL("setFragmentFunction:"), fragmentFunction);
 
             // Set color attachment format
-            var colorAttachments = SendMessage(pipelineDescriptor, SEL("colorAttachments"));
-            var colorAttachment = GetObjectAtIndex(colorAttachments, 0);
-            SendMessageWithInt(colorAttachment, SEL("setPixelFormat:"), 80); // MTLPixelFormatBGRA8Unorm
+            var colorAttachments = ObjCRuntime.SendMessage(pipelineDescriptor, ObjCRuntime.SEL("colorAttachments"));
+            var colorAttachment = ObjCRuntime.GetObjectAtIndex(colorAttachments, 0);
+            ObjCRuntime.SendMessageInt(pipelineDescriptor, ObjCRuntime.SEL("setDepthAttachmentPixelFormat:"), MetalBackend.MetalPixelFormatDepth32Float);
 
             // Create vertex descriptor
             var vertexDescriptor = CreateVertexDescriptor(vertexSize, hasNormals, hasColors);
-            SendMessageWithPtr(pipelineDescriptor, SEL("setVertexDescriptor:"), vertexDescriptor);
+            ObjCRuntime.SendMessagePtr(pipelineDescriptor, ObjCRuntime.SEL("setVertexDescriptor:"), vertexDescriptor);
 
             // Create pipeline state
             IntPtr error = IntPtr.Zero;
-            var pipelineState = CreatePipelineState(_device, pipelineDescriptor, ref error);
+            var pipelineState = ObjCRuntime.CreatePipelineState(_device, pipelineDescriptor, ref error);
 
             // Cleanup
-            SendMessage(vertexDescriptor, SEL("release"));
-            SendMessage(pipelineDescriptor, SEL("release"));
-            SendMessage(fragmentFunction, SEL("release"));
-            SendMessage(vertexFunction, SEL("release"));
-            SendMessage(library, SEL("release"));
+            ObjCRuntime.SendMessageVoid(vertexDescriptor, ObjCRuntime.SEL("release"));
+            ObjCRuntime.SendMessageVoid(pipelineDescriptor, ObjCRuntime.SEL("release"));
+            ObjCRuntime.SendMessageVoid(fragmentFunction, ObjCRuntime.SEL("release"));
+            ObjCRuntime.SendMessageVoid(vertexFunction, ObjCRuntime.SEL("release"));
+            ObjCRuntime.SendMessageVoid(library, ObjCRuntime.SEL("release"));
 
             if (pipelineState == IntPtr.Zero)
             {
                 string errorMsg = "Failed to create pipeline state.";
                 if (error != IntPtr.Zero)
                 {
-                    var errorDesc = SendMessage(error, SEL("localizedDescription"));
+                    var errorDesc = ObjCRuntime.SendMessage(error, ObjCRuntime.SEL("localizedDescription"));
                     _logger.LogError("Failed to create pipeline state. Error: {Error}", errorDesc);
                     errorMsg = $"Failed to create pipeline state. Error: {errorDesc}";
                 }
@@ -205,107 +206,45 @@ fragment float4 fragment_main(VertexOut in [[stage_in]])
 ";
     }
 
-    private IntPtr CreateLibraryFromSource(IntPtr device, string source)
-    {
-        _logger.LogDebug("Compiling shader from source");
-        var sourceStr = CreateNSString(source);
-        IntPtr error = IntPtr.Zero;
-
-        var library = objc_msgSend_newLibrary(device, SEL("newLibraryWithSource:options:error:"), sourceStr, IntPtr.Zero, ref error);
-
-        SendMessage(sourceStr, SEL("release"));
-
-        if (error != IntPtr.Zero)
-        {
-            var errorDesc = SendMessage(error, SEL("localizedDescription"));
-            var errorCStr = SendMessage(errorDesc, SEL("UTF8String"));
-            _logger.LogError("Library creation error: {Error}", Marshal.PtrToStringAnsi(errorCStr));
-            return IntPtr.Zero;
-        }
-
-        if (library != IntPtr.Zero)
-        {
-            _logger.LogDebug("Shader library compiled successfully");
-        }
-
-        return library;
-    }
-
     private IntPtr CreateVertexDescriptor(uint vertexSize, bool hasNormals, bool hasColors)
     {
-        var vertexDescriptor = AllocInit("MTLVertexDescriptor");
-        var attributes = SendMessage(vertexDescriptor, SEL("attributes"));
-        var layouts = SendMessage(vertexDescriptor, SEL("layouts"));
+        var vertexDescriptor = ObjCRuntime.AllocInit("MTLVertexDescriptor");
+        var attributes = ObjCRuntime.SendMessage(vertexDescriptor, ObjCRuntime.SEL("attributes"));
+        var layouts = ObjCRuntime.SendMessage(vertexDescriptor, ObjCRuntime.SEL("layouts"));
 
         int offset = 0;
         int attributeIndex = 0;
 
-        // Position (attribute 0) - float3
-        var attr0 = GetObjectAtIndex(attributes, attributeIndex++);
-        SendMessageWithInt(attr0, SEL("setFormat:"), 30); // MTLVertexFormatFloat3
-        SendMessageWithInt(attr0, SEL("setOffset:"), offset);
-        SendMessageWithInt(attr0, SEL("setBufferIndex:"), 0);
-        offset += 12; // 3 * 4 bytes
+        var attr0 = ObjCRuntime.GetObjectAtIndex(attributes, attributeIndex++);
+        ObjCRuntime.SendMessageInt(attr0, ObjCRuntime.SEL("setFormat:"), 30);
+        ObjCRuntime.SendMessageInt(attr0, ObjCRuntime.SEL("setOffset:"), offset);
+        ObjCRuntime.SendMessageInt(attr0, ObjCRuntime.SEL("setBufferIndex:"), 0);
+        offset += 12;
 
         if (hasNormals)
         {
-            // Normal (attribute 1) - float3
-            var attr1 = GetObjectAtIndex(attributes, attributeIndex++);
-            SendMessageWithInt(attr1, SEL("setFormat:"), 30); // MTLVertexFormatFloat3
-            SendMessageWithInt(attr1, SEL("setOffset:"), offset);
-            SendMessageWithInt(attr1, SEL("setBufferIndex:"), 0);
+            var attr1 = ObjCRuntime.GetObjectAtIndex(attributes, attributeIndex++);
+            ObjCRuntime.SendMessageInt(attr1, ObjCRuntime.SEL("setFormat:"), 30);
+            ObjCRuntime.SendMessageInt(attr1, ObjCRuntime.SEL("setOffset:"), offset);
+            ObjCRuntime.SendMessageInt(attr1, ObjCRuntime.SEL("setBufferIndex:"), 0);
             offset += 12;
         }
 
         if (hasColors)
         {
-            // Color (attribute 2) - float4
-            var attr2 = GetObjectAtIndex(attributes, attributeIndex++);
-            SendMessageWithInt(attr2, SEL("setFormat:"), 31); // MTLVertexFormatFloat4
-            SendMessageWithInt(attr2, SEL("setOffset:"), offset);
-            SendMessageWithInt(attr2, SEL("setBufferIndex:"), 0);
+            var attr2 = ObjCRuntime.GetObjectAtIndex(attributes, attributeIndex++);
+            ObjCRuntime.SendMessageInt(attr2, ObjCRuntime.SEL("setFormat:"), 31);
+            ObjCRuntime.SendMessageInt(attr2, ObjCRuntime.SEL("setOffset:"), offset);
+            ObjCRuntime.SendMessageInt(attr2, ObjCRuntime.SEL("setBufferIndex:"), 0);
             offset += 16;
         }
 
-        // Set layout
-        var layout0 = GetObjectAtIndex(layouts, 0);
-        SendMessageWithInt(layout0, SEL("setStride:"), (int)vertexSize);
-        SendMessageWithInt(layout0, SEL("setStepFunction:"), 1); // MTLVertexStepFunctionPerVertex
-        SendMessageWithInt(layout0, SEL("setStepRate:"), 1);
+        var layout0 = ObjCRuntime.GetObjectAtIndex(layouts, 0);
+        ObjCRuntime.SendMessageInt(layout0, ObjCRuntime.SEL("setStride:"), (int)vertexSize);
+        ObjCRuntime.SendMessageInt(layout0, ObjCRuntime.SEL("setStepFunction:"), 1);
+        ObjCRuntime.SendMessageInt(layout0, ObjCRuntime.SEL("setStepRate:"), 1);
 
         return vertexDescriptor;
-    }
-
-    private IntPtr GetFunction(IntPtr library, string functionName)
-    {
-        var nameStr = CreateNSString(functionName);
-        var function = SendMessageWithPtr(library, SEL("newFunctionWithName:"), nameStr);
-        SendMessage(nameStr, SEL("release"));
-        return function;
-    }
-
-    private IntPtr CreateNSString(string str)
-    {
-        var nsStringClass = objc_getClass("NSString");
-        var alloc = SendMessage(nsStringClass, SEL("alloc"));
-
-        unsafe
-        {
-            fixed (char* strPtr = str)
-            {
-                return InitWithCharacters(alloc, SEL("initWithCharacters:length:"), (IntPtr)strPtr, str.Length);
-            }
-        }
-    }
-
-    private IntPtr GetObjectAtIndex(IntPtr array, int index)
-    {
-        return objc_msgSend_index(array, SEL("objectAtIndexedSubscript:"), index);
-    }
-
-    private IntPtr CreatePipelineState(IntPtr device, IntPtr descriptor, ref IntPtr error)
-    {
-        return objc_msgSend_pipelineState(device, SEL("newRenderPipelineStateWithDescriptor:error:"), descriptor, ref error);
     }
 
     public IPipeline CreatePipeline(PipelineDescription description)
@@ -333,64 +272,6 @@ fragment float4 fragment_main(VertexOut in [[stage_in]])
     }
 
     #region Metal Interop
-
-    [DllImport("/usr/lib/libobjc.dylib")]
-    private static extern IntPtr objc_getClass(string name);
-
-    [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_msgSend")]
-    private static extern IntPtr SendMessage(IntPtr receiver, IntPtr selector);
-
-    [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_msgSend")]
-    private static extern IntPtr SendMessageWithPtr(IntPtr receiver, IntPtr selector, IntPtr arg);
-
-    [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_msgSend")]
-    private static extern void SendMessageWithInt(IntPtr receiver, IntPtr selector, int arg);
-
-    [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_msgSend")]
-    private static extern IntPtr SendMessageWithPtrAndSize(IntPtr receiver, IntPtr selector, IntPtr bytes, nuint length);
-
-    [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_msgSend")]
-    private static extern IntPtr SendMessageWithPtrSizeOptions(IntPtr receiver, IntPtr selector, IntPtr bytes, nuint length, nuint options);
-
-    [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_msgSend")]
-    private static extern IntPtr SendMessageWithSizeAndOptions(IntPtr receiver, IntPtr selector, nuint length, nuint options);
-
-    [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_msgSend")]
-    private static extern IntPtr objc_msgSend_index(IntPtr receiver, IntPtr selector, int index);
-
-    [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_msgSend")]
-    private static extern IntPtr objc_msgSend_pipelineState(IntPtr receiver, IntPtr selector, IntPtr descriptor, ref IntPtr error);
-
-    [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_msgSend")]
-    private static extern IntPtr objc_msgSend_newLibrary(IntPtr receiver, IntPtr selector, IntPtr source, IntPtr options, ref IntPtr error);
-
-    [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_msgSend")]
-    private static extern IntPtr InitWithCharacters(IntPtr receiver, IntPtr selector, IntPtr characters, int length);
-
-    [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "sel_registerName")]
-    private static extern IntPtr sel_registerName(string name);
-
-    // Helper: convert selector string to SEL (IntPtr)
-    private static IntPtr SEL(string name) => sel_registerName(name);
-
-    private static IntPtr AllocInit(string className)
-    {
-        var cls = objc_getClass(className);
-        var alloc = SendMessage(cls, SEL("alloc"));
-        return SendMessage(alloc, SEL("init"));
-    }
-
-    private static IntPtr CreateMetalBuffer(IntPtr device, IntPtr data, uint length)
-    {
-        var selector = SEL("newBufferWithBytes:length:options:");
-        return SendMessageWithPtrSizeOptions(device, selector, data, length, 0); // MTLResourceStorageModeShared = 0
-    }
-
-    private static IntPtr CreateMetalBufferEmpty(IntPtr device, uint length, uint options)
-    {
-        var selector = SEL("newBufferWithLength:options:");
-        return SendMessageWithSizeAndOptions(device, selector, length, options);
-    }
 
     #endregion
 }

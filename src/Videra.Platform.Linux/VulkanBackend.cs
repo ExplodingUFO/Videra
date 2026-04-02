@@ -18,6 +18,8 @@ namespace Videra.Platform.Linux;
 /// </summary>
 public unsafe class VulkanBackend : IGraphicsBackend
 {
+    private static readonly DepthBufferConfiguration DepthConfig = DepthBufferConfiguration.Default;
+
     private Vk _vk;
     private Instance _instance;
     private PhysicalDevice _physicalDevice;
@@ -223,6 +225,15 @@ public unsafe class VulkanBackend : IGraphicsBackend
             Marshal.FreeHGlobal(extSurface);
             Marshal.FreeHGlobal(extPlatform);
         }
+    }
+
+    private static Format MapDepthFormat(DepthBufferFormat format)
+    {
+        return format switch
+        {
+            DepthBufferFormat.Depth24UnormStencil8 => Format.D24UnormS8Uint,
+            _ => Format.D32Sfloat
+        };
     }
 
     private void CreateSurface(IntPtr windowHandle)
@@ -461,7 +472,7 @@ public unsafe class VulkanBackend : IGraphicsBackend
         // 深度附件
         var depthAttachment = new AttachmentDescription
         {
-            Format = Format.D32Sfloat,
+            Format = MapDepthFormat(DepthConfig.DepthFormat),
             Samples = SampleCountFlags.Count1Bit,
             LoadOp = AttachmentLoadOp.Clear,
             StoreOp = AttachmentStoreOp.DontCare,
@@ -519,7 +530,7 @@ public unsafe class VulkanBackend : IGraphicsBackend
 
     private void CreateDepthResources()
     {
-        var depthFormat = Format.D32Sfloat;
+        var depthFormat = MapDepthFormat(DepthConfig.DepthFormat);
 
         var imageInfo = new ImageCreateInfo
         {
@@ -770,7 +781,7 @@ public unsafe class VulkanBackend : IGraphicsBackend
         var clearValues = stackalloc ClearValue[]
         {
             new ClearValue { Color = new ClearColorValue(_clearColor.X, _clearColor.Y, _clearColor.Z, _clearColor.W) },
-            new ClearValue { DepthStencil = new ClearDepthStencilValue(1.0f, 0) }
+            new ClearValue { DepthStencil = new ClearDepthStencilValue(DepthConfig.ClearDepthValue, (uint)DepthConfig.ClearStencilValue) }
         };
 
         var renderPassInfo = new RenderPassBeginInfo

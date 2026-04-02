@@ -9,6 +9,12 @@ namespace Videra.Platform.Windows;
 
 internal unsafe class D3D11CommandExecutor : ICommandExecutor
 {
+    private static readonly DepthBufferConfiguration DepthConfig = new(
+        DepthBufferFormat.Depth24UnormStencil8,
+        clearDepthValue: 1.0f,
+        clearStencilValue: 0,
+        depthComparison: DepthComparisonFunction.LessEqual);
+
     private const D3DPrimitiveTopology TopologyPointList = (D3DPrimitiveTopology)1;
     private const D3DPrimitiveTopology TopologyLineList = (D3DPrimitiveTopology)2;
     private const D3DPrimitiveTopology TopologyTriangleList = (D3DPrimitiveTopology)4;
@@ -130,7 +136,7 @@ internal unsafe class D3D11CommandExecutor : ICommandExecutor
 
         var color = stackalloc float[4] { r, g, b, a };
         _context.Handle->ClearRenderTargetView(_renderTargetView, color);
-        _context.Handle->ClearDepthStencilView(_depthStencilView, (uint)ClearFlag.Depth, 1.0f, 0);
+        _context.Handle->ClearDepthStencilView(_depthStencilView, (uint)ClearFlag.Depth, DepthConfig.ClearDepthValue, (byte)DepthConfig.ClearStencilValue);
     }
 
     private static D3DPrimitiveTopology MapTopology(uint primitiveType)
