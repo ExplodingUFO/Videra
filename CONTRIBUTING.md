@@ -214,7 +214,8 @@ We use the **fork-and-pull** model:
 
 - [ ] Code follows the conventions in [CONVENTIONS.md](.planning/codebase/CONVENTIONS.md)
 - [ ] `dotnet build Videra.slnx` succeeds with no warnings
-- [ ] `dotnet test` passes (see [Testing Requirements](#testing-requirements))
+- [ ] Repository verification passes (`./verify.sh --configuration Release` or `pwsh -File ./verify.ps1 -Configuration Release`)
+- [ ] Native-platform work includes matching-host validation when applicable
 - [ ] No leftover debugging artifacts (see [Clean Code Policy](#clean-code-policy))
 - [ ] Public APIs have XML doc comments
 - [ ] Commit messages follow Conventional Commits format
@@ -222,7 +223,27 @@ We use the **fork-and-pull** model:
 
 ## Testing Requirements
 
-Run the full test suite before pushing:
+Run the standard verification entrypoint before pushing:
+
+```bash
+./verify.sh --configuration Release
+# PowerShell equivalent
+pwsh -File ./verify.ps1 -Configuration Release
+```
+
+For native backend validation on platform hosts, enable the explicit switches:
+
+```bash
+# Linux host (X11/Vulkan available)
+./verify.sh --configuration Release --include-native-linux
+pwsh -File ./verify.ps1 -Configuration Release -IncludeNativeLinux
+
+# macOS host (NSView/Metal available)
+./verify.sh --configuration Release --include-native-macos
+pwsh -File ./verify.ps1 -Configuration Release -IncludeNativeMacOS
+```
+
+Run the full test suite directly when needed:
 
 ```bash
 dotnet test Videra.slnx
@@ -383,9 +404,14 @@ GPU resource creation factory. See [`src/Videra.Core/Graphics/Abstractions/IReso
 public interface IResourceFactory
 {
     IBuffer CreateVertexBuffer(VertexPositionNormalColor[] vertices);
+    IBuffer CreateVertexBuffer(uint sizeInBytes);
     IBuffer CreateIndexBuffer(uint[] indices);
-    IBuffer CreateUniformBuffer<T>(T data) where T : unmanaged;
-    IPipeline CreatePipeline(IShader vertexShader, IShader fragmentShader);
+    IBuffer CreateIndexBuffer(uint sizeInBytes);
+    IBuffer CreateUniformBuffer(uint sizeInBytes);
+    IPipeline CreatePipeline(PipelineDescription description);
+    IPipeline CreatePipeline(uint vertexSize, bool hasNormals, bool hasColors);
+    IShader CreateShader(ShaderStage stage, byte[] bytecode, string entryPoint);
+    IResourceSet CreateResourceSet(ResourceSetDescription description);
 }
 ```
 

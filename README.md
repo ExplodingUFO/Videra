@@ -160,6 +160,20 @@ view.Engine.AddObject(myObject3D);
 # 构建所有项目
 dotnet build
 
+# 统一验证脚本（Unix shell）
+./verify.sh --configuration Release
+
+# 在 Linux 原生主机上追加 Linux native validation
+./verify.sh --configuration Release --include-native-linux
+
+# 在 macOS 原生主机上追加 macOS native validation
+./verify.sh --configuration Release --include-native-macos
+
+# PowerShell 验证脚本
+pwsh -File ./verify.ps1 -Configuration Release
+pwsh -File ./verify.ps1 -Configuration Release -IncludeNativeLinux
+pwsh -File ./verify.ps1 -Configuration Release -IncludeNativeMacOS
+
 # 发布 Windows 版本
 dotnet publish -c Release -r win-x64
 

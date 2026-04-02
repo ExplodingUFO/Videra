@@ -59,21 +59,21 @@ sequenceDiagram
     participant User as 用户
     participant View as MainWindow
     participant VM as ViewModel
-    participant Engine as VideraEngine
-    participant Backend as GraphicsBackend
+    participant Importer as AvaloniaModelImporter
+    participant Factory as IResourceFactory
 
     User->>View: 点击 Import Model
     View->>VM: ImportCommand
-    VM->>VM: 打开文件对话框
-    User->>VM: 选择文件
-    VM->>Engine: AddObject(model)
-    Engine->>Backend: CreateBuffers()
-    Engine-->>View: 更新渲染
+    VM->>Importer: ImportModelsAsync()
+    Importer->>Factory: ModelImporter.Load(...)
+    Importer-->>VM: Object3D[]
+    VM->>VM: SceneObjects.Add(...)
+    VM-->>View: 更新渲染
 
     User->>View: 调整变换参数
     View->>VM: 属性绑定更新
-    VM->>Engine: UpdateTransform()
-    Engine-->>View: 更新渲染
+    VM->>VM: 更新 SelectedObject 变换
+    VM-->>View: 更新渲染
 ```
 
 ## 功能特性
@@ -83,7 +83,8 @@ sequenceDiagram
 - 相机X/Y轴反转
 
 ### 场景管理
-- 导入3D模型 (GLTF/GLB/OBJ/STL)
+- 导入 3D 模型 (GLTF/GLB/OBJ)
+- 默认加载演示立方体
 - 对象列表显示
 - 对象选择
 
@@ -121,6 +122,8 @@ stateDiagram-v2
 | 滚轮 | 缩放视角 |
 
 ## 运行方式
+
+默认情况下，Demo 会在启动后等待 `VideraView` 后端准备完成，再初始化导入服务，并尝试加载一个默认演示立方体。`MainWindow.axaml` 当前将 `PreferredBackend` 固定为 `D3D11`，因此该设置仅适用于 Windows 主机；在 Linux/macOS 上若需运行 Demo，请改为 `Auto` 或对应平台后端。
 
 ### Windows
 ```bash
@@ -171,9 +174,13 @@ Videra.Demo/
                      BackgroundColor="{Binding BgColor}"
                      CameraInvertX="{Binding Camera.InvertX}"
                      CameraInvertY="{Binding Camera.InvertY}"
+                     RenderStyle="{Binding RenderStyle}"
+                     WireframeMode="{Binding WireframeMode}"
+                     WireframeColor="{Binding WireframeColor}"
                      IsGridVisible="{Binding IsGridVisible}"
                      GridHeight="{Binding GridHeight}"
-                     GridColor="{Binding GridColor}"/>
+                     GridColor="{Binding GridColor}"
+                     PreferredBackend="D3D11"/>
 ```
 
 ### ViewModel
@@ -183,11 +190,34 @@ public class MainWindowViewModel : ViewModelBase
     public ObservableCollection<Object3D> SceneObjects { get; }
     public Color BgColor { get; set; }
     public CameraViewModel Camera { get; }
+    public RenderStylePreset RenderStyle { get; set; }
+    public WireframeMode WireframeMode { get; set; }
+    public Color WireframeColor { get; set; }
     public bool IsGridVisible { get; set; }
     public decimal GridHeight { get; set; }
     public Color GridColor { get; set; }
-    public ICommand ImportCommand { get; }
+    public string StatusMessage { get; set; }
+    public string BackendDisplay { get; set; }
+    public IAsyncRelayCommand ImportCommand { get; }
 }
+```
+
+## 验证流程
+
+在仓库根目录使用统一验证入口：
+
+```bash
+# Unix shell
+./verify.sh --configuration Release
+
+# PowerShell
+pwsh -File ./verify.ps1 -Configuration Release
+```
+
+如需仅验证 Demo 项目：
+
+```bash
+dotnet build samples/Videra.Demo/Videra.Demo.csproj -c Release
 ```
 
 ## 依赖

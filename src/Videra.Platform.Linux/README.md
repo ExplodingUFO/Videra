@@ -189,5 +189,19 @@ Videra.Platform.Linux/
 
 - Linux (X11 窗口系统)
 - Vulkan 1.2+ 兼容显卡
-- libX11.so.6
+- `libX11.so.6`（仓库验证脚本支持回退到 `libX11.so` / `libX11`）
 - Vulkan 驱动程序
+
+## 原生验证
+
+在 Linux 原生主机上，可通过仓库统一验证入口执行 Vulkan 原生验证包：
+
+```bash
+# Unix shell
+./verify.sh --configuration Release --include-native-linux
+
+# PowerShell
+pwsh -File ./verify.ps1 -Configuration Release -IncludeNativeLinux
+```
+
+这一步用于执行 `tests/Videra.Platform.Linux.Tests` 中的真实 X11-backed lifecycle/render-path 验证，而不仅仅是跨平台构建或非原生主机上的常规测试。

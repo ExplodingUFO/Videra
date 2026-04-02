@@ -126,7 +126,7 @@ flowchart LR
 ```
 
 特点：
-- 通过 libX11.so.6 创建 X11 窗口
+- 通过 libX11 创建 X11 窗口（支持仓库级 fallback 解析）
 - 重新父化到 Avalonia 窗口
 - 支持窗口大小调整
 

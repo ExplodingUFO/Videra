@@ -1,6 +1,7 @@
 # Videra Silk.NET 迁移实施总结
 
-## ✅ 已完成工作
+> 说明：本文档最初创建于 2026-01-08，其中部分“未完成项/里程碑”属于当时迁移阶段快照。
+> 当前请优先以本文档中“当前剩余闭合项”以及最新 `README.md`、`ARCHITECTURE.md`、`verify.sh`/`verify.ps1` 为准。
 
 ### 1. 抽象接口层设计 ✓
 
@@ -33,8 +34,7 @@
 - ✓ Viewport 和 Scissor 设置
 - ✓ 顶点和索引缓冲区创建
 - ✓ Uniform Buffer (Constant Buffer) 创建
-- ⚠️ Pipeline 和 Shader 创建需要完善
-- ⚠️ Input Layout 和 Rasterizer State 待实现
+- ✓ Pipeline、Shader 编译、Input Layout、Rasterizer State 创建
 
 **依赖:**
 - Silk.NET.Direct3D11 2.21.0
@@ -57,8 +57,8 @@
 - ✓ Render Pass Descriptor 创建
 - ✓ 深度模板状态配置
 - ✓ Buffer 创建和数据更新
-- ⚠️ Pipeline State 创建待实现
-- ⚠️ Metal Shader Library 编译待实现
+- ✓ 基础 Pipeline State 创建（内联 shader source）
+- ⚠️ 更高层安全绑定替代仍未完成
 
 **互操作:**
 - 使用 Objective-C Runtime (`libobjc.dylib`)
@@ -74,7 +74,7 @@
 
 **文件:**
 - `VulkanBackend.cs` - 完整的 Vulkan 渲染管线
-- `VulkanResourceFactory.cs` - 资源工厂占位符
+- `VulkanResourceFactory.cs` - 资源工厂实现
 - `VulkanCommandExecutor.cs` - 命令执行器
 
 **特性:**
@@ -85,9 +85,9 @@
 - ✓ Render Pass 配置
 - ✓ Command Pool 和 Command Buffers
 - ✓ Semaphore/Fence 同步机制
-- ⚠️ Surface 创建需要平台特定代码 (X11/Wayland)
-- ⚠️ 深度资源创建待完善
-- ⚠️ Buffer 和 Pipeline 创建待实现
+- ✓ X11 Surface 创建策略抽离 (`ISurfaceCreator` / `X11SurfaceCreator`)
+- ✓ 深度资源创建
+- ✓ Buffer、Pipeline、CommandExecutor 创建
 
 **依赖:**
 - Silk.NET.Vulkan 2.21.0
@@ -121,7 +121,7 @@ backend.Initialize(windowHandle, width, height);
 - ✓ 平台特定窗口句柄处理
 - ✓ Avalonia 输入事件集成
 - ✓ MVVM 属性绑定支持
-- ⚠️ 渲染循环需要集成新后端
+- ✓ 后端就绪后初始化导入服务并加载默认演示立方体
 
 ### 7. 项目配置更新 ✓
 
@@ -139,52 +139,15 @@ backend.Initialize(windowHandle, width, height);
 
 ## ⚠️ 未完成的关键部分
 
-### 1. Shader 编译和管理系统 ❌
+### 1. 当前剩余闭合项 ⚠️
 
-**需要实现:**
+**仍待闭合:**
+- Linux 原生宿主上的 X11/Vulkan 生命周期与渲染路径执行
+- macOS 原生宿主上的 NSView/Metal 生命周期与渲染路径执行
+- Wayland 支持
+- 以更高层安全绑定替代当前 ObjC runtime 封装
 
-**Windows (D3D11):**
-```csharp
-// HLSL Shader 编译
-public class D3D11ShaderCompiler
-{
-    public ComPtr<ID3D11VertexShader> CompileVertexShader(string hlslCode)
-    {
-        // 使用 D3DCompiler.dll
-        var bytecode = D3DCompile(hlslCode, "vs_5_0");
-        return _device.CreateVertexShader(bytecode);
-    }
-}
-```
-
-**macOS (Metal):**
-```csharp
-// Metal Shader Library
-public class MetalShaderCompiler
-{
-    public IntPtr CompileShaderLibrary(string metalCode)
-    {
-        // 运行时编译
-        var library = device.newLibraryWithSource(metalCode);
-        return library.newFunctionWithName("vertexMain");
-    }
-}
-```
-
-**Linux (Vulkan):**
-```csharp
-// GLSL → SPIR-V
-public class VulkanShaderCompiler
-{
-    public byte[] CompileGLSL(string glslCode, ShaderKind kind)
-    {
-        using var compiler = new Shaderc.Compiler();
-        return compiler.Compile(glslCode, kind, "shader.glsl");
-    }
-}
-```
-
-### 2. Pipeline 创建完整实现 ❌
+### 2. Resource Set / Descriptor Set 绑定 ❌
 
 **D3D11 需要:**
 - Input Layout (顶点格式描述)
@@ -215,57 +178,29 @@ public class VulkanShaderCompiler
 - 纹理和采样器绑定 (未来功能)
 - 多 Set 管理 (Set 0 = 相机, Set 1 = 物体)
 
-### 4. VideraEngine 渲染循环重写 ❌
+### 4. 当前剩余闭合项 ⚠️
 
-**当前状态:** 仍使用 Veldrid API  
-**目标:** 使用新的抽象接口
+**当前状态:** 核心渲染循环已经运行在新的抽象接口之上，Windows 真实 HWND-backed D3D11 路径已验证。
 
-**需要修改:**
-```csharp
-// OLD
-public void Render()
-{
-    _cl.Begin();
-    _cl.SetFramebuffer(GraphicsDevice.SwapchainFramebuffer);
-    _cl.SetPipeline(_meshPipeline);
-    _cl.DrawIndexed(indexCount);
-    _cl.End();
-    GraphicsDevice.SubmitCommands(_cl);
-    GraphicsDevice.SwapBuffers();
-}
+**仍待闭合:**
+- Linux 原生宿主上的 X11/Vulkan 生命周期与渲染路径执行
+- macOS 原生宿主上的 NSView/Metal 生命周期与渲染路径执行
+- Wayland 支持
+- 以更高层安全绑定替代当前 ObjC runtime 封装
 
-// NEW
-public void Render()
-{
-    _backend.BeginFrame();
-    
-    var executor = _backend.GetCommandExecutor();
-    executor.SetPipeline(_meshPipeline);
-    executor.SetVertexBuffer(_vertexBuffer);
-    executor.SetIndexBuffer(_indexBuffer);
-    executor.SetResourceSet(0, _cameraSet);
-    
-    foreach (var obj in _sceneObjects)
-    {
-        executor.SetResourceSet(1, obj.WorldSet);
-        executor.DrawIndexed(obj.IndexCount);
-    }
-    
-    _backend.EndFrame();
-}
-```
+### 3. Grid 和 Axis Renderer 适配 ✓
 
-### 5. Grid 和 Axis Renderer 适配 ❌
-
-**文件:** 
+**文件:**
 - `GridRenderer.cs`
 - `AxisRenderer.cs`
 
-**需要:** 将 Veldrid API 调用替换为新的抽象接口
+**状态:** 已迁移到新的抽象接口并通过 `ICommandExecutor` / `IResourceFactory` 工作。
 
-### 6. 深度资源完整实现 ❌
+### 6. 深度资源完整实现 ✓
 
-**Vulkan 特别需要:**
+当前三平台都已接入统一的深度缓冲配置：
+
+**Vulkan 已完成:**
 - 深度图像创建
 - 深度图像内存分配
 - 深度图像视图创建
@@ -273,22 +208,19 @@ public void Render()
 
 ## 🔧 后续实施步骤
 
-### 优先级 1: 核心渲染功能 (Week 1-2)
+### 优先级 1: 剩余跨平台闭合项
 
-1. **实现 Shader 编译系统**
-   - 为每个平台创建 ShaderCompiler 类
-   - 定义统一的 Shader 输入格式 (GLSL 或各平台原生)
-   - 实现编译缓存机制
+1. **Linux 原生执行验证**
+   - 在 Linux + X11 + Vulkan 宿主上运行 `tests/Videra.Platform.Linux.Tests`
+   - 验证真实 X11-backed 生命周期与渲染路径
 
-2. **完成 Pipeline 创建**
-   - D3D11: Input Layout + Rasterizer State
-   - Metal: Render Pipeline State Object
-   - Vulkan: Graphics Pipeline 完整配置
+2. **macOS 原生执行验证**
+   - 在 macOS + Metal 宿主上运行 `tests/Videra.Platform.macOS.Tests`
+   - 验证真实 NSView-backed 生命周期与渲染路径
 
-3. **实现 Resource Set 绑定**
-   - D3D11: Constant Buffer 绑定
-   - Metal: Argument Encoder / Buffer Binding
-   - Vulkan: Descriptor Set Layout + Descriptor Pool
+3. **实现 Wayland 支持**
+   - 在 `ISurfaceCreator` 边界后新增 Wayland surface creator
+   - 补齐运行时检测与原生验证
 
 ### 优先级 2: VideraEngine 集成 (Week 3)
 
@@ -309,9 +241,10 @@ public void Render()
 ### 优先级 3: 测试和优化 (Week 4)
 
 7. **平台测试**
-   - Windows 10/11 (不同 GPU: NVIDIA/AMD/Intel)
-   - macOS (Apple Silicon M1/M2/M3 + Intel)
-   - Linux (Ubuntu/Fedora, X11/Wayland)
+   - Windows 10/11：当前会话已完成真实 HWND-backed D3D11 验证
+   - macOS：需要原生宿主执行 NSView/Metal 生命周期测试
+   - Linux：需要原生宿主执行 X11/Vulkan 生命周期测试
+   - Wayland 仍为后续范围，不应与当前 X11 支持混淆
 
 8. **性能基准测试**
    - FPS 测量

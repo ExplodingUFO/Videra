@@ -54,9 +54,12 @@ public class VideraEngine : IDisposable
 {
     public OrbitCamera Camera { get; }
     public GridRenderer Grid { get; }
-    public AxisRenderer Axis { get; }
+    public WireframeRenderer Wireframe { get; }
+    public bool ShowAxis { get; set; }
+    public bool IsInitialized { get; }
 
     public void Initialize(IGraphicsBackend backend);
+    public void Resize(uint width, uint height);
     public void AddObject(Object3D obj);
     public void RemoveObject(Object3D obj);
     public void Draw();
@@ -65,16 +68,20 @@ public class VideraEngine : IDisposable
 
 ### Object3D
 
-表示场景中的3D对象。
+表示场景中的 3D 对象，包含独立的位置 / 旋转 / 缩放变换，以及运行时创建的 GPU 缓冲区资源。
 
 ```csharp
-public class Object3D
+public class Object3D : IDisposable
 {
     public string Name { get; set; }
-    public Matrix4x4 Transform { get; set; }
-    public IBuffer? VertexBuffer { get; set; }
-    public IBuffer? IndexBuffer { get; set; }
-    public PrimitiveTopology Topology { get; set; }
+    public Vector3 Position { get; set; }
+    public Vector3 Rotation { get; set; }
+    public Vector3 Scale { get; set; }
+    public Matrix4x4 WorldMatrix { get; }
+
+    public void Initialize(IResourceFactory factory, MeshData mesh, ILogger? logger = null);
+    public void UpdateUniforms(ICommandExecutor executor);
+    public void Dispose();
 }
 ```
 
@@ -135,9 +142,14 @@ public interface IGraphicsBackend : IDisposable
 public interface IResourceFactory
 {
     IBuffer CreateVertexBuffer(VertexPositionNormalColor[] vertices);
+    IBuffer CreateVertexBuffer(uint sizeInBytes);
     IBuffer CreateIndexBuffer(uint[] indices);
-    IBuffer CreateUniformBuffer<T>(T data) where T : unmanaged;
-    IPipeline CreatePipeline(IShader vertexShader, IShader fragmentShader);
+    IBuffer CreateIndexBuffer(uint sizeInBytes);
+    IBuffer CreateUniformBuffer(uint sizeInBytes);
+    IPipeline CreatePipeline(PipelineDescription description);
+    IPipeline CreatePipeline(uint vertexSize, bool hasNormals, bool hasColors);
+    IShader CreateShader(ShaderStage stage, byte[] bytecode, string entryPoint);
+    IResourceSet CreateResourceSet(ResourceSetDescription description);
 }
 ```
 
@@ -178,10 +190,29 @@ Videra.Core/
 │   ├── CameraUniform.cs
 │   ├── GraphicsBackendFactory.cs
 │   ├── GridRenderer.cs
-��   ├── Object3D.cs
+│   ├── Object3D.cs
 │   └── VideraEngine.cs
 └── IO/
     └── ModelImporter.cs        # 模型导入
+```
+
+## 验证流程
+
+在仓库根目录使用统一验证入口：
+
+```bash
+# Unix shell
+./verify.sh --configuration Release
+
+# PowerShell
+pwsh -File ./verify.ps1 -Configuration Release
+```
+
+如需仅执行 Core 相关测试，可直接运行：
+
+```bash
+dotnet test tests/Videra.Core.Tests/Videra.Core.Tests.csproj -c Release
+dotnet test tests/Videra.Core.IntegrationTests/Videra.Core.IntegrationTests.csproj -c Release
 ```
 
 ## 依赖

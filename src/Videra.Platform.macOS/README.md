@@ -201,3 +201,17 @@ Videra.Platform.macOS/
 - macOS 10.15 (Catalina) 或更高版本
 - Metal 兼容显卡
 - 支持 Apple Silicon (M1/M2/M3) 和 Intel Mac
+
+## 原生验证
+
+在 macOS 原生主机上，可通过仓库统一验证入口执行 Metal 原生验证包：
+
+```bash
+# Unix shell
+./verify.sh --configuration Release --include-native-macos
+
+# PowerShell
+pwsh -File ./verify.ps1 -Configuration Release -IncludeNativeMacOS
+```
+
+这一步用于执行 `tests/Videra.Platform.macOS.Tests` 中的真实 NSView-backed lifecycle/render-path 验证，而不仅仅是当前非 macOS 主机上的构建级验证。

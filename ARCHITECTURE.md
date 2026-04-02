@@ -132,7 +132,7 @@ SetLayerDevice(_metalLayer, _device);
 
 **特点:**
 - 完整的 Vulkan 渲染管线实现
-- 支持 X11 和 Wayland Surface
+- 当前支持 X11 Surface，并通过 `ISurfaceCreator` 为未来 Wayland 扩展预留边界
 - GLSL Shader 编译为 SPIR-V (使用 `Silk.NET.Shaderc`)
 
 **关键组件:**
@@ -161,13 +161,10 @@ SetLayerDevice(_metalLayer, _device);
 public class MainWindowViewModel : ViewModelBase
 {
     public ObservableCollection<Object3D> Models { get; } = new();
-    
-    public void LoadModel(string path)
+
+    public void LoadModel(string path, IResourceFactory factory)
     {
-        var mesh = ModelImporter.LoadFromFile(path);
-        var obj = new Object3D { Name = Path.GetFileName(path) };
-        obj.Initialize(factory, device, mesh);
-        
+        var obj = ModelImporter.Load(path, factory);
         Models.Add(obj);
     }
 }
@@ -188,7 +185,7 @@ public class MainWindowViewModel : ViewModelBase
 - Silk.NET.Direct3D.Compilers
 
 **macOS:**
-- Silk.NET.Metal
+- Objective-C Runtime (`libobjc.dylib`) 互操作（通过 `ObjCRuntime`）
 - Silk.NET.Core
 
 **Linux:**
@@ -216,28 +213,21 @@ dotnet build -r linux-x64
 
 ## ⚠️ 当前状态
 
-### ✅ 已完成
+### ✅ 当前已验证状态
 - 抽象接口层设计
-- Windows D3D11 后端基础框架
-- macOS Metal 后端基础框架
-- Linux Vulkan 后端基础框架
-- VideraView 控件骨架
+- Windows D3D11 后端
+- macOS Metal 后端
+- Linux Vulkan 后端（当前原生路径为 X11；Wayland 仍未实现）
+- VideraView 控件与输入处理
 - 平台后端工厂
-- 输入处理系统
+- 统一深度缓冲配置
+- Windows 真实 HWND-backed D3D11 生命周期验证
 
-### 🚧 进行中
-- Shader 编译和管理系统
-- Pipeline 创建和绑定
-- 完整的资源管理
-- 渲染循环集成
-
-### 📋 待实现
-- 完整的 D3D11 渲染管线
-- Metal Shader Library 编译
-- Vulkan Pipeline Cache
-- 深度缓冲和模板测试
-- 多对象渲染优化
-- 性能分析工具
+### 🚧 当前未闭合项
+- Linux 原生宿主上的 X11/Vulkan 生命周期验证
+- macOS 原生宿主上的 NSView/Metal 生命周期验证
+- Wayland 支持
+- 使用更高层安全绑定替代当前 ObjC runtime 封装
 
 ## 🎓 技术亮点
 

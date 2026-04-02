@@ -112,9 +112,12 @@ public class D3D11Backend : IGraphicsBackend
 internal class D3D11ResourceFactory : IResourceFactory
 {
     public IBuffer CreateVertexBuffer(VertexPositionNormalColor[] vertices);
+    public IBuffer CreateVertexBuffer(uint sizeInBytes);
     public IBuffer CreateIndexBuffer(uint[] indices);
-    public IBuffer CreateUniformBuffer<T>(T data) where T : unmanaged;
-    public IPipeline CreatePipeline(IShader vertexShader, IShader fragmentShader);
+    public IBuffer CreateIndexBuffer(uint sizeInBytes);
+    public IBuffer CreateUniformBuffer(uint sizeInBytes);
+    public IPipeline CreatePipeline(PipelineDescription description);
+    public IPipeline CreatePipeline(uint vertexSize, bool hasNormals, bool hasColors);
 }
 ```
 
@@ -153,6 +156,20 @@ Videra.Platform.Windows/
 - Silk.NET.Direct3D11
 - Silk.NET.DXGI
 - Videra.Core
+
+## 原生验证
+
+在 Windows 原生主机上，可通过仓库统一验证入口执行 D3D11 与真实 HWND 生命周期验证：
+
+```bash
+# Unix shell
+./verify.sh --configuration Release
+
+# PowerShell
+pwsh -File ./verify.ps1 -Configuration Release
+```
+
+这一步会覆盖解决方案构建、测试以及 `tests/Videra.Platform.Windows.Tests` 中的真实 HWND-backed D3D11 验证路径。
 
 ## 系统要求
 
