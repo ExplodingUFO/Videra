@@ -1,4 +1,6 @@
 using FluentAssertions;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Videra.Core.Graphics;
 using Videra.Core.Graphics.Abstractions;
 using Xunit;
@@ -7,6 +9,23 @@ namespace Videra.Core.Tests.Graphics;
 
 public sealed class GraphicsBackendFactoryTests
 {
+    [Fact]
+    public void RenderBindingSlots_HaveStableIndices()
+    {
+        RenderBindingSlots.Vertex.Should().Be(0);
+        RenderBindingSlots.Camera.Should().Be(1);
+        RenderBindingSlots.World.Should().Be(2);
+        RenderBindingSlots.Style.Should().Be(3);
+    }
+
+    [Fact]
+    public void PrimitiveCommandKind_HaveStableValues()
+    {
+        PrimitiveCommandKind.LineList.Should().Be(1u);
+        PrimitiveCommandKind.PointList.Should().Be(2u);
+        PrimitiveCommandKind.TriangleList.Should().Be(3u);
+    }
+
     [Fact]
     public void GetPlatformName_Software_ReturnsSoftwareLabel()
     {
@@ -147,5 +166,112 @@ public sealed class GraphicsBackendFactoryTests
             backend.Dispose();
         };
         act.Should().NotThrow();
+    }
+
+    [Fact]
+    public void CreateBackend_WithConfiguredResolver_UsesResolverForNativePreference()
+    {
+        var resolver = new TestGraphicsBackendResolver();
+        GraphicsBackendFactory.ConfigureResolver(resolver);
+
+        try
+        {
+            using var backend = GraphicsBackendFactory.CreateBackend(GraphicsBackendPreference.D3D11);
+
+            backend.Should().BeSameAs(resolver.LastBackend);
+            resolver.LastPreference.Should().Be(GraphicsBackendPreference.D3D11);
+        }
+        finally
+        {
+            GraphicsBackendFactory.ConfigureResolver(null);
+        }
+    }
+
+    [Fact]
+    public void CreateBackend_WithoutResolver_FallsBackToSoftwareForNativePreference()
+    {
+        GraphicsBackendFactory.ConfigureResolver(null);
+
+        using var backend = GraphicsBackendFactory.CreateBackend(GraphicsBackendPreference.D3D11);
+
+        backend.Should().BeAssignableTo<IGraphicsBackend>();
+        backend.Should().NotBeNull();
+        backend.GetType().Name.Should().Be("SoftwareBackend");
+    }
+
+    [Fact]
+    public void CreateBackend_AutoPreference_PassesParsedEnvPreferenceToResolver()
+    {
+        var resolver = new TestGraphicsBackendResolver();
+        var original = Environment.GetEnvironmentVariable("VIDERA_BACKEND");
+        GraphicsBackendFactory.ConfigureResolver(resolver);
+
+        try
+        {
+            Environment.SetEnvironmentVariable("VIDERA_BACKEND", "vk");
+
+            using var backend = GraphicsBackendFactory.CreateBackend(GraphicsBackendPreference.Auto, NullLoggerFactory.Instance);
+
+            backend.Should().BeSameAs(resolver.LastBackend);
+            resolver.LastPreference.Should().Be(GraphicsBackendPreference.Vulkan);
+        }
+        finally
+        {
+            GraphicsBackendFactory.ConfigureResolver(null);
+            Environment.SetEnvironmentVariable("VIDERA_BACKEND", original);
+        }
+    }
+
+    private sealed class TestGraphicsBackendResolver : IGraphicsBackendResolver
+    {
+        public GraphicsBackendPreference? LastPreference { get; private set; }
+        public TestGraphicsBackend? LastBackend { get; private set; }
+
+        public IGraphicsBackend? CreateBackend(GraphicsBackendPreference preference, ILoggerFactory? loggerFactory = null)
+        {
+            LastPreference = preference;
+            LastBackend = new TestGraphicsBackend();
+            return LastBackend;
+        }
+    }
+
+    private sealed class TestGraphicsBackend : IGraphicsBackend
+    {
+        public bool IsInitialized { get; private set; }
+
+        public void Initialize(IntPtr windowHandle, int width, int height)
+        {
+            IsInitialized = true;
+        }
+
+        public void Resize(int width, int height)
+        {
+        }
+
+        public void BeginFrame()
+        {
+        }
+
+        public void EndFrame()
+        {
+        }
+
+        public void SetClearColor(System.Numerics.Vector4 color)
+        {
+        }
+
+        public IResourceFactory GetResourceFactory()
+        {
+            throw new NotSupportedException();
+        }
+
+        public ICommandExecutor GetCommandExecutor()
+        {
+            throw new NotSupportedException();
+        }
+
+        public void Dispose()
+        {
+        }
     }
 }

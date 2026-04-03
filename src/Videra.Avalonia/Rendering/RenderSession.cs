@@ -1,0 +1,342 @@
+using Avalonia;
+using Avalonia.Media;
+using Avalonia.Media.Imaging;
+using Avalonia.Platform;
+using Avalonia.Threading;
+using Microsoft.Extensions.Logging;
+using Videra.Core.Graphics;
+using Videra.Core.Graphics.Abstractions;
+
+namespace Videra.Avalonia.Rendering;
+
+internal sealed class RenderSession : IDisposable
+{
+    private static readonly TimeSpan RenderInterval = TimeSpan.FromMilliseconds(16);
+
+    private readonly VideraEngine _engine;
+    private readonly Func<GraphicsBackendPreference, IGraphicsBackend> _backendFactory;
+    private readonly Action? _requestRender;
+    private readonly ILogger _logger;
+    private readonly Func<IRenderLoopDriver> _renderLoopFactory;
+
+    private IGraphicsBackend? _backend;
+    private IRenderLoopDriver? _renderLoop;
+    private WriteableBitmap? _bitmap;
+    private GraphicsBackendPreference _preference = GraphicsBackendPreference.Auto;
+    private bool _disposed;
+    private uint _width;
+    private uint _height;
+
+    public RenderSession(
+        VideraEngine engine,
+        Func<GraphicsBackendPreference, IGraphicsBackend>? backendFactory = null,
+        Action? requestRender = null,
+        ILogger? logger = null,
+        Func<IRenderLoopDriver>? renderLoopFactory = null)
+    {
+        _engine = engine ?? throw new ArgumentNullException(nameof(engine));
+        _backendFactory = backendFactory ?? (preference => GraphicsBackendFactory.CreateBackend(preference));
+        _requestRender = requestRender;
+        _logger = logger ?? Microsoft.Extensions.Logging.Abstractions.NullLoggerFactory.Instance.CreateLogger<RenderSession>();
+        _renderLoopFactory = renderLoopFactory ?? (() => new NullRenderLoopDriver());
+    }
+
+    public event EventHandler? BackendReady;
+
+    public WriteableBitmap? Bitmap => _bitmap;
+
+    public RenderSessionHandle HandleState { get; private set; } = RenderSessionHandle.Unbound;
+
+    public bool IsInitialized => _engine.IsInitialized;
+
+    public bool IsReady => _engine.IsInitialized;
+
+    public bool IsSoftwareBackend => _backend is ISoftwareBackend;
+
+    public IResourceFactory? ResourceFactory => _backend?.GetResourceFactory();
+
+    public void Attach(GraphicsBackendPreference preference)
+    {
+        ThrowIfDisposed();
+
+        if (_preference != preference && IsInitialized)
+        {
+            Suspend();
+        }
+
+        _preference = preference;
+        TryInitialize();
+    }
+
+    public void BindHandle(IntPtr handle)
+    {
+        ThrowIfDisposed();
+        var requiresRebind = false;
+
+        if (handle == IntPtr.Zero)
+        {
+            if (HandleState.IsBound)
+            {
+                HandleState = HandleState.Clear();
+                requiresRebind = !IsSoftwareBackend;
+            }
+
+            if (requiresRebind)
+            {
+                Suspend();
+            }
+
+            return;
+        }
+
+        if (HandleState.Generation == 0)
+        {
+            HandleState = RenderSessionHandle.Create(handle);
+        }
+        else if (HandleState.Handle != handle)
+        {
+            HandleState = HandleState.Rebind(handle);
+            requiresRebind = IsInitialized && !IsSoftwareBackend;
+        }
+
+        if (requiresRebind)
+        {
+            Suspend();
+        }
+
+        TryInitialize();
+    }
+
+    public void Resize(uint width, uint height, float renderScale)
+    {
+        ThrowIfDisposed();
+
+        if (width == 0 || height == 0)
+        {
+            return;
+        }
+
+        _width = width;
+        _height = height;
+        _engine.RenderScale = renderScale;
+
+        if (!IsInitialized)
+        {
+            TryInitialize();
+            return;
+        }
+
+        _backend?.Resize((int)width, (int)height);
+        _engine.Resize(width, height);
+        EnsureBitmap(width, height);
+    }
+
+    public void RenderOnce()
+    {
+        if (!IsInitialized || _backend == null)
+        {
+            return;
+        }
+
+        try
+        {
+            _engine.Draw();
+
+            if (_backend is ISoftwareBackend softwareBackend)
+            {
+                EnsureBitmap(_width, _height);
+                if (_bitmap != null)
+                {
+                    using var locked = _bitmap.Lock();
+                    softwareBackend.CopyFrameTo(locked.Address, locked.RowBytes);
+                }
+
+                _requestRender?.Invoke();
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Render session frame failed: {Error}", ex.Message);
+            StopRenderLoop();
+        }
+    }
+
+    public void Dispose()
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        _disposed = true;
+        StopRenderLoop();
+        _renderLoop?.Dispose();
+        _renderLoop = null;
+        _bitmap?.Dispose();
+        _bitmap = null;
+        _engine.Dispose();
+        _backend = null;
+        HandleState = RenderSessionHandle.Unbound;
+    }
+
+    private void TryInitialize()
+    {
+        if (_disposed || IsInitialized || _width == 0 || _height == 0)
+        {
+            return;
+        }
+
+        if (RequiresNativeHandle(_preference) && !HandleState.IsBound)
+        {
+            return;
+        }
+
+        var backend = _backendFactory(_preference);
+        var handle = backend is ISoftwareBackend ? IntPtr.Zero : HandleState.Handle;
+        backend.Initialize(handle, (int)_width, (int)_height);
+
+        _backend = backend;
+        _engine.Initialize(backend);
+        _engine.Resize(_width, _height);
+        EnsureBitmap(_width, _height);
+        StartRenderLoop();
+        BackendReady?.Invoke(this, EventArgs.Empty);
+    }
+
+    private void Suspend()
+    {
+        StopRenderLoop();
+        _bitmap?.Dispose();
+        _bitmap = null;
+
+        if (_engine.IsInitialized)
+        {
+            _engine.Suspend();
+        }
+
+        _backend = null;
+    }
+
+    private void EnsureBitmap(uint width, uint height)
+    {
+        if (width == 0 || height == 0)
+        {
+            return;
+        }
+
+        if (!IsSoftwareBackend)
+        {
+            _bitmap?.Dispose();
+            _bitmap = null;
+            return;
+        }
+
+        if (_bitmap != null &&
+            _bitmap.PixelSize.Width == width &&
+            _bitmap.PixelSize.Height == height)
+        {
+            return;
+        }
+
+        _bitmap?.Dispose();
+        _bitmap = new WriteableBitmap(
+            new PixelSize((int)width, (int)height),
+            new Vector(96, 96),
+            PixelFormat.Bgra8888,
+            AlphaFormat.Premul);
+    }
+
+    private void StartRenderLoop()
+    {
+        _renderLoop ??= _renderLoopFactory();
+        _renderLoop.Start(RenderInterval, OnRenderLoopTick);
+    }
+
+    private void StopRenderLoop()
+    {
+        _renderLoop?.Stop();
+    }
+
+    private void OnRenderLoopTick(object? sender, EventArgs e)
+    {
+        RenderOnce();
+    }
+
+    private static bool RequiresNativeHandle(GraphicsBackendPreference preference)
+    {
+        if (preference == GraphicsBackendPreference.Software)
+        {
+            return false;
+        }
+
+        if (preference == GraphicsBackendPreference.Auto)
+        {
+            var backendMode = Environment.GetEnvironmentVariable("VIDERA_BACKEND");
+            if (string.Equals(backendMode, "software", StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+        }
+
+        return OperatingSystem.IsWindows() || OperatingSystem.IsLinux() || OperatingSystem.IsMacOS();
+    }
+
+    private void ThrowIfDisposed()
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+    }
+
+    internal interface IRenderLoopDriver : IDisposable
+    {
+        void Start(TimeSpan interval, EventHandler tick);
+
+        void Stop();
+    }
+
+    private sealed class NullRenderLoopDriver : IRenderLoopDriver
+    {
+        public void Start(TimeSpan interval, EventHandler tick)
+        {
+        }
+
+        public void Stop()
+        {
+        }
+
+        public void Dispose()
+        {
+        }
+    }
+
+    internal sealed class DispatcherRenderLoopDriver : IRenderLoopDriver
+    {
+        private readonly DispatcherTimer _timer = new(DispatcherPriority.Render);
+        private EventHandler? _tick;
+
+        public void Start(TimeSpan interval, EventHandler tick)
+        {
+            Stop();
+            _tick = tick;
+            _timer.Interval = interval;
+            _timer.Tick += tick;
+            _timer.Start();
+        }
+
+        public void Stop()
+        {
+            if (_tick == null)
+            {
+                return;
+            }
+
+            _timer.Stop();
+            _timer.Tick -= _tick;
+            _tick = null;
+        }
+
+        public void Dispose()
+        {
+            Stop();
+        }
+    }
+}

@@ -126,17 +126,7 @@ public class VideraEngine : IDisposable
 	    _disposed = true;
 
         _styleService.StyleChanged -= OnStyleChanged;
-        Grid.Dispose();
-        _axisRenderer.Dispose();
-        Wireframe.Dispose();
-        ClearObjects();
-
-        _meshPipeline?.Dispose();
-        _cameraBuffer?.Dispose();
-        _styleUniformBuffer?.Dispose();
-        _backend?.Dispose();
-
-        IsInitialized = false;
+        ReleaseGraphicsResources(preserveSceneObjects: false, disposeBackend: true);
     }
 
 	/// <summary>
@@ -156,14 +146,21 @@ public class VideraEngine : IDisposable
         _executor = backend.GetCommandExecutor();
 
         CreateResources();
-        
-        // 初始化渲染器
-        Grid.Initialize(_factory);
-        _axisRenderer.Initialize(_factory);
-        Wireframe.Initialize(_factory);
+        RestoreGraphicsResources();
         
         IsInitialized = true;
         _logger.LogInformation("[VideraEngine] Initialized successfully");
+    }
+
+    internal void Suspend()
+    {
+        if (!IsInitialized)
+        {
+            return;
+        }
+
+        ReleaseGraphicsResources(preserveSceneObjects: true, disposeBackend: true);
+        _logger.LogInformation("[VideraEngine] Suspended current graphics backend");
     }
 
     private void CreateResources()
@@ -185,6 +182,63 @@ public class VideraEngine : IDisposable
         );
 
         _logger.LogInformation("[VideraEngine] Resources created");
+    }
+
+    private void RestoreGraphicsResources()
+    {
+        if (_factory == null)
+        {
+            return;
+        }
+
+        Grid.Initialize(_factory);
+        _axisRenderer.Initialize(_factory);
+        Wireframe.Initialize(_factory);
+
+        foreach (var obj in _sceneObjects)
+        {
+            obj.RecreateGraphicsResources(_factory, _logger);
+        }
+    }
+
+    private void ReleaseGraphicsResources(bool preserveSceneObjects, bool disposeBackend)
+    {
+        Grid.Dispose();
+        _axisRenderer.Dispose();
+        Wireframe.Dispose();
+
+        _meshPipeline?.Dispose();
+        _meshPipeline = null;
+
+        _cameraBuffer?.Dispose();
+        _cameraBuffer = null;
+
+        _styleUniformBuffer?.Dispose();
+        _styleUniformBuffer = null;
+
+        if (preserveSceneObjects)
+        {
+            foreach (var obj in _sceneObjects)
+            {
+                obj.ReleaseGpuResources();
+            }
+        }
+        else
+        {
+            ClearObjects();
+        }
+
+        if (disposeBackend)
+        {
+            _backend?.Dispose();
+        }
+
+        _backend = null;
+        _factory = null;
+        _executor = null;
+        _width = 0;
+        _height = 0;
+        IsInitialized = false;
     }
 
 	/// <summary>
@@ -278,7 +332,7 @@ public class VideraEngine : IDisposable
             // 绑定相机 uniform buffer 到索引 1（shader中的 [[buffer(1)]]）
             if (_cameraBuffer != null)
             {
-                _executor.SetVertexBuffer(_cameraBuffer, 1);
+                _executor.SetVertexBuffer(_cameraBuffer, RenderBindingSlots.Camera);
                 if (shouldLog)
                     _logger.LogDebug("[VideraEngine] Camera uniform buffer bound to index 1");
             }
@@ -286,7 +340,7 @@ public class VideraEngine : IDisposable
             // 绑定风格 uniform buffer 到索引 3（shader中的 [[buffer(3)]]）
             if (_styleUniformBuffer != null)
             {
-                _executor.SetVertexBuffer(_styleUniformBuffer, 3);
+                _executor.SetVertexBuffer(_styleUniformBuffer, RenderBindingSlots.Style);
             }
 
             // 渲染网格（传入pipeline）
@@ -318,8 +372,8 @@ public class VideraEngine : IDisposable
                     obj.UpdateUniforms(_executor);
 
                     // 绑定缓冲区
-                    _executor.SetVertexBuffer(obj.VertexBuffer, 0); // 顶点数据在索引 0
-                    _executor.SetVertexBuffer(obj.WorldBuffer, 2);  // World矩阵在索引 2
+                    _executor.SetVertexBuffer(obj.VertexBuffer, RenderBindingSlots.Vertex);
+                    _executor.SetVertexBuffer(obj.WorldBuffer, RenderBindingSlots.World);
                     _executor.SetIndexBuffer(obj.IndexBuffer);
 
                     if (shouldLog)
@@ -329,10 +383,10 @@ public class VideraEngine : IDisposable
                     switch (obj.Topology)
                     {
                         case MeshTopology.Lines:
-                            _executor.DrawIndexed(1, obj.IndexCount, 1, 0, 0, 0);
+                            _executor.DrawIndexed(PrimitiveCommandKind.LineList, obj.IndexCount, 1, 0, 0, 0);
                             break;
                         case MeshTopology.Points:
-                            _executor.DrawIndexed(2, obj.IndexCount, 1, 0, 0, 0);
+                            _executor.DrawIndexed(PrimitiveCommandKind.PointList, obj.IndexCount, 1, 0, 0, 0);
                             break;
                         default:
                             _executor.DrawIndexed(obj.IndexCount, 1, 0, 0, 0);

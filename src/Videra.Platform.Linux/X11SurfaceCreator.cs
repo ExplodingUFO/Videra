@@ -11,7 +11,7 @@ namespace Videra.Platform.Linux;
 /// </summary>
 internal unsafe class X11SurfaceCreator : ISurfaceCreator
 {
-    private IntPtr _x11Display;
+    private X11NativeHandle _x11Handle;
     private KhrXlibSurface _khrXlibSurface;
 
     static X11SurfaceCreator()
@@ -31,8 +31,8 @@ internal unsafe class X11SurfaceCreator : ISurfaceCreator
                 "CreateSurface",
                 "Linux");
 
-        _x11Display = XOpenDisplay(IntPtr.Zero);
-        if (_x11Display == IntPtr.Zero)
+        _x11Handle = X11NativeHandleRegistry.Resolve(windowHandle, () => XOpenDisplay(IntPtr.Zero));
+        if (!_x11Handle.IsValid)
             throw new PlatformDependencyException(
                 "Failed to open X11 display.",
                 "CreateSurface",
@@ -41,26 +41,30 @@ internal unsafe class X11SurfaceCreator : ISurfaceCreator
         var createInfo = new XlibSurfaceCreateInfoKHR
         {
             SType = StructureType.XlibSurfaceCreateInfoKhr,
-            Dpy = (nint*)_x11Display,
+            Dpy = (nint*)_x11Handle.Display,
             Window = (nint)windowHandle
         };
 
         var surface = new SurfaceKHR();
         if (_khrXlibSurface.CreateXlibSurface(instance, in createInfo, null, &surface) != Result.Success)
+        {
+            Cleanup();
             throw new GraphicsInitializationException(
                 "Failed to create X11 Vulkan surface.",
                 "CreateSurface");
+        }
 
         return surface;
     }
 
     public void Cleanup()
     {
-        if (_x11Display != IntPtr.Zero)
+        if (_x11Handle.OwnsDisplay && _x11Handle.Display != IntPtr.Zero)
         {
-            XCloseDisplay(_x11Display);
-            _x11Display = IntPtr.Zero;
+            XCloseDisplay(_x11Handle.Display);
         }
+
+        _x11Handle = default;
     }
 
     [DllImport("libX11.so.6")]

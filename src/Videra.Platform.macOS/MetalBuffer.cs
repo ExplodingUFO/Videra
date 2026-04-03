@@ -1,4 +1,5 @@
 using System.Runtime.InteropServices;
+using Videra.Core.Exceptions;
 using Videra.Core.Graphics.Abstractions;
 
 namespace Videra.Platform.macOS;
@@ -14,6 +15,11 @@ internal class MetalBuffer : IBuffer
 
     public MetalBuffer(IntPtr buffer, uint sizeInBytes)
     {
+        if (buffer == IntPtr.Zero)
+            throw new ResourceCreationException(
+                "MetalBuffer requires a valid native MTLBuffer handle.",
+                "MetalBuffer");
+
         _buffer = buffer;
         SizeInBytes = sizeInBytes;
     }
@@ -26,7 +32,7 @@ internal class MetalBuffer : IBuffer
             if (dataSize > SizeInBytes)
                 throw new InvalidOperationException($"Data size ({dataSize}) exceeds buffer size ({SizeInBytes})");
 
-            var contents = ObjCRuntime.SendMessage(_buffer, ObjCRuntime.SEL("contents"));
+            var contents = GetWritableContents();
             Marshal.StructureToPtr(data, contents, false);
         }
     }
@@ -39,7 +45,7 @@ internal class MetalBuffer : IBuffer
             if (dataSize > SizeInBytes)
                 throw new InvalidOperationException($"Data size ({dataSize}) exceeds buffer size ({SizeInBytes})");
 
-            var contents = ObjCRuntime.SendMessage(_buffer, ObjCRuntime.SEL("contents"));
+            var contents = GetWritableContents();
 
             fixed (T* dataPtr = data)
             {
@@ -56,7 +62,7 @@ internal class MetalBuffer : IBuffer
             if (offset + dataSize > SizeInBytes)
                 throw new InvalidOperationException($"Data size ({dataSize}) with offset exceeds buffer size ({SizeInBytes})");
 
-            var contents = ObjCRuntime.SendMessage(_buffer, ObjCRuntime.SEL("contents"));
+            var contents = GetWritableContents();
             var target = IntPtr.Add(contents, checked((int)offset));
             Marshal.StructureToPtr(data, target, false);
         }
@@ -70,13 +76,24 @@ internal class MetalBuffer : IBuffer
             if (offset + dataSize > SizeInBytes)
                 throw new InvalidOperationException($"Data size ({dataSize}) with offset exceeds buffer size ({SizeInBytes})");
 
-            var contents = ObjCRuntime.SendMessage(_buffer, ObjCRuntime.SEL("contents"));
+            var contents = GetWritableContents();
             var target = IntPtr.Add(contents, checked((int)offset));
             fixed (T* dataPtr = data)
             {
                 Buffer.MemoryCopy(dataPtr, target.ToPointer(), SizeInBytes - offset, dataSize);
             }
         }
+    }
+
+    private IntPtr GetWritableContents()
+    {
+        var contents = ObjCRuntime.SendMessage(_buffer, ObjCRuntime.SEL("contents"));
+        if (contents == IntPtr.Zero)
+            throw new ResourceCreationException(
+                "Failed to access writable contents for the Metal buffer.",
+                "MetalBuffer");
+
+        return contents;
     }
 
     public void Dispose()

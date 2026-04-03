@@ -104,6 +104,25 @@ public sealed class D3D11BackendLifecycleTests
     }
 
     [Fact]
+    public void Resize_WithInjectedResizeBuffersFailure_ThrowsGraphicsInitializationException()
+    {
+        if (!IsWindows) return;
+
+        using var window = NativeHostTestHelpers.CreateHiddenWin32Window();
+        var hooks = new D3D11BackendTestHooks
+        {
+            ResizeBuffersOverride = (_, _) => unchecked((int)0x887A0001)
+        };
+        using var backend = new D3D11Backend(hooks);
+        backend.Initialize(window.Handle, 64, 64);
+
+        var act = () => backend.Resize(128, 96);
+
+        act.Should().Throw<GraphicsInitializationException>()
+            .Which.Operation.Should().Be("Resize");
+    }
+
+    [Fact]
     public void Resize_WithZeroDimensions_IsSilentlyIgnored()
     {
         if (!IsWindows) return;
@@ -199,6 +218,49 @@ public sealed class D3D11BackendLifecycleTests
         using var pipeline = factory.CreatePipeline(VertexPositionNormalColor.SizeInBytes, hasNormals: true, hasColors: true);
 
         backend.Resize(128, 96);
+
+        var act = () =>
+        {
+            backend.BeginFrame();
+            executor.SetPipeline(pipeline);
+            executor.SetVertexBuffer(vb, 0);
+            executor.SetIndexBuffer(ib);
+            executor.DrawIndexed(3);
+            backend.EndFrame();
+        };
+
+        act.Should().NotThrow();
+    }
+
+    [Fact]
+    public void MultipleResizeCycles_ThenDraw_CompletesWithoutError()
+    {
+        if (!IsWindows) return;
+
+        using var window = NativeHostTestHelpers.CreateHiddenWin32Window();
+        using var backend = new D3D11Backend();
+        backend.Initialize(window.Handle, 64, 64);
+
+        for (var i = 0; i < 3; i++)
+        {
+            backend.Resize(128 + (i * 16), 96 + (i * 8));
+            backend.BeginFrame();
+            backend.EndFrame();
+        }
+
+        var factory = backend.GetResourceFactory();
+        var executor = backend.GetCommandExecutor();
+        var vertices = new[]
+        {
+            new VertexPositionNormalColor(new Vector3(-0.5f, -0.5f, 0f), Vector3.UnitZ, RgbaFloat.Red),
+            new VertexPositionNormalColor(new Vector3(0f, 0.5f, 0f), Vector3.UnitZ, RgbaFloat.Green),
+            new VertexPositionNormalColor(new Vector3(0.5f, -0.5f, 0f), Vector3.UnitZ, RgbaFloat.Blue)
+        };
+        var indices = new uint[] { 0, 1, 2 };
+
+        using var vb = factory.CreateVertexBuffer(vertices);
+        using var ib = factory.CreateIndexBuffer(indices);
+        using var pipeline = factory.CreatePipeline(VertexPositionNormalColor.SizeInBytes, hasNormals: true, hasColors: true);
 
         var act = () =>
         {

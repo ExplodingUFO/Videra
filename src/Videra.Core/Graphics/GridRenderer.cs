@@ -155,10 +155,10 @@ public class GridRenderer : IDisposable
         _drawCallCount++;
 
         executor.SetPipeline(pipeline);
-        executor.SetVertexBuffer(_vertexBuffer, 0);
-        executor.SetVertexBuffer(_worldBuffer, 2);
+        executor.SetVertexBuffer(_vertexBuffer, RenderBindingSlots.Vertex);
+        executor.SetVertexBuffer(_worldBuffer, RenderBindingSlots.World);
         executor.SetIndexBuffer(_indexBuffer);
-        executor.DrawIndexed(1, _indexCount, 1, 0, 0, 0);
+        executor.DrawIndexed(PrimitiveCommandKind.LineList, _indexCount, 1, 0, 0, 0);
     }
 
     private void DisposeBuffers()

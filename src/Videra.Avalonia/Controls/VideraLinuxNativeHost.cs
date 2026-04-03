@@ -5,6 +5,9 @@ using Avalonia.Platform;
 using Microsoft.Extensions.Logging;
 using Videra.Core.Exceptions;
 using Videra.Core.NativeLibrary;
+#if VIDERA_LINUX_BACKEND
+using Videra.Platform.Linux;
+#endif
 
 namespace Videra.Avalonia.Controls;
 
@@ -78,6 +81,9 @@ internal sealed class VideraLinuxNativeHost : NativeControlHost, IVideraNativeHo
 
         XMapWindow(_display, _window);
         XFlush(_display);
+#if VIDERA_LINUX_BACKEND
+        X11NativeHandleRegistry.Register(_window, _display);
+#endif
 
         _logger.LogInformation("Created X11 window 0x{Window:X}", _window.ToInt64());
         HandleCreated?.Invoke(_window);
@@ -94,6 +100,9 @@ internal sealed class VideraLinuxNativeHost : NativeControlHost, IVideraNativeHo
 
         if (_window != IntPtr.Zero)
         {
+#if VIDERA_LINUX_BACKEND
+            X11NativeHandleRegistry.Unregister(_window);
+#endif
             XDestroyWindow(_display, _window);
             _window = IntPtr.Zero;
             HandleDestroyed?.Invoke();

@@ -1,5 +1,6 @@
 using System.Runtime.InteropServices;
 using Silk.NET.Vulkan;
+using Videra.Core.Exceptions;
 using Videra.Core.Graphics.Abstractions;
 
 namespace Videra.Platform.Linux;
@@ -39,7 +40,12 @@ internal unsafe class VulkanBuffer : IBuffer
             throw new InvalidOperationException("Data exceeds buffer size.");
 
         void* mapped = null;
-        _vk.MapMemory(_device, _memory, offset, size, 0, &mapped);
+        var result = _vk.MapMemory(_device, _memory, offset, size, 0, &mapped);
+        if (result != Result.Success || mapped == null)
+            throw new ResourceCreationException(
+                $"Failed to map Vulkan buffer memory. Result: {result}.",
+                "SetData");
+
         Marshal.StructureToPtr(data, (IntPtr)mapped, false);
         _vk.UnmapMemory(_device, _memory);
     }
@@ -51,7 +57,12 @@ internal unsafe class VulkanBuffer : IBuffer
             throw new InvalidOperationException("Data exceeds buffer size.");
 
         void* mapped = null;
-        _vk.MapMemory(_device, _memory, offset, size, 0, &mapped);
+        var result = _vk.MapMemory(_device, _memory, offset, size, 0, &mapped);
+        if (result != Result.Success || mapped == null)
+            throw new ResourceCreationException(
+                $"Failed to map Vulkan buffer memory. Result: {result}.",
+                "SetData");
+
         fixed (T* dataPtr = data)
         {
             System.Buffer.MemoryCopy(dataPtr, mapped, SizeInBytes - offset, size);

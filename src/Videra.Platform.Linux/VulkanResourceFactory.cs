@@ -386,7 +386,15 @@ internal unsafe class VulkanResourceFactory : IResourceFactory
                 "Failed to allocate buffer memory.",
                 "CreateBuffer");
 
-        _vk.BindBufferMemory(_device, buffer, bufferMemory, 0);
+        var bindResult = _vk.BindBufferMemory(_device, buffer, bufferMemory, 0);
+        if (bindResult != Result.Success)
+        {
+            _vk.DestroyBuffer(_device, buffer, null);
+            _vk.FreeMemory(_device, bufferMemory, null);
+            throw new ResourceCreationException(
+                $"Failed to bind Vulkan buffer memory. Result: {bindResult}.",
+                "CreateBuffer");
+        }
 
         return new VulkanBuffer(_vk, _device, buffer, bufferMemory, sizeInBytes);
     }

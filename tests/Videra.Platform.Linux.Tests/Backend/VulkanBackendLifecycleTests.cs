@@ -56,7 +56,8 @@ public sealed class VulkanBackendLifecycleTests
 
         var act = () => backend.Initialize(IntPtr.Zero, 64, 64);
 
-        act.Should().Throw<Exception>();
+        act.Should().Throw<PlatformDependencyException>()
+            .Which.Operation.Should().Be("Initialize");
         backend.IsInitialized.Should().BeFalse();
     }
 

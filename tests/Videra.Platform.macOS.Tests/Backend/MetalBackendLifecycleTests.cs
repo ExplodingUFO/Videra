@@ -163,5 +163,13 @@ public sealed class MetalBackendLifecycleTests
         using var backend2 = new MetalBackend();
         backend2.Initialize(window.ViewHandle, 64, 64);
         backend2.IsInitialized.Should().BeTrue();
+
+        var act = () =>
+        {
+            backend2.BeginFrame();
+            backend2.EndFrame();
+        };
+
+        act.Should().NotThrow();
     }
 }

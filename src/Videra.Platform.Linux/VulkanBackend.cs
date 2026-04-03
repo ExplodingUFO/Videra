@@ -758,24 +758,46 @@ public unsafe class VulkanBackend : IGraphicsBackend
     public void BeginFrame()
     {
         // 等待上一帧完成
-        _vk.WaitForFences(_device, 1, in _inFlightFence, true, ulong.MaxValue);
-        _vk.ResetFences(_device, 1, in _inFlightFence);
+        ThrowIfFailed(
+            _vk.WaitForFences(_device, 1, in _inFlightFence, true, ulong.MaxValue),
+            "BeginFrame",
+            "Failed while waiting for the previous Vulkan frame fence.");
+        ThrowIfFailed(
+            _vk.ResetFences(_device, 1, in _inFlightFence),
+            "BeginFrame",
+            "Failed to reset the Vulkan in-flight fence.");
 
         // 获取下一个图像
+        Result acquireResult;
         fixed (uint* imageIndex = &_currentImageIndex)
         {
-            _khrSwapchain.AcquireNextImage(_device, _swapchain, ulong.MaxValue, _imageAvailableSemaphore, default, imageIndex);
+            acquireResult = _khrSwapchain.AcquireNextImage(_device, _swapchain, ulong.MaxValue, _imageAvailableSemaphore, default, imageIndex);
+        }
+        if (acquireResult == Result.ErrorOutOfDateKhr || acquireResult == Result.SuboptimalKhr)
+        {
+            Resize(_width, _height);
+            throw new GraphicsInitializationException(
+                $"Vulkan swapchain became invalid during AcquireNextImage. Result: {acquireResult}.",
+                "BeginFrame");
         }
 
+        ThrowIfFailed(acquireResult, "BeginFrame", "Failed to acquire the next Vulkan swapchain image.");
+
         // 开始记录命令
-        _vk.ResetCommandBuffer(_commandBuffers[0], 0);
+        ThrowIfFailed(
+            _vk.ResetCommandBuffer(_commandBuffers[0], 0),
+            "BeginFrame",
+            "Failed to reset the Vulkan command buffer.");
 
         var beginInfo = new CommandBufferBeginInfo
         {
             SType = StructureType.CommandBufferBeginInfo
         };
 
-        _vk.BeginCommandBuffer(_commandBuffers[0], in beginInfo);
+        ThrowIfFailed(
+            _vk.BeginCommandBuffer(_commandBuffers[0], in beginInfo),
+            "BeginFrame",
+            "Failed to begin recording the Vulkan command buffer.");
 
         // 开始 Render Pass
         var clearValues = stackalloc ClearValue[]
@@ -831,7 +853,10 @@ public unsafe class VulkanBackend : IGraphicsBackend
         _vk.CmdEndRenderPass(_commandBuffers[0]);
 
         // 结束命令记录
-        _vk.EndCommandBuffer(_commandBuffers[0]);
+        ThrowIfFailed(
+            _vk.EndCommandBuffer(_commandBuffers[0]),
+            "EndFrame",
+            "Failed to end Vulkan command buffer recording.");
 
         // 提交命令
         var waitStages = stackalloc PipelineStageFlags[] { PipelineStageFlags.ColorAttachmentOutputBit };
@@ -851,7 +876,10 @@ public unsafe class VulkanBackend : IGraphicsBackend
             PSignalSemaphores = &renderFinishSem
         };
 
-        _vk.QueueSubmit(_graphicsQueue, 1, in submitInfo, _inFlightFence);
+        ThrowIfFailed(
+            _vk.QueueSubmit(_graphicsQueue, 1, in submitInfo, _inFlightFence),
+            "EndFrame",
+            "Failed to submit Vulkan work to the graphics queue.");
 
         // 呈现
         var swapchain = _swapchain;
@@ -866,7 +894,14 @@ public unsafe class VulkanBackend : IGraphicsBackend
             PImageIndices = &imageIndex
         };
 
-        _khrSwapchain.QueuePresent(_presentQueue, in presentInfo);
+        var presentResult = _khrSwapchain.QueuePresent(_presentQueue, in presentInfo);
+        if (presentResult == Result.ErrorOutOfDateKhr || presentResult == Result.SuboptimalKhr)
+        {
+            Resize(_width, _height);
+            return;
+        }
+
+        ThrowIfFailed(presentResult, "EndFrame", "Failed to present the Vulkan swapchain image.");
     }
 
     /// <summary>
@@ -938,5 +973,13 @@ public unsafe class VulkanBackend : IGraphicsBackend
         _surfaceCreator.Cleanup();
 
         _vk?.Dispose();
+    }
+
+    private static void ThrowIfFailed(Result result, string operation, string message)
+    {
+        if (result != Result.Success)
+            throw new GraphicsInitializationException(
+                $"{message} Result: {result}.",
+                operation);
     }
 }

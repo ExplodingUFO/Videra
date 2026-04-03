@@ -26,6 +26,10 @@ internal class MetalResourceFactory : IResourceFactory
             fixed (VertexPositionNormalColor* dataPtr = vertices)
             {
                 var buffer = ObjCRuntime.CreateMetalBuffer(_device, (IntPtr)dataPtr, sizeInBytes);
+                if (buffer == IntPtr.Zero)
+                    throw new ResourceCreationException(
+                        "Failed to create Metal vertex buffer.",
+                        "CreateVertexBuffer");
                 return new MetalBuffer(buffer, sizeInBytes);
             }
         }
@@ -40,6 +44,10 @@ internal class MetalResourceFactory : IResourceFactory
             fixed (uint* dataPtr = indices)
             {
                 var buffer = ObjCRuntime.CreateMetalBuffer(_device, (IntPtr)dataPtr, sizeInBytes);
+                if (buffer == IntPtr.Zero)
+                    throw new ResourceCreationException(
+                        "Failed to create Metal index buffer.",
+                        "CreateIndexBuffer");
                 return new MetalBuffer(buffer, sizeInBytes);
             }
         }
@@ -48,18 +56,30 @@ internal class MetalResourceFactory : IResourceFactory
     public IBuffer CreateUniformBuffer(uint sizeInBytes)
     {
         var buffer = ObjCRuntime.CreateMetalBufferEmpty(_device, sizeInBytes, 0); // MTLResourceStorageModeShared = 0
+        if (buffer == IntPtr.Zero)
+            throw new ResourceCreationException(
+                "Failed to create Metal uniform buffer.",
+                "CreateUniformBuffer");
         return new MetalBuffer(buffer, sizeInBytes);
     }
 
     public IBuffer CreateVertexBuffer(uint sizeInBytes)
     {
         var buffer = ObjCRuntime.CreateMetalBufferEmpty(_device, sizeInBytes, 0);
+        if (buffer == IntPtr.Zero)
+            throw new ResourceCreationException(
+                "Failed to create Metal vertex buffer.",
+                "CreateVertexBuffer");
         return new MetalBuffer(buffer, sizeInBytes);
     }
 
     public IBuffer CreateIndexBuffer(uint sizeInBytes)
     {
         var buffer = ObjCRuntime.CreateMetalBufferEmpty(_device, sizeInBytes, 0);
+        if (buffer == IntPtr.Zero)
+            throw new ResourceCreationException(
+                "Failed to create Metal index buffer.",
+                "CreateIndexBuffer");
         return new MetalBuffer(buffer, sizeInBytes);
     }
 
@@ -73,66 +93,72 @@ internal class MetalResourceFactory : IResourceFactory
             var shaderSource = GetMetalShaderSource();
             IntPtr libraryError = IntPtr.Zero;
             var library = ObjCRuntime.CreateLibraryFromSource(_device, shaderSource, ref libraryError);
+            IntPtr vertexFunction = IntPtr.Zero;
+            IntPtr fragmentFunction = IntPtr.Zero;
+            IntPtr pipelineDescriptor = IntPtr.Zero;
+            IntPtr vertexDescriptor = IntPtr.Zero;
 
             if (library == IntPtr.Zero)
             {
-                _logger.LogError("Failed to create library from source");
-                return new MetalPipeline(IntPtr.Zero);
+                throw new PipelineCreationException(
+                    "Failed to create Metal shader library from source.",
+                    "CreatePipeline");
             }
 
-            // Get vertex and fragment shader functions
-            var vertexFunction = ObjCRuntime.GetFunction(library, "vertex_main");
-            var fragmentFunction = ObjCRuntime.GetFunction(library, "fragment_main");
-
-            if (vertexFunction == IntPtr.Zero || fragmentFunction == IntPtr.Zero)
+            try
             {
-                _logger.LogError("Failed to get shader functions");
-                ObjCRuntime.SendMessageVoid(library, ObjCRuntime.SEL("release"));
-                return new MetalPipeline(IntPtr.Zero);
-            }
+                // Get vertex and fragment shader functions
+                vertexFunction = ObjCRuntime.GetFunction(library, "vertex_main");
+                fragmentFunction = ObjCRuntime.GetFunction(library, "fragment_main");
 
-            // Create render pipeline descriptor
-            var pipelineDescriptor = ObjCRuntime.AllocInit("MTLRenderPipelineDescriptor");
+                // Create render pipeline descriptor
+                pipelineDescriptor = ObjCRuntime.AllocInit("MTLRenderPipelineDescriptor");
 
-            // Set shader functions
-            ObjCRuntime.SendMessagePtr(pipelineDescriptor, ObjCRuntime.SEL("setVertexFunction:"), vertexFunction);
-            ObjCRuntime.SendMessagePtr(pipelineDescriptor, ObjCRuntime.SEL("setFragmentFunction:"), fragmentFunction);
+                // Set shader functions
+                ObjCRuntime.SendMessagePtrVoid(pipelineDescriptor, ObjCRuntime.SEL("setVertexFunction:"), vertexFunction);
+                ObjCRuntime.SendMessagePtrVoid(pipelineDescriptor, ObjCRuntime.SEL("setFragmentFunction:"), fragmentFunction);
 
-            // Set color attachment format
-            var colorAttachments = ObjCRuntime.SendMessage(pipelineDescriptor, ObjCRuntime.SEL("colorAttachments"));
-            var colorAttachment = ObjCRuntime.GetObjectAtIndex(colorAttachments, 0);
-            ObjCRuntime.SendMessageInt(pipelineDescriptor, ObjCRuntime.SEL("setDepthAttachmentPixelFormat:"), MetalBackend.MetalPixelFormatDepth32Float);
+                // Set color attachment format
+                var colorAttachments = ObjCRuntime.RequireNonZeroHandle(
+                    ObjCRuntime.SendMessage(pipelineDescriptor, ObjCRuntime.SEL("colorAttachments")),
+                    "CreatePipeline",
+                    "Failed to get Metal color attachments.");
+                var colorAttachment = ObjCRuntime.GetObjectAtIndex(colorAttachments, 0);
+                ObjCRuntime.SendMessageInt(colorAttachment, ObjCRuntime.SEL("setPixelFormat:"), 80);
+                ObjCRuntime.SendMessageInt(pipelineDescriptor, ObjCRuntime.SEL("setDepthAttachmentPixelFormat:"), MetalBackend.MetalPixelFormatDepth32Float);
 
-            // Create vertex descriptor
-            var vertexDescriptor = CreateVertexDescriptor(vertexSize, hasNormals, hasColors);
-            ObjCRuntime.SendMessagePtr(pipelineDescriptor, ObjCRuntime.SEL("setVertexDescriptor:"), vertexDescriptor);
+                // Create vertex descriptor
+                vertexDescriptor = CreateVertexDescriptor(vertexSize, hasNormals, hasColors);
+                ObjCRuntime.SendMessagePtrVoid(pipelineDescriptor, ObjCRuntime.SEL("setVertexDescriptor:"), vertexDescriptor);
 
-            // Create pipeline state
-            IntPtr error = IntPtr.Zero;
-            var pipelineState = ObjCRuntime.CreatePipelineState(_device, pipelineDescriptor, ref error);
+                // Create pipeline state
+                IntPtr error = IntPtr.Zero;
+                var pipelineState = ObjCRuntime.CreatePipelineState(_device, pipelineDescriptor, ref error);
 
-            // Cleanup
-            ObjCRuntime.SendMessageVoid(vertexDescriptor, ObjCRuntime.SEL("release"));
-            ObjCRuntime.SendMessageVoid(pipelineDescriptor, ObjCRuntime.SEL("release"));
-            ObjCRuntime.SendMessageVoid(fragmentFunction, ObjCRuntime.SEL("release"));
-            ObjCRuntime.SendMessageVoid(vertexFunction, ObjCRuntime.SEL("release"));
-            ObjCRuntime.SendMessageVoid(library, ObjCRuntime.SEL("release"));
-
-            if (pipelineState == IntPtr.Zero)
-            {
-                string errorMsg = "Failed to create pipeline state.";
-                if (error != IntPtr.Zero)
+                if (pipelineState == IntPtr.Zero)
                 {
-                    var errorDesc = ObjCRuntime.SendMessage(error, ObjCRuntime.SEL("localizedDescription"));
-                    _logger.LogError("Failed to create pipeline state. Error: {Error}", errorDesc);
-                    errorMsg = $"Failed to create pipeline state. Error: {errorDesc}";
+                    string errorMsg = "Failed to create pipeline state.";
+                    if (error != IntPtr.Zero)
+                    {
+                        var errorDesc = ObjCRuntime.SendMessage(error, ObjCRuntime.SEL("localizedDescription"));
+                        _logger.LogError("Failed to create pipeline state. Error: {Error}", errorDesc);
+                        errorMsg = $"Failed to create pipeline state. Error: {errorDesc}";
+                    }
+
+                    throw new PipelineCreationException(errorMsg, "CreatePipeline");
                 }
 
-                throw new PipelineCreationException(errorMsg, "CreatePipeline");
+                _logger.LogInformation("Pipeline created successfully");
+                return new MetalPipeline(pipelineState);
             }
-
-            _logger.LogInformation("Pipeline created successfully");
-            return new MetalPipeline(pipelineState);
+            finally
+            {
+                ReleaseIfNeeded(vertexDescriptor);
+                ReleaseIfNeeded(pipelineDescriptor);
+                ReleaseIfNeeded(fragmentFunction);
+                ReleaseIfNeeded(vertexFunction);
+                ReleaseIfNeeded(library);
+            }
         }
         catch (PipelineCreationException)
         {
@@ -245,6 +271,14 @@ fragment float4 fragment_main(VertexOut in [[stage_in]])
         ObjCRuntime.SendMessageInt(layout0, ObjCRuntime.SEL("setStepRate:"), 1);
 
         return vertexDescriptor;
+    }
+
+    private static void ReleaseIfNeeded(IntPtr handle)
+    {
+        if (handle != IntPtr.Zero)
+        {
+            ObjCRuntime.SendMessageVoid(handle, ObjCRuntime.SEL("release"));
+        }
     }
 
     public IPipeline CreatePipeline(PipelineDescription description)

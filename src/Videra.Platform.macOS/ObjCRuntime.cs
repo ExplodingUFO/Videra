@@ -1,4 +1,5 @@
 using System.Runtime.InteropServices;
+using Videra.Core.Exceptions;
 
 namespace Videra.Platform.macOS;
 
@@ -106,8 +107,13 @@ internal static class ObjCRuntime
     public static IntPtr AllocInit(string className)
     {
         var cls = GetClass(className);
+        if (cls == IntPtr.Zero)
+            throw new PlatformDependencyException(
+                $"Failed to resolve Objective-C class '{className}'.",
+                "AllocInit",
+                "macOS");
         var alloc = SendMessage(cls, SEL("alloc"));
-        return SendMessage(alloc, SEL("init"));
+        return RequireNonZeroHandle(SendMessage(alloc, SEL("init")), "AllocInit", $"Failed to allocate Objective-C object '{className}'.");
     }
 
     /// <summary>Create an NSString from a C# string.</summary>
@@ -128,19 +134,28 @@ internal static class ObjCRuntime
     /// <summary>Create a Metal buffer with existing data.</summary>
     public static IntPtr CreateMetalBuffer(IntPtr device, IntPtr data, uint length)
     {
-        return SendMessageWithBytes(device, SEL("newBufferWithBytes:length:options:"), data, length, 0);
+        return RequireNonZeroHandle(
+            SendMessageWithBytes(device, SEL("newBufferWithBytes:length:options:"), data, length, 0),
+            "CreateMetalBuffer",
+            "Failed to create Metal buffer.");
     }
 
     /// <summary>Create an empty Metal buffer.</summary>
     public static IntPtr CreateMetalBufferEmpty(IntPtr device, uint length, uint options)
     {
-        return SendMessageWithLength(device, SEL("newBufferWithLength:options:"), length, options);
+        return RequireNonZeroHandle(
+            SendMessageWithLength(device, SEL("newBufferWithLength:options:"), length, options),
+            "CreateMetalBufferEmpty",
+            "Failed to create empty Metal buffer.");
     }
 
     /// <summary>Get object at indexed subscript (NSArray-like).</summary>
     public static IntPtr GetObjectAtIndex(IntPtr array, int index)
     {
-        return SendMessageIndex(array, SEL("objectAtIndexedSubscript:"), index);
+        return RequireNonZeroHandle(
+            SendMessageIndex(array, SEL("objectAtIndexedSubscript:"), index),
+            "GetObjectAtIndex",
+            $"Failed to retrieve Objective-C object at index {index}.");
     }
 
     /// <summary>Create a pipeline state from descriptor.</summary>
@@ -169,13 +184,21 @@ internal static class ObjCRuntime
         var nameStr = CreateNSString(functionName);
         var function = SendMessagePtr(library, SEL("newFunctionWithName:"), nameStr);
         SendMessageVoid(nameStr, SEL("release"));
-        return function;
+        return RequireNonZeroHandle(function, "GetFunction", $"Failed to resolve Metal function '{functionName}'.");
     }
 
     /// <summary>Set the clear color on a render pass color attachment.</summary>
     public static void SetClearColor(IntPtr colorAttachment, MTLClearColor color)
     {
         SendMessageClearColor(colorAttachment, SEL("setClearColor:"), color);
+    }
+
+    public static IntPtr RequireNonZeroHandle(IntPtr handle, string operation, string message)
+    {
+        if (handle == IntPtr.Zero)
+            throw new PlatformDependencyException(message, operation, "macOS");
+
+        return handle;
     }
 
     #endregion

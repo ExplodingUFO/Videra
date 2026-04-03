@@ -91,13 +91,13 @@ public class AxisRenderer : IDisposable
         _cameraBuffer.Update(new CameraUniform(viewMatrix, projectionMatrix));
 
         executor.SetPipeline(pipeline);
-        executor.SetVertexBuffer(_vertexBuffer, 0);
-        executor.SetVertexBuffer(_cameraBuffer, 1);
-        executor.SetVertexBuffer(_worldBuffer, 2);
+        executor.SetVertexBuffer(_vertexBuffer, RenderBindingSlots.Vertex);
+        executor.SetVertexBuffer(_cameraBuffer, RenderBindingSlots.Camera);
+        executor.SetVertexBuffer(_worldBuffer, RenderBindingSlots.World);
         executor.SetIndexBuffer(_indexBuffer);
         
         // 使用线条模式绘制坐标轴
-        executor.DrawIndexed(1, _indexCount, 1, 0, 0, 0);
+        executor.DrawIndexed(PrimitiveCommandKind.LineList, _indexCount, 1, 0, 0, 0);
         
         // 恢复主视口
         executor.SetViewport(0, 0, width, height);

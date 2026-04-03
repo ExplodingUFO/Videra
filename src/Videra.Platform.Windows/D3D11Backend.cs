@@ -42,6 +42,7 @@ public unsafe class D3D11Backend : IGraphicsBackend
     
     private D3D11ResourceFactory _resourceFactory;
     private D3D11CommandExecutor _commandExecutor;
+    private readonly D3D11BackendTestHooks? _testHooks;
     private bool _disposed;
 
     /// <summary>
@@ -49,6 +50,15 @@ public unsafe class D3D11Backend : IGraphicsBackend
     /// and is ready for rendering operations.
     /// </summary>
     public bool IsInitialized { get; private set; }
+
+    public D3D11Backend() : this(null)
+    {
+    }
+
+    internal D3D11Backend(D3D11BackendTestHooks? testHooks)
+    {
+        _testHooks = testHooks;
+    }
 
     /// <summary>
     /// Initializes the Direct3D 11 backend with the specified window handle and rendering dimensions.
@@ -173,26 +183,30 @@ public unsafe class D3D11Backend : IGraphicsBackend
     {
         // 获取 BackBuffer
         ComPtr<ID3D11Texture2D> backBuffer = default;
-        
-        var result = _swapchain.Handle->GetBuffer<ID3D11Texture2D>(0, out backBuffer);
-        if (result != 0)
-            throw new GraphicsInitializationException(
-                $"Failed to get swapchain back buffer. HRESULT: 0x{result:X8}",
-                "CreateBackBufferRTV",
-                result);
-
-        // 创建 RenderTargetView
-        fixed (ID3D11RenderTargetView** rtvPtr = &_backBufferRTV.Handle)
+        try
         {
-            result = _device.Handle->CreateRenderTargetView((ID3D11Resource*)backBuffer.Handle, null, rtvPtr);
+            var result = _swapchain.Handle->GetBuffer<ID3D11Texture2D>(0, out backBuffer);
             if (result != 0)
                 throw new GraphicsInitializationException(
-                    $"Failed to create render target view. HRESULT: 0x{result:X8}",
+                    $"Failed to get swapchain back buffer. HRESULT: 0x{result:X8}",
                     "CreateBackBufferRTV",
                     result);
-        }
 
-        backBuffer.Dispose();
+            // 创建 RenderTargetView
+            fixed (ID3D11RenderTargetView** rtvPtr = &_backBufferRTV.Handle)
+            {
+                result = _device.Handle->CreateRenderTargetView((ID3D11Resource*)backBuffer.Handle, null, rtvPtr);
+                if (result != 0)
+                    throw new GraphicsInitializationException(
+                        $"Failed to create render target view. HRESULT: 0x{result:X8}",
+                        "CreateBackBufferRTV",
+                        result);
+            }
+        }
+        finally
+        {
+            backBuffer.Dispose();
+        }
     }
 
     private void CreateDepthStencil()
@@ -329,7 +343,9 @@ public unsafe class D3D11Backend : IGraphicsBackend
         };
     }
 
-    /// to match the new dimensions. If either dimension is not positive, the call is silently ignored.
+    /// <summary>
+    /// Resizes the swap chain and recreates dependent resources to match the new dimensions.
+    /// If either dimension is not positive, the call is silently ignored.
     /// </summary>
     /// <param name="width">The new width of the rendering surface in pixels.</param>
     /// <param name="height">The new height of the rendering surface in pixels.</param>
@@ -337,16 +353,33 @@ public unsafe class D3D11Backend : IGraphicsBackend
     {
         if (width <= 0 || height <= 0) return;
 
-        _width = width;
-        _height = height;
-
-        // 释放旧资源
+        var previousWidth = _width;
+        var previousHeight = _height;
+        _context.Handle->OMSetRenderTargets(0, null, null);
         _backBufferRTV.Dispose();
         _depthStencilView.Dispose();
         _depthStencilTexture.Dispose();
+        _backBufferRTV = default;
+        _depthStencilView = default;
+        _depthStencilTexture = default;
 
-        // 调整 Swapchain 大小
-        _swapchain.Handle->ResizeBuffers(0, (uint)width, (uint)height, Format.FormatUnknown, 0);
+        var resizeResult = _testHooks?.ResizeBuffersOverride?.Invoke(width, height)
+            ?? _swapchain.Handle->ResizeBuffers(0, (uint)width, (uint)height, Format.FormatUnknown, 0);
+        if (resizeResult != 0)
+        {
+            _width = previousWidth;
+            _height = previousHeight;
+            CreateBackBufferRTV();
+            CreateDepthStencil();
+            _commandExecutor.UpdateRenderTargets(_backBufferRTV, _depthStencilView);
+            throw new GraphicsInitializationException(
+                $"Failed to resize swapchain buffers. HRESULT: 0x{resizeResult:X8}",
+                "Resize",
+                resizeResult);
+        }
+
+        _width = width;
+        _height = height;
 
         // 重新创建资源
         CreateBackBufferRTV();

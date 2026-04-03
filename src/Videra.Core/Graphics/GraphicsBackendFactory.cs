@@ -10,6 +10,17 @@ namespace Videra.Core.Graphics;
 /// </summary>
 public static class GraphicsBackendFactory
 {
+    private static IGraphicsBackendResolver? _resolver;
+
+    /// <summary>
+    /// Configures the backend resolver used by the current composition layer.
+    /// Passing <c>null</c> clears the resolver and leaves only software fallback available.
+    /// </summary>
+    public static void ConfigureResolver(IGraphicsBackendResolver? resolver)
+    {
+        _resolver = resolver;
+    }
+
     /// <summary>
     /// 创建当前平台对应的图形后端
     /// </summary>
@@ -26,13 +37,12 @@ public static class GraphicsBackendFactory
         if (preference == GraphicsBackendPreference.Software)
             return new SoftwareBackend();
 
-        return preference switch
-        {
-            GraphicsBackendPreference.D3D11 => TryCreateD3D11(logger) ?? new SoftwareBackend(),
-            GraphicsBackendPreference.Vulkan => TryCreateVulkan(logger) ?? new SoftwareBackend(),
-            GraphicsBackendPreference.Metal => TryCreateMetal(logger) ?? new SoftwareBackend(),
-            _ => TryCreatePlatformDefault(logger) ?? new SoftwareBackend()
-        };
+        var resolvedBackend = _resolver?.CreateBackend(preference, loggerFactory);
+        if (resolvedBackend != null)
+            return resolvedBackend;
+
+        logger.LogWarning("[GraphicsBackendFactory] No resolver configured for native backend preference {Preference}; falling back to software.", preference);
+        return new SoftwareBackend();
     }
 
     /// <summary>
@@ -71,80 +81,5 @@ public static class GraphicsBackendFactory
             "auto" => GraphicsBackendPreference.Auto,
             _ => GraphicsBackendPreference.Auto
         };
-    }
-
-    private static IGraphicsBackend? TryCreatePlatformDefault(ILogger logger)
-    {
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            return TryCreateD3D11(logger);
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-            return TryCreateMetal(logger);
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-            return TryCreateVulkan(logger);
-
-        return null;
-    }
-
-    private static IGraphicsBackend? TryCreateD3D11(ILogger logger)
-    {
-        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-        {
-            logger.LogWarning("[Videra] D3D11 backend only supported on Windows.");
-            return null;
-        }
-
-        try
-        {
-            var windowsAssembly = System.Reflection.Assembly.Load("Videra.Platform.Windows");
-            var backendType = windowsAssembly.GetType("Videra.Platform.Windows.D3D11Backend");
-            return (IGraphicsBackend)Activator.CreateInstance(backendType!)!;
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "[Videra] D3D11 backend load failed: {Error}", ex.Message);
-            return null;
-        }
-    }
-
-    private static IGraphicsBackend? TryCreateMetal(ILogger logger)
-    {
-        if (!RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-        {
-            logger.LogWarning("[Videra] Metal backend only supported on macOS.");
-            return null;
-        }
-
-        try
-        {
-            var macOSAssembly = System.Reflection.Assembly.Load("Videra.Platform.macOS");
-            var backendType = macOSAssembly.GetType("Videra.Platform.macOS.MetalBackend");
-            return (IGraphicsBackend)Activator.CreateInstance(backendType!)!;
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "[Videra] Metal backend load failed: {Error}", ex.Message);
-            return null;
-        }
-    }
-
-    private static IGraphicsBackend? TryCreateVulkan(ILogger logger)
-    {
-        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-        {
-            logger.LogWarning("[Videra] Vulkan backend is only wired for Linux/X11 right now.");
-            return null;
-        }
-
-        try
-        {
-            var linuxAssembly = System.Reflection.Assembly.Load("Videra.Platform.Linux");
-            var backendType = linuxAssembly.GetType("Videra.Platform.Linux.VulkanBackend");
-            return (IGraphicsBackend)Activator.CreateInstance(backendType!)!;
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "[Videra] Vulkan backend load failed: {Error}", ex.Message);
-            return null;
-        }
     }
 }

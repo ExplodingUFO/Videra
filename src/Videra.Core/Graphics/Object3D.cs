@@ -15,6 +15,8 @@ namespace Videra.Core.Graphics;
 public class Object3D : IDisposable
 {
     private bool _disposed;
+    private MeshData? _cachedMesh;
+    private bool _wireframeResourcesRequested;
 
     /// <summary>
     /// Gets or sets the display name of this object, used for logging and identification.
@@ -114,11 +116,24 @@ public class Object3D : IDisposable
         if (_disposed) return;
         _disposed = true;
 
+        ReleaseGpuResources();
+    }
+
+    internal void ReleaseGpuResources()
+    {
         VertexBuffer?.Dispose();
         IndexBuffer?.Dispose();
         WorldBuffer?.Dispose();
         LineIndexBuffer?.Dispose();
         LineVertexBuffer?.Dispose();
+
+        VertexBuffer = null;
+        IndexBuffer = null;
+        WorldBuffer = null;
+        LineIndexBuffer = null;
+        LineVertexBuffer = null;
+        IndexCount = 0;
+        LineIndexCount = 0;
     }
 
     // Initialize GPU resources (called by Engine)
@@ -155,6 +170,14 @@ public class Object3D : IDisposable
 
             log.LogDebug("[Object3D '{Name}'] Initializing: {VertexCount} verts, {IndexCount} indices", Name, mesh.Vertices.Length, mesh.Indices.Length);
 
+            _cachedMesh = new MeshData
+            {
+                Vertices = (VertexPositionNormalColor[])mesh.Vertices.Clone(),
+                Indices = (uint[])mesh.Indices.Clone(),
+                Topology = mesh.Topology
+            };
+            _wireframeResourcesRequested = false;
+            ReleaseGpuResources();
             Topology = mesh.Topology;
             IndexCount = (uint)mesh.Indices.Length;
 
@@ -172,7 +195,7 @@ public class Object3D : IDisposable
             VertexBuffer.SetData(mesh.Vertices, 0);
 
             // 缓存顶点数据用于线框
-            _cachedVertices = mesh.Vertices;
+            _cachedVertices = (VertexPositionNormalColor[])mesh.Vertices.Clone();
 
             // 索引 Buffer
             if ((long)mesh.Indices.Length * sizeof(uint) > uint.MaxValue)
@@ -188,7 +211,11 @@ public class Object3D : IDisposable
             // 缓存三角形索引用于线框提取
             if (mesh.Topology == MeshTopology.Triangles)
             {
-                _cachedTriangleIndices = mesh.Indices;
+                _cachedTriangleIndices = (uint[])mesh.Indices.Clone();
+            }
+            else
+            {
+                _cachedTriangleIndices = null;
             }
 
             // World Uniform Buffer
@@ -201,10 +228,7 @@ public class Object3D : IDisposable
             log.LogError(ex, "[Object3D '{Name}'] Initialization failed: {Error}", Name, ex.Message);
 
             // 清理已创建的资源
-            VertexBuffer?.Dispose();
-            IndexBuffer?.Dispose();
-            WorldBuffer?.Dispose();
-            LineIndexBuffer?.Dispose();
+            ReleaseGpuResources();
 
             throw;
         }
@@ -243,6 +267,12 @@ public class Object3D : IDisposable
         ArgumentNullException.ThrowIfNull(factory);
 
         var log = logger ?? Microsoft.Extensions.Logging.Abstractions.NullLoggerFactory.Instance.CreateLogger<Object3D>();
+        _wireframeResourcesRequested = true;
+        LineIndexBuffer?.Dispose();
+        LineVertexBuffer?.Dispose();
+        LineIndexBuffer = null;
+        LineVertexBuffer = null;
+        LineIndexCount = 0;
 
         if (_cachedTriangleIndices == null || _cachedTriangleIndices.Length == 0)
         {
@@ -275,6 +305,23 @@ public class Object3D : IDisposable
         }
 
         log.LogInformation("[Object3D '{Name}'] Wireframe: {EdgeCount} edges initialized", Name, LineIndexCount / 2);
+    }
+
+    internal void RecreateGraphicsResources(IResourceFactory factory, ILogger? logger = null)
+    {
+        ArgumentNullException.ThrowIfNull(factory);
+
+        if (_cachedMesh == null)
+        {
+            return;
+        }
+
+        var restoreWireframe = _wireframeResourcesRequested;
+        Initialize(factory, _cachedMesh, logger);
+        if (restoreWireframe)
+        {
+            InitializeWireframe(factory, logger);
+        }
     }
 
     /// <summary>

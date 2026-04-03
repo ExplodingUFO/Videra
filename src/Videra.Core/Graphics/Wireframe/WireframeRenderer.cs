@@ -126,12 +126,11 @@ public class WireframeRenderer : IDisposable
 
         // 绑定线框专用顶点缓冲区（带自定义颜色）
         var vertexBuffer = obj.LineVertexBuffer ?? obj.VertexBuffer!;
-        executor.SetVertexBuffer(vertexBuffer, 0);
-        executor.SetVertexBuffer(obj.WorldBuffer!, 2);
+        executor.SetVertexBuffer(vertexBuffer, RenderBindingSlots.Vertex);
+        executor.SetVertexBuffer(obj.WorldBuffer!, RenderBindingSlots.World);
         executor.SetIndexBuffer(obj.LineIndexBuffer!);
 
-        // 使用Line拓扑绘制 (primitiveType = 1 表示 LineList)
-        executor.DrawIndexed(1, obj.LineIndexCount, 1, 0, 0, 0);
+        executor.DrawIndexed(PrimitiveCommandKind.LineList, obj.LineIndexCount, 1, 0, 0, 0);
 
         // 恢复默认深度状态
         executor.ResetDepthState();

@@ -16,13 +16,13 @@ public unsafe class MetalBackend : IGraphicsBackend
 {
     internal const int MetalCompareFunctionLessEqual = 4;
     internal const int MetalPixelFormatDepth32Float = 252;
-    private static readonly DepthBufferConfiguration DepthConfig = DepthBufferConfiguration.Default;
 
     private IntPtr _device;
     private IntPtr _commandQueue;
     private IntPtr _metalLayer;
     private IntPtr _depthStencilState;
     private IntPtr _nsView;
+    private bool _ownsMetalLayer;
 
     private Vector4 _clearColor = new(0.1f, 0.1f, 0.15f, 1.0f);
     private int _width;
@@ -129,9 +129,17 @@ public unsafe class MetalBackend : IGraphicsBackend
 
     private IntPtr GetOrCreateMetalLayer(IntPtr nsView)
     {
+        var existingLayer = ObjCRuntime.SendMessage(nsView, ObjCRuntime.SEL("layer"));
+        if (existingLayer != IntPtr.Zero)
+        {
+            _ownsMetalLayer = false;
+            return existingLayer;
+        }
+
         var newLayer = ObjCRuntime.AllocInit("CAMetalLayer");
         ObjCRuntime.SendMessageBool(nsView, ObjCRuntime.SEL("setWantsLayer:"), true);
         ObjCRuntime.SendMessagePtrVoid(nsView, ObjCRuntime.SEL("setLayer:"), newLayer);
+        _ownsMetalLayer = true;
         return newLayer;
     }
 
@@ -140,9 +148,12 @@ public unsafe class MetalBackend : IGraphicsBackend
         var descriptor = ObjCRuntime.AllocInit("MTLDepthStencilDescriptor");
         ObjCRuntime.SendMessageInt(descriptor, ObjCRuntime.SEL("setDepthCompareFunction:"), MetalCompareFunctionLessEqual); // MTLCompareFunctionLessEqual
         ObjCRuntime.SendMessageBool(descriptor, ObjCRuntime.SEL("setDepthWriteEnabled:"), true);
-        ObjCRuntime.SendMessageInt(descriptor, ObjCRuntime.SEL("setDepthAttachmentPixelFormat:"), MetalPixelFormatDepth32Float);
         _depthStencilState = ObjCRuntime.SendMessagePtr(_device, ObjCRuntime.SEL("newDepthStencilStateWithDescriptor:"), descriptor);
         ObjCRuntime.SendMessageVoid(descriptor, ObjCRuntime.SEL("release"));
+        if (_depthStencilState == IntPtr.Zero)
+            throw new GraphicsInitializationException(
+                "Failed to create Metal depth stencil state.",
+                "CreateDepthStencilState");
     }
 
     /// <summary>
@@ -204,13 +215,40 @@ public unsafe class MetalBackend : IGraphicsBackend
         IsInitialized = false;
 
         if (_depthStencilState != IntPtr.Zero)
+        {
             ObjCRuntime.SendMessageVoid(_depthStencilState, ObjCRuntime.SEL("release"));
+            _depthStencilState = IntPtr.Zero;
+        }
+
+        if (_metalLayer != IntPtr.Zero)
+        {
+            if (_nsView != IntPtr.Zero)
+            {
+                ObjCRuntime.SendMessagePtrVoid(_nsView, ObjCRuntime.SEL("setLayer:"), IntPtr.Zero);
+            }
+
+            if (_ownsMetalLayer)
+            {
+                ObjCRuntime.SendMessageVoid(_metalLayer, ObjCRuntime.SEL("release"));
+            }
+
+            _metalLayer = IntPtr.Zero;
+            _ownsMetalLayer = false;
+        }
 
         if (_commandQueue != IntPtr.Zero)
+        {
             ObjCRuntime.SendMessageVoid(_commandQueue, ObjCRuntime.SEL("release"));
+            _commandQueue = IntPtr.Zero;
+        }
 
         if (_device != IntPtr.Zero)
+        {
             ObjCRuntime.SendMessageVoid(_device, ObjCRuntime.SEL("release"));
+            _device = IntPtr.Zero;
+        }
+
+        _nsView = IntPtr.Zero;
     }
 
     private static void SetLayerDrawableSize(IntPtr layer, int width, int height)

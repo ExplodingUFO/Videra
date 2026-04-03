@@ -3,10 +3,10 @@ using System.Collections.Specialized;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
-using Avalonia.Media.Imaging;
-using Avalonia.Platform;
 using Avalonia.Threading;
 using Microsoft.Extensions.Logging;
+using Videra.Avalonia.Composition;
+using Videra.Avalonia.Rendering;
 using Videra.Core.Geometry;
 using Videra.Core.Graphics;
 using Videra.Core.Graphics.Abstractions;
@@ -21,20 +21,12 @@ namespace Videra.Avalonia.Controls;
 /// </summary>
 public partial class VideraView : Decorator
 {
-    private IGraphicsBackend? _backend;
-    private bool _isInitialized;
-    private bool _isReady;
-    private uint _width;
-    private uint _height;
-    private WriteableBitmap? _bitmap;
-    private bool _isSoftwareBackend;
-    private DispatcherTimer? _renderTimer;
+    private RenderSession _renderSession;
+    private readonly INativeHostFactory _nativeHostFactory;
     private NativeControlHost? _nativeHost;
     private Grid? _nativeContainer;
     private Border? _inputOverlay;
-    private IntPtr _renderHandle;
     private readonly ILogger _logger = Microsoft.Extensions.Logging.Abstractions.NullLoggerFactory.Instance.CreateLogger<VideraView>();
-    private int _renderTickCount;
 
     public event EventHandler? BackendReady;
 
@@ -85,7 +77,10 @@ public partial class VideraView : Decorator
 
     public VideraView()
     {
+        AvaloniaGraphicsBackendResolver.EnsureRegistered();
         Engine = new VideraEngine();
+        _nativeHostFactory = new DefaultNativeHostFactory();
+        _renderSession = CreateRenderSession();
         Focusable = true;
         ClipToBounds = true;
     }
@@ -94,7 +89,7 @@ public partial class VideraView : Decorator
 
     public IResourceFactory? GetResourceFactory()
     {
-        return _backend?.GetResourceFactory();
+        return _renderSession.ResourceFactory;
     }
 
     public Color BackgroundColor
@@ -173,7 +168,7 @@ public partial class VideraView : Decorator
     {
         base.OnPropertyChanged(change);
 
-        if (!_isReady)
+        if (!_renderSession.IsReady)
             return;
 
         if (change.Property == BackgroundColorProperty)
@@ -224,6 +219,106 @@ public partial class VideraView : Decorator
         }
     }
 
+    protected override void OnSizeChanged(SizeChangedEventArgs e)
+    {
+        base.OnSizeChanged(e);
+
+        var scaling = VisualRoot?.RenderScaling ?? 1.0;
+        var widthPx = (uint)Math.Max(64, Math.Round(e.NewSize.Width * scaling));
+        var heightPx = (uint)Math.Max(64, Math.Round(e.NewSize.Height * scaling));
+
+        Dispatcher.UIThread.Post(() =>
+        {
+            if (WantsNativeBackend() && !_renderSession.HandleState.IsBound)
+            {
+                _logger.LogDebug("OnSizeChanged: native backend without handle, ensuring host");
+                EnsureNativeHost();
+                if (!_renderSession.HandleState.IsBound)
+                    return;
+            }
+
+            ApplyRenderSessionSize(widthPx, heightPx, retryCount: 0);
+        }, DispatcherPriority.Background);
+    }
+
+    public override void Render(DrawingContext context)
+    {
+        base.Render(context);
+
+        if (!_renderSession.IsInitialized)
+        {
+            context.FillRectangle(new SolidColorBrush(BackgroundColor), new Rect(Bounds.Size));
+            return;
+        }
+
+        if (!_renderSession.IsSoftwareBackend)
+            return;
+
+        if (_renderSession.Bitmap == null)
+        {
+            context.FillRectangle(new SolidColorBrush(BackgroundColor), new Rect(Bounds.Size));
+            return;
+        }
+
+        context.DrawImage(_renderSession.Bitmap, new Rect(0, 0, Bounds.Width, Bounds.Height));
+    }
+
+    private RenderSession CreateRenderSession()
+    {
+        var session = new RenderSession(
+            Engine,
+            requestRender: InvalidateVisual,
+            logger: _logger,
+            renderLoopFactory: static () => new RenderSession.DispatcherRenderLoopDriver());
+        session.BackendReady += OnRenderSessionBackendReady;
+        return session;
+    }
+
+    private void OnRenderSessionBackendReady(object? sender, EventArgs e)
+    {
+        BackendReady?.Invoke(this, EventArgs.Empty);
+    }
+
+    private void ApplyRenderSessionSize(uint widthPx, uint heightPx, int retryCount)
+    {
+        if (widthPx == 0 || heightPx == 0)
+            return;
+
+        try
+        {
+            var wasReady = _renderSession.IsReady;
+            _renderSession.Attach(PreferredBackend);
+            _renderSession.Resize(widthPx, heightPx, (float)(VisualRoot?.RenderScaling ?? 1.0));
+
+            if (!wasReady && _renderSession.IsReady)
+            {
+                ApplyViewState();
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Render session init failed (Try #{RetryCount}): {Error}", retryCount + 1, ex.Message);
+
+            if (retryCount < 5)
+            {
+                Task.Delay(100).ContinueWith(_ =>
+                {
+                    Dispatcher.UIThread.Post(() => ApplyRenderSessionSize(widthPx, heightPx, retryCount + 1));
+                });
+            }
+        }
+    }
+
+    private void ApplyViewState()
+    {
+        var color = BackgroundColor;
+        Engine.BackgroundColor = new RgbaFloat(color.R / 255f, color.G / 255f, color.B / 255f, color.A / 255f);
+        Engine.Camera.InvertX = CameraInvertX;
+        Engine.Camera.InvertY = CameraInvertY;
+        ApplyGridSettings();
+        UpdateItemsSubscription(Items, Items);
+    }
+
     private void UpdateItemsSubscription(IEnumerable? oldList, IEnumerable? newList)
     {
         if (oldList is INotifyCollectionChanged oldIncc)
@@ -253,221 +348,6 @@ public partial class VideraView : Decorator
             Engine.ClearObjects();
     }
 
-    protected override void OnSizeChanged(SizeChangedEventArgs e)
-    {
-        base.OnSizeChanged(e);
-
-        var scaling = VisualRoot?.RenderScaling ?? 1.0;
-        var widthPx = (uint)Math.Max(64, Math.Round(e.NewSize.Width * scaling));
-        var heightPx = (uint)Math.Max(64, Math.Round(e.NewSize.Height * scaling));
-        Engine.RenderScale = (float)scaling;
-
-        Dispatcher.UIThread.Post(() =>
-        {
-            if (WantsNativeBackend() && _renderHandle == IntPtr.Zero)
-            {
-                _logger.LogDebug("OnSizeChanged: native backend without handle, ensuring host");
-                EnsureNativeHost();
-                if (_renderHandle == IntPtr.Zero)
-                    return;
-            }
-            TryInitializeOrResize(widthPx, heightPx);
-        }, DispatcherPriority.Background);
-    }
-
-    public override void Render(DrawingContext context)
-    {
-        base.Render(context);
-
-        if (!_isInitialized)
-        {
-            context.FillRectangle(new SolidColorBrush(BackgroundColor), new Rect(Bounds.Size));
-            return;
-        }
-
-        if (!_isSoftwareBackend)
-            return;
-
-        if (_bitmap == null)
-        {
-            context.FillRectangle(new SolidColorBrush(BackgroundColor), new Rect(Bounds.Size));
-            return;
-        }
-
-        context.DrawImage(_bitmap, new Rect(0, 0, Bounds.Width, Bounds.Height));
-    }
-
-    private void TryInitializeOrResize(uint widthPx, uint heightPx, int retryCount = 0)
-    {
-        if (widthPx == 0 || heightPx == 0)
-            return;
-
-        if (!_isInitialized)
-        {
-            try
-            {
-                InitializeGraphicsDevice(widthPx, heightPx);
-                _isInitialized = true;
-                _isReady = true;
-                BackendReady?.Invoke(this, EventArgs.Empty);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Init Failed (Try #{RetryCount}): {Error}", retryCount + 1, ex.Message);
-
-                if (retryCount < 5)
-                {
-                    Task.Delay(100).ContinueWith(_ =>
-                    {
-                        Dispatcher.UIThread.Post(() => TryInitializeOrResize(widthPx, heightPx, retryCount + 1));
-                    });
-                }
-            }
-        }
-        else
-        {
-            if (_backend != null && (widthPx != _width || heightPx != _height))
-            {
-                _backend.Resize((int)widthPx, (int)heightPx);
-                Engine.Resize(widthPx, heightPx);
-                EnsureBitmap(widthPx, heightPx);
-                _width = widthPx;
-                _height = heightPx;
-            }
-        }
-    }
-
-    private void InitializeGraphicsDevice(uint widthPx, uint heightPx)
-    {
-        _logger.LogInformation("InitializeGraphicsDevice {Width}x{Height}, PreferredBackend={PreferredBackend}", widthPx, heightPx, PreferredBackend);
-        _backend = GraphicsBackendFactory.CreateBackend(PreferredBackend);
-        _isSoftwareBackend = _backend is ISoftwareBackend;
-        _logger.LogInformation("Backend={BackendType}, IsSoftware={IsSoftware}", _backend.GetType().Name, _isSoftwareBackend);
-        if (_isSoftwareBackend)
-        {
-            _renderHandle = IntPtr.Zero;
-            ReleaseNativeHost();
-        }
-
-        var topLevel = TopLevel.GetTopLevel(this);
-        var handle = _isSoftwareBackend
-            ? topLevel?.TryGetPlatformHandle()?.Handle ?? IntPtr.Zero
-            : _renderHandle;
-        _logger.LogDebug("Init handle=0x{Handle:X}, TopLevel={HasTopLevel}", handle.ToInt64(), topLevel != null);
-        _backend.Initialize(handle, (int)widthPx, (int)heightPx);
-
-
-        Engine.Initialize(_backend);
-        Engine.Resize(widthPx, heightPx);
-
-        var frameLogEnv = Environment.GetEnvironmentVariable("VIDERA_FRAMELOG");
-        Engine.EnableFrameLogging = string.Equals(frameLogEnv, "1", StringComparison.OrdinalIgnoreCase) ||
-                                    string.Equals(frameLogEnv, "true", StringComparison.OrdinalIgnoreCase);
-        if (Engine.EnableFrameLogging)
-            _logger.LogInformation("Frame logging enabled");
-
-        var color = BackgroundColor;
-        Engine.BackgroundColor = new RgbaFloat(color.R / 255f, color.G / 255f, color.B / 255f, color.A / 255f);
-        Engine.Camera.InvertX = CameraInvertX;
-        Engine.Camera.InvertY = CameraInvertY;
-
-        _width = widthPx;
-        _height = heightPx;
-
-        EnsureBitmap(widthPx, heightPx);
-        ApplyGridSettings();
-        UpdateItemsSubscription(null, Items);
-        StartRenderLoop();
-    }
-
-    private void EnsureBitmap(uint widthPx, uint heightPx)
-    {
-        if (widthPx == 0 || heightPx == 0)
-            return;
-
-        if (!_isSoftwareBackend)
-        {
-            _bitmap?.Dispose();
-            _bitmap = null;
-            return;
-        }
-
-        if (_bitmap != null &&
-            _bitmap.PixelSize.Width == widthPx &&
-            _bitmap.PixelSize.Height == heightPx)
-        {
-            return;
-        }
-
-        _bitmap?.Dispose();
-        _bitmap = new WriteableBitmap(
-            new PixelSize((int)widthPx, (int)heightPx),
-            new Vector(96, 96),
-            PixelFormat.Bgra8888,
-            AlphaFormat.Premul);
-    }
-
-    private void StartRenderLoop()
-    {
-        if (_renderTimer != null)
-            return;
-
-        _renderTimer = new DispatcherTimer(DispatcherPriority.Render)
-        {
-            Interval = TimeSpan.FromMilliseconds(16)
-        };
-        _renderTimer.Tick += OnRenderTick;
-        _renderTimer.Start();
-        _logger.LogInformation("Render loop started");
-    }
-
-    private void StopRenderLoop()
-    {
-        if (_renderTimer == null)
-        {
-            return;
-        }
-
-        _renderTimer.Stop();
-        _renderTimer.Tick -= OnRenderTick;
-        _renderTimer = null;
-    }
-
-    private void OnRenderTick(object? sender, EventArgs e)
-    {
-        if (_renderTickCount == 0)
-            _logger.LogDebug("First render tick");
-        _renderTickCount++;
-        RenderFrame();
-    }
-
-    private void RenderFrame()
-    {
-        if (!_isInitialized || _backend == null || !Engine.IsInitialized)
-            return;
-
-        try
-        {
-            Engine.Draw();
-
-            if (_isSoftwareBackend && _backend is ISoftwareBackend softwareBackend)
-            {
-                if (_bitmap != null)
-                {
-                    using var locked = _bitmap.Lock();
-                    softwareBackend.CopyFrameTo(locked.Address, locked.RowBytes);
-                }
-
-                InvalidateVisual();
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Render error: {Error}", ex.Message);
-            StopRenderLoop();
-        }
-    }
-
     private void ApplyGridSettings()
     {
         Engine.Grid.IsVisible = IsGridVisible;
@@ -480,10 +360,15 @@ public partial class VideraView : Decorator
     private void OnViewAttached()
     {
         _logger.LogDebug("OnViewAttached");
+        _renderSession.Attach(PreferredBackend);
+
         if (WantsNativeBackend())
         {
-            _logger.LogDebug("Wants native backend, ensuring native host");
             EnsureNativeHost();
+        }
+        else
+        {
+            ReleaseNativeHost();
         }
 
         if (Bounds.Width <= 0 || Bounds.Height <= 0)
@@ -492,34 +377,18 @@ public partial class VideraView : Decorator
         var scaling = VisualRoot?.RenderScaling ?? 1.0;
         var widthPx = (uint)Math.Max(64, Math.Round(Bounds.Width * scaling));
         var heightPx = (uint)Math.Max(64, Math.Round(Bounds.Height * scaling));
-        Engine.RenderScale = (float)scaling;
-
-        if (WantsNativeBackend())
-        {
-            if (_renderHandle != IntPtr.Zero)
-                TryInitializeOrResize(widthPx, heightPx);
-        }
-        else
-        {
-            _renderHandle = IntPtr.Zero;
-            TryInitializeOrResize(widthPx, heightPx);
-        }
+        ApplyRenderSessionSize(widthPx, heightPx, retryCount: 0);
     }
 
     private void OnViewDetached()
     {
         _logger.LogDebug("OnViewDetached");
-        StopRenderLoop();
         if (Items is INotifyCollectionChanged incc)
             incc.CollectionChanged -= OnCollectionChanged;
-        Engine.Dispose();
-        _backend = null;
-        _isSoftwareBackend = false;
+
+        _renderSession.Dispose();
+        _renderSession = CreateRenderSession();
         ReleaseNativeHost();
-        _bitmap?.Dispose();
-        _bitmap = null;
-        _isReady = false;
-        _isInitialized = false;
     }
 
     private bool WantsNativeBackend()
@@ -542,79 +411,65 @@ public partial class VideraView : Decorator
         if (_nativeHost != null)
             return;
 
-        IVideraNativeHost host;
-        if (OperatingSystem.IsWindows())
-        {
-            var winHost = new VideraNativeHost { IsHitTestVisible = true };
-            host = winHost;
-            _nativeHost = winHost;
-        }
-        else if (OperatingSystem.IsLinux())
-        {
-            var linuxHost = new VideraLinuxNativeHost { IsHitTestVisible = true };
-            host = linuxHost;
-            _nativeHost = linuxHost;
-        }
-        else if (OperatingSystem.IsMacOS())
-        {
-            var macHost = new VideraMacOSNativeHost { IsHitTestVisible = true };
-            host = macHost;
-            _nativeHost = macHost;
-        }
-        else
+        var host = _nativeHostFactory.CreateHost();
+        if (host == null)
         {
             _logger.LogWarning("No native host available for this platform");
             return;
         }
 
+        if (host is not NativeControlHost nativeHost)
+        {
+            throw new InvalidOperationException("Native host factory must return a NativeControlHost implementation.");
+        }
+
+        host.IsHitTestVisible = true;
         host.HandleCreated += OnNativeHandleCreated;
         host.HandleDestroyed += OnNativeHandleDestroyed;
         host.NativePointer += OnNativePointer;
-        var overlay = new Border
+
+        _nativeHost = nativeHost;
+        _inputOverlay = new Border
         {
             Background = Brushes.Transparent,
             IsHitTestVisible = false
         };
-        _inputOverlay = overlay;
         _nativeContainer = new Grid();
-        _nativeContainer.Children.Add(_nativeHost);
-        _nativeContainer.Children.Add(overlay);
+        _nativeContainer.Children.Add(nativeHost);
+        _nativeContainer.Children.Add(_inputOverlay);
         Child = _nativeContainer;
         _logger.LogInformation("Native host created");
     }
 
     private void ReleaseNativeHost()
     {
-        if (_nativeHost == null)
-            return;
-
         if (_nativeHost is IVideraNativeHost host)
         {
             host.HandleCreated -= OnNativeHandleCreated;
             host.HandleDestroyed -= OnNativeHandleDestroyed;
             host.NativePointer -= OnNativePointer;
         }
+
+        _renderSession.BindHandle(IntPtr.Zero);
         Child = null;
         _nativeHost = null;
         _nativeContainer = null;
         _inputOverlay = null;
-        _renderHandle = IntPtr.Zero;
     }
 
     private void OnNativeHandleCreated(IntPtr handle)
     {
-        _renderHandle = handle;
+        _renderSession.BindHandle(handle);
         _logger.LogInformation("Native handle created: 0x{Handle:X}", handle.ToInt64());
 
         var scaling = VisualRoot?.RenderScaling ?? 1.0;
         var widthPx = (uint)Math.Max(64, Math.Round(Bounds.Width * scaling));
         var heightPx = (uint)Math.Max(64, Math.Round(Bounds.Height * scaling));
-        Engine.RenderScale = (float)scaling;
-        TryInitializeOrResize(widthPx, heightPx);
+        ApplyRenderSessionSize(widthPx, heightPx, retryCount: 0);
     }
 
     private void OnNativeHandleDestroyed()
     {
-        _renderHandle = IntPtr.Zero;
+        _renderSession.BindHandle(IntPtr.Zero);
     }
 }
