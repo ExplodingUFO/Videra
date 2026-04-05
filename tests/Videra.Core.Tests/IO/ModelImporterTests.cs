@@ -58,6 +58,13 @@ public class ModelImporterTests : IDisposable
         return path;
     }
 
+    private string WriteGltf(string fileName, string content)
+    {
+        var path = Path.Combine(_tempDir, fileName);
+        File.WriteAllText(path, content);
+        return path;
+    }
+
     [Fact]
     public void Load_CalledWithNullPath_ThrowsInvalidModelInputException()
     {
@@ -211,5 +218,95 @@ public class ModelImporterTests : IDisposable
         // Should not throw IndexOutOfRangeException from out-of-range vertex index
         var act = () => ModelImporter.Load(path, factory);
         act.Should().NotThrow<IndexOutOfRangeException>();
+    }
+
+    [Fact]
+    public void Load_GltfWithMalformedNormals_FallsBackToRecoverableImport()
+    {
+        var factory = new SoftwareResourceFactory();
+        var path = WriteGltf("malformed_normals.gltf", """
+            {
+              "asset": {
+                "version": "2.0",
+                "generator": "SOLIDWORKSGLTF"
+              },
+              "scene": 0,
+              "scenes": [
+                {
+                  "nodes": [0]
+                }
+              ],
+              "nodes": [
+                {
+                  "mesh": 0
+                }
+              ],
+              "meshes": [
+                {
+                  "primitives": [
+                    {
+                      "attributes": {
+                        "POSITION": 0,
+                        "NORMAL": 1
+                      },
+                      "indices": 2
+                    }
+                  ]
+                }
+              ],
+              "buffers": [
+                {
+                  "byteLength": 78,
+                  "uri": "data:application/octet-stream;base64,AAAAAAAAAAAAAAAAAACAPwAAAAAAAAAAAAAAAAAAgD8AAAAAAAAAQAAAAAAAAAAAAAAAAAAAQEAAAAAAAAAAAAAAAAAAAIBAAAABAAIA"
+                }
+              ],
+              "bufferViews": [
+                {
+                  "buffer": 0,
+                  "byteOffset": 0,
+                  "byteLength": 36,
+                  "target": 34962
+                },
+                {
+                  "buffer": 0,
+                  "byteOffset": 36,
+                  "byteLength": 36,
+                  "target": 34962
+                },
+                {
+                  "buffer": 0,
+                  "byteOffset": 72,
+                  "byteLength": 6,
+                  "target": 34963
+                }
+              ],
+              "accessors": [
+                {
+                  "bufferView": 0,
+                  "componentType": 5126,
+                  "count": 3,
+                  "type": "VEC3",
+                  "min": [0.0, 0.0, 0.0],
+                  "max": [1.0, 1.0, 0.0]
+                },
+                {
+                  "bufferView": 1,
+                  "componentType": 5126,
+                  "count": 3,
+                  "type": "VEC3"
+                },
+                {
+                  "bufferView": 2,
+                  "componentType": 5123,
+                  "count": 3,
+                  "type": "SCALAR"
+                }
+              ]
+            }
+            """);
+
+        var act = () => ModelImporter.Load(path, factory);
+
+        act.Should().NotThrow();
     }
 }

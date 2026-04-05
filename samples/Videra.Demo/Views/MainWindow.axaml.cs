@@ -37,7 +37,7 @@ public partial class MainWindow : Window
         var topLevel = TopLevel.GetTopLevel(this);
         var factory = View3D.GetResourceFactory();
         var backendLabel = View3D.PreferredBackend == GraphicsBackendPreference.Auto
-            ? "Auto (Windows native preferred)"
+            ? "Auto (native backend preferred)"
             : View3D.PreferredBackend.ToString();
 
         if (DataContext is not MainWindowViewModel viewModel)
@@ -55,7 +55,7 @@ public partial class MainWindow : Window
         var importerService = new AvaloniaModelImporter(topLevel, factory);
         viewModel = new MainWindowViewModel(importerService);
         DataContext = viewModel;
-        viewModel.SetBackendStatus(true, backendLabel, "渲染后端已就绪，已加载默认演示立方体。Windows 下优先验证 D3D11 路径。");
+        viewModel.SetBackendStatus(true, backendLabel, "渲染后端已就绪，已加载默认演示立方体。Auto 模式会按当前平台优先选择原生后端。");
 
         try
         {

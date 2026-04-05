@@ -123,7 +123,7 @@ stateDiagram-v2
 
 ## 运行方式
 
-默认情况下，Demo 会在启动后等待 `VideraView` 后端准备完成，再初始化导入服务，并尝试加载一个默认演示立方体。`MainWindow.axaml` 当前将 `PreferredBackend` 固定为 `D3D11`，因此该设置仅适用于 Windows 主机；在 Linux/macOS 上若需运行 Demo，请改为 `Auto` 或对应平台后端。
+默认情况下，Demo 会在启动后等待 `VideraView` 后端准备完成，再初始化导入服务，并尝试加载一个默认演示立方体。`MainWindow.axaml` 现在将 `PreferredBackend` 设为 `Auto`，因此会按当前平台优先选择原生后端：Windows 为 D3D11，Linux 为 Vulkan，macOS 为 Metal。Windows 启动入口仍会显式设置 `VIDERA_BACKEND=d3d11`，用于稳定验证 Windows 原生路径。
 
 ### Windows
 ```bash
@@ -180,7 +180,7 @@ Videra.Demo/
                      IsGridVisible="{Binding IsGridVisible}"
                      GridHeight="{Binding GridHeight}"
                      GridColor="{Binding GridColor}"
-                     PreferredBackend="D3D11"/>
+                     PreferredBackend="Auto"/>
 ```
 
 ### ViewModel

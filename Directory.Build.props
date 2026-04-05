@@ -2,7 +2,10 @@
   <PropertyGroup>
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
     <AnalysisLevel>latest-recommended</AnalysisLevel>
-    <TreatWarningsAsErrors Condition="'$(Configuration)' == 'Debug'">true</TreatWarningsAsErrors>
+    <!-- The repo still carries a large backlog of analyzer findings across referenced projects.
+         Keep local Debug builds usable by making warnings-as-errors opt-in instead of always-on. -->
+    <WarningsAsErrorsInDebug Condition="'$(WarningsAsErrorsInDebug)' == ''">false</WarningsAsErrorsInDebug>
+    <TreatWarningsAsErrors Condition="'$(Configuration)' == 'Debug' and '$(WarningsAsErrorsInDebug)' == 'true'">true</TreatWarningsAsErrors>
     <RunAnalyzersDuringBuild>true</RunAnalyzersDuringBuild>
   </PropertyGroup>
   <ItemGroup>

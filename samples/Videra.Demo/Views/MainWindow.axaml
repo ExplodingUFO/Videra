@@ -27,7 +27,7 @@
                      IsGridVisible="{Binding IsGridVisible}"
                      GridHeight="{Binding GridHeight, Converter={StaticResource DecimalToFloatConverter}}"
                      GridColor="{Binding GridColor}"
-                     PreferredBackend="D3D11"/>
+                     PreferredBackend="Auto"/>
 
         <Border Grid.Column="1" Background="#252526" BorderBrush="#3E3E42" BorderThickness="1,0,0,0">
             <ScrollViewer>

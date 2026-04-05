@@ -5,6 +5,7 @@ using Videra.Core.Geometry;
 using Videra.Core.Graphics;
 using Videra.Core.Graphics.Abstractions;
 using SharpGLTF.Schema2;
+using SharpGLTF.Validation;
 
 namespace Videra.Core.IO;
 
@@ -131,7 +132,7 @@ public static class ModelImporter
 
     private static MeshData LoadWithSharpGLTF(string filePath, ILogger logger)
     {
-        var model = ModelRoot.Load(filePath);
+        var model = LoadModelRootWithFallback(filePath, logger);
 
         var allVertices = new List<VertexPositionNormalColor>();
         var allIndices = new List<uint>();
@@ -163,6 +164,23 @@ public static class ModelImporter
             Indices = allIndices.ToArray(),
             Topology = MeshTopology.Triangles
         };
+    }
+
+    private static ModelRoot LoadModelRootWithFallback(string filePath, ILogger logger)
+    {
+        try
+        {
+            return ModelRoot.Load(filePath, new ReadSettings { Validation = ValidationMode.Strict });
+        }
+        catch (DataException ex)
+        {
+            logger.LogWarning(
+                ex,
+                "[SharpGLTF] Strict validation failed for {FilePath}; retrying with ValidationMode.TryFix",
+                filePath);
+
+            return ModelRoot.Load(filePath, new ReadSettings { Validation = ValidationMode.TryFix });
+        }
     }
 
     private static void ProcessNodeRecursive(
