@@ -9,9 +9,11 @@ namespace Videra.Platform.Windows.Tests.Backend;
 
 public sealed class D3D11BackendBoundaryTests
 {
-    [Fact]
+    [WindowsFact]
     public void Initialize_CalledWithZeroHandle_ThrowsPlatformDependencyException()
     {
+        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) return;
+
         using var backend = new D3D11Backend();
 
         var act = () => backend.Initialize(IntPtr.Zero, 64, 64);
@@ -20,9 +22,11 @@ public sealed class D3D11BackendBoundaryTests
             .Which.Platform.Should().Be("Windows");
     }
 
-    [Fact]
+    [WindowsFact]
     public void Initialize_CalledWithZeroHandle_ExceptionContainsOperation()
     {
+        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) return;
+
         using var backend = new D3D11Backend();
 
         var act = () => backend.Initialize(IntPtr.Zero, 64, 64);
@@ -32,7 +36,7 @@ public sealed class D3D11BackendBoundaryTests
         ex.Message.Should().Contain("window handle");
     }
 
-    [Fact]
+    [WindowsFact]
     public void Initialize_CalledWithZeroWidth_ThrowsPlatformDependencyException()
     {
         if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) return;
@@ -46,7 +50,7 @@ public sealed class D3D11BackendBoundaryTests
             .Which.Operation.Should().Be("Initialize");
     }
 
-    [Fact]
+    [WindowsFact]
     public void Initialize_CalledWithZeroHeight_ThrowsPlatformDependencyException()
     {
         if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) return;
@@ -60,7 +64,7 @@ public sealed class D3D11BackendBoundaryTests
             .Which.Operation.Should().Be("Initialize");
     }
 
-    [Fact]
+    [WindowsFact]
     public void Initialize_CalledWithNegativeWidth_ThrowsPlatformDependencyException()
     {
         if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) return;
@@ -73,7 +77,7 @@ public sealed class D3D11BackendBoundaryTests
         act.Should().Throw<PlatformDependencyException>();
     }
 
-    [Fact]
+    [WindowsFact]
     public void Initialize_CalledWithNegativeHeight_ThrowsPlatformDependencyException()
     {
         if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) return;

@@ -12,15 +12,20 @@ namespace Videra.Platform.Windows.Tests.Backend;
 
 public sealed class D3D11BackendSmokeTests
 {
-    [Fact]
+    [WindowsFact]
     public void D3D11Backend_ConstructedBackend_StartsUninitialized()
     {
+        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            return;
+        }
+
         using var backend = new D3D11Backend();
 
         backend.IsInitialized.Should().BeFalse();
     }
 
-    [Fact]
+    [WindowsFact]
     public void D3D11Backend_InitializeWithRealHwnd_RunsLifecycleOnWindows()
     {
         if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -47,7 +52,7 @@ public sealed class D3D11BackendSmokeTests
         act.Should().NotThrow();
     }
 
-    [Fact]
+    [WindowsFact]
     public void D3D11Backend_RealHwnd_AllowsResourceCreationAndDrawLifecycle_OnWindows()
     {
         if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -98,7 +103,7 @@ public sealed class D3D11BackendSmokeTests
         act.Should().NotThrow();
     }
 
-    [Fact]
+    [WindowsFact]
     public void D3D11ResourceFactory_CreateShader_ThrowsUnsupportedOperationException()
     {
         if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -118,7 +123,7 @@ public sealed class D3D11BackendSmokeTests
             .Which.Operation.Should().Be("CreateShader");
     }
 
-    [Fact]
+    [WindowsFact]
     public void D3D11ResourceFactory_CreateResourceSet_ThrowsUnsupportedOperationException()
     {
         if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -139,7 +144,7 @@ public sealed class D3D11BackendSmokeTests
             .Which.Operation.Should().Be("CreateResourceSet");
     }
 
-    [Fact]
+    [WindowsFact]
     public void D3D11CommandExecutor_SetResourceSet_ThrowsUnsupportedOperationException()
     {
         if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))

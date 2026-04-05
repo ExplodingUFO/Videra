@@ -19,7 +19,7 @@ public sealed class D3D11BackendLifecycleTests
 {
     private static bool IsWindows => RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
 
-    [Fact]
+    [WindowsFact]
     public void Dispose_WithoutInitialize_DoesNotThrow()
     {
         if (!IsWindows) return;
@@ -32,7 +32,7 @@ public sealed class D3D11BackendLifecycleTests
         act.Should().NotThrow();
     }
 
-    [Fact]
+    [WindowsFact]
     public void DoubleDispose_DoesNotThrow()
     {
         if (!IsWindows) return;
@@ -47,7 +47,7 @@ public sealed class D3D11BackendLifecycleTests
         act.Should().NotThrow();
     }
 
-    [Fact]
+    [WindowsFact]
     public void Initialize_WithZeroHandle_ThrowsPlatformDependencyException()
     {
         if (!IsWindows) return;
@@ -60,7 +60,7 @@ public sealed class D3D11BackendLifecycleTests
             .Which.Operation.Should().Be("Initialize");
     }
 
-    [Fact]
+    [WindowsFact]
     public void Initialize_WithZeroDimensions_ThrowsPlatformDependencyException()
     {
         if (!IsWindows) return;
@@ -74,7 +74,7 @@ public sealed class D3D11BackendLifecycleTests
         backend.IsInitialized.Should().BeFalse();
     }
 
-    [Fact]
+    [WindowsFact]
     public void Initialize_SecondCall_IsIdempotent()
     {
         if (!IsWindows) return;
@@ -89,7 +89,7 @@ public sealed class D3D11BackendLifecycleTests
         backend.IsInitialized.Should().BeTrue();
     }
 
-    [Fact]
+    [WindowsFact]
     public void Resize_AfterInit_Succeeds()
     {
         if (!IsWindows) return;
@@ -103,7 +103,7 @@ public sealed class D3D11BackendLifecycleTests
         act.Should().NotThrow();
     }
 
-    [Fact]
+    [WindowsFact]
     public void Resize_WithInjectedResizeBuffersFailure_ThrowsGraphicsInitializationException()
     {
         if (!IsWindows) return;
@@ -122,7 +122,7 @@ public sealed class D3D11BackendLifecycleTests
             .Which.Operation.Should().Be("Resize");
     }
 
-    [Fact]
+    [WindowsFact]
     public void Resize_WithZeroDimensions_IsSilentlyIgnored()
     {
         if (!IsWindows) return;
@@ -136,7 +136,7 @@ public sealed class D3D11BackendLifecycleTests
         act.Should().NotThrow();
     }
 
-    [Fact]
+    [WindowsFact]
     public void SetClearColor_DoesNotThrow()
     {
         if (!IsWindows) return;
@@ -150,7 +150,7 @@ public sealed class D3D11BackendLifecycleTests
         act.Should().NotThrow();
     }
 
-    [Fact]
+    [WindowsFact]
     public void MultipleFrameCycles_CompleteSuccessfully()
     {
         if (!IsWindows) return;
@@ -171,7 +171,7 @@ public sealed class D3D11BackendLifecycleTests
         act.Should().NotThrow();
     }
 
-    [Fact]
+    [WindowsFact]
     public void ResourceCreation_AfterResize_Succeeds()
     {
         if (!IsWindows) return;
@@ -193,7 +193,7 @@ public sealed class D3D11BackendLifecycleTests
         vb.Should().NotBeNull();
     }
 
-    [Fact]
+    [WindowsFact]
     public void DrawIndexed_AfterResize_CompletesWithoutError()
     {
         if (!IsWindows) return;
@@ -232,7 +232,7 @@ public sealed class D3D11BackendLifecycleTests
         act.Should().NotThrow();
     }
 
-    [Fact]
+    [WindowsFact]
     public void MultipleResizeCycles_ThenDraw_CompletesWithoutError()
     {
         if (!IsWindows) return;
@@ -275,7 +275,7 @@ public sealed class D3D11BackendLifecycleTests
         act.Should().NotThrow();
     }
 
-    [Fact]
+    [WindowsFact]
     public void UniformBuffer_UpdateAndBind_Succeeds()
     {
         if (!IsWindows) return;
@@ -304,7 +304,7 @@ public sealed class D3D11BackendLifecycleTests
         act.Should().NotThrow();
     }
 
-    [Fact]
+    [WindowsFact]
     public void Backend_Reinitialization_AfterDispose_Succeeds()
     {
         if (!IsWindows) return;

@@ -18,7 +18,7 @@ public sealed class MetalBackendLifecycleTests
 {
     private static bool IsMacOS => RuntimeInformation.IsOSPlatform(OSPlatform.OSX);
 
-    [Fact]
+    [MacOSFact]
     public void Dispose_WithoutInitialize_DoesNotThrow()
     {
         if (!IsMacOS) return;
@@ -31,7 +31,7 @@ public sealed class MetalBackendLifecycleTests
         act.Should().NotThrow();
     }
 
-    [Fact]
+    [MacOSFact]
     public void DoubleDispose_DoesNotThrow()
     {
         if (!IsMacOS) return;
@@ -46,7 +46,7 @@ public sealed class MetalBackendLifecycleTests
         act.Should().NotThrow();
     }
 
-    [Fact]
+    [MacOSFact]
     public void Initialize_WithRealNSView_SetsInitialized()
     {
         if (!IsMacOS) return;
@@ -61,7 +61,7 @@ public sealed class MetalBackendLifecycleTests
         backend.GetCommandExecutor().Should().NotBeNull();
     }
 
-    [Fact]
+    [MacOSFact]
     public void Initialize_SecondCall_IsIdempotent()
     {
         if (!IsMacOS) return;
@@ -76,7 +76,7 @@ public sealed class MetalBackendLifecycleTests
         backend.IsInitialized.Should().BeTrue();
     }
 
-    [Fact]
+    [MacOSFact]
     public void Resize_AfterInit_Succeeds()
     {
         if (!IsMacOS) return;
@@ -90,7 +90,7 @@ public sealed class MetalBackendLifecycleTests
         act.Should().NotThrow();
     }
 
-    [Fact]
+    [MacOSFact]
     public void MultipleFrameCycles_CompleteSuccessfully()
     {
         if (!IsMacOS) return;
@@ -111,7 +111,7 @@ public sealed class MetalBackendLifecycleTests
         act.Should().NotThrow();
     }
 
-    [Fact]
+    [MacOSFact]
     public void ResourceCreation_AndDrawPath_Succeeds()
     {
         if (!IsMacOS) return;
@@ -148,7 +148,7 @@ public sealed class MetalBackendLifecycleTests
         act.Should().NotThrow();
     }
 
-    [Fact]
+    [MacOSFact]
     public void Backend_Reinitialization_AfterDispose_Succeeds()
     {
         if (!IsMacOS) return;

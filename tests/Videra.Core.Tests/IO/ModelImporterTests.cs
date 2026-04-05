@@ -8,8 +8,36 @@ using Xunit;
 
 namespace Videra.Core.Tests.IO;
 
-public class ModelImporterTests
+public class ModelImporterTests : IDisposable
 {
+    private readonly string _tempDir;
+    private bool _disposed;
+
+    public ModelImporterTests()
+    {
+        _tempDir = Path.Combine(Path.GetTempPath(), $"VideraCoreTests_{Guid.NewGuid():N}");
+        Directory.CreateDirectory(_tempDir);
+    }
+
+    public void Dispose()
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        _disposed = true;
+
+        try
+        {
+            Directory.Delete(_tempDir, recursive: true);
+        }
+        catch
+        {
+            // Best-effort temp cleanup for test data.
+        }
+    }
+
     private static Mock<IResourceFactory> CreateMockFactory()
     {
         var mockFactory = new Mock<IResourceFactory>();
@@ -21,6 +49,13 @@ public class ModelImporterTests
         mockFactory.Setup(f => f.CreateUniformBuffer(It.IsAny<uint>())).Returns(mockBuffer.Object);
 
         return mockFactory;
+    }
+
+    private string WriteObj(string fileName, string content)
+    {
+        var path = Path.Combine(_tempDir, fileName);
+        File.WriteAllText(path, content);
+        return path;
     }
 
     [Fact]
@@ -114,8 +149,15 @@ public class ModelImporterTests
     public void Load_ObjTriangle_ProducesCorrectObject()
     {
         var factory = new SoftwareResourceFactory();
-        var path = Path.Combine(AppContext.BaseDirectory, "IO", "TestData", "triangle.obj");
-        File.Exists(path).Should().BeTrue($"test fixture '{path}' should exist");
+        var path = WriteObj("triangle.obj", """
+            v 0.0 0.0 0.0
+            v 1.0 0.0 0.0
+            v 0.5 1.0 0.0
+            vn 0.0 0.0 1.0
+            vn 0.0 0.0 1.0
+            vn 0.0 0.0 1.0
+            f 1/1 2/2 3/3
+            """);
 
         var obj = ModelImporter.Load(path, factory);
 
@@ -127,8 +169,15 @@ public class ModelImporterTests
     public void Load_ObjTwoTriangles_ProducesCorrectObject()
     {
         var factory = new SoftwareResourceFactory();
-        var path = Path.Combine(AppContext.BaseDirectory, "IO", "TestData", "two_triangles.obj");
-        File.Exists(path).Should().BeTrue($"test fixture '{path}' should exist");
+        var path = WriteObj("two_triangles.obj", """
+            v 0.0 0.0 0.0
+            v 1.0 0.0 0.0
+            v 0.5 1.0 0.0
+            v 1.5 1.0 0.0
+            vn 0.0 0.0 1.0
+            f 1//1 2//1 3//1
+            f 2//1 4//1 3//1
+            """);
 
         var obj = ModelImporter.Load(path, factory);
 
@@ -139,8 +188,7 @@ public class ModelImporterTests
     public void Load_ObjEmptyFile_ProducesEmptyObject()
     {
         var factory = new SoftwareResourceFactory();
-        var path = Path.Combine(AppContext.BaseDirectory, "IO", "TestData", "empty.obj");
-        File.Exists(path).Should().BeTrue($"test fixture '{path}' should exist");
+        var path = WriteObj("empty.obj", string.Empty);
 
         // An OBJ with no faces should still load (produces empty mesh)
         var act = () => ModelImporter.Load(path, factory);
@@ -153,8 +201,12 @@ public class ModelImporterTests
     public void Load_ObjBadIndices_DoesNotCrash()
     {
         var factory = new SoftwareResourceFactory();
-        var path = Path.Combine(AppContext.BaseDirectory, "IO", "TestData", "bad_indices.obj");
-        File.Exists(path).Should().BeTrue($"test fixture '{path}' should exist");
+        var path = WriteObj("bad_indices.obj", """
+            v 0.0 0.0 0.0
+            v 1.0 0.0 0.0
+            vn 0.0 0.0 1.0
+            f 1//1 2//1 5//1
+            """);
 
         // Should not throw IndexOutOfRangeException from out-of-range vertex index
         var act = () => ModelImporter.Load(path, factory);

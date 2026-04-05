@@ -6,11 +6,37 @@ namespace Videra.Core.Tests.NativeLibrary;
 
 public class NativeLibraryHelperTests
 {
+    private static string[] GetKnownLibraryCandidates()
+    {
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            return new[] { "kernel32.dll", "ntdll.dll" };
+        }
+
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+        {
+            return new[] { "libSystem.B.dylib", "libc.dylib" };
+        }
+
+        return new[] { "libc.so.6", "libc.so" };
+    }
+
+    private static string GetKnownExportName()
+    {
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            return "GetCurrentProcessId";
+        }
+
+        return "getpid";
+    }
+
     [Fact]
     public void TryLoadWithFallback_SucceedsWithValidLibrary()
     {
-        // On Windows, kernel32.dll is always available
-        var candidates = new[] { "nonexistent_library_xyz.so", "kernel32.dll" };
+        var candidates = new[] { "nonexistent_library_xyz.so" }
+            .Concat(GetKnownLibraryCandidates())
+            .ToArray();
         var result = NativeLibraryHelper.TryLoadWithFallback(candidates, out var handle);
 
         Assert.True(result);
@@ -20,10 +46,10 @@ public class NativeLibraryHelperTests
     [Fact]
     public void TryLoadWithFallback_TriesNamesInOrder()
     {
-        // First candidate is valid, should succeed immediately
-        var candidates = new[] { "kernel32.dll", "ntdll.dll" };
-        NativeLibraryHelper.TryLoadWithFallback(candidates, out var handle);
+        var candidates = GetKnownLibraryCandidates();
+        var result = NativeLibraryHelper.TryLoadWithFallback(candidates, out var handle);
 
+        Assert.True(result);
         Assert.NotEqual(IntPtr.Zero, handle);
     }
 
@@ -40,9 +66,10 @@ public class NativeLibraryHelperTests
     [Fact]
     public void TryGetSymbol_FindsKnownExport()
     {
-        // Load a known library and find a known export
-        NativeLibraryHelper.TryLoadWithFallback(new[] { "kernel32.dll" }, out var handle);
-        var result = NativeLibraryHelper.TryGetSymbol(handle, "GetVersion", out var symbol);
+        var loadResult = NativeLibraryHelper.TryLoadWithFallback(GetKnownLibraryCandidates(), out var handle);
+        Assert.True(loadResult);
+
+        var result = NativeLibraryHelper.TryGetSymbol(handle, GetKnownExportName(), out var symbol);
 
         Assert.True(result);
         Assert.NotEqual(IntPtr.Zero, symbol);
@@ -51,7 +78,9 @@ public class NativeLibraryHelperTests
     [Fact]
     public void TryGetSymbol_ReturnsFalseForMissingExport()
     {
-        NativeLibraryHelper.TryLoadWithFallback(new[] { "kernel32.dll" }, out var handle);
+        var loadResult = NativeLibraryHelper.TryLoadWithFallback(GetKnownLibraryCandidates(), out var handle);
+        Assert.True(loadResult);
+
         var result = NativeLibraryHelper.TryGetSymbol(handle, "CompletelyNonexistentFunction_XYZ", out var symbol);
 
         Assert.False(result);

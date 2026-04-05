@@ -19,7 +19,7 @@ public sealed class VulkanBackendLifecycleTests
 {
     private static bool IsLinux => RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
 
-    [Fact]
+    [LinuxFact]
     public void Dispose_WithoutInitialize_DoesNotThrow()
     {
         if (!IsLinux) return;
@@ -32,7 +32,7 @@ public sealed class VulkanBackendLifecycleTests
         act.Should().NotThrow();
     }
 
-    [Fact]
+    [LinuxFact]
     public void DoubleDispose_DoesNotThrow()
     {
         if (!IsLinux) return;
@@ -47,7 +47,7 @@ public sealed class VulkanBackendLifecycleTests
         act.Should().NotThrow();
     }
 
-    [Fact]
+    [LinuxFact]
     public void Initialize_WithZeroHandle_ThrowsPlatformDependencyException()
     {
         if (!IsLinux) return;
@@ -61,7 +61,7 @@ public sealed class VulkanBackendLifecycleTests
         backend.IsInitialized.Should().BeFalse();
     }
 
-    [Fact]
+    [LinuxFact]
     public void Initialize_SecondCall_IsIdempotent()
     {
         if (!IsLinux) return;
@@ -76,7 +76,7 @@ public sealed class VulkanBackendLifecycleTests
         backend.IsInitialized.Should().BeTrue();
     }
 
-    [Fact]
+    [LinuxFact]
     public void Initialize_WithRealX11Window_SetsInitialized()
     {
         if (!IsLinux) return;
@@ -91,7 +91,7 @@ public sealed class VulkanBackendLifecycleTests
         backend.GetCommandExecutor().Should().NotBeNull();
     }
 
-    [Fact]
+    [LinuxFact]
     public void Resize_AfterInit_Succeeds()
     {
         if (!IsLinux) return;
@@ -105,7 +105,7 @@ public sealed class VulkanBackendLifecycleTests
         act.Should().NotThrow();
     }
 
-    [Fact]
+    [LinuxFact]
     public void MultipleFrameCycles_CompleteSuccessfully()
     {
         if (!IsLinux) return;
@@ -126,7 +126,7 @@ public sealed class VulkanBackendLifecycleTests
         act.Should().NotThrow();
     }
 
-    [Fact]
+    [LinuxFact]
     public void ResourceCreation_AndDrawPath_Succeeds()
     {
         if (!IsLinux) return;
@@ -163,7 +163,7 @@ public sealed class VulkanBackendLifecycleTests
         act.Should().NotThrow();
     }
 
-    [Fact]
+    [LinuxFact]
     public void Backend_Reinitialization_AfterDispose_Succeeds()
     {
         if (!IsLinux) return;

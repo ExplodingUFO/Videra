@@ -15,82 +15,82 @@ internal static class ObjCRuntime
 {
     #region Core P/Invoke
 
-    [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_getClass")]
+    [DllImport("/usr/lib/libobjc.A.dylib", EntryPoint = "objc_getClass")]
     public static extern IntPtr GetClass(string name);
 
-    [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "sel_registerName")]
+    [DllImport("/usr/lib/libobjc.A.dylib", EntryPoint = "sel_registerName")]
     public static extern IntPtr RegisterSelector(string name);
 
-    [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_msgSend")]
+    [DllImport("/usr/lib/libobjc.A.dylib", EntryPoint = "objc_msgSend")]
     public static extern IntPtr SendMessage(IntPtr receiver, IntPtr selector);
 
-    [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_msgSend")]
+    [DllImport("/usr/lib/libobjc.A.dylib", EntryPoint = "objc_msgSend")]
     public static extern IntPtr SendMessagePtr(IntPtr receiver, IntPtr selector, IntPtr arg);
 
-    [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_msgSend")]
+    [DllImport("/usr/lib/libobjc.A.dylib", EntryPoint = "objc_msgSend")]
     public static extern void SendMessageVoid(IntPtr receiver, IntPtr selector);
 
-    [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_msgSend")]
+    [DllImport("/usr/lib/libobjc.A.dylib", EntryPoint = "objc_msgSend")]
     public static extern void SendMessageInt(IntPtr receiver, IntPtr selector, int arg);
 
-    [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_msgSend")]
+    [DllImport("/usr/lib/libobjc.A.dylib", EntryPoint = "objc_msgSend")]
     public static extern void SendMessageBool(IntPtr receiver, IntPtr selector, bool arg);
 
-    [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_msgSend")]
+    [DllImport("/usr/lib/libobjc.A.dylib", EntryPoint = "objc_msgSend")]
     public static extern void SendMessagePtrVoid(IntPtr receiver, IntPtr selector, IntPtr arg);
 
-    [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_msgSend")]
+    [DllImport("/usr/lib/libobjc.A.dylib", EntryPoint = "objc_msgSend")]
     public static extern IntPtr SendMessagePtrIndex(IntPtr receiver, IntPtr selector, IntPtr arg1, nuint arg2);
 
-    [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_msgSend")]
+    [DllImport("/usr/lib/libobjc.A.dylib", EntryPoint = "objc_msgSend")]
     public static extern IntPtr SendMessageIndex(IntPtr receiver, IntPtr selector, int index);
 
-    [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_msgSend")]
+    [DllImport("/usr/lib/libobjc.A.dylib", EntryPoint = "objc_msgSend")]
     public static extern double SendMessageDouble(IntPtr receiver, IntPtr selector);
 
-    [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_msgSend")]
+    [DllImport("/usr/lib/libobjc.A.dylib", EntryPoint = "objc_msgSend")]
     public static extern void SendMessageDoubleArg(IntPtr receiver, IntPtr selector, double arg);
 
-    [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_msgSend")]
+    [DllImport("/usr/lib/libobjc.A.dylib", EntryPoint = "objc_msgSend")]
     public static extern bool SendMessageBoolReturn(IntPtr receiver, IntPtr selector);
 
-    [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_msgSend")]
+    [DllImport("/usr/lib/libobjc.A.dylib", EntryPoint = "objc_msgSend")]
     public static extern IntPtr SendMessagePipelineState(IntPtr receiver, IntPtr selector, IntPtr descriptor, ref IntPtr error);
 
-    [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_msgSend")]
+    [DllImport("/usr/lib/libobjc.A.dylib", EntryPoint = "objc_msgSend")]
     public static extern IntPtr SendMessageNewLibrary(IntPtr receiver, IntPtr selector, IntPtr source, IntPtr options, ref IntPtr error);
 
-    [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_msgSend")]
+    [DllImport("/usr/lib/libobjc.A.dylib", EntryPoint = "objc_msgSend")]
     public static extern IntPtr SendMessageInitWithChars(IntPtr receiver, IntPtr selector, IntPtr characters, int length);
 
-    [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_msgSend")]
+    [DllImport("/usr/lib/libobjc.A.dylib", EntryPoint = "objc_msgSend")]
     public static extern IntPtr SendMessageWithBytes(IntPtr receiver, IntPtr selector, IntPtr bytes, nuint length, nuint options);
 
-    [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_msgSend")]
+    [DllImport("/usr/lib/libobjc.A.dylib", EntryPoint = "objc_msgSend")]
     public static extern IntPtr SendMessageWithLength(IntPtr receiver, IntPtr selector, nuint length, nuint options);
 
-    [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_msgSend")]
+    [DllImport("/usr/lib/libobjc.A.dylib", EntryPoint = "objc_msgSend")]
     public static extern void SendMessageVertexBuffer(IntPtr receiver, IntPtr selector, IntPtr buffer, nuint offset, nuint index);
 
-    [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_msgSend")]
+    [DllImport("/usr/lib/libobjc.A.dylib", EntryPoint = "objc_msgSend")]
     public static extern void SendMessageDrawPrimitives(IntPtr receiver, IntPtr selector, nuint primitiveType, nuint vertexStart, nuint vertexCount);
 
-    [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_msgSend")]
+    [DllImport("/usr/lib/libobjc.A.dylib", EntryPoint = "objc_msgSend")]
     public static extern void SendMessageDrawIndexedPrimitives(IntPtr receiver, IntPtr selector, nuint primitiveType, nuint indexCount, nuint indexType, IntPtr indexBuffer, nuint indexBufferOffset);
 
-    [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_msgSend")]
+    [DllImport("/usr/lib/libobjc.A.dylib", EntryPoint = "objc_msgSend")]
     public static extern void SendMessageViewport(IntPtr receiver, IntPtr selector, MTLViewport viewport);
 
-    [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_msgSend")]
+    [DllImport("/usr/lib/libobjc.A.dylib", EntryPoint = "objc_msgSend")]
     public static extern void SendMessageScissorRect(IntPtr receiver, IntPtr selector, MTLScissorRect scissor);
 
-    [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_msgSend")]
+    [DllImport("/usr/lib/libobjc.A.dylib", EntryPoint = "objc_msgSend")]
     public static extern void SendMessageClearColor(IntPtr receiver, IntPtr selector, MTLClearColor color);
 
     [DllImport("/System/Library/Frameworks/Metal.framework/Metal")]
     public static extern IntPtr MTLCreateSystemDefaultDevice();
 
-    [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_msgSend")]
+    [DllImport("/usr/lib/libobjc.A.dylib", EntryPoint = "objc_msgSend")]
     public static extern void SendMessageCGSize(IntPtr receiver, IntPtr selector, CGSize size);
 
     #endregion

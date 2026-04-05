@@ -235,8 +235,17 @@ public static class NativeHostTestHelpers
 
     public sealed class NSViewTestWindow : IDisposable
     {
-        private IntPtr _nsWindow;
+        private static IntPtr _appKitHandle;
         private IntPtr _nsView;
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct CGRect
+        {
+            public double X;
+            public double Y;
+            public double Width;
+            public double Height;
+        }
 
         /// <summary>
         /// Gets the NSView handle suitable for MetalBackend.Initialize.
@@ -245,38 +254,56 @@ public static class NativeHostTestHelpers
 
         public NSViewTestWindow(int width, int height)
         {
-            // Create NSWindow via Objective-C runtime
-            var nsWindowClass = objc_getClass("NSWindow");
-            if (nsWindowClass == IntPtr.Zero)
-                throw new InvalidOperationException("Failed to get NSWindow class. Must run on macOS.");
+            EnsureAppKitLoaded();
+
+            var nsApplicationClass = objc_getClass("NSApplication");
+            if (nsApplicationClass != IntPtr.Zero)
+            {
+                var sharedApplicationSel = sel_registerName("sharedApplication");
+                objc_msgSend(nsApplicationClass, sharedApplicationSel);
+            }
+
+            var nsViewClass = objc_getClass("NSView");
+            if (nsViewClass == IntPtr.Zero)
+                throw new InvalidOperationException("Failed to get NSView class. Must run on macOS.");
 
             var allocSel = sel_registerName("alloc");
-            var initSel = sel_registerName("initWithContentRect:styleMask:backing:defer:");
-
-            _nsWindow = objc_msgSend(objc_msgSend(nsWindowClass, allocSel), initSel,
-                0, 0, width, height,  // contentRect (x, y, w, h)
-                0,                     // styleMask: borderless
-                2,                     // backing: NSBackingStoreBuffered
-                0);                    // defer: NO
-
-            if (_nsWindow == IntPtr.Zero)
-                throw new InvalidOperationException("Failed to create NSWindow.");
-
-            // Get the content view
-            var contentViewSel = sel_registerName("contentView");
-            _nsView = objc_msgSend(_nsWindow, contentViewSel);
+            var initSel = sel_registerName("initWithFrame:");
+            _nsView = objc_msgSend_initWithFrame(
+                objc_msgSend(nsViewClass, allocSel),
+                initSel,
+                new CGRect
+                {
+                    X = 0,
+                    Y = 0,
+                    Width = width,
+                    Height = height
+                });
 
             if (_nsView == IntPtr.Zero)
-                throw new InvalidOperationException("Failed to get content view from NSWindow.");
+                throw new InvalidOperationException("Failed to create NSView.");
+        }
+
+        private static void EnsureAppKitLoaded()
+        {
+            if (_appKitHandle != IntPtr.Zero)
+            {
+                return;
+            }
+
+            const string appKitPath = "/System/Library/Frameworks/AppKit.framework/AppKit";
+            if (!NativeLibrary.TryLoad(appKitPath, out _appKitHandle))
+            {
+                throw new InvalidOperationException($"Failed to load AppKit framework from '{appKitPath}'.");
+            }
         }
 
         public void Dispose()
         {
-            if (_nsWindow != IntPtr.Zero)
+            if (_nsView != IntPtr.Zero)
             {
                 var releaseSel = sel_registerName("release");
-                objc_msgSend(_nsWindow, releaseSel);
-                _nsWindow = IntPtr.Zero;
+                objc_msgSend(_nsView, releaseSel);
                 _nsView = IntPtr.Zero;
             }
         }
@@ -291,7 +318,9 @@ public static class NativeHostTestHelpers
         private static extern IntPtr objc_msgSend(IntPtr receiver, IntPtr selector);
 
         [DllImport("/usr/lib/libobjc.A.dylib", EntryPoint = "objc_msgSend")]
-        private static extern IntPtr objc_msgSend(IntPtr receiver, IntPtr selector,
-            int x, int y, int w, int h, ulong styleMask, int backing, int defer);
+        private static extern IntPtr objc_msgSend_initWithFrame(
+            IntPtr receiver,
+            IntPtr selector,
+            CGRect frame);
     }
 }

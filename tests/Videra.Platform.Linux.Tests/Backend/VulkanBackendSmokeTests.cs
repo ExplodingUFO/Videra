@@ -1,5 +1,6 @@
 using FluentAssertions;
 using System.Runtime.InteropServices;
+using Tests.Common.Platform;
 using Videra.Core.Graphics;
 using Videra.Platform.Linux;
 using Xunit;
@@ -8,16 +9,21 @@ namespace Videra.Platform.Linux.Tests.Backend;
 
 public sealed class VulkanBackendSmokeTests
 {
-    [Fact]
+    [LinuxFact]
     public void VulkanBackend_ConstructedBackend_StartsUninitialized()
     {
+        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+        {
+            return;
+        }
+
         var backend = new VulkanBackend();
 
         backend.IsInitialized.Should().BeFalse();
         GraphicsBackendFactory.GetPlatformName().Should().NotBeNullOrWhiteSpace();
     }
 
-    [Fact]
+    [LinuxFact]
     public void VulkanBackend_InitializeWithZeroHandle_ThrowsWindowHandleRequirement()
     {
         if (!RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
@@ -34,7 +40,7 @@ public sealed class VulkanBackendSmokeTests
         backend.IsInitialized.Should().BeFalse();
     }
 
-    [Fact]
+    [LinuxFact]
     public void VulkanBackend_RealWindowInitialization_CurrentlyRequiresReusableX11Fixture()
     {
         if (!RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
