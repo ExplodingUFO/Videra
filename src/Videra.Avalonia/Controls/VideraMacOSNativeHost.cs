@@ -23,9 +23,8 @@ internal sealed partial class VideraMacOSNativeHost : NativeControlHost, IVidera
         if (!OperatingSystem.IsMacOS())
             throw new PlatformNotSupportedException("macOS native host is only supported on macOS.");
 
-        var scale = VisualRoot?.RenderScaling ?? 1.0;
-        var width = Math.Max(1, (int)Math.Round(Bounds.Width * scale));
-        var height = Math.Max(1, (int)Math.Round(Bounds.Height * scale));
+        var width = Math.Max(1, (int)Math.Round(Bounds.Width));
+        var height = Math.Max(1, (int)Math.Round(Bounds.Height));
 
         // Create NSView for Metal rendering
         _nsView = CreateNSView(width, height);
@@ -70,9 +69,8 @@ internal sealed partial class VideraMacOSNativeHost : NativeControlHost, IVidera
         if (_nsView == IntPtr.Zero)
             return;
 
-        var scale = VisualRoot?.RenderScaling ?? 1.0;
-        var width = Math.Max(1, Bounds.Width * scale);
-        var height = Math.Max(1, Bounds.Height * scale);
+        var width = Math.Max(1, Bounds.Width);
+        var height = Math.Max(1, Bounds.Height);
 
         var frame = new CGRect { x = 0, y = 0, width = width, height = height };
         objc_msgSend_CGRect(_nsView, SEL("setFrame:"), frame);
@@ -86,9 +84,6 @@ internal sealed partial class VideraMacOSNativeHost : NativeControlHost, IVidera
 
         var frame = new CGRect { x = 0, y = 0, width = width, height = height };
         var view = objc_msgSend_initWithFrame(alloc, SEL("initWithFrame:"), frame);
-
-        // Enable layer backing for Metal
-        SendMessageWithBool(view, SEL("setWantsLayer:"), true);
 
         return view;
     }
@@ -107,9 +102,6 @@ internal sealed partial class VideraMacOSNativeHost : NativeControlHost, IVidera
 
     [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_msgSend")]
     private static extern IntPtr SendMessage(IntPtr receiver, IntPtr selector);
-
-    [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_msgSend")]
-    private static extern void SendMessageWithBool(IntPtr receiver, IntPtr selector, bool arg);
 
     [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_msgSend")]
     private static extern IntPtr objc_msgSend_initWithFrame(IntPtr receiver, IntPtr selector, CGRect frame);

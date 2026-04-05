@@ -1,5 +1,7 @@
 using System.Numerics;
+using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Diagnostics.CodeAnalysis;
 using FluentAssertions;
 using Tests.Common.Platform;
 using Videra.Core.Geometry;
@@ -62,6 +64,19 @@ public sealed class MetalBackendLifecycleTests
     }
 
     [MacOSFact]
+    public void Initialize_WithRealNSView_CreatesDepthResources()
+    {
+        if (!IsMacOS) return;
+
+        using var window = NativeHostTestHelpers.CreateHiddenNSViewWindow();
+        using var backend = new MetalBackend();
+
+        backend.Initialize(window.ViewHandle, 64, 64);
+
+        GetPrivateIntPtrField(backend, "_depthTexture").Should().NotBe(IntPtr.Zero);
+    }
+
+    [MacOSFact]
     public void Initialize_SecondCall_IsIdempotent()
     {
         if (!IsMacOS) return;
@@ -74,6 +89,26 @@ public sealed class MetalBackendLifecycleTests
 
         act.Should().NotThrow();
         backend.IsInitialized.Should().BeTrue();
+    }
+
+    [MacOSFact]
+    public void GetOrCreateMetalLayer_WithLayerBackedNsView_ReturnsCametalLayer()
+    {
+        if (!IsMacOS) return;
+
+        using var window = NativeHostTestHelpers.CreateHiddenNSViewWindow();
+        using var backend = new MetalBackend();
+        EnsureLayerBacked(window.ViewHandle);
+
+        var getOrCreateMetalLayer = typeof(MetalBackend).GetMethod(
+            "GetOrCreateMetalLayer",
+            BindingFlags.Instance | BindingFlags.NonPublic);
+
+        getOrCreateMetalLayer.Should().NotBeNull();
+
+        var layer = (IntPtr)getOrCreateMetalLayer!.Invoke(backend, [window.ViewHandle])!;
+
+        GetObjectiveCClassName(layer).Should().Be("CAMetalLayer");
     }
 
     [MacOSFact]
@@ -172,4 +207,31 @@ public sealed class MetalBackendLifecycleTests
 
         act.Should().NotThrow();
     }
+
+    private static void EnsureLayerBacked(IntPtr nsView)
+    {
+        objc_msgSend_bool(nsView, sel_registerName("setWantsLayer:"), true);
+    }
+
+    private static IntPtr GetPrivateIntPtrField(object instance, string fieldName)
+    {
+        var field = instance.GetType().GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic);
+        field.Should().NotBeNull($"private field '{fieldName}' should exist for the tested backend state");
+        return (IntPtr)field!.GetValue(instance)!;
+    }
+
+    private static string GetObjectiveCClassName(IntPtr handle)
+    {
+        return Marshal.PtrToStringAnsi(object_getClassName(handle))!;
+    }
+
+    [SuppressMessage("Interoperability", "CA2101:Specify marshaling for P/Invoke string arguments", Justification = "Objective-C selector names are UTF-8 C strings on Darwin and scoped to this macOS-only regression test.")]
+    [DllImport("/usr/lib/libobjc.A.dylib", EntryPoint = "sel_registerName", CharSet = CharSet.Ansi)]
+    private static extern IntPtr sel_registerName(string name);
+
+    [DllImport("/usr/lib/libobjc.A.dylib", EntryPoint = "objc_msgSend")]
+    private static extern void objc_msgSend_bool(IntPtr receiver, IntPtr selector, bool value);
+
+    [DllImport("/usr/lib/libobjc.A.dylib", EntryPoint = "object_getClassName")]
+    private static extern IntPtr object_getClassName(IntPtr obj);
 }

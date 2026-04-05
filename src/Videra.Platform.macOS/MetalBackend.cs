@@ -14,12 +14,14 @@ namespace Videra.Platform.macOS;
 /// </summary>
 public unsafe partial class MetalBackend : IGraphicsBackend
 {
-    internal const int MetalCompareFunctionLessEqual = 4;
+    private static readonly DepthBufferConfiguration DepthConfig = DepthBufferConfiguration.Default;
+
     internal const int MetalPixelFormatDepth32Float = 252;
 
     private IntPtr _device;
     private IntPtr _commandQueue;
     private IntPtr _metalLayer;
+    private IntPtr _depthTexture;
     private IntPtr _depthStencilState;
     private IntPtr _nsView;
     private bool _ownsMetalLayer;
@@ -109,6 +111,8 @@ public unsafe partial class MetalBackend : IGraphicsBackend
             ObjCRuntime.SendMessageDoubleArg(_metalLayer, ObjCRuntime.SEL("setContentsScale:"), _scaleFactor);
             SetLayerDrawableSize(_metalLayer, width, height);
 
+            CreateDepthTexture();
+
             Log.InitializedSurface(_logger, width, height, _scaleFactor);
 
             // Create depth stencil state
@@ -130,7 +134,7 @@ public unsafe partial class MetalBackend : IGraphicsBackend
     private IntPtr GetOrCreateMetalLayer(IntPtr nsView)
     {
         var existingLayer = ObjCRuntime.SendMessage(nsView, ObjCRuntime.SEL("layer"));
-        if (existingLayer != IntPtr.Zero)
+        if (IsCametalLayer(existingLayer))
         {
             _ownsMetalLayer = false;
             return existingLayer;
@@ -143,10 +147,22 @@ public unsafe partial class MetalBackend : IGraphicsBackend
         return newLayer;
     }
 
+    private static bool IsCametalLayer(IntPtr layer)
+    {
+        if (layer == IntPtr.Zero)
+        {
+            return false;
+        }
+
+        var cametalLayerClass = ObjCRuntime.objc_getClass("CAMetalLayer");
+        return cametalLayerClass != IntPtr.Zero &&
+               ObjCRuntime.SendMessagePtrBoolReturn(layer, ObjCRuntime.SEL("isKindOfClass:"), cametalLayerClass);
+    }
+
     private void CreateDepthStencilState()
     {
         var descriptor = ObjCRuntime.AllocInit("MTLDepthStencilDescriptor");
-        ObjCRuntime.SendMessageInt(descriptor, ObjCRuntime.SEL("setDepthCompareFunction:"), MetalCompareFunctionLessEqual); // MTLCompareFunctionLessEqual
+        ObjCRuntime.SendMessageInt(descriptor, ObjCRuntime.SEL("setDepthCompareFunction:"), MapDepthComparison(DepthConfig.DepthComparison));
         ObjCRuntime.SendMessageBool(descriptor, ObjCRuntime.SEL("setDepthWriteEnabled:"), true);
         _depthStencilState = ObjCRuntime.SendMessagePtr(_device, ObjCRuntime.SEL("newDepthStencilStateWithDescriptor:"), descriptor);
         ObjCRuntime.SendMessageVoid(descriptor, ObjCRuntime.SEL("release"));
@@ -154,6 +170,45 @@ public unsafe partial class MetalBackend : IGraphicsBackend
             throw new GraphicsInitializationException(
                 "Failed to create Metal depth stencil state.",
                 "CreateDepthStencilState");
+    }
+
+    private void CreateDepthTexture()
+    {
+        ReleaseDepthTexture();
+
+        var descriptor = ObjCRuntime.AllocInit("MTLTextureDescriptor");
+        try
+        {
+            ObjCRuntime.SendMessageInt(descriptor, ObjCRuntime.SEL("setTextureType:"), 2); // MTLTextureType2D
+            ObjCRuntime.SendMessageInt(descriptor, ObjCRuntime.SEL("setPixelFormat:"), MetalPixelFormatDepth32Float);
+            ObjCRuntime.SendMessageInt(descriptor, ObjCRuntime.SEL("setWidth:"), _width);
+            ObjCRuntime.SendMessageInt(descriptor, ObjCRuntime.SEL("setHeight:"), _height);
+            ObjCRuntime.SendMessageInt(descriptor, ObjCRuntime.SEL("setStorageMode:"), 2); // MTLStorageModePrivate
+            ObjCRuntime.SendMessageInt(descriptor, ObjCRuntime.SEL("setUsage:"), 4); // MTLTextureUsageRenderTarget
+
+            _depthTexture = ObjCRuntime.SendMessagePtr(_device, ObjCRuntime.SEL("newTextureWithDescriptor:"), descriptor);
+            if (_depthTexture == IntPtr.Zero)
+            {
+                throw new ResourceCreationException(
+                    "Failed to create Metal depth texture.",
+                    "CreateDepthTexture");
+            }
+        }
+        finally
+        {
+            ObjCRuntime.SendMessageVoid(descriptor, ObjCRuntime.SEL("release"));
+        }
+    }
+
+    private void ReleaseDepthTexture()
+    {
+        if (_depthTexture == IntPtr.Zero)
+        {
+            return;
+        }
+
+        ObjCRuntime.SendMessageVoid(_depthTexture, ObjCRuntime.SEL("release"));
+        _depthTexture = IntPtr.Zero;
     }
 
     /// <summary>
@@ -170,6 +225,7 @@ public unsafe partial class MetalBackend : IGraphicsBackend
         _width = width;
         _height = height;
         SetLayerDrawableSize(_metalLayer, width, height);
+        CreateDepthTexture();
         Log.ResizedSurface(_logger, width, height, _scaleFactor);
     }
 
@@ -178,7 +234,7 @@ public unsafe partial class MetalBackend : IGraphicsBackend
     /// the next drawable from the Metal layer, creates a command buffer, begins an encode pass,
     /// clears with the current clear color, and applies the depth-stencil state.
     /// </summary>
-    public void BeginFrame() => _commandExecutor.BeginFrame(_metalLayer, _clearColor, _depthStencilState);
+    public void BeginFrame() => _commandExecutor.BeginFrame(_metalLayer, _clearColor, _depthStencilState, _depthTexture);
 
     /// <summary>
     /// Ends the current rendering frame by delegating to the command executor, which commits
@@ -219,6 +275,8 @@ public unsafe partial class MetalBackend : IGraphicsBackend
             ObjCRuntime.SendMessageVoid(_depthStencilState, ObjCRuntime.SEL("release"));
             _depthStencilState = IntPtr.Zero;
         }
+
+        ReleaseDepthTexture();
 
         if (_metalLayer != IntPtr.Zero)
         {
@@ -265,6 +323,11 @@ public unsafe partial class MetalBackend : IGraphicsBackend
         }
         var scale = ObjCRuntime.SendMessageDouble(window, ObjCRuntime.SEL("backingScaleFactor"));
         return scale > 0 ? scale : 2.0;
+    }
+
+    private static int MapDepthComparison(DepthComparisonFunction comparison)
+    {
+        return (int)comparison;
     }
 
     private static partial class Log

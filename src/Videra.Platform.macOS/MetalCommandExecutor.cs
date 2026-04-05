@@ -6,6 +6,10 @@ namespace Videra.Platform.macOS;
 
 internal sealed partial class MetalCommandExecutor : ICommandExecutor
 {
+    private const int LoadActionClear = 2;
+    private const int StoreActionDontCare = 0;
+    private const int StoreActionStore = 1;
+
     private readonly IntPtr _commandQueue;
     private readonly ILogger _logger;
     private IntPtr _commandBuffer;
@@ -18,8 +22,10 @@ internal sealed partial class MetalCommandExecutor : ICommandExecutor
         _logger = logger ?? Microsoft.Extensions.Logging.Abstractions.NullLoggerFactory.Instance.CreateLogger<MetalCommandExecutor>();
     }
 
-    public void BeginFrame(IntPtr metalLayer, Vector4 clearColor, IntPtr depthStencilState)
+    public void BeginFrame(IntPtr metalLayer, Vector4 clearColor, IntPtr depthStencilState, IntPtr depthTexture)
     {
+        _currentIndexBuffer = IntPtr.Zero;
+
         // Create Command Buffer
         _commandBuffer = ObjCRuntime.SendMessage(_commandQueue, ObjCRuntime.SEL("commandBuffer"));
         if (_commandBuffer == IntPtr.Zero)
@@ -52,9 +58,18 @@ internal sealed partial class MetalCommandExecutor : ICommandExecutor
 
         // Configure Color Attachment
         ObjCRuntime.SendMessagePtr(colorAttachment, ObjCRuntime.SEL("setTexture:"), texture);
-        ObjCRuntime.SendMessageInt(colorAttachment, ObjCRuntime.SEL("setLoadAction:"), 2); // MTLLoadActionClear
-        ObjCRuntime.SendMessageInt(colorAttachment, ObjCRuntime.SEL("setStoreAction:"), 1); // MTLStoreActionStore
+        ObjCRuntime.SendMessageInt(colorAttachment, ObjCRuntime.SEL("setLoadAction:"), LoadActionClear);
+        ObjCRuntime.SendMessageInt(colorAttachment, ObjCRuntime.SEL("setStoreAction:"), StoreActionStore);
         SetClearColor(colorAttachment, clearColor);
+
+        if (depthTexture != IntPtr.Zero)
+        {
+            var depthAttachment = ObjCRuntime.SendMessage(renderPassDesc, ObjCRuntime.SEL("depthAttachment"));
+            ObjCRuntime.SendMessagePtrVoid(depthAttachment, ObjCRuntime.SEL("setTexture:"), depthTexture);
+            ObjCRuntime.SendMessageInt(depthAttachment, ObjCRuntime.SEL("setLoadAction:"), LoadActionClear);
+            ObjCRuntime.SendMessageInt(depthAttachment, ObjCRuntime.SEL("setStoreAction:"), StoreActionDontCare);
+            ObjCRuntime.SendMessageDoubleArg(depthAttachment, ObjCRuntime.SEL("setClearDepth:"), 1.0);
+        }
 
         // Create Render Command Encoder
         _renderEncoder = ObjCRuntime.SendMessagePtr(_commandBuffer, ObjCRuntime.SEL("renderCommandEncoderWithDescriptor:"), renderPassDesc);
@@ -77,10 +92,9 @@ internal sealed partial class MetalCommandExecutor : ICommandExecutor
             ObjCRuntime.SendMessageInt(_renderEncoder, ObjCRuntime.SEL("setFrontFacingWinding:"), 1); // MTLWindingCounterClockwise = 1
         }
 
-        // Set depth stencil state (disabled for now, no depth buffer configured)
         if (depthStencilState != IntPtr.Zero)
         {
-            Log.DepthStencilStateSkipped(_logger);
+            ObjCRuntime.SendMessagePtrVoid(_renderEncoder, ObjCRuntime.SEL("setDepthStencilState:"), depthStencilState);
         }
 
         // Release descriptor
@@ -104,6 +118,7 @@ internal sealed partial class MetalCommandExecutor : ICommandExecutor
             ObjCRuntime.SendMessage(_commandBuffer, ObjCRuntime.SEL("commit"));
             ObjCRuntime.SendMessage(_commandBuffer, ObjCRuntime.SEL("waitUntilCompleted"));
 
+            _currentIndexBuffer = IntPtr.Zero;
             _currentDrawable = IntPtr.Zero;
             _commandBuffer = IntPtr.Zero;
         }
@@ -263,13 +278,10 @@ internal sealed partial class MetalCommandExecutor : ICommandExecutor
         [LoggerMessage(EventId = 3, Level = LogLevel.Error, Message = "Failed to create render encoder")]
         public static partial void RenderEncoderCreateFailed(ILogger logger);
 
-        [LoggerMessage(EventId = 4, Level = LogLevel.Debug, Message = "Depth stencil state available but not applied (no depth buffer configured)")]
-        public static partial void DepthStencilStateSkipped(ILogger logger);
-
-        [LoggerMessage(EventId = 5, Level = LogLevel.Debug, Message = "DrawIndexed skipped: render encoder is null")]
+        [LoggerMessage(EventId = 4, Level = LogLevel.Debug, Message = "DrawIndexed skipped: render encoder is null")]
         public static partial void DrawIndexedSkippedNoEncoder(ILogger logger);
 
-        [LoggerMessage(EventId = 6, Level = LogLevel.Debug, Message = "DrawIndexed skipped: index buffer is null")]
+        [LoggerMessage(EventId = 5, Level = LogLevel.Debug, Message = "DrawIndexed skipped: index buffer is null")]
         public static partial void DrawIndexedSkippedNoIndexBuffer(ILogger logger);
     }
 }

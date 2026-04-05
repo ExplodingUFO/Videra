@@ -31,6 +31,9 @@ internal static class ObjCRuntime
     public static extern IntPtr SendMessagePtr(IntPtr receiver, IntPtr selector, IntPtr arg);
 
     [DllImport("/usr/lib/libobjc.A.dylib", EntryPoint = "objc_msgSend")]
+    public static extern bool SendMessagePtrBoolReturn(IntPtr receiver, IntPtr selector, IntPtr arg);
+
+    [DllImport("/usr/lib/libobjc.A.dylib", EntryPoint = "objc_msgSend")]
     public static extern void SendMessageVoid(IntPtr receiver, IntPtr selector);
 
     [DllImport("/usr/lib/libobjc.A.dylib", EntryPoint = "objc_msgSend")]
