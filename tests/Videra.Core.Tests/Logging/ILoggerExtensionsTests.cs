@@ -12,7 +12,7 @@ public class ILoggerExtensionsTests
     public void LogComponentInfo_CallsLogger_WithInformationLevel()
     {
         // Arrange
-        var mockLogger = new Mock<ILogger>();
+        var mockLogger = CreateEnabledLogger();
 
         // Act
         mockLogger.Object.LogComponentInfo("TestComponent", "Test message");
@@ -32,7 +32,7 @@ public class ILoggerExtensionsTests
     public void LogComponentDebug_CallsLogger_WithDebugLevel()
     {
         // Arrange
-        var mockLogger = new Mock<ILogger>();
+        var mockLogger = CreateEnabledLogger();
 
         // Act
         mockLogger.Object.LogComponentDebug("TestComponent", "TestAction", "Test details");
@@ -55,7 +55,7 @@ public class ILoggerExtensionsTests
     public void LogComponentError_CallsLogger_WithErrorLevel()
     {
         // Arrange
-        var mockLogger = new Mock<ILogger>();
+        var mockLogger = CreateEnabledLogger();
 
         // Act
         mockLogger.Object.LogComponentError("TestComponent", "TestAction", "Test error");
@@ -78,7 +78,7 @@ public class ILoggerExtensionsTests
     public void LogComponentError_CallsLogger_WithException_WhenExceptionProvided()
     {
         // Arrange
-        var mockLogger = new Mock<ILogger>();
+        var mockLogger = CreateEnabledLogger();
         var exception = new InvalidOperationException("Test exception");
 
         // Act
@@ -99,7 +99,7 @@ public class ILoggerExtensionsTests
     public void LogComponentWarning_CallsLogger_WithWarningLevel()
     {
         // Arrange
-        var mockLogger = new Mock<ILogger>();
+        var mockLogger = CreateEnabledLogger();
 
         // Act
         mockLogger.Object.LogComponentWarning("TestComponent", "Test warning");
@@ -115,5 +115,12 @@ public class ILoggerExtensionsTests
                 null,
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
             Times.Once);
+    }
+
+    private static Mock<ILogger> CreateEnabledLogger()
+    {
+        var mockLogger = new Mock<ILogger>();
+        mockLogger.Setup(x => x.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
+        return mockLogger;
     }
 }

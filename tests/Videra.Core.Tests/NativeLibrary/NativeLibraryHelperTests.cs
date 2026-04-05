@@ -6,6 +6,9 @@ namespace Videra.Core.Tests.NativeLibrary;
 
 public class NativeLibraryHelperTests
 {
+    private static readonly string[] LeadingInvalidCandidate = ["nonexistent_library_xyz.so"];
+    private static readonly string[] InvalidLibraryCandidates = ["nonexistent_a.so", "nonexistent_b.so", "nonexistent_c.so"];
+
     private static string[] GetKnownLibraryCandidates()
     {
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -34,7 +37,7 @@ public class NativeLibraryHelperTests
     [Fact]
     public void TryLoadWithFallback_SucceedsWithValidLibrary()
     {
-        var candidates = new[] { "nonexistent_library_xyz.so" }
+        var candidates = LeadingInvalidCandidate
             .Concat(GetKnownLibraryCandidates())
             .ToArray();
         var result = NativeLibraryHelper.TryLoadWithFallback(candidates, out var handle);
@@ -56,8 +59,7 @@ public class NativeLibraryHelperTests
     [Fact]
     public void TryLoadWithFallback_ReturnsFalseForAllInvalid()
     {
-        var candidates = new[] { "nonexistent_a.so", "nonexistent_b.so", "nonexistent_c.so" };
-        var result = NativeLibraryHelper.TryLoadWithFallback(candidates, out var handle);
+        var result = NativeLibraryHelper.TryLoadWithFallback(InvalidLibraryCandidates, out var handle);
 
         Assert.False(result);
         Assert.Equal(IntPtr.Zero, handle);

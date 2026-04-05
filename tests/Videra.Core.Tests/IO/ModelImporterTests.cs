@@ -1,6 +1,8 @@
 using FluentAssertions;
 using Moq;
+using System.Globalization;
 using Videra.Core.Exceptions;
+using Videra.Core.Geometry;
 using Videra.Core.Graphics.Abstractions;
 using Videra.Core.Graphics.Software;
 using Videra.Core.IO;
@@ -8,7 +10,7 @@ using Xunit;
 
 namespace Videra.Core.Tests.IO;
 
-public class ModelImporterTests : IDisposable
+public sealed class ModelImporterTests : IDisposable
 {
     private readonly string _tempDir;
     private bool _disposed;
@@ -36,6 +38,8 @@ public class ModelImporterTests : IDisposable
         {
             // Best-effort temp cleanup for test data.
         }
+
+        GC.SuppressFinalize(this);
     }
 
     private static Mock<IResourceFactory> CreateMockFactory()
@@ -53,12 +57,15 @@ public class ModelImporterTests : IDisposable
 
     private string WriteObj(string fileName, string content)
     {
-        var path = Path.Combine(_tempDir, fileName);
-        File.WriteAllText(path, content);
-        return path;
+        return WriteTestFile(fileName, content);
     }
 
     private string WriteGltf(string fileName, string content)
+    {
+        return WriteTestFile(fileName, content);
+    }
+
+    private string WriteTestFile(string fileName, string content)
     {
         var path = Path.Combine(_tempDir, fileName);
         File.WriteAllText(path, content);
@@ -189,6 +196,57 @@ public class ModelImporterTests : IDisposable
         var obj = ModelImporter.Load(path, factory);
 
         obj.Should().NotBeNull();
+    }
+
+    [Fact]
+    public void Load_ObjWithInvariantDecimals_IgnoresCurrentCulture()
+    {
+        var mockFactory = new Mock<IResourceFactory>();
+        var mockVertexBuffer = new Mock<IBuffer>();
+        var mockIndexBuffer = new Mock<IBuffer>();
+        var mockUniformBuffer = new Mock<IBuffer>();
+        VertexPositionNormalColor[]? uploadedVertices = null;
+
+        mockVertexBuffer.Setup(b => b.SizeInBytes).Returns(1024u);
+        mockIndexBuffer.Setup(b => b.SizeInBytes).Returns(1024u);
+        mockUniformBuffer.Setup(b => b.SizeInBytes).Returns(64u);
+        mockVertexBuffer
+            .Setup(b => b.SetData(It.IsAny<VertexPositionNormalColor[]>(), 0))
+            .Callback<VertexPositionNormalColor[], uint>((data, _) => uploadedVertices = data.ToArray());
+        mockIndexBuffer.Setup(b => b.SetData(It.IsAny<uint[]>(), 0));
+
+        mockFactory.Setup(f => f.CreateVertexBuffer(It.IsAny<uint>())).Returns(mockVertexBuffer.Object);
+        mockFactory.Setup(f => f.CreateIndexBuffer(It.IsAny<uint>())).Returns(mockIndexBuffer.Object);
+        mockFactory.Setup(f => f.CreateUniformBuffer(It.IsAny<uint>())).Returns(mockUniformBuffer.Object);
+
+        var path = WriteObj("culture_invariant.obj", """
+            v 0.0 0.0 0.0
+            v 1.0 0.0 0.0
+            v 0.5 1.0 0.0
+            vn 0.0 0.0 1.0
+            f 1//1 2//1 3//1
+            """);
+
+        var originalCulture = CultureInfo.CurrentCulture;
+        var originalUiCulture = CultureInfo.CurrentUICulture;
+
+        try
+        {
+            CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo("de-DE");
+            CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo("de-DE");
+
+            var act = () => ModelImporter.Load(path, mockFactory.Object);
+
+            act.Should().NotThrow();
+            uploadedVertices.Should().NotBeNull();
+            uploadedVertices![2].Position.X.Should().BeApproximately(0.5f, 0.0001f);
+            uploadedVertices[2].Position.Y.Should().BeApproximately(1.0f, 0.0001f);
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = originalCulture;
+            CultureInfo.CurrentUICulture = originalUiCulture;
+        }
     }
 
     [Fact]

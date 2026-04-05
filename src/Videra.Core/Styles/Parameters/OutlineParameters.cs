@@ -8,7 +8,7 @@ namespace Videra.Core.Styles.Parameters;
 public sealed class OutlineParameters : IEquatable<OutlineParameters>
 {
     /// <summary>是否启用描边</summary>
-    public bool Enabled { get; set; } = false;
+    public bool Enabled { get; set; }
 
     /// <summary>描边颜色</summary>
     public RgbaFloat Color { get; set; } = RgbaFloat.Black;

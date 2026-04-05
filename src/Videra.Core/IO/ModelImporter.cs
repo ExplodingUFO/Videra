@@ -1,4 +1,5 @@
 using System.Numerics;
+using System.Globalization;
 using Microsoft.Extensions.Logging;
 using Videra.Core.Exceptions;
 using Videra.Core.Geometry;
@@ -14,7 +15,7 @@ namespace Videra.Core.IO;
 /// ready for GPU rendering. Handles format detection, scene graph traversal, vertex transformations,
 /// and GPU resource allocation.
 /// </summary>
-public static class ModelImporter
+public static partial class ModelImporter
 {
     private static readonly HashSet<string> AllowedExtensions = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -54,7 +55,7 @@ public static class ModelImporter
         {
             ValidateFilePath(filePath);
 
-            log.LogInformation("[ModelImporter] Loading: {FilePath}", filePath);
+            Log.Loading(log, filePath);
 
             var ext = Path.GetExtension(filePath).ToLowerInvariant();
 
@@ -68,16 +69,16 @@ public static class ModelImporter
                     new Dictionary<string, string?> { ["Extension"] = ext })
             };
 
-            log.LogInformation("[ModelImporter] Loaded {VertexCount} vertices, {IndexCount} indices", meshData.Vertices.Length, meshData.Indices.Length);
+            Log.Loaded(log, meshData.Vertices.Length, meshData.Indices.Length);
 
             var obj = new Object3D
             {
                 Name = Path.GetFileName(filePath)
             };
 
-            log.LogDebug("[ModelImporter] Initializing GPU resources...");
+            Log.InitializingGpuResources(log);
             obj.Initialize(factory, meshData, log);
-            log.LogInformation("[ModelImporter] Successfully loaded: {FilePath}", filePath);
+            Log.LoadSucceeded(log, filePath);
 
             return obj;
         }
@@ -87,7 +88,7 @@ public static class ModelImporter
         }
         catch (Exception ex)
         {
-            log.LogError(ex, "[ModelImporter] Failed to load: {FilePath}: {Error}", filePath, ex.Message);
+            Log.LoadFailed(log, filePath, ex.Message, ex);
             throw;
         }
     }
@@ -156,7 +157,7 @@ public static class ModelImporter
             }
         }
 
-        logger.LogInformation("[SharpGLTF] Total: {VertexCount} vertices, {IndexCount} indices", allVertices.Count, allIndices.Count);
+        Log.SharpGltfTotals(logger, allVertices.Count, allIndices.Count);
 
         return new MeshData
         {
@@ -174,10 +175,7 @@ public static class ModelImporter
         }
         catch (DataException ex)
         {
-            logger.LogWarning(
-                ex,
-                "[SharpGLTF] Strict validation failed for {FilePath}; retrying with ValidationMode.TryFix",
-                filePath);
+            Log.StrictValidationFailed(logger, filePath, ex);
 
             return ModelRoot.Load(filePath, new ReadSettings { Validation = ValidationMode.TryFix });
         }
@@ -198,7 +196,7 @@ public static class ModelImporter
         // 如果节点有 mesh，处理它
         if (node.Mesh != null)
         {
-            logger.LogDebug("[SharpGLTF] Processing node: {NodeName} with mesh: {MeshName}", node.Name, node.Mesh.Name);
+            Log.ProcessingNode(logger, node.Name, node.Mesh.Name);
             ProcessMesh(node.Mesh, worldTransform, allVertices, allIndices, ref indexOffset, logger);
         }
 
@@ -230,7 +228,7 @@ public static class ModelImporter
 
             if (positions == null)
             {
-                logger.LogWarning("[SharpGLTF] Skipping primitive without positions");
+                Log.SkippingPrimitiveWithoutPositions(logger);
                 continue;
             }
 
@@ -263,14 +261,14 @@ public static class ModelImporter
             {
                 if (indexOffset + idx > uint.MaxValue)
                 {
-                    logger.LogWarning("[SharpGLTF] Index overflow, stopping");
+                    Log.IndexOverflow(logger);
                     break;
                 }
                 allIndices.Add(indexOffset + (uint)idx);
             }
 
             indexOffset += (uint)positions.Count;
-            logger.LogDebug("[SharpGLTF] Processed {VertexCount} vertices, current offset: {IndexOffset}", positions.Count, indexOffset);
+            Log.ProcessedVertices(logger, positions.Count, indexOffset);
         }
     }
 
@@ -291,16 +289,16 @@ public static class ModelImporter
             {
                 case "v" when parts.Length >= 4:
                     vertices.Add(new Vector3(
-                        float.Parse(parts[1]),
-                        float.Parse(parts[2]),
-                        float.Parse(parts[3])));
+                        float.Parse(parts[1], CultureInfo.InvariantCulture),
+                        float.Parse(parts[2], CultureInfo.InvariantCulture),
+                        float.Parse(parts[3], CultureInfo.InvariantCulture)));
                     break;
 
                 case "vn" when parts.Length >= 4:
                     normals.Add(new Vector3(
-                        float.Parse(parts[1]),
-                        float.Parse(parts[2]),
-                        float.Parse(parts[3])));
+                        float.Parse(parts[1], CultureInfo.InvariantCulture),
+                        float.Parse(parts[2], CultureInfo.InvariantCulture),
+                        float.Parse(parts[3], CultureInfo.InvariantCulture)));
                     break;
 
                 case "f" when parts.Length >= 4:
@@ -338,5 +336,41 @@ public static class ModelImporter
             Indices = finalIndices.ToArray(),
             Topology = MeshTopology.Triangles
         };
+    }
+
+    private static partial class Log
+    {
+        [LoggerMessage(EventId = 1, Level = LogLevel.Information, Message = "[ModelImporter] Loading: {FilePath}")]
+        public static partial void Loading(ILogger logger, string filePath);
+
+        [LoggerMessage(EventId = 2, Level = LogLevel.Information, Message = "[ModelImporter] Loaded {VertexCount} vertices, {IndexCount} indices")]
+        public static partial void Loaded(ILogger logger, int vertexCount, int indexCount);
+
+        [LoggerMessage(EventId = 3, Level = LogLevel.Debug, Message = "[ModelImporter] Initializing GPU resources...")]
+        public static partial void InitializingGpuResources(ILogger logger);
+
+        [LoggerMessage(EventId = 4, Level = LogLevel.Information, Message = "[ModelImporter] Successfully loaded: {FilePath}")]
+        public static partial void LoadSucceeded(ILogger logger, string filePath);
+
+        [LoggerMessage(EventId = 5, Level = LogLevel.Error, Message = "[ModelImporter] Failed to load: {FilePath}: {Error}")]
+        public static partial void LoadFailed(ILogger logger, string filePath, string error, Exception exception);
+
+        [LoggerMessage(EventId = 6, Level = LogLevel.Information, Message = "[SharpGLTF] Total: {VertexCount} vertices, {IndexCount} indices")]
+        public static partial void SharpGltfTotals(ILogger logger, int vertexCount, int indexCount);
+
+        [LoggerMessage(EventId = 7, Level = LogLevel.Warning, Message = "[SharpGLTF] Strict validation failed for {FilePath}; retrying with ValidationMode.TryFix")]
+        public static partial void StrictValidationFailed(ILogger logger, string filePath, Exception exception);
+
+        [LoggerMessage(EventId = 8, Level = LogLevel.Debug, Message = "[SharpGLTF] Processing node: {NodeName} with mesh: {MeshName}")]
+        public static partial void ProcessingNode(ILogger logger, string? nodeName, string? meshName);
+
+        [LoggerMessage(EventId = 9, Level = LogLevel.Warning, Message = "[SharpGLTF] Skipping primitive without positions")]
+        public static partial void SkippingPrimitiveWithoutPositions(ILogger logger);
+
+        [LoggerMessage(EventId = 10, Level = LogLevel.Warning, Message = "[SharpGLTF] Index overflow, stopping")]
+        public static partial void IndexOverflow(ILogger logger);
+
+        [LoggerMessage(EventId = 11, Level = LogLevel.Debug, Message = "[SharpGLTF] Processed {VertexCount} vertices, current offset: {IndexOffset}")]
+        public static partial void ProcessedVertices(ILogger logger, int vertexCount, uint indexOffset);
     }
 }

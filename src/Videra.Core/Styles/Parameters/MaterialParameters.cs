@@ -17,7 +17,7 @@ public sealed class MaterialParameters : IEquatable<MaterialParameters>
     public RgbaFloat OverrideColor { get; set; } = RgbaFloat.LightGrey;
 
     /// <summary>线框渲染模式</summary>
-    public bool WireframeMode { get; set; } = false;
+    public bool WireframeMode { get; set; }
 
     public MaterialParameters Clone() => new()
     {

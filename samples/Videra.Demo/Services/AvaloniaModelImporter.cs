@@ -10,7 +10,7 @@ using Videra.Core.IO;
 
 namespace Videra.Demo.Services;
 
-public class AvaloniaModelImporter : IModelImporter
+public partial class AvaloniaModelImporter : IModelImporter
 {
     private readonly IResourceFactory _factory;
     private readonly TopLevel _topLevel;
@@ -46,10 +46,16 @@ public class AvaloniaModelImporter : IModelImporter
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "Failed to import model: {FilePath}", file.Path.LocalPath);
+                Log.ImportFailed(_logger, file.Path.LocalPath, ex);
             }
         }
 
         return results;
+    }
+
+    private static partial class Log
+    {
+        [LoggerMessage(EventId = 1, Level = LogLevel.Warning, Message = "Failed to import model: {FilePath}")]
+        public static partial void ImportFailed(ILogger logger, string filePath, Exception exception);
     }
 }

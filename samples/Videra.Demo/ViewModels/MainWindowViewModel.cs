@@ -17,6 +17,12 @@ namespace Videra.Demo.ViewModels;
 
 public partial class MainWindowViewModel : ViewModelBase
 {
+    private readonly IEnumerable<RenderStylePreset> _availablePresets =
+        Enum.GetValues<RenderStylePreset>().Where(p => p != RenderStylePreset.Custom).ToArray();
+
+    private readonly IEnumerable<WireframeMode> _availableWireframeModes =
+        Enum.GetValues<WireframeMode>().ToArray();
+
     #region 网格控制
 
     [ObservableProperty] private bool _isGridVisible = true;
@@ -30,8 +36,7 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty]
     private RenderStylePreset _renderStyle = RenderStylePreset.Realistic;
 
-    public IEnumerable<RenderStylePreset> AvailablePresets =>
-        Enum.GetValues<RenderStylePreset>().Where(p => p != RenderStylePreset.Custom);
+    public IEnumerable<RenderStylePreset> AvailablePresets => _availablePresets;
 
     #endregion
 
@@ -44,8 +49,7 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty]
     private Color _wireframeColor = Colors.Black;
 
-    public IEnumerable<WireframeMode> AvailableWireframeModes =>
-        Enum.GetValues<WireframeMode>();
+    public IEnumerable<WireframeMode> AvailableWireframeModes => _availableWireframeModes;
 
     public bool IsWireframeEnabled => WireframeMode != WireframeMode.None;
 

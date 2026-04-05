@@ -4,7 +4,7 @@ using Videra.Core.Graphics.Abstractions;
 
 namespace Videra.Platform.macOS;
 
-internal class MetalCommandExecutor : ICommandExecutor
+internal sealed partial class MetalCommandExecutor : ICommandExecutor
 {
     private readonly IntPtr _commandQueue;
     private readonly ILogger _logger;
@@ -24,7 +24,7 @@ internal class MetalCommandExecutor : ICommandExecutor
         _commandBuffer = ObjCRuntime.SendMessage(_commandQueue, ObjCRuntime.SEL("commandBuffer"));
         if (_commandBuffer == IntPtr.Zero)
         {
-            _logger.LogError("Failed to create command buffer");
+            Log.CommandBufferCreateFailed(_logger);
             return;
         }
 
@@ -41,7 +41,7 @@ internal class MetalCommandExecutor : ICommandExecutor
         var texture = ObjCRuntime.SendMessage(_currentDrawable, ObjCRuntime.SEL("texture"));
         if (texture == IntPtr.Zero)
         {
-            _logger.LogError("Failed to get texture from drawable");
+            Log.DrawableTextureMissing(_logger);
             return;
         }
 
@@ -61,7 +61,7 @@ internal class MetalCommandExecutor : ICommandExecutor
 
         if (_renderEncoder == IntPtr.Zero)
         {
-            _logger.LogError("Failed to create render encoder");
+            Log.RenderEncoderCreateFailed(_logger);
         }
 
         // Set render states
@@ -80,7 +80,7 @@ internal class MetalCommandExecutor : ICommandExecutor
         // Set depth stencil state (disabled for now, no depth buffer configured)
         if (depthStencilState != IntPtr.Zero)
         {
-            _logger.LogDebug("Depth stencil state available but not applied (no depth buffer configured)");
+            Log.DepthStencilStateSkipped(_logger);
         }
 
         // Release descriptor
@@ -158,13 +158,13 @@ internal class MetalCommandExecutor : ICommandExecutor
     {
         if (_renderEncoder == IntPtr.Zero)
         {
-            _logger.LogDebug("DrawIndexed skipped: render encoder is null");
+            Log.DrawIndexedSkippedNoEncoder(_logger);
             return;
         }
 
         if (_currentIndexBuffer == IntPtr.Zero)
         {
-            _logger.LogDebug("DrawIndexed skipped: index buffer is null");
+            Log.DrawIndexedSkippedNoIndexBuffer(_logger);
             return;
         }
 
@@ -251,4 +251,25 @@ internal class MetalCommandExecutor : ICommandExecutor
     }
 
     #endregion
+
+    private static partial class Log
+    {
+        [LoggerMessage(EventId = 1, Level = LogLevel.Error, Message = "Failed to create command buffer")]
+        public static partial void CommandBufferCreateFailed(ILogger logger);
+
+        [LoggerMessage(EventId = 2, Level = LogLevel.Error, Message = "Failed to get texture from drawable")]
+        public static partial void DrawableTextureMissing(ILogger logger);
+
+        [LoggerMessage(EventId = 3, Level = LogLevel.Error, Message = "Failed to create render encoder")]
+        public static partial void RenderEncoderCreateFailed(ILogger logger);
+
+        [LoggerMessage(EventId = 4, Level = LogLevel.Debug, Message = "Depth stencil state available but not applied (no depth buffer configured)")]
+        public static partial void DepthStencilStateSkipped(ILogger logger);
+
+        [LoggerMessage(EventId = 5, Level = LogLevel.Debug, Message = "DrawIndexed skipped: render encoder is null")]
+        public static partial void DrawIndexedSkippedNoEncoder(ILogger logger);
+
+        [LoggerMessage(EventId = 6, Level = LogLevel.Debug, Message = "DrawIndexed skipped: index buffer is null")]
+        public static partial void DrawIndexedSkippedNoIndexBuffer(ILogger logger);
+    }
 }

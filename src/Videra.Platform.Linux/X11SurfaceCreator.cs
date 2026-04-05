@@ -9,7 +9,7 @@ namespace Videra.Platform.Linux;
 /// <summary>
 /// X11-specific Vulkan surface creation using VK_KHR_xlib_surface.
 /// </summary>
-internal unsafe class X11SurfaceCreator : ISurfaceCreator
+internal sealed unsafe class X11SurfaceCreator : ISurfaceCreator
 {
     private X11NativeHandle _x11Handle;
     private KhrXlibSurface _khrXlibSurface;
@@ -61,10 +61,17 @@ internal unsafe class X11SurfaceCreator : ISurfaceCreator
     {
         if (_x11Handle.OwnsDisplay && _x11Handle.Display != IntPtr.Zero)
         {
-            XCloseDisplay(_x11Handle.Display);
+            ObserveX11CallResult(XCloseDisplay(_x11Handle.Display));
         }
 
         _x11Handle = default;
+    }
+
+    private static void ObserveX11CallResult(int result)
+    {
+        // Xlib reports protocol failures asynchronously through the connection error handler.
+        // Capture the native return value explicitly so this ignore stays intentional.
+        _ = result;
     }
 
     [DllImport("libX11.so.6")]

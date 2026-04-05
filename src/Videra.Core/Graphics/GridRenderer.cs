@@ -10,7 +10,7 @@ namespace Videra.Core.Graphics;
 /// Renders an axis-aligned ground grid using line primitives.
 /// The grid is drawn at a configurable height and can be toggled on or off.
 /// </summary>
-public class GridRenderer : IDisposable
+public partial class GridRenderer : IDisposable
 {
     private IResourceFactory? _factory;
     private IBuffer? _vertexBuffer;
@@ -30,7 +30,7 @@ public class GridRenderer : IDisposable
     /// Gets or sets the Y-coordinate (height) at which the grid plane is drawn.
     /// Default value is 0.0f.
     /// </summary>
-    public float Height { get; set; } = 0.0f;
+    public float Height { get; set; }
 
     /// <summary>
     /// Gets or sets the color used for all grid lines.
@@ -43,7 +43,7 @@ public class GridRenderer : IDisposable
     /// When <c>true</c>, index count is logged every 60 frames.
     /// Default value is <c>false</c>.
     /// </summary>
-    public bool EnableDiagnostics { get; set; } = false;
+    public bool EnableDiagnostics { get; set; }
 
     /// <summary>
     /// Initializes the grid renderer with the specified resource factory.
@@ -151,7 +151,7 @@ public class GridRenderer : IDisposable
             return;
 
         if (EnableDiagnostics && _drawCallCount % 60 == 0)
-            _logger.LogDebug("[GridRenderer] Drawing grid with {IndexCount} indices", _indexCount);
+            Log.DrawingGrid(_logger, _indexCount);
         _drawCallCount++;
 
         executor.SetPipeline(pipeline);
@@ -179,5 +179,12 @@ public class GridRenderer : IDisposable
         if (_disposed) return;
         _disposed = true;
         DisposeBuffers();
+        GC.SuppressFinalize(this);
+    }
+
+    private static partial class Log
+    {
+        [LoggerMessage(EventId = 1, Level = LogLevel.Debug, Message = "[GridRenderer] Drawing grid with {IndexCount} indices")]
+        public static partial void DrawingGrid(ILogger logger, uint indexCount);
     }
 }

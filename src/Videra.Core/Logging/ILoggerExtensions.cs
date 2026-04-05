@@ -6,14 +6,14 @@ namespace Videra.Core.Logging;
 /// Logger extension methods for structured logging with consistent templates.
 /// Provides helper methods that map component-tagged messages to structured log properties.
 /// </summary>
-public static class LoggerExtensions
+public static partial class LoggerExtensions
 {
     /// <summary>
     /// Logs an informational message tagged with a component name.
     /// </summary>
     public static void LogComponentInfo(this ILogger logger, string component, string message)
     {
-        logger.LogInformation("[{Component}] {Message}", component, message);
+        Log.ComponentInfo(logger, component, message);
     }
 
     /// <summary>
@@ -21,7 +21,7 @@ public static class LoggerExtensions
     /// </summary>
     public static void LogComponentDebug(this ILogger logger, string component, string action, string details)
     {
-        logger.LogDebug("[{Component}] {Action}: {Details}", component, action, details);
+        Log.ComponentDebug(logger, component, action, details);
     }
 
     /// <summary>
@@ -29,7 +29,7 @@ public static class LoggerExtensions
     /// </summary>
     public static void LogComponentError(this ILogger logger, string component, string action, string error, Exception? ex = null)
     {
-        logger.LogError(ex, "[{Component}] {Action} failed: {Error}", component, action, error);
+        Log.ComponentError(logger, component, action, error, ex);
     }
 
     /// <summary>
@@ -37,6 +37,21 @@ public static class LoggerExtensions
     /// </summary>
     public static void LogComponentWarning(this ILogger logger, string component, string message)
     {
-        logger.LogWarning("[{Component}] {Message}", component, message);
+        Log.ComponentWarning(logger, component, message);
+    }
+
+    private static partial class Log
+    {
+        [LoggerMessage(EventId = 1, Level = LogLevel.Information, Message = "[{Component}] {Message}")]
+        public static partial void ComponentInfo(ILogger logger, string component, string message);
+
+        [LoggerMessage(EventId = 2, Level = LogLevel.Debug, Message = "[{Component}] {Action}: {Details}")]
+        public static partial void ComponentDebug(ILogger logger, string component, string action, string details);
+
+        [LoggerMessage(EventId = 3, Level = LogLevel.Error, Message = "[{Component}] {Action} failed: {Error}")]
+        public static partial void ComponentError(ILogger logger, string component, string action, string error, Exception? exception);
+
+        [LoggerMessage(EventId = 4, Level = LogLevel.Warning, Message = "[{Component}] {Message}")]
+        public static partial void ComponentWarning(ILogger logger, string component, string message);
     }
 }

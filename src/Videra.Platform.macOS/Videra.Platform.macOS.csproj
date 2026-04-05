@@ -5,6 +5,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <MetalAirOutput>$(IntermediateOutputPath)Shaders.air</MetalAirOutput>
+    <MetalLibraryOutput>$(OutputPath)default.metallib</MetalLibraryOutput>
     <!-- Suppress pre-existing analyzer warnings until fixed in dedicated cleanup plans.
          S101: naming of native interop structs (MTLClearColor, MTLViewport, MTLScissorRect)
          S1066: collapsible if statements
@@ -37,13 +39,8 @@
   </ItemGroup>
 
   <!-- 编译 Metal 着色器 -->
-  <Target Name="CompileMetalShaders" BeforeTargets="BeforeBuild" Condition="'$(OS)' == 'Unix'">
-    <Exec Command="xcrun -sdk macosx metal -c $(MSBuildProjectDirectory)/Shaders.metal -o $(MSBuildProjectDirectory)/Shaders.air" 
-          IgnoreExitCode="true" 
-          ContinueOnError="true" />
-    <Exec Command="xcrun -sdk macosx metallib $(MSBuildProjectDirectory)/Shaders.air -o $(OutputPath)/default.metallib" 
-          IgnoreExitCode="true" 
-          ContinueOnError="true" />
+  <Target Name="CompileMetalShaders" BeforeTargets="BeforeBuild" Condition="'$(OS)' == 'Unix' and Exists('/usr/bin/xcrun')">
+    <Exec Command="/bin/sh -c 'if xcrun -sdk macosx -find metal &gt;/dev/null 2&gt;&amp;1 &amp;&amp; xcrun -sdk macosx -find metallib &gt;/dev/null 2&gt;&amp;1; then xcrun -sdk macosx metal -c &quot;$(MSBuildProjectDirectory)/Shaders.metal&quot; -o &quot;$(MetalAirOutput)&quot; &amp;&amp; xcrun -sdk macosx metallib &quot;$(MetalAirOutput)&quot; -o &quot;$(MetalLibraryOutput)&quot;; fi'" />
   </Target>
 
 </Project>

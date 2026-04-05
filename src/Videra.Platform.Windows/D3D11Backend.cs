@@ -469,5 +469,6 @@ public unsafe class D3D11Backend : IGraphicsBackend
 
         _d3d11?.Dispose();
         _dxgi?.Dispose();
+        GC.SuppressFinalize(this);
     }
 }

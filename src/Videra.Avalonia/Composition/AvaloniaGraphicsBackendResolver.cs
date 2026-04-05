@@ -19,7 +19,7 @@ namespace Videra.Avalonia.Composition;
 /// <summary>
 /// Avalonia-side backend resolver. Composition belongs here rather than in Videra.Core.
 /// </summary>
-public sealed class AvaloniaGraphicsBackendResolver : IGraphicsBackendResolver
+public sealed partial class AvaloniaGraphicsBackendResolver : IGraphicsBackendResolver
 {
     private static readonly AvaloniaGraphicsBackendResolver Instance = new();
     private static bool _registered;
@@ -62,8 +62,9 @@ public sealed class AvaloniaGraphicsBackendResolver : IGraphicsBackendResolver
         if (OperatingSystem.IsWindows())
             return new D3D11Backend();
 #endif
-        loggerFactory?.CreateLogger("AvaloniaGraphicsBackendResolver")
-            .LogWarning("D3D11 backend is not available in this build/runtime.");
+        var logger = loggerFactory?.CreateLogger("AvaloniaGraphicsBackendResolver");
+        if (logger != null)
+            Log.D3D11Unavailable(logger);
         return null;
     }
 
@@ -73,19 +74,33 @@ public sealed class AvaloniaGraphicsBackendResolver : IGraphicsBackendResolver
         if (OperatingSystem.IsLinux())
             return new VulkanBackend();
 #endif
-        loggerFactory?.CreateLogger("AvaloniaGraphicsBackendResolver")
-            .LogWarning("Vulkan backend is not available in this build/runtime.");
+        var logger = loggerFactory?.CreateLogger("AvaloniaGraphicsBackendResolver");
+        if (logger != null)
+            Log.VulkanUnavailable(logger);
         return null;
     }
 
-    private static IGraphicsBackend? TryCreateMetal(ILoggerFactory? loggerFactory)
+    private static MetalBackend? TryCreateMetal(ILoggerFactory? loggerFactory)
     {
 #if VIDERA_MACOS_BACKEND
         if (OperatingSystem.IsMacOS())
             return new MetalBackend();
 #endif
-        loggerFactory?.CreateLogger("AvaloniaGraphicsBackendResolver")
-            .LogWarning("Metal backend is not available in this build/runtime.");
+        var logger = loggerFactory?.CreateLogger("AvaloniaGraphicsBackendResolver");
+        if (logger != null)
+            Log.MetalUnavailable(logger);
         return null;
+    }
+
+    private static partial class Log
+    {
+        [LoggerMessage(EventId = 1, Level = LogLevel.Warning, Message = "D3D11 backend is not available in this build/runtime.")]
+        public static partial void D3D11Unavailable(ILogger logger);
+
+        [LoggerMessage(EventId = 2, Level = LogLevel.Warning, Message = "Vulkan backend is not available in this build/runtime.")]
+        public static partial void VulkanUnavailable(ILogger logger);
+
+        [LoggerMessage(EventId = 3, Level = LogLevel.Warning, Message = "Metal backend is not available in this build/runtime.")]
+        public static partial void MetalUnavailable(ILogger logger);
     }
 }

@@ -79,13 +79,13 @@ public class OrbitCamera
     /// Gets or sets whether horizontal (yaw) rotation is inverted.
     /// Defaults to <c>false</c>.
     /// </summary>
-    public bool InvertX { get; set; } = false;
+    public bool InvertX { get; set; }
 
     /// <summary>
     /// Gets or sets whether vertical (pitch) rotation is inverted.
     /// Defaults to <c>false</c>.
     /// </summary>
-    public bool InvertY { get; set; } = false;
+    public bool InvertY { get; set; }
 
     /// <summary>
     /// Gets or sets the vertical field of view in radians.

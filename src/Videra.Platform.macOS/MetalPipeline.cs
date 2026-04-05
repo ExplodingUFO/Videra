@@ -5,7 +5,7 @@ namespace Videra.Platform.macOS;
 /// <summary>
 /// Metal 渲染管线
 /// </summary>
-internal class MetalPipeline : IPipeline
+internal sealed class MetalPipeline : IPipeline
 {
     private IntPtr _pipelineState;
     private bool _disposed;

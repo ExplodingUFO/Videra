@@ -8,7 +8,7 @@ using Xunit;
 
 namespace Videra.Core.Tests.Graphics.Wireframe;
 
-public sealed class WireframeRendererNullGuardTests
+public sealed class WireframeRendererNullGuardTests : IDisposable
 {
     private readonly WireframeRenderer _renderer = new();
 
@@ -58,5 +58,11 @@ public sealed class WireframeRendererNullGuardTests
         var act = () => _renderer.Initialize(null!);
 
         act.Should().Throw<ArgumentNullException>().WithParameterName("factory");
+    }
+
+    public void Dispose()
+    {
+        _renderer.Dispose();
+        GC.SuppressFinalize(this);
     }
 }

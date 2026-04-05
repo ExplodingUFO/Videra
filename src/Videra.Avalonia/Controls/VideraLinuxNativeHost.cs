@@ -11,7 +11,7 @@ using Videra.Platform.Linux;
 
 namespace Videra.Avalonia.Controls;
 
-internal sealed class VideraLinuxNativeHost : NativeControlHost, IVideraNativeHost
+internal sealed partial class VideraLinuxNativeHost : NativeControlHost, IVideraNativeHost
 {
     // Register DllImport resolver so "libX11.so.6" falls back to "libX11.so" and "libX11"
     static VideraLinuxNativeHost()
@@ -57,7 +57,8 @@ internal sealed class VideraLinuxNativeHost : NativeControlHost, IVideraNativeHo
 
         if (_window == IntPtr.Zero)
         {
-            XCloseDisplay(_display);
+            ObserveX11CallResult(XCloseDisplay(_display));
+            _display = IntPtr.Zero;
             throw new PlatformDependencyException(
                 "Failed to create X11 window for native rendering.",
                 "CreateNativeControl",
@@ -73,19 +74,19 @@ internal sealed class VideraLinuxNativeHost : NativeControlHost, IVideraNativeHo
             (1L << 6) |   // PointerMotionMask
             (1L << 15) |  // ExposureMask
             (1L << 17);   // StructureNotifyMask
-        XSelectInput(_display, _window, eventMask);
+        ObserveX11CallResult(XSelectInput(_display, _window, eventMask));
 
         // Reparent to Avalonia's window
         if (parent.Handle != IntPtr.Zero)
-            XReparentWindow(_display, _window, parent.Handle, 0, 0);
+            ObserveX11CallResult(XReparentWindow(_display, _window, parent.Handle, 0, 0));
 
-        XMapWindow(_display, _window);
-        XFlush(_display);
+        ObserveX11CallResult(XMapWindow(_display, _window));
+        ObserveX11CallResult(XFlush(_display));
 #if VIDERA_LINUX_BACKEND
         X11NativeHandleRegistry.Register(_window, _display);
 #endif
 
-        _logger.LogInformation("Created X11 window 0x{Window:X}", _window.ToInt64());
+        Log.CreatedX11Window(_logger, _window.ToInt64());
         HandleCreated?.Invoke(_window);
 
         return new PlatformHandle(_window, "XID");
@@ -103,14 +104,14 @@ internal sealed class VideraLinuxNativeHost : NativeControlHost, IVideraNativeHo
 #if VIDERA_LINUX_BACKEND
             X11NativeHandleRegistry.Unregister(_window);
 #endif
-            XDestroyWindow(_display, _window);
+            ObserveX11CallResult(XDestroyWindow(_display, _window));
             _window = IntPtr.Zero;
             HandleDestroyed?.Invoke();
         }
 
         if (_display != IntPtr.Zero)
         {
-            XCloseDisplay(_display);
+            ObserveX11CallResult(XCloseDisplay(_display));
             _display = IntPtr.Zero;
         }
 
@@ -132,9 +133,16 @@ internal sealed class VideraLinuxNativeHost : NativeControlHost, IVideraNativeHo
         var width = Math.Max(1, (uint)Math.Round(Bounds.Width * scale));
         var height = Math.Max(1, (uint)Math.Round(Bounds.Height * scale));
 
-        XResizeWindow(_display, _window, width, height);
-        XFlush(_display);
-        _logger.LogDebug("Resize to {Width}x{Height}", width, height);
+        ObserveX11CallResult(XResizeWindow(_display, _window, width, height));
+        ObserveX11CallResult(XFlush(_display));
+        Log.ResizedX11Window(_logger, width, height);
+    }
+
+    private static void ObserveX11CallResult(int result)
+    {
+        // Xlib reports protocol failures asynchronously through the connection error handler.
+        // Capture the native return value explicitly so this ignore stays intentional.
+        _ = result;
     }
 
     public IntPtr Display => _display;
@@ -183,4 +191,13 @@ internal sealed class VideraLinuxNativeHost : NativeControlHost, IVideraNativeHo
     private static extern int XFlush(IntPtr display);
 
     #endregion
+
+    private static partial class Log
+    {
+        [LoggerMessage(EventId = 1, Level = LogLevel.Information, Message = "Created X11 window 0x{Window:X}")]
+        public static partial void CreatedX11Window(ILogger logger, long window);
+
+        [LoggerMessage(EventId = 2, Level = LogLevel.Debug, Message = "Resize to {Width}x{Height}")]
+        public static partial void ResizedX11Window(ILogger logger, uint width, uint height);
+    }
 }

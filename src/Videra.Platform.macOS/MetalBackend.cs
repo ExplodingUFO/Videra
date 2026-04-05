@@ -12,7 +12,7 @@ namespace Videra.Platform.macOS;
 /// via <c>ObjCRuntime</c>. Requires a valid NSView handle on macOS. Supports Retina display
 /// scaling by querying the backing scale factor of the host window.
 /// </summary>
-public unsafe class MetalBackend : IGraphicsBackend
+public unsafe partial class MetalBackend : IGraphicsBackend
 {
     internal const int MetalCompareFunctionLessEqual = 4;
     internal const int MetalPixelFormatDepth32Float = 252;
@@ -81,7 +81,7 @@ public unsafe class MetalBackend : IGraphicsBackend
 
             // Get Retina scale factor
             _scaleFactor = GetBackingScaleFactor(_nsView);
-            _logger.LogInformation("Backing scale factor: {ScaleFactor}", _scaleFactor);
+            Log.BackingScaleFactor(_logger, _scaleFactor);
 
             // Create Metal Device
             _device = ObjCRuntime.MTLCreateSystemDefaultDevice();
@@ -109,7 +109,7 @@ public unsafe class MetalBackend : IGraphicsBackend
             ObjCRuntime.SendMessageDoubleArg(_metalLayer, ObjCRuntime.SEL("setContentsScale:"), _scaleFactor);
             SetLayerDrawableSize(_metalLayer, width, height);
 
-            _logger.LogInformation("Initialize: pixel {Width}x{Height}, scale {ScaleFactor}", width, height, _scaleFactor);
+            Log.InitializedSurface(_logger, width, height, _scaleFactor);
 
             // Create depth stencil state
             CreateDepthStencilState();
@@ -170,7 +170,7 @@ public unsafe class MetalBackend : IGraphicsBackend
         _width = width;
         _height = height;
         SetLayerDrawableSize(_metalLayer, width, height);
-        _logger.LogInformation("Resize: pixel {Width}x{Height}, scale {ScaleFactor}", width, height, _scaleFactor);
+        Log.ResizedSurface(_logger, width, height, _scaleFactor);
     }
 
     /// <summary>
@@ -249,6 +249,7 @@ public unsafe class MetalBackend : IGraphicsBackend
         }
 
         _nsView = IntPtr.Zero;
+        GC.SuppressFinalize(this);
     }
 
     private static void SetLayerDrawableSize(IntPtr layer, int width, int height)
@@ -259,10 +260,25 @@ public unsafe class MetalBackend : IGraphicsBackend
         var window = ObjCRuntime.SendMessage(nsView, ObjCRuntime.SEL("window"));
         if (window == IntPtr.Zero)
         {
-            _logger.LogDebug("No window found, using scale factor 2.0 (Retina default)");
+            Log.WindowMissingUsingRetinaDefault(_logger);
             return 2.0;
         }
         var scale = ObjCRuntime.SendMessageDouble(window, ObjCRuntime.SEL("backingScaleFactor"));
         return scale > 0 ? scale : 2.0;
+    }
+
+    private static partial class Log
+    {
+        [LoggerMessage(EventId = 1, Level = LogLevel.Information, Message = "Backing scale factor: {ScaleFactor}")]
+        public static partial void BackingScaleFactor(ILogger logger, double scaleFactor);
+
+        [LoggerMessage(EventId = 2, Level = LogLevel.Information, Message = "Initialize: pixel {Width}x{Height}, scale {ScaleFactor}")]
+        public static partial void InitializedSurface(ILogger logger, int width, int height, double scaleFactor);
+
+        [LoggerMessage(EventId = 3, Level = LogLevel.Information, Message = "Resize: pixel {Width}x{Height}, scale {ScaleFactor}")]
+        public static partial void ResizedSurface(ILogger logger, int width, int height, double scaleFactor);
+
+        [LoggerMessage(EventId = 4, Level = LogLevel.Debug, Message = "No window found, using scale factor 2.0 (Retina default)")]
+        public static partial void WindowMissingUsingRetinaDefault(ILogger logger);
     }
 }

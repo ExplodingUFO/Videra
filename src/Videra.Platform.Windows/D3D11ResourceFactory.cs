@@ -343,7 +343,7 @@ internal unsafe class D3D11ResourceFactory : IResourceFactory
         return shaderBlob;
     }
 
-    private string GetShaderSource()
+    private static string GetShaderSource()
     {
         return @"
 cbuffer CameraBuffer : register(b1)

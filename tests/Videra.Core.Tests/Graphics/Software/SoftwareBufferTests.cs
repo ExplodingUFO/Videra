@@ -7,6 +7,8 @@ namespace Videra.Core.Tests.Graphics.Software;
 
 public class SoftwareBufferTests
 {
+    private static readonly float[] SpanValues = [1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f];
+
     [Fact]
     public void Constructor_SetsSizeInBytes()
     {
@@ -98,7 +100,7 @@ public class SoftwareBufferTests
     public void AsSpan_ReturnsCorrectLength()
     {
         var buffer = new SoftwareBuffer(24);
-        buffer.UpdateArray(new[] { 1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f });
+        buffer.UpdateArray(SpanValues);
 
         var span = buffer.AsSpan<float>();
         span.Length.Should().Be(6);

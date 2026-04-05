@@ -10,7 +10,7 @@ using CorePrimitiveTopology = Videra.Core.Graphics.Abstractions.PrimitiveTopolog
 
 namespace Videra.Platform.Linux;
 
-internal unsafe class VulkanResourceFactory : IResourceFactory
+internal sealed unsafe class VulkanResourceFactory : IResourceFactory
 {
     private static readonly DepthBufferConfiguration DepthConfig = DepthBufferConfiguration.Default;
 
@@ -436,7 +436,7 @@ internal unsafe class VulkanResourceFactory : IResourceFactory
         }
     }
 
-    private byte[] CompileShader(string source, ShaderKind kind)
+    private static byte[] CompileShader(string source, ShaderKind kind)
     {
         var shaderc = Shaderc.GetApi();
         var compiler = shaderc.CompilerInitialize();
@@ -467,7 +467,7 @@ internal unsafe class VulkanResourceFactory : IResourceFactory
         return bytes;
     }
 
-    private string GetVertexShaderSource()
+    private static string GetVertexShaderSource()
     {
         return @"#version 450
 layout(location = 0) in vec3 inPosition;
@@ -497,7 +497,7 @@ void main()
 ";
     }
 
-    private string GetFragmentShaderSource()
+    private static string GetFragmentShaderSource()
     {
         return @"#version 450
 layout(location = 0) in vec4 fragColor;

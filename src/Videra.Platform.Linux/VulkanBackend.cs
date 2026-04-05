@@ -973,6 +973,7 @@ public unsafe class VulkanBackend : IGraphicsBackend
         _surfaceCreator.Cleanup();
 
         _vk?.Dispose();
+        GC.SuppressFinalize(this);
     }
 
     private static void ThrowIfFailed(Result result, string operation, string message)

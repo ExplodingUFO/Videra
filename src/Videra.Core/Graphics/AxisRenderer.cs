@@ -7,7 +7,7 @@ using Videra.Core.Graphics.Abstractions;
 
 namespace Videra.Core.Graphics;
 
-public class AxisRenderer : IDisposable
+public partial class AxisRenderer : IDisposable
 {
     private IBuffer? _vertexBuffer;
     private IBuffer? _indexBuffer;
@@ -58,7 +58,7 @@ public class AxisRenderer : IDisposable
         _cameraBuffer = factory.CreateUniformBuffer(128);
 
         var logger = Microsoft.Extensions.Logging.Abstractions.NullLoggerFactory.Instance.CreateLogger<AxisRenderer>();
-        logger.LogInformation("[AxisRenderer] Initialized with {VertexCount} vertices, {IndexCount} indices", vertices.Count, _indexCount);
+        Log.Initialized(logger, vertices.Count, _indexCount);
     }
 
     public void Draw(ICommandExecutor? executor, IPipeline? pipeline, OrbitCamera camera, uint width, uint height, float renderScale)
@@ -112,6 +112,7 @@ public class AxisRenderer : IDisposable
         _indexBuffer?.Dispose();
         _worldBuffer?.Dispose();
         _cameraBuffer?.Dispose();
+        GC.SuppressFinalize(this);
     }
 
     private static Matrix4x4 CreatePerspective(float fieldOfView, float aspectRatio, float near, float far)
@@ -123,5 +124,11 @@ public class AxisRenderer : IDisposable
             0, 0, far / (near - far), -1,
             0, 0, (near * far) / (near - far), 0
         );
+    }
+
+    private static partial class Log
+    {
+        [LoggerMessage(EventId = 1, Level = LogLevel.Information, Message = "[AxisRenderer] Initialized with {VertexCount} vertices, {IndexCount} indices")]
+        public static partial void Initialized(ILogger logger, int vertexCount, uint indexCount);
     }
 }

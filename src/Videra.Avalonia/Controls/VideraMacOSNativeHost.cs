@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using Avalonia;
 using Avalonia.Controls;
@@ -7,7 +8,7 @@ using Videra.Core.Exceptions;
 
 namespace Videra.Avalonia.Controls;
 
-internal sealed class VideraMacOSNativeHost : NativeControlHost, IVideraNativeHost
+internal sealed partial class VideraMacOSNativeHost : NativeControlHost, IVideraNativeHost
 {
     private IntPtr _nsView;
     private bool _isDisposed;
@@ -34,7 +35,7 @@ internal sealed class VideraMacOSNativeHost : NativeControlHost, IVideraNativeHo
                 "CreateNativeControlCore",
                 "macOS");
 
-        _logger.LogInformation("Created NSView 0x{Handle:X}", _nsView.ToInt64());
+        Log.CreatedNsView(_logger, _nsView.ToInt64());
         HandleCreated?.Invoke(_nsView);
 
         return new PlatformHandle(_nsView, "NSView");
@@ -75,7 +76,7 @@ internal sealed class VideraMacOSNativeHost : NativeControlHost, IVideraNativeHo
 
         var frame = new CGRect { x = 0, y = 0, width = width, height = height };
         objc_msgSend_CGRect(_nsView, SEL("setFrame:"), frame);
-        _logger.LogDebug("Resize to {Width}x{Height}", width, height);
+        Log.ResizedNsView(_logger, width, height);
     }
 
     private static IntPtr CreateNSView(int width, int height)
@@ -96,10 +97,12 @@ internal sealed class VideraMacOSNativeHost : NativeControlHost, IVideraNativeHo
 
     #region Objective-C Interop
 
-    [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_getClass")]
+    [SuppressMessage("Interoperability", "CA2101:Specify marshaling for P/Invoke string arguments", Justification = "Objective-C runtime class names are UTF-8 C strings on Darwin and these declarations are scoped to the macOS native host.")]
+    [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_getClass", CharSet = CharSet.Ansi)]
     private static extern IntPtr objc_getClass(string name);
 
-    [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "sel_registerName")]
+    [SuppressMessage("Interoperability", "CA2101:Specify marshaling for P/Invoke string arguments", Justification = "Objective-C selector names are UTF-8 C strings on Darwin and these declarations are scoped to the macOS native host.")]
+    [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "sel_registerName", CharSet = CharSet.Ansi)]
     private static extern IntPtr sel_registerName(string name);
 
     [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_msgSend")]
@@ -126,4 +129,13 @@ internal sealed class VideraMacOSNativeHost : NativeControlHost, IVideraNativeHo
     }
 
     #endregion
+
+    private static partial class Log
+    {
+        [LoggerMessage(EventId = 1, Level = LogLevel.Information, Message = "Created NSView 0x{Handle:X}")]
+        public static partial void CreatedNsView(ILogger logger, long handle);
+
+        [LoggerMessage(EventId = 2, Level = LogLevel.Debug, Message = "Resize to {Width}x{Height}")]
+        public static partial void ResizedNsView(ILogger logger, double width, double height);
+    }
 }

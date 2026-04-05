@@ -8,7 +8,7 @@ namespace Videra.Core.Graphics.Wireframe;
 /// <summary>
 /// 线框渲染器 - 负责渲染物体的边缘线
 /// </summary>
-public class WireframeRenderer : IDisposable
+public partial class WireframeRenderer : IDisposable
 {
     private IResourceFactory? _factory;
     private bool _isInitialized;
@@ -34,7 +34,7 @@ public class WireframeRenderer : IDisposable
         ArgumentNullException.ThrowIfNull(factory);
         _factory = factory;
         _isInitialized = true;
-        _logger.LogInformation("[WireframeRenderer] Initialized");
+        Log.Initialized(_logger);
     }
 
     /// <summary>
@@ -113,7 +113,7 @@ public class WireframeRenderer : IDisposable
         }
     }
 
-    private void RenderLinesWithDepth(Object3D obj, ICommandExecutor executor, IPipeline pipeline, bool testEnabled, bool writeEnabled)
+    private static void RenderLinesWithDepth(Object3D obj, ICommandExecutor executor, IPipeline pipeline, bool testEnabled, bool writeEnabled)
     {
         // 确保设置pipeline
         executor.SetPipeline(pipeline);
@@ -147,5 +147,12 @@ public class WireframeRenderer : IDisposable
     public void Dispose()
     {
         _isInitialized = false;
+        GC.SuppressFinalize(this);
+    }
+
+    private static partial class Log
+    {
+        [LoggerMessage(EventId = 1, Level = LogLevel.Information, Message = "[WireframeRenderer] Initialized")]
+        public static partial void Initialized(ILogger logger);
     }
 }

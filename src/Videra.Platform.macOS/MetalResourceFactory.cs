@@ -6,7 +6,7 @@ using Videra.Core.Graphics.Abstractions;
 
 namespace Videra.Platform.macOS;
 
-internal class MetalResourceFactory : IResourceFactory
+internal sealed partial class MetalResourceFactory : IResourceFactory
 {
     private readonly IntPtr _device;
     private readonly ILogger _logger;
@@ -85,7 +85,7 @@ internal class MetalResourceFactory : IResourceFactory
 
     public IPipeline CreatePipeline(uint vertexSize, bool hasNormals, bool hasColors)
     {
-        _logger.LogInformation("Creating pipeline with vertexSize={VertexSize}, hasNormals={HasNormals}, hasColors={HasColors}", vertexSize, hasNormals, hasColors);
+        Log.CreatingPipeline(_logger, vertexSize, hasNormals, hasColors);
 
         try
         {
@@ -141,14 +141,14 @@ internal class MetalResourceFactory : IResourceFactory
                     if (error != IntPtr.Zero)
                     {
                         var errorDesc = ObjCRuntime.SendMessage(error, ObjCRuntime.SEL("localizedDescription"));
-                        _logger.LogError("Failed to create pipeline state. Error: {Error}", errorDesc);
+                        Log.PipelineStateCreateFailed(_logger, errorDesc.ToInt64());
                         errorMsg = $"Failed to create pipeline state. Error: {errorDesc}";
                     }
 
                     throw new PipelineCreationException(errorMsg, "CreatePipeline");
                 }
 
-                _logger.LogInformation("Pipeline created successfully");
+                Log.PipelineCreated(_logger);
                 return new MetalPipeline(pipelineState);
             }
             finally
@@ -166,12 +166,12 @@ internal class MetalResourceFactory : IResourceFactory
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Exception creating pipeline: {Error}", ex.Message);
+            Log.PipelineCreateException(_logger, ex.Message, ex);
             throw new PipelineCreationException($"Exception creating pipeline: {ex.Message}", "CreatePipeline", ex);
         }
     }
 
-    private string GetMetalShaderSource()
+    private static string GetMetalShaderSource()
     {
         return @"
 #include <metal_stdlib>
@@ -232,7 +232,7 @@ fragment float4 fragment_main(VertexOut in [[stage_in]])
 ";
     }
 
-    private IntPtr CreateVertexDescriptor(uint vertexSize, bool hasNormals, bool hasColors)
+    private static IntPtr CreateVertexDescriptor(uint vertexSize, bool hasNormals, bool hasColors)
     {
         var vertexDescriptor = ObjCRuntime.AllocInit("MTLVertexDescriptor");
         var attributes = ObjCRuntime.SendMessage(vertexDescriptor, ObjCRuntime.SEL("attributes"));
@@ -308,4 +308,19 @@ fragment float4 fragment_main(VertexOut in [[stage_in]])
     #region Metal Interop
 
     #endregion
+
+    private static partial class Log
+    {
+        [LoggerMessage(EventId = 1, Level = LogLevel.Information, Message = "Creating pipeline with vertexSize={VertexSize}, hasNormals={HasNormals}, hasColors={HasColors}")]
+        public static partial void CreatingPipeline(ILogger logger, uint vertexSize, bool hasNormals, bool hasColors);
+
+        [LoggerMessage(EventId = 2, Level = LogLevel.Error, Message = "Failed to create pipeline state. Error: {Error}")]
+        public static partial void PipelineStateCreateFailed(ILogger logger, long error);
+
+        [LoggerMessage(EventId = 3, Level = LogLevel.Information, Message = "Pipeline created successfully")]
+        public static partial void PipelineCreated(ILogger logger);
+
+        [LoggerMessage(EventId = 4, Level = LogLevel.Error, Message = "Exception creating pipeline: {Error}")]
+        public static partial void PipelineCreateException(ILogger logger, string error, Exception exception);
+    }
 }

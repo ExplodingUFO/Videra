@@ -4,7 +4,7 @@ using Videra.Core.Graphics.Abstractions;
 
 namespace Videra.Platform.macOS;
 
-internal class MetalBuffer : IBuffer
+internal sealed class MetalBuffer : IBuffer
 {
     private IntPtr _buffer;
     private bool _disposed;

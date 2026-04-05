@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Videra.Avalonia.Controls;
 
-internal sealed class VideraNativeHost : NativeControlHost, IVideraNativeHost
+internal sealed partial class VideraNativeHost : NativeControlHost, IVideraNativeHost
 {
     private IntPtr _handle;
     private IntPtr _oldWndProc;
@@ -30,7 +30,7 @@ internal sealed class VideraNativeHost : NativeControlHost, IVideraNativeHost
         const int ssNotify = 0x0100;
         const int style = 0x40000000 | 0x10000000 | 0x04000000 | 0x02000000 | ssNotify; // WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | SS_NOTIFY
 
-        _logger.LogDebug("Creating child HWND under 0x{ParentHandle:X}", parent.Handle.ToInt64());
+        Log.CreatingChildWindow(_logger, parent.Handle.ToInt64());
         _handle = CreateWindowExW(
             exStyle,
             "STATIC",
@@ -50,7 +50,7 @@ internal sealed class VideraNativeHost : NativeControlHost, IVideraNativeHost
 
         HookWndProc();
         UpdateNativeSize();
-        _logger.LogInformation("Created HWND 0x{Handle:X}", _handle.ToInt64());
+        Log.CreatedChildWindow(_logger, _handle.ToInt64());
         HandleCreated?.Invoke(_handle);
         return new PlatformHandle(_handle, "HWND");
     }
@@ -86,7 +86,7 @@ internal sealed class VideraNativeHost : NativeControlHost, IVideraNativeHost
 
         const uint flags = 0x0010 | 0x0004; // SWP_NOACTIVATE | SWP_NOZORDER
         SetWindowPos(_handle, IntPtr.Zero, 0, 0, width, height, flags);
-        _logger.LogDebug("Resize HWND to {Width}x{Height}", width, height);
+        Log.ResizedChildWindow(_logger, width, height);
     }
 
     private void HookWndProc()
@@ -100,7 +100,7 @@ internal sealed class VideraNativeHost : NativeControlHost, IVideraNativeHost
         {
             var error = Marshal.GetLastWin32Error();
             if (error != 0)
-                _logger.LogWarning("Failed to hook WndProc (err={Error})", error);
+                Log.WndProcHookFailed(_logger, error);
         }
     }
 
@@ -206,5 +206,20 @@ internal sealed class VideraNativeHost : NativeControlHost, IVideraNativeHost
         var x = (short)((long)lParam & 0xFFFF);
         var y = (short)(((long)lParam >> 16) & 0xFFFF);
         NativePointer?.Invoke(new NativePointerEvent(kind, x, y, wheelDelta));
+    }
+
+    private static partial class Log
+    {
+        [LoggerMessage(EventId = 1, Level = LogLevel.Debug, Message = "Creating child HWND under 0x{ParentHandle:X}")]
+        public static partial void CreatingChildWindow(ILogger logger, long parentHandle);
+
+        [LoggerMessage(EventId = 2, Level = LogLevel.Information, Message = "Created HWND 0x{Handle:X}")]
+        public static partial void CreatedChildWindow(ILogger logger, long handle);
+
+        [LoggerMessage(EventId = 3, Level = LogLevel.Debug, Message = "Resize HWND to {Width}x{Height}")]
+        public static partial void ResizedChildWindow(ILogger logger, int width, int height);
+
+        [LoggerMessage(EventId = 4, Level = LogLevel.Warning, Message = "Failed to hook WndProc (err={Error})")]
+        public static partial void WndProcHookFailed(ILogger logger, int error);
     }
 }

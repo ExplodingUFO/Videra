@@ -4,7 +4,7 @@ using Videra.Core.Graphics.Abstractions;
 
 namespace Videra.Platform.Linux;
 
-internal unsafe class VulkanCommandExecutor : ICommandExecutor
+internal sealed unsafe class VulkanCommandExecutor : ICommandExecutor
 {
     private readonly Device _device;
     private readonly CommandBuffer _commandBuffer;

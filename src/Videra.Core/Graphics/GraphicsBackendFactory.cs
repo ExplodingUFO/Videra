@@ -8,7 +8,7 @@ namespace Videra.Core.Graphics;
 /// <summary>
 /// 平台后端工厂 - 根据运行时平台创建对应的图形后端
 /// </summary>
-public static class GraphicsBackendFactory
+public static partial class GraphicsBackendFactory
 {
     private static IGraphicsBackendResolver? _resolver;
 
@@ -30,7 +30,7 @@ public static class GraphicsBackendFactory
             ?? Microsoft.Extensions.Logging.Abstractions.NullLoggerFactory.Instance.CreateLogger("GraphicsBackendFactory");
 
         var backendMode = Environment.GetEnvironmentVariable("VIDERA_BACKEND");
-        logger.LogInformation("[GraphicsBackendFactory] Preference={Preference}, Env={EnvVar}", preference, backendMode ?? "<null>");
+        Log.PreferenceResolved(logger, preference, backendMode ?? "<null>");
         if (preference == GraphicsBackendPreference.Auto && !string.IsNullOrWhiteSpace(backendMode))
             preference = ParsePreference(backendMode);
 
@@ -41,7 +41,7 @@ public static class GraphicsBackendFactory
         if (resolvedBackend != null)
             return resolvedBackend;
 
-        logger.LogWarning("[GraphicsBackendFactory] No resolver configured for native backend preference {Preference}; falling back to software.", preference);
+        Log.FallingBackToSoftware(logger, preference);
         return new SoftwareBackend();
     }
 
@@ -81,5 +81,14 @@ public static class GraphicsBackendFactory
             "auto" => GraphicsBackendPreference.Auto,
             _ => GraphicsBackendPreference.Auto
         };
+    }
+
+    private static partial class Log
+    {
+        [LoggerMessage(EventId = 1, Level = LogLevel.Information, Message = "[GraphicsBackendFactory] Preference={Preference}, Env={EnvVar}")]
+        public static partial void PreferenceResolved(ILogger logger, GraphicsBackendPreference preference, string envVar);
+
+        [LoggerMessage(EventId = 2, Level = LogLevel.Warning, Message = "[GraphicsBackendFactory] No resolver configured for native backend preference {Preference}; falling back to software.")]
+        public static partial void FallingBackToSoftware(ILogger logger, GraphicsBackendPreference preference);
     }
 }

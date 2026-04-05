@@ -9,7 +9,7 @@ using Videra.Core.Graphics.Abstractions;
 
 namespace Videra.Avalonia.Rendering;
 
-internal sealed class RenderSession : IDisposable
+internal sealed partial class RenderSession : IDisposable
 {
     private static readonly TimeSpan RenderInterval = TimeSpan.FromMilliseconds(16);
 
@@ -156,7 +156,7 @@ internal sealed class RenderSession : IDisposable
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Render session frame failed: {Error}", ex.Message);
+            Log.RenderFrameFailed(_logger, ex.Message, ex);
             StopRenderLoop();
         }
     }
@@ -284,6 +284,12 @@ internal sealed class RenderSession : IDisposable
     private void ThrowIfDisposed()
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
+    }
+
+    private static partial class Log
+    {
+        [LoggerMessage(EventId = 1, Level = LogLevel.Error, Message = "Render session frame failed: {Error}")]
+        public static partial void RenderFrameFailed(ILogger logger, string error, Exception exception);
     }
 
     internal interface IRenderLoopDriver : IDisposable

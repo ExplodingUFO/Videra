@@ -12,7 +12,7 @@ namespace Videra.Core.Graphics;
 /// GPU-backed vertex and index buffers, and optional wireframe rendering support.
 /// Implements <see cref="IDisposable"/> to release GPU resources.
 /// </summary>
-public class Object3D : IDisposable
+public partial class Object3D : IDisposable
 {
     private bool _disposed;
     private MeshData? _cachedMesh;
@@ -117,6 +117,7 @@ public class Object3D : IDisposable
         _disposed = true;
 
         ReleaseGpuResources();
+        GC.SuppressFinalize(this);
     }
 
     internal void ReleaseGpuResources()
@@ -168,7 +169,7 @@ public class Object3D : IDisposable
             if (mesh.Indices == null || mesh.Indices.Length == 0)
                 throw new ArgumentException("Invalid index data");
 
-            log.LogDebug("[Object3D '{Name}'] Initializing: {VertexCount} verts, {IndexCount} indices", Name, mesh.Vertices.Length, mesh.Indices.Length);
+            Log.Initializing(log, Name, mesh.Vertices.Length, mesh.Indices.Length);
 
             _cachedMesh = new MeshData
             {
@@ -189,7 +190,7 @@ public class Object3D : IDisposable
 
             var vSize = (uint)(mesh.Vertices.Length * vertexSize);
 
-            log.LogDebug("[Object3D '{Name}'] Vertex buffer size: {BufferSize:N0} bytes ({BufferSizeMB:F2} MB)", Name, vSize, vSize / 1024.0 / 1024.0);
+            Log.VertexBufferSize(log, Name, vSize, vSize / 1024.0 / 1024.0);
 
             VertexBuffer = factory.CreateVertexBuffer(vSize);
             VertexBuffer.SetData(mesh.Vertices, 0);
@@ -203,7 +204,7 @@ public class Object3D : IDisposable
 
             var iSize = (uint)(mesh.Indices.Length * sizeof(uint));
 
-            log.LogDebug("[Object3D '{Name}'] Index buffer size: {BufferSize:N0} bytes ({BufferSizeMB:F2} MB)", Name, iSize, iSize / 1024.0 / 1024.0);
+            Log.IndexBufferSize(log, Name, iSize, iSize / 1024.0 / 1024.0);
 
             IndexBuffer = factory.CreateIndexBuffer(iSize);
             IndexBuffer.SetData(mesh.Indices, 0);
@@ -221,11 +222,11 @@ public class Object3D : IDisposable
             // World Uniform Buffer
             WorldBuffer = factory.CreateUniformBuffer(64);
 
-            log.LogInformation("[Object3D '{Name}'] Initialized successfully", Name);
+            Log.Initialized(log, Name);
         }
         catch (Exception ex)
         {
-            log.LogError(ex, "[Object3D '{Name}'] Initialization failed: {Error}", Name, ex.Message);
+            Log.InitializationFailed(log, Name, ex.Message, ex);
 
             // 清理已创建的资源
             ReleaseGpuResources();
@@ -276,7 +277,7 @@ public class Object3D : IDisposable
 
         if (_cachedTriangleIndices == null || _cachedTriangleIndices.Length == 0)
         {
-            log.LogDebug("[Object3D '{Name}'] Wireframe: No triangle indices available", Name);
+            Log.WireframeNoTriangleIndices(log, Name);
             return;
         }
 
@@ -285,7 +286,7 @@ public class Object3D : IDisposable
 
         if (lineIndices.Length == 0)
         {
-            log.LogDebug("[Object3D '{Name}'] Wireframe: No edges extracted", Name);
+            Log.WireframeNoEdges(log, Name);
             return;
         }
 
@@ -304,7 +305,7 @@ public class Object3D : IDisposable
             LineVertexBuffer.SetData(_cachedVertices, 0);
         }
 
-        log.LogInformation("[Object3D '{Name}'] Wireframe: {EdgeCount} edges initialized", Name, LineIndexCount / 2);
+        Log.WireframeInitialized(log, Name, LineIndexCount / 2);
     }
 
     internal void RecreateGraphicsResources(IResourceFactory factory, ILogger? logger = null)
@@ -347,5 +348,32 @@ public class Object3D : IDisposable
         }
 
         LineVertexBuffer.SetData(coloredVertices, 0);
+    }
+
+    private static partial class Log
+    {
+        [LoggerMessage(EventId = 1, Level = LogLevel.Debug, Message = "[Object3D '{Name}'] Initializing: {VertexCount} verts, {IndexCount} indices")]
+        public static partial void Initializing(ILogger logger, string name, int vertexCount, int indexCount);
+
+        [LoggerMessage(EventId = 2, Level = LogLevel.Debug, Message = "[Object3D '{Name}'] Vertex buffer size: {BufferSize:N0} bytes ({BufferSizeMB:F2} MB)")]
+        public static partial void VertexBufferSize(ILogger logger, string name, uint bufferSize, double bufferSizeMB);
+
+        [LoggerMessage(EventId = 3, Level = LogLevel.Debug, Message = "[Object3D '{Name}'] Index buffer size: {BufferSize:N0} bytes ({BufferSizeMB:F2} MB)")]
+        public static partial void IndexBufferSize(ILogger logger, string name, uint bufferSize, double bufferSizeMB);
+
+        [LoggerMessage(EventId = 4, Level = LogLevel.Information, Message = "[Object3D '{Name}'] Initialized successfully")]
+        public static partial void Initialized(ILogger logger, string name);
+
+        [LoggerMessage(EventId = 5, Level = LogLevel.Error, Message = "[Object3D '{Name}'] Initialization failed: {Error}")]
+        public static partial void InitializationFailed(ILogger logger, string name, string error, Exception exception);
+
+        [LoggerMessage(EventId = 6, Level = LogLevel.Debug, Message = "[Object3D '{Name}'] Wireframe: No triangle indices available")]
+        public static partial void WireframeNoTriangleIndices(ILogger logger, string name);
+
+        [LoggerMessage(EventId = 7, Level = LogLevel.Debug, Message = "[Object3D '{Name}'] Wireframe: No edges extracted")]
+        public static partial void WireframeNoEdges(ILogger logger, string name);
+
+        [LoggerMessage(EventId = 8, Level = LogLevel.Information, Message = "[Object3D '{Name}'] Wireframe: {EdgeCount} edges initialized")]
+        public static partial void WireframeInitialized(ILogger logger, string name, uint edgeCount);
     }
 }

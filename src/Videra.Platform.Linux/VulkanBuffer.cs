@@ -5,7 +5,7 @@ using Videra.Core.Graphics.Abstractions;
 
 namespace Videra.Platform.Linux;
 
-internal unsafe class VulkanBuffer : IBuffer
+internal sealed unsafe class VulkanBuffer : IBuffer
 {
     private readonly Vk _vk;
     private readonly Device _device;

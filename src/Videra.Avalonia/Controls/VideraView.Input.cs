@@ -58,7 +58,7 @@ public partial class VideraView
         _lastPos = e.GetPosition(this);
 
         if (InputLogEnabled)
-            _logger.LogDebug("Pressed at {Position}, Left={IsLeft}, Right={IsRight}", _lastPos, props.IsLeftButtonPressed, props.IsRightButtonPressed);
+            Log.PointerPressed(_logger, _lastPos, props.IsLeftButtonPressed, props.IsRightButtonPressed);
 
         if (props.IsLeftButtonPressed)
         {
@@ -80,7 +80,7 @@ public partial class VideraView
         base.OnPointerReleased(e);
 
         if (InputLogEnabled)
-            _logger.LogDebug("Released at {Position} ({Button})", e.GetPosition(this), e.InitialPressMouseButton);
+            Log.PointerReleased(_logger, e.GetPosition(this), e.InitialPressMouseButton);
 
         if (e.InitialPressMouseButton == MouseButton.Left)
         {
@@ -101,7 +101,7 @@ public partial class VideraView
         base.OnPointerMoved(e);
 
         if (InputLogEnabled && (_isLeftButtonDown || _isRightButtonDown))
-            _logger.LogDebug("Moved to {Position}", e.GetPosition(this));
+            Log.PointerMoved(_logger, e.GetPosition(this));
 
         if (!_isLeftButtonDown && !_isRightButtonDown)
             return;
@@ -120,7 +120,7 @@ public partial class VideraView
         base.OnPointerWheelChanged(e);
 
         if (InputLogEnabled)
-            _logger.LogDebug("Wheel delta {Delta}", e.Delta);
+            Log.PointerWheelChanged(_logger, e.Delta);
 
         var delta = e.Delta.Y;
         Engine.Camera.Zoom((float)(delta * 0.5));
@@ -190,25 +190,25 @@ public partial class VideraView
                 _isLeftButtonDown = true;
                 _lastPos = pos;
                 if (InputLogEnabled)
-                    _logger.LogDebug("Native LeftDown at {Position}", pos);
+                    Log.NativeLeftDown(_logger, pos);
                 Focus();
                 break;
             case NativePointerKind.LeftUp:
                 _isLeftButtonDown = false;
                 if (InputLogEnabled)
-                    _logger.LogDebug("Native LeftUp at {Position}", pos);
+                    Log.NativeLeftUp(_logger, pos);
                 break;
             case NativePointerKind.RightDown:
                 _isRightButtonDown = true;
                 _lastPos = pos;
                 if (InputLogEnabled)
-                    _logger.LogDebug("Native RightDown at {Position}", pos);
+                    Log.NativeRightDown(_logger, pos);
                 Focus();
                 break;
             case NativePointerKind.RightUp:
                 _isRightButtonDown = false;
                 if (InputLogEnabled)
-                    _logger.LogDebug("Native RightUp at {Position}", pos);
+                    Log.NativeRightUp(_logger, pos);
                 break;
             case NativePointerKind.Move:
                 if (!_isLeftButtonDown && !_isRightButtonDown)
@@ -218,13 +218,13 @@ public partial class VideraView
                 var dy = (float)(pos.Y - _lastPos.Y);
                 _lastPos = pos;
                 if (InputLogEnabled)
-                    _logger.LogDebug("Native Move {Position} dx={Dx} dy={Dy}", pos, dx, dy);
+                    Log.NativeMove(_logger, pos, dx, dy);
                 ProcessMove(dx, dy, _isLeftButtonDown);
                 break;
             case NativePointerKind.Wheel:
                 var normalized = e.WheelDelta / 120.0f;
                 if (InputLogEnabled)
-                    _logger.LogDebug("Native Wheel delta {Delta}", e.WheelDelta);
+                    Log.NativeWheel(_logger, e.WheelDelta);
                 if (Math.Abs(normalized) > float.Epsilon)
                     Engine.Camera.Zoom(normalized * 0.5f);
                 break;
@@ -244,5 +244,38 @@ public partial class VideraView
             Engine.Camera.Rotate(dx * 0.5f, dy * 0.5f);
         else
             Engine.Camera.Pan(-dx * 0.01f, dy * 0.01f);
+    }
+
+    private static partial class Log
+    {
+        [LoggerMessage(EventId = 101, Level = LogLevel.Debug, Message = "Pressed at {Position}, Left={IsLeft}, Right={IsRight}")]
+        public static partial void PointerPressed(ILogger logger, Point position, bool isLeft, bool isRight);
+
+        [LoggerMessage(EventId = 102, Level = LogLevel.Debug, Message = "Released at {Position} ({Button})")]
+        public static partial void PointerReleased(ILogger logger, Point position, MouseButton button);
+
+        [LoggerMessage(EventId = 103, Level = LogLevel.Debug, Message = "Moved to {Position}")]
+        public static partial void PointerMoved(ILogger logger, Point position);
+
+        [LoggerMessage(EventId = 104, Level = LogLevel.Debug, Message = "Wheel delta {Delta}")]
+        public static partial void PointerWheelChanged(ILogger logger, Vector delta);
+
+        [LoggerMessage(EventId = 105, Level = LogLevel.Debug, Message = "Native LeftDown at {Position}")]
+        public static partial void NativeLeftDown(ILogger logger, Point position);
+
+        [LoggerMessage(EventId = 106, Level = LogLevel.Debug, Message = "Native LeftUp at {Position}")]
+        public static partial void NativeLeftUp(ILogger logger, Point position);
+
+        [LoggerMessage(EventId = 107, Level = LogLevel.Debug, Message = "Native RightDown at {Position}")]
+        public static partial void NativeRightDown(ILogger logger, Point position);
+
+        [LoggerMessage(EventId = 108, Level = LogLevel.Debug, Message = "Native RightUp at {Position}")]
+        public static partial void NativeRightUp(ILogger logger, Point position);
+
+        [LoggerMessage(EventId = 109, Level = LogLevel.Debug, Message = "Native Move {Position} dx={Dx} dy={Dy}")]
+        public static partial void NativeMove(ILogger logger, Point position, float dx, float dy);
+
+        [LoggerMessage(EventId = 110, Level = LogLevel.Debug, Message = "Native Wheel delta {Delta}")]
+        public static partial void NativeWheel(ILogger logger, float delta);
     }
 }

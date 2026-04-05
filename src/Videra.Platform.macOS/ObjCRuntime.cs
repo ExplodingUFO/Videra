@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using Videra.Core.Exceptions;
 
@@ -15,10 +16,12 @@ internal static class ObjCRuntime
 {
     #region Core P/Invoke
 
-    [DllImport("/usr/lib/libobjc.A.dylib", EntryPoint = "objc_getClass")]
+    [SuppressMessage("Interoperability", "CA2101:Specify marshaling for P/Invoke string arguments", Justification = "Objective-C runtime class names are UTF-8 C strings on Darwin and this interop is isolated to the macOS backend.")]
+    [DllImport("/usr/lib/libobjc.A.dylib", EntryPoint = "objc_getClass", CharSet = CharSet.Ansi)]
     public static extern IntPtr GetClass(string name);
 
-    [DllImport("/usr/lib/libobjc.A.dylib", EntryPoint = "sel_registerName")]
+    [SuppressMessage("Interoperability", "CA2101:Specify marshaling for P/Invoke string arguments", Justification = "Objective-C selector names are UTF-8 C strings on Darwin and this interop is isolated to the macOS backend.")]
+    [DllImport("/usr/lib/libobjc.A.dylib", EntryPoint = "sel_registerName", CharSet = CharSet.Ansi)]
     public static extern IntPtr RegisterSelector(string name);
 
     [DllImport("/usr/lib/libobjc.A.dylib", EntryPoint = "objc_msgSend")]

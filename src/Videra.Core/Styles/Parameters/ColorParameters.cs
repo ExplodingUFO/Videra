@@ -17,7 +17,7 @@ public sealed class ColorParameters : IEquatable<ColorParameters>
     public float Contrast { get; set; } = 1.0f;
 
     /// <summary>亮度偏移 [-1, 1], 0=原始</summary>
-    public float Brightness { get; set; } = 0f;
+    public float Brightness { get; set; }
 
     public ColorParameters Clone() => (ColorParameters)MemberwiseClone();
 

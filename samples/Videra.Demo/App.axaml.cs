@@ -27,7 +27,7 @@ public class App : Application
         AvaloniaXamlLoader.Load(this);
     }
     
-    private void RegisterAssimpResolver()
+    private static void RegisterAssimpResolver()
     {
         if (!RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             return;
@@ -146,7 +146,7 @@ public class App : Application
         }
     }
 
-    private void DisableAvaloniaDataAnnotationValidation()
+    private static void DisableAvaloniaDataAnnotationValidation()
     {
         var dataValidationPluginsToRemove =
             BindingPlugins.DataValidators.OfType<DataAnnotationsValidationPlugin>().ToArray();

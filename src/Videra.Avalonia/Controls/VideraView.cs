@@ -76,10 +76,15 @@ public partial class VideraView : Decorator
             Colors.Black);
 
     public VideraView()
+        : this(nativeHostFactory: null)
+    {
+    }
+
+    internal VideraView(INativeHostFactory? nativeHostFactory)
     {
         AvaloniaGraphicsBackendResolver.EnsureRegistered();
         Engine = new VideraEngine();
-        _nativeHostFactory = new DefaultNativeHostFactory();
+        _nativeHostFactory = nativeHostFactory ?? new DefaultNativeHostFactory();
         _renderSession = CreateRenderSession();
         Focusable = true;
         ClipToBounds = true;
@@ -231,7 +236,7 @@ public partial class VideraView : Decorator
         {
             if (WantsNativeBackend() && !_renderSession.HandleState.IsBound)
             {
-                _logger.LogDebug("OnSizeChanged: native backend without handle, ensuring host");
+                Log.NativeBackendSizeChangedWithoutHandle(_logger);
                 EnsureNativeHost();
                 if (!_renderSession.HandleState.IsBound)
                     return;
@@ -297,7 +302,7 @@ public partial class VideraView : Decorator
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Render session init failed (Try #{RetryCount}): {Error}", retryCount + 1, ex.Message);
+            Log.RenderSessionInitFailed(_logger, retryCount + 1, ex.Message, ex);
 
             if (retryCount < 5)
             {
@@ -359,7 +364,7 @@ public partial class VideraView : Decorator
 
     private void OnViewAttached()
     {
-        _logger.LogDebug("OnViewAttached");
+        Log.ViewAttached(_logger);
         _renderSession.Attach(PreferredBackend);
 
         if (WantsNativeBackend())
@@ -382,7 +387,7 @@ public partial class VideraView : Decorator
 
     private void OnViewDetached()
     {
-        _logger.LogDebug("OnViewDetached");
+        Log.ViewDetached(_logger);
         if (Items is INotifyCollectionChanged incc)
             incc.CollectionChanged -= OnCollectionChanged;
 
@@ -414,7 +419,7 @@ public partial class VideraView : Decorator
         var host = _nativeHostFactory.CreateHost();
         if (host == null)
         {
-            _logger.LogWarning("No native host available for this platform");
+            Log.NativeHostUnavailable(_logger);
             return;
         }
 
@@ -438,7 +443,7 @@ public partial class VideraView : Decorator
         _nativeContainer.Children.Add(nativeHost);
         _nativeContainer.Children.Add(_inputOverlay);
         Child = _nativeContainer;
-        _logger.LogInformation("Native host created");
+        Log.NativeHostCreated(_logger);
     }
 
     private void ReleaseNativeHost()
@@ -460,7 +465,7 @@ public partial class VideraView : Decorator
     private void OnNativeHandleCreated(IntPtr handle)
     {
         _renderSession.BindHandle(handle);
-        _logger.LogInformation("Native handle created: 0x{Handle:X}", handle.ToInt64());
+        Log.NativeHandleCreated(_logger, handle.ToInt64());
 
         var scaling = VisualRoot?.RenderScaling ?? 1.0;
         var widthPx = (uint)Math.Max(64, Math.Round(Bounds.Width * scaling));
@@ -471,5 +476,29 @@ public partial class VideraView : Decorator
     private void OnNativeHandleDestroyed()
     {
         _renderSession.BindHandle(IntPtr.Zero);
+    }
+
+    private static partial class Log
+    {
+        [LoggerMessage(EventId = 1, Level = LogLevel.Debug, Message = "OnSizeChanged: native backend without handle, ensuring host")]
+        public static partial void NativeBackendSizeChangedWithoutHandle(ILogger logger);
+
+        [LoggerMessage(EventId = 2, Level = LogLevel.Error, Message = "Render session init failed (Try #{RetryCount}): {Error}")]
+        public static partial void RenderSessionInitFailed(ILogger logger, int retryCount, string error, Exception exception);
+
+        [LoggerMessage(EventId = 3, Level = LogLevel.Debug, Message = "OnViewAttached")]
+        public static partial void ViewAttached(ILogger logger);
+
+        [LoggerMessage(EventId = 4, Level = LogLevel.Debug, Message = "OnViewDetached")]
+        public static partial void ViewDetached(ILogger logger);
+
+        [LoggerMessage(EventId = 5, Level = LogLevel.Warning, Message = "No native host available for this platform")]
+        public static partial void NativeHostUnavailable(ILogger logger);
+
+        [LoggerMessage(EventId = 6, Level = LogLevel.Information, Message = "Native host created")]
+        public static partial void NativeHostCreated(ILogger logger);
+
+        [LoggerMessage(EventId = 7, Level = LogLevel.Information, Message = "Native handle created: 0x{Handle:X}")]
+        public static partial void NativeHandleCreated(ILogger logger, long handle);
     }
 }
