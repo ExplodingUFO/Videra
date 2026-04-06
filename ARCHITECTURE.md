@@ -1,18 +1,20 @@
-# Videra 架构说明
+# Videra Architecture
 
-本文档描述 Videra 的公开架构边界、模块职责和运行方式，面向首次阅读仓库的开发者与贡献者。
+[English](ARCHITECTURE.md) | [中文](docs/zh-CN/ARCHITECTURE.md)
 
-## 设计目标
+This document describes Videra's public architecture boundaries, module responsibilities, and runtime flow for contributors and evaluators.
 
-Videra 的设计目标不是实现通用游戏引擎，而是在 Avalonia 桌面应用中提供一套稳定的 3D 查看组件能力：
+## Design Goals
 
-- 统一封装跨平台 3D 视图能力
-- 保持核心渲染逻辑与平台图形 API 解耦
-- 允许按平台接入最合适的原生后端
-- 在无 GPU 或调试场景下提供软件回退路径
-- 让 Demo、库代码和测试验证形成清晰边界
+Videra is designed to provide stable 3D viewer capabilities inside Avalonia desktop applications:
 
-## 分层结构
+- Unify cross-platform 3D view behavior
+- Keep core rendering logic decoupled from platform graphics APIs
+- Select the most suitable native backend per platform
+- Provide a software fallback for diagnostics and no-GPU environments
+- Maintain clear boundaries between demo code, library code, and validation
+
+## Layering
 
 ```mermaid
 graph TB
@@ -32,16 +34,16 @@ graph TB
 
 ### `Videra.Core`
 
-平台无关的核心层，负责：
+Platform-agnostic rendering layer responsible for:
 
-- 渲染抽象接口
-- 场景对象与引擎生命周期
-- 相机、网格、坐标轴与线框渲染逻辑
-- 模型导入
-- 渲染风格系统
-- 软件渲染回退
+- Rendering abstractions
+- Scene object and engine lifecycle
+- Camera, grid, axis, and wireframe logic
+- Model import
+- Render-style presets
+- Software fallback rendering
 
-关键抽象：
+Key abstractions:
 
 - `IGraphicsBackend`
 - `IResourceFactory`
@@ -50,41 +52,41 @@ graph TB
 
 ### `Videra.Avalonia`
 
-UI 集成层，负责：
+UI integration layer responsible for:
 
-- `VideraView` 控件暴露
-- Avalonia 与原生窗口宿主的桥接
-- 后端偏好与渲染会话调度
-- 指针输入与相机交互映射
+- The `VideraView` control surface
+- Bridging Avalonia with native-host handles
+- Backend preference and render-session coordination
+- Pointer input and camera interaction mapping
 
-这一层屏蔽了 UI 框架与底层后端的耦合，使宿主应用可以通过 XAML 或代码直接使用 3D 视图。
+This layer lets host apps use the 3D view from XAML or code without directly coupling UI code to backend implementation details.
 
-### 平台后端
+### Native Backend Packages
 
-每个平台后端都实现 `IGraphicsBackend` 契约，并对接各自的原生图形 API：
+Each backend implements `IGraphicsBackend` against a native graphics API:
 
 - `Videra.Platform.Windows`: Direct3D 11
 - `Videra.Platform.Linux`: Vulkan
 - `Videra.Platform.macOS`: Metal
 
-它们负责：
+These packages handle:
 
-- 原生图形设备初始化
-- 交换链或可绘制对象管理
-- 深度缓冲与帧生命周期
-- 资源工厂与命令执行器实现
+- Device initialization
+- Swapchain / drawable lifecycle
+- Depth-buffer and frame management
+- Resource factories and command executors
 
 ### `Videra.Demo`
 
-示例应用，负责展示：
+The demo application shows:
 
-- `VideraView` 集成方式
-- 模型导入
-- 渲染风格与线框切换
-- 网格、坐标轴和基础对象变换
-- 平台后端选择与状态展示
+- `VideraView` integration
+- Model import flows
+- Render-style and wireframe switching
+- Grid, axes, and basic object transforms
+- Backend status and default scene bootstrapping
 
-## 目录结构
+## Repository Layout
 
 ```text
 Videra/
@@ -102,84 +104,82 @@ Videra/
 └── verify.ps1
 ```
 
-## 运行流程
+## Runtime Flow
 
 ```mermaid
 sequenceDiagram
-    participant App as 宿主应用
+    participant App as Host App
     participant View as VideraView
     participant Session as RenderSession
     participant Engine as VideraEngine
     participant Backend as IGraphicsBackend
 
-    App->>View: 创建控件
-    View->>Session: 挂接后端偏好
-    Session->>Backend: 解析并创建后端
-    View->>Engine: 初始化引擎
+    App->>View: Create control
+    View->>Session: Apply backend preference
+    Session->>Backend: Resolve and create backend
+    View->>Engine: Initialize engine
     Engine->>Backend: Initialize(...)
 
-    loop 每帧
+    loop Per frame
         View->>Engine: Draw()
         Engine->>Backend: BeginFrame()
-        Engine->>Backend: 绘制场景
+        Engine->>Backend: Draw scene
         Engine->>Backend: EndFrame()
     end
 ```
 
-## 后端选择策略
+## Backend Selection
 
-Videra 提供显式偏好与环境变量两条路径：
+Videra exposes two backend-selection paths:
 
 1. `VideraView.PreferredBackend`
-2. `VIDERA_BACKEND` 环境变量
+2. `VIDERA_BACKEND` environment variable
 
-当设置为 `Auto` 时，默认按平台选择：
+When set to `Auto`, the default preference is:
 
 - Windows: `D3D11`
 - Linux: `Vulkan`
 - macOS: `Metal`
 
-当原生后端不可用或显式指定 `software` 时，会进入软件渲染路径。
+If the native backend is unavailable, or if `software` is selected explicitly, rendering falls back to the software path.
 
-## 支持的核心能力
+## Supported Capabilities
 
-- 3D 模型导入：`.gltf`、`.glb`、`.obj`
-- 轨道相机与基础交互
-- 渲染风格预设
-- 线框渲染与叠加模式
-- 网格和坐标轴辅助
-- 平台原生渲染后端
-- 软件回退后端
+- Model import: `.gltf`, `.glb`, `.obj`
+- Orbit camera and basic scene interaction
+- Render-style presets
+- Wireframe and overlay modes
+- Grid and axis helpers
+- Native rendering backends
+- Software fallback backend
 
-## 验证策略
+## Validation Strategy
 
-仓库提供统一验证入口：
+Repository-wide validation entrypoints:
 
 ```bash
 ./verify.sh --configuration Release
 pwsh -File ./verify.ps1 -Configuration Release
 ```
 
-其中：
+By default:
 
-- 标准验证覆盖解决方案构建、测试和通用检查
-- Linux 原生验证需显式开启 `--include-native-linux`
-- macOS 原生验证需显式开启 `--include-native-macos`
+- Standard validation covers solution build, tests, and common checks
+- Linux native validation requires `--include-native-linux`
+- macOS native validation requires `--include-native-macos`
 
-Windows 路径已纳入真实 HWND 验证；Linux 和 macOS 的完整原生闭环仍需要在对应宿主系统上执行。
+Windows lifecycle coverage is already part of the standard validation path. Linux and macOS native-host end-to-end validation still needs to be run on those hosts explicitly.
 
-## 当前边界与限制
+## Current Limits
 
-- 当前目标是组件化 3D Viewer，而非完整内容制作工具链
-- Linux 原生路径当前以 X11 为主，Wayland 暂不支持
-- macOS 后端目前依赖 Objective-C runtime 互操作
-- 平台后端均可继续在稳定性、封装性和原生宿主验证方面迭代
+- Videra targets componentized 3D viewing rather than a full content creation pipeline
+- Linux native support is currently X11-first; Wayland is not yet supported
+- The macOS backend relies on Objective-C runtime interop
+- All native backends can still improve in stability, encapsulation, and host validation depth
 
-## 相关文档
+## Related Docs
 
 - [README.md](README.md)
-- [docs/index.md](docs/index.md)
-- [docs/troubleshooting.md](docs/troubleshooting.md)
-- [src/Videra.Core/README.md](src/Videra.Core/README.md)
-- [src/Videra.Avalonia/README.md](src/Videra.Avalonia/README.md)
-- [samples/Videra.Demo/README.md](samples/Videra.Demo/README.md)
+- [Documentation Index](docs/index.md)
+- [Troubleshooting](docs/troubleshooting.md)
+- [Chinese Architecture Doc](docs/zh-CN/ARCHITECTURE.md)

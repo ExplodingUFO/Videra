@@ -1,36 +1,36 @@
-# 贡献指南
+# Contributing to Videra
 
-感谢你关注 Videra。本文档说明如何在本仓库中进行开发、验证和提交变更。
+[English](CONTRIBUTING.md) | [中文](docs/zh-CN/CONTRIBUTING.md)
 
-## 贡献类型
+Thanks for contributing to Videra. This guide explains how to build, validate, and submit changes in this repository.
 
-欢迎以下类型的贡献：
+## What We Welcome
 
-- Bug 修复
-- 文档改进
-- 测试补充与稳定性提升
-- 新的平台适配与渲染后端改进
-- Demo 体验优化
+- Bug fixes
+- Documentation improvements
+- Test coverage and stabilization work
+- New platform integration and backend improvements
+- Demo usability improvements
 
-如果是较大范围的能力变更，建议先提交 Issue 讨论边界与方案。
+For larger capability changes, open an issue first to discuss scope and approach.
 
-## 开发环境
+## Development Environment
 
-### 必要依赖
+### Required Tools
 
 - .NET 8 SDK
 - Git
-- 一个常用的 C# IDE（Visual Studio、Rider 或 VS Code）
+- A C# IDE such as Visual Studio, Rider, or VS Code
 
-### 平台前提
+### Platform Prerequisites
 
-| 平台 | 后端 | 依赖 |
+| Platform | Backend | Prerequisites |
 | --- | --- | --- |
-| Windows | Direct3D 11 | D3D11 兼容 GPU |
-| Linux | Vulkan | Vulkan 驱动、X11 运行库 |
-| macOS | Metal | Metal 兼容设备 |
+| Windows | Direct3D 11 | D3D11-capable GPU |
+| Linux | Vulkan | Vulkan drivers and X11 runtime libraries |
+| macOS | Metal | Metal-capable hardware |
 
-## 本地启动
+## Local Setup
 
 ```bash
 git clone https://github.com/ExplodingUFO/Videra.git
@@ -39,22 +39,22 @@ dotnet restore
 dotnet build Videra.slnx
 ```
 
-运行 Demo：
+Run the demo:
 
 ```bash
 dotnet run --project samples/Videra.Demo/Videra.Demo.csproj
 ```
 
-## 开发原则
+## Working Principles
 
-- 变更范围保持聚焦，不混入无关重构
-- 公共 API 变更必须同步更新文档
-- 与平台相关的改动，优先在对应平台宿主机验证
-- 不要把临时调试代码、注释掉的旧实现或本地实验文件带入 PR
+- Keep changes focused; do not mix unrelated refactors into the same change
+- Update docs whenever a public API or workflow changes
+- Validate platform-specific changes on the matching host whenever possible
+- Do not commit local experiments, commented-out legacy code, or temporary debug scaffolding
 
-## 验证要求
+## Validation
 
-提交前至少运行一次统一验证入口：
+Run the standard verification entrypoint before submitting work:
 
 ```bash
 # Unix shell
@@ -64,7 +64,7 @@ dotnet run --project samples/Videra.Demo/Videra.Demo.csproj
 pwsh -File ./verify.ps1 -Configuration Release
 ```
 
-如改动涉及原生宿主路径，请补充平台验证：
+If your change touches native-host paths, add explicit platform validation:
 
 ```bash
 # Linux
@@ -76,37 +76,37 @@ pwsh -File ./verify.ps1 -Configuration Release -IncludeNativeLinux
 pwsh -File ./verify.ps1 -Configuration Release -IncludeNativeMacOS
 ```
 
-必要时可直接运行测试：
+You can also run tests directly when needed:
 
 ```bash
 dotnet test Videra.slnx
 ```
 
-## 文档要求
+## Documentation Expectations
 
-以下场景需要同步更新文档：
+Update docs when you:
 
-- 调整了 `README.md` 中提到的能力、限制或使用方式
-- 修改了 `VideraView` 的公开属性或示例用法
-- 新增平台依赖、环境变量或验证命令
-- 新增或废弃模块、设计决策或历史归档
+- Change behavior or limitations documented in `README.md`
+- Modify public `VideraView` APIs or usage examples
+- Add platform dependencies, environment variables, or verification commands
+- Add, deprecate, or archive a module or long-lived design decision
 
-建议优先维护以下文档：
+Primary docs to keep current:
 
 - [README.md](README.md)
 - [ARCHITECTURE.md](ARCHITECTURE.md)
 - [docs/troubleshooting.md](docs/troubleshooting.md)
-- 各模块 README
+- Package-level README files
 
-## 提交规范
+## Commit Style
 
-建议使用 Conventional Commits：
+Conventional Commits are recommended:
 
 ```text
 <type>(<scope>): <summary>
 ```
 
-常见类型：
+Common types:
 
 - `feat`
 - `fix`
@@ -115,45 +115,47 @@ dotnet test Videra.slnx
 - `test`
 - `chore`
 
-示例：
+Examples:
 
 ```text
 feat(core): add style preset serialization
 fix(linux): handle missing X11 runtime fallback
-docs(readme): clarify platform validation status
+docs(readme): clarify platform validation scope
 test(macos): cover NSView host lifecycle
 ```
 
-## Pull Request 要求
+## Pull Requests
 
-提交 PR 前请确认：
+Before opening a PR, confirm that:
 
-- 变更目标清晰，描述了问题与解决方案
-- 统一验证已运行
-- 原生平台改动已在对应宿主机验证，或明确说明未验证部分
-- 文档与示例已同步更新
-- 没有残留调试输出或临时代码
+- The change goal is clear and the problem/solution are described
+- Repository verification has been run
+- Platform-specific changes were validated on the matching host, or gaps are stated explicitly
+- Docs and examples were updated when public behavior changed
+- No temporary debug output or local-only scaffolding remains
 
-## 与平台有关的改动
+## Platform Notes
 
 ### Windows
 
-- 优先确认 D3D11 初始化、交换链与 resize 流程
-- 如改动影响宿主窗口行为，至少重新跑一次标准验证
+- Re-check D3D11 initialization, swapchain, and resize behavior when touching host integration
+- Re-run the standard verification path for any native host change
 
 ### Linux
 
-- 当前正式原生路径基于 X11 + Vulkan
-- 不要把 X11 验证结果直接外推为 Wayland 支持
+- The current official native path is X11 + Vulkan
+- Do not treat X11 validation as proof of Wayland support
 
 ### macOS
 
-- 当前后端依赖 `NSView`、`CAMetalLayer` 和 Objective-C runtime 互操作
-- 如改动涉及原生宿主或渲染路径，建议在真实 macOS 主机上验证
+- The current backend depends on `NSView`, `CAMetalLayer`, and Objective-C runtime interop
+- Validate on a real macOS host when touching native host or render-path code
 
-## 提问与反馈
+## Questions and Feedback
 
-- 使用 Issue 报告 Bug、兼容性问题或文档缺口
-- 提交 PR 前如有较大设计分歧，优先在 Issue 中同步上下文
+- Use Issues for bugs, compatibility problems, and documentation gaps
+- For larger design disagreements, sync in an issue before opening a major PR
 
-感谢你的贡献。
+## Chinese Docs
+
+- [中文入口](docs/zh-CN/index.md)

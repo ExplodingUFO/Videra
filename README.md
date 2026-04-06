@@ -1,43 +1,37 @@
 # Videra
 
+[English](README.md) | [中文](docs/zh-CN/README.md)
+
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey)
 ![.NET](https://img.shields.io/badge/.NET-8.0-512BD4)
 ![CI](https://github.com/ExplodingUFO/Videra/actions/workflows/ci.yml/badge.svg)
 
-Videra 是一套面向 .NET 桌面应用的跨平台 3D 查看组件库，核心目标是在 Avalonia 应用中提供可复用、可嵌入、可扩展的模型查看能力。
+Videra is a Cross-platform 3D viewer component stack for .NET desktop applications. Its primary goal is to provide reusable, embeddable, and extensible 3D viewing capabilities inside Avalonia apps.
 
-它不是通用游戏引擎，而是围绕“桌面端 3D 模型展示与交互”设计的组件化方案：统一的核心渲染逻辑，叠加各平台原生图形后端，实现一套控件在不同系统上的一致集成体验。
+Videra is not a general-purpose game engine. It is designed around desktop 3D viewing and interaction workflows, with a shared rendering core and native graphics backends for Windows, Linux, and macOS.
 
-## 项目状态
+## Status
 
-- 当前处于早期 `alpha` 阶段
-- 默认包版本线从 `0.1.0-alpha.1` 开始，而不是稳定版 `1.x`
-- 在 `1.0` 之前，API、包结构和部分平台行为都可能继续调整
-- 更适合评估、试用和参与共建，不应被当作稳定版组件直接承诺长期兼容性
+- Early `alpha`
+- Current package baseline: `0.1.0-alpha.1`
+- API shape, package layout, and some platform behavior may still change before `1.0`
+- GitHub Packages distribution currently fits Windows + Avalonia evaluation best; Linux and macOS native backends are still better validated from source
 
-## 项目定位
+## Highlights
 
-- 面向 Avalonia 桌面应用的 3D 视图组件
-- 统一封装 Windows / Linux / macOS 原生 GPU 后端
-- 适合模型预览、工程可视化、数字孪生前端、轻量桌面 CAD/Viewer 场景
-- 提供 Demo、验证脚本和模块级文档，便于二次开发与发布
-
-## 核心能力
-
-- `VideraView` Avalonia 控件，可直接嵌入 XAML 界面
-- 平台原生图形后端
+- `VideraView` Avalonia control for direct XAML integration
+- Native graphics backends
   - Windows: Direct3D 11
-  - Linux: Vulkan（当前原生路径基于 X11）
+  - Linux: Vulkan (current native path is X11-based)
   - macOS: Metal
-- 软件渲染回退路径，便于无 GPU 场景与调试
-- 统一抽象层：`IGraphicsBackend`、`IResourceFactory`、`ICommandExecutor`
-- 模型导入：`.gltf`、`.glb`、`.obj`
-- 渲染风格预设：`Realistic`、`Tech`、`Cartoon`、`XRay`、`Clay`、`Wireframe`、`Custom`
-- 线框模式：`None`、`AllEdges`、`VisibleOnly`、`Overlay`、`WireframeOnly`
-- Demo 内置相机控制、网格、坐标轴、模型导入与基础变换编辑
+- Software fallback path for non-GPU and diagnostics scenarios
+- Shared abstractions: `IGraphicsBackend`, `IResourceFactory`, `ICommandExecutor`
+- Model import for `.gltf`, `.glb`, and `.obj`
+- Render-style presets and wireframe modes
+- Demo app with camera control, grid, axes, model import, and basic transforms
 
-## 架构概览
+## Architecture
 
 ```mermaid
 graph TB
@@ -55,41 +49,41 @@ graph TB
     Core --> Mac
 ```
 
-仓库按“UI 集成层 / 核心层 / 平台后端层 / 示例应用”拆分，详细说明见 [ARCHITECTURE.md](ARCHITECTURE.md)。
+The repository is split into UI integration, a platform-agnostic rendering core, native backend packages, and a demo application. See [ARCHITECTURE.md](ARCHITECTURE.md) for a fuller breakdown.
 
-## 仓库结构
+## Repository Layout
 
-| 路径 | 说明 |
+| Path | Purpose |
 | --- | --- |
-| [`src/Videra.Core`](src/Videra.Core/README.md) | 平台无关的渲染核心、抽象接口、模型导入与渲染风格系统 |
-| [`src/Videra.Avalonia`](src/Videra.Avalonia/README.md) | Avalonia 控件封装、原生宿主接入、输入与渲染会话管理 |
-| [`src/Videra.Platform.Windows`](src/Videra.Platform.Windows/README.md) | Windows Direct3D 11 后端 |
-| [`src/Videra.Platform.Linux`](src/Videra.Platform.Linux/README.md) | Linux Vulkan 后端 |
-| [`src/Videra.Platform.macOS`](src/Videra.Platform.macOS/README.md) | macOS Metal 后端 |
-| [`samples/Videra.Demo`](samples/Videra.Demo/README.md) | 演示程序与交互参考 |
-| [`docs`](docs/index.md) | 对外文档导航、故障排查、ADR 与历史归档 |
+| `src/Videra.Core` | Platform-agnostic rendering core, abstractions, import, and style systems |
+| `src/Videra.Avalonia` | Avalonia control layer and native host integration |
+| `src/Videra.Platform.Windows` | Windows Direct3D 11 backend |
+| `src/Videra.Platform.Linux` | Linux Vulkan backend |
+| `src/Videra.Platform.macOS` | macOS Metal backend |
+| `samples/Videra.Demo` | Demo application and usage reference |
+| `docs` | Long-lived documentation, troubleshooting, ADRs, and archive |
 
-## 平台支持
+## Platform Support
 
-| 平台 | 默认后端 | 当前状态 | 备注 |
+| Platform | Default Backend | Current State | Notes |
 | --- | --- | --- | --- |
-| Windows 10+ | Direct3D 11 | 可用 | 仓库已覆盖真实 HWND 路径验证 |
-| Linux | Vulkan | 可用 | 当前原生路径基于 X11；Wayland 暂不支持 |
-| macOS 10.15+ | Metal | 可用 | 依赖 Objective-C runtime 与 `CAMetalLayer` |
-| 任意平台 | Software | 回退路径 | 适合无 GPU、CI 或问题排查场景 |
+| Windows 10+ | Direct3D 11 | Usable | Repository validation covers real HWND-backed paths |
+| Linux | Vulkan | Usable | Current native path targets X11; Wayland is not yet supported |
+| macOS 10.15+ | Metal | Usable | Depends on Objective-C runtime and `CAMetalLayer` interop |
+| Any platform | Software | Fallback | Useful for CI, diagnostics, or no-GPU scenarios |
 
-## 快速开始
+## Getting Started
 
-### 环境要求
+### Requirements
 
 - .NET 8 SDK
 - Git
-- 对应平台的图形驱动与原生依赖
-  - Windows: Direct3D 11 兼容显卡
-  - Linux: Vulkan 驱动、X11 运行库
-  - macOS: Metal 兼容设备
+- Platform graphics prerequisites
+  - Windows: Direct3D 11-capable GPU
+  - Linux: Vulkan drivers and X11 runtime libraries
+  - macOS: Metal-capable hardware
 
-### 获取源码
+### Build from Source
 
 ```bash
 git clone https://github.com/ExplodingUFO/Videra.git
@@ -98,11 +92,11 @@ dotnet restore
 dotnet build Videra.slnx
 ```
 
-### 通过 GitHub Packages 安装 Alpha 包
+### Install Alpha Packages from GitHub Packages
 
-`Videra` 当前预发布包托管在 GitHub Packages，而不是公开的 NuGet.org 源。
+Videra pre-release packages are currently distributed through GitHub Packages rather than the public NuGet.org feed.
 
-先配置源：
+Configure the package source:
 
 ```bash
 dotnet nuget add source "https://nuget.pkg.github.com/ExplodingUFO/index.json" \
@@ -112,30 +106,28 @@ dotnet nuget add source "https://nuget.pkg.github.com/ExplodingUFO/index.json" \
   --store-password-in-clear-text
 ```
 
-- `YOUR_GITHUB_USER` 为你的 GitHub 用户名
-- `YOUR_GITHUB_PAT` 需要至少 `read:packages` 权限
+- `YOUR_GITHUB_USER`: your GitHub username
+- `YOUR_GITHUB_PAT`: a token with at least `read:packages`
 
-推荐从 Avalonia 入口包开始：
+Recommended entry package:
 
 ```bash
 dotnet add package Videra.Avalonia --version 0.1.0-alpha.1 --source github-ExplodingUFO
 ```
 
-如只需要核心渲染抽象和导入能力，也可以直接安装：
+If you only need the rendering abstractions and import pipeline:
 
 ```bash
 dotnet add package Videra.Core --version 0.1.0-alpha.1 --source github-ExplodingUFO
 ```
 
-当前 GitHub Packages alpha 线优先面向 Windows / Avalonia 评估路径。Linux 和 macOS 如需验证原生后端，当前更推荐直接按源码方式构建并执行仓库验证脚本。
-
-### 运行 Demo
+### Run the Demo
 
 ```bash
 dotnet run --project samples/Videra.Demo/Videra.Demo.csproj
 ```
 
-### 验证仓库
+### Verify the Repository
 
 ```bash
 # Unix shell
@@ -145,7 +137,7 @@ dotnet run --project samples/Videra.Demo/Videra.Demo.csproj
 pwsh -File ./verify.ps1 -Configuration Release
 ```
 
-默认验证不会自动覆盖 Linux / macOS 的原生宿主闭环。如需验证这些路径，请显式启用对应开关：
+Default verification does not automatically cover Linux or macOS native-host end-to-end paths. Enable them explicitly when needed:
 
 ```bash
 ./verify.sh --configuration Release --include-native-linux
@@ -155,9 +147,7 @@ pwsh -File ./verify.ps1 -Configuration Release -IncludeNativeLinux
 pwsh -File ./verify.ps1 -Configuration Release -IncludeNativeMacOS
 ```
 
-## 集成示例
-
-### XAML
+## Avalonia Integration Example
 
 ```xml
 <Window xmlns:videra="using:Videra.Avalonia.Controls">
@@ -170,8 +160,6 @@ pwsh -File ./verify.ps1 -Configuration Release -IncludeNativeMacOS
         PreferredBackend="Auto" />
 </Window>
 ```
-
-### C#
 
 ```csharp
 using Videra.Avalonia.Controls;
@@ -186,50 +174,54 @@ var view = new VideraView
 view.Engine.AddObject(myObject3D);
 ```
 
-更多用法见 [`src/Videra.Avalonia/README.md`](src/Videra.Avalonia/README.md) 和 [`samples/Videra.Demo/README.md`](samples/Videra.Demo/README.md)。
+## Packages
 
-## Demo 能力
+| Package | Use |
+| --- | --- |
+| `Videra.Avalonia` | Main Avalonia integration entry point |
+| `Videra.Core` | Platform-agnostic rendering abstractions and import pipeline |
+| `Videra.Platform.Windows` | Windows Direct3D 11 backend package |
+| `Videra.Platform.Linux` | Linux Vulkan backend package |
+| `Videra.Platform.macOS` | macOS Metal backend package |
 
-- 导入 `.gltf`、`.glb`、`.obj`
-- 轨道相机交互
-  - 左键拖拽：旋转
-  - 右键拖拽：平移
-  - 滚轮：缩放
-- 网格与坐标轴显示
-- 渲染风格切换
-- 线框叠加与纯线框模式
-- 场景对象的基础位置、旋转、缩放调整
+Detailed package-level docs:
 
-## 环境变量
+- [Videra.Core](src/Videra.Core/README.md)
+- [Videra.Avalonia](src/Videra.Avalonia/README.md)
+- [Videra.Platform.Windows](src/Videra.Platform.Windows/README.md)
+- [Videra.Platform.Linux](src/Videra.Platform.Linux/README.md)
+- [Videra.Platform.macOS](src/Videra.Platform.macOS/README.md)
+- [Videra.Demo](samples/Videra.Demo/README.md)
 
-| 变量 | 作用 | 可选值 |
+## Environment Variables
+
+| Variable | Purpose | Values |
 | --- | --- | --- |
-| `VIDERA_BACKEND` | 强制指定渲染后端 | `software`, `d3d11`, `vulkan`, `metal`, `auto` |
-| `VIDERA_FRAMELOG` | 启用帧日志 | `1`, `true` |
-| `VIDERA_INPUTLOG` | 启用输入日志 | `1`, `true` |
+| `VIDERA_BACKEND` | Force a rendering backend | `software`, `d3d11`, `vulkan`, `metal`, `auto` |
+| `VIDERA_FRAMELOG` | Enable frame logging | `1`, `true` |
+| `VIDERA_INPUTLOG` | Enable input logging | `1`, `true` |
 
-## 当前状态与限制
+## Current Boundaries
 
-- 当前定位是组件库与 Viewer 能力，不是完整场景编辑器或游戏运行时
-- 默认版本线使用预发布语义，当前推荐按 `0.x` / `alpha` 心智评估项目成熟度
-- GitHub Packages 的当前 alpha 安装线优先面向 Windows / Avalonia 评估；Linux / macOS 仍建议按源码路径验证原生后端
-- Linux 原生路径当前以 X11 为主，Wayland 仍是未闭合项
-- Linux / macOS 的完整原生宿主闭环验证，需要在对应系统上执行显式验证开关
-- macOS 后端当前通过 Objective-C runtime 互操作实现，后续仍可继续提高封装安全性
+- Videra is a component-oriented 3D viewer stack, not a full content creation toolchain
+- The current GitHub Packages alpha path is best treated as a Windows + Avalonia evaluation track
+- Linux native support is currently X11-first; Wayland remains an open gap
+- Linux and macOS native-host validation still needs to be performed on those hosts explicitly
+- The macOS backend currently relies on Objective-C runtime interop
 
-## 文档导航
+## Documentation
 
-- [文档首页](docs/index.md)
-- [架构说明](ARCHITECTURE.md)
-- [故障排查](docs/troubleshooting.md)
-- [贡献指南](CONTRIBUTING.md)
-- [Demo 说明](samples/Videra.Demo/README.md)
-- [历史归档](docs/archive/README.md)
+- [Documentation Index](docs/index.md)
+- [Architecture](ARCHITECTURE.md)
+- [Troubleshooting](docs/troubleshooting.md)
+- [Contributing](CONTRIBUTING.md)
+- [Chinese Documentation Entry](docs/zh-CN/index.md)
+- [Archive](docs/archive/README.md)
 
-## 贡献
+## Contributing
 
-欢迎提交 Issue、文档修订或 Pull Request。开始前建议先阅读 [CONTRIBUTING.md](CONTRIBUTING.md)。
+Issues, documentation fixes, and pull requests are welcome. Start with [CONTRIBUTING.md](CONTRIBUTING.md).
 
-## 许可证
+## License
 
-本项目采用 [MIT License](LICENSE.txt)。
+Released under the [MIT License](LICENSE.txt).
