@@ -3,6 +3,7 @@ using Xunit;
 
 namespace Tests.Common.Platform;
 
+[AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
 public sealed class WindowsFactAttribute : FactAttribute
 {
     public WindowsFactAttribute()
@@ -14,6 +15,7 @@ public sealed class WindowsFactAttribute : FactAttribute
     }
 }
 
+[AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
 public sealed class LinuxFactAttribute : FactAttribute
 {
     public LinuxFactAttribute()
@@ -25,6 +27,7 @@ public sealed class LinuxFactAttribute : FactAttribute
     }
 }
 
+[AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
 public sealed class MacOSFactAttribute : FactAttribute
 {
     public MacOSFactAttribute()
