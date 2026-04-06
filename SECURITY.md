@@ -10,7 +10,9 @@ If you are evaluating or deploying Videra, use the latest published commit or re
 
 Do not open a public issue for suspected security vulnerabilities.
 
-Please report them privately to the maintainers by email or through GitHub private vulnerability reporting if it is enabled for this repository.
+Preferred channel: GitHub private vulnerability reporting for this repository.
+
+If private vulnerability reporting is not available, contact the maintainer through a non-public GitHub contact channel rather than a public issue or pull request.
 
 Include:
 
@@ -19,7 +21,13 @@ Include:
 - Reproduction steps or proof of concept
 - Any suggested mitigations
 
-We will review reports, confirm impact, and coordinate a fix before public disclosure where appropriate.
+We aim to:
+
+- Acknowledge receipt within 72 hours
+- Provide an initial triage update within 5 business days
+- Share a remediation plan or next-step status within 30 calendar days when the report is actionable
+
+We will review reports, confirm impact, and coordinate a fix before public disclosure where appropriate. Please do not discuss suspected vulnerabilities in public issues, PRs, or discussions until the maintainers confirm disclosure timing.
 
 ## Scope
 

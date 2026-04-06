@@ -3,6 +3,7 @@
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey)
 ![.NET](https://img.shields.io/badge/.NET-8.0-512BD4)
+![CI](https://github.com/ExplodingUFO/Videra/actions/workflows/ci.yml/badge.svg)
 
 Videra 是一套面向 .NET 桌面应用的跨平台 3D 查看组件库，核心目标是在 Avalonia 应用中提供可复用、可嵌入、可扩展的模型查看能力。
 
@@ -97,6 +98,37 @@ dotnet restore
 dotnet build Videra.slnx
 ```
 
+### 通过 GitHub Packages 安装 Alpha 包
+
+`Videra` 当前预发布包托管在 GitHub Packages，而不是公开的 NuGet.org 源。
+
+先配置源：
+
+```bash
+dotnet nuget add source "https://nuget.pkg.github.com/ExplodingUFO/index.json" \
+  --name github-ExplodingUFO \
+  --username YOUR_GITHUB_USER \
+  --password YOUR_GITHUB_PAT \
+  --store-password-in-clear-text
+```
+
+- `YOUR_GITHUB_USER` 为你的 GitHub 用户名
+- `YOUR_GITHUB_PAT` 需要至少 `read:packages` 权限
+
+推荐从 Avalonia 入口包开始：
+
+```bash
+dotnet add package Videra.Avalonia --version 0.1.0-alpha.1 --source github-ExplodingUFO
+```
+
+如只需要核心渲染抽象和导入能力，也可以直接安装：
+
+```bash
+dotnet add package Videra.Core --version 0.1.0-alpha.1 --source github-ExplodingUFO
+```
+
+当前 GitHub Packages alpha 线优先面向 Windows / Avalonia 评估路径。Linux 和 macOS 如需验证原生后端，当前更推荐直接按源码方式构建并执行仓库验证脚本。
+
 ### 运行 Demo
 
 ```bash
@@ -113,7 +145,7 @@ dotnet run --project samples/Videra.Demo/Videra.Demo.csproj
 pwsh -File ./verify.ps1 -Configuration Release
 ```
 
-如需在 Linux 或 macOS 原生宿主上执行额外验证，可使用显式开关：
+默认验证不会自动覆盖 Linux / macOS 的原生宿主闭环。如需验证这些路径，请显式启用对应开关：
 
 ```bash
 ./verify.sh --configuration Release --include-native-linux
@@ -180,6 +212,7 @@ view.Engine.AddObject(myObject3D);
 
 - 当前定位是组件库与 Viewer 能力，不是完整场景编辑器或游戏运行时
 - 默认版本线使用预发布语义，当前推荐按 `0.x` / `alpha` 心智评估项目成熟度
+- GitHub Packages 的当前 alpha 安装线优先面向 Windows / Avalonia 评估；Linux / macOS 仍建议按源码路径验证原生后端
 - Linux 原生路径当前以 X11 为主，Wayland 仍是未闭合项
 - Linux / macOS 的完整原生宿主闭环验证，需要在对应系统上执行显式验证开关
 - macOS 后端当前通过 Objective-C runtime 互操作实现，后续仍可继续提高封装安全性

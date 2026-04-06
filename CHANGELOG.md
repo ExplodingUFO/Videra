@@ -8,8 +8,25 @@ The format is based on Keep a Changelog, and this repository is currently in an 
 
 ### Added
 
+- GitHub Packages installation guidance, including feed setup and package install examples
+- Release workflow package validation before push
+
+### Changed
+
+- Clarified alpha distribution boundaries and default verification scope
+- Tightened release workflow to publish from tags only
+
+### Fixed
+
+- Strengthened security reporting and PR review templates for public collaboration
+
+## [0.1.0-alpha.1] - 2026-04-06
+
+### Added
+
 - Baseline open-source governance files
 - CI verification workflow
+- Initial GitHub Packages alpha distribution path
 
 ### Changed
 
@@ -21,16 +38,3 @@ The format is based on Keep a Changelog, and this repository is currently in an 
 
 - Cross-platform Avalonia build failure caused by platform-specific backend type leakage
 - Repository-specific local path assumptions in the Demo project
-
-## Future release format
-
-When formal releases begin, use sections like:
-
-```md
-## [0.1.0] - YYYY-MM-DD
-
-### Added
-### Changed
-### Fixed
-### Removed
-```

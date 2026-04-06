@@ -4,15 +4,10 @@ on:
   push:
     tags:
       - 'v*'
-  workflow_dispatch:
-    inputs:
-      version:
-        description: 'Package version (e.g. 0.1.0-alpha.1)'
-        required: true
 
 jobs:
   publish:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     permissions:
       packages: write
       contents: read
@@ -24,16 +19,27 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
-      - name: Determine version
+      - name: Determine version from tag
         id: version
+        shell: pwsh
         run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
-          else
-            echo "VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
-          fi
+          if ("${{ github.ref_type }}" -ne "tag") {
+            throw "This workflow only publishes from tags."
+          }
+
+          $version = "${{ github.ref_name }}".TrimStart('v')
+          if ([string]::IsNullOrWhiteSpace($version)) {
+            throw "Could not determine package version from tag."
+          }
+
+          "VERSION=$version" >> $env:GITHUB_OUTPUT
+
+      - name: Run repository verification
+        shell: pwsh
+        run: pwsh -File ./verify.ps1 -Configuration Release
 
       - name: Pack all projects
+        shell: pwsh
         run: |
           dotnet pack src/Videra.Core/Videra.Core.csproj -c Release -o ./nupkgs /p:PackageVersion=${{ steps.version.outputs.VERSION }}
           dotnet pack src/Videra.Platform.Windows/Videra.Platform.Windows.csproj -c Release -o ./nupkgs /p:PackageVersion=${{ steps.version.outputs.VERSION }}
@@ -41,5 +47,43 @@ jobs:
           dotnet pack src/Videra.Platform.macOS/Videra.Platform.macOS.csproj -c Release -o ./nupkgs /p:PackageVersion=${{ steps.version.outputs.VERSION }}
           dotnet pack src/Videra.Avalonia/Videra.Avalonia.csproj -c Release -o ./nupkgs /p:PackageVersion=${{ steps.version.outputs.VERSION }}
 
+      - name: Validate packed artifacts
+        shell: pwsh
+        run: |
+          $expectedVersion = "${{ steps.version.outputs.VERSION }}"
+          $packages = Get-ChildItem -Path ./nupkgs/*.nupkg
+
+          if ($packages.Count -lt 5) {
+            throw "Expected five NuGet packages, found $($packages.Count)."
+          }
+
+          $validationRoot = Join-Path $PWD ".package-validation"
+          Remove-Item -LiteralPath $validationRoot -Recurse -Force -ErrorAction SilentlyContinue
+          New-Item -ItemType Directory -Path $validationRoot | Out-Null
+
+          foreach ($package in $packages) {
+            if ($package.Name -notlike "*.$expectedVersion.nupkg") {
+              throw "Package $($package.Name) does not match expected version $expectedVersion."
+            }
+
+            $extractPath = Join-Path $validationRoot $package.BaseName
+            Expand-Archive -LiteralPath $package.FullName -DestinationPath $extractPath -Force
+
+            $nuspec = Get-ChildItem -Path $extractPath -Filter *.nuspec | Select-Object -First 1
+            if ($null -eq $nuspec) {
+              throw "Package $($package.Name) is missing a nuspec."
+            }
+
+            [xml]$nuspecXml = Get-Content -Raw $nuspec.FullName
+            if ($nuspecXml.package.metadata.version -ne $expectedVersion) {
+              throw "Package $($package.Name) has mismatched nuspec version $($nuspecXml.package.metadata.version)."
+            }
+
+            if (-not (Test-Path (Join-Path $extractPath "README.md"))) {
+              throw "Package $($package.Name) is missing README.md."
+            }
+          }
+
       - name: Push to GitHub Packages
+        shell: pwsh
         run: dotnet nuget push ./nupkgs/*.nupkg --source https://nuget.pkg.github.com/ExplodingUFO/index.json --api-key ${{ secrets.GITHUB_TOKEN }} --skip-duplicate

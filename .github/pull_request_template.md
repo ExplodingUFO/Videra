@@ -1,10 +1,26 @@
 ## Summary
 
-- 
+-
 
 ## What changed
 
-- 
+-
+
+## Related issue
+
+-
+
+## Breaking change?
+
+- [ ] No
+- [ ] Yes, migration or compatibility notes included below
+
+## Platform validation
+
+- [ ] Windows
+- [ ] Linux
+- [ ] macOS
+- Notes:
 
 ## Verification
 
@@ -13,7 +29,7 @@
 
 ## Risks
 
-- 
+-
 
 ## Documentation
 

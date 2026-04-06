@@ -2,6 +2,18 @@
 
 提供 AvaloniaUI 控件集成，包括 `VideraView` 控件和平台原生窗口宿主。
 
+## 安装
+
+当前 alpha 包通过 GitHub Packages 提供，推荐优先阅读仓库根目录的安装说明：
+
+- [README.md](../../README.md)
+
+典型安装命令：
+
+```bash
+dotnet add package Videra.Avalonia --version 0.1.0-alpha.1 --source github-ExplodingUFO
+```
+
 ## 模块架构
 
 ```mermaid
