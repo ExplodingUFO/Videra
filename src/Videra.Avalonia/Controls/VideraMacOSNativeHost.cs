@@ -1,10 +1,11 @@
-using System.Diagnostics.CodeAnalysis;
-using System.Runtime.InteropServices;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Platform;
 using Microsoft.Extensions.Logging;
 using Videra.Core.Exceptions;
+#if VIDERA_MACOS_BACKEND
+using Videra.Platform.macOS;
+#endif
 
 namespace Videra.Avalonia.Controls;
 
@@ -49,8 +50,10 @@ internal sealed partial class VideraMacOSNativeHost : NativeControlHost, IVidera
 
         if (_nsView != IntPtr.Zero)
         {
-            SendMessage(_nsView, SEL("removeFromSuperview"));
-            SendMessage(_nsView, SEL("release"));
+#if VIDERA_MACOS_BACKEND
+            ObjCRuntime.SendMessageVoid(_nsView, ObjCRuntime.SEL("removeFromSuperview"));
+            ObjCRuntime.SendMessageVoid(_nsView, ObjCRuntime.SEL("release"));
+#endif
             _nsView = IntPtr.Zero;
             HandleDestroyed?.Invoke();
         }
@@ -72,55 +75,25 @@ internal sealed partial class VideraMacOSNativeHost : NativeControlHost, IVidera
         var width = Math.Max(1, Bounds.Width);
         var height = Math.Max(1, Bounds.Height);
 
-        var frame = new CGRect { x = 0, y = 0, width = width, height = height };
-        objc_msgSend_CGRect(_nsView, SEL("setFrame:"), frame);
+#if VIDERA_MACOS_BACKEND
+        ObjCRuntime.SetFrame(_nsView, 0, 0, width, height);
+#endif
         Log.ResizedNsView(_logger, width, height);
     }
 
     private static IntPtr CreateNSView(int width, int height)
     {
-        var nsViewClass = objc_getClass("NSView");
-        var alloc = SendMessage(nsViewClass, SEL("alloc"));
-
-        var frame = new CGRect { x = 0, y = 0, width = width, height = height };
-        var view = objc_msgSend_initWithFrame(alloc, SEL("initWithFrame:"), frame);
-
-        return view;
+#if VIDERA_MACOS_BACKEND
+        var view = ObjCRuntime.InitWithFrame(ObjCRuntime.Alloc("NSView"), 0, 0, width, height);
+        return ObjCRuntime.RequireNonZeroHandle(view, "CreateNSView", "Failed to initialize NSView for Metal rendering.");
+#else
+        _ = width;
+        _ = height;
+        throw new PlatformNotSupportedException("macOS native host is only supported when the macOS backend is compiled.");
+#endif
     }
 
     public IntPtr NSView => _nsView;
-
-    #region Objective-C Interop
-
-    [SuppressMessage("Interoperability", "CA2101:Specify marshaling for P/Invoke string arguments", Justification = "Objective-C runtime class names are UTF-8 C strings on Darwin and these declarations are scoped to the macOS native host.")]
-    [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_getClass", CharSet = CharSet.Ansi)]
-    private static extern IntPtr objc_getClass(string name);
-
-    [SuppressMessage("Interoperability", "CA2101:Specify marshaling for P/Invoke string arguments", Justification = "Objective-C selector names are UTF-8 C strings on Darwin and these declarations are scoped to the macOS native host.")]
-    [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "sel_registerName", CharSet = CharSet.Ansi)]
-    private static extern IntPtr sel_registerName(string name);
-
-    [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_msgSend")]
-    private static extern IntPtr SendMessage(IntPtr receiver, IntPtr selector);
-
-    [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_msgSend")]
-    private static extern IntPtr objc_msgSend_initWithFrame(IntPtr receiver, IntPtr selector, CGRect frame);
-
-    [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_msgSend")]
-    private static extern void objc_msgSend_CGRect(IntPtr receiver, IntPtr selector, CGRect rect);
-
-    private static IntPtr SEL(string name) => sel_registerName(name);
-
-    [StructLayout(LayoutKind.Sequential)]
-    private struct CGRect
-    {
-        public double x;
-        public double y;
-        public double width;
-        public double height;
-    }
-
-    #endregion
 
     private static partial class Log
     {

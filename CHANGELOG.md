@@ -15,6 +15,7 @@ The format is based on Keep a Changelog, and this repository is currently in an 
 
 - Improved repository documentation and package metadata
 - Improved open-source readiness and verification baseline
+- Set the default package version baseline to `0.1.0-alpha.1`
 
 ### Fixed
 

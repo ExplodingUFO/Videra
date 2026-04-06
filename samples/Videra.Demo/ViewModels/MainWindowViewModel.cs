@@ -55,7 +55,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
     #endregion
 
-    private readonly IModelImporter? _importer;
+    private IModelImporter? _importer;
     private const float DegToRad = (float)(Math.PI / 180.0);
     private const float RadToDeg = (float)(180.0 / Math.PI);
 
@@ -63,12 +63,9 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty] private bool _isBackendReady;
     [ObservableProperty] private string _backendDisplay = "Auto";
 
-    public MainWindowViewModel(IModelImporter importer)
+    public MainWindowViewModel()
     {
-        _importer = importer;
     }
-
-    public MainWindowViewModel() : this(null!) { }
 
     public ObservableCollection<Object3D> SceneObjects { get; } = new();
 
@@ -143,6 +140,14 @@ public partial class MainWindowViewModel : ViewModelBase
     public void SetStatusMessage(string message)
     {
         StatusMessage = message;
+    }
+
+    public bool HasImporter => _importer is not null;
+
+    public void AttachImporter(IModelImporter importer)
+    {
+        ArgumentNullException.ThrowIfNull(importer);
+        _importer = importer;
     }
 
     [RelayCommand]

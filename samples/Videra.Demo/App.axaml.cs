@@ -16,7 +16,6 @@ namespace Videra.Demo;
 
 public class App : Application
 {
-    // 你也可以做成 public static 方便全局访问
     private IHost? _host;
 
     public override void Initialize()
@@ -28,7 +27,6 @@ public class App : Application
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            // ✅ 添加全局异常处理
             AppDomain.CurrentDomain.UnhandledException += (s, e) =>
             {
                 var ex = e.ExceptionObject as Exception;
@@ -41,22 +39,14 @@ public class App : Application
                 Debug.WriteLine($"[UnobservedTask] {e.Exception?.Message}");
                 e.SetObserved();
             };
-            
-            // 避免 Avalonia 和 CommunityToolkit 重复验证
-            DisableAvaloniaDataAnnotationValidation();
 
-            // 1) 构建 Host（DI 容器）
+            DisableAvaloniaDataAnnotationValidation();
             _host = Host.CreateDefaultBuilder()
                 .ConfigureServices(ConfigureServices)
                 .Build();
 
-            // 2) 启动 Host（如果你有 HostedService/后台任务会需要）
             _host.Start();
-
-            // 3) 从容器取出 MainWindow（MainWindow 的 DataContext 也由 DI 注入）
             desktop.MainWindow = _host.Services.GetRequiredService<MainWindow>();
-
-            // 4) 退出时优雅停止
             desktop.Exit += OnDesktopExit;
         }
 
@@ -65,10 +55,9 @@ public class App : Application
 
     private void ConfigureServices(IServiceCollection services)
     {
-        // ViewModels
         services.AddSingleton<MainWindowViewModel>();
-        services.AddSingleton<MainWindow>(); // 会自动注入 MainWindowViewModel
-        services.AddSingleton<IModelImporter, AvaloniaModelImporter>();
+        services.AddSingleton<DemoSceneBootstrapper>();
+        services.AddSingleton<MainWindow>();
     }
 
     private async void OnDesktopExit(object? sender, ControlledApplicationLifetimeExitEventArgs e)
@@ -91,6 +80,9 @@ public class App : Application
         var dataValidationPluginsToRemove =
             BindingPlugins.DataValidators.OfType<DataAnnotationsValidationPlugin>().ToArray();
 
-        foreach (var plugin in dataValidationPluginsToRemove) BindingPlugins.DataValidators.Remove(plugin);
+        foreach (var plugin in dataValidationPluginsToRemove)
+        {
+            BindingPlugins.DataValidators.Remove(plugin);
+        }
     }
 }

@@ -2,7 +2,6 @@ using System;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
-using Videra.Core.Graphics;
 using Videra.Demo.Services;
 using Videra.Demo.ViewModels;
 
@@ -10,63 +9,49 @@ namespace Videra.Demo.Views;
 
 public partial class MainWindow : Window
 {
+    private readonly DemoSceneBootstrapper _sceneBootstrapper;
+    private readonly MainWindowViewModel _viewModel;
     private bool _viewModelInitialized;
 
     public MainWindow()
+        : this(new MainWindowViewModel(), new DemoSceneBootstrapper())
     {
+    }
+
+    public MainWindow(MainWindowViewModel viewModel, DemoSceneBootstrapper sceneBootstrapper)
+    {
+        _viewModel = viewModel;
+        _sceneBootstrapper = sceneBootstrapper;
         InitializeComponent();
+        DataContext = _viewModel;
         Loaded += OnLoaded;
     }
 
     private void OnLoaded(object? sender, RoutedEventArgs e)
     {
+        View3D.BackendReady -= OnBackendReady;
         View3D.BackendReady += OnBackendReady;
-        TryInitializeViewModel();
+        TryInitializeScene();
     }
 
     private void OnBackendReady(object? sender, EventArgs e)
     {
-        Dispatcher.UIThread.Post(TryInitializeViewModel, DispatcherPriority.Background);
+        Dispatcher.UIThread.Post(TryInitializeScene, DispatcherPriority.Background);
     }
 
-    private void TryInitializeViewModel()
+    private void TryInitializeScene()
     {
         if (_viewModelInitialized)
             return;
 
-        var topLevel = TopLevel.GetTopLevel(this);
-        var factory = View3D.GetResourceFactory();
-        var backendLabel = View3D.PreferredBackend == GraphicsBackendPreference.Auto
-            ? "Auto (native backend preferred)"
-            : View3D.PreferredBackend.ToString();
+        var initialized = _sceneBootstrapper.TryInitialize(
+            _viewModel,
+            TopLevel.GetTopLevel(this),
+            View3D.GetResourceFactory(),
+            View3D.PreferredBackend);
 
-        if (DataContext is not MainWindowViewModel viewModel)
-        {
-            viewModel = new MainWindowViewModel(null!);
-            DataContext = viewModel;
-        }
-
-        if (topLevel == null || factory == null)
-        {
-            viewModel.SetBackendStatus(false, backendLabel, "等待渲染后端和资源工厂准备完成...");
+        if (!initialized)
             return;
-        }
-
-        var importerService = new AvaloniaModelImporter(topLevel, factory);
-        viewModel = new MainWindowViewModel(importerService);
-        DataContext = viewModel;
-        viewModel.SetBackendStatus(true, backendLabel, "渲染后端已就绪，已加载默认演示立方体。Auto 模式会按当前平台优先选择原生后端。");
-
-        try
-        {
-            var cube = DemoMeshFactory.CreateCube(factory);
-            viewModel.SceneObjects.Add(cube);
-            viewModel.SelectedObject = cube;
-        }
-        catch (Exception ex)
-        {
-            viewModel.SetStatusMessage($"默认演示模型创建失败：{ex.Message}");
-        }
 
         _viewModelInitialized = true;
         View3D.BackendReady -= OnBackendReady;

@@ -18,6 +18,7 @@ graph TB
     subgraph "Services"
         Importer[AvaloniaModelImporter<br/>模型导入服务]
         MeshFactory[DemoMeshFactory<br/>演示网格工厂]
+        Bootstrapper[DemoSceneBootstrapper<br/>启动初始化协调器]
     end
 
     subgraph "Videra"
@@ -29,6 +30,7 @@ graph TB
     MainVM --> CameraVM
     MainVM --> Importer
     MainVM --> MeshFactory
+    MainWindow --> Bootstrapper
     MainWindow --> VideraView
     VideraView --> Engine
     Importer --> Engine
@@ -123,7 +125,7 @@ stateDiagram-v2
 
 ## 运行方式
 
-默认情况下，Demo 会在启动后等待 `VideraView` 后端准备完成，再初始化导入服务，并尝试加载一个默认演示立方体。`MainWindow.axaml` 现在将 `PreferredBackend` 设为 `Auto`，因此会按当前平台优先选择原生后端：Windows 为 D3D11，Linux 为 Vulkan，macOS 为 Metal。Windows 启动入口仍会显式设置 `VIDERA_BACKEND=d3d11`，用于稳定验证 Windows 原生路径。
+默认情况下，Demo 会在启动后等待 `VideraView` 后端准备完成，再通过 `DemoSceneBootstrapper` 初始化导入服务，并尝试加载一个默认演示立方体。`MainWindow.axaml` 将 `PreferredBackend` 设为 `Auto`，因此会按当前平台优先选择原生后端：Windows 为 D3D11，Linux 为 Vulkan，macOS 为 Metal。`Program.cs` 只保留 Windows 宿主平台选项，不再隐式覆盖 `VIDERA_BACKEND`，这样 Demo 的后端选择路径与公开文档保持一致。
 
 ### Windows
 ```bash
@@ -153,6 +155,7 @@ Videra.Demo/
 │   └── ObjectConverters.cs     # 值转换器
 ├── Services/
 │   ├── AvaloniaModelImporter.cs  # 模型导入
+│   ├── DemoSceneBootstrapper.cs  # Demo 启动初始化协调
 │   └── DemoMeshFactory.cs        # 演示网格
 ├── ViewModels/
 │   ├── CameraViewModel.cs        # 相机VM

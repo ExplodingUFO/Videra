@@ -6,11 +6,8 @@ namespace Videra.Platform.macOS;
 
 /// <summary>
 /// Centralized Objective-C runtime interop for the Metal backend.
-/// All P/Invoke declarations for objc runtime live here.
-/// Individual Metal classes can use these helpers instead of declaring their own DllImport entries.
-///
-/// Existing files retain their own DllImport for backward compatibility during the migration.
-/// New code should prefer ObjCRuntime methods over inline DllImport declarations.
+/// All P/Invoke declarations for objc runtime live here so callers can share
+/// one consistent set of selectors, message signatures, and safety helpers.
 /// </summary>
 internal static class ObjCRuntime
 {
@@ -99,6 +96,12 @@ internal static class ObjCRuntime
     [DllImport("/usr/lib/libobjc.A.dylib", EntryPoint = "objc_msgSend")]
     public static extern void SendMessageCGSize(IntPtr receiver, IntPtr selector, CGSize size);
 
+    [DllImport("/usr/lib/libobjc.A.dylib", EntryPoint = "objc_msgSend")]
+    public static extern IntPtr SendMessageInitWithCGRect(IntPtr receiver, IntPtr selector, CGRect frame);
+
+    [DllImport("/usr/lib/libobjc.A.dylib", EntryPoint = "objc_msgSend")]
+    public static extern void SendMessageCGRect(IntPtr receiver, IntPtr selector, CGRect rect);
+
     #endregion
 
     #region Type-safe Helpers
@@ -112,14 +115,38 @@ internal static class ObjCRuntime
     /// <summary>Allocate and initialize an Objective-C object (alloc + init).</summary>
     public static IntPtr AllocInit(string className)
     {
+        var alloc = Alloc(className);
+        return RequireNonZeroHandle(SendMessage(alloc, SEL("init")), "AllocInit", $"Failed to allocate Objective-C object '{className}'.");
+    }
+
+    /// <summary>Allocate an Objective-C object without invoking init.</summary>
+    public static IntPtr Alloc(string className)
+    {
         var cls = GetClass(className);
         if (cls == IntPtr.Zero)
             throw new PlatformDependencyException(
                 $"Failed to resolve Objective-C class '{className}'.",
-                "AllocInit",
+                "Alloc",
                 "macOS");
-        var alloc = SendMessage(cls, SEL("alloc"));
-        return RequireNonZeroHandle(SendMessage(alloc, SEL("init")), "AllocInit", $"Failed to allocate Objective-C object '{className}'.");
+
+        return RequireNonZeroHandle(SendMessage(cls, SEL("alloc")), "Alloc", $"Failed to allocate Objective-C class '{className}'.");
+    }
+
+    /// <summary>Initialize an Objective-C view-like object with a frame rectangle.</summary>
+    public static IntPtr InitWithFrame(IntPtr receiver, double x, double y, double width, double height)
+    {
+        var frame = new CGRect { x = x, y = y, width = width, height = height };
+        return RequireNonZeroHandle(
+            SendMessageInitWithCGRect(receiver, SEL("initWithFrame:"), frame),
+            "InitWithFrame",
+            "Failed to initialize Objective-C object with frame.");
+    }
+
+    /// <summary>Apply a frame rectangle to an Objective-C view-like object.</summary>
+    public static void SetFrame(IntPtr receiver, double x, double y, double width, double height)
+    {
+        var frame = new CGRect { x = x, y = y, width = width, height = height };
+        SendMessageCGRect(receiver, SEL("setFrame:"), frame);
     }
 
     /// <summary>Create an NSString from a C# string.</summary>

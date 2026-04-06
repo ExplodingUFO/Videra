@@ -1,43 +1,39 @@
-﻿using Avalonia;
 using System;
-using Avalonia.Win32;
 using System.Runtime.InteropServices;
-using Videra.Core.Graphics;
+using Avalonia;
+using Avalonia.Win32;
 
-namespace Videra.Demo
+namespace Videra.Demo;
+
+internal sealed class Program
 {
-    internal sealed class Program
+    [STAThread]
+    public static void Main(string[] args) => BuildAvaloniaApp()
+        .StartWithClassicDesktopLifetime(args);
+
+    public static AppBuilder BuildAvaloniaApp()
+        => ConfigurePlatformOptions(AppBuilder.Configure<App>()
+            .UsePlatformDetect()
+            .WithInterFont()
+            .LogToTrace());
+
+    private static AppBuilder ConfigurePlatformOptions(AppBuilder builder)
     {
-        [STAThread]
-        public static void Main(string[] args) => BuildAvaloniaApp()
-            .StartWithClassicDesktopLifetime(args);
-
-        public static AppBuilder BuildAvaloniaApp()
-            => ConfigurePlatformOptions(AppBuilder.Configure<App>()
-                .UsePlatformDetect()
-                .WithInterFont()
-                .LogToTrace());
-
-        private static AppBuilder ConfigurePlatformOptions(AppBuilder builder)
+        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                Environment.SetEnvironmentVariable("VIDERA_BACKEND", GraphicsBackendPreference.D3D11.ToString().ToLowerInvariant());
-
-                builder = builder.With(new Win32PlatformOptions
-                {
-                    CompositionMode = new[]
-                    {
-                        Win32CompositionMode.RedirectionSurface
-                    },
-                    RenderingMode = new[]
-                    {
-                        Win32RenderingMode.Software
-                    }
-                });
-            }
-
             return builder;
         }
+
+        return builder.With(new Win32PlatformOptions
+        {
+            CompositionMode =
+            [
+                Win32CompositionMode.RedirectionSurface
+            ],
+            RenderingMode =
+            [
+                Win32RenderingMode.Software
+            ]
+        });
     }
 }

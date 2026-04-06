@@ -27,10 +27,6 @@
 - [2026-01-21-shader-and-demo-update-plan.md](plans/2026-01-21-shader-and-demo-update-plan.md)
 - [2026-01-21-wireframe-rendering-system-design.md](plans/2026-01-21-wireframe-rendering-system-design.md)
 
-### 工程记录
-
-- [2026-04-05-test-stabilization.md](engineering/2026-04-05-test-stabilization.md)
-
 ## 使用建议
 
 - 如果你想了解当前项目定位、架构和使用方式，请优先阅读 [README.md](../../README.md)、[ARCHITECTURE.md](../../ARCHITECTURE.md) 和 [docs/index.md](../index.md)
