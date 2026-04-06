@@ -80,7 +80,7 @@ public sealed partial class AvaloniaGraphicsBackendResolver : IGraphicsBackendRe
         return null;
     }
 
-    private static MetalBackend? TryCreateMetal(ILoggerFactory? loggerFactory)
+    private static IGraphicsBackend? TryCreateMetal(ILoggerFactory? loggerFactory)
     {
 #if VIDERA_MACOS_BACKEND
         if (OperatingSystem.IsMacOS())

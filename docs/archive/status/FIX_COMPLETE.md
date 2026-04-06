@@ -37,7 +37,7 @@
 
 ### 当前平台 (macOS)
 ```bash
-cd /Users/superdragon/RiderProjects/Videra
+cd /path/to/Videra
 dotnet run --project samples/Videra.Demo/Videra.Demo.csproj
 ```
 

@@ -100,7 +100,7 @@ public void SetPipeline(IPipeline pipeline)
 ## 运行Demo
 
 ```bash
-cd /Users/superdragon/RiderProjects/Videra
+cd /path/to/Videra
 dotnet build
 cd samples/Videra.Demo
 dotnet run

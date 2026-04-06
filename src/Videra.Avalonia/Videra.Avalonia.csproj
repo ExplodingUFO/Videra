@@ -4,6 +4,9 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <Description>Avalonia integration layer for Videra, exposing the VideraView control and coordinating native backend selection across platforms.</Description>
+    <PackageTags>videra;avalonia;3d;viewer;rendering;desktop;ui</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <!-- Suppress pre-existing analyzer warnings until fixed in dedicated cleanup plans.
          S112: throwing System.Exception
          S1144: unused internal delegate
@@ -36,6 +39,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
     <PackageReference Include="Avalonia" Version="11.3.9" />
     <PackageReference Include="Avalonia.Desktop" Version="11.3.9" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.11" />

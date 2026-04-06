@@ -2,6 +2,13 @@
   <PropertyGroup>
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
     <AnalysisLevel>latest-recommended</AnalysisLevel>
+    <Authors>ExplodingUFO</Authors>
+    <Company>ExplodingUFO</Company>
+    <RepositoryUrl>https://github.com/ExplodingUFO/Videra</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageProjectUrl>https://github.com/ExplodingUFO/Videra</PackageProjectUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <!-- The repo still carries a large backlog of analyzer findings across referenced projects.
          Keep local Debug builds usable by making warnings-as-errors opt-in instead of always-on. -->
     <WarningsAsErrorsInDebug Condition="'$(WarningsAsErrorsInDebug)' == ''">false</WarningsAsErrorsInDebug>

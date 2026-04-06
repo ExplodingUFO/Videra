@@ -366,6 +366,7 @@ tmpclaude*
 
 # Coverage reports
 coverage/
+.artifacts/
 
 # Local planning and workstation metadata
 .planning/

@@ -7,6 +7,9 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <RuntimeIdentifier>linux-x64</RuntimeIdentifier>
     <Platforms>AnyCPU;x64</Platforms>
+    <Description>Linux Vulkan backend for Videra, providing native GPU rendering for X11-hosted Avalonia 3D views.</Description>
+    <PackageTags>videra;vulkan;linux;3d;rendering;graphics;x11</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <!-- Suppress pre-existing analyzer warnings until fixed in dedicated cleanup plans.
          S1006: anonymous delegate usage
          S112: throwing System.Exception
@@ -24,6 +27,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
     <PackageReference Include="Silk.NET.Vulkan" Version="2.21.0" />
     <PackageReference Include="Silk.NET.Vulkan.Extensions.KHR" Version="2.21.0" />
     <PackageReference Include="Silk.NET.Shaderc" Version="2.21.0" />

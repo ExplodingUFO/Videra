@@ -1,8 +1,6 @@
 using System;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -23,67 +21,9 @@ public class App : Application
 
     public override void Initialize()
     {
-        RegisterAssimpResolver();
         AvaloniaXamlLoader.Load(this);
     }
-    
-    private static void RegisterAssimpResolver()
-    {
-        if (!RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-            return;
 
-        try
-        {
-            // 方案1：预加载
-            string[] possiblePaths = new[]
-            {
-                "/opt/homebrew/lib/libassimp.dylib",
-                "/usr/local/lib/libassimp.dylib",
-                "/opt/homebrew/opt/assimp/lib/libassimp.dylib"
-            };
-
-            foreach (var path in possiblePaths)
-            {
-                if (File.Exists(path))
-                {
-                    if (NativeLibrary.TryLoad(path, out var handle))
-                    {
-                        Debug.WriteLine($"✓ Pre-loaded Assimp: {path}");
-                        return; // 成功就返回
-                    }
-                }
-            }
-
-            Debug.WriteLine("⚠️ Could not pre-load Assimp, setting up resolver...");
-
-            // 方案2：设置解析器
-            NativeLibrary.SetDllImportResolver(
-                System.Reflection.Assembly.Load("Assimp.Net"), // 替换为你实际的程序集名
-                (libraryName, assembly, searchPath) =>
-                {
-                    Debug.WriteLine($"[DllResolver] Requested: {libraryName}");
-                
-                    if (libraryName.Contains("assimp"))
-                    {
-                        foreach (var path in possiblePaths)
-                        {
-                            if (File.Exists(path) && NativeLibrary.TryLoad(path, out var handle))
-                            {
-                                Debug.WriteLine($"✓ Resolved Assimp: {path}");
-                                return handle;
-                            }
-                        }
-                    }
-
-                    return IntPtr.Zero;
-                });
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"✗ Assimp setup failed: {ex.Message}");
-        }
-    }
-    
     public override void OnFrameworkInitializationCompleted()
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)

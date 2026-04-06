@@ -7,6 +7,9 @@
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <Platforms>AnyCPU;x64</Platforms>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Description>Windows Direct3D 11 backend for Videra, providing native GPU rendering and resource management for Avalonia-hosted 3D views.</Description>
+    <PackageTags>videra;d3d11;direct3d;windows;3d;rendering;graphics</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <!-- Suppress pre-existing analyzer warnings until fixed in dedicated cleanup plans.
          S1006: anonymous delegate usage
          S112: throwing System.Exception
@@ -33,6 +36,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
     <PackageReference Include="Silk.NET.Direct3D11" Version="2.21.0" />
     <PackageReference Include="Silk.NET.DXGI" Version="2.21.0" />
     <PackageReference Include="Silk.NET.Direct3D.Compilers" Version="2.21.0" />

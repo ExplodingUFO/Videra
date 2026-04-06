@@ -84,7 +84,7 @@ graph TB
 ### 获取源码
 
 ```bash
-git clone https://github.com/<owner>/Videra.git
+git clone https://github.com/ExplodingUFO/Videra.git
 cd Videra
 dotnet restore
 dotnet build Videra.slnx

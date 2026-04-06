@@ -7,6 +7,9 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <MetalAirOutput>$(IntermediateOutputPath)Shaders.air</MetalAirOutput>
     <MetalLibraryOutput>$(OutputPath)default.metallib</MetalLibraryOutput>
+    <Description>macOS Metal backend for Videra, providing native GPU rendering through NSView and CAMetalLayer integration.</Description>
+    <PackageTags>videra;metal;macos;3d;rendering;graphics</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <!-- Suppress pre-existing analyzer warnings until fixed in dedicated cleanup plans.
          S101: naming of native interop structs (MTLClearColor, MTLViewport, MTLScissorRect)
          S1066: collapsible if statements
@@ -29,6 +32,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
     <!-- Metal 通过 Objective-C Runtime 直接访问，不需要额外的 NuGet 包 -->
     <PackageReference Include="Silk.NET.Core" Version="2.21.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.11" />
