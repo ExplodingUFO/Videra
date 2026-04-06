@@ -1,189 +1,194 @@
-# Videra - 跨平台3D渲染引擎
+# Videra
 
-![License](https://img.shields.io/badge/license-MIT-blue.svg) ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey) ![.NET](https://img.shields.io/badge/.NET-8.0-purple)
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey)
+![.NET](https://img.shields.io/badge/.NET-8.0-512BD4)
 
-**Videra** 是一个基于 **Avalonia UI** 构建的高性能、跨平台 3D 模型查看器组件，使用各平台原生图形API（Direct3D 11、Vulkan、Metal）实现高性能渲染。
+Videra 是一套面向 .NET 桌面应用的跨平台 3D 查看组件库，核心目标是在 Avalonia 应用中提供可复用、可嵌入、可扩展的模型查看能力。
 
-## 项目架构
+它不是通用游戏引擎，而是围绕“桌面端 3D 模型展示与交互”设计的组件化方案：统一的核心渲染逻辑，叠加各平台原生图形后端，实现一套控件在不同系统上的一致集成体验。
+
+## 项目定位
+
+- 面向 Avalonia 桌面应用的 3D 视图组件
+- 统一封装 Windows / Linux / macOS 原生 GPU 后端
+- 适合模型预览、工程可视化、数字孪生前端、轻量桌面 CAD/Viewer 场景
+- 提供 Demo、验证脚本和模块级文档，便于二次开发与发布
+
+## 核心能力
+
+- `VideraView` Avalonia 控件，可直接嵌入 XAML 界面
+- 平台原生图形后端
+  - Windows: Direct3D 11
+  - Linux: Vulkan（当前原生路径基于 X11）
+  - macOS: Metal
+- 软件渲染回退路径，便于无 GPU 场景与调试
+- 统一抽象层：`IGraphicsBackend`、`IResourceFactory`、`ICommandExecutor`
+- 模型导入：`.gltf`、`.glb`、`.obj`
+- 渲染风格预设：`Realistic`、`Tech`、`Cartoon`、`XRay`、`Clay`、`Wireframe`、`Custom`
+- 线框模式：`None`、`AllEdges`、`VisibleOnly`、`Overlay`、`WireframeOnly`
+- Demo 内置相机控制、网格、坐标轴、模型导入与基础变换编辑
+
+## 架构概览
 
 ```mermaid
 graph TB
-    subgraph "应用层"
-        Demo[Videra.Demo<br/>示例应用]
-    end
-
-    subgraph "UI层"
-        Avalonia[Videra.Avalonia<br/>AvaloniaUI集成]
-    end
-
-    subgraph "核心层"
-        Core[Videra.Core<br/>平台无关核心]
-    end
-
-    subgraph "平台层"
-        Windows[Videra.Platform.Windows<br/>Direct3D 11]
-        Linux[Videra.Platform.Linux<br/>Vulkan]
-        macOS[Videra.Platform.macOS<br/>Metal]
-    end
+    Demo[Videra.Demo]
+    Avalonia[Videra.Avalonia]
+    Core[Videra.Core]
+    Win[Videra.Platform.Windows<br/>Direct3D 11]
+    Linux[Videra.Platform.Linux<br/>Vulkan]
+    Mac[Videra.Platform.macOS<br/>Metal]
 
     Demo --> Avalonia
     Avalonia --> Core
-    Core --> Windows
+    Core --> Win
     Core --> Linux
-    Core --> macOS
+    Core --> Mac
 ```
 
-## 模块说明
+仓库按“UI 集成层 / 核心层 / 平台后端层 / 示例应用”拆分，详细说明见 [ARCHITECTURE.md](ARCHITECTURE.md)。
 
-| 模块 | 说明 | 技术栈 |
-|------|------|--------|
-| [Videra.Core](src/Videra.Core/README.md) | 平台无关的核心渲染逻辑 | .NET 8, System.Numerics |
-| [Videra.Avalonia](src/Videra.Avalonia/README.md) | AvaloniaUI控件集成 | Avalonia 11.x |
-| [Videra.Platform.Windows](src/Videra.Platform.Windows/README.md) | Windows D3D11后端 | Silk.NET.Direct3D11 |
-| [Videra.Platform.Linux](src/Videra.Platform.Linux/README.md) | Linux Vulkan后端 | Silk.NET.Vulkan |
-| [Videra.Platform.macOS](src/Videra.Platform.macOS/README.md) | macOS Metal后端 | Objective-C Runtime |
-| [Videra.Demo](samples/Videra.Demo/README.md) | 示例应用程序 | Avalonia MVVM |
+## 仓库结构
 
-## 渲染流程
+| 路径 | 说明 |
+| --- | --- |
+| [`src/Videra.Core`](src/Videra.Core/README.md) | 平台无关的渲染核心、抽象接口、模型导入与渲染风格系统 |
+| [`src/Videra.Avalonia`](src/Videra.Avalonia/README.md) | Avalonia 控件封装、原生宿主接入、输入与渲染会话管理 |
+| [`src/Videra.Platform.Windows`](src/Videra.Platform.Windows/README.md) | Windows Direct3D 11 后端 |
+| [`src/Videra.Platform.Linux`](src/Videra.Platform.Linux/README.md) | Linux Vulkan 后端 |
+| [`src/Videra.Platform.macOS`](src/Videra.Platform.macOS/README.md) | macOS Metal 后端 |
+| [`samples/Videra.Demo`](samples/Videra.Demo/README.md) | 演示程序与交互参考 |
+| [`docs`](docs/index.md) | 对外文档导航、故障排查、ADR 与历史归档 |
 
-```mermaid
-sequenceDiagram
-    participant App as 应用程序
-    participant View as VideraView
-    participant Engine as VideraEngine
-    participant Backend as IGraphicsBackend
-    participant GPU as GPU
+## 平台支持
 
-    App->>View: 创建控件
-    View->>Engine: 初始化引擎
-    View->>Backend: 创建平台后端
-    Backend->>GPU: 初始化图形设备
-
-    loop 渲染循环 (60 FPS)
-        View->>Engine: Draw()
-        Engine->>Backend: BeginFrame()
-        Backend->>GPU: 清除缓冲区
-        Engine->>Backend: 渲染对象
-        Backend->>GPU: 绘制命令
-        Engine->>Backend: EndFrame()
-        Backend->>GPU: 呈现
-    end
-```
-
-## 后端选择流程
-
-```mermaid
-flowchart TD
-    Start[启动] --> CheckEnv{检查环境变量<br/>VIDERA_BACKEND}
-    CheckEnv -->|software| Software[软件渲染]
-    CheckEnv -->|d3d11| D3D11[Direct3D 11]
-    CheckEnv -->|vulkan| Vulkan[Vulkan]
-    CheckEnv -->|metal| Metal[Metal]
-    CheckEnv -->|auto/未设置| DetectOS{检测操作系统}
-
-    DetectOS -->|Windows| D3D11
-    DetectOS -->|Linux| Vulkan
-    DetectOS -->|macOS| Metal
-
-    D3D11 -->|失败| Software
-    Vulkan -->|失败| Software
-    Metal -->|失败| Software
-```
+| 平台 | 默认后端 | 当前状态 | 备注 |
+| --- | --- | --- | --- |
+| Windows 10+ | Direct3D 11 | 可用 | 仓库已覆盖真实 HWND 路径验证 |
+| Linux | Vulkan | 可用 | 当前原生路径基于 X11；Wayland 暂不支持 |
+| macOS 10.15+ | Metal | 可用 | 依赖 Objective-C runtime 与 `CAMetalLayer` |
+| 任意平台 | Software | 回退路径 | 适合无 GPU、CI 或问题排查场景 |
 
 ## 快速开始
 
-### 1. 安装依赖
+### 环境要求
+
+- .NET 8 SDK
+- Git
+- 对应平台的图形驱动与原生依赖
+  - Windows: Direct3D 11 兼容显卡
+  - Linux: Vulkan 驱动、X11 运行库
+  - macOS: Metal 兼容设备
+
+### 获取源码
 
 ```bash
+git clone https://github.com/<owner>/Videra.git
+cd Videra
 dotnet restore
+dotnet build Videra.slnx
 ```
 
-### 2. 运行示例
+### 运行 Demo
 
 ```bash
-cd samples/Videra.Demo
-dotnet run
+dotnet run --project samples/Videra.Demo/Videra.Demo.csproj
 ```
 
-### 3. 在项目中使用
+### 验证仓库
+
+```bash
+# Unix shell
+./verify.sh --configuration Release
+
+# PowerShell
+pwsh -File ./verify.ps1 -Configuration Release
+```
+
+如需在 Linux 或 macOS 原生宿主上执行额外验证，可使用显式开关：
+
+```bash
+./verify.sh --configuration Release --include-native-linux
+./verify.sh --configuration Release --include-native-macos
+
+pwsh -File ./verify.ps1 -Configuration Release -IncludeNativeLinux
+pwsh -File ./verify.ps1 -Configuration Release -IncludeNativeMacOS
+```
+
+## 集成示例
+
+### XAML
 
 ```xml
-<!-- XAML -->
-<controls:VideraView Name="View3D"
-                     Items="{Binding SceneObjects}"
-                     BackgroundColor="{Binding BgColor}"
-                     IsGridVisible="True"/>
+<Window xmlns:videra="using:Videra.Avalonia.Controls">
+    <videra:VideraView
+        Items="{Binding SceneObjects}"
+        BackgroundColor="{Binding BackgroundColor}"
+        RenderStyle="{Binding ActiveRenderStyle}"
+        WireframeMode="Overlay"
+        IsGridVisible="True"
+        PreferredBackend="Auto" />
+</Window>
 ```
 
+### C#
+
 ```csharp
-// C#
-var view = new VideraView();
+using Videra.Avalonia.Controls;
+using Videra.Core.Graphics;
+
+var view = new VideraView
+{
+    PreferredBackend = GraphicsBackendPreference.Auto,
+    IsGridVisible = true
+};
+
 view.Engine.AddObject(myObject3D);
 ```
 
-## 鼠标控制
+更多用法见 [`src/Videra.Avalonia/README.md`](src/Videra.Avalonia/README.md) 和 [`samples/Videra.Demo/README.md`](samples/Videra.Demo/README.md)。
 
-| 操作 | 描述 |
-|------|------|
-| 左键拖拽 | 旋转视角 (Orbit) |
-| 右键拖拽 | 平移视角 (Pan) |
-| 滚轮滚动 | 缩放视角 (Zoom) |
+## Demo 能力
+
+- 导入 `.gltf`、`.glb`、`.obj`
+- 轨道相机交互
+  - 左键拖拽：旋转
+  - 右键拖拽：平移
+  - 滚轮：缩放
+- 网格与坐标轴显示
+- 渲染风格切换
+- 线框叠加与纯线框模式
+- 场景对象的基础位置、旋转、缩放调整
 
 ## 环境变量
 
-| 变量名 | 说明 | 可选值 |
-|--------|------|--------|
-| VIDERA_BACKEND | 强制指定渲染后端 | software, d3d11, vulkan, metal, auto |
-| VIDERA_FRAMELOG | 启用帧日志 | 1, true |
-| VIDERA_INPUTLOG | 启用输入日志 | 1, true |
+| 变量 | 作用 | 可选值 |
+| --- | --- | --- |
+| `VIDERA_BACKEND` | 强制指定渲染后端 | `software`, `d3d11`, `vulkan`, `metal`, `auto` |
+| `VIDERA_FRAMELOG` | 启用帧日志 | `1`, `true` |
+| `VIDERA_INPUTLOG` | 启用输入日志 | `1`, `true` |
 
-## 系统要求
+## 当前状态与限制
 
-### Windows
-- Windows 10 或更高版本
-- Direct3D 11 兼容显卡
-- .NET 8 Runtime
+- 当前定位是组件库与 Viewer 能力，不是完整场景编辑器或游戏运行时
+- Linux 原生路径当前以 X11 为主，Wayland 仍是未闭合项
+- Linux / macOS 的完整原生宿主闭环验证，需要在对应系统上执行显式验证开关
+- macOS 后端当前通过 Objective-C runtime 互操作实现，后续仍可继续提高封装安全性
 
-### Linux
-- X11 窗口系统
-- Vulkan 1.2+ 兼容显卡
-- .NET 8 Runtime
+## 文档导航
 
-### macOS
-- macOS 10.15 或更高版本
-- Metal 兼容显卡
-- .NET 8 Runtime
+- [文档首页](docs/index.md)
+- [架构说明](ARCHITECTURE.md)
+- [故障排查](docs/troubleshooting.md)
+- [贡献指南](CONTRIBUTING.md)
+- [Demo 说明](samples/Videra.Demo/README.md)
+- [历史归档](docs/archive/README.md)
 
-## 构建
+## 贡献
 
-```bash
-# 构建所有项目
-dotnet build
-
-# 统一验证脚本（Unix shell）
-./verify.sh --configuration Release
-
-# 在 Linux 原生主机上追加 Linux native validation
-./verify.sh --configuration Release --include-native-linux
-
-# 在 macOS 原生主机上追加 macOS native validation
-./verify.sh --configuration Release --include-native-macos
-
-# PowerShell 验证脚本
-pwsh -File ./verify.ps1 -Configuration Release
-pwsh -File ./verify.ps1 -Configuration Release -IncludeNativeLinux
-pwsh -File ./verify.ps1 -Configuration Release -IncludeNativeMacOS
-
-# 发布 Windows 版本
-dotnet publish -c Release -r win-x64
-
-# 发布 Linux 版本
-dotnet publish -c Release -r linux-x64
-
-# 发布 macOS 版本
-dotnet publish -c Release -r osx-x64
-```
+欢迎提交 Issue、文档修订或 Pull Request。开始前建议先阅读 [CONTRIBUTING.md](CONTRIBUTING.md)。
 
 ## 许可证
 
-MIT License
+本项目采用 [MIT License](LICENSE.txt)。

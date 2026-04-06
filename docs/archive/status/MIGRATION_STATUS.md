@@ -249,7 +249,7 @@ API重写:   ██████████ 100%
 
 ## 🔗 相关文档
 
-- [ARCHITECTURE.md](ARCHITECTURE.md) - 新架构设计文档
+- [ARCHITECTURE.md](../../../ARCHITECTURE.md) - 新架构设计文档
 - [MIGRATION_GUIDE.md](MIGRATION_GUIDE.md) - 迁移指南
 - [IMPLEMENTATION_STATUS.md](IMPLEMENTATION_STATUS.md) - 详细实现状态
 

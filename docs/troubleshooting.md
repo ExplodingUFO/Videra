@@ -1,18 +1,20 @@
-# Troubleshooting
+# 故障排查
 
-常见渲染问题、平台依赖问题与验证建议。
+本文档汇总 Videra 常见的构建、运行和平台后端问题。
 
 ## 快速诊断
 
-优先执行仓库统一验证入口：
+优先运行仓库统一验证入口：
 
 ```bash
+# Unix shell
 ./verify.sh --configuration Release
+
 # PowerShell
 pwsh -File ./verify.ps1 -Configuration Release
 ```
 
-如涉及原生 Linux / macOS 后端验证，使用显式开关：
+如果问题与原生 Linux 或 macOS 后端有关，请显式启用对应验证：
 
 ```bash
 ./verify.sh --configuration Release --include-native-linux
@@ -25,22 +27,21 @@ pwsh -File ./verify.ps1 -Configuration Release -IncludeNativeMacOS
 ## 常见问题
 
 | 问题 | 平台 | 建议处理 |
-|------|------|----------|
-| `Failed to create D3D11 device` | Windows | 更新 GPU 驱动，确认显卡支持 Direct3D 11 Feature Level 11_0 |
-| `Failed to create Vulkan instance` / `Failed to create X11 Vulkan surface` | Linux | 安装 Vulkan 驱动并确认 X11 可用；先执行 `./verify.sh --configuration Release --include-native-linux` |
-| `Failed to create Metal device` | macOS | 确认机器支持 Metal，并在原生 macOS 主机上执行 `./verify.sh --configuration Release --include-native-macos` |
-| 渲染窗口空白 | 全平台 | 先确认 Demo 已成功初始化后端；再尝试 `VIDERA_BACKEND=software` 排除原生驱动问题 |
-| Linux 下找不到 `libX11.so.6` | Linux | 仓库已支持回退到 `libX11.so` / `libX11`，但仍需安装可用的 X11 运行库 |
-| 模型导入失败 | 全平台 | 当前仅支持 `.gltf`、`.glb`、`.obj`；确认文件存在且内容有效 |
-| Demo 无法导入模型 | 全平台 | 等待 `VideraView` 后端完成初始化后再导入；查看 Demo 状态区消息 |
+| --- | --- | --- |
+| `Failed to create D3D11 device` | Windows | 更新 GPU 驱动，确认显卡支持 Direct3D 11 |
+| `Failed to create Vulkan instance` | Linux | 检查 Vulkan 驱动与运行库，确认主机可用 X11 |
+| `Failed to create X11 Vulkan surface` | Linux | 确认 X11 会话有效，且系统存在可用的 `libX11` |
+| `Failed to create Metal device` | macOS | 确认设备支持 Metal，并在真实 macOS 主机上验证 |
+| 渲染区域空白 | 全平台 | 先尝试 `VIDERA_BACKEND=software`，确认是否为 GPU 或原生宿主问题 |
+| 模型导入失败 | 全平台 | 当前仅支持 `.gltf`、`.glb`、`.obj`，请确认文件格式与内容有效 |
+| Demo 启动但无法显示模型 | 全平台 | 等待 `VideraView` 完成后端初始化，再执行导入或场景变更 |
 
-## 平台说明
+## 平台专项说明
 
 ### Windows
 
-- Demo 默认优先固定到 D3D11 路径，便于验证真实原生渲染路径。
-- 标准验证会覆盖解决方案构建、测试以及 Windows 后端测试。
-- 如修改了 D3D11 或 Windows 原生宿主代码，优先重新运行：
+- 标准验证会覆盖 Windows 后端测试和真实 HWND 路径
+- 如果改动涉及 D3D11 初始化、交换链或宿主窗口行为，建议重新执行：
 
 ```bash
 pwsh -File ./verify.ps1 -Configuration Release
@@ -48,28 +49,38 @@ pwsh -File ./verify.ps1 -Configuration Release
 
 ### Linux
 
-- 当前正式原生路径基于 X11 + Vulkan。
-- `libX11.so.6` 已支持仓库级 fallback 解析到 `libX11.so` / `libX11`。
-- Wayland 仍是开放项；当前不能把 X11 支持等同于 Wayland 支持。
-- 真实 Linux 原生闭环仍需在 Linux 宿主机上执行 `tests/Videra.Platform.Linux.Tests`。
+- 当前正式原生路径基于 X11 + Vulkan
+- `libX11.so.6` 缺失时，仓库已有回退解析逻辑，但系统仍必须安装可用 X11 运行库
+- Wayland 目前不是正式支持目标
 
 ### macOS
 
-- 当前原生路径基于 NSView + CAMetalLayer + Metal。
-- Objective-C runtime 互操作已集中到 `ObjCRuntime`，但更高层安全绑定替代仍未完成。
-- 真实 macOS 原生闭环仍需在 macOS 宿主机上执行 `tests/Videra.Platform.macOS.Tests`。
+- 当前原生路径基于 `NSView` + `CAMetalLayer` + Metal
+- 后端通过 Objective-C runtime 互操作与系统框架通信
+- 完整原生闭环验证必须在 macOS 主机上执行
 
 ## 环境变量
 
 | 变量 | 作用 | 可选值 |
-|------|------|--------|
+| --- | --- | --- |
 | `VIDERA_BACKEND` | 强制指定渲染后端 | `software`, `d3d11`, `vulkan`, `metal`, `auto` |
 | `VIDERA_FRAMELOG` | 启用帧日志 | `1`, `true` |
 | `VIDERA_INPUTLOG` | 启用输入日志 | `1`, `true` |
 
-## 如果问题仍然存在
+建议先从 `VIDERA_BACKEND=software` 开始缩小问题范围，再切换回目标原生后端。
 
-1. 先执行对应验证入口并保留完整输出。
-2. 确认问题是否只在特定平台原生宿主上出现。
-3. 如果是平台后端问题，附上失败命令、平台信息、驱动信息和相关异常消息。
-4. 若为文档或使用问题，可直接更新相关 README / CONTRIBUTING 说明。
+## 提交 Issue 时建议附带的信息
+
+- 操作系统与版本
+- GPU 与驱动信息
+- 使用的后端偏好或 `VIDERA_BACKEND` 值
+- 失败命令与完整报错
+- 是否在对应原生宿主机上复现
+- 是否能通过软件后端成功运行
+
+## 相关文档
+
+- [README.md](../README.md)
+- [ARCHITECTURE.md](../ARCHITECTURE.md)
+- [CONTRIBUTING.md](../CONTRIBUTING.md)
+- [samples/Videra.Demo/README.md](../samples/Videra.Demo/README.md)

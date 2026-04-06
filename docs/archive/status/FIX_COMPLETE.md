@@ -124,10 +124,10 @@ dotnet run --project samples/Videra.Demo/Videra.Demo.csproj
 
 ## 📚 相关文档
 
-- [ARCHITECTURE.md](../../ARCHITECTURE.md) - 完整架构设计
-- [MIGRATION_GUIDE.md](../../MIGRATION_GUIDE.md) - 详细迁移指南  
-- [IMPLEMENTATION_STATUS.md](../../IMPLEMENTATION_STATUS.md) - 实施状态
-- [samples/Videra.Demo/README.md](../Videra.Demo/README.md) - Demo 运行指南
+- [ARCHITECTURE.md](../../../ARCHITECTURE.md) - 完整架构设计
+- [MIGRATION_GUIDE.md](MIGRATION_GUIDE.md) - 详细迁移指南  
+- [IMPLEMENTATION_STATUS.md](IMPLEMENTATION_STATUS.md) - 实施状态
+- [samples/Videra.Demo/README.md](../../../samples/Videra.Demo/README.md) - Demo 运行指南
 
 ## 💡 开发提示
 
