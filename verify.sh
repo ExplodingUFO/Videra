@@ -78,7 +78,7 @@ if [[ "$INCLUDE_NATIVE_LINUX" == true ]]; then
     "Linux Native Validation" \
     "Linux native validation passed" \
     "Linux native validation failed" \
-    dotnet test "$ROOT_DIR/tests/Videra.Platform.Linux.Tests/Videra.Platform.Linux.Tests.csproj" --configuration "$CONFIGURATION" -v "$TEST_VERBOSITY" "${TEST_LOGGER_ARGS[@]}"
+    env VIDERA_RUN_LINUX_NATIVE_TESTS=true dotnet test "$ROOT_DIR/tests/Videra.Platform.Linux.Tests/Videra.Platform.Linux.Tests.csproj" --configuration "$CONFIGURATION" -v "$TEST_VERBOSITY" "${TEST_LOGGER_ARGS[@]}"
 fi
 
 if [[ "$INCLUDE_NATIVE_MACOS" == true ]]; then

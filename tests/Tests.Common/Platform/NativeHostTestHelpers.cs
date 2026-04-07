@@ -9,6 +9,28 @@ public static class NativeHostTestHelpers
     public static Win32TestWindow CreateHiddenWin32Window(int width = 64, int height = 64)
         => new(width, height);
 
+    public static bool CanOpenX11Display()
+    {
+        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+        {
+            return false;
+        }
+
+        if (string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("DISPLAY")))
+        {
+            return false;
+        }
+
+        var display = XOpenDisplayProbe(IntPtr.Zero);
+        if (display == IntPtr.Zero)
+        {
+            return false;
+        }
+
+        XCloseDisplayProbe(display);
+        return true;
+    }
+
     public sealed class Win32TestWindow : IDisposable
     {
         private static readonly WndProcDelegate WndProcHandler = DefWindowProcW;
@@ -141,6 +163,12 @@ public static class NativeHostTestHelpers
     {
         public const int SW_HIDE = 0;
     }
+
+    [DllImport("libX11.so.6", EntryPoint = "XOpenDisplay")]
+    private static extern IntPtr XOpenDisplayProbe(IntPtr displayName);
+
+    [DllImport("libX11.so.6", EntryPoint = "XCloseDisplay")]
+    private static extern int XCloseDisplayProbe(IntPtr display);
 
     // --- Linux X11 native-host fixture ---
 

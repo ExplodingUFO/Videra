@@ -59,7 +59,20 @@ Invoke-Check "Demo Build" {
 # Optional native validation packages
 if ($IncludeNativeLinux) {
     Invoke-Check "Linux Native Validation" {
-        dotnet test "$root/tests/Videra.Platform.Linux.Tests/Videra.Platform.Linux.Tests.csproj" --configuration $Configuration -v m --logger "console;verbosity=detailed" 2>$null
+        $previous = $env:VIDERA_RUN_LINUX_NATIVE_TESTS
+        $hadPrevious = Test-Path Env:VIDERA_RUN_LINUX_NATIVE_TESTS
+        try {
+            $env:VIDERA_RUN_LINUX_NATIVE_TESTS = "true"
+            dotnet test "$root/tests/Videra.Platform.Linux.Tests/Videra.Platform.Linux.Tests.csproj" --configuration $Configuration -v m --logger "console;verbosity=detailed" 2>$null
+        }
+        finally {
+            if ($hadPrevious) {
+                $env:VIDERA_RUN_LINUX_NATIVE_TESTS = $previous
+            }
+            else {
+                Remove-Item Env:VIDERA_RUN_LINUX_NATIVE_TESTS -ErrorAction SilentlyContinue
+            }
+        }
     } "Linux native validation passed" "Linux native validation failed"
 }
 

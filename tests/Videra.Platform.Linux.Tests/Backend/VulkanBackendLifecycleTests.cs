@@ -33,7 +33,7 @@ public sealed class VulkanBackendLifecycleTests
         act.Should().NotThrow();
     }
 
-    [LinuxFact]
+    [LinuxNativeFact]
     public void DoubleDispose_DoesNotThrow()
     {
         if (!IsLinux) return;
@@ -62,7 +62,7 @@ public sealed class VulkanBackendLifecycleTests
         backend.IsInitialized.Should().BeFalse();
     }
 
-    [LinuxFact]
+    [LinuxNativeFact]
     public void Initialize_SecondCall_IsIdempotent()
     {
         if (!IsLinux) return;
@@ -77,7 +77,7 @@ public sealed class VulkanBackendLifecycleTests
         backend.IsInitialized.Should().BeTrue();
     }
 
-    [LinuxFact]
+    [LinuxNativeFact]
     public void Initialize_WithRealX11Window_SetsInitialized()
     {
         if (!IsLinux) return;
@@ -92,7 +92,7 @@ public sealed class VulkanBackendLifecycleTests
         backend.GetCommandExecutor().Should().NotBeNull();
     }
 
-    [LinuxFact]
+    [LinuxNativeFact]
     public void Resize_AfterInit_Succeeds()
     {
         if (!IsLinux) return;
@@ -106,7 +106,7 @@ public sealed class VulkanBackendLifecycleTests
         act.Should().NotThrow();
     }
 
-    [LinuxFact]
+    [LinuxNativeFact]
     public void MultipleFrameCycles_CompleteSuccessfully()
     {
         if (!IsLinux) return;
@@ -127,7 +127,7 @@ public sealed class VulkanBackendLifecycleTests
         act.Should().NotThrow();
     }
 
-    [LinuxFact]
+    [LinuxNativeFact]
     public void ResourceCreation_AndDrawPath_Succeeds()
     {
         if (!IsLinux) return;
@@ -176,7 +176,7 @@ public sealed class VulkanBackendLifecycleTests
         }
     }
 
-    [LinuxFact]
+    [LinuxNativeFact]
     public void Backend_Reinitialization_AfterDispose_Succeeds()
     {
         if (!IsLinux) return;

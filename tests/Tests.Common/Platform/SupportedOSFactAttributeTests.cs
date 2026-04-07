@@ -11,6 +11,7 @@ public sealed class SupportedOSFactAttributeTests
     {
         HasDirectAttributeUsage(typeof(WindowsFactAttribute)).Should().BeTrue();
         HasDirectAttributeUsage(typeof(LinuxFactAttribute)).Should().BeTrue();
+        HasDirectAttributeUsage(typeof(LinuxNativeFactAttribute)).Should().BeTrue();
         HasDirectAttributeUsage(typeof(MacOSFactAttribute)).Should().BeTrue();
     }
 
