@@ -71,6 +71,33 @@ public sealed class RepositoryNativeValidationTests
             .BeTrue("macOS builds compile VideraMacOSNativeHost against ObjCRuntime, so the helper must be visible to the Videra.Avalonia assembly");
     }
 
+    [Fact]
+    public void LinuxPlatformProject_ShouldExposeX11RegistryToAvaloniaHostAssembly()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var linuxProject = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Platform.Linux", "Videra.Platform.Linux.csproj"));
+        var registrySource = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Platform.Linux", "X11NativeHandleRegistry.cs"));
+
+        var hasInternalsVisibleTo = linuxProject.Contains(">Videra.Avalonia<", StringComparison.Ordinal);
+        var isPublicRegistry = registrySource.Contains("public static class X11NativeHandleRegistry", StringComparison.Ordinal);
+
+        (hasInternalsVisibleTo || isPublicRegistry)
+            .Should()
+            .BeTrue("Linux builds compile VideraLinuxNativeHost against X11NativeHandleRegistry, so the helper must be visible to the Videra.Avalonia assembly");
+    }
+
+    [Fact]
+    public void VulkanBackend_Dispose_ShouldGuardPartialInitializationHandles()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var backendSource = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Platform.Linux", "VulkanBackend.cs"));
+
+        backendSource.Should().Contain("if (_device.Handle != 0)");
+        backendSource.Should().Contain("if (_imageAvailableSemaphore.Handle != 0)");
+        backendSource.Should().Contain("if (_renderFinishedSemaphore.Handle != 0)");
+        backendSource.Should().Contain("if (_inFlightFence.Handle != 0)");
+    }
+
     private static string GetRepositoryRoot()
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);

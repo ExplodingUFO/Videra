@@ -953,22 +953,32 @@ public unsafe class VulkanBackend : IGraphicsBackend
         IsInitialized = false;
 
         if (_device.Handle != 0)
+        {
             _vk.DeviceWaitIdle(_device);
 
-        _vk.DestroySemaphore(_device, _imageAvailableSemaphore, null);
-        _vk.DestroySemaphore(_device, _renderFinishedSemaphore, null);
-        _vk.DestroyFence(_device, _inFlightFence, null);
+            if (_imageAvailableSemaphore.Handle != 0)
+                _vk.DestroySemaphore(_device, _imageAvailableSemaphore, null);
+            if (_renderFinishedSemaphore.Handle != 0)
+                _vk.DestroySemaphore(_device, _renderFinishedSemaphore, null);
+            if (_inFlightFence.Handle != 0)
+                _vk.DestroyFence(_device, _inFlightFence, null);
 
-        _vk.DestroyCommandPool(_device, _commandPool, null);
+            if (_commandPool.Handle != 0)
+                _vk.DestroyCommandPool(_device, _commandPool, null);
 
-        CleanupSwapchain();
+            CleanupSwapchain();
 
-        _vk.DestroyRenderPass(_device, _renderPass, null);
-        CleanupDepthResources();
+            if (_renderPass.Handle != 0)
+                _vk.DestroyRenderPass(_device, _renderPass, null);
+            CleanupDepthResources();
 
-        _vk.DestroyDevice(_device, null);
-        _khrSurface.DestroySurface(_instance, _surface, null);
-        _vk.DestroyInstance(_instance, null);
+            _vk.DestroyDevice(_device, null);
+        }
+
+        if (_instance.Handle != 0 && _surface.Handle != 0)
+            _khrSurface.DestroySurface(_instance, _surface, null);
+        if (_instance.Handle != 0)
+            _vk.DestroyInstance(_instance, null);
 
         _surfaceCreator.Cleanup();
 

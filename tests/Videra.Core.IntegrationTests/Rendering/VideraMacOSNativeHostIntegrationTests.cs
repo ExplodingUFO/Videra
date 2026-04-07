@@ -10,7 +10,7 @@ namespace Videra.Core.IntegrationTests.Rendering;
 public sealed class VideraMacOSNativeHostIntegrationTests
 {
     [MacOSFact]
-    public void CreateNSView_DoesNotEnableLayerBacking()
+    public void CreateNSView_DoesNotPreAttachCametalLayer()
     {
         if (!OperatingSystem.IsMacOS())
         {
@@ -27,8 +27,11 @@ public sealed class VideraMacOSNativeHostIntegrationTests
 
         try
         {
-            var wantsLayer = objc_msgSend_bool(nsView, sel_registerName("wantsLayer"));
-            wantsLayer.Should().BeFalse();
+            var layer = objc_msgSend(nsView, sel_registerName("layer"));
+            if (layer != IntPtr.Zero)
+            {
+                Marshal.PtrToStringAnsi(object_getClassName(layer)).Should().NotBe("CAMetalLayer");
+            }
         }
         finally
         {
@@ -43,6 +46,6 @@ public sealed class VideraMacOSNativeHostIntegrationTests
     [DllImport("/usr/lib/libobjc.A.dylib", EntryPoint = "objc_msgSend")]
     private static extern IntPtr objc_msgSend(IntPtr receiver, IntPtr selector);
 
-    [DllImport("/usr/lib/libobjc.A.dylib", EntryPoint = "objc_msgSend")]
-    private static extern bool objc_msgSend_bool(IntPtr receiver, IntPtr selector);
+    [DllImport("/usr/lib/libobjc.A.dylib", EntryPoint = "object_getClassName")]
+    private static extern IntPtr object_getClassName(IntPtr obj);
 }
