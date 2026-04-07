@@ -27,6 +27,30 @@ public sealed class RepositoryReleaseReadinessTests
     }
 
     [Fact]
+    public void Workflows_ShouldUseNode24CompatibleOfficialGitHubActions()
+    {
+        var workflowRoot = Path.Combine(GetRepositoryRoot(), ".github", "workflows");
+        var workflows = Directory.GetFiles(workflowRoot, "*.yml");
+
+        workflows.Should().NotBeEmpty();
+
+        foreach (var workflowPath in workflows)
+        {
+            var workflow = File.ReadAllText(workflowPath);
+
+            workflow.Should().NotContain("actions/checkout@v4");
+            workflow.Should().NotContain("actions/setup-dotnet@v4");
+        }
+
+        File.ReadAllText(Path.Combine(workflowRoot, "ci.yml")).Should().Contain("actions/checkout@v6");
+        File.ReadAllText(Path.Combine(workflowRoot, "ci.yml")).Should().Contain("actions/setup-dotnet@v5");
+        File.ReadAllText(Path.Combine(workflowRoot, "native-validation.yml")).Should().Contain("actions/checkout@v6");
+        File.ReadAllText(Path.Combine(workflowRoot, "native-validation.yml")).Should().Contain("actions/setup-dotnet@v5");
+        File.ReadAllText(Path.Combine(workflowRoot, "publish-nuget.yml")).Should().Contain("actions/checkout@v6");
+        File.ReadAllText(Path.Combine(workflowRoot, "publish-nuget.yml")).Should().Contain("actions/setup-dotnet@v5");
+    }
+
+    [Fact]
     public void Changelog_ShouldContainInitialAlphaReleaseEntry()
     {
         var changelog = File.ReadAllText(Path.Combine(GetRepositoryRoot(), "CHANGELOG.md"));
