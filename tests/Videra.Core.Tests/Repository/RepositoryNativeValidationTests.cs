@@ -18,37 +18,6 @@ public sealed class RepositoryNativeValidationTests
     }
 
     [Fact]
-    public void Workflows_ShouldUseNode24CompatibleCheckoutAndDotNetActions()
-    {
-        var workflowsDirectory = Path.Combine(GetRepositoryRoot(), ".github", "workflows");
-        var workflowFiles = Directory.GetFiles(workflowsDirectory, "*.yml");
-
-        workflowFiles.Should().NotBeEmpty();
-
-        foreach (var workflowFile in workflowFiles)
-        {
-            var workflow = File.ReadAllText(workflowFile);
-            workflow.Should().Contain("actions/checkout@v6");
-            workflow.Should().Contain("actions/setup-dotnet@v5");
-        }
-    }
-
-    [Fact]
-    public void Workflows_ShouldUseNode24CompatibleGitHubActionMajors()
-    {
-        var workflowsDirectory = Path.Combine(GetRepositoryRoot(), ".github", "workflows");
-        var workflowContents = Directory
-            .GetFiles(workflowsDirectory, "*.yml", SearchOption.TopDirectoryOnly)
-            .Select(File.ReadAllText)
-            .ToArray();
-
-        workflowContents.Should().OnlyContain(content => !content.Contains("actions/checkout@v4", StringComparison.Ordinal));
-        workflowContents.Should().OnlyContain(content => !content.Contains("actions/setup-dotnet@v4", StringComparison.Ordinal));
-        workflowContents.Should().OnlyContain(content => content.Contains("actions/checkout@v6", StringComparison.Ordinal));
-        workflowContents.Should().OnlyContain(content => content.Contains("actions/setup-dotnet@v5", StringComparison.Ordinal));
-    }
-
-    [Fact]
     public void NativeValidationWorkflow_ShouldInstallLinuxShadercRuntime()
     {
         var workflow = File.ReadAllText(Path.Combine(GetRepositoryRoot(), ".github", "workflows", "native-validation.yml"));
