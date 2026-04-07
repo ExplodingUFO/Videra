@@ -84,6 +84,7 @@ internal sealed partial class VideraMacOSNativeHost : NativeControlHost, IVidera
     private static IntPtr CreateNSView(int width, int height)
     {
 #if VIDERA_MACOS_BACKEND
+        ObjCRuntime.EnsureAppKitReady();
         var view = ObjCRuntime.InitWithFrame(ObjCRuntime.Alloc("NSView"), 0, 0, width, height);
         return ObjCRuntime.RequireNonZeroHandle(view, "CreateNSView", "Failed to initialize NSView for Metal rendering.");
 #else

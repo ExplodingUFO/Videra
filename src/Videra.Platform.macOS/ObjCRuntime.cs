@@ -11,6 +11,9 @@ namespace Videra.Platform.macOS;
 /// </summary>
 internal static class ObjCRuntime
 {
+    private static IntPtr _appKitHandle;
+    private static bool _appKitInitialized;
+
     #region Core P/Invoke
 
     [SuppressMessage("Interoperability", "CA2101:Specify marshaling for P/Invoke string arguments", Justification = "Objective-C runtime class names are UTF-8 C strings on Darwin and this interop is isolated to the macOS backend.")]
@@ -111,6 +114,40 @@ internal static class ObjCRuntime
 
     /// <summary>Get an Objective-C class by name.</summary>
     public static IntPtr objc_getClass(string name) => GetClass(name);
+
+    /// <summary>Ensure AppKit and NSApplication are ready before creating Cocoa view objects.</summary>
+    public static void EnsureAppKitReady()
+    {
+        if (_appKitInitialized)
+        {
+            return;
+        }
+
+        const string appKitPath = "/System/Library/Frameworks/AppKit.framework/AppKit";
+        if (_appKitHandle == IntPtr.Zero && !NativeLibrary.TryLoad(appKitPath, out _appKitHandle))
+        {
+            throw new PlatformDependencyException(
+                $"Failed to load AppKit framework from '{appKitPath}'.",
+                "EnsureAppKitReady",
+                "macOS");
+        }
+
+        var nsApplicationClass = GetClass("NSApplication");
+        if (nsApplicationClass == IntPtr.Zero)
+        {
+            throw new PlatformDependencyException(
+                "Failed to resolve NSApplication after loading AppKit.",
+                "EnsureAppKitReady",
+                "macOS");
+        }
+
+        RequireNonZeroHandle(
+            SendMessage(nsApplicationClass, SEL("sharedApplication")),
+            "EnsureAppKitReady",
+            "Failed to initialize NSApplication before creating Cocoa views.");
+
+        _appKitInitialized = true;
+    }
 
     /// <summary>Allocate and initialize an Objective-C object (alloc + init).</summary>
     public static IntPtr AllocInit(string className)

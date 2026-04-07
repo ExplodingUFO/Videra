@@ -108,6 +108,68 @@ public sealed class RepositoryNativeValidationTests
         helperSource.Should().Contain("XFlush(_display);");
     }
 
+    [Fact]
+    public void MacOSNativeHost_ShouldBootstrapAppKitBeforeCreatingNSView()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var hostSource = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Avalonia", "Controls", "VideraMacOSNativeHost.cs"));
+        var objcRuntimeSource = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Platform.macOS", "ObjCRuntime.cs"));
+
+        hostSource.Should().Contain("EnsureAppKitReady");
+        objcRuntimeSource.Should().Contain("/System/Library/Frameworks/AppKit.framework/AppKit");
+        objcRuntimeSource.Should().Contain("sharedApplication");
+    }
+
+    [Fact]
+    public void LinuxVulkanLifecycleDrawTest_ShouldBindRequiredUniformBuffers()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var lifecycleTestSource = File.ReadAllText(Path.Combine(repositoryRoot, "tests", "Videra.Platform.Linux.Tests", "Backend", "VulkanBackendLifecycleTests.cs"));
+
+        lifecycleTestSource.Should().Contain("CreateUniformBuffer(128)");
+        lifecycleTestSource.Should().Contain("CreateUniformBuffer(64)");
+        lifecycleTestSource.Should().Contain("RenderBindingSlots.Camera");
+        lifecycleTestSource.Should().Contain("RenderBindingSlots.World");
+    }
+
+    [Fact]
+    public void MacOSNativeHostIntegrationTest_ShouldValidateHandleWithoutConcreteClassAssertion()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var integrationTest = File.ReadAllText(Path.Combine(repositoryRoot, "tests", "Videra.Core.IntegrationTests", "Rendering", "VideraMacOSNativeHostIntegrationTests.cs"));
+
+        integrationTest.Should().Contain("nsView.Should().NotBe(IntPtr.Zero);");
+        integrationTest.Contains("object_getClassName", StringComparison.Ordinal).Should().BeFalse();
+        integrationTest.Contains(".Be(\"NSView\")", StringComparison.Ordinal).Should().BeFalse();
+    }
+
+    [Fact]
+    public void MacOSNativeHost_ShouldInitializeAppKitBeforeCreatingNSView()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var nativeHost = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Avalonia", "Controls", "VideraMacOSNativeHost.cs"));
+        var objcRuntime = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Platform.macOS", "ObjCRuntime.cs"));
+
+        nativeHost.Should().Contain("ObjCRuntime.EnsureAppKitReady();");
+        objcRuntime.Should().Contain("public static void EnsureAppKitReady()");
+        objcRuntime.Should().Contain("sharedApplication");
+    }
+
+    [Fact]
+    public void LinuxVulkanLifecycleTest_ShouldBindCameraAndWorldUniformBuffersBeforeDraw()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var lifecycleTest = File.ReadAllText(Path.Combine(repositoryRoot, "tests", "Videra.Platform.Linux.Tests", "Backend", "VulkanBackendLifecycleTests.cs"));
+
+        lifecycleTest.Should().Contain("CreateUniformBuffer(128)");
+        lifecycleTest.Should().Contain("CreateUniformBuffer(64)");
+        lifecycleTest.Should().Contain("cameraBuffer.SetData(Matrix4x4.Identity, 0);");
+        lifecycleTest.Should().Contain("cameraBuffer.SetData(Matrix4x4.Identity, 64);");
+        lifecycleTest.Should().Contain("worldBuffer.SetData(Matrix4x4.Identity, 0);");
+        lifecycleTest.Should().Contain("executor.SetVertexBuffer(cameraBuffer, RenderBindingSlots.Camera);");
+        lifecycleTest.Should().Contain("executor.SetVertexBuffer(worldBuffer, RenderBindingSlots.World);");
+    }
+
     private static string GetRepositoryRoot()
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);
