@@ -10,10 +10,11 @@
 - Backend-ready initialization through `DemoSceneBootstrapper`
 - High-level model loading with `LoadModelAsync` / `LoadModelsAsync`
 - Scene framing with `FrameAll()` after successful load
+- Quick camera utilities with `Frame All` and `Reset Camera`
 - Render-style and wireframe switching
 - Grid visibility, color, and height controls
 - Basic object transform editing
-- Backend diagnostics via `BackendDiagnostics`
+- Backend diagnostics via `BackendDiagnostics`, including readiness, native-host binding, and fallback details
 
 ## Runtime Behavior
 

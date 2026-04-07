@@ -10,7 +10,8 @@
 - 通过 `DemoSceneBootstrapper` 等待后端就绪后再初始化导入能力
 - 使用高层场景 API：`LoadModelAsync` / `LoadModelsAsync`
 - 在成功导入或默认场景加载后调用 `FrameAll()`
-- 通过 `BackendDiagnostics` 展示当前请求后端、实际解析后端和就绪状态
+- 提供 `Frame All` / `Reset Camera` 快捷操作
+- 通过 `BackendDiagnostics` 展示当前请求后端、实际解析后端、native host 绑定状态和 fallback 信息
 - 切换渲染风格、线框模式、网格可见性和对象变换
 
 ## 运行时行为

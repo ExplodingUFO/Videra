@@ -78,6 +78,27 @@ public sealed class DemoConfigurationTests
         xaml.Should().Contain("IsEnabled=\"{Binding IsBackendReady}\"");
     }
 
+    [Fact]
+    public void DemoStatusPanel_ShouldExposeBackendDetails()
+    {
+        var mainWindowPath = Path.Combine(GetRepositoryRoot(), "samples", "Videra.Demo", "Views", "MainWindow.axaml");
+        var xaml = File.ReadAllText(mainWindowPath);
+
+        xaml.Should().Contain("Text=\"{Binding BackendDetails}\"");
+    }
+
+    [Fact]
+    public void Demo_ShouldExposeCameraUtilityCommands()
+    {
+        var mainWindowPath = Path.Combine(GetRepositoryRoot(), "samples", "Videra.Demo", "Views", "MainWindow.axaml");
+        var xaml = File.ReadAllText(mainWindowPath);
+
+        xaml.Should().Contain("Content=\"Frame All\"");
+        xaml.Should().Contain("Command=\"{Binding FrameAllCommand}\"");
+        xaml.Should().Contain("Content=\"Reset Camera\"");
+        xaml.Should().Contain("Command=\"{Binding ResetCameraCommand}\"");
+    }
+
     private static string GetRepositoryRoot()
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);

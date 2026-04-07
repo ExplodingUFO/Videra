@@ -2,6 +2,7 @@ using System;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
+using Videra.Avalonia.Controls;
 using Videra.Demo.Services;
 using Videra.Demo.ViewModels;
 
@@ -31,6 +32,11 @@ public partial class MainWindow : Window
     {
         View3D.BackendReady -= OnBackendReady;
         View3D.BackendReady += OnBackendReady;
+        View3D.BackendStatusChanged -= OnBackendStatusChanged;
+        View3D.BackendStatusChanged += OnBackendStatusChanged;
+        View3D.InitializationFailed -= OnInitializationFailed;
+        View3D.InitializationFailed += OnInitializationFailed;
+        _viewModel.UpdateBackendDiagnostics(View3D.BackendDiagnostics);
         TryInitializeScene();
     }
 
@@ -39,10 +45,23 @@ public partial class MainWindow : Window
         Dispatcher.UIThread.Post(TryInitializeScene, DispatcherPriority.Background);
     }
 
+    private void OnBackendStatusChanged(object? sender, VideraBackendStatusChangedEventArgs e)
+    {
+        _viewModel.UpdateBackendDiagnostics(e.Diagnostics);
+    }
+
+    private void OnInitializationFailed(object? sender, VideraBackendFailureEventArgs e)
+    {
+        _viewModel.UpdateBackendDiagnostics(e.Diagnostics);
+        _viewModel.SetStatusMessage($"Backend initialization failed: {e.Exception.Message}");
+    }
+
     private void TryInitializeScene()
     {
         if (_viewModelInitialized)
+        {
             return;
+        }
 
         var initialized = _sceneBootstrapper.TryInitialize(
             _viewModel,
@@ -50,7 +69,9 @@ public partial class MainWindow : Window
             View3D);
 
         if (!initialized)
+        {
             return;
+        }
 
         _viewModelInitialized = true;
         View3D.BackendReady -= OnBackendReady;

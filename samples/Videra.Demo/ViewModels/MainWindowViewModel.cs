@@ -1,5 +1,3 @@
-using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -7,6 +5,8 @@ using System.Linq;
 using System.Numerics;
 using System.Threading.Tasks;
 using Avalonia.Media;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using Videra.Avalonia.Controls;
 using Videra.Core.Graphics;
 using Videra.Core.Graphics.Wireframe;
@@ -23,24 +23,17 @@ public partial class MainWindowViewModel : ViewModelBase
     private readonly IEnumerable<WireframeMode> _availableWireframeModes =
         Enum.GetValues<WireframeMode>().ToArray();
 
-    #region 网格控制
+    private IModelImporter? _importer;
+    private IDemoViewportActions? _viewportActions;
+    private const float DegToRad = (float)(Math.PI / 180.0);
+    private const float RadToDeg = (float)(180.0 / Math.PI);
 
     [ObservableProperty] private bool _isGridVisible = true;
-    [ObservableProperty] private decimal _gridHeight = 0;
+    [ObservableProperty] private decimal _gridHeight;
     [ObservableProperty] private Color _gridColor = Color.Parse("#66808080");
-
-    #endregion
-
-    #region 渲染风格
 
     [ObservableProperty]
     private RenderStylePreset _renderStyle = RenderStylePreset.Realistic;
-
-    public IEnumerable<RenderStylePreset> AvailablePresets => _availablePresets;
-
-    #endregion
-
-    #region 线框渲染
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsWireframeEnabled))]
@@ -49,28 +42,16 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty]
     private Color _wireframeColor = Colors.Black;
 
-    public IEnumerable<WireframeMode> AvailableWireframeModes => _availableWireframeModes;
-
-    public bool IsWireframeEnabled => WireframeMode != WireframeMode.None;
-
-    #endregion
-
-    private IModelImporter? _importer;
-    private const float DegToRad = (float)(Math.PI / 180.0);
-    private const float RadToDeg = (float)(180.0 / Math.PI);
-
     [ObservableProperty] private string _statusMessage = "Waiting for rendering backend initialization...";
-    [ObservableProperty] private bool _isBackendReady;
+
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(FrameAllCommand))]
+    [NotifyCanExecuteChangedFor(nameof(ResetCameraCommand))]
+    private bool _isBackendReady;
+
     [ObservableProperty] private string _backendDisplay = "Requested: Auto | Resolved: Auto";
-
-    public MainWindowViewModel()
-    {
-    }
-
-    public ObservableCollection<Object3D> SceneObjects { get; } = new();
-
+    [ObservableProperty] private string _backendDetails = "Ready: false | Native host: false | Render loop: Dispatcher";
     [ObservableProperty] private Color _bgColor = Color.Parse("#1e1e1e");
-    public CameraViewModel Camera { get; } = new();
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(SelectedPosX))]
@@ -81,6 +62,16 @@ public partial class MainWindowViewModel : ViewModelBase
     [NotifyPropertyChangedFor(nameof(SelectedRotZ))]
     [NotifyPropertyChangedFor(nameof(SelectedScale))]
     private Object3D? _selectedObject;
+
+    public IEnumerable<RenderStylePreset> AvailablePresets => _availablePresets;
+
+    public IEnumerable<WireframeMode> AvailableWireframeModes => _availableWireframeModes;
+
+    public bool IsWireframeEnabled => WireframeMode != WireframeMode.None;
+
+    public ObservableCollection<Object3D> SceneObjects { get; } = new();
+
+    public CameraViewModel Camera { get; } = new();
 
     public decimal SelectedPosX
     {
@@ -123,18 +114,52 @@ public partial class MainWindowViewModel : ViewModelBase
         get => (decimal)(SelectedObject?.Scale.X ?? 1.0f);
         set
         {
-            if (SelectedObject == null) return;
+            if (SelectedObject == null)
+            {
+                return;
+            }
+
             SelectedObject.Scale = new Vector3((float)value);
             OnPropertyChanged();
             StatusMessage = $"Updated scale for {SelectedObject.Name}.";
         }
     }
 
-    public void SetBackendStatus(bool isReady, string backendDisplay, string statusMessage)
+    public void SetBackendStatus(bool isReady, string statusMessage)
     {
         IsBackendReady = isReady;
-        BackendDisplay = backendDisplay;
         StatusMessage = statusMessage;
+    }
+
+    public void UpdateBackendDiagnostics(VideraBackendDiagnostics diagnostics)
+    {
+        ArgumentNullException.ThrowIfNull(diagnostics);
+
+        BackendDisplay = $"Requested: {diagnostics.RequestedBackend} | Resolved: {diagnostics.ResolvedBackend}";
+
+        var details = new List<string>
+        {
+            $"Ready: {diagnostics.IsReady}",
+            $"Native host: {diagnostics.NativeHostBound}",
+            $"Render loop: {diagnostics.RenderLoopMode}"
+        };
+
+        if (diagnostics.IsUsingSoftwareFallback)
+        {
+            details.Add($"Fallback: {diagnostics.FallbackReason ?? "Software"}");
+        }
+
+        if (diagnostics.EnvironmentOverrideApplied)
+        {
+            details.Add("Environment override applied");
+        }
+
+        if (!string.IsNullOrWhiteSpace(diagnostics.LastInitializationError))
+        {
+            details.Add($"Last error: {diagnostics.LastInitializationError}");
+        }
+
+        BackendDetails = string.Join(" | ", details);
     }
 
     public void SetStatusMessage(string message)
@@ -150,6 +175,13 @@ public partial class MainWindowViewModel : ViewModelBase
         _importer = importer;
     }
 
+    public void AttachViewportActions(IDemoViewportActions viewportActions)
+    {
+        _viewportActions = viewportActions ?? throw new ArgumentNullException(nameof(viewportActions));
+        FrameAllCommand.NotifyCanExecuteChanged();
+        ResetCameraCommand.NotifyCanExecuteChanged();
+    }
+
     [RelayCommand]
     private void TestWireframe()
     {
@@ -163,6 +195,37 @@ public partial class MainWindowViewModel : ViewModelBase
 
         OnPropertyChanged(nameof(WireframeMode));
         OnPropertyChanged(nameof(IsWireframeEnabled));
+    }
+
+    [RelayCommand(CanExecute = nameof(CanUseViewportActions))]
+    private void FrameAll()
+    {
+        if (_viewportActions is null)
+        {
+            return;
+        }
+
+        var framed = _viewportActions.FrameAll();
+        StatusMessage = framed
+            ? "Framed all scene objects."
+            : "No scene objects are available to frame.";
+    }
+
+    [RelayCommand(CanExecute = nameof(CanUseViewportActions))]
+    private void ResetCamera()
+    {
+        if (_viewportActions is null)
+        {
+            return;
+        }
+
+        _viewportActions.ResetCamera();
+        StatusMessage = "Camera reset to the default view.";
+    }
+
+    private bool CanUseViewportActions()
+    {
+        return IsBackendReady && _viewportActions is not null;
     }
 
     private void UpdateTransform(Action<decimal> updateAction, decimal value)
@@ -201,7 +264,7 @@ public partial class MainWindowViewModel : ViewModelBase
         StatusMessage = BuildImportStatus(loadResult);
     }
 
-    private string BuildImportStatus(ModelLoadBatchResult loadResult)
+    private static string BuildImportStatus(ModelLoadBatchResult loadResult)
     {
         if (loadResult.LoadedObjects.Count == 0)
         {
@@ -211,7 +274,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
         if (loadResult.Failures.Count == 0)
         {
-            return $"Imported {loadResult.LoadedObjects.Count} model(s). Scene now contains {SceneObjects.Count} object(s).";
+            return $"Imported {loadResult.LoadedObjects.Count} model(s).";
         }
 
         var lastFailure = loadResult.Failures[^1];
