@@ -169,7 +169,11 @@ public sealed class VulkanBackendLifecycleTests
             backend.EndFrame();
         };
 
-        act.Should().NotThrow();
+        var exception = Record.Exception(act);
+        if (exception is not null)
+        {
+            throw new Xunit.Sdk.XunitException(exception.ToString());
+        }
     }
 
     [LinuxFact]
