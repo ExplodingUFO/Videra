@@ -65,6 +65,103 @@ public sealed class RenderSessionIntegrationTests
         host.Should().NotBeNull();
     }
 
+    [Fact]
+    public void VideraView_ExposesTypedOptionsAndDiagnostics()
+    {
+        var view = new VideraView
+        {
+            Options = new VideraViewOptions
+            {
+                Backend = new VideraBackendOptions
+                {
+                    PreferredBackend = GraphicsBackendPreference.Vulkan,
+                    EnvironmentOverrideMode = BackendEnvironmentOverrideMode.Disabled
+                }
+            }
+        };
+
+        view.Options.Backend.PreferredBackend.Should().Be(GraphicsBackendPreference.Vulkan);
+        view.BackendDiagnostics.RequestedBackend.Should().Be(GraphicsBackendPreference.Vulkan);
+        view.BackendDiagnostics.EnvironmentOverrideApplied.Should().BeFalse();
+        view.BackendDiagnostics.IsReady.Should().BeFalse();
+    }
+
+    [Fact]
+    public void VideraView_MutatingBackendOptions_RefreshesDiagnostics()
+    {
+        var view = new VideraView();
+
+        view.Options.Backend.PreferredBackend = GraphicsBackendPreference.Metal;
+
+        view.BackendDiagnostics.RequestedBackend.Should().Be(GraphicsBackendPreference.Metal);
+    }
+
+    [Fact]
+    public void RenderSession_TracksLastBackendResolution()
+    {
+        using var engine = new VideraEngine();
+        using var session = new RenderSession(
+            engine,
+            backendResolutionFactory: request =>
+            {
+                var backend = new TrackingBackend();
+                return new GraphicsBackendResolution(
+                    backend,
+                    request.RequestedPreference,
+                    GraphicsBackendPreference.Software,
+                    environmentOverrideApplied: false,
+                    isUsingSoftwareFallback: true,
+                    fallbackReason: "Native backend unavailable in test resolver.");
+            });
+
+        session.Resize(128, 96, 1f);
+        session.BindHandle(new IntPtr(0x1234));
+        session.Attach(GraphicsBackendPreference.D3D11);
+
+        session.LastBackendResolution.Should().NotBeNull();
+        session.LastBackendResolution!.RequestedPreference.Should().Be(GraphicsBackendPreference.D3D11);
+        session.LastBackendResolution!.ResolvedPreference.Should().Be(GraphicsBackendPreference.Software);
+        session.LastBackendResolution!.IsUsingSoftwareFallback.Should().BeTrue();
+        session.LastBackendResolution!.FallbackReason.Should().Be("Native backend unavailable in test resolver.");
+    }
+
+    [Fact]
+    public void RenderSession_DefaultResolution_HonorsDisabledEnvironmentOverrides()
+    {
+        var original = Environment.GetEnvironmentVariable("VIDERA_BACKEND");
+        var resolver = new TrackingBackendResolver();
+        GraphicsBackendFactory.ConfigureResolver(resolver);
+
+        try
+        {
+            Environment.SetEnvironmentVariable("VIDERA_BACKEND", "software");
+
+            using var engine = new VideraEngine();
+            using var session = new RenderSession(engine);
+
+            session.BindHandle(new IntPtr(0x1234));
+            session.Attach(
+                GraphicsBackendPreference.Vulkan,
+                new VideraBackendOptions
+                {
+                    PreferredBackend = GraphicsBackendPreference.Vulkan,
+                    EnvironmentOverrideMode = BackendEnvironmentOverrideMode.Disabled,
+                    AllowSoftwareFallback = true
+                });
+            session.Resize(128, 96, 1f);
+
+            session.LastBackendResolution.Should().NotBeNull();
+            session.LastBackendResolution!.ResolvedPreference.Should().Be(GraphicsBackendPreference.Vulkan);
+            session.LastBackendResolution!.EnvironmentOverrideApplied.Should().BeFalse();
+            resolver.LastPreference.Should().Be(GraphicsBackendPreference.Vulkan);
+        }
+        finally
+        {
+            GraphicsBackendFactory.ConfigureResolver(null);
+            Environment.SetEnvironmentVariable("VIDERA_BACKEND", original);
+        }
+    }
+
     private sealed class TrackingBackendFactory
     {
         public List<TrackingBackend> CreatedBackends { get; } = new();
@@ -75,6 +172,18 @@ public sealed class RenderSessionIntegrationTests
             var backend = new TrackingBackend();
             CreatedBackends.Add(backend);
             return backend;
+        }
+    }
+
+    private sealed class TrackingBackendResolver : IGraphicsBackendResolver
+    {
+        public GraphicsBackendPreference? LastPreference { get; private set; }
+
+        public IGraphicsBackend? CreateBackend(GraphicsBackendPreference preference, Microsoft.Extensions.Logging.ILoggerFactory? loggerFactory = null)
+        {
+            _ = loggerFactory;
+            LastPreference = preference;
+            return new TrackingBackend();
         }
     }
 

@@ -26,23 +26,57 @@ public static partial class GraphicsBackendFactory
     /// </summary>
     public static IGraphicsBackend CreateBackend(GraphicsBackendPreference preference = GraphicsBackendPreference.Auto, ILoggerFactory? loggerFactory = null)
     {
-        var logger = loggerFactory?.CreateLogger("GraphicsBackendFactory")
+        return ResolveBackend(new GraphicsBackendRequest(
+            preference,
+            BackendEnvironmentOverrideMode.PreferOverrides,
+            AllowSoftwareFallback: true,
+            LoggerFactory: loggerFactory)).Backend;
+    }
+
+    public static GraphicsBackendResolution ResolveBackend(GraphicsBackendRequest request)
+    {
+        var logger = request.LoggerFactory?.CreateLogger("GraphicsBackendFactory")
             ?? Microsoft.Extensions.Logging.Abstractions.NullLoggerFactory.Instance.CreateLogger("GraphicsBackendFactory");
 
         var backendMode = Environment.GetEnvironmentVariable("VIDERA_BACKEND");
-        Log.PreferenceResolved(logger, preference, backendMode ?? "<null>");
-        if (preference == GraphicsBackendPreference.Auto && !string.IsNullOrWhiteSpace(backendMode))
-            preference = ParsePreference(backendMode);
+        var preference = ResolveRequestedPreference(request, backendMode);
+        var environmentOverrideApplied = preference != request.RequestedPreference;
+
+        Log.PreferenceResolved(logger, request.RequestedPreference, backendMode ?? "<null>");
 
         if (preference == GraphicsBackendPreference.Software)
-            return new SoftwareBackend();
+        {
+            return new GraphicsBackendResolution(
+                new SoftwareBackend(),
+                request.RequestedPreference,
+                GraphicsBackendPreference.Software,
+                environmentOverrideApplied: environmentOverrideApplied);
+        }
 
-        var resolvedBackend = _resolver?.CreateBackend(preference, loggerFactory);
+        var resolvedBackend = _resolver?.CreateBackend(preference, request.LoggerFactory);
         if (resolvedBackend != null)
-            return resolvedBackend;
+        {
+            return new GraphicsBackendResolution(
+                resolvedBackend,
+                request.RequestedPreference,
+                preference,
+                environmentOverrideApplied: environmentOverrideApplied);
+        }
+
+        var fallbackReason = $"No native resolver configured for backend preference {preference}.";
+        if (!request.AllowSoftwareFallback)
+        {
+            throw new InvalidOperationException(fallbackReason);
+        }
 
         Log.FallingBackToSoftware(logger, preference);
-        return new SoftwareBackend();
+        return new GraphicsBackendResolution(
+            new SoftwareBackend(),
+            request.RequestedPreference,
+            GraphicsBackendPreference.Software,
+            environmentOverrideApplied: environmentOverrideApplied,
+            isUsingSoftwareFallback: true,
+            fallbackReason: fallbackReason);
     }
 
     /// <summary>
@@ -67,7 +101,12 @@ public static partial class GraphicsBackendFactory
         return "Unknown Platform";
     }
 
-    private static GraphicsBackendPreference ParsePreference(string value)
+    public static GraphicsBackendPreference ResolveRequestedPreference(GraphicsBackendRequest request)
+    {
+        return ResolveRequestedPreference(request, Environment.GetEnvironmentVariable("VIDERA_BACKEND"));
+    }
+
+    public static GraphicsBackendPreference ParsePreference(string value)
     {
         return value.Trim().ToLowerInvariant() switch
         {
@@ -80,6 +119,43 @@ public static partial class GraphicsBackendFactory
             "native" => GraphicsBackendPreference.Auto,
             "auto" => GraphicsBackendPreference.Auto,
             _ => GraphicsBackendPreference.Auto
+        };
+    }
+
+    private static GraphicsBackendPreference ResolveRequestedPreference(GraphicsBackendRequest request, string? backendMode)
+    {
+        if (string.IsNullOrWhiteSpace(backendMode))
+        {
+            return request.RequestedPreference;
+        }
+
+        var envPreference = ParsePreference(backendMode);
+        if (envPreference == GraphicsBackendPreference.Auto &&
+            !string.Equals(backendMode.Trim(), "auto", StringComparison.OrdinalIgnoreCase) &&
+            !string.Equals(backendMode.Trim(), "native", StringComparison.OrdinalIgnoreCase))
+        {
+            return request.RequestedPreference;
+        }
+
+        if (!ShouldApplyEnvironmentOverride(request.RequestedPreference, envPreference, request.EnvironmentOverrideMode))
+        {
+            return request.RequestedPreference;
+        }
+
+        return envPreference;
+    }
+
+    private static bool ShouldApplyEnvironmentOverride(
+        GraphicsBackendPreference requestedPreference,
+        GraphicsBackendPreference envPreference,
+        BackendEnvironmentOverrideMode overrideMode)
+    {
+        return overrideMode switch
+        {
+            BackendEnvironmentOverrideMode.Disabled => false,
+            BackendEnvironmentOverrideMode.AllowOverrides => requestedPreference == GraphicsBackendPreference.Auto,
+            BackendEnvironmentOverrideMode.PreferOverrides => envPreference != requestedPreference,
+            _ => false
         };
     }
 

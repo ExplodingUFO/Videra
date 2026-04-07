@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Specialized;
+using System.ComponentModel;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
@@ -22,6 +23,8 @@ namespace Videra.Avalonia.Controls;
 public partial class VideraView : Decorator
 {
     private RenderSession _renderSession;
+    private VideraViewOptions _options = new();
+    private VideraBackendDiagnostics _backendDiagnostics;
     private readonly INativeHostFactory _nativeHostFactory;
     private NativeControlHost? _nativeHost;
     private Grid? _nativeContainer;
@@ -29,6 +32,8 @@ public partial class VideraView : Decorator
     private readonly ILogger _logger = Microsoft.Extensions.Logging.Abstractions.NullLoggerFactory.Instance.CreateLogger<VideraView>();
 
     public event EventHandler? BackendReady;
+    public event EventHandler<VideraBackendStatusChangedEventArgs>? BackendStatusChanged;
+    public event EventHandler<VideraBackendFailureEventArgs>? InitializationFailed;
 
     public static readonly StyledProperty<Color> BackgroundColorProperty =
         AvaloniaProperty.Register<VideraView, Color>(nameof(BackgroundColor), Colors.Black);
@@ -86,11 +91,28 @@ public partial class VideraView : Decorator
         Engine = new VideraEngine();
         _nativeHostFactory = nativeHostFactory ?? new DefaultNativeHostFactory();
         _renderSession = CreateRenderSession();
+        SubscribeToOptions(_options);
+        _backendDiagnostics = CreateDiagnosticsSnapshot(lastInitializationError: null);
         Focusable = true;
         ClipToBounds = true;
     }
 
     public VideraEngine Engine { get; }
+
+    public VideraViewOptions Options
+    {
+        get => _options;
+        set
+        {
+            UnsubscribeFromOptions(_options);
+            _options = value ?? new VideraViewOptions();
+            SubscribeToOptions(_options);
+            RefreshBackendDiagnostics(lastInitializationError: _backendDiagnostics.LastInitializationError);
+            ReattachRenderSessionIfPossible();
+        }
+    }
+
+    public VideraBackendDiagnostics BackendDiagnostics => _backendDiagnostics;
 
     public IResourceFactory? GetResourceFactory()
     {
@@ -172,6 +194,13 @@ public partial class VideraView : Decorator
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {
         base.OnPropertyChanged(change);
+
+        if (change.Property == PreferredBackendProperty)
+        {
+            RefreshBackendDiagnostics(lastInitializationError: _backendDiagnostics.LastInitializationError);
+            ReattachRenderSessionIfPossible();
+            return;
+        }
 
         if (!_renderSession.IsReady)
             return;
@@ -281,6 +310,7 @@ public partial class VideraView : Decorator
 
     private void OnRenderSessionBackendReady(object? sender, EventArgs e)
     {
+        RefreshBackendDiagnostics(lastInitializationError: null);
         BackendReady?.Invoke(this, EventArgs.Empty);
     }
 
@@ -292,8 +322,10 @@ public partial class VideraView : Decorator
         try
         {
             var wasReady = _renderSession.IsReady;
-            _renderSession.Attach(PreferredBackend);
+            var backendOptions = CreateBackendOptionsSnapshot();
+            _renderSession.Attach(backendOptions.PreferredBackend, backendOptions);
             _renderSession.Resize(widthPx, heightPx, (float)(VisualRoot?.RenderScaling ?? 1.0));
+            RefreshBackendDiagnostics(lastInitializationError: null);
 
             if (!wasReady && _renderSession.IsReady)
             {
@@ -303,6 +335,8 @@ public partial class VideraView : Decorator
         catch (Exception ex)
         {
             Log.RenderSessionInitFailed(_logger, retryCount + 1, ex.Message, ex);
+            RefreshBackendDiagnostics(lastInitializationError: ex.Message);
+            InitializationFailed?.Invoke(this, new VideraBackendFailureEventArgs(_backendDiagnostics, ex));
 
             if (retryCount < 5)
             {
@@ -365,7 +399,9 @@ public partial class VideraView : Decorator
     private void OnViewAttached()
     {
         Log.ViewAttached(_logger);
-        _renderSession.Attach(PreferredBackend);
+        var backendOptions = CreateBackendOptionsSnapshot();
+        _renderSession.Attach(backendOptions.PreferredBackend, backendOptions);
+        RefreshBackendDiagnostics(lastInitializationError: null);
 
         if (WantsNativeBackend())
         {
@@ -394,19 +430,20 @@ public partial class VideraView : Decorator
         _renderSession.Dispose();
         _renderSession = CreateRenderSession();
         ReleaseNativeHost();
+        RefreshBackendDiagnostics(lastInitializationError: null);
     }
 
     private bool WantsNativeBackend()
     {
-        if (PreferredBackend == GraphicsBackendPreference.Software)
+        var backendOptions = CreateBackendOptionsSnapshot();
+        if (backendOptions.PreferredBackend == GraphicsBackendPreference.Software)
             return false;
 
-        if (PreferredBackend == GraphicsBackendPreference.Auto)
-        {
-            var backendMode = Environment.GetEnvironmentVariable("VIDERA_BACKEND");
-            if (string.Equals(backendMode, "software", StringComparison.OrdinalIgnoreCase))
-                return false;
-        }
+        if (GraphicsBackendFactory.ResolveRequestedPreference(new GraphicsBackendRequest(
+                backendOptions.PreferredBackend,
+                backendOptions.EnvironmentOverrideMode,
+                backendOptions.AllowSoftwareFallback)) == GraphicsBackendPreference.Software)
+            return false;
 
         return OperatingSystem.IsWindows() || OperatingSystem.IsLinux() || OperatingSystem.IsMacOS();
     }
@@ -460,6 +497,7 @@ public partial class VideraView : Decorator
         _nativeHost = null;
         _nativeContainer = null;
         _inputOverlay = null;
+        RefreshBackendDiagnostics(lastInitializationError: _backendDiagnostics.LastInitializationError);
     }
 
     private void OnNativeHandleCreated(IntPtr handle)
@@ -476,6 +514,117 @@ public partial class VideraView : Decorator
     private void OnNativeHandleDestroyed()
     {
         _renderSession.BindHandle(IntPtr.Zero);
+        RefreshBackendDiagnostics(lastInitializationError: _backendDiagnostics.LastInitializationError);
+    }
+
+    private VideraBackendOptions CreateBackendOptionsSnapshot()
+    {
+        var source = _options.Backend ?? new VideraBackendOptions();
+        return new VideraBackendOptions
+        {
+            PreferredBackend = IsSet(PreferredBackendProperty) ? PreferredBackend : source.PreferredBackend,
+            EnvironmentOverrideMode = source.EnvironmentOverrideMode,
+            AllowSoftwareFallback = source.AllowSoftwareFallback
+        };
+    }
+
+    private void ReattachRenderSessionIfPossible()
+    {
+        if (Bounds.Width <= 0 || Bounds.Height <= 0)
+        {
+            return;
+        }
+
+        var scaling = VisualRoot?.RenderScaling ?? 1.0;
+        var widthPx = (uint)Math.Max(64, Math.Round(Bounds.Width * scaling));
+        var heightPx = (uint)Math.Max(64, Math.Round(Bounds.Height * scaling));
+        ApplyRenderSessionSize(widthPx, heightPx, retryCount: 0);
+    }
+
+    private void SubscribeToOptions(VideraViewOptions options)
+    {
+        options.PropertyChanged += OnOptionsPropertyChanged;
+        options.Backend.PropertyChanged += OnBackendOptionsPropertyChanged;
+        options.Diagnostics.PropertyChanged += OnDiagnosticsOptionsPropertyChanged;
+    }
+
+    private void UnsubscribeFromOptions(VideraViewOptions options)
+    {
+        options.PropertyChanged -= OnOptionsPropertyChanged;
+        options.Backend.PropertyChanged -= OnBackendOptionsPropertyChanged;
+        options.Diagnostics.PropertyChanged -= OnDiagnosticsOptionsPropertyChanged;
+    }
+
+    private void OnOptionsPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (sender is not VideraViewOptions options)
+        {
+            return;
+        }
+
+        if (e.PropertyName == nameof(VideraViewOptions.Backend))
+        {
+            RefreshBackendDiagnostics(lastInitializationError: _backendDiagnostics.LastInitializationError);
+            ReattachRenderSessionIfPossible();
+        }
+        else if (e.PropertyName == nameof(VideraViewOptions.Diagnostics))
+        {
+            RefreshBackendDiagnostics(lastInitializationError: _backendDiagnostics.LastInitializationError);
+        }
+
+        if (options.Backend != null)
+        {
+            options.Backend.PropertyChanged -= OnBackendOptionsPropertyChanged;
+            options.Backend.PropertyChanged += OnBackendOptionsPropertyChanged;
+        }
+
+        if (options.Diagnostics != null)
+        {
+            options.Diagnostics.PropertyChanged -= OnDiagnosticsOptionsPropertyChanged;
+            options.Diagnostics.PropertyChanged += OnDiagnosticsOptionsPropertyChanged;
+        }
+    }
+
+    private void OnBackendOptionsPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        _ = sender;
+        _ = e;
+        RefreshBackendDiagnostics(lastInitializationError: _backendDiagnostics.LastInitializationError);
+        ReattachRenderSessionIfPossible();
+    }
+
+    private void OnDiagnosticsOptionsPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        _ = sender;
+        _ = e;
+        RefreshBackendDiagnostics(lastInitializationError: _backendDiagnostics.LastInitializationError);
+    }
+
+    private void RefreshBackendDiagnostics(string? lastInitializationError)
+    {
+        var next = CreateDiagnosticsSnapshot(lastInitializationError);
+        _backendDiagnostics = next;
+        BackendStatusChanged?.Invoke(this, new VideraBackendStatusChangedEventArgs(next));
+    }
+
+    private VideraBackendDiagnostics CreateDiagnosticsSnapshot(string? lastInitializationError)
+    {
+        var backendOptions = CreateBackendOptionsSnapshot();
+        var resolution = _renderSession.LastBackendResolution;
+        var diagnosticsOptions = _options.Diagnostics ?? new VideraDiagnosticsOptions();
+
+        return new VideraBackendDiagnostics
+        {
+            RequestedBackend = backendOptions.PreferredBackend,
+            ResolvedBackend = resolution?.ResolvedPreference ?? backendOptions.PreferredBackend,
+            IsReady = _renderSession.IsReady,
+            IsUsingSoftwareFallback = resolution?.IsUsingSoftwareFallback ?? false,
+            FallbackReason = resolution?.FallbackReason,
+            NativeHostBound = _renderSession.HandleState.IsBound,
+            RenderLoopMode = diagnosticsOptions.RenderLoopMode,
+            EnvironmentOverrideApplied = resolution?.EnvironmentOverrideApplied ?? false,
+            LastInitializationError = lastInitializationError ?? _renderSession.LastInitializationError?.Message
+        };
     }
 
     private static partial class Log

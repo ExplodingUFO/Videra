@@ -222,6 +222,58 @@ public sealed class GraphicsBackendFactoryTests
         }
     }
 
+    [Fact]
+    public void ResolveBackend_DisabledEnvironmentOverrides_UsesRequestedPreference()
+    {
+        var resolver = new TestGraphicsBackendResolver();
+        var original = Environment.GetEnvironmentVariable("VIDERA_BACKEND");
+        GraphicsBackendFactory.ConfigureResolver(resolver);
+
+        try
+        {
+            Environment.SetEnvironmentVariable("VIDERA_BACKEND", "software");
+
+            var resolution = GraphicsBackendFactory.ResolveBackend(
+                new GraphicsBackendRequest(
+                    GraphicsBackendPreference.Vulkan,
+                    BackendEnvironmentOverrideMode.Disabled,
+                    AllowSoftwareFallback: true,
+                    LoggerFactory: NullLoggerFactory.Instance));
+
+            resolution.RequestedPreference.Should().Be(GraphicsBackendPreference.Vulkan);
+            resolution.ResolvedPreference.Should().Be(GraphicsBackendPreference.Vulkan);
+            resolution.EnvironmentOverrideApplied.Should().BeFalse();
+            resolution.IsUsingSoftwareFallback.Should().BeFalse();
+            resolver.LastPreference.Should().Be(GraphicsBackendPreference.Vulkan);
+            resolution.Backend.Dispose();
+        }
+        finally
+        {
+            GraphicsBackendFactory.ConfigureResolver(null);
+            Environment.SetEnvironmentVariable("VIDERA_BACKEND", original);
+        }
+    }
+
+    [Fact]
+    public void ResolveBackend_WithoutResolver_FallsBackToSoftwareWithReason()
+    {
+        GraphicsBackendFactory.ConfigureResolver(null);
+
+        var resolution = GraphicsBackendFactory.ResolveBackend(
+            new GraphicsBackendRequest(
+                GraphicsBackendPreference.D3D11,
+                BackendEnvironmentOverrideMode.Disabled,
+                AllowSoftwareFallback: true,
+                LoggerFactory: NullLoggerFactory.Instance));
+
+        resolution.RequestedPreference.Should().Be(GraphicsBackendPreference.D3D11);
+        resolution.ResolvedPreference.Should().Be(GraphicsBackendPreference.Software);
+        resolution.IsUsingSoftwareFallback.Should().BeTrue();
+        resolution.FallbackReason.Should().NotBeNullOrWhiteSpace();
+        resolution.Backend.GetType().Name.Should().Be("SoftwareBackend");
+        resolution.Backend.Dispose();
+    }
+
     private sealed class TestGraphicsBackendResolver : IGraphicsBackendResolver
     {
         public GraphicsBackendPreference? LastPreference { get; private set; }

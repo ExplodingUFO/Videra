@@ -367,6 +367,7 @@ tmpclaude*
 # Coverage reports
 coverage/
 .artifacts/
+.dotnet-cli/
 
 # Local planning and workstation metadata
 .planning/

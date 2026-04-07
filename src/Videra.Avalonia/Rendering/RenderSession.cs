@@ -4,6 +4,7 @@ using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using Avalonia.Threading;
 using Microsoft.Extensions.Logging;
+using Videra.Avalonia.Controls;
 using Videra.Core.Graphics;
 using Videra.Core.Graphics.Abstractions;
 
@@ -15,6 +16,7 @@ internal sealed partial class RenderSession : IDisposable
 
     private readonly VideraEngine _engine;
     private readonly Func<GraphicsBackendPreference, IGraphicsBackend> _backendFactory;
+    private readonly Func<GraphicsBackendRequest, GraphicsBackendResolution> _backendResolutionFactory;
     private readonly Action? _requestRender;
     private readonly ILogger _logger;
     private readonly Func<IRenderLoopDriver> _renderLoopFactory;
@@ -23,6 +25,7 @@ internal sealed partial class RenderSession : IDisposable
     private IRenderLoopDriver? _renderLoop;
     private WriteableBitmap? _bitmap;
     private GraphicsBackendPreference _preference = GraphicsBackendPreference.Auto;
+    private VideraBackendOptions? _backendOptions;
     private bool _disposed;
     private uint _width;
     private uint _height;
@@ -32,10 +35,15 @@ internal sealed partial class RenderSession : IDisposable
         Func<GraphicsBackendPreference, IGraphicsBackend>? backendFactory = null,
         Action? requestRender = null,
         ILogger? logger = null,
-        Func<IRenderLoopDriver>? renderLoopFactory = null)
+        Func<IRenderLoopDriver>? renderLoopFactory = null,
+        Func<GraphicsBackendRequest, GraphicsBackendResolution>? backendResolutionFactory = null)
     {
         _engine = engine ?? throw new ArgumentNullException(nameof(engine));
         _backendFactory = backendFactory ?? (preference => GraphicsBackendFactory.CreateBackend(preference));
+        _backendResolutionFactory = backendResolutionFactory
+            ?? (backendFactory == null
+                ? GraphicsBackendFactory.ResolveBackend
+                : CreateResolutionFromFactory);
         _requestRender = requestRender;
         _logger = logger ?? Microsoft.Extensions.Logging.Abstractions.NullLoggerFactory.Instance.CreateLogger<RenderSession>();
         _renderLoopFactory = renderLoopFactory ?? (() => new NullRenderLoopDriver());
@@ -55,7 +63,16 @@ internal sealed partial class RenderSession : IDisposable
 
     public IResourceFactory? ResourceFactory => _backend?.GetResourceFactory();
 
+    internal GraphicsBackendResolution? LastBackendResolution { get; private set; }
+
+    internal Exception? LastInitializationError { get; private set; }
+
     public void Attach(GraphicsBackendPreference preference)
+    {
+        Attach(preference, backendOptions: null);
+    }
+
+    internal void Attach(GraphicsBackendPreference preference, VideraBackendOptions? backendOptions)
     {
         ThrowIfDisposed();
 
@@ -65,6 +82,7 @@ internal sealed partial class RenderSession : IDisposable
         }
 
         _preference = preference;
+        _backendOptions = backendOptions;
         TryInitialize();
     }
 
@@ -186,21 +204,33 @@ internal sealed partial class RenderSession : IDisposable
             return;
         }
 
-        if (RequiresNativeHandle(_preference) && !HandleState.IsBound)
+        var request = CreateBackendRequest();
+        if (RequiresNativeHandle(request) && !HandleState.IsBound)
         {
             return;
         }
 
-        var backend = _backendFactory(_preference);
-        var handle = backend is ISoftwareBackend ? IntPtr.Zero : HandleState.Handle;
-        backend.Initialize(handle, (int)_width, (int)_height);
+        try
+        {
+            var resolution = _backendResolutionFactory(request);
+            var backend = resolution.Backend;
+            var handle = resolution.ResolvedPreference == GraphicsBackendPreference.Software ? IntPtr.Zero : HandleState.Handle;
+            backend.Initialize(handle, (int)_width, (int)_height);
 
-        _backend = backend;
-        _engine.Initialize(backend);
-        _engine.Resize(_width, _height);
-        EnsureBitmap(_width, _height);
-        StartRenderLoop();
-        BackendReady?.Invoke(this, EventArgs.Empty);
+            _backend = backend;
+            LastBackendResolution = resolution;
+            LastInitializationError = null;
+            _engine.Initialize(backend);
+            _engine.Resize(_width, _height);
+            EnsureBitmap(_width, _height);
+            StartRenderLoop();
+            BackendReady?.Invoke(this, EventArgs.Empty);
+        }
+        catch (Exception ex)
+        {
+            LastInitializationError = ex;
+            throw;
+        }
     }
 
     private void Suspend()
@@ -262,20 +292,41 @@ internal sealed partial class RenderSession : IDisposable
         RenderOnce();
     }
 
-    private static bool RequiresNativeHandle(GraphicsBackendPreference preference)
+    private GraphicsBackendRequest CreateBackendRequest()
     {
+        if (_backendOptions == null)
+        {
+            return new GraphicsBackendRequest(
+                _preference,
+                BackendEnvironmentOverrideMode.PreferOverrides,
+                AllowSoftwareFallback: true);
+        }
+
+        return new GraphicsBackendRequest(
+            _preference,
+            _backendOptions.EnvironmentOverrideMode,
+            _backendOptions.AllowSoftwareFallback);
+    }
+
+    private GraphicsBackendResolution CreateResolutionFromFactory(GraphicsBackendRequest request)
+    {
+        var backend = _backendFactory(request.RequestedPreference);
+        var resolvedPreference = backend is ISoftwareBackend
+            ? GraphicsBackendPreference.Software
+            : request.RequestedPreference;
+
+        return new GraphicsBackendResolution(
+            backend,
+            request.RequestedPreference,
+            resolvedPreference);
+    }
+
+    private static bool RequiresNativeHandle(GraphicsBackendRequest request)
+    {
+        var preference = GraphicsBackendFactory.ResolveRequestedPreference(request);
         if (preference == GraphicsBackendPreference.Software)
         {
             return false;
-        }
-
-        if (preference == GraphicsBackendPreference.Auto)
-        {
-            var backendMode = Environment.GetEnvironmentVariable("VIDERA_BACKEND");
-            if (string.Equals(backendMode, "software", StringComparison.OrdinalIgnoreCase))
-            {
-                return false;
-            }
         }
 
         return OperatingSystem.IsWindows() || OperatingSystem.IsLinux() || OperatingSystem.IsMacOS();
