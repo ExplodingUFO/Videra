@@ -81,7 +81,10 @@
 
                     <StackPanel Spacing="10">
                         <TextBlock Text="SCENE GRAPH" FontWeight="Bold" Foreground="#007ACC" FontSize="12"/>
-                        <Button Content="Import Model" Command="{Binding ImportCommand}" HorizontalAlignment="Stretch"/>
+                        <Button Content="Import Model"
+                                Command="{Binding ImportCommand}"
+                                IsEnabled="{Binding IsBackendReady}"
+                                HorizontalAlignment="Stretch"/>
                         <ListBox ItemsSource="{Binding SceneObjects}"
                                  SelectedItem="{Binding SelectedObject}"
                                  Height="150" Background="#1E1E1E" BorderBrush="#3E3E42" BorderThickness="1">

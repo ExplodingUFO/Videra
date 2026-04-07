@@ -154,7 +154,7 @@ For matching-host Linux/macOS validation, or to close the remaining `TEST-03` ex
 ```xml
 <Window xmlns:videra="using:Videra.Avalonia.Controls">
     <videra:VideraView
-        Items="{Binding SceneObjects}"
+        x:Name="VideraView"
         BackgroundColor="{Binding BackgroundColor}"
         RenderStyle="{Binding ActiveRenderStyle}"
         WireframeMode="Overlay"
@@ -169,11 +169,26 @@ using Videra.Core.Graphics;
 
 var view = new VideraView
 {
-    PreferredBackend = GraphicsBackendPreference.Auto,
+    Options = new VideraViewOptions
+    {
+        Backend =
+        {
+            PreferredBackend = GraphicsBackendPreference.Auto,
+            EnvironmentOverrideMode = BackendEnvironmentOverrideMode.Disabled,
+            AllowSoftwareFallback = true
+        }
+    },
     IsGridVisible = true
 };
 
-view.Engine.AddObject(myObject3D);
+var loadResult = await view.LoadModelAsync("Assets/model.glb");
+if (loadResult.Succeeded)
+{
+    view.FrameAll();
+}
+
+var diagnostics = view.BackendDiagnostics;
+Console.WriteLine($"Requested={diagnostics.RequestedBackend}, Resolved={diagnostics.ResolvedBackend}, Ready={diagnostics.IsReady}");
 ```
 
 ## Packages

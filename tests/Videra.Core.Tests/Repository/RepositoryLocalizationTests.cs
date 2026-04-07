@@ -68,6 +68,15 @@ public sealed class RepositoryLocalizationTests
         }
     }
 
+    [Fact]
+    public void ChineseDemoDoc_ShouldMentionHighLevelViewerApi()
+    {
+        var demoDoc = File.ReadAllText(Path.Combine(GetRepositoryRoot(), "docs", "zh-CN", "modules", "demo.md"));
+
+        demoDoc.Should().Contain("LoadModelAsync");
+        demoDoc.Should().Contain("FrameAll");
+    }
+
     private static string GetRepositoryRoot()
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);

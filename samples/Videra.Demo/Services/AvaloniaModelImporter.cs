@@ -1,28 +1,28 @@
-﻿using System;
-using System.Collections.Generic;
+using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Platform.Storage;
 using Microsoft.Extensions.Logging;
+using Videra.Avalonia.Controls;
 using Videra.Core.Graphics;
-using Videra.Core.Graphics.Abstractions;
 using Videra.Core.IO;
 
 namespace Videra.Demo.Services;
 
 public partial class AvaloniaModelImporter : IModelImporter
 {
-    private readonly IResourceFactory _factory;
     private readonly TopLevel _topLevel;
+    private readonly VideraView _view;
     private readonly ILogger _logger = Microsoft.Extensions.Logging.Abstractions.NullLoggerFactory.Instance.CreateLogger<AvaloniaModelImporter>();
 
-    public AvaloniaModelImporter(TopLevel topLevel, IResourceFactory factory)
+    public AvaloniaModelImporter(TopLevel topLevel, VideraView view)
     {
         _topLevel = topLevel;
-        _factory = factory;
+        _view = view;
     }
 
-    public async Task<IEnumerable<Object3D>> ImportModelsAsync()
+    public async Task<ModelLoadBatchResult> ImportModelsAsync()
     {
         var files = await _topLevel.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
         {
@@ -34,23 +34,29 @@ public partial class AvaloniaModelImporter : IModelImporter
             }
         });
 
-        var results = new List<Object3D>();
+        var paths = files
+            .Select(file => file.Path.LocalPath)
+            .Where(path => !string.IsNullOrWhiteSpace(path))
+            .ToArray();
 
-        foreach (var file in files)
+        if (paths.Length == 0)
         {
-            try
-            {
-                var path = file.Path.LocalPath;
-                var obj = await Task.Run(() => ModelImporter.Load(path, _factory));
-                results.Add(obj);
-            }
-            catch (Exception ex)
-            {
-                Log.ImportFailed(_logger, file.Path.LocalPath, ex);
-            }
+            return new ModelLoadBatchResult(Array.Empty<Object3D>(), Array.Empty<ModelLoadFailure>(), TimeSpan.Zero);
         }
 
-        return results;
+        var result = await _view.LoadModelsAsync(paths).ConfigureAwait(true);
+
+        foreach (var failure in result.Failures)
+        {
+            Log.ImportFailed(_logger, failure.Path, failure.Exception);
+        }
+
+        if (result.LoadedObjects.Count > 0)
+        {
+            _view.FrameAll();
+        }
+
+        return result;
     }
 
     private static partial class Log

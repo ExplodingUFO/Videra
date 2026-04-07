@@ -13,6 +13,17 @@ public sealed class RepositoryReleaseReadinessTests
         readme.Should().Contain("https://nuget.pkg.github.com/ExplodingUFO/index.json");
         readme.Should().Contain("dotnet nuget add source");
         readme.Should().Contain("dotnet add package Videra.Avalonia");
+        readme.Should().Contain("LoadModelAsync");
+    }
+
+    [Fact]
+    public void AvaloniaReadme_ShouldPromoteHighLevelViewerApi()
+    {
+        var readme = File.ReadAllText(Path.Combine(GetRepositoryRoot(), "src", "Videra.Avalonia", "README.md"));
+
+        readme.Should().Contain("LoadModelAsync");
+        readme.Should().Contain("FrameAll");
+        readme.Should().Contain("BackendDiagnostics");
     }
 
     [Fact]

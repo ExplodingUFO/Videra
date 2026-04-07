@@ -1,5 +1,6 @@
 using System;
 using Avalonia.Controls;
+using Videra.Avalonia.Controls;
 using Videra.Core.Graphics;
 using Videra.Core.Graphics.Abstractions;
 using Videra.Demo.ViewModels;
@@ -8,50 +9,54 @@ namespace Videra.Demo.Services;
 
 public sealed class DemoSceneBootstrapper
 {
-    private const string AutoBackendLabel = "Auto (native backend preferred)";
     private bool _defaultSceneSeeded;
 
     public bool TryInitialize(
         MainWindowViewModel viewModel,
         TopLevel? topLevel,
-        IResourceFactory? factory,
-        GraphicsBackendPreference preferredBackend)
+        VideraView view)
     {
         ArgumentNullException.ThrowIfNull(viewModel);
+        ArgumentNullException.ThrowIfNull(view);
 
-        var backendLabel = preferredBackend == GraphicsBackendPreference.Auto
-            ? AutoBackendLabel
-            : preferredBackend.ToString();
+        var diagnostics = view.BackendDiagnostics;
+        var factory = view.GetResourceFactory();
 
         if (topLevel == null || factory == null)
         {
-            viewModel.SetBackendStatus(false, backendLabel, "等待渲染后端和资源工厂准备完成...");
+            viewModel.SetBackendStatus(
+                isReady: false,
+                backendDisplay: CreateBackendDisplay(diagnostics),
+                statusMessage: "Waiting for the rendering backend and resource factory to become ready.");
             return false;
         }
 
         if (!viewModel.HasImporter)
         {
-            viewModel.AttachImporter(new AvaloniaModelImporter(topLevel, factory));
+            viewModel.AttachImporter(new AvaloniaModelImporter(topLevel, view));
         }
 
         try
         {
-            var seededDefaultScene = SeedDefaultSceneIfNeeded(viewModel, factory);
+            var seededDefaultScene = SeedDefaultSceneIfNeeded(viewModel, view, factory);
             var statusMessage = seededDefaultScene
-                ? "渲染后端已就绪，已加载默认演示立方体。Auto 模式会按当前平台优先选择原生后端。"
-                : "渲染后端已就绪，导入功能可用。Auto 模式会按当前平台优先选择原生后端。";
-            viewModel.SetBackendStatus(true, backendLabel, statusMessage);
+                ? "Rendering backend is ready. Loaded the default demo cube and framed the scene."
+                : "Rendering backend is ready. Model import is available.";
+            viewModel.SetBackendStatus(true, CreateBackendDisplay(view.BackendDiagnostics), statusMessage);
         }
         catch (Exception ex)
         {
-            viewModel.SetBackendStatus(true, backendLabel, "渲染后端已就绪，但默认演示模型创建失败。");
-            viewModel.SetStatusMessage($"默认演示模型创建失败：{ex.Message}");
+            viewModel.SetBackendStatus(
+                isReady: true,
+                backendDisplay: CreateBackendDisplay(view.BackendDiagnostics),
+                statusMessage: "Rendering backend is ready, but the default demo model could not be created.");
+            viewModel.SetStatusMessage($"Default demo model creation failed: {ex.Message}");
         }
 
         return true;
     }
 
-    private bool SeedDefaultSceneIfNeeded(MainWindowViewModel viewModel, IResourceFactory factory)
+    private bool SeedDefaultSceneIfNeeded(MainWindowViewModel viewModel, VideraView view, IResourceFactory factory)
     {
         if (_defaultSceneSeeded || viewModel.SceneObjects.Count > 0)
         {
@@ -60,9 +65,22 @@ public sealed class DemoSceneBootstrapper
         }
 
         var cube = DemoMeshFactory.CreateCube(factory);
-        viewModel.SceneObjects.Add(cube);
+        view.AddObject(cube);
+        view.FrameAll();
         viewModel.SelectedObject = cube;
         _defaultSceneSeeded = true;
         return true;
+    }
+
+    private static string CreateBackendDisplay(VideraBackendDiagnostics diagnostics)
+    {
+        var display = $"Requested: {diagnostics.RequestedBackend} | Resolved: {diagnostics.ResolvedBackend}";
+
+        if (diagnostics.IsUsingSoftwareFallback && !string.IsNullOrWhiteSpace(diagnostics.FallbackReason))
+        {
+            display = $"{display} | Fallback: {diagnostics.FallbackReason}";
+        }
+
+        return display;
     }
 }

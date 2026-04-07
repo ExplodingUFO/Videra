@@ -1,10 +1,9 @@
-﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using Videra.Core.Graphics;
+using Videra.Avalonia.Controls;
 
 namespace Videra.Demo.Services;
 
 public interface IModelImporter
 {
-    Task<IEnumerable<Object3D>> ImportModelsAsync();
+    Task<ModelLoadBatchResult> ImportModelsAsync();
 }

@@ -7,7 +7,7 @@ using System.Linq;
 using System.Numerics;
 using System.Threading.Tasks;
 using Avalonia.Media;
-using Avalonia.Platform.Storage;
+using Videra.Avalonia.Controls;
 using Videra.Core.Graphics;
 using Videra.Core.Graphics.Wireframe;
 using Videra.Core.Styles.Presets;
@@ -59,9 +59,9 @@ public partial class MainWindowViewModel : ViewModelBase
     private const float DegToRad = (float)(Math.PI / 180.0);
     private const float RadToDeg = (float)(180.0 / Math.PI);
 
-    [ObservableProperty] private string _statusMessage = "等待渲染后端初始化...";
+    [ObservableProperty] private string _statusMessage = "Waiting for rendering backend initialization...";
     [ObservableProperty] private bool _isBackendReady;
-    [ObservableProperty] private string _backendDisplay = "Auto";
+    [ObservableProperty] private string _backendDisplay = "Requested: Auto | Resolved: Auto";
 
     public MainWindowViewModel()
     {
@@ -126,7 +126,7 @@ public partial class MainWindowViewModel : ViewModelBase
             if (SelectedObject == null) return;
             SelectedObject.Scale = new Vector3((float)value);
             OnPropertyChanged();
-            StatusMessage = $"已更新对象 {SelectedObject.Name} 的缩放";
+            StatusMessage = $"Updated scale for {SelectedObject.Name}.";
         }
     }
 
@@ -158,8 +158,8 @@ public partial class MainWindowViewModel : ViewModelBase
             : WireframeMode.None;
 
         StatusMessage = WireframeMode == WireframeMode.None
-            ? "已关闭线框模式"
-            : $"已切换到线框模式: {WireframeMode}";
+            ? "Wireframe mode disabled."
+            : $"Wireframe mode enabled: {WireframeMode}.";
 
         OnPropertyChanged(nameof(WireframeMode));
         OnPropertyChanged(nameof(IsWireframeEnabled));
@@ -171,7 +171,7 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             updateAction(value);
             OnPropertyChanged();
-            StatusMessage = $"已更新对象 {SelectedObject.Name} 的变换";
+            StatusMessage = $"Updated transform for {SelectedObject.Name}.";
         }
     }
 
@@ -180,26 +180,41 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         if (_importer == null)
         {
-            StatusMessage = "导入功能暂不可用：渲染后端尚未准备好。";
+            StatusMessage = "Import is unavailable until the rendering backend is ready.";
             return;
         }
 
-        StatusMessage = "正在导入模型...";
-        var models = await _importer.ImportModelsAsync();
-        var modelList = models.ToList();
+        StatusMessage = "Importing models...";
+        var loadResult = await _importer.ImportModelsAsync();
 
-        if (modelList.Count == 0)
+        if (loadResult.LoadedObjects.Count == 0 && loadResult.Failures.Count == 0)
         {
-            StatusMessage = "未导入任何模型。";
+            StatusMessage = "No models were selected.";
             return;
         }
 
-        foreach (var model in modelList)
+        if (loadResult.LoadedObjects.Count > 0)
         {
-            SceneObjects.Add(model);
-            SelectedObject = model;
+            SelectedObject = loadResult.LoadedObjects[^1];
         }
 
-        StatusMessage = $"已导入 {modelList.Count} 个模型，当前场景共 {SceneObjects.Count} 个对象。";
+        StatusMessage = BuildImportStatus(loadResult);
+    }
+
+    private string BuildImportStatus(ModelLoadBatchResult loadResult)
+    {
+        if (loadResult.LoadedObjects.Count == 0)
+        {
+            var firstFailure = loadResult.Failures[0];
+            return $"Import failed for {loadResult.Failures.Count} file(s). First error: {firstFailure.ErrorMessage}";
+        }
+
+        if (loadResult.Failures.Count == 0)
+        {
+            return $"Imported {loadResult.LoadedObjects.Count} model(s). Scene now contains {SceneObjects.Count} object(s).";
+        }
+
+        var lastFailure = loadResult.Failures[^1];
+        return $"Imported {loadResult.LoadedObjects.Count} model(s); {loadResult.Failures.Count} failed. Last error: {lastFailure.ErrorMessage}";
     }
 }

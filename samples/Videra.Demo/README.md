@@ -8,14 +8,16 @@
 
 - `VideraView` integration in an Avalonia window
 - Backend-ready initialization through `DemoSceneBootstrapper`
-- Model import for `.gltf`, `.glb`, and `.obj`
+- High-level model loading with `LoadModelAsync` / `LoadModelsAsync`
+- Scene framing with `FrameAll()` after successful load
 - Render-style and wireframe switching
 - Grid visibility, color, and height controls
 - Basic object transform editing
+- Backend diagnostics via `BackendDiagnostics`
 
 ## Runtime Behavior
 
-By default, the demo waits for `VideraView` to finish backend initialization, attaches the importer, and seeds a default cube scene.
+By default, the demo waits for `VideraView` to finish backend initialization, attaches the importer, and seeds a default cube scene through the high-level scene API.
 
 `PreferredBackend="Auto"` keeps the backend preference aligned with the current platform:
 
@@ -24,6 +26,18 @@ By default, the demo waits for `VideraView` to finish backend initialization, at
 - macOS: Metal
 
 `Program.cs` keeps Windows host options but no longer forces `VIDERA_BACKEND`, so the demo follows the same public backend-selection path described in the repository docs.
+
+For model loading, the demo now calls:
+
+```csharp
+var result = await View3D.LoadModelsAsync(paths);
+if (result.Succeeded)
+{
+    View3D.FrameAll();
+}
+
+var diagnostics = View3D.BackendDiagnostics;
+```
 
 ## Run
 

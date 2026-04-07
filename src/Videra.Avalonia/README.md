@@ -25,10 +25,46 @@ Package-source setup and alpha-distribution notes live in the repository [README
 ```xml
 <Window xmlns:videra="using:Videra.Avalonia.Controls">
     <videra:VideraView
-        Items="{Binding SceneObjects}"
-        PreferredBackend="Auto"
-        IsGridVisible="True" />
+        x:Name="View3D"
+        BackgroundColor="{Binding BackgroundColor}"
+        RenderStyle="{Binding RenderStyle}"
+        WireframeMode="{Binding WireframeMode}"
+        WireframeColor="{Binding WireframeColor}"
+        IsGridVisible="{Binding IsGridVisible}"
+        PreferredBackend="Auto" />
 </Window>
+```
+
+```csharp
+using Videra.Avalonia.Controls;
+using Videra.Core.Graphics;
+
+View3D.Options = new VideraViewOptions
+{
+    Backend =
+    {
+        PreferredBackend = GraphicsBackendPreference.Auto,
+        AllowSoftwareFallback = true
+    }
+};
+
+var result = await View3D.LoadModelsAsync(new[] { "Models/ship.glb", "Models/cube.obj" });
+if (!result.Succeeded)
+{
+    foreach (var failure in result.Failures)
+    {
+        Console.WriteLine($"{failure.Path}: {failure.ErrorMessage}");
+    }
+}
+
+var singleResult = await View3D.LoadModelAsync("Models/highlight.glb");
+if (!singleResult.Succeeded && singleResult.Failure is not null)
+{
+    Console.WriteLine(singleResult.Failure.ErrorMessage);
+}
+
+View3D.FrameAll();
+var diagnostics = View3D.BackendDiagnostics;
 ```
 
 ## Native Host Coverage

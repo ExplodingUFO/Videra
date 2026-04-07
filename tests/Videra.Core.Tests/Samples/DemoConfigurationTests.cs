@@ -57,6 +57,27 @@ public sealed class DemoConfigurationTests
         }
     }
 
+    [Fact]
+    public void Readme_ShouldUseHighLevelViewerApiExamples()
+    {
+        var readmePath = Path.Combine(GetRepositoryRoot(), "README.md");
+        var readme = File.ReadAllText(readmePath);
+
+        readme.Should().Contain("LoadModelAsync");
+        readme.Should().Contain("FrameAll()");
+        readme.Should().Contain("BackendDiagnostics");
+        readme.Should().NotContain("view.Engine.AddObject");
+    }
+
+    [Fact]
+    public void DemoImportButton_ShouldBeDisabledUntilBackendReady()
+    {
+        var mainWindowPath = Path.Combine(GetRepositoryRoot(), "samples", "Videra.Demo", "Views", "MainWindow.axaml");
+        var xaml = File.ReadAllText(mainWindowPath);
+
+        xaml.Should().Contain("IsEnabled=\"{Binding IsBackendReady}\"");
+    }
+
     private static string GetRepositoryRoot()
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);

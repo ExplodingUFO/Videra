@@ -47,8 +47,7 @@ public partial class MainWindow : Window
         var initialized = _sceneBootstrapper.TryInitialize(
             _viewModel,
             TopLevel.GetTopLevel(this),
-            View3D.GetResourceFactory(),
-            View3D.PreferredBackend);
+            View3D);
 
         if (!initialized)
             return;
