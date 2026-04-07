@@ -4,6 +4,8 @@
 
 `Videra.Platform.macOS` provides the macOS-native Metal backend used by Videra.
 
+Current status: `alpha`. This package is the macOS platform companion for `Videra.Avalonia`, and the native path is `NSView` plus `CAMetalLayer` plus Metal.
+
 ## Responsibilities
 
 - Metal device and command-queue setup
@@ -13,15 +15,28 @@
 
 ## Install
 
+Configure GitHub Packages before adding the package:
+
 ```bash
+dotnet nuget add source "https://nuget.pkg.github.com/ExplodingUFO/index.json" \
+  --name github-ExplodingUFO \
+  --username YOUR_GITHUB_USER \
+  --password YOUR_GITHUB_PAT \
+  --store-password-in-clear-text
+```
+
+Install it together with `Videra.Avalonia` on macOS:
+
+```bash
+dotnet add package Videra.Avalonia --version 0.1.0-alpha.1 --source github-ExplodingUFO
 dotnet add package Videra.Platform.macOS --version 0.1.0-alpha.1 --source github-ExplodingUFO
 ```
 
-This package is usually consumed transitively from `Videra.Avalonia`.
+This package supplies the Metal backend for the `NSView` / `CAMetalLayer` native path. `VIDERA_BACKEND` can prefer Metal, but it does not install missing platform packages.
 
 ## Validation
 
-macOS native validation is explicit and should be run on a real macOS host:
+macOS matching-host validation is explicit and should be run on a real macOS host:
 
 ```bash
 ./verify.sh --configuration Release --include-native-macos

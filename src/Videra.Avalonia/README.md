@@ -4,6 +4,8 @@
 
 `Videra.Avalonia` is the Avalonia integration layer for Videra. It exposes the `VideraView` control, coordinates backend selection, and bridges Avalonia with native host handles on each platform.
 
+Current status: `alpha`. `Videra.Avalonia` is the entry package for Avalonia apps, but it no longer implicitly brings every native backend with it.
+
 ## Responsibilities
 
 - Expose the `VideraView` control
@@ -14,11 +16,30 @@
 
 ## Install
 
+Configure GitHub Packages before adding the package:
+
 ```bash
-dotnet add package Videra.Avalonia --version 0.1.0-alpha.1 --source github-ExplodingUFO
+dotnet nuget add source "https://nuget.pkg.github.com/ExplodingUFO/index.json" \
+  --name github-ExplodingUFO \
+  --username YOUR_GITHUB_USER \
+  --password YOUR_GITHUB_PAT \
+  --store-password-in-clear-text
 ```
 
-Package-source setup and alpha-distribution notes live in the repository [README](../../README.md).
+Install the Avalonia entry package and exactly one matching platform package:
+
+```bash
+dotnet add package Videra.Avalonia --version 0.1.0-alpha.1 --source github-ExplodingUFO
+dotnet add package Videra.Platform.Windows --version 0.1.0-alpha.1 --source github-ExplodingUFO
+# or
+dotnet add package Videra.Platform.Linux --version 0.1.0-alpha.1 --source github-ExplodingUFO
+# or
+dotnet add package Videra.Platform.macOS --version 0.1.0-alpha.1 --source github-ExplodingUFO
+```
+
+If no matching platform package is installed, the software fallback path can still help with diagnostics, but it does not install missing platform packages.
+
+`PreferredBackend` and `VIDERA_BACKEND` only change backend preference. They do not install missing platform packages and do not replace matching-host native validation.
 
 ## Example
 

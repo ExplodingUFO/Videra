@@ -4,6 +4,28 @@
 
 平台无关的3D渲染核心，提供抽象接口和通用渲染逻辑。
 
+> 中文镜像用于快速查阅，英文版为准。
+
+## 安装前置
+
+当前 `alpha` 包通过 GitHub Packages 提供。先配置包源：
+
+```bash
+dotnet nuget add source "https://nuget.pkg.github.com/ExplodingUFO/index.json" \
+  --name github-ExplodingUFO \
+  --username YOUR_GITHUB_USER \
+  --password YOUR_GITHUB_PAT \
+  --store-password-in-clear-text
+```
+
+只在需要核心渲染抽象和导入管线时直接安装：
+
+```bash
+dotnet add package Videra.Core --version 0.1.0-alpha.1 --source github-ExplodingUFO
+```
+
+桌面 UI 集成更推荐从 `Videra.Avalonia` 加匹配平台包开始。
+
 ## 模块架构
 
 ```mermaid

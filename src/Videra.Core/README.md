@@ -4,6 +4,8 @@
 
 `Videra.Core` is the platform-agnostic rendering core of Videra. It provides the shared abstractions, scene engine, import pipeline, and software fallback path used by the higher-level packages.
 
+Current status: `alpha`. This package is the right starting point only for core-only consumption. Most desktop applications should start with `Videra.Avalonia` plus a matching `Videra.Platform.*` package.
+
 ## Responsibilities
 
 - Rendering abstractions such as `IGraphicsBackend`, `IResourceFactory`, and `ICommandExecutor`
@@ -22,6 +24,16 @@
 - `ICommandExecutor`
 
 ## Typical Use
+
+Configure GitHub Packages before installing the package:
+
+```bash
+dotnet nuget add source "https://nuget.pkg.github.com/ExplodingUFO/index.json" \
+  --name github-ExplodingUFO \
+  --username YOUR_GITHUB_USER \
+  --password YOUR_GITHUB_PAT \
+  --store-password-in-clear-text
+```
 
 Install `Videra.Core` directly when you need the core scene and backend abstractions without the Avalonia UI layer:
 

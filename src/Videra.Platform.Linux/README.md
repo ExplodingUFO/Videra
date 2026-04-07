@@ -4,6 +4,8 @@
 
 `Videra.Platform.Linux` provides the Linux-native Vulkan backend used by Videra.
 
+Current status: `alpha`. This package is the Linux platform companion for `Videra.Avalonia`, and the native path is currently X11-first.
+
 ## Responsibilities
 
 - Vulkan instance, device, queue, and swapchain setup
@@ -13,15 +15,28 @@
 
 ## Install
 
+Configure GitHub Packages before adding the package:
+
 ```bash
+dotnet nuget add source "https://nuget.pkg.github.com/ExplodingUFO/index.json" \
+  --name github-ExplodingUFO \
+  --username YOUR_GITHUB_USER \
+  --password YOUR_GITHUB_PAT \
+  --store-password-in-clear-text
+```
+
+Install it together with `Videra.Avalonia` on Linux:
+
+```bash
+dotnet add package Videra.Avalonia --version 0.1.0-alpha.1 --source github-ExplodingUFO
 dotnet add package Videra.Platform.Linux --version 0.1.0-alpha.1 --source github-ExplodingUFO
 ```
 
-This package is usually consumed transitively from `Videra.Avalonia`.
+This package supplies the Vulkan backend for the current X11 path. `VIDERA_BACKEND` can prefer Vulkan, but it does not install missing platform packages.
 
 ## Validation
 
-Linux native validation is explicit and should be run on a real Linux host:
+Linux matching-host validation is explicit and should be run on a real Linux host:
 
 ```bash
 ./verify.sh --configuration Release --include-native-linux

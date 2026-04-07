@@ -109,17 +109,34 @@ dotnet nuget add source "https://nuget.pkg.github.com/ExplodingUFO/index.json" \
 - `YOUR_GITHUB_USER`: your GitHub username
 - `YOUR_GITHUB_PAT`: a token with at least `read:packages`
 
-Recommended entry package:
+Recommended package combinations:
 
 ```bash
 dotnet add package Videra.Avalonia --version 0.1.0-alpha.1 --source github-ExplodingUFO
 ```
 
-If you only need the rendering abstractions and import pipeline:
+For Avalonia apps, install `Videra.Avalonia` and exactly one matching platform package:
+
+```bash
+# Windows
+dotnet add package Videra.Platform.Windows --version 0.1.0-alpha.1 --source github-ExplodingUFO
+
+# Linux
+dotnet add package Videra.Platform.Linux --version 0.1.0-alpha.1 --source github-ExplodingUFO
+
+# macOS
+dotnet add package Videra.Platform.macOS --version 0.1.0-alpha.1 --source github-ExplodingUFO
+```
+
+If you only need the rendering abstractions and import pipeline, install `Videra.Core` directly:
 
 ```bash
 dotnet add package Videra.Core --version 0.1.0-alpha.1 --source github-ExplodingUFO
 ```
+
+`Videra.Avalonia` remains the UI/control entry package. The software fallback path can still help with diagnostics when no native backend is available, but it does not install missing platform packages.
+
+`PreferredBackend` and `VIDERA_BACKEND` only change backend preference. They do not install missing platform packages and do not replace matching-host native validation.
 
 ### Run the Demo
 
@@ -217,6 +234,8 @@ Detailed package-level docs:
 | `VIDERA_BACKEND` | Force a rendering backend | `software`, `d3d11`, `vulkan`, `metal`, `auto` |
 | `VIDERA_FRAMELOG` | Enable frame logging | `1`, `true` |
 | `VIDERA_INPUTLOG` | Enable input logging | `1`, `true` |
+
+`VIDERA_BACKEND` is a backend-selection preference only. It does not install missing platform packages, and it does not replace matching-host native validation.
 
 ## Current Boundaries
 

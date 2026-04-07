@@ -4,6 +4,29 @@
 
 macOS 平台的 Metal 图形后端实现。
 
+> 中文镜像用于快速查阅，英文版为准。
+
+## 安装前置
+
+当前 `alpha` 包通过 GitHub Packages 提供。先配置包源：
+
+```bash
+dotnet nuget add source "https://nuget.pkg.github.com/ExplodingUFO/index.json" \
+  --name github-ExplodingUFO \
+  --username YOUR_GITHUB_USER \
+  --password YOUR_GITHUB_PAT \
+  --store-password-in-clear-text
+```
+
+macOS 应用通常与 `Videra.Avalonia` 搭配安装：
+
+```bash
+dotnet add package Videra.Avalonia --version 0.1.0-alpha.1 --source github-ExplodingUFO
+dotnet add package Videra.Platform.macOS --version 0.1.0-alpha.1 --source github-ExplodingUFO
+```
+
+当前原生路径依赖 `NSView` 和 `CAMetalLayer`，matching-host 原生验证仍需要真实 macOS 宿主。
+
 ## 模块架构
 
 ```mermaid

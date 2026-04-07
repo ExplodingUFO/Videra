@@ -77,6 +77,48 @@ public sealed class RepositoryLocalizationTests
         demoDoc.Should().Contain("FrameAll");
     }
 
+    [Fact]
+    public void ChineseDistributionDocs_ShouldMirrorInstallGuidance()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var readme = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "zh-CN", "README.md"));
+        var index = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "zh-CN", "index.md"));
+        var troubleshooting = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "zh-CN", "troubleshooting.md"));
+        var avaloniaModule = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "zh-CN", "modules", "videra-avalonia.md"));
+        var coreModule = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "zh-CN", "modules", "videra-core.md"));
+        var windowsModule = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "zh-CN", "modules", "platform-windows.md"));
+        var linuxModule = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "zh-CN", "modules", "platform-linux.md"));
+        var macosModule = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "zh-CN", "modules", "platform-macos.md"));
+
+        readme.Should().Contain("dotnet add package Videra.Avalonia");
+        readme.Should().Contain("Videra.Platform.Windows");
+        readme.Should().Contain("Videra.Platform.Linux");
+        readme.Should().Contain("Videra.Platform.macOS");
+        readme.Should().Contain("VIDERA_BACKEND");
+        readme.Should().Contain("英文版为准");
+
+        index.Should().Contain("安装");
+        index.Should().Contain("故障排查");
+
+        troubleshooting.Should().Contain("VIDERA_BACKEND");
+        troubleshooting.Should().Contain("不会安装缺失的平台包");
+        troubleshooting.Should().Contain("matching-host");
+
+        foreach (var module in new[] { avaloniaModule, coreModule, windowsModule, linuxModule, macosModule })
+        {
+            module.Should().Contain("dotnet nuget add source");
+            module.Should().Contain("https://nuget.pkg.github.com/ExplodingUFO/index.json");
+            module.Should().Contain("英文版为准");
+        }
+
+        avaloniaModule.Should().Contain("PreferredBackend");
+        avaloniaModule.Should().Contain("Videra.Platform.Windows");
+        avaloniaModule.Should().Contain("Videra.Platform.Linux");
+        avaloniaModule.Should().Contain("Videra.Platform.macOS");
+        linuxModule.Should().Contain("X11");
+        macosModule.Should().Contain("CAMetalLayer");
+    }
+
     private static string GetRepositoryRoot()
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);

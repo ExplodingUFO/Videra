@@ -4,6 +4,12 @@
 
 本页汇总 Videra 的中文文档入口，便于手动切换后继续阅读。
 
+## 安装与分发入口
+
+- [项目首页](README.md)：GitHub Packages 源配置、`Videra.Avalonia` + `Videra.Platform.*` 组合安装、`Videra.Core` 单独消费
+- [故障排查](troubleshooting.md)：`VIDERA_BACKEND`、软件回退和 matching-host 原生验证的边界
+- [原生宿主验证](native-validation.md)：GitHub Actions 与本地 matching-host 验证入口
+
 ## 开始使用
 
 - [项目首页](README.md)
@@ -24,4 +30,5 @@
 ## 其他
 
 - [英文文档首页](../index.md)
+- 英文版为准
 - [历史归档](../archive/README.md)

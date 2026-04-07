@@ -28,6 +28,13 @@ pwsh -File ./verify.ps1 -Configuration Release -IncludeNativeMacOS
 
 If you need a matching-host runbook or the hosted GitHub Actions entrypoint, use [Native Validation](native-validation.md).
 
+## Package Selection vs Backend Preference
+
+- For Avalonia apps, install `Videra.Avalonia` together with the matching `Videra.Platform.Windows`, `Videra.Platform.Linux`, or `Videra.Platform.macOS` package.
+- Install `Videra.Core` directly only when you want the rendering abstractions and import pipeline without the Avalonia UI layer.
+- Software fallback helps with diagnostics, but it does not install missing platform packages.
+- `VIDERA_BACKEND` and `PreferredBackend` only change backend preference. `VIDERA_BACKEND` does not install missing platform packages and does not replace matching-host native validation.
+
 ## Common Problems
 
 | Problem | Platform | Suggested Action |

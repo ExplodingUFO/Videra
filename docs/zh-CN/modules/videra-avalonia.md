@@ -4,17 +4,32 @@
 
 提供 AvaloniaUI 控件集成，包括 `VideraView` 控件和平台原生窗口宿主。
 
+> 中文镜像用于快速查阅，英文版为准。
+
 ## 安装
 
-当前 alpha 包通过 GitHub Packages 提供，推荐优先阅读仓库根目录的安装说明：
+当前 `alpha` 包通过 GitHub Packages 提供。先配置包源：
 
-- [README.md](../../../README.md)
+```bash
+dotnet nuget add source "https://nuget.pkg.github.com/ExplodingUFO/index.json" \
+  --name github-ExplodingUFO \
+  --username YOUR_GITHUB_USER \
+  --password YOUR_GITHUB_PAT \
+  --store-password-in-clear-text
+```
 
-典型安装命令：
+Avalonia 应用请安装入口包和一个匹配平台包：
 
 ```bash
 dotnet add package Videra.Avalonia --version 0.1.0-alpha.1 --source github-ExplodingUFO
+dotnet add package Videra.Platform.Windows --version 0.1.0-alpha.1 --source github-ExplodingUFO
+# 或
+dotnet add package Videra.Platform.Linux --version 0.1.0-alpha.1 --source github-ExplodingUFO
+# 或
+dotnet add package Videra.Platform.macOS --version 0.1.0-alpha.1 --source github-ExplodingUFO
 ```
+
+`PreferredBackend` 和 `VIDERA_BACKEND` 只影响后端偏好，不会安装缺失的平台包，也不会替代 matching-host 原生验证。
 
 ## 模块架构
 

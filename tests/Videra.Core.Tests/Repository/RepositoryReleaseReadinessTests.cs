@@ -13,6 +13,12 @@ public sealed class RepositoryReleaseReadinessTests
         readme.Should().Contain("https://nuget.pkg.github.com/ExplodingUFO/index.json");
         readme.Should().Contain("dotnet nuget add source");
         readme.Should().Contain("dotnet add package Videra.Avalonia");
+        readme.Should().Contain("dotnet add package Videra.Platform.Windows");
+        readme.Should().Contain("dotnet add package Videra.Platform.Linux");
+        readme.Should().Contain("dotnet add package Videra.Platform.macOS");
+        readme.Should().Contain("VIDERA_BACKEND");
+        readme.Should().Contain("does not install missing platform packages");
+        readme.Should().Contain("matching-host native validation");
         readme.Should().Contain("LoadModelAsync");
     }
 
@@ -24,6 +30,58 @@ public sealed class RepositoryReleaseReadinessTests
         readme.Should().Contain("LoadModelAsync");
         readme.Should().Contain("FrameAll");
         readme.Should().Contain("BackendDiagnostics");
+    }
+
+    [Fact]
+    public void Troubleshooting_ShouldClarifyBackendPreferenceAndValidationBoundaries()
+    {
+        var troubleshooting = File.ReadAllText(Path.Combine(GetRepositoryRoot(), "docs", "troubleshooting.md"));
+
+        troubleshooting.Should().Contain("VIDERA_BACKEND");
+        troubleshooting.Should().Contain("does not install missing platform packages");
+        troubleshooting.Should().Contain("does not replace matching-host native validation");
+        troubleshooting.Should().Contain("matching-host");
+    }
+
+    [Fact]
+    public void PackageReadmes_ShouldDescribeStandaloneInstallPrerequisites()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var packageReadmes = new[]
+        {
+            Path.Combine(repositoryRoot, "src", "Videra.Core", "README.md"),
+            Path.Combine(repositoryRoot, "src", "Videra.Avalonia", "README.md"),
+            Path.Combine(repositoryRoot, "src", "Videra.Platform.Windows", "README.md"),
+            Path.Combine(repositoryRoot, "src", "Videra.Platform.Linux", "README.md"),
+            Path.Combine(repositoryRoot, "src", "Videra.Platform.macOS", "README.md")
+        };
+
+        foreach (var readmePath in packageReadmes)
+        {
+            var readme = File.ReadAllText(readmePath);
+
+            readme.Should().Contain("dotnet nuget add source");
+            readme.Should().Contain("https://nuget.pkg.github.com/ExplodingUFO/index.json");
+            readme.Should().Contain("alpha");
+        }
+
+        var avaloniaReadme = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Avalonia", "README.md"));
+        avaloniaReadme.Should().Contain("Videra.Avalonia");
+        avaloniaReadme.Should().Contain("Videra.Platform.Windows");
+        avaloniaReadme.Should().Contain("Videra.Platform.Linux");
+        avaloniaReadme.Should().Contain("Videra.Platform.macOS");
+        avaloniaReadme.Should().Contain("PreferredBackend");
+        avaloniaReadme.Should().Contain("VIDERA_BACKEND");
+        avaloniaReadme.Should().Contain("does not install missing platform packages");
+
+        var linuxReadme = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Platform.Linux", "README.md"));
+        linuxReadme.Should().Contain("matching-host validation");
+        linuxReadme.Should().Contain("X11");
+
+        var macosReadme = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Platform.macOS", "README.md"));
+        macosReadme.Should().Contain("matching-host validation");
+        macosReadme.Should().Contain("NSView");
+        macosReadme.Should().Contain("CAMetalLayer");
     }
 
     [Fact]

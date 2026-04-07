@@ -12,6 +12,39 @@ Videra 是一套面向 .NET 桌面应用的跨平台 3D 查看组件库，核心
 - 当前 GitHub Packages 安装线更适合 Windows + Avalonia 评估；Linux/macOS 原生后端更建议按源码验证
 - GitHub Actions 会在 pull requests 中自动执行跨平台原生验证；本地 matching-host 运行仍主要用于复现和排障
 
+## 安装与包选择
+
+以下中文说明用于快速索引，英文版为准。
+
+先配置 GitHub Packages 源：
+
+```bash
+dotnet nuget add source "https://nuget.pkg.github.com/ExplodingUFO/index.json" \
+  --name github-ExplodingUFO \
+  --username YOUR_GITHUB_USER \
+  --password YOUR_GITHUB_PAT \
+  --store-password-in-clear-text
+```
+
+Avalonia 应用推荐安装 `Videra.Avalonia` 加一个匹配平台包：
+
+```bash
+dotnet add package Videra.Avalonia --version 0.1.0-alpha.1 --source github-ExplodingUFO
+dotnet add package Videra.Platform.Windows --version 0.1.0-alpha.1 --source github-ExplodingUFO
+# 或
+dotnet add package Videra.Platform.Linux --version 0.1.0-alpha.1 --source github-ExplodingUFO
+# 或
+dotnet add package Videra.Platform.macOS --version 0.1.0-alpha.1 --source github-ExplodingUFO
+```
+
+如果只需要渲染抽象和导入管线，则直接安装 `Videra.Core`：
+
+```bash
+dotnet add package Videra.Core --version 0.1.0-alpha.1 --source github-ExplodingUFO
+```
+
+`VIDERA_BACKEND` 只影响后端选择偏好，不会安装缺失的平台包，也不会替代 matching-host 原生验证。
+
 ## 快速入口
 
 - [英文首页](../../README.md)
@@ -32,4 +65,4 @@ Videra 是一套面向 .NET 桌面应用的跨平台 3D 查看组件库，核心
 
 ## 说明
 
-默认公开入口现在以英文为主。中文文档保留为手动切换入口，便于中文读者快速查看项目定位、验证方式和模块说明。
+默认公开入口现在以英文为主，英文版为准。中文文档保留为手动切换入口，便于中文读者快速查看项目定位、安装方式、验证方式和模块说明。
