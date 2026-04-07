@@ -6,15 +6,18 @@ namespace Videra.Core.Tests.Repository;
 public sealed class RepositoryNativeValidationTests
 {
     [Fact]
-    public void NativeValidationWorkflow_ShouldProvideManualLinuxAndMacOSEntrypoints()
+    public void NativeValidationWorkflow_ShouldProvideManualLinuxMacOSAndWindowsEntrypoints()
     {
         var workflow = File.ReadAllText(Path.Combine(GetRepositoryRoot(), ".github", "workflows", "native-validation.yml"));
 
         workflow.Should().Contain("workflow_dispatch:");
         workflow.Should().Contain("ubuntu-latest");
         workflow.Should().Contain("macos-latest");
+        workflow.Should().Contain("windows-latest");
+        workflow.Should().Contain("windows");
         workflow.Should().Contain("xvfb-run -a");
         workflow.Should().Contain("scripts/run-native-validation.sh");
+        workflow.Should().Contain("scripts/run-native-validation.ps1");
     }
 
     [Fact]
@@ -38,6 +41,8 @@ public sealed class RepositoryNativeValidationTests
 
         powerShellScript.Should().Contain("-IncludeNativeLinux");
         powerShellScript.Should().Contain("-IncludeNativeMacOS");
+        powerShellScript.Should().Contain("-IncludeNativeWindows");
+        powerShellScript.Should().Contain("\"Windows\"");
         powerShellScript.Should().Contain("DISPLAY is not set");
     }
 
@@ -56,6 +61,8 @@ public sealed class RepositoryNativeValidationTests
     public void NativeValidationDocs_ShouldExistAndBeLinkedFromPublicEntrypoints()
     {
         var repositoryRoot = GetRepositoryRoot();
+        var englishRunbook = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "native-validation.md"));
+        var chineseRunbook = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "zh-CN", "native-validation.md"));
 
         File.Exists(Path.Combine(repositoryRoot, "docs", "native-validation.md")).Should().BeTrue();
         File.Exists(Path.Combine(repositoryRoot, "docs", "zh-CN", "native-validation.md")).Should().BeTrue();
@@ -73,6 +80,10 @@ public sealed class RepositoryNativeValidationTests
         chineseIndex.Should().Contain("native-validation.md");
         chineseReadme.Should().Contain("native-validation.md");
         chineseTroubleshooting.Should().Contain("native-validation.md");
+        englishRunbook.Should().Contain("Windows native validation");
+        englishRunbook.Should().Contain("windows");
+        chineseRunbook.Should().Contain("Windows 原生验证");
+        chineseRunbook.Should().Contain("windows");
     }
 
     [Fact]

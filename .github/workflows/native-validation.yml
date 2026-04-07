@@ -12,6 +12,7 @@ on:
           - all
           - linux
           - macos
+          - windows
 
 permissions:
   contents: read
@@ -53,3 +54,20 @@ jobs:
         env:
           VIDERA_VERBOSE_TEST_LOGS: "true"
         run: bash ./scripts/run-native-validation.sh --platform macos --configuration Release
+
+  windows-native:
+    if: ${{ github.event.inputs.target == 'all' || github.event.inputs.target == 'windows' }}
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Run Windows native validation
+        env:
+          VIDERA_VERBOSE_TEST_LOGS: "true"
+        shell: pwsh
+        run: pwsh -File ./scripts/run-native-validation.ps1 -Platform Windows -Configuration Release

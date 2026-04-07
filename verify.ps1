@@ -8,13 +8,16 @@
     Run the Linux native validation package (requires a Linux host with X11/Vulkan).
 .PARAMETER IncludeNativeMacOS
     Run the macOS native validation package (requires a macOS host with NSView/Metal).
+.PARAMETER IncludeNativeWindows
+    Run the Windows native validation package (requires a Windows host with a real HWND/D3D11 path).
 #>
 param(
     [ValidateSet("Debug", "Release")]
     [string]$Configuration = "Release",
 
     [switch]$IncludeNativeLinux,
-    [switch]$IncludeNativeMacOS
+    [switch]$IncludeNativeMacOS,
+    [switch]$IncludeNativeWindows
 )
 
 $ErrorActionPreference = "Stop"
@@ -64,6 +67,12 @@ if ($IncludeNativeMacOS) {
     Invoke-Check "macOS Native Validation" {
         dotnet test "$root/tests/Videra.Platform.macOS.Tests/Videra.Platform.macOS.Tests.csproj" --configuration $Configuration -v m --logger "console;verbosity=detailed" 2>$null
     } "macOS native validation passed" "macOS native validation failed"
+}
+
+if ($IncludeNativeWindows) {
+    Invoke-Check "Windows Native Validation" {
+        dotnet test "$root/tests/Videra.Platform.Windows.Tests/Videra.Platform.Windows.Tests.csproj" --configuration $Configuration -v m --logger "console;verbosity=detailed" 2>$null
+    } "Windows native validation passed" "Windows native validation failed"
 }
 
 # Summary

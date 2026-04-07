@@ -1,6 +1,6 @@
 #!/usr/bin/env pwsh
 param(
-    [ValidateSet("Auto", "Linux", "macOS")]
+    [ValidateSet("Auto", "Linux", "macOS", "Windows")]
     [string]$Platform = "Auto",
 
     [ValidateSet("Debug", "Release")]
@@ -20,9 +20,13 @@ if ($Platform -eq "Auto")
     {
         $Platform = "macOS"
     }
+    elseif ([OperatingSystem]::IsWindows())
+    {
+        $Platform = "Windows"
+    }
     else
     {
-        throw "Auto-detection only supports Linux or macOS hosts."
+        throw "Auto-detection only supports Linux, macOS, or Windows hosts."
     }
 }
 
@@ -52,6 +56,17 @@ switch ($Platform)
         }
 
         pwsh -File (Join-Path $root "verify.ps1") -Configuration $Configuration -IncludeNativeMacOS
+        break
+    }
+
+    "Windows"
+    {
+        if (-not [OperatingSystem]::IsWindows())
+        {
+            throw "Windows native validation must run on a Windows host."
+        }
+
+        pwsh -File (Join-Path $root "verify.ps1") -Configuration $Configuration -IncludeNativeWindows
         break
     }
 }
