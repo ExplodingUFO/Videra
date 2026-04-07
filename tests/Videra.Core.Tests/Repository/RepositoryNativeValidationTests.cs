@@ -56,6 +56,21 @@ public sealed class RepositoryNativeValidationTests
         chineseTroubleshooting.Should().Contain("native-validation.md");
     }
 
+    [Fact]
+    public void MacOSPlatformProject_ShouldExposeObjCRuntimeToAvaloniaHostAssembly()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var macOsProject = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Platform.macOS", "Videra.Platform.macOS.csproj"));
+        var objcRuntime = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Platform.macOS", "ObjCRuntime.cs"));
+
+        var hasInternalsVisibleTo = macOsProject.Contains(">Videra.Avalonia<", StringComparison.Ordinal);
+        var isPublicRuntime = objcRuntime.Contains("public static class ObjCRuntime", StringComparison.Ordinal);
+
+        (hasInternalsVisibleTo || isPublicRuntime)
+            .Should()
+            .BeTrue("macOS builds compile VideraMacOSNativeHost against ObjCRuntime, so the helper must be visible to the Videra.Avalonia assembly");
+    }
+
     private static string GetRepositoryRoot()
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);
