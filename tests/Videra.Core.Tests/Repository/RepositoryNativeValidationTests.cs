@@ -161,6 +161,7 @@ public sealed class RepositoryNativeValidationTests
         var repositoryRoot = GetRepositoryRoot();
         var lifecycleTest = File.ReadAllText(Path.Combine(repositoryRoot, "tests", "Videra.Platform.Linux.Tests", "Backend", "VulkanBackendLifecycleTests.cs"));
 
+        lifecycleTest.Should().Contain("CreateHiddenX11Window(128, 96)");
         lifecycleTest.Should().Contain("CreateUniformBuffer(128)");
         lifecycleTest.Should().Contain("CreateUniformBuffer(64)");
         lifecycleTest.Should().Contain("cameraBuffer.SetData(Matrix4x4.Identity, 0);");

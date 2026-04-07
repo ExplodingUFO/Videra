@@ -132,7 +132,7 @@ public sealed class VulkanBackendLifecycleTests
     {
         if (!IsLinux) return;
 
-        using var window = NativeHostTestHelpers.CreateHiddenX11Window();
+        using var window = NativeHostTestHelpers.CreateHiddenX11Window(128, 96);
         using var backend = new VulkanBackend();
         backend.Initialize(window.WindowHandle, 128, 96);
 
