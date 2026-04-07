@@ -23,6 +23,8 @@ pwsh -File ./verify.ps1 -Configuration Release -IncludeNativeLinux
 pwsh -File ./verify.ps1 -Configuration Release -IncludeNativeMacOS
 ```
 
+如果你需要匹配宿主执行步骤，或想使用 GitHub Actions 上的手动入口，请查看[原生宿主验证](native-validation.md)。
+
 ## 常见问题
 
 - `Failed to create D3D11 device`：检查 Windows GPU 和驱动
@@ -34,5 +36,6 @@ pwsh -File ./verify.ps1 -Configuration Release -IncludeNativeMacOS
 ## 相关文档
 
 - [英文故障排查](../troubleshooting.md)
+- [原生宿主验证](native-validation.md)
 - [中文首页](README.md)
 - [架构说明](ARCHITECTURE.md)

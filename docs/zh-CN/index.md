@@ -9,6 +9,7 @@
 - [项目首页](README.md)
 - [架构说明](ARCHITECTURE.md)
 - [故障排查](troubleshooting.md)
+- [原生宿主验证](native-validation.md)
 - [贡献指南](CONTRIBUTING.md)
 
 ## 模块文档

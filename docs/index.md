@@ -9,6 +9,7 @@ This page maps the long-lived public documentation for Videra.
 - [Project README](../README.md)
 - [Architecture](../ARCHITECTURE.md)
 - [Troubleshooting](troubleshooting.md)
+- [Native Validation](native-validation.md)
 - [Contributing](../CONTRIBUTING.md)
 
 ## Packages

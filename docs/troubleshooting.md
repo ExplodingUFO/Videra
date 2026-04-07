@@ -26,6 +26,8 @@ pwsh -File ./verify.ps1 -Configuration Release -IncludeNativeLinux
 pwsh -File ./verify.ps1 -Configuration Release -IncludeNativeMacOS
 ```
 
+If you need a matching-host runbook or the hosted GitHub Actions entrypoint, use [Native Validation](native-validation.md).
+
 ## Common Problems
 
 | Problem | Platform | Suggested Action |
@@ -87,4 +89,5 @@ Include:
 - [README.md](../README.md)
 - [ARCHITECTURE.md](../ARCHITECTURE.md)
 - [CONTRIBUTING.md](../CONTRIBUTING.md)
+- [Native Validation](native-validation.md)
 - [Chinese Troubleshooting Guide](zh-CN/troubleshooting.md)

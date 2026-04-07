@@ -1,0 +1,51 @@
+name: Native Validation
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: Native validation target
+        required: true
+        default: all
+        type: choice
+        options:
+          - all
+          - linux
+          - macos
+
+permissions:
+  contents: read
+
+jobs:
+  linux-native:
+    if: ${{ github.event.inputs.target == 'all' || github.event.inputs.target == 'linux' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Install Linux native prerequisites
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb libx11-6 libvulkan1 mesa-vulkan-drivers vulkan-tools
+
+      - name: Run Linux native validation
+        run: xvfb-run -a bash ./scripts/run-native-validation.sh --platform linux --configuration Release
+
+  macos-native:
+    if: ${{ github.event.inputs.target == 'all' || github.event.inputs.target == 'macos' }}
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Run macOS native validation
+        run: bash ./scripts/run-native-validation.sh --platform macos --configuration Release

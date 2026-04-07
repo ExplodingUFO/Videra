@@ -147,6 +147,8 @@ pwsh -File ./verify.ps1 -Configuration Release -IncludeNativeLinux
 pwsh -File ./verify.ps1 -Configuration Release -IncludeNativeMacOS
 ```
 
+For matching-host Linux/macOS validation, or to close the remaining `TEST-03` execution gap, use the dedicated [Native Validation runbook](docs/native-validation.md). The repository also exposes a manual GitHub Actions workflow at `.github/workflows/native-validation.yml`.
+
 ## Avalonia Integration Example
 
 ```xml
@@ -214,6 +216,7 @@ Detailed package-level docs:
 - [Documentation Index](docs/index.md)
 - [Architecture](ARCHITECTURE.md)
 - [Troubleshooting](docs/troubleshooting.md)
+- [Native Validation](docs/native-validation.md)
 - [Contributing](CONTRIBUTING.md)
 - [Chinese Documentation Entry](docs/zh-CN/index.md)
 - [Archive](docs/archive/README.md)

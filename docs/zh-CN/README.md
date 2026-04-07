@@ -17,6 +17,7 @@ Videra 是一套面向 .NET 桌面应用的跨平台 3D 查看组件库，核心
 - [架构说明](ARCHITECTURE.md)
 - [贡献指南](CONTRIBUTING.md)
 - [故障排查](troubleshooting.md)
+- [原生宿主验证](native-validation.md)
 - [文档导航](index.md)
 
 ## 模块文档
