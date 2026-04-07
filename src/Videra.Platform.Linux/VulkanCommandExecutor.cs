@@ -181,5 +181,6 @@ internal sealed unsafe class VulkanCommandExecutor : ICommandExecutor
         };
 
         _vk.UpdateDescriptorSets(_device, 2, writes, 0, null);
+        BindDescriptorSet();
     }
 }

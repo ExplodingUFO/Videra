@@ -170,6 +170,21 @@ public sealed class RepositoryNativeValidationTests
         lifecycleTest.Should().Contain("executor.SetVertexBuffer(worldBuffer, RenderBindingSlots.World);");
     }
 
+    [Fact]
+    public void VulkanCommandExecutor_ShouldRebindDescriptorSetAfterUniformUpdates()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var executorSource = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Platform.Linux", "VulkanCommandExecutor.cs"));
+
+        var updateCallIndex = executorSource.IndexOf("_vk.UpdateDescriptorSets(_device, 2, writes, 0, null);", StringComparison.Ordinal);
+        updateCallIndex.Should().BeGreaterThanOrEqualTo(0);
+
+        var reboundIndex = executorSource.IndexOf("BindDescriptorSet();", updateCallIndex, StringComparison.Ordinal);
+        reboundIndex.Should().BeGreaterThan(
+            updateCallIndex,
+            "descriptor updates must be rebound immediately after uniform writes on stricter Vulkan drivers");
+    }
+
     private static string GetRepositoryRoot()
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);
