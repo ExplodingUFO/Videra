@@ -18,6 +18,14 @@ public sealed class RepositoryNativeValidationTests
     }
 
     [Fact]
+    public void NativeValidationWorkflow_ShouldInstallLinuxShadercRuntime()
+    {
+        var workflow = File.ReadAllText(Path.Combine(GetRepositoryRoot(), ".github", "workflows", "native-validation.yml"));
+
+        workflow.Should().Contain("libshaderc1");
+    }
+
+    [Fact]
     public void NativeValidationScripts_ShouldWrapRepositoryVerifyEntrypoints()
     {
         var repositoryRoot = GetRepositoryRoot();
@@ -31,6 +39,17 @@ public sealed class RepositoryNativeValidationTests
         powerShellScript.Should().Contain("-IncludeNativeLinux");
         powerShellScript.Should().Contain("-IncludeNativeMacOS");
         powerShellScript.Should().Contain("DISPLAY is not set");
+    }
+
+    [Fact]
+    public void NativeValidationVerifyScripts_ShouldUseDetailedNativeTestLogging()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var shellVerify = File.ReadAllText(Path.Combine(repositoryRoot, "verify.sh"));
+        var powerShellVerify = File.ReadAllText(Path.Combine(repositoryRoot, "verify.ps1"));
+
+        shellVerify.Should().Contain("console;verbosity=detailed");
+        powerShellVerify.Should().Contain("console;verbosity=detailed");
     }
 
     [Fact]
@@ -169,6 +188,18 @@ public sealed class RepositoryNativeValidationTests
         lifecycleTest.Should().Contain("worldBuffer.SetData(Matrix4x4.Identity, 0);");
         lifecycleTest.Should().Contain("executor.SetVertexBuffer(cameraBuffer, RenderBindingSlots.Camera);");
         lifecycleTest.Should().Contain("executor.SetVertexBuffer(worldBuffer, RenderBindingSlots.World);");
+    }
+
+    [Fact]
+    public void VulkanShaderCompilation_ShouldResolveUbuntuShadercSonameFallback()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var factorySource = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Platform.Linux", "VulkanResourceFactory.cs"));
+
+        factorySource.Should().Contain("new DefaultNativeContext");
+        factorySource.Should().Contain("libshaderc_shared.so");
+        factorySource.Should().Contain("/usr/lib/x86_64-linux-gnu/libshaderc.so.1");
+        factorySource.Should().Contain("libshaderc.so.1");
     }
 
     [Fact]

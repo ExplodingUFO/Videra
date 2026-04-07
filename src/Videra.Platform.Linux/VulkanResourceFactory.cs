@@ -1,4 +1,5 @@
 using System.Runtime.InteropServices;
+using Silk.NET.Core.Contexts;
 using Silk.NET.Core.Native;
 using Silk.NET.Shaderc;
 using Silk.NET.Vulkan;
@@ -13,6 +14,14 @@ namespace Videra.Platform.Linux;
 internal sealed unsafe class VulkanResourceFactory : IResourceFactory
 {
     private static readonly DepthBufferConfiguration DepthConfig = DepthBufferConfiguration.Default;
+    private static readonly string[] ShadercLibraryNames =
+    {
+        "libshaderc_shared.so",
+        "/usr/lib/x86_64-linux-gnu/libshaderc.so.1",
+        "/lib/x86_64-linux-gnu/libshaderc.so.1",
+        "libshaderc.so.1",
+        "libshaderc.so"
+    };
 
     private readonly Device _device;
     private readonly PhysicalDevice _physicalDevice;
@@ -438,7 +447,8 @@ internal sealed unsafe class VulkanResourceFactory : IResourceFactory
 
     private static byte[] CompileShader(string source, ShaderKind kind)
     {
-        var shaderc = Shaderc.GetApi();
+        using var shadercContext = new DefaultNativeContext(ShadercLibraryNames);
+        using var shaderc = new Shaderc(shadercContext);
         var compiler = shaderc.CompilerInitialize();
         var options = shaderc.CompileOptionsInitialize();
 

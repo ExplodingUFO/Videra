@@ -31,9 +31,11 @@ jobs:
       - name: Install Linux native prerequisites
         run: |
           sudo apt-get update
-          sudo apt-get install -y xvfb libx11-6 libvulkan1 mesa-vulkan-drivers vulkan-tools
+          sudo apt-get install -y xvfb libx11-6 libvulkan1 libshaderc1 mesa-vulkan-drivers vulkan-tools
 
       - name: Run Linux native validation
+        env:
+          VIDERA_VERBOSE_TEST_LOGS: "true"
         run: xvfb-run -a bash ./scripts/run-native-validation.sh --platform linux --configuration Release
 
   macos-native:
@@ -48,4 +50,6 @@ jobs:
           dotnet-version: 8.0.x
 
       - name: Run macOS native validation
+        env:
+          VIDERA_VERBOSE_TEST_LOGS: "true"
         run: bash ./scripts/run-native-validation.sh --platform macos --configuration Release

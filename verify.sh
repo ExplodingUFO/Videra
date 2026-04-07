@@ -7,6 +7,13 @@ INCLUDE_NATIVE_MACOS=false
 ROOT_DIR="$(cd "$(dirname "$0")" && pwd)"
 ALL_PASS=true
 START_TIME=$(date +%s)
+TEST_VERBOSITY="q"
+TEST_LOGGER_ARGS=()
+
+if [[ "${VIDERA_VERBOSE_TEST_LOGS:-false}" == "true" ]]; then
+  TEST_VERBOSITY="m"
+  TEST_LOGGER_ARGS=(--logger "console;verbosity=detailed")
+fi
 
 print_step() {
   printf '\n=== %s ===\n' "$1"
@@ -58,7 +65,7 @@ run_check \
   "Tests" \
   "All tests passed" \
   "Some tests failed" \
-  dotnet test "$ROOT_DIR/Videra.slnx" --configuration "$CONFIGURATION" -v q
+  dotnet test "$ROOT_DIR/Videra.slnx" --configuration "$CONFIGURATION" -v "$TEST_VERBOSITY" "${TEST_LOGGER_ARGS[@]}"
 
 run_check \
   "Demo Build" \
@@ -71,7 +78,7 @@ if [[ "$INCLUDE_NATIVE_LINUX" == true ]]; then
     "Linux Native Validation" \
     "Linux native validation passed" \
     "Linux native validation failed" \
-    dotnet test "$ROOT_DIR/tests/Videra.Platform.Linux.Tests/Videra.Platform.Linux.Tests.csproj" --configuration "$CONFIGURATION" -v q
+    dotnet test "$ROOT_DIR/tests/Videra.Platform.Linux.Tests/Videra.Platform.Linux.Tests.csproj" --configuration "$CONFIGURATION" -v "$TEST_VERBOSITY" "${TEST_LOGGER_ARGS[@]}"
 fi
 
 if [[ "$INCLUDE_NATIVE_MACOS" == true ]]; then
@@ -79,7 +86,7 @@ if [[ "$INCLUDE_NATIVE_MACOS" == true ]]; then
     "macOS Native Validation" \
     "macOS native validation passed" \
     "macOS native validation failed" \
-    dotnet test "$ROOT_DIR/tests/Videra.Platform.macOS.Tests/Videra.Platform.macOS.Tests.csproj" --configuration "$CONFIGURATION" -v q
+    dotnet test "$ROOT_DIR/tests/Videra.Platform.macOS.Tests/Videra.Platform.macOS.Tests.csproj" --configuration "$CONFIGURATION" -v "$TEST_VERBOSITY" "${TEST_LOGGER_ARGS[@]}"
 fi
 
 END_TIME=$(date +%s)

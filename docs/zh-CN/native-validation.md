@@ -36,7 +36,7 @@ pwsh -File ./verify.ps1 -Configuration Release
 
 说明：
 
-- Linux job 会安装 `xvfb`、`libX11` 和 Vulkan 运行库，然后在 `xvfb-run` 下执行验证
+- Linux job 会安装 `xvfb`、`libX11`、`libshaderc1` 和 Vulkan 运行库，然后在 `xvfb-run` 下执行验证
 - macOS job 会直接执行托管 runner 上的 `NSView` / Metal 验证路径
 - 如果托管 runner 不足以定位某个原生问题，仍应改用下面的真实宿主路径
 
@@ -51,6 +51,7 @@ pwsh -File ./verify.ps1 -Configuration Release
 - 可用的 X11 会话，或 `xvfb-run`
 - Vulkan 驱动与运行库
 - `libX11.so.6`
+- `libshaderc.so.1`（Ubuntu 包名：`libshaderc1`）
 
 Shell：
 

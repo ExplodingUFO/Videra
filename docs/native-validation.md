@@ -36,7 +36,7 @@ From the GitHub Actions tab:
 
 Notes:
 
-- The Linux job installs `xvfb`, `libX11`, and Vulkan runtime packages, then runs the native validation under `xvfb-run`
+- The Linux job installs `xvfb`, `libX11`, `libshaderc1`, and Vulkan runtime packages, then runs the native validation under `xvfb-run`
 - The macOS job runs the hosted Metal/`NSView` validation path directly
 - If hosted runners turn out to be insufficient for a specific native issue, use the local matching-host path below
 
@@ -51,6 +51,7 @@ Prerequisites:
 - An active X11 session, or `xvfb-run`
 - Vulkan runtime and drivers
 - `libX11.so.6`
+- `libshaderc.so.1` (Ubuntu package: `libshaderc1`)
 
 Shell:
 

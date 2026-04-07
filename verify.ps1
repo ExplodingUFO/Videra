@@ -56,13 +56,13 @@ Invoke-Check "Demo Build" {
 # Optional native validation packages
 if ($IncludeNativeLinux) {
     Invoke-Check "Linux Native Validation" {
-        dotnet test "$root/tests/Videra.Platform.Linux.Tests/Videra.Platform.Linux.Tests.csproj" --configuration $Configuration -v q 2>$null
+        dotnet test "$root/tests/Videra.Platform.Linux.Tests/Videra.Platform.Linux.Tests.csproj" --configuration $Configuration -v m --logger "console;verbosity=detailed" 2>$null
     } "Linux native validation passed" "Linux native validation failed"
 }
 
 if ($IncludeNativeMacOS) {
     Invoke-Check "macOS Native Validation" {
-        dotnet test "$root/tests/Videra.Platform.macOS.Tests/Videra.Platform.macOS.Tests.csproj" --configuration $Configuration -v q 2>$null
+        dotnet test "$root/tests/Videra.Platform.macOS.Tests/Videra.Platform.macOS.Tests.csproj" --configuration $Configuration -v m --logger "console;verbosity=detailed" 2>$null
     } "macOS native validation passed" "macOS native validation failed"
 }
 
