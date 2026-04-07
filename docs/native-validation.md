@@ -2,13 +2,14 @@
 
 [English](native-validation.md) | [中文](zh-CN/native-validation.md)
 
-This runbook covers the matching-host validation path for Videra's Linux, macOS, and Windows native backends. Use it when you need to reproduce host-specific backend issues or close the remaining `TEST-03` execution gap.
+This runbook covers the matching-host validation path for Videra's Linux, macOS, and Windows native backends. GitHub Actions pull requests now use this path as the primary native-validation gate. Use this guide when you need to inspect that CI behavior, rerun it manually with `workflow_dispatch`, or reproduce host-specific backend issues locally.
 
 ## What This Covers
 
 - Linux native validation: real X11-hosted Vulkan lifecycle and draw-path tests
 - macOS native validation: real `NSView`-hosted Metal lifecycle and draw-path tests
 - Windows native validation: real HWND-hosted D3D11 lifecycle and draw-path tests
+- An automatic GitHub Actions gate for pull requests and pushes to `master`
 - A manual GitHub Actions entrypoint for hosted Linux/macOS/Windows validation
 - A local script entrypoint for real matching hosts
 
@@ -19,17 +20,23 @@ Standard repository verification remains:
 pwsh -File ./verify.ps1 -Configuration Release
 ```
 
-That standard path does not automatically close the dedicated matching-host validation gap. Use the native-specific entrypoints below.
+That standard path does not automatically exercise the dedicated matching-host native jobs. Use the native-specific entrypoints below when you need the same path that GitHub Actions pull requests enforce.
 
 ## GitHub Actions Entry
 
-The repository now includes a manual workflow:
+The repository now includes a hosted workflow at `.github/workflows/native-validation.yml`.
 
-- Workflow: `.github/workflows/native-validation.yml`
-- Trigger: `workflow_dispatch`
+Automatic triggers:
+
+- `pull_request`
+- `push` to `master`
+
+Manual trigger:
+
+- `workflow_dispatch`
 - Targets: `all`, `linux`, `macos`, `windows`
 
-From the GitHub Actions tab:
+From the GitHub Actions tab, use `Run workflow` when you want a targeted rerun:
 
 1. Open `Native Validation`
 2. Click `Run workflow`
@@ -43,6 +50,12 @@ Notes:
 - If hosted runners turn out to be insufficient for a specific native issue, use the local matching-host path below
 
 ## Local Matching-Host Entry
+
+Use the local matching-host path when:
+
+- you need to reproduce a CI-only native failure
+- you need to inspect logs or graphics prerequisites interactively
+- hosted runners are insufficient for a specific platform issue
 
 ### Linux
 
@@ -124,6 +137,8 @@ Native validation is considered meaningful when all of the following are true:
 - The real native fixture path executes
 - Lifecycle and draw-path tests pass
 - Success is not based only on constructor assertions, `IntPtr.Zero` guards, or placeholder tests
+
+For project-state tracking, the first successful hosted pull-request or tag-gated run on the matching host is the evidence that closes the old local-only execution assumption. The local matching-host path remains the reproduction and troubleshooting fallback.
 
 Relevant test projects:
 

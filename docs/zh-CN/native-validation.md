@@ -2,13 +2,14 @@
 
 [English](../native-validation.md) | [中文](native-validation.md)
 
-本文档说明 Videra 在 Linux、macOS 与 Windows 上的原生宿主验证入口。它用于复现平台特定后端问题，也用于关闭当前剩余的 `TEST-03` 实机执行缺口。
+本文档说明 Videra 在 Linux、macOS 与 Windows 上的原生宿主验证入口。GitHub Actions 现在会在 pull requests 中把这条路径作为主要的 native validation gate。你可以用它查看 CI 行为，也可以通过 `workflow_dispatch` 手动重跑，或在本地匹配宿主上复现平台特定后端问题。
 
 ## 覆盖范围
 
 - Linux：真实 X11 宿主上的 Vulkan 生命周期与 draw-path 测试
 - macOS：真实 `NSView` 宿主上的 Metal 生命周期与 draw-path 测试
 - Windows 原生验证：真实 HWND 宿主上的 D3D11 生命周期与 draw-path 测试
+- GitHub Actions 中对 pull requests 与 `master` push 自动执行的 gate
 - GitHub Actions 手动触发入口
 - 真实匹配宿主上的本地脚本入口
 
@@ -19,17 +20,23 @@
 pwsh -File ./verify.ps1 -Configuration Release
 ```
 
-但默认入口不会自动关闭专用的匹配宿主验证 gap。要做这件事，请使用下面的专用入口。
+但默认入口不会自动执行专用的匹配宿主 native jobs。要走和 GitHub Actions pull requests 相同的路径，请使用下面的专用入口。
 
 ## GitHub Actions 入口
 
-仓库新增了一个手动 workflow：
+仓库提供了一个托管 workflow：`.github/workflows/native-validation.yml`。
 
-- Workflow：`.github/workflows/native-validation.yml`
-- 触发方式：`workflow_dispatch`
+自动触发方式：
+
+- `pull_request`
+- push 到 `master`
+
+手动触发方式：
+
+- `workflow_dispatch`
 - 目标：`all`、`linux`、`macos`、`windows`
 
-在 GitHub Actions 页面中：
+在 GitHub Actions 页面中，如需定向重跑可使用 `Run workflow`：
 
 1. 打开 `Native Validation`
 2. 点击 `Run workflow`
@@ -43,6 +50,12 @@ pwsh -File ./verify.ps1 -Configuration Release
 - 如果托管 runner 不足以定位某个原生问题，仍应改用下面的真实宿主路径
 
 ## 本地匹配宿主入口
+
+适合在以下场景使用本地匹配宿主路径：
+
+- 复现只在 CI 中出现的原生失败
+- 需要交互式查看日志、图形前置条件或驱动状态
+- 某个平台问题超出了托管 runner 的可观测范围
 
 ### Linux
 
@@ -124,6 +137,8 @@ PowerShell 包装脚本会调用等价的 `verify.ps1` 入口。
 - 真实 native fixture 路径被执行
 - 生命周期与 draw-path 测试通过
 - 不是只靠构造函数断言、`IntPtr.Zero` 守卫或 placeholder 测试得出成功
+
+从项目状态追踪角度看，第一次在 matching-host GitHub Actions 或等价环境中成功跑通，才是关闭旧的“仅靠本地人工执行”假设所需的证据。本地匹配宿主路径仍然保留为复现和排障入口。
 
 相关测试项目：
 

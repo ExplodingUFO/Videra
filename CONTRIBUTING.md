@@ -82,6 +82,14 @@ You can also run tests directly when needed:
 dotnet test Videra.slnx
 ```
 
+GitHub Actions also enforces hosted validation:
+
+- `CI` runs the baseline repository verification on pull requests
+- `Native Validation` runs Linux, macOS, and Windows matching-host native validation on pull requests
+- Tag publishing is gated by fresh native validation before packages are pushed
+
+If a pull request touches native-host behavior, treat the hosted `Native Validation` checks as required evidence, not as optional follow-up.
+
 ## Documentation Expectations
 
 Update docs when you:
@@ -130,9 +138,16 @@ Before opening a PR, confirm that:
 
 - The change goal is clear and the problem/solution are described
 - Repository verification has been run
-- Platform-specific changes were validated on the matching host, or gaps are stated explicitly
+- Platform-specific changes were validated on the matching host, or the gap is stated explicitly and the hosted `Native Validation` jobs are expected to cover it
 - Docs and examples were updated when public behavior changed
 - No temporary debug output or local-only scaffolding remains
+
+For `master`, the intended required checks are:
+
+- `verify`
+- `linux-native`
+- `macos-native`
+- `windows-native`
 
 ## Platform Notes
 

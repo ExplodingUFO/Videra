@@ -25,6 +25,7 @@
 ## Verification
 
 - [ ] `pwsh -File ./verify.ps1 -Configuration Release`
+- [ ] GitHub Actions `Native Validation` is expected to pass for this PR
 - [ ] Additional platform-specific validation, if applicable
 
 ## Risks

@@ -1,6 +1,10 @@
 name: Native Validation
 
 on:
+  pull_request:
+  push:
+    branches:
+      - master
   workflow_dispatch:
     inputs:
       target:
@@ -19,7 +23,7 @@ permissions:
 
 jobs:
   linux-native:
-    if: ${{ github.event.inputs.target == 'all' || github.event.inputs.target == 'linux' }}
+    if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.target == 'all' || github.event.inputs.target == 'linux' }}
     runs-on: ubuntu-latest
 
     steps:
@@ -40,7 +44,7 @@ jobs:
         run: xvfb-run -a bash ./scripts/run-native-validation.sh --platform linux --configuration Release
 
   macos-native:
-    if: ${{ github.event.inputs.target == 'all' || github.event.inputs.target == 'macos' }}
+    if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.target == 'all' || github.event.inputs.target == 'macos' }}
     runs-on: macos-latest
 
     steps:
@@ -56,7 +60,7 @@ jobs:
         run: bash ./scripts/run-native-validation.sh --platform macos --configuration Release
 
   windows-native:
-    if: ${{ github.event.inputs.target == 'all' || github.event.inputs.target == 'windows' }}
+    if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.target == 'all' || github.event.inputs.target == 'windows' }}
     runs-on: windows-latest
 
     steps:

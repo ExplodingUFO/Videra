@@ -6,15 +6,20 @@ namespace Videra.Core.Tests.Repository;
 public sealed class RepositoryNativeValidationTests
 {
     [Fact]
-    public void NativeValidationWorkflow_ShouldProvideManualLinuxMacOSAndWindowsEntrypoints()
+    public void NativeValidationWorkflow_ShouldRunAutomaticallyForPullRequestsPushesAndManualTargets()
     {
         var workflow = File.ReadAllText(Path.Combine(GetRepositoryRoot(), ".github", "workflows", "native-validation.yml"));
 
+        workflow.Should().Contain("pull_request:");
+        workflow.Should().Contain("push:");
+        workflow.Should().Contain("branches:");
+        workflow.Should().Contain("- master");
         workflow.Should().Contain("workflow_dispatch:");
         workflow.Should().Contain("ubuntu-latest");
         workflow.Should().Contain("macos-latest");
         workflow.Should().Contain("windows-latest");
         workflow.Should().Contain("windows");
+        workflow.Should().Contain("github.event_name != 'workflow_dispatch'");
         workflow.Should().Contain("xvfb-run -a");
         workflow.Should().Contain("scripts/run-native-validation.sh");
         workflow.Should().Contain("scripts/run-native-validation.ps1");
@@ -81,7 +86,13 @@ public sealed class RepositoryNativeValidationTests
         chineseReadme.Should().Contain("native-validation.md");
         chineseTroubleshooting.Should().Contain("native-validation.md");
         englishRunbook.Should().Contain("Windows native validation");
+        englishRunbook.Should().Contain("pull requests");
+        englishRunbook.Should().Contain("workflow_dispatch");
+        englishRunbook.Should().Contain("local matching-host path");
         englishRunbook.Should().Contain("windows");
+        readme.Should().Contain("GitHub Actions");
+        readme.Should().Contain("pull requests");
+        readme.Should().Contain("Run workflow");
         chineseRunbook.Should().Contain("Windows 原生验证");
         chineseRunbook.Should().Contain("windows");
     }

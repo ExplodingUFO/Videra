@@ -147,7 +147,7 @@ pwsh -File ./verify.ps1 -Configuration Release -IncludeNativeLinux
 pwsh -File ./verify.ps1 -Configuration Release -IncludeNativeMacOS
 ```
 
-For matching-host Linux/macOS validation, or to close the remaining `TEST-03` execution gap, use the dedicated [Native Validation runbook](docs/native-validation.md). The repository also exposes a manual GitHub Actions workflow at `.github/workflows/native-validation.yml`.
+GitHub Actions now runs matching-host native validation for Linux, macOS, and Windows on pull requests through `.github/workflows/native-validation.yml`. Use the dedicated [Native Validation runbook](docs/native-validation.md) when you want to inspect that CI path, use `Run workflow` for targeted reruns, or reproduce failures locally on a matching host.
 
 ## Avalonia Integration Example
 
@@ -223,7 +223,7 @@ Detailed package-level docs:
 - Videra is a component-oriented 3D viewer stack, not a full content creation toolchain
 - The current GitHub Packages alpha path is best treated as a Windows + Avalonia evaluation track
 - Linux native support is currently X11-first; Wayland remains an open gap
-- Linux and macOS native-host validation still needs to be performed on those hosts explicitly
+- Linux and macOS native-host validation is expected to pass on matching-host GitHub Actions pull requests; local matching-host runs remain the fallback for targeted debugging
 - The macOS backend currently relies on Objective-C runtime interop
 
 ## Documentation

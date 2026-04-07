@@ -5,8 +5,66 @@ on:
     tags:
       - 'v*'
 
+permissions:
+  contents: read
+
 jobs:
+  linux-native-validation:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Install Linux native prerequisites
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb libx11-6 libvulkan1 libshaderc1 mesa-vulkan-drivers vulkan-tools
+
+      - name: Run Linux native validation
+        env:
+          VIDERA_VERBOSE_TEST_LOGS: "true"
+        run: xvfb-run -a bash ./scripts/run-native-validation.sh --platform linux --configuration Release
+
+  macos-native-validation:
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Run macOS native validation
+        env:
+          VIDERA_VERBOSE_TEST_LOGS: "true"
+        run: bash ./scripts/run-native-validation.sh --platform macos --configuration Release
+
+  windows-native-validation:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Run Windows native validation
+        env:
+          VIDERA_VERBOSE_TEST_LOGS: "true"
+        shell: pwsh
+        run: pwsh -File ./scripts/run-native-validation.ps1 -Platform Windows -Configuration Release
+
   publish:
+    needs:
+      - linux-native-validation
+      - macos-native-validation
+      - windows-native-validation
     runs-on: windows-latest
     permissions:
       packages: write

@@ -32,7 +32,17 @@ public sealed class RepositoryReleaseReadinessTests
         var workflow = File.ReadAllText(Path.Combine(GetRepositoryRoot(), ".github", "workflows", "publish-nuget.yml"));
 
         workflow.Should().NotContain("workflow_dispatch:");
+        workflow.Should().Contain("linux-native-validation:");
+        workflow.Should().Contain("macos-native-validation:");
+        workflow.Should().Contain("windows-native-validation:");
+        workflow.Should().Contain("needs:");
+        workflow.Should().Contain("- linux-native-validation");
+        workflow.Should().Contain("- macos-native-validation");
+        workflow.Should().Contain("- windows-native-validation");
         workflow.Should().Contain("runs-on: windows-latest");
+        workflow.Should().Contain("xvfb-run -a bash ./scripts/run-native-validation.sh --platform linux --configuration Release");
+        workflow.Should().Contain("bash ./scripts/run-native-validation.sh --platform macos --configuration Release");
+        workflow.Should().Contain("pwsh -File ./scripts/run-native-validation.ps1 -Platform Windows -Configuration Release");
         workflow.Should().Contain("pwsh -File ./verify.ps1 -Configuration Release");
         workflow.Should().Contain("Expand-Archive");
     }

@@ -10,6 +10,7 @@ Videra 是一套面向 .NET 桌面应用的跨平台 3D 查看组件库，核心
 - 当前默认版本线为 `0.1.0-alpha.1`
 - API、包结构和部分平台行为在 `1.0` 前仍可能调整
 - 当前 GitHub Packages 安装线更适合 Windows + Avalonia 评估；Linux/macOS 原生后端更建议按源码验证
+- GitHub Actions 会在 pull requests 中自动执行跨平台原生验证；本地 matching-host 运行仍主要用于复现和排障
 
 ## 快速入口
 
