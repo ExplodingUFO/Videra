@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Numerics;
+using Videra.Core.Geometry;
 
 namespace Videra.Core.Cameras;
 
@@ -12,6 +13,12 @@ namespace Videra.Core.Cameras;
 /// </summary>
 public class OrbitCamera
 {
+    public const float DefaultYaw = 0.5f;
+    public const float DefaultPitch = 0.5f;
+    public const float DefaultRadius = 15.0f;
+    public const float MinimumPitch = -1.5f;
+    public const float MaximumPitch = 1.5f;
+
     // ==========================================
     // 1. Fields & Properties
     // ==========================================
@@ -20,20 +27,20 @@ public class OrbitCamera
     /// The distance from the camera to <see cref="Target"/>.
     /// Clamped to the range [0.1, 200] during zoom operations.
     /// </summary>
-    private float _radius = 15.0f;
+    private float _radius = DefaultRadius;
 
     // State properties
 
     /// <summary>
     /// Gets the current yaw angle in radians (horizontal rotation around the target).
     /// </summary>
-    public float Yaw { get; private set; } = 0.5f;
+    public float Yaw { get; private set; } = DefaultYaw;
 
     /// <summary>
     /// Gets the current pitch angle in radians (vertical tilt).
     /// Clamped to the range [-1.5, 1.5] to prevent gimbal lock.
     /// </summary>
-    public float Pitch { get; private set; } = 0.5f;
+    public float Pitch { get; private set; } = DefaultPitch;
 
     // Spatial properties
 
@@ -42,6 +49,8 @@ public class OrbitCamera
     /// computed from <see cref="Target"/>, <see cref="Yaw"/>, <see cref="Pitch"/>, and radius.
     /// </summary>
     public Vector3 Position { get; private set; }
+
+    public float Radius => _radius;
 
     /// <summary>
     /// Gets or sets the world-space point the camera orbits around.
@@ -203,8 +212,7 @@ public class OrbitCamera
         if (InvertY) Pitch += yChange;
         else Pitch -= yChange;
         
-        // 限制俯仰角，防止万向节死锁 (Gimbal Lock)
-        Pitch = Math.Clamp(Pitch, -1.5f, 1.5f);
+        Pitch = Math.Clamp(Pitch, MinimumPitch, MaximumPitch);
 
         UpdatePosition();
     }
@@ -239,6 +247,44 @@ public class OrbitCamera
         
         Target += right * x * PanSpeed + upLocal * y * PanSpeed;
         UpdatePosition();
+    }
+
+    public void Reset()
+    {
+        Target = Vector3.Zero;
+        Yaw = DefaultYaw;
+        Pitch = DefaultPitch;
+        _radius = DefaultRadius;
+        UpdatePosition();
+    }
+
+    public void SetOrbit(Vector3 target, float radius, float yaw, float pitch)
+    {
+        Target = target;
+        _radius = Math.Clamp(radius, 0.1f, 200f);
+        Yaw = yaw;
+        Pitch = Math.Clamp(pitch, MinimumPitch, MaximumPitch);
+        UpdatePosition();
+    }
+
+    public bool FrameBounds(BoundingBox3 bounds, float padding = 1.2f)
+    {
+        if (!bounds.IsValid)
+        {
+            return false;
+        }
+
+        var center = bounds.Center;
+        var sphereRadius = bounds.Size.Length() * 0.5f;
+        var halfFov = Math.Clamp(FieldOfView * 0.5f, 0.01f, MathF.PI / 2f - 0.01f);
+        var requiredRadius = sphereRadius <= 0f
+            ? 0.1f
+            : sphereRadius / MathF.Sin(halfFov);
+
+        Target = center;
+        _radius = Math.Clamp(requiredRadius * Math.Max(padding, 1.0f), 0.1f, 200f);
+        UpdatePosition();
+        return true;
     }
 
     // ==========================================

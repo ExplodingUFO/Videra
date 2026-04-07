@@ -309,4 +309,50 @@ public class Object3DTests
 
         secondDisposeCount.Should().Be(firstDisposeCount, "second dispose should be a no-op");
     }
+
+    [Fact]
+    public void WorldBounds_AfterInitialize_MatchesLocalMeshExtents()
+    {
+        var obj = new Object3D { Name = "BoundsObj" };
+        var mockFactory = CreateMockFactory();
+        var mesh = new MeshData
+        {
+            Vertices = new[]
+            {
+                new VertexPositionNormalColor(new Vector3(-2f, 1f, -1f), Vector3.UnitY, RgbaFloat.White),
+                new VertexPositionNormalColor(new Vector3(4f, 3f, 2f), Vector3.UnitY, RgbaFloat.White),
+                new VertexPositionNormalColor(new Vector3(1f, -5f, 0.5f), Vector3.UnitY, RgbaFloat.White)
+            },
+            Indices = new uint[] { 0, 1, 2 },
+            Topology = MeshTopology.Triangles
+        };
+
+        obj.Initialize(mockFactory.Object, mesh);
+
+        obj.LocalBounds.Should().NotBeNull();
+        obj.LocalBounds!.Value.Min.Should().Be(new Vector3(-2f, -5f, -1f));
+        obj.LocalBounds!.Value.Max.Should().Be(new Vector3(4f, 3f, 2f));
+        obj.WorldBounds.Should().NotBeNull();
+        obj.WorldBounds!.Value.Min.Should().Be(new Vector3(-2f, -5f, -1f));
+        obj.WorldBounds!.Value.Max.Should().Be(new Vector3(4f, 3f, 2f));
+    }
+
+    [Fact]
+    public void WorldBounds_AppliesTranslationAndScale()
+    {
+        var obj = new Object3D
+        {
+            Name = "BoundsObj",
+            Position = new Vector3(10f, -2f, 5f),
+            Scale = new Vector3(2f, 3f, 4f)
+        };
+        var mockFactory = CreateMockFactory();
+        var mesh = CreateTestMesh();
+
+        obj.Initialize(mockFactory.Object, mesh);
+
+        obj.WorldBounds.Should().NotBeNull();
+        obj.WorldBounds!.Value.Min.Should().Be(new Vector3(10f, -2f, 5f));
+        obj.WorldBounds!.Value.Max.Should().Be(new Vector3(12f, 1f, 5f));
+    }
 }

@@ -1,6 +1,7 @@
 using System.Numerics;
 using FluentAssertions;
 using Videra.Core.Cameras;
+using Videra.Core.Geometry;
 using Xunit;
 
 namespace Videra.Core.Tests.Cameras;
@@ -282,5 +283,36 @@ public class OrbitCameraTests
 
         // Assert - default radius is 15
         camera.Position.Length().Should().BeApproximately(15.0f, 0.01f);
+    }
+
+    [Fact]
+    public void Reset_RestoresDefaultCameraState()
+    {
+        var camera = new OrbitCamera();
+        var defaultPosition = camera.Position;
+
+        camera.Rotate(20f, 10f);
+        camera.Zoom(4f);
+        camera.Pan(2f, -1f);
+
+        camera.Reset();
+
+        camera.Yaw.Should().BeApproximately(0.5f, 0.0001f);
+        camera.Pitch.Should().BeApproximately(0.5f, 0.0001f);
+        camera.Target.Should().Be(Vector3.Zero);
+        Vector3.Distance(camera.Position, defaultPosition).Should().BeLessThan(0.0001f);
+    }
+
+    [Fact]
+    public void FrameBounds_CentersCameraOnBounds()
+    {
+        var camera = new OrbitCamera();
+        var bounds = new BoundingBox3(new Vector3(-2f, -1f, -3f), new Vector3(6f, 5f, 9f));
+
+        var framed = camera.FrameBounds(bounds);
+
+        framed.Should().BeTrue();
+        camera.Target.Should().Be(new Vector3(2f, 2f, 3f));
+        Vector3.Distance(camera.Position, camera.Target).Should().BeGreaterThan(0f);
     }
 }

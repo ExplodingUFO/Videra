@@ -36,6 +36,8 @@ public partial class VideraEngine : IDisposable
     /// </summary>
     public OrbitCamera Camera { get; } = new();
 
+    internal IReadOnlyList<Object3D> SceneObjects => _sceneObjects;
+
     /// <summary>
     /// Gets a value indicating whether the engine has been initialized and is ready to render.
     /// </summary>

@@ -120,6 +120,93 @@ public sealed class VideraViewSceneIntegrationTests : IDisposable
         }
     }
 
+    [Fact]
+    public void FrameAll_EmptyScene_ReturnsFalse()
+    {
+        var view = new VideraView();
+        try
+        {
+            view.FrameAll().Should().BeFalse();
+        }
+        finally
+        {
+            view.Engine.Dispose();
+        }
+    }
+
+    [Fact]
+    public void FrameAll_WithObjects_ReturnsTrueAndUpdatesCameraTarget()
+    {
+        var view = new VideraView();
+        try
+        {
+            var factory = new SoftwareResourceFactory();
+            var cube = DemoMeshFactory.CreateTestCube(factory, size: 4f);
+            cube.Position = new System.Numerics.Vector3(5f, 0f, 0f);
+            view.AddObject(cube);
+
+            var framed = view.FrameAll();
+
+            framed.Should().BeTrue();
+            view.Engine.Camera.Target.X.Should().BeApproximately(5f, 0.001f);
+        }
+        finally
+        {
+            view.Engine.Dispose();
+        }
+    }
+
+    [Fact]
+    public void ResetCamera_RestoresDefaultCameraState()
+    {
+        var view = new VideraView();
+        try
+        {
+            view.Engine.Camera.Rotate(20f, 10f);
+            view.Engine.Camera.Zoom(3f);
+
+            view.ResetCamera();
+
+            view.Engine.Camera.Yaw.Should().BeApproximately(0.5f, 0.0001f);
+            view.Engine.Camera.Pitch.Should().BeApproximately(0.5f, 0.0001f);
+            view.Engine.Camera.Target.Should().Be(System.Numerics.Vector3.Zero);
+        }
+        finally
+        {
+            view.Engine.Dispose();
+        }
+    }
+
+    [Theory]
+    [InlineData(ViewPreset.Top)]
+    [InlineData(ViewPreset.Front)]
+    [InlineData(ViewPreset.Isometric)]
+    public void SetViewPreset_UpdatesCameraOrientation(ViewPreset preset)
+    {
+        var view = new VideraView();
+        try
+        {
+            var yawBefore = view.Engine.Camera.Yaw;
+            var pitchBefore = view.Engine.Camera.Pitch;
+
+            view.SetViewPreset(preset);
+
+            if (preset == ViewPreset.Isometric)
+            {
+                view.Engine.Camera.Yaw.Should().NotBe(yawBefore);
+                view.Engine.Camera.Pitch.Should().NotBe(pitchBefore);
+            }
+            else
+            {
+                view.Engine.Camera.Pitch.Should().NotBe(pitchBefore);
+            }
+        }
+        finally
+        {
+            view.Engine.Dispose();
+        }
+    }
+
     public void Dispose()
     {
         if (_disposed)

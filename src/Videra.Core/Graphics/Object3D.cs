@@ -17,6 +17,7 @@ public partial class Object3D : IDisposable
     private bool _disposed;
     private MeshData? _cachedMesh;
     private bool _wireframeResourcesRequested;
+    private BoundingBox3? _localBounds;
 
     /// <summary>
     /// Gets or sets the display name of this object, used for logging and identification.
@@ -108,6 +109,10 @@ public partial class Object3D : IDisposable
         Matrix4x4.CreateFromYawPitchRoll(Rotation.Y, Rotation.X, Rotation.Z) *
         Matrix4x4.CreateTranslation(Position);
 
+    public BoundingBox3? LocalBounds => _localBounds;
+
+    public BoundingBox3? WorldBounds => _localBounds?.Transform(WorldMatrix);
+
     /// <summary>
     /// Releases all GPU resources (vertex, index, world, and wireframe buffers) held by this object.
     /// </summary>
@@ -177,6 +182,7 @@ public partial class Object3D : IDisposable
                 Indices = (uint[])mesh.Indices.Clone(),
                 Topology = mesh.Topology
             };
+            _localBounds = BoundingBox3.FromVertices(mesh.Vertices);
             _wireframeResourcesRequested = false;
             ReleaseGpuResources();
             Topology = mesh.Topology;
@@ -230,6 +236,7 @@ public partial class Object3D : IDisposable
 
             // 清理已创建的资源
             ReleaseGpuResources();
+            _localBounds = null;
 
             throw;
         }
