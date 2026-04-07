@@ -98,6 +98,16 @@ public sealed class RepositoryNativeValidationTests
         backendSource.Should().Contain("if (_inFlightFence.Handle != 0)");
     }
 
+    [Fact]
+    public void LinuxNativeTestFixture_ShouldMapAndFlushX11Windows()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var helperSource = File.ReadAllText(Path.Combine(repositoryRoot, "tests", "Tests.Common", "Platform", "NativeHostTestHelpers.cs"));
+
+        helperSource.Should().Contain("XMapWindow(_display, _window);");
+        helperSource.Should().Contain("XFlush(_display);");
+    }
+
     private static string GetRepositoryRoot()
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);

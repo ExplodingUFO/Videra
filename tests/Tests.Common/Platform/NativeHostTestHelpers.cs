@@ -184,6 +184,9 @@ public static class NativeHostTestHelpers
 
             if (_window == IntPtr.Zero)
                 throw new InvalidOperationException("Failed to create X11 test window.");
+
+            XMapWindow(_display, _window);
+            XFlush(_display);
         }
 
         public void Dispose()
@@ -221,6 +224,12 @@ public static class NativeHostTestHelpers
 
         [DllImport("libX11.so.6", EntryPoint = "XDestroyWindow")]
         private static extern int XDestroyWindow(IntPtr display, IntPtr window);
+
+        [DllImport("libX11.so.6", EntryPoint = "XMapWindow")]
+        private static extern int XMapWindow(IntPtr display, IntPtr window);
+
+        [DllImport("libX11.so.6", EntryPoint = "XFlush")]
+        private static extern int XFlush(IntPtr display);
     }
 
     // --- macOS NSView native-host fixture ---

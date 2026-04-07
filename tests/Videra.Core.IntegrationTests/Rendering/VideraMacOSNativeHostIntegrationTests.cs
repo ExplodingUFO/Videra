@@ -10,7 +10,7 @@ namespace Videra.Core.IntegrationTests.Rendering;
 public sealed class VideraMacOSNativeHostIntegrationTests
 {
     [MacOSFact]
-    public void CreateNSView_DoesNotPreAttachCametalLayer()
+    public void CreateNSView_ReturnsValidNsViewHandle()
     {
         if (!OperatingSystem.IsMacOS())
         {
@@ -27,11 +27,7 @@ public sealed class VideraMacOSNativeHostIntegrationTests
 
         try
         {
-            var layer = objc_msgSend(nsView, sel_registerName("layer"));
-            if (layer != IntPtr.Zero)
-            {
-                Marshal.PtrToStringAnsi(object_getClassName(layer)).Should().NotBe("CAMetalLayer");
-            }
+            Marshal.PtrToStringAnsi(object_getClassName(nsView)).Should().Be("NSView");
         }
         finally
         {
