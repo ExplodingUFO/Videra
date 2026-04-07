@@ -20,3 +20,43 @@ jobs:
       - name: Run repository verification
         shell: pwsh
         run: ./verify.ps1 -Configuration Release
+
+  linux-package-evidence:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Pack Linux platform package
+        run: dotnet pack src/Videra.Platform.Linux/Videra.Platform.Linux.csproj -c Release -o ./ci-pack/linux
+
+  macos-package-evidence:
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Pack macOS platform package
+        run: dotnet pack src/Videra.Platform.macOS/Videra.Platform.macOS.csproj -c Release -o ./ci-pack/macos
+
+  windows-package-evidence:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Pack Windows platform package
+        shell: pwsh
+        run: dotnet pack src/Videra.Platform.Windows/Videra.Platform.Windows.csproj -c Release -o ./ci-pack/windows

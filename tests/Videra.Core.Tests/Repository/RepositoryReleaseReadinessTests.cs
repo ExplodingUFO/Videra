@@ -29,22 +29,47 @@ public sealed class RepositoryReleaseReadinessTests
     [Fact]
     public void PublishWorkflow_ShouldUseTaggedReleasesAndValidatePackages()
     {
-        var workflow = File.ReadAllText(Path.Combine(GetRepositoryRoot(), ".github", "workflows", "publish-nuget.yml"));
+        var repositoryRoot = GetRepositoryRoot();
+        var workflow = File.ReadAllText(Path.Combine(repositoryRoot, ".github", "workflows", "publish-nuget.yml"));
+        var ciWorkflow = File.ReadAllText(Path.Combine(repositoryRoot, ".github", "workflows", "ci.yml"));
+        var packageValidationScript = File.ReadAllText(Path.Combine(repositoryRoot, "scripts", "Validate-Packages.ps1"));
 
         workflow.Should().NotContain("workflow_dispatch:");
         workflow.Should().Contain("linux-native-validation:");
         workflow.Should().Contain("macos-native-validation:");
         workflow.Should().Contain("windows-native-validation:");
+        workflow.Should().Contain("linux-package-evidence:");
+        workflow.Should().Contain("macos-package-evidence:");
+        workflow.Should().Contain("windows-package-evidence:");
+        workflow.Should().Contain("neutral-package-evidence:");
         workflow.Should().Contain("needs:");
         workflow.Should().Contain("- linux-native-validation");
         workflow.Should().Contain("- macos-native-validation");
         workflow.Should().Contain("- windows-native-validation");
-        workflow.Should().Contain("runs-on: windows-latest");
-        workflow.Should().Contain("xvfb-run -a bash ./scripts/run-native-validation.sh --platform linux --configuration Release");
-        workflow.Should().Contain("bash ./scripts/run-native-validation.sh --platform macos --configuration Release");
-        workflow.Should().Contain("pwsh -File ./scripts/run-native-validation.ps1 -Platform Windows -Configuration Release");
+        workflow.Should().Contain("- linux-package-evidence");
+        workflow.Should().Contain("- macos-package-evidence");
+        workflow.Should().Contain("- windows-package-evidence");
+        workflow.Should().Contain("- neutral-package-evidence");
+        workflow.Should().Contain("actions/upload-artifact@");
+        workflow.Should().Contain("actions/download-artifact@");
+        workflow.Should().Contain("pwsh -File ./scripts/Validate-Packages.ps1");
+        workflow.Should().Contain("src/Videra.Platform.Windows/Videra.Platform.Windows.csproj");
+        workflow.Should().Contain("src/Videra.Platform.Linux/Videra.Platform.Linux.csproj");
+        workflow.Should().Contain("src/Videra.Platform.macOS/Videra.Platform.macOS.csproj");
+        workflow.Should().Contain("src/Videra.Core/Videra.Core.csproj");
+        workflow.Should().Contain("src/Videra.Avalonia/Videra.Avalonia.csproj");
         workflow.Should().Contain("pwsh -File ./verify.ps1 -Configuration Release");
-        workflow.Should().Contain("Expand-Archive");
+        ciWorkflow.Should().Contain("ubuntu-latest");
+        ciWorkflow.Should().Contain("macos-latest");
+        ciWorkflow.Should().Contain("dotnet pack");
+        packageValidationScript.Should().Contain("param(");
+        packageValidationScript.Should().Contain("Videra.Core");
+        packageValidationScript.Should().Contain("Videra.Avalonia");
+        packageValidationScript.Should().Contain("Videra.Platform.Windows");
+        packageValidationScript.Should().Contain("Videra.Platform.Linux");
+        packageValidationScript.Should().Contain("Videra.Platform.macOS");
+        packageValidationScript.Should().Contain("RepositoryUrl");
+        packageValidationScript.Should().Contain("PackageLicenseExpression");
     }
 
     [Fact]

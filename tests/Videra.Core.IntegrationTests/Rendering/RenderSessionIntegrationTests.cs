@@ -179,11 +179,11 @@ public sealed class RenderSessionIntegrationTests
     {
         public GraphicsBackendPreference? LastPreference { get; private set; }
 
-        public IGraphicsBackend? CreateBackend(GraphicsBackendPreference preference, Microsoft.Extensions.Logging.ILoggerFactory? loggerFactory = null)
+        public GraphicsBackendResolverResult ResolveBackend(GraphicsBackendPreference preference, Microsoft.Extensions.Logging.ILoggerFactory? loggerFactory = null)
         {
             _ = loggerFactory;
             LastPreference = preference;
-            return new TrackingBackend();
+            return new GraphicsBackendResolverResult(new TrackingBackend());
         }
     }
 

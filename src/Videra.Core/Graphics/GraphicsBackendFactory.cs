@@ -53,17 +53,24 @@ public static partial class GraphicsBackendFactory
                 environmentOverrideApplied: environmentOverrideApplied);
         }
 
-        var resolvedBackend = _resolver?.CreateBackend(preference, request.LoggerFactory);
-        if (resolvedBackend != null)
+        var resolverResult = _resolver?.ResolveBackend(preference, request.LoggerFactory);
+        if (resolverResult?.Backend != null)
         {
             return new GraphicsBackendResolution(
-                resolvedBackend,
+                resolverResult.Value.Backend,
                 request.RequestedPreference,
                 preference,
                 environmentOverrideApplied: environmentOverrideApplied);
         }
 
-        var fallbackReason = $"No native resolver configured for backend preference {preference}.";
+        var fallbackReason = resolverResult?.UnavailableReason;
+        if (string.IsNullOrWhiteSpace(fallbackReason))
+        {
+            fallbackReason = _resolver == null
+                ? $"No native resolver configured for backend preference {preference}."
+                : $"Native backend preference {preference} is unavailable in the current composition/runtime.";
+        }
+
         if (!request.AllowSoftwareFallback)
         {
             throw new InvalidOperationException(fallbackReason);

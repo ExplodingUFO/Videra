@@ -3,9 +3,6 @@ using Avalonia.Controls;
 using Avalonia.Platform;
 using Microsoft.Extensions.Logging;
 using Videra.Core.Exceptions;
-#if VIDERA_MACOS_BACKEND
-using Videra.Platform.macOS;
-#endif
 
 namespace Videra.Avalonia.Controls;
 
@@ -50,10 +47,8 @@ internal sealed partial class VideraMacOSNativeHost : NativeControlHost, IVidera
 
         if (_nsView != IntPtr.Zero)
         {
-#if VIDERA_MACOS_BACKEND
             ObjCRuntime.SendMessageVoid(_nsView, ObjCRuntime.SEL("removeFromSuperview"));
             ObjCRuntime.SendMessageVoid(_nsView, ObjCRuntime.SEL("release"));
-#endif
             _nsView = IntPtr.Zero;
             HandleDestroyed?.Invoke();
         }
@@ -75,23 +70,15 @@ internal sealed partial class VideraMacOSNativeHost : NativeControlHost, IVidera
         var width = Math.Max(1, Bounds.Width);
         var height = Math.Max(1, Bounds.Height);
 
-#if VIDERA_MACOS_BACKEND
         ObjCRuntime.SetFrame(_nsView, 0, 0, width, height);
-#endif
         Log.ResizedNsView(_logger, width, height);
     }
 
     private static IntPtr CreateNSView(int width, int height)
     {
-#if VIDERA_MACOS_BACKEND
         ObjCRuntime.EnsureAppKitReady();
         var view = ObjCRuntime.InitWithFrame(ObjCRuntime.Alloc("NSView"), 0, 0, width, height);
         return ObjCRuntime.RequireNonZeroHandle(view, "CreateNSView", "Failed to initialize NSView for Metal rendering.");
-#else
-        _ = width;
-        _ = height;
-        throw new PlatformNotSupportedException("macOS native host is only supported when the macOS backend is compiled.");
-#endif
     }
 
     public IntPtr NSView => _nsView;

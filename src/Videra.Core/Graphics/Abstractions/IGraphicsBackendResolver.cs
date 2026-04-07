@@ -5,12 +5,15 @@ namespace Videra.Core.Graphics.Abstractions;
 /// <summary>
 /// Resolves a concrete graphics backend implementation for the current composition environment.
 /// </summary>
+public readonly record struct GraphicsBackendResolverResult(
+    IGraphicsBackend? Backend,
+    string? UnavailableReason = null);
+
 public interface IGraphicsBackendResolver
 {
     /// <summary>
-    /// Creates a backend for the requested preference or returns <c>null</c> when the resolver
-    /// cannot satisfy the request in the current environment.
+    /// Resolves a backend for the requested preference or returns an unavailable reason when the
+    /// current composition environment cannot satisfy the request.
     /// </summary>
-    IGraphicsBackend? CreateBackend(GraphicsBackendPreference preference, ILoggerFactory? loggerFactory = null);
+    GraphicsBackendResolverResult ResolveBackend(GraphicsBackendPreference preference, ILoggerFactory? loggerFactory = null);
 }
-

@@ -9,7 +9,31 @@ permissions:
   contents: read
 
 jobs:
+  determine-version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+
+    steps:
+      - name: Determine version from tag
+        id: version
+        shell: bash
+        run: |
+          if [[ "${GITHUB_REF_TYPE}" != "tag" ]]; then
+            echo "This workflow only publishes from tags." >&2
+            exit 1
+          fi
+
+          version="${GITHUB_REF_NAME#v}"
+          if [[ -z "${version}" ]]; then
+            echo "Could not determine package version from tag." >&2
+            exit 1
+          fi
+
+          echo "version=${version}" >> "${GITHUB_OUTPUT}"
+
   linux-native-validation:
+    needs: determine-version
     runs-on: ubuntu-latest
 
     steps:
@@ -30,6 +54,7 @@ jobs:
         run: xvfb-run -a bash ./scripts/run-native-validation.sh --platform linux --configuration Release
 
   macos-native-validation:
+    needs: determine-version
     runs-on: macos-latest
 
     steps:
@@ -45,6 +70,7 @@ jobs:
         run: bash ./scripts/run-native-validation.sh --platform macos --configuration Release
 
   windows-native-validation:
+    needs: determine-version
     runs-on: windows-latest
 
     steps:
@@ -60,11 +86,106 @@ jobs:
         shell: pwsh
         run: pwsh -File ./scripts/run-native-validation.ps1 -Platform Windows -Configuration Release
 
+  neutral-package-evidence:
+    needs: determine-version
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Pack neutral packages
+        shell: pwsh
+        run: |
+          dotnet pack src/Videra.Core/Videra.Core.csproj -c Release -o ./nupkgs /p:PackageVersion=${{ needs.determine-version.outputs.version }}
+          dotnet pack src/Videra.Avalonia/Videra.Avalonia.csproj -c Release -o ./nupkgs /p:PackageVersion=${{ needs.determine-version.outputs.version }}
+
+      - name: Upload neutral package evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: package-evidence-neutral
+          path: ./nupkgs/*.nupkg
+
+  linux-package-evidence:
+    needs:
+      - determine-version
+      - linux-native-validation
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Pack Linux platform package
+        run: dotnet pack src/Videra.Platform.Linux/Videra.Platform.Linux.csproj -c Release -o ./nupkgs /p:PackageVersion=${{ needs.determine-version.outputs.version }}
+
+      - name: Upload Linux package evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: package-evidence-linux
+          path: ./nupkgs/*.nupkg
+
+  macos-package-evidence:
+    needs:
+      - determine-version
+      - macos-native-validation
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Pack macOS platform package
+        run: dotnet pack src/Videra.Platform.macOS/Videra.Platform.macOS.csproj -c Release -o ./nupkgs /p:PackageVersion=${{ needs.determine-version.outputs.version }}
+
+      - name: Upload macOS package evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: package-evidence-macos
+          path: ./nupkgs/*.nupkg
+
+  windows-package-evidence:
+    needs:
+      - determine-version
+      - windows-native-validation
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Pack Windows platform package
+        shell: pwsh
+        run: dotnet pack src/Videra.Platform.Windows/Videra.Platform.Windows.csproj -c Release -o ./nupkgs /p:PackageVersion=${{ needs.determine-version.outputs.version }}
+
+      - name: Upload Windows package evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: package-evidence-windows
+          path: ./nupkgs/*.nupkg
+
   publish:
     needs:
+      - determine-version
       - linux-native-validation
       - macos-native-validation
       - windows-native-validation
+      - neutral-package-evidence
+      - linux-package-evidence
+      - macos-package-evidence
+      - windows-package-evidence
     runs-on: windows-latest
     permissions:
       packages: write
@@ -77,70 +198,20 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
-      - name: Determine version from tag
-        id: version
-        shell: pwsh
-        run: |
-          if ("${{ github.ref_type }}" -ne "tag") {
-            throw "This workflow only publishes from tags."
-          }
-
-          $version = "${{ github.ref_name }}".TrimStart('v')
-          if ([string]::IsNullOrWhiteSpace($version)) {
-            throw "Could not determine package version from tag."
-          }
-
-          "VERSION=$version" >> $env:GITHUB_OUTPUT
-
       - name: Run repository verification
         shell: pwsh
         run: pwsh -File ./verify.ps1 -Configuration Release
 
-      - name: Pack all projects
-        shell: pwsh
-        run: |
-          dotnet pack src/Videra.Core/Videra.Core.csproj -c Release -o ./nupkgs /p:PackageVersion=${{ steps.version.outputs.VERSION }}
-          dotnet pack src/Videra.Platform.Windows/Videra.Platform.Windows.csproj -c Release -o ./nupkgs /p:PackageVersion=${{ steps.version.outputs.VERSION }}
-          dotnet pack src/Videra.Platform.Linux/Videra.Platform.Linux.csproj -c Release -o ./nupkgs /p:PackageVersion=${{ steps.version.outputs.VERSION }}
-          dotnet pack src/Videra.Platform.macOS/Videra.Platform.macOS.csproj -c Release -o ./nupkgs /p:PackageVersion=${{ steps.version.outputs.VERSION }}
-          dotnet pack src/Videra.Avalonia/Videra.Avalonia.csproj -c Release -o ./nupkgs /p:PackageVersion=${{ steps.version.outputs.VERSION }}
+      - name: Download package evidence
+        uses: actions/download-artifact@v4
+        with:
+          pattern: package-evidence-*
+          path: ./nupkgs
+          merge-multiple: true
 
       - name: Validate packed artifacts
         shell: pwsh
-        run: |
-          $expectedVersion = "${{ steps.version.outputs.VERSION }}"
-          $packages = Get-ChildItem -Path ./nupkgs/*.nupkg
-
-          if ($packages.Count -lt 5) {
-            throw "Expected five NuGet packages, found $($packages.Count)."
-          }
-
-          $validationRoot = Join-Path $PWD ".package-validation"
-          Remove-Item -LiteralPath $validationRoot -Recurse -Force -ErrorAction SilentlyContinue
-          New-Item -ItemType Directory -Path $validationRoot | Out-Null
-
-          foreach ($package in $packages) {
-            if ($package.Name -notlike "*.$expectedVersion.nupkg") {
-              throw "Package $($package.Name) does not match expected version $expectedVersion."
-            }
-
-            $extractPath = Join-Path $validationRoot $package.BaseName
-            Expand-Archive -LiteralPath $package.FullName -DestinationPath $extractPath -Force
-
-            $nuspec = Get-ChildItem -Path $extractPath -Filter *.nuspec | Select-Object -First 1
-            if ($null -eq $nuspec) {
-              throw "Package $($package.Name) is missing a nuspec."
-            }
-
-            [xml]$nuspecXml = Get-Content -Raw $nuspec.FullName
-            if ($nuspecXml.package.metadata.version -ne $expectedVersion) {
-              throw "Package $($package.Name) has mismatched nuspec version $($nuspecXml.package.metadata.version)."
-            }
-
-            if (-not (Test-Path (Join-Path $extractPath "README.md"))) {
-              throw "Package $($package.Name) is missing README.md."
-            }
-          }
+        run: pwsh -File ./scripts/Validate-Packages.ps1 -PackageRoot ./nupkgs -ExpectedVersion ${{ needs.determine-version.outputs.version }}
 
       - name: Push to GitHub Packages
         shell: pwsh

@@ -99,6 +99,37 @@ public sealed class DemoConfigurationTests
         xaml.Should().Contain("Command=\"{Binding ResetCameraCommand}\"");
     }
 
+    [Fact]
+    public void AvaloniaPackage_ShouldUseRuntimeBackendDiscoveryInsteadOfHostOsCompileSwitches()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var avaloniaProject = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Avalonia", "Videra.Avalonia.csproj"));
+        var resolverSource = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Avalonia", "Composition", "AvaloniaGraphicsBackendResolver.cs"));
+        var linuxHostSource = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Avalonia", "Controls", "VideraLinuxNativeHost.cs"));
+        var macHostSource = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Avalonia", "Controls", "VideraMacOSNativeHost.cs"));
+
+        avaloniaProject.Should().NotContain("VIDERA_WINDOWS_BACKEND");
+        avaloniaProject.Should().NotContain("VIDERA_LINUX_BACKEND");
+        avaloniaProject.Should().NotContain("VIDERA_MACOS_BACKEND");
+        avaloniaProject.Should().NotContain(@"..\Videra.Platform.Windows\Videra.Platform.Windows.csproj");
+        avaloniaProject.Should().NotContain(@"..\Videra.Platform.Linux\Videra.Platform.Linux.csproj");
+        avaloniaProject.Should().NotContain(@"..\Videra.Platform.macOS\Videra.Platform.macOS.csproj");
+        resolverSource.Should().NotContain("#if VIDERA_");
+        linuxHostSource.Should().NotContain("#if VIDERA_");
+        macHostSource.Should().NotContain("#if VIDERA_");
+    }
+
+    [Fact]
+    public void DemoProject_ShouldDeclarePlatformBackendDependenciesExplicitly()
+    {
+        var demoProject = File.ReadAllText(Path.Combine(GetRepositoryRoot(), "samples", "Videra.Demo", "Videra.Demo.csproj"));
+
+        demoProject.Should().Contain(@"..\..\src\Videra.Avalonia\Videra.Avalonia.csproj");
+        demoProject.Should().Contain(@"..\..\src\Videra.Platform.Windows\Videra.Platform.Windows.csproj");
+        demoProject.Should().Contain(@"..\..\src\Videra.Platform.Linux\Videra.Platform.Linux.csproj");
+        demoProject.Should().Contain(@"..\..\src\Videra.Platform.macOS\Videra.Platform.macOS.csproj");
+    }
+
     private static string GetRepositoryRoot()
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);

@@ -274,16 +274,54 @@ public sealed class GraphicsBackendFactoryTests
         resolution.Backend.Dispose();
     }
 
+    [Fact]
+    public void ResolveBackend_ResolverUnavailableReason_FlowsIntoFallbackReason()
+    {
+        var resolver = new TestGraphicsBackendResolver
+        {
+            Result = new GraphicsBackendResolverResult(
+                Backend: null,
+                UnavailableReason: "Backend package 'Videra.Platform.Linux' is not installed.")
+        };
+        GraphicsBackendFactory.ConfigureResolver(resolver);
+
+        try
+        {
+            var resolution = GraphicsBackendFactory.ResolveBackend(
+                new GraphicsBackendRequest(
+                    GraphicsBackendPreference.Vulkan,
+                    BackendEnvironmentOverrideMode.Disabled,
+                    AllowSoftwareFallback: true,
+                    LoggerFactory: NullLoggerFactory.Instance));
+
+            resolution.ResolvedPreference.Should().Be(GraphicsBackendPreference.Software);
+            resolution.IsUsingSoftwareFallback.Should().BeTrue();
+            resolution.FallbackReason.Should().Be("Backend package 'Videra.Platform.Linux' is not installed.");
+            resolution.Backend.Dispose();
+        }
+        finally
+        {
+            GraphicsBackendFactory.ConfigureResolver(null);
+        }
+    }
+
     private sealed class TestGraphicsBackendResolver : IGraphicsBackendResolver
     {
         public GraphicsBackendPreference? LastPreference { get; private set; }
         public TestGraphicsBackend? LastBackend { get; private set; }
+        public GraphicsBackendResolverResult? Result { get; init; }
 
-        public IGraphicsBackend? CreateBackend(GraphicsBackendPreference preference, ILoggerFactory? loggerFactory = null)
+        public GraphicsBackendResolverResult ResolveBackend(GraphicsBackendPreference preference, ILoggerFactory? loggerFactory = null)
         {
             LastPreference = preference;
+            if (Result is { } configuredResult)
+            {
+                LastBackend = configuredResult.Backend as TestGraphicsBackend;
+                return configuredResult;
+            }
+
             LastBackend = new TestGraphicsBackend();
-            return LastBackend;
+            return new GraphicsBackendResolverResult(LastBackend);
         }
     }
 

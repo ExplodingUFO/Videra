@@ -20,18 +20,6 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
-  <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Windows'))">
-    <DefineConstants>$(DefineConstants);VIDERA_WINDOWS_BACKEND</DefineConstants>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('OSX'))">
-    <DefineConstants>$(DefineConstants);VIDERA_MACOS_BACKEND</DefineConstants>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Linux'))">
-    <DefineConstants>$(DefineConstants);VIDERA_LINUX_BACKEND</DefineConstants>
-  </PropertyGroup>
-
   <ItemGroup>
     <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
       <_Parameter1>Videra.Core.IntegrationTests</_Parameter1>
@@ -47,18 +35,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Videra.Core\Videra.Core.csproj" />
-  </ItemGroup>
-
-  <ItemGroup Condition="$([MSBuild]::IsOSPlatform('Windows'))">
-    <ProjectReference Include="..\Videra.Platform.Windows\Videra.Platform.Windows.csproj" />
-  </ItemGroup>
-
-  <ItemGroup Condition="$([MSBuild]::IsOSPlatform('OSX'))">
-    <ProjectReference Include="..\Videra.Platform.macOS\Videra.Platform.macOS.csproj" />
-  </ItemGroup>
-
-  <ItemGroup Condition="$([MSBuild]::IsOSPlatform('Linux'))">
-    <ProjectReference Include="..\Videra.Platform.Linux\Videra.Platform.Linux.csproj" />
   </ItemGroup>
 
 </Project>
