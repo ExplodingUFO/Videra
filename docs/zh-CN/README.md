@@ -48,6 +48,7 @@ dotnet add package Videra.Core --version 0.1.0-alpha.1 --source github-Exploding
 ## 快速入口
 
 - [英文首页](../../README.md)
+- [扩展合同](extensibility.md)：`VideraView.Engine`、`RegisterPassContributor(...)`、`RegisterFrameHook(...)`、`RenderCapabilities`、`BackendDiagnostics` 与 `samples/Videra.ExtensibilitySample`
 - [架构说明](ARCHITECTURE.md)
 - [贡献指南](CONTRIBUTING.md)
 - [故障排查](troubleshooting.md)
@@ -66,3 +67,5 @@ dotnet add package Videra.Core --version 0.1.0-alpha.1 --source github-Exploding
 ## 说明
 
 默认公开入口现在以英文为主，英文版为准。中文文档保留为手动切换入口，便于中文读者快速查看项目定位、安装方式、验证方式和模块说明。
+
+扩展入口的中文镜像集中在 [扩展合同](extensibility.md)。该页会把 `samples/Videra.ExtensibilitySample`、`disposed` 后注册调用的 `no-op` 语义，以及软件回退与 `BackendDiagnostics` / `FallbackReason` 的公开约定放在一起说明。

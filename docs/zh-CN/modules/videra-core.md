@@ -171,6 +171,13 @@ Phase 11 新增的 public extensibility contract：
 - 这套 API 是 C#-first、进程内的 contract，不包含 package discovery 或 plugin loading。
 - Avalonia 的 internal session/orchestration 类型不是对外扩展入口。
 
+开发者入口请直接配合 [扩展合同](../extensibility.md) 阅读，并以 `samples/Videra.ExtensibilitySample` 作为最小参考流程：
+
+- 先从 `VideraView.Engine` 或 Core 等效入口调用 `RegisterPassContributor(...)`
+- 再通过 `RegisterFrameHook(...)` 绑定 `FrameBegin` / `SceneSubmit` / `FrameEnd`
+- 用 `GetRenderCapabilities()` / `RenderCapabilities` 与 `BackendDiagnostics` 读取当前 capability 与后端状态
+- 当前 `disposed` 后的追加注册继续是 `no-op`；`package discovery` 与 `plugin loading` 仍然不在这条公开 contract 内
+
 ## 抽象接口
 
 ### IGraphicsBackend

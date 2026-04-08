@@ -84,6 +84,16 @@ graph TB
 - `VideraView.RenderCapabilities`：公开的 Core capability snapshot
 - `VideraView.BackendDiagnostics`：公开的 backend/runtime diagnostics shell
 
+扩展入口的完整中文镜像见 [扩展合同](../extensibility.md)。建议直接对照 `samples/Videra.ExtensibilitySample`，按以下公开流程接入：
+
+- 配置后端偏好与 `AllowSoftwareFallback`
+- 通过 `VideraView.Engine` 调用 `RegisterPassContributor(...)`
+- 通过 `VideraView.Engine` 调用 `RegisterFrameHook(...)`
+- 等待 `BackendDiagnostics.IsReady` 或 `BackendReady`
+- 调用 `LoadModelAsync(...)`、`FrameAll()`，然后检查 `RenderCapabilities`、`BackendDiagnostics` 与 `FallbackReason`
+
+合同语义保持与英文版一致：`disposed` 后的新注册调用保持 `no-op`；若 native backend unavailable 且允许回退，则 `BackendDiagnostics` / `FallbackReason` 说明 software fallback；`package discovery` 与 `plugin loading` 仍不在公开范围内。
+
 ### 使用示例
 
 ```xml

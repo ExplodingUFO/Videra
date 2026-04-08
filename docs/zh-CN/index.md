@@ -13,6 +13,7 @@
 ## 开始使用
 
 - [项目首页](README.md)
+- [扩展合同](extensibility.md)：`VideraView.Engine` 流程、`samples/Videra.ExtensibilitySample`、`RegisterPassContributor(...)` / `RegisterFrameHook(...)`、`RenderCapabilities`、`BackendDiagnostics`
 - [架构说明](ARCHITECTURE.md)
 - [故障排查](troubleshooting.md)
 - [原生宿主验证](native-validation.md)
@@ -31,4 +32,5 @@
 
 - [英文文档首页](../index.md)
 - 英文版为准
+- `package discovery` 与 `plugin loading` 仍然不在当前公开扩展范围内，详情见 [扩展合同](extensibility.md)
 - [历史归档](../archive/README.md)
