@@ -3,15 +3,17 @@ set -euo pipefail
 
 CONFIGURATION="Release"
 PLATFORM="auto"
+LINUX_DISPLAY_SERVER="auto"
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 
 print_usage() {
   cat <<'EOF'
 Usage:
-  ./scripts/run-native-validation.sh --platform <linux|macos|auto> [--configuration <Debug|Release>]
+  ./scripts/run-native-validation.sh --platform <linux|macos|auto> [--linux-display-server <auto|x11|xwayland>] [--configuration <Debug|Release>]
 
 Examples:
-  ./scripts/run-native-validation.sh --platform linux --configuration Release
+  ./scripts/run-native-validation.sh --platform linux --linux-display-server x11 --configuration Release
+  ./scripts/run-native-validation.sh --platform linux --linux-display-server xwayland --configuration Release
   ./scripts/run-native-validation.sh --platform macos --configuration Release
 EOF
 }
@@ -24,6 +26,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --configuration)
       CONFIGURATION="$2"
+      shift 2
+      ;;
+    --linux-display-server)
+      LINUX_DISPLAY_SERVER="$2"
       shift 2
       ;;
     -h|--help)
@@ -59,11 +65,40 @@ case "$PLATFORM" in
       printf 'Linux native validation must run on a Linux host.\n' >&2
       exit 2
     fi
-    if [[ -z "${DISPLAY:-}" ]]; then
-      printf 'DISPLAY is not set. Start an X11 session or run this command under xvfb-run.\n' >&2
-      exit 2
+
+    if [[ "$LINUX_DISPLAY_SERVER" == "auto" ]]; then
+      if [[ -n "${WAYLAND_DISPLAY:-}" ]]; then
+        LINUX_DISPLAY_SERVER="xwayland"
+      else
+        LINUX_DISPLAY_SERVER="x11"
+      fi
     fi
-    bash "$ROOT_DIR/verify.sh" --configuration "$CONFIGURATION" --include-native-linux
+
+    case "$LINUX_DISPLAY_SERVER" in
+      x11)
+        if [[ -z "${DISPLAY:-}" ]]; then
+          printf 'DISPLAY is not set. Start an X11 session or run this command under xvfb-run.\n' >&2
+          exit 2
+        fi
+        bash "$ROOT_DIR/verify.sh" --configuration "$CONFIGURATION" --include-native-linux
+        ;;
+      xwayland)
+        if [[ -z "${DISPLAY:-}" ]]; then
+          printf 'DISPLAY is not set. Start an XWayland session or run this command under xwfb-run.\n' >&2
+          exit 2
+        fi
+        if [[ -z "${WAYLAND_DISPLAY:-}" ]]; then
+          printf 'WAYLAND_DISPLAY is not set. Start a Wayland session with XWayland available before running this target.\n' >&2
+          exit 2
+        fi
+        XDG_SESSION_TYPE="${XDG_SESSION_TYPE:-wayland}" \
+          bash "$ROOT_DIR/verify.sh" --configuration "$CONFIGURATION" --include-native-linux-xwayland
+        ;;
+      *)
+        printf 'Unsupported Linux display server value: %s\n' "$LINUX_DISPLAY_SERVER" >&2
+        exit 2
+        ;;
+    esac
     ;;
   macos)
     if [[ "$(uname -s)" != "Darwin" ]]; then

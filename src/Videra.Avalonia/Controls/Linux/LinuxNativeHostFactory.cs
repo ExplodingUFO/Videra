@@ -5,6 +5,12 @@ namespace Videra.Avalonia.Controls.Linux;
 
 internal sealed class LinuxNativeHostFactory
 {
+    private const string XWaylandCompatibilityReason =
+        "Avalonia Linux native hosting currently embeds through X11 handles; using an XWayland compatibility path for this Wayland session.";
+
+    private const string WaylandOnlyUnsupportedReason =
+        "Wayland was detected, but the current Avalonia Linux native-host stack cannot embed directly into a compositor-native Wayland surface. Enable XWayland for this session or validate on an X11 host.";
+
     private readonly LinuxDisplayServerDetector _detector;
     private readonly Func<ILinuxPlatformNativeHost> _x11HostFactory;
 
@@ -30,7 +36,9 @@ internal sealed class LinuxNativeHostFactory
             switch (candidate.DisplayServer)
             {
                 case LinuxDisplayServerKind.Wayland:
-                    fallbackReason = "Wayland native host is not implemented yet.";
+                    fallbackReason = candidate.AllowsXWaylandFallback
+                        ? XWaylandCompatibilityReason
+                        : WaylandOnlyUnsupportedReason;
                     continue;
 
                 case LinuxDisplayServerKind.XWayland:
@@ -38,7 +46,7 @@ internal sealed class LinuxNativeHostFactory
                         _x11HostFactory(),
                         ResolvedDisplayServer: LinuxDisplayServerKind.XWayland.ToString(),
                         FallbackUsed: true,
-                        FallbackReason: fallbackReason ?? "Fell back to XWayland.");
+                        FallbackReason: fallbackReason ?? XWaylandCompatibilityReason);
 
                 case LinuxDisplayServerKind.X11:
                     return new LinuxNativeHostSelectionResult(

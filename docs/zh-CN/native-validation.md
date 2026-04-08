@@ -6,7 +6,8 @@
 
 ## 覆盖范围
 
-- Linux：真实 X11 宿主上的 Vulkan 生命周期与 draw-path 测试
+- Linux X11：真实 X11 宿主上的 Vulkan 生命周期与 draw-path 测试
+- Linux Wayland 会话：通过 `XWayland` 兼容路径执行的 Vulkan 生命周期与 draw-path 测试
 - macOS：真实 `NSView` 宿主上的 Metal 生命周期与 draw-path 测试
 - Windows 原生验证：真实 HWND 宿主上的 D3D11 生命周期与 draw-path 测试
 - GitHub Actions 中对 pull requests 与 `master` push 自动执行的 gate
@@ -34,17 +35,18 @@ pwsh -File ./verify.ps1 -Configuration Release
 手动触发方式：
 
 - `workflow_dispatch`
-- 目标：`all`、`linux`、`macos`、`windows`
+- 目标：`all`、`linux-x11`、`linux-wayland-xwayland`、`macos`、`windows`
 
 在 GitHub Actions 页面中，如需定向重跑可使用 `Run workflow`：
 
 1. 打开 `Native Validation`
 2. 点击 `Run workflow`
-3. 选择 `all`、`linux`、`macos` 或 `windows`
+3. 选择 `all`、`linux-x11`、`linux-wayland-xwayland`、`macos` 或 `windows`
 
 说明：
 
-- Linux job 会安装 `xvfb`、`libX11`、`libshaderc1` 和 Vulkan 运行库，然后在 `xvfb-run` 下执行验证
+- Linux X11 job 会安装 `xvfb`、`libX11`、`libshaderc1` 和 Vulkan 运行库，然后在 `xvfb-run` 下执行验证
+- Linux Wayland 会话 job 会安装 `xwayland-run`，通过 `xwfb-run` 启动无头 Wayland compositor + `XWayland`，并在 `DISPLAY` 与 `WAYLAND_DISPLAY` 同时存在时验证兼容路径
 - macOS job 会直接执行托管 runner 上的 `NSView` / Metal 验证路径
 - Windows job 会直接通过 PowerShell 包装脚本执行托管 runner 上的 HWND / D3D11 验证路径
 - 如果托管 runner 不足以定位某个原生问题，仍应改用下面的真实宿主路径
@@ -57,7 +59,7 @@ pwsh -File ./verify.ps1 -Configuration Release
 - 需要交互式查看日志、图形前置条件或驱动状态
 - 某个平台问题超出了托管 runner 的可观测范围
 
-### Linux
+### Linux X11
 
 前置条件：
 
@@ -71,19 +73,49 @@ pwsh -File ./verify.ps1 -Configuration Release
 Shell：
 
 ```bash
-./scripts/run-native-validation.sh --platform linux --configuration Release
+./scripts/run-native-validation.sh --platform linux --linux-display-server x11 --configuration Release
 ```
 
 PowerShell：
 
 ```powershell
-pwsh -File ./scripts/run-native-validation.ps1 -Platform Linux -Configuration Release
+pwsh -File ./scripts/run-native-validation.ps1 -Platform Linux -LinuxDisplayServer X11 -Configuration Release
 ```
 
 如果是无头主机，请在 Xvfb 下执行：
 
 ```bash
-xvfb-run -a bash ./scripts/run-native-validation.sh --platform linux --configuration Release
+xvfb-run -a bash ./scripts/run-native-validation.sh --platform linux --linux-display-server x11 --configuration Release
+```
+
+### Linux Wayland 会话（XWayland 兼容路径）
+
+前置条件：
+
+- .NET 8 SDK
+- Linux 主机
+- 一个同时暴露 `WAYLAND_DISPLAY` 与 `DISPLAY` 的 Wayland 会话
+- Vulkan 驱动与运行库
+- `libX11.so.6`
+- `libshaderc.so.1`（Ubuntu 包名：`libshaderc1`）
+- `xwayland-run` 或等价的无头 Wayland compositor + `XWayland` 方案
+
+Shell：
+
+```bash
+./scripts/run-native-validation.sh --platform linux --linux-display-server xwayland --configuration Release
+```
+
+PowerShell：
+
+```powershell
+pwsh -File ./scripts/run-native-validation.ps1 -Platform Linux -LinuxDisplayServer XWayland -Configuration Release
+```
+
+如果需要无头复现，可使用 Ubuntu `xwayland-run` 包中的 `xwfb-run`：
+
+```bash
+xwfb-run -a bash ./scripts/run-native-validation.sh --platform linux --linux-display-server xwayland --configuration Release
 ```
 
 ### macOS
@@ -123,7 +155,8 @@ pwsh -File ./scripts/run-native-validation.ps1 -Platform Windows -Configuration 
 
 ## 脚本实际执行内容
 
-- Linux：`./verify.sh --configuration Release --include-native-linux`
+- Linux X11：`./verify.sh --configuration Release --include-native-linux`
+- Linux Wayland 会话 `XWayland`：`./verify.sh --configuration Release --include-native-linux-xwayland`
 - macOS：`./verify.sh --configuration Release --include-native-macos`
 - Windows：`pwsh -File ./verify.ps1 -Configuration Release -IncludeNativeWindows`
 
@@ -136,6 +169,7 @@ PowerShell 包装脚本会调用等价的 `verify.ps1` 入口。
 - 对应平台测试项目在匹配宿主上实际运行
 - 真实 native fixture 路径被执行
 - 生命周期与 draw-path 测试通过
+- Linux 诊断路径解析到预期显示服务器（`X11` 或 `XWayland`）
 - 不是只靠构造函数断言、`IntPtr.Zero` 守卫或 placeholder 测试得出成功
 
 从项目状态追踪角度看，第一次在 matching-host GitHub Actions 或等价环境中成功跑通，才是关闭旧的“仅靠本地人工执行”假设所需的证据。本地匹配宿主路径仍然保留为复现和排障入口。

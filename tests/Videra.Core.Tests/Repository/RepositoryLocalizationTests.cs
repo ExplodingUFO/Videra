@@ -114,6 +114,7 @@ public sealed class RepositoryLocalizationTests
         troubleshooting.Should().Contain("VIDERA_BACKEND");
         troubleshooting.Should().Contain("不会安装缺失的平台包");
         troubleshooting.Should().Contain("matching-host");
+        troubleshooting.Should().Contain("XWayland");
 
         foreach (var module in new[] { avaloniaModule, coreModule, windowsModule, linuxModule, macosModule })
         {
@@ -127,6 +128,7 @@ public sealed class RepositoryLocalizationTests
         avaloniaModule.Should().Contain("Videra.Platform.Linux");
         avaloniaModule.Should().Contain("Videra.Platform.macOS");
         linuxModule.Should().Contain("X11");
+        linuxModule.Should().Contain("XWayland");
         macosModule.Should().Contain("CAMetalLayer");
     }
 

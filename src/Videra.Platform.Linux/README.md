@@ -4,12 +4,13 @@
 
 `Videra.Platform.Linux` provides the Linux-native Vulkan backend used by Videra.
 
-Current status: `alpha`. This package is the Linux platform companion for `Videra.Avalonia`, and the native path is currently X11-first.
+Current status: `alpha`. This package is the Linux platform companion for `Videra.Avalonia`. Native embedding currently uses X11 handles, and Wayland sessions rely on an `XWayland` compatibility path when available.
 
 ## Responsibilities
 
 - Vulkan instance, device, queue, and swapchain setup
 - X11-backed native host integration
+- Wayland-session `XWayland` compatibility validation
 - Vulkan resource factory, command executor, and shader pipeline wiring
 - Native render-path validation on Linux hosts
 
@@ -32,7 +33,7 @@ dotnet add package Videra.Avalonia --version 0.1.0-alpha.1 --source github-Explo
 dotnet add package Videra.Platform.Linux --version 0.1.0-alpha.1 --source github-ExplodingUFO
 ```
 
-This package supplies the Vulkan backend for the current X11 path. `VIDERA_BACKEND` can prefer Vulkan, but it does not install missing platform packages.
+This package supplies the Vulkan backend for the current Linux native path. On Avalonia 11, native embedding remains X11-based; Wayland sessions use `XWayland` when available. `VIDERA_BACKEND` can prefer Vulkan, but it does not install missing platform packages.
 
 ## Validation
 
@@ -40,12 +41,14 @@ Linux matching-host validation is explicit and should be run on a real Linux hos
 
 ```bash
 ./verify.sh --configuration Release --include-native-linux
+./verify.sh --configuration Release --include-native-linux-xwayland
 pwsh -File ./verify.ps1 -Configuration Release -IncludeNativeLinux
+pwsh -File ./verify.ps1 -Configuration Release -IncludeNativeLinuxXWayland
 ```
 
 ## Requirements
 
-- Linux with X11
+- Linux with X11, or a Wayland session that exposes `XWayland`
 - Vulkan 1.2+ capable GPU
 - `libX11.so.6` (or a compatible fallback name)
 - Vulkan drivers and runtime libraries

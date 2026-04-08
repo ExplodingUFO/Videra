@@ -17,7 +17,7 @@ This page maps the long-lived public documentation for Videra. Start with the re
 - [Videra.Core](../src/Videra.Core/README.md) for core-only consumption and software fallback-oriented integration
 - [Videra.Avalonia](../src/Videra.Avalonia/README.md) for the Avalonia entry package and backend preference configuration
 - [Videra.Platform.Windows](../src/Videra.Platform.Windows/README.md) for the Windows Direct3D 11 platform package
-- [Videra.Platform.Linux](../src/Videra.Platform.Linux/README.md) for the Linux X11-first Vulkan platform package
+- [Videra.Platform.Linux](../src/Videra.Platform.Linux/README.md) for the Linux Vulkan platform package, with X11 native hosting and XWayland compatibility in Wayland sessions
 - [Videra.Platform.macOS](../src/Videra.Platform.macOS/README.md) for the macOS `NSView` / `CAMetalLayer` Metal platform package
 - [Videra.Demo](../samples/Videra.Demo/README.md)
 

@@ -3,6 +3,9 @@ param(
     [ValidateSet("Auto", "Linux", "macOS", "Windows")]
     [string]$Platform = "Auto",
 
+    [ValidateSet("Auto", "X11", "XWayland")]
+    [string]$LinuxDisplayServer = "Auto",
+
     [ValidateSet("Debug", "Release")]
     [string]$Configuration = "Release"
 )
@@ -39,12 +42,38 @@ switch ($Platform)
             throw "Linux native validation must run on a Linux host."
         }
 
-        if ([string]::IsNullOrWhiteSpace($env:DISPLAY))
+        if ($LinuxDisplayServer -eq "Auto")
         {
-            throw "DISPLAY is not set. Start an X11 session or run under xvfb-run."
+            $LinuxDisplayServer = if ([string]::IsNullOrWhiteSpace($env:WAYLAND_DISPLAY)) { "X11" } else { "XWayland" }
         }
 
-        pwsh -File (Join-Path $root "verify.ps1") -Configuration $Configuration -IncludeNativeLinux
+        if ($LinuxDisplayServer -eq "X11")
+        {
+            if ([string]::IsNullOrWhiteSpace($env:DISPLAY))
+            {
+                throw "DISPLAY is not set. Start an X11 session or run under xvfb-run."
+            }
+
+            pwsh -File (Join-Path $root "verify.ps1") -Configuration $Configuration -IncludeNativeLinux
+            break
+        }
+
+        if ([string]::IsNullOrWhiteSpace($env:DISPLAY))
+        {
+            throw "DISPLAY is not set. Start an XWayland session or run under xwfb-run."
+        }
+
+        if ([string]::IsNullOrWhiteSpace($env:WAYLAND_DISPLAY))
+        {
+            throw "WAYLAND_DISPLAY is not set. Start a Wayland session with XWayland available."
+        }
+
+        if ([string]::IsNullOrWhiteSpace($env:XDG_SESSION_TYPE))
+        {
+            $env:XDG_SESSION_TYPE = "wayland"
+        }
+
+        pwsh -File (Join-Path $root "verify.ps1") -Configuration $Configuration -IncludeNativeLinuxXWayland
         break
     }
 

@@ -1,5 +1,18 @@
 # Linux Wayland Support Design
 
+## Scope Adjustment
+
+Execution uncovered a framework-level constraint in the current Avalonia `11.3.9` stack: Linux native control hosting still embeds through X11 handles, and the available hosted implementation is `X11NativeControlHost`. Because of that, this design is no longer being executed toward compositor-native Wayland embedding in the current milestone.
+
+The delivered scope is now:
+
+- native Linux X11 rendering
+- automatic Wayland-session detection
+- explicit `XWayland` compatibility fallback in Wayland sessions
+- diagnostics, CI, and docs that report that compatibility path truthfully
+
+True compositor-native Wayland embedding is deferred until the UI stack provides a maintainable native-host path for it.
+
 ## Goal
 
 Enable Videra to truthfully claim Linux support for both X11 and Wayland, with `PreferredBackend="Auto"` selecting the correct native path at runtime. In Wayland sessions, the runtime must prefer a native Wayland path and may fall back to XWayland when native Wayland host or Vulkan surface creation is unavailable.
@@ -238,4 +251,3 @@ Proceed with the compositional Linux display-server architecture:
 - XWayland accepted as fallback
 - X11 retained as a first-class Linux path
 - diagnostics and native validation promoted to support-contract gates
-

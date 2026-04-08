@@ -91,7 +91,7 @@ var diagnostics = View3D.BackendDiagnostics;
 ## Native Host Coverage
 
 - Windows: child `HWND` for Direct3D 11
-- Linux: X11 window for Vulkan
+- Linux: X11 window for Vulkan, or XWayland compatibility inside Wayland sessions
 - macOS: `NSView` for Metal
 
 ## Validation

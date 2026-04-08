@@ -77,6 +77,8 @@ public sealed class RepositoryReleaseReadinessTests
         var linuxReadme = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Platform.Linux", "README.md"));
         linuxReadme.Should().Contain("matching-host validation");
         linuxReadme.Should().Contain("X11");
+        linuxReadme.Should().Contain("XWayland");
+        linuxReadme.Should().Contain("Wayland session");
 
         var macosReadme = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Platform.macOS", "README.md"));
         macosReadme.Should().Contain("matching-host validation");
@@ -93,7 +95,8 @@ public sealed class RepositoryReleaseReadinessTests
         var packageValidationScript = File.ReadAllText(Path.Combine(repositoryRoot, "scripts", "Validate-Packages.ps1"));
 
         workflow.Should().NotContain("workflow_dispatch:");
-        workflow.Should().Contain("linux-native-validation:");
+        workflow.Should().Contain("linux-x11-native-validation:");
+        workflow.Should().Contain("linux-wayland-xwayland-native-validation:");
         workflow.Should().Contain("macos-native-validation:");
         workflow.Should().Contain("windows-native-validation:");
         workflow.Should().Contain("linux-package-evidence:");
@@ -101,7 +104,8 @@ public sealed class RepositoryReleaseReadinessTests
         workflow.Should().Contain("windows-package-evidence:");
         workflow.Should().Contain("neutral-package-evidence:");
         workflow.Should().Contain("needs:");
-        workflow.Should().Contain("- linux-native-validation");
+        workflow.Should().Contain("- linux-x11-native-validation");
+        workflow.Should().Contain("- linux-wayland-xwayland-native-validation");
         workflow.Should().Contain("- macos-native-validation");
         workflow.Should().Contain("- windows-native-validation");
         workflow.Should().Contain("- linux-package-evidence");

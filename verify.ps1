@@ -6,6 +6,8 @@
     Build configuration (Debug or Release). Default: Release
 .PARAMETER IncludeNativeLinux
     Run the Linux native validation package (requires a Linux host with X11/Vulkan).
+.PARAMETER IncludeNativeLinuxXWayland
+    Run the Linux native validation package inside a Wayland session that exposes XWayland.
 .PARAMETER IncludeNativeMacOS
     Run the macOS native validation package (requires a macOS host with NSView/Metal).
 .PARAMETER IncludeNativeWindows
@@ -16,6 +18,7 @@ param(
     [string]$Configuration = "Release",
 
     [switch]$IncludeNativeLinux,
+    [switch]$IncludeNativeLinuxXWayland,
     [switch]$IncludeNativeMacOS,
     [switch]$IncludeNativeWindows
 )
@@ -58,11 +61,14 @@ Invoke-Check "Demo Build" {
 
 # Optional native validation packages
 if ($IncludeNativeLinux) {
-    Invoke-Check "Linux Native Validation" {
+    Invoke-Check "Linux X11 Native Validation" {
         $previous = $env:VIDERA_RUN_LINUX_NATIVE_TESTS
         $hadPrevious = Test-Path Env:VIDERA_RUN_LINUX_NATIVE_TESTS
+        $previousExpected = $env:VIDERA_EXPECT_LINUX_DISPLAY_SERVER
+        $hadExpected = Test-Path Env:VIDERA_EXPECT_LINUX_DISPLAY_SERVER
         try {
             $env:VIDERA_RUN_LINUX_NATIVE_TESTS = "true"
+            $env:VIDERA_EXPECT_LINUX_DISPLAY_SERVER = "X11"
             dotnet test "$root/tests/Videra.Platform.Linux.Tests/Videra.Platform.Linux.Tests.csproj" --configuration $Configuration -v m --logger "console;verbosity=detailed" 2>$null
         }
         finally {
@@ -72,8 +78,44 @@ if ($IncludeNativeLinux) {
             else {
                 Remove-Item Env:VIDERA_RUN_LINUX_NATIVE_TESTS -ErrorAction SilentlyContinue
             }
+
+            if ($hadExpected) {
+                $env:VIDERA_EXPECT_LINUX_DISPLAY_SERVER = $previousExpected
+            }
+            else {
+                Remove-Item Env:VIDERA_EXPECT_LINUX_DISPLAY_SERVER -ErrorAction SilentlyContinue
+            }
         }
-    } "Linux native validation passed" "Linux native validation failed"
+    } "Linux X11 native validation passed" "Linux X11 native validation failed"
+}
+
+if ($IncludeNativeLinuxXWayland) {
+    Invoke-Check "Linux XWayland Native Validation" {
+        $previous = $env:VIDERA_RUN_LINUX_NATIVE_TESTS
+        $hadPrevious = Test-Path Env:VIDERA_RUN_LINUX_NATIVE_TESTS
+        $previousExpected = $env:VIDERA_EXPECT_LINUX_DISPLAY_SERVER
+        $hadExpected = Test-Path Env:VIDERA_EXPECT_LINUX_DISPLAY_SERVER
+        try {
+            $env:VIDERA_RUN_LINUX_NATIVE_TESTS = "true"
+            $env:VIDERA_EXPECT_LINUX_DISPLAY_SERVER = "XWayland"
+            dotnet test "$root/tests/Videra.Platform.Linux.Tests/Videra.Platform.Linux.Tests.csproj" --configuration $Configuration -v m --logger "console;verbosity=detailed" 2>$null
+        }
+        finally {
+            if ($hadPrevious) {
+                $env:VIDERA_RUN_LINUX_NATIVE_TESTS = $previous
+            }
+            else {
+                Remove-Item Env:VIDERA_RUN_LINUX_NATIVE_TESTS -ErrorAction SilentlyContinue
+            }
+
+            if ($hadExpected) {
+                $env:VIDERA_EXPECT_LINUX_DISPLAY_SERVER = $previousExpected
+            }
+            else {
+                Remove-Item Env:VIDERA_EXPECT_LINUX_DISPLAY_SERVER -ErrorAction SilentlyContinue
+            }
+        }
+    } "Linux XWayland native validation passed" "Linux XWayland native validation failed"
 }
 
 if ($IncludeNativeMacOS) {

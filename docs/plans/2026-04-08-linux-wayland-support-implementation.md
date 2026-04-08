@@ -1,5 +1,17 @@
 # Linux Wayland Support Implementation Plan
 
+## Scope Adjustment
+
+The original plan targeted compositor-native Wayland embedding. During execution, that target was revised because the current Avalonia `11.3.9` Linux hosting stack still centers on X11-native control hosting. Shipping a "native Wayland" claim on top of that would have been false.
+
+The implementation plan that remains valid for this milestone is:
+
+- keep Linux native rendering on the X11-backed path
+- detect Wayland sessions automatically
+- resolve to `XWayland` compatibility when a Wayland session also exposes X11
+- require separate CI evidence for Linux X11 and Linux Wayland-session `XWayland`
+- document that native Wayland embedding is still deferred behind framework support
+
 > **Execution Note:** Implement this plan task-by-task with verification between tasks.
 
 **Goal:** Add real Linux Wayland support, keep X11 as a first-class path, allow XWayland fallback in Wayland sessions, and only then update the public Linux support claim.
@@ -410,4 +422,3 @@ Confirm all of the following are true before declaring success:
 git add .
 git commit -m "feat(linux): ship wayland support with xwayland fallback"
 ```
-

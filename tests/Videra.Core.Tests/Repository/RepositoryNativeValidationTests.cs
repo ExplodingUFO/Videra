@@ -18,9 +18,14 @@ public sealed class RepositoryNativeValidationTests
         workflow.Should().Contain("ubuntu-latest");
         workflow.Should().Contain("macos-latest");
         workflow.Should().Contain("windows-latest");
+        workflow.Should().Contain("linux-x11-native:");
+        workflow.Should().Contain("linux-wayland-xwayland-native:");
+        workflow.Should().Contain("linux-x11");
+        workflow.Should().Contain("linux-wayland-xwayland");
         workflow.Should().Contain("windows");
         workflow.Should().Contain("github.event_name != 'workflow_dispatch'");
         workflow.Should().Contain("xvfb-run -a");
+        workflow.Should().Contain("xwfb-run -a");
         workflow.Should().Contain("scripts/run-native-validation.sh");
         workflow.Should().Contain("scripts/run-native-validation.ps1");
     }
@@ -41,14 +46,20 @@ public sealed class RepositoryNativeValidationTests
         var powerShellScript = File.ReadAllText(Path.Combine(repositoryRoot, "scripts", "run-native-validation.ps1"));
 
         shellScript.Should().Contain("--include-native-linux");
+        shellScript.Should().Contain("--include-native-linux-xwayland");
+        shellScript.Should().Contain("--linux-display-server");
         shellScript.Should().Contain("--include-native-macos");
         shellScript.Should().Contain("DISPLAY is not set");
+        shellScript.Should().Contain("WAYLAND_DISPLAY is not set");
 
         powerShellScript.Should().Contain("-IncludeNativeLinux");
+        powerShellScript.Should().Contain("-IncludeNativeLinuxXWayland");
+        powerShellScript.Should().Contain("LinuxDisplayServer");
         powerShellScript.Should().Contain("-IncludeNativeMacOS");
         powerShellScript.Should().Contain("-IncludeNativeWindows");
         powerShellScript.Should().Contain("\"Windows\"");
         powerShellScript.Should().Contain("DISPLAY is not set");
+        powerShellScript.Should().Contain("WAYLAND_DISPLAY is not set");
     }
 
     [Fact]
@@ -86,14 +97,18 @@ public sealed class RepositoryNativeValidationTests
         chineseReadme.Should().Contain("native-validation.md");
         chineseTroubleshooting.Should().Contain("native-validation.md");
         englishRunbook.Should().Contain("Windows native validation");
+        englishRunbook.Should().Contain("XWayland");
+        englishRunbook.Should().Contain("linux-wayland-xwayland");
         englishRunbook.Should().Contain("pull requests");
         englishRunbook.Should().Contain("workflow_dispatch");
         englishRunbook.Should().Contain("local matching-host path");
         englishRunbook.Should().Contain("windows");
         readme.Should().Contain("GitHub Actions");
+        readme.Should().Contain("XWayland");
         readme.Should().Contain("pull requests");
         readme.Should().Contain("Run workflow");
         chineseRunbook.Should().Contain("Windows 原生验证");
+        chineseRunbook.Should().Contain("XWayland");
         chineseRunbook.Should().Contain("windows");
     }
 

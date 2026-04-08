@@ -25,7 +25,7 @@ dotnet add package Videra.Avalonia --version 0.1.0-alpha.1 --source github-Explo
 dotnet add package Videra.Platform.Linux --version 0.1.0-alpha.1 --source github-ExplodingUFO
 ```
 
-当前原生路径是 X11-first，matching-host 原生验证仍需要真实 Linux 宿主。
+当前 Linux 原生渲染链路仍基于 X11 句柄；如果运行在 Wayland 会话中，则依赖 `XWayland` 兼容路径。matching-host 原生验证仍需要真实 Linux 宿主。
 
 ## 模块架构
 
@@ -212,7 +212,7 @@ Videra.Platform.Linux/
 
 ## 系统要求
 
-- Linux (X11 窗口系统)
+- Linux（X11 窗口系统，或 Wayland 会话中的 `XWayland` 兼容路径）
 - Vulkan 1.2+ 兼容显卡
 - `libX11.so.6`（仓库验证脚本支持回退到 `libX11.so` / `libX11`）
 - Vulkan 驱动程序
@@ -224,9 +224,11 @@ Videra.Platform.Linux/
 ```bash
 # Unix shell
 ./verify.sh --configuration Release --include-native-linux
+./verify.sh --configuration Release --include-native-linux-xwayland
 
 # PowerShell
 pwsh -File ./verify.ps1 -Configuration Release -IncludeNativeLinux
+pwsh -File ./verify.ps1 -Configuration Release -IncludeNativeLinuxXWayland
 ```
 
-这一步用于执行 `tests/Videra.Platform.Linux.Tests` 中的真实 X11-backed lifecycle/render-path 验证，而不仅仅是跨平台构建或非原生主机上的常规测试。
+这一步用于执行 `tests/Videra.Platform.Linux.Tests` 中的真实 X11-backed lifecycle/render-path 验证；如果在 Wayland 会话中运行，则同时验证 `XWayland` 兼容路径，而不仅仅是跨平台构建或非原生主机上的常规测试。

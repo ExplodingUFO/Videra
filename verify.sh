@@ -3,6 +3,7 @@ set -euo pipefail
 
 CONFIGURATION="Release"
 INCLUDE_NATIVE_LINUX=false
+INCLUDE_NATIVE_LINUX_XWAYLAND=false
 INCLUDE_NATIVE_MACOS=false
 ROOT_DIR="$(cd "$(dirname "$0")" && pwd)"
 ALL_PASS=true
@@ -44,6 +45,10 @@ while [[ $# -gt 0 ]]; do
       INCLUDE_NATIVE_LINUX=true
       shift
       ;;
+    --include-native-linux-xwayland)
+      INCLUDE_NATIVE_LINUX_XWAYLAND=true
+      shift
+      ;;
     --include-native-macos)
       INCLUDE_NATIVE_MACOS=true
       shift
@@ -75,10 +80,18 @@ run_check \
 
 if [[ "$INCLUDE_NATIVE_LINUX" == true ]]; then
   run_check \
-    "Linux Native Validation" \
-    "Linux native validation passed" \
-    "Linux native validation failed" \
-    env VIDERA_RUN_LINUX_NATIVE_TESTS=true dotnet test "$ROOT_DIR/tests/Videra.Platform.Linux.Tests/Videra.Platform.Linux.Tests.csproj" --configuration "$CONFIGURATION" -v "$TEST_VERBOSITY" "${TEST_LOGGER_ARGS[@]}"
+    "Linux X11 Native Validation" \
+    "Linux X11 native validation passed" \
+    "Linux X11 native validation failed" \
+    env VIDERA_RUN_LINUX_NATIVE_TESTS=true VIDERA_EXPECT_LINUX_DISPLAY_SERVER=X11 dotnet test "$ROOT_DIR/tests/Videra.Platform.Linux.Tests/Videra.Platform.Linux.Tests.csproj" --configuration "$CONFIGURATION" -v "$TEST_VERBOSITY" "${TEST_LOGGER_ARGS[@]}"
+fi
+
+if [[ "$INCLUDE_NATIVE_LINUX_XWAYLAND" == true ]]; then
+  run_check \
+    "Linux XWayland Native Validation" \
+    "Linux XWayland native validation passed" \
+    "Linux XWayland native validation failed" \
+    env VIDERA_RUN_LINUX_NATIVE_TESTS=true VIDERA_EXPECT_LINUX_DISPLAY_SERVER=XWayland dotnet test "$ROOT_DIR/tests/Videra.Platform.Linux.Tests/Videra.Platform.Linux.Tests.csproj" --configuration "$CONFIGURATION" -v "$TEST_VERBOSITY" "${TEST_LOGGER_ARGS[@]}"
 fi
 
 if [[ "$INCLUDE_NATIVE_MACOS" == true ]]; then

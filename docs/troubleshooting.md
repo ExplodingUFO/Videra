@@ -42,6 +42,7 @@ If you need a matching-host runbook or the hosted GitHub Actions entrypoint, use
 | `Failed to create D3D11 device` | Windows | Update GPU drivers and confirm Direct3D 11 support |
 | `Failed to create Vulkan instance` | Linux | Check Vulkan drivers, runtime libraries, and X11 availability |
 | `Failed to create X11 Vulkan surface` | Linux | Confirm an active X11 session and a usable `libX11` |
+| Wayland session resolves no native Linux host | Linux | Confirm the session exposes `XWayland` and that both `WAYLAND_DISPLAY` and `DISPLAY` are present |
 | `Failed to create Metal device` | macOS | Confirm Metal support and validate on a real macOS host |
 | Blank render area | Any | Try `VIDERA_BACKEND=software` first to isolate native-host vs GPU issues |
 | Model import failure | Any | Confirm that the asset is `.gltf`, `.glb`, or `.obj` and valid |
@@ -60,9 +61,9 @@ pwsh -File ./verify.ps1 -Configuration Release
 
 ### Linux
 
-- The official native path is currently X11 + Vulkan
-- Missing `libX11.so.6` can still be diagnosed with the repository fallback loader, but a usable X11 runtime is still required
-- Wayland is not a supported target yet
+- The official Linux render path is still Vulkan with X11 handles
+- In Wayland sessions, `Auto` currently resolves to an `XWayland` compatibility path when that bridge is available
+- Missing `libX11.so.6` can still be diagnosed with the repository fallback loader, but a usable X11 or `XWayland` runtime is still required
 
 ### macOS
 

@@ -14,7 +14,8 @@ on:
         type: choice
         options:
           - all
-          - linux
+          - linux-x11
+          - linux-wayland-xwayland
           - macos
           - windows
 
@@ -22,8 +23,8 @@ permissions:
   contents: read
 
 jobs:
-  linux-native:
-    if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.target == 'all' || github.event.inputs.target == 'linux' }}
+  linux-x11-native:
+    if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.target == 'all' || github.event.inputs.target == 'linux-x11' }}
     runs-on: ubuntu-latest
 
     steps:
@@ -38,10 +39,32 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y xvfb libx11-6 libvulkan1 libshaderc1 mesa-vulkan-drivers vulkan-tools
 
-      - name: Run Linux native validation
+      - name: Run Linux X11 native validation
         env:
           VIDERA_VERBOSE_TEST_LOGS: "true"
-        run: xvfb-run -a bash ./scripts/run-native-validation.sh --platform linux --configuration Release
+        run: xvfb-run -a bash ./scripts/run-native-validation.sh --platform linux --linux-display-server x11 --configuration Release
+
+  linux-wayland-xwayland-native:
+    if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.target == 'all' || github.event.inputs.target == 'linux-wayland-xwayland' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Install Linux Wayland/XWayland prerequisites
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xwayland-run libx11-6 libwayland-client0 libvulkan1 libshaderc1 mesa-vulkan-drivers vulkan-tools
+
+      - name: Run Linux Wayland-session XWayland validation
+        env:
+          VIDERA_VERBOSE_TEST_LOGS: "true"
+        run: |
+          xwfb-run -a bash -lc 'env | sort | grep -E "^(DISPLAY|WAYLAND_DISPLAY|XDG_RUNTIME_DIR|XDG_SESSION_TYPE)=" || true; bash ./scripts/run-native-validation.sh --platform linux --linux-display-server xwayland --configuration Release'
 
   macos-native:
     if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.target == 'all' || github.event.inputs.target == 'macos' }}

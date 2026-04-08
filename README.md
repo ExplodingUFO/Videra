@@ -23,7 +23,7 @@ Videra is not a general-purpose game engine. It is designed around desktop 3D vi
 - `VideraView` Avalonia control for direct XAML integration
 - Native graphics backends
   - Windows: Direct3D 11
-  - Linux: Vulkan (current native path is X11-based)
+  - Linux: Vulkan (`X11` native path, `XWayland` compatibility inside Wayland sessions)
   - macOS: Metal
 - Software fallback path for non-GPU and diagnostics scenarios
 - Shared abstractions: `IGraphicsBackend`, `IResourceFactory`, `ICommandExecutor`
@@ -68,7 +68,7 @@ The repository is split into UI integration, a platform-agnostic rendering core,
 | Platform | Default Backend | Current State | Notes |
 | --- | --- | --- | --- |
 | Windows 10+ | Direct3D 11 | Usable | Repository validation covers real HWND-backed paths |
-| Linux | Vulkan | Usable | Current native path targets X11; Wayland is not yet supported |
+| Linux | Vulkan | Usable | Native embedding uses X11; in Wayland sessions `Auto` resolves to an `XWayland` compatibility path when available |
 | macOS 10.15+ | Metal | Usable | Depends on Objective-C runtime and `CAMetalLayer` interop |
 | Any platform | Software | Fallback | Useful for CI, diagnostics, or no-GPU scenarios |
 
@@ -160,13 +160,15 @@ Default verification does not automatically cover Linux or macOS native-host end
 
 ```bash
 ./verify.sh --configuration Release --include-native-linux
+./verify.sh --configuration Release --include-native-linux-xwayland
 ./verify.sh --configuration Release --include-native-macos
 
 pwsh -File ./verify.ps1 -Configuration Release -IncludeNativeLinux
+pwsh -File ./verify.ps1 -Configuration Release -IncludeNativeLinuxXWayland
 pwsh -File ./verify.ps1 -Configuration Release -IncludeNativeMacOS
 ```
 
-GitHub Actions now runs matching-host native validation for Linux, macOS, and Windows on pull requests through `.github/workflows/native-validation.yml`. Use the dedicated [Native Validation runbook](docs/native-validation.md) when you want to inspect that CI path, use `Run workflow` for targeted reruns, or reproduce failures locally on a matching host.
+GitHub Actions now runs matching-host native validation for Linux X11, Linux Wayland-session `XWayland`, macOS, and Windows on pull requests through `.github/workflows/native-validation.yml`. Use the dedicated [Native Validation runbook](docs/native-validation.md) when you want to inspect that CI path, use `Run workflow` for targeted reruns, or reproduce failures locally on a matching host.
 
 ## Avalonia Integration Example
 
@@ -243,7 +245,7 @@ Detailed package-level docs:
 
 - Videra is a component-oriented 3D viewer stack, not a full content creation toolchain
 - The current GitHub Packages alpha path is best treated as a Windows + Avalonia evaluation track
-- Linux native support is currently X11-first; Wayland remains an open gap
+- Linux native rendering currently embeds through X11 handles; Wayland sessions rely on an `XWayland` compatibility path when available
 - Linux and macOS native-host validation is expected to pass on matching-host GitHub Actions pull requests; local matching-host runs remain the fallback for targeted debugging
 - The macOS backend currently relies on Objective-C runtime interop
 
