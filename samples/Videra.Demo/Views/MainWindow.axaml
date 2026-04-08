@@ -72,7 +72,6 @@
                                       SelectedItem="{Binding WireframeMode}"
                                       HorizontalAlignment="Stretch"/>
                         </Grid>
-                        <Button Content="Test Wireframe" Command="{Binding TestWireframeCommand}"/>
                         <Grid ColumnDefinitions="Auto, *" IsVisible="{Binding IsWireframeEnabled}">
                             <TextBlock Text="Line Color" Foreground="#CCCCCC" VerticalAlignment="Center"/>
                             <ColorPicker Grid.Column="1" Color="{Binding WireframeColor}" HorizontalAlignment="Right"/>
@@ -84,17 +83,14 @@
                         <TextBlock Text="SCENE GRAPH" FontWeight="Bold" Foreground="#007ACC" FontSize="12"/>
                         <Button Content="Import Model"
                                 Command="{Binding ImportCommand}"
-                                IsEnabled="{Binding IsBackendReady}"
                                 HorizontalAlignment="Stretch"/>
                         <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
                             <Button Content="Frame All"
                                     Command="{Binding FrameAllCommand}"
-                                    IsEnabled="{Binding IsBackendReady}"
                                     HorizontalAlignment="Stretch"/>
                             <Button Grid.Column="1"
                                     Content="Reset Camera"
                                     Command="{Binding ResetCameraCommand}"
-                                    IsEnabled="{Binding IsBackendReady}"
                                     HorizontalAlignment="Stretch"/>
                         </Grid>
                         <ListBox ItemsSource="{Binding SceneObjects}"

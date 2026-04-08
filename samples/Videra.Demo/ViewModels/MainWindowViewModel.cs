@@ -56,6 +56,7 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty] private string _statusMessage = WaitingForBackendStatusMessage;
 
     [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(ImportCommand))]
     [NotifyCanExecuteChangedFor(nameof(FrameAllCommand))]
     [NotifyCanExecuteChangedFor(nameof(ResetCameraCommand))]
     private bool _isBackendReady;
@@ -207,6 +208,7 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         ArgumentNullException.ThrowIfNull(importer);
         _importer = importer;
+        ImportCommand.NotifyCanExecuteChanged();
     }
 
     public void AttachViewportActions(IDemoViewportActions viewportActions)
@@ -214,21 +216,6 @@ public partial class MainWindowViewModel : ViewModelBase
         _viewportActions = viewportActions ?? throw new ArgumentNullException(nameof(viewportActions));
         FrameAllCommand.NotifyCanExecuteChanged();
         ResetCameraCommand.NotifyCanExecuteChanged();
-    }
-
-    [RelayCommand]
-    private void TestWireframe()
-    {
-        WireframeMode = WireframeMode == WireframeMode.None
-            ? WireframeMode.AllEdges
-            : WireframeMode.None;
-
-        StatusMessage = WireframeMode == WireframeMode.None
-            ? "Wireframe mode disabled."
-            : $"Wireframe mode enabled: {WireframeMode}.";
-
-        OnPropertyChanged(nameof(WireframeMode));
-        OnPropertyChanged(nameof(IsWireframeEnabled));
     }
 
     [RelayCommand(CanExecute = nameof(CanUseViewportActions))]
@@ -272,7 +259,7 @@ public partial class MainWindowViewModel : ViewModelBase
         }
     }
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(CanImportModels))]
     private async Task ImportAsync()
     {
         if (_importer == null)
@@ -296,6 +283,11 @@ public partial class MainWindowViewModel : ViewModelBase
         }
 
         StatusMessage = BuildImportStatus(loadResult);
+    }
+
+    private bool CanImportModels()
+    {
+        return IsBackendReady && _importer is not null;
     }
 
     private static string BuildImportStatus(ModelLoadBatchResult loadResult)

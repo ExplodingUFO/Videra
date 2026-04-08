@@ -78,6 +78,17 @@ public sealed class RepositoryLocalizationTests
     }
 
     [Fact]
+    public void ChineseDemoDoc_ShouldDescribeDegradedPath_AndAvoidRawIsBackendReadyNarrative()
+    {
+        var demoDoc = File.ReadAllText(Path.Combine(GetRepositoryRoot(), "docs", "zh-CN", "modules", "demo.md"));
+
+        demoDoc.Should().Contain("默认演示立方体");
+        demoDoc.Should().Contain("状态区域");
+        demoDoc.Should().Contain("仍可继续导入模型");
+        demoDoc.Should().NotContain("`IsBackendReady` 为 `true` 后才可用");
+    }
+
+    [Fact]
     public void ChineseDistributionDocs_ShouldMirrorInstallGuidance()
     {
         var repositoryRoot = GetRepositoryRoot();

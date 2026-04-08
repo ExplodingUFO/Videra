@@ -70,12 +70,23 @@ public sealed class DemoConfigurationTests
     }
 
     [Fact]
-    public void DemoImportButton_ShouldBeDisabledUntilBackendReady()
+    public void RootReadme_ShouldDescribeDemoDiagnosticsAndStatusFeedback()
+    {
+        var readmePath = Path.Combine(GetRepositoryRoot(), "README.md");
+        var readme = File.ReadAllText(readmePath);
+
+        readme.Should().Contain("backend diagnostics");
+        readme.Should().Contain("default demo cube");
+        readme.Should().Contain("import feedback");
+    }
+
+    [Fact]
+    public void DemoInteractionButtons_ShouldNotBindRawIsEnabledToIsBackendReady()
     {
         var mainWindowPath = Path.Combine(GetRepositoryRoot(), "samples", "Videra.Demo", "Views", "MainWindow.axaml");
         var xaml = File.ReadAllText(mainWindowPath);
 
-        xaml.Should().Contain("IsEnabled=\"{Binding IsBackendReady}\"");
+        xaml.Should().NotContain("IsEnabled=\"{Binding IsBackendReady}\"");
     }
 
     [Fact]
@@ -97,6 +108,27 @@ public sealed class DemoConfigurationTests
         xaml.Should().Contain("Command=\"{Binding FrameAllCommand}\"");
         xaml.Should().Contain("Content=\"Reset Camera\"");
         xaml.Should().Contain("Command=\"{Binding ResetCameraCommand}\"");
+    }
+
+    [Fact]
+    public void DemoReadme_ShouldDescribeDegradedDefaultScenePath_AndImportSummaryVisibility()
+    {
+        var demoReadmePath = Path.Combine(GetRepositoryRoot(), "samples", "Videra.Demo", "README.md");
+        var demoReadme = File.ReadAllText(demoReadmePath);
+
+        demoReadme.Should().Contain("default demo cube");
+        demoReadme.Should().Contain("status area");
+        demoReadme.Should().Contain("Model import remains available");
+        demoReadme.Should().Contain("summarized in the status area");
+    }
+
+    [Fact]
+    public void Demo_ShouldNotExposeLegacyTestWireframeButton()
+    {
+        var mainWindowPath = Path.Combine(GetRepositoryRoot(), "samples", "Videra.Demo", "Views", "MainWindow.axaml");
+        var xaml = File.ReadAllText(mainWindowPath);
+
+        xaml.Should().NotContain("Content=\"Test Wireframe\"");
     }
 
     [Fact]

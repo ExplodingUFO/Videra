@@ -8,6 +8,7 @@
 
 - `VideraView` integration in an Avalonia window
 - Backend-ready initialization through `DemoSceneBootstrapper`
+- Automatic default demo cube seeding and framing when the backend becomes ready
 - High-level model loading with `LoadModelAsync` / `LoadModelsAsync`
 - Scene framing with `FrameAll()` after successful load
 - Quick camera utilities with `Frame All` and `Reset Camera`
@@ -18,7 +19,9 @@
 
 ## Runtime Behavior
 
-By default, the demo waits for `VideraView` to finish backend initialization, attaches the importer, and seeds a default cube scene through the high-level scene API.
+By default, the demo waits for `VideraView` to finish backend initialization, attaches the importer, and seeds a default demo cube scene through the high-level scene API.
+
+If the default demo cube cannot be created, the demo stays backend-ready, reports the failure in the status area, and keeps model import available. Model import remains available while the status area carries the last scene-bootstrap error.
 
 `PreferredBackend="Auto"` keeps the backend preference aligned with the current platform:
 
@@ -39,6 +42,10 @@ if (result.Succeeded)
 
 var diagnostics = View3D.BackendDiagnostics;
 ```
+
+Import results are summarized in the status area. Partial success keeps the loaded models in the scene and reports the last failure message alongside the success count.
+
+`Import Model`, `Frame All`, and `Reset Camera` follow command/capability readiness rather than a raw `IsBackendReady` XAML assumption, so the visible controls stay aligned with the live importer and viewport wiring.
 
 ## Run
 

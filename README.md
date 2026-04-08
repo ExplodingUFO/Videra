@@ -29,7 +29,7 @@ Videra is not a general-purpose game engine. It is designed around desktop 3D vi
 - Shared abstractions: `IGraphicsBackend`, `IResourceFactory`, `ICommandExecutor`
 - Model import for `.gltf`, `.glb`, and `.obj`
 - Render-style presets and wireframe modes
-- Demo app with camera control, grid, axes, model import, and basic transforms
+- Demo app with backend diagnostics, import feedback, a default demo cube, camera control, grid, axes, and basic transforms
 
 ## Architecture
 
@@ -143,6 +143,8 @@ dotnet add package Videra.Core --version 0.1.0-alpha.1 --source github-Exploding
 ```bash
 dotnet run --project samples/Videra.Demo/Videra.Demo.csproj
 ```
+
+The sample app seeds a default demo cube when backend initialization succeeds, surfaces backend diagnostics in the demo status area, and reports import feedback there as models load or fail.
 
 ### Verify the Repository
 
