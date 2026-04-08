@@ -1,0 +1,153 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:videra="using:Videra.Avalonia.Controls"
+        x:Class="Videra.ExtensibilitySample.Views.MainWindow"
+        Title="Videra Extensibility Sample"
+        Width="1440"
+        Height="900"
+        MinWidth="1080"
+        MinHeight="720"
+        Background="#020617">
+  <Grid ColumnDefinitions="2.4*,1.2*" RowDefinitions="Auto,*">
+    <Border Grid.ColumnSpan="2"
+            Background="#0F172A"
+            BorderBrush="#1E293B"
+            BorderThickness="0,0,0,1"
+            Padding="24,18">
+      <StackPanel Spacing="8">
+        <TextBlock FontSize="24"
+                   FontWeight="SemiBold"
+                   Foreground="#E2E8F0"
+                   Text="Avalonia-first public extensibility sample" />
+        <TextBlock Foreground="#CBD5E1"
+                   TextWrapping="Wrap"
+                   Text="This sample registers one RenderPass contributor and one FrameEnd hook through VideraView.Engine, loads a bundled OBJ asset with LoadModelAsync(&quot;Assets/reference-cube.obj&quot;), calls FrameAll(), then surfaces RenderCapabilities and BackendDiagnostics through the public control API." />
+      </StackPanel>
+    </Border>
+
+    <Border Grid.Row="1"
+            Margin="24,24,12,24"
+            CornerRadius="20"
+            BorderBrush="#1E293B"
+            BorderThickness="1"
+            ClipToBounds="True">
+      <videra:VideraView x:Name="View3D"
+                         PreferredBackend="Auto"
+                         BackgroundColor="#0F172A"
+                         GridColor="#475569"
+                         IsGridVisible="True" />
+    </Border>
+
+    <ScrollViewer Grid.Row="1"
+                  Grid.Column="1"
+                  Margin="12,24,24,24"
+                  VerticalScrollBarVisibility="Auto">
+      <StackPanel Spacing="14">
+        <Border Padding="18"
+                Background="#0F172A"
+                BorderBrush="#1E293B"
+                BorderThickness="1"
+                CornerRadius="18">
+          <StackPanel Spacing="10">
+            <TextBlock FontSize="18"
+                       FontWeight="SemiBold"
+                       Foreground="#F8FAFC"
+                       Text="API flow exercised" />
+            <TextBlock Foreground="#CBD5E1"
+                       Text="VideraView.Engine" />
+            <TextBlock Foreground="#CBD5E1"
+                       Text="RegisterPassContributor(RenderPassSlot.SolidGeometry, ...)" />
+            <TextBlock Foreground="#CBD5E1"
+                       Text="RegisterFrameHook(RenderFrameHookPoint.FrameEnd, ...)" />
+            <TextBlock Foreground="#CBD5E1"
+                       Text="LoadModelAsync(&quot;Assets/reference-cube.obj&quot;)" />
+            <TextBlock Foreground="#CBD5E1"
+                       Text="FrameAll()" />
+            <TextBlock Foreground="#CBD5E1"
+                       Text="RenderCapabilities + BackendDiagnostics" />
+          </StackPanel>
+        </Border>
+
+        <Border Padding="18"
+                Background="#0F172A"
+                BorderBrush="#1E293B"
+                BorderThickness="1"
+                CornerRadius="18">
+          <StackPanel Spacing="8">
+            <TextBlock FontSize="16"
+                       FontWeight="SemiBold"
+                       Foreground="#F8FAFC"
+                       Text="Load flow" />
+            <TextBlock x:Name="LoadStatusText"
+                       Foreground="#CBD5E1"
+                       TextWrapping="Wrap" />
+          </StackPanel>
+        </Border>
+
+        <Border Padding="18"
+                Background="#0F172A"
+                BorderBrush="#1E293B"
+                BorderThickness="1"
+                CornerRadius="18">
+          <StackPanel Spacing="8">
+            <TextBlock FontSize="16"
+                       FontWeight="SemiBold"
+                       Foreground="#F8FAFC"
+                       Text="Contributor observation" />
+            <TextBlock x:Name="ContributorStatusText"
+                       Foreground="#CBD5E1"
+                       TextWrapping="Wrap" />
+          </StackPanel>
+        </Border>
+
+        <Border Padding="18"
+                Background="#0F172A"
+                BorderBrush="#1E293B"
+                BorderThickness="1"
+                CornerRadius="18">
+          <StackPanel Spacing="8">
+            <TextBlock FontSize="16"
+                       FontWeight="SemiBold"
+                       Foreground="#F8FAFC"
+                       Text="Frame hook observation" />
+            <TextBlock x:Name="FrameHookStatusText"
+                       Foreground="#CBD5E1"
+                       TextWrapping="Wrap" />
+          </StackPanel>
+        </Border>
+
+        <Border Padding="18"
+                Background="#0F172A"
+                BorderBrush="#1E293B"
+                BorderThickness="1"
+                CornerRadius="18">
+          <StackPanel Spacing="8">
+            <TextBlock FontSize="16"
+                       FontWeight="SemiBold"
+                       Foreground="#F8FAFC"
+                       Text="Render capabilities" />
+            <TextBlock x:Name="CapabilitiesStatusText"
+                       Foreground="#CBD5E1"
+                       TextWrapping="Wrap" />
+          </StackPanel>
+        </Border>
+
+        <Border Padding="18"
+                Background="#0F172A"
+                BorderBrush="#1E293B"
+                BorderThickness="1"
+                CornerRadius="18">
+          <StackPanel Spacing="8">
+            <TextBlock FontSize="16"
+                       FontWeight="SemiBold"
+                       Foreground="#F8FAFC"
+                       Text="Backend diagnostics" />
+            <TextBlock x:Name="DiagnosticsStatusText"
+                       Foreground="#CBD5E1"
+                       TextWrapping="Wrap" />
+          </StackPanel>
+        </Border>
+      </StackPanel>
+    </ScrollViewer>
+  </Grid>
+</Window>
