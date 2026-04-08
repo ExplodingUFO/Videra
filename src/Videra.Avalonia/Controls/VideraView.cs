@@ -103,8 +103,14 @@ public partial class VideraView : Decorator
         ClipToBounds = true;
     }
 
+    /// <summary>
+    /// Gets the engine that backs this view's public extensibility surface.
+    /// </summary>
     public VideraEngine Engine { get; }
 
+    /// <summary>
+    /// Gets or sets the backend and diagnostics options used when initializing the view session.
+    /// </summary>
     public VideraViewOptions Options
     {
         get => _options;
@@ -118,8 +124,24 @@ public partial class VideraView : Decorator
         }
     }
 
+    /// <summary>
+    /// Gets the public availability and fallback shell for the current session state.
+    /// </summary>
+    /// <remarks>
+    /// The snapshot mirrors backend readiness, <see cref="VideraBackendDiagnostics.IsUsingSoftwareFallback" />,
+    /// and <see cref="VideraBackendDiagnostics.FallbackReason" /> so callers can inspect unavailable or
+    /// degraded backend resolution without reaching into internal session state.
+    /// </remarks>
     public VideraBackendDiagnostics BackendDiagnostics => _backendDiagnostics;
 
+    /// <summary>
+    /// Gets the public render capability snapshot exposed by the underlying engine.
+    /// </summary>
+    /// <remarks>
+    /// This remains queryable before initialization and after disposal. In those states the snapshot reports
+    /// <c>IsInitialized = false</c> while still exposing the stable capability flags and any last-known
+    /// pipeline snapshot from a previously rendered frame.
+    /// </remarks>
     public RenderCapabilitySnapshot RenderCapabilities => Engine.GetRenderCapabilities();
 
     public IResourceFactory? GetResourceFactory()

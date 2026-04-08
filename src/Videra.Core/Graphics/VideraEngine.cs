@@ -83,8 +83,23 @@ public partial class VideraEngine : IDisposable
     /// </summary>
     public WireframeRenderer Wireframe { get; } = new();
 
+    /// <summary>
+    /// Gets the last pipeline snapshot observed during a rendered frame, if one is available.
+    /// </summary>
     public RenderPipelineSnapshot? LastPipelineSnapshot { get; private set; }
 
+    /// <summary>
+    /// Registers an additional contributor for a stable render pass slot.
+    /// </summary>
+    /// <param name="slot">The pass slot to extend.</param>
+    /// <param name="contributor">The contributor invoked after the built-in pass work for the slot.</param>
+    /// <remarks>
+    /// Null contributors are rejected before engine state is checked. Calls made after disposal are
+    /// ignored as a no-op and do not mutate the engine.
+    /// </remarks>
+    /// <exception cref="ArgumentNullException">
+    /// Thrown when <paramref name="contributor"/> is <see langword="null" />.
+    /// </exception>
     public void RegisterPassContributor(RenderPassSlot slot, IRenderPassContributor contributor)
     {
         ArgumentNullException.ThrowIfNull(contributor);
@@ -106,6 +121,18 @@ public partial class VideraEngine : IDisposable
         }
     }
 
+    /// <summary>
+    /// Replaces the built-in contributor for a stable render pass slot.
+    /// </summary>
+    /// <param name="slot">The pass slot whose default contributor should be replaced.</param>
+    /// <param name="contributor">The contributor that replaces the built-in pass implementation.</param>
+    /// <remarks>
+    /// Null contributors are rejected before engine state is checked. Calls made after disposal are
+    /// ignored as a no-op and leave the previous contributor mapping unchanged.
+    /// </remarks>
+    /// <exception cref="ArgumentNullException">
+    /// Thrown when <paramref name="contributor"/> is <see langword="null" />.
+    /// </exception>
     public void ReplacePassContributor(RenderPassSlot slot, IRenderPassContributor contributor)
     {
         ArgumentNullException.ThrowIfNull(contributor);
@@ -121,6 +148,18 @@ public partial class VideraEngine : IDisposable
         }
     }
 
+    /// <summary>
+    /// Registers a frame hook at one of the public pipeline hook points.
+    /// </summary>
+    /// <param name="hookPoint">The hook point that will invoke the callback.</param>
+    /// <param name="hook">The callback to invoke for each frame at the selected hook point.</param>
+    /// <remarks>
+    /// Null hooks are rejected before engine state is checked. Calls made after disposal are ignored
+    /// as a no-op and do not add new hook registrations.
+    /// </remarks>
+    /// <exception cref="ArgumentNullException">
+    /// Thrown when <paramref name="hook"/> is <see langword="null" />.
+    /// </exception>
     public void RegisterFrameHook(RenderFrameHookPoint hookPoint, Action<RenderFrameHookContext> hook)
     {
         ArgumentNullException.ThrowIfNull(hook);
@@ -142,6 +181,14 @@ public partial class VideraEngine : IDisposable
         }
     }
 
+    /// <summary>
+    /// Gets the public render capability snapshot for the current engine lifecycle state.
+    /// </summary>
+    /// <remarks>
+    /// This query is safe before initialization and after disposal. In both states the returned snapshot
+    /// reports <c>IsInitialized = false</c> while still exposing the public capability booleans and any
+    /// last-known <see cref="RenderPipelineSnapshot" /> captured before disposal.
+    /// </remarks>
     public RenderCapabilitySnapshot GetRenderCapabilities()
     {
         lock (_lock)

@@ -1,6 +1,9 @@
 using Videra.Core.Graphics;
 namespace Videra.Avalonia.Controls;
 
+/// <summary>
+/// Public diagnostics shell describing backend availability, fallback, and capability truth for a <see cref="VideraView" />.
+/// </summary>
 public sealed class VideraBackendDiagnostics
 {
     public static VideraBackendDiagnostics CreateDefault(GraphicsBackendPreference requestedBackend = GraphicsBackendPreference.Auto)
@@ -21,14 +24,29 @@ public sealed class VideraBackendDiagnostics
         };
     }
 
+    /// <summary>
+    /// Gets the backend preference the view asked to initialize.
+    /// </summary>
     public GraphicsBackendPreference RequestedBackend { get; init; }
 
+    /// <summary>
+    /// Gets the backend preference actually resolved for the current diagnostics snapshot.
+    /// </summary>
     public GraphicsBackendPreference ResolvedBackend { get; init; }
 
+    /// <summary>
+    /// Gets a value indicating whether the render session is currently ready to present frames.
+    /// </summary>
     public bool IsReady { get; init; }
 
+    /// <summary>
+    /// Gets a value indicating whether native backend resolution fell back to software.
+    /// </summary>
     public bool IsUsingSoftwareFallback { get; init; }
 
+    /// <summary>
+    /// Gets the reason a native backend was unavailable when the view resolved to software fallback.
+    /// </summary>
     public string? FallbackReason { get; init; }
 
     public bool NativeHostBound { get; init; }
@@ -51,12 +69,24 @@ public sealed class VideraBackendDiagnostics
 
     public bool UsesSoftwarePresentationCopy { get; init; }
 
+    /// <summary>
+    /// Gets a value indicating whether pass contributor registration is supported on the public surface.
+    /// </summary>
     public bool SupportsPassContributors { get; init; }
 
+    /// <summary>
+    /// Gets a value indicating whether pass replacement is supported on the public surface.
+    /// </summary>
     public bool SupportsPassReplacement { get; init; }
 
+    /// <summary>
+    /// Gets a value indicating whether frame hook registration is supported on the public surface.
+    /// </summary>
     public bool SupportsFrameHooks { get; init; }
 
+    /// <summary>
+    /// Gets a value indicating whether pipeline snapshots are exposed on the public surface.
+    /// </summary>
     public bool SupportsPipelineSnapshots { get; init; }
 }
 

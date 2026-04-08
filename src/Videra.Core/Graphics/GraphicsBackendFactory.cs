@@ -33,6 +33,26 @@ public static partial class GraphicsBackendFactory
             LoggerFactory: loggerFactory)).Backend;
     }
 
+    /// <summary>
+    /// Resolves the requested backend preference into a concrete backend and availability snapshot.
+    /// </summary>
+    /// <param name="request">
+    /// The backend request, including environment override behavior and whether
+    /// <see cref="GraphicsBackendRequest.AllowSoftwareFallback" /> is permitted.
+    /// </param>
+    /// <returns>
+    /// A resolution containing the concrete backend plus availability metadata. When a native backend is
+    /// unavailable and <see cref="GraphicsBackendRequest.AllowSoftwareFallback" /> is <see langword="true" />,
+    /// the result falls back to software and surfaces the unavailable reason through
+    /// <see cref="GraphicsBackendResolution.IsUsingSoftwareFallback" /> and
+    /// <see cref="GraphicsBackendResolution.FallbackReason" />.
+    /// </returns>
+    /// <exception cref="InvalidOperationException">
+    /// Thrown when the requested native backend is unavailable and
+    /// <see cref="GraphicsBackendRequest.AllowSoftwareFallback" /> is <see langword="false" />. The exception
+    /// message is the same unavailable reason that would otherwise populate
+    /// <see cref="GraphicsBackendResolution.FallbackReason" />.
+    /// </exception>
     public static GraphicsBackendResolution ResolveBackend(GraphicsBackendRequest request)
     {
         var logger = request.LoggerFactory?.CreateLogger("GraphicsBackendFactory")
