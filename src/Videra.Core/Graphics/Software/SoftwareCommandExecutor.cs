@@ -6,11 +6,16 @@ namespace Videra.Core.Graphics.Software;
 
 internal sealed class SoftwareCommandExecutor : ICommandExecutor
 {
+    private const bool DefaultDepthTestEnabled = true;
+    private const bool DefaultDepthWriteEnabled = true;
+
     private readonly SoftwareFrameBuffer _frameBuffer;
     private readonly Dictionary<uint, SoftwareBuffer> _vertexBuffers = new();
     private SoftwareBuffer? _indexBuffer;
     private IPipeline? _pipeline;
     private ViewportState _viewport;
+    private bool _depthTestEnabled = DefaultDepthTestEnabled;
+    private bool _depthWriteEnabled = DefaultDepthWriteEnabled;
 
     public SoftwareCommandExecutor(SoftwareFrameBuffer frameBuffer)
     {
@@ -68,7 +73,6 @@ internal sealed class SoftwareCommandExecutor : ICommandExecutor
 
         if (primitive == PrimitiveMode.LineList)
         {
-            var depthTest = IsFullViewport();
             for (uint i = 0; i + 1 < available; i += 2)
             {
                 if (!TryGetVertex(indices, firstIndex + i, vertexOffset, vertices, mvp, out var v0))
@@ -76,7 +80,7 @@ internal sealed class SoftwareCommandExecutor : ICommandExecutor
                 if (!TryGetVertex(indices, firstIndex + i + 1, vertexOffset, vertices, mvp, out var v1))
                     continue;
 
-                DrawLine(v0, v1, depthTest);
+                DrawLine(v0, v1, _depthTestEnabled, _depthWriteEnabled);
             }
 
             return;
@@ -84,12 +88,11 @@ internal sealed class SoftwareCommandExecutor : ICommandExecutor
 
         if (primitive == PrimitiveMode.PointList)
         {
-            var depthTest = IsFullViewport();
             for (uint i = 0; i < available; i++)
             {
                 if (!TryGetVertex(indices, firstIndex + i, vertexOffset, vertices, mvp, out var v0))
                     continue;
-                DrawPoint(v0, depthTest);
+                DrawPoint(v0, _depthTestEnabled, _depthWriteEnabled);
             }
 
             return;
@@ -104,7 +107,7 @@ internal sealed class SoftwareCommandExecutor : ICommandExecutor
             if (!TryGetVertex(indices, firstIndex + i + 2, vertexOffset, vertices, mvp, out var v2))
                 continue;
 
-            DrawTriangle(v0, v1, v2);
+            DrawTriangle(v0, v1, v2, _depthTestEnabled, _depthWriteEnabled);
         }
     }
 
@@ -128,13 +131,14 @@ internal sealed class SoftwareCommandExecutor : ICommandExecutor
 
     public void SetDepthState(bool testEnabled, bool writeEnabled)
     {
-        // Software renderer doesn't need explicit depth state management
-        // Depth testing is handled per-pixel in draw calls
+        _depthTestEnabled = testEnabled;
+        _depthWriteEnabled = writeEnabled;
     }
 
     public void ResetDepthState()
     {
-        // No-op for software renderer
+        _depthTestEnabled = DefaultDepthTestEnabled;
+        _depthWriteEnabled = DefaultDepthWriteEnabled;
     }
 
     private Matrix4x4 ReadMatrixFromSlot(uint slot)
@@ -201,12 +205,12 @@ internal sealed class SoftwareCommandExecutor : ICommandExecutor
         return true;
     }
 
-    private void DrawPoint(VertexOut v0, bool depthTest)
+    private void DrawPoint(VertexOut v0, bool depthTest, bool depthWrite)
     {
-        DrawPixel((int)MathF.Round(v0.X), (int)MathF.Round(v0.Y), v0.Z, v0.Color, true, depthTest);
+        DrawPixel((int)MathF.Round(v0.X), (int)MathF.Round(v0.Y), v0.Z, v0.Color, depthWrite, depthTest);
     }
 
-    private void DrawLine(VertexOut v0, VertexOut v1, bool depthTest)
+    private void DrawLine(VertexOut v0, VertexOut v1, bool depthTest, bool depthWrite)
     {
         var dx = v1.X - v0.X;
         var dy = v1.Y - v0.Y;
@@ -214,7 +218,7 @@ internal sealed class SoftwareCommandExecutor : ICommandExecutor
 
         if (steps <= 0)
         {
-            DrawPoint(v0, depthTest);
+            DrawPoint(v0, depthTest, depthWrite);
             return;
         }
 
@@ -226,11 +230,11 @@ internal sealed class SoftwareCommandExecutor : ICommandExecutor
             var z = Lerp(v0.Z, v1.Z, t);
             var color = Vector4.Lerp(v0.Color, v1.Color, t);
 
-            DrawPixel((int)MathF.Round(x), (int)MathF.Round(y), z, color, false, depthTest);
+            DrawPixel((int)MathF.Round(x), (int)MathF.Round(y), z, color, depthWrite, depthTest);
         }
     }
 
-    private void DrawTriangle(VertexOut v0, VertexOut v1, VertexOut v2)
+    private void DrawTriangle(VertexOut v0, VertexOut v1, VertexOut v2, bool depthTest, bool depthWrite)
     {
         var minX = (int)MathF.Floor(MathF.Min(v0.X, MathF.Min(v1.X, v2.X)));
         var maxX = (int)MathF.Ceiling(MathF.Max(v0.X, MathF.Max(v1.X, v2.X)));
@@ -266,7 +270,7 @@ internal sealed class SoftwareCommandExecutor : ICommandExecutor
                 var depth = v0.Z * b0 + v1.Z * b1 + v2.Z * b2;
                 var color = v0.Color * b0 + v1.Color * b1 + v2.Color * b2;
 
-                DrawPixel(x, y, depth, color, true, true);
+                DrawPixel(x, y, depth, color, depthWrite, depthTest);
             }
         }
     }
@@ -354,14 +358,6 @@ internal sealed class SoftwareCommandExecutor : ICommandExecutor
         return area > 0
             ? w0 >= 0 && w1 >= 0 && w2 >= 0
             : w0 <= 0 && w1 <= 0 && w2 <= 0;
-    }
-
-    private bool IsFullViewport()
-    {
-        return MathF.Abs(_viewport.X) < 0.01f &&
-               MathF.Abs(_viewport.Y) < 0.01f &&
-               MathF.Abs(_viewport.Width - _frameBuffer.Width) < 0.5f &&
-               MathF.Abs(_viewport.Height - _frameBuffer.Height) < 0.5f;
     }
 
     private static float Lerp(float a, float b, float t)

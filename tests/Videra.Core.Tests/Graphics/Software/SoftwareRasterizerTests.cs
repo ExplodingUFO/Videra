@@ -1,4 +1,5 @@
 using System.Numerics;
+using System.Runtime.InteropServices;
 using FluentAssertions;
 using Videra.Core.Geometry;
 using Videra.Core.Graphics;
@@ -33,6 +34,86 @@ public class SoftwareRasterizerTests
         var obj = new Object3D { Name = "TestTriangle" };
         obj.Initialize(factory, mesh);
         return obj;
+    }
+
+    private static Object3D CreateQuad(IResourceFactory factory, float z, RgbaFloat color, float halfExtent = 0.65f)
+    {
+        var vertices = new[]
+        {
+            new VertexPositionNormalColor(new Vector3(-halfExtent, -halfExtent, z), Vector3.UnitZ, color),
+            new VertexPositionNormalColor(new Vector3(halfExtent, -halfExtent, z), Vector3.UnitZ, color),
+            new VertexPositionNormalColor(new Vector3(halfExtent, halfExtent, z), Vector3.UnitZ, color),
+            new VertexPositionNormalColor(new Vector3(-halfExtent, halfExtent, z), Vector3.UnitZ, color)
+        };
+
+        var indices = new uint[] { 0, 1, 2, 0, 2, 3 };
+        var mesh = new MeshData { Vertices = vertices, Indices = indices, Topology = MeshTopology.Triangles };
+        var obj = new Object3D { Name = $"Quad-{z}" };
+        obj.Initialize(factory, mesh);
+        return obj;
+    }
+
+    private static Object3D CreatePoint(IResourceFactory factory, float z, RgbaFloat color)
+    {
+        var vertices = new[]
+        {
+            new VertexPositionNormalColor(new Vector3(0f, 0f, z), Vector3.UnitZ, color)
+        };
+
+        var indices = new uint[] { 0 };
+        var mesh = new MeshData { Vertices = vertices, Indices = indices, Topology = MeshTopology.Points };
+        var obj = new Object3D { Name = $"Point-{z}" };
+        obj.Initialize(factory, mesh);
+        return obj;
+    }
+
+    private static void DrawSolid(Object3D obj, ICommandExecutor executor, IPipeline pipeline)
+    {
+        executor.SetPipeline(pipeline);
+        obj.UpdateUniforms(executor);
+        executor.SetVertexBuffer(obj.VertexBuffer!, 0);
+        executor.SetVertexBuffer(obj.WorldBuffer!, 2);
+        executor.SetIndexBuffer(obj.IndexBuffer!);
+        executor.DrawIndexed(obj.IndexCount);
+    }
+
+    private static void DrawPoint(Object3D obj, ICommandExecutor executor, IPipeline pipeline)
+    {
+        executor.SetPipeline(pipeline);
+        obj.UpdateUniforms(executor);
+        executor.SetVertexBuffer(obj.VertexBuffer!, 0);
+        executor.SetVertexBuffer(obj.WorldBuffer!, 2);
+        executor.SetIndexBuffer(obj.IndexBuffer!);
+        executor.DrawIndexed(
+            primitiveType: PrimitiveCommandKind.PointList,
+            indexCount: obj.IndexCount,
+            instanceCount: 1,
+            firstIndex: 0,
+            vertexOffset: 0,
+            firstInstance: 0);
+    }
+
+    private static byte[] CaptureFrame(SoftwareBackend backend)
+    {
+        var bytes = new byte[backend.Width * backend.Height * 4];
+        var handle = Marshal.AllocHGlobal(bytes.Length);
+
+        try
+        {
+            backend.CopyFrameTo(handle, backend.Width * 4);
+            Marshal.Copy(handle, bytes, 0, bytes.Length);
+            return bytes;
+        }
+        finally
+        {
+            Marshal.FreeHGlobal(handle);
+        }
+    }
+
+    private static (byte r, byte g, byte b, byte a) ReadPixel(byte[] frame, int width, int x, int y)
+    {
+        var offset = ((y * width) + x) * 4;
+        return (frame[offset + 2], frame[offset + 1], frame[offset], frame[offset + 3]);
     }
 
     [Fact]
@@ -185,5 +266,87 @@ public class SoftwareRasterizerTests
         backend.Width.Should().Be(128);
         backend.Height.Should().Be(128);
         backend.EndFrame();
+    }
+
+    [Fact]
+    public void SetDepthState_DisabledDepthTestAndWrite_AllowsFartherTriangleToOverwriteNearerColor()
+    {
+        var (backend, factory, executor, pipeline) = CreateEnv(96, 96);
+        using var _ = backend;
+        using var nearQuad = CreateQuad(factory, 0.2f, RgbaFloat.Green);
+        using var farQuad = CreateQuad(factory, 0.8f, RgbaFloat.Red);
+
+        backend.BeginFrame();
+        executor.Clear(0f, 0f, 0f, 1f);
+        DrawSolid(nearQuad, executor, pipeline);
+        executor.SetDepthState(false, false);
+        DrawSolid(farQuad, executor, pipeline);
+        backend.EndFrame();
+
+        var frame = CaptureFrame(backend);
+        ReadPixel(frame, backend.Width, 48, 48).Should().Be((255, 0, 0, 255));
+    }
+
+    [Fact]
+    public void SetDepthState_DepthTestWithoutWrite_LeavesLaterDepthDecisionsUsingPreviousDepth()
+    {
+        var (backend, factory, executor, pipeline) = CreateEnv(96, 96);
+        using var _ = backend;
+        using var farQuad = CreateQuad(factory, 0.8f, RgbaFloat.Red);
+        using var nearQuad = CreateQuad(factory, 0.2f, RgbaFloat.Green);
+        using var middleQuad = CreateQuad(factory, 0.5f, RgbaFloat.Blue);
+
+        backend.BeginFrame();
+        executor.Clear(0f, 0f, 0f, 1f);
+        DrawSolid(farQuad, executor, pipeline);
+        executor.SetDepthState(true, false);
+        DrawSolid(nearQuad, executor, pipeline);
+        executor.ResetDepthState();
+        DrawSolid(middleQuad, executor, pipeline);
+        backend.EndFrame();
+
+        var frame = CaptureFrame(backend);
+        ReadPixel(frame, backend.Width, 48, 48).Should().Be((0, 0, 255, 255));
+    }
+
+    [Fact]
+    public void ResetDepthState_RestoresDefaultDepthWriteAfterOverlayPass()
+    {
+        var (backend, factory, executor, pipeline) = CreateEnv(96, 96);
+        using var _ = backend;
+        using var nearQuad = CreateQuad(factory, 0.2f, RgbaFloat.Green);
+        using var farOverlayQuad = CreateQuad(factory, 0.8f, RgbaFloat.Red);
+        using var fartherQuad = CreateQuad(factory, 0.9f, RgbaFloat.Blue);
+
+        backend.BeginFrame();
+        executor.Clear(0f, 0f, 0f, 1f);
+        DrawSolid(nearQuad, executor, pipeline);
+        executor.SetDepthState(false, false);
+        DrawSolid(farOverlayQuad, executor, pipeline);
+        executor.ResetDepthState();
+        DrawSolid(fartherQuad, executor, pipeline);
+        backend.EndFrame();
+
+        var frame = CaptureFrame(backend);
+        ReadPixel(frame, backend.Width, 48, 48).Should().Be((255, 0, 0, 255));
+    }
+
+    [Fact]
+    public void SetDepthState_DisabledDepthTest_AllowsFartherPointToOverwriteNearerPoint()
+    {
+        var (backend, factory, executor, pipeline) = CreateEnv(96, 96);
+        using var _ = backend;
+        using var nearPoint = CreatePoint(factory, 0.2f, RgbaFloat.Green);
+        using var farPoint = CreatePoint(factory, 0.8f, RgbaFloat.Red);
+
+        backend.BeginFrame();
+        executor.Clear(0f, 0f, 0f, 1f);
+        DrawPoint(nearPoint, executor, pipeline);
+        executor.SetDepthState(false, false);
+        DrawPoint(farPoint, executor, pipeline);
+        backend.EndFrame();
+
+        var frame = CaptureFrame(backend);
+        ReadPixel(frame, backend.Width, 48, 48).Should().Be((255, 0, 0, 255));
     }
 }

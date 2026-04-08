@@ -33,6 +33,7 @@ internal sealed class SoftwareBackend : IGraphicsBackend, ISoftwareBackend
 
     public void BeginFrame()
     {
+        _executor.ResetDepthState();
     }
 
     public void EndFrame()

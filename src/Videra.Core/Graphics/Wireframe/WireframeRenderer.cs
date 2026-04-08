@@ -84,33 +84,43 @@ public partial class WireframeRenderer : IDisposable
         switch (Mode)
         {
             case WireframeMode.AllEdges:
-                // 显示所有边缘（包括被遮挡的）
-                // 第一遍：用隐藏线颜色绘制所有线（包括被遮挡的）
-                if (ShowHiddenLines)
-                {
-                    obj.UpdateWireframeColor(HiddenLineColor);
-                    RenderLinesWithDepth(obj, executor, pipeline, testEnabled: false, writeEnabled: false);
-                }
-                // 第二遍：用主颜色绘制可见线（覆盖在隐藏线上）
-                obj.UpdateWireframeColor(LineColor);
-                RenderLinesWithDepth(obj, executor, pipeline, testEnabled: true, writeEnabled: false);
+                RenderAllEdges(obj, executor, pipeline);
                 break;
 
             case WireframeMode.VisibleOnly:
-                // 只显示可见边缘（使用深度测试）
-                RenderLinesWithDepth(obj, executor, pipeline, testEnabled: true, writeEnabled: false);
+                RenderWireframePass(obj, executor, pipeline, LineColor, testEnabled: true, writeEnabled: false);
                 break;
 
             case WireframeMode.Overlay:
-                // 覆盖模式：线框显示在模型上方（禁用深度测试）
-                RenderLinesWithDepth(obj, executor, pipeline, testEnabled: false, writeEnabled: false);
+                RenderWireframePass(obj, executor, pipeline, LineColor, testEnabled: false, writeEnabled: false);
                 break;
 
             case WireframeMode.WireframeOnly:
-                // 纯线框模式：只显示线框（需要在VideraEngine中禁用实体渲染）
-                RenderLinesWithDepth(obj, executor, pipeline, testEnabled: true, writeEnabled: true);
+                RenderWireframePass(obj, executor, pipeline, LineColor, testEnabled: true, writeEnabled: true);
                 break;
         }
+    }
+
+    private void RenderAllEdges(Object3D obj, ICommandExecutor executor, IPipeline pipeline)
+    {
+        if (ShowHiddenLines)
+        {
+            RenderWireframePass(obj, executor, pipeline, HiddenLineColor, testEnabled: false, writeEnabled: false);
+        }
+
+        RenderWireframePass(obj, executor, pipeline, LineColor, testEnabled: true, writeEnabled: false);
+    }
+
+    private static void RenderWireframePass(
+        Object3D obj,
+        ICommandExecutor executor,
+        IPipeline pipeline,
+        RgbaFloat lineColor,
+        bool testEnabled,
+        bool writeEnabled)
+    {
+        obj.UpdateWireframeColor(lineColor);
+        RenderLinesWithDepth(obj, executor, pipeline, testEnabled, writeEnabled);
     }
 
     private static void RenderLinesWithDepth(Object3D obj, ICommandExecutor executor, IPipeline pipeline, bool testEnabled, bool writeEnabled)
