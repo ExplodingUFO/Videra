@@ -27,6 +27,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Videra.Core\Videra.Core.csproj" />
+    <ProjectReference Include="..\..\samples\Videra.Demo\Videra.Demo.csproj" />
     <ProjectReference Include="..\Tests.Common\Tests.Common.csproj" />
   </ItemGroup>
 

@@ -100,6 +100,29 @@ public sealed class DemoConfigurationTests
     }
 
     [Fact]
+    public void DemoSceneBootstrapper_ShouldUseSingleExplicitStatusContract()
+    {
+        var bootstrapperPath = Path.Combine(GetRepositoryRoot(), "samples", "Videra.Demo", "Services", "DemoSceneBootstrapper.cs");
+        var bootstrapper = File.ReadAllText(bootstrapperPath);
+
+        bootstrapper.Should().Contain("SetWaitingForBackend(");
+        bootstrapper.Should().Contain("SetBackendReadyWithDefaultScene(");
+        bootstrapper.Should().Contain("SetBackendReadyWithoutDefaultScene(");
+        bootstrapper.Should().Contain("SetBackendReadyWithDefaultSceneFailure(");
+        bootstrapper.Should().NotContain("SetStatusMessage(\"Default demo model creation failed:");
+    }
+
+    [Fact]
+    public void MainWindowCodeBehind_ShouldUseExplicitBackendFailureContract()
+    {
+        var codeBehindPath = Path.Combine(GetRepositoryRoot(), "samples", "Videra.Demo", "Views", "MainWindow.axaml.cs");
+        var codeBehind = File.ReadAllText(codeBehindPath);
+
+        codeBehind.Should().Contain("SetBackendInitializationFailed(");
+        codeBehind.Should().NotContain("SetStatusMessage($\"Backend initialization failed:");
+    }
+
+    [Fact]
     public void AvaloniaPackage_ShouldUseRuntimeBackendDiscoveryInsteadOfHostOsCompileSwitches()
     {
         var repositoryRoot = GetRepositoryRoot();

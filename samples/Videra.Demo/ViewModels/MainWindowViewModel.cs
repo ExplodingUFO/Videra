@@ -17,6 +17,17 @@ namespace Videra.Demo.ViewModels;
 
 public partial class MainWindowViewModel : ViewModelBase
 {
+    private const string WaitingForBackendStatusMessage =
+        "Waiting for the rendering backend and resource factory to become ready.";
+    private const string BackendReadyWithDefaultSceneStatusMessage =
+        "Rendering backend is ready. Loaded the default demo cube and framed the scene.";
+    private const string BackendReadyWithoutDefaultSceneStatusMessage =
+        "Rendering backend is ready. Model import is available.";
+    private const string DefaultSceneFailureStatusPrefix =
+        "Rendering backend is ready, but the default demo cube could not be created. Model import remains available. Last error: ";
+    private const string BackendInitializationFailureStatusPrefix =
+        "Rendering backend initialization failed: ";
+
     private readonly IEnumerable<RenderStylePreset> _availablePresets =
         Enum.GetValues<RenderStylePreset>().Where(p => p != RenderStylePreset.Custom).ToArray();
 
@@ -42,7 +53,7 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty]
     private Color _wireframeColor = Colors.Black;
 
-    [ObservableProperty] private string _statusMessage = "Waiting for rendering backend initialization...";
+    [ObservableProperty] private string _statusMessage = WaitingForBackendStatusMessage;
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(FrameAllCommand))]
@@ -125,10 +136,33 @@ public partial class MainWindowViewModel : ViewModelBase
         }
     }
 
-    public void SetBackendStatus(bool isReady, string statusMessage)
+    public void SetWaitingForBackend()
     {
-        IsBackendReady = isReady;
-        StatusMessage = statusMessage;
+        ApplyBackendStatus(isReady: false, WaitingForBackendStatusMessage);
+    }
+
+    public void SetBackendReadyWithDefaultScene()
+    {
+        ApplyBackendStatus(isReady: true, BackendReadyWithDefaultSceneStatusMessage);
+    }
+
+    public void SetBackendReadyWithoutDefaultScene()
+    {
+        ApplyBackendStatus(isReady: true, BackendReadyWithoutDefaultSceneStatusMessage);
+    }
+
+    public void SetBackendReadyWithDefaultSceneFailure(string errorMessage)
+    {
+        ApplyBackendStatus(
+            isReady: true,
+            $"{DefaultSceneFailureStatusPrefix}{NormalizeStatusError(errorMessage)}");
+    }
+
+    public void SetBackendInitializationFailed(string errorMessage)
+    {
+        ApplyBackendStatus(
+            isReady: false,
+            $"{BackendInitializationFailureStatusPrefix}{NormalizeStatusError(errorMessage)}");
     }
 
     public void UpdateBackendDiagnostics(VideraBackendDiagnostics diagnostics)
@@ -279,5 +313,18 @@ public partial class MainWindowViewModel : ViewModelBase
 
         var lastFailure = loadResult.Failures[^1];
         return $"Imported {loadResult.LoadedObjects.Count} model(s); {loadResult.Failures.Count} failed. Last error: {lastFailure.ErrorMessage}";
+    }
+
+    private void ApplyBackendStatus(bool isReady, string statusMessage)
+    {
+        IsBackendReady = isReady;
+        StatusMessage = statusMessage;
+    }
+
+    private static string NormalizeStatusError(string errorMessage)
+    {
+        return string.IsNullOrWhiteSpace(errorMessage)
+            ? "unknown error"
+            : errorMessage;
     }
 }

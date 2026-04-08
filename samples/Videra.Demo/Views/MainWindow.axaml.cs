@@ -53,7 +53,7 @@ public partial class MainWindow : Window
     private void OnInitializationFailed(object? sender, VideraBackendFailureEventArgs e)
     {
         _viewModel.UpdateBackendDiagnostics(e.Diagnostics);
-        _viewModel.SetStatusMessage($"Backend initialization failed: {e.Exception.Message}");
+        _viewModel.SetBackendInitializationFailed(e.Exception.Message);
     }
 
     private void TryInitializeScene()

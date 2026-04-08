@@ -23,9 +23,7 @@ public sealed class DemoSceneBootstrapper
 
         if (topLevel == null || factory == null)
         {
-            viewModel.SetBackendStatus(
-                isReady: false,
-                statusMessage: "Waiting for the rendering backend and resource factory to become ready.");
+            viewModel.SetWaitingForBackend();
             return false;
         }
 
@@ -39,19 +37,21 @@ public sealed class DemoSceneBootstrapper
         try
         {
             var seededDefaultScene = SeedDefaultSceneIfNeeded(viewModel, view, factory);
-            var statusMessage = seededDefaultScene
-                ? "Rendering backend is ready. Loaded the default demo cube and framed the scene."
-                : "Rendering backend is ready. Model import is available.";
             viewModel.UpdateBackendDiagnostics(view.BackendDiagnostics);
-            viewModel.SetBackendStatus(true, statusMessage);
+
+            if (seededDefaultScene)
+            {
+                viewModel.SetBackendReadyWithDefaultScene();
+            }
+            else
+            {
+                viewModel.SetBackendReadyWithoutDefaultScene();
+            }
         }
         catch (Exception ex)
         {
             viewModel.UpdateBackendDiagnostics(view.BackendDiagnostics);
-            viewModel.SetBackendStatus(
-                isReady: true,
-                statusMessage: "Rendering backend is ready, but the default demo model could not be created.");
-            viewModel.SetStatusMessage($"Default demo model creation failed: {ex.Message}");
+            viewModel.SetBackendReadyWithDefaultSceneFailure(ex.Message);
         }
 
         return true;
