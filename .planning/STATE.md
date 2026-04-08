@@ -2,38 +2,38 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Render Pipeline Architecture
-status: Ready to execute
-stopped_at: Completed 12-03-PLAN.md
-last_updated: "2026-04-08T12:00:12.708Z"
+status: Ready for milestone audit
+stopped_at: Completed Phase 12
+last_updated: "2026-04-08T12:14:43.4052209Z"
 progress:
   total_phases: 12
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 37
-  completed_plans: 25
+  completed_plans: 29
 ---
 
 # Videra 开源准备 - 项目状态
 
 ## Current Position
 
-Phase: 12 (developer-facing-samples-docs-and-compatibility-guards) — EXECUTING
-Plan: 2 of 4
+Phase: 12 (developer-facing-samples-docs-and-compatibility-guards) — COMPLETE
+Plan: 4 of 4
 
 ## Project Reference
 
 See: `.planning/PROJECT.md` (updated 2026-04-08)
 
 **Core value:** 跨平台 3D 渲染引擎的可靠性  
-**Current focus:** Phase 12 — developer-facing-samples-docs-and-compatibility-guards
+**Current focus:** v1.1 execution complete; ready for milestone audit
 
 ## Milestone Snapshot
 
 - Planned scope: `4` phases (`9-12`)
 - Requirements: `9`
-- Completed phases: `3/4` (`Phase 9`, `Phase 10`, `Phase 11`)
-- Research: completed locally for Phase 12 and saved to `12-RESEARCH.md`
-- Planned next phase: `Phase 12` with `4` plans in `3` waves
-- Next recommended step: `$gsd-execute-phase 12`
+- Completed phases: `4/4` (`Phase 9`, `Phase 10`, `Phase 11`, `Phase 12`)
+- Research: completed locally for all milestone phases
+- Milestone execution: complete; sample, docs, guards, and localization are all shipped
+- Next recommended step: `$gsd-audit-milestone`
 
 ## Archived Context Carried Forward
 
@@ -55,6 +55,8 @@ See: `.planning/PROJECT.md` (updated 2026-04-08)
 
 - [Phase 12]: Use docs/extensibility.md as the single English behavior contract, with other entrypoints reduced to routing plus contract highlights.
 - [Phase 12]: Guard the docs/sample contract through repository file-reading tests instead of a separate approval or snapshot format.
+- [Phase 12]: Keep `samples/Videra.ExtensibilitySample` as the narrow primary reference path for public render extensibility.
+- [Phase 12]: Treat disposed/unavailable/fallback behavior as shipped contract language, mirrored in both English and Chinese docs.
 
 ## Blockers
 
@@ -64,13 +66,13 @@ None
 
 | Phase | Duration | Tasks | Files |
 | --- | --- | --- | --- |
-| Phase 12 P03 | 5 min | 2 tasks | 10 files |
+| Phase 12 | 4 plans / 3 waves | 8 tasks | sample + docs + guards |
 
 ## Session Continuity
 
 **Last session:** 2026-04-08T12:00:12.704Z
-**Stopped At:** Completed 12-03-PLAN.md
+**Stopped At:** Completed Phase 12
 **Resume File:** None
 
 ---
-*State updated after Phase 12 planning on 2026-04-08*
+*State updated after Phase 12 execution on 2026-04-08*

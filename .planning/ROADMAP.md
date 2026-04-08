@@ -9,7 +9,7 @@
 
 - ✅ **v1.0 Alpha Ready** — Phases `1-8`, shipped `2026-04-08`
   Archive: `.planning/milestones/v1.0-ROADMAP.md`
-- 🚧 **v1.1 Render Pipeline Architecture** — Phases `9-12`, in progress
+- ✅ **v1.1 Render Pipeline Architecture** — Phases `9-12`, execution complete on `2026-04-08`
 
 ## v1.1 Scope
 
@@ -89,13 +89,11 @@
 2. 文档明确说明新的 pipeline contract、扩展点和 unsupported/disposed/unavailable 语义
 3. repository tests 会阻止公开扩展接口、文档和实现再次分叉
 
-**Plans:** 3/4 plans executed
+**Status:** Complete on `2026-04-08`
 
-Plans:
-- [ ] `12-01-PLAN.md` — Build a narrow Avalonia-first extensibility reference sample around `VideraView.Engine`
-- [ ] `12-02-PLAN.md` — Pin disposed/unavailable/capability-query semantics in code-local contract docs and automated tests
-- [ ] `12-03-PLAN.md` — Publish the English extensibility contract page and add repository/sample guards for the shipped sample and lifecycle vocabulary
-- [ ] `12-04-PLAN.md` — Mirror the extensibility contract in Chinese docs and extend localization parity guards
+**Delivered:** `12-01`, `12-02`, `12-03`, `12-04`
+
+**Plans:** 4 delivered
 
 ## Deferred From v1.0
 
@@ -107,7 +105,7 @@ Plans:
 | Milestone | Scope | Status | Shipped |
 |-----------|-------|--------|---------|
 | v1.0 Alpha Ready | Phases 1-8 | Complete | 2026-04-08 |
-| v1.1 Render Pipeline Architecture | Phases 9-12 | In progress | - |
+| v1.1 Render Pipeline Architecture | Phases 9-12 | Execution complete | 2026-04-08 |
 
 ## References
 
@@ -116,4 +114,4 @@ Plans:
 - Project context: `.planning/PROJECT.md`
 
 ---
-*Roadmap updated after Phase 11 completion on 2026-04-08*
+*Roadmap updated after Phase 12 execution on 2026-04-08*
