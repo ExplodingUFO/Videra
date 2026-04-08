@@ -25,7 +25,7 @@ public sealed class RepositoryNativeValidationTests
         workflow.Should().Contain("windows");
         workflow.Should().Contain("github.event_name != 'workflow_dispatch'");
         workflow.Should().Contain("xvfb-run -a");
-        workflow.Should().Contain("xwfb-run");
+        workflow.Should().Contain("xwfb-run --");
         workflow.Should().Contain("scripts/run-native-validation.sh");
         workflow.Should().Contain("scripts/run-native-validation.ps1");
     }
