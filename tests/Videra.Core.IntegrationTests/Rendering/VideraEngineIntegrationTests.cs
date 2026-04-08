@@ -1,4 +1,5 @@
 using System.Numerics;
+using System.Runtime.InteropServices;
 using FluentAssertions;
 using Videra.Core.Cameras;
 using Videra.Core.Geometry;
@@ -137,6 +138,58 @@ public class VideraEngineIntegrationTests
     }
 
     [Fact]
+    public void VideraEngine_WireframePreset_WithoutExplicitOverride_UsesWireframeOnlyPassSelection()
+    {
+        using var backend = new SoftwareBackend();
+        backend.Initialize(IntPtr.Zero, 200, 200);
+        using var engine = new VideraEngine
+        {
+            BackgroundColor = RgbaFloat.Blue
+        };
+        engine.Initialize(backend);
+        engine.Resize(200, 200);
+        engine.Grid.IsVisible = false;
+        engine.ShowAxis = false;
+
+        var quad = DemoMeshFactory.CreateWhiteQuad(backend.GetResourceFactory());
+        engine.AddObject(quad);
+        engine.StyleService.ApplyPreset(RenderStylePreset.Wireframe);
+
+        engine.Draw();
+
+        var frame = DemoMeshFactory.CaptureFrame(backend);
+        DemoMeshFactory.CountPixels(frame, DemoMeshFactory.PixelColor.White).Should().Be(0);
+        DemoMeshFactory.CountPixels(frame, DemoMeshFactory.PixelColor.Black).Should().BeGreaterThan(0);
+        DemoMeshFactory.CountPixels(frame, DemoMeshFactory.PixelColor.Blue).Should().BeGreaterThan(0);
+    }
+
+    [Fact]
+    public void VideraEngine_ExplicitWireframeMode_OverridesStyleDrivenWireframeDefault()
+    {
+        using var backend = new SoftwareBackend();
+        backend.Initialize(IntPtr.Zero, 200, 200);
+        using var engine = new VideraEngine
+        {
+            BackgroundColor = RgbaFloat.Blue
+        };
+        engine.Initialize(backend);
+        engine.Resize(200, 200);
+        engine.Grid.IsVisible = false;
+        engine.ShowAxis = false;
+
+        var quad = DemoMeshFactory.CreateWhiteQuad(backend.GetResourceFactory());
+        engine.AddObject(quad);
+        engine.StyleService.ApplyPreset(RenderStylePreset.Wireframe);
+        engine.Wireframe.Mode = WireframeMode.Overlay;
+
+        engine.Draw();
+
+        var frame = DemoMeshFactory.CaptureFrame(backend);
+        DemoMeshFactory.CountPixels(frame, DemoMeshFactory.PixelColor.White).Should().BeGreaterThan(0);
+        DemoMeshFactory.CountPixels(frame, DemoMeshFactory.PixelColor.Black).Should().BeGreaterThan(0);
+    }
+
+    [Fact]
     public void VideraEngine_ShowAxis_RendersAxisOverlay()
     {
         using var backend = new SoftwareBackend();
@@ -250,5 +303,70 @@ internal static class DemoMeshFactory
         var cube = new Object3D { Name = "TestCube" };
         cube.Initialize(factory, mesh);
         return cube;
+    }
+
+    public static Object3D CreateWhiteQuad(IResourceFactory factory, float halfExtent = 0.8f)
+    {
+        var vertices = new[]
+        {
+            new VertexPositionNormalColor(new Vector3(-halfExtent, -halfExtent, 0f), Vector3.UnitZ, RgbaFloat.White),
+            new VertexPositionNormalColor(new Vector3(halfExtent, -halfExtent, 0f), Vector3.UnitZ, RgbaFloat.White),
+            new VertexPositionNormalColor(new Vector3(halfExtent, halfExtent, 0f), Vector3.UnitZ, RgbaFloat.White),
+            new VertexPositionNormalColor(new Vector3(-halfExtent, halfExtent, 0f), Vector3.UnitZ, RgbaFloat.White),
+        };
+        var indices = new uint[] { 0, 1, 2, 0, 2, 3 };
+
+        var mesh = new MeshData
+        {
+            Vertices = vertices,
+            Indices = indices,
+            Topology = MeshTopology.Triangles
+        };
+
+        var quad = new Object3D { Name = "WhiteQuad" };
+        quad.Initialize(factory, mesh);
+        return quad;
+    }
+
+    public static byte[] CaptureFrame(SoftwareBackend backend)
+    {
+        var bytes = new byte[backend.Width * backend.Height * 4];
+        var handle = Marshal.AllocHGlobal(bytes.Length);
+
+        try
+        {
+            backend.CopyFrameTo(handle, backend.Width * 4);
+            Marshal.Copy(handle, bytes, 0, bytes.Length);
+            return bytes;
+        }
+        finally
+        {
+            Marshal.FreeHGlobal(handle);
+        }
+    }
+
+    public static int CountPixels(byte[] frame, PixelColor color)
+    {
+        var count = 0;
+
+        for (var i = 0; i < frame.Length; i += 4)
+        {
+            var pixel = (r: frame[i + 2], g: frame[i + 1], b: frame[i], a: frame[i + 3]);
+            if (pixel == color.Value)
+            {
+                count++;
+            }
+        }
+
+        return count;
+    }
+
+    public readonly record struct PixelColor(byte R, byte G, byte B, byte A)
+    {
+        public static PixelColor White => new(255, 255, 255, 255);
+        public static PixelColor Black => new(0, 0, 0, 255);
+        public static PixelColor Blue => new(0, 0, 255, 255);
+
+        public (byte r, byte g, byte b, byte a) Value => (R, G, B, A);
     }
 }

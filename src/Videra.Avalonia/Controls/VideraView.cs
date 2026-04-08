@@ -202,6 +202,36 @@ public partial class VideraView : Decorator
             return;
         }
 
+        if (change.Property == RenderStyleProperty)
+        {
+            Engine.StyleService.ApplyPreset(change.GetNewValue<RenderStylePreset>());
+            return;
+        }
+
+        if (change.Property == RenderStyleParametersProperty)
+        {
+            var parameters = change.GetNewValue<RenderStyleParameters?>();
+            if (parameters != null)
+            {
+                Engine.StyleService.UpdateParameters(parameters);
+            }
+
+            return;
+        }
+
+        if (change.Property == WireframeModeProperty)
+        {
+            Engine.Wireframe.Mode = change.GetNewValue<WireframeMode>();
+            return;
+        }
+
+        if (change.Property == WireframeColorProperty)
+        {
+            var c = change.GetNewValue<Color>();
+            Engine.Wireframe.LineColor = new RgbaFloat(c.R / 255f, c.G / 255f, c.B / 255f, c.A / 255f);
+            return;
+        }
+
         if (!_renderSession.IsReady)
             return;
 
@@ -229,27 +259,6 @@ public partial class VideraView : Decorator
                  change.Property == GridColorProperty)
         {
             ApplyGridSettings();
-        }
-        else if (change.Property == RenderStyleProperty)
-        {
-            Engine.StyleService.ApplyPreset(change.GetNewValue<RenderStylePreset>());
-        }
-        else if (change.Property == RenderStyleParametersProperty)
-        {
-            var parameters = change.GetNewValue<RenderStyleParameters?>();
-            if (parameters != null)
-            {
-                Engine.StyleService.UpdateParameters(parameters);
-            }
-        }
-        else if (change.Property == WireframeModeProperty)
-        {
-            Engine.Wireframe.Mode = change.GetNewValue<WireframeMode>();
-        }
-        else if (change.Property == WireframeColorProperty)
-        {
-            var c = change.GetNewValue<Color>();
-            Engine.Wireframe.LineColor = new RgbaFloat(c.R / 255f, c.G / 255f, c.B / 255f, c.A / 255f);
         }
     }
 

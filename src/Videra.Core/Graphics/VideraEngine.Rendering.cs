@@ -45,11 +45,13 @@ public partial class VideraEngine
 
     private void RenderFrame(bool shouldLog)
     {
+        var effectiveWireframeMode = GetEffectiveWireframeMode();
+        EnsureWireframeResources(effectiveWireframeMode);
         BeginFrame();
         BindSharedFrameState(shouldLog);
         RenderGridPass(shouldLog);
-        RenderSolidObjects(shouldLog);
-        RenderOverlayPasses();
+        RenderSolidObjects(shouldLog, effectiveWireframeMode);
+        RenderOverlayPasses(effectiveWireframeMode);
         _backend!.EndFrame();
     }
 
@@ -108,9 +110,9 @@ public partial class VideraEngine
         _executor!.SetPipeline(_meshPipeline!);
     }
 
-    private void RenderSolidObjects(bool shouldLog)
+    private void RenderSolidObjects(bool shouldLog, WireframeMode effectiveWireframeMode)
     {
-        bool shouldRenderSolid = Wireframe.ShouldRenderSolid();
+        bool shouldRenderSolid = effectiveWireframeMode != WireframeMode.WireframeOnly;
 
         if (shouldLog && _sceneObjects.Count > 0)
         {
@@ -164,13 +166,64 @@ public partial class VideraEngine
         }
     }
 
-    private void RenderOverlayPasses()
+    private void RenderOverlayPasses(WireframeMode effectiveWireframeMode)
     {
-        if (Wireframe.Mode != WireframeMode.None)
+        if (effectiveWireframeMode != WireframeMode.None)
         {
-            Wireframe.RenderWireframes(_sceneObjects, _executor!, _meshPipeline!, Camera, _width, _height);
+            RenderWireframes(effectiveWireframeMode);
         }
 
         _axisRenderer.Draw(_executor!, _meshPipeline!, Camera, _width, _height, RenderScale);
+    }
+
+    private WireframeMode GetEffectiveWireframeMode()
+    {
+        if (Wireframe.Mode != WireframeMode.None)
+        {
+            return Wireframe.Mode;
+        }
+
+        return _styleService.CurrentParameters.Material.WireframeMode
+            ? WireframeMode.WireframeOnly
+            : WireframeMode.None;
+    }
+
+    private void EnsureWireframeResources(WireframeMode effectiveWireframeMode)
+    {
+        if (effectiveWireframeMode == WireframeMode.None || _factory == null)
+        {
+            return;
+        }
+
+        foreach (var obj in _sceneObjects)
+        {
+            if (obj.LineIndexBuffer != null && obj.LineVertexBuffer != null && obj.LineIndexCount > 0)
+            {
+                continue;
+            }
+
+            obj.InitializeWireframe(_factory, _logger);
+        }
+    }
+
+    private void RenderWireframes(WireframeMode effectiveWireframeMode)
+    {
+        if (Wireframe.Mode == effectiveWireframeMode)
+        {
+            Wireframe.RenderWireframes(_sceneObjects, _executor!, _meshPipeline!, Camera, _width, _height);
+            return;
+        }
+
+        var explicitMode = Wireframe.Mode;
+
+        try
+        {
+            Wireframe.Mode = effectiveWireframeMode;
+            Wireframe.RenderWireframes(_sceneObjects, _executor!, _meshPipeline!, Camera, _width, _height);
+        }
+        finally
+        {
+            Wireframe.Mode = explicitMode;
+        }
     }
 }

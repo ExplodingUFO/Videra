@@ -3,7 +3,9 @@ using System.Reflection;
 using FluentAssertions;
 using Videra.Avalonia.Controls;
 using Videra.Core.Graphics;
+using Videra.Core.Graphics.Wireframe;
 using Videra.Core.Graphics.Software;
+using Videra.Core.Styles.Presets;
 using Xunit;
 
 namespace Videra.Core.IntegrationTests.Rendering;
@@ -200,6 +202,42 @@ public sealed class VideraViewSceneIntegrationTests : IDisposable
             {
                 view.Engine.Camera.Pitch.Should().NotBe(pitchBefore);
             }
+        }
+        finally
+        {
+            view.Engine.Dispose();
+        }
+    }
+
+    [Fact]
+    public void RenderStyle_Wireframe_UpdatesEngineStyleServiceBeforeBackendReady()
+    {
+        var view = new VideraView();
+        try
+        {
+            view.RenderStyle = RenderStylePreset.Wireframe;
+
+            view.Engine.StyleService.CurrentPreset.Should().Be(RenderStylePreset.Wireframe);
+            view.Engine.StyleService.CurrentParameters.Material.WireframeMode.Should().BeTrue();
+        }
+        finally
+        {
+            view.Engine.Dispose();
+        }
+    }
+
+    [Fact]
+    public void WireframeMode_ExplicitOverride_UpdatesEngineBeforeBackendReady()
+    {
+        var view = new VideraView();
+        try
+        {
+            view.RenderStyle = RenderStylePreset.Wireframe;
+            view.WireframeMode = WireframeMode.Overlay;
+
+            view.Engine.StyleService.CurrentPreset.Should().Be(RenderStylePreset.Wireframe);
+            view.Engine.StyleService.CurrentParameters.Material.WireframeMode.Should().BeTrue();
+            view.Engine.Wireframe.Mode.Should().Be(WireframeMode.Overlay);
         }
         finally
         {
