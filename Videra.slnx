@@ -1,5 +1,6 @@
 <Solution>
   <Project Path="samples/Videra.Demo/Videra.Demo.csproj" />
+  <Project Path="samples/Videra.ExtensibilitySample/Videra.ExtensibilitySample.csproj" />
   <Project Path="src/Videra.Avalonia/Videra.Avalonia.csproj" />
   <Project Path="src/Videra.Core/Videra.Core.csproj" />
   <Project Path="src/Videra.Platform.Linux/Videra.Platform.Linux.csproj" />
