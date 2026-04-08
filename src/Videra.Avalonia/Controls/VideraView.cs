@@ -632,7 +632,10 @@ public partial class VideraView : Decorator
             NativeHostBound = _renderSession.HandleState.IsBound,
             RenderLoopMode = diagnosticsOptions.RenderLoopMode,
             EnvironmentOverrideApplied = resolution?.EnvironmentOverrideApplied ?? false,
-            LastInitializationError = lastInitializationError ?? _renderSession.LastInitializationError?.Message
+            LastInitializationError = lastInitializationError ?? _renderSession.LastInitializationError?.Message,
+            ResolvedDisplayServer = _renderSession.LastResolvedDisplayServer,
+            DisplayServerFallbackUsed = _renderSession.LastDisplayServerFallbackUsed,
+            DisplayServerFallbackReason = _renderSession.LastDisplayServerFallbackReason
         };
     }
 

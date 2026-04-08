@@ -68,6 +68,12 @@ internal sealed partial class RenderSession : IDisposable
 
     internal Exception? LastInitializationError { get; private set; }
 
+    internal string? LastResolvedDisplayServer { get; private set; }
+
+    internal bool LastDisplayServerFallbackUsed { get; private set; }
+
+    internal string? LastDisplayServerFallbackReason { get; private set; }
+
     public void Attach(GraphicsBackendPreference preference)
     {
         Attach(preference, backendOptions: null);
@@ -238,6 +244,9 @@ internal sealed partial class RenderSession : IDisposable
             _engine.Dispose();
             _backend = null;
             HandleState = RenderSessionHandle.Unbound;
+            LastResolvedDisplayServer = null;
+            LastDisplayServerFallbackUsed = false;
+            LastDisplayServerFallbackReason = null;
         }
     }
 

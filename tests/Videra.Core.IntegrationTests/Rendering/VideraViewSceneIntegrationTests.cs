@@ -245,6 +245,26 @@ public sealed class VideraViewSceneIntegrationTests : IDisposable
         }
     }
 
+    [Fact]
+    public void BackendDiagnostics_ShouldExposeLinuxDisplayServerResolutionFields()
+    {
+        var diagnosticsType = typeof(VideraBackendDiagnostics);
+
+        diagnosticsType.GetProperty("ResolvedDisplayServer").Should().NotBeNull();
+        diagnosticsType.GetProperty("DisplayServerFallbackUsed").Should().NotBeNull();
+        diagnosticsType.GetProperty("DisplayServerFallbackReason").Should().NotBeNull();
+
+        var view = new VideraView();
+        try
+        {
+            view.BackendDiagnostics.Should().NotBeNull();
+        }
+        finally
+        {
+            view.Engine.Dispose();
+        }
+    }
+
     public void Dispose()
     {
         if (_disposed)

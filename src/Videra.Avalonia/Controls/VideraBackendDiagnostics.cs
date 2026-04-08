@@ -10,7 +10,10 @@ public sealed class VideraBackendDiagnostics
         {
             RequestedBackend = requestedBackend,
             ResolvedBackend = GraphicsBackendPreference.Auto,
-            RenderLoopMode = VideraRenderLoopMode.Dispatcher
+            RenderLoopMode = VideraRenderLoopMode.Dispatcher,
+            ResolvedDisplayServer = null,
+            DisplayServerFallbackUsed = false,
+            DisplayServerFallbackReason = null
         };
     }
 
@@ -31,6 +34,12 @@ public sealed class VideraBackendDiagnostics
     public bool EnvironmentOverrideApplied { get; init; }
 
     public string? LastInitializationError { get; init; }
+
+    public string? ResolvedDisplayServer { get; init; }
+
+    public bool DisplayServerFallbackUsed { get; init; }
+
+    public string? DisplayServerFallbackReason { get; init; }
 }
 
 public sealed class VideraBackendStatusChangedEventArgs : EventArgs
