@@ -1,6 +1,6 @@
-namespace Videra.Platform.Linux;
+namespace Videra.Core.Platform.Linux;
 
-internal sealed class LinuxDisplayServerDetector
+public sealed class LinuxDisplayServerDetector
 {
     public IReadOnlyList<LinuxDisplayServerCandidate> DetectCandidates(
         string? waylandDisplay,
@@ -16,7 +16,7 @@ internal sealed class LinuxDisplayServerDetector
             return Array.Empty<LinuxDisplayServerCandidate>();
         }
 
-        if (normalizedSessionType == "wayland" || (string.IsNullOrEmpty(normalizedSessionType) && hasWaylandDisplay))
+        if (normalizedSessionType == "wayland" || (normalizedSessionType == "unknown" && hasWaylandDisplay))
         {
             return CreateWaylandFirstCandidates(normalizedSessionType, hasWaylandDisplay, hasX11Display);
         }

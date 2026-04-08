@@ -265,6 +265,44 @@ public sealed class VideraViewSceneIntegrationTests : IDisposable
         }
     }
 
+    [Fact]
+    public void BackendDiagnostics_CanReflectNativeHostDisplayServerMetadata()
+    {
+        var view = new VideraView();
+        try
+        {
+            var renderSessionField = typeof(VideraView).GetField("_renderSession", BindingFlags.Instance | BindingFlags.NonPublic);
+            renderSessionField.Should().NotBeNull();
+
+            var renderSession = renderSessionField!.GetValue(view);
+            renderSession.Should().NotBeNull();
+
+            var setDisplayServerDiagnostics = renderSession!.GetType().GetMethod(
+                "SetDisplayServerDiagnostics",
+                BindingFlags.Instance | BindingFlags.NonPublic,
+                binder: null,
+                types: new[] { typeof(string), typeof(bool), typeof(string) },
+                modifiers: null);
+            setDisplayServerDiagnostics.Should().NotBeNull();
+
+            setDisplayServerDiagnostics!.Invoke(renderSession, new object?[] { "XWayland", true, "Wayland host unavailable." });
+
+            var refreshDiagnostics = typeof(VideraView).GetMethod(
+                "RefreshBackendDiagnostics",
+                BindingFlags.Instance | BindingFlags.NonPublic);
+            refreshDiagnostics.Should().NotBeNull();
+            refreshDiagnostics!.Invoke(view, new object?[] { null });
+
+            view.BackendDiagnostics.ResolvedDisplayServer.Should().Be("XWayland");
+            view.BackendDiagnostics.DisplayServerFallbackUsed.Should().BeTrue();
+            view.BackendDiagnostics.DisplayServerFallbackReason.Should().Be("Wayland host unavailable.");
+        }
+        finally
+        {
+            view.Engine.Dispose();
+        }
+    }
+
     public void Dispose()
     {
         if (_disposed)

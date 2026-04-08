@@ -74,6 +74,16 @@ internal sealed partial class RenderSession : IDisposable
 
     internal string? LastDisplayServerFallbackReason { get; private set; }
 
+    internal void SetDisplayServerDiagnostics(string? resolvedDisplayServer, bool fallbackUsed, string? fallbackReason)
+    {
+        lock (_sync)
+        {
+            LastResolvedDisplayServer = resolvedDisplayServer;
+            LastDisplayServerFallbackUsed = fallbackUsed;
+            LastDisplayServerFallbackReason = fallbackReason;
+        }
+    }
+
     public void Attach(GraphicsBackendPreference preference)
     {
         Attach(preference, backendOptions: null);

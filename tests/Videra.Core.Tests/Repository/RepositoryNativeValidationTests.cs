@@ -128,6 +128,30 @@ public sealed class RepositoryNativeValidationTests
     }
 
     [Fact]
+    public void LinuxAvaloniaHost_ShouldUseFactoryDrivenDisplayServerSelection()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var defaultFactorySource = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Avalonia", "Controls", "DefaultNativeHostFactory.cs"));
+        var coordinatorSource = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Avalonia", "Controls", "VideraLinuxNativeHost.cs"));
+        var linuxFactoryPath = Path.Combine(repositoryRoot, "src", "Videra.Avalonia", "Controls", "Linux", "LinuxNativeHostFactory.cs");
+        var x11HostPath = Path.Combine(repositoryRoot, "src", "Videra.Avalonia", "Controls", "Linux", "X11NativeHost.cs");
+
+        File.Exists(linuxFactoryPath).Should().BeTrue();
+        File.Exists(x11HostPath).Should().BeTrue();
+
+        var linuxFactorySource = File.ReadAllText(linuxFactoryPath);
+        var x11HostSource = File.ReadAllText(x11HostPath);
+
+        defaultFactorySource.Should().Contain("new VideraLinuxNativeHost()");
+        coordinatorSource.Should().Contain("LinuxNativeHostFactory");
+        coordinatorSource.Should().NotContain("XCreateSimpleWindow(");
+        coordinatorSource.Should().NotContain("XOpenDisplay(");
+        linuxFactorySource.Should().Contain("LinuxDisplayServerDetector");
+        x11HostSource.Should().Contain("XCreateSimpleWindow(");
+        x11HostSource.Should().Contain("PlatformHandle");
+    }
+
+    [Fact]
     public void VulkanBackend_Dispose_ShouldGuardPartialInitializationHandles()
     {
         var repositoryRoot = GetRepositoryRoot();

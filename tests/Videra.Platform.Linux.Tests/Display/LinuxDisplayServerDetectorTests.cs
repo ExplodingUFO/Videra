@@ -67,6 +67,6 @@ public sealed class LinuxDisplayServerDetectorTests
 
     private static Type? GetLinuxType(string typeName)
     {
-        return Type.GetType($"Videra.Platform.Linux.{typeName}, Videra.Platform.Linux");
+        return Type.GetType($"Videra.Core.Platform.Linux.{typeName}, Videra.Core");
     }
 }

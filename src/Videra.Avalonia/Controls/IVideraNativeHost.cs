@@ -8,4 +8,10 @@ internal interface IVideraNativeHost
     event Action? HandleDestroyed;
     event Action<NativePointerEvent>? NativePointer;
     bool IsHitTestVisible { get; set; }
+
+    string? ResolvedDisplayServer => null;
+
+    bool DisplayServerFallbackUsed => false;
+
+    string? DisplayServerFallbackReason => null;
 }

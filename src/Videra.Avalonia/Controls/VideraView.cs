@@ -501,6 +501,7 @@ public partial class VideraView : Decorator
             host.NativePointer -= OnNativePointer;
         }
 
+        _renderSession.SetDisplayServerDiagnostics(null, fallbackUsed: false, fallbackReason: null);
         _renderSession.BindHandle(IntPtr.Zero);
         Child = null;
         _nativeHost = null;
@@ -511,6 +512,14 @@ public partial class VideraView : Decorator
 
     private void OnNativeHandleCreated(IntPtr handle)
     {
+        if (_nativeHost is IVideraNativeHost host)
+        {
+            _renderSession.SetDisplayServerDiagnostics(
+                host.ResolvedDisplayServer,
+                host.DisplayServerFallbackUsed,
+                host.DisplayServerFallbackReason);
+        }
+
         _renderSession.BindHandle(handle);
         Log.NativeHandleCreated(_logger, handle.ToInt64());
 
@@ -522,6 +531,7 @@ public partial class VideraView : Decorator
 
     private void OnNativeHandleDestroyed()
     {
+        _renderSession.SetDisplayServerDiagnostics(null, fallbackUsed: false, fallbackReason: null);
         _renderSession.BindHandle(IntPtr.Zero);
         RefreshBackendDiagnostics(lastInitializationError: _backendDiagnostics.LastInitializationError);
     }

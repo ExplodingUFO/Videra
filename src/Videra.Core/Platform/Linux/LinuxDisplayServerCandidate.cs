@@ -1,6 +1,6 @@
-namespace Videra.Platform.Linux;
+namespace Videra.Core.Platform.Linux;
 
-internal readonly record struct LinuxDisplayServerCandidate(
+public readonly record struct LinuxDisplayServerCandidate(
     LinuxDisplayServerKind DisplayServer,
     string SessionKind,
     bool AllowsXWaylandFallback);

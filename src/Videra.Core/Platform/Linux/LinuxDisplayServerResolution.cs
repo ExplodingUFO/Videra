@@ -1,6 +1,6 @@
-namespace Videra.Platform.Linux;
+namespace Videra.Core.Platform.Linux;
 
-internal readonly record struct LinuxDisplayServerResolution(
+public readonly record struct LinuxDisplayServerResolution(
     LinuxDisplayServerKind ResolvedDisplayServer,
     bool FallbackUsed,
     string? FailureReason);
