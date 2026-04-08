@@ -28,6 +28,24 @@ public sealed class RepositoryLocalizationTests
         "RenderCapabilities"
     };
 
+    private static readonly string[] ExtensibilityContractSymbols =
+    {
+        "Videra.ExtensibilitySample",
+        "RegisterPassContributor",
+        "RegisterFrameHook",
+        "RenderCapabilities",
+        "BackendDiagnostics"
+    };
+
+    private static readonly string[] ExtensibilityBoundaryVocabulary =
+    {
+        "disposed",
+        "no-op",
+        "FallbackReason",
+        "package discovery",
+        "plugin loading"
+    };
+
     [Fact]
     public void Readme_ShouldBeEnglishPrimaryWithChineseSwitch()
     {
@@ -187,6 +205,47 @@ public sealed class RepositoryLocalizationTests
         avaloniaModule.Should().Contain("VideraView.RenderCapabilities");
         architecture.Should().Contain("public extensibility root");
         architecture.Should().Contain("package discovery");
+    }
+
+    [Fact]
+    public void ChineseLocalizedEntrypoints_ShouldLinkToExtensibilityContract_AndSampleFlow()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var readme = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "zh-CN", "README.md"));
+        var index = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "zh-CN", "index.md"));
+        var architecture = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "zh-CN", "ARCHITECTURE.md"));
+        var coreModule = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "zh-CN", "modules", "videra-core.md"));
+        var avaloniaModule = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "zh-CN", "modules", "videra-avalonia.md"));
+
+        foreach (var localizedDoc in new[] { readme, index, architecture, coreModule, avaloniaModule })
+        {
+            localizedDoc.Should().Contain("extensibility.md");
+        }
+
+        foreach (var localizedDoc in new[] { readme, index, coreModule, avaloniaModule })
+        {
+            localizedDoc.Should().Contain("Videra.ExtensibilitySample");
+        }
+    }
+
+    [Fact]
+    public void ChineseExtensibilityContract_ShouldMirrorEnglishLifecycleAndBoundaryVocabulary()
+    {
+        var extensibilityPath = Path.Combine(GetRepositoryRoot(), "docs", "zh-CN", "extensibility.md");
+
+        File.Exists(extensibilityPath).Should().BeTrue("expected localized extensibility contract page to exist");
+
+        var extensibility = File.ReadAllText(extensibilityPath);
+
+        foreach (var symbol in ExtensibilityContractSymbols)
+        {
+            extensibility.Should().Contain(symbol);
+        }
+
+        foreach (var vocabulary in ExtensibilityBoundaryVocabulary)
+        {
+            extensibility.Should().Contain(vocabulary);
+        }
     }
 
     [Fact]
