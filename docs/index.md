@@ -7,6 +7,7 @@ This page maps the long-lived public documentation for Videra. Start with the re
 ## Start Here
 
 - [Project README](../README.md) for package-source setup, `Videra.Avalonia` plus matching `Videra.Platform.*` combinations, and `Videra.Core`-only consumption
+- [Extensibility Contract](extensibility.md) for the `VideraView.Engine` flow, `samples/Videra.ExtensibilitySample`, and the ready / disposed / fallback behavior matrix
 - [Troubleshooting](troubleshooting.md) for the relationship between package installation, `VIDERA_BACKEND`, software fallback, and matching-host validation
 - [Native Validation](native-validation.md) for the GitHub Actions and local matching-host validation runbook
 - [Architecture](../ARCHITECTURE.md)
@@ -20,6 +21,7 @@ This page maps the long-lived public documentation for Videra. Start with the re
 - [Videra.Platform.Linux](../src/Videra.Platform.Linux/README.md) for the Linux Vulkan platform package, with X11 native hosting and XWayland compatibility in Wayland sessions
 - [Videra.Platform.macOS](../src/Videra.Platform.macOS/README.md) for the macOS `NSView` / `CAMetalLayer` Metal platform package
 - [Videra.Demo](../samples/Videra.Demo/README.md)
+- [Videra.ExtensibilitySample](../samples/Videra.ExtensibilitySample/README.md) for the narrow public extensibility reference
 
 ## Decisions
 

@@ -29,6 +29,7 @@ Videra is not a general-purpose game engine. It is designed around desktop 3D vi
 - Shared abstractions: `IGraphicsBackend`, `IResourceFactory`, `ICommandExecutor`
 - Model import for `.gltf`, `.glb`, and `.obj`
 - Render-style presets and wireframe modes
+- Public extensibility contract plus a narrow `Videra.ExtensibilitySample` onboarding path
 - Demo app with backend diagnostics, import feedback, a default demo cube, camera control, grid, axes, and basic transforms
 
 ## Architecture
@@ -61,6 +62,7 @@ The repository is split into UI integration, a platform-agnostic rendering core,
 | `src/Videra.Platform.Linux` | Linux Vulkan backend |
 | `src/Videra.Platform.macOS` | macOS Metal backend |
 | `samples/Videra.Demo` | Demo application and usage reference |
+| `samples/Videra.ExtensibilitySample` | Narrow public sample for contributors, frame hooks, capabilities, and diagnostics |
 | `docs` | Long-lived documentation, troubleshooting, ADRs, and archive |
 
 ## Platform Support
@@ -212,6 +214,20 @@ var diagnostics = view.BackendDiagnostics;
 Console.WriteLine($"Requested={diagnostics.RequestedBackend}, Resolved={diagnostics.ResolvedBackend}, Ready={diagnostics.IsReady}");
 ```
 
+## Extensibility Onboarding
+
+Use [Videra.ExtensibilitySample](samples/Videra.ExtensibilitySample/README.md) as the narrow public reference and [docs/extensibility.md](docs/extensibility.md) as the long-lived behavior contract.
+
+The supported flow is `VideraView.Engine` -> `RegisterPassContributor(...)` / `RegisterFrameHook(...)` -> `LoadModelAsync(...)` -> `FrameAll()` -> inspect `RenderCapabilities` and `BackendDiagnostics`.
+
+Contract highlights:
+
+- After the engine is `disposed`, additional contributor and hook registrations are ignored as a `no-op`.
+- `RenderCapabilities` remains queryable before initialization and after disposal, with `IsInitialized = false` until the engine is ready.
+- When `AllowSoftwareFallback = true`, native backend failures resolve to software and `BackendDiagnostics.FallbackReason` explains why the native backend was unavailable.
+- When `AllowSoftwareFallback = false`, native backend resolution fails instead of silently falling back, so the view does not become ready until the package/runtime issue is fixed.
+- `package discovery` and `plugin loading` remain out of scope for the public extension model.
+
 ## Packages
 
 | Package | Use |
@@ -230,6 +246,7 @@ Detailed package-level docs:
 - [Videra.Platform.Linux](src/Videra.Platform.Linux/README.md)
 - [Videra.Platform.macOS](src/Videra.Platform.macOS/README.md)
 - [Videra.Demo](samples/Videra.Demo/README.md)
+- [Videra.ExtensibilitySample](samples/Videra.ExtensibilitySample/README.md)
 
 ## Environment Variables
 
@@ -252,6 +269,7 @@ Detailed package-level docs:
 ## Documentation
 
 - [Documentation Index](docs/index.md)
+- [Extensibility Contract](docs/extensibility.md)
 - [Architecture](ARCHITECTURE.md)
 - [Troubleshooting](docs/troubleshooting.md)
 - [Native Validation](docs/native-validation.md)

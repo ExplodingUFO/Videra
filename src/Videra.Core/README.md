@@ -62,7 +62,11 @@ Scope boundary:
 - `VideraEngine` is the public extensibility root.
 - The API is intentionally Core-first and in-process.
 - Internal session/orchestration types from `Videra.Avalonia` are not part of the public extension contract.
-- Sample/reference onboarding for these APIs is deferred to the next phase.
+- Shipped onboarding lives in [docs/extensibility.md](../../docs/extensibility.md) and [samples/Videra.ExtensibilitySample](../../samples/Videra.ExtensibilitySample/README.md).
+- Before initialization and after disposal, `GetRenderCapabilities()` remains queryable so host apps can inspect the stable support flags without inferring internal state.
+- After the engine is `disposed`, `RegisterPassContributor(...)`, `ReplacePassContributor(...)`, and `RegisterFrameHook(...)` are ignored as a `no-op`.
+- For Core-first backend resolution, `GraphicsBackendFactory.ResolveBackend(...)` uses `AllowSoftwareFallback` to choose between a software backend with `FallbackReason` populated and an explicit failure.
+- `package discovery` and `plugin loading` remain out of scope.
 
 ## Typical Use
 
@@ -111,5 +115,6 @@ dotnet test tests/Videra.Core.IntegrationTests/Videra.Core.IntegrationTests.cspr
 ## Related Docs
 
 - [Repository README](../../README.md)
+- [Extensibility Contract](../../docs/extensibility.md)
 - [Architecture](../../ARCHITECTURE.md)
 - [Chinese Module Doc](../../docs/zh-CN/modules/videra-core.md)

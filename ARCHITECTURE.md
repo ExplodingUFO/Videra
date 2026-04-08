@@ -99,7 +99,8 @@ Videra/
 │   ├── Videra.Platform.Linux/
 │   └── Videra.Platform.macOS/
 ├── samples/
-│   └── Videra.Demo/
+│   ├── Videra.Demo/
+│   └── Videra.ExtensibilitySample/
 ├── tests/
 ├── docs/
 ├── verify.sh
@@ -166,12 +167,17 @@ Phase 11 ships a narrow public extensibility surface on top of the existing pipe
 - `RegisterFrameHook(...)` provides deterministic `RenderFrameHookPoint` callbacks at `FrameBegin`, `SceneSubmit`, and `FrameEnd`.
 - `GetRenderCapabilities()` and `VideraView.RenderCapabilities` expose Core-side runtime/capability truth.
 - `VideraView.BackendDiagnostics` remains the Avalonia-facing backend/runtime diagnostics shell.
+- Shipped onboarding lives in [docs/extensibility.md](docs/extensibility.md) and [samples/Videra.ExtensibilitySample](samples/Videra.ExtensibilitySample/README.md).
 
 Boundary notes:
 
 - `VideraEngine` is the public extensibility root.
 - `RenderSessionOrchestrator`, `RenderSession`, and `VideraViewSessionBridge` remain internal orchestration seams, not public extension roots.
-- This milestone does not add package discovery, plugin loading, or sample-driven onboarding for the new API surface.
+- Before initialization, registrations can be queued, but `RenderCapabilities.IsInitialized` remains `false` and host apps should wait for readiness before `LoadModelAsync(...)` and `FrameAll()`.
+- After `VideraEngine` is `disposed`, `RegisterPassContributor(...)`, `ReplacePassContributor(...)`, and `RegisterFrameHook(...)` are harmless `no-op` calls; `GetRenderCapabilities()` stays queryable and can retain the last pipeline snapshot.
+- When a native backend is unavailable and `AllowSoftwareFallback` is enabled, the view resolves to software and `VideraView.BackendDiagnostics.FallbackReason` records the native failure reason.
+- When `AllowSoftwareFallback` is disabled, backend resolution fails instead of populating `FallbackReason`, so host apps must fix the package/runtime gap before the view becomes ready.
+- This milestone does not add package discovery or plugin loading for the new API surface.
 
 Boundary summary:
 
@@ -232,5 +238,6 @@ By default:
 
 - [README.md](README.md)
 - [Documentation Index](docs/index.md)
+- [Extensibility Contract](docs/extensibility.md)
 - [Troubleshooting](docs/troubleshooting.md)
 - [Chinese Architecture Doc](docs/zh-CN/ARCHITECTURE.md)

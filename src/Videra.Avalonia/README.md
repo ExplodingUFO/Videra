@@ -96,6 +96,16 @@ var capabilities = View3D.RenderCapabilities;
 
 `VideraView.Engine` is the public extensibility root for custom contributors and frame hooks. `VideraView.BackendDiagnostics` remains the backend/runtime diagnostics shell, while `VideraView.RenderCapabilities` exposes the Core-side capability snapshot.
 
+For the complete public flow, see [docs/extensibility.md](../../docs/extensibility.md) and [samples/Videra.ExtensibilitySample](../../samples/Videra.ExtensibilitySample/README.md). The narrow sample uses `VideraView.Engine`, `RegisterPassContributor(...)`, `RegisterFrameHook(...)`, `LoadModelAsync(...)`, `FrameAll()`, `RenderCapabilities`, and `BackendDiagnostics` together.
+
+Contract notes:
+
+- After the engine is `disposed`, additional contributor and hook registrations are ignored as a `no-op`.
+- `RenderCapabilities` remains queryable before initialization and after disposal.
+- With `AllowSoftwareFallback = true`, `BackendDiagnostics.IsUsingSoftwareFallback` and `BackendDiagnostics.FallbackReason` explain native backend fallback.
+- With `AllowSoftwareFallback = false`, the view stays not ready until the native backend issue is fixed; it does not silently recover through fallback.
+- `package discovery` and `plugin loading` remain out of scope.
+
 ## Native Host Coverage
 
 - Windows: child `HWND` for Direct3D 11
@@ -116,5 +126,6 @@ Linux and macOS native-host validation still require explicit opt-in switches an
 ## Related Docs
 
 - [Repository README](../../README.md)
+- [Extensibility Contract](../../docs/extensibility.md)
 - [Architecture](../../ARCHITECTURE.md)
 - [Chinese Module Doc](../../docs/zh-CN/modules/videra-avalonia.md)
