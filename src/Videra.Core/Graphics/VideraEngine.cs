@@ -26,7 +26,7 @@ public partial class VideraEngine : IDisposable
     private IBuffer? _styleUniformBuffer;
 
     private uint _width, _height;
-    private bool _disposed;
+    private EngineLifecycleState _state = EngineLifecycleState.Uninitialized;
 
     private readonly List<Object3D> _sceneObjects = new();
     private readonly IRenderStyleService _styleService;
@@ -112,9 +112,14 @@ public partial class VideraEngine : IDisposable
     /// <param name="obj">The <see cref="Object3D"/> to add to the scene.</param>
     public void AddObject(Object3D obj)
     {
-        ArgumentNullException.ThrowIfNull(obj);
         lock (_lock)
         {
+            if (_state == EngineLifecycleState.Disposed)
+            {
+                return;
+            }
+
+            ArgumentNullException.ThrowIfNull(obj);
             _sceneObjects.Add(obj);
 
             if (_factory != null)
@@ -131,9 +136,14 @@ public partial class VideraEngine : IDisposable
     /// <param name="obj">The <see cref="Object3D"/> to remove.</param>
     public void RemoveObject(Object3D obj)
     {
-        ArgumentNullException.ThrowIfNull(obj);
         lock (_lock)
         {
+            if (_state == EngineLifecycleState.Disposed)
+            {
+                return;
+            }
+
+            ArgumentNullException.ThrowIfNull(obj);
             _sceneObjects.Remove(obj);
             obj.Dispose();
         }
@@ -147,11 +157,12 @@ public partial class VideraEngine : IDisposable
     {
         lock (_lock)
         {
-            foreach (var obj in _sceneObjects)
+            if (_state == EngineLifecycleState.Disposed)
             {
-                obj.Dispose();
+                return;
             }
-            _sceneObjects.Clear();
+
+            ClearSceneObjectsUnsafe();
         }
         Log.ObjectsCleared(_logger);
     }
@@ -229,5 +240,29 @@ public partial class VideraEngine : IDisposable
 
         [LoggerMessage(EventId = 20, Level = LogLevel.Warning, Message = "[VideraEngine] UpdateMesh is deprecated in new architecture")]
         public static partial void UpdateMeshDeprecated(ILogger logger);
+    }
+
+    private void TransitionToStateUnsafe(EngineLifecycleState nextState)
+    {
+        _state = nextState;
+        IsInitialized = nextState == EngineLifecycleState.Active;
+    }
+
+    private void ClearSceneObjectsUnsafe()
+    {
+        foreach (var obj in _sceneObjects)
+        {
+            obj.Dispose();
+        }
+
+        _sceneObjects.Clear();
+    }
+
+    private enum EngineLifecycleState
+    {
+        Uninitialized = 0,
+        Active,
+        Suspended,
+        Disposed
     }
 }

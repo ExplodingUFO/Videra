@@ -22,11 +22,18 @@ public partial class VideraEngine
 	/// </summary>
 	public void Dispose()
 	{
-	    if (_disposed) return;
-	    _disposed = true;
+        lock (_lock)
+        {
+            if (_state == EngineLifecycleState.Disposed)
+            {
+                return;
+            }
 
-        _styleService.StyleChanged -= OnStyleChanged;
-        ReleaseGraphicsResources(preserveSceneObjects: false, disposeBackend: true);
+            _styleService.StyleChanged -= OnStyleChanged;
+            ReleaseGraphicsResourcesUnsafe(preserveSceneObjects: false, disposeBackend: true);
+            TransitionToStateUnsafe(EngineLifecycleState.Disposed);
+        }
+
         GC.SuppressFinalize(this);
     }
 
@@ -39,32 +46,49 @@ public partial class VideraEngine
 	/// <param name="backend">The platform-specific graphics back-end to use for rendering.</param>
 	public void Initialize(IGraphicsBackend backend)
 	{
-	    ArgumentNullException.ThrowIfNull(backend);
-        if (IsInitialized) return;
+        lock (_lock)
+        {
+            if (_state == EngineLifecycleState.Disposed)
+            {
+                return;
+            }
 
-        _backend = backend;
-        _factory = backend.GetResourceFactory();
-        _executor = backend.GetCommandExecutor();
+            ArgumentNullException.ThrowIfNull(backend);
 
-        CreateResources();
-        RestoreGraphicsResources();
+            if (_state == EngineLifecycleState.Active)
+            {
+                return;
+            }
 
-        IsInitialized = true;
+            _backend = backend;
+            _factory = backend.GetResourceFactory();
+            _executor = backend.GetCommandExecutor();
+
+            CreateResourcesUnsafe();
+            RestoreGraphicsResourcesUnsafe();
+            TransitionToStateUnsafe(EngineLifecycleState.Active);
+        }
+
         Log.Initialized(_logger);
     }
 
     internal void Suspend()
     {
-        if (!IsInitialized)
+        lock (_lock)
         {
-            return;
+            if (_state != EngineLifecycleState.Active)
+            {
+                return;
+            }
+
+            ReleaseGraphicsResourcesUnsafe(preserveSceneObjects: true, disposeBackend: true);
+            TransitionToStateUnsafe(EngineLifecycleState.Suspended);
         }
 
-        ReleaseGraphicsResources(preserveSceneObjects: true, disposeBackend: true);
         Log.Suspended(_logger);
     }
 
-    private void CreateResources()
+    private void CreateResourcesUnsafe()
     {
         if (_factory == null) return;
 
@@ -79,7 +103,7 @@ public partial class VideraEngine
         Log.ResourcesCreated(_logger);
     }
 
-    private void RestoreGraphicsResources()
+    private void RestoreGraphicsResourcesUnsafe()
     {
         if (_factory == null)
         {
@@ -96,7 +120,7 @@ public partial class VideraEngine
         }
     }
 
-    private void ReleaseGraphicsResources(bool preserveSceneObjects, bool disposeBackend)
+    private void ReleaseGraphicsResourcesUnsafe(bool preserveSceneObjects, bool disposeBackend)
     {
         Grid.Dispose();
         _axisRenderer.Dispose();
@@ -120,7 +144,7 @@ public partial class VideraEngine
         }
         else
         {
-            ClearObjects();
+            ClearSceneObjectsUnsafe();
         }
 
         if (disposeBackend)
@@ -133,7 +157,6 @@ public partial class VideraEngine
         _executor = null;
         _width = 0;
         _height = 0;
-        IsInitialized = false;
     }
 
 	/// <summary>
@@ -145,25 +168,28 @@ public partial class VideraEngine
 	/// <param name="height">The new render target height in pixels.</param>
 	public void Resize(uint width, uint height)
 	{
-        if (!IsInitialized || width == 0 || height == 0)
+        lock (_lock)
         {
-            Log.ResizeIgnored(_logger, IsInitialized, width, height);
-            return;
-        }
+            if (_state != EngineLifecycleState.Active || width == 0 || height == 0)
+            {
+                Log.ResizeIgnored(_logger, IsInitialized, width, height);
+                return;
+            }
 
-        if (_width == width && _height == height) return;
+            if (_width == width && _height == height) return;
 
-        try
-        {
-            Log.Resizing(_logger, width, height);
-            _backend?.Resize((int)width, (int)height);
-            Camera.UpdateProjection(width, height);
-            _width = width;
-            _height = height;
-        }
-        catch (Exception ex)
-        {
-            Log.ResizeFailed(_logger, ex.Message, ex);
+            try
+            {
+                Log.Resizing(_logger, width, height);
+                _backend?.Resize((int)width, (int)height);
+                Camera.UpdateProjection(width, height);
+                _width = width;
+                _height = height;
+            }
+            catch (Exception ex)
+            {
+                Log.ResizeFailed(_logger, ex.Message, ex);
+            }
         }
     }
 }

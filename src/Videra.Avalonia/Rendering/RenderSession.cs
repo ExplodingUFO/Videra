@@ -13,6 +13,7 @@ namespace Videra.Avalonia.Rendering;
 internal sealed partial class RenderSession : IDisposable
 {
     private static readonly TimeSpan RenderInterval = TimeSpan.FromMilliseconds(16);
+    private readonly object _sync = new();
 
     private readonly VideraEngine _engine;
     private readonly Func<GraphicsBackendPreference, IGraphicsBackend> _backendFactory;
@@ -26,9 +27,9 @@ internal sealed partial class RenderSession : IDisposable
     private WriteableBitmap? _bitmap;
     private GraphicsBackendPreference _preference = GraphicsBackendPreference.Auto;
     private VideraBackendOptions? _backendOptions;
-    private bool _disposed;
     private uint _width;
     private uint _height;
+    private RenderSessionState _state = RenderSessionState.Detached;
 
     public RenderSession(
         VideraEngine engine,
@@ -55,9 +56,9 @@ internal sealed partial class RenderSession : IDisposable
 
     public RenderSessionHandle HandleState { get; private set; } = RenderSessionHandle.Unbound;
 
-    public bool IsInitialized => _engine.IsInitialized;
+    public bool IsInitialized => _state == RenderSessionState.Ready && _engine.IsInitialized;
 
-    public bool IsReady => _engine.IsInitialized;
+    public bool IsReady => _state == RenderSessionState.Ready && _engine.IsInitialized;
 
     public bool IsSoftwareBackend => _backend is ISoftwareBackend;
 
@@ -74,146 +75,197 @@ internal sealed partial class RenderSession : IDisposable
 
     internal void Attach(GraphicsBackendPreference preference, VideraBackendOptions? backendOptions)
     {
-        ThrowIfDisposed();
+        var shouldRaiseBackendReady = false;
 
-        if (_preference != preference && IsInitialized)
+        lock (_sync)
         {
-            Suspend();
+            if (_state == RenderSessionState.Disposed)
+            {
+                return;
+            }
+
+            if (_preference != preference && IsReady)
+            {
+                SuspendUnsafe();
+            }
+
+            _preference = preference;
+            _backendOptions = backendOptions;
+            shouldRaiseBackendReady = TryInitializeUnsafe();
         }
 
-        _preference = preference;
-        _backendOptions = backendOptions;
-        TryInitialize();
+        if (shouldRaiseBackendReady)
+        {
+            BackendReady?.Invoke(this, EventArgs.Empty);
+        }
     }
 
     public void BindHandle(IntPtr handle)
     {
-        ThrowIfDisposed();
-        var requiresRebind = false;
+        var shouldRaiseBackendReady = false;
 
-        if (handle == IntPtr.Zero)
+        lock (_sync)
         {
-            if (HandleState.IsBound)
+            if (_state == RenderSessionState.Disposed)
             {
-                HandleState = HandleState.Clear();
-                requiresRebind = !IsSoftwareBackend;
+                return;
             }
 
-            if (requiresRebind)
+            if (handle == IntPtr.Zero)
             {
-                Suspend();
+                if (HandleState.IsBound)
+                {
+                    HandleState = HandleState.Clear();
+                    if (IsReady && !IsSoftwareBackend)
+                    {
+                        SuspendUnsafe();
+                    }
+                }
+
+                TransitionToWaitingStateUnsafe(CreateBackendRequest());
+                return;
             }
 
-            return;
+            if (HandleState.Generation == 0)
+            {
+                HandleState = RenderSessionHandle.Create(handle);
+            }
+            else if (HandleState.Handle != handle)
+            {
+                HandleState = HandleState.Rebind(handle);
+                if (IsReady && !IsSoftwareBackend)
+                {
+                    SuspendUnsafe();
+                }
+            }
+
+            shouldRaiseBackendReady = TryInitializeUnsafe();
         }
 
-        if (HandleState.Generation == 0)
+        if (shouldRaiseBackendReady)
         {
-            HandleState = RenderSessionHandle.Create(handle);
+            BackendReady?.Invoke(this, EventArgs.Empty);
         }
-        else if (HandleState.Handle != handle)
-        {
-            HandleState = HandleState.Rebind(handle);
-            requiresRebind = IsInitialized && !IsSoftwareBackend;
-        }
-
-        if (requiresRebind)
-        {
-            Suspend();
-        }
-
-        TryInitialize();
     }
 
     public void Resize(uint width, uint height, float renderScale)
     {
-        ThrowIfDisposed();
+        var shouldRaiseBackendReady = false;
 
-        if (width == 0 || height == 0)
+        lock (_sync)
         {
-            return;
+            if (_state == RenderSessionState.Disposed || width == 0 || height == 0)
+            {
+                return;
+            }
+
+            _width = width;
+            _height = height;
+            _engine.RenderScale = renderScale;
+
+            if (!IsReady)
+            {
+                shouldRaiseBackendReady = TryInitializeUnsafe();
+            }
+            else
+            {
+                _backend?.Resize((int)width, (int)height);
+                _engine.Resize(width, height);
+                EnsureBitmapUnsafe(width, height);
+            }
         }
 
-        _width = width;
-        _height = height;
-        _engine.RenderScale = renderScale;
-
-        if (!IsInitialized)
+        if (shouldRaiseBackendReady)
         {
-            TryInitialize();
-            return;
+            BackendReady?.Invoke(this, EventArgs.Empty);
         }
-
-        _backend?.Resize((int)width, (int)height);
-        _engine.Resize(width, height);
-        EnsureBitmap(width, height);
     }
 
     public void RenderOnce()
     {
-        if (!IsInitialized || _backend == null)
+        lock (_sync)
         {
-            return;
-        }
-
-        try
-        {
-            _engine.Draw();
-
-            if (_backend is ISoftwareBackend softwareBackend)
+            if (!IsReady || _backend == null)
             {
-                EnsureBitmap(_width, _height);
-                if (_bitmap != null)
-                {
-                    using var locked = _bitmap.Lock();
-                    softwareBackend.CopyFrameTo(locked.Address, locked.RowBytes);
-                }
-
-                _requestRender?.Invoke();
+                return;
             }
-        }
-        catch (Exception ex)
-        {
-            Log.RenderFrameFailed(_logger, ex.Message, ex);
-            StopRenderLoop();
+
+            try
+            {
+                _engine.Draw();
+
+                if (_backend is ISoftwareBackend softwareBackend)
+                {
+                    EnsureBitmapUnsafe(_width, _height);
+                    if (_bitmap != null)
+                    {
+                        using var locked = _bitmap.Lock();
+                        softwareBackend.CopyFrameTo(locked.Address, locked.RowBytes);
+                    }
+
+                    _requestRender?.Invoke();
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.RenderFrameFailed(_logger, ex.Message, ex);
+                LastInitializationError = ex;
+                StopRenderLoopUnsafe();
+                _bitmap?.Dispose();
+                _bitmap = null;
+                _engine.Suspend();
+                _backend = null;
+                _state = RenderSessionState.Faulted;
+            }
         }
     }
 
     public void Dispose()
     {
-        if (_disposed)
+        lock (_sync)
         {
-            return;
-        }
+            if (_state == RenderSessionState.Disposed)
+            {
+                return;
+            }
 
-        _disposed = true;
-        StopRenderLoop();
-        _renderLoop?.Dispose();
-        _renderLoop = null;
-        _bitmap?.Dispose();
-        _bitmap = null;
-        _engine.Dispose();
-        _backend = null;
-        HandleState = RenderSessionHandle.Unbound;
+            _state = RenderSessionState.Disposed;
+            StopRenderLoopUnsafe();
+            _renderLoop?.Dispose();
+            _renderLoop = null;
+            _bitmap?.Dispose();
+            _bitmap = null;
+            _engine.Dispose();
+            _backend = null;
+            HandleState = RenderSessionHandle.Unbound;
+        }
     }
 
-    private void TryInitialize()
+    private bool TryInitializeUnsafe()
     {
-        if (_disposed || IsInitialized || _width == 0 || _height == 0)
+        if (_state == RenderSessionState.Disposed || IsReady)
         {
-            return;
+            return false;
         }
 
         var request = CreateBackendRequest();
-        if (RequiresNativeHandle(request) && !HandleState.IsBound)
+        if (_width == 0 || _height == 0)
         {
-            return;
+            _state = RenderSessionState.WaitingForSize;
+            return false;
         }
 
+        if (RequiresNativeHandle(request) && !HandleState.IsBound)
+        {
+            _state = RenderSessionState.WaitingForHandle;
+            return false;
+        }
+
+        IGraphicsBackend? backend = null;
         try
         {
             var resolution = _backendResolutionFactory(request);
-            var backend = resolution.Backend;
+            backend = resolution.Backend;
             var handle = resolution.ResolvedPreference == GraphicsBackendPreference.Software ? IntPtr.Zero : HandleState.Handle;
             backend.Initialize(handle, (int)_width, (int)_height);
 
@@ -222,20 +274,32 @@ internal sealed partial class RenderSession : IDisposable
             LastInitializationError = null;
             _engine.Initialize(backend);
             _engine.Resize(_width, _height);
-            EnsureBitmap(_width, _height);
-            StartRenderLoop();
-            BackendReady?.Invoke(this, EventArgs.Empty);
+            EnsureBitmapUnsafe(_width, _height);
+            StartRenderLoopUnsafe();
+            _state = RenderSessionState.Ready;
+            return true;
         }
         catch (Exception ex)
         {
             LastInitializationError = ex;
+            _state = RenderSessionState.Faulted;
+            if (_engine.IsInitialized)
+            {
+                _engine.Suspend();
+            }
+            else
+            {
+                backend?.Dispose();
+            }
+
+            _backend = null;
             throw;
         }
     }
 
-    private void Suspend()
+    private void SuspendUnsafe()
     {
-        StopRenderLoop();
+        StopRenderLoopUnsafe();
         _bitmap?.Dispose();
         _bitmap = null;
 
@@ -245,9 +309,10 @@ internal sealed partial class RenderSession : IDisposable
         }
 
         _backend = null;
+        TransitionToWaitingStateUnsafe(CreateBackendRequest());
     }
 
-    private void EnsureBitmap(uint width, uint height)
+    private void EnsureBitmapUnsafe(uint width, uint height)
     {
         if (width == 0 || height == 0)
         {
@@ -276,13 +341,13 @@ internal sealed partial class RenderSession : IDisposable
             AlphaFormat.Premul);
     }
 
-    private void StartRenderLoop()
+    private void StartRenderLoopUnsafe()
     {
         _renderLoop ??= _renderLoopFactory();
         _renderLoop.Start(RenderInterval, OnRenderLoopTick);
     }
 
-    private void StopRenderLoop()
+    private void StopRenderLoopUnsafe()
     {
         _renderLoop?.Stop();
     }
@@ -332,9 +397,22 @@ internal sealed partial class RenderSession : IDisposable
         return OperatingSystem.IsWindows() || OperatingSystem.IsLinux() || OperatingSystem.IsMacOS();
     }
 
-    private void ThrowIfDisposed()
+    private void TransitionToWaitingStateUnsafe(GraphicsBackendRequest request)
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        if (_state == RenderSessionState.Disposed)
+        {
+            return;
+        }
+
+        if (_width == 0 || _height == 0)
+        {
+            _state = RenderSessionState.WaitingForSize;
+            return;
+        }
+
+        _state = RequiresNativeHandle(request) && !HandleState.IsBound
+            ? RenderSessionState.WaitingForHandle
+            : RenderSessionState.Detached;
     }
 
     private static partial class Log
@@ -395,5 +473,15 @@ internal sealed partial class RenderSession : IDisposable
         {
             Stop();
         }
+    }
+
+    private enum RenderSessionState
+    {
+        Detached = 0,
+        WaitingForSize,
+        WaitingForHandle,
+        Ready,
+        Faulted,
+        Disposed
     }
 }

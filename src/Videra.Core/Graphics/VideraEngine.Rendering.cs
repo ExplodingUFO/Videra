@@ -16,13 +16,13 @@ public partial class VideraEngine
 	/// </summary>
 	public void Draw()
 	{
-        if (!CanDrawFrame())
-        {
-            return;
-        }
-
         lock (_lock)
         {
+            if (!CanDrawFrame())
+            {
+                return;
+            }
+
             _frameCount++;
             bool shouldLog = EnableFrameLogging && _frameCount % 60 == 0;
 
@@ -37,7 +37,10 @@ public partial class VideraEngine
 
     private bool CanDrawFrame()
     {
-        return IsInitialized && _backend != null && _executor != null && _meshPipeline != null;
+        return _state == EngineLifecycleState.Active
+            && _backend != null
+            && _executor != null
+            && _meshPipeline != null;
     }
 
     private void RenderFrame(bool shouldLog)

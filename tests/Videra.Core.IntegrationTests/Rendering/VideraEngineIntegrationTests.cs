@@ -161,6 +161,33 @@ public class VideraEngineIntegrationTests
     }
 
     [Fact]
+    public void VideraEngine_AfterDispose_PublicEntryPoints_AreNoOpsAndDoNotReinitialize()
+    {
+        using var firstBackend = new SoftwareBackend();
+        var engine = new VideraEngine();
+        engine.Initialize(firstBackend);
+        engine.Dispose();
+
+        using var secondBackend = new SoftwareBackend();
+        var obj = new Object3D { Name = "AfterDisposeObject" };
+
+        var act = () =>
+        {
+            engine.Dispose();
+            engine.Draw();
+            engine.Resize(320, 240);
+            engine.AddObject(obj);
+            engine.RemoveObject(obj);
+            engine.ClearObjects();
+            engine.Initialize(secondBackend);
+            engine.Draw();
+        };
+
+        act.Should().NotThrow();
+        engine.IsInitialized.Should().BeFalse();
+    }
+
+    [Fact]
     public void VideraEngine_StyleService_AppliesPreset()
     {
         using var backend = new SoftwareBackend();

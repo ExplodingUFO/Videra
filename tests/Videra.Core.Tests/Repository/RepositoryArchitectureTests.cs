@@ -21,9 +21,11 @@ public sealed class RepositoryArchitectureTests
 
         var resourcesSource = File.ReadAllText(resourcesFile);
         var renderingSource = File.ReadAllText(renderingFile);
+        var mainSource = File.ReadAllText(mainFile);
 
-        resourcesSource.Should().Contain("private void CreateResources()");
-        resourcesSource.Should().Contain("private void ReleaseGraphicsResources");
+        mainSource.Should().Contain("private enum EngineLifecycleState");
+        resourcesSource.Should().Contain("private void CreateResourcesUnsafe()");
+        resourcesSource.Should().Contain("private void ReleaseGraphicsResourcesUnsafe");
         renderingSource.Should().Contain("public void Draw()");
         renderingSource.Should().Contain("private void RenderSolidObjects");
     }

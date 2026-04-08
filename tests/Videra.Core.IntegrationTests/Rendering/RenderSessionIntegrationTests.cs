@@ -162,6 +162,37 @@ public sealed class RenderSessionIntegrationTests
         }
     }
 
+    [Fact]
+    public void RenderSession_AfterDispose_PublicEntryPoints_AreNoOpsAndDoNotCreateNewBackends()
+    {
+        var backendFactory = new TrackingBackendFactory();
+        using var engine = new VideraEngine();
+        var session = new RenderSession(engine, backendFactory.CreateBackend);
+
+        session.Attach(GraphicsBackendPreference.D3D11);
+        session.Resize(128, 96, 1f);
+        session.BindHandle(new IntPtr(0x1234));
+
+        backendFactory.CreatedBackends.Should().HaveCount(1);
+
+        session.Dispose();
+
+        var act = () =>
+        {
+            session.Dispose();
+            session.Attach(GraphicsBackendPreference.D3D11);
+            session.BindHandle(new IntPtr(0x5678));
+            session.Resize(256, 192, 1f);
+            session.RenderOnce();
+        };
+
+        act.Should().NotThrow();
+        backendFactory.CreatedBackends.Should().HaveCount(1);
+        backendFactory.CreatedBackends[0].DisposeCalls.Should().Be(1);
+        session.IsReady.Should().BeFalse();
+        session.HandleState.IsBound.Should().BeFalse();
+    }
+
     private sealed class TrackingBackendFactory
     {
         public List<TrackingBackend> CreatedBackends { get; } = new();
