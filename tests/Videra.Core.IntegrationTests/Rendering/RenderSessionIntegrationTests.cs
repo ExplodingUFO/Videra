@@ -211,6 +211,24 @@ public sealed class RenderSessionIntegrationTests
         session.LastPipelineSnapshot.StageNames.Should().Contain("PresentFrame");
     }
 
+    [Fact]
+    public void RenderSession_ExposesOrchestrationSnapshotTruth()
+    {
+        using var engine = new VideraEngine();
+        using var session = new RenderSession(engine, bitmapFactory: static (_, _) => null);
+
+        session.Attach(GraphicsBackendPreference.Software);
+        session.Resize(128, 96, 1f);
+        session.RenderOnce();
+
+        session.OrchestrationSnapshot.State.Should().Be(RenderSessionState.Ready);
+        session.OrchestrationSnapshot.Inputs.RequestedBackend.Should().Be(GraphicsBackendPreference.Software);
+        session.OrchestrationSnapshot.Inputs.Width.Should().Be(128u);
+        session.OrchestrationSnapshot.Inputs.Height.Should().Be(96u);
+        session.OrchestrationSnapshot.UsesSoftwarePresentationCopy.Should().BeTrue();
+        session.OrchestrationSnapshot.LastPipelineSnapshot.Should().NotBeNull();
+    }
+
     private sealed class TrackingBackendFactory
     {
         public List<TrackingBackend> CreatedBackends { get; } = new();

@@ -1,4 +1,5 @@
 using FluentAssertions;
+using System.Linq;
 using Xunit;
 
 namespace Videra.Core.Tests.Repository;
@@ -14,6 +15,13 @@ public sealed class RepositoryArchitectureTests
         "WireframePass",
         "AxisPass",
         "PresentFrame"
+    };
+
+    private static readonly string[] ForbiddenRenderSessionOrchestratorSymbols =
+    {
+        "WriteableBitmap",
+        "DispatcherTimer",
+        "NativeControlHost"
     };
 
     [Fact]
@@ -86,6 +94,39 @@ public sealed class RepositoryArchitectureTests
         }
     }
 
+    [Fact]
+    public void Phase10OrchestrationBoundary_ShouldHaveFilePresence_DocsSignoff_AndOrchestratorContainment()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var architecture = File.ReadAllText(Path.Combine(repositoryRoot, "ARCHITECTURE.md"));
+        var orchestratorFile = FindRepositoryFile(repositoryRoot, "RenderSessionOrchestrator.cs");
+        var renderSessionInputsFile = FindRepositoryFile(repositoryRoot, "RenderSessionInputs.cs");
+        var renderSessionSnapshotFile = FindRepositoryFile(repositoryRoot, "RenderSessionSnapshot.cs");
+        var renderSessionBridgeFile = FindRepositoryFile(repositoryRoot, "VideraViewSessionBridge.cs");
+        var videraViewFile = FindRepositoryFile(repositoryRoot, "VideraView.cs");
+
+        architecture.Should().Contain("RenderSessionOrchestrator");
+        architecture.Should().Contain("VideraViewSessionBridge");
+
+        var orchestratorSource = File.ReadAllText(orchestratorFile);
+        foreach (var forbidden in ForbiddenRenderSessionOrchestratorSymbols)
+        {
+            orchestratorSource.Should().NotContain(forbidden);
+        }
+
+        var viewSource = File.ReadAllText(videraViewFile);
+        viewSource.Should().Contain("VideraViewSessionBridge");
+        viewSource.Should().NotContain("_renderSession.Attach(");
+        viewSource.Should().NotContain("_renderSession.BindHandle(");
+        viewSource.Should().NotContain("_renderSession.Resize(");
+
+        orchestratorFile.Should().NotBeNullOrWhiteSpace();
+        renderSessionInputsFile.Should().NotBeNullOrWhiteSpace();
+        renderSessionSnapshotFile.Should().NotBeNullOrWhiteSpace();
+        renderSessionBridgeFile.Should().NotBeNullOrWhiteSpace();
+        videraViewFile.Should().NotBeNullOrWhiteSpace();
+    }
+
     private static string GetRepositoryRoot()
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);
@@ -101,5 +142,12 @@ public sealed class RepositoryArchitectureTests
         }
 
         throw new DirectoryNotFoundException("Could not locate repository root containing Videra.slnx.");
+    }
+
+    private static string FindRepositoryFile(string repositoryRoot, string fileName)
+    {
+        var file = Directory.EnumerateFiles(repositoryRoot, fileName, SearchOption.AllDirectories).FirstOrDefault();
+        file.Should().NotBeNullOrWhiteSpace($"expected {fileName} to exist in repository tree");
+        return file!;
     }
 }

@@ -42,6 +42,7 @@ Platform-agnostic rendering layer responsible for:
 - Model import
 - Render-style presets
 - Software fallback rendering
+- Frame-plan construction and pipeline execution via `VideraEngine`
 
 Key abstractions:
 
@@ -54,12 +55,13 @@ Key abstractions:
 
 UI integration layer responsible for:
 
-- The `VideraView` control surface
-- Bridging Avalonia with native-host handles
-- Backend preference and render-session coordination
-- Pointer input and camera interaction mapping
+- Hosting the `VideraView` UI shell
+- Host-agnostic orchestration through `RenderSessionOrchestrator`
+- Coordinating render-session lifecycle and backend selection
+- Hosting Avalonia-specific runtime/presentation adapters in `RenderSession`
+- Translating view-level input/options/events through `VideraViewSessionBridge`
 
-This layer lets host apps use the 3D view from XAML or code without directly coupling UI code to backend implementation details.
+This layer lets host apps use the 3D view from XAML or code without coupling UI surface code to rendering internals.
 
 ### Native Backend Packages
 
@@ -110,18 +112,23 @@ Videra/
 sequenceDiagram
     participant App as Host App
     participant View as VideraView
+    participant Orchestrator as RenderSessionOrchestrator
     participant Session as RenderSession
     participant Engine as VideraEngine
     participant Backend as IGraphicsBackend
+    participant Bridge as VideraViewSessionBridge
 
     App->>View: Create control
-    View->>Session: Apply backend preference
-    Session->>Backend: Resolve and create backend
-    View->>Engine: Initialize engine
+    View->>Bridge: Bind options/events/input
+    View->>Orchestrator: Attach bridge, preferences
+    Orchestrator->>Session: Create and configure
+    Orchestrator->>Session: Resolve native backend
+    Session->>Engine: Initialize engine
     Engine->>Backend: Initialize(...)
 
     loop Per frame
-        View->>Engine: Draw()
+        Orchestrator->>Session: Drive frame tick
+        Session->>Engine: Execute frame plan
         Engine->>Backend: BeginFrame()
         Engine->>Backend: Draw scene
         Engine->>Backend: EndFrame()
@@ -130,7 +137,7 @@ sequenceDiagram
 
 ## Render Pipeline Contract
 
-Phase 9 makes the current frame orchestration explicit without changing the public rendering model. `VideraEngine` now builds a frame plan, executes it in a stable order, and captures the result in `LastPipelineSnapshot`.
+Phase 10 makes the orchestration boundary explicit without changing the public rendering model. `VideraEngine` owns frame-plan construction and pipeline execution in Core; orchestration of *when* frames are run moves through `RenderSessionOrchestrator` / `RenderSession`.
 
 Stable stage vocabulary for one frame:
 
@@ -148,6 +155,14 @@ Contract notes:
 - `LastPipelineSnapshot` records the executed stages plus the effective pipeline profile for the last completed frame.
 - `VideraView.BackendDiagnostics` mirrors the same read-only truth through `RenderPipelineProfile`, `LastFrameStageNames`, and `UsesSoftwarePresentationCopy`.
 - This milestone documents the existing pipeline shape only. It does not ship public custom-pass registration or frame-hook extensibility APIs yet.
+
+Boundary summary:
+
+- `VideraEngine` owns frame-plan and pipeline execution semantics.
+- `RenderSessionOrchestrator` owns host-agnostic session orchestration and rendering cadence.
+- `RenderSession` owns Avalonia-specific runtime/presentation adapter setup.
+- `VideraViewSessionBridge` translates Avalonia view options/events into synchronized session state updates.
+- `VideraView` remains the UI shell and native-host/input surface.
 
 ## Backend Selection
 

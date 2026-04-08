@@ -1,5 +1,4 @@
 using Avalonia;
-using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using Avalonia.Threading;
@@ -16,22 +15,15 @@ internal sealed partial class RenderSession : IDisposable
     private static readonly TimeSpan RenderInterval = TimeSpan.FromMilliseconds(16);
     private readonly object _sync = new();
 
-    private readonly VideraEngine _engine;
-    private readonly Func<GraphicsBackendPreference, IGraphicsBackend> _backendFactory;
-    private readonly Func<GraphicsBackendRequest, GraphicsBackendResolution> _backendResolutionFactory;
     private readonly Action? _requestRender;
     private readonly ILogger _logger;
     private readonly Func<IRenderLoopDriver> _renderLoopFactory;
     private readonly Func<uint, uint, WriteableBitmap?> _bitmapFactory;
+    private readonly RenderSessionOrchestrator _orchestrator;
 
-    private IGraphicsBackend? _backend;
     private IRenderLoopDriver? _renderLoop;
     private WriteableBitmap? _bitmap;
-    private GraphicsBackendPreference _preference = GraphicsBackendPreference.Auto;
-    private VideraBackendOptions? _backendOptions;
-    private uint _width;
-    private uint _height;
-    private RenderSessionState _state = RenderSessionState.Detached;
+    private bool _renderLoopRunning;
 
     public RenderSession(
         VideraEngine engine,
@@ -42,51 +34,49 @@ internal sealed partial class RenderSession : IDisposable
         Func<GraphicsBackendRequest, GraphicsBackendResolution>? backendResolutionFactory = null,
         Func<uint, uint, WriteableBitmap?>? bitmapFactory = null)
     {
-        _engine = engine ?? throw new ArgumentNullException(nameof(engine));
-        _backendFactory = backendFactory ?? (preference => GraphicsBackendFactory.CreateBackend(preference));
-        _backendResolutionFactory = backendResolutionFactory
-            ?? (backendFactory == null
-                ? GraphicsBackendFactory.ResolveBackend
-                : CreateResolutionFromFactory);
         _requestRender = requestRender;
         _logger = logger ?? Microsoft.Extensions.Logging.Abstractions.NullLoggerFactory.Instance.CreateLogger<RenderSession>();
         _renderLoopFactory = renderLoopFactory ?? (() => new NullRenderLoopDriver());
         _bitmapFactory = bitmapFactory ?? CreateWriteableBitmap;
+        _orchestrator = new RenderSessionOrchestrator(
+            engine,
+            backendFactory,
+            backendResolutionFactory);
     }
 
     public event EventHandler? BackendReady;
 
     public WriteableBitmap? Bitmap => _bitmap;
 
-    public RenderSessionHandle HandleState { get; private set; } = RenderSessionHandle.Unbound;
+    public RenderSessionHandle HandleState => _orchestrator.HandleState;
 
-    public bool IsInitialized => _state == RenderSessionState.Ready && _engine.IsInitialized;
+    public bool IsInitialized => _orchestrator.IsInitialized;
 
-    public bool IsReady => _state == RenderSessionState.Ready && _engine.IsInitialized;
+    public bool IsReady => _orchestrator.IsReady;
 
-    public bool IsSoftwareBackend => _backend is ISoftwareBackend;
+    public bool IsSoftwareBackend => _orchestrator.IsSoftwareBackend;
 
-    public IResourceFactory? ResourceFactory => _backend?.GetResourceFactory();
+    public IResourceFactory? ResourceFactory => _orchestrator.ResourceFactory;
 
-    internal GraphicsBackendResolution? LastBackendResolution { get; private set; }
+    internal GraphicsBackendResolution? LastBackendResolution => _orchestrator.LastBackendResolution;
 
-    internal Exception? LastInitializationError { get; private set; }
+    internal Exception? LastInitializationError => _orchestrator.LastInitializationError;
 
-    internal string? LastResolvedDisplayServer { get; private set; }
+    internal string? LastResolvedDisplayServer => _orchestrator.LastResolvedDisplayServer;
 
-    internal bool LastDisplayServerFallbackUsed { get; private set; }
+    internal bool LastDisplayServerFallbackUsed => _orchestrator.LastDisplayServerFallbackUsed;
 
-    internal string? LastDisplayServerFallbackReason { get; private set; }
+    internal string? LastDisplayServerFallbackReason => _orchestrator.LastDisplayServerFallbackReason;
 
-    internal RenderPipelineSnapshot? LastPipelineSnapshot { get; private set; }
+    internal RenderPipelineSnapshot? LastPipelineSnapshot => _orchestrator.LastPipelineSnapshot;
+
+    internal RenderSessionSnapshot OrchestrationSnapshot => _orchestrator.Snapshot;
 
     internal void SetDisplayServerDiagnostics(string? resolvedDisplayServer, bool fallbackUsed, string? fallbackReason)
     {
         lock (_sync)
         {
-            LastResolvedDisplayServer = resolvedDisplayServer;
-            LastDisplayServerFallbackUsed = fallbackUsed;
-            LastDisplayServerFallbackReason = fallbackReason;
+            _orchestrator.SetDisplayServerDiagnostics(resolvedDisplayServer, fallbackUsed, fallbackReason);
         }
     }
 
@@ -101,19 +91,14 @@ internal sealed partial class RenderSession : IDisposable
 
         lock (_sync)
         {
-            if (_state == RenderSessionState.Disposed)
+            try
             {
-                return;
+                shouldRaiseBackendReady = _orchestrator.Attach(preference, backendOptions);
             }
-
-            if (_preference != preference && IsReady)
+            finally
             {
-                SuspendUnsafe();
+                SyncRuntimeShellUnsafe();
             }
-
-            _preference = preference;
-            _backendOptions = backendOptions;
-            shouldRaiseBackendReady = TryInitializeUnsafe();
         }
 
         if (shouldRaiseBackendReady)
@@ -128,40 +113,14 @@ internal sealed partial class RenderSession : IDisposable
 
         lock (_sync)
         {
-            if (_state == RenderSessionState.Disposed)
+            try
             {
-                return;
+                shouldRaiseBackendReady = _orchestrator.BindHandle(handle);
             }
-
-            if (handle == IntPtr.Zero)
+            finally
             {
-                if (HandleState.IsBound)
-                {
-                    HandleState = HandleState.Clear();
-                    if (IsReady && !IsSoftwareBackend)
-                    {
-                        SuspendUnsafe();
-                    }
-                }
-
-                TransitionToWaitingStateUnsafe(CreateBackendRequest());
-                return;
+                SyncRuntimeShellUnsafe();
             }
-
-            if (HandleState.Generation == 0)
-            {
-                HandleState = RenderSessionHandle.Create(handle);
-            }
-            else if (HandleState.Handle != handle)
-            {
-                HandleState = HandleState.Rebind(handle);
-                if (IsReady && !IsSoftwareBackend)
-                {
-                    SuspendUnsafe();
-                }
-            }
-
-            shouldRaiseBackendReady = TryInitializeUnsafe();
         }
 
         if (shouldRaiseBackendReady)
@@ -176,24 +135,13 @@ internal sealed partial class RenderSession : IDisposable
 
         lock (_sync)
         {
-            if (_state == RenderSessionState.Disposed || width == 0 || height == 0)
+            try
             {
-                return;
+                shouldRaiseBackendReady = _orchestrator.Resize(width, height, renderScale);
             }
-
-            _width = width;
-            _height = height;
-            _engine.RenderScale = renderScale;
-
-            if (!IsReady)
+            finally
             {
-                shouldRaiseBackendReady = TryInitializeUnsafe();
-            }
-            else
-            {
-                _backend?.Resize((int)width, (int)height);
-                _engine.Resize(width, height);
-                EnsureBitmapUnsafe(width, height);
+                SyncRuntimeShellUnsafe();
             }
         }
 
@@ -207,39 +155,34 @@ internal sealed partial class RenderSession : IDisposable
     {
         lock (_sync)
         {
-            if (!IsReady || _backend == null)
+            var result = _orchestrator.RenderOnce();
+            if (result.Faulted)
+            {
+                if (result.Error != null)
+                {
+                    Log.RenderFrameFailed(_logger, result.Error.Message, result.Error);
+                }
+
+                StopRenderLoopUnsafe();
+                _bitmap?.Dispose();
+                _bitmap = null;
+                return;
+            }
+
+            if (result.SoftwareBackend == null)
             {
                 return;
             }
 
-            try
+            var snapshot = _orchestrator.Snapshot;
+            EnsureBitmapUnsafe(snapshot.Inputs.Width, snapshot.Inputs.Height);
+            if (_bitmap != null)
             {
-                _engine.Draw();
-                LastPipelineSnapshot = _engine.LastPipelineSnapshot;
-
-                if (_backend is ISoftwareBackend softwareBackend)
-                {
-                    EnsureBitmapUnsafe(_width, _height);
-                    if (_bitmap != null)
-                    {
-                        using var locked = _bitmap.Lock();
-                        softwareBackend.CopyFrameTo(locked.Address, locked.RowBytes);
-                    }
-
-                    _requestRender?.Invoke();
-                }
+                using var locked = _bitmap.Lock();
+                result.SoftwareBackend.CopyFrameTo(locked.Address, locked.RowBytes);
             }
-            catch (Exception ex)
-            {
-                Log.RenderFrameFailed(_logger, ex.Message, ex);
-                LastInitializationError = ex;
-                StopRenderLoopUnsafe();
-                _bitmap?.Dispose();
-                _bitmap = null;
-                _engine.Suspend();
-                _backend = null;
-                _state = RenderSessionState.Faulted;
-            }
+
+            _requestRender?.Invoke();
         }
     }
 
@@ -247,97 +190,42 @@ internal sealed partial class RenderSession : IDisposable
     {
         lock (_sync)
         {
-            if (_state == RenderSessionState.Disposed)
+            if (_orchestrator.Snapshot.State == RenderSessionState.Disposed)
             {
                 return;
             }
 
-            _state = RenderSessionState.Disposed;
             StopRenderLoopUnsafe();
             _renderLoop?.Dispose();
             _renderLoop = null;
+            _renderLoopRunning = false;
             _bitmap?.Dispose();
             _bitmap = null;
-            _engine.Dispose();
-            _backend = null;
-            HandleState = RenderSessionHandle.Unbound;
-            LastResolvedDisplayServer = null;
-            LastDisplayServerFallbackUsed = false;
-            LastDisplayServerFallbackReason = null;
-            LastPipelineSnapshot = null;
+            _orchestrator.Dispose();
         }
     }
 
-    private bool TryInitializeUnsafe()
+    private void SyncRuntimeShellUnsafe()
     {
-        if (_state == RenderSessionState.Disposed || IsReady)
-        {
-            return false;
-        }
+        var snapshot = _orchestrator.Snapshot;
 
-        var request = CreateBackendRequest();
-        if (_width == 0 || _height == 0)
+        if (_orchestrator.IsReady)
         {
-            _state = RenderSessionState.WaitingForSize;
-            return false;
-        }
-
-        if (RequiresNativeHandle(request) && !HandleState.IsBound)
-        {
-            _state = RenderSessionState.WaitingForHandle;
-            return false;
-        }
-
-        IGraphicsBackend? backend = null;
-        try
-        {
-            var resolution = _backendResolutionFactory(request);
-            backend = resolution.Backend;
-            var handle = resolution.ResolvedPreference == GraphicsBackendPreference.Software ? IntPtr.Zero : HandleState.Handle;
-            backend.Initialize(handle, (int)_width, (int)_height);
-
-            _backend = backend;
-            LastBackendResolution = resolution;
-            LastInitializationError = null;
-            _engine.Initialize(backend);
-            _engine.Resize(_width, _height);
-            EnsureBitmapUnsafe(_width, _height);
             StartRenderLoopUnsafe();
-            _state = RenderSessionState.Ready;
-            return true;
         }
-        catch (Exception ex)
+        else
         {
-            LastInitializationError = ex;
-            _state = RenderSessionState.Faulted;
-            if (_engine.IsInitialized)
-            {
-                _engine.Suspend();
-            }
-            else
-            {
-                backend?.Dispose();
-            }
-
-            _backend = null;
-            throw;
+            StopRenderLoopUnsafe();
         }
-    }
 
-    private void SuspendUnsafe()
-    {
-        StopRenderLoopUnsafe();
-        _bitmap?.Dispose();
-        _bitmap = null;
-
-        if (_engine.IsInitialized)
+        if (!snapshot.UsesSoftwarePresentationCopy || snapshot.Inputs.Width == 0 || snapshot.Inputs.Height == 0)
         {
-            _engine.Suspend();
+            _bitmap?.Dispose();
+            _bitmap = null;
+            return;
         }
 
-        _backend = null;
-        LastPipelineSnapshot = null;
-        TransitionToWaitingStateUnsafe(CreateBackendRequest());
+        EnsureBitmapUnsafe(snapshot.Inputs.Width, snapshot.Inputs.Height);
     }
 
     private void EnsureBitmapUnsafe(uint width, uint height)
@@ -367,76 +255,30 @@ internal sealed partial class RenderSession : IDisposable
 
     private void StartRenderLoopUnsafe()
     {
+        if (_renderLoopRunning)
+        {
+            return;
+        }
+
         _renderLoop ??= _renderLoopFactory();
         _renderLoop.Start(RenderInterval, OnRenderLoopTick);
+        _renderLoopRunning = true;
     }
 
     private void StopRenderLoopUnsafe()
     {
+        if (!_renderLoopRunning)
+        {
+            return;
+        }
+
         _renderLoop?.Stop();
+        _renderLoopRunning = false;
     }
 
     private void OnRenderLoopTick(object? sender, EventArgs e)
     {
         RenderOnce();
-    }
-
-    private GraphicsBackendRequest CreateBackendRequest()
-    {
-        if (_backendOptions == null)
-        {
-            return new GraphicsBackendRequest(
-                _preference,
-                BackendEnvironmentOverrideMode.PreferOverrides,
-                AllowSoftwareFallback: true);
-        }
-
-        return new GraphicsBackendRequest(
-            _preference,
-            _backendOptions.EnvironmentOverrideMode,
-            _backendOptions.AllowSoftwareFallback);
-    }
-
-    private GraphicsBackendResolution CreateResolutionFromFactory(GraphicsBackendRequest request)
-    {
-        var backend = _backendFactory(request.RequestedPreference);
-        var resolvedPreference = backend is ISoftwareBackend
-            ? GraphicsBackendPreference.Software
-            : request.RequestedPreference;
-
-        return new GraphicsBackendResolution(
-            backend,
-            request.RequestedPreference,
-            resolvedPreference);
-    }
-
-    private static bool RequiresNativeHandle(GraphicsBackendRequest request)
-    {
-        var preference = GraphicsBackendFactory.ResolveRequestedPreference(request);
-        if (preference == GraphicsBackendPreference.Software)
-        {
-            return false;
-        }
-
-        return OperatingSystem.IsWindows() || OperatingSystem.IsLinux() || OperatingSystem.IsMacOS();
-    }
-
-    private void TransitionToWaitingStateUnsafe(GraphicsBackendRequest request)
-    {
-        if (_state == RenderSessionState.Disposed)
-        {
-            return;
-        }
-
-        if (_width == 0 || _height == 0)
-        {
-            _state = RenderSessionState.WaitingForSize;
-            return;
-        }
-
-        _state = RequiresNativeHandle(request) && !HandleState.IsBound
-            ? RenderSessionState.WaitingForHandle
-            : RenderSessionState.Detached;
     }
 
     private static partial class Log
@@ -497,16 +339,6 @@ internal sealed partial class RenderSession : IDisposable
         {
             Stop();
         }
-    }
-
-    private enum RenderSessionState
-    {
-        Detached = 0,
-        WaitingForSize,
-        WaitingForHandle,
-        Ready,
-        Faulted,
-        Disposed
     }
 
     private static WriteableBitmap CreateWriteableBitmap(uint width, uint height)

@@ -1,4 +1,5 @@
 using FluentAssertions;
+using System.Linq;
 using Xunit;
 
 namespace Videra.Core.Tests.Repository;
@@ -167,6 +168,15 @@ public sealed class RepositoryLocalizationTests
         {
             coreModule.Should().NotContain(forbiddenSymbol);
         }
+    }
+
+    [Fact]
+    public void ChineseArchitectureDocs_ShouldReferencePhase10OrchestrationBoundary()
+    {
+        var architecture = File.ReadAllText(Path.Combine(GetRepositoryRoot(), "docs", "zh-CN", "ARCHITECTURE.md"));
+
+        architecture.Should().Contain("RenderSessionOrchestrator");
+        architecture.Should().Contain("VideraViewSessionBridge");
     }
 
     private static string GetRepositoryRoot()
