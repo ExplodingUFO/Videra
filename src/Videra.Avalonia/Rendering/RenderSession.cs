@@ -7,6 +7,7 @@ using Videra.Avalonia.Controls;
 using Videra.Core.Graphics;
 using Videra.Core.Graphics.Abstractions;
 using Videra.Core.Graphics.RenderPipeline;
+using Videra.Core.Graphics.RenderPipeline.Extensibility;
 
 namespace Videra.Avalonia.Rendering;
 
@@ -71,6 +72,8 @@ internal sealed partial class RenderSession : IDisposable
     internal RenderPipelineSnapshot? LastPipelineSnapshot => _orchestrator.LastPipelineSnapshot;
 
     internal RenderSessionSnapshot OrchestrationSnapshot => _orchestrator.Snapshot;
+
+    internal RenderCapabilitySnapshot RenderCapabilities => _orchestrator.RenderCapabilities;
 
     internal void SetDisplayServerDiagnostics(string? resolvedDisplayServer, bool fallbackUsed, string? fallbackReason)
     {

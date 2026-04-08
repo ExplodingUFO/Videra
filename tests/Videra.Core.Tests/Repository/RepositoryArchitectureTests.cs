@@ -24,6 +24,17 @@ public sealed class RepositoryArchitectureTests
         "NativeControlHost"
     };
 
+    private static readonly string[] PublicExtensibilitySymbols =
+    {
+        "IRenderPassContributor",
+        "RegisterPassContributor",
+        "ReplacePassContributor",
+        "RegisterFrameHook",
+        "RenderFrameHookPoint",
+        "GetRenderCapabilities",
+        "RenderCapabilities"
+    };
+
     [Fact]
     public void VideraEngine_ShouldSplitRenderingAndResourceOrchestrationAcrossDedicatedPartialFiles()
     {
@@ -81,17 +92,23 @@ public sealed class RepositoryArchitectureTests
     }
 
     [Fact]
-    public void ArchitectureDocs_ShouldNotOverclaimPublicRenderPassExtensibility()
+    public void ArchitectureDocs_ShouldDescribeShippedPublicRenderPassExtensibility()
     {
         var repositoryRoot = GetRepositoryRoot();
         var architecture = File.ReadAllText(Path.Combine(repositoryRoot, "ARCHITECTURE.md"));
         var coreReadme = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Core", "README.md"));
+        var avaloniaReadme = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Avalonia", "README.md"));
 
-        foreach (var forbiddenSymbol in new[] { "RegisterPass(", "FrameHook", "IRenderPassContributor" })
+        foreach (var expectedSymbol in PublicExtensibilitySymbols)
         {
-            architecture.Should().NotContain(forbiddenSymbol);
-            coreReadme.Should().NotContain(forbiddenSymbol);
+            architecture.Should().Contain(expectedSymbol);
+            coreReadme.Should().Contain(expectedSymbol);
         }
+
+        avaloniaReadme.Should().Contain("VideraView.Engine");
+        avaloniaReadme.Should().Contain("VideraView.RenderCapabilities");
+        architecture.Should().Contain("internal orchestration seams");
+        architecture.Should().Contain("does not add package discovery");
     }
 
     [Fact]

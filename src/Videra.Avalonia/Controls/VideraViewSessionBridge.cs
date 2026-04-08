@@ -98,12 +98,14 @@ internal sealed class VideraViewSessionBridge
         var backendOptions = CreateBackendOptionsSnapshot();
         var diagnosticsOptions = _diagnosticsOptionsAccessor() ?? new VideraDiagnosticsOptions();
         var snapshot = _session.OrchestrationSnapshot;
+        var capabilities = _session.RenderCapabilities;
         var resolution = snapshot.LastBackendResolution;
+        var pipelineSnapshot = snapshot.LastPipelineSnapshot ?? capabilities.LastPipelineSnapshot;
 
         return new VideraBackendDiagnostics
         {
             RequestedBackend = backendOptions.PreferredBackend,
-            ResolvedBackend = resolution?.ResolvedPreference ?? backendOptions.PreferredBackend,
+            ResolvedBackend = resolution?.ResolvedPreference ?? capabilities.ActiveBackendPreference ?? backendOptions.PreferredBackend,
             IsReady = _session.IsReady,
             IsUsingSoftwareFallback = resolution?.IsUsingSoftwareFallback ?? false,
             FallbackReason = resolution?.FallbackReason,
@@ -114,9 +116,13 @@ internal sealed class VideraViewSessionBridge
             ResolvedDisplayServer = snapshot.ResolvedDisplayServer,
             DisplayServerFallbackUsed = snapshot.DisplayServerFallbackUsed,
             DisplayServerFallbackReason = snapshot.DisplayServerFallbackReason,
-            RenderPipelineProfile = snapshot.LastPipelineSnapshot?.Profile.ToString(),
-            LastFrameStageNames = snapshot.LastPipelineSnapshot?.StageNames?.ToArray() ?? Array.Empty<string>(),
-            UsesSoftwarePresentationCopy = snapshot.UsesSoftwarePresentationCopy
+            RenderPipelineProfile = pipelineSnapshot?.Profile.ToString(),
+            LastFrameStageNames = pipelineSnapshot?.StageNames?.ToArray() ?? Array.Empty<string>(),
+            UsesSoftwarePresentationCopy = snapshot.UsesSoftwarePresentationCopy,
+            SupportsPassContributors = capabilities.SupportsPassContributors,
+            SupportsPassReplacement = capabilities.SupportsPassReplacement,
+            SupportsFrameHooks = capabilities.SupportsFrameHooks,
+            SupportsPipelineSnapshots = capabilities.SupportsPipelineSnapshots
         };
     }
 

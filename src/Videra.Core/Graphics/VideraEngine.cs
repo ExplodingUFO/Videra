@@ -4,6 +4,7 @@ using Videra.Core.Cameras;
 using Videra.Core.Geometry;
 using Videra.Core.Graphics.Abstractions;
 using Videra.Core.Graphics.RenderPipeline;
+using Videra.Core.Graphics.RenderPipeline.Extensibility;
 using Videra.Core.Graphics.Wireframe;
 using Videra.Core.Styles.Services;
 
@@ -31,6 +32,9 @@ public partial class VideraEngine : IDisposable
 
     private readonly List<Object3D> _sceneObjects = new();
     private readonly IRenderStyleService _styleService;
+    private readonly Dictionary<RenderPassSlot, IRenderPassContributor> _passContributorOverrides = new();
+    private readonly Dictionary<RenderPassSlot, List<IRenderPassContributor>> _passContributorRegistrations = new();
+    private readonly Dictionary<RenderFrameHookPoint, List<Action<RenderFrameHookContext>>> _frameHooks = new();
 
     /// <summary>
     /// Gets the orbit camera used to view the scene.
@@ -80,6 +84,80 @@ public partial class VideraEngine : IDisposable
     public WireframeRenderer Wireframe { get; } = new();
 
     public RenderPipelineSnapshot? LastPipelineSnapshot { get; private set; }
+
+    public void RegisterPassContributor(RenderPassSlot slot, IRenderPassContributor contributor)
+    {
+        ArgumentNullException.ThrowIfNull(contributor);
+
+        lock (_lock)
+        {
+            if (_state == EngineLifecycleState.Disposed)
+            {
+                return;
+            }
+
+            if (!_passContributorRegistrations.TryGetValue(slot, out var contributors))
+            {
+                contributors = new List<IRenderPassContributor>();
+                _passContributorRegistrations[slot] = contributors;
+            }
+
+            contributors.Add(contributor);
+        }
+    }
+
+    public void ReplacePassContributor(RenderPassSlot slot, IRenderPassContributor contributor)
+    {
+        ArgumentNullException.ThrowIfNull(contributor);
+
+        lock (_lock)
+        {
+            if (_state == EngineLifecycleState.Disposed)
+            {
+                return;
+            }
+
+            _passContributorOverrides[slot] = contributor;
+        }
+    }
+
+    public void RegisterFrameHook(RenderFrameHookPoint hookPoint, Action<RenderFrameHookContext> hook)
+    {
+        ArgumentNullException.ThrowIfNull(hook);
+
+        lock (_lock)
+        {
+            if (_state == EngineLifecycleState.Disposed)
+            {
+                return;
+            }
+
+            if (!_frameHooks.TryGetValue(hookPoint, out var hooks))
+            {
+                hooks = new List<Action<RenderFrameHookContext>>();
+                _frameHooks[hookPoint] = hooks;
+            }
+
+            hooks.Add(hook);
+        }
+    }
+
+    public RenderCapabilitySnapshot GetRenderCapabilities()
+    {
+        lock (_lock)
+        {
+            return new RenderCapabilitySnapshot
+            {
+                IsInitialized = _state == EngineLifecycleState.Active,
+                ActiveBackendPreference = GetActiveBackendPreferenceUnsafe(),
+                SupportsPassContributors = true,
+                SupportsPassReplacement = true,
+                SupportsFrameHooks = true,
+                SupportsPipelineSnapshots = true,
+                LastPipelineSnapshot = LastPipelineSnapshot
+            };
+        }
+    }
 
     /// <summary>
     /// Gets or sets a value indicating whether the origin axis helper is visible.
@@ -267,5 +345,41 @@ public partial class VideraEngine : IDisposable
         Active,
         Suspended,
         Disposed
+    }
+
+    private GraphicsBackendPreference? GetActiveBackendPreferenceUnsafe()
+    {
+        if (_backend == null)
+        {
+            return null;
+        }
+
+        if (_backend is ISoftwareBackend)
+        {
+            return GraphicsBackendPreference.Software;
+        }
+
+        var typeName = _backend.GetType().Name;
+        if (typeName.Contains("D3D11", StringComparison.OrdinalIgnoreCase))
+        {
+            return GraphicsBackendPreference.D3D11;
+        }
+
+        if (typeName.Contains("Vulkan", StringComparison.OrdinalIgnoreCase))
+        {
+            return GraphicsBackendPreference.Vulkan;
+        }
+
+        if (typeName.Contains("Metal", StringComparison.OrdinalIgnoreCase))
+        {
+            return GraphicsBackendPreference.Metal;
+        }
+
+        if (typeName.Contains("Software", StringComparison.OrdinalIgnoreCase))
+        {
+            return GraphicsBackendPreference.Software;
+        }
+
+        return null;
     }
 }

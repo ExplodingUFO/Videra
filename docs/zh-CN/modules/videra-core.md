@@ -155,7 +155,21 @@ sequenceDiagram
 - `RenderPipelineProfile` 表示当前帧的 profile，当前值为 `Standard`、`StandardWithWireframeOverlay`、`WireframeOnly`。
 - `LastFrameStageNames` 镜像最近一帧真正执行过的 stage 名称。
 - `UsesSoftwarePresentationCopy` 用来区分当前是否经过软件位图拷贝呈现。
-- 当前 phase 只是把 pipeline truth 显式化并开放诊断读取；还没有公开 custom render pass registration，也没有 public frame hook API。
+
+Phase 11 新增的 public extensibility contract：
+
+- `IRenderPassContributor`
+- `RegisterPassContributor(...)`
+- `ReplacePassContributor(...)`
+- `RegisterFrameHook(...)`
+- `RenderFrameHookPoint`
+- `GetRenderCapabilities()`
+
+当前边界：
+
+- `VideraEngine` 是 public extensibility root。
+- 这套 API 是 C#-first、进程内的 contract，不包含 package discovery 或 plugin loading。
+- Avalonia 的 internal session/orchestration 类型不是对外扩展入口。
 
 ## 抽象接口
 

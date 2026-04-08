@@ -78,6 +78,12 @@ graph TB
 | GridColor | Color | 网格颜色 |
 | PreferredBackend | GraphicsBackendPreference | 首选后端 |
 
+### 扩展与查询入口
+
+- `VideraView.Engine`：public extensibility root，可调用 `RegisterPassContributor(...)`、`ReplacePassContributor(...)`、`RegisterFrameHook(...)`
+- `VideraView.RenderCapabilities`：公开的 Core capability snapshot
+- `VideraView.BackendDiagnostics`：公开的 backend/runtime diagnostics shell
+
 ### 使用示例
 
 ```xml

@@ -1,5 +1,4 @@
 using Videra.Core.Graphics;
-
 namespace Videra.Avalonia.Controls;
 
 public sealed class VideraBackendDiagnostics
@@ -14,7 +13,11 @@ public sealed class VideraBackendDiagnostics
             ResolvedDisplayServer = null,
             DisplayServerFallbackUsed = false,
             DisplayServerFallbackReason = null,
-            LastFrameStageNames = Array.Empty<string>()
+            LastFrameStageNames = Array.Empty<string>(),
+            SupportsPassContributors = true,
+            SupportsPassReplacement = true,
+            SupportsFrameHooks = true,
+            SupportsPipelineSnapshots = true
         };
     }
 
@@ -47,6 +50,14 @@ public sealed class VideraBackendDiagnostics
     public IReadOnlyList<string>? LastFrameStageNames { get; init; }
 
     public bool UsesSoftwarePresentationCopy { get; init; }
+
+    public bool SupportsPassContributors { get; init; }
+
+    public bool SupportsPassReplacement { get; init; }
+
+    public bool SupportsFrameHooks { get; init; }
+
+    public bool SupportsPipelineSnapshots { get; init; }
 }
 
 public sealed class VideraBackendStatusChangedEventArgs : EventArgs

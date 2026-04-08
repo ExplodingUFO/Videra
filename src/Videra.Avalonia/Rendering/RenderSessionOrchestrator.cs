@@ -2,6 +2,7 @@ using Videra.Avalonia.Controls;
 using Videra.Core.Graphics;
 using Videra.Core.Graphics.Abstractions;
 using Videra.Core.Graphics.RenderPipeline;
+using Videra.Core.Graphics.RenderPipeline.Extensibility;
 
 namespace Videra.Avalonia.Rendering;
 
@@ -50,6 +51,8 @@ internal sealed class RenderSessionOrchestrator : IDisposable
     public string? LastDisplayServerFallbackReason { get; private set; }
 
     public RenderPipelineSnapshot? LastPipelineSnapshot { get; private set; }
+
+    internal RenderCapabilitySnapshot RenderCapabilities => _engine.GetRenderCapabilities();
 
     public RenderSessionSnapshot Snapshot => new()
     {

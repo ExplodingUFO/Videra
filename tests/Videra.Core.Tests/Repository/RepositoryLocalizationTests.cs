@@ -17,6 +17,17 @@ public sealed class RepositoryLocalizationTests
         "PresentFrame"
     };
 
+    private static readonly string[] PublicExtensibilitySymbols =
+    {
+        "IRenderPassContributor",
+        "RegisterPassContributor",
+        "ReplacePassContributor",
+        "RegisterFrameHook",
+        "RenderFrameHookPoint",
+        "GetRenderCapabilities",
+        "RenderCapabilities"
+    };
+
     [Fact]
     public void Readme_ShouldBeEnglishPrimaryWithChineseSwitch()
     {
@@ -160,14 +171,22 @@ public sealed class RepositoryLocalizationTests
     }
 
     [Fact]
-    public void ChineseCoreModule_ShouldNotOverclaimPublicRenderPassExtensibility()
+    public void ChineseDocs_ShouldMirrorShippedPublicRenderPassExtensibility()
     {
+        var repositoryRoot = GetRepositoryRoot();
         var coreModule = File.ReadAllText(Path.Combine(GetRepositoryRoot(), "docs", "zh-CN", "modules", "videra-core.md"));
+        var avaloniaModule = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "zh-CN", "modules", "videra-avalonia.md"));
+        var architecture = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "zh-CN", "ARCHITECTURE.md"));
 
-        foreach (var forbiddenSymbol in new[] { "RegisterPass(", "FrameHook", "IRenderPassContributor" })
+        foreach (var expectedSymbol in PublicExtensibilitySymbols)
         {
-            coreModule.Should().NotContain(forbiddenSymbol);
+            coreModule.Should().Contain(expectedSymbol);
         }
+
+        avaloniaModule.Should().Contain("VideraView.Engine");
+        avaloniaModule.Should().Contain("VideraView.RenderCapabilities");
+        architecture.Should().Contain("public extensibility root");
+        architecture.Should().Contain("package discovery");
     }
 
     [Fact]

@@ -53,9 +53,24 @@ sequenceDiagram
 
 ## 渲染流水线约定
 
-Phase 10 明确了调度边界：`VideraEngine` 在 Core 中持有帧计划与执行语义，`RenderSessionOrchestrator` 与 `RenderSession` 负责何时驱动帧。
+Phase 11 保持这条边界：`VideraEngine` 在 Core 中持有帧计划与执行语义，`RenderSessionOrchestrator` 与 `RenderSession` 负责何时驱动帧。
 
-不应解读为已对外发布可拓展插件接口：当前阶段仍仅公布只读的管线快照与诊断入口。
+当前已经对外开放一组收窄后的扩展接口：
+
+- `IRenderPassContributor`
+- `RegisterPassContributor(...)`
+- `ReplacePassContributor(...)`
+- `RegisterFrameHook(...)`
+- `RenderFrameHookPoint`
+- `GetRenderCapabilities()`
+- `VideraView.RenderCapabilities`
+
+边界说明：
+
+- `VideraEngine` 是 public extensibility root。
+- `VideraView.BackendDiagnostics` 继续负责后端/运行时诊断真相。
+- `RenderSessionOrchestrator`、`RenderSession`、`RenderSessionSnapshot`、`VideraViewSessionBridge` 仍然是 internal boundary，不应被外部当成扩展根使用。
+- 当前仍不包含 package discovery、plugin loading 或完整 sample onboarding。
 
 ## 后端选择
 

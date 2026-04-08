@@ -254,6 +254,10 @@ public sealed class VideraViewSceneIntegrationTests : IDisposable
         diagnosticsType.GetProperty("ResolvedDisplayServer").Should().NotBeNull();
         diagnosticsType.GetProperty("DisplayServerFallbackUsed").Should().NotBeNull();
         diagnosticsType.GetProperty("DisplayServerFallbackReason").Should().NotBeNull();
+        diagnosticsType.GetProperty("SupportsPassContributors").Should().NotBeNull();
+        diagnosticsType.GetProperty("SupportsPassReplacement").Should().NotBeNull();
+        diagnosticsType.GetProperty("SupportsFrameHooks").Should().NotBeNull();
+        diagnosticsType.GetProperty("SupportsPipelineSnapshots").Should().NotBeNull();
 
         var view = new VideraView();
         try

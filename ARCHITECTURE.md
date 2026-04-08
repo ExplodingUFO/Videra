@@ -137,7 +137,7 @@ sequenceDiagram
 
 ## Render Pipeline Contract
 
-Phase 10 makes the orchestration boundary explicit without changing the public rendering model. `VideraEngine` owns frame-plan construction and pipeline execution in Core; orchestration of *when* frames are run moves through `RenderSessionOrchestrator` / `RenderSession`.
+Phase 11 keeps `VideraEngine` as the owner of frame-plan construction and pipeline execution. `RenderSessionOrchestrator` / `RenderSession` still decide *when* frames run, while public extensibility stays rooted in Core.
 
 Stable stage vocabulary for one frame:
 
@@ -154,7 +154,24 @@ Contract notes:
 - `WireframePass` is conditional. Standard frames omit it, wireframe-overlay frames include it after `SolidGeometryPass`, and `WireframeOnly` frames skip `SolidGeometryPass`.
 - `LastPipelineSnapshot` records the executed stages plus the effective pipeline profile for the last completed frame.
 - `VideraView.BackendDiagnostics` mirrors the same read-only truth through `RenderPipelineProfile`, `LastFrameStageNames`, and `UsesSoftwarePresentationCopy`.
-- This milestone documents the existing pipeline shape only. It does not ship public custom-pass registration or frame-hook extensibility APIs yet.
+- `VideraView.RenderCapabilities` exposes the same Core-side capability snapshot to host apps.
+
+## Public Extensibility
+
+Phase 11 ships a narrow public extensibility surface on top of the existing pipeline contract:
+
+- `IRenderPassContributor` lets host apps register additional contributors for stable pass slots.
+- `RegisterPassContributor(...)` adds contributors without replacing the built-in pipeline owner.
+- `ReplacePassContributor(...)` replaces a stable built-in pass slot when an app needs to take over that stage.
+- `RegisterFrameHook(...)` provides deterministic `RenderFrameHookPoint` callbacks at `FrameBegin`, `SceneSubmit`, and `FrameEnd`.
+- `GetRenderCapabilities()` and `VideraView.RenderCapabilities` expose Core-side runtime/capability truth.
+- `VideraView.BackendDiagnostics` remains the Avalonia-facing backend/runtime diagnostics shell.
+
+Boundary notes:
+
+- `VideraEngine` is the public extensibility root.
+- `RenderSessionOrchestrator`, `RenderSession`, and `VideraViewSessionBridge` remain internal orchestration seams, not public extension roots.
+- This milestone does not add package discovery, plugin loading, or sample-driven onboarding for the new API surface.
 
 Boundary summary:
 
@@ -209,7 +226,7 @@ By default:
 - Videra targets componentized 3D viewing rather than a full content creation pipeline
 - Linux native support currently means `X11` plus `Wayland` sessions running through `XWayland` compatibility fallback
 - The macOS backend relies on Objective-C runtime interop
-- Public render-pipeline extensibility is not exposed yet; current pipeline diagnostics are read-only contract truth
+- Public extensibility is C#-first and in-process; package discovery and plugin loading are still out of scope
 
 ## Related Docs
 

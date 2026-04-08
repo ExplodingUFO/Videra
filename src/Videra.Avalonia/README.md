@@ -84,9 +84,17 @@ if (!singleResult.Succeeded && singleResult.Failure is not null)
     Console.WriteLine(singleResult.Failure.ErrorMessage);
 }
 
+View3D.Engine.RegisterFrameHook(RenderFrameHookPoint.FrameEnd, context =>
+{
+    Console.WriteLine(context.HookPoint);
+});
+
 View3D.FrameAll();
 var diagnostics = View3D.BackendDiagnostics;
+var capabilities = View3D.RenderCapabilities;
 ```
+
+`VideraView.Engine` is the public extensibility root for custom contributors and frame hooks. `VideraView.BackendDiagnostics` remains the backend/runtime diagnostics shell, while `VideraView.RenderCapabilities` exposes the Core-side capability snapshot.
 
 ## Native Host Coverage
 

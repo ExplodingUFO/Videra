@@ -112,6 +112,10 @@ public sealed class VideraViewSessionBridgeIntegrationTests
         diagnostics.LastFrameStageNames.Should().NotBeNull();
         diagnostics.LastFrameStageNames.Should().Contain("PrepareFrame");
         diagnostics.LastFrameStageNames.Should().Contain("PresentFrame");
+        diagnostics.SupportsPassContributors.Should().BeTrue();
+        diagnostics.SupportsPassReplacement.Should().BeTrue();
+        diagnostics.SupportsFrameHooks.Should().BeTrue();
+        diagnostics.SupportsPipelineSnapshots.Should().BeTrue();
     }
 
     private static VideraViewSessionBridge CreateBridge(

@@ -45,11 +45,24 @@ Current profiles:
 
 When consumed through `Videra.Avalonia`, the control diagnostics mirror the same information through `RenderPipelineProfile`, `LastFrameStageNames`, and `UsesSoftwarePresentationCopy`.
 
-Current scope boundary:
+## Public Extensibility Contract
 
-- The pipeline contract is observable and documented.
-- Public custom-pass registration is not exposed yet.
-- A public frame hook API is not exposed yet.
+Phase 11 adds a narrow public extensibility surface in Core:
+
+- `IRenderPassContributor`
+- `RegisterPassContributor(...)`
+- `ReplacePassContributor(...)`
+- `RegisterFrameHook(...)`
+- `GetRenderCapabilities()`
+
+The public hook vocabulary is `RenderFrameHookPoint` with `FrameBegin`, `SceneSubmit`, and `FrameEnd`.
+
+Scope boundary:
+
+- `VideraEngine` is the public extensibility root.
+- The API is intentionally Core-first and in-process.
+- Internal session/orchestration types from `Videra.Avalonia` are not part of the public extension contract.
+- Sample/reference onboarding for these APIs is deferred to the next phase.
 
 ## Typical Use
 

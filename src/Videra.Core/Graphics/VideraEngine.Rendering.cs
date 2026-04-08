@@ -1,6 +1,7 @@
 using System.Numerics;
 using Videra.Core.Graphics.Abstractions;
 using Videra.Core.Graphics.RenderPipeline;
+using Videra.Core.Graphics.RenderPipeline.Extensibility;
 using Videra.Core.Graphics.Wireframe;
 
 namespace Videra.Core.Graphics;
@@ -99,34 +100,36 @@ public partial class VideraEngine
     private void ExecuteFramePlan(RenderFramePlan plan, bool shouldLog)
     {
         var executedStages = new List<RenderPipelineStage>(plan.PlannedStages.Count);
+        InvokeFrameHooks(RenderFrameHookPoint.FrameBegin, plan, lastPipelineSnapshot: null);
 
         BeginFrame();
         executedStages.Add(RenderPipelineStage.PrepareFrame);
 
         BindSharedFrameState(shouldLog);
         executedStages.Add(RenderPipelineStage.BindSharedFrameState);
+        InvokeFrameHooks(RenderFrameHookPoint.SceneSubmit, plan, lastPipelineSnapshot: null);
 
         if (plan.RenderGrid)
         {
-            RenderGridPass(shouldLog);
+            ExecutePassSlot(RenderPassSlot.Grid, plan, shouldLog);
             executedStages.Add(RenderPipelineStage.GridPass);
         }
 
         if (plan.RenderSolidGeometry)
         {
-            RenderSolidObjects(shouldLog, plan.EffectiveWireframeMode);
+            ExecutePassSlot(RenderPassSlot.SolidGeometry, plan, shouldLog);
             executedStages.Add(RenderPipelineStage.SolidGeometryPass);
         }
 
         if (plan.RenderWireframe)
         {
-            RenderWireframes(plan.EffectiveWireframeMode);
+            ExecutePassSlot(RenderPassSlot.Wireframe, plan, shouldLog);
             executedStages.Add(RenderPipelineStage.WireframePass);
         }
 
         if (plan.RenderAxis)
         {
-            _axisRenderer.Draw(_executor!, _meshPipeline!, Camera, _width, _height, RenderScale);
+            ExecutePassSlot(RenderPassSlot.Axis, plan, shouldLog);
             executedStages.Add(RenderPipelineStage.AxisPass);
         }
 
@@ -141,6 +144,7 @@ public partial class VideraEngine
             plan.RenderWireframe,
             plan.RenderAxis,
             executedStages);
+        InvokeFrameHooks(RenderFrameHookPoint.FrameEnd, plan, LastPipelineSnapshot);
     }
 
     private void BeginFrame()
@@ -312,6 +316,91 @@ public partial class VideraEngine
         finally
         {
             Wireframe.Mode = explicitMode;
+        }
+    }
+
+    private void ExecutePassSlot(RenderPassSlot slot, RenderFramePlan plan, bool shouldLog)
+    {
+        var context = new RenderPassContributionContext
+        {
+            Slot = slot,
+            FramePlan = plan,
+            CommandExecutor = _executor!,
+            ResourceFactory = _factory!,
+            SceneObjects = _sceneObjects,
+            Width = _width,
+            Height = _height,
+            RenderScale = RenderScale,
+            ShouldLog = shouldLog,
+            IsInitialized = _state == EngineLifecycleState.Active,
+            ActiveBackendPreference = GetActiveBackendPreferenceUnsafe(),
+            LastPipelineSnapshot = LastPipelineSnapshot
+        };
+
+        if (_passContributorOverrides.TryGetValue(slot, out var replacement))
+        {
+            replacement.Contribute(context);
+        }
+        else
+        {
+            ExecuteBuiltInPassSlot(slot, context);
+        }
+
+        if (_passContributorRegistrations.TryGetValue(slot, out var registrations))
+        {
+            foreach (var contributor in registrations)
+            {
+                contributor.Contribute(context);
+            }
+        }
+    }
+
+    private void ExecuteBuiltInPassSlot(RenderPassSlot slot, RenderPassContributionContext context)
+    {
+        switch (slot)
+        {
+            case RenderPassSlot.Grid:
+                RenderGridPass(context.ShouldLog);
+                break;
+            case RenderPassSlot.SolidGeometry:
+                RenderSolidObjects(context.ShouldLog, context.FramePlan.EffectiveWireframeMode);
+                break;
+            case RenderPassSlot.Wireframe:
+                RenderWireframes(context.FramePlan.EffectiveWireframeMode);
+                break;
+            case RenderPassSlot.Axis:
+                _axisRenderer.Draw(_executor!, _meshPipeline!, Camera, _width, _height, RenderScale);
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(slot), slot, "Unknown render pass slot.");
+        }
+    }
+
+    private void InvokeFrameHooks(
+        RenderFrameHookPoint hookPoint,
+        RenderFramePlan plan,
+        RenderPipelineSnapshot? lastPipelineSnapshot)
+    {
+        if (!_frameHooks.TryGetValue(hookPoint, out var hooks))
+        {
+            return;
+        }
+
+        var context = new RenderFrameHookContext
+        {
+            HookPoint = hookPoint,
+            FramePlan = plan,
+            Width = _width,
+            Height = _height,
+            RenderScale = RenderScale,
+            IsInitialized = _state == EngineLifecycleState.Active,
+            ActiveBackendPreference = GetActiveBackendPreferenceUnsafe(),
+            LastPipelineSnapshot = lastPipelineSnapshot
+        };
+
+        foreach (var hook in hooks)
+        {
+            hook(context);
         }
     }
 }

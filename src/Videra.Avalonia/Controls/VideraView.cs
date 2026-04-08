@@ -12,6 +12,7 @@ using Videra.Avalonia.Rendering;
 using Videra.Core.Geometry;
 using Videra.Core.Graphics;
 using Videra.Core.Graphics.Abstractions;
+using Videra.Core.Graphics.RenderPipeline.Extensibility;
 using Videra.Core.Graphics.Wireframe;
 using Videra.Core.Styles.Parameters;
 using Videra.Core.Styles.Presets;
@@ -118,6 +119,8 @@ public partial class VideraView : Decorator
     }
 
     public VideraBackendDiagnostics BackendDiagnostics => _backendDiagnostics;
+
+    public RenderCapabilitySnapshot RenderCapabilities => Engine.GetRenderCapabilities();
 
     public IResourceFactory? GetResourceFactory()
     {
