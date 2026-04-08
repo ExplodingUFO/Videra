@@ -373,6 +373,7 @@ coverage/
 .planning/
 .idea/
 .DS_Store
+.codex-build.log
 
 # Claude Code
 .claude/
