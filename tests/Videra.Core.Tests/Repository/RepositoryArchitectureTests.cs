@@ -35,6 +35,17 @@ public sealed class RepositoryArchitectureTests
         "RenderCapabilities"
     };
 
+    private static readonly string[] PublicExtensibilityFlowSymbols =
+    {
+        "VideraView.Engine",
+        "RegisterPassContributor",
+        "RegisterFrameHook",
+        "RenderCapabilities",
+        "BackendDiagnostics",
+        "LoadModelAsync",
+        "FrameAll()"
+    };
+
     [Fact]
     public void VideraEngine_ShouldSplitRenderingAndResourceOrchestrationAcrossDedicatedPartialFiles()
     {
@@ -109,6 +120,41 @@ public sealed class RepositoryArchitectureTests
         avaloniaReadme.Should().Contain("VideraView.RenderCapabilities");
         architecture.Should().Contain("internal orchestration seams");
         architecture.Should().Contain("does not add package discovery");
+    }
+
+    [Fact]
+    public void EnglishExtensibilityDocs_ShouldAlignEntrypointsSampleAndBoundaryVocabulary()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var architecture = File.ReadAllText(Path.Combine(repositoryRoot, "ARCHITECTURE.md"));
+        var docsIndex = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "index.md"));
+        var contractDocPath = Path.Combine(repositoryRoot, "docs", "extensibility.md");
+
+        File.Exists(contractDocPath).Should().BeTrue();
+        var contractDoc = File.ReadAllText(contractDocPath);
+
+        architecture.Should().Contain("docs/extensibility.md");
+        architecture.Should().Contain("samples/Videra.ExtensibilitySample");
+        architecture.Should().Contain("disposed");
+        architecture.Should().Contain("FallbackReason");
+        architecture.Should().Contain("package discovery");
+
+        docsIndex.Should().Contain("Extensibility Contract");
+        docsIndex.Should().Contain("Videra.ExtensibilitySample");
+        docsIndex.Should().Contain("package discovery");
+        docsIndex.Should().Contain("plugin loading");
+
+        foreach (var symbol in PublicExtensibilityFlowSymbols)
+        {
+            contractDoc.Should().Contain(symbol);
+        }
+
+        contractDoc.Should().Contain("disposed");
+        contractDoc.Should().Contain("no-op");
+        contractDoc.Should().Contain("AllowSoftwareFallback");
+        contractDoc.Should().Contain("FallbackReason");
+        contractDoc.Should().Contain("package discovery");
+        contractDoc.Should().Contain("plugin loading");
     }
 
     [Fact]

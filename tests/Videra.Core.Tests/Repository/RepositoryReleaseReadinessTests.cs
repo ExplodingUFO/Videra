@@ -33,6 +33,45 @@ public sealed class RepositoryReleaseReadinessTests
     }
 
     [Fact]
+    public void RootAndPackageDocs_ShouldRouteToExtensibilityContractAndLifecycleVocabulary()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var rootReadme = File.ReadAllText(Path.Combine(repositoryRoot, "README.md"));
+        var coreReadme = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Core", "README.md"));
+        var avaloniaReadme = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Avalonia", "README.md"));
+
+        foreach (var readme in new[] { rootReadme, coreReadme, avaloniaReadme })
+        {
+            readme.Should().Contain("docs/extensibility.md");
+            readme.Should().Contain("Videra.ExtensibilitySample");
+            readme.Should().Contain("disposed");
+            readme.Should().Contain("no-op");
+            readme.Should().Contain("AllowSoftwareFallback");
+            readme.Should().Contain("package discovery");
+            readme.Should().Contain("plugin loading");
+        }
+
+        rootReadme.Should().Contain("FallbackReason");
+        coreReadme.Should().Contain("FallbackReason");
+        avaloniaReadme.Should().Contain("FallbackReason");
+    }
+
+    [Fact]
+    public void ExtensibilityContract_ShouldDescribeReadyDisposedAndFallbackStates()
+    {
+        var contract = File.ReadAllText(Path.Combine(GetRepositoryRoot(), "docs", "extensibility.md"));
+
+        contract.Should().Contain("Ready");
+        contract.Should().Contain("Pre-initialization");
+        contract.Should().Contain("disposed");
+        contract.Should().Contain("AllowSoftwareFallback = true");
+        contract.Should().Contain("AllowSoftwareFallback = false");
+        contract.Should().Contain("FallbackReason");
+        contract.Should().Contain("LoadModelAsync");
+        contract.Should().Contain("FrameAll()");
+    }
+
+    [Fact]
     public void Troubleshooting_ShouldClarifyBackendPreferenceAndValidationBoundaries()
     {
         var troubleshooting = File.ReadAllText(Path.Combine(GetRepositoryRoot(), "docs", "troubleshooting.md"));
