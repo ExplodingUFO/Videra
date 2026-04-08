@@ -305,6 +305,36 @@ public sealed class GraphicsBackendFactoryTests
         }
     }
 
+    [Fact]
+    public void ResolveBackend_ResolverUnavailableReason_ThrowsSameReason_WhenFallbackDisabled()
+    {
+        var resolver = new TestGraphicsBackendResolver
+        {
+            Result = new GraphicsBackendResolverResult(
+                Backend: null,
+                UnavailableReason: "Backend package 'Videra.Platform.Linux' is not installed.")
+        };
+        GraphicsBackendFactory.ConfigureResolver(resolver);
+
+        try
+        {
+            // Contract: AllowSoftwareFallback = false throws the same unavailable reason instead of populating FallbackReason.
+            var act = () => GraphicsBackendFactory.ResolveBackend(
+                new GraphicsBackendRequest(
+                    GraphicsBackendPreference.Vulkan,
+                    BackendEnvironmentOverrideMode.Disabled,
+                    AllowSoftwareFallback: false,
+                    LoggerFactory: NullLoggerFactory.Instance));
+
+            act.Should().Throw<InvalidOperationException>()
+                .WithMessage("Backend package 'Videra.Platform.Linux' is not installed.");
+        }
+        finally
+        {
+            GraphicsBackendFactory.ConfigureResolver(null);
+        }
+    }
+
     private sealed class TestGraphicsBackendResolver : IGraphicsBackendResolver
     {
         public GraphicsBackendPreference? LastPreference { get; private set; }

@@ -97,6 +97,58 @@ public sealed class VideraEngineExtensibilityIntegrationTests
         capabilities.LastPipelineSnapshot.StageNames.Should().Contain("PresentFrame");
     }
 
+    [Fact]
+    public void DisposedEngine_IgnoresAdditionalRegistrations_AndKeepsCapabilitiesQueryable()
+    {
+        using var backend = new SoftwareBackend();
+        backend.Initialize(IntPtr.Zero, 200, 200);
+        using var engine = new VideraEngine();
+        engine.Initialize(backend);
+
+        engine.Dispose();
+
+        var act = () =>
+        {
+            engine.RegisterPassContributor(RenderPassSlot.SolidGeometry, new NoOpContributor());
+            engine.RegisterFrameHook(RenderFrameHookPoint.FrameEnd, _ => { });
+        };
+
+        act.Should().NotThrow();
+
+        var capabilities = engine.GetRenderCapabilities();
+        capabilities.IsInitialized.Should().BeFalse();
+        capabilities.SupportsPassContributors.Should().BeTrue();
+        capabilities.SupportsPassReplacement.Should().BeTrue();
+        capabilities.SupportsFrameHooks.Should().BeTrue();
+        capabilities.SupportsPipelineSnapshots.Should().BeTrue();
+        capabilities.LastPipelineSnapshot.Should().BeNull();
+    }
+
+    [Fact]
+    public void GetRenderCapabilities_RemainsCallableAfterDispose_AndRetainsLastPipelineSnapshot()
+    {
+        using var backend = new SoftwareBackend();
+        backend.Initialize(IntPtr.Zero, 200, 200);
+        using var engine = new VideraEngine();
+        engine.Initialize(backend);
+        engine.Resize(200, 200);
+        engine.AddObject(DemoMeshFactory.CreateWhiteQuad(backend.GetResourceFactory()));
+
+        engine.Draw();
+        engine.Dispose();
+
+        var capabilities = engine.GetRenderCapabilities();
+
+        capabilities.IsInitialized.Should().BeFalse();
+        capabilities.SupportsPassContributors.Should().BeTrue();
+        capabilities.SupportsPassReplacement.Should().BeTrue();
+        capabilities.SupportsFrameHooks.Should().BeTrue();
+        capabilities.SupportsPipelineSnapshots.Should().BeTrue();
+        capabilities.LastPipelineSnapshot.Should().NotBeNull();
+        capabilities.LastPipelineSnapshot!.StageNames.Should().Contain("PrepareFrame");
+        capabilities.LastPipelineSnapshot.StageNames.Should().Contain("PresentFrame");
+    }
+
     private sealed class RecordingContributor(Action<RenderPassContributionContext> onContribute) : IRenderPassContributor
     {
         public void Contribute(RenderPassContributionContext context)

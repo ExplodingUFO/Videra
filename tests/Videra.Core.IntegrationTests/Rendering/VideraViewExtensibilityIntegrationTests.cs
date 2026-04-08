@@ -63,6 +63,33 @@ public sealed class VideraViewExtensibilityIntegrationTests
         }
     }
 
+    [Fact]
+    public void RenderCapabilities_AndBackendDiagnostics_AreQueryableBeforeInitialization()
+    {
+        var view = new VideraView();
+        try
+        {
+            view.RenderCapabilities.IsInitialized.Should().BeFalse();
+            view.RenderCapabilities.SupportsPassContributors.Should().BeTrue();
+            view.RenderCapabilities.SupportsPassReplacement.Should().BeTrue();
+            view.RenderCapabilities.SupportsFrameHooks.Should().BeTrue();
+            view.RenderCapabilities.SupportsPipelineSnapshots.Should().BeTrue();
+            view.RenderCapabilities.LastPipelineSnapshot.Should().BeNull();
+
+            view.BackendDiagnostics.IsReady.Should().BeFalse();
+            view.BackendDiagnostics.IsUsingSoftwareFallback.Should().BeFalse();
+            view.BackendDiagnostics.FallbackReason.Should().BeNull();
+            view.BackendDiagnostics.SupportsPassContributors.Should().BeTrue();
+            view.BackendDiagnostics.SupportsPassReplacement.Should().BeTrue();
+            view.BackendDiagnostics.SupportsFrameHooks.Should().BeTrue();
+            view.BackendDiagnostics.SupportsPipelineSnapshots.Should().BeTrue();
+        }
+        finally
+        {
+            view.Engine.Dispose();
+        }
+    }
+
     private sealed class RecordingContributor(Action<RenderPassContributionContext> onContribute) : IRenderPassContributor
     {
         public void Contribute(RenderPassContributionContext context)
