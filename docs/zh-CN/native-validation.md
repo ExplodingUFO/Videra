@@ -115,7 +115,7 @@ pwsh -File ./scripts/run-native-validation.ps1 -Platform Linux -LinuxDisplayServ
 如果需要无头复现，可使用 Ubuntu `xwayland-run` 包中的 `xwfb-run`：
 
 ```bash
-xwfb-run -a bash ./scripts/run-native-validation.sh --platform linux --linux-display-server xwayland --configuration Release
+xwfb-run bash ./scripts/run-native-validation.sh --platform linux --linux-display-server xwayland --configuration Release
 ```
 
 ### macOS

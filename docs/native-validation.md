@@ -116,7 +116,7 @@ pwsh -File ./scripts/run-native-validation.ps1 -Platform Linux -LinuxDisplayServ
 For a headless reproduction that still uses a real Wayland compositor plus `XWayland`, use `xwfb-run` from the Ubuntu `xwayland-run` package:
 
 ```bash
-xwfb-run -a bash ./scripts/run-native-validation.sh --platform linux --linux-display-server xwayland --configuration Release
+xwfb-run bash ./scripts/run-native-validation.sh --platform linux --linux-display-server xwayland --configuration Release
 ```
 
 ### macOS

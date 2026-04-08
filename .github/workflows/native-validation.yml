@@ -64,7 +64,7 @@ jobs:
         env:
           VIDERA_VERBOSE_TEST_LOGS: "true"
         run: |
-          xwfb-run -a bash -lc 'env | sort | grep -E "^(DISPLAY|WAYLAND_DISPLAY|XDG_RUNTIME_DIR|XDG_SESSION_TYPE)=" || true; bash ./scripts/run-native-validation.sh --platform linux --linux-display-server xwayland --configuration Release'
+          xwfb-run bash -lc 'env | sort | grep -E "^(DISPLAY|WAYLAND_DISPLAY|XDG_RUNTIME_DIR|XDG_SESSION_TYPE)=" || true; bash ./scripts/run-native-validation.sh --platform linux --linux-display-server xwayland --configuration Release'
 
   macos-native:
     if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.target == 'all' || github.event.inputs.target == 'macos' }}
