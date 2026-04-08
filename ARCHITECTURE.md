@@ -128,6 +128,27 @@ sequenceDiagram
     end
 ```
 
+## Render Pipeline Contract
+
+Phase 9 makes the current frame orchestration explicit without changing the public rendering model. `VideraEngine` now builds a frame plan, executes it in a stable order, and captures the result in `LastPipelineSnapshot`.
+
+Stable stage vocabulary for one frame:
+
+- `PrepareFrame`
+- `BindSharedFrameState`
+- `GridPass`
+- `SolidGeometryPass`
+- `WireframePass`
+- `AxisPass`
+- `PresentFrame`
+
+Contract notes:
+
+- `WireframePass` is conditional. Standard frames omit it, wireframe-overlay frames include it after `SolidGeometryPass`, and `WireframeOnly` frames skip `SolidGeometryPass`.
+- `LastPipelineSnapshot` records the executed stages plus the effective pipeline profile for the last completed frame.
+- `VideraView.BackendDiagnostics` mirrors the same read-only truth through `RenderPipelineProfile`, `LastFrameStageNames`, and `UsesSoftwarePresentationCopy`.
+- This milestone documents the existing pipeline shape only. It does not ship public custom-pass registration or frame-hook extensibility APIs yet.
+
 ## Backend Selection
 
 Videra exposes two backend-selection paths:
@@ -164,18 +185,16 @@ pwsh -File ./verify.ps1 -Configuration Release
 
 By default:
 
-- Standard validation covers solution build, tests, and common checks
-- Linux native validation requires `--include-native-linux`
-- macOS native validation requires `--include-native-macos`
-
-Windows lifecycle coverage is already part of the standard validation path. Linux and macOS native-host end-to-end validation still needs to be run on those hosts explicitly.
+- Standard validation covers solution build, tests, and common checks through `verify.sh` / `verify.ps1`
+- GitHub-hosted required checks additionally cover `windows-native`, `macos-native`, `linux-x11-native`, and `linux-wayland-xwayland-native`
+- Linux Wayland sessions are validated through the XWayland compatibility path, not compositor-native embedding
 
 ## Current Limits
 
 - Videra targets componentized 3D viewing rather than a full content creation pipeline
-- Linux native support is currently X11-first; Wayland is not yet supported
+- Linux native support currently means `X11` plus `Wayland` sessions running through `XWayland` compatibility fallback
 - The macOS backend relies on Objective-C runtime interop
-- All native backends can still improve in stability, encapsulation, and host validation depth
+- Public render-pipeline extensibility is not exposed yet; current pipeline diagnostics are read-only contract truth
 
 ## Related Docs
 

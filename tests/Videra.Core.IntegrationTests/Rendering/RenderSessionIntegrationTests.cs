@@ -4,6 +4,7 @@ using Videra.Avalonia.Rendering;
 using Videra.Core.Geometry;
 using Videra.Core.Graphics;
 using Videra.Core.Graphics.Abstractions;
+using Videra.Core.Graphics.RenderPipeline;
 using Xunit;
 
 namespace Videra.Core.IntegrationTests.Rendering;
@@ -191,6 +192,23 @@ public sealed class RenderSessionIntegrationTests
         backendFactory.CreatedBackends[0].DisposeCalls.Should().Be(1);
         session.IsReady.Should().BeFalse();
         session.HandleState.IsBound.Should().BeFalse();
+    }
+
+    [Fact]
+    public void RenderSession_RenderOnce_CapturesLastPipelineSnapshot()
+    {
+        using var engine = new VideraEngine();
+        using var session = new RenderSession(engine, bitmapFactory: static (_, _) => null);
+
+        session.Attach(GraphicsBackendPreference.Software);
+        session.Resize(128, 96, 1f);
+
+        session.RenderOnce();
+
+        session.LastPipelineSnapshot.Should().NotBeNull();
+        session.LastPipelineSnapshot!.Profile.Should().Be(RenderPipelineProfile.Standard);
+        session.LastPipelineSnapshot.StageNames.Should().Contain("PrepareFrame");
+        session.LastPipelineSnapshot.StageNames.Should().Contain("PresentFrame");
     }
 
     private sealed class TrackingBackendFactory

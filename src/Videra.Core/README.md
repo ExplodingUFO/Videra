@@ -23,6 +23,34 @@ Current status: `alpha`. This package is the right starting point only for core-
 - `IResourceFactory`
 - `ICommandExecutor`
 
+## Current Render Pipeline Contract
+
+`VideraEngine` now exposes the current frame shape as read-only contract truth. After a completed draw, `LastPipelineSnapshot` records the effective pipeline profile and executed stage list for the last frame.
+
+Stable stage vocabulary:
+
+- `PrepareFrame`
+- `BindSharedFrameState`
+- `GridPass`
+- `SolidGeometryPass`
+- `WireframePass`
+- `AxisPass`
+- `PresentFrame`
+
+Current profiles:
+
+- `Standard`
+- `StandardWithWireframeOverlay`
+- `WireframeOnly`
+
+When consumed through `Videra.Avalonia`, the control diagnostics mirror the same information through `RenderPipelineProfile`, `LastFrameStageNames`, and `UsesSoftwarePresentationCopy`.
+
+Current scope boundary:
+
+- The pipeline contract is observable and documented.
+- Public custom-pass registration is not exposed yet.
+- A public frame hook API is not exposed yet.
+
 ## Typical Use
 
 Configure GitHub Packages before installing the package:

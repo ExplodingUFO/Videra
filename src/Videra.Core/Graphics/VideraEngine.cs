@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using Videra.Core.Cameras;
 using Videra.Core.Geometry;
 using Videra.Core.Graphics.Abstractions;
+using Videra.Core.Graphics.RenderPipeline;
 using Videra.Core.Graphics.Wireframe;
 using Videra.Core.Styles.Services;
 
@@ -77,6 +78,8 @@ public partial class VideraEngine : IDisposable
     /// Gets the wireframe renderer that overlays wireframe geometry on scene objects.
     /// </summary>
     public WireframeRenderer Wireframe { get; } = new();
+
+    public RenderPipelineSnapshot? LastPipelineSnapshot { get; private set; }
 
     /// <summary>
     /// Gets or sets a value indicating whether the origin axis helper is visible.

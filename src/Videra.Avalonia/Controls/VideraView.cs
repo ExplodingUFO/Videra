@@ -4,6 +4,7 @@ using System.ComponentModel;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
+using Avalonia.Media.Imaging;
 using Avalonia.Threading;
 using Microsoft.Extensions.Logging;
 using Videra.Avalonia.Composition;
@@ -30,6 +31,7 @@ public partial class VideraView : Decorator
     private Grid? _nativeContainer;
     private Border? _inputOverlay;
     private readonly ILogger _logger = Microsoft.Extensions.Logging.Abstractions.NullLoggerFactory.Instance.CreateLogger<VideraView>();
+    private readonly Func<uint, uint, WriteableBitmap?>? _bitmapFactory;
 
     public event EventHandler? BackendReady;
     public event EventHandler<VideraBackendStatusChangedEventArgs>? BackendStatusChanged;
@@ -85,11 +87,12 @@ public partial class VideraView : Decorator
     {
     }
 
-    internal VideraView(INativeHostFactory? nativeHostFactory)
+    internal VideraView(INativeHostFactory? nativeHostFactory, Func<uint, uint, WriteableBitmap?>? bitmapFactory = null)
     {
         AvaloniaGraphicsBackendResolver.EnsureRegistered();
         Engine = new VideraEngine();
         _nativeHostFactory = nativeHostFactory ?? new DefaultNativeHostFactory();
+        _bitmapFactory = bitmapFactory;
         _renderSession = CreateRenderSession();
         SubscribeToOptions(_options);
         _backendDiagnostics = CreateDiagnosticsSnapshot(lastInitializationError: null);
@@ -312,7 +315,8 @@ public partial class VideraView : Decorator
             Engine,
             requestRender: InvalidateVisual,
             logger: _logger,
-            renderLoopFactory: static () => new RenderSession.DispatcherRenderLoopDriver());
+            renderLoopFactory: static () => new RenderSession.DispatcherRenderLoopDriver(),
+            bitmapFactory: _bitmapFactory);
         session.BackendReady += OnRenderSessionBackendReady;
         return session;
     }
@@ -645,7 +649,10 @@ public partial class VideraView : Decorator
             LastInitializationError = lastInitializationError ?? _renderSession.LastInitializationError?.Message,
             ResolvedDisplayServer = _renderSession.LastResolvedDisplayServer,
             DisplayServerFallbackUsed = _renderSession.LastDisplayServerFallbackUsed,
-            DisplayServerFallbackReason = _renderSession.LastDisplayServerFallbackReason
+            DisplayServerFallbackReason = _renderSession.LastDisplayServerFallbackReason,
+            RenderPipelineProfile = _renderSession.LastPipelineSnapshot?.Profile.ToString(),
+            LastFrameStageNames = _renderSession.LastPipelineSnapshot?.StageNames?.ToArray() ?? Array.Empty<string>(),
+            UsesSoftwarePresentationCopy = _renderSession.IsSoftwareBackend
         };
     }
 

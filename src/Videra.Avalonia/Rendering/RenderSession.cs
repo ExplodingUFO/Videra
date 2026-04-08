@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using Videra.Avalonia.Controls;
 using Videra.Core.Graphics;
 using Videra.Core.Graphics.Abstractions;
+using Videra.Core.Graphics.RenderPipeline;
 
 namespace Videra.Avalonia.Rendering;
 
@@ -21,6 +22,7 @@ internal sealed partial class RenderSession : IDisposable
     private readonly Action? _requestRender;
     private readonly ILogger _logger;
     private readonly Func<IRenderLoopDriver> _renderLoopFactory;
+    private readonly Func<uint, uint, WriteableBitmap?> _bitmapFactory;
 
     private IGraphicsBackend? _backend;
     private IRenderLoopDriver? _renderLoop;
@@ -37,7 +39,8 @@ internal sealed partial class RenderSession : IDisposable
         Action? requestRender = null,
         ILogger? logger = null,
         Func<IRenderLoopDriver>? renderLoopFactory = null,
-        Func<GraphicsBackendRequest, GraphicsBackendResolution>? backendResolutionFactory = null)
+        Func<GraphicsBackendRequest, GraphicsBackendResolution>? backendResolutionFactory = null,
+        Func<uint, uint, WriteableBitmap?>? bitmapFactory = null)
     {
         _engine = engine ?? throw new ArgumentNullException(nameof(engine));
         _backendFactory = backendFactory ?? (preference => GraphicsBackendFactory.CreateBackend(preference));
@@ -48,6 +51,7 @@ internal sealed partial class RenderSession : IDisposable
         _requestRender = requestRender;
         _logger = logger ?? Microsoft.Extensions.Logging.Abstractions.NullLoggerFactory.Instance.CreateLogger<RenderSession>();
         _renderLoopFactory = renderLoopFactory ?? (() => new NullRenderLoopDriver());
+        _bitmapFactory = bitmapFactory ?? CreateWriteableBitmap;
     }
 
     public event EventHandler? BackendReady;
@@ -73,6 +77,8 @@ internal sealed partial class RenderSession : IDisposable
     internal bool LastDisplayServerFallbackUsed { get; private set; }
 
     internal string? LastDisplayServerFallbackReason { get; private set; }
+
+    internal RenderPipelineSnapshot? LastPipelineSnapshot { get; private set; }
 
     internal void SetDisplayServerDiagnostics(string? resolvedDisplayServer, bool fallbackUsed, string? fallbackReason)
     {
@@ -209,6 +215,7 @@ internal sealed partial class RenderSession : IDisposable
             try
             {
                 _engine.Draw();
+                LastPipelineSnapshot = _engine.LastPipelineSnapshot;
 
                 if (_backend is ISoftwareBackend softwareBackend)
                 {
@@ -257,6 +264,7 @@ internal sealed partial class RenderSession : IDisposable
             LastResolvedDisplayServer = null;
             LastDisplayServerFallbackUsed = false;
             LastDisplayServerFallbackReason = null;
+            LastPipelineSnapshot = null;
         }
     }
 
@@ -328,6 +336,7 @@ internal sealed partial class RenderSession : IDisposable
         }
 
         _backend = null;
+        LastPipelineSnapshot = null;
         TransitionToWaitingStateUnsafe(CreateBackendRequest());
     }
 
@@ -353,11 +362,7 @@ internal sealed partial class RenderSession : IDisposable
         }
 
         _bitmap?.Dispose();
-        _bitmap = new WriteableBitmap(
-            new PixelSize((int)width, (int)height),
-            new Vector(96, 96),
-            PixelFormat.Bgra8888,
-            AlphaFormat.Premul);
+        _bitmap = _bitmapFactory(width, height);
     }
 
     private void StartRenderLoopUnsafe()
@@ -502,5 +507,14 @@ internal sealed partial class RenderSession : IDisposable
         Ready,
         Faulted,
         Disposed
+    }
+
+    private static WriteableBitmap CreateWriteableBitmap(uint width, uint height)
+    {
+        return new WriteableBitmap(
+            new PixelSize((int)width, (int)height),
+            new Vector(96, 96),
+            PixelFormat.Bgra8888,
+            AlphaFormat.Premul);
     }
 }

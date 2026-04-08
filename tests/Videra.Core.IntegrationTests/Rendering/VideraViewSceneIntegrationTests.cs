@@ -2,6 +2,7 @@ using System.Collections;
 using System.Reflection;
 using FluentAssertions;
 using Videra.Avalonia.Controls;
+using Videra.Avalonia.Rendering;
 using Videra.Core.Graphics;
 using Videra.Core.Graphics.Wireframe;
 using Videra.Core.Graphics.Software;
@@ -296,6 +297,40 @@ public sealed class VideraViewSceneIntegrationTests : IDisposable
             view.BackendDiagnostics.ResolvedDisplayServer.Should().Be("XWayland");
             view.BackendDiagnostics.DisplayServerFallbackUsed.Should().BeTrue();
             view.BackendDiagnostics.DisplayServerFallbackReason.Should().Be("Wayland host unavailable.");
+        }
+        finally
+        {
+            view.Engine.Dispose();
+        }
+    }
+
+    [Fact]
+    public void BackendDiagnostics_CanReflectPipelineSummaryForSoftwarePresentation()
+    {
+        var view = new VideraView(nativeHostFactory: null, bitmapFactory: static (_, _) => null);
+        try
+        {
+            var renderSessionField = typeof(VideraView).GetField("_renderSession", BindingFlags.Instance | BindingFlags.NonPublic);
+            renderSessionField.Should().NotBeNull();
+
+            var renderSession = (RenderSession?)renderSessionField!.GetValue(view);
+            renderSession.Should().NotBeNull();
+
+            renderSession!.Attach(GraphicsBackendPreference.Software);
+            renderSession.Resize(128, 96, 1f);
+            renderSession.RenderOnce();
+
+            var refreshDiagnostics = typeof(VideraView).GetMethod(
+                "RefreshBackendDiagnostics",
+                BindingFlags.Instance | BindingFlags.NonPublic);
+            refreshDiagnostics.Should().NotBeNull();
+            refreshDiagnostics!.Invoke(view, new object?[] { null });
+
+            view.BackendDiagnostics.RenderPipelineProfile.Should().Be("Standard");
+            view.BackendDiagnostics.LastFrameStageNames.Should().NotBeNull();
+            view.BackendDiagnostics.LastFrameStageNames.Should().Contain("PrepareFrame");
+            view.BackendDiagnostics.LastFrameStageNames.Should().Contain("PresentFrame");
+            view.BackendDiagnostics.UsesSoftwarePresentationCopy.Should().BeTrue();
         }
         finally
         {

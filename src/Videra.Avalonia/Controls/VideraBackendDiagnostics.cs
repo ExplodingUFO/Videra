@@ -13,7 +13,8 @@ public sealed class VideraBackendDiagnostics
             RenderLoopMode = VideraRenderLoopMode.Dispatcher,
             ResolvedDisplayServer = null,
             DisplayServerFallbackUsed = false,
-            DisplayServerFallbackReason = null
+            DisplayServerFallbackReason = null,
+            LastFrameStageNames = Array.Empty<string>()
         };
     }
 
@@ -40,6 +41,12 @@ public sealed class VideraBackendDiagnostics
     public bool DisplayServerFallbackUsed { get; init; }
 
     public string? DisplayServerFallbackReason { get; init; }
+
+    public string? RenderPipelineProfile { get; init; }
+
+    public IReadOnlyList<string>? LastFrameStageNames { get; init; }
+
+    public bool UsesSoftwarePresentationCopy { get; init; }
 }
 
 public sealed class VideraBackendStatusChangedEventArgs : EventArgs

@@ -5,6 +5,17 @@ namespace Videra.Core.Tests.Repository;
 
 public sealed class RepositoryLocalizationTests
 {
+    private static readonly string[] PipelineStageNames =
+    {
+        "PrepareFrame",
+        "BindSharedFrameState",
+        "GridPass",
+        "SolidGeometryPass",
+        "WireframePass",
+        "AxisPass",
+        "PresentFrame"
+    };
+
     [Fact]
     public void Readme_ShouldBeEnglishPrimaryWithChineseSwitch()
     {
@@ -130,6 +141,32 @@ public sealed class RepositoryLocalizationTests
         linuxModule.Should().Contain("X11");
         linuxModule.Should().Contain("XWayland");
         macosModule.Should().Contain("CAMetalLayer");
+    }
+
+    [Fact]
+    public void ChineseCoreModule_ShouldMirrorPipelineVocabulary_AndDiagnosticsTruth()
+    {
+        var coreModule = File.ReadAllText(Path.Combine(GetRepositoryRoot(), "docs", "zh-CN", "modules", "videra-core.md"));
+
+        foreach (var stageName in PipelineStageNames)
+        {
+            coreModule.Should().Contain(stageName);
+        }
+
+        coreModule.Should().Contain("RenderPipelineProfile");
+        coreModule.Should().Contain("LastFrameStageNames");
+        coreModule.Should().Contain("UsesSoftwarePresentationCopy");
+    }
+
+    [Fact]
+    public void ChineseCoreModule_ShouldNotOverclaimPublicRenderPassExtensibility()
+    {
+        var coreModule = File.ReadAllText(Path.Combine(GetRepositoryRoot(), "docs", "zh-CN", "modules", "videra-core.md"));
+
+        foreach (var forbiddenSymbol in new[] { "RegisterPass(", "FrameHook", "IRenderPassContributor" })
+        {
+            coreModule.Should().NotContain(forbiddenSymbol);
+        }
     }
 
     private static string GetRepositoryRoot()

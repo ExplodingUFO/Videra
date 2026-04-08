@@ -1,5 +1,6 @@
 using System.Numerics;
 using Videra.Core.Graphics.Abstractions;
+using Videra.Core.Graphics.RenderPipeline;
 using Videra.Core.Graphics.Wireframe;
 
 namespace Videra.Core.Graphics;
@@ -47,12 +48,99 @@ public partial class VideraEngine
     {
         var effectiveWireframeMode = GetEffectiveWireframeMode();
         EnsureWireframeResources(effectiveWireframeMode);
+        var plan = CreateFramePlan(effectiveWireframeMode);
+        ExecuteFramePlan(plan, shouldLog);
+    }
+
+    private RenderFramePlan CreateFramePlan(WireframeMode effectiveWireframeMode)
+    {
+        var renderGrid = Grid.IsVisible;
+        var renderSolidGeometry = effectiveWireframeMode != WireframeMode.WireframeOnly;
+        var renderWireframe = effectiveWireframeMode != WireframeMode.None;
+        var renderAxis = ShowAxis;
+        var stages = new List<RenderPipelineStage>
+        {
+            RenderPipelineStage.PrepareFrame,
+            RenderPipelineStage.BindSharedFrameState
+        };
+
+        if (renderGrid)
+        {
+            stages.Add(RenderPipelineStage.GridPass);
+        }
+
+        if (renderSolidGeometry)
+        {
+            stages.Add(RenderPipelineStage.SolidGeometryPass);
+        }
+
+        if (renderWireframe)
+        {
+            stages.Add(RenderPipelineStage.WireframePass);
+        }
+
+        if (renderAxis)
+        {
+            stages.Add(RenderPipelineStage.AxisPass);
+        }
+
+        stages.Add(RenderPipelineStage.PresentFrame);
+
+        return new RenderFramePlan(
+            DetermineProfile(effectiveWireframeMode),
+            effectiveWireframeMode,
+            renderGrid,
+            renderSolidGeometry,
+            renderWireframe,
+            renderAxis,
+            stages);
+    }
+
+    private void ExecuteFramePlan(RenderFramePlan plan, bool shouldLog)
+    {
+        var executedStages = new List<RenderPipelineStage>(plan.PlannedStages.Count);
+
         BeginFrame();
+        executedStages.Add(RenderPipelineStage.PrepareFrame);
+
         BindSharedFrameState(shouldLog);
-        RenderGridPass(shouldLog);
-        RenderSolidObjects(shouldLog, effectiveWireframeMode);
-        RenderOverlayPasses(effectiveWireframeMode);
+        executedStages.Add(RenderPipelineStage.BindSharedFrameState);
+
+        if (plan.RenderGrid)
+        {
+            RenderGridPass(shouldLog);
+            executedStages.Add(RenderPipelineStage.GridPass);
+        }
+
+        if (plan.RenderSolidGeometry)
+        {
+            RenderSolidObjects(shouldLog, plan.EffectiveWireframeMode);
+            executedStages.Add(RenderPipelineStage.SolidGeometryPass);
+        }
+
+        if (plan.RenderWireframe)
+        {
+            RenderWireframes(plan.EffectiveWireframeMode);
+            executedStages.Add(RenderPipelineStage.WireframePass);
+        }
+
+        if (plan.RenderAxis)
+        {
+            _axisRenderer.Draw(_executor!, _meshPipeline!, Camera, _width, _height, RenderScale);
+            executedStages.Add(RenderPipelineStage.AxisPass);
+        }
+
         _backend!.EndFrame();
+        executedStages.Add(RenderPipelineStage.PresentFrame);
+
+        LastPipelineSnapshot = new RenderPipelineSnapshot(
+            plan.Profile,
+            plan.EffectiveWireframeMode,
+            plan.RenderGrid,
+            plan.RenderSolidGeometry,
+            plan.RenderWireframe,
+            plan.RenderAxis,
+            executedStages);
     }
 
     private void BeginFrame()
@@ -166,14 +254,14 @@ public partial class VideraEngine
         }
     }
 
-    private void RenderOverlayPasses(WireframeMode effectiveWireframeMode)
+    private static RenderPipelineProfile DetermineProfile(WireframeMode effectiveWireframeMode)
     {
-        if (effectiveWireframeMode != WireframeMode.None)
+        return effectiveWireframeMode switch
         {
-            RenderWireframes(effectiveWireframeMode);
-        }
-
-        _axisRenderer.Draw(_executor!, _meshPipeline!, Camera, _width, _height, RenderScale);
+            WireframeMode.None => RenderPipelineProfile.Standard,
+            WireframeMode.WireframeOnly => RenderPipelineProfile.WireframeOnly,
+            _ => RenderPipelineProfile.StandardWithWireframeOverlay
+        };
     }
 
     private WireframeMode GetEffectiveWireframeMode()

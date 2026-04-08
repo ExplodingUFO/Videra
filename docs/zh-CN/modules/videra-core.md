@@ -138,6 +138,25 @@ sequenceDiagram
     Backend->>Backend: 呈现到屏幕
 ```
 
+当前实现已经把一帧的稳定 stage vocabulary 显式化，并由 `VideraEngine.LastPipelineSnapshot` 记录最近一帧的真实执行结果。
+
+稳定 stage vocabulary：
+
+- `PrepareFrame`
+- `BindSharedFrameState`
+- `GridPass`
+- `SolidGeometryPass`
+- `WireframePass`
+- `AxisPass`
+- `PresentFrame`
+
+合同边界：
+
+- `RenderPipelineProfile` 表示当前帧的 profile，当前值为 `Standard`、`StandardWithWireframeOverlay`、`WireframeOnly`。
+- `LastFrameStageNames` 镜像最近一帧真正执行过的 stage 名称。
+- `UsesSoftwarePresentationCopy` 用来区分当前是否经过软件位图拷贝呈现。
+- 当前 phase 只是把 pipeline truth 显式化并开放诊断读取；还没有公开 custom render pass registration，也没有 public frame hook API。
+
 ## 抽象接口
 
 ### IGraphicsBackend
