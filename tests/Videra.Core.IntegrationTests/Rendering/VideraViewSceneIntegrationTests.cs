@@ -503,9 +503,10 @@ public sealed class VideraViewSceneIntegrationTests : IDisposable
     {
         var nativeHostFactory = new RecordingNativeHostFactory();
         var view = new VideraView(nativeHostFactory, bitmapFactory: static (_, _) => null);
+        NativeTrackingSessionSwap? sessionSwap = null;
         try
         {
-            ReplaceRenderSessionWithNativeTrackingBackend(view);
+            sessionSwap = NativeTrackingSessionSwap.Install(view);
             view.PreferredBackend = GraphicsBackendPreference.D3D11;
 
             var ensureNativeHost = typeof(VideraView).GetMethod("EnsureNativeHost", BindingFlags.Instance | BindingFlags.NonPublic);
@@ -563,6 +564,7 @@ public sealed class VideraViewSceneIntegrationTests : IDisposable
         }
         finally
         {
+            sessionSwap?.Dispose();
             view.Engine.Dispose();
         }
     }
@@ -670,32 +672,99 @@ public sealed class VideraViewSceneIntegrationTests : IDisposable
         return overlayState!;
     }
 
-    private static void ReplaceRenderSessionWithNativeTrackingBackend(VideraView view)
+    private sealed class NativeTrackingSessionSwap : IDisposable
     {
-        var renderSessionField = typeof(VideraView).GetField("_renderSession", BindingFlags.Instance | BindingFlags.NonPublic);
-        var sessionBridgeField = typeof(VideraView).GetField("_sessionBridge", BindingFlags.Instance | BindingFlags.NonPublic);
-        var createSessionBridge = typeof(VideraView).GetMethod("CreateSessionBridge", BindingFlags.Instance | BindingFlags.NonPublic);
-        var onBackendReady = typeof(VideraView).GetMethod("OnRenderSessionBackendReady", BindingFlags.Instance | BindingFlags.NonPublic);
-        var pushOverlayRenderState = typeof(VideraView).GetMethod("PushOverlayRenderState", BindingFlags.Instance | BindingFlags.NonPublic);
-        var onRenderSessionFrameRequested = typeof(VideraView).GetMethod("OnRenderSessionFrameRequested", BindingFlags.Instance | BindingFlags.NonPublic);
+        private static readonly FieldInfo RenderSessionField =
+            typeof(VideraView).GetField("_renderSession", BindingFlags.Instance | BindingFlags.NonPublic)!;
 
-        renderSessionField.Should().NotBeNull();
-        sessionBridgeField.Should().NotBeNull();
-        createSessionBridge.Should().NotBeNull();
-        onBackendReady.Should().NotBeNull();
-        pushOverlayRenderState.Should().NotBeNull();
-        onRenderSessionFrameRequested.Should().NotBeNull();
+        private static readonly FieldInfo SessionBridgeField =
+            typeof(VideraView).GetField("_sessionBridge", BindingFlags.Instance | BindingFlags.NonPublic)!;
 
-        var session = new RenderSession(
-            view.Engine,
-            backendFactory: static _ => new NativeTrackingBackend(),
-            beforeRender: () => pushOverlayRenderState!.Invoke(view, Array.Empty<object>()),
-            requestRender: () => onRenderSessionFrameRequested!.Invoke(view, Array.Empty<object>()),
-            bitmapFactory: static (_, _) => null);
-        session.BackendReady += (sender, args) => onBackendReady!.Invoke(view, [sender, args]);
+        private static readonly MethodInfo CreateSessionBridgeMethod =
+            typeof(VideraView).GetMethod("CreateSessionBridge", BindingFlags.Instance | BindingFlags.NonPublic)!;
 
-        renderSessionField!.SetValue(view, session);
-        sessionBridgeField!.SetValue(view, createSessionBridge!.Invoke(view, Array.Empty<object>()));
+        private static readonly MethodInfo OnBackendReadyMethod =
+            typeof(VideraView).GetMethod("OnRenderSessionBackendReady", BindingFlags.Instance | BindingFlags.NonPublic)!;
+
+        private static readonly MethodInfo PushOverlayRenderStateMethod =
+            typeof(VideraView).GetMethod("PushOverlayRenderState", BindingFlags.Instance | BindingFlags.NonPublic)!;
+
+        private static readonly MethodInfo OnRenderSessionFrameRequestedMethod =
+            typeof(VideraView).GetMethod("OnRenderSessionFrameRequested", BindingFlags.Instance | BindingFlags.NonPublic)!;
+
+        private static readonly MethodInfo ReleaseNativeHostMethod =
+            typeof(VideraView).GetMethod("ReleaseNativeHost", BindingFlags.Instance | BindingFlags.NonPublic)!;
+
+        private readonly VideraView _view;
+        private readonly RenderSession _originalSession;
+        private readonly object _originalSessionBridge;
+        private readonly RenderSession _replacementSession;
+        private readonly EventHandler _backendReadyHandler;
+        private bool _disposed;
+
+        private NativeTrackingSessionSwap(
+            VideraView view,
+            RenderSession originalSession,
+            object originalSessionBridge,
+            RenderSession replacementSession,
+            EventHandler backendReadyHandler)
+        {
+            _view = view;
+            _originalSession = originalSession;
+            _originalSessionBridge = originalSessionBridge;
+            _replacementSession = replacementSession;
+            _backendReadyHandler = backendReadyHandler;
+        }
+
+        public static NativeTrackingSessionSwap Install(VideraView view)
+        {
+            RenderSessionField.Should().NotBeNull();
+            SessionBridgeField.Should().NotBeNull();
+            CreateSessionBridgeMethod.Should().NotBeNull();
+            OnBackendReadyMethod.Should().NotBeNull();
+            PushOverlayRenderStateMethod.Should().NotBeNull();
+            OnRenderSessionFrameRequestedMethod.Should().NotBeNull();
+            ReleaseNativeHostMethod.Should().NotBeNull();
+
+            var originalSession = (RenderSession?)RenderSessionField.GetValue(view);
+            var originalSessionBridge = SessionBridgeField.GetValue(view);
+            originalSession.Should().NotBeNull();
+            originalSessionBridge.Should().NotBeNull();
+
+            var replacementSession = new RenderSession(
+                view.Engine,
+                backendFactory: static _ => new NativeTrackingBackend(),
+                beforeRender: () => PushOverlayRenderStateMethod.Invoke(view, Array.Empty<object>()),
+                requestRender: () => OnRenderSessionFrameRequestedMethod.Invoke(view, Array.Empty<object>()),
+                bitmapFactory: static (_, _) => null);
+            EventHandler backendReadyHandler = (sender, args) => OnBackendReadyMethod.Invoke(view, [sender, args]);
+            replacementSession.BackendReady += backendReadyHandler;
+
+            RenderSessionField.SetValue(view, replacementSession);
+            SessionBridgeField.SetValue(view, CreateSessionBridgeMethod.Invoke(view, Array.Empty<object>())!);
+
+            return new NativeTrackingSessionSwap(
+                view,
+                originalSession!,
+                originalSessionBridge!,
+                replacementSession,
+                backendReadyHandler);
+        }
+
+        public void Dispose()
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            _disposed = true;
+            ReleaseNativeHostMethod.Invoke(_view, Array.Empty<object>());
+            _replacementSession.BackendReady -= _backendReadyHandler;
+            _replacementSession.BindHandle(IntPtr.Zero);
+            RenderSessionField.SetValue(_view, _originalSession);
+            SessionBridgeField.SetValue(_view, _originalSessionBridge);
+        }
     }
 
     private sealed class NativeTrackingBackend : IGraphicsBackend
