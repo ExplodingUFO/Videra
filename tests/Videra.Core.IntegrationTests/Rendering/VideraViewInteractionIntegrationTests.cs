@@ -16,6 +16,10 @@ namespace Videra.Core.IntegrationTests.Rendering;
 
 public sealed class VideraViewInteractionIntegrationTests
 {
+    private const int MkLButton = 0x0001;
+    private const int MkShift = 0x0004;
+    private const int MkControl = 0x0008;
+
     [Fact]
     public void NavigateMode_RoutedPointerInput_UpdatesCamera()
     {
@@ -481,6 +485,73 @@ public sealed class VideraViewInteractionIntegrationTests
     }
 
     [Fact]
+    public void SelectMode_NativeWin32CtrlClick_EmitsToggleSelectionRequest()
+    {
+        var nativeHostFactory = new TranslatingNativeHostFactory();
+        var view = CreateInteractiveView(nativeHostFactory);
+        try
+        {
+            var sceneObject = AddCenteredQuad(view);
+            view.InteractionMode = VideraInteractionMode.Select;
+            InvokeNonPublicMethod(view, "EnsureNativeHost");
+
+            nativeHostFactory.LastCreatedHost.Should().NotBeNull();
+            var point = ProjectPoint(view, Vector3.Zero);
+            SelectionRequestedEventArgs? request = null;
+            view.SelectionRequested += (_, e) => request = e;
+
+            nativeHostFactory.LastCreatedHost!.RaiseWin32Pointer(NativePointerKind.LeftDown, point, MkLButton | MkControl);
+            nativeHostFactory.LastCreatedHost.RaiseWin32Pointer(NativePointerKind.LeftUp, point, MkControl);
+
+            request.Should().NotBeNull();
+            request!.Operation.Should().Be(VideraSelectionOperation.Toggle);
+            request.ObjectIds.Should().ContainSingle().Which.Should().Be(sceneObject.Id);
+            request.PrimaryObjectId.Should().Be(sceneObject.Id);
+        }
+        finally
+        {
+            InvokeNonPublicMethod(view, "ReleaseNativeHost");
+            view.Engine.Dispose();
+        }
+    }
+
+    [Fact]
+    public void SelectMode_NativeWin32ShiftDrag_EmitsAdditiveBoxSelectionRequest()
+    {
+        var nativeHostFactory = new TranslatingNativeHostFactory();
+        var view = CreateInteractiveView(nativeHostFactory);
+        try
+        {
+            var first = AddQuad(view, new Vector3(-1.1f, 0f, 0f));
+            var second = AddQuad(view, new Vector3(1.1f, 0f, 0f));
+            view.InteractionMode = VideraInteractionMode.Select;
+            InvokeNonPublicMethod(view, "EnsureNativeHost");
+
+            nativeHostFactory.LastCreatedHost.Should().NotBeNull();
+            var firstPoint = ProjectPoint(view, first.WorldBounds!.Value.Center);
+            var secondPoint = ProjectPoint(view, second.WorldBounds!.Value.Center);
+            var start = new Point(Math.Min(firstPoint.X, secondPoint.X) - 30d, Math.Min(firstPoint.Y, secondPoint.Y) - 30d);
+            var end = new Point(Math.Max(firstPoint.X, secondPoint.X) + 30d, Math.Max(firstPoint.Y, secondPoint.Y) + 30d);
+            SelectionRequestedEventArgs? request = null;
+            view.SelectionRequested += (_, e) => request = e;
+
+            nativeHostFactory.LastCreatedHost!.RaiseWin32Pointer(NativePointerKind.LeftDown, start, MkLButton | MkShift);
+            nativeHostFactory.LastCreatedHost.RaiseWin32Pointer(NativePointerKind.Move, end, MkLButton | MkShift);
+            nativeHostFactory.LastCreatedHost.RaiseWin32Pointer(NativePointerKind.LeftUp, end, MkShift);
+
+            request.Should().NotBeNull();
+            request!.Operation.Should().Be(VideraSelectionOperation.Add);
+            request.ObjectIds.Should().Equal(first.Id, second.Id);
+            request.PrimaryObjectId.Should().Be(first.Id);
+        }
+        finally
+        {
+            InvokeNonPublicMethod(view, "ReleaseNativeHost");
+            view.Engine.Dispose();
+        }
+    }
+
+    [Fact]
     public void RoutedCaptureLifecycle_PreservesCaptureUntilAllButtonsRelease_AndResetsOnCaptureLost()
     {
         var view = CreateInteractiveView();
@@ -789,6 +860,57 @@ public sealed class VideraViewInteractionIntegrationTests
         public void RaiseNativePointer(NativePointerEvent e)
         {
             NativePointer?.Invoke(e);
+        }
+    }
+
+    private sealed class TranslatingNativeHostFactory : INativeHostFactory
+    {
+        public TranslatingNativeHost? LastCreatedHost { get; private set; }
+
+        public IVideraNativeHost? CreateHost()
+        {
+            LastCreatedHost = new TranslatingNativeHost();
+            return LastCreatedHost;
+        }
+    }
+
+    private sealed class TranslatingNativeHost : NativeControlHost, IVideraNativeHost
+    {
+        private static readonly System.Reflection.MethodInfo RaisePointerMethod =
+            typeof(VideraNativeHost).GetMethod(
+                "RaisePointer",
+                BindingFlags.Instance | BindingFlags.NonPublic,
+                binder: null,
+                [typeof(NativePointerKind), typeof(IntPtr), typeof(IntPtr), typeof(int)],
+                modifiers: null)!;
+
+        private readonly VideraNativeHost _translator = new();
+
+        public TranslatingNativeHost()
+        {
+            _translator.NativePointer += OnTranslatedPointer;
+        }
+
+        public event Action<IntPtr>? HandleCreated;
+        public event Action? HandleDestroyed;
+        public event Action<NativePointerEvent>? NativePointer;
+
+        public void RaiseWin32Pointer(NativePointerKind kind, Point position, int wParamState, int wheelDelta = 0)
+        {
+            RaisePointerMethod.Invoke(_translator, [kind, new IntPtr(wParamState), CreateLParam(position), wheelDelta]);
+        }
+
+        private void OnTranslatedPointer(NativePointerEvent e)
+        {
+            NativePointer?.Invoke(e);
+        }
+
+        private static IntPtr CreateLParam(Point position)
+        {
+            var x = unchecked((ushort)(short)Math.Round(position.X));
+            var y = unchecked((ushort)(short)Math.Round(position.Y));
+            var value = (y << 16) | x;
+            return new IntPtr(value);
         }
     }
 
