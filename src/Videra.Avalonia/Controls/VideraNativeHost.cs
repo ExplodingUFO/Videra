@@ -2,6 +2,7 @@ using System.ComponentModel;
 using System.Runtime.InteropServices;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Platform;
 using Microsoft.Extensions.Logging;
 
@@ -121,27 +122,27 @@ internal sealed partial class VideraNativeHost : NativeControlHost, IVideraNativ
             case WmLButtonDown:
                 SetFocus(hWnd);
                 SetCapture(hWnd);
-                RaisePointer(NativePointerKind.LeftDown, lParam, 0);
+                RaisePointer(NativePointerKind.LeftDown, wParam, lParam, 0);
                 return IntPtr.Zero;
             case WmLButtonUp:
                 ReleaseCapture();
-                RaisePointer(NativePointerKind.LeftUp, lParam, 0);
+                RaisePointer(NativePointerKind.LeftUp, wParam, lParam, 0);
                 return IntPtr.Zero;
             case WmRButtonDown:
                 SetFocus(hWnd);
                 SetCapture(hWnd);
-                RaisePointer(NativePointerKind.RightDown, lParam, 0);
+                RaisePointer(NativePointerKind.RightDown, wParam, lParam, 0);
                 return IntPtr.Zero;
             case WmRButtonUp:
                 ReleaseCapture();
-                RaisePointer(NativePointerKind.RightUp, lParam, 0);
+                RaisePointer(NativePointerKind.RightUp, wParam, lParam, 0);
                 return IntPtr.Zero;
             case WmMouseMove:
-                RaisePointer(NativePointerKind.Move, lParam, 0);
+                RaisePointer(NativePointerKind.Move, wParam, lParam, 0);
                 return IntPtr.Zero;
             case WmMouseWheel:
                 var delta = (short)((long)wParam >> 16);
-                RaisePointer(NativePointerKind.Wheel, lParam, delta);
+                RaisePointer(NativePointerKind.Wheel, wParam, lParam, delta);
                 return IntPtr.Zero;
         }
 
@@ -155,6 +156,10 @@ internal sealed partial class VideraNativeHost : NativeControlHost, IVideraNativ
     private const int WmRButtonDown = 0x0204;
     private const int WmRButtonUp = 0x0205;
     private const int WmMouseWheel = 0x020A;
+    private const int MkLButton = 0x0001;
+    private const int MkRButton = 0x0002;
+    private const int MkShift = 0x0004;
+    private const int MkControl = 0x0008;
 
     private delegate IntPtr WndProcDelegate(IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam);
 
@@ -201,11 +206,38 @@ internal sealed partial class VideraNativeHost : NativeControlHost, IVideraNativ
     [DllImport("user32.dll")]
     private static extern IntPtr SetFocus(IntPtr hWnd);
 
-    private void RaisePointer(NativePointerKind kind, IntPtr lParam, int wheelDelta)
+    private void RaisePointer(NativePointerKind kind, IntPtr wParam, IntPtr lParam, int wheelDelta)
     {
         var x = (short)((long)lParam & 0xFFFF);
         var y = (short)(((long)lParam >> 16) & 0xFFFF);
-        NativePointer?.Invoke(new NativePointerEvent(kind, x, y, wheelDelta));
+        NativePointer?.Invoke(new NativePointerEvent(kind, x, y, wheelDelta, ExtractModifiers(wParam)));
+    }
+
+    private static RawInputModifiers ExtractModifiers(IntPtr wParam)
+    {
+        var keyState = unchecked((int)((long)wParam & 0xFFFF));
+        var modifiers = RawInputModifiers.None;
+        if ((keyState & MkLButton) != 0)
+        {
+            modifiers |= RawInputModifiers.LeftMouseButton;
+        }
+
+        if ((keyState & MkRButton) != 0)
+        {
+            modifiers |= RawInputModifiers.RightMouseButton;
+        }
+
+        if ((keyState & MkShift) != 0)
+        {
+            modifiers |= RawInputModifiers.Shift;
+        }
+
+        if ((keyState & MkControl) != 0)
+        {
+            modifiers |= RawInputModifiers.Control;
+        }
+
+        return modifiers;
     }
 
     private static partial class Log

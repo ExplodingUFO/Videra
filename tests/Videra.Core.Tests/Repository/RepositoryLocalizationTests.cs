@@ -249,6 +249,39 @@ public sealed class RepositoryLocalizationTests
     }
 
     [Fact]
+    public void ChineseInteractionDocs_ShouldMirrorInteractionSampleAndHostOwnedContract()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var readme = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "zh-CN", "README.md"));
+        var avaloniaModule = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "zh-CN", "modules", "videra-avalonia.md"));
+        var sampleReadme = File.ReadAllText(Path.Combine(repositoryRoot, "samples", "Videra.InteractionSample", "README.md"));
+
+        foreach (var symbol in InteractionContractDocumentationTerms.SharedApiSymbols)
+        {
+            readme.Should().Contain(symbol);
+            avaloniaModule.Should().Contain(symbol);
+            sampleReadme.Should().Contain(symbol);
+        }
+
+        foreach (var marker in InteractionContractDocumentationTerms.SharedBehaviorMarkers)
+        {
+            readme.Should().Contain(marker);
+            avaloniaModule.Should().Contain(marker);
+            sampleReadme.Should().Contain(marker);
+        }
+
+        readme.Should().Contain(InteractionContractDocumentationTerms.ChineseOwnershipSentence);
+        avaloniaModule.Should().Contain(InteractionContractDocumentationTerms.ChineseOwnershipSentence);
+
+        foreach (var forbidden in InteractionContractDocumentationTerms.ForbiddenNodeAnchorPhrases)
+        {
+            readme.Should().NotContain(forbidden);
+            avaloniaModule.Should().NotContain(forbidden);
+            sampleReadme.Should().NotContain(forbidden);
+        }
+    }
+
+    [Fact]
     public void ChineseArchitectureDocs_ShouldReferencePhase10OrchestrationBoundary()
     {
         var architecture = File.ReadAllText(Path.Combine(GetRepositoryRoot(), "docs", "zh-CN", "ARCHITECTURE.md"));

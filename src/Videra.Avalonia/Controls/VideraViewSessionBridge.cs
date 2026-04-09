@@ -1,5 +1,13 @@
+using System.Numerics;
+using Avalonia;
+using Avalonia.Media;
 using Videra.Avalonia.Rendering;
+using Videra.Avalonia.Controls.Interaction;
+using Videra.Core.Cameras;
+using Videra.Core.Geometry;
 using Videra.Core.Graphics;
+using Videra.Core.Selection;
+using Videra.Core.Selection.Rendering;
 
 namespace Videra.Avalonia.Controls;
 
@@ -93,6 +101,51 @@ internal sealed class VideraViewSessionBridge
         _session.BindHandle(IntPtr.Zero);
     }
 
+    public VideraViewOverlayState CreateOverlayState(
+        VideraSelectionState? selectionState,
+        IReadOnlyList<VideraAnnotation>? annotations,
+        Vector2 viewportSize)
+    {
+        var effectiveSelectionState = selectionState ?? new VideraSelectionState();
+        var effectiveAnnotations = annotations ?? Array.Empty<VideraAnnotation>();
+        var sceneObjects = _session.Engine.SceneObjects;
+        var camera = _session.Engine.Camera;
+
+        var selectionOutlines = effectiveSelectionState.ObjectIds
+            .Distinct()
+            .Select(objectId => TryCreateSelectionOutline(objectId, effectiveSelectionState.PrimaryObjectId, sceneObjects, camera, viewportSize))
+            .Where(outline => outline is not null)
+            .Select(outline => outline!)
+            .ToArray();
+
+        var visibleAnnotations = effectiveAnnotations
+            .Where(annotation => annotation is { IsVisible: true })
+            .ToArray();
+        var overlayState = new AnnotationOverlayRenderState(
+            visibleAnnotations
+                .Select(annotation => new AnnotationOverlayAnchor(annotation.Id, annotation.Anchor))
+                .ToArray(),
+            markerColor: new RgbaFloat(1f, 0f, 0f, 1f));
+        var projectedAnchors = _session.Engine.ProjectAnnotationAnchors(overlayState, viewportSize);
+        var annotationLookup = visibleAnnotations.ToDictionary(annotation => annotation.Id);
+        var labels = projectedAnchors
+            .Where(projection => projection.Projection.IsVisible && annotationLookup.ContainsKey(projection.AnnotationId))
+            .Select(projection =>
+            {
+                var annotation = annotationLookup[projection.AnnotationId];
+                return new VideraOverlayLabel(
+                    annotation.Id,
+                    annotation.Text,
+                    annotation.Color,
+                    projection.Projection.ScreenPosition,
+                    projection.Anchor,
+                    projection.Projection.ResolvedObjectId);
+            })
+            .ToArray();
+
+        return new VideraViewOverlayState(selectionOutlines, labels);
+    }
+
     public VideraBackendDiagnostics CreateDiagnosticsSnapshot(string? lastInitializationError)
     {
         var backendOptions = CreateBackendOptionsSnapshot();
@@ -144,5 +197,37 @@ internal sealed class VideraViewSessionBridge
             EnvironmentOverrideMode = source.EnvironmentOverrideMode,
             AllowSoftwareFallback = source.AllowSoftwareFallback
         };
+    }
+
+    private static VideraSelectionOutline? TryCreateSelectionOutline(
+        Guid objectId,
+        Guid? primaryObjectId,
+        IReadOnlyList<Object3D> sceneObjects,
+        OrbitCamera camera,
+        Vector2 viewportSize)
+    {
+        if (viewportSize.X <= 0f || viewportSize.Y <= 0f)
+        {
+            return null;
+        }
+
+        var sceneObject = sceneObjects.FirstOrDefault(obj => obj.Id == objectId);
+        if (sceneObject?.WorldBounds is not BoundingBox3 bounds)
+        {
+            return null;
+        }
+
+        if (!SceneBoundsProjector.TryProjectBounds(bounds, camera, viewportSize, out var screenBounds))
+        {
+            return null;
+        }
+
+        var outlineColor = objectId == primaryObjectId ? Colors.Green : Colors.Black;
+
+        return new VideraSelectionOutline(
+            objectId,
+            new Rect(screenBounds.MinX, screenBounds.MinY, Math.Max(1d, screenBounds.Width), Math.Max(1d, screenBounds.Height)),
+            outlineColor,
+            objectId == primaryObjectId);
     }
 }

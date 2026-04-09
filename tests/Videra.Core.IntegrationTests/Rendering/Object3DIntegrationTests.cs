@@ -1,9 +1,11 @@
 using System.Numerics;
 using FluentAssertions;
+using Videra.Core.Cameras;
 using Videra.Core.Geometry;
 using Videra.Core.Graphics;
 using Videra.Core.Graphics.Abstractions;
 using Videra.Core.Graphics.Software;
+using Videra.Core.Selection.Annotations;
 using Xunit;
 
 namespace Videra.Core.IntegrationTests.Rendering;
@@ -52,5 +54,41 @@ public class Object3DIntegrationTests
 
         var recolor = () => object3D.UpdateWireframeColor(new RgbaFloat(1f, 1f, 0f, 1f));
         recolor.Should().NotThrow();
+    }
+
+    [Fact]
+    public void Object3D_AnnotationAnchorProjection_ResolvesRealObjectIdentity()
+    {
+        var mesh = new MeshData
+        {
+            Vertices = new[]
+            {
+                new VertexPositionNormalColor(new Vector3(0f, 0.5f, 0f), Vector3.UnitZ, RgbaFloat.Red),
+                new VertexPositionNormalColor(new Vector3(-0.5f, -0.5f, 0f), Vector3.UnitZ, RgbaFloat.Green),
+                new VertexPositionNormalColor(new Vector3(0.5f, -0.5f, 0f), Vector3.UnitZ, RgbaFloat.Blue)
+            },
+            Indices = new uint[] { 0, 1, 2 },
+            Topology = MeshTopology.Triangles
+        };
+
+        var factory = new SoftwareResourceFactory();
+        using var object3D = new Object3D { Name = "Triangle" };
+        object3D.Initialize(factory, mesh);
+
+        var camera = new OrbitCamera();
+        camera.UpdateProjection(1280, 720);
+
+        var projector = new AnnotationAnchorProjector();
+        var anchor = AnnotationAnchorDescriptor.ForObject(object3D.Id);
+
+        var result = projector.Project(anchor, camera, new Vector2(1280f, 720f), [object3D]);
+
+        result.IsVisible.Should().BeTrue();
+        result.ResolvedObjectId.Should().Be(object3D.Id);
+        result.ClipStatus.Should().Be(AnnotationProjectionClipStatus.Visible);
+        object3D.WorldBounds.Should().NotBeNull();
+        camera.TryProjectWorldPoint(object3D.WorldBounds!.Value.Center, new Vector2(1280f, 720f), out var expectedScreenPoint)
+            .Should().BeTrue();
+        result.ScreenPosition.Should().Be(expectedScreenPoint);
     }
 }

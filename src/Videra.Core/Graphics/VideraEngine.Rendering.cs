@@ -55,9 +55,10 @@ public partial class VideraEngine
 
     private RenderFramePlan CreateFramePlan(WireframeMode effectiveWireframeMode)
     {
+        var renderOverlayWireframe = HasOverlayWireframePassUnsafe();
         var renderGrid = Grid.IsVisible;
         var renderSolidGeometry = effectiveWireframeMode != WireframeMode.WireframeOnly;
-        var renderWireframe = effectiveWireframeMode != WireframeMode.None;
+        var renderWireframe = effectiveWireframeMode != WireframeMode.None || renderOverlayWireframe;
         var renderAxis = ShowAxis;
         var stages = new List<RenderPipelineStage>
         {
@@ -88,7 +89,7 @@ public partial class VideraEngine
         stages.Add(RenderPipelineStage.PresentFrame);
 
         return new RenderFramePlan(
-            DetermineProfile(effectiveWireframeMode),
+            DetermineProfile(effectiveWireframeMode, renderOverlayWireframe),
             effectiveWireframeMode,
             renderGrid,
             renderSolidGeometry,
@@ -258,14 +259,20 @@ public partial class VideraEngine
         }
     }
 
-    private static RenderPipelineProfile DetermineProfile(WireframeMode effectiveWireframeMode)
+    private static RenderPipelineProfile DetermineProfile(
+        WireframeMode effectiveWireframeMode,
+        bool renderOverlayWireframe)
     {
-        return effectiveWireframeMode switch
+        if (effectiveWireframeMode == WireframeMode.None)
         {
-            WireframeMode.None => RenderPipelineProfile.Standard,
-            WireframeMode.WireframeOnly => RenderPipelineProfile.WireframeOnly,
-            _ => RenderPipelineProfile.StandardWithWireframeOverlay
-        };
+            return renderOverlayWireframe
+                ? RenderPipelineProfile.StandardWithWireframeOverlay
+                : RenderPipelineProfile.Standard;
+        }
+
+        return effectiveWireframeMode == WireframeMode.WireframeOnly
+            ? RenderPipelineProfile.WireframeOnly
+            : RenderPipelineProfile.StandardWithWireframeOverlay;
     }
 
     private WireframeMode GetEffectiveWireframeMode()
@@ -282,7 +289,7 @@ public partial class VideraEngine
 
     private void EnsureWireframeResources(WireframeMode effectiveWireframeMode)
     {
-        if (effectiveWireframeMode == WireframeMode.None || _factory == null)
+        if ((effectiveWireframeMode == WireframeMode.None && !_selectionOverlayState.HasOverlay) || _factory == null)
         {
             return;
         }
@@ -327,6 +334,7 @@ public partial class VideraEngine
             FramePlan = plan,
             CommandExecutor = _executor!,
             ResourceFactory = _factory!,
+            MeshPipeline = _meshPipeline!,
             SceneObjects = _sceneObjects,
             Width = _width,
             Height = _height,
@@ -334,16 +342,25 @@ public partial class VideraEngine
             ShouldLog = shouldLog,
             IsInitialized = _state == EngineLifecycleState.Active,
             ActiveBackendPreference = GetActiveBackendPreferenceUnsafe(),
-            LastPipelineSnapshot = LastPipelineSnapshot
+            LastPipelineSnapshot = LastPipelineSnapshot,
+            SelectionOverlay = _selectionOverlayState,
+            AnnotationOverlay = _annotationOverlayState
         };
 
-        if (_passContributorOverrides.TryGetValue(slot, out var replacement))
+        var hasReplacement = _passContributorOverrides.TryGetValue(slot, out var replacement);
+        if (hasReplacement)
         {
-            replacement.Contribute(context);
+            replacement!.Contribute(context);
         }
         else
         {
             ExecuteBuiltInPassSlot(slot, context);
+
+            if (slot == RenderPassSlot.Wireframe)
+            {
+                _selectionOverlayContributor.Contribute(context);
+                _annotationOverlayContributor.Contribute(context);
+            }
         }
 
         if (_passContributorRegistrations.TryGetValue(slot, out var registrations))
@@ -374,6 +391,11 @@ public partial class VideraEngine
             default:
                 throw new ArgumentOutOfRangeException(nameof(slot), slot, "Unknown render pass slot.");
         }
+    }
+
+    private bool HasOverlayWireframePassUnsafe()
+    {
+        return _selectionOverlayState.HasOverlay || _annotationOverlayState.HasOverlay;
     }
 
     private void InvokeFrameHooks(

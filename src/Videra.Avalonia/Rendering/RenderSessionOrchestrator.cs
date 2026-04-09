@@ -40,6 +40,8 @@ internal sealed class RenderSessionOrchestrator : IDisposable
 
     public IResourceFactory? ResourceFactory => _backend?.GetResourceFactory();
 
+    internal VideraEngine Engine => _engine;
+
     public GraphicsBackendResolution? LastBackendResolution { get; private set; }
 
     public Exception? LastInitializationError { get; private set; }

@@ -16,6 +16,7 @@ internal sealed partial class RenderSession : IDisposable
     private static readonly TimeSpan RenderInterval = TimeSpan.FromMilliseconds(16);
     private readonly object _sync = new();
 
+    private readonly Action? _beforeRender;
     private readonly Action? _requestRender;
     private readonly ILogger _logger;
     private readonly Func<IRenderLoopDriver> _renderLoopFactory;
@@ -29,12 +30,14 @@ internal sealed partial class RenderSession : IDisposable
     public RenderSession(
         VideraEngine engine,
         Func<GraphicsBackendPreference, IGraphicsBackend>? backendFactory = null,
+        Action? beforeRender = null,
         Action? requestRender = null,
         ILogger? logger = null,
         Func<IRenderLoopDriver>? renderLoopFactory = null,
         Func<GraphicsBackendRequest, GraphicsBackendResolution>? backendResolutionFactory = null,
         Func<uint, uint, WriteableBitmap?>? bitmapFactory = null)
     {
+        _beforeRender = beforeRender;
         _requestRender = requestRender;
         _logger = logger ?? Microsoft.Extensions.Logging.Abstractions.NullLoggerFactory.Instance.CreateLogger<RenderSession>();
         _renderLoopFactory = renderLoopFactory ?? (() => new NullRenderLoopDriver());
@@ -58,6 +61,8 @@ internal sealed partial class RenderSession : IDisposable
     public bool IsSoftwareBackend => _orchestrator.IsSoftwareBackend;
 
     public IResourceFactory? ResourceFactory => _orchestrator.ResourceFactory;
+
+    internal VideraEngine Engine => _orchestrator.Engine;
 
     internal GraphicsBackendResolution? LastBackendResolution => _orchestrator.LastBackendResolution;
 
@@ -158,6 +163,7 @@ internal sealed partial class RenderSession : IDisposable
     {
         lock (_sync)
         {
+            _beforeRender?.Invoke();
             var result = _orchestrator.RenderOnce();
             if (result.Faulted)
             {
@@ -172,17 +178,15 @@ internal sealed partial class RenderSession : IDisposable
                 return;
             }
 
-            if (result.SoftwareBackend == null)
+            if (result.SoftwareBackend != null)
             {
-                return;
-            }
-
-            var snapshot = _orchestrator.Snapshot;
-            EnsureBitmapUnsafe(snapshot.Inputs.Width, snapshot.Inputs.Height);
-            if (_bitmap != null)
-            {
-                using var locked = _bitmap.Lock();
-                result.SoftwareBackend.CopyFrameTo(locked.Address, locked.RowBytes);
+                var snapshot = _orchestrator.Snapshot;
+                EnsureBitmapUnsafe(snapshot.Inputs.Width, snapshot.Inputs.Height);
+                if (_bitmap != null)
+                {
+                    using var locked = _bitmap.Lock();
+                    result.SoftwareBackend.CopyFrameTo(locked.Address, locked.RowBytes);
+                }
             }
 
             _requestRender?.Invoke();

@@ -20,6 +20,11 @@ public partial class Object3D : IDisposable
     private BoundingBox3? _localBounds;
 
     /// <summary>
+    /// Gets the stable identity of this scene object.
+    /// </summary>
+    public Guid Id { get; } = Guid.NewGuid();
+
+    /// <summary>
     /// Gets or sets the display name of this object, used for logging and identification.
     /// Defaults to <c>"Object"</c>.
     /// </summary>
@@ -355,6 +360,28 @@ public partial class Object3D : IDisposable
         }
 
         LineVertexBuffer.SetData(coloredVertices, 0);
+    }
+
+    internal bool TryCreateColoredWireframeVertices(
+        RgbaFloat color,
+        out VertexPositionNormalColor[] vertices)
+    {
+        if (_cachedVertices == null || _cachedVertices.Length == 0)
+        {
+            vertices = Array.Empty<VertexPositionNormalColor>();
+            return false;
+        }
+
+        vertices = new VertexPositionNormalColor[_cachedVertices.Length];
+        for (var i = 0; i < _cachedVertices.Length; i++)
+        {
+            vertices[i] = new VertexPositionNormalColor(
+                _cachedVertices[i].Position,
+                _cachedVertices[i].Normal,
+                color);
+        }
+
+        return true;
     }
 
     private static partial class Log

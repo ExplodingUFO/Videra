@@ -366,6 +366,8 @@ internal static class DemoMeshFactory
         public static PixelColor White => new(255, 255, 255, 255);
         public static PixelColor Black => new(0, 0, 0, 255);
         public static PixelColor Blue => new(0, 0, 255, 255);
+        public static PixelColor Red => new(255, 0, 0, 255);
+        public static PixelColor Green => new(0, 255, 0, 255);
 
         public (byte r, byte g, byte b, byte a) Value => (R, G, B, A);
     }

@@ -212,6 +212,26 @@ public sealed class RenderSessionIntegrationTests
     }
 
     [Fact]
+    public void RenderSession_RenderOnce_InvokesRequestRender_ForNativeBackendsToo()
+    {
+        var backendFactory = new TrackingBackendFactory();
+        using var engine = new VideraEngine();
+        var requestRenderCalls = 0;
+        using var session = new RenderSession(
+            engine,
+            backendFactory.CreateBackend,
+            requestRender: () => requestRenderCalls++);
+
+        session.Attach(GraphicsBackendPreference.D3D11);
+        session.Resize(128, 96, 1f);
+        session.BindHandle(new IntPtr(0x1234));
+
+        session.RenderOnce();
+
+        requestRenderCalls.Should().Be(1);
+    }
+
+    [Fact]
     public void RenderSession_ExposesOrchestrationSnapshotTruth()
     {
         using var engine = new VideraEngine();

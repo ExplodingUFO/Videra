@@ -49,6 +49,7 @@ dotnet add package Videra.Core --version 0.1.0-alpha.1 --source github-Exploding
 
 - [英文首页](../../README.md)
 - [扩展合同](extensibility.md)：`VideraView.Engine`、`RegisterPassContributor(...)`、`RegisterFrameHook(...)`、`RenderCapabilities`、`BackendDiagnostics` 与 `samples/Videra.ExtensibilitySample`
+- [交互示例](../../samples/Videra.InteractionSample/README.md)：`host owns` `SelectionState`、`Annotations` 和 annotation state，`Navigate` / `Select` / `Annotate`，`SelectionRequested` / `AnnotationRequested`，以及 `VideraNodeAnnotation` / `VideraWorldPointAnnotation`
 - [架构说明](ARCHITECTURE.md)
 - [贡献指南](CONTRIBUTING.md)
 - [故障排查](troubleshooting.md)
@@ -69,3 +70,7 @@ dotnet add package Videra.Core --version 0.1.0-alpha.1 --source github-Exploding
 默认公开入口现在以英文为主，英文版为准。中文文档保留为手动切换入口，便于中文读者快速查看项目定位、安装方式、验证方式和模块说明。
 
 扩展入口的中文镜像集中在 [扩展合同](extensibility.md)。该页会把 `samples/Videra.ExtensibilitySample`、`disposed` 后注册调用的 `no-op` 语义，以及软件回退与 `BackendDiagnostics` / `FallbackReason` 的公开约定放在一起说明。
+
+`host owns` `SelectionState`、`Annotations` 与 annotation state。
+
+受控交互入口则以 [samples/Videra.InteractionSample](../../samples/Videra.InteractionSample/README.md) 为主：`host owns` `SelectionState`、`Annotations` 与 annotation state，内建模式是 `Navigate`、`Select`、`Annotate`，选择保持 `object-level`，标注同时覆盖 object anchors 与 world-point anchors，并通过 `VideraNodeAnnotation` / `VideraWorldPointAnnotation` 表达，overlay responsibilities split between `3D highlight/render state` and `2D label/feedback rendering`。

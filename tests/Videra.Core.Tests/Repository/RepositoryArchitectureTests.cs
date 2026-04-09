@@ -158,6 +158,39 @@ public sealed class RepositoryArchitectureTests
     }
 
     [Fact]
+    public void EnglishInteractionDocs_ShouldAlignSampleAndHostOwnedContractVocabulary()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var readme = File.ReadAllText(Path.Combine(repositoryRoot, "README.md"));
+        var avaloniaReadme = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Avalonia", "README.md"));
+        var sampleReadme = File.ReadAllText(Path.Combine(repositoryRoot, "samples", "Videra.InteractionSample", "README.md"));
+
+        foreach (var symbol in InteractionContractDocumentationTerms.SharedApiSymbols)
+        {
+            readme.Should().Contain(symbol);
+            avaloniaReadme.Should().Contain(symbol);
+            sampleReadme.Should().Contain(symbol);
+        }
+
+        foreach (var marker in InteractionContractDocumentationTerms.SharedBehaviorMarkers)
+        {
+            readme.Should().Contain(marker);
+            avaloniaReadme.Should().Contain(marker);
+            sampleReadme.Should().Contain(marker);
+        }
+
+        readme.Should().Contain(InteractionContractDocumentationTerms.EnglishOwnershipSentence);
+        avaloniaReadme.Should().Contain(InteractionContractDocumentationTerms.EnglishOwnershipSentence);
+
+        foreach (var forbidden in InteractionContractDocumentationTerms.ForbiddenNodeAnchorPhrases)
+        {
+            readme.Should().NotContain(forbidden);
+            avaloniaReadme.Should().NotContain(forbidden);
+            sampleReadme.Should().NotContain(forbidden);
+        }
+    }
+
+    [Fact]
     public void Phase10OrchestrationBoundary_ShouldHaveFilePresence_DocsSignoff_AndOrchestratorContainment()
     {
         var repositoryRoot = GetRepositoryRoot();

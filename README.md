@@ -30,6 +30,7 @@ Videra is not a general-purpose game engine. It is designed around desktop 3D vi
 - Model import for `.gltf`, `.glb`, and `.obj`
 - Render-style presets and wireframe modes
 - Public extensibility contract plus a narrow `Videra.ExtensibilitySample` onboarding path
+- Controlled interaction contract plus a focused `Videra.InteractionSample` onboarding path
 - Demo app with backend diagnostics, import feedback, a default demo cube, camera control, grid, axes, and basic transforms
 
 ## Architecture
@@ -63,6 +64,7 @@ The repository is split into UI integration, a platform-agnostic rendering core,
 | `src/Videra.Platform.macOS` | macOS Metal backend |
 | `samples/Videra.Demo` | Demo application and usage reference |
 | `samples/Videra.ExtensibilitySample` | Narrow public sample for contributors, frame hooks, capabilities, and diagnostics |
+| `samples/Videra.InteractionSample` | Focused public sample for host-owned selection state, annotation state, and mode switching |
 | `docs` | Long-lived documentation, troubleshooting, ADRs, and archive |
 
 ## Platform Support
@@ -228,6 +230,19 @@ Contract highlights:
 - When `AllowSoftwareFallback = false`, native backend resolution fails instead of silently falling back, so the view does not become ready until the package/runtime issue is fixed.
 - `package discovery` and `plugin loading` remain out of scope for the public extension model.
 
+## Interaction Onboarding
+
+Use [Videra.InteractionSample](samples/Videra.InteractionSample/README.md) as the focused public reference for controlled viewer interaction.
+
+Contract highlights:
+
+- The `host owns` `SelectionState`, `Annotations`, and annotation state.
+- Built-in interaction modes are `Navigate`, `Select`, and `Annotate`.
+- Selection is object-level and changes only when the host applies `SelectionRequested`.
+- Annotation clicks surface `AnnotationRequested` for either object anchors or world-point anchors.
+- Hosts typically materialize those anchors through `VideraNodeAnnotation` and `VideraWorldPointAnnotation`.
+- Overlay responsibilities are split between `3D highlight/render state` and `2D label/feedback rendering`.
+
 ## Packages
 
 | Package | Use |
@@ -247,6 +262,7 @@ Detailed package-level docs:
 - [Videra.Platform.macOS](src/Videra.Platform.macOS/README.md)
 - [Videra.Demo](samples/Videra.Demo/README.md)
 - [Videra.ExtensibilitySample](samples/Videra.ExtensibilitySample/README.md)
+- [Videra.InteractionSample](samples/Videra.InteractionSample/README.md)
 
 ## Environment Variables
 
