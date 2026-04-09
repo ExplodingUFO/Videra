@@ -1,7 +1,9 @@
 using System.Collections;
 using System.Reflection;
+using Avalonia.Controls;
 using FluentAssertions;
 using Videra.Avalonia.Controls;
+using Videra.Avalonia.Controls.Interaction;
 using Videra.Avalonia.Rendering;
 using Videra.Core.Graphics;
 using Videra.Core.Graphics.Wireframe;
@@ -425,6 +427,70 @@ public sealed class VideraViewSceneIntegrationTests : IDisposable
         }
     }
 
+    [Fact]
+    public void NativeOverlayAdapter_ConsumesHostOwnedOverlayState()
+    {
+        var view = new VideraView(new RecordingNativeHostFactory(), bitmapFactory: static (_, _) => null);
+        try
+        {
+            var renderSessionField = typeof(VideraView).GetField("_renderSession", BindingFlags.Instance | BindingFlags.NonPublic);
+            renderSessionField.Should().NotBeNull();
+
+            var renderSession = (RenderSession?)renderSessionField!.GetValue(view);
+            renderSession.Should().NotBeNull();
+            renderSession!.Attach(GraphicsBackendPreference.Software);
+            renderSession.Resize(200, 200, 1f);
+
+            var sceneObject = DemoMeshFactory.CreateWhiteQuad(renderSession.ResourceFactory!);
+            view.AddObject(sceneObject);
+            view.SelectionState = new VideraSelectionState
+            {
+                ObjectIds = [sceneObject.Id],
+                PrimaryObjectId = sceneObject.Id
+            };
+            view.Annotations =
+            [
+                new VideraNodeAnnotation
+                {
+                    Id = Guid.NewGuid(),
+                    Text = "Selected",
+                    ObjectId = sceneObject.Id
+                }
+            ];
+
+            var ensureNativeHost = typeof(VideraView).GetMethod("EnsureNativeHost", BindingFlags.Instance | BindingFlags.NonPublic);
+            ensureNativeHost.Should().NotBeNull();
+            ensureNativeHost!.Invoke(view, Array.Empty<object>());
+
+            var inputOverlayField = typeof(VideraView).GetField("_inputOverlay", BindingFlags.Instance | BindingFlags.NonPublic);
+            inputOverlayField.Should().NotBeNull();
+            var inputOverlay = (Border?)inputOverlayField!.GetValue(view);
+            inputOverlay.Should().NotBeNull();
+            inputOverlay!.Child.Should().NotBeNull();
+
+            var overlayPresenterType = typeof(VideraView).Assembly.GetType("Videra.Avalonia.Controls.VideraViewOverlayPresenter");
+            overlayPresenterType.Should().NotBeNull();
+            inputOverlay.Child!.GetType().Should().Be(overlayPresenterType);
+
+            renderSession.RenderOnce();
+
+            var overlayStateField = overlayPresenterType!.GetField("_overlayState", BindingFlags.Instance | BindingFlags.NonPublic);
+            overlayStateField.Should().NotBeNull();
+            var overlayState = overlayStateField!.GetValue(inputOverlay.Child!);
+            overlayState.Should().NotBeNull();
+
+            var selectionOutlines = (IReadOnlyList<object>)overlayState!.GetType().GetProperty("SelectionOutlines")!.GetValue(overlayState)!;
+            var labels = (IReadOnlyList<object>)overlayState.GetType().GetProperty("Labels")!.GetValue(overlayState)!;
+            selectionOutlines.Should().ContainSingle();
+            labels.Should().ContainSingle();
+            labels[0].GetType().GetProperty("Text")!.GetValue(labels[0]).Should().Be("Selected");
+        }
+        finally
+        {
+            view.Engine.Dispose();
+        }
+    }
+
     public void Dispose()
     {
         if (_disposed)
@@ -471,5 +537,26 @@ public sealed class VideraViewSceneIntegrationTests : IDisposable
         var value = field!.GetValue(view.Engine);
         value.Should().BeAssignableTo<IList<Object3D>>();
         return (IList<Object3D>)value!;
+    }
+
+    private sealed class RecordingNativeHostFactory : INativeHostFactory
+    {
+        public IVideraNativeHost? CreateHost()
+        {
+            return new RecordingNativeHost();
+        }
+    }
+
+    private sealed class RecordingNativeHost : NativeControlHost, IVideraNativeHost
+    {
+        public event Action<IntPtr>? HandleCreated;
+        public event Action? HandleDestroyed;
+        public event Action<NativePointerEvent>? NativePointer;
+
+        public void RaiseHandleCreated(IntPtr handle) => HandleCreated?.Invoke(handle);
+
+        public void RaiseHandleDestroyed() => HandleDestroyed?.Invoke();
+
+        public void RaiseNativePointer(NativePointerEvent e) => NativePointer?.Invoke(e);
     }
 }

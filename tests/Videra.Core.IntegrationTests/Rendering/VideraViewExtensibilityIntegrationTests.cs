@@ -2,10 +2,13 @@ using System.Collections;
 using System.Reflection;
 using FluentAssertions;
 using Videra.Avalonia.Controls;
+using Videra.Avalonia.Controls.Interaction;
+using Videra.Avalonia.Rendering;
 using Videra.Core.Graphics;
 using Videra.Core.Graphics.RenderPipeline.Extensibility;
 using Videra.Core.Graphics.Software;
 using Videra.Core.Selection.Annotations;
+using Videra.Core.Selection.Rendering;
 using Xunit;
 
 namespace Videra.Core.IntegrationTests.Rendering;
@@ -168,6 +171,58 @@ public sealed class VideraViewExtensibilityIntegrationTests
         ReadProperty(annotationArgs!, "Anchor").Should().Be(anchor);
     }
 
+    [Fact]
+    public void HostOwnedOverlayState_IsForwardedIntoEngineRenderFlow()
+    {
+        var view = new VideraView(nativeHostFactory: null, bitmapFactory: static (_, _) => null);
+        try
+        {
+            var renderSession = ReadPrivateField<RenderSession>(view, "_renderSession");
+            renderSession.Attach(GraphicsBackendPreference.Software);
+            renderSession.Resize(200, 200, 1f);
+
+            var sceneObject = DemoMeshFactory.CreateWhiteQuad(renderSession.ResourceFactory!);
+            view.AddObject(sceneObject);
+            view.SelectionState = new VideraSelectionState
+            {
+                ObjectIds = [sceneObject.Id],
+                PrimaryObjectId = sceneObject.Id
+            };
+            view.Annotations =
+            [
+                new VideraNodeAnnotation
+                {
+                    Id = Guid.NewGuid(),
+                    Text = "Pinned",
+                    ObjectId = sceneObject.Id
+                }
+            ];
+
+            SelectionOverlayRenderState? observedSelection = null;
+            AnnotationOverlayRenderState? observedAnnotation = null;
+            view.Engine.RegisterPassContributor(
+                RenderPassSlot.Wireframe,
+                new RecordingContributor(context =>
+                {
+                    observedSelection = context.SelectionOverlay;
+                    observedAnnotation = context.AnnotationOverlay;
+                }));
+
+            renderSession.RenderOnce();
+
+            observedSelection.Should().NotBeNull();
+            observedSelection!.SelectedObjectIds.Should().ContainSingle().Which.Should().Be(sceneObject.Id);
+            observedSelection.HoverObjectId.Should().BeNull();
+            observedAnnotation.Should().NotBeNull();
+            observedAnnotation!.Anchors.Should().ContainSingle();
+            observedAnnotation.Anchors[0].Anchor.Should().Be(AnnotationAnchorDescriptor.ForObject(sceneObject.Id));
+        }
+        finally
+        {
+            view.Engine.Dispose();
+        }
+    }
+
     private sealed class RecordingContributor(Action<RenderPassContributionContext> onContribute) : IRenderPassContributor
     {
         public void Contribute(RenderPassContributionContext context)
@@ -280,5 +335,15 @@ public sealed class VideraViewExtensibilityIntegrationTests
         property.Should().NotBeNull($"property {propertyName} should exist on {instance.GetType().FullName}");
         property!.CanWrite.Should().BeTrue($"property {propertyName} should be writable on {instance.GetType().FullName}");
         property.SetValue(instance, value);
+    }
+
+    private static T ReadPrivateField<T>(object instance, string fieldName)
+    {
+        var field = instance.GetType().GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic);
+        field.Should().NotBeNull($"field {fieldName} should exist on {instance.GetType().FullName}");
+
+        var value = field!.GetValue(instance);
+        value.Should().BeAssignableTo<T>();
+        return (T)value!;
     }
 }

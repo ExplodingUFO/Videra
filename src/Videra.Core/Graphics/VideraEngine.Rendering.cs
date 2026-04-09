@@ -347,19 +347,20 @@ public partial class VideraEngine
             AnnotationOverlay = _annotationOverlayState
         };
 
-        if (_passContributorOverrides.TryGetValue(slot, out var replacement))
+        var hasReplacement = _passContributorOverrides.TryGetValue(slot, out var replacement);
+        if (hasReplacement)
         {
-            replacement.Contribute(context);
+            replacement!.Contribute(context);
         }
         else
         {
             ExecuteBuiltInPassSlot(slot, context);
-        }
 
-        if (slot == RenderPassSlot.Wireframe)
-        {
-            _selectionOverlayContributor.Contribute(context);
-            _annotationOverlayContributor.Contribute(context);
+            if (slot == RenderPassSlot.Wireframe)
+            {
+                _selectionOverlayContributor.Contribute(context);
+                _annotationOverlayContributor.Contribute(context);
+            }
         }
 
         if (_passContributorRegistrations.TryGetValue(slot, out var registrations))

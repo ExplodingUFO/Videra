@@ -99,6 +99,45 @@ public sealed class VideraEngineExtensibilityIntegrationTests
     }
 
     [Fact]
+    public void ReplacePassContributor_ForWireframe_SuppressesBuiltInOverlayContributors()
+    {
+        using var backend = new SoftwareBackend();
+        backend.Initialize(IntPtr.Zero, 200, 200);
+        using var engine = new VideraEngine
+        {
+            BackgroundColor = RgbaFloat.Blue
+        };
+        engine.Initialize(backend);
+        engine.Resize(200, 200);
+        engine.Grid.IsVisible = false;
+        engine.ShowAxis = false;
+
+        var sceneObject = DemoMeshFactory.CreateWhiteQuad(backend.GetResourceFactory());
+        engine.AddObject(sceneObject);
+        engine.SetSelectionOverlayState(new SelectionOverlayRenderState(
+            selectedObjectIds: [sceneObject.Id],
+            hoverObjectId: sceneObject.Id,
+            selectedLineColor: RgbaFloat.Black,
+            hoverLineColor: RgbaFloat.Green));
+        engine.SetAnnotationOverlayState(new AnnotationOverlayRenderState(
+            anchors:
+            [
+                new AnnotationOverlayAnchor(Guid.NewGuid(), AnnotationAnchorDescriptor.ForObject(sceneObject.Id))
+            ],
+            markerColor: RgbaFloat.Red,
+            markerWorldSize: 0.08f));
+        engine.ReplacePassContributor(RenderPassSlot.Wireframe, new NoOpContributor());
+
+        engine.Draw();
+
+        var frame = DemoMeshFactory.CaptureFrame(backend);
+        DemoMeshFactory.CountPixels(frame, DemoMeshFactory.PixelColor.Black).Should().Be(0);
+        DemoMeshFactory.CountPixels(frame, DemoMeshFactory.PixelColor.Green).Should().Be(0);
+        DemoMeshFactory.CountPixels(frame, DemoMeshFactory.PixelColor.Red).Should().Be(0);
+        DemoMeshFactory.CountPixels(frame, DemoMeshFactory.PixelColor.White).Should().BeGreaterThan(0);
+    }
+
+    [Fact]
     public void RegisterFrameHook_RunsHooksAtStableHookPointsInDeterministicOrder()
     {
         using var backend = new SoftwareBackend();

@@ -31,11 +31,13 @@ public partial class VideraView : Decorator
     private VideraBackendDiagnostics _backendDiagnostics;
     private VideraSelectionState _selectionState = new();
     private IReadOnlyList<VideraAnnotation> _annotations = Array.Empty<VideraAnnotation>();
+    private VideraViewOverlayState _overlayState = VideraViewOverlayState.Empty;
     private VideraInteractionOptions _interactionOptions = new();
     private readonly INativeHostFactory _nativeHostFactory;
     private NativeControlHost? _nativeHost;
     private Grid? _nativeContainer;
     private Border? _inputOverlay;
+    private VideraViewOverlayPresenter? _overlayPresenter;
     private readonly ILogger _logger = Microsoft.Extensions.Logging.Abstractions.NullLoggerFactory.Instance.CreateLogger<VideraView>();
     private readonly Func<uint, uint, WriteableBitmap?>? _bitmapFactory;
 
@@ -156,7 +158,11 @@ public partial class VideraView : Decorator
     public VideraSelectionState SelectionState
     {
         get => _selectionState;
-        set => _selectionState = value ?? new VideraSelectionState();
+        set
+        {
+            _selectionState = value ?? new VideraSelectionState();
+            SynchronizeOverlayState();
+        }
     }
 
     /// <summary>
@@ -165,7 +171,11 @@ public partial class VideraView : Decorator
     public IReadOnlyList<VideraAnnotation> Annotations
     {
         get => _annotations;
-        set => _annotations = value ?? Array.Empty<VideraAnnotation>();
+        set
+        {
+            _annotations = value ?? Array.Empty<VideraAnnotation>();
+            SynchronizeOverlayState();
+        }
     }
 
     /// <summary>
@@ -372,13 +382,14 @@ public partial class VideraView : Decorator
         }
 
         context.DrawImage(_renderSession.Bitmap, new Rect(0, 0, Bounds.Width, Bounds.Height));
+        RenderOverlay(context);
     }
 
     private RenderSession CreateRenderSession()
     {
         var session = new RenderSession(
             Engine,
-            requestRender: InvalidateVisual,
+            requestRender: OnRenderSessionFrameRequested,
             logger: _logger,
             renderLoopFactory: static () => new RenderSession.DispatcherRenderLoopDriver(),
             bitmapFactory: _bitmapFactory);
@@ -398,6 +409,7 @@ public partial class VideraView : Decorator
 
     private void OnRenderSessionBackendReady(object? sender, EventArgs e)
     {
+        SynchronizeOverlayState();
         RefreshBackendDiagnostics(lastInitializationError: null);
         BackendReady?.Invoke(this, EventArgs.Empty);
     }
@@ -434,6 +446,8 @@ public partial class VideraView : Decorator
             {
                 ApplyViewState();
             }
+
+            SynchronizeOverlayPresentation();
         }
         catch (Exception ex)
         {
@@ -459,6 +473,7 @@ public partial class VideraView : Decorator
         Engine.Camera.InvertY = CameraInvertY;
         ApplyGridSettings();
         UpdateItemsSubscription(Items, Items);
+        SynchronizeOverlayState();
     }
 
     private void UpdateItemsSubscription(IEnumerable? oldList, IEnumerable? newList)
@@ -476,6 +491,8 @@ public partial class VideraView : Decorator
                 if (item is Object3D obj)
                     Engine.AddObject(obj);
         }
+
+        SynchronizeOverlayPresentation();
     }
 
     private void OnCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
@@ -488,6 +505,8 @@ public partial class VideraView : Decorator
                 Engine.RemoveObject(item);
         else if (e.Action == NotifyCollectionChangedAction.Reset)
             Engine.ClearObjects();
+
+        SynchronizeOverlayPresentation();
     }
 
     private void ApplyGridSettings()
@@ -569,6 +588,9 @@ public partial class VideraView : Decorator
             Background = Brushes.Transparent,
             IsHitTestVisible = false
         };
+        _overlayPresenter = new VideraViewOverlayPresenter();
+        _overlayPresenter.UpdateOverlayState(_overlayState);
+        _inputOverlay.Child = _overlayPresenter;
         _nativeContainer = new Grid();
         _nativeContainer.Children.Add(nativeHost);
         _nativeContainer.Children.Add(_inputOverlay);
@@ -590,6 +612,7 @@ public partial class VideraView : Decorator
         _nativeHost = null;
         _nativeContainer = null;
         _inputOverlay = null;
+        _overlayPresenter = null;
         RefreshBackendDiagnostics(lastInitializationError: _backendDiagnostics.LastInitializationError);
     }
 
@@ -705,6 +728,13 @@ public partial class VideraView : Decorator
     private void RaiseAnnotationRequested(AnnotationRequestedEventArgs e)
     {
         AnnotationRequested?.Invoke(this, e);
+    }
+
+    private void OnRenderSessionFrameRequested()
+    {
+        SynchronizeOverlayPresentation();
+        InvalidateVisual();
+        _overlayPresenter?.InvalidateVisual();
     }
 
     private static partial class Log
