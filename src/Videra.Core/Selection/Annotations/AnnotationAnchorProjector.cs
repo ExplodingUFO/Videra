@@ -70,12 +70,27 @@ public sealed class AnnotationAnchorProjector
     {
         if (camera.TryProjectWorldPoint(worldPoint, viewportSize, out var screenPoint))
         {
+            if (!IsWithinViewport(screenPoint, viewportSize))
+            {
+                return AnnotationProjectionResult.Hidden(
+                    AnnotationProjectionClipStatus.OutsideViewport,
+                    resolvedObjectId);
+            }
+
             return AnnotationProjectionResult.Visible(screenPoint, resolvedObjectId);
         }
 
         return AnnotationProjectionResult.Hidden(
             ClassifyWorldPointVisibility(camera, worldPoint),
             resolvedObjectId);
+    }
+
+    private static bool IsWithinViewport(Vector2 screenPoint, Vector2 viewportSize)
+    {
+        return screenPoint.X >= 0f &&
+               screenPoint.Y >= 0f &&
+               screenPoint.X <= viewportSize.X &&
+               screenPoint.Y <= viewportSize.Y;
     }
 
     private static AnnotationProjectionClipStatus ClassifyWorldPointVisibility(

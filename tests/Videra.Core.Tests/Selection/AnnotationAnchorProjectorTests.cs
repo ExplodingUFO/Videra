@@ -84,6 +84,37 @@ public class AnnotationAnchorProjectorTests
     }
 
     [Fact]
+    public void Project_WorldPointAnchor_OffViewport_ReturnsNonVisibleResult()
+    {
+        var viewportSize = new Vector2(800f, 600f);
+        var camera = CreateCamera(viewportSize);
+        var projector = new AnnotationAnchorProjector();
+        var worldPoint = new Vector3(-100f, -100f, -30f);
+        var anchor = AnnotationAnchorDescriptor.ForWorldPoint(worldPoint);
+
+        var result = projector.Project(anchor, camera, viewportSize, []);
+
+        result.IsVisible.Should().BeFalse();
+        result.ClipStatus.Should().Be(AnnotationProjectionClipStatus.OutsideViewport);
+    }
+
+    [Fact]
+    public void Project_ObjectAnchor_OffViewport_ReturnsNonVisibleResult()
+    {
+        var viewportSize = new Vector2(800f, 600f);
+        var camera = CreateCamera(viewportSize);
+        var projector = new AnnotationAnchorProjector();
+        var object3D = CreateObjectAtPosition("FarCorner", new Vector3(-100f, -100f, -30f));
+        var anchor = AnnotationAnchorDescriptor.ForObject(object3D.Id);
+
+        var result = projector.Project(anchor, camera, viewportSize, [object3D]);
+
+        result.IsVisible.Should().BeFalse();
+        result.ClipStatus.Should().Be(AnnotationProjectionClipStatus.OutsideViewport);
+        result.ResolvedObjectId.Should().Be(object3D.Id);
+    }
+
+    [Fact]
     public void Project_MissingObjectAnchor_ReturnsNonVisibleResult()
     {
         var viewportSize = new Vector2(800f, 600f);
@@ -108,6 +139,11 @@ public class AnnotationAnchorProjectorTests
 
     private static Object3D CreateObjectAtOrigin(string name)
     {
+        return CreateObjectAtPosition(name, Vector3.Zero);
+    }
+
+    private static Object3D CreateObjectAtPosition(string name, Vector3 position)
+    {
         var mesh = new MeshData
         {
             Vertices = new[]
@@ -121,7 +157,7 @@ public class AnnotationAnchorProjectorTests
         };
 
         var factory = CreateMockFactory();
-        var object3D = new Object3D { Name = name };
+        var object3D = new Object3D { Name = name, Position = position };
         object3D.Initialize(factory.Object, mesh);
         return object3D;
     }

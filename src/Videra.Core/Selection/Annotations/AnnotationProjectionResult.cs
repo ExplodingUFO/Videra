@@ -8,7 +8,8 @@ public enum AnnotationProjectionClipStatus
     MissingObject = 1,
     ObjectHasNoWorldBounds = 2,
     BehindCamera = 3,
-    OutsideClipDepth = 4
+    OutsideClipDepth = 4,
+    OutsideViewport = 5
 }
 
 public readonly record struct AnnotationProjectionResult
