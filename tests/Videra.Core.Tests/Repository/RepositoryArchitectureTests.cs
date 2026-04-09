@@ -46,6 +46,22 @@ public sealed class RepositoryArchitectureTests
         "FrameAll()"
     };
 
+    private static readonly string[] PublicInteractionFlowSymbols =
+    {
+        "SelectionState",
+        "Annotations",
+        "SelectionRequested",
+        "AnnotationRequested",
+        "Navigate",
+        "Select",
+        "Annotate",
+        "object-level",
+        "VideraNodeAnnotation",
+        "VideraWorldPointAnnotation",
+        "3D highlight/render state",
+        "2D label/feedback rendering"
+    };
+
     [Fact]
     public void VideraEngine_ShouldSplitRenderingAndResourceOrchestrationAcrossDedicatedPartialFiles()
     {
@@ -155,6 +171,28 @@ public sealed class RepositoryArchitectureTests
         contractDoc.Should().Contain("FallbackReason");
         contractDoc.Should().Contain("package discovery");
         contractDoc.Should().Contain("plugin loading");
+    }
+
+    [Fact]
+    public void EnglishInteractionDocs_ShouldAlignSampleAndHostOwnedContractVocabulary()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var readme = File.ReadAllText(Path.Combine(repositoryRoot, "README.md"));
+        var avaloniaReadme = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Avalonia", "README.md"));
+        var sampleReadme = File.ReadAllText(Path.Combine(repositoryRoot, "samples", "Videra.InteractionSample", "README.md"));
+
+        readme.Should().Contain("Videra.InteractionSample");
+        readme.Should().Contain("SelectionState");
+        readme.Should().Contain("host owns");
+
+        avaloniaReadme.Should().Contain("Videra.InteractionSample");
+        avaloniaReadme.Should().Contain("SelectionState");
+        avaloniaReadme.Should().Contain("AnnotationRequested");
+
+        foreach (var symbol in PublicInteractionFlowSymbols)
+        {
+            sampleReadme.Should().Contain(symbol);
+        }
     }
 
     [Fact]

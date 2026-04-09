@@ -46,6 +46,23 @@ public sealed class RepositoryLocalizationTests
         "plugin loading"
     };
 
+    private static readonly string[] InteractionContractSymbols =
+    {
+        "Videra.InteractionSample",
+        "SelectionState",
+        "Annotations",
+        "SelectionRequested",
+        "AnnotationRequested",
+        "Navigate",
+        "Select",
+        "Annotate",
+        "object-level",
+        "VideraNodeAnnotation",
+        "VideraWorldPointAnnotation",
+        "3D highlight/render state",
+        "2D label/feedback rendering"
+    };
+
     [Fact]
     public void Readme_ShouldBeEnglishPrimaryWithChineseSwitch()
     {
@@ -245,6 +262,28 @@ public sealed class RepositoryLocalizationTests
         foreach (var vocabulary in ExtensibilityBoundaryVocabulary)
         {
             extensibility.Should().Contain(vocabulary);
+        }
+    }
+
+    [Fact]
+    public void ChineseInteractionDocs_ShouldMirrorInteractionSampleAndHostOwnedContract()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var readme = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "zh-CN", "README.md"));
+        var avaloniaModule = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "zh-CN", "modules", "videra-avalonia.md"));
+        var sampleReadme = File.ReadAllText(Path.Combine(repositoryRoot, "samples", "Videra.InteractionSample", "README.md"));
+
+        readme.Should().Contain("Videra.InteractionSample");
+        readme.Should().Contain("SelectionState");
+        readme.Should().Contain("host owns");
+
+        avaloniaModule.Should().Contain("Videra.InteractionSample");
+        avaloniaModule.Should().Contain("SelectionRequested");
+        avaloniaModule.Should().Contain("AnnotationRequested");
+
+        foreach (var symbol in InteractionContractSymbols)
+        {
+            sampleReadme.Should().Contain(symbol);
         }
     }
 

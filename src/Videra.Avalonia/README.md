@@ -106,6 +106,67 @@ Contract notes:
 - With `AllowSoftwareFallback = false`, the view stays not ready until the native backend issue is fixed; it does not silently recover through fallback.
 - `package discovery` and `plugin loading` remain out of scope.
 
+## Interaction Contract
+
+`VideraView` also supports a controlled interaction flow where the `host owns` `SelectionState` and annotation state.
+
+```csharp
+using System.Numerics;
+using Videra.Avalonia.Controls.Interaction;
+using Videra.Core.Selection.Annotations;
+
+var selectionState = new VideraSelectionState();
+IReadOnlyList<VideraAnnotation> annotations = Array.Empty<VideraAnnotation>();
+
+View3D.SelectionState = selectionState;
+View3D.Annotations = annotations;
+View3D.InteractionMode = VideraInteractionMode.Navigate;
+
+View3D.SelectionRequested += (_, e) =>
+{
+    selectionState = new VideraSelectionState
+    {
+        ObjectIds = e.ObjectIds,
+        PrimaryObjectId = e.PrimaryObjectId
+    };
+
+    View3D.SelectionState = selectionState;
+};
+
+View3D.AnnotationRequested += (_, e) =>
+{
+    annotations = e.Anchor.Kind == AnnotationAnchorKind.Object && e.Anchor.ObjectId is Guid objectId
+        ? annotations.Concat(
+        [
+            new VideraNodeAnnotation
+            {
+                ObjectId = objectId,
+                Text = "Object note"
+            }
+        ]).ToArray()
+        : annotations.Concat(
+        [
+            new VideraWorldPointAnnotation
+            {
+                WorldPoint = e.Anchor.WorldPoint ?? Vector3.Zero,
+                Text = "World note"
+            }
+        ]).ToArray();
+
+    View3D.Annotations = annotations;
+};
+```
+
+Contract notes:
+
+- Built-in modes are `Navigate`, `Select`, and `Annotate`.
+- Selection is `object-level`.
+- `SelectionRequested` reports intent; the view does not mutate host state for you.
+- `AnnotationRequested` supports object/node anchors and world-point anchors.
+- Overlay responsibilities are split between `3D highlight/render state` and `2D label/feedback rendering`.
+
+For the end-to-end public flow, see [samples/Videra.InteractionSample](../../samples/Videra.InteractionSample/README.md).
+
 ## Native Host Coverage
 
 - Windows: child `HWND` for Direct3D 11

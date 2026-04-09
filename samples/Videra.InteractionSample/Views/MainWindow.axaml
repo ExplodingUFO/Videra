@@ -1,0 +1,201 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:videra="using:Videra.Avalonia.Controls"
+        x:Class="Videra.InteractionSample.Views.MainWindow"
+        Title="Videra Interaction Sample"
+        Width="1500"
+        Height="920"
+        MinWidth="1180"
+        MinHeight="760"
+        Background="#F7F3EA">
+  <Grid ColumnDefinitions="2.3*,1.15*" RowDefinitions="Auto,*">
+    <Border Grid.ColumnSpan="2"
+            Background="#F0E4D3"
+            BorderBrush="#A46C3B"
+            BorderThickness="0,0,0,1"
+            Padding="26,18">
+      <StackPanel Spacing="8">
+        <TextBlock FontSize="26"
+                   FontWeight="SemiBold"
+                   Foreground="#3D2716"
+                   Text="Focused public interaction sample" />
+        <TextBlock Foreground="#6B4B2D"
+                   TextWrapping="Wrap"
+                   Text="The host owns SelectionState and annotation state, switches between Navigate, Select, and Annotate, applies SelectionRequested and AnnotationRequested, and lets VideraView project that state into object-level highlights plus overlay labels." />
+      </StackPanel>
+    </Border>
+
+    <Border Grid.Row="1"
+            Margin="24,24,12,24"
+            Background="#FBF7F1"
+            BorderBrush="#D8B48D"
+            BorderThickness="1"
+            CornerRadius="22"
+            ClipToBounds="True">
+      <videra:VideraView x:Name="View3D"
+                         PreferredBackend="Auto"
+                         BackgroundColor="#FFF8EC"
+                         GridColor="#C59D6B"
+                         IsGridVisible="True" />
+    </Border>
+
+    <ScrollViewer Grid.Row="1"
+                  Grid.Column="1"
+                  Margin="12,24,24,24"
+                  VerticalScrollBarVisibility="Auto">
+      <StackPanel Spacing="14">
+        <Border Padding="18"
+                Background="#FFF8EE"
+                BorderBrush="#D8B48D"
+                BorderThickness="1"
+                CornerRadius="18">
+          <StackPanel Spacing="10">
+            <TextBlock FontSize="18"
+                       FontWeight="SemiBold"
+                       Foreground="#3D2716"
+                       Text="Interaction contract" />
+            <TextBlock Foreground="#6B4B2D"
+                       TextWrapping="Wrap"
+                       Text="Selection is object-level. Annotations can target a VideraNodeAnnotation object anchor or a VideraWorldPointAnnotation world-point anchor. Overlay responsibilities are split between 3D highlight/render state and 2D label/feedback rendering." />
+            <TextBlock x:Name="ContractStatusText"
+                       Foreground="#6B4B2D"
+                       TextWrapping="Wrap" />
+          </StackPanel>
+        </Border>
+
+        <Border Padding="18"
+                Background="#FFF8EE"
+                BorderBrush="#D8B48D"
+                BorderThickness="1"
+                CornerRadius="18">
+          <StackPanel Spacing="10">
+            <TextBlock FontSize="18"
+                       FontWeight="SemiBold"
+                       Foreground="#3D2716"
+                       Text="Mode switcher" />
+            <StackPanel Orientation="Horizontal"
+                        Spacing="10">
+              <Button x:Name="NavigateModeButton"
+                      Click="OnNavigateModeClicked"
+                      Content="Navigate" />
+              <Button x:Name="SelectModeButton"
+                      Click="OnSelectModeClicked"
+                      Content="Select" />
+              <Button x:Name="AnnotateModeButton"
+                      Click="OnAnnotateModeClicked"
+                      Content="Annotate" />
+            </StackPanel>
+            <TextBlock Foreground="#6B4B2D"
+                       TextWrapping="Wrap"
+                       Text="Navigate keeps camera motion on the control. Select emits SelectionRequested without mutating host state. Annotate emits AnnotationRequested for either an object/node hit or a world-point click." />
+          </StackPanel>
+        </Border>
+
+        <Border Padding="18"
+                Background="#FFF8EE"
+                BorderBrush="#D8B48D"
+                BorderThickness="1"
+                CornerRadius="18">
+          <StackPanel Spacing="10">
+            <TextBlock FontSize="18"
+                       FontWeight="SemiBold"
+                       Foreground="#3D2716"
+                       Text="Host actions" />
+            <StackPanel Orientation="Horizontal"
+                        Spacing="10">
+              <Button Click="OnClearSelectionClicked"
+                      Content="Clear Selection" />
+              <Button Click="OnClearAnnotationsClicked"
+                      Content="Clear Annotations" />
+              <Button Click="OnReseedAnnotationsClicked"
+                      Content="Reseed Notes" />
+            </StackPanel>
+            <TextBlock Foreground="#6B4B2D"
+                       TextWrapping="Wrap"
+                       Text="These buttons update the host-owned SelectionState and annotation list, then push the new state back through View3D.SelectionState and View3D.Annotations." />
+          </StackPanel>
+        </Border>
+
+        <Border Padding="18"
+                Background="#FFF8EE"
+                BorderBrush="#D8B48D"
+                BorderThickness="1"
+                CornerRadius="18">
+          <StackPanel Spacing="8">
+            <TextBlock FontSize="16"
+                       FontWeight="SemiBold"
+                       Foreground="#3D2716"
+                       Text="Scene load" />
+            <TextBlock x:Name="LoadStatusText"
+                       Foreground="#6B4B2D"
+                       TextWrapping="Wrap" />
+          </StackPanel>
+        </Border>
+
+        <Border Padding="18"
+                Background="#FFF8EE"
+                BorderBrush="#D8B48D"
+                BorderThickness="1"
+                CornerRadius="18">
+          <StackPanel Spacing="8">
+            <TextBlock FontSize="16"
+                       FontWeight="SemiBold"
+                       Foreground="#3D2716"
+                       Text="Current scene" />
+            <TextBlock x:Name="SceneStatusText"
+                       Foreground="#6B4B2D"
+                       TextWrapping="Wrap" />
+          </StackPanel>
+        </Border>
+
+        <Border Padding="18"
+                Background="#FFF8EE"
+                BorderBrush="#D8B48D"
+                BorderThickness="1"
+                CornerRadius="18">
+          <StackPanel Spacing="8">
+            <TextBlock FontSize="16"
+                       FontWeight="SemiBold"
+                       Foreground="#3D2716"
+                       Text="SelectionState" />
+            <TextBlock x:Name="SelectionStatusText"
+                       Foreground="#6B4B2D"
+                       TextWrapping="Wrap" />
+          </StackPanel>
+        </Border>
+
+        <Border Padding="18"
+                Background="#FFF8EE"
+                BorderBrush="#D8B48D"
+                BorderThickness="1"
+                CornerRadius="18">
+          <StackPanel Spacing="8">
+            <TextBlock FontSize="16"
+                       FontWeight="SemiBold"
+                       Foreground="#3D2716"
+                       Text="Annotations" />
+            <TextBlock x:Name="AnnotationStatusText"
+                       Foreground="#6B4B2D"
+                       TextWrapping="Wrap" />
+          </StackPanel>
+        </Border>
+
+        <Border Padding="18"
+                Background="#FFF8EE"
+                BorderBrush="#D8B48D"
+                BorderThickness="1"
+                CornerRadius="18">
+          <StackPanel Spacing="8">
+            <TextBlock FontSize="16"
+                       FontWeight="SemiBold"
+                       Foreground="#3D2716"
+                       Text="Last request" />
+            <TextBlock x:Name="LastRequestText"
+                       Foreground="#6B4B2D"
+                       TextWrapping="Wrap" />
+          </StackPanel>
+        </Border>
+      </StackPanel>
+    </ScrollViewer>
+  </Grid>
+</Window>
