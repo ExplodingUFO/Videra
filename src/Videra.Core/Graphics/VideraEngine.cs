@@ -6,6 +6,8 @@ using Videra.Core.Graphics.Abstractions;
 using Videra.Core.Graphics.RenderPipeline;
 using Videra.Core.Graphics.RenderPipeline.Extensibility;
 using Videra.Core.Graphics.Wireframe;
+using Videra.Core.Selection.Annotations;
+using Videra.Core.Selection.Rendering;
 using Videra.Core.Styles.Services;
 
 namespace Videra.Core.Graphics;
@@ -35,6 +37,11 @@ public partial class VideraEngine : IDisposable
     private readonly Dictionary<RenderPassSlot, IRenderPassContributor> _passContributorOverrides = new();
     private readonly Dictionary<RenderPassSlot, List<IRenderPassContributor>> _passContributorRegistrations = new();
     private readonly Dictionary<RenderFrameHookPoint, List<Action<RenderFrameHookContext>>> _frameHooks = new();
+    private readonly AnnotationAnchorProjector _annotationAnchorProjector = new();
+    private readonly SelectionOverlayContributor _selectionOverlayContributor = new();
+    private readonly AnnotationAnchorOverlayContributor _annotationOverlayContributor = new();
+    private SelectionOverlayRenderState _selectionOverlayState = SelectionOverlayRenderState.Empty;
+    private AnnotationOverlayRenderState _annotationOverlayState = AnnotationOverlayRenderState.Empty;
 
     /// <summary>
     /// Gets the orbit camera used to view the scene.
@@ -203,6 +210,63 @@ public partial class VideraEngine : IDisposable
                 SupportsPipelineSnapshots = true,
                 LastPipelineSnapshot = LastPipelineSnapshot
             };
+        }
+    }
+
+    public void SetSelectionOverlayState(SelectionOverlayRenderState? state)
+    {
+        lock (_lock)
+        {
+            if (_state == EngineLifecycleState.Disposed)
+            {
+                return;
+            }
+
+            _selectionOverlayState = (state ?? SelectionOverlayRenderState.Empty).Snapshot();
+        }
+    }
+
+    public void SetAnnotationOverlayState(AnnotationOverlayRenderState? state)
+    {
+        lock (_lock)
+        {
+            if (_state == EngineLifecycleState.Disposed)
+            {
+                return;
+            }
+
+            _annotationOverlayState = (state ?? AnnotationOverlayRenderState.Empty).Snapshot();
+        }
+    }
+
+    public IReadOnlyList<AnnotationOverlayProjection> ProjectAnnotationAnchors(
+        AnnotationOverlayRenderState? state,
+        Vector2 viewportSize)
+    {
+        lock (_lock)
+        {
+            if (_state == EngineLifecycleState.Disposed)
+            {
+                return Array.Empty<AnnotationOverlayProjection>();
+            }
+
+            var overlayState = (state ?? _annotationOverlayState).Snapshot();
+            if (overlayState.Anchors.Count == 0)
+            {
+                return Array.Empty<AnnotationOverlayProjection>();
+            }
+
+            var projections = new AnnotationOverlayProjection[overlayState.Anchors.Count];
+            for (var i = 0; i < overlayState.Anchors.Count; i++)
+            {
+                var anchor = overlayState.Anchors[i];
+                projections[i] = new AnnotationOverlayProjection(
+                    anchor.AnnotationId,
+                    anchor.Anchor,
+                    _annotationAnchorProjector.Project(anchor.Anchor, Camera, viewportSize, _sceneObjects));
+            }
+
+            return projections;
         }
     }
 

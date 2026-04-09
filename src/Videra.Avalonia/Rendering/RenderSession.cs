@@ -59,6 +59,8 @@ internal sealed partial class RenderSession : IDisposable
 
     public IResourceFactory? ResourceFactory => _orchestrator.ResourceFactory;
 
+    internal VideraEngine Engine => _orchestrator.Engine;
+
     internal GraphicsBackendResolution? LastBackendResolution => _orchestrator.LastBackendResolution;
 
     internal Exception? LastInitializationError => _orchestrator.LastInitializationError;

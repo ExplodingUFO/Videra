@@ -3,6 +3,8 @@ using Videra.Core.Geometry;
 using Videra.Core.Graphics;
 using Videra.Core.Graphics.RenderPipeline.Extensibility;
 using Videra.Core.Graphics.Software;
+using Videra.Core.Selection.Annotations;
+using Videra.Core.Selection.Rendering;
 using Xunit;
 
 namespace Videra.Core.IntegrationTests.Rendering;
@@ -27,6 +29,49 @@ public sealed class VideraEngineExtensibilityIntegrationTests
         engine.Draw();
 
         observedSlots.Should().ContainSingle().Which.Should().Be("SolidGeometry");
+    }
+
+    [Fact]
+    public void RegisterPassContributor_ExposesOverlayTruthThroughContributionContext()
+    {
+        using var backend = new SoftwareBackend();
+        backend.Initialize(IntPtr.Zero, 200, 200);
+        using var engine = new VideraEngine();
+        engine.Initialize(backend);
+        engine.Resize(200, 200);
+        var sceneObject = DemoMeshFactory.CreateWhiteQuad(backend.GetResourceFactory());
+        engine.AddObject(sceneObject);
+        engine.SetSelectionOverlayState(new SelectionOverlayRenderState(
+            selectedObjectIds: [sceneObject.Id],
+            hoverObjectId: sceneObject.Id,
+            selectedLineColor: RgbaFloat.Black,
+            hoverLineColor: RgbaFloat.Green));
+        engine.SetAnnotationOverlayState(new AnnotationOverlayRenderState(
+            anchors:
+            [
+                new AnnotationOverlayAnchor(Guid.NewGuid(), AnnotationAnchorDescriptor.ForObject(sceneObject.Id))
+            ],
+            markerColor: RgbaFloat.Red,
+            markerWorldSize: 0.08f));
+
+        SelectionOverlayRenderState? observedSelection = null;
+        AnnotationOverlayRenderState? observedAnnotation = null;
+        engine.RegisterPassContributor(
+            RenderPassSlot.Wireframe,
+            new RecordingContributor(context =>
+            {
+                observedSelection = context.SelectionOverlay;
+                observedAnnotation = context.AnnotationOverlay;
+            }));
+
+        engine.Draw();
+
+        observedSelection.Should().NotBeNull();
+        observedSelection!.SelectedObjectIds.Should().ContainSingle().Which.Should().Be(sceneObject.Id);
+        observedSelection.HoverObjectId.Should().Be(sceneObject.Id);
+        observedAnnotation.Should().NotBeNull();
+        observedAnnotation!.Anchors.Should().ContainSingle();
+        observedAnnotation.Anchors[0].Anchor.Should().Be(AnnotationAnchorDescriptor.ForObject(sceneObject.Id));
     }
 
     [Fact]
@@ -95,6 +140,36 @@ public sealed class VideraEngineExtensibilityIntegrationTests
         capabilities.LastPipelineSnapshot.Should().NotBeNull();
         capabilities.LastPipelineSnapshot!.StageNames.Should().Contain("PrepareFrame");
         capabilities.LastPipelineSnapshot.StageNames.Should().Contain("PresentFrame");
+    }
+
+    [Fact]
+    public void DisposedOverlayContributors_AreIgnoredHarmlessly()
+    {
+        using var backend = new SoftwareBackend();
+        backend.Initialize(IntPtr.Zero, 200, 200);
+        using var engine = new VideraEngine
+        {
+            BackgroundColor = RgbaFloat.Blue
+        };
+        engine.Initialize(backend);
+        engine.Resize(200, 200);
+        engine.Grid.IsVisible = false;
+        engine.ShowAxis = false;
+        engine.AddObject(DemoMeshFactory.CreateWhiteQuad(backend.GetResourceFactory()));
+
+        using var selectionContributor = new SelectionOverlayContributor();
+        using var annotationContributor = new AnnotationAnchorOverlayContributor();
+        selectionContributor.Dispose();
+        annotationContributor.Dispose();
+        engine.RegisterPassContributor(RenderPassSlot.Wireframe, selectionContributor);
+        engine.RegisterPassContributor(RenderPassSlot.Wireframe, annotationContributor);
+
+        var act = () => engine.Draw();
+
+        act.Should().NotThrow();
+        var frame = DemoMeshFactory.CaptureFrame(backend);
+        DemoMeshFactory.CountPixels(frame, DemoMeshFactory.PixelColor.Red).Should().Be(0);
+        DemoMeshFactory.CountPixels(frame, DemoMeshFactory.PixelColor.Green).Should().Be(0);
     }
 
     [Fact]

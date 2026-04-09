@@ -1,5 +1,9 @@
+using System.Numerics;
 using Videra.Avalonia.Rendering;
+using Videra.Avalonia.Controls.Interaction;
+using Videra.Core.Geometry;
 using Videra.Core.Graphics;
+using Videra.Core.Selection.Rendering;
 
 namespace Videra.Avalonia.Controls;
 
@@ -91,6 +95,49 @@ internal sealed class VideraViewSessionBridge
     {
         _session.SetDisplayServerDiagnostics(null, fallbackUsed: false, fallbackReason: null);
         _session.BindHandle(IntPtr.Zero);
+    }
+
+    public VideraViewOverlayState CreateOverlayState(
+        VideraSelectionState? selectionState,
+        IReadOnlyList<VideraAnnotation>? annotations,
+        Vector2 viewportSize)
+    {
+        var effectiveSelectionState = selectionState ?? new VideraSelectionState();
+        var effectiveAnnotations = annotations ?? Array.Empty<VideraAnnotation>();
+
+        var selectionOutlines = effectiveSelectionState.ObjectIds
+            .Distinct()
+            .Select(objectId => new VideraSelectionOutline(
+                objectId,
+                objectId == effectiveSelectionState.PrimaryObjectId))
+            .ToArray();
+
+        var visibleAnnotations = effectiveAnnotations
+            .Where(annotation => annotation is { IsVisible: true })
+            .ToArray();
+        var overlayState = new AnnotationOverlayRenderState(
+            visibleAnnotations
+                .Select(annotation => new AnnotationOverlayAnchor(annotation.Id, annotation.Anchor))
+                .ToArray(),
+            markerColor: new RgbaFloat(1f, 0f, 0f, 1f));
+        var projectedAnchors = _session.Engine.ProjectAnnotationAnchors(overlayState, viewportSize);
+        var annotationLookup = visibleAnnotations.ToDictionary(annotation => annotation.Id);
+        var labels = projectedAnchors
+            .Where(projection => projection.Projection.IsVisible && annotationLookup.ContainsKey(projection.AnnotationId))
+            .Select(projection =>
+            {
+                var annotation = annotationLookup[projection.AnnotationId];
+                return new VideraOverlayLabel(
+                    annotation.Id,
+                    annotation.Text,
+                    annotation.Color,
+                    projection.Projection.ScreenPosition,
+                    projection.Anchor,
+                    projection.Projection.ResolvedObjectId);
+            })
+            .ToArray();
+
+        return new VideraViewOverlayState(selectionOutlines, labels);
     }
 
     public VideraBackendDiagnostics CreateDiagnosticsSnapshot(string? lastInitializationError)

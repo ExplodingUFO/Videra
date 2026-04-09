@@ -362,6 +362,28 @@ public partial class Object3D : IDisposable
         LineVertexBuffer.SetData(coloredVertices, 0);
     }
 
+    internal bool TryCreateColoredWireframeVertices(
+        RgbaFloat color,
+        out VertexPositionNormalColor[] vertices)
+    {
+        if (_cachedVertices == null || _cachedVertices.Length == 0)
+        {
+            vertices = Array.Empty<VertexPositionNormalColor>();
+            return false;
+        }
+
+        vertices = new VertexPositionNormalColor[_cachedVertices.Length];
+        for (var i = 0; i < _cachedVertices.Length; i++)
+        {
+            vertices[i] = new VertexPositionNormalColor(
+                _cachedVertices[i].Position,
+                _cachedVertices[i].Normal,
+                color);
+        }
+
+        return true;
+    }
+
     private static partial class Log
     {
         [LoggerMessage(EventId = 1, Level = LogLevel.Debug, Message = "[Object3D '{Name}'] Initializing: {VertexCount} verts, {IndexCount} indices")]

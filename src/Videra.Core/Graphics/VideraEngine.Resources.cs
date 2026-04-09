@@ -30,6 +30,8 @@ public partial class VideraEngine
             }
 
             _styleService.StyleChanged -= OnStyleChanged;
+            _selectionOverlayContributor.Dispose();
+            _annotationOverlayContributor.Dispose();
             ReleaseGraphicsResourcesUnsafe(preserveSceneObjects: false, disposeBackend: true);
             TransitionToStateUnsafe(EngineLifecycleState.Disposed);
         }

@@ -1,5 +1,6 @@
-using Videra.Core.Graphics.Abstractions;
 using Videra.Core.Graphics;
+using Videra.Core.Graphics.Abstractions;
+using Videra.Core.Selection.Rendering;
 
 namespace Videra.Core.Graphics.RenderPipeline.Extensibility;
 
@@ -12,6 +13,8 @@ public sealed class RenderPassContributionContext
     public required ICommandExecutor CommandExecutor { get; init; }
 
     public required IResourceFactory ResourceFactory { get; init; }
+
+    public required IPipeline MeshPipeline { get; init; }
 
     public required IReadOnlyList<Object3D> SceneObjects { get; init; }
 
@@ -30,4 +33,8 @@ public sealed class RenderPassContributionContext
     public bool IsUsingSoftwareBackend => ActiveBackendPreference == GraphicsBackendPreference.Software;
 
     public RenderPipelineSnapshot? LastPipelineSnapshot { get; init; }
+
+    public required SelectionOverlayRenderState SelectionOverlay { get; init; }
+
+    public required AnnotationOverlayRenderState AnnotationOverlay { get; init; }
 }
