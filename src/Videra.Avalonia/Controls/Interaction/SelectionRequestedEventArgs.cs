@@ -2,13 +2,13 @@ namespace Videra.Avalonia.Controls.Interaction;
 
 public sealed class SelectionRequestedEventArgs : EventArgs
 {
-    private readonly Guid[] _objectIds;
+    private readonly IReadOnlyList<Guid> _objectIds;
 
     public SelectionRequestedEventArgs(VideraSelectionState selection)
     {
         ArgumentNullException.ThrowIfNull(selection);
 
-        _objectIds = selection.ObjectIds.ToArray();
+        _objectIds = Array.AsReadOnly(selection.ObjectIds.ToArray());
         PrimaryObjectId = selection.PrimaryObjectId;
     }
 

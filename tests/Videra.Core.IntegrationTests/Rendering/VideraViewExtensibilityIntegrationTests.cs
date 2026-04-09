@@ -147,12 +147,20 @@ public sealed class VideraViewExtensibilityIntegrationTests
         selectionArgs.Should().NotBeNull();
         ReadRequestedObjectIds(selectionArgs!).Should().ContainSingle().Which.Should().Be(objectId);
         ReadRequestedPrimaryObjectId(selectionArgs!).Should().Be(objectId);
+        AssertObjectIdsAreReadOnly(ReadProperty(selectionArgs!, "ObjectIds"), replacementObjectId);
+
+        var projectedSelection = ReadProperty(selectionArgs!, "Selection");
+        ReadSelectionObjectIds(projectedSelection).Should().ContainSingle().Which.Should().Be(objectId);
+        ReadPrimaryObjectId(projectedSelection).Should().Be(objectId);
+        AssertObjectIdsAreReadOnly(ReadProperty(projectedSelection, "ObjectIds"), replacementObjectId);
 
         WriteProperty(selectionState, "ObjectIds", new[] { replacementObjectId });
         WriteProperty(selectionState, "PrimaryObjectId", replacementObjectId);
 
         ReadRequestedObjectIds(selectionArgs!).Should().ContainSingle().Which.Should().Be(objectId);
         ReadRequestedPrimaryObjectId(selectionArgs!).Should().Be(objectId);
+        ReadSelectionObjectIds(ReadProperty(selectionArgs!, "Selection")).Should().ContainSingle().Which.Should().Be(objectId);
+        ReadPrimaryObjectId(ReadProperty(selectionArgs!, "Selection")).Should().Be(objectId);
 
         var anchor = AnnotationAnchorDescriptor.ForObject(objectId);
         var annotationArgs = Activator.CreateInstance(GetInteractionType("AnnotationRequestedEventArgs"), anchor);
@@ -205,7 +213,9 @@ public sealed class VideraViewExtensibilityIntegrationTests
 
     private static IReadOnlyList<Guid> ReadSelectionObjectIds(object source)
     {
-        var selection = ReadProperty(source, "SelectionState");
+        var selection = source.GetType().Name == "VideraSelectionState"
+            ? source
+            : ReadProperty(source, "SelectionState");
         var objectIds = ReadProperty(selection, "ObjectIds");
         objectIds.Should().BeAssignableTo<IEnumerable<Guid>>();
         return ((IEnumerable<Guid>)objectIds).ToArray();
@@ -213,7 +223,9 @@ public sealed class VideraViewExtensibilityIntegrationTests
 
     private static Guid? ReadPrimaryObjectId(object source)
     {
-        var selection = ReadProperty(source, "SelectionState");
+        var selection = source.GetType().Name == "VideraSelectionState"
+            ? source
+            : ReadProperty(source, "SelectionState");
         return (Guid?)ReadNullableProperty(selection, "PrimaryObjectId");
     }
 
@@ -227,6 +239,15 @@ public sealed class VideraViewExtensibilityIntegrationTests
     private static Guid? ReadRequestedPrimaryObjectId(object source)
     {
         return (Guid?)ReadNullableProperty(source, "PrimaryObjectId");
+    }
+
+    private static void AssertObjectIdsAreReadOnly(object objectIds, Guid replacementObjectId)
+    {
+        objectIds.Should().BeAssignableTo<IList<Guid>>("the request payload should expose a read-only list contract");
+        var list = (IList<Guid>)objectIds;
+        FluentActions.Invoking(() => list[0] = replacementObjectId)
+            .Should()
+            .Throw<NotSupportedException>();
     }
 
     private static IReadOnlyList<object> ReadAnnotations(VideraView view)
