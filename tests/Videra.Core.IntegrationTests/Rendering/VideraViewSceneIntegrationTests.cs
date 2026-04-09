@@ -6,6 +6,7 @@ using Videra.Avalonia.Rendering;
 using Videra.Core.Graphics;
 using Videra.Core.Graphics.Wireframe;
 using Videra.Core.Graphics.Software;
+using Videra.Core.Selection.Annotations;
 using Videra.Core.Styles.Presets;
 using Xunit;
 
@@ -247,6 +248,76 @@ public sealed class VideraViewSceneIntegrationTests : IDisposable
     }
 
     [Fact]
+    public void VideraView_ShouldExposeControlledInteractionPublicSurface()
+    {
+        var viewType = typeof(VideraView);
+
+        var selectionStateProperty = viewType.GetProperty("SelectionState");
+        selectionStateProperty.Should().NotBeNull();
+        selectionStateProperty!.PropertyType.FullName.Should().Be("Videra.Avalonia.Controls.Interaction.VideraSelectionState");
+        selectionStateProperty.CanRead.Should().BeTrue();
+        selectionStateProperty.CanWrite.Should().BeTrue();
+
+        var annotationsProperty = viewType.GetProperty("Annotations");
+        annotationsProperty.Should().NotBeNull();
+        annotationsProperty!.CanRead.Should().BeTrue();
+        annotationsProperty.CanWrite.Should().BeTrue();
+        annotationsProperty.PropertyType.IsGenericType.Should().BeTrue();
+        annotationsProperty.PropertyType.GetGenericTypeDefinition().Should().Be(typeof(IReadOnlyList<>));
+        annotationsProperty.PropertyType.GetGenericArguments()[0].FullName.Should().Be("Videra.Avalonia.Controls.Interaction.VideraAnnotation");
+
+        var interactionModeProperty = viewType.GetProperty("InteractionMode");
+        interactionModeProperty.Should().NotBeNull();
+        interactionModeProperty!.PropertyType.FullName.Should().Be("Videra.Avalonia.Controls.Interaction.VideraInteractionMode");
+        interactionModeProperty.CanRead.Should().BeTrue();
+        interactionModeProperty.CanWrite.Should().BeTrue();
+
+        var interactionOptionsProperty = viewType.GetProperty("InteractionOptions");
+        interactionOptionsProperty.Should().NotBeNull();
+        interactionOptionsProperty!.PropertyType.FullName.Should().Be("Videra.Avalonia.Controls.Interaction.VideraInteractionOptions");
+        interactionOptionsProperty.CanRead.Should().BeTrue();
+        interactionOptionsProperty.CanWrite.Should().BeTrue();
+
+        var selectionRequestedEvent = viewType.GetEvent("SelectionRequested");
+        selectionRequestedEvent.Should().NotBeNull();
+        GetEventArgsType(selectionRequestedEvent!).FullName.Should().Be("Videra.Avalonia.Controls.Interaction.SelectionRequestedEventArgs");
+
+        var selectionArgsType = GetEventArgsType(selectionRequestedEvent!);
+        var selectionProperty = selectionArgsType.GetProperty("Selection");
+        selectionProperty.Should().NotBeNull();
+        selectionProperty!.PropertyType.FullName.Should().Be("Videra.Avalonia.Controls.Interaction.VideraSelectionState");
+
+        var requestObjectIdsProperty = selectionArgsType.GetProperty("ObjectIds");
+        requestObjectIdsProperty.Should().NotBeNull();
+        requestObjectIdsProperty!.PropertyType.IsGenericType.Should().BeTrue();
+        requestObjectIdsProperty.PropertyType.GetGenericTypeDefinition().Should().Be(typeof(IReadOnlyList<>));
+        requestObjectIdsProperty.PropertyType.GetGenericArguments()[0].Should().Be(typeof(Guid));
+
+        var requestPrimaryObjectIdProperty = selectionArgsType.GetProperty("PrimaryObjectId");
+        requestPrimaryObjectIdProperty.Should().NotBeNull();
+        requestPrimaryObjectIdProperty!.PropertyType.Should().Be(typeof(Guid?));
+
+        var objectIdsProperty = selectionProperty.PropertyType.GetProperty("ObjectIds");
+        objectIdsProperty.Should().NotBeNull();
+        objectIdsProperty!.PropertyType.IsGenericType.Should().BeTrue();
+        objectIdsProperty.PropertyType.GetGenericTypeDefinition().Should().Be(typeof(IReadOnlyList<>));
+        objectIdsProperty.PropertyType.GetGenericArguments()[0].Should().Be(typeof(Guid));
+
+        var primaryObjectIdProperty = selectionProperty.PropertyType.GetProperty("PrimaryObjectId");
+        primaryObjectIdProperty.Should().NotBeNull();
+        primaryObjectIdProperty!.PropertyType.Should().Be(typeof(Guid?));
+
+        var annotationRequestedEvent = viewType.GetEvent("AnnotationRequested");
+        annotationRequestedEvent.Should().NotBeNull();
+        GetEventArgsType(annotationRequestedEvent!).FullName.Should().Be("Videra.Avalonia.Controls.Interaction.AnnotationRequestedEventArgs");
+
+        var annotationArgsType = GetEventArgsType(annotationRequestedEvent!);
+        var anchorProperty = annotationArgsType.GetProperty("Anchor");
+        anchorProperty.Should().NotBeNull();
+        anchorProperty!.PropertyType.Should().Be(typeof(AnnotationAnchorDescriptor));
+    }
+
+    [Fact]
     public void BackendDiagnostics_ShouldExposeLinuxDisplayServerResolutionFields()
     {
         var diagnosticsType = typeof(VideraBackendDiagnostics);
@@ -370,6 +441,14 @@ public sealed class VideraViewSceneIntegrationTests : IDisposable
     private static int GetSceneObjectCount(VideraView view)
     {
         return GetSceneObjects(view).Count;
+    }
+
+    private static Type GetEventArgsType(EventInfo eventInfo)
+    {
+        eventInfo.EventHandlerType.Should().NotBeNull();
+        eventInfo.EventHandlerType!.IsGenericType.Should().BeTrue();
+        eventInfo.EventHandlerType.GetGenericTypeDefinition().Should().Be(typeof(EventHandler<>));
+        return eventInfo.EventHandlerType.GetGenericArguments()[0];
     }
 
     private static IList<Object3D> GetSceneObjects(VideraView view)

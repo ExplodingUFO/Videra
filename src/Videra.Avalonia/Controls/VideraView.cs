@@ -7,6 +7,7 @@ using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Threading;
 using Microsoft.Extensions.Logging;
+using Videra.Avalonia.Controls.Interaction;
 using Videra.Avalonia.Composition;
 using Videra.Avalonia.Rendering;
 using Videra.Core.Geometry;
@@ -28,6 +29,9 @@ public partial class VideraView : Decorator
     private VideraViewSessionBridge _sessionBridge;
     private VideraViewOptions _options = new();
     private VideraBackendDiagnostics _backendDiagnostics;
+    private VideraSelectionState _selectionState = new();
+    private IReadOnlyList<VideraAnnotation> _annotations = Array.Empty<VideraAnnotation>();
+    private VideraInteractionOptions _interactionOptions = new();
     private readonly INativeHostFactory _nativeHostFactory;
     private NativeControlHost? _nativeHost;
     private Grid? _nativeContainer;
@@ -38,6 +42,8 @@ public partial class VideraView : Decorator
     public event EventHandler? BackendReady;
     public event EventHandler<VideraBackendStatusChangedEventArgs>? BackendStatusChanged;
     public event EventHandler<VideraBackendFailureEventArgs>? InitializationFailed;
+    public event EventHandler<SelectionRequestedEventArgs>? SelectionRequested;
+    public event EventHandler<AnnotationRequestedEventArgs>? AnnotationRequested;
 
     public static readonly StyledProperty<Color> BackgroundColorProperty =
         AvaloniaProperty.Register<VideraView, Color>(nameof(BackgroundColor), Colors.Black);
@@ -143,6 +149,38 @@ public partial class VideraView : Decorator
     /// pipeline snapshot from a previously rendered frame.
     /// </remarks>
     public RenderCapabilitySnapshot RenderCapabilities => Engine.GetRenderCapabilities();
+
+    /// <summary>
+    /// Gets or sets the host-owned object selection state projected by the control.
+    /// </summary>
+    public VideraSelectionState SelectionState
+    {
+        get => _selectionState;
+        set => _selectionState = value ?? new VideraSelectionState();
+    }
+
+    /// <summary>
+    /// Gets or sets the host-owned annotations to display for the current scene.
+    /// </summary>
+    public IReadOnlyList<VideraAnnotation> Annotations
+    {
+        get => _annotations;
+        set => _annotations = value ?? Array.Empty<VideraAnnotation>();
+    }
+
+    /// <summary>
+    /// Gets or sets the interaction mode the shell should interpret future input against.
+    /// </summary>
+    public VideraInteractionMode InteractionMode { get; set; } = VideraInteractionMode.Navigate;
+
+    /// <summary>
+    /// Gets or sets the host-supplied interaction options for controlled selection and annotation behavior.
+    /// </summary>
+    public VideraInteractionOptions InteractionOptions
+    {
+        get => _interactionOptions;
+        set => _interactionOptions = value ?? new VideraInteractionOptions();
+    }
 
     public IResourceFactory? GetResourceFactory()
     {
@@ -657,6 +695,16 @@ public partial class VideraView : Decorator
         var next = _sessionBridge.CreateDiagnosticsSnapshot(lastInitializationError);
         _backendDiagnostics = next;
         BackendStatusChanged?.Invoke(this, new VideraBackendStatusChangedEventArgs(next));
+    }
+
+    private void RaiseSelectionRequested(SelectionRequestedEventArgs e)
+    {
+        SelectionRequested?.Invoke(this, e);
+    }
+
+    private void RaiseAnnotationRequested(AnnotationRequestedEventArgs e)
+    {
+        AnnotationRequested?.Invoke(this, e);
     }
 
     private static partial class Log

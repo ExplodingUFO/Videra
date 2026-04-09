@@ -1,8 +1,11 @@
+using System.Collections;
+using System.Reflection;
 using FluentAssertions;
 using Videra.Avalonia.Controls;
 using Videra.Core.Graphics;
 using Videra.Core.Graphics.RenderPipeline.Extensibility;
 using Videra.Core.Graphics.Software;
+using Videra.Core.Selection.Annotations;
 using Xunit;
 
 namespace Videra.Core.IntegrationTests.Rendering;
@@ -90,11 +93,171 @@ public sealed class VideraViewExtensibilityIntegrationTests
         }
     }
 
+    [Fact]
+    public void ControlledInteractionState_IsQueryableBeforeInitialization_AndAfterEngineDisposal()
+    {
+        var view = new VideraView();
+        try
+        {
+            ReadSelectionObjectIds(view).Should().BeEmpty();
+            ReadPrimaryObjectId(view).Should().BeNull();
+            ReadAnnotations(view).Should().BeEmpty();
+            ReadProperty(view, "InteractionMode").ToString().Should().Be("Navigate");
+            ReadProperty(view, "InteractionOptions").Should().NotBeNull();
+
+            var objectId = Guid.NewGuid();
+            var selectionState = CreateSelectionState(objectId);
+            var nodeAnnotation = CreateNodeAnnotation(objectId);
+            var interactionOptions = Activator.CreateInstance(GetInteractionType("VideraInteractionOptions"));
+            var navigateMode = Enum.Parse(GetInteractionType("VideraInteractionMode"), "Navigate");
+
+            WriteProperty(view, "SelectionState", selectionState);
+            WriteProperty(view, "Annotations", CreateAnnotations(nodeAnnotation));
+            WriteProperty(view, "InteractionMode", navigateMode);
+            WriteProperty(view, "InteractionOptions", interactionOptions);
+
+            ReadSelectionObjectIds(view).Should().ContainSingle().Which.Should().Be(objectId);
+            ReadPrimaryObjectId(view).Should().Be(objectId);
+            ReadAnnotations(view).Should().ContainSingle().Which.Should().BeSameAs(nodeAnnotation);
+            ReadProperty(view, "InteractionMode").Should().Be(navigateMode);
+            ReadProperty(view, "InteractionOptions").Should().BeSameAs(interactionOptions);
+
+            view.Engine.Dispose();
+
+            ReadSelectionObjectIds(view).Should().ContainSingle().Which.Should().Be(objectId);
+            ReadPrimaryObjectId(view).Should().Be(objectId);
+            ReadAnnotations(view).Should().ContainSingle().Which.Should().BeSameAs(nodeAnnotation);
+            ReadProperty(view, "InteractionMode").Should().Be(navigateMode);
+            ReadProperty(view, "InteractionOptions").Should().BeSameAs(interactionOptions);
+        }
+        finally
+        {
+            view.Engine.Dispose();
+        }
+    }
+
+    [Fact]
+    public void ControlledInteractionIntentEventArgs_ExposeHostFacingSelectionAndAnchorData()
+    {
+        var objectId = Guid.NewGuid();
+        var selectionState = CreateSelectionState(objectId);
+        var replacementObjectId = Guid.NewGuid();
+
+        var selectionArgs = Activator.CreateInstance(GetInteractionType("SelectionRequestedEventArgs"), selectionState);
+        selectionArgs.Should().NotBeNull();
+        ReadRequestedObjectIds(selectionArgs!).Should().ContainSingle().Which.Should().Be(objectId);
+        ReadRequestedPrimaryObjectId(selectionArgs!).Should().Be(objectId);
+
+        WriteProperty(selectionState, "ObjectIds", new[] { replacementObjectId });
+        WriteProperty(selectionState, "PrimaryObjectId", replacementObjectId);
+
+        ReadRequestedObjectIds(selectionArgs!).Should().ContainSingle().Which.Should().Be(objectId);
+        ReadRequestedPrimaryObjectId(selectionArgs!).Should().Be(objectId);
+
+        var anchor = AnnotationAnchorDescriptor.ForObject(objectId);
+        var annotationArgs = Activator.CreateInstance(GetInteractionType("AnnotationRequestedEventArgs"), anchor);
+        annotationArgs.Should().NotBeNull();
+        ReadProperty(annotationArgs!, "Anchor").Should().Be(anchor);
+    }
+
     private sealed class RecordingContributor(Action<RenderPassContributionContext> onContribute) : IRenderPassContributor
     {
         public void Contribute(RenderPassContributionContext context)
         {
             onContribute(context);
         }
+    }
+
+    private static object CreateSelectionState(Guid objectId)
+    {
+        var selectionState = Activator.CreateInstance(GetInteractionType("VideraSelectionState"));
+        selectionState.Should().NotBeNull();
+        WriteProperty(selectionState!, "ObjectIds", new[] { objectId });
+        WriteProperty(selectionState!, "PrimaryObjectId", objectId);
+        return selectionState!;
+    }
+
+    private static object CreateNodeAnnotation(Guid objectId)
+    {
+        var annotation = Activator.CreateInstance(GetInteractionType("VideraNodeAnnotation"));
+        annotation.Should().NotBeNull();
+        WriteProperty(annotation!, "Id", Guid.NewGuid());
+        WriteProperty(annotation!, "Text", "Pinned");
+        WriteProperty(annotation!, "ObjectId", objectId);
+        return annotation!;
+    }
+
+    private static object CreateAnnotations(object annotation)
+    {
+        var listType = typeof(List<>).MakeGenericType(GetInteractionType("VideraAnnotation"));
+        var list = Activator.CreateInstance(listType);
+        list.Should().BeAssignableTo<IList>();
+        ((IList)list!).Add(annotation);
+        return list!;
+    }
+
+    private static Type GetInteractionType(string name)
+    {
+        var type = typeof(VideraView).Assembly.GetType($"Videra.Avalonia.Controls.Interaction.{name}");
+        type.Should().NotBeNull($"interaction type {name} should exist on the public shell");
+        return type!;
+    }
+
+    private static IReadOnlyList<Guid> ReadSelectionObjectIds(object source)
+    {
+        var selection = ReadProperty(source, "SelectionState");
+        var objectIds = ReadProperty(selection, "ObjectIds");
+        objectIds.Should().BeAssignableTo<IEnumerable<Guid>>();
+        return ((IEnumerable<Guid>)objectIds).ToArray();
+    }
+
+    private static Guid? ReadPrimaryObjectId(object source)
+    {
+        var selection = ReadProperty(source, "SelectionState");
+        return (Guid?)ReadNullableProperty(selection, "PrimaryObjectId");
+    }
+
+    private static IReadOnlyList<Guid> ReadRequestedObjectIds(object source)
+    {
+        var objectIds = ReadProperty(source, "ObjectIds");
+        objectIds.Should().BeAssignableTo<IEnumerable<Guid>>();
+        return ((IEnumerable<Guid>)objectIds).ToArray();
+    }
+
+    private static Guid? ReadRequestedPrimaryObjectId(object source)
+    {
+        return (Guid?)ReadNullableProperty(source, "PrimaryObjectId");
+    }
+
+    private static IReadOnlyList<object> ReadAnnotations(VideraView view)
+    {
+        var annotations = ReadProperty(view, "Annotations");
+        annotations.Should().BeAssignableTo<IEnumerable>();
+        return ((IEnumerable)annotations).Cast<object>().ToArray();
+    }
+
+    private static object ReadProperty(object instance, string propertyName)
+    {
+        var property = instance.GetType().GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public);
+        property.Should().NotBeNull($"property {propertyName} should exist on {instance.GetType().FullName}");
+
+        var value = property!.GetValue(instance);
+        value.Should().NotBeNull($"property {propertyName} should be queryable on {instance.GetType().FullName}");
+        return value!;
+    }
+
+    private static object? ReadNullableProperty(object instance, string propertyName)
+    {
+        var property = instance.GetType().GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public);
+        property.Should().NotBeNull($"property {propertyName} should exist on {instance.GetType().FullName}");
+        return property!.GetValue(instance);
+    }
+
+    private static void WriteProperty(object instance, string propertyName, object? value)
+    {
+        var property = instance.GetType().GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public);
+        property.Should().NotBeNull($"property {propertyName} should exist on {instance.GetType().FullName}");
+        property!.CanWrite.Should().BeTrue($"property {propertyName} should be writable on {instance.GetType().FullName}");
+        property.SetValue(instance, value);
     }
 }
