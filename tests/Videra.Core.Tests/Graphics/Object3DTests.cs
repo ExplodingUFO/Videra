@@ -55,6 +55,21 @@ public class Object3DTests
     }
 
     [Fact]
+    public void Id_IsStableAndAssignedDuringObjectLifetime()
+    {
+        var obj = new Object3D();
+        var originalId = obj.Id;
+        var mockFactory = CreateMockFactory();
+
+        obj.Id.Should().NotBe(Guid.Empty);
+
+        obj.Initialize(mockFactory.Object, CreateTestMesh());
+        obj.Dispose();
+
+        obj.Id.Should().Be(originalId);
+    }
+
+    [Fact]
     public void Name_CanBeSet_ToCustomValue()
     {
         // Arrange & Act

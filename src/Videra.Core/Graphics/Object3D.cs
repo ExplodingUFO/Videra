@@ -20,6 +20,11 @@ public partial class Object3D : IDisposable
     private BoundingBox3? _localBounds;
 
     /// <summary>
+    /// Gets the stable identity of this scene object.
+    /// </summary>
+    public Guid Id { get; } = Guid.NewGuid();
+
+    /// <summary>
     /// Gets or sets the display name of this object, used for logging and identification.
     /// Defaults to <c>"Object"</c>.
     /// </summary>
