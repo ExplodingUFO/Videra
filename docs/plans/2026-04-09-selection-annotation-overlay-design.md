@@ -50,7 +50,7 @@ The recommended design is a four-layer split:
 
 1. `Videra.Core.Selection` for pure picking, box-selection, and annotation-anchor calculations
 2. `Videra.Core.Selection.Rendering` for 3D overlay rendering contracts and contributors
-3. `Videra.Avalonia.Interaction` for built-in default interaction behavior and state machines
+3. `Videra.Avalonia.Controls.Interaction` for built-in default interaction behavior and state machines
 4. `VideraView` as the public controlled shell that receives host-owned state and emits structured user intent
 
 This is intentionally not a "selection manager owns everything" design. The host application remains the source of truth. Videra computes, visualizes, and emits structured requests.
@@ -108,7 +108,9 @@ Responsibilities:
 
 It should not decide what is selected or what annotations exist. It only renders what the host truth says should be shown.
 
-### 3. `Videra.Avalonia.Interaction`
+### 3. `Videra.Avalonia.Controls.Interaction`
+
+This shipped under the `Controls/Interaction` namespace and folder so the public interaction types stay colocated with `VideraView`.
 
 This layer interprets Avalonia input into structured requests.
 
@@ -165,7 +167,7 @@ The public surface should separate host-owned state from control-emitted intent.
 
 Expose public inputs on `VideraView` such as:
 
-- `SelectionState`
+- `SelectionState` (`VideraSelectionState`)
 - `Annotations`
 - `InteractionMode`
 - `InteractionOptions`
@@ -212,9 +214,9 @@ Suggested semantics:
 
 Recommended support types:
 
-- `SelectionState`
-- `SelectionOperation`
-- `SelectionRequest`
+- `SelectionState` / `VideraSelectionState`
+- `SelectionOperation` / `VideraSelectionOperation`
+- `SelectionRequest` / `VideraSelectionRequest`
 - `SelectionResultCandidate`
 
 The public contract should allow both additive and replacing selection semantics without exposing internal controller details.
@@ -439,11 +441,22 @@ Add a dedicated interaction-oriented sample that demonstrates:
 
 ## Implementation Order
 
+The branch shipped in this order:
+
 1. Add stable object identity and pure selection/query contracts in core
-2. Add overlay state and split 3D vs 2D rendering responsibilities
-3. Extract a dedicated Avalonia interaction controller from the current input handling path
-4. Expose the controlled public API on `VideraView`
-5. Add a focused sample, documentation, and repository guards
+2. Add annotation anchor projection and controlled public interaction models
+3. Add overlay state plus the 3D/2D overlay split
+4. Extract the dedicated Avalonia interaction controller and host bridge
+5. Add the focused interaction sample, documentation, and repository guards
+6. Run repository-level verification and finalize the plan notes
+
+## Shipped Notes
+
+The final branch structure added a few details that are now part of the intended architecture:
+
+- `SceneBoundsProjector` centralizes screen-space bounds projection for selection and overlay work.
+- `VideraView.InteractionHost.cs` separates the host/controller bridge from the main `VideraView` partials.
+- `VideraSelectionState`, `VideraSelectionRequest`, and `VideraSelectionOperation` are the authoritative public interaction type names.
 
 ## Risks
 
