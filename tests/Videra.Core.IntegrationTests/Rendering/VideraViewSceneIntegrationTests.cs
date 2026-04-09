@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Numerics;
 using System.Reflection;
 using Avalonia;
 using Avalonia.Controls;
@@ -6,7 +7,9 @@ using FluentAssertions;
 using Videra.Avalonia.Controls;
 using Videra.Avalonia.Controls.Interaction;
 using Videra.Avalonia.Rendering;
+using Videra.Core.Geometry;
 using Videra.Core.Graphics;
+using Videra.Core.Graphics.Abstractions;
 using Videra.Core.Graphics.Wireframe;
 using Videra.Core.Graphics.Software;
 using Videra.Core.Selection.Annotations;
@@ -495,6 +498,76 @@ public sealed class VideraViewSceneIntegrationTests : IDisposable
         }
     }
 
+    [Fact]
+    public void OverlayPresenter_RefreshesAfterNativeFrameRender_WhenNativeHandleIsBound()
+    {
+        GraphicsBackendFactory.ConfigureResolver(new NativeTrackingBackendResolver());
+        var nativeHostFactory = new RecordingNativeHostFactory();
+        var view = new VideraView(nativeHostFactory, bitmapFactory: static (_, _) => null);
+        try
+        {
+            view.PreferredBackend = GraphicsBackendPreference.D3D11;
+
+            var ensureNativeHost = typeof(VideraView).GetMethod("EnsureNativeHost", BindingFlags.Instance | BindingFlags.NonPublic);
+            ensureNativeHost.Should().NotBeNull();
+            ensureNativeHost!.Invoke(view, Array.Empty<object>());
+
+            nativeHostFactory.LastCreatedHost.Should().NotBeNull();
+            nativeHostFactory.LastCreatedHost!.RaiseHandleCreated(new IntPtr(0x1234));
+
+            var renderSessionField = typeof(VideraView).GetField("_renderSession", BindingFlags.Instance | BindingFlags.NonPublic);
+            renderSessionField.Should().NotBeNull();
+            var renderSession = (RenderSession?)renderSessionField!.GetValue(view);
+            renderSession.Should().NotBeNull();
+            renderSession!.IsReady.Should().BeTrue();
+            renderSession.IsSoftwareBackend.Should().BeFalse();
+            renderSession.ResourceFactory.Should().NotBeNull();
+
+            view.Engine.Camera.SetOrbit(Vector3.Zero, 10f, 0f, 0f);
+            view.Engine.Camera.UpdateProjection(64, 64);
+
+            var sceneObject = DemoMeshFactory.CreateTestCube(renderSession.ResourceFactory!, size: 0.5f);
+            view.AddObject(sceneObject);
+            view.SelectionState = new VideraSelectionState
+            {
+                ObjectIds = [sceneObject.Id],
+                PrimaryObjectId = sceneObject.Id
+            };
+            view.Annotations =
+            [
+                new VideraNodeAnnotation
+                {
+                    Id = Guid.NewGuid(),
+                    Text = "Selected",
+                    ObjectId = sceneObject.Id
+                }
+            ];
+
+            renderSession.RenderOnce();
+
+            var initialRect = GetPresenterSelectionRect(view);
+            var initialLabelPosition = GetPresenterLabelPosition(view);
+
+            sceneObject.Position = new Vector3(1.5f, 0f, 0f);
+
+            GetPresenterSelectionRect(view).Should().Be(initialRect);
+            GetPresenterLabelPosition(view).Should().Be(initialLabelPosition);
+
+            renderSession.RenderOnce();
+
+            var updatedRect = GetPresenterSelectionRect(view);
+            var updatedLabelPosition = GetPresenterLabelPosition(view);
+
+            updatedRect.X.Should().NotBeApproximately(initialRect.X, 0.5d);
+            updatedLabelPosition.X.Should().NotBeApproximately(initialLabelPosition.X, 0.5f);
+        }
+        finally
+        {
+            GraphicsBackendFactory.ConfigureResolver(null);
+            view.Engine.Dispose();
+        }
+    }
+
     public void Dispose()
     {
         if (_disposed)
@@ -545,9 +618,12 @@ public sealed class VideraViewSceneIntegrationTests : IDisposable
 
     private sealed class RecordingNativeHostFactory : INativeHostFactory
     {
+        public RecordingNativeHost? LastCreatedHost { get; private set; }
+
         public IVideraNativeHost? CreateHost()
         {
-            return new RecordingNativeHost();
+            LastCreatedHost = new RecordingNativeHost();
+            return LastCreatedHost;
         }
     }
 
@@ -556,5 +632,214 @@ public sealed class VideraViewSceneIntegrationTests : IDisposable
         public event Action<IntPtr>? HandleCreated;
         public event Action? HandleDestroyed;
         public event Action<NativePointerEvent>? NativePointer;
+
+        public void RaiseHandleCreated(IntPtr handle)
+        {
+            HandleCreated?.Invoke(handle);
+        }
+    }
+
+    private static Rect GetPresenterSelectionRect(VideraView view)
+    {
+        var overlayState = GetOverlayState(view);
+        var selectionOutlines = (IReadOnlyList<object>)overlayState.GetType().GetProperty("SelectionOutlines")!.GetValue(overlayState)!;
+        selectionOutlines.Should().ContainSingle();
+        return (Rect)selectionOutlines[0].GetType().GetProperty("ScreenBounds")!.GetValue(selectionOutlines[0])!;
+    }
+
+    private static Point GetPresenterLabelPosition(VideraView view)
+    {
+        var overlayState = GetOverlayState(view);
+        var labels = (IReadOnlyList<object>)overlayState.GetType().GetProperty("Labels")!.GetValue(overlayState)!;
+        labels.Should().ContainSingle();
+        var screenPosition = (Vector2)labels[0].GetType().GetProperty("ScreenPosition")!.GetValue(labels[0])!;
+        return new Point(screenPosition.X, screenPosition.Y);
+    }
+
+    private static object GetOverlayState(VideraView view)
+    {
+        var inputOverlayField = typeof(VideraView).GetField("_inputOverlay", BindingFlags.Instance | BindingFlags.NonPublic);
+        inputOverlayField.Should().NotBeNull();
+        var inputOverlay = (Border?)inputOverlayField!.GetValue(view);
+        inputOverlay.Should().NotBeNull();
+        inputOverlay!.Child.Should().NotBeNull();
+
+        var overlayStateField = inputOverlay.Child!.GetType().GetField("_overlayState", BindingFlags.Instance | BindingFlags.NonPublic);
+        overlayStateField.Should().NotBeNull();
+        var overlayState = overlayStateField!.GetValue(inputOverlay.Child!);
+        overlayState.Should().NotBeNull();
+        return overlayState!;
+    }
+
+    private sealed class NativeTrackingBackendResolver : IGraphicsBackendResolver
+    {
+        public GraphicsBackendResolverResult ResolveBackend(GraphicsBackendPreference preference, Microsoft.Extensions.Logging.ILoggerFactory? loggerFactory = null)
+        {
+            _ = preference;
+            _ = loggerFactory;
+            return new GraphicsBackendResolverResult(new NativeTrackingBackend());
+        }
+    }
+
+    private sealed class NativeTrackingBackend : IGraphicsBackend
+    {
+        private readonly TrackingResourceFactory _resourceFactory = new();
+        private readonly TrackingCommandExecutor _commandExecutor = new();
+
+        public bool IsInitialized { get; private set; }
+
+        public void Initialize(IntPtr windowHandle, int width, int height)
+        {
+            _ = windowHandle;
+            _ = width;
+            _ = height;
+            IsInitialized = true;
+        }
+
+        public void Resize(int width, int height)
+        {
+            _ = width;
+            _ = height;
+        }
+
+        public void BeginFrame()
+        {
+        }
+
+        public void EndFrame()
+        {
+        }
+
+        public void SetClearColor(Vector4 color)
+        {
+            _ = color;
+        }
+
+        public IResourceFactory GetResourceFactory() => _resourceFactory;
+
+        public ICommandExecutor GetCommandExecutor() => _commandExecutor;
+
+        public void Dispose()
+        {
+            IsInitialized = false;
+        }
+    }
+
+    private sealed class TrackingResourceFactory : IResourceFactory
+    {
+        public IBuffer CreateVertexBuffer(VertexPositionNormalColor[] vertices) => new TrackingBuffer((uint)(vertices.Length * sizeof(float) * 10));
+
+        public IBuffer CreateVertexBuffer(uint sizeInBytes) => new TrackingBuffer(sizeInBytes);
+
+        public IBuffer CreateIndexBuffer(uint[] indices) => new TrackingBuffer((uint)(indices.Length * sizeof(uint)));
+
+        public IBuffer CreateIndexBuffer(uint sizeInBytes) => new TrackingBuffer(sizeInBytes);
+
+        public IBuffer CreateUniformBuffer(uint sizeInBytes) => new TrackingBuffer(sizeInBytes);
+
+        public IPipeline CreatePipeline(PipelineDescription description) => new TrackingPipeline();
+
+        public IPipeline CreatePipeline(uint vertexSize, bool hasNormals, bool hasColors) => new TrackingPipeline();
+
+        public IShader CreateShader(ShaderStage stage, byte[] bytecode, string entryPoint) => new TrackingShader();
+
+        public IResourceSet CreateResourceSet(ResourceSetDescription description) => new TrackingResourceSet();
+    }
+
+    private sealed class TrackingCommandExecutor : ICommandExecutor
+    {
+        public void SetPipeline(IPipeline pipeline)
+        {
+        }
+
+        public void SetVertexBuffer(IBuffer buffer, uint index = 0)
+        {
+        }
+
+        public void SetIndexBuffer(IBuffer buffer)
+        {
+        }
+
+        public void SetResourceSet(uint slot, IResourceSet resourceSet)
+        {
+        }
+
+        public void DrawIndexed(uint indexCount, uint instanceCount = 1, uint firstIndex = 0, int vertexOffset = 0, uint firstInstance = 0)
+        {
+        }
+
+        public void DrawIndexed(uint primitiveType, uint indexCount, uint instanceCount = 1, uint firstIndex = 0, int vertexOffset = 0, uint firstInstance = 0)
+        {
+        }
+
+        public void Draw(uint vertexCount, uint instanceCount = 1, uint firstVertex = 0, uint firstInstance = 0)
+        {
+        }
+
+        public void SetViewport(float x, float y, float width, float height, float minDepth = 0f, float maxDepth = 1f)
+        {
+        }
+
+        public void SetScissorRect(int x, int y, int width, int height)
+        {
+        }
+
+        public void Clear(float r, float g, float b, float a)
+        {
+        }
+
+        public void SetDepthState(bool testEnabled, bool writeEnabled)
+        {
+        }
+
+        public void ResetDepthState()
+        {
+        }
+    }
+
+    private sealed class TrackingBuffer(uint sizeInBytes) : IBuffer
+    {
+        public uint SizeInBytes { get; } = sizeInBytes;
+
+        public void Update<T>(T data) where T : unmanaged
+        {
+        }
+
+        public void UpdateArray<T>(T[] data) where T : unmanaged
+        {
+        }
+
+        public void SetData<T>(T data, uint offset) where T : unmanaged
+        {
+        }
+
+        public void SetData<T>(T[] data, uint offset) where T : unmanaged
+        {
+        }
+
+        public void Dispose()
+        {
+        }
+    }
+
+    private sealed class TrackingPipeline : IPipeline
+    {
+        public void Dispose()
+        {
+        }
+    }
+
+    private sealed class TrackingShader : IShader
+    {
+        public void Dispose()
+        {
+        }
+    }
+
+    private sealed class TrackingResourceSet : IResourceSet
+    {
+        public void Dispose()
+        {
+        }
     }
 }

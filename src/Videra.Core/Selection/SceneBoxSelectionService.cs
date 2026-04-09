@@ -26,7 +26,7 @@ public sealed class SceneBoxSelectionService
                 continue;
             }
 
-            if (!TryProjectBounds(bounds, query.Camera, query.ViewportSize, out var objectRect))
+            if (!SceneBoundsProjector.TryProjectBounds(bounds, query.Camera, query.ViewportSize, out var objectRect))
             {
                 continue;
             }
@@ -49,47 +49,16 @@ public sealed class SceneBoxSelectionService
             : new SceneBoxSelectionResult(selectedIds.ToArray(), selectedObjects.ToArray());
     }
 
-    private static bool TryProjectBounds(
-        BoundingBox3 bounds,
-        Cameras.OrbitCamera camera,
-        Vector2 viewportSize,
-        out ScreenRect screenRect)
+    private static ProjectedScreenRect CreateSelectionRect(Vector2 startPoint, Vector2 endPoint)
     {
-        var corners = GetCorners(bounds);
-        var projectedPoints = new List<Vector2>(corners.Length);
-
-        foreach (var corner in corners)
-        {
-            if (camera.TryProjectWorldPoint(corner, viewportSize, out var screenPoint))
-            {
-                projectedPoints.Add(screenPoint);
-            }
-        }
-
-        if (projectedPoints.Count == 0)
-        {
-            screenRect = default;
-            return false;
-        }
-
-        var minX = projectedPoints.Min(point => point.X);
-        var minY = projectedPoints.Min(point => point.Y);
-        var maxX = projectedPoints.Max(point => point.X);
-        var maxY = projectedPoints.Max(point => point.Y);
-        screenRect = new ScreenRect(minX, minY, maxX, maxY);
-        return true;
-    }
-
-    private static ScreenRect CreateSelectionRect(Vector2 startPoint, Vector2 endPoint)
-    {
-        return new ScreenRect(
+        return new ProjectedScreenRect(
             MathF.Min(startPoint.X, endPoint.X),
             MathF.Min(startPoint.Y, endPoint.Y),
             MathF.Max(startPoint.X, endPoint.X),
             MathF.Max(startPoint.Y, endPoint.Y));
     }
 
-    private static bool Contains(ScreenRect outer, ScreenRect inner)
+    private static bool Contains(ProjectedScreenRect outer, ProjectedScreenRect inner)
     {
         return inner.MinX >= outer.MinX &&
                inner.MaxX <= outer.MaxX &&
@@ -97,28 +66,11 @@ public sealed class SceneBoxSelectionService
                inner.MaxY <= outer.MaxY;
     }
 
-    private static bool Intersects(ScreenRect left, ScreenRect right)
+    private static bool Intersects(ProjectedScreenRect left, ProjectedScreenRect right)
     {
         return left.MinX <= right.MaxX &&
                left.MaxX >= right.MinX &&
                left.MinY <= right.MaxY &&
                left.MaxY >= right.MinY;
     }
-
-    private static Vector3[] GetCorners(BoundingBox3 bounds)
-    {
-        return
-        [
-            new Vector3(bounds.Min.X, bounds.Min.Y, bounds.Min.Z),
-            new Vector3(bounds.Min.X, bounds.Min.Y, bounds.Max.Z),
-            new Vector3(bounds.Min.X, bounds.Max.Y, bounds.Min.Z),
-            new Vector3(bounds.Min.X, bounds.Max.Y, bounds.Max.Z),
-            new Vector3(bounds.Max.X, bounds.Min.Y, bounds.Min.Z),
-            new Vector3(bounds.Max.X, bounds.Min.Y, bounds.Max.Z),
-            new Vector3(bounds.Max.X, bounds.Max.Y, bounds.Min.Z),
-            new Vector3(bounds.Max.X, bounds.Max.Y, bounds.Max.Z)
-        ];
-    }
-
-    private readonly record struct ScreenRect(float MinX, float MinY, float MaxX, float MaxY);
 }

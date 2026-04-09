@@ -95,6 +95,46 @@ public class SceneBoxSelectionServiceTests
         result.ObjectIds.Should().BeEmpty();
     }
 
+    [Fact]
+    public void Select_WhenBoundsIntersectNearPlane_UsesClippedProjectionExtents()
+    {
+        var camera = CreateCamera();
+        var viewportSize = new Vector2(800f, 600f);
+        var partiallyClipped = CreateNearPlaneIntersectingObject(camera);
+        partiallyClipped.WorldBounds.Should().NotBeNull();
+
+        var projected = SceneBoundsProjector.TryProjectBounds(
+            partiallyClipped.WorldBounds!.Value,
+            camera,
+            viewportSize,
+            out var clippedRect);
+        var cornerOnlyRect = TryProjectVisibleCornersOnly(partiallyClipped.WorldBounds.Value, camera, viewportSize);
+
+        projected.Should().BeTrue();
+        cornerOnlyRect.Should().NotBeNull();
+        clippedRect.Width.Should().BeGreaterThan(cornerOnlyRect!.Value.Width + 1f);
+
+        var intersectsOnLeft = clippedRect.MinX < cornerOnlyRect.Value.MinX - 1f;
+        var selectionStart = intersectsOnLeft
+            ? new Vector2(clippedRect.MinX + 1f, clippedRect.MinY + 1f)
+            : new Vector2(cornerOnlyRect.Value.MaxX + 1f, clippedRect.MinY + 1f);
+        var selectionEnd = intersectsOnLeft
+            ? new Vector2(cornerOnlyRect.Value.MinX - 1f, clippedRect.MaxY - 1f)
+            : new Vector2(clippedRect.MaxX - 1f, clippedRect.MaxY - 1f);
+
+        var query = new SceneBoxSelectionQuery(
+            camera,
+            viewportSize,
+            selectionStart,
+            selectionEnd,
+            [partiallyClipped],
+            SceneBoxSelectionMode.Touch);
+
+        var result = new SceneBoxSelectionService().Select(query);
+
+        result.ObjectIds.Should().Contain(partiallyClipped.Id);
+    }
+
     private static OrbitCamera CreateCamera()
     {
         var camera = new OrbitCamera();
@@ -109,6 +149,56 @@ public class SceneBoxSelectionServiceTests
         var mockFactory = CreateMockFactory();
         obj.Initialize(mockFactory.Object, CreateBoundsMesh(min, max));
         return obj;
+    }
+
+    private static Object3D CreateNearPlaneIntersectingObject(OrbitCamera camera)
+    {
+        var forward = Vector3.Normalize(camera.Target - camera.Position);
+        var center = camera.Position + forward * 0.16f;
+        return CreateBoundsObject(
+            center - new Vector3(0.08f, 0.08f, 0.08f),
+            center + new Vector3(0.08f, 0.08f, 0.08f));
+    }
+
+    private static ProjectedScreenRect? TryProjectVisibleCornersOnly(
+        BoundingBox3 bounds,
+        OrbitCamera camera,
+        Vector2 viewportSize)
+    {
+        var projectedPoints = CreateCorners(bounds)
+            .Where(corner => camera.TryProjectWorldPoint(corner, viewportSize, out _))
+            .Select(corner =>
+            {
+                camera.TryProjectWorldPoint(corner, viewportSize, out var screenPoint);
+                return screenPoint;
+            })
+            .ToArray();
+
+        if (projectedPoints.Length == 0)
+        {
+            return null;
+        }
+
+        return new ProjectedScreenRect(
+            projectedPoints.Min(point => point.X),
+            projectedPoints.Min(point => point.Y),
+            projectedPoints.Max(point => point.X),
+            projectedPoints.Max(point => point.Y));
+    }
+
+    private static Vector3[] CreateCorners(BoundingBox3 bounds)
+    {
+        return
+        [
+            new Vector3(bounds.Min.X, bounds.Min.Y, bounds.Min.Z),
+            new Vector3(bounds.Min.X, bounds.Min.Y, bounds.Max.Z),
+            new Vector3(bounds.Min.X, bounds.Max.Y, bounds.Min.Z),
+            new Vector3(bounds.Min.X, bounds.Max.Y, bounds.Max.Z),
+            new Vector3(bounds.Max.X, bounds.Min.Y, bounds.Min.Z),
+            new Vector3(bounds.Max.X, bounds.Min.Y, bounds.Max.Z),
+            new Vector3(bounds.Max.X, bounds.Max.Y, bounds.Min.Z),
+            new Vector3(bounds.Max.X, bounds.Max.Y, bounds.Max.Z)
+        ];
     }
 
     private static MeshData CreateBoundsMesh(Vector3 min, Vector3 max)

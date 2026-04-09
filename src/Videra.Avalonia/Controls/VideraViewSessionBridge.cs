@@ -6,6 +6,7 @@ using Videra.Avalonia.Controls.Interaction;
 using Videra.Core.Cameras;
 using Videra.Core.Geometry;
 using Videra.Core.Graphics;
+using Videra.Core.Selection;
 using Videra.Core.Selection.Rendering;
 
 namespace Videra.Avalonia.Controls;
@@ -216,54 +217,17 @@ internal sealed class VideraViewSessionBridge
             return null;
         }
 
-        var projectedPoints = GetProjectedBoundsCorners(bounds, camera, viewportSize);
-        if (projectedPoints.Count == 0)
+        if (!SceneBoundsProjector.TryProjectBounds(bounds, camera, viewportSize, out var screenBounds))
         {
             return null;
         }
 
-        var minX = projectedPoints.Min(point => point.X);
-        var minY = projectedPoints.Min(point => point.Y);
-        var maxX = projectedPoints.Max(point => point.X);
-        var maxY = projectedPoints.Max(point => point.Y);
         var outlineColor = objectId == primaryObjectId ? Colors.Green : Colors.Black;
 
         return new VideraSelectionOutline(
             objectId,
-            new Rect(minX, minY, Math.Max(1d, maxX - minX), Math.Max(1d, maxY - minY)),
+            new Rect(screenBounds.MinX, screenBounds.MinY, Math.Max(1d, screenBounds.Width), Math.Max(1d, screenBounds.Height)),
             outlineColor,
             objectId == primaryObjectId);
-    }
-
-    private static List<Vector2> GetProjectedBoundsCorners(
-        BoundingBox3 bounds,
-        OrbitCamera camera,
-        Vector2 viewportSize)
-    {
-        var projectedPoints = new List<Vector2>(8);
-        foreach (var corner in CreateCorners(bounds))
-        {
-            if (camera.TryProjectWorldPoint(corner, viewportSize, out var screenPoint))
-            {
-                projectedPoints.Add(screenPoint);
-            }
-        }
-
-        return projectedPoints;
-    }
-
-    private static Vector3[] CreateCorners(BoundingBox3 bounds)
-    {
-        return
-        [
-            new Vector3(bounds.Min.X, bounds.Min.Y, bounds.Min.Z),
-            new Vector3(bounds.Min.X, bounds.Min.Y, bounds.Max.Z),
-            new Vector3(bounds.Min.X, bounds.Max.Y, bounds.Min.Z),
-            new Vector3(bounds.Min.X, bounds.Max.Y, bounds.Max.Z),
-            new Vector3(bounds.Max.X, bounds.Min.Y, bounds.Min.Z),
-            new Vector3(bounds.Max.X, bounds.Min.Y, bounds.Max.Z),
-            new Vector3(bounds.Max.X, bounds.Max.Y, bounds.Min.Z),
-            new Vector3(bounds.Max.X, bounds.Max.Y, bounds.Max.Z)
-        ];
     }
 }
