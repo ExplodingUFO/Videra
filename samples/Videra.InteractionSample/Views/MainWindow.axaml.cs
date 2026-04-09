@@ -150,7 +150,7 @@ public partial class MainWindow : Window
 
             _loadSummary =
                 $"LoadModelsAsync(...) loaded {result.LoadedObjects.Count} cubes in {result.Duration.TotalMilliseconds:N0} ms. " +
-                $"FrameAll() returned {framed}. The host now owns SelectionState and annotation state for follow-up interaction.";
+                $"FrameAll() returned {framed}. The host now owns SelectionState, Annotations, and annotation state for follow-up interaction.";
         }
         catch (Exception ex)
         {
@@ -217,7 +217,7 @@ public partial class MainWindow : Window
         ];
 
         PushHostState();
-        _lastRequestSummary = "Seeded host-owned object selection plus one object/node note and one world-point note.";
+        _lastRequestSummary = "Seeded host-owned object selection plus one object-anchor note and one world-point note.";
     }
 
     private void OnSelectionRequested(object? sender, SelectionRequestedEventArgs e)
@@ -338,7 +338,7 @@ public partial class MainWindow : Window
         _ = sender;
         _ = e;
         View3D.InteractionMode = VideraInteractionMode.Annotate;
-        _lastRequestSummary = "InteractionMode switched to Annotate. Click an object for a node anchor or empty space for a world-point anchor.";
+        _lastRequestSummary = "InteractionMode switched to Annotate. Click an object for an object anchor or empty space for a world-point anchor.";
         UpdateModeButtons();
         UpdateStatusPanel();
     }
@@ -378,7 +378,7 @@ public partial class MainWindow : Window
     private void UpdateStatusPanel()
     {
         _contractStatusText.Text =
-            $"Current mode: {View3D.InteractionMode}. The host owns SelectionState and annotation state, " +
+            $"Current mode: {View3D.InteractionMode}. The host owns SelectionState, Annotations, and annotation state, " +
             "while VideraView translates that state into 3D highlight/render state and 2D label/feedback rendering.";
         _loadStatusText.Text = _loadSummary;
         _sceneStatusText.Text = FormatSceneSummary();
@@ -439,7 +439,7 @@ public partial class MainWindow : Window
     {
         if (_annotations.Count == 0)
         {
-            return "No annotations. Click in Annotate mode to add object/node or world-point notes.";
+            return "No annotations. Click in Annotate mode to add object-anchor or world-point notes.";
         }
 
         var builder = new StringBuilder();

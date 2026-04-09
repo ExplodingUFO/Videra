@@ -1,4 +1,8 @@
 using FluentAssertions;
+using Videra.Avalonia.Controls;
+using Videra.Avalonia.Controls.Interaction;
+using Videra.Core.Selection.Annotations;
+using Videra.Core.Tests.Repository;
 using Xunit;
 
 namespace Videra.Core.Tests.Samples;
@@ -6,21 +10,9 @@ namespace Videra.Core.Tests.Samples;
 public sealed class InteractionSampleConfigurationTests
 {
     private static readonly string[] RequiredReadmeMarkers =
-    {
-        "SelectionState",
-        "host owns",
-        "annotation state",
-        "Navigate",
-        "Select",
-        "Annotate",
-        "object-level",
-        "VideraNodeAnnotation",
-        "VideraWorldPointAnnotation",
-        "SelectionRequested",
-        "AnnotationRequested",
-        "3D highlight/render state",
-        "2D label/feedback rendering"
-    };
+        InteractionContractDocumentationTerms.SharedApiSymbols
+            .Concat(InteractionContractDocumentationTerms.SharedBehaviorMarkers)
+            .ToArray();
 
     private static readonly string[] ForbiddenInternalSeams =
     {
@@ -59,6 +51,11 @@ public sealed class InteractionSampleConfigurationTests
         {
             readme.Should().Contain(marker);
         }
+
+        foreach (var forbidden in InteractionContractDocumentationTerms.ForbiddenNodeAnchorPhrases)
+        {
+            readme.Should().NotContain(forbidden);
+        }
     }
 
     [Fact]
@@ -92,6 +89,20 @@ public sealed class InteractionSampleConfigurationTests
         project.Should().Contain(@"..\..\src\Videra.Avalonia\Videra.Avalonia.csproj");
         project.Should().NotContain(@"..\..\samples\Videra.Demo\");
         project.Should().NotContain("Videra.Demo");
+    }
+
+    [Fact]
+    public void PublicInteractionApiSurface_ShouldExposeObjectAndWorldPointAnchors_WithoutNodeAnchorKind()
+    {
+        typeof(VideraView).GetProperty(nameof(VideraView.SelectionState)).Should().NotBeNull();
+        typeof(VideraView).GetProperty(nameof(VideraView.Annotations)).Should().NotBeNull();
+        typeof(VideraView).GetProperty(nameof(VideraView.InteractionMode)).Should().NotBeNull();
+        typeof(VideraView).GetEvent(nameof(VideraView.SelectionRequested)).Should().NotBeNull();
+        typeof(VideraView).GetEvent(nameof(VideraView.AnnotationRequested)).Should().NotBeNull();
+
+        Enum.GetNames<VideraInteractionMode>().Should().Equal("Navigate", "Select", "Annotate");
+        Enum.GetNames<AnnotationAnchorKind>().Should().Equal("Object", "WorldPoint");
+        Enum.GetNames<AnnotationAnchorKind>().Should().NotContain(name => name.Contains("Node", StringComparison.Ordinal));
     }
 
     private static string GetRepositoryRoot()

@@ -236,10 +236,11 @@ Use [Videra.InteractionSample](samples/Videra.InteractionSample/README.md) as th
 
 Contract highlights:
 
-- The `host owns` `SelectionState` and annotation state.
+- The `host owns` `SelectionState`, `Annotations`, and annotation state.
 - Built-in interaction modes are `Navigate`, `Select`, and `Annotate`.
 - Selection is object-level and changes only when the host applies `SelectionRequested`.
-- Annotation clicks surface `AnnotationRequested` for either object/node anchors or world-point anchors.
+- Annotation clicks surface `AnnotationRequested` for either object anchors or world-point anchors.
+- Hosts typically materialize those anchors through `VideraNodeAnnotation` and `VideraWorldPointAnnotation`.
 - Overlay responsibilities are split between `3D highlight/render state` and `2D label/feedback rendering`.
 
 ## Packages

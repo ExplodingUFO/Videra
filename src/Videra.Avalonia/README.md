@@ -108,7 +108,7 @@ Contract notes:
 
 ## Interaction Contract
 
-`VideraView` also supports a controlled interaction flow where the `host owns` `SelectionState` and annotation state.
+`VideraView` also supports a controlled interaction flow where the `host owns` `SelectionState`, `Annotations`, and annotation state.
 
 ```csharp
 using System.Numerics;
@@ -162,7 +162,7 @@ Contract notes:
 - Built-in modes are `Navigate`, `Select`, and `Annotate`.
 - Selection is `object-level`.
 - `SelectionRequested` reports intent; the view does not mutate host state for you.
-- `AnnotationRequested` supports object/node anchors and world-point anchors.
+- `AnnotationRequested` supports object anchors and world-point anchors.
 - Overlay responsibilities are split between `3D highlight/render state` and `2D label/feedback rendering`.
 
 For the end-to-end public flow, see [samples/Videra.InteractionSample](../../samples/Videra.InteractionSample/README.md).

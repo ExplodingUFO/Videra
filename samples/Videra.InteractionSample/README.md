@@ -5,9 +5,11 @@
 ## Public contract exercised
 
 - The host owns `SelectionState` and annotation state
+- The host owns `Annotations`
 - Built-in interaction modes: `Navigate`, `Select`, `Annotate`
 - Selection is `object-level`
 - The host applies `SelectionRequested` and `AnnotationRequested`
+- `AnnotationRequested` resolves to object anchors and world-point anchors
 - Annotations use `VideraNodeAnnotation` and `VideraWorldPointAnnotation`
 - Overlay responsibilities are split between `3D highlight/render state` and `2D label/feedback rendering`
 
@@ -17,9 +19,9 @@ The sample keeps the interaction flow on public APIs only:
 2. The window sets `View3D.SelectionState = _selectionState;` and `View3D.Annotations = _annotations;`.
 3. The window switches `View3D.InteractionMode` between `Navigate`, `Select`, and `Annotate`.
 4. `SelectionRequested` updates host-owned `SelectionState`.
-5. `AnnotationRequested` appends either a `VideraNodeAnnotation` or a `VideraWorldPointAnnotation`.
+5. `AnnotationRequested` appends either a `VideraNodeAnnotation` for an object anchor or a `VideraWorldPointAnnotation` for a world-point anchor.
 
-`host owns` is the key rule: the control reports intent, while the sample window decides how selection and annotation state change.
+`host owns` is the key rule: the control reports intent, while the sample window decides how `SelectionState` and `Annotations` change.
 
 ## Run
 

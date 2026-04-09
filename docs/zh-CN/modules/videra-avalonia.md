@@ -96,11 +96,11 @@ graph TB
 
 ### 受控交互合同
 
-`VideraView` 还提供受控交互入口，`host owns` `SelectionState` 与 annotation state。推荐直接对照 `samples/Videra.InteractionSample`：
+`VideraView` 还提供受控交互入口，`host owns` `SelectionState`、`Annotations` 与 annotation state。推荐直接对照 `samples/Videra.InteractionSample`：
 
 - 内建模式：`Navigate`、`Select`、`Annotate`
 - `SelectionRequested` 只报告选择意图，host 决定如何更新 `SelectionState`
-- `AnnotationRequested` 可返回 object/node anchor 或 world-point anchor，然后由 host 创建 `VideraNodeAnnotation` 或 `VideraWorldPointAnnotation`
+- `AnnotationRequested` 可返回 object anchors 或 world-point anchors，然后由 host 创建 `VideraNodeAnnotation` 或 `VideraWorldPointAnnotation`
 - selection 保持 `object-level`
 - overlay responsibilities split between `3D highlight/render state` and `2D label/feedback rendering`
 

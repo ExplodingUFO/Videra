@@ -21,7 +21,7 @@
                    Text="Focused public interaction sample" />
         <TextBlock Foreground="#6B4B2D"
                    TextWrapping="Wrap"
-                   Text="The host owns SelectionState and annotation state, switches between Navigate, Select, and Annotate, applies SelectionRequested and AnnotationRequested, and lets VideraView project that state into object-level highlights plus overlay labels." />
+                   Text="The host owns SelectionState, Annotations, and annotation state, switches between Navigate, Select, and Annotate, applies SelectionRequested and AnnotationRequested, and lets VideraView project that state into object-level highlights plus overlay labels." />
       </StackPanel>
     </Border>
 
@@ -56,7 +56,7 @@
                        Text="Interaction contract" />
             <TextBlock Foreground="#6B4B2D"
                        TextWrapping="Wrap"
-                       Text="Selection is object-level. Annotations can target a VideraNodeAnnotation object anchor or a VideraWorldPointAnnotation world-point anchor. Overlay responsibilities are split between 3D highlight/render state and 2D label/feedback rendering." />
+                       Text="Selection is object-level. Annotations can target object anchors through VideraNodeAnnotation or world-point anchors through VideraWorldPointAnnotation. Overlay responsibilities are split between 3D highlight/render state and 2D label/feedback rendering." />
             <TextBlock x:Name="ContractStatusText"
                        Foreground="#6B4B2D"
                        TextWrapping="Wrap" />
@@ -87,7 +87,7 @@
             </StackPanel>
             <TextBlock Foreground="#6B4B2D"
                        TextWrapping="Wrap"
-                       Text="Navigate keeps camera motion on the control. Select emits SelectionRequested without mutating host state. Annotate emits AnnotationRequested for either an object/node hit or a world-point click." />
+                       Text="Navigate keeps camera motion on the control. Select emits SelectionRequested without mutating host state. Annotate emits AnnotationRequested for either an object hit or a world-point click." />
           </StackPanel>
         </Border>
 

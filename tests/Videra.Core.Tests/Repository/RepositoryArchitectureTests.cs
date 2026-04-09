@@ -46,22 +46,6 @@ public sealed class RepositoryArchitectureTests
         "FrameAll()"
     };
 
-    private static readonly string[] PublicInteractionFlowSymbols =
-    {
-        "SelectionState",
-        "Annotations",
-        "SelectionRequested",
-        "AnnotationRequested",
-        "Navigate",
-        "Select",
-        "Annotate",
-        "object-level",
-        "VideraNodeAnnotation",
-        "VideraWorldPointAnnotation",
-        "3D highlight/render state",
-        "2D label/feedback rendering"
-    };
-
     [Fact]
     public void VideraEngine_ShouldSplitRenderingAndResourceOrchestrationAcrossDedicatedPartialFiles()
     {
@@ -181,17 +165,25 @@ public sealed class RepositoryArchitectureTests
         var avaloniaReadme = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Avalonia", "README.md"));
         var sampleReadme = File.ReadAllText(Path.Combine(repositoryRoot, "samples", "Videra.InteractionSample", "README.md"));
 
-        readme.Should().Contain("Videra.InteractionSample");
-        readme.Should().Contain("SelectionState");
-        readme.Should().Contain("host owns");
-
-        avaloniaReadme.Should().Contain("Videra.InteractionSample");
-        avaloniaReadme.Should().Contain("SelectionState");
-        avaloniaReadme.Should().Contain("AnnotationRequested");
-
-        foreach (var symbol in PublicInteractionFlowSymbols)
+        foreach (var symbol in InteractionContractDocumentationTerms.SharedApiSymbols)
         {
+            readme.Should().Contain(symbol);
+            avaloniaReadme.Should().Contain(symbol);
             sampleReadme.Should().Contain(symbol);
+        }
+
+        foreach (var marker in InteractionContractDocumentationTerms.SharedBehaviorMarkers)
+        {
+            readme.Should().Contain(marker);
+            avaloniaReadme.Should().Contain(marker);
+            sampleReadme.Should().Contain(marker);
+        }
+
+        foreach (var forbidden in InteractionContractDocumentationTerms.ForbiddenNodeAnchorPhrases)
+        {
+            readme.Should().NotContain(forbidden);
+            avaloniaReadme.Should().NotContain(forbidden);
+            sampleReadme.Should().NotContain(forbidden);
         }
     }
 
