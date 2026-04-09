@@ -318,6 +318,18 @@ public sealed class VideraViewSceneIntegrationTests : IDisposable
     }
 
     [Fact]
+    public void VideraInteractionDiagnostics_ShouldNotExposeInputAttachmentInternals()
+    {
+        var diagnosticsType = typeof(VideraView).Assembly.GetType("Videra.Avalonia.Controls.Interaction.VideraInteractionDiagnostics");
+        diagnosticsType.Should().NotBeNull();
+
+        diagnosticsType!.GetProperty("SupportsControlledSelection").Should().NotBeNull();
+        diagnosticsType.GetProperty("SupportsControlledAnnotations").Should().NotBeNull();
+        diagnosticsType.GetProperty("SupportsIntentEvents").Should().NotBeNull();
+        diagnosticsType.GetProperty("IsInputBehaviorAttached").Should().BeNull();
+    }
+
+    [Fact]
     public void BackendDiagnostics_ShouldExposeLinuxDisplayServerResolutionFields()
     {
         var diagnosticsType = typeof(VideraBackendDiagnostics);

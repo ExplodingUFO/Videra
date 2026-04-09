@@ -8,8 +8,7 @@ public sealed class VideraInteractionDiagnostics
         {
             SupportsControlledSelection = true,
             SupportsControlledAnnotations = true,
-            SupportsIntentEvents = true,
-            IsInputBehaviorAttached = false
+            SupportsIntentEvents = true
         };
     }
 
@@ -18,6 +17,4 @@ public sealed class VideraInteractionDiagnostics
     public bool SupportsControlledAnnotations { get; init; }
 
     public bool SupportsIntentEvents { get; init; }
-
-    public bool IsInputBehaviorAttached { get; init; }
 }
