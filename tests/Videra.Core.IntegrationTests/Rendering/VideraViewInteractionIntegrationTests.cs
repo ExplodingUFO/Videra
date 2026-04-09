@@ -1,6 +1,9 @@
 using System.Numerics;
+using BindingFlags = System.Reflection.BindingFlags;
 using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Remote.Protocol;
 using FluentAssertions;
 using Videra.Avalonia.Controls;
 using Videra.Avalonia.Controls.Interaction;
@@ -126,6 +129,51 @@ public sealed class VideraViewInteractionIntegrationTests
     }
 
     [Fact]
+    public void SelectMode_RoutedCtrlDrag_EmitsAdditiveBoxSelectionRequest()
+    {
+        var view = CreateInteractiveView();
+        try
+        {
+            var first = AddQuad(view, new Vector3(-1.1f, 0f, 0f));
+            var second = AddQuad(view, new Vector3(1.1f, 0f, 0f));
+            view.InteractionMode = VideraInteractionMode.Select;
+            var pointer = CreateMousePointer();
+
+            var firstPoint = ProjectPoint(view, first.WorldBounds!.Value.Center);
+            var secondPoint = ProjectPoint(view, second.WorldBounds!.Value.Center);
+            var start = new Point(Math.Min(firstPoint.X, secondPoint.X) - 30d, Math.Min(firstPoint.Y, secondPoint.Y) - 30d);
+            var end = new Point(Math.Max(firstPoint.X, secondPoint.X) + 30d, Math.Max(firstPoint.Y, secondPoint.Y) + 30d);
+
+            SelectionRequestedEventArgs? request = null;
+            view.SelectionRequested += (_, e) => request = e;
+
+            view.RoutePointerPressed(
+                pointer,
+                start,
+                RawInputModifiers.LeftMouseButton | RawInputModifiers.Control,
+                PointerUpdateKind.LeftButtonPressed,
+                KeyModifiers.Control);
+            view.RoutePointerMoved(pointer, end, RawInputModifiers.LeftMouseButton | RawInputModifiers.Control, KeyModifiers.Control);
+            view.RoutePointerReleased(
+                pointer,
+                end,
+                RawInputModifiers.Control,
+                PointerUpdateKind.LeftButtonReleased,
+                MouseButton.Left,
+                KeyModifiers.Control);
+
+            request.Should().NotBeNull();
+            request!.Operation.Should().Be(VideraSelectionOperation.Add);
+            request.ObjectIds.Should().Equal(first.Id, second.Id);
+            request.PrimaryObjectId.Should().Be(first.Id);
+        }
+        finally
+        {
+            view.Engine.Dispose();
+        }
+    }
+
+    [Fact]
     public void SelectMode_EmptySpaceClick_EmitsClearRequest_WhenConfigured()
     {
         var view = CreateInteractiveView();
@@ -143,6 +191,39 @@ public sealed class VideraViewInteractionIntegrationTests
 
             view.RoutePointerPressed(pointer, new Point(12, 12), RawInputModifiers.LeftMouseButton, PointerUpdateKind.LeftButtonPressed);
             view.RoutePointerReleased(pointer, new Point(12, 12), RawInputModifiers.None, PointerUpdateKind.LeftButtonReleased, MouseButton.Left);
+
+            request.Should().NotBeNull();
+            request!.Operation.Should().Be(VideraSelectionOperation.Replace);
+            request.ObjectIds.Should().BeEmpty();
+            request.PrimaryObjectId.Should().BeNull();
+            request.EmptySpaceSelectionBehavior.Should().Be(VideraEmptySpaceSelectionBehavior.ClearSelection);
+        }
+        finally
+        {
+            view.Engine.Dispose();
+        }
+    }
+
+    [Fact]
+    public void SelectMode_EmptySpaceDrag_EmitsClearRequest_WhenConfigured()
+    {
+        var view = CreateInteractiveView();
+        try
+        {
+            AddCenteredQuad(view);
+            view.InteractionMode = VideraInteractionMode.Select;
+            view.InteractionOptions = new VideraInteractionOptions
+            {
+                EmptySpaceSelectionBehavior = VideraEmptySpaceSelectionBehavior.ClearSelection
+            };
+            var pointer = CreateMousePointer();
+
+            SelectionRequestedEventArgs? request = null;
+            view.SelectionRequested += (_, e) => request = e;
+
+            view.RoutePointerPressed(pointer, new Point(12, 12), RawInputModifiers.LeftMouseButton, PointerUpdateKind.LeftButtonPressed);
+            view.RoutePointerMoved(pointer, new Point(40, 40), RawInputModifiers.LeftMouseButton);
+            view.RoutePointerReleased(pointer, new Point(40, 40), RawInputModifiers.None, PointerUpdateKind.LeftButtonReleased, MouseButton.Left);
 
             request.Should().NotBeNull();
             request!.Operation.Should().Be(VideraSelectionOperation.Replace);
@@ -184,6 +265,35 @@ public sealed class VideraViewInteractionIntegrationTests
     }
 
     [Fact]
+    public void SelectMode_EmptySpaceDrag_DoesNotEmitRequest_WhenConfiguredToPreserveSelection()
+    {
+        var view = CreateInteractiveView();
+        try
+        {
+            AddCenteredQuad(view);
+            view.InteractionMode = VideraInteractionMode.Select;
+            view.InteractionOptions = new VideraInteractionOptions
+            {
+                EmptySpaceSelectionBehavior = VideraEmptySpaceSelectionBehavior.PreserveSelection
+            };
+            var pointer = CreateMousePointer();
+
+            var requests = new List<SelectionRequestedEventArgs>();
+            view.SelectionRequested += (_, e) => requests.Add(e);
+
+            view.RoutePointerPressed(pointer, new Point(12, 12), RawInputModifiers.LeftMouseButton, PointerUpdateKind.LeftButtonPressed);
+            view.RoutePointerMoved(pointer, new Point(40, 40), RawInputModifiers.LeftMouseButton);
+            view.RoutePointerReleased(pointer, new Point(40, 40), RawInputModifiers.None, PointerUpdateKind.LeftButtonReleased, MouseButton.Left);
+
+            requests.Should().BeEmpty();
+        }
+        finally
+        {
+            view.Engine.Dispose();
+        }
+    }
+
+    [Fact]
     public void AnnotateMode_RoutedClicks_EmitObjectAndWorldPointAnnotationRequests()
     {
         var view = CreateInteractiveView();
@@ -210,6 +320,70 @@ public sealed class VideraViewInteractionIntegrationTests
         }
         finally
         {
+            view.Engine.Dispose();
+        }
+    }
+
+    [Fact]
+    public void SelectMode_TopLevelRoutedPointerInput_EmitsSelectionRequest_AfterAttach()
+    {
+        var view = CreateInteractiveView();
+        var topLevel = CreateOffscreenTopLevel();
+        try
+        {
+            AddCenteredQuad(view);
+            topLevel.Content = view;
+            topLevel.Measure(new Size(200, 200));
+            topLevel.Arrange(new Rect(0, 0, 200, 200));
+            view.AttachToVisualTree(topLevel);
+
+            view.InteractionMode = VideraInteractionMode.Select;
+            var pointer = CreateMousePointer();
+            var point = ProjectPoint(view, Vector3.Zero);
+            SelectionRequestedEventArgs? request = null;
+            view.SelectionRequested += (_, e) => request = e;
+
+            RouteTopLevelPointerPressed(topLevel, pointer, point, RawInputModifiers.LeftMouseButton, PointerUpdateKind.LeftButtonPressed);
+            RouteTopLevelPointerReleased(topLevel, pointer, point, RawInputModifiers.None, PointerUpdateKind.LeftButtonReleased, MouseButton.Left);
+
+            request.Should().NotBeNull();
+            request!.Operation.Should().Be(VideraSelectionOperation.Replace);
+            request.ObjectIds.Should().ContainSingle();
+        }
+        finally
+        {
+            view.DetachFromVisualTree(topLevel);
+            topLevel.Content = null;
+            view.Engine.Dispose();
+        }
+    }
+
+    [Fact]
+    public void SelectMode_NativePointerInput_EmitsSelectionRequest()
+    {
+        var nativeHostFactory = new RecordingNativeHostFactory();
+        var view = CreateInteractiveView(nativeHostFactory);
+        try
+        {
+            AddCenteredQuad(view);
+            view.InteractionMode = VideraInteractionMode.Select;
+            InvokeNonPublicMethod(view, "EnsureNativeHost");
+
+            nativeHostFactory.LastCreatedHost.Should().NotBeNull();
+            var point = ProjectPoint(view, Vector3.Zero);
+            SelectionRequestedEventArgs? request = null;
+            view.SelectionRequested += (_, e) => request = e;
+
+            nativeHostFactory.LastCreatedHost!.RaiseNativePointer(new NativePointerEvent(NativePointerKind.LeftDown, (int)Math.Round(point.X), (int)Math.Round(point.Y), wheelDelta: 0));
+            nativeHostFactory.LastCreatedHost.RaiseNativePointer(new NativePointerEvent(NativePointerKind.LeftUp, (int)Math.Round(point.X), (int)Math.Round(point.Y), wheelDelta: 0));
+
+            request.Should().NotBeNull();
+            request!.Operation.Should().Be(VideraSelectionOperation.Replace);
+            request.ObjectIds.Should().ContainSingle();
+        }
+        finally
+        {
+            InvokeNonPublicMethod(view, "ReleaseNativeHost");
             view.Engine.Dispose();
         }
     }
@@ -253,9 +427,9 @@ public sealed class VideraViewInteractionIntegrationTests
         }
     }
 
-    private static RoutedInteractionTestView CreateInteractiveView()
+    private static RoutedInteractionTestView CreateInteractiveView(INativeHostFactory? nativeHostFactory = null)
     {
-        var view = new RoutedInteractionTestView(nativeHostFactory: null, bitmapFactory: static (_, _) => null);
+        var view = new RoutedInteractionTestView(nativeHostFactory, bitmapFactory: static (_, _) => null);
         view.Measure(new Size(200, 200));
         view.Arrange(new Rect(0, 0, 200, 200));
 
@@ -292,6 +466,151 @@ public sealed class VideraViewInteractionIntegrationTests
     {
         view.Engine.Camera.TryProjectWorldPoint(worldPoint, new Vector2(200f, 200f), out var screenPoint).Should().BeTrue();
         return new Point(screenPoint.X, screenPoint.Y);
+    }
+
+    private static TopLevel CreateOffscreenTopLevel()
+    {
+        EnsureTopLevelLocatorServicesRegistered();
+
+        var controlsAssembly = typeof(TopLevel).Assembly;
+        var implType = controlsAssembly.GetType("Avalonia.Controls.Remote.RemoteServer+EmbeddableRemoteServerTopLevelImpl");
+        var topLevelType = controlsAssembly.GetType("Avalonia.Controls.Embedding.Offscreen.OffscreenTopLevel");
+        implType.Should().NotBeNull();
+        topLevelType.Should().NotBeNull();
+
+        var implConstructor = implType!.GetConstructor(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, binder: null, [typeof(IAvaloniaRemoteTransportConnection)], modifiers: null);
+        implConstructor.Should().NotBeNull();
+        var impl = implConstructor!.Invoke([new RemoteTransportConnectionStub()]);
+        impl.Should().NotBeNull();
+
+        var constructor = topLevelType!.GetConstructor(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, binder: null, [implType!], modifiers: null);
+        constructor.Should().NotBeNull();
+
+        var topLevel = constructor!.Invoke([impl]);
+        topLevel.Should().BeAssignableTo<TopLevel>();
+        return (TopLevel)topLevel!;
+    }
+
+    private static void EnsureTopLevelLocatorServicesRegistered()
+    {
+        var avaloniaAssembly = typeof(AvaloniaObject).Assembly;
+        var locatorType = avaloniaAssembly.GetType("Avalonia.AvaloniaLocator");
+        var renderTimerType = avaloniaAssembly.GetType("Avalonia.Rendering.IRenderTimer");
+        var defaultRenderTimerType = avaloniaAssembly.GetType("Avalonia.Rendering.DefaultRenderTimer");
+        var keyboardDeviceType = avaloniaAssembly.GetType("Avalonia.Input.IKeyboardDevice");
+        var keyboardDeviceImplType = avaloniaAssembly.GetType("Avalonia.Input.KeyboardDevice");
+        var mouseDeviceType = avaloniaAssembly.GetType("Avalonia.Input.IMouseDevice");
+        var mouseDeviceImplType = avaloniaAssembly.GetType("Avalonia.Input.MouseDevice");
+        locatorType.Should().NotBeNull();
+        renderTimerType.Should().NotBeNull();
+        defaultRenderTimerType.Should().NotBeNull();
+        keyboardDeviceType.Should().NotBeNull();
+        keyboardDeviceImplType.Should().NotBeNull();
+        mouseDeviceType.Should().NotBeNull();
+        mouseDeviceImplType.Should().NotBeNull();
+
+        var currentResolver = locatorType!.GetProperty("Current", BindingFlags.Public | BindingFlags.Static)?.GetValue(obj: null);
+        currentResolver.Should().NotBeNull();
+        var getService = currentResolver!.GetType().GetMethod("GetService", BindingFlags.Public | BindingFlags.Instance);
+        getService.Should().NotBeNull();
+
+        var currentMutable = locatorType.GetProperty("CurrentMutable", BindingFlags.Public | BindingFlags.Static)?.GetValue(obj: null);
+        currentMutable.Should().NotBeNull();
+        var bindMethod = locatorType.GetMethod("Bind", BindingFlags.Public | BindingFlags.Instance);
+        bindMethod.Should().NotBeNull();
+
+        RegisterLocatorServiceIfMissing(
+            currentResolver,
+            currentMutable!,
+            getService!,
+            bindMethod!,
+            renderTimerType!,
+            () =>
+            {
+                var timerConstructor = defaultRenderTimerType!.GetConstructor(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, binder: null, [typeof(int)], modifiers: null);
+                timerConstructor.Should().NotBeNull();
+                return timerConstructor!.Invoke([60]);
+            },
+            defaultRenderTimerType!);
+
+        RegisterLocatorServiceIfMissing(
+            currentResolver,
+            currentMutable!,
+            getService!,
+            bindMethod!,
+            keyboardDeviceType!,
+            () =>
+            {
+                var keyboardConstructor = keyboardDeviceImplType!.GetConstructor(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, binder: null, Type.EmptyTypes, modifiers: null);
+                keyboardConstructor.Should().NotBeNull();
+                return keyboardConstructor!.Invoke(Array.Empty<object>());
+            },
+            keyboardDeviceImplType!);
+
+        RegisterLocatorServiceIfMissing(
+            currentResolver,
+            currentMutable!,
+            getService!,
+            bindMethod!,
+            mouseDeviceType!,
+            () =>
+            {
+                var mouseConstructor = mouseDeviceImplType!.GetConstructor(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, binder: null, [typeof(Pointer)], modifiers: null);
+                mouseConstructor.Should().NotBeNull();
+                return mouseConstructor!.Invoke([new Pointer(0, PointerType.Mouse, isPrimary: true)]);
+            },
+            mouseDeviceImplType!);
+    }
+
+    private static void RegisterLocatorServiceIfMissing(
+        object currentResolver,
+        object currentMutable,
+        System.Reflection.MethodInfo getService,
+        System.Reflection.MethodInfo bindMethod,
+        Type serviceType,
+        Func<object> createInstance,
+        Type implementationType)
+    {
+        if (getService.Invoke(currentResolver, [serviceType]) is not null)
+        {
+            return;
+        }
+
+        var bindHelper = bindMethod.MakeGenericMethod(serviceType).Invoke(currentMutable, parameters: null);
+        bindHelper.Should().NotBeNull();
+
+        var instance = createInstance();
+        var toConstantMethod = bindHelper!.GetType().GetMethod("ToConstant", BindingFlags.Public | BindingFlags.Instance);
+        toConstantMethod.Should().NotBeNull();
+        _ = toConstantMethod!.MakeGenericMethod(implementationType).Invoke(bindHelper, [instance]);
+    }
+
+    private static void RouteTopLevelPointerPressed(TopLevel topLevel, Pointer pointer, Point position, RawInputModifiers rawModifiers, PointerUpdateKind updateKind, KeyModifiers keyModifiers = KeyModifiers.None)
+    {
+        var properties = new PointerPointProperties(rawModifiers, updateKind);
+        var args = new PointerPressedEventArgs(topLevel, pointer, topLevel, position, timestamp: 0, properties, keyModifiers, clickCount: 1);
+        topLevel.RaiseEvent(args);
+    }
+
+    private static void RouteTopLevelPointerReleased(TopLevel topLevel, Pointer pointer, Point position, RawInputModifiers rawModifiers, PointerUpdateKind updateKind, MouseButton mouseButton, KeyModifiers keyModifiers = KeyModifiers.None)
+    {
+        var properties = new PointerPointProperties(rawModifiers, updateKind);
+        var args = new PointerReleasedEventArgs(topLevel, pointer, topLevel, position, timestamp: 0, properties, keyModifiers, mouseButton);
+        topLevel.RaiseEvent(args);
+    }
+
+    private static void InvokeNonPublicMethod(object target, string methodName)
+    {
+        var type = target.GetType();
+        System.Reflection.MethodInfo? method = null;
+        while (type is not null && method is null)
+        {
+            method = type.GetMethod(methodName, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.DeclaredOnly);
+            type = type.BaseType;
+        }
+
+        method.Should().NotBeNull($"method {methodName} should exist on {target.GetType().FullName}");
+        method!.Invoke(target, Array.Empty<object>());
     }
 
     private sealed class RoutedInteractionTestView : VideraView
@@ -335,6 +654,18 @@ public sealed class VideraViewInteractionIntegrationTests
             base.OnPointerCaptureLost(args);
         }
 
+        public void AttachToVisualTree(TopLevel topLevel)
+        {
+            var args = new VisualTreeAttachmentEventArgs(topLevel, topLevel);
+            base.OnAttachedToVisualTree(args);
+        }
+
+        public void DetachFromVisualTree(TopLevel topLevel)
+        {
+            var args = new VisualTreeAttachmentEventArgs(topLevel, topLevel);
+            base.OnDetachedFromVisualTree(args);
+        }
+
         public T ReadPrivateField<T>(string fieldName)
         {
             var field = typeof(VideraView).GetField(fieldName, System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
@@ -343,6 +674,49 @@ public sealed class VideraViewInteractionIntegrationTests
             var value = field!.GetValue(this);
             value.Should().BeAssignableTo<T>();
             return (T)value!;
+        }
+    }
+
+    private sealed class RecordingNativeHostFactory : INativeHostFactory
+    {
+        public RecordingNativeHost? LastCreatedHost { get; private set; }
+
+        public IVideraNativeHost? CreateHost()
+        {
+            LastCreatedHost = new RecordingNativeHost();
+            return LastCreatedHost;
+        }
+    }
+
+    private sealed class RecordingNativeHost : NativeControlHost, IVideraNativeHost
+    {
+        public event Action<IntPtr>? HandleCreated;
+        public event Action? HandleDestroyed;
+        public event Action<NativePointerEvent>? NativePointer;
+
+        public void RaiseNativePointer(NativePointerEvent e)
+        {
+            NativePointer?.Invoke(e);
+        }
+    }
+
+    private sealed class RemoteTransportConnectionStub : IAvaloniaRemoteTransportConnection
+    {
+        public event Action<IAvaloniaRemoteTransportConnection, object>? OnMessage;
+        public event Action<IAvaloniaRemoteTransportConnection, Exception>? OnException;
+
+        public Task Send(object data)
+        {
+            _ = data;
+            return Task.CompletedTask;
+        }
+
+        public void Start()
+        {
+        }
+
+        public void Dispose()
+        {
         }
     }
 }
