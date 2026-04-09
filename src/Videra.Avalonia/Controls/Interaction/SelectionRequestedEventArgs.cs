@@ -2,23 +2,18 @@ namespace Videra.Avalonia.Controls.Interaction;
 
 public sealed class SelectionRequestedEventArgs : EventArgs
 {
-    private readonly IReadOnlyList<Guid> _objectIds;
-
-    public SelectionRequestedEventArgs(VideraSelectionState selection)
+    public SelectionRequestedEventArgs(VideraSelectionRequest request)
     {
-        ArgumentNullException.ThrowIfNull(selection);
-
-        _objectIds = Array.AsReadOnly(selection.ObjectIds.ToArray());
-        PrimaryObjectId = selection.PrimaryObjectId;
+        Request = request ?? throw new ArgumentNullException(nameof(request));
     }
 
-    public IReadOnlyList<Guid> ObjectIds => _objectIds;
+    public VideraSelectionRequest Request { get; }
 
-    public Guid? PrimaryObjectId { get; }
+    public VideraSelectionOperation Operation => Request.Operation;
 
-    public VideraSelectionState Selection => new()
-    {
-        ObjectIds = _objectIds,
-        PrimaryObjectId = PrimaryObjectId
-    };
+    public IReadOnlyList<Guid> ObjectIds => Request.ObjectIds;
+
+    public Guid? PrimaryObjectId => Request.PrimaryObjectId;
+
+    public VideraEmptySpaceSelectionBehavior EmptySpaceSelectionBehavior => Request.EmptySpaceSelectionBehavior;
 }

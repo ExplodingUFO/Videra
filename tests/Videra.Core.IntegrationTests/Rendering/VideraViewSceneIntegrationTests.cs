@@ -289,9 +289,9 @@ public sealed class VideraViewSceneIntegrationTests : IDisposable
         GetEventArgsType(selectionRequestedEvent!).FullName.Should().Be("Videra.Avalonia.Controls.Interaction.SelectionRequestedEventArgs");
 
         var selectionArgsType = GetEventArgsType(selectionRequestedEvent!);
-        var selectionProperty = selectionArgsType.GetProperty("Selection");
-        selectionProperty.Should().NotBeNull();
-        selectionProperty!.PropertyType.FullName.Should().Be("Videra.Avalonia.Controls.Interaction.VideraSelectionState");
+        var selectionRequestProperty = selectionArgsType.GetProperty("Request");
+        selectionRequestProperty.Should().NotBeNull();
+        selectionRequestProperty!.PropertyType.FullName.Should().Be("Videra.Avalonia.Controls.Interaction.VideraSelectionRequest");
 
         var requestObjectIdsProperty = selectionArgsType.GetProperty("ObjectIds");
         requestObjectIdsProperty.Should().NotBeNull();
@@ -303,15 +303,31 @@ public sealed class VideraViewSceneIntegrationTests : IDisposable
         requestPrimaryObjectIdProperty.Should().NotBeNull();
         requestPrimaryObjectIdProperty!.PropertyType.Should().Be(typeof(Guid?));
 
-        var objectIdsProperty = selectionProperty.PropertyType.GetProperty("ObjectIds");
+        var operationProperty = selectionArgsType.GetProperty("Operation");
+        operationProperty.Should().NotBeNull();
+        operationProperty!.PropertyType.FullName.Should().Be("Videra.Avalonia.Controls.Interaction.VideraSelectionOperation");
+
+        var emptySpaceBehaviorProperty = selectionArgsType.GetProperty("EmptySpaceSelectionBehavior");
+        emptySpaceBehaviorProperty.Should().NotBeNull();
+        emptySpaceBehaviorProperty!.PropertyType.FullName.Should().Be("Videra.Avalonia.Controls.Interaction.VideraEmptySpaceSelectionBehavior");
+
+        var objectIdsProperty = selectionRequestProperty.PropertyType.GetProperty("ObjectIds");
         objectIdsProperty.Should().NotBeNull();
         objectIdsProperty!.PropertyType.IsGenericType.Should().BeTrue();
         objectIdsProperty.PropertyType.GetGenericTypeDefinition().Should().Be(typeof(IReadOnlyList<>));
         objectIdsProperty.PropertyType.GetGenericArguments()[0].Should().Be(typeof(Guid));
 
-        var primaryObjectIdProperty = selectionProperty.PropertyType.GetProperty("PrimaryObjectId");
+        var primaryObjectIdProperty = selectionRequestProperty.PropertyType.GetProperty("PrimaryObjectId");
         primaryObjectIdProperty.Should().NotBeNull();
         primaryObjectIdProperty!.PropertyType.Should().Be(typeof(Guid?));
+
+        var requestOperationProperty = selectionRequestProperty.PropertyType.GetProperty("Operation");
+        requestOperationProperty.Should().NotBeNull();
+        requestOperationProperty!.PropertyType.FullName.Should().Be("Videra.Avalonia.Controls.Interaction.VideraSelectionOperation");
+
+        var requestEmptySpaceBehaviorProperty = selectionRequestProperty.PropertyType.GetProperty("EmptySpaceSelectionBehavior");
+        requestEmptySpaceBehaviorProperty.Should().NotBeNull();
+        requestEmptySpaceBehaviorProperty!.PropertyType.FullName.Should().Be("Videra.Avalonia.Controls.Interaction.VideraEmptySpaceSelectionBehavior");
 
         var annotationRequestedEvent = viewType.GetEvent("AnnotationRequested");
         annotationRequestedEvent.Should().NotBeNull();
@@ -321,6 +337,10 @@ public sealed class VideraViewSceneIntegrationTests : IDisposable
         var anchorProperty = annotationArgsType.GetProperty("Anchor");
         anchorProperty.Should().NotBeNull();
         anchorProperty!.PropertyType.Should().Be(typeof(AnnotationAnchorDescriptor));
+
+        var emptySpaceSelectionBehaviorProperty = interactionOptionsProperty.PropertyType.GetProperty("EmptySpaceSelectionBehavior");
+        emptySpaceSelectionBehaviorProperty.Should().NotBeNull();
+        emptySpaceSelectionBehaviorProperty!.PropertyType.FullName.Should().Be("Videra.Avalonia.Controls.Interaction.VideraEmptySpaceSelectionBehavior");
     }
 
     [Fact]

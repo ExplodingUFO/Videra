@@ -14,8 +14,6 @@ internal interface IVideraInteractionHost
 
     VideraInteractionOptions InteractionOptions { get; }
 
-    VideraSelectionState SelectionState { get; }
-
     IReadOnlyList<Object3D> SceneObjects { get; }
 
     IInputElement PointerCaptureTarget { get; }

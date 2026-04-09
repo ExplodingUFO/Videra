@@ -19,10 +19,6 @@ internal sealed class VideraInteractionState
 
     public RawInputModifiers PointerDownModifiers { get; set; }
 
-    public object? LastRoutedToken { get; set; }
-
-    public string? LastRoutedPhase { get; set; }
-
     public bool HasActiveGesture => IsLeftButtonDown || IsRightButtonDown;
 
     public void Reset()
@@ -34,7 +30,5 @@ internal sealed class VideraInteractionState
         PointerDownPosition = default;
         LastPosition = default;
         PointerDownModifiers = RawInputModifiers.None;
-        LastRoutedToken = null;
-        LastRoutedPhase = null;
     }
 }

@@ -143,27 +143,28 @@ public sealed class VideraViewExtensibilityIntegrationTests
     public void ControlledInteractionIntentEventArgs_ExposeHostFacingSelectionAndAnchorData()
     {
         var objectId = Guid.NewGuid();
-        var selectionState = CreateSelectionState(objectId);
+        var selectionRequest = CreateSelectionRequest(objectId);
         var replacementObjectId = Guid.NewGuid();
 
-        var selectionArgs = Activator.CreateInstance(GetInteractionType("SelectionRequestedEventArgs"), selectionState);
+        var selectionArgs = Activator.CreateInstance(GetInteractionType("SelectionRequestedEventArgs"), selectionRequest);
         selectionArgs.Should().NotBeNull();
         ReadRequestedObjectIds(selectionArgs!).Should().ContainSingle().Which.Should().Be(objectId);
         ReadRequestedPrimaryObjectId(selectionArgs!).Should().Be(objectId);
+        ReadProperty(selectionArgs!, "Operation").ToString().Should().Be("Replace");
+        ReadProperty(selectionArgs!, "EmptySpaceSelectionBehavior").ToString().Should().Be("ClearSelection");
         AssertObjectIdsAreReadOnly(ReadProperty(selectionArgs!, "ObjectIds"), replacementObjectId);
 
-        var projectedSelection = ReadProperty(selectionArgs!, "Selection");
-        ReadSelectionObjectIds(projectedSelection).Should().ContainSingle().Which.Should().Be(objectId);
-        ReadPrimaryObjectId(projectedSelection).Should().Be(objectId);
-        AssertObjectIdsAreReadOnly(ReadProperty(projectedSelection, "ObjectIds"), replacementObjectId);
-
-        WriteProperty(selectionState, "ObjectIds", new[] { replacementObjectId });
-        WriteProperty(selectionState, "PrimaryObjectId", replacementObjectId);
+        var projectedRequest = ReadProperty(selectionArgs!, "Request");
+        ReadRequestedObjectIds(projectedRequest).Should().ContainSingle().Which.Should().Be(objectId);
+        ReadRequestedPrimaryObjectId(projectedRequest).Should().Be(objectId);
+        ReadProperty(projectedRequest, "Operation").ToString().Should().Be("Replace");
+        ReadProperty(projectedRequest, "EmptySpaceSelectionBehavior").ToString().Should().Be("ClearSelection");
+        AssertObjectIdsAreReadOnly(ReadProperty(projectedRequest, "ObjectIds"), replacementObjectId);
 
         ReadRequestedObjectIds(selectionArgs!).Should().ContainSingle().Which.Should().Be(objectId);
         ReadRequestedPrimaryObjectId(selectionArgs!).Should().Be(objectId);
-        ReadSelectionObjectIds(ReadProperty(selectionArgs!, "Selection")).Should().ContainSingle().Which.Should().Be(objectId);
-        ReadPrimaryObjectId(ReadProperty(selectionArgs!, "Selection")).Should().Be(objectId);
+        ReadRequestedObjectIds(ReadProperty(selectionArgs!, "Request")).Should().ContainSingle().Which.Should().Be(objectId);
+        ReadRequestedPrimaryObjectId(ReadProperty(selectionArgs!, "Request")).Should().Be(objectId);
 
         var anchor = AnnotationAnchorDescriptor.ForObject(objectId);
         var annotationArgs = Activator.CreateInstance(GetInteractionType("AnnotationRequestedEventArgs"), anchor);
@@ -293,6 +294,15 @@ public sealed class VideraViewExtensibilityIntegrationTests
         WriteProperty(selectionState!, "ObjectIds", new[] { objectId });
         WriteProperty(selectionState!, "PrimaryObjectId", objectId);
         return selectionState!;
+    }
+
+    private static object CreateSelectionRequest(Guid objectId)
+    {
+        var operation = Enum.Parse(GetInteractionType("VideraSelectionOperation"), "Replace");
+        var emptySpaceBehavior = Enum.Parse(GetInteractionType("VideraEmptySpaceSelectionBehavior"), "ClearSelection");
+        var selectionRequest = Activator.CreateInstance(GetInteractionType("VideraSelectionRequest"), operation, new[] { objectId }, objectId, emptySpaceBehavior);
+        selectionRequest.Should().NotBeNull();
+        return selectionRequest!;
     }
 
     private static object CreateNodeAnnotation(Guid objectId)

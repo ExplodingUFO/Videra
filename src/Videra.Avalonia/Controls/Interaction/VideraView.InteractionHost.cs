@@ -10,10 +10,12 @@ namespace Videra.Avalonia.Controls;
 public partial class VideraView : IVideraInteractionHost
 {
     private VideraInteractionController _interactionController = null!;
+    private VideraInteractionRouter _interactionRouter = null!;
 
     private void InitializeInteractionController()
     {
         _interactionController = new VideraInteractionController(this, _logger);
+        _interactionRouter = new VideraInteractionRouter(this, _interactionController);
     }
 
     TopLevel? IVideraInteractionHost.ResolveTopLevel() => TopLevel.GetTopLevel(this);
@@ -21,8 +23,6 @@ public partial class VideraView : IVideraInteractionHost
     VideraInteractionMode IVideraInteractionHost.InteractionMode => InteractionMode;
 
     VideraInteractionOptions IVideraInteractionHost.InteractionOptions => InteractionOptions;
-
-    VideraSelectionState IVideraInteractionHost.SelectionState => SelectionState;
 
     IReadOnlyList<Object3D> IVideraInteractionHost.SceneObjects => Engine.SceneObjects;
 
