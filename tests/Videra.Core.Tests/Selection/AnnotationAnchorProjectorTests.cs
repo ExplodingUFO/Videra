@@ -33,6 +33,20 @@ public class AnnotationAnchorProjectorTests
     }
 
     [Fact]
+    public void Project_DefaultAnchorDescriptor_ReturnsInvalidAnchorStatus()
+    {
+        var viewportSize = new Vector2(800f, 600f);
+        var camera = CreateCamera(viewportSize);
+        var projector = new AnnotationAnchorProjector();
+        var anchor = default(AnnotationAnchorDescriptor);
+
+        var result = projector.Project(anchor, camera, viewportSize, []);
+
+        result.IsVisible.Should().BeFalse();
+        result.ClipStatus.Should().Be(AnnotationProjectionClipStatus.InvalidAnchor);
+    }
+
+    [Fact]
     public void Project_WorldPointAnchor_ProjectsToScreenCoordinates()
     {
         var viewportSize = new Vector2(1280f, 720f);
@@ -128,6 +142,22 @@ public class AnnotationAnchorProjectorTests
         result.IsVisible.Should().BeFalse();
         result.ClipStatus.Should().Be(AnnotationProjectionClipStatus.MissingObject);
         result.ResolvedObjectId.Should().BeNull();
+    }
+
+    [Fact]
+    public void Project_UninitializedObjectAnchor_ReturnsWorldBoundsMissingStatus()
+    {
+        var viewportSize = new Vector2(800f, 600f);
+        var camera = CreateCamera(viewportSize);
+        var projector = new AnnotationAnchorProjector();
+        var object3D = new Object3D { Name = "Uninitialized" };
+        var anchor = AnnotationAnchorDescriptor.ForObject(object3D.Id);
+
+        var result = projector.Project(anchor, camera, viewportSize, [object3D]);
+
+        result.IsVisible.Should().BeFalse();
+        result.ClipStatus.Should().Be(AnnotationProjectionClipStatus.ObjectHasNoWorldBounds);
+        result.ResolvedObjectId.Should().Be(object3D.Id);
     }
 
     private static OrbitCamera CreateCamera(Vector2 viewportSize)

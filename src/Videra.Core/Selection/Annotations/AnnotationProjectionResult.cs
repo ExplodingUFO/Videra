@@ -9,7 +9,8 @@ public enum AnnotationProjectionClipStatus
     ObjectHasNoWorldBounds = 2,
     BehindCamera = 3,
     OutsideClipDepth = 4,
-    OutsideViewport = 5
+    OutsideViewport = 5,
+    InvalidAnchor = 6
 }
 
 public readonly record struct AnnotationProjectionResult

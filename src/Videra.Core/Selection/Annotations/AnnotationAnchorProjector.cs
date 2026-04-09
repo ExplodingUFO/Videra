@@ -20,7 +20,7 @@ public sealed class AnnotationAnchorProjector
         {
             AnnotationAnchorKind.Object => ProjectObjectAnchor(anchor, camera, viewportSize, objects),
             AnnotationAnchorKind.WorldPoint => ProjectWorldPointAnchor(anchor, camera, viewportSize),
-            _ => AnnotationProjectionResult.Hidden(AnnotationProjectionClipStatus.MissingObject)
+            _ => AnnotationProjectionResult.Hidden(AnnotationProjectionClipStatus.InvalidAnchor)
         };
     }
 
@@ -32,7 +32,7 @@ public sealed class AnnotationAnchorProjector
     {
         if (anchor.ObjectId is not Guid objectId)
         {
-            return AnnotationProjectionResult.Hidden(AnnotationProjectionClipStatus.MissingObject);
+            return AnnotationProjectionResult.Hidden(AnnotationProjectionClipStatus.InvalidAnchor);
         }
 
         var sceneObject = objects.FirstOrDefault(obj => obj.Id == objectId);
@@ -56,7 +56,7 @@ public sealed class AnnotationAnchorProjector
     {
         if (anchor.WorldPoint is not Vector3 worldPoint)
         {
-            return AnnotationProjectionResult.Hidden(AnnotationProjectionClipStatus.OutsideClipDepth);
+            return AnnotationProjectionResult.Hidden(AnnotationProjectionClipStatus.InvalidAnchor);
         }
 
         return ProjectWorldPoint(camera, viewportSize, worldPoint, null);
