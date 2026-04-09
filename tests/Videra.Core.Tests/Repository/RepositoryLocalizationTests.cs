@@ -270,6 +270,9 @@ public sealed class RepositoryLocalizationTests
             sampleReadme.Should().Contain(marker);
         }
 
+        readme.Should().Contain(InteractionContractDocumentationTerms.ChineseOwnershipSentence);
+        avaloniaModule.Should().Contain(InteractionContractDocumentationTerms.ChineseOwnershipSentence);
+
         foreach (var forbidden in InteractionContractDocumentationTerms.ForbiddenNodeAnchorPhrases)
         {
             readme.Should().NotContain(forbidden);

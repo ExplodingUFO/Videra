@@ -96,7 +96,9 @@ graph TB
 
 ### 受控交互合同
 
-`VideraView` 还提供受控交互入口，`host owns` `SelectionState`、`Annotations` 与 annotation state。推荐直接对照 `samples/Videra.InteractionSample`：
+`host owns` `SelectionState`、`Annotations` 与 annotation state。
+
+`VideraView` 还提供受控交互入口。推荐直接对照 `samples/Videra.InteractionSample`：
 
 - 内建模式：`Navigate`、`Select`、`Annotate`
 - `SelectionRequested` 只报告选择意图，host 决定如何更新 `SelectionState`

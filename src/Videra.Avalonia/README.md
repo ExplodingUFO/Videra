@@ -108,7 +108,9 @@ Contract notes:
 
 ## Interaction Contract
 
-`VideraView` also supports a controlled interaction flow where the `host owns` `SelectionState`, `Annotations`, and annotation state.
+The `host owns` `SelectionState`, `Annotations`, and annotation state.
+
+`VideraView` also supports a controlled interaction flow built around that ownership boundary.
 
 ```csharp
 using System.Numerics;

@@ -2,6 +2,10 @@ namespace Videra.Core.Tests.Repository;
 
 internal static class InteractionContractDocumentationTerms
 {
+    public const string EnglishOwnershipSentence = "The `host owns` `SelectionState`, `Annotations`, and annotation state.";
+
+    public const string ChineseOwnershipSentence = "`host owns` `SelectionState`、`Annotations` 与 annotation state。";
+
     public static readonly string[] SharedApiSymbols =
     {
         "Videra.InteractionSample",

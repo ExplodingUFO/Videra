@@ -179,6 +179,9 @@ public sealed class RepositoryArchitectureTests
             sampleReadme.Should().Contain(marker);
         }
 
+        readme.Should().Contain(InteractionContractDocumentationTerms.EnglishOwnershipSentence);
+        avaloniaReadme.Should().Contain(InteractionContractDocumentationTerms.EnglishOwnershipSentence);
+
         foreach (var forbidden in InteractionContractDocumentationTerms.ForbiddenNodeAnchorPhrases)
         {
             readme.Should().NotContain(forbidden);
