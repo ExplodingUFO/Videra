@@ -38,6 +38,7 @@ public sealed class InteractionSampleConfigurationTests
         File.Exists(Path.Combine(sampleRoot, "App.axaml.cs")).Should().BeTrue();
         File.Exists(Path.Combine(sampleRoot, "Views", "MainWindow.axaml")).Should().BeTrue();
         File.Exists(Path.Combine(sampleRoot, "Views", "MainWindow.axaml.cs")).Should().BeTrue();
+        File.Exists(Path.Combine(sampleRoot, "Assets", "reference-cube.obj")).Should().BeTrue();
 
         solution.Should().Contain("samples/Videra.InteractionSample/Videra.InteractionSample.csproj");
     }
