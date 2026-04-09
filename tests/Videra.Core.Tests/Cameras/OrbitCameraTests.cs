@@ -105,6 +105,34 @@ public class OrbitCameraTests
     }
 
     [Fact]
+    public void TryCreatePickingRay_ForViewportCenter_PointsTowardTarget()
+    {
+        var camera = new OrbitCamera();
+        camera.SetOrbit(Vector3.Zero, 10f, 0f, 0f);
+        camera.UpdateProjection(800, 600);
+
+        var created = camera.TryCreatePickingRay(new Vector2(400f, 300f), new Vector2(800f, 600f), out var origin, out var direction);
+
+        created.Should().BeTrue();
+        origin.Should().Be(camera.Position);
+        Vector3.Distance(direction, Vector3.Normalize(camera.Target - camera.Position)).Should().BeLessThan(0.001f);
+    }
+
+    [Fact]
+    public void TryProjectWorldPoint_ForTarget_ReturnsViewportCenter()
+    {
+        var camera = new OrbitCamera();
+        camera.SetOrbit(Vector3.Zero, 10f, 0f, 0f);
+        camera.UpdateProjection(800, 600);
+
+        var projected = camera.TryProjectWorldPoint(Vector3.Zero, new Vector2(800f, 600f), out var screenPoint);
+
+        projected.Should().BeTrue();
+        screenPoint.X.Should().BeApproximately(400f, 0.5f);
+        screenPoint.Y.Should().BeApproximately(300f, 0.5f);
+    }
+
+    [Fact]
     public void FieldOfView_ChangeAffects_ProjectionMatrix()
     {
         // Arrange

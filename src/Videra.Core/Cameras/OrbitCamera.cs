@@ -189,6 +189,53 @@ public class OrbitCamera
         );
     }
 
+    public bool TryCreatePickingRay(Vector2 screenPoint, Vector2 viewportSize, out Vector3 origin, out Vector3 direction)
+    {
+        var viewport = NormalizeViewport(viewportSize);
+        var x = (screenPoint.X / viewport.X) * 2f - 1f;
+        var y = 1f - (screenPoint.Y / viewport.Y) * 2f;
+        var viewProjection = ViewMatrix * ProjectionMatrix;
+
+        if (!Matrix4x4.Invert(viewProjection, out var inverseViewProjection))
+        {
+            origin = default;
+            direction = default;
+            return false;
+        }
+
+        var nearPoint = Unproject(new Vector4(x, y, 0f, 1f), inverseViewProjection);
+        var farPoint = Unproject(new Vector4(x, y, 1f, 1f), inverseViewProjection);
+        var ray = farPoint - nearPoint;
+        if (ray.LengthSquared() <= 0f)
+        {
+            origin = default;
+            direction = default;
+            return false;
+        }
+
+        origin = Position;
+        direction = Vector3.Normalize(ray);
+        return true;
+    }
+
+    public bool TryProjectWorldPoint(Vector3 worldPoint, Vector2 viewportSize, out Vector2 screenPoint)
+    {
+        var viewport = NormalizeViewport(viewportSize);
+        var clip = Vector4.Transform(new Vector4(worldPoint, 1f), ViewMatrix * ProjectionMatrix);
+
+        if (clip.W <= 0f)
+        {
+            screenPoint = default;
+            return false;
+        }
+
+        var ndc = new Vector3(clip.X, clip.Y, clip.Z) / clip.W;
+        screenPoint = new Vector2(
+            ((ndc.X + 1f) * 0.5f) * viewport.X,
+            ((1f - ndc.Y) * 0.5f) * viewport.Y);
+        return true;
+    }
+
     // ==========================================
     // 3. Interaction methods (Rotate, Zoom, Pan)
     // ==========================================
@@ -309,5 +356,18 @@ public class OrbitCamera
         // 2. 【关键修复】更新 View 矩阵
         // 您的原始代码漏掉了这一行，导致 ViewMatrix 永远是 Identity 或 Zero
         _viewMatrix = Matrix4x4.CreateLookAt(Position, Target, Up);
+    }
+
+    private static Vector3 Unproject(Vector4 point, Matrix4x4 inverseViewProjection)
+    {
+        var world = Vector4.Transform(point, inverseViewProjection);
+        return new Vector3(world.X, world.Y, world.Z) / world.W;
+    }
+
+    private static Vector2 NormalizeViewport(Vector2 viewportSize)
+    {
+        return new Vector2(
+            viewportSize.X > 0f ? viewportSize.X : 1f,
+            viewportSize.Y > 0f ? viewportSize.Y : 1f);
     }
 }

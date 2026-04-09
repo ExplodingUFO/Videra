@@ -60,7 +60,7 @@ public sealed class SceneBoxSelectionService
 
         foreach (var corner in corners)
         {
-            if (TryProjectPoint(corner, camera, viewportSize, out var screenPoint))
+            if (camera.TryProjectWorldPoint(corner, viewportSize, out var screenPoint))
             {
                 projectedPoints.Add(screenPoint);
             }
@@ -78,35 +78,6 @@ public sealed class SceneBoxSelectionService
         var maxY = projectedPoints.Max(point => point.Y);
         screenRect = new ScreenRect(minX, minY, maxX, maxY);
         return true;
-    }
-
-    private static bool TryProjectPoint(
-        Vector3 point,
-        Cameras.OrbitCamera camera,
-        Vector2 viewportSize,
-        out Vector2 screenPoint)
-    {
-        var viewport = NormalizeViewport(viewportSize);
-        var clip = Vector4.Transform(new Vector4(point, 1f), camera.ViewMatrix * camera.ProjectionMatrix);
-
-        if (clip.W <= 0f)
-        {
-            screenPoint = default;
-            return false;
-        }
-
-        var ndc = new Vector3(clip.X, clip.Y, clip.Z) / clip.W;
-        screenPoint = new Vector2(
-            ((ndc.X + 1f) * 0.5f) * viewport.X,
-            ((1f - ndc.Y) * 0.5f) * viewport.Y);
-        return true;
-    }
-
-    private static Vector2 NormalizeViewport(Vector2 viewportSize)
-    {
-        return new Vector2(
-            viewportSize.X > 0f ? viewportSize.X : 1f,
-            viewportSize.Y > 0f ? viewportSize.Y : 1f);
     }
 
     private static ScreenRect CreateSelectionRect(Vector2 startPoint, Vector2 endPoint)

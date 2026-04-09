@@ -14,7 +14,7 @@ public sealed class SceneHitTestService
             return SceneHitTestResult.Empty;
         }
 
-        if (!TryCreateRay(request, out var rayOrigin, out var rayDirection))
+        if (!request.Camera.TryCreatePickingRay(request.ScreenPoint, request.ViewportSize, out var rayOrigin, out var rayDirection))
         {
             return SceneHitTestResult.Empty;
         }
@@ -43,44 +43,6 @@ public sealed class SceneHitTestService
             ? new SceneHitTestResult.SceneHit(obj.Id, obj, distance)
             : null;
     }
-
-    private static bool TryCreateRay(
-        SceneHitTestRequest request,
-        out Vector3 origin,
-        out Vector3 direction)
-    {
-        var viewport = NormalizeViewport(request.ViewportSize);
-        var x = (request.ScreenPoint.X / viewport.X) * 2f - 1f;
-        var y = 1f - (request.ScreenPoint.Y / viewport.Y) * 2f;
-        var viewProjection = request.Camera.ViewMatrix * request.Camera.ProjectionMatrix;
-
-        if (!Matrix4x4.Invert(viewProjection, out var inverseViewProjection))
-        {
-            origin = default;
-            direction = default;
-            return false;
-        }
-
-        var nearPoint = Unproject(new Vector4(x, y, 0f, 1f), inverseViewProjection);
-        var farPoint = Unproject(new Vector4(x, y, 1f, 1f), inverseViewProjection);
-        origin = request.Camera.Position;
-        direction = Vector3.Normalize(farPoint - nearPoint);
-        return direction.LengthSquared() > 0f;
-    }
-
-    private static Vector3 Unproject(Vector4 point, Matrix4x4 inverseViewProjection)
-    {
-        var world = Vector4.Transform(point, inverseViewProjection);
-        return new Vector3(world.X, world.Y, world.Z) / world.W;
-    }
-
-    private static Vector2 NormalizeViewport(Vector2 viewportSize)
-    {
-        return new Vector2(
-            viewportSize.X > 0f ? viewportSize.X : 1f,
-            viewportSize.Y > 0f ? viewportSize.Y : 1f);
-    }
-
     private static bool TryIntersectRay(BoundingBox3 bounds, Vector3 origin, Vector3 direction, out float distance)
     {
         const float epsilon = 1e-6f;
