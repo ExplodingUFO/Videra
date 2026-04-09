@@ -133,6 +133,34 @@ public class OrbitCameraTests
     }
 
     [Fact]
+    public void TryProjectWorldPoint_WhenPointIsInsideNearPlane_ReturnsFalse()
+    {
+        var camera = new OrbitCamera();
+        camera.SetOrbit(Vector3.Zero, 10f, 0f, 0f);
+        camera.UpdateProjection(800, 600);
+        var forward = Vector3.Normalize(camera.Target - camera.Position);
+        var nearClippedPoint = camera.Position + forward * 0.05f;
+
+        var projected = camera.TryProjectWorldPoint(nearClippedPoint, new Vector2(800f, 600f), out _);
+
+        projected.Should().BeFalse();
+    }
+
+    [Fact]
+    public void TryProjectWorldPoint_WhenPointIsBeyondFarPlane_ReturnsFalse()
+    {
+        var camera = new OrbitCamera();
+        camera.SetOrbit(Vector3.Zero, 10f, 0f, 0f);
+        camera.UpdateProjection(800, 600);
+        var forward = Vector3.Normalize(camera.Target - camera.Position);
+        var farClippedPoint = camera.Position + forward * 1005f;
+
+        var projected = camera.TryProjectWorldPoint(farClippedPoint, new Vector2(800f, 600f), out _);
+
+        projected.Should().BeFalse();
+    }
+
+    [Fact]
     public void FieldOfView_ChangeAffects_ProjectionMatrix()
     {
         // Arrange

@@ -230,6 +230,12 @@ public class OrbitCamera
         }
 
         var ndc = new Vector3(clip.X, clip.Y, clip.Z) / clip.W;
+        if (float.IsNaN(ndc.Z) || float.IsInfinity(ndc.Z) || ndc.Z < 0f || ndc.Z > 1f)
+        {
+            screenPoint = default;
+            return false;
+        }
+
         screenPoint = new Vector2(
             ((ndc.X + 1f) * 0.5f) * viewport.X,
             ((1f - ndc.Y) * 0.5f) * viewport.Y);

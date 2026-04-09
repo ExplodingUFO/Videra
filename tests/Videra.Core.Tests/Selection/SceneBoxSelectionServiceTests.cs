@@ -55,6 +55,46 @@ public class SceneBoxSelectionServiceTests
         result.Objects.Should().NotBeNull().And.BeEmpty();
     }
 
+    [Fact]
+    public void Select_WhenObjectIsInsideNearPlane_DoesNotSelectClippedObject()
+    {
+        var camera = CreateCamera();
+        var forward = Vector3.Normalize(camera.Target - camera.Position);
+        var center = camera.Position + forward * 0.05f;
+        var clipped = CreateBoundsObject(center - new Vector3(0.01f), center + new Vector3(0.01f));
+        var query = new SceneBoxSelectionQuery(
+            camera,
+            new Vector2(800f, 600f),
+            new Vector2(350f, 250f),
+            new Vector2(450f, 350f),
+            [clipped],
+            SceneBoxSelectionMode.Touch);
+
+        var result = new SceneBoxSelectionService().Select(query);
+
+        result.ObjectIds.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void Select_WhenObjectIsBeyondFarPlane_DoesNotSelectClippedObject()
+    {
+        var camera = CreateCamera();
+        var forward = Vector3.Normalize(camera.Target - camera.Position);
+        var center = camera.Position + forward * 1005f;
+        var clipped = CreateBoundsObject(center - new Vector3(0.5f), center + new Vector3(0.5f));
+        var query = new SceneBoxSelectionQuery(
+            camera,
+            new Vector2(800f, 600f),
+            new Vector2(350f, 250f),
+            new Vector2(450f, 350f),
+            [clipped],
+            SceneBoxSelectionMode.Touch);
+
+        var result = new SceneBoxSelectionService().Select(query);
+
+        result.ObjectIds.Should().BeEmpty();
+    }
+
     private static OrbitCamera CreateCamera()
     {
         var camera = new OrbitCamera();
