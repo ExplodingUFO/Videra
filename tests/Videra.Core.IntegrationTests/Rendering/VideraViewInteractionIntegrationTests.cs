@@ -389,6 +389,98 @@ public sealed class VideraViewInteractionIntegrationTests
     }
 
     [Fact]
+    public void SelectMode_NativeCtrlClick_EmitsToggleSelectionRequest()
+    {
+        var nativeHostFactory = new RecordingNativeHostFactory();
+        var view = CreateInteractiveView(nativeHostFactory);
+        try
+        {
+            var sceneObject = AddCenteredQuad(view);
+            view.InteractionMode = VideraInteractionMode.Select;
+            InvokeNonPublicMethod(view, "EnsureNativeHost");
+
+            nativeHostFactory.LastCreatedHost.Should().NotBeNull();
+            var point = ProjectPoint(view, Vector3.Zero);
+            SelectionRequestedEventArgs? request = null;
+            view.SelectionRequested += (_, e) => request = e;
+
+            nativeHostFactory.LastCreatedHost!.RaiseNativePointer(new NativePointerEvent(
+                NativePointerKind.LeftDown,
+                (int)Math.Round(point.X),
+                (int)Math.Round(point.Y),
+                wheelDelta: 0,
+                modifiers: RawInputModifiers.Control));
+            nativeHostFactory.LastCreatedHost.RaiseNativePointer(new NativePointerEvent(
+                NativePointerKind.LeftUp,
+                (int)Math.Round(point.X),
+                (int)Math.Round(point.Y),
+                wheelDelta: 0,
+                modifiers: RawInputModifiers.Control));
+
+            request.Should().NotBeNull();
+            request!.Operation.Should().Be(VideraSelectionOperation.Toggle);
+            request.ObjectIds.Should().ContainSingle().Which.Should().Be(sceneObject.Id);
+            request.PrimaryObjectId.Should().Be(sceneObject.Id);
+        }
+        finally
+        {
+            InvokeNonPublicMethod(view, "ReleaseNativeHost");
+            view.Engine.Dispose();
+        }
+    }
+
+    [Fact]
+    public void SelectMode_NativeCtrlDrag_EmitsAdditiveBoxSelectionRequest()
+    {
+        var nativeHostFactory = new RecordingNativeHostFactory();
+        var view = CreateInteractiveView(nativeHostFactory);
+        try
+        {
+            var first = AddQuad(view, new Vector3(-1.1f, 0f, 0f));
+            var second = AddQuad(view, new Vector3(1.1f, 0f, 0f));
+            view.InteractionMode = VideraInteractionMode.Select;
+            InvokeNonPublicMethod(view, "EnsureNativeHost");
+
+            nativeHostFactory.LastCreatedHost.Should().NotBeNull();
+            var firstPoint = ProjectPoint(view, first.WorldBounds!.Value.Center);
+            var secondPoint = ProjectPoint(view, second.WorldBounds!.Value.Center);
+            var start = new Point(Math.Min(firstPoint.X, secondPoint.X) - 30d, Math.Min(firstPoint.Y, secondPoint.Y) - 30d);
+            var end = new Point(Math.Max(firstPoint.X, secondPoint.X) + 30d, Math.Max(firstPoint.Y, secondPoint.Y) + 30d);
+            SelectionRequestedEventArgs? request = null;
+            view.SelectionRequested += (_, e) => request = e;
+
+            nativeHostFactory.LastCreatedHost!.RaiseNativePointer(new NativePointerEvent(
+                NativePointerKind.LeftDown,
+                (int)Math.Round(start.X),
+                (int)Math.Round(start.Y),
+                wheelDelta: 0,
+                modifiers: RawInputModifiers.Control));
+            nativeHostFactory.LastCreatedHost.RaiseNativePointer(new NativePointerEvent(
+                NativePointerKind.Move,
+                (int)Math.Round(end.X),
+                (int)Math.Round(end.Y),
+                wheelDelta: 0,
+                modifiers: RawInputModifiers.Control));
+            nativeHostFactory.LastCreatedHost.RaiseNativePointer(new NativePointerEvent(
+                NativePointerKind.LeftUp,
+                (int)Math.Round(end.X),
+                (int)Math.Round(end.Y),
+                wheelDelta: 0,
+                modifiers: RawInputModifiers.Control));
+
+            request.Should().NotBeNull();
+            request!.Operation.Should().Be(VideraSelectionOperation.Add);
+            request.ObjectIds.Should().Equal(first.Id, second.Id);
+            request.PrimaryObjectId.Should().Be(first.Id);
+        }
+        finally
+        {
+            InvokeNonPublicMethod(view, "ReleaseNativeHost");
+            view.Engine.Dispose();
+        }
+    }
+
+    [Fact]
     public void RoutedCaptureLifecycle_PreservesCaptureUntilAllButtonsRelease_AndResetsOnCaptureLost()
     {
         var view = CreateInteractiveView();

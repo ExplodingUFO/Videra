@@ -154,7 +154,7 @@ internal sealed class VideraInteractionRouter : IDisposable
         var scale = _host.ResolveTopLevel()?.RenderScaling ?? 1.0;
         var snapshot = new VideraPointerGestureSnapshot(
             new Point(e.X / scale, e.Y / scale),
-            RawInputModifiers.None,
+            e.Modifiers,
             IsLeftButtonPressed: e.Kind is NativePointerKind.LeftDown || (_controller.IsLeftButtonDown && e.Kind == NativePointerKind.Move),
             IsRightButtonPressed: e.Kind is NativePointerKind.RightDown || (_controller.IsRightButtonDown && e.Kind == NativePointerKind.Move),
             InitialPressMouseButton: e.Kind == NativePointerKind.RightUp ? MouseButton.Right : MouseButton.Left,
