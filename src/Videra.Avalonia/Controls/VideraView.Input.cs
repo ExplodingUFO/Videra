@@ -1,51 +1,25 @@
 using Avalonia;
-using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
-using Microsoft.Extensions.Logging;
+using Videra.Avalonia.Controls.Interaction;
 
 namespace Videra.Avalonia.Controls;
 
 /// <summary>
-/// VideraView 的输入处理部分。
+/// VideraView 的输入转发部分。
 /// </summary>
 public partial class VideraView
 {
-    private static readonly bool InputLogEnabled =
-        string.Equals(Environment.GetEnvironmentVariable("VIDERA_INPUTLOG"), "1", StringComparison.OrdinalIgnoreCase) ||
-        string.Equals(Environment.GetEnvironmentVariable("VIDERA_INPUTLOG"), "true", StringComparison.OrdinalIgnoreCase);
-
-    private bool _isLeftButtonDown;
-    private bool _isRightButtonDown;
-    private Point _lastPos;
-    private TopLevel? _cachedTopLevel;
-
     protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
     {
         base.OnAttachedToVisualTree(e);
         OnViewAttached();
-
-        _cachedTopLevel = TopLevel.GetTopLevel(this);
-        if (_cachedTopLevel != null)
-        {
-            _cachedTopLevel.AddHandler(PointerPressedEvent, OnTopPointerPressed, RoutingStrategies.Tunnel | RoutingStrategies.Bubble, true);
-            _cachedTopLevel.AddHandler(PointerReleasedEvent, OnTopPointerReleased, RoutingStrategies.Tunnel | RoutingStrategies.Bubble, true);
-            _cachedTopLevel.AddHandler(PointerMovedEvent, OnTopPointerMoved, RoutingStrategies.Tunnel | RoutingStrategies.Bubble, true);
-            _cachedTopLevel.AddHandler(PointerWheelChangedEvent, OnTopPointerWheel, RoutingStrategies.Tunnel | RoutingStrategies.Bubble, true);
-        }
+        _interactionController.Attach();
     }
 
     protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
     {
-        if (_cachedTopLevel != null)
-        {
-            _cachedTopLevel.RemoveHandler(PointerPressedEvent, OnTopPointerPressed);
-            _cachedTopLevel.RemoveHandler(PointerReleasedEvent, OnTopPointerReleased);
-            _cachedTopLevel.RemoveHandler(PointerMovedEvent, OnTopPointerMoved);
-            _cachedTopLevel.RemoveHandler(PointerWheelChangedEvent, OnTopPointerWheel);
-            _cachedTopLevel = null;
-        }
-
+        _interactionController.Detach();
         OnViewDetached();
         base.OnDetachedFromVisualTree(e);
     }
@@ -53,229 +27,49 @@ public partial class VideraView
     protected override void OnPointerPressed(PointerPressedEventArgs e)
     {
         base.OnPointerPressed(e);
-
-        var props = e.GetCurrentPoint(this).Properties;
-        _lastPos = e.GetPosition(this);
-
-        if (InputLogEnabled)
-            Log.PointerPressed(_logger, _lastPos, props.IsLeftButtonPressed, props.IsRightButtonPressed);
-
-        if (props.IsLeftButtonPressed)
-        {
-            _isLeftButtonDown = true;
-            e.Handled = true;
-        }
-        else if (props.IsRightButtonPressed)
-        {
-            _isRightButtonDown = true;
-            e.Handled = true;
-        }
-
-        Focus();
-        e.Pointer.Capture(this);
+        _interactionController.HandlePressed(e, VideraPointerRoute.View);
     }
 
     protected override void OnPointerReleased(PointerReleasedEventArgs e)
     {
         base.OnPointerReleased(e);
-
-        if (InputLogEnabled)
-            Log.PointerReleased(_logger, e.GetPosition(this), e.InitialPressMouseButton);
-
-        if (e.InitialPressMouseButton == MouseButton.Left)
-        {
-            _isLeftButtonDown = false;
-            e.Handled = true;
-        }
-        else if (e.InitialPressMouseButton == MouseButton.Right)
-        {
-            _isRightButtonDown = false;
-            e.Handled = true;
-        }
-
-        e.Pointer.Capture(null);
+        _interactionController.HandleReleased(e, VideraPointerRoute.View);
     }
 
     protected override void OnPointerMoved(PointerEventArgs e)
     {
         base.OnPointerMoved(e);
-
-        if (InputLogEnabled && (_isLeftButtonDown || _isRightButtonDown))
-            Log.PointerMoved(_logger, e.GetPosition(this));
-
-        if (!_isLeftButtonDown && !_isRightButtonDown)
-            return;
-
-        var pos = e.GetPosition(this);
-        var dx = (float)(pos.X - _lastPos.X);
-        var dy = (float)(pos.Y - _lastPos.Y);
-        _lastPos = pos;
-
-        ProcessMove(dx, dy, _isLeftButtonDown);
-        e.Handled = true;
+        _interactionController.HandleMoved(e, VideraPointerRoute.View);
     }
 
     protected override void OnPointerWheelChanged(PointerWheelEventArgs e)
     {
         base.OnPointerWheelChanged(e);
-
-        if (InputLogEnabled)
-            Log.PointerWheelChanged(_logger, e.Delta);
-
-        var delta = e.Delta.Y;
-        Engine.Camera.Zoom((float)(delta * 0.5));
-        e.Handled = true;
-    }
-
-    private void OnTopPointerPressed(object? sender, PointerPressedEventArgs e)
-    {
-        if (!IsPointerOverThis(e))
-            return;
-
-        OnPointerPressed(e);
-    }
-
-    private void OnTopPointerReleased(object? sender, PointerReleasedEventArgs e)
-    {
-        if (!IsPointerOverThis(e))
-            return;
-
-        OnPointerReleased(e);
-    }
-
-    private void OnTopPointerMoved(object? sender, PointerEventArgs e)
-    {
-        if (!IsPointerOverThis(e))
-            return;
-
-        OnPointerMoved(e);
-    }
-
-    private void OnTopPointerWheel(object? sender, PointerWheelEventArgs e)
-    {
-        if (!IsPointerOverThis(e))
-            return;
-
-        OnPointerWheelChanged(e);
+        _interactionController.HandleWheel(e, VideraPointerRoute.View);
     }
 
     private void OnOverlayPointerPressed(object? sender, PointerPressedEventArgs e)
     {
-        OnPointerPressed(e);
+        _interactionController.HandlePressed(e, VideraPointerRoute.Overlay);
     }
 
     private void OnOverlayPointerReleased(object? sender, PointerReleasedEventArgs e)
     {
-        OnPointerReleased(e);
+        _interactionController.HandleReleased(e, VideraPointerRoute.Overlay);
     }
 
     private void OnOverlayPointerMoved(object? sender, PointerEventArgs e)
     {
-        OnPointerMoved(e);
+        _interactionController.HandleMoved(e, VideraPointerRoute.Overlay);
     }
 
     private void OnOverlayPointerWheel(object? sender, PointerWheelEventArgs e)
     {
-        OnPointerWheelChanged(e);
+        _interactionController.HandleWheel(e, VideraPointerRoute.Overlay);
     }
 
     private void OnNativePointer(NativePointerEvent e)
     {
-        var scale = VisualRoot?.RenderScaling ?? 1.0;
-        var pos = new Point(e.X / scale, e.Y / scale);
-
-        switch (e.Kind)
-        {
-            case NativePointerKind.LeftDown:
-                _isLeftButtonDown = true;
-                _lastPos = pos;
-                if (InputLogEnabled)
-                    Log.NativeLeftDown(_logger, pos);
-                Focus();
-                break;
-            case NativePointerKind.LeftUp:
-                _isLeftButtonDown = false;
-                if (InputLogEnabled)
-                    Log.NativeLeftUp(_logger, pos);
-                break;
-            case NativePointerKind.RightDown:
-                _isRightButtonDown = true;
-                _lastPos = pos;
-                if (InputLogEnabled)
-                    Log.NativeRightDown(_logger, pos);
-                Focus();
-                break;
-            case NativePointerKind.RightUp:
-                _isRightButtonDown = false;
-                if (InputLogEnabled)
-                    Log.NativeRightUp(_logger, pos);
-                break;
-            case NativePointerKind.Move:
-                if (!_isLeftButtonDown && !_isRightButtonDown)
-                    return;
-
-                var dx = (float)(pos.X - _lastPos.X);
-                var dy = (float)(pos.Y - _lastPos.Y);
-                _lastPos = pos;
-                if (InputLogEnabled)
-                    Log.NativeMove(_logger, pos, dx, dy);
-                ProcessMove(dx, dy, _isLeftButtonDown);
-                break;
-            case NativePointerKind.Wheel:
-                var normalized = e.WheelDelta / 120.0f;
-                if (InputLogEnabled)
-                    Log.NativeWheel(_logger, e.WheelDelta);
-                if (Math.Abs(normalized) > float.Epsilon)
-                    Engine.Camera.Zoom(normalized * 0.5f);
-                break;
-        }
-    }
-
-    private bool IsPointerOverThis(PointerEventArgs e)
-    {
-        var pos = e.GetPosition(this);
-        return pos.X >= 0 && pos.X < Bounds.Width &&
-               pos.Y >= 0 && pos.Y < Bounds.Height;
-    }
-
-    private void ProcessMove(float dx, float dy, bool isLeft)
-    {
-        if (isLeft)
-            Engine.Camera.Rotate(dx * 0.5f, dy * 0.5f);
-        else
-            Engine.Camera.Pan(-dx * 0.01f, dy * 0.01f);
-    }
-
-    private static partial class Log
-    {
-        [LoggerMessage(EventId = 101, Level = LogLevel.Debug, Message = "Pressed at {Position}, Left={IsLeft}, Right={IsRight}")]
-        public static partial void PointerPressed(ILogger logger, Point position, bool isLeft, bool isRight);
-
-        [LoggerMessage(EventId = 102, Level = LogLevel.Debug, Message = "Released at {Position} ({Button})")]
-        public static partial void PointerReleased(ILogger logger, Point position, MouseButton button);
-
-        [LoggerMessage(EventId = 103, Level = LogLevel.Debug, Message = "Moved to {Position}")]
-        public static partial void PointerMoved(ILogger logger, Point position);
-
-        [LoggerMessage(EventId = 104, Level = LogLevel.Debug, Message = "Wheel delta {Delta}")]
-        public static partial void PointerWheelChanged(ILogger logger, Vector delta);
-
-        [LoggerMessage(EventId = 105, Level = LogLevel.Debug, Message = "Native LeftDown at {Position}")]
-        public static partial void NativeLeftDown(ILogger logger, Point position);
-
-        [LoggerMessage(EventId = 106, Level = LogLevel.Debug, Message = "Native LeftUp at {Position}")]
-        public static partial void NativeLeftUp(ILogger logger, Point position);
-
-        [LoggerMessage(EventId = 107, Level = LogLevel.Debug, Message = "Native RightDown at {Position}")]
-        public static partial void NativeRightDown(ILogger logger, Point position);
-
-        [LoggerMessage(EventId = 108, Level = LogLevel.Debug, Message = "Native RightUp at {Position}")]
-        public static partial void NativeRightUp(ILogger logger, Point position);
-
-        [LoggerMessage(EventId = 109, Level = LogLevel.Debug, Message = "Native Move {Position} dx={Dx} dy={Dy}")]
-        public static partial void NativeMove(ILogger logger, Point position, float dx, float dy);
-
-        [LoggerMessage(EventId = 110, Level = LogLevel.Debug, Message = "Native Wheel delta {Delta}")]
-        public static partial void NativeWheel(ILogger logger, float delta);
+        _interactionController.HandleNativePointer(e);
     }
 }

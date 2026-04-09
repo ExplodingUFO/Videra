@@ -105,6 +105,7 @@ public partial class VideraView : Decorator
         _bitmapFactory = bitmapFactory;
         _renderSession = CreateRenderSession();
         _sessionBridge = CreateSessionBridge();
+        InitializeInteractionController();
         SubscribeToOptions(_options);
         _backendDiagnostics = _sessionBridge.CreateDiagnosticsSnapshot(lastInitializationError: null);
         Focusable = true;
