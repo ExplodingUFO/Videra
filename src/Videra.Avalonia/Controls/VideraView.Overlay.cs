@@ -15,6 +15,12 @@ public partial class VideraView
 
     private void SynchronizeOverlayState()
     {
+        PushOverlayRenderState();
+        SynchronizeOverlayPresentation();
+    }
+
+    private void PushOverlayRenderState()
+    {
         var selectionOverlay = new SelectionOverlayRenderState(
             selectedObjectIds: _selectionState.ObjectIds,
             hoverObjectId: null,
@@ -30,7 +36,6 @@ public partial class VideraView
 
         Engine.SetSelectionOverlayState(selectionOverlay);
         Engine.SetAnnotationOverlayState(annotationOverlay);
-        SynchronizeOverlayPresentation();
     }
 
     private void SynchronizeOverlayPresentation()
@@ -59,7 +64,7 @@ public partial class VideraView
 
     private void RenderOverlay(DrawingContext context)
     {
-        if (_overlayState.Labels.Count == 0)
+        if (_overlayState.SelectionOutlines.Count == 0 && _overlayState.Labels.Count == 0)
         {
             return;
         }
@@ -90,10 +95,24 @@ internal sealed class VideraViewOverlayPresenter : Control
 
     internal static void RenderOverlay(DrawingContext context, VideraViewOverlayState overlayState)
     {
+        foreach (var outline in overlayState.SelectionOutlines)
+        {
+            DrawSelectionOutline(context, outline);
+        }
+
         foreach (var label in overlayState.Labels)
         {
             DrawLabel(context, label);
         }
+    }
+
+    private static void DrawSelectionOutline(DrawingContext context, VideraSelectionOutline outline)
+    {
+        var strokeThickness = outline.IsPrimary ? 2d : 1d;
+        context.DrawRectangle(
+            brush: null,
+            pen: new Pen(new SolidColorBrush(outline.Color), strokeThickness),
+            rect: outline.ScreenBounds);
     }
 
     private static void DrawLabel(DrawingContext context, VideraOverlayLabel label)

@@ -223,6 +223,61 @@ public sealed class VideraViewExtensibilityIntegrationTests
         }
     }
 
+    [Fact]
+    public void HostOwnedOverlayState_InPlaceMutations_AreObservedOnNextFrame()
+    {
+        var view = new VideraView(nativeHostFactory: null, bitmapFactory: static (_, _) => null);
+        try
+        {
+            var renderSession = ReadPrivateField<RenderSession>(view, "_renderSession");
+            renderSession.Attach(GraphicsBackendPreference.Software);
+            renderSession.Resize(200, 200, 1f);
+
+            var sceneObject = DemoMeshFactory.CreateWhiteQuad(renderSession.ResourceFactory!);
+            view.AddObject(sceneObject);
+
+            var mutableSelectionIds = new List<Guid>();
+            var selectionState = new VideraSelectionState
+            {
+                ObjectIds = mutableSelectionIds,
+                PrimaryObjectId = sceneObject.Id
+            };
+            var mutableAnnotations = new List<VideraAnnotation>();
+            view.SelectionState = selectionState;
+            view.Annotations = mutableAnnotations;
+
+            mutableSelectionIds.Add(sceneObject.Id);
+            mutableAnnotations.Add(new VideraNodeAnnotation
+            {
+                Id = Guid.NewGuid(),
+                Text = "Pinned",
+                ObjectId = sceneObject.Id
+            });
+
+            SelectionOverlayRenderState? observedSelection = null;
+            AnnotationOverlayRenderState? observedAnnotation = null;
+            view.Engine.RegisterPassContributor(
+                RenderPassSlot.Wireframe,
+                new RecordingContributor(context =>
+                {
+                    observedSelection = context.SelectionOverlay;
+                    observedAnnotation = context.AnnotationOverlay;
+                }));
+
+            renderSession.RenderOnce();
+
+            observedSelection.Should().NotBeNull();
+            observedSelection!.SelectedObjectIds.Should().ContainSingle().Which.Should().Be(sceneObject.Id);
+            observedAnnotation.Should().NotBeNull();
+            observedAnnotation!.Anchors.Should().ContainSingle();
+            observedAnnotation.Anchors[0].Anchor.Should().Be(AnnotationAnchorDescriptor.ForObject(sceneObject.Id));
+        }
+        finally
+        {
+            view.Engine.Dispose();
+        }
+    }
+
     private sealed class RecordingContributor(Action<RenderPassContributionContext> onContribute) : IRenderPassContributor
     {
         public void Contribute(RenderPassContributionContext context)

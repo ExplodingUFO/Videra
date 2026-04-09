@@ -131,6 +131,8 @@ public sealed class SelectionOverlayIntegrationTests
             viewportSize: new Vector2(200f, 200f));
 
         overlay.SelectionOutlines.Should().ContainSingle();
+        overlay.SelectionOutlines[0].ScreenBounds.Width.Should().BeGreaterThan(0d);
+        overlay.SelectionOutlines[0].ScreenBounds.Height.Should().BeGreaterThan(0d);
         overlay.Labels.Should().ContainSingle();
         overlay.Labels[0].AnnotationId.Should().Be(annotation.Id);
         overlay.Labels[0].Text.Should().Be("Selected");

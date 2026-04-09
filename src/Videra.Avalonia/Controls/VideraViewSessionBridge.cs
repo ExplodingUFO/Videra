@@ -1,6 +1,9 @@
 using System.Numerics;
+using Avalonia;
+using Avalonia.Media;
 using Videra.Avalonia.Rendering;
 using Videra.Avalonia.Controls.Interaction;
+using Videra.Core.Cameras;
 using Videra.Core.Geometry;
 using Videra.Core.Graphics;
 using Videra.Core.Selection.Rendering;
@@ -104,12 +107,14 @@ internal sealed class VideraViewSessionBridge
     {
         var effectiveSelectionState = selectionState ?? new VideraSelectionState();
         var effectiveAnnotations = annotations ?? Array.Empty<VideraAnnotation>();
+        var sceneObjects = _session.Engine.SceneObjects;
+        var camera = _session.Engine.Camera;
 
         var selectionOutlines = effectiveSelectionState.ObjectIds
             .Distinct()
-            .Select(objectId => new VideraSelectionOutline(
-                objectId,
-                objectId == effectiveSelectionState.PrimaryObjectId))
+            .Select(objectId => TryCreateSelectionOutline(objectId, effectiveSelectionState.PrimaryObjectId, sceneObjects, camera, viewportSize))
+            .Where(outline => outline is not null)
+            .Select(outline => outline!)
             .ToArray();
 
         var visibleAnnotations = effectiveAnnotations
@@ -191,5 +196,74 @@ internal sealed class VideraViewSessionBridge
             EnvironmentOverrideMode = source.EnvironmentOverrideMode,
             AllowSoftwareFallback = source.AllowSoftwareFallback
         };
+    }
+
+    private static VideraSelectionOutline? TryCreateSelectionOutline(
+        Guid objectId,
+        Guid? primaryObjectId,
+        IReadOnlyList<Object3D> sceneObjects,
+        OrbitCamera camera,
+        Vector2 viewportSize)
+    {
+        if (viewportSize.X <= 0f || viewportSize.Y <= 0f)
+        {
+            return null;
+        }
+
+        var sceneObject = sceneObjects.FirstOrDefault(obj => obj.Id == objectId);
+        if (sceneObject?.WorldBounds is not BoundingBox3 bounds)
+        {
+            return null;
+        }
+
+        var projectedPoints = GetProjectedBoundsCorners(bounds, camera, viewportSize);
+        if (projectedPoints.Count == 0)
+        {
+            return null;
+        }
+
+        var minX = projectedPoints.Min(point => point.X);
+        var minY = projectedPoints.Min(point => point.Y);
+        var maxX = projectedPoints.Max(point => point.X);
+        var maxY = projectedPoints.Max(point => point.Y);
+        var outlineColor = objectId == primaryObjectId ? Colors.Green : Colors.Black;
+
+        return new VideraSelectionOutline(
+            objectId,
+            new Rect(minX, minY, Math.Max(1d, maxX - minX), Math.Max(1d, maxY - minY)),
+            outlineColor,
+            objectId == primaryObjectId);
+    }
+
+    private static List<Vector2> GetProjectedBoundsCorners(
+        BoundingBox3 bounds,
+        OrbitCamera camera,
+        Vector2 viewportSize)
+    {
+        var projectedPoints = new List<Vector2>(8);
+        foreach (var corner in CreateCorners(bounds))
+        {
+            if (camera.TryProjectWorldPoint(corner, viewportSize, out var screenPoint))
+            {
+                projectedPoints.Add(screenPoint);
+            }
+        }
+
+        return projectedPoints;
+    }
+
+    private static Vector3[] CreateCorners(BoundingBox3 bounds)
+    {
+        return
+        [
+            new Vector3(bounds.Min.X, bounds.Min.Y, bounds.Min.Z),
+            new Vector3(bounds.Min.X, bounds.Min.Y, bounds.Max.Z),
+            new Vector3(bounds.Min.X, bounds.Max.Y, bounds.Min.Z),
+            new Vector3(bounds.Min.X, bounds.Max.Y, bounds.Max.Z),
+            new Vector3(bounds.Max.X, bounds.Min.Y, bounds.Min.Z),
+            new Vector3(bounds.Max.X, bounds.Min.Y, bounds.Max.Z),
+            new Vector3(bounds.Max.X, bounds.Max.Y, bounds.Min.Z),
+            new Vector3(bounds.Max.X, bounds.Max.Y, bounds.Max.Z)
+        ];
     }
 }

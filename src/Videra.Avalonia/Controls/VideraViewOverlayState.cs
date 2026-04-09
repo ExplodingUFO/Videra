@@ -1,10 +1,11 @@
 using System.Numerics;
+using Avalonia;
 using Avalonia.Media;
 using Videra.Core.Selection.Annotations;
 
 namespace Videra.Avalonia.Controls;
 
-internal sealed record VideraSelectionOutline(Guid ObjectId, bool IsPrimary);
+internal sealed record VideraSelectionOutline(Guid ObjectId, Rect ScreenBounds, Color Color, bool IsPrimary);
 
 internal sealed record VideraOverlayLabel(
     Guid AnnotationId,

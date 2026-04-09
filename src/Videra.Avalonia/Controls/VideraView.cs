@@ -389,6 +389,7 @@ public partial class VideraView : Decorator
     {
         var session = new RenderSession(
             Engine,
+            beforeRender: PushOverlayRenderState,
             requestRender: OnRenderSessionFrameRequested,
             logger: _logger,
             renderLoopFactory: static () => new RenderSession.DispatcherRenderLoopDriver(),

@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Reflection;
+using Avalonia;
 using Avalonia.Controls;
 using FluentAssertions;
 using Videra.Avalonia.Controls;
@@ -428,7 +429,7 @@ public sealed class VideraViewSceneIntegrationTests : IDisposable
     }
 
     [Fact]
-    public void NativeOverlayAdapter_ConsumesHostOwnedOverlayState()
+    public void OverlayPresenter_ConsumesHostOwnedOverlayState_WhenOverlayContainerIsPresent()
     {
         var view = new VideraView(new RecordingNativeHostFactory(), bitmapFactory: static (_, _) => null);
         try
@@ -482,6 +483,9 @@ public sealed class VideraViewSceneIntegrationTests : IDisposable
             var selectionOutlines = (IReadOnlyList<object>)overlayState!.GetType().GetProperty("SelectionOutlines")!.GetValue(overlayState)!;
             var labels = (IReadOnlyList<object>)overlayState.GetType().GetProperty("Labels")!.GetValue(overlayState)!;
             selectionOutlines.Should().ContainSingle();
+            var screenBounds = (Rect)selectionOutlines[0].GetType().GetProperty("ScreenBounds")!.GetValue(selectionOutlines[0])!;
+            screenBounds.Width.Should().BeGreaterThan(0d);
+            screenBounds.Height.Should().BeGreaterThan(0d);
             labels.Should().ContainSingle();
             labels[0].GetType().GetProperty("Text")!.GetValue(labels[0]).Should().Be("Selected");
         }
@@ -552,11 +556,5 @@ public sealed class VideraViewSceneIntegrationTests : IDisposable
         public event Action<IntPtr>? HandleCreated;
         public event Action? HandleDestroyed;
         public event Action<NativePointerEvent>? NativePointer;
-
-        public void RaiseHandleCreated(IntPtr handle) => HandleCreated?.Invoke(handle);
-
-        public void RaiseHandleDestroyed() => HandleDestroyed?.Invoke();
-
-        public void RaiseNativePointer(NativePointerEvent e) => NativePointer?.Invoke(e);
     }
 }
