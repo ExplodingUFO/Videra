@@ -25,6 +25,28 @@ public class SurfaceTileKeyTests
     }
 
     [Theory]
+    [InlineData(-1, 0, "startX")]
+    [InlineData(0, -1, "startY")]
+    public void Bounds_Ctor_RejectsNegativeStartCoordinates(int startX, int startY, string paramName)
+    {
+        var act = () => new SurfaceTileBounds(startX, startY, 1, 1);
+
+        act.Should().Throw<ArgumentOutOfRangeException>()
+            .Where(ex => ex.ParamName == paramName);
+    }
+
+    [Theory]
+    [InlineData(int.MaxValue, 0, 1, 1, "startX")]
+    [InlineData(0, int.MaxValue, 1, 1, "startY")]
+    public void Bounds_Ctor_RejectsOverflowingEndCoordinates(int startX, int startY, int width, int height, string paramName)
+    {
+        var act = () => new SurfaceTileBounds(startX, startY, width, height);
+
+        act.Should().Throw<ArgumentOutOfRangeException>()
+            .Where(ex => ex.ParamName == paramName);
+    }
+
+    [Theory]
     [InlineData(-1, 0, 0, "level")]
     [InlineData(0, -1, 0, "tileX")]
     [InlineData(0, 0, -1, "tileY")]

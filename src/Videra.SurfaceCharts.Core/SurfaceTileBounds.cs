@@ -12,11 +12,23 @@ public readonly record struct SurfaceTileBounds
     /// <param name="startY">The starting vertical sample index.</param>
     /// <param name="width">The tile width in samples.</param>
     /// <param name="height">The tile height in samples.</param>
-    /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="width"/> or <paramref name="height"/> is not positive.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="startX"/> or <paramref name="startY"/> is negative, when <paramref name="width"/> or <paramref name="height"/> is not positive, or when the exclusive end coordinate would exceed the <see cref="int"/> range.</exception>
     public SurfaceTileBounds(int startX, int startY, int width, int height)
     {
+        ArgumentOutOfRangeException.ThrowIfNegative(startX);
+        ArgumentOutOfRangeException.ThrowIfNegative(startY);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(width);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(height);
+
+        if ((long)startX + width > int.MaxValue)
+        {
+            throw new ArgumentOutOfRangeException(nameof(startX), "Tile bounds exceed the supported sample range.");
+        }
+
+        if ((long)startY + height > int.MaxValue)
+        {
+            throw new ArgumentOutOfRangeException(nameof(startY), "Tile bounds exceed the supported sample range.");
+        }
 
         StartX = startX;
         StartY = startY;
@@ -47,10 +59,10 @@ public readonly record struct SurfaceTileBounds
     /// <summary>
     /// Gets the exclusive horizontal end sample index.
     /// </summary>
-    public int EndXExclusive => StartX + Width;
+    public int EndXExclusive => checked(StartX + Width);
 
     /// <summary>
     /// Gets the exclusive vertical end sample index.
     /// </summary>
-    public int EndYExclusive => StartY + Height;
+    public int EndYExclusive => checked(StartY + Height);
 }

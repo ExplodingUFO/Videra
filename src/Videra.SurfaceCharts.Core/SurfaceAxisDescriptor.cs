@@ -13,9 +13,20 @@ public sealed class SurfaceAxisDescriptor
     /// <param name="minimum">The inclusive axis minimum.</param>
     /// <param name="maximum">The inclusive axis maximum.</param>
     /// <exception cref="ArgumentException">Thrown when <paramref name="label"/> is blank or <paramref name="maximum"/> is less than <paramref name="minimum"/>.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="minimum"/> or <paramref name="maximum"/> is not finite.</exception>
     public SurfaceAxisDescriptor(string label, string? unit, double minimum, double maximum)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(label);
+
+        if (!double.IsFinite(minimum))
+        {
+            throw new ArgumentOutOfRangeException(nameof(minimum), "Axis minimum must be finite.");
+        }
+
+        if (!double.IsFinite(maximum))
+        {
+            throw new ArgumentOutOfRangeException(nameof(maximum), "Axis maximum must be finite.");
+        }
 
         if (maximum < minimum)
         {
@@ -53,4 +64,3 @@ public sealed class SurfaceAxisDescriptor
     /// </summary>
     public double Span => Maximum - Minimum;
 }
-

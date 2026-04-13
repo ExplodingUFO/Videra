@@ -1,9 +1,10 @@
-using System.Diagnostics.CodeAnalysis;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Videra.SurfaceCharts.Core;
 
 /// <summary>
-/// Provides keyed access to surface-chart tiles.
+/// Provides asynchronous keyed access to surface-chart tiles.
 /// </summary>
 public interface ISurfaceTileSource
 {
@@ -13,12 +14,12 @@ public interface ISurfaceTileSource
     SurfaceMetadata Metadata { get; }
 
     /// <summary>
-    /// Tries to retrieve a tile for the specified key.
+    /// Gets the tile for the specified key, or <c>null</c> when the tile is missing.
     /// </summary>
     /// <param name="tileKey">The tile key to read.</param>
-    /// <param name="tile">When this method returns <c>true</c>, contains the requested non-null tile.</param>
-    /// <returns><c>true</c> when the tile exists; otherwise, <c>false</c>.</returns>
-    bool TryGetTile(SurfaceTileKey tileKey, [NotNullWhen(true)] out SurfaceTile? tile);
+    /// <param name="cancellationToken">The cancellation token used to cancel an outstanding tile read.</param>
+    /// <returns>The requested tile, or <c>null</c> when the tile is unavailable.</returns>
+    ValueTask<SurfaceTile?> GetTileAsync(SurfaceTileKey tileKey, CancellationToken cancellationToken = default);
 }
 
 /// <summary>
@@ -43,16 +44,28 @@ public static class SurfaceTileSourceExtensions
     /// </summary>
     /// <param name="source">The tile source.</param>
     /// <param name="tileKey">The tile key to read.</param>
+    /// <param name="cancellationToken">The cancellation token used to cancel an outstanding tile read.</param>
     /// <returns>The requested tile.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="source"/> is <c>null</c>.</exception>
     /// <exception cref="KeyNotFoundException">Thrown when the tile is unavailable.</exception>
-    public static SurfaceTile GetRequiredTile(this ISurfaceTileSource source, SurfaceTileKey tileKey)
+    /// <exception cref="InvalidOperationException">Thrown when the source returns a tile that does not match the requested key.</exception>
+    public static async ValueTask<SurfaceTile> GetRequiredTileAsync(
+        this ISurfaceTileSource source,
+        SurfaceTileKey tileKey,
+        CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(source);
 
-        if (!source.TryGetTile(tileKey, out var tile) || tile is null)
+        var tile = await source.GetTileAsync(tileKey, cancellationToken).ConfigureAwait(false);
+        if (tile is null)
         {
             throw new KeyNotFoundException($"Tile '{tileKey}' was not found.");
+        }
+
+        if (tile.Key != tileKey)
+        {
+            throw new InvalidOperationException(
+                $"Tile source returned tile '{tile.Key}' for requested tile '{tileKey}'.");
         }
 
         return tile;
