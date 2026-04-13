@@ -42,12 +42,28 @@ public sealed class SurfaceColorMap
             throw new ArgumentOutOfRangeException(nameof(value), "Surface color map values must be finite.");
         }
 
-        if (Range.Span <= double.Epsilon)
+        if (value <= Range.Minimum)
         {
             return Palette[0];
         }
 
-        var normalized = (value - Range.Minimum) / Range.Span;
+        if (value >= Range.Maximum)
+        {
+            return Palette[Palette.Count - 1];
+        }
+
+        if (Range.Maximum <= Range.Minimum)
+        {
+            return Palette[0];
+        }
+
+        var scale = Math.Max(Math.Abs(Range.Minimum), Math.Abs(Range.Maximum));
+        scale = Math.Max(scale, Math.Abs(value));
+
+        var scaledMinimum = Range.Minimum / scale;
+        var scaledMaximum = Range.Maximum / scale;
+        var scaledValue = value / scale;
+        var normalized = (scaledValue - scaledMinimum) / (scaledMaximum - scaledMinimum);
         normalized = Math.Clamp(normalized, 0.0, 1.0);
 
         if (normalized >= 1.0)
