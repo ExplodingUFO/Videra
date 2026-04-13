@@ -15,12 +15,8 @@ public partial class SurfaceChartView
         ArgumentNullException.ThrowIfNull(context);
 
         base.Render(context);
+        SurfaceScenePainter.DrawScene(context, _renderScene, Bounds.Size);
         RenderOverlay(context);
-
-        if (_renderScene is not null)
-        {
-            // Tile-scene drawing remains in the render path and is added in later tasks.
-        }
     }
 
     private void NotifyTilesChanged()
