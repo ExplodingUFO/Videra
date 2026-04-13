@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using FluentAssertions;
 using Xunit;
 
@@ -33,13 +34,28 @@ public class SurfaceMetadataTests
     }
 
     [Fact]
-    public void Ctor_RejectsTileWithInvalidShape()
+    public void Ctor_RejectsTileWithInvalidBoundsShape()
     {
         var tileKey = new SurfaceTileKey(0, 0, 0);
         var valueRange = new SurfaceValueRange(0.0, 1.0);
         var values = new float[3];
+        var bounds = new SurfaceTileBounds(4, 6, 1, 3);
 
-        var act = () => new SurfaceTile(tileKey, 2, 2, values, valueRange);
+        var act = () => new SurfaceTile(tileKey, 2, 2, bounds, values, valueRange);
+
+        act.Should().Throw<ArgumentException>()
+            .Where(ex => ex.ParamName == "bounds");
+    }
+
+    [Fact]
+    public void Ctor_RejectsTileWithInvalidValueCount()
+    {
+        var tileKey = new SurfaceTileKey(0, 0, 0);
+        var valueRange = new SurfaceValueRange(0.0, 1.0);
+        var values = new float[3];
+        var bounds = new SurfaceTileBounds(4, 6, 2, 2);
+
+        var act = () => new SurfaceTile(tileKey, 2, 2, bounds, values, valueRange);
 
         act.Should().Throw<ArgumentException>()
             .Where(ex => ex.ParamName == "values");
@@ -60,6 +76,26 @@ public class SurfaceMetadataTests
     }
 
     [Fact]
+    public void GetRequiredTile_ThrowsWhenSourceDoesNotHaveTile()
+    {
+        var source = new MissingTileSource();
+
+        var act = () => source.GetRequiredTile(new SurfaceTileKey(1, 2, 3));
+
+        act.Should().Throw<KeyNotFoundException>();
+    }
+
+    [Fact]
+    public void GetRequiredTile_ThrowsWhenSourceReturnsNullTileForSuccess()
+    {
+        var source = new NullTileSource();
+
+        var act = () => source.GetRequiredTile(new SurfaceTileKey(1, 2, 3));
+
+        act.Should().Throw<KeyNotFoundException>();
+    }
+
+    [Fact]
     public void Ctor_ExposesStableMetadata()
     {
         var metadata = CreateMetadata(128, 64);
@@ -69,6 +105,28 @@ public class SurfaceMetadataTests
         metadata.ValueRange.Should().Be(new SurfaceValueRange(-3.5, 9.25));
         metadata.HorizontalAxis.Label.Should().Be("Time");
         metadata.VerticalAxis.Label.Should().Be("Frequency");
+    }
+
+    private sealed class MissingTileSource : ISurfaceTileSource
+    {
+        public SurfaceMetadata Metadata => CreateMetadata(16, 8);
+
+        public bool TryGetTile(SurfaceTileKey tileKey, [NotNullWhen(true)] out SurfaceTile? tile)
+        {
+            tile = null;
+            return false;
+        }
+    }
+
+    private sealed class NullTileSource : ISurfaceTileSource
+    {
+        public SurfaceMetadata Metadata => CreateMetadata(16, 8);
+
+        public bool TryGetTile(SurfaceTileKey tileKey, [NotNullWhen(true)] out SurfaceTile? tile)
+        {
+            tile = default!;
+            return true;
+        }
     }
 
     private static SurfaceMetadata CreateMetadata(int width, int height)
@@ -81,4 +139,3 @@ public class SurfaceMetadataTests
             new SurfaceValueRange(-3.5, 9.25));
     }
 }
-

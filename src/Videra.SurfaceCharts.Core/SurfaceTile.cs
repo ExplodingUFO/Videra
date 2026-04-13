@@ -11,19 +11,26 @@ public sealed class SurfaceTile
     /// <param name="key">The tile key.</param>
     /// <param name="width">The tile width in samples.</param>
     /// <param name="height">The tile height in samples.</param>
+    /// <param name="bounds">The inclusive-exclusive sample bounds covered by the tile.</param>
     /// <param name="values">The tile values laid out in row-major order.</param>
     /// <param name="valueRange">The inclusive value range for the tile.</param>
     /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="width"/> or <paramref name="height"/> is not positive.</exception>
-    /// <exception cref="ArgumentException">Thrown when <paramref name="values"/> does not contain exactly <paramref name="width"/> x <paramref name="height"/> elements.</exception>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="bounds"/> or <paramref name="values"/> does not match the declared tile shape.</exception>
     public SurfaceTile(
         SurfaceTileKey key,
         int width,
         int height,
+        SurfaceTileBounds bounds,
         ReadOnlyMemory<float> values,
         SurfaceValueRange valueRange)
     {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(width);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(height);
+
+        if (bounds.Width != width || bounds.Height != height)
+        {
+            throw new ArgumentException("Tile bounds must match the declared tile shape.", nameof(bounds));
+        }
 
         var expectedValueCount = (long)width * height;
         if (expectedValueCount > int.MaxValue)
@@ -39,6 +46,7 @@ public sealed class SurfaceTile
         Key = key;
         Width = width;
         Height = height;
+        Bounds = bounds;
         Values = values;
         ValueRange = valueRange;
     }
@@ -59,6 +67,11 @@ public sealed class SurfaceTile
     public int Height { get; }
 
     /// <summary>
+    /// Gets the sample bounds covered by the tile.
+    /// </summary>
+    public SurfaceTileBounds Bounds { get; }
+
+    /// <summary>
     /// Gets the tile values in row-major order.
     /// </summary>
     public ReadOnlyMemory<float> Values { get; }
@@ -68,4 +81,3 @@ public sealed class SurfaceTile
     /// </summary>
     public SurfaceValueRange ValueRange { get; }
 }
-

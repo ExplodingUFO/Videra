@@ -16,7 +16,7 @@ public interface ISurfaceTileSource
     /// Tries to retrieve a tile for the specified key.
     /// </summary>
     /// <param name="tileKey">The tile key to read.</param>
-    /// <param name="tile">When this method returns <c>true</c>, contains the requested tile.</param>
+    /// <param name="tile">When this method returns <c>true</c>, contains the requested non-null tile.</param>
     /// <returns><c>true</c> when the tile exists; otherwise, <c>false</c>.</returns>
     bool TryGetTile(SurfaceTileKey tileKey, [NotNullWhen(true)] out SurfaceTile? tile);
 }
@@ -58,4 +58,3 @@ public static class SurfaceTileSourceExtensions
         return tile;
     }
 }
-

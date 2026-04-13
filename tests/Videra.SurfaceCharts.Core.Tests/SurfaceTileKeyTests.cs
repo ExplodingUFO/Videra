@@ -40,12 +40,15 @@ public class SurfaceTileKeyTests
     public void Tile_PreservesKeyAndShape()
     {
         var key = new SurfaceTileKey(3, 5, 7);
-        var tile = new SurfaceTile(key, 2, 3, new float[] { 1, 2, 3, 4, 5, 6 }, new SurfaceValueRange(1, 6));
+        var bounds = new SurfaceTileBounds(10, 20, 2, 3);
+        var tile = new SurfaceTile(key, 2, 3, bounds, new float[] { 1, 2, 3, 4, 5, 6 }, new SurfaceValueRange(1, 6));
 
         tile.Key.Should().Be(key);
         tile.Width.Should().Be(2);
         tile.Height.Should().Be(3);
+        tile.Bounds.Should().Be(bounds);
+        tile.Bounds.EndXExclusive.Should().Be(12);
+        tile.Bounds.EndYExclusive.Should().Be(23);
         tile.Values.Length.Should().Be(6);
     }
 }
-
