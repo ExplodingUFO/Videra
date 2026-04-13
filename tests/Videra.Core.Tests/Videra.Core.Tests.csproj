@@ -11,6 +11,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Avalonia.Headless" Version="11.3.9" />
     <PackageReference Include="xunit" Version="2.9.3" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2">
       <PrivateAssets>all</PrivateAssets>
@@ -27,6 +28,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Videra.Core\Videra.Core.csproj" />
+    <ProjectReference Include="..\..\samples\Videra.SurfaceCharts.Demo\Videra.SurfaceCharts.Demo.csproj" />
     <ProjectReference Include="..\..\samples\Videra.Demo\Videra.Demo.csproj" />
     <ProjectReference Include="..\Tests.Common\Tests.Common.csproj" />
   </ItemGroup>

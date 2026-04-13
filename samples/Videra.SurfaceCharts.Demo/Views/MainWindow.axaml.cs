@@ -129,17 +129,22 @@ public partial class MainWindow : Window
 
     private ViewportMode GetSelectedViewportMode()
     {
-        if (_viewportSelector.SelectedItem is ComboBoxItem { Tag: string tag })
+        if (_viewportSelector.SelectedItem is not ComboBoxItem selectedItem)
         {
-            return tag switch
-            {
-                "overview" => ViewportMode.Overview,
-                "detail" => ViewportMode.ZoomedDetail,
-                _ => ViewportMode.Overview,
-            };
+            throw new InvalidOperationException("Viewport selector must select a ComboBoxItem.");
         }
 
-        return ViewportMode.Overview;
+        if (selectedItem.Tag is not string { Length: > 0 } tag)
+        {
+            throw new InvalidOperationException("Viewport selector items must define a non-empty string tag.");
+        }
+
+        return tag switch
+        {
+            "overview" => ViewportMode.Overview,
+            "detail" => ViewportMode.ZoomedDetail,
+            _ => throw new InvalidOperationException($"Viewport selector tag '{tag}' is not supported. Expected 'overview' or 'detail'."),
+        };
     }
 
     private void ConfigureViewportPresets(SurfaceMetadata metadata)
