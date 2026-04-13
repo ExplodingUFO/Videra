@@ -52,6 +52,13 @@ internal sealed class SurfaceChartController
     public void UpdateViewSize(Size viewSize)
     {
         _viewSize = viewSize;
+
+        if (viewSize.Width > 0 && viewSize.Height > 0)
+        {
+            _tileCache.PruneDetailTiles();
+            _invalidateScene();
+        }
+
         StartRequestPipeline(includeViewportRequest: viewSize.Width > 0 && viewSize.Height > 0);
     }
 
