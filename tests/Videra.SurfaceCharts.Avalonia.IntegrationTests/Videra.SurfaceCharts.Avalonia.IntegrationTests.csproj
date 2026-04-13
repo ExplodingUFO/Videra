@@ -25,6 +25,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Videra.SurfaceCharts.Avalonia\Videra.SurfaceCharts.Avalonia.csproj" />
+    <ProjectReference Include="..\..\samples\Videra.SurfaceCharts.Demo\Videra.SurfaceCharts.Demo.csproj" />
   </ItemGroup>
 
 </Project>

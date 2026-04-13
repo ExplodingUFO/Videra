@@ -73,8 +73,8 @@
                        Text="Viewport selection" />
             <ComboBox x:Name="ViewportSelector"
                       SelectionChanged="OnViewportSelectionChanged">
-              <ComboBoxItem Content="Overview" />
-              <ComboBoxItem Content="Zoomed detail" />
+              <ComboBoxItem Content="Overview" Tag="overview" />
+              <ComboBoxItem Content="Zoomed detail" Tag="detail" />
             </ComboBox>
             <TextBlock Foreground="#CBD5E1"
                        TextWrapping="Wrap"

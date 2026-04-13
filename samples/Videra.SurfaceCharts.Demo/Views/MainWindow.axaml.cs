@@ -129,9 +129,17 @@ public partial class MainWindow : Window
 
     private ViewportMode GetSelectedViewportMode()
     {
-        return _viewportSelector.SelectedIndex == 1
-            ? ViewportMode.ZoomedDetail
-            : ViewportMode.Overview;
+        if (_viewportSelector.SelectedItem is ComboBoxItem { Tag: string tag })
+        {
+            return tag switch
+            {
+                "overview" => ViewportMode.Overview,
+                "detail" => ViewportMode.ZoomedDetail,
+                _ => ViewportMode.Overview,
+            };
+        }
+
+        return ViewportMode.Overview;
     }
 
     private void ConfigureViewportPresets(SurfaceMetadata metadata)
