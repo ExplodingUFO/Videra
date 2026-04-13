@@ -34,6 +34,7 @@ public partial class SurfaceChartView : Control
     protected override Size ArrangeOverride(Size finalSize)
     {
         _controller.UpdateViewSize(finalSize);
+        UpdateOverlayViewSize(finalSize);
         return base.ArrangeOverride(finalSize);
     }
 }

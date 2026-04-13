@@ -14,13 +14,13 @@ public partial class SurfaceChartView
     {
         ArgumentNullException.ThrowIfNull(context);
 
-        if (_renderScene is null)
-        {
-            base.Render(context);
-            return;
-        }
-
         base.Render(context);
+        RenderOverlay(context);
+
+        if (_renderScene is not null)
+        {
+            // Tile-scene drawing remains in the render path and is added in later tasks.
+        }
     }
 
     private void NotifyTilesChanged()
