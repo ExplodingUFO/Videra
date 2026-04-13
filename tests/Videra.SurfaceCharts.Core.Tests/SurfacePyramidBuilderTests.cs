@@ -1,12 +1,23 @@
 using FluentAssertions;
 using Xunit;
 
+#pragma warning disable CA2007
+
 namespace Videra.SurfaceCharts.Core.Tests;
 
 public class SurfacePyramidBuilderTests
 {
     [Fact]
-    public void Build_CreatesOverviewLevelFromSourceMatrix()
+    public void Build_ExposesReplaceableTileSourceContract()
+    {
+        var buildMethod = typeof(SurfacePyramidBuilder).GetMethod(nameof(SurfacePyramidBuilder.Build));
+
+        buildMethod.Should().NotBeNull();
+        buildMethod!.ReturnType.Should().Be(typeof(ISurfaceTileSource));
+    }
+
+    [Fact]
+    public async Task Build_CreatesOverviewLevelFromSourceMatrix()
     {
         var source = CreateMatrix(
             4,
@@ -21,31 +32,33 @@ public class SurfacePyramidBuilderTests
 
         var builder = new SurfacePyramidBuilder(maxTileWidth: 2, maxTileHeight: 2);
 
-        var tileSource = builder.Build(source);
-        var overviewLevel = tileSource.Levels.Single(level => level.LevelX == 0 && level.LevelY == 0);
+        ISurfaceTileSource tileSource = builder.Build(source);
+        var overviewTile = await tileSource.GetRequiredTileAsync(new SurfaceTileKey(0, 0, 0, 0));
 
-        overviewLevel.Matrix.Metadata.Width.Should().Be(2);
-        overviewLevel.Matrix.Metadata.Height.Should().Be(2);
-        overviewLevel.Matrix.Values.ToArray().Should().Equal(3.5f, 5.5f, 11.5f, 13.5f);
+        overviewTile.Width.Should().Be(2);
+        overviewTile.Height.Should().Be(2);
+        overviewTile.Bounds.Should().Be(new SurfaceTileBounds(0, 0, 2, 2));
+        overviewTile.Values.ToArray().Should().Equal(3.5f, 5.5f, 11.5f, 13.5f);
     }
 
     [Fact]
-    public void Build_PreservesMetadataAcrossGeneratedLevels()
+    public async Task Build_PreservesMetadataAcrossGeneratedLevels()
     {
         var source = CreateMatrix(8, 4, CreateSequentialValues(8, 4));
         var builder = new SurfacePyramidBuilder(maxTileWidth: 2, maxTileHeight: 2);
 
-        var tileSource = builder.Build(source);
+        ISurfaceTileSource tileSource = builder.Build(source);
+        var overviewTile = await tileSource.GetRequiredTileAsync(new SurfaceTileKey(0, 0, 0, 0));
+        var detailTile = await tileSource.GetRequiredTileAsync(new SurfaceTileKey(2, 1, 0, 0));
 
         tileSource.Metadata.Should().BeSameAs(source.Metadata);
-        tileSource.Levels.Should().HaveCount(6);
-
-        foreach (var level in tileSource.Levels)
-        {
-            level.Matrix.Metadata.HorizontalAxis.Should().Be(source.Metadata.HorizontalAxis);
-            level.Matrix.Metadata.VerticalAxis.Should().Be(source.Metadata.VerticalAxis);
-            level.Matrix.Metadata.ValueRange.Should().Be(source.Metadata.ValueRange);
-        }
+        overviewTile.Key.LevelX.Should().Be(0);
+        overviewTile.Key.LevelY.Should().Be(0);
+        detailTile.Key.LevelX.Should().Be(2);
+        detailTile.Key.LevelY.Should().Be(1);
+        tileSource.Metadata.HorizontalAxis.Should().Be(source.Metadata.HorizontalAxis);
+        tileSource.Metadata.VerticalAxis.Should().Be(source.Metadata.VerticalAxis);
+        tileSource.Metadata.ValueRange.Should().Be(source.Metadata.ValueRange);
     }
 
     [Fact]
@@ -85,3 +98,5 @@ public class SurfacePyramidBuilderTests
         return values;
     }
 }
+
+#pragma warning restore CA2007

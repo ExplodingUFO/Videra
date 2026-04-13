@@ -39,9 +39,9 @@ public sealed class SurfacePyramidBuilder
     /// Builds an in-memory pyramid that keeps explicit horizontal and vertical LOD levels.
     /// </summary>
     /// <param name="source">The source matrix.</param>
-    /// <returns>The built in-memory tile source.</returns>
+    /// <returns>The built surface tile source.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="source"/> is <c>null</c>.</exception>
-    public InMemorySurfaceTileSource Build(SurfaceMatrix source)
+    public ISurfaceTileSource Build(SurfaceMatrix source)
     {
         ArgumentNullException.ThrowIfNull(source);
 

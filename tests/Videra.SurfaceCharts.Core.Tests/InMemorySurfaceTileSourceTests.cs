@@ -13,7 +13,7 @@ public class InMemorySurfaceTileSourceTests
     {
         var source = CreateMatrix(8, 4, CreateSequentialValues(8, 4));
         var builder = new SurfacePyramidBuilder(maxTileWidth: 2, maxTileHeight: 2);
-        var tileSource = builder.Build(source);
+        ISurfaceTileSource tileSource = builder.Build(source);
 
         var detailTile = await tileSource.GetRequiredTileAsync(new SurfaceTileKey(2, 1, 1, 0));
         var overviewTile = await tileSource.GetRequiredTileAsync(new SurfaceTileKey(0, 0, 0, 0));
@@ -34,7 +34,7 @@ public class InMemorySurfaceTileSourceTests
     {
         var source = CreateMatrix(8, 4, CreateSequentialValues(8, 4));
         var builder = new SurfacePyramidBuilder(maxTileWidth: 2, maxTileHeight: 2);
-        var tileSource = builder.Build(source);
+        ISurfaceTileSource tileSource = builder.Build(source);
 
         var missingLevelTile = await tileSource.GetTileAsync(new SurfaceTileKey(3, 1, 0, 0));
         var missingTile = await tileSource.GetTileAsync(new SurfaceTileKey(2, 1, 4, 0));
@@ -48,7 +48,7 @@ public class InMemorySurfaceTileSourceTests
     {
         var source = CreateMatrix(8, 4, CreateSequentialValues(8, 4));
         var builder = new SurfacePyramidBuilder(maxTileWidth: 2, maxTileHeight: 2);
-        var tileSource = builder.Build(source);
+        ISurfaceTileSource tileSource = builder.Build(source);
         using var cancellationSource = new CancellationTokenSource();
         await cancellationSource.CancelAsync();
 
