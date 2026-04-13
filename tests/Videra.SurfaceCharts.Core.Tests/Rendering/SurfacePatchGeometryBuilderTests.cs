@@ -34,6 +34,20 @@ public class SurfacePatchGeometryBuilderTests
         first.Indices.Should().BeSameAs(second.Indices);
     }
 
+    [Fact]
+    public void Build_DoesNotAllowMutatingExposedSharedIndices()
+    {
+        var builder = new SurfacePatchGeometryBuilder();
+
+        var first = builder.Build(2, 2);
+        var second = builder.Build(2, 2);
+        var act = () => ((IList<uint>)first.Indices)[0] = 99u;
+
+        act.Should().Throw<NotSupportedException>();
+        first.Indices.Should().Equal(0u, 2u, 1u, 1u, 2u, 3u);
+        second.Indices.Should().Equal(0u, 2u, 1u, 1u, 2u, 3u);
+    }
+
     [Theory]
     [InlineData(1, 4)]
     [InlineData(4, 1)]

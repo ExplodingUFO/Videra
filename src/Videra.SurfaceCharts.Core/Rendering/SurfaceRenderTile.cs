@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using System.Numerics;
 
 namespace Videra.SurfaceCharts.Core;
@@ -14,7 +15,7 @@ public readonly record struct SurfaceRenderVertex(Vector3 Position, uint Color);
 /// </summary>
 public sealed class SurfaceRenderTile
 {
-    private readonly SurfaceRenderVertex[] vertices;
+    private readonly ReadOnlyCollection<SurfaceRenderVertex> verticesView;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SurfaceRenderTile"/> class.
@@ -24,7 +25,7 @@ public sealed class SurfaceRenderTile
     /// <param name="geometry">The shared patch geometry.</param>
     /// <param name="vertices">The render vertices for the tile.</param>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="geometry"/> or <paramref name="vertices"/> is <c>null</c>.</exception>
-    /// <exception cref="ArgumentException">Thrown when <paramref name="vertices"/> does not match the geometry vertex count.</exception>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="bounds"/> does not match the geometry shape or when <paramref name="vertices"/> does not match the geometry vertex count.</exception>
     public SurfaceRenderTile(
         SurfaceTileKey key,
         SurfaceTileBounds bounds,
@@ -34,6 +35,11 @@ public sealed class SurfaceRenderTile
         ArgumentNullException.ThrowIfNull(geometry);
         ArgumentNullException.ThrowIfNull(vertices);
 
+        if (bounds.Width != geometry.SampleWidth || bounds.Height != geometry.SampleHeight)
+        {
+            throw new ArgumentException("Tile bounds must match the geometry sample shape.", nameof(bounds));
+        }
+
         if (vertices.Count != geometry.VertexCount)
         {
             throw new ArgumentException("Render vertices must match the geometry vertex count.", nameof(vertices));
@@ -42,7 +48,7 @@ public sealed class SurfaceRenderTile
         Key = key;
         Bounds = bounds;
         Geometry = geometry;
-        this.vertices = vertices as SurfaceRenderVertex[] ?? vertices.ToArray();
+        verticesView = Array.AsReadOnly(vertices.ToArray());
     }
 
     /// <summary>
@@ -63,5 +69,5 @@ public sealed class SurfaceRenderTile
     /// <summary>
     /// Gets the render vertices for the tile.
     /// </summary>
-    public IReadOnlyList<SurfaceRenderVertex> Vertices => vertices;
+    public IReadOnlyList<SurfaceRenderVertex> Vertices => verticesView;
 }

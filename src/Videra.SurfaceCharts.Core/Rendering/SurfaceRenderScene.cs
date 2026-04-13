@@ -1,3 +1,5 @@
+using System.Collections.ObjectModel;
+
 namespace Videra.SurfaceCharts.Core;
 
 /// <summary>
@@ -5,7 +7,7 @@ namespace Videra.SurfaceCharts.Core;
 /// </summary>
 public sealed class SurfaceRenderScene
 {
-    private readonly SurfaceRenderTile[] tiles;
+    private readonly ReadOnlyCollection<SurfaceRenderTile> tilesView;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SurfaceRenderScene"/> class.
@@ -19,7 +21,7 @@ public sealed class SurfaceRenderScene
         ArgumentNullException.ThrowIfNull(tiles);
 
         Metadata = metadata;
-        this.tiles = tiles as SurfaceRenderTile[] ?? tiles.ToArray();
+        tilesView = Array.AsReadOnly(tiles.ToArray());
     }
 
     /// <summary>
@@ -30,5 +32,5 @@ public sealed class SurfaceRenderScene
     /// <summary>
     /// Gets the render tiles in the snapshot.
     /// </summary>
-    public IReadOnlyList<SurfaceRenderTile> Tiles => tiles;
+    public IReadOnlyList<SurfaceRenderTile> Tiles => tilesView;
 }

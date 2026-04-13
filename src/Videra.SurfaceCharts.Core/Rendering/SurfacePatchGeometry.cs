@@ -1,3 +1,5 @@
+using System.Collections.ObjectModel;
+
 namespace Videra.SurfaceCharts.Core;
 
 /// <summary>
@@ -5,7 +7,7 @@ namespace Videra.SurfaceCharts.Core;
 /// </summary>
 public sealed class SurfacePatchGeometry
 {
-    private readonly uint[] indices;
+    private readonly ReadOnlyCollection<uint> indicesView;
 
     internal SurfacePatchGeometry(int sampleWidth, int sampleHeight, uint[] indices)
     {
@@ -16,7 +18,7 @@ public sealed class SurfacePatchGeometry
         SampleWidth = sampleWidth;
         SampleHeight = sampleHeight;
         VertexCount = checked(sampleWidth * sampleHeight);
-        this.indices = indices;
+        indicesView = Array.AsReadOnly((uint[])indices.Clone());
     }
 
     /// <summary>
@@ -37,5 +39,5 @@ public sealed class SurfacePatchGeometry
     /// <summary>
     /// Gets the shared triangle index pattern for the patch.
     /// </summary>
-    public IReadOnlyList<uint> Indices => indices;
+    public IReadOnlyList<uint> Indices => indicesView;
 }
