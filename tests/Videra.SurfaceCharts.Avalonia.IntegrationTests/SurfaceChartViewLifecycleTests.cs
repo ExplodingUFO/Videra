@@ -70,6 +70,42 @@ public sealed class SurfaceChartViewLifecycleTests
     }
 
     [Fact]
+    public Task SameSizeArrange_DoesNotAppendRequestsOrClearLastTileFailure()
+    {
+        return AvaloniaHeadlessTestSession.RunAsync(async () =>
+        {
+            var metadata = CreateMetadata();
+            var source = new ScriptedSurfaceTileSource(metadata, defaultTileValue: 7);
+            source.EnqueueSuccessResponse();
+            source.EnqueueResponse(static (_, _) => Task.FromException<SurfaceTile?>(new InvalidOperationException("detail tile fault")));
+
+            var view = new SurfaceChartView();
+            view.Measure(new Size(256, 256));
+            view.Arrange(new Rect(0, 0, 256, 256));
+            view.Source = source;
+
+            await source.WaitForRequestCountAsync(1);
+
+            view.Viewport = new SurfaceViewport(0, 0, 512, 512);
+
+            await SurfaceChartTestHelpers.WaitForFailureAsync(view);
+
+            var requestCount = source.RequestLog.Count;
+            var failure = view.LastTileFailure;
+
+            failure.Should().NotBeNull();
+            failure!.Exception.Message.Should().Be("detail tile fault");
+
+            view.Measure(new Size(256, 256));
+            view.Arrange(new Rect(0, 0, 256, 256));
+
+            view.LastTileFailure.Should().BeSameAs(failure);
+            view.LastTileFailure!.Exception.Message.Should().Be("detail tile fault");
+            await source.AssertRequestCountSettlesAtAsync(requestCount);
+        });
+    }
+
+    [Fact]
     public Task RapidSourceReplacement_DoesNotCommitLateTilesFromSupersededSource()
     {
         return AvaloniaHeadlessTestSession.RunAsync(async () =>

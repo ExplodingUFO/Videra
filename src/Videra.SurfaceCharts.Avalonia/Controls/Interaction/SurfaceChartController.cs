@@ -55,6 +55,11 @@ internal sealed class SurfaceChartController
 
     public void UpdateViewSize(Size viewSize)
     {
+        if (viewSize == _viewSize)
+        {
+            return;
+        }
+
         _viewSize = viewSize;
         var requestGeneration = SupersedeOutstandingRequests();
         _clearFailureState();

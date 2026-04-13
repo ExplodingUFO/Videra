@@ -185,6 +185,39 @@ public sealed class SurfaceChartTileSchedulingTests
     }
 
     [Fact]
+    public void ViewSizeChange_SameSize_IsNoOp()
+    {
+        var metadata = SurfaceChartViewLifecycleTests.CreateMetadata();
+        var overviewKey = new SurfaceTileKey(0, 0, 0, 0);
+        var detailKey = new SurfaceTileKey(1, 1, 0, 0);
+        var tileCache = new SurfaceTileCache();
+        var clearFailureCount = 0;
+        var invalidateCount = 0;
+        var controller = new SurfaceChartController(
+            new SurfaceCameraController(new SurfaceViewport(0, 0, 512, 512)),
+            tileCache,
+            new SurfaceTileScheduler(tileCache, static () => { }),
+            () => clearFailureCount++,
+            () => invalidateCount++);
+
+        controller.UpdateViewSize(new Size(256, 256));
+
+        tileCache.TryMarkRequested(overviewKey, requestGeneration: 1).Should().BeTrue();
+        tileCache.TryStore(SurfaceChartTestHelpers.CreateTile(metadata, overviewKey, tileValue: 1f), requestGeneration: 1).Should().BeTrue();
+        tileCache.TryMarkRequested(detailKey, requestGeneration: 1).Should().BeTrue();
+        tileCache.TryStore(SurfaceChartTestHelpers.CreateTile(metadata, detailKey, tileValue: 2f), requestGeneration: 1).Should().BeTrue();
+
+        clearFailureCount = 0;
+        invalidateCount = 0;
+
+        controller.UpdateViewSize(new Size(256, 256));
+
+        tileCache.GetLoadedTiles().Select(static tile => tile.Key).Should().Equal(overviewKey, detailKey);
+        clearFailureCount.Should().Be(0);
+        invalidateCount.Should().Be(0);
+    }
+
+    [Fact]
     public void ViewSizeChange_ToZero_PrunesStaleDetailTiles_AndInvalidatesRenderScene()
     {
         var metadata = SurfaceChartViewLifecycleTests.CreateMetadata();
@@ -198,6 +231,9 @@ public sealed class SurfaceChartTileSchedulingTests
             new SurfaceTileScheduler(tileCache, static () => { }),
             static () => { },
             () => invalidateCount++);
+
+        controller.UpdateViewSize(new Size(256, 256));
+        invalidateCount = 0;
 
         tileCache.TryMarkRequested(overviewKey, requestGeneration: 1).Should().BeTrue();
         tileCache.TryStore(SurfaceChartTestHelpers.CreateTile(metadata, overviewKey, tileValue: 1f), requestGeneration: 1).Should().BeTrue();
