@@ -66,6 +66,27 @@
                 BorderBrush="#1F2B44"
                 BorderThickness="1"
                 CornerRadius="18">
+          <StackPanel Spacing="10">
+            <TextBlock FontSize="18"
+                       FontWeight="SemiBold"
+                       Foreground="#E2E8F0"
+                       Text="Viewport selection" />
+            <ComboBox x:Name="ViewportSelector"
+                      SelectionChanged="OnViewportSelectionChanged">
+              <ComboBoxItem Content="Overview" />
+              <ComboBoxItem Content="Zoomed detail" />
+            </ComboBox>
+            <TextBlock Foreground="#CBD5E1"
+                       TextWrapping="Wrap"
+                       Text="The demo switches between a full-range overview and a stable zoomed detail viewport computed from the active dataset metadata." />
+          </StackPanel>
+        </Border>
+
+        <Border Padding="18"
+                Background="#111A2B"
+                BorderBrush="#1F2B44"
+                BorderThickness="1"
+                CornerRadius="18">
           <StackPanel Spacing="8">
             <TextBlock FontSize="16"
                        FontWeight="SemiBold"

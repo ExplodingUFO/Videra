@@ -9,16 +9,26 @@ namespace Videra.SurfaceCharts.Demo.Views;
 
 public partial class MainWindow : Window
 {
+    private enum ViewportMode
+    {
+        Overview,
+        ZoomedDetail,
+    }
+
     private readonly SurfaceChartView _chartView;
     private readonly ComboBox _sourceSelector;
+    private readonly ComboBox _viewportSelector;
     private readonly TextBlock _statusText;
     private readonly TextBlock _cachePathText;
     private readonly TextBlock _datasetText;
     private readonly ISurfaceTileSource _inMemorySource;
     private readonly Task<ISurfaceTileSource> _cacheSourceTask;
     private readonly SurfaceColorMap _colorMap;
-    private readonly SurfaceViewport _viewport;
     private readonly string _cachePath;
+    private SurfaceViewport _overviewViewport;
+    private SurfaceViewport _zoomedDetailViewport;
+    private string _activeSourceHeading = string.Empty;
+    private string _activeSourceDetails = string.Empty;
 
     public MainWindow()
     {
@@ -28,6 +38,8 @@ public partial class MainWindow : Window
             ?? throw new InvalidOperationException("Surface chart view is missing.");
         _sourceSelector = this.FindControl<ComboBox>("SourceSelector")
             ?? throw new InvalidOperationException("Source selector is missing.");
+        _viewportSelector = this.FindControl<ComboBox>("ViewportSelector")
+            ?? throw new InvalidOperationException("Viewport selector is missing.");
         _statusText = this.FindControl<TextBlock>("StatusText")
             ?? throw new InvalidOperationException("Status text control is missing.");
         _cachePathText = this.FindControl<TextBlock>("CachePathText")
@@ -44,19 +56,21 @@ public partial class MainWindow : Window
         _inMemorySource = CreateInMemorySource();
         _cacheSourceTask = LoadCacheSourceAsync();
         _colorMap = CreateColorMap(_inMemorySource.Metadata.ValueRange);
-        _viewport = new SurfaceViewport(0, 0, _inMemorySource.Metadata.Width, _inMemorySource.Metadata.Height);
 
-        _chartView.Viewport = _viewport;
-        _chartView.ColorMap = _colorMap;
         _sourceSelector.SelectedIndex = 0;
-        _sourceSelector.SelectionChanged += OnSourceSelectionChanged;
+        _viewportSelector.SelectedIndex = 0;
+        _chartView.ColorMap = _colorMap;
 
-        _cachePathText.Text = _cachePath;
-        _datasetText.Text = CreateDatasetSummary();
         ApplySource(
             _inMemorySource,
             "In-memory example",
             "Generated at runtime from a dense matrix and built with SurfacePyramidBuilder.");
+
+        _sourceSelector.SelectionChanged += OnSourceSelectionChanged;
+        _viewportSelector.SelectionChanged += OnViewportSelectionChanged;
+
+        _cachePathText.Text = _cachePath;
+        _datasetText.Text = CreateDatasetSummary();
     }
 
     private void InitializeComponent()
@@ -87,17 +101,63 @@ public partial class MainWindow : Window
         }
     }
 
-    private void ApplySource(ISurfaceTileSource source, string heading, string details)
+    private void OnViewportSelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
-        _chartView.Source = source;
-        UpdateStatusText(heading, details);
+        _ = sender;
+        _ = e;
+        ApplyViewportMode(GetSelectedViewportMode());
     }
 
-    private void UpdateStatusText(string heading, string? details = null)
+    private void ApplySource(ISurfaceTileSource source, string heading, string details)
     {
-        _statusText.Text = details is null
-            ? heading
-            : $"{heading}\n{details}";
+        ConfigureViewportPresets(source.Metadata);
+        _chartView.Source = source;
+        _activeSourceHeading = heading;
+        _activeSourceDetails = details;
+        ApplyViewportMode(GetSelectedViewportMode());
+    }
+
+    private void ApplyViewportMode(ViewportMode mode)
+    {
+        _chartView.Viewport = mode == ViewportMode.Overview
+            ? _overviewViewport
+            : _zoomedDetailViewport;
+
+        var viewportLabel = mode == ViewportMode.Overview ? "Overview" : "Zoomed detail";
+        UpdateStatusText(_activeSourceHeading, _activeSourceDetails, viewportLabel);
+    }
+
+    private ViewportMode GetSelectedViewportMode()
+    {
+        return _viewportSelector.SelectedIndex == 1
+            ? ViewportMode.ZoomedDetail
+            : ViewportMode.Overview;
+    }
+
+    private void ConfigureViewportPresets(SurfaceMetadata metadata)
+    {
+        _overviewViewport = CreateOverviewViewport(metadata);
+        _zoomedDetailViewport = CreateZoomedDetailViewport(metadata);
+    }
+
+    private static SurfaceViewport CreateOverviewViewport(SurfaceMetadata metadata)
+    {
+        return new SurfaceViewport(0d, 0d, metadata.Width, metadata.Height);
+    }
+
+    private static SurfaceViewport CreateZoomedDetailViewport(SurfaceMetadata metadata)
+    {
+        var detailWidth = Math.Max(1d, metadata.Width / 4d);
+        var detailHeight = Math.Max(1d, metadata.Height / 4d);
+        var startX = (metadata.Width - detailWidth) / 2d;
+        var startY = (metadata.Height - detailHeight) / 2d;
+
+        return new SurfaceViewport(startX, startY, detailWidth, detailHeight).ClampTo(metadata);
+    }
+
+    private void UpdateStatusText(string heading, string details, string viewportLabel)
+    {
+        _statusText.Text = $"{heading}\n{details}\nActive viewport: {viewportLabel}";
     }
 
     private static ISurfaceTileSource CreateInMemorySource()
