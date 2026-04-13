@@ -10,8 +10,6 @@ namespace Videra.SurfaceCharts.Core;
 public sealed class InMemorySurfaceTileSource : ISurfaceTileSource
 {
     private readonly Dictionary<(int LevelX, int LevelY), SurfacePyramidLevel> levelsByIndex;
-    private readonly int maxTileWidth;
-    private readonly int maxTileHeight;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="InMemorySurfaceTileSource"/> class.
@@ -58,8 +56,6 @@ public sealed class InMemorySurfaceTileSource : ISurfaceTileSource
 
         Metadata = metadata;
         Levels = new ReadOnlyCollection<SurfacePyramidLevel>(levelList);
-        this.maxTileWidth = maxTileWidth;
-        this.maxTileHeight = maxTileHeight;
     }
 
     /// <inheritdoc />
@@ -81,15 +77,12 @@ public sealed class InMemorySurfaceTileSource : ISurfaceTileSource
         }
 
         var matrix = level.Matrix;
-        var startX = tileKey.TileX * maxTileWidth;
-        var startY = tileKey.TileY * maxTileHeight;
-        if (startX >= matrix.Metadata.Width || startY >= matrix.Metadata.Height)
+        if (!TryGetTilePartition(matrix.Metadata.Width, level.LevelX, tileKey.TileX, out var startX, out var tileWidth) ||
+            !TryGetTilePartition(matrix.Metadata.Height, level.LevelY, tileKey.TileY, out var startY, out var tileHeight))
         {
             return ValueTask.FromResult<SurfaceTile?>(null);
         }
 
-        var tileWidth = Math.Min(maxTileWidth, matrix.Metadata.Width - startX);
-        var tileHeight = Math.Min(maxTileHeight, matrix.Metadata.Height - startY);
         var tileValues = new float[tileWidth * tileHeight];
         var sourceValues = matrix.Values.Span;
         var matrixWidth = matrix.Metadata.Width;
@@ -120,5 +113,33 @@ public sealed class InMemorySurfaceTileSource : ISurfaceTileSource
             new SurfaceValueRange(minimum, maximum));
 
         return ValueTask.FromResult<SurfaceTile?>(tile);
+    }
+
+    private static bool TryGetTilePartition(int dimension, int level, int tileIndex, out int start, out int size)
+    {
+        start = 0;
+        size = 0;
+
+        if (level >= 63)
+        {
+            return false;
+        }
+
+        var tileCount = 1L << level;
+        if (tileIndex >= tileCount)
+        {
+            return false;
+        }
+
+        var startLong = ((long)dimension * tileIndex) / tileCount;
+        var endLong = ((long)dimension * (tileIndex + 1L)) / tileCount;
+        if (endLong <= startLong)
+        {
+            return false;
+        }
+
+        start = (int)startLong;
+        size = (int)(endLong - startLong);
+        return true;
     }
 }

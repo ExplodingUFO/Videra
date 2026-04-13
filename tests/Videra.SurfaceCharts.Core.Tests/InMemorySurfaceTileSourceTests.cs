@@ -59,6 +59,21 @@ public class InMemorySurfaceTileSourceTests
         await act.Should().ThrowAsync<OperationCanceledException>();
     }
 
+    [Fact]
+    public async Task GetTileAsync_ReturnsNullForExtremeTileCoordinatesInsteadOfThrowing()
+    {
+        var source = CreateMatrix(8, 4, CreateSequentialValues(8, 4));
+        var builder = new SurfacePyramidBuilder(maxTileWidth: 2, maxTileHeight: 2);
+        ISurfaceTileSource tileSource = builder.Build(source);
+        var extremeKey = new SurfaceTileKey(2, 1, int.MaxValue, int.MaxValue);
+
+        var act = async () => await tileSource.GetTileAsync(extremeKey);
+
+        await act.Should().NotThrowAsync();
+        var tile = await tileSource.GetTileAsync(extremeKey);
+        tile.Should().BeNull();
+    }
+
     private static SurfaceMatrix CreateMatrix(int width, int height, float[] values)
     {
         return new SurfaceMatrix(CreateMetadata(width, height), values);

@@ -1,6 +1,8 @@
 using FluentAssertions;
 using Xunit;
 
+#pragma warning disable CA2007
+
 namespace Videra.SurfaceCharts.Core.Tests;
 
 public class SurfaceLodPolicyTests
@@ -68,6 +70,31 @@ public class SurfaceLodPolicyTests
     }
 
     [Fact]
+    public async Task Select_ReturnsOnlyKeysThatResolveThroughBuiltTileSourceForNonPowerOfTwoDatasets()
+    {
+        var metadata = CreateMetadata(10, 6);
+        var source = new SurfaceMatrix(metadata, CreateSequentialValues(metadata.Width, metadata.Height));
+        var builder = new SurfacePyramidBuilder(maxTileWidth: 4, maxTileHeight: 4);
+        ISurfaceTileSource tileSource = builder.Build(source);
+        var request = new SurfaceViewportRequest(
+            metadata,
+            new SurfaceViewport(0.0, 0.0, metadata.Width, metadata.Height),
+            outputWidth: 2,
+            outputHeight: 2);
+
+        var selection = SurfaceLodPolicy.Default.Select(request);
+
+        selection.LevelX.Should().Be(2);
+        selection.LevelY.Should().Be(1);
+
+        foreach (var tileKey in selection.EnumerateTileKeys())
+        {
+            var tile = await tileSource.GetTileAsync(tileKey);
+            tile.Should().NotBeNull($"policy-selected tile {tileKey} should resolve from the built source");
+        }
+    }
+
+    [Fact]
     public void Ctor_RejectsNegativeTileStarts()
     {
         var request = new SurfaceViewportRequest(
@@ -82,6 +109,17 @@ public class SurfaceLodPolicyTests
             .Where(ex => ex.ParamName == "tileXStart");
     }
 
+    private static float[] CreateSequentialValues(int width, int height)
+    {
+        var values = new float[width * height];
+        for (var index = 0; index < values.Length; index++)
+        {
+            values[index] = index;
+        }
+
+        return values;
+    }
+
     private static SurfaceMetadata CreateMetadata(int width, int height)
     {
         return new SurfaceMetadata(
@@ -92,3 +130,5 @@ public class SurfaceLodPolicyTests
             new SurfaceValueRange(-3.5, 9.25));
     }
 }
+
+#pragma warning restore CA2007
