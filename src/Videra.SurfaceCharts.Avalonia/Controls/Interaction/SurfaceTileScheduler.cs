@@ -25,12 +25,22 @@ internal sealed class SurfaceTileScheduler
         _source = source;
     }
 
-    public Task RequestOverviewAsync(CancellationToken cancellationToken)
+    public Task RequestOverviewAsync(long requestGeneration, CancellationToken cancellationToken)
     {
-        return RequestTileAsync(new SurfaceTileKey(0, 0, 0, 0), cancellationToken);
+        var source = _source;
+        if (source is null)
+        {
+            return Task.CompletedTask;
+        }
+
+        return RequestTileAsync(new SurfaceTileKey(0, 0, 0, 0), source, requestGeneration, cancellationToken);
     }
 
-    public async Task RequestViewportAsync(SurfaceViewport viewport, Size outputSize, CancellationToken cancellationToken)
+    public async Task RequestViewportAsync(
+        SurfaceViewport viewport,
+        Size outputSize,
+        long requestGeneration,
+        CancellationToken cancellationToken)
     {
         var source = _source;
         if (source is null)
@@ -49,25 +59,39 @@ internal sealed class SurfaceTileScheduler
         foreach (var key in selection.EnumerateTileKeys())
         {
             cancellationToken.ThrowIfCancellationRequested();
-            await RequestTileAsync(key, cancellationToken).ConfigureAwait(false);
+            await RequestTileAsync(key, source, requestGeneration, cancellationToken).ConfigureAwait(false);
         }
     }
 
-    private async Task RequestTileAsync(SurfaceTileKey key, CancellationToken cancellationToken)
+    private async Task RequestTileAsync(
+        SurfaceTileKey key,
+        ISurfaceTileSource source,
+        long requestGeneration,
+        CancellationToken cancellationToken)
     {
-        var source = _source;
-        if (source is null || !_tileCache.TryMarkRequested(key))
+        if (!_tileCache.TryMarkRequested(key, requestGeneration))
         {
             return;
         }
 
-        var tile = await source.GetTileAsync(key, cancellationToken).ConfigureAwait(false);
-        if (tile is null)
+        try
         {
-            return;
-        }
+            var tile = await source.GetTileAsync(key, cancellationToken).ConfigureAwait(false);
+            if (tile is null)
+            {
+                _tileCache.ReleaseRequested(key, requestGeneration);
+                return;
+            }
 
-        _tileCache.Store(tile);
-        _tilesChanged();
+            if (_tileCache.TryStore(tile, requestGeneration))
+            {
+                _tilesChanged();
+            }
+        }
+        catch
+        {
+            _tileCache.ReleaseRequested(key, requestGeneration);
+            throw;
+        }
     }
 }

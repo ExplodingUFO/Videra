@@ -10,6 +10,7 @@ internal sealed class SurfaceChartController
     private readonly SurfaceTileScheduler _tileScheduler;
     private readonly Action _invalidateScene;
     private CancellationTokenSource? _requestCts;
+    private long _requestGeneration;
     private Size _viewSize;
 
     public SurfaceChartController(
@@ -56,19 +57,27 @@ internal sealed class SurfaceChartController
         CancelOutstandingRequests();
 
         var cancellationTokenSource = new CancellationTokenSource();
+        var requestGeneration = ++_requestGeneration;
         _requestCts = cancellationTokenSource;
-        _ = RunRequestPipelineAsync(includeViewportRequest, cancellationTokenSource.Token);
+        _ = RunRequestPipelineAsync(includeViewportRequest, requestGeneration, cancellationTokenSource.Token);
     }
 
-    private async Task RunRequestPipelineAsync(bool includeViewportRequest, CancellationToken cancellationToken)
+    private async Task RunRequestPipelineAsync(
+        bool includeViewportRequest,
+        long requestGeneration,
+        CancellationToken cancellationToken)
     {
         try
         {
-            await _tileScheduler.RequestOverviewAsync(cancellationToken).ConfigureAwait(false);
+            await _tileScheduler.RequestOverviewAsync(requestGeneration, cancellationToken).ConfigureAwait(false);
 
             if (includeViewportRequest)
             {
-                await _tileScheduler.RequestViewportAsync(_cameraController.CurrentViewport, _viewSize, cancellationToken)
+                await _tileScheduler.RequestViewportAsync(
+                        _cameraController.CurrentViewport,
+                        _viewSize,
+                        requestGeneration,
+                        cancellationToken)
                     .ConfigureAwait(false);
             }
         }

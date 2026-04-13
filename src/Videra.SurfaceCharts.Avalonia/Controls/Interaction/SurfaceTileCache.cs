@@ -5,7 +5,7 @@ namespace Videra.SurfaceCharts.Avalonia.Controls.Interaction;
 internal sealed class SurfaceTileCache
 {
     private readonly object _sync = new();
-    private readonly HashSet<SurfaceTileKey> _requestedKeys = [];
+    private readonly Dictionary<SurfaceTileKey, long> _requestedKeys = [];
     private readonly Dictionary<SurfaceTileKey, SurfaceTile> _loadedTiles = [];
 
     public void Clear()
@@ -17,22 +17,50 @@ internal sealed class SurfaceTileCache
         }
     }
 
-    public bool TryMarkRequested(SurfaceTileKey key)
+    public bool TryMarkRequested(SurfaceTileKey key, long requestGeneration)
     {
         lock (_sync)
         {
-            return _requestedKeys.Add(key);
+            if (_loadedTiles.ContainsKey(key))
+            {
+                return false;
+            }
+
+            if (_requestedKeys.TryGetValue(key, out var currentGeneration) && currentGeneration >= requestGeneration)
+            {
+                return false;
+            }
+
+            _requestedKeys[key] = requestGeneration;
+            return true;
         }
     }
 
-    public void Store(SurfaceTile tile)
+    public void ReleaseRequested(SurfaceTileKey key, long requestGeneration)
+    {
+        lock (_sync)
+        {
+            if (_requestedKeys.TryGetValue(key, out var currentGeneration) && currentGeneration == requestGeneration)
+            {
+                _requestedKeys.Remove(key);
+            }
+        }
+    }
+
+    public bool TryStore(SurfaceTile tile, long requestGeneration)
     {
         ArgumentNullException.ThrowIfNull(tile);
 
         lock (_sync)
         {
-            _requestedKeys.Add(tile.Key);
+            if (!_requestedKeys.TryGetValue(tile.Key, out var currentGeneration) || currentGeneration != requestGeneration)
+            {
+                return false;
+            }
+
+            _requestedKeys.Remove(tile.Key);
             _loadedTiles[tile.Key] = tile;
+            return true;
         }
     }
 
