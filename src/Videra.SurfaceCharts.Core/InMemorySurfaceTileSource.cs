@@ -83,6 +83,12 @@ public sealed class InMemorySurfaceTileSource : ISurfaceTileSource
             return ValueTask.FromResult<SurfaceTile?>(null);
         }
 
+        if (!TryGetTilePartition(Metadata.Width, level.LevelX, tileKey.TileX, out var sourceStartX, out var sourceWidth) ||
+            !TryGetTilePartition(Metadata.Height, level.LevelY, tileKey.TileY, out var sourceStartY, out var sourceHeight))
+        {
+            return ValueTask.FromResult<SurfaceTile?>(null);
+        }
+
         var tileValues = new float[tileWidth * tileHeight];
         var sourceValues = matrix.Values.Span;
         var matrixWidth = matrix.Metadata.Width;
@@ -108,7 +114,7 @@ public sealed class InMemorySurfaceTileSource : ISurfaceTileSource
             tileKey,
             tileWidth,
             tileHeight,
-            new SurfaceTileBounds(startX, startY, tileWidth, tileHeight),
+            new SurfaceTileBounds(sourceStartX, sourceStartY, sourceWidth, sourceHeight),
             tileValues,
             new SurfaceValueRange(minimum, maximum));
 

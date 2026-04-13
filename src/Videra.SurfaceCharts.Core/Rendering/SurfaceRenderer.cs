@@ -43,8 +43,8 @@ public sealed class SurfaceRenderer
             {
                 var vertexIndex = checked((row * tile.Width) + column);
                 var value = sourceValues[vertexIndex];
-                var sampleX = checked(tile.Bounds.StartX + column);
-                var sampleY = checked(tile.Bounds.StartY + row);
+                var sampleX = MapTileSampleCoordinate(tile.Bounds.StartX, tile.Bounds.Width, tile.Width, column);
+                var sampleY = MapTileSampleCoordinate(tile.Bounds.StartY, tile.Bounds.Height, tile.Height, row);
 
                 vertices[vertexIndex] = new SurfaceRenderVertex(
                     new Vector3(
@@ -80,15 +80,25 @@ public sealed class SurfaceRenderer
         return new SurfaceRenderScene(metadata, renderTiles);
     }
 
-    private static double MapAxis(SurfaceAxisDescriptor axis, int sampleIndex, int sampleCount)
+    private static double MapAxis(SurfaceAxisDescriptor axis, double sampleIndex, int sampleCount)
     {
         if (sampleCount <= 1 || axis.Maximum <= axis.Minimum)
         {
             return axis.Minimum;
         }
 
-        var normalized = (double)sampleIndex / (sampleCount - 1);
+        var normalized = sampleIndex / (sampleCount - 1d);
         return axis.Minimum + (axis.Span * normalized);
+    }
+
+    private static double MapTileSampleCoordinate(int start, int span, int sampleCount, int sampleIndex)
+    {
+        if (sampleCount <= 1)
+        {
+            return start + ((span - 1d) / 2d);
+        }
+
+        return start + (sampleIndex * ((span - 1d) / (sampleCount - 1d)));
     }
 
     private static void ValidateTileBounds(SurfaceMetadata metadata, SurfaceTile tile)

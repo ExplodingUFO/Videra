@@ -10,13 +10,13 @@ public class SurfaceRendererInputTests
     public void BuildTile_MapsTileSamplesIntoDedicatedRenderInput()
     {
         var renderer = new SurfaceRenderer();
-        var metadata = CreateMetadata(width: 4, height: 3);
+        var metadata = CreateMetadata(width: 4, height: 4);
         var colorMap = CreateColorMap();
         var tile = new SurfaceTile(
             new SurfaceTileKey(0, 0, 0, 0),
             width: 2,
             height: 2,
-            new SurfaceTileBounds(startX: 1, startY: 1, width: 2, height: 2),
+            new SurfaceTileBounds(startX: 0, startY: 0, width: 4, height: 4),
             new float[]
             {
                 10f, 20f,
@@ -31,10 +31,10 @@ public class SurfaceRendererInputTests
         renderTile.Geometry.SampleWidth.Should().Be(2);
         renderTile.Geometry.SampleHeight.Should().Be(2);
         renderTile.Vertices.Should().Equal(
-            new SurfaceRenderVertex(new Vector3(10f, 10f, 10f), 0xFF000000u),
-            new SurfaceRenderVertex(new Vector3(20f, 20f, 10f), 0xFF555555u),
-            new SurfaceRenderVertex(new Vector3(10f, 30f, 20f), 0xFFAAAAAAu),
-            new SurfaceRenderVertex(new Vector3(20f, 40f, 20f), 0xFFFFFFFFu));
+            new SurfaceRenderVertex(new Vector3(0f, 10f, 0f), 0xFF000000u),
+            new SurfaceRenderVertex(new Vector3(30f, 20f, 0f), 0xFF555555u),
+            new SurfaceRenderVertex(new Vector3(0f, 30f, 20f), 0xFFAAAAAAu),
+            new SurfaceRenderVertex(new Vector3(30f, 40f, 20f), 0xFFFFFFFFu));
         renderTile.Geometry.Indices.Should().Equal(0u, 2u, 1u, 1u, 2u, 3u);
     }
 
@@ -133,7 +133,7 @@ public class SurfaceRendererInputTests
     }
 
     [Fact]
-    public void SurfaceRenderTileCtor_RejectsBoundsThatDoNotMatchGeometryShape()
+    public void SurfaceRenderTileCtor_RejectsBoundsThatAreSmallerThanGeometryShape()
     {
         var geometry = new SurfacePatchGeometryBuilder().Build(2, 2);
         var vertices = new[]
@@ -146,7 +146,7 @@ public class SurfaceRendererInputTests
 
         var act = () => new SurfaceRenderTile(
             new SurfaceTileKey(0, 0, 0, 0),
-            new SurfaceTileBounds(0, 0, 3, 2),
+            new SurfaceTileBounds(0, 0, 1, 2),
             geometry,
             vertices);
 

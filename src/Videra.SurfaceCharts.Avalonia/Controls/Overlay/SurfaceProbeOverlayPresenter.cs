@@ -75,10 +75,17 @@ internal static class SurfaceProbeOverlayPresenter
         IReadOnlyList<SurfaceTile> loadedTiles,
         Point probeScreenPosition)
     {
+        var clampedViewport = viewport.ClampTo(metadata);
         var normalizedX = Math.Clamp(probeScreenPosition.X / viewSize.Width, 0d, 1d);
         var normalizedY = Math.Clamp(probeScreenPosition.Y / viewSize.Height, 0d, 1d);
-        var sampleX = viewport.StartX + (normalizedX * viewport.Width);
-        var sampleY = viewport.StartY + (normalizedY * viewport.Height);
+        var sampleX = Math.Clamp(
+            clampedViewport.StartX + (normalizedX * clampedViewport.Width),
+            0d,
+            metadata.Width - 1d);
+        var sampleY = Math.Clamp(
+            clampedViewport.StartY + (normalizedY * clampedViewport.Height),
+            0d,
+            metadata.Height - 1d);
         var sampleIndexX = Math.Clamp((int)Math.Floor(sampleX), 0, metadata.Width - 1);
         var sampleIndexY = Math.Clamp((int)Math.Floor(sampleY), 0, metadata.Height - 1);
 
@@ -97,8 +104,8 @@ internal static class SurfaceProbeOverlayPresenter
                 continue;
             }
 
-            var tileX = sampleIndexX - tile.Bounds.StartX;
-            var tileY = sampleIndexY - tile.Bounds.StartY;
+            var tileX = MapSampleToTileIndex(sampleX, tile.Bounds.StartX, tile.Bounds.Width, tile.Width);
+            var tileY = MapSampleToTileIndex(sampleY, tile.Bounds.StartY, tile.Bounds.Height, tile.Height);
             var valueIndex = (tileY * tile.Width) + tileX;
             var value = tile.Values.Span[valueIndex];
             if (!float.IsFinite(value))
@@ -110,6 +117,18 @@ internal static class SurfaceProbeOverlayPresenter
         }
 
         return null;
+    }
+
+    private static int MapSampleToTileIndex(double sampleCoordinate, int start, int span, int gridSize)
+    {
+        if (gridSize <= 1)
+        {
+            return 0;
+        }
+
+        var offset = sampleCoordinate - start;
+        var normalized = Math.Clamp(offset / span, 0d, 1d);
+        return Math.Min(gridSize - 1, (int)Math.Floor(normalized * gridSize));
     }
 
     private static void DrawCenteredText(DrawingContext context, string text, Size viewSize, IBrush foreground)

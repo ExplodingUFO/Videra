@@ -48,11 +48,14 @@ public class SurfaceCacheRoundTripTests
     {
         var cachePath = CreateCachePath();
         var source = CreateSource();
+        var overviewKey = new SurfaceTileKey(0, 0, 0, 0);
+        var intermediateKey = new SurfaceTileKey(1, 0, 1, 0);
+        var detailKey = new SurfaceTileKey(2, 1, 3, 1);
         var tileKeys = new[]
         {
-            new SurfaceTileKey(0, 0, 0, 0),
-            new SurfaceTileKey(1, 0, 1, 0),
-            new SurfaceTileKey(2, 1, 3, 1)
+            overviewKey,
+            intermediateKey,
+            detailKey
         };
 
         try
@@ -69,6 +72,10 @@ public class SurfaceCacheRoundTripTests
                 actual.Should().NotBeNull();
                 AssertTile(actual!, expected);
             }
+
+            (await reader.LoadTileAsync(overviewKey))!.Bounds.Should().Be(new SurfaceTileBounds(0, 0, 8, 4));
+            (await reader.LoadTileAsync(intermediateKey))!.Bounds.Should().Be(new SurfaceTileBounds(4, 0, 4, 4));
+            (await reader.LoadTileAsync(detailKey))!.Bounds.Should().Be(new SurfaceTileBounds(6, 2, 2, 2));
         }
         finally
         {

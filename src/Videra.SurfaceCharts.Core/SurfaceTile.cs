@@ -9,13 +9,13 @@ public sealed class SurfaceTile
     /// Initializes a new instance of the <see cref="SurfaceTile"/> class.
     /// </summary>
     /// <param name="key">The tile key.</param>
-    /// <param name="width">The tile width in samples.</param>
-    /// <param name="height">The tile height in samples.</param>
-    /// <param name="bounds">The inclusive-exclusive sample bounds covered by the tile.</param>
+    /// <param name="width">The tile value-grid width in samples.</param>
+    /// <param name="height">The tile value-grid height in samples.</param>
+    /// <param name="bounds">The inclusive-exclusive source-space sample bounds covered by the tile.</param>
     /// <param name="values">The tile values laid out in row-major order.</param>
     /// <param name="valueRange">The inclusive value range for the tile.</param>
     /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="width"/> or <paramref name="height"/> is not positive.</exception>
-    /// <exception cref="ArgumentException">Thrown when <paramref name="bounds"/> or <paramref name="values"/> does not match the declared tile shape.</exception>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="bounds"/> cannot cover the declared tile grid or when <paramref name="values"/> does not match the declared tile shape.</exception>
     public SurfaceTile(
         SurfaceTileKey key,
         int width,
@@ -27,9 +27,9 @@ public sealed class SurfaceTile
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(width);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(height);
 
-        if (bounds.Width != width || bounds.Height != height)
+        if (bounds.Width < width || bounds.Height < height)
         {
-            throw new ArgumentException("Tile bounds must match the declared tile shape.", nameof(bounds));
+            throw new ArgumentException("Tile bounds must cover the declared tile shape.", nameof(bounds));
         }
 
         var expectedValueCount = (long)width * height;
@@ -57,17 +57,17 @@ public sealed class SurfaceTile
     public SurfaceTileKey Key { get; }
 
     /// <summary>
-    /// Gets the tile width in samples.
+    /// Gets the tile value-grid width in samples.
     /// </summary>
     public int Width { get; }
 
     /// <summary>
-    /// Gets the tile height in samples.
+    /// Gets the tile value-grid height in samples.
     /// </summary>
     public int Height { get; }
 
     /// <summary>
-    /// Gets the sample bounds covered by the tile.
+    /// Gets the source-space sample bounds covered by the tile.
     /// </summary>
     public SurfaceTileBounds Bounds { get; }
 

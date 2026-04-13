@@ -37,8 +37,23 @@ public class SurfacePyramidBuilderTests
 
         overviewTile.Width.Should().Be(2);
         overviewTile.Height.Should().Be(2);
-        overviewTile.Bounds.Should().Be(new SurfaceTileBounds(0, 0, 2, 2));
+        overviewTile.Bounds.Should().Be(new SurfaceTileBounds(0, 0, 4, 4));
         overviewTile.Values.ToArray().Should().Equal(3.5f, 5.5f, 11.5f, 13.5f);
+    }
+
+    [Fact]
+    public async Task Build_ReportsIntermediateTileBoundsInOriginalSampleSpace()
+    {
+        var source = CreateMatrix(8, 4, CreateSequentialValues(8, 4));
+        var builder = new SurfacePyramidBuilder(maxTileWidth: 2, maxTileHeight: 2);
+
+        ISurfaceTileSource tileSource = builder.Build(source);
+        var tile = await tileSource.GetRequiredTileAsync(new SurfaceTileKey(1, 0, 1, 0));
+
+        tile.Width.Should().Be(2);
+        tile.Height.Should().Be(2);
+        tile.Bounds.Should().Be(new SurfaceTileBounds(4, 0, 4, 4));
+        tile.Values.ToArray().Should().Equal(8.5f, 10.5f, 24.5f, 26.5f);
     }
 
     [Fact]

@@ -25,7 +25,7 @@ public sealed class SurfaceRenderTile
     /// <param name="geometry">The shared patch geometry.</param>
     /// <param name="vertices">The render vertices for the tile.</param>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="geometry"/> or <paramref name="vertices"/> is <c>null</c>.</exception>
-    /// <exception cref="ArgumentException">Thrown when <paramref name="bounds"/> does not match the geometry shape or when <paramref name="vertices"/> does not match the geometry vertex count.</exception>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="bounds"/> cannot cover the geometry shape or when <paramref name="vertices"/> does not match the geometry vertex count.</exception>
     public SurfaceRenderTile(
         SurfaceTileKey key,
         SurfaceTileBounds bounds,
@@ -35,9 +35,9 @@ public sealed class SurfaceRenderTile
         ArgumentNullException.ThrowIfNull(geometry);
         ArgumentNullException.ThrowIfNull(vertices);
 
-        if (bounds.Width != geometry.SampleWidth || bounds.Height != geometry.SampleHeight)
+        if (bounds.Width < geometry.SampleWidth || bounds.Height < geometry.SampleHeight)
         {
-            throw new ArgumentException("Tile bounds must match the geometry sample shape.", nameof(bounds));
+            throw new ArgumentException("Tile bounds must cover the geometry sample shape.", nameof(bounds));
         }
 
         if (vertices.Count != geometry.VertexCount)

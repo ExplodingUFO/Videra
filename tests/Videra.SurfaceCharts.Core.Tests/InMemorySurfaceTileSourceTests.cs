@@ -25,7 +25,7 @@ public class InMemorySurfaceTileSourceTests
 
         overviewTile.Width.Should().Be(2);
         overviewTile.Height.Should().Be(2);
-        overviewTile.Bounds.Should().Be(new SurfaceTileBounds(0, 0, 2, 2));
+        overviewTile.Bounds.Should().Be(new SurfaceTileBounds(0, 0, 8, 4));
         overviewTile.Values.ToArray().Should().Equal(5.5f, 9.5f, 21.5f, 25.5f);
     }
 

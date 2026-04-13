@@ -28,10 +28,12 @@ public class SurfaceCacheTileSourceTests
 
             overviewTile.Key.LevelX.Should().Be(0);
             overviewTile.Key.LevelY.Should().Be(0);
+            overviewTile.Bounds.Should().Be(new SurfaceTileBounds(0, 0, 8, 4));
             overviewTile.Values.ToArray().Should().Equal(6f, 10f, 22f, 26f);
 
             detailTile.Key.LevelX.Should().Be(2);
             detailTile.Key.LevelY.Should().Be(1);
+            detailTile.Bounds.Should().Be(new SurfaceTileBounds(6, 2, 2, 2));
             detailTile.Values.ToArray().Should().Equal(22.5f, 23.5f, 30.5f, 31.5f);
         }
         finally

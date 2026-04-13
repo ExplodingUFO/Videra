@@ -20,8 +20,8 @@
       "maximum": 96
     },
     "valueRange": {
-      "minimum": -1.0067215173609054,
-      "maximum": 2.2641784079998883
+      "minimum": -2.5,
+      "maximum": 2.5
     }
   },
   "tiles": [
@@ -37,12 +37,12 @@
       "bounds": {
         "startX": 0,
         "startY": 0,
-        "width": 32,
-        "height": 24
+        "width": 1024,
+        "height": 768
       },
       "valueRange": {
-        "minimum": -0.3563773036003113,
-        "maximum": 0.9366113543510437
+        "minimum": -2.057465076446533,
+        "maximum": 1.1005363464355469
       },
       "payloadOffset": 0,
       "payloadLength": 3072
@@ -57,14 +57,14 @@
       "width": 32,
       "height": 24,
       "bounds": {
-        "startX": 32,
+        "startX": 1024,
         "startY": 0,
-        "width": 32,
-        "height": 24
+        "width": 1024,
+        "height": 768
       },
       "valueRange": {
-        "minimum": -0.32604917883872986,
-        "maximum": 1.3650749921798706
+        "minimum": -2.027853488922119,
+        "maximum": 1.1792333126068115
       },
       "payloadOffset": 3072,
       "payloadLength": 3072
@@ -79,14 +79,14 @@
       "width": 32,
       "height": 24,
       "bounds": {
-        "startX": 64,
+        "startX": 2048,
         "startY": 0,
-        "width": 32,
-        "height": 24
+        "width": 1024,
+        "height": 768
       },
       "valueRange": {
-        "minimum": 0.14422062039375305,
-        "maximum": 1.978325605392456
+        "minimum": -0.6755375266075134,
+        "maximum": 1.576029896736145
       },
       "payloadOffset": 6144,
       "payloadLength": 3072
@@ -101,14 +101,14 @@
       "width": 32,
       "height": 24,
       "bounds": {
-        "startX": 96,
+        "startX": 3072,
         "startY": 0,
-        "width": 32,
-        "height": 24
+        "width": 1024,
+        "height": 768
       },
       "valueRange": {
-        "minimum": -0.017340492457151413,
-        "maximum": 2.0536205768585205
+        "minimum": -1.5696556568145752,
+        "maximum": 1.5358686447143555
       },
       "payloadOffset": 9216,
       "payloadLength": 3072
@@ -123,14 +123,14 @@
       "width": 32,
       "height": 24,
       "bounds": {
-        "startX": 128,
+        "startX": 4096,
         "startY": 0,
-        "width": 32,
-        "height": 24
+        "width": 1024,
+        "height": 768
       },
       "valueRange": {
-        "minimum": 0.03631052374839783,
-        "maximum": 2.253028154373169
+        "minimum": -0.658669650554657,
+        "maximum": 1.5408538579940796
       },
       "payloadOffset": 12288,
       "payloadLength": 3072
@@ -145,14 +145,14 @@
       "width": 32,
       "height": 24,
       "bounds": {
-        "startX": 160,
+        "startX": 5120,
         "startY": 0,
-        "width": 32,
-        "height": 24
+        "width": 1024,
+        "height": 768
       },
       "valueRange": {
-        "minimum": 0.19303064048290253,
-        "maximum": 1.8142768144607544
+        "minimum": -0.2343088984489441,
+        "maximum": 2.487520217895508
       },
       "payloadOffset": 15360,
       "payloadLength": 3072
@@ -167,14 +167,14 @@
       "width": 32,
       "height": 24,
       "bounds": {
-        "startX": 192,
+        "startX": 6144,
         "startY": 0,
-        "width": 32,
-        "height": 24
+        "width": 1024,
+        "height": 768
       },
       "valueRange": {
-        "minimum": -0.30302712321281433,
-        "maximum": 1.1394141912460327
+        "minimum": -0.3393761217594147,
+        "maximum": 1.8617759943008423
       },
       "payloadOffset": 18432,
       "payloadLength": 3072
@@ -189,14 +189,14 @@
       "width": 32,
       "height": 24,
       "bounds": {
-        "startX": 224,
+        "startX": 7168,
         "startY": 0,
-        "width": 32,
-        "height": 24
+        "width": 1024,
+        "height": 768
       },
       "valueRange": {
-        "minimum": -0.28973665833473206,
-        "maximum": 1.0339059829711914
+        "minimum": -0.8712365031242371,
+        "maximum": 1.9811912775039673
       },
       "payloadOffset": 21504,
       "payloadLength": 3072
@@ -212,13 +212,13 @@
       "height": 24,
       "bounds": {
         "startX": 0,
-        "startY": 24,
-        "width": 32,
-        "height": 24
+        "startY": 768,
+        "width": 1024,
+        "height": 768
       },
       "valueRange": {
-        "minimum": -0.9218778014183044,
-        "maximum": 0.5765231847763062
+        "minimum": -1.218525767326355,
+        "maximum": 0.5533912181854248
       },
       "payloadOffset": 24576,
       "payloadLength": 3072
@@ -233,14 +233,14 @@
       "width": 32,
       "height": 24,
       "bounds": {
-        "startX": 32,
-        "startY": 24,
-        "width": 32,
-        "height": 24
+        "startX": 1024,
+        "startY": 768,
+        "width": 1024,
+        "height": 768
       },
       "valueRange": {
-        "minimum": -0.8496409058570862,
-        "maximum": 1.3524565696716309
+        "minimum": -1.1904144287109375,
+        "maximum": 0.4936482310295105
       },
       "payloadOffset": 27648,
       "payloadLength": 3072
@@ -255,14 +255,14 @@
       "width": 32,
       "height": 24,
       "bounds": {
-        "startX": 64,
-        "startY": 24,
-        "width": 32,
-        "height": 24
+        "startX": 2048,
+        "startY": 768,
+        "width": 1024,
+        "height": 768
       },
       "valueRange": {
-        "minimum": -0.7859858870506287,
-        "maximum": 1.9521338939666748
+        "minimum": -1.2326161861419678,
+        "maximum": 0.7434688806533813
       },
       "payloadOffset": 30720,
       "payloadLength": 3072
@@ -277,14 +277,14 @@
       "width": 32,
       "height": 24,
       "bounds": {
-        "startX": 96,
-        "startY": 24,
-        "width": 32,
-        "height": 24
+        "startX": 3072,
+        "startY": 768,
+        "width": 1024,
+        "height": 768
       },
       "valueRange": {
-        "minimum": -0.8408918976783752,
-        "maximum": 2.0273752212524414
+        "minimum": -0.7690831422805786,
+        "maximum": 0.9885021448135376
       },
       "payloadOffset": 33792,
       "payloadLength": 3072
@@ -299,14 +299,14 @@
       "width": 32,
       "height": 24,
       "bounds": {
-        "startX": 128,
-        "startY": 24,
-        "width": 32,
-        "height": 24
+        "startX": 4096,
+        "startY": 768,
+        "width": 1024,
+        "height": 768
       },
       "valueRange": {
-        "minimum": -0.5658572912216187,
-        "maximum": 2.2415213584899902
+        "minimum": -0.4226490557193756,
+        "maximum": 0.9934137463569641
       },
       "payloadOffset": 36864,
       "payloadLength": 3072
@@ -321,14 +321,14 @@
       "width": 32,
       "height": 24,
       "bounds": {
-        "startX": 160,
-        "startY": 24,
-        "width": 32,
-        "height": 24
+        "startX": 5120,
+        "startY": 768,
+        "width": 1024,
+        "height": 768
       },
       "valueRange": {
-        "minimum": -0.7661729454994202,
-        "maximum": 1.7906296253204346
+        "minimum": -0.7921985387802124,
+        "maximum": 1.4465960264205933
       },
       "payloadOffset": 39936,
       "payloadLength": 3072
@@ -343,14 +343,14 @@
       "width": 32,
       "height": 24,
       "bounds": {
-        "startX": 192,
-        "startY": 24,
-        "width": 32,
-        "height": 24
+        "startX": 6144,
+        "startY": 768,
+        "width": 1024,
+        "height": 768
       },
       "valueRange": {
-        "minimum": -0.9274404644966125,
-        "maximum": 0.7624871730804443
+        "minimum": -0.42161819338798523,
+        "maximum": 1.3146902322769165
       },
       "payloadOffset": 43008,
       "payloadLength": 3072
@@ -365,14 +365,14 @@
       "width": 32,
       "height": 24,
       "bounds": {
-        "startX": 224,
-        "startY": 24,
-        "width": 32,
-        "height": 24
+        "startX": 7168,
+        "startY": 768,
+        "width": 1024,
+        "height": 768
       },
       "valueRange": {
-        "minimum": -0.6835588216781616,
-        "maximum": 0.7799230217933655
+        "minimum": -0.14638054370880127,
+        "maximum": 1.4336574077606201
       },
       "payloadOffset": 46080,
       "payloadLength": 3072
@@ -389,12 +389,12 @@
       "bounds": {
         "startX": 0,
         "startY": 0,
-        "width": 32,
-        "height": 24
+        "width": 4096,
+        "height": 1536
       },
       "valueRange": {
-        "minimum": -0.8481963872909546,
-        "maximum": 2.0118961334228516
+        "minimum": -2.0271763801574707,
+        "maximum": 1.5388543605804443
       },
       "payloadOffset": 49152,
       "payloadLength": 3072
@@ -409,14 +409,14 @@
       "width": 32,
       "height": 24,
       "bounds": {
-        "startX": 32,
+        "startX": 4096,
         "startY": 0,
-        "width": 32,
-        "height": 24
+        "width": 4096,
+        "height": 1536
       },
       "valueRange": {
-        "minimum": -0.8838856220245361,
-        "maximum": 2.2066805362701416
+        "minimum": -0.8394486308097839,
+        "maximum": 2.4423770904541016
       },
       "payloadOffset": 52224,
       "payloadLength": 3072

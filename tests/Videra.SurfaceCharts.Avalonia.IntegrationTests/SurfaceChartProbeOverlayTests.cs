@@ -2,6 +2,7 @@ using System.Reflection;
 using Avalonia;
 using FluentAssertions;
 using Videra.SurfaceCharts.Avalonia.Controls;
+using Videra.SurfaceCharts.Avalonia.Controls.Overlay;
 using Videra.SurfaceCharts.Core;
 using Xunit;
 
@@ -106,6 +107,36 @@ public sealed class SurfaceChartProbeOverlayTests
         });
     }
 
+    [Fact]
+    public void CoarseTileProbe_MapsSampleCoordinatesThroughClampedViewportAndTileBoundsSpan()
+    {
+        var metadata = SurfaceChartViewLifecycleTests.CreateMetadata();
+        var coarseTile = new SurfaceTile(
+            new SurfaceTileKey(0, 0, 0, 0),
+            width: 2,
+            height: 2,
+            new SurfaceTileBounds(0, 0, 1024, 1024),
+            new float[]
+            {
+                10f, 20f,
+                30f, 40f
+            },
+            metadata.ValueRange);
+
+        var state = SurfaceProbeOverlayPresenter.CreateState(
+            new StaticTileSource(metadata),
+            new SurfaceViewport(-50, -40, 200, 200),
+            new Size(100, 100),
+            [coarseTile],
+            new Point(50, 50));
+
+        state.HasNoData.Should().BeFalse();
+        state.ProbeResult.Should().NotBeNull();
+        state.ProbeResult!.Value.SampleX.Should().BeApproximately(100d, 0.0001d);
+        state.ProbeResult.Value.SampleY.Should().BeApproximately(100d, 0.0001d);
+        state.ProbeResult.Value.Value.Should().Be(10d);
+    }
+
     private static void UpdateProbeScreenPosition(SurfaceChartView view, Point probeScreenPosition)
     {
         var method = typeof(SurfaceChartView).GetMethod(
@@ -146,5 +177,20 @@ public sealed class SurfaceChartProbeOverlayTests
     private static string? GetStringProperty(object instance, string propertyName)
     {
         return (string?)GetPropertyValue(instance, propertyName);
+    }
+
+    private sealed class StaticTileSource : ISurfaceTileSource
+    {
+        public StaticTileSource(SurfaceMetadata metadata)
+        {
+            Metadata = metadata;
+        }
+
+        public SurfaceMetadata Metadata { get; }
+
+        public ValueTask<SurfaceTile?> GetTileAsync(SurfaceTileKey tileKey, CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException();
+        }
     }
 }
