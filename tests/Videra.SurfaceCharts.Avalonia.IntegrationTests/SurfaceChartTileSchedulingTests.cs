@@ -100,7 +100,7 @@ public sealed class SurfaceChartTileSchedulingTests
     }
 
     [Fact]
-    public Task ViewportChange_PruneStaleDetailTiles_OnlyOverviewAndCurrentSelectionRemain()
+    public Task ViewportChange_PruneStaleDetailTiles_OnlyOverviewAndCurrentSelectionNeighborhoodRemain()
     {
         return AvaloniaHeadlessTestSession.RunAsync(async () =>
         {
@@ -141,7 +141,7 @@ public sealed class SurfaceChartTileSchedulingTests
     }
 
     [Fact]
-    public Task ViewSizeChange_PruneStaleDetailTiles_OnlyOverviewRemains()
+    public Task ViewSizeChange_PruneStaleDetailTiles_OnlyOverviewAndCurrentSelectionNeighborhoodRemain()
     {
         return AvaloniaHeadlessTestSession.RunAsync(async () =>
         {

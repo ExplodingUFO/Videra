@@ -15,15 +15,9 @@ public partial class SurfaceChartView : Control
     private readonly SurfaceCameraController _cameraController;
     private readonly SurfaceChartController _controller;
 
-    /// <summary>
-    /// Occurs when a tile request fails.
-    /// </summary>
-    public event EventHandler<SurfaceChartTileRequestFailedEventArgs>? TileRequestFailed;
+    internal event EventHandler<SurfaceChartTileRequestFailedEventArgs>? TileRequestFailed;
 
-    /// <summary>
-    /// Gets the last tile request failure, if any.
-    /// </summary>
-    public SurfaceChartTileRequestFailedEventArgs? LastTileFailure { get; private set; }
+    internal SurfaceChartTileRequestFailedEventArgs? LastTileFailure { get; private set; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SurfaceChartView"/> class.

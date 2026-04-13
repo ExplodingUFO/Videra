@@ -337,6 +337,19 @@ public sealed class SurfaceChartViewLifecycleTests
     }
 
     [Fact]
+    public void FailureDiagnostics_AreNotExposedAsPublicControlApi()
+    {
+        var members = typeof(SurfaceChartView)
+            .GetMembers(BindingFlags.Instance | BindingFlags.Public)
+            .Select(static member => member.Name)
+            .ToArray();
+
+        members.Should().NotContain("TileRequestFailed");
+        members.Should().NotContain("LastTileFailure");
+        typeof(SurfaceChartTileRequestFailedEventArgs).IsPublic.Should().BeFalse();
+    }
+
+    [Fact]
     public Task FailingOverviewRequest_PublishesFailureOnUiThread()
     {
         return AvaloniaHeadlessTestSession.RunAsync(async () =>

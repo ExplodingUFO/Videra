@@ -57,16 +57,48 @@ public class SurfaceLodPolicyTests
 
         selection.LevelX.Should().Be(2);
         selection.LevelY.Should().Be(2);
-        selection.TileXStart.Should().Be(1);
-        selection.TileXEnd.Should().Be(2);
-        selection.TileYStart.Should().Be(1);
-        selection.TileYEnd.Should().Be(2);
+        selection.TileXStart.Should().Be(0);
+        selection.TileXEnd.Should().Be(3);
+        selection.TileYStart.Should().Be(0);
+        selection.TileYEnd.Should().Be(3);
 
         selection.EnumerateTileKeys().Should().Equal(
+            new SurfaceTileKey(2, 2, 0, 0),
+            new SurfaceTileKey(2, 2, 1, 0),
+            new SurfaceTileKey(2, 2, 2, 0),
+            new SurfaceTileKey(2, 2, 3, 0),
+            new SurfaceTileKey(2, 2, 0, 1),
             new SurfaceTileKey(2, 2, 1, 1),
             new SurfaceTileKey(2, 2, 2, 1),
+            new SurfaceTileKey(2, 2, 3, 1),
+            new SurfaceTileKey(2, 2, 0, 2),
             new SurfaceTileKey(2, 2, 1, 2),
-            new SurfaceTileKey(2, 2, 2, 2));
+            new SurfaceTileKey(2, 2, 2, 2),
+            new SurfaceTileKey(2, 2, 3, 2),
+            new SurfaceTileKey(2, 2, 0, 3),
+            new SurfaceTileKey(2, 2, 1, 3),
+            new SurfaceTileKey(2, 2, 2, 3),
+            new SurfaceTileKey(2, 2, 3, 3));
+    }
+
+    [Fact]
+    public void Select_ClampsNeighborhoodMarginAtDatasetEdges()
+    {
+        var metadata = CreateMetadata(100, 80);
+        var request = new SurfaceViewportRequest(
+            metadata,
+            new SurfaceViewport(0.0, 0.0, 20.0, 20.0),
+            10,
+            10);
+
+        var selection = SurfaceLodPolicy.Default.Select(request);
+
+        selection.LevelX.Should().Be(1);
+        selection.LevelY.Should().Be(1);
+        selection.TileXStart.Should().Be(0);
+        selection.TileXEnd.Should().Be(1);
+        selection.TileYStart.Should().Be(0);
+        selection.TileYEnd.Should().Be(1);
     }
 
     [Fact]

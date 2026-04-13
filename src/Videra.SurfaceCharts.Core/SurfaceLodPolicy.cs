@@ -5,6 +5,8 @@ namespace Videra.SurfaceCharts.Core;
 /// </summary>
 public sealed class SurfaceLodPolicy
 {
+    // Keep a small explicit neighborhood around the visible range so nearby tiles stay resident.
+    private const int NeighborhoodTileMargin = 1;
     private readonly int _maxLevel;
 
     /// <summary>
@@ -38,10 +40,15 @@ public sealed class SurfaceLodPolicy
         var tileCountX = 1 << levelX;
         var tileCountY = 1 << levelY;
 
-        var tileXStart = GetTileIndexStart(clampedViewport.StartX, request.Metadata.Width, tileCountX);
-        var tileXEnd = GetTileIndexEnd(clampedViewport.EndXExclusive, request.Metadata.Width, tileCountX);
-        var tileYStart = GetTileIndexStart(clampedViewport.StartY, request.Metadata.Height, tileCountY);
-        var tileYEnd = GetTileIndexEnd(clampedViewport.EndYExclusive, request.Metadata.Height, tileCountY);
+        var visibleTileXStart = GetTileIndexStart(clampedViewport.StartX, request.Metadata.Width, tileCountX);
+        var visibleTileXEnd = GetTileIndexEnd(clampedViewport.EndXExclusive, request.Metadata.Width, tileCountX);
+        var visibleTileYStart = GetTileIndexStart(clampedViewport.StartY, request.Metadata.Height, tileCountY);
+        var visibleTileYEnd = GetTileIndexEnd(clampedViewport.EndYExclusive, request.Metadata.Height, tileCountY);
+
+        var tileXStart = ExpandStart(visibleTileXStart, NeighborhoodTileMargin);
+        var tileXEnd = ExpandEnd(visibleTileXEnd, NeighborhoodTileMargin, tileCountX);
+        var tileYStart = ExpandStart(visibleTileYStart, NeighborhoodTileMargin);
+        var tileYEnd = ExpandEnd(visibleTileYEnd, NeighborhoodTileMargin, tileCountY);
 
         return new SurfaceLodSelection(request, levelX, levelY, tileXStart, tileXEnd, tileYStart, tileYEnd);
     }
@@ -79,5 +86,15 @@ public sealed class SurfaceLodPolicy
         var normalizedEndExclusive = viewportEndExclusive / datasetSpan;
         var tileIndex = (int)Math.Ceiling(normalizedEndExclusive * tileCount) - 1;
         return Math.Clamp(tileIndex, 0, tileCount - 1);
+    }
+
+    private static int ExpandStart(int visibleStart, int margin)
+    {
+        return Math.Max(0, visibleStart - margin);
+    }
+
+    private static int ExpandEnd(int visibleEnd, int margin, int tileCount)
+    {
+        return Math.Min(tileCount - 1, visibleEnd + margin);
     }
 }
