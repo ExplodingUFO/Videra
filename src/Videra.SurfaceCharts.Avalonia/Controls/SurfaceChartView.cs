@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Threading;
 using Videra.SurfaceCharts.Avalonia.Controls.Interaction;
 using Videra.SurfaceCharts.Core;
 
@@ -51,12 +52,23 @@ public partial class SurfaceChartView : Control
     private void OnTileRequestFailed(SurfaceTileKey tileKey, Exception exception)
     {
         var args = new SurfaceChartTileRequestFailedEventArgs(tileKey, exception);
-        LastTileFailure = args;
-        TileRequestFailed?.Invoke(this, args);
+        if (Dispatcher.UIThread.CheckAccess())
+        {
+            PublishTileRequestFailure(args);
+            return;
+        }
+
+        Dispatcher.UIThread.Post(() => PublishTileRequestFailure(args));
     }
 
     internal void ClearLastTileFailure()
     {
         LastTileFailure = null;
+    }
+
+    private void PublishTileRequestFailure(SurfaceChartTileRequestFailedEventArgs args)
+    {
+        LastTileFailure = args;
+        TileRequestFailed?.Invoke(this, args);
     }
 }

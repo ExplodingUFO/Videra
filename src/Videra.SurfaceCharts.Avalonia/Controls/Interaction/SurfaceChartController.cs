@@ -52,6 +52,7 @@ internal sealed class SurfaceChartController
     public void UpdateViewSize(Size viewSize)
     {
         _viewSize = viewSize;
+        var requestGeneration = SupersedeOutstandingRequests();
 
         if (viewSize.Width > 0 && viewSize.Height > 0)
         {
@@ -59,7 +60,6 @@ internal sealed class SurfaceChartController
             _invalidateScene();
         }
 
-        var requestGeneration = SupersedeOutstandingRequests();
         StartRequestPipeline(includeViewportRequest: viewSize.Width > 0 && viewSize.Height > 0, requestGeneration);
     }
 

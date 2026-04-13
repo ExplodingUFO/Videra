@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Collections.Concurrent;
 using Avalonia;
+using Avalonia.Threading;
 using FluentAssertions;
 using Videra.SurfaceCharts.Avalonia.Controls;
 using Videra.SurfaceCharts.Avalonia.Controls.Interaction;
@@ -209,6 +210,74 @@ public sealed class SurfaceChartViewLifecycleTests
     }
 
     [Fact]
+    public async Task ControllerResizeSupersession_IgnoresLateFailuresDuringResizeTransition()
+    {
+        var metadata = CreateMetadata();
+        var source = new ScriptedSurfaceTileSource(metadata, defaultTileValue: 11);
+        var staleRequestStarted = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var staleCompletion = new TaskCompletionSource<SurfaceTile?>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var staleRequestCompleted = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var failures = new ConcurrentQueue<(SurfaceTileKey TileKey, Exception Exception)>();
+        var allowResizeToContinue = new ManualResetEventSlim(false);
+        var resizeEnteredInvalidate = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var shouldBlockInvalidate = 0;
+        var tileCache = new SurfaceTileCache();
+        var scheduler = new SurfaceTileScheduler(tileCache, static () => { }, (key, exception) => failures.Enqueue((key, exception)));
+        var controller = new SurfaceChartController(
+            new SurfaceCameraController(new SurfaceViewport(0, 0, 512, 512)),
+            tileCache,
+            scheduler,
+            () =>
+            {
+                if (Volatile.Read(ref shouldBlockInvalidate) == 0)
+                {
+                    return;
+                }
+
+                resizeEnteredInvalidate.TrySetResult(true);
+                allowResizeToContinue.Wait(TimeSpan.FromSeconds(2)).Should().BeTrue();
+            });
+
+        controller.UpdateViewSize(new Size(256, 256));
+
+        source.EnqueueSuccessResponse();
+        source.EnqueueResponse(async (_, _) =>
+        {
+            staleRequestStarted.TrySetResult(true);
+
+            try
+            {
+                return await staleCompletion.Task.ConfigureAwait(false);
+            }
+            finally
+            {
+                staleRequestCompleted.TrySetResult(true);
+            }
+        });
+
+        controller.UpdateSource(source);
+
+        await staleRequestStarted.Task;
+
+        Volatile.Write(ref shouldBlockInvalidate, 1);
+        var resizeTask = Task.Run(() => controller.UpdateViewSize(new Size(384, 384)));
+
+        await resizeEnteredInvalidate.Task;
+
+        staleCompletion.SetException(new InvalidOperationException("stale resize fault"));
+
+        await staleRequestCompleted.Task;
+        await Task.Delay(100);
+
+        failures.Should().BeEmpty();
+
+        allowResizeToContinue.Set();
+        await resizeTask;
+        await Task.Delay(100);
+        failures.Should().BeEmpty();
+    }
+
+    [Fact]
     public Task FailingOverviewRequest_SetsLastTileFailureAndRaisesEvent()
     {
         return AvaloniaHeadlessTestSession.RunAsync(async () =>
@@ -226,6 +295,37 @@ public sealed class SurfaceChartViewLifecycleTests
             view.LastTileFailure.Should().NotBeNull();
             view.LastTileFailure!.TileKey.Should().Be(new SurfaceTileKey(0, 0, 0, 0));
             view.LastTileFailure.Exception.Should().BeOfType<InvalidOperationException>();
+        });
+    }
+
+    [Fact]
+    public Task FailingOverviewRequest_PublishesFailureOnUiThread()
+    {
+        return AvaloniaHeadlessTestSession.RunAsync(async () =>
+        {
+            var failureMethod = typeof(SurfaceChartView).GetMethod("OnTileRequestFailed", BindingFlags.Instance | BindingFlags.NonPublic);
+            var eventRaised = new TaskCompletionSource<SurfaceChartTileRequestFailedEventArgs>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var uiThreadId = Environment.CurrentManagedThreadId;
+            var callbackThreadId = -1;
+            var view = new SurfaceChartView();
+            view.TileRequestFailed += (_, args) =>
+            {
+                callbackThreadId = Environment.CurrentManagedThreadId;
+                Dispatcher.UIThread.CheckAccess().Should().BeTrue();
+                view.LastTileFailure.Should().BeSameAs(args);
+                eventRaised.TrySetResult(args);
+            };
+
+            failureMethod.Should().NotBeNull();
+
+            var worker = new Thread(() => failureMethod!.Invoke(view, [new SurfaceTileKey(0, 0, 0, 0), new InvalidOperationException("tile fault")]));
+            worker.Start();
+
+            var failureArgs = await eventRaised.Task.WaitAsync(TimeSpan.FromSeconds(2));
+            worker.Join();
+
+            callbackThreadId.Should().Be(uiThreadId);
+            view.LastTileFailure.Should().BeSameAs(failureArgs);
         });
     }
 
