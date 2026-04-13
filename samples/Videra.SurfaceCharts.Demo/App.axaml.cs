@@ -1,13 +1,14 @@
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Markup.Xaml;
 
 namespace Videra.SurfaceCharts.Demo;
 
-public sealed class App : Application
+public partial class App : Application
 {
     public override void Initialize()
     {
-        // Intentionally empty: the demo does not use XAML yet.
+        AvaloniaXamlLoader.Load(this);
     }
 
     public override void OnFrameworkInitializationCompleted()
