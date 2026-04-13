@@ -78,6 +78,12 @@ run_check \
   "Demo build failed" \
   dotnet build "$ROOT_DIR/samples/Videra.Demo/Videra.Demo.csproj" --configuration "$CONFIGURATION" -v q
 
+run_check \
+  "Surface Charts Demo Build" \
+  "Surface charts demo builds" \
+  "Surface charts demo build failed" \
+  dotnet build "$ROOT_DIR/samples/Videra.SurfaceCharts.Demo/Videra.SurfaceCharts.Demo.csproj" --configuration "$CONFIGURATION" -v q
+
 if [[ "$INCLUDE_NATIVE_LINUX" == true ]]; then
   run_check \
     "Linux X11 Native Validation" \

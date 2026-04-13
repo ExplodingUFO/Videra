@@ -1,7 +1,5 @@
 # Surface Charts Implementation Plan
 
-> **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
-
 **Goal:** Build an independent high-performance Avalonia surface-chart control for very large offline matrix datasets, with overview-first LOD, cache-backed data support, an independent demo, and explicit separation from `VideraView`.
 
 **Architecture:** The feature ships as a sibling module family rather than a `VideraView` mode. `Videra.SurfaceCharts.Core` owns chart-domain models and LOD, `Videra.SurfaceCharts.Processing` owns pyramid/cache generation, and `Videra.SurfaceCharts.Avalonia` owns the dedicated control shell plus UI interaction. Existing `Videra` viewer code may share only truly generic rendering substrate; chart semantics must remain separate.

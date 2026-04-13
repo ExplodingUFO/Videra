@@ -31,6 +31,7 @@ Videra is not a general-purpose game engine. It is designed around desktop 3D vi
 - Render-style presets and wireframe modes
 - Public extensibility contract plus a narrow `Videra.ExtensibilitySample` onboarding path
 - Controlled interaction contract plus a focused `Videra.InteractionSample` onboarding path
+- Surface-chart module family for large offline matrix data, centered on `SurfaceChartView` and shipped as a sibling boundary to `VideraView`
 - Demo app with backend diagnostics, import feedback, a default demo cube, camera control, grid, axes, and basic transforms
 
 ## Architecture
@@ -62,7 +63,11 @@ The repository is split into UI integration, a platform-agnostic rendering core,
 | `src/Videra.Platform.Windows` | Windows Direct3D 11 backend |
 | `src/Videra.Platform.Linux` | Linux Vulkan backend |
 | `src/Videra.Platform.macOS` | macOS Metal backend |
+| `src/Videra.SurfaceCharts.Core` | Surface-chart domain contracts and LOD selection |
+| `src/Videra.SurfaceCharts.Avalonia` | Dedicated `SurfaceChartView` control layer |
+| `src/Videra.SurfaceCharts.Processing` | Surface cache and pyramid generation |
 | `samples/Videra.Demo` | Demo application and usage reference |
+| `samples/Videra.SurfaceCharts.Demo` | Independent surface-chart demo application |
 | `samples/Videra.ExtensibilitySample` | Narrow public sample for contributors, frame hooks, capabilities, and diagnostics |
 | `samples/Videra.InteractionSample` | Focused public sample for host-owned selection state, annotation state, and mode switching |
 | `docs` | Long-lived documentation, troubleshooting, ADRs, and archive |
@@ -243,6 +248,19 @@ Contract highlights:
 - Hosts typically materialize those anchors through `VideraNodeAnnotation` and `VideraWorldPointAnnotation`.
 - Overlay responsibilities are split between `3D highlight/render state` and `2D label/feedback rendering`.
 
+## Surface Charts Onboarding
+
+Use [Videra.SurfaceCharts.Demo](samples/Videra.SurfaceCharts.Demo/README.md) as the public reference for the independent surface-chart module family.
+
+Contract highlights:
+
+- The surface-chart module family is a sibling product area, independent from `VideraView`.
+- The dedicated `SurfaceChartView` control lives in `Videra.SurfaceCharts.Avalonia`.
+- `Videra.SurfaceCharts.Demo` is the independent demo application for the surface-chart module family.
+- `Videra.SurfaceCharts.Core` owns chart-domain models, tile identities, probe contracts, and LOD selection.
+- `Videra.SurfaceCharts.Processing` owns cache and pyramid generation.
+- `Videra.SurfaceCharts.Avalonia` owns the UI shell and Avalonia-specific overlay behavior.
+
 ## Packages
 
 | Package | Use |
@@ -252,6 +270,10 @@ Contract highlights:
 | `Videra.Platform.Windows` | Windows Direct3D 11 backend package |
 | `Videra.Platform.Linux` | Linux Vulkan backend package |
 | `Videra.Platform.macOS` | macOS Metal backend package |
+| `Videra.SurfaceCharts.Core` | Surface-chart domain contracts and LOD selection |
+| `Videra.SurfaceCharts.Avalonia` | Dedicated `SurfaceChartView` control and overlay behavior |
+| `Videra.SurfaceCharts.Processing` | Surface cache and pyramid generation |
+| `Videra.SurfaceCharts.Demo` | Independent surface-chart demo |
 
 Detailed package-level docs:
 
@@ -260,7 +282,11 @@ Detailed package-level docs:
 - [Videra.Platform.Windows](src/Videra.Platform.Windows/README.md)
 - [Videra.Platform.Linux](src/Videra.Platform.Linux/README.md)
 - [Videra.Platform.macOS](src/Videra.Platform.macOS/README.md)
+- [Videra.SurfaceCharts.Core](src/Videra.SurfaceCharts.Core/README.md)
+- [Videra.SurfaceCharts.Avalonia](src/Videra.SurfaceCharts.Avalonia/README.md)
+- [Videra.SurfaceCharts.Processing](src/Videra.SurfaceCharts.Processing/README.md)
 - [Videra.Demo](samples/Videra.Demo/README.md)
+- [Videra.SurfaceCharts.Demo](samples/Videra.SurfaceCharts.Demo/README.md)
 - [Videra.ExtensibilitySample](samples/Videra.ExtensibilitySample/README.md)
 - [Videra.InteractionSample](samples/Videra.InteractionSample/README.md)
 

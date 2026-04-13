@@ -98,6 +98,8 @@ public sealed class RepositoryLocalizationTests
         {
             Path.Combine(repositoryRoot, "docs", "zh-CN", "modules", "videra-core.md"),
             Path.Combine(repositoryRoot, "docs", "zh-CN", "modules", "videra-avalonia.md"),
+            Path.Combine(repositoryRoot, "docs", "zh-CN", "modules", "videra-surfacecharts-core.md"),
+            Path.Combine(repositoryRoot, "docs", "zh-CN", "modules", "videra-surfacecharts-avalonia.md"),
             Path.Combine(repositoryRoot, "docs", "zh-CN", "modules", "platform-windows.md"),
             Path.Combine(repositoryRoot, "docs", "zh-CN", "modules", "platform-linux.md"),
             Path.Combine(repositoryRoot, "docs", "zh-CN", "modules", "platform-macos.md")
@@ -107,6 +109,32 @@ public sealed class RepositoryLocalizationTests
         {
             File.Exists(file).Should().BeTrue($"expected Chinese package mirror {file} to exist");
         }
+    }
+
+    [Fact]
+    public void ChineseSurfaceChartsModulePages_ShouldExistAndUseSurfaceChartViewVocabulary()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+
+        foreach (var relativePath in SurfaceChartsDocumentationTerms.ExpectedChineseModulePages)
+        {
+            File.Exists(Path.Combine(repositoryRoot, relativePath)).Should().BeTrue($"expected localized surface-chart module page {relativePath} to exist");
+        }
+
+        var coreModule = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "zh-CN", "modules", "videra-surfacecharts-core.md"));
+        var avaloniaModule = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "zh-CN", "modules", "videra-surfacecharts-avalonia.md"));
+
+        foreach (var module in new[] { coreModule, avaloniaModule })
+        {
+            module.Should().Contain("SurfaceChartView");
+            module.Should().Contain("VideraView");
+            module.Should().Contain("Videra.SurfaceCharts.Demo");
+        }
+
+        coreModule.Should().Contain("SurfacePyramidBuilder");
+        coreModule.Should().Contain("SurfaceTileSource");
+        avaloniaModule.Should().Contain("SurfaceProbeOverlayPresenter");
+        avaloniaModule.Should().Contain("独立于 `VideraView`");
     }
 
     [Fact]
@@ -225,6 +253,27 @@ public sealed class RepositoryLocalizationTests
         foreach (var localizedDoc in new[] { readme, index, coreModule, avaloniaModule })
         {
             localizedDoc.Should().Contain("Videra.ExtensibilitySample");
+        }
+    }
+
+    [Fact]
+    public void ChineseSurfaceChartsDocumentation_ShouldMirrorIndependentModuleFamilyBoundary()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var readme = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "zh-CN", "README.md"));
+        var coreModule = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "zh-CN", "modules", "videra-surfacecharts-core.md"));
+        var avaloniaModule = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "zh-CN", "modules", "videra-surfacecharts-avalonia.md"));
+
+        readme.Should().Contain("modules/videra-surfacecharts-core.md");
+        readme.Should().Contain("modules/videra-surfacecharts-avalonia.md");
+        readme.Should().Contain("samples/Videra.SurfaceCharts.Demo/README.md");
+        readme.Should().Contain(SurfaceChartsDocumentationTerms.ChineseSurfaceChartsFamilyBoundarySentence);
+
+        foreach (var module in new[] { coreModule, avaloniaModule })
+        {
+            module.Should().Contain("SurfaceChartView");
+            module.Should().Contain("Videra.SurfaceCharts.Demo");
+            module.Should().Contain("独立于 `VideraView`");
         }
     }
 
