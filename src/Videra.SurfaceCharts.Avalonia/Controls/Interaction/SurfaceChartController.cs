@@ -43,6 +43,9 @@ internal sealed class SurfaceChartController
     public void UpdateViewport(SurfaceViewport viewport)
     {
         _cameraController.UpdateViewport(viewport);
+        CancelOutstandingRequests();
+        _tileCache.PruneDetailTiles();
+        _invalidateScene();
         StartRequestPipeline(includeViewportRequest: true);
     }
 

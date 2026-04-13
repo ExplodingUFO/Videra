@@ -172,6 +172,47 @@ public sealed class SurfaceScenePainterTests
             && double.IsFinite(triangle.C.Y);
     }
 
+    [Fact]
+    public Task RenderSceneTileKeys_DoNotRetainStaleDetailTilesAfterViewportChange()
+    {
+        return AvaloniaHeadlessTestSession.RunAsync(async () =>
+        {
+            var metadata = CreateMetadata(width: 1024, height: 1024);
+            var source = new RecordingSurfaceTileSource(metadata);
+            var view = new SurfaceChartView();
+
+            view.Measure(new Size(256, 256));
+            view.Arrange(new Rect(0, 0, 256, 256));
+            view.Source = source;
+
+            await source.WaitForRequestCountAsync(1);
+
+            view.Viewport = new SurfaceViewport(0, 0, 512, 512);
+
+            var firstSelection = SurfaceLodPolicy.Default.Select(
+                new SurfaceViewportRequest(metadata, new SurfaceViewport(0, 0, 512, 512), 256, 256));
+            var firstKeys = firstSelection.EnumerateTileKeys().ToArray();
+            await source.WaitForRequestCountAsync(1 + firstKeys.Length);
+
+            await SurfaceChartTestHelpers.WaitForLoadedTileValuesAsync(view,
+                SurfaceChartTestHelpers.GetLoadedTileKeys(view).Select(k => (float)(k.LevelX + k.LevelY + k.TileX + k.TileY)).Distinct().ToArray());
+
+            view.Viewport = new SurfaceViewport(512, 512, 512, 512);
+
+            var secondSelection = SurfaceLodPolicy.Default.Select(
+                new SurfaceViewportRequest(metadata, new SurfaceViewport(512, 512, 512, 512), 256, 256));
+            var secondKeys = secondSelection.EnumerateTileKeys().ToArray();
+            await source.WaitForRequestCountAsync(1 + firstKeys.Length + 1 + secondKeys.Length);
+
+            await Task.Delay(200).ConfigureAwait(false);
+
+            var sceneKeys = SurfaceChartTestHelpers.GetRenderSceneTileKeys(view);
+            var expectedKeys = new List<SurfaceTileKey> { new(0, 0, 0, 0) };
+            expectedKeys.AddRange(secondKeys);
+            sceneKeys.Should().BeEquivalentTo(expectedKeys, opts => opts.WithStrictOrdering());
+        });
+    }
+
     private sealed class RecordingDrawingContext : IDisposable
     {
         private readonly DrawingGroup _drawingGroup = new();

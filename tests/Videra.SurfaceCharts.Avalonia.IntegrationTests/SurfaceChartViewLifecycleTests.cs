@@ -98,6 +98,79 @@ public sealed class SurfaceChartViewLifecycleTests
         });
     }
 
+    [Fact]
+    public Task FailingOverviewRequest_SetsLastTileFailureAndRaisesEvent()
+    {
+        return AvaloniaHeadlessTestSession.RunAsync(async () =>
+        {
+            var metadata = CreateMetadata();
+            var source = new ScriptedSurfaceTileSource(metadata, defaultTileValue: 5);
+            source.EnqueueResponse(static (_, _) => Task.FromException<SurfaceTile?>(new InvalidOperationException("tile fault")));
+            var view = new SurfaceChartView
+            {
+                Source = source
+            };
+
+            await SurfaceChartTestHelpers.WaitForFailureAsync(view);
+
+            view.LastTileFailure.Should().NotBeNull();
+            view.LastTileFailure!.TileKey.Should().Be(new SurfaceTileKey(0, 0, 0, 0));
+            view.LastTileFailure.Exception.Should().BeOfType<InvalidOperationException>();
+        });
+    }
+
+    [Fact]
+    public Task SuccessfulRequestAfterFailure_ClearsLastTileFailure()
+    {
+        return AvaloniaHeadlessTestSession.RunAsync(async () =>
+        {
+            var metadata = CreateMetadata();
+            var source = new ScriptedSurfaceTileSource(metadata, defaultTileValue: 9);
+            source.EnqueueResponse(static (_, _) => Task.FromException<SurfaceTile?>(new InvalidOperationException("tile fault")));
+            source.EnqueueSuccessResponse();
+            var view = new SurfaceChartView
+            {
+                Source = source
+            };
+
+            await SurfaceChartTestHelpers.WaitForFailureAsync(view);
+
+            view.LastTileFailure.Should().NotBeNull();
+
+            view.Viewport = new SurfaceViewport(0, 0, 512, 512);
+
+            await SurfaceChartTestHelpers.WaitForLoadedTileValuesAsync(view, [9]);
+
+            view.LastTileFailure.Should().BeNull();
+        });
+    }
+
+    [Fact]
+    public Task SourceReplacement_ClearsLastTileFailure()
+    {
+        return AvaloniaHeadlessTestSession.RunAsync(async () =>
+        {
+            var metadata = CreateMetadata();
+            var faultingSource = new ScriptedSurfaceTileSource(metadata, defaultTileValue: 3);
+            faultingSource.EnqueueResponse(static (_, _) => Task.FromException<SurfaceTile?>(new InvalidOperationException("tile fault")));
+            var view = new SurfaceChartView
+            {
+                Source = faultingSource
+            };
+
+            await SurfaceChartTestHelpers.WaitForFailureAsync(view);
+
+            view.LastTileFailure.Should().NotBeNull();
+
+            var freshSource = new RecordingSurfaceTileSource(metadata);
+            view.Source = freshSource;
+
+            await Task.Delay(100).ConfigureAwait(false);
+
+            view.LastTileFailure.Should().BeNull();
+        });
+    }
+
     internal static SurfaceMetadata CreateMetadata()
     {
         return new SurfaceMetadata(
@@ -346,6 +419,36 @@ internal static class SurfaceChartTestHelpers
         return new SurfaceTile(key, width, height, bounds, values, metadata.ValueRange);
     }
 
+    public static SurfaceTileKey[] GetLoadedTileKeys(SurfaceChartView view)
+    {
+        var tileCacheField = typeof(SurfaceChartView).GetField("_tileCache", BindingFlags.Instance | BindingFlags.NonPublic);
+        tileCacheField.Should().NotBeNull();
+
+        var tileCache = tileCacheField!.GetValue(view);
+        tileCache.Should().NotBeNull();
+
+        var getLoadedTilesMethod = tileCache!.GetType().GetMethod("GetLoadedTiles", BindingFlags.Instance | BindingFlags.Public);
+        getLoadedTilesMethod.Should().NotBeNull();
+
+        var tiles = (IReadOnlyList<SurfaceTile>)getLoadedTilesMethod!.Invoke(tileCache, null)!;
+        return tiles.Select(static tile => tile.Key).ToArray();
+    }
+
+    public static SurfaceTileKey[] GetRenderSceneTileKeys(SurfaceChartView view)
+    {
+        var scene = GetRenderSceneFromView(view);
+        if (scene is null)
+        {
+            return [];
+        }
+
+        var tilesField = typeof(SurfaceRenderScene).GetProperty("Tiles", BindingFlags.Instance | BindingFlags.Public);
+        tilesField.Should().NotBeNull();
+
+        var tiles = (IReadOnlyList<SurfaceRenderTile>)tilesField!.GetValue(scene)!;
+        return tiles.Select(static tile => tile.Key).ToArray();
+    }
+
     public static async Task WaitForLoadedTileValuesAsync(SurfaceChartView view, float[] expectedValues, TimeSpan? timeout = null)
     {
         timeout ??= TimeSpan.FromSeconds(2);
@@ -369,6 +472,24 @@ internal static class SurfaceChartTestHelpers
         settlingDelay ??= TimeSpan.FromMilliseconds(100);
         await Task.Delay(settlingDelay.Value).ConfigureAwait(false);
         GetLoadedTileValues(view).Should().Equal(expectedValues);
+    }
+
+    public static async Task WaitForFailureAsync(SurfaceChartView view, TimeSpan? timeout = null)
+    {
+        timeout ??= TimeSpan.FromSeconds(2);
+        var deadline = Stopwatch.GetTimestamp() + (long)(timeout.Value.TotalSeconds * Stopwatch.Frequency);
+
+        while (Stopwatch.GetTimestamp() < deadline)
+        {
+            if (view.LastTileFailure is not null)
+            {
+                return;
+            }
+
+            await Task.Delay(TimeSpan.FromMilliseconds(10)).ConfigureAwait(false);
+        }
+
+        view.LastTileFailure.Should().NotBeNull("a tile failure should have been reported within the timeout");
     }
 
     public static async Task WaitForRequestCountAsync(
@@ -453,6 +574,13 @@ internal static class SurfaceChartTestHelpers
 
         var tiles = (IReadOnlyList<SurfaceTile>)getLoadedTilesMethod!.Invoke(tileCache, null)!;
         return tiles.SelectMany(static tile => tile.Values.Span.ToArray()).Distinct().ToArray();
+    }
+
+    private static SurfaceRenderScene? GetRenderSceneFromView(SurfaceChartView view)
+    {
+        var field = typeof(SurfaceChartView).GetField("_renderScene", BindingFlags.Instance | BindingFlags.NonPublic);
+        field.Should().NotBeNull();
+        return (SurfaceRenderScene?)field!.GetValue(view);
     }
 }
 

@@ -21,6 +21,8 @@ public partial class SurfaceChartView
 
     private void NotifyTilesChanged()
     {
+        LastTileFailure = null;
+
         if (Dispatcher.UIThread.CheckAccess())
         {
             InvalidateRenderScene();

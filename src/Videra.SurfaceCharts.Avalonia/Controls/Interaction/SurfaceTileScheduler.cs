@@ -8,15 +8,18 @@ internal sealed class SurfaceTileScheduler
     private readonly SurfaceTileCache _tileCache;
     private readonly SurfaceLodPolicy _lodPolicy;
     private readonly Action _tilesChanged;
+    private readonly Action<SurfaceTileKey, Exception>? _tileFailed;
     private ISurfaceTileSource? _source;
 
     public SurfaceTileScheduler(
         SurfaceTileCache tileCache,
         Action tilesChanged,
+        Action<SurfaceTileKey, Exception>? tileFailed = null,
         SurfaceLodPolicy? lodPolicy = null)
     {
         _tileCache = tileCache ?? throw new ArgumentNullException(nameof(tileCache));
         _tilesChanged = tilesChanged ?? throw new ArgumentNullException(nameof(tilesChanged));
+        _tileFailed = tileFailed;
         _lodPolicy = lodPolicy ?? SurfaceLodPolicy.Default;
     }
 
@@ -88,10 +91,14 @@ internal sealed class SurfaceTileScheduler
                 _tilesChanged();
             }
         }
-        catch
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
             _tileCache.ReleaseRequested(key, requestGeneration);
-            throw;
+        }
+        catch (Exception ex)
+        {
+            _tileCache.ReleaseRequested(key, requestGeneration);
+            _tileFailed?.Invoke(key, ex);
         }
     }
 }

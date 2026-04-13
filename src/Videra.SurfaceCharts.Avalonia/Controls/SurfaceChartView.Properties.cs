@@ -64,6 +64,7 @@ public partial class SurfaceChartView
 
     private void OnSourceChanged(ISurfaceTileSource? source)
     {
+        LastTileFailure = null;
         _controller.UpdateSource(source);
     }
 
