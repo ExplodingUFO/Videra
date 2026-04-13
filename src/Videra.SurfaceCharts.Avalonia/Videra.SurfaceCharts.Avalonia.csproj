@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <PackageId>Videra.SurfaceCharts.Avalonia</PackageId>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <Description>Avalonia surface-chart control shell for Videra Surface Charts.</Description>
+    <PackageTags>videra;surface-charts;avalonia;3d;chart;ui</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="11.3.9" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Videra.SurfaceCharts.Core\Videra.SurfaceCharts.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+</Project>

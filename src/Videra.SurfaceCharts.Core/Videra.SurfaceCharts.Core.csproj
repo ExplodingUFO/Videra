@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <PackageId>Videra.SurfaceCharts.Core</PackageId>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <Description>Core surface-chart contracts for Videra Surface Charts, including metadata, viewport, LOD, and tile-source abstractions.</Description>
+    <PackageTags>videra;surface-charts;3d;chart;viewer;graphics</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+</Project>
