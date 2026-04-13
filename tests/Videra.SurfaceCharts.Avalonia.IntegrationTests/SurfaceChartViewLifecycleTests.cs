@@ -1,8 +1,10 @@
 using System.Diagnostics;
 using System.Reflection;
+using System.Collections.Concurrent;
 using Avalonia;
 using FluentAssertions;
 using Videra.SurfaceCharts.Avalonia.Controls;
+using Videra.SurfaceCharts.Avalonia.Controls.Interaction;
 using Videra.SurfaceCharts.Core;
 using Xunit;
 
@@ -96,6 +98,114 @@ public sealed class SurfaceChartViewLifecycleTests
             await activeSource.AssertRequestCountSettlesAtAsync(1);
             await SurfaceChartTestHelpers.AssertLoadedTileValuesStayAsync(view, [42]);
         });
+    }
+
+    [Fact]
+    public Task RapidSourceReplacement_DoesNotPublishLateFailuresFromSupersededSource()
+    {
+        return AvaloniaHeadlessTestSession.RunAsync(async () =>
+        {
+            var metadata = CreateMetadata();
+            var staleSource = new ScriptedSurfaceTileSource(metadata, defaultTileValue: 11);
+            var activeSource = new ScriptedSurfaceTileSource(metadata, defaultTileValue: 42);
+            var staleRequestStarted = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var staleCompletion = new TaskCompletionSource<SurfaceTile?>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var staleRequestCompleted = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var failureEvents = new List<SurfaceChartTileRequestFailedEventArgs>();
+            var view = new SurfaceChartView();
+            view.TileRequestFailed += (_, args) => failureEvents.Add(args);
+            view.Measure(new Size(256, 256));
+            view.Arrange(new Rect(0, 0, 256, 256));
+            view.Viewport = new SurfaceViewport(0, 0, 512, 512);
+
+            staleSource.EnqueueSuccessResponse();
+
+            staleSource.EnqueueResponse(async (_, _) =>
+            {
+                staleRequestStarted.TrySetResult(true);
+
+                try
+                {
+                    return await staleCompletion.Task.ConfigureAwait(false);
+                }
+                finally
+                {
+                    staleRequestCompleted.TrySetResult(true);
+                }
+            });
+
+            view.Source = staleSource;
+
+            await staleRequestStarted.Task;
+
+            view.Source = activeSource;
+
+            await activeSource.WaitForRequestCountAsync(1);
+            await SurfaceChartTestHelpers.WaitForLoadedTileValuesAsync(view, [42]);
+
+            staleCompletion.SetException(new InvalidOperationException("stale fault"));
+
+            await staleRequestCompleted.Task.ConfigureAwait(false);
+            await staleSource.AssertRequestCountSettlesAtAsync(1);
+            await activeSource.AssertRequestCountSettlesAtAsync(1);
+            await Task.Delay(100).ConfigureAwait(false);
+
+            failureEvents.Should().BeEmpty();
+            view.LastTileFailure.Should().BeNull();
+            await SurfaceChartTestHelpers.AssertLoadedTileValuesStayAsync(view, [42]);
+        });
+    }
+
+    [Fact]
+    public async Task ControllerSourceReplacement_DoesNotPublishLateFailuresFromSupersededGeneration()
+    {
+        var metadata = CreateMetadata();
+        var staleSource = new ScriptedSurfaceTileSource(metadata, defaultTileValue: 11);
+        var activeSource = new ScriptedSurfaceTileSource(metadata, defaultTileValue: 42);
+        var staleRequestStarted = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var staleCompletion = new TaskCompletionSource<SurfaceTile?>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var staleRequestCompleted = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var failures = new ConcurrentQueue<(SurfaceTileKey TileKey, Exception Exception)>();
+        var tileCache = new SurfaceTileCache();
+        var scheduler = new SurfaceTileScheduler(tileCache, static () => { }, (key, exception) => failures.Enqueue((key, exception)));
+        var controller = new SurfaceChartController(
+            new SurfaceCameraController(new SurfaceViewport(0, 0, 512, 512)),
+            tileCache,
+            scheduler,
+            static () => { });
+
+        controller.UpdateViewSize(new Size(256, 256));
+
+        staleSource.EnqueueSuccessResponse();
+        staleSource.EnqueueResponse(async (_, _) =>
+        {
+            staleRequestStarted.TrySetResult(true);
+
+            try
+            {
+                return await staleCompletion.Task.ConfigureAwait(false);
+            }
+            finally
+            {
+                staleRequestCompleted.TrySetResult(true);
+            }
+        });
+
+        controller.UpdateSource(staleSource);
+
+        await staleRequestStarted.Task;
+
+        controller.UpdateSource(activeSource);
+
+        await activeSource.WaitForRequestCountAsync(1);
+
+        staleCompletion.SetException(new InvalidOperationException("stale fault"));
+
+        await staleRequestCompleted.Task;
+        await staleSource.AssertRequestCountSettlesAtAsync(2);
+        await Task.Delay(100);
+
+        failures.Should().BeEmpty();
     }
 
     [Fact]

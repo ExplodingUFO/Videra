@@ -10,6 +10,7 @@ internal sealed class SurfaceTileScheduler
     private readonly Action _tilesChanged;
     private readonly Action<SurfaceTileKey, Exception>? _tileFailed;
     private ISurfaceTileSource? _source;
+    private long _activeGeneration;
 
     public SurfaceTileScheduler(
         SurfaceTileCache tileCache,
@@ -26,6 +27,11 @@ internal sealed class SurfaceTileScheduler
     public void UpdateSource(ISurfaceTileSource? source)
     {
         _source = source;
+    }
+
+    public void SetActiveGeneration(long requestGeneration)
+    {
+        Interlocked.Exchange(ref _activeGeneration, requestGeneration);
     }
 
     public Task RequestOverviewAsync(long requestGeneration, CancellationToken cancellationToken)
@@ -98,7 +104,11 @@ internal sealed class SurfaceTileScheduler
         catch (Exception ex)
         {
             _tileCache.ReleaseRequested(key, requestGeneration);
-            _tileFailed?.Invoke(key, ex);
+
+            if (requestGeneration == Interlocked.Read(ref _activeGeneration))
+            {
+                _tileFailed?.Invoke(key, ex);
+            }
         }
     }
 }

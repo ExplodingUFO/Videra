@@ -27,7 +27,7 @@ internal sealed class SurfaceChartController
 
     public void UpdateSource(ISurfaceTileSource? source)
     {
-        CancelOutstandingRequests();
+        var requestGeneration = SupersedeOutstandingRequests();
         _tileCache.Clear();
         _tileScheduler.UpdateSource(source);
         _invalidateScene();
@@ -37,16 +37,16 @@ internal sealed class SurfaceChartController
             return;
         }
 
-        StartRequestPipeline(includeViewportRequest: _viewSize.Width > 0 && _viewSize.Height > 0);
+        StartRequestPipeline(includeViewportRequest: _viewSize.Width > 0 && _viewSize.Height > 0, requestGeneration);
     }
 
     public void UpdateViewport(SurfaceViewport viewport)
     {
         _cameraController.UpdateViewport(viewport);
-        CancelOutstandingRequests();
+        var requestGeneration = SupersedeOutstandingRequests();
         _tileCache.PruneDetailTiles();
         _invalidateScene();
-        StartRequestPipeline(includeViewportRequest: true);
+        StartRequestPipeline(includeViewportRequest: true, requestGeneration);
     }
 
     public void UpdateViewSize(Size viewSize)
@@ -59,17 +59,23 @@ internal sealed class SurfaceChartController
             _invalidateScene();
         }
 
-        StartRequestPipeline(includeViewportRequest: viewSize.Width > 0 && viewSize.Height > 0);
+        var requestGeneration = SupersedeOutstandingRequests();
+        StartRequestPipeline(includeViewportRequest: viewSize.Width > 0 && viewSize.Height > 0, requestGeneration);
     }
 
-    private void StartRequestPipeline(bool includeViewportRequest)
+    private void StartRequestPipeline(bool includeViewportRequest, long requestGeneration)
     {
-        CancelOutstandingRequests();
-
         var cancellationTokenSource = new CancellationTokenSource();
-        var requestGeneration = ++_requestGeneration;
         _requestCts = cancellationTokenSource;
         _ = RunRequestPipelineAsync(includeViewportRequest, requestGeneration, cancellationTokenSource.Token);
+    }
+
+    private long SupersedeOutstandingRequests()
+    {
+        var requestGeneration = ++_requestGeneration;
+        _tileScheduler.SetActiveGeneration(requestGeneration);
+        CancelOutstandingRequests();
+        return requestGeneration;
     }
 
     private async Task RunRequestPipelineAsync(
