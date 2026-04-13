@@ -5,7 +5,7 @@ using Videra.SurfaceCharts.Core;
 namespace Videra.SurfaceCharts.Processing;
 
 /// <summary>
-/// Adapts a loaded surface cache to the core tile-source contract.
+/// Adapts a loaded surface cache to the core tile-source contract with lazy on-demand loading.
 /// </summary>
 public sealed class SurfaceCacheTileSource : ISurfaceTileSource
 {
@@ -31,6 +31,6 @@ public sealed class SurfaceCacheTileSource : ISurfaceTileSource
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        return ValueTask.FromResult(cacheReader.TryGetTile(tileKey, out var tile) ? tile : null);
+        return cacheReader.LoadTileAsync(tileKey, cancellationToken);
     }
 }

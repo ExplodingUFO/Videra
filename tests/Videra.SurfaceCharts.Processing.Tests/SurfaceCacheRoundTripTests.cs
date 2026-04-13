@@ -64,9 +64,8 @@ public class SurfaceCacheRoundTripTests
             foreach (var tileKey in tileKeys)
             {
                 var expected = await source.GetRequiredTileAsync(tileKey);
-                var found = reader.TryGetTile(tileKey, out var actual);
+                var actual = await reader.LoadTileAsync(tileKey);
 
-                found.Should().BeTrue();
                 actual.Should().NotBeNull();
                 AssertTile(actual!, expected);
             }
@@ -114,6 +113,106 @@ public class SurfaceCacheRoundTripTests
         }
     }
 
+    [Fact]
+    public async Task WriteAsync_CreatesDestinationDirectoryBeforeWritingPayloadSidecar()
+    {
+        var cachePath = CreateCachePath(createDirectory: false);
+        var tileKey = new SurfaceTileKey(0, 0, 0, 0);
+
+        try
+        {
+            Directory.Exists(Path.GetDirectoryName(cachePath)!).Should().BeFalse();
+
+            await SurfaceCacheWriter.WriteAsync(cachePath, CreateSource(width: 2, height: 2), new[] { tileKey });
+
+            File.Exists(cachePath).Should().BeTrue();
+            File.Exists(cachePath + ".bin").Should().BeTrue();
+        }
+        finally
+        {
+            DeleteCachePath(cachePath);
+        }
+    }
+
+    [Fact]
+    public async Task WriteAsync_RestoresExistingCacheWhenPayloadReplaceFails()
+    {
+        var cachePath = CreateCachePath();
+        var payloadPath = cachePath + ".bin";
+        var tileKey = new SurfaceTileKey(0, 0, 0, 0);
+        var originalSource = CreateSource(width: 2, height: 2);
+        var replacementSource = CreateSource(width: 4, height: 4);
+
+        try
+        {
+            await SurfaceCacheWriter.WriteAsync(cachePath, originalSource, new[] { tileKey });
+
+            var originalManifest = await File.ReadAllTextAsync(cachePath);
+            var expectedTile = await originalSource.GetRequiredTileAsync(tileKey);
+
+            await using (var payloadLock = new FileStream(payloadPath, FileMode.Open, FileAccess.Read, FileShare.None))
+            {
+                var act = async () => await SurfaceCacheWriter.WriteAsync(cachePath, replacementSource, new[] { tileKey });
+                await act.Should().ThrowAsync<Exception>();
+            }
+
+            var currentManifest = await File.ReadAllTextAsync(cachePath);
+            currentManifest.Should().Be(originalManifest);
+
+            var reader = await SurfaceCacheReader.ReadAsync(cachePath);
+            var actualTile = await reader.LoadTileAsync(tileKey);
+
+            reader.Metadata.Width.Should().Be(originalSource.Metadata.Width);
+            reader.Metadata.Height.Should().Be(originalSource.Metadata.Height);
+            actualTile.Should().NotBeNull();
+            AssertTile(actualTile!, expectedTile);
+        }
+        finally
+        {
+            DeleteCachePath(cachePath);
+        }
+    }
+
+    [Fact]
+    public async Task WriteAsync_RestoresExistingPayloadWhenManifestReplaceFails()
+    {
+        var cachePath = CreateCachePath();
+        var payloadPath = cachePath + ".bin";
+        var tileKey = new SurfaceTileKey(0, 0, 0, 0);
+        var originalSource = CreateSource(width: 2, height: 2);
+        var replacementSource = CreateSource(width: 4, height: 4);
+
+        try
+        {
+            await SurfaceCacheWriter.WriteAsync(cachePath, originalSource, new[] { tileKey });
+
+            var originalManifest = await File.ReadAllTextAsync(cachePath);
+            var expectedTile = await originalSource.GetRequiredTileAsync(tileKey);
+
+            await using (var manifestLock = new FileStream(cachePath, FileMode.Open, FileAccess.Read, FileShare.None))
+            {
+                var act = async () => await SurfaceCacheWriter.WriteAsync(cachePath, replacementSource, new[] { tileKey });
+                await act.Should().ThrowAsync<Exception>();
+            }
+
+            var currentManifest = await File.ReadAllTextAsync(cachePath);
+            currentManifest.Should().Be(originalManifest);
+
+            var reader = await SurfaceCacheReader.ReadAsync(cachePath);
+            var actualTile = await reader.LoadTileAsync(tileKey);
+
+            reader.Metadata.Width.Should().Be(originalSource.Metadata.Width);
+            reader.Metadata.Height.Should().Be(originalSource.Metadata.Height);
+            File.Exists(payloadPath).Should().BeTrue();
+            actualTile.Should().NotBeNull();
+            AssertTile(actualTile!, expectedTile);
+        }
+        finally
+        {
+            DeleteCachePath(cachePath);
+        }
+    }
+
     private static void AssertTile(SurfaceTile actual, SurfaceTile expected)
     {
         actual.Key.Should().Be(expected.Key);
@@ -124,10 +223,10 @@ public class SurfaceCacheRoundTripTests
         actual.Values.ToArray().Should().Equal(expected.Values.ToArray());
     }
 
-    private static ISurfaceTileSource CreateSource()
+    private static ISurfaceTileSource CreateSource(int width = 8, int height = 4)
     {
         var builder = new SurfacePyramidBuilder(maxTileWidth: 2, maxTileHeight: 2);
-        return builder.Build(CreateMatrix(8, 4));
+        return builder.Build(CreateMatrix(width, height));
     }
 
     private static SurfaceMatrix CreateMatrix(int width, int height)
@@ -151,14 +250,18 @@ public class SurfaceCacheRoundTripTests
             new SurfaceValueRange(-3.5, 31.5));
     }
 
-    private static string CreateCachePath()
+    private static string CreateCachePath(bool createDirectory = true)
     {
         var directoryPath = Path.Combine(
             Path.GetTempPath(),
             "Videra.SurfaceCharts.Processing.Tests",
             Guid.NewGuid().ToString("N"));
 
-        Directory.CreateDirectory(directoryPath);
+        if (createDirectory)
+        {
+            Directory.CreateDirectory(directoryPath);
+        }
+
         return Path.Combine(directoryPath, "surface-cache.json");
     }
 
@@ -177,15 +280,7 @@ public class SurfaceCacheRoundTripTests
 
         public ValueTask<SurfaceTile?> GetTileAsync(SurfaceTileKey tileKey, CancellationToken cancellationToken = default)
         {
-            var tile = new SurfaceTile(
-                tileKey,
-                2,
-                2,
-                new SurfaceTileBounds(0, 0, 2, 2),
-                new[] { float.NaN, 1f, 2f, 3f },
-                new SurfaceValueRange(0.0, 3.0));
-
-            return ValueTask.FromResult<SurfaceTile?>(tile);
+            throw new Exception("Simulated serialization failure.");
         }
     }
 }

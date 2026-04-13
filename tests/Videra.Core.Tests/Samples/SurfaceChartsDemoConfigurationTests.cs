@@ -16,6 +16,7 @@ public sealed class SurfaceChartsDemoConfigurationTests
         var mainWindowCodeBehindPath = Path.Combine(demoRoot, "Views", "MainWindow.axaml.cs");
         var appXamlPath = Path.Combine(demoRoot, "App.axaml");
         var cacheAssetPath = Path.Combine(demoRoot, "Assets", "sample-surface-cache", "sample.surfacecache.json");
+        var cachePayloadPath = Path.Combine(demoRoot, "Assets", "sample-surface-cache", "sample.surfacecache.json.bin");
 
         File.Exists(demoProjectPath).Should().BeTrue();
         File.Exists(demoReadmePath).Should().BeTrue();
@@ -23,6 +24,7 @@ public sealed class SurfaceChartsDemoConfigurationTests
         File.Exists(mainWindowXamlPath).Should().BeTrue();
         File.Exists(mainWindowCodeBehindPath).Should().BeTrue();
         File.Exists(cacheAssetPath).Should().BeTrue();
+        File.Exists(cachePayloadPath).Should().BeTrue();
 
         var project = File.ReadAllText(demoProjectPath);
         project.Should().Contain(@"..\..\src\Videra.SurfaceCharts.Avalonia\Videra.SurfaceCharts.Avalonia.csproj");
@@ -31,6 +33,8 @@ public sealed class SurfaceChartsDemoConfigurationTests
         var readme = File.ReadAllText(demoReadmePath);
         readme.Should().Contain("in-memory");
         readme.Should().Contain("cache-backed");
+        readme.Should().Contain("lazy");
+        readme.Should().Contain("sample.surfacecache.json.bin");
 
         var mainWindow = File.ReadAllText(mainWindowXamlPath);
         mainWindow.Should().Contain("In-memory example");
@@ -47,6 +51,15 @@ public sealed class SurfaceChartsDemoConfigurationTests
         mainWindowCodeBehind.Should().Contain("_viewportSelector.SelectionChanged += OnViewportSelectionChanged;");
         mainWindowCodeBehind.Should().Contain("CreateOverviewViewport");
         mainWindowCodeBehind.Should().Contain("CreateZoomedDetailViewport");
+        mainWindowCodeBehind.Should().Contain("CacheManifestFileName");
+        mainWindowCodeBehind.Should().Contain("CachePayloadSuffix");
+        mainWindowCodeBehind.Should().Contain("lazy");
+
+        var cacheAsset = File.ReadAllText(cacheAssetPath);
+        cacheAsset.Should().Contain(@"""version"": 2");
+        cacheAsset.Should().Contain("payloadOffset");
+        cacheAsset.Should().Contain("payloadLength");
+        cacheAsset.Should().NotContain(@"""values""");
 
         var appXaml = File.ReadAllText(appXamlPath);
         appXaml.Should().NotContain("VideraView");

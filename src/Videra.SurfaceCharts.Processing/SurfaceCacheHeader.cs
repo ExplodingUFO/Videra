@@ -13,7 +13,7 @@ public sealed class SurfaceCacheHeader
     /// <summary>
     /// Gets the supported cache format version.
     /// </summary>
-    public const int CurrentVersion = 1;
+    public const int CurrentVersion = 2;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SurfaceCacheHeader"/> class.

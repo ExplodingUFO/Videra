@@ -48,6 +48,7 @@ public sealed class SurfaceChartsDemoViewportBehaviorTests
 
             chartView.Viewport.Should().Be(CreateZoomedDetailViewport(chartView.Source!.Metadata));
             statusText.Text.Should().Contain("Cache-backed example");
+            statusText.Text.Should().Contain("lazy");
 
             SelectItem(viewportSelector, GetComboBoxItemByTag(viewportSelector, "overview"));
 

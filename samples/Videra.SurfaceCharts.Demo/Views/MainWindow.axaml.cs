@@ -9,6 +9,9 @@ namespace Videra.SurfaceCharts.Demo.Views;
 
 public partial class MainWindow : Window
 {
+    private const string CacheManifestFileName = "sample.surfacecache.json";
+    private const string CachePayloadSuffix = ".bin";
+
     private enum ViewportMode
     {
         Overview,
@@ -22,9 +25,10 @@ public partial class MainWindow : Window
     private readonly TextBlock _cachePathText;
     private readonly TextBlock _datasetText;
     private readonly ISurfaceTileSource _inMemorySource;
-    private readonly Task<ISurfaceTileSource> _cacheSourceTask;
     private readonly SurfaceColorMap _colorMap;
     private readonly string _cachePath;
+    private readonly string _cachePayloadPath;
+    private Task<ISurfaceTileSource>? _cacheSourceTask;
     private SurfaceViewport _overviewViewport;
     private SurfaceViewport _zoomedDetailViewport;
     private string _activeSourceHeading = string.Empty;
@@ -51,10 +55,10 @@ public partial class MainWindow : Window
             AppContext.BaseDirectory,
             "Assets",
             "sample-surface-cache",
-            "sample.surfacecache.json");
+            CacheManifestFileName);
+        _cachePayloadPath = _cachePath + CachePayloadSuffix;
 
         _inMemorySource = CreateInMemorySource();
-        _cacheSourceTask = LoadCacheSourceAsync();
         _colorMap = CreateColorMap(_inMemorySource.Metadata.ValueRange);
 
         _sourceSelector.SelectedIndex = 0;
@@ -69,7 +73,7 @@ public partial class MainWindow : Window
         _sourceSelector.SelectionChanged += OnSourceSelectionChanged;
         _viewportSelector.SelectionChanged += OnViewportSelectionChanged;
 
-        _cachePathText.Text = _cachePath;
+        _cachePathText.Text = $"Manifest: {_cachePath}\nPayload sidecar: {_cachePayloadPath}";
         _datasetText.Text = CreateDatasetSummary();
     }
 
@@ -91,8 +95,11 @@ public partial class MainWindow : Window
 
         try
         {
-            var cacheSource = await _cacheSourceTask.ConfigureAwait(true);
-            ApplySource(cacheSource, "Cache-backed example", $"Loaded from the committed cache asset at {_cachePath}.");
+            var cacheSource = await GetOrCreateCacheSourceAsync().ConfigureAwait(true);
+            ApplySource(
+                cacheSource,
+                "Cache-backed example",
+                $"Loads manifest metadata from {_cachePath} and uses lazy viewport tile streaming from {_cachePayloadPath}.");
         }
         catch (Exception exception)
         {
@@ -179,6 +186,11 @@ public partial class MainWindow : Window
         return new SurfacePyramidBuilder(32, 32).Build(matrix);
     }
 
+    private Task<ISurfaceTileSource> GetOrCreateCacheSourceAsync()
+    {
+        return _cacheSourceTask ??= LoadCacheSourceAsync();
+    }
+
     private async Task<ISurfaceTileSource> LoadCacheSourceAsync()
     {
         var reader = await SurfaceCacheReader.ReadAsync(_cachePath).ConfigureAwait(false);
@@ -240,6 +252,6 @@ public partial class MainWindow : Window
     private static string CreateDatasetSummary()
     {
         return "The in-memory path uses a generated 64x48 matrix with an overview-first pyramid. " +
-               "The cache-backed path reads the same sample family from a committed JSON cache file.";
+               "The cache-backed path loads a committed manifest plus binary sidecar and only reads the overview/detail tiles needed for the active viewport.";
     }
 }

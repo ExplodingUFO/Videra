@@ -48,7 +48,7 @@ public class SurfaceCacheTileSourceTests
             {
               "header": {
                 "magic": "INVALID",
-                "version": 1,
+                "version": 2,
                 "tileCount": 0
               },
               "metadata": {
@@ -118,7 +118,7 @@ public class SurfaceCacheTileSourceTests
             {
               "header": {
                 "magic": "VIDERA_SURFACE_CACHE",
-                "version": 1,
+                "version": 2,
                 "tileCount": 1
               },
               "metadata": {
@@ -144,7 +144,7 @@ public class SurfaceCacheTileSourceTests
               "tiles": [
                 {
                   "key": {
-                    "levelX": 0,
+                    "levelX": -1,
                     "levelY": 0,
                     "tileX": 0,
                     "tileY": 0
@@ -161,7 +161,8 @@ public class SurfaceCacheTileSourceTests
                     "minimum": 0,
                     "maximum": 1
                   },
-                  "values": [ 0.0, 1.0, 2.0 ]
+                  "payloadOffset": 0,
+                  "payloadLength": 16
                 }
               ]
             }
@@ -175,6 +176,104 @@ public class SurfaceCacheTileSourceTests
 
             await act.Should().ThrowAsync<InvalidDataException>()
                 .WithMessage("*semantically invalid*");
+        }
+        finally
+        {
+            DeleteCachePath(cachePath);
+        }
+    }
+
+    [Fact]
+    public async Task ReadAsync_RejectsPayloadLengthThatDoesNotMatchTileDimensions()
+    {
+        var cachePath = CreateCachePath();
+
+        try
+        {
+            await File.WriteAllTextAsync(cachePath, CreateSingleTileCacheJson(payloadOffset: 0, payloadLength: 12));
+
+            var act = async () => _ = await SurfaceCacheReader.ReadAsync(cachePath);
+
+            await act.Should().ThrowAsync<InvalidDataException>()
+                .WithMessage("*payload*length*");
+        }
+        finally
+        {
+            DeleteCachePath(cachePath);
+        }
+    }
+
+    [Fact]
+    public async Task ReadAsync_RejectsNegativePayloadOffset()
+    {
+        var cachePath = CreateCachePath();
+
+        try
+        {
+            await File.WriteAllTextAsync(cachePath, CreateSingleTileCacheJson(payloadOffset: -1, payloadLength: 16));
+
+            var act = async () => _ = await SurfaceCacheReader.ReadAsync(cachePath);
+
+            await act.Should().ThrowAsync<InvalidDataException>()
+                .WithMessage("*payload*offset*");
+        }
+        finally
+        {
+            DeleteCachePath(cachePath);
+        }
+    }
+
+    [Fact]
+    public async Task GetTileAsync_RejectsPayloadRangesThatExtendPastPayloadFile()
+    {
+        var cachePath = CreateCachePath();
+        var tileKey = new SurfaceTileKey(0, 0, 0, 0);
+
+        try
+        {
+            await File.WriteAllTextAsync(cachePath, CreateSingleTileCacheJson(payloadOffset: 0, payloadLength: 16));
+            await File.WriteAllBytesAsync(cachePath + ".bin", new byte[8]);
+
+            var reader = await SurfaceCacheReader.ReadAsync(cachePath);
+            ISurfaceTileSource cacheSource = new SurfaceCacheTileSource(reader);
+
+            var act = async () => await cacheSource.GetTileAsync(tileKey);
+
+            await act.Should().ThrowAsync<InvalidDataException>()
+                .WithMessage("*payload*");
+        }
+        finally
+        {
+            DeleteCachePath(cachePath);
+        }
+    }
+
+    [Fact]
+    public async Task GetTileAsync_FailsWhenPayloadFileIsMissing()
+    {
+        var cachePath = CreateCachePath();
+        var payloadPath = cachePath + ".bin";
+        var source = CreateSource();
+        var tileKey = new SurfaceTileKey(0, 0, 0, 0);
+
+        try
+        {
+            await SurfaceCacheWriter.WriteAsync(cachePath, source, new[] { tileKey });
+
+            var reader = await SurfaceCacheReader.ReadAsync(cachePath);
+            ISurfaceTileSource cacheSource = new SurfaceCacheTileSource(reader);
+
+            // Verify the payload file exists
+            File.Exists(payloadPath).Should().BeTrue("Payload file should have been created during WriteAsync");
+
+            // Delete the payload file to simulate a missing sidecar
+            File.Delete(payloadPath);
+
+            // Attempting to get the tile should now fail because it's loaded lazily
+            var act = async () => await cacheSource.GetTileAsync(tileKey);
+
+            await act.Should().ThrowAsync<IOException>()
+                .WithMessage("*payload*");
         }
         finally
         {
@@ -227,6 +326,63 @@ public class SurfaceCacheTileSourceTests
         {
             Directory.Delete(directoryPath, recursive: true);
         }
+    }
+
+    private static string CreateSingleTileCacheJson(long payloadOffset, int payloadLength)
+    {
+        return $$"""
+            {
+              "header": {
+                "magic": "VIDERA_SURFACE_CACHE",
+                "version": 2,
+                "tileCount": 1
+              },
+              "metadata": {
+                "width": 4,
+                "height": 4,
+                "horizontalAxis": {
+                  "label": "Time",
+                  "unit": "s",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "verticalAxis": {
+                  "label": "Frequency",
+                  "unit": "Hz",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "valueRange": {
+                  "minimum": 0,
+                  "maximum": 1
+                }
+              },
+              "tiles": [
+                {
+                  "key": {
+                    "levelX": 0,
+                    "levelY": 0,
+                    "tileX": 0,
+                    "tileY": 0
+                  },
+                  "width": 2,
+                  "height": 2,
+                  "bounds": {
+                    "startX": 0,
+                    "startY": 0,
+                    "width": 2,
+                    "height": 2
+                  },
+                  "valueRange": {
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  "payloadOffset": {{payloadOffset}},
+                  "payloadLength": {{payloadLength}}
+                }
+              ]
+            }
+            """;
     }
 }
 

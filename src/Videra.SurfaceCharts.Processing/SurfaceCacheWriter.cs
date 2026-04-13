@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using System.Text.Json;
 using Videra.SurfaceCharts.Core;
 
@@ -32,40 +33,61 @@ public static class SurfaceCacheWriter
         var uniqueKeys = new HashSet<SurfaceTileKey>();
         var tileDtos = new List<TileDto>();
 
-        foreach (var tileKey in tileKeys)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            if (!uniqueKeys.Add(tileKey))
-            {
-                throw new ArgumentException($"Duplicate tile key '{tileKey}' was provided.", nameof(tileKeys));
-            }
-
-            var tile = await source.GetRequiredTileAsync(tileKey, cancellationToken).ConfigureAwait(false);
-            tileDtos.Add(TileDto.FromModel(tile));
-        }
-
-        var metadata = source.GetRequiredMetadata();
-        var document = new CacheDocumentDto(
-            new CacheHeaderDto(
-                SurfaceCacheHeader.ExpectedMagic,
-                SurfaceCacheHeader.CurrentVersion,
-                tileDtos.Count),
-            MetadataDto.FromModel(metadata),
-            tileDtos);
-
-        var directoryPath = Path.GetDirectoryName(cachePath);
-        if (!string.IsNullOrWhiteSpace(directoryPath))
-        {
-            Directory.CreateDirectory(directoryPath);
-        }
-
-        var tempPath = CreateTemporaryCachePath(cachePath);
+        var payloadPath = cachePath + ".bin";
+        var tempCachePath = CreateTemporaryPath(cachePath);
+        var tempPayloadPath = CreateTemporaryPath(payloadPath);
+        var manifestBackupPath = CreateBackupPath(cachePath);
+        var payloadBackupPath = CreateBackupPath(payloadPath);
 
         try
         {
+            EnsureDestinationDirectoryExists(cachePath);
+
             #pragma warning disable CA2007
-            await using (var stream = File.Create(tempPath))
+            await using (var payloadStream = File.Create(tempPayloadPath))
+            {
+                foreach (var tileKey in tileKeys)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    if (!uniqueKeys.Add(tileKey))
+                    {
+                        throw new ArgumentException($"Duplicate tile key '{tileKey}' was provided.", nameof(tileKeys));
+                    }
+
+                    var tile = await source.GetRequiredTileAsync(tileKey, cancellationToken).ConfigureAwait(false);
+                    
+                    var offset = payloadStream.Position;
+                    var byteCount = tile.Values.Length * sizeof(float);
+                    var buffer = new byte[byteCount];
+                    MemoryMarshal.Cast<float, byte>(tile.Values.Span).CopyTo(buffer);
+                    
+                    await payloadStream.WriteAsync(buffer, cancellationToken).ConfigureAwait(false);
+                    var length = payloadStream.Position - offset;
+
+                    tileDtos.Add(TileDto.FromModel(tile, offset, (int)length));
+                }
+                await payloadStream.FlushAsync(cancellationToken).ConfigureAwait(false);
+            }
+            #pragma warning restore CA2007
+
+            var metadata = source.GetRequiredMetadata();
+            var document = new CacheDocumentDto(
+                new CacheHeaderDto(
+                    SurfaceCacheHeader.ExpectedMagic,
+                    SurfaceCacheHeader.CurrentVersion,
+                    tileDtos.Count),
+                MetadataDto.FromModel(metadata),
+                tileDtos);
+
+            var directoryPath = Path.GetDirectoryName(cachePath);
+            if (!string.IsNullOrWhiteSpace(directoryPath))
+            {
+                Directory.CreateDirectory(directoryPath);
+            }
+
+            #pragma warning disable CA2007
+            await using (var stream = File.Create(tempCachePath))
             {
                 await JsonSerializer.SerializeAsync(
                     stream,
@@ -76,11 +98,27 @@ public static class SurfaceCacheWriter
             }
             #pragma warning restore CA2007
 
-            ReplaceCacheFile(tempPath, cachePath);
+            ReplaceFile(tempPayloadPath, payloadPath, payloadBackupPath);
+
+            try
+            {
+                ReplaceFile(tempCachePath, cachePath, manifestBackupPath);
+            }
+            catch
+            {
+                RestoreFile(payloadPath, payloadBackupPath);
+                throw;
+            }
+
+            DeleteFile(manifestBackupPath);
+            DeleteFile(payloadBackupPath);
         }
         catch
         {
-            DeleteTemporaryCache(tempPath);
+            DeleteFile(tempCachePath);
+            DeleteFile(tempPayloadPath);
+            DeleteFile(manifestBackupPath);
+            DeleteFile(payloadBackupPath);
             throw;
         }
     }
@@ -141,9 +179,10 @@ public static class SurfaceCacheWriter
         int Height,
         TileBoundsDto? Bounds,
         ValueRangeDto? ValueRange,
-        float[]? Values)
+        long PayloadOffset,
+        int PayloadLength)
     {
-        public static TileDto FromModel(SurfaceTile tile)
+        public static TileDto FromModel(SurfaceTile tile, long offset, int length)
         {
             return new TileDto(
                 TileKeyDto.FromModel(tile.Key),
@@ -151,7 +190,8 @@ public static class SurfaceCacheWriter
                 tile.Height,
                 TileBoundsDto.FromModel(tile.Bounds),
                 ValueRangeDto.FromModel(tile.ValueRange),
-                tile.Values.ToArray());
+                offset,
+                length);
         }
     }
 
@@ -179,10 +219,10 @@ public static class SurfaceCacheWriter
         }
     }
 
-    private static string CreateTemporaryCachePath(string cachePath)
+    private static string CreateTemporaryPath(string path)
     {
-        var directoryPath = Path.GetDirectoryName(cachePath);
-        var fileName = Path.GetFileName(cachePath);
+        var directoryPath = Path.GetDirectoryName(path);
+        var fileName = Path.GetFileName(path);
         var tempFileName = $"{fileName}.{Guid.NewGuid():N}.tmp";
 
         return string.IsNullOrWhiteSpace(directoryPath)
@@ -190,22 +230,60 @@ public static class SurfaceCacheWriter
             : Path.Combine(directoryPath, tempFileName);
     }
 
-    private static void ReplaceCacheFile(string temporaryPath, string destinationPath)
+    private static string CreateBackupPath(string path)
+    {
+        var directoryPath = Path.GetDirectoryName(path);
+        var fileName = Path.GetFileName(path);
+        var backupFileName = $"{fileName}.{Guid.NewGuid():N}.bak";
+
+        return string.IsNullOrWhiteSpace(directoryPath)
+            ? backupFileName
+            : Path.Combine(directoryPath, backupFileName);
+    }
+
+    private static void EnsureDestinationDirectoryExists(string destinationPath)
+    {
+        var directoryPath = Path.GetDirectoryName(destinationPath);
+        if (!string.IsNullOrWhiteSpace(directoryPath))
+        {
+            Directory.CreateDirectory(directoryPath);
+        }
+    }
+
+    private static void ReplaceFile(string temporaryPath, string destinationPath, string backupPath)
     {
         if (File.Exists(destinationPath))
         {
-            File.Replace(temporaryPath, destinationPath, destinationBackupFileName: null, ignoreMetadataErrors: true);
+            DeleteFile(backupPath);
+            File.Replace(temporaryPath, destinationPath, destinationBackupFileName: backupPath, ignoreMetadataErrors: true);
             return;
         }
 
         File.Move(temporaryPath, destinationPath);
     }
 
-    private static void DeleteTemporaryCache(string temporaryPath)
+    private static void RestoreFile(string destinationPath, string backupPath)
     {
-        if (File.Exists(temporaryPath))
+        if (File.Exists(backupPath))
         {
-            File.Delete(temporaryPath);
+            if (File.Exists(destinationPath))
+            {
+                File.Replace(backupPath, destinationPath, destinationBackupFileName: null, ignoreMetadataErrors: true);
+                return;
+            }
+
+            File.Move(backupPath, destinationPath);
+            return;
+        }
+
+        DeleteFile(destinationPath);
+    }
+
+    private static void DeleteFile(string path)
+    {
+        if (File.Exists(path))
+        {
+            File.Delete(path);
         }
     }
 }
