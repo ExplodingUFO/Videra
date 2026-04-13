@@ -52,52 +52,69 @@ public sealed class SurfaceCacheReader
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(cachePath);
 
-        CacheDocumentDto? document;
-        #pragma warning disable CA2007
-        await using (var stream = File.OpenRead(cachePath))
+        try
         {
-            document = await JsonSerializer.DeserializeAsync<CacheDocumentDto>(
-                stream,
-                SerializerOptions,
-                cancellationToken).ConfigureAwait(false);
-        }
-        #pragma warning restore CA2007
-
-        if (document is null)
-        {
-            throw new InvalidDataException("Surface cache file did not contain a valid document.");
-        }
-
-        var header = document.Header?.ToModel()
-            ?? throw new InvalidDataException("Surface cache header is missing.");
-        header.Validate();
-
-        var metadata = document.Metadata?.ToModel()
-            ?? throw new InvalidDataException("Surface cache metadata is missing.");
-        var tileDtos = document.Tiles
-            ?? throw new InvalidDataException("Surface cache tiles are missing.");
-
-        if (header.TileCount != tileDtos.Count)
-        {
-            throw new InvalidDataException("Surface cache header tile count does not match the tile payload.");
-        }
-
-        var tilesByKey = new Dictionary<SurfaceTileKey, SurfaceTile>(tileDtos.Count);
-        foreach (var tileDto in tileDtos)
-        {
-            var tile = tileDto?.ToModel()
-                ?? throw new InvalidDataException("Surface cache contains a null tile entry.");
-
-            if (!tilesByKey.TryAdd(tile.Key, tile))
+            CacheDocumentDto? document;
+            #pragma warning disable CA2007
+            await using (var stream = File.OpenRead(cachePath))
             {
-                throw new InvalidDataException($"Surface cache contains a duplicate tile '{tile.Key}'.");
+                document = await JsonSerializer.DeserializeAsync<CacheDocumentDto>(
+                    stream,
+                    SerializerOptions,
+                    cancellationToken).ConfigureAwait(false);
             }
-        }
+            #pragma warning restore CA2007
 
-        return new SurfaceCacheReader(
-            header,
-            metadata,
-            new ReadOnlyDictionary<SurfaceTileKey, SurfaceTile>(tilesByKey));
+            if (document is null)
+            {
+                throw new InvalidDataException("Surface cache file did not contain a valid document.");
+            }
+
+            var header = document.Header?.ToModel()
+                ?? throw new InvalidDataException("Surface cache header is missing.");
+            header.Validate();
+
+            var metadata = document.Metadata?.ToModel()
+                ?? throw new InvalidDataException("Surface cache metadata is missing.");
+            var tileDtos = document.Tiles
+                ?? throw new InvalidDataException("Surface cache tiles are missing.");
+
+            if (header.TileCount != tileDtos.Count)
+            {
+                throw new InvalidDataException("Surface cache header tile count does not match the tile payload.");
+            }
+
+            var tilesByKey = new Dictionary<SurfaceTileKey, SurfaceTile>(tileDtos.Count);
+            foreach (var tileDto in tileDtos)
+            {
+                var tile = tileDto?.ToModel()
+                    ?? throw new InvalidDataException("Surface cache contains a null tile entry.");
+
+                if (!tilesByKey.TryAdd(tile.Key, tile))
+                {
+                    throw new InvalidDataException($"Surface cache contains a duplicate tile '{tile.Key}'.");
+                }
+            }
+
+            return new SurfaceCacheReader(
+                header,
+                metadata,
+                new ReadOnlyDictionary<SurfaceTileKey, SurfaceTile>(tilesByKey));
+        }
+        catch (JsonException exception)
+        {
+            throw CreateInvalidPayloadException(
+                cachePath,
+                "Surface cache content is malformed JSON.",
+                exception);
+        }
+        catch (ArgumentException exception)
+        {
+            throw CreateInvalidPayloadException(
+                cachePath,
+                "Surface cache content is semantically invalid.",
+                exception);
+        }
     }
 
     /// <summary>
@@ -221,5 +238,15 @@ public sealed class SurfaceCacheReader
     internal static JsonSerializerOptions GetSerializerOptions()
     {
         return SerializerOptions;
+    }
+
+    private static InvalidDataException CreateInvalidPayloadException(
+        string cachePath,
+        string reason,
+        Exception innerException)
+    {
+        return new InvalidDataException(
+            $"Surface cache '{cachePath}' is invalid. {reason}",
+            innerException);
     }
 }

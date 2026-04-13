@@ -77,6 +77,43 @@ public class SurfaceCacheRoundTripTests
         }
     }
 
+    [Fact]
+    public async Task WriteAsync_PreservesExistingCacheWhenSerializationFails()
+    {
+        var cachePath = CreateCachePath();
+        var validSource = CreateSource();
+        var validTileKeys = new[]
+        {
+            new SurfaceTileKey(0, 0, 0, 0),
+            new SurfaceTileKey(2, 1, 3, 1)
+        };
+
+        try
+        {
+            await SurfaceCacheWriter.WriteAsync(cachePath, validSource, validTileKeys);
+            var originalContent = await File.ReadAllTextAsync(cachePath);
+
+            var failingSource = new NonFiniteTileSource();
+            var act = async () => await SurfaceCacheWriter.WriteAsync(
+                cachePath,
+                failingSource,
+                new[] { new SurfaceTileKey(0, 0, 0, 0) });
+
+            await act.Should().ThrowAsync<Exception>();
+
+            var currentContent = await File.ReadAllTextAsync(cachePath);
+            currentContent.Should().Be(originalContent);
+
+            var reader = await SurfaceCacheReader.ReadAsync(cachePath);
+            reader.Metadata.Width.Should().Be(validSource.Metadata.Width);
+            reader.Metadata.Height.Should().Be(validSource.Metadata.Height);
+        }
+        finally
+        {
+            DeleteCachePath(cachePath);
+        }
+    }
+
     private static void AssertTile(SurfaceTile actual, SurfaceTile expected)
     {
         actual.Key.Should().Be(expected.Key);
@@ -131,6 +168,24 @@ public class SurfaceCacheRoundTripTests
         if (directoryPath is not null && Directory.Exists(directoryPath))
         {
             Directory.Delete(directoryPath, recursive: true);
+        }
+    }
+
+    private sealed class NonFiniteTileSource : ISurfaceTileSource
+    {
+        public SurfaceMetadata Metadata => CreateMetadata(2, 2);
+
+        public ValueTask<SurfaceTile?> GetTileAsync(SurfaceTileKey tileKey, CancellationToken cancellationToken = default)
+        {
+            var tile = new SurfaceTile(
+                tileKey,
+                2,
+                2,
+                new SurfaceTileBounds(0, 0, 2, 2),
+                new[] { float.NaN, 1f, 2f, 3f },
+                new SurfaceValueRange(0.0, 3.0));
+
+            return ValueTask.FromResult<SurfaceTile?>(tile);
         }
     }
 }

@@ -60,14 +60,29 @@ public static class SurfaceCacheWriter
             Directory.CreateDirectory(directoryPath);
         }
 
-        #pragma warning disable CA2007
-        await using var stream = File.Create(cachePath);
-        await JsonSerializer.SerializeAsync(
-            stream,
-            document,
-            SurfaceCacheReader.GetSerializerOptions(),
-            cancellationToken).ConfigureAwait(false);
-        #pragma warning restore CA2007
+        var tempPath = CreateTemporaryCachePath(cachePath);
+
+        try
+        {
+            #pragma warning disable CA2007
+            await using (var stream = File.Create(tempPath))
+            {
+                await JsonSerializer.SerializeAsync(
+                    stream,
+                    document,
+                    SurfaceCacheReader.GetSerializerOptions(),
+                    cancellationToken).ConfigureAwait(false);
+                await stream.FlushAsync(cancellationToken).ConfigureAwait(false);
+            }
+            #pragma warning restore CA2007
+
+            ReplaceCacheFile(tempPath, cachePath);
+        }
+        catch
+        {
+            DeleteTemporaryCache(tempPath);
+            throw;
+        }
     }
 
     private sealed record CacheDocumentDto(
@@ -161,6 +176,36 @@ public static class SurfaceCacheWriter
         public static TileBoundsDto FromModel(SurfaceTileBounds bounds)
         {
             return new TileBoundsDto(bounds.StartX, bounds.StartY, bounds.Width, bounds.Height);
+        }
+    }
+
+    private static string CreateTemporaryCachePath(string cachePath)
+    {
+        var directoryPath = Path.GetDirectoryName(cachePath);
+        var fileName = Path.GetFileName(cachePath);
+        var tempFileName = $"{fileName}.{Guid.NewGuid():N}.tmp";
+
+        return string.IsNullOrWhiteSpace(directoryPath)
+            ? tempFileName
+            : Path.Combine(directoryPath, tempFileName);
+    }
+
+    private static void ReplaceCacheFile(string temporaryPath, string destinationPath)
+    {
+        if (File.Exists(destinationPath))
+        {
+            File.Replace(temporaryPath, destinationPath, destinationBackupFileName: null, ignoreMetadataErrors: true);
+            return;
+        }
+
+        File.Move(temporaryPath, destinationPath);
+    }
+
+    private static void DeleteTemporaryCache(string temporaryPath)
+    {
+        if (File.Exists(temporaryPath))
+        {
+            File.Delete(temporaryPath);
         }
     }
 }

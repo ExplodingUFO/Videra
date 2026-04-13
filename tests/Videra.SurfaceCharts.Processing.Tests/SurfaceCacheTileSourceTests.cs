@@ -90,6 +90,98 @@ public class SurfaceCacheTileSourceTests
         }
     }
 
+    [Fact]
+    public async Task ReadAsync_RejectsMalformedJsonAsInvalidData()
+    {
+        var cachePath = CreateCachePath();
+
+        try
+        {
+            await File.WriteAllTextAsync(cachePath, "{");
+
+            var act = async () => _ = await SurfaceCacheReader.ReadAsync(cachePath);
+
+            await act.Should().ThrowAsync<InvalidDataException>()
+                .WithMessage("*invalid*");
+        }
+        finally
+        {
+            DeleteCachePath(cachePath);
+        }
+    }
+
+    [Fact]
+    public async Task ReadAsync_RejectsSemanticallyInvalidTilePayloadAsInvalidData()
+    {
+        var cachePath = CreateCachePath();
+        var invalidCache = """
+            {
+              "header": {
+                "magic": "VIDERA_SURFACE_CACHE",
+                "version": 1,
+                "tileCount": 1
+              },
+              "metadata": {
+                "width": 4,
+                "height": 4,
+                "horizontalAxis": {
+                  "label": "Time",
+                  "unit": "s",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "verticalAxis": {
+                  "label": "Frequency",
+                  "unit": "Hz",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "valueRange": {
+                  "minimum": 0,
+                  "maximum": 1
+                }
+              },
+              "tiles": [
+                {
+                  "key": {
+                    "levelX": 0,
+                    "levelY": 0,
+                    "tileX": 0,
+                    "tileY": 0
+                  },
+                  "width": 2,
+                  "height": 2,
+                  "bounds": {
+                    "startX": 0,
+                    "startY": 0,
+                    "width": 2,
+                    "height": 2
+                  },
+                  "valueRange": {
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  "values": [ 0.0, 1.0, 2.0 ]
+                }
+              ]
+            }
+            """;
+
+        try
+        {
+            await File.WriteAllTextAsync(cachePath, invalidCache);
+
+            var act = async () => _ = await SurfaceCacheReader.ReadAsync(cachePath);
+
+            await act.Should().ThrowAsync<InvalidDataException>()
+                .WithMessage("*semantically invalid*");
+        }
+        finally
+        {
+            DeleteCachePath(cachePath);
+        }
+    }
+
     private static ISurfaceTileSource CreateSource()
     {
         var builder = new SurfacePyramidBuilder(maxTileWidth: 2, maxTileHeight: 2);
