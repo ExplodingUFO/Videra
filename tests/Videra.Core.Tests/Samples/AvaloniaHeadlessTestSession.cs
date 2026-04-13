@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Headless;
+using System.Runtime.ExceptionServices;
 
 namespace Videra.Core.Tests.Samples;
 
@@ -12,19 +13,46 @@ internal static class AvaloniaHeadlessTestSession
     {
         ArgumentNullException.ThrowIfNull(action);
 
-        Session.Value.Dispatch(action, default).GetAwaiter().GetResult();
+        ExceptionDispatchInfo? capturedException = null;
+
+        Session.Value.Dispatch(
+            () =>
+            {
+                try
+                {
+                    action();
+                }
+                catch (Exception exception)
+                {
+                    capturedException = ExceptionDispatchInfo.Capture(exception);
+                }
+            },
+            default).GetAwaiter().GetResult();
+
+        capturedException?.Throw();
     }
 
-    public static Task RunAsync(Func<Task> action)
+    public static async Task RunAsync(Func<Task> action)
     {
         ArgumentNullException.ThrowIfNull(action);
 
-        return Session.Value.Dispatch(
+        ExceptionDispatchInfo? capturedException = null;
+
+        await Session.Value.Dispatch(
             async () =>
             {
-                await action().ConfigureAwait(true);
+                try
+                {
+                    await action().ConfigureAwait(true);
+                }
+                catch (Exception exception)
+                {
+                    capturedException = ExceptionDispatchInfo.Capture(exception);
+                }
             },
-            default);
+            default).ConfigureAwait(false);
+
+        capturedException?.Throw();
     }
 
     private sealed class HeadlessTestApplication : Application

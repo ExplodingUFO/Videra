@@ -50,8 +50,7 @@
                        FontWeight="SemiBold"
                        Foreground="#E2E8F0"
                        Text="Source selection" />
-            <ComboBox x:Name="SourceSelector"
-                      SelectionChanged="OnSourceSelectionChanged">
+            <ComboBox x:Name="SourceSelector">
               <ComboBoxItem Content="In-memory example" />
               <ComboBoxItem Content="Cache-backed example" />
             </ComboBox>
@@ -71,8 +70,7 @@
                        FontWeight="SemiBold"
                        Foreground="#E2E8F0"
                        Text="Viewport selection" />
-            <ComboBox x:Name="ViewportSelector"
-                      SelectionChanged="OnViewportSelectionChanged">
+            <ComboBox x:Name="ViewportSelector">
               <ComboBoxItem Content="Overview" Tag="overview" />
               <ComboBoxItem Content="Zoomed detail" Tag="detail" />
             </ComboBox>
