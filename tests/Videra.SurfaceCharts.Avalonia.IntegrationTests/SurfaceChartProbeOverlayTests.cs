@@ -10,91 +10,100 @@ namespace Videra.SurfaceCharts.Avalonia.IntegrationTests;
 public sealed class SurfaceChartProbeOverlayTests
 {
     [Fact]
-    public async Task ProbeUpdate_WithLoadedTiles_ProducesReadoutState()
+    public Task ProbeUpdate_WithLoadedTiles_ProducesReadoutState()
     {
-        var source = new ScriptedSurfaceTileSource(SurfaceChartViewLifecycleTests.CreateMetadata(), defaultTileValue: 7f);
-        var view = new SurfaceChartView();
+        return AvaloniaHeadlessTestSession.RunAsync(async () =>
+        {
+            var source = new ScriptedSurfaceTileSource(SurfaceChartViewLifecycleTests.CreateMetadata(), defaultTileValue: 7f);
+            var view = new SurfaceChartView();
 
-        view.Measure(new Size(256, 128));
-        view.Arrange(new Rect(0, 0, 256, 128));
-        view.Viewport = new SurfaceViewport(128, 64, 256, 128);
-        view.Source = source;
+            view.Measure(new Size(256, 128));
+            view.Arrange(new Rect(0, 0, 256, 128));
+            view.Viewport = new SurfaceViewport(128, 64, 256, 128);
+            view.Source = source;
 
-        await SurfaceChartTestHelpers.WaitForLoadedTileValuesAsync(view, [7f]);
+            await SurfaceChartTestHelpers.WaitForLoadedTileValuesAsync(view, [7f]);
 
-        UpdateProbeScreenPosition(view, new Point(64, 32));
+            UpdateProbeScreenPosition(view, new Point(64, 32));
 
-        var overlayState = GetOverlayState(view);
+            var overlayState = GetOverlayState(view);
 
-        GetBooleanProperty(overlayState, "HasNoData").Should().BeFalse();
-        GetStringProperty(overlayState, "NoDataText").Should().BeNull();
-        GetStringProperty(overlayState, "ReadoutText").Should().Contain("7");
+            GetBooleanProperty(overlayState, "HasNoData").Should().BeFalse();
+            GetStringProperty(overlayState, "NoDataText").Should().BeNull();
+            GetStringProperty(overlayState, "ReadoutText").Should().Contain("7");
 
-        var probeResult = GetPropertyValue(overlayState, "ProbeResult");
-        probeResult.Should().NotBeNull();
-        GetDoubleProperty(probeResult!, "SampleX").Should().BeApproximately(192d, 0.0001d);
-        GetDoubleProperty(probeResult!, "SampleY").Should().BeApproximately(96d, 0.0001d);
-        GetDoubleProperty(probeResult!, "Value").Should().Be(7d);
+            var probeResult = GetPropertyValue(overlayState, "ProbeResult");
+            probeResult.Should().NotBeNull();
+            GetDoubleProperty(probeResult!, "SampleX").Should().BeApproximately(192d, 0.0001d);
+            GetDoubleProperty(probeResult!, "SampleY").Should().BeApproximately(96d, 0.0001d);
+            GetDoubleProperty(probeResult!, "Value").Should().Be(7d);
+        });
     }
 
     [Fact]
-    public async Task SourceWithoutCommittedTiles_PresentsNoDataOverlayState()
+    public Task SourceWithoutCommittedTiles_PresentsNoDataOverlayState()
     {
-        var started = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-        var completion = new TaskCompletionSource<SurfaceTile?>(TaskCreationOptions.RunContinuationsAsynchronously);
-        var source = new ScriptedSurfaceTileSource(SurfaceChartViewLifecycleTests.CreateMetadata(), defaultTileValue: 9f);
-        var view = new SurfaceChartView();
+        return AvaloniaHeadlessTestSession.RunAsync(async () =>
+        {
+            var started = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var completion = new TaskCompletionSource<SurfaceTile?>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var source = new ScriptedSurfaceTileSource(SurfaceChartViewLifecycleTests.CreateMetadata(), defaultTileValue: 9f);
+            var view = new SurfaceChartView();
 
-        source.EnqueuePendingResponse(started, completion, observeCancellation: true);
+            source.EnqueuePendingResponse(started, completion, observeCancellation: true);
 
-        view.Measure(new Size(320, 180));
-        view.Arrange(new Rect(0, 0, 320, 180));
-        view.Source = source;
+            view.Measure(new Size(320, 180));
+            view.Arrange(new Rect(0, 0, 320, 180));
+            view.Source = source;
 
-        await started.Task;
+            await started.Task;
 
-        var overlayState = GetOverlayState(view);
+            var overlayState = GetOverlayState(view);
 
-        GetBooleanProperty(overlayState, "HasNoData").Should().BeTrue();
-        GetStringProperty(overlayState, "NoDataText").Should().Be("No data");
-        GetStringProperty(overlayState, "ReadoutText").Should().BeNull();
-        GetPropertyValue(overlayState, "ProbeResult").Should().BeNull();
+            GetBooleanProperty(overlayState, "HasNoData").Should().BeTrue();
+            GetStringProperty(overlayState, "NoDataText").Should().Be("No data");
+            GetStringProperty(overlayState, "ReadoutText").Should().BeNull();
+            GetPropertyValue(overlayState, "ProbeResult").Should().BeNull();
 
-        view.Source = null;
+            view.Source = null;
+        });
     }
 
     [Fact]
-    public async Task ViewportAndSourceChanges_RecomputeAndClearOverlayState()
+    public Task ViewportAndSourceChanges_RecomputeAndClearOverlayState()
     {
-        var source = new ScriptedSurfaceTileSource(SurfaceChartViewLifecycleTests.CreateMetadata(), defaultTileValue: 5f);
-        var view = new SurfaceChartView();
+        return AvaloniaHeadlessTestSession.RunAsync(async () =>
+        {
+            var source = new ScriptedSurfaceTileSource(SurfaceChartViewLifecycleTests.CreateMetadata(), defaultTileValue: 5f);
+            var view = new SurfaceChartView();
 
-        view.Measure(new Size(200, 100));
-        view.Arrange(new Rect(0, 0, 200, 100));
-        view.Viewport = new SurfaceViewport(100, 50, 200, 100);
-        view.Source = source;
+            view.Measure(new Size(200, 100));
+            view.Arrange(new Rect(0, 0, 200, 100));
+            view.Viewport = new SurfaceViewport(100, 50, 200, 100);
+            view.Source = source;
 
-        await SurfaceChartTestHelpers.WaitForLoadedTileValuesAsync(view, [5f]);
+            await SurfaceChartTestHelpers.WaitForLoadedTileValuesAsync(view, [5f]);
 
-        UpdateProbeScreenPosition(view, new Point(100, 50));
+            UpdateProbeScreenPosition(view, new Point(100, 50));
 
-        var initialState = GetOverlayState(view);
-        GetDoubleProperty(GetPropertyValue(initialState, "ProbeResult")!, "SampleX").Should().BeApproximately(200d, 0.0001d);
-        GetDoubleProperty(GetPropertyValue(initialState, "ProbeResult")!, "SampleY").Should().BeApproximately(100d, 0.0001d);
+            var initialState = GetOverlayState(view);
+            GetDoubleProperty(GetPropertyValue(initialState, "ProbeResult")!, "SampleX").Should().BeApproximately(200d, 0.0001d);
+            GetDoubleProperty(GetPropertyValue(initialState, "ProbeResult")!, "SampleY").Should().BeApproximately(100d, 0.0001d);
 
-        view.Viewport = new SurfaceViewport(300, 250, 200, 100);
+            view.Viewport = new SurfaceViewport(300, 250, 200, 100);
 
-        var updatedState = GetOverlayState(view);
-        GetBooleanProperty(updatedState, "HasNoData").Should().BeFalse();
-        GetDoubleProperty(GetPropertyValue(updatedState, "ProbeResult")!, "SampleX").Should().BeApproximately(400d, 0.0001d);
-        GetDoubleProperty(GetPropertyValue(updatedState, "ProbeResult")!, "SampleY").Should().BeApproximately(300d, 0.0001d);
+            var updatedState = GetOverlayState(view);
+            GetBooleanProperty(updatedState, "HasNoData").Should().BeFalse();
+            GetDoubleProperty(GetPropertyValue(updatedState, "ProbeResult")!, "SampleX").Should().BeApproximately(400d, 0.0001d);
+            GetDoubleProperty(GetPropertyValue(updatedState, "ProbeResult")!, "SampleY").Should().BeApproximately(300d, 0.0001d);
 
-        view.Source = null;
+            view.Source = null;
 
-        var clearedState = GetOverlayState(view);
-        GetBooleanProperty(clearedState, "HasNoData").Should().BeTrue();
-        GetStringProperty(clearedState, "ReadoutText").Should().BeNull();
-        GetPropertyValue(clearedState, "ProbeResult").Should().BeNull();
+            var clearedState = GetOverlayState(view);
+            GetBooleanProperty(clearedState, "HasNoData").Should().BeTrue();
+            GetStringProperty(clearedState, "ReadoutText").Should().BeNull();
+            GetPropertyValue(clearedState, "ProbeResult").Should().BeNull();
+        });
     }
 
     private static void UpdateProbeScreenPosition(SurfaceChartView view, Point probeScreenPosition)

@@ -13,77 +13,89 @@ public sealed class SurfaceChartViewLifecycleTests
     [Fact]
     public void ControlInitialization_WithoutSource_DoesNotThrow()
     {
-        var act = () =>
+        AvaloniaHeadlessTestSession.Run(() =>
+        {
+            var act = () =>
+            {
+                var view = new SurfaceChartView();
+                view.Measure(new Size(320, 180));
+                view.Arrange(new Rect(0, 0, 320, 180));
+                view.Viewport = new SurfaceViewport(0, 0, 128, 128);
+            };
+
+            act.Should().NotThrow();
+        });
+    }
+
+    [Fact]
+    public Task SourceAssignment_IssuesOverviewFirstRequest()
+    {
+        return AvaloniaHeadlessTestSession.RunAsync(async () =>
         {
             var view = new SurfaceChartView();
-            view.Measure(new Size(320, 180));
-            view.Arrange(new Rect(0, 0, 320, 180));
-            view.Viewport = new SurfaceViewport(0, 0, 128, 128);
-        };
+            var source = new RecordingSurfaceTileSource(CreateMetadata());
 
-        act.Should().NotThrow();
+            view.Source = source;
+
+            await source.WaitForRequestCountAsync(1);
+            await source.AssertRequestCountSettlesAtAsync(1);
+
+            source.RequestLog.Should().Equal(new SurfaceTileKey(0, 0, 0, 0));
+        });
     }
 
     [Fact]
-    public async Task SourceAssignment_IssuesOverviewFirstRequest()
+    public Task ViewportChangesBeforeSourceAssignment_DoNotRequestTiles_AndSourceStillStartsWithOverview()
     {
-        var view = new SurfaceChartView();
-        var source = new RecordingSurfaceTileSource(CreateMetadata());
+        return AvaloniaHeadlessTestSession.RunAsync(async () =>
+        {
+            var view = new SurfaceChartView();
+            var source = new RecordingSurfaceTileSource(CreateMetadata());
 
-        view.Source = source;
+            view.Measure(new Size(256, 256));
+            view.Arrange(new Rect(0, 0, 256, 256));
+            view.Viewport = new SurfaceViewport(128, 128, 256, 256);
 
-        await source.WaitForRequestCountAsync(1);
-        await source.AssertRequestCountSettlesAtAsync(1);
+            source.RequestLog.Should().BeEmpty();
 
-        source.RequestLog.Should().Equal(new SurfaceTileKey(0, 0, 0, 0));
+            view.Source = source;
+
+            await source.WaitForRequestCountAsync(1);
+
+            source.RequestLog[0].Should().Be(new SurfaceTileKey(0, 0, 0, 0));
+        });
     }
 
     [Fact]
-    public async Task ViewportChangesBeforeSourceAssignment_DoNotRequestTiles_AndSourceStillStartsWithOverview()
+    public Task RapidSourceReplacement_DoesNotCommitLateTilesFromSupersededSource()
     {
-        var view = new SurfaceChartView();
-        var source = new RecordingSurfaceTileSource(CreateMetadata());
+        return AvaloniaHeadlessTestSession.RunAsync(async () =>
+        {
+            var metadata = CreateMetadata();
+            var staleSource = new ScriptedSurfaceTileSource(metadata, defaultTileValue: 11);
+            var activeSource = new ScriptedSurfaceTileSource(metadata, defaultTileValue: 42);
+            var staleRequestStarted = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var staleCompletion = new TaskCompletionSource<SurfaceTile?>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var overviewKey = new SurfaceTileKey(0, 0, 0, 0);
+            var view = new SurfaceChartView();
 
-        view.Measure(new Size(256, 256));
-        view.Arrange(new Rect(0, 0, 256, 256));
-        view.Viewport = new SurfaceViewport(128, 128, 256, 256);
+            staleSource.EnqueuePendingResponse(staleRequestStarted, staleCompletion, observeCancellation: false);
 
-        source.RequestLog.Should().BeEmpty();
+            view.Source = staleSource;
 
-        view.Source = source;
+            await staleRequestStarted.Task;
 
-        await source.WaitForRequestCountAsync(1);
+            view.Source = activeSource;
 
-        source.RequestLog[0].Should().Be(new SurfaceTileKey(0, 0, 0, 0));
-    }
+            await activeSource.WaitForRequestCountAsync(1);
+            await SurfaceChartTestHelpers.WaitForLoadedTileValuesAsync(view, [42]);
 
-    [Fact]
-    public async Task RapidSourceReplacement_DoesNotCommitLateTilesFromSupersededSource()
-    {
-        var metadata = CreateMetadata();
-        var staleSource = new ScriptedSurfaceTileSource(metadata, defaultTileValue: 11);
-        var activeSource = new ScriptedSurfaceTileSource(metadata, defaultTileValue: 42);
-        var staleRequestStarted = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-        var staleCompletion = new TaskCompletionSource<SurfaceTile?>(TaskCreationOptions.RunContinuationsAsynchronously);
-        var overviewKey = new SurfaceTileKey(0, 0, 0, 0);
-        var view = new SurfaceChartView();
+            staleCompletion.SetResult(staleSource.CreateTile(overviewKey));
 
-        staleSource.EnqueuePendingResponse(staleRequestStarted, staleCompletion, observeCancellation: false);
-
-        view.Source = staleSource;
-
-        await staleRequestStarted.Task;
-
-        view.Source = activeSource;
-
-        await activeSource.WaitForRequestCountAsync(1);
-        await SurfaceChartTestHelpers.WaitForLoadedTileValuesAsync(view, [42]);
-
-        staleCompletion.SetResult(staleSource.CreateTile(overviewKey));
-
-        await staleSource.AssertRequestCountSettlesAtAsync(1);
-        await activeSource.AssertRequestCountSettlesAtAsync(1);
-        await SurfaceChartTestHelpers.AssertLoadedTileValuesStayAsync(view, [42]);
+            await staleSource.AssertRequestCountSettlesAtAsync(1);
+            await activeSource.AssertRequestCountSettlesAtAsync(1);
+            await SurfaceChartTestHelpers.AssertLoadedTileValuesStayAsync(view, [42]);
+        });
     }
 
     internal static SurfaceMetadata CreateMetadata()
