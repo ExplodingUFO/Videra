@@ -44,14 +44,46 @@ public sealed class SurfaceChartsDemoConfigurationTests
 
         var mainWindowCodeBehind = File.ReadAllText(mainWindowCodeBehindPath);
         mainWindowCodeBehind.Should().Contain("_viewportSelector.SelectionChanged += OnViewportSelectionChanged;");
-        mainWindowCodeBehind.Should().Contain("ApplyViewportMode(GetSelectedViewportMode());");
         mainWindowCodeBehind.Should().Contain("_chartView.Viewport = mode == ViewportMode.Overview");
         mainWindowCodeBehind.Should().Contain("CreateOverviewViewport");
         mainWindowCodeBehind.Should().Contain("CreateZoomedDetailViewport");
 
+        var applySourceBody = ExtractMethodBody(mainWindowCodeBehind, "private void ApplySource(");
+        applySourceBody.Should().Contain("ConfigureViewportPresets(source.Metadata);");
+        applySourceBody.Should().Contain("ApplyViewportMode(GetSelectedViewportMode());");
+
         var appXaml = File.ReadAllText(appXamlPath);
         appXaml.Should().NotContain("VideraView");
         appXaml.Should().NotContain("Videra.Demo");
+    }
+
+    private static string ExtractMethodBody(string source, string methodSignature)
+    {
+        var signatureIndex = source.IndexOf(methodSignature, StringComparison.Ordinal);
+        signatureIndex.Should().BeGreaterOrEqualTo(0, $"Expected to find '{methodSignature}' in the source file.");
+
+        var bodyStart = source.IndexOf('{', signatureIndex);
+        bodyStart.Should().BeGreaterOrEqualTo(0, $"Expected '{methodSignature}' to have an opening brace.");
+
+        var depth = 0;
+        for (var index = bodyStart; index < source.Length; index++)
+        {
+            var character = source[index];
+            if (character == '{')
+            {
+                depth++;
+            }
+            else if (character == '}')
+            {
+                depth--;
+                if (depth == 0)
+                {
+                    return source[(bodyStart + 1)..index];
+                }
+            }
+        }
+
+        throw new InvalidOperationException($"Could not find the end of '{methodSignature}' in the source file.");
     }
 
     private static string GetRepositoryRoot()
