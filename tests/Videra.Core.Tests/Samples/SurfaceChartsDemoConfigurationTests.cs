@@ -36,15 +36,18 @@ public sealed class SurfaceChartsDemoConfigurationTests
         mainWindow.Should().Contain("In-memory example");
         mainWindow.Should().Contain("Cache-backed example");
         mainWindow.Should().Contain("Viewport selection");
+        mainWindow.Should().Contain("SelectionChanged=\"OnViewportSelectionChanged\"");
         mainWindow.Should().Contain("Overview");
         mainWindow.Should().Contain("Zoomed detail");
         mainWindow.Should().NotContain("VideraView");
         mainWindow.Should().NotContain("Videra.Demo");
 
         var mainWindowCodeBehind = File.ReadAllText(mainWindowCodeBehindPath);
+        mainWindowCodeBehind.Should().Contain("_viewportSelector.SelectionChanged += OnViewportSelectionChanged;");
+        mainWindowCodeBehind.Should().Contain("ApplyViewportMode(GetSelectedViewportMode());");
+        mainWindowCodeBehind.Should().Contain("_chartView.Viewport = mode == ViewportMode.Overview");
         mainWindowCodeBehind.Should().Contain("CreateOverviewViewport");
         mainWindowCodeBehind.Should().Contain("CreateZoomedDetailViewport");
-        mainWindowCodeBehind.Should().Contain("ApplyViewportMode");
 
         var appXaml = File.ReadAllText(appXamlPath);
         appXaml.Should().NotContain("VideraView");

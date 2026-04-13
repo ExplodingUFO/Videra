@@ -2,7 +2,7 @@
 
 `Videra.SurfaceCharts.Demo` is the independent demo application for the surface-chart module family.
 
-The sample stays separate from `Videra.Demo` and `VideraView`. It provides two switchable paths:
+The sample stays separate from `Videra.Demo` and `VideraView`. It provides switchable source and viewport paths:
 
 - `in-memory example`: builds a sample surface matrix at startup and feeds it through `SurfacePyramidBuilder`.
 - `cache-backed example`: loads a committed seed cache from `Assets/sample-surface-cache/sample.surfacecache.json` and feeds it through `SurfaceCacheReader` and `SurfaceCacheTileSource`.

@@ -21,7 +21,7 @@
                    Text="Surface Charts Demo" />
         <TextBlock Foreground="#CBD5E1"
                    TextWrapping="Wrap"
-                   Text="Switch between an in-memory example and a cache-backed example. The demo stays in its own sample app and only depends on the surface-chart module family." />
+                   Text="Switch between an in-memory example and a cache-backed example, then switch the viewport between overview and zoomed detail. The demo stays in its own sample app and only depends on the surface-chart module family." />
       </StackPanel>
     </Border>
 
