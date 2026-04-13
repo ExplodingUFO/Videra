@@ -32,17 +32,18 @@ public sealed class SurfaceLodPolicy
     public SurfaceLodSelection Select(in SurfaceViewportRequest request)
     {
         var clampedViewport = request.ClampedViewport;
-        var level = GetTargetLevel(request.ZoomDensity);
+        var levelX = GetTargetLevel(request.HorizontalZoomDensity);
+        var levelY = GetTargetLevel(request.VerticalZoomDensity);
 
-        var tileCountX = 1 << level;
-        var tileCountY = 1 << level;
+        var tileCountX = 1 << levelX;
+        var tileCountY = 1 << levelY;
 
         var tileXStart = GetTileIndexStart(clampedViewport.StartX, request.Metadata.Width, tileCountX);
         var tileXEnd = GetTileIndexEnd(clampedViewport.EndXExclusive, request.Metadata.Width, tileCountX);
         var tileYStart = GetTileIndexStart(clampedViewport.StartY, request.Metadata.Height, tileCountY);
         var tileYEnd = GetTileIndexEnd(clampedViewport.EndYExclusive, request.Metadata.Height, tileCountY);
 
-        return new SurfaceLodSelection(request, level, tileXStart, tileXEnd, tileYStart, tileYEnd);
+        return new SurfaceLodSelection(request, levelX, levelY, tileXStart, tileXEnd, tileYStart, tileYEnd);
     }
 
     /// <summary>

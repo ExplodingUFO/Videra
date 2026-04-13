@@ -8,8 +8,8 @@ public class SurfaceTileKeyTests
     [Fact]
     public void Equality_IsStableForSameCoordinates()
     {
-        var left = new SurfaceTileKey(2, 3, 4);
-        var right = new SurfaceTileKey(2, 3, 4);
+        var left = new SurfaceTileKey(2, 1, 3, 4);
+        var right = new SurfaceTileKey(2, 1, 3, 4);
 
         left.Should().Be(right);
         left.GetHashCode().Should().Be(right.GetHashCode());
@@ -18,8 +18,8 @@ public class SurfaceTileKeyTests
     [Fact]
     public void Equality_DistinguishesDifferentLevels()
     {
-        var lowerLevel = new SurfaceTileKey(1, 3, 4);
-        var higherLevel = new SurfaceTileKey(2, 3, 4);
+        var lowerLevel = new SurfaceTileKey(1, 1, 3, 4);
+        var higherLevel = new SurfaceTileKey(2, 1, 3, 4);
 
         lowerLevel.Should().NotBe(higherLevel);
     }
@@ -47,12 +47,13 @@ public class SurfaceTileKeyTests
     }
 
     [Theory]
-    [InlineData(-1, 0, 0, "level")]
-    [InlineData(0, -1, 0, "tileX")]
-    [InlineData(0, 0, -1, "tileY")]
-    public void Ctor_RejectsNegativeCoordinates(int level, int tileX, int tileY, string paramName)
+    [InlineData(-1, 0, 0, 0, "levelX")]
+    [InlineData(0, -1, 0, 0, "levelY")]
+    [InlineData(0, 0, -1, 0, "tileX")]
+    [InlineData(0, 0, 0, -1, "tileY")]
+    public void Ctor_RejectsNegativeCoordinates(int levelX, int levelY, int tileX, int tileY, string paramName)
     {
-        var act = () => new SurfaceTileKey(level, tileX, tileY);
+        var act = () => new SurfaceTileKey(levelX, levelY, tileX, tileY);
 
         act.Should().Throw<ArgumentOutOfRangeException>()
             .Where(ex => ex.ParamName == paramName);
@@ -61,7 +62,7 @@ public class SurfaceTileKeyTests
     [Fact]
     public void Tile_PreservesKeyAndShape()
     {
-        var key = new SurfaceTileKey(3, 5, 7);
+        var key = new SurfaceTileKey(3, 2, 5, 7);
         var bounds = new SurfaceTileBounds(10, 20, 2, 3);
         var tile = new SurfaceTile(key, 2, 3, bounds, new float[] { 1, 2, 3, 4, 5, 6 }, new SurfaceValueRange(1, 6));
 

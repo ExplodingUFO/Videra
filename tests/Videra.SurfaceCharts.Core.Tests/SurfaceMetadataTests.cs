@@ -87,7 +87,7 @@ public class SurfaceMetadataTests
     [Fact]
     public void Ctor_RejectsTileWithInvalidBoundsShape()
     {
-        var tileKey = new SurfaceTileKey(0, 0, 0);
+        var tileKey = new SurfaceTileKey(0, 0, 0, 0);
         var valueRange = new SurfaceValueRange(0.0, 1.0);
         var values = new float[3];
         var bounds = new SurfaceTileBounds(4, 6, 1, 3);
@@ -101,7 +101,7 @@ public class SurfaceMetadataTests
     [Fact]
     public void Ctor_RejectsTileWithInvalidValueCount()
     {
-        var tileKey = new SurfaceTileKey(0, 0, 0);
+        var tileKey = new SurfaceTileKey(0, 0, 0, 0);
         var valueRange = new SurfaceValueRange(0.0, 1.0);
         var values = new float[3];
         var bounds = new SurfaceTileBounds(4, 6, 2, 2);
@@ -118,7 +118,7 @@ public class SurfaceMetadataTests
         ISurfaceTileSource? source = null;
 
         var metadataAct = () => source!.GetRequiredMetadata();
-        var tileAct = async () => await InvokeRequiredTileAsync(source!, new SurfaceTileKey(0, 0, 0));
+        var tileAct = async () => await InvokeRequiredTileAsync(source!, new SurfaceTileKey(0, 0, 0, 0));
 
         metadataAct.Should().Throw<ArgumentNullException>()
             .Where(ex => ex.ParamName == "source");
@@ -131,7 +131,7 @@ public class SurfaceMetadataTests
     {
         var source = new MissingTileSource();
 
-        var act = async () => await InvokeRequiredTileAsync(source, new SurfaceTileKey(1, 2, 3));
+        var act = async () => await InvokeRequiredTileAsync(source, new SurfaceTileKey(1, 1, 2, 3));
 
         await act.Should().ThrowAsync<KeyNotFoundException>();
     }
@@ -141,7 +141,7 @@ public class SurfaceMetadataTests
     {
         var source = new FaultingTileSource();
 
-        var act = async () => await InvokeRequiredTileAsync(source, new SurfaceTileKey(1, 2, 3));
+        var act = async () => await InvokeRequiredTileAsync(source, new SurfaceTileKey(1, 1, 2, 3));
 
         var assertion = await act.Should().ThrowAsync<InvalidOperationException>();
         assertion.WithMessage("Backend unavailable.");
@@ -152,7 +152,7 @@ public class SurfaceMetadataTests
     {
         var source = new MismatchedTileSource();
 
-        var act = async () => await InvokeRequiredTileAsync(source, new SurfaceTileKey(1, 2, 3));
+        var act = async () => await InvokeRequiredTileAsync(source, new SurfaceTileKey(1, 1, 2, 3));
 
         await act.Should().ThrowAsync<InvalidOperationException>();
     }
@@ -224,7 +224,7 @@ public class SurfaceMetadataTests
 
         public ValueTask<SurfaceTile?> GetTileAsync(SurfaceTileKey tileKey, CancellationToken cancellationToken = default)
         {
-            var mismatchedKey = new SurfaceTileKey(tileKey.Level, tileKey.TileX + 1, tileKey.TileY);
+            var mismatchedKey = new SurfaceTileKey(tileKey.LevelX, tileKey.LevelY, tileKey.TileX + 1, tileKey.TileY);
             var mismatchedTile = new SurfaceTile(
                 mismatchedKey,
                 2,

@@ -135,12 +135,12 @@ public readonly record struct SurfaceViewport
     /// <param name="metadata">The dataset metadata to normalize against.</param>
     /// <returns>The normalized viewport.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="metadata"/> is <c>null</c>.</exception>
-    public SurfaceViewport Normalize(SurfaceMetadata metadata)
+    public SurfaceNormalizedViewport Normalize(SurfaceMetadata metadata)
     {
         ArgumentNullException.ThrowIfNull(metadata);
 
         var clamped = ClampTo(metadata);
-        return new SurfaceViewport(
+        return new SurfaceNormalizedViewport(
             clamped.StartX / metadata.Width,
             clamped.StartY / metadata.Height,
             clamped.Width / metadata.Width,

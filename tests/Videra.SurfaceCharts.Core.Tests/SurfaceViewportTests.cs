@@ -39,7 +39,7 @@ public class SurfaceViewportTests
         var metadata = CreateMetadata(100, 50);
         var viewport = new SurfaceViewport(10.0, 5.0, 40.0, 20.0);
 
-        var normalized = viewport.Normalize(metadata);
+        SurfaceNormalizedViewport normalized = viewport.Normalize(metadata);
 
         normalized.StartX.Should().BeApproximately(0.10, 0.000001);
         normalized.StartY.Should().BeApproximately(0.10, 0.000001);
@@ -66,6 +66,19 @@ public class SurfaceViewportTests
         request.NormalizedViewport.StartY.Should().BeApproximately(0.25, 0.000001);
         request.NormalizedViewport.Width.Should().BeApproximately(0.40, 0.000001);
         request.NormalizedViewport.Height.Should().BeApproximately(0.40, 0.000001);
+    }
+
+    [Fact]
+    public void Request_NormalizedViewport_UsesDedicatedUnitSpaceType()
+    {
+        var metadata = CreateMetadata(200, 100);
+        var request = new SurfaceViewportRequest(
+            metadata,
+            new SurfaceViewport(10.0, 15.0, 80.0, 40.0),
+            40,
+            20);
+
+        request.NormalizedViewport.Should().BeOfType<SurfaceNormalizedViewport>();
     }
 
     private static SurfaceMetadata CreateMetadata(int width, int height)

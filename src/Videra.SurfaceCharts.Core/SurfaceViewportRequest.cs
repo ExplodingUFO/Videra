@@ -54,11 +54,20 @@ public readonly record struct SurfaceViewportRequest
     /// <summary>
     /// Gets the clamped viewport normalized to unit space.
     /// </summary>
-    public SurfaceViewport NormalizedViewport => ClampedViewport.Normalize(Metadata);
+    public SurfaceNormalizedViewport NormalizedViewport => ClampedViewport.Normalize(Metadata);
+
+    /// <summary>
+    /// Gets the horizontal zoom density measured in samples per output pixel.
+    /// </summary>
+    public double HorizontalZoomDensity => ClampedViewport.Width / OutputWidth;
+
+    /// <summary>
+    /// Gets the vertical zoom density measured in samples per output pixel.
+    /// </summary>
+    public double VerticalZoomDensity => ClampedViewport.Height / OutputHeight;
 
     /// <summary>
     /// Gets the zoom density measured in samples per output pixel.
     /// </summary>
-    public double ZoomDensity
-        => Math.Max(ClampedViewport.Width / OutputWidth, ClampedViewport.Height / OutputHeight);
+    public double ZoomDensity => Math.Max(HorizontalZoomDensity, VerticalZoomDensity);
 }
