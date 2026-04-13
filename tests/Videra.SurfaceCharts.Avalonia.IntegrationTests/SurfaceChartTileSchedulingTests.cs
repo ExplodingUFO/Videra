@@ -2,6 +2,7 @@ using System.Reflection;
 using Avalonia;
 using FluentAssertions;
 using Videra.SurfaceCharts.Avalonia.Controls;
+using Videra.SurfaceCharts.Avalonia.Controls.Interaction;
 using Videra.SurfaceCharts.Core;
 using Xunit;
 
@@ -181,5 +182,31 @@ public sealed class SurfaceChartTileSchedulingTests
             expectedKeys.AddRange(secondKeys);
             loadedKeys.Should().BeEquivalentTo(expectedKeys, opts => opts.WithStrictOrdering());
         });
+    }
+
+    [Fact]
+    public void ViewSizeChange_ToZero_PrunesStaleDetailTiles_AndInvalidatesRenderScene()
+    {
+        var metadata = SurfaceChartViewLifecycleTests.CreateMetadata();
+        var overviewKey = new SurfaceTileKey(0, 0, 0, 0);
+        var detailKey = new SurfaceTileKey(1, 1, 0, 0);
+        var tileCache = new SurfaceTileCache();
+        var invalidateCount = 0;
+        var controller = new SurfaceChartController(
+            new SurfaceCameraController(new SurfaceViewport(0, 0, 512, 512)),
+            tileCache,
+            new SurfaceTileScheduler(tileCache, static () => { }),
+            static () => { },
+            () => invalidateCount++);
+
+        tileCache.TryMarkRequested(overviewKey, requestGeneration: 1).Should().BeTrue();
+        tileCache.TryStore(SurfaceChartTestHelpers.CreateTile(metadata, overviewKey, tileValue: 1f), requestGeneration: 1).Should().BeTrue();
+        tileCache.TryMarkRequested(detailKey, requestGeneration: 1).Should().BeTrue();
+        tileCache.TryStore(SurfaceChartTestHelpers.CreateTile(metadata, detailKey, tileValue: 2f), requestGeneration: 1).Should().BeTrue();
+
+        controller.UpdateViewSize(new Size(0, 0));
+
+        tileCache.GetLoadedTiles().Select(static tile => tile.Key).Should().Equal(overviewKey);
+        invalidateCount.Should().Be(1);
     }
 }

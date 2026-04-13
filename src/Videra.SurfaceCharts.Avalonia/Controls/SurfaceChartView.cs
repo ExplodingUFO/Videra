@@ -36,6 +36,7 @@ public partial class SurfaceChartView : Control
             _cameraController,
             _tileCache,
             new SurfaceTileScheduler(_tileCache, NotifyTilesChanged, OnTileRequestFailed),
+            ClearLastTileFailure,
             InvalidateRenderScene);
 
         ClipToBounds = true;
@@ -63,6 +64,12 @@ public partial class SurfaceChartView : Control
 
     internal void ClearLastTileFailure()
     {
+        if (!Dispatcher.UIThread.CheckAccess())
+        {
+            Dispatcher.UIThread.Post(ClearLastTileFailure);
+            return;
+        }
+
         LastTileFailure = null;
     }
 

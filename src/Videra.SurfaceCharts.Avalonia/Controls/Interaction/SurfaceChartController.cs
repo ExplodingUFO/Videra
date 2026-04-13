@@ -8,6 +8,7 @@ internal sealed class SurfaceChartController
     private readonly SurfaceCameraController _cameraController;
     private readonly SurfaceTileCache _tileCache;
     private readonly SurfaceTileScheduler _tileScheduler;
+    private readonly Action _clearFailureState;
     private readonly Action _invalidateScene;
     private CancellationTokenSource? _requestCts;
     private long _requestGeneration;
@@ -17,11 +18,13 @@ internal sealed class SurfaceChartController
         SurfaceCameraController cameraController,
         SurfaceTileCache tileCache,
         SurfaceTileScheduler tileScheduler,
+        Action clearFailureState,
         Action invalidateScene)
     {
         _cameraController = cameraController ?? throw new ArgumentNullException(nameof(cameraController));
         _tileCache = tileCache ?? throw new ArgumentNullException(nameof(tileCache));
         _tileScheduler = tileScheduler ?? throw new ArgumentNullException(nameof(tileScheduler));
+        _clearFailureState = clearFailureState ?? throw new ArgumentNullException(nameof(clearFailureState));
         _invalidateScene = invalidateScene ?? throw new ArgumentNullException(nameof(invalidateScene));
     }
 
@@ -44,6 +47,7 @@ internal sealed class SurfaceChartController
     {
         _cameraController.UpdateViewport(viewport);
         var requestGeneration = SupersedeOutstandingRequests();
+        _clearFailureState();
         _tileCache.PruneDetailTiles();
         _invalidateScene();
         StartRequestPipeline(includeViewportRequest: true, requestGeneration);
@@ -53,12 +57,9 @@ internal sealed class SurfaceChartController
     {
         _viewSize = viewSize;
         var requestGeneration = SupersedeOutstandingRequests();
-
-        if (viewSize.Width > 0 && viewSize.Height > 0)
-        {
-            _tileCache.PruneDetailTiles();
-            _invalidateScene();
-        }
+        _clearFailureState();
+        _tileCache.PruneDetailTiles();
+        _invalidateScene();
 
         StartRequestPipeline(includeViewportRequest: viewSize.Width > 0 && viewSize.Height > 0, requestGeneration);
     }

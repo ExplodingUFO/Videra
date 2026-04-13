@@ -173,6 +173,7 @@ public sealed class SurfaceChartViewLifecycleTests
             new SurfaceCameraController(new SurfaceViewport(0, 0, 512, 512)),
             tileCache,
             scheduler,
+            static () => { },
             static () => { });
 
         controller.UpdateViewSize(new Size(256, 256));
@@ -227,6 +228,7 @@ public sealed class SurfaceChartViewLifecycleTests
             new SurfaceCameraController(new SurfaceViewport(0, 0, 512, 512)),
             tileCache,
             scheduler,
+            static () => { },
             () =>
             {
                 if (Volatile.Read(ref shouldBlockInvalidate) == 0)
@@ -352,6 +354,33 @@ public sealed class SurfaceChartViewLifecycleTests
             await SurfaceChartTestHelpers.WaitForLoadedTileValuesAsync(view, [9]);
 
             view.LastTileFailure.Should().BeNull();
+        });
+    }
+
+    [Fact]
+    public Task SameGenerationSuccessNotification_AfterFailure_PreservesLastTileFailure()
+    {
+        return AvaloniaHeadlessTestSession.RunAsync(async () =>
+        {
+            var failureMethod = typeof(SurfaceChartView).GetMethod("OnTileRequestFailed", BindingFlags.Instance | BindingFlags.NonPublic);
+            var tilesChangedMethod = typeof(SurfaceChartView).GetMethod("NotifyTilesChanged", BindingFlags.Instance | BindingFlags.NonPublic);
+            var failurePublished = new TaskCompletionSource<SurfaceChartTileRequestFailedEventArgs>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var view = new SurfaceChartView();
+            view.TileRequestFailed += (_, args) => failurePublished.TrySetResult(args);
+
+            failureMethod.Should().NotBeNull();
+            tilesChangedMethod.Should().NotBeNull();
+
+            failureMethod!.Invoke(view, [new SurfaceTileKey(1, 1, 0, 0), new InvalidOperationException("detail tile fault")]);
+
+            var failureArgs = await failurePublished.Task.WaitAsync(TimeSpan.FromSeconds(2));
+            view.LastTileFailure.Should().BeSameAs(failureArgs);
+
+            tilesChangedMethod!.Invoke(view, null);
+
+            view.LastTileFailure.Should().BeSameAs(failureArgs);
+            view.LastTileFailure!.TileKey.Should().Be(new SurfaceTileKey(1, 1, 0, 0));
+            view.LastTileFailure.Exception.Should().BeOfType<InvalidOperationException>();
         });
     }
 
