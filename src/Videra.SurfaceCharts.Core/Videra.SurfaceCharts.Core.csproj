@@ -4,6 +4,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PackageId>Videra.SurfaceCharts.Core</PackageId>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <Description>Core surface-chart contracts for Videra Surface Charts, including metadata, viewport, LOD, and tile-source abstractions.</Description>
