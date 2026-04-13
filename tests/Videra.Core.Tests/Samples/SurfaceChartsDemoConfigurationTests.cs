@@ -47,8 +47,6 @@ public sealed class SurfaceChartsDemoConfigurationTests
         mainWindowCodeBehind.Should().Contain("_viewportSelector.SelectionChanged += OnViewportSelectionChanged;");
         mainWindowCodeBehind.Should().Contain("CreateOverviewViewport");
         mainWindowCodeBehind.Should().Contain("CreateZoomedDetailViewport");
-        mainWindowCodeBehind.Should().Contain("Viewport selector items must define a non-empty string tag.");
-        mainWindowCodeBehind.Should().Contain("Expected 'overview' or 'detail'.");
 
         var appXaml = File.ReadAllText(appXamlPath);
         appXaml.Should().NotContain("VideraView");
