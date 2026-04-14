@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Media;
 using Videra.SurfaceCharts.Avalonia.Controls.Overlay;
 using Videra.SurfaceCharts.Core;
+using Videra.SurfaceCharts.Rendering;
 
 namespace Videra.SurfaceCharts.Avalonia.Controls;
 
@@ -47,7 +48,7 @@ public partial class SurfaceChartView
     internal void UpdateProjectionSettings(SurfaceChartProjectionSettings projectionSettings)
     {
         _cameraController.UpdateProjectionSettings(projectionSettings);
-        InvalidateOverlay();
+        InvalidateRenderScene();
     }
 
     private void UpdateOverlayViewSize(Size viewSize)

@@ -2,12 +2,13 @@ using Avalonia.Media;
 using Avalonia.Threading;
 using Videra.SurfaceCharts.Avalonia.Controls.Overlay;
 using Videra.SurfaceCharts.Core;
+using Videra.SurfaceCharts.Rendering;
 
 namespace Videra.SurfaceCharts.Avalonia.Controls;
 
 public partial class SurfaceChartView
 {
-    private readonly SurfaceRenderer _renderer = new();
+    private readonly SurfaceChartRenderHost _renderHost = new();
     private SurfaceRenderScene? _renderScene;
 
     /// <inheritdoc />
@@ -17,7 +18,11 @@ public partial class SurfaceChartView
 
         base.Render(context);
         var projection = _chartProjection ?? CreateChartProjection();
-        SurfaceScenePainter.DrawScene(context, _renderScene, projection);
+        if (RenderSnapshot.ActiveBackend == SurfaceChartRenderBackendKind.Software)
+        {
+            SurfaceScenePainter.DrawScene(context, _renderHost.SoftwareScene, projection);
+        }
+
         RenderOverlay(context);
     }
 
@@ -34,29 +39,36 @@ public partial class SurfaceChartView
 
     private void InvalidateRenderScene()
     {
-        RebuildRenderSceneIfPossible();
+        SyncRenderHost();
         InvalidateVisual();
         InvalidateOverlay();
     }
 
-    private void RebuildRenderSceneIfPossible()
+    private void SyncRenderHost()
     {
         var source = Source;
-        if (source is null)
-        {
-            _renderScene = null;
-            return;
-        }
-
         var tiles = _tileCache.GetLoadedTiles();
-        if (tiles.Count == 0)
-        {
-            _renderScene = null;
-            return;
-        }
+        var renderSize = _overlayViewSize.Width > 0d && _overlayViewSize.Height > 0d
+            ? _overlayViewSize
+            : Bounds.Size;
+        var colorMap = source is null ? null : ColorMap ?? CreateFallbackColorMap(source.Metadata.ValueRange);
 
-        var colorMap = ColorMap ?? CreateFallbackColorMap(source.Metadata.ValueRange);
-        _renderScene = _renderer.BuildScene(source.Metadata, tiles, colorMap);
+        _renderHost.UpdateInputs(
+            new SurfaceChartRenderInputs
+            {
+                Metadata = source?.Metadata,
+                LoadedTiles = tiles,
+                ColorMap = colorMap,
+                Viewport = Viewport,
+                ProjectionSettings = _cameraController.ProjectionSettings,
+                ViewWidth = renderSize.Width,
+                ViewHeight = renderSize.Height,
+                NativeHandle = IntPtr.Zero,
+                HandleBound = false,
+                RenderScale = (float)(VisualRoot?.RenderScaling ?? 1.0),
+            });
+
+        _renderScene = _renderHost.SoftwareScene;
     }
 
     private static SurfaceColorMap CreateFallbackColorMap(SurfaceValueRange range)
@@ -79,7 +91,7 @@ public partial class SurfaceChartView
         }
 
         var projection = SurfaceChartProjection.Create(
-            _renderScene,
+            _renderHost.SoftwareScene,
             _overlayViewSize,
             SurfaceChartProjection.CreateChartBoundsPoints(source.Metadata, source.Metadata.ValueRange),
             _cameraController.ProjectionSettings);

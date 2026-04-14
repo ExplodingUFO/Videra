@@ -5,6 +5,7 @@ using FluentAssertions;
 using Videra.SurfaceCharts.Avalonia.Controls;
 using Videra.SurfaceCharts.Avalonia.Controls.Overlay;
 using Videra.SurfaceCharts.Core;
+using Videra.SurfaceCharts.Rendering;
 using Xunit;
 using BindingFlags = System.Reflection.BindingFlags;
 using Pointer = Avalonia.Input.Pointer;

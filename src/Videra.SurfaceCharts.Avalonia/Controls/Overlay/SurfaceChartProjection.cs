@@ -1,6 +1,7 @@
 using System.Numerics;
 using Avalonia;
 using Videra.SurfaceCharts.Core;
+using Videra.SurfaceCharts.Rendering;
 
 namespace Videra.SurfaceCharts.Avalonia.Controls.Overlay;
 
@@ -268,8 +269,3 @@ internal sealed class SurfaceChartProjection
 }
 
 internal readonly record struct SurfaceChartProjectedPoint(Point ScreenPoint, double SortKey);
-
-internal readonly record struct SurfaceChartProjectionSettings(double YawDegrees, double PitchDegrees)
-{
-    public static SurfaceChartProjectionSettings Default { get; } = new(0d, 0d);
-}

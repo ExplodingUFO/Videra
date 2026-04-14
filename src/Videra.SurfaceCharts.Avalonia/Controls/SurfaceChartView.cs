@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Threading;
 using Videra.SurfaceCharts.Avalonia.Controls.Interaction;
 using Videra.SurfaceCharts.Core;
+using Videra.SurfaceCharts.Rendering;
 
 namespace Videra.SurfaceCharts.Avalonia.Controls;
 
@@ -23,6 +24,8 @@ public partial class SurfaceChartView : Control
     internal event EventHandler<SurfaceChartTileRequestFailedEventArgs>? TileRequestFailed;
 
     internal SurfaceChartTileRequestFailedEventArgs? LastTileFailure { get; private set; }
+
+    internal SurfaceChartRenderSnapshot RenderSnapshot => _renderHost.Snapshot;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SurfaceChartView"/> class.

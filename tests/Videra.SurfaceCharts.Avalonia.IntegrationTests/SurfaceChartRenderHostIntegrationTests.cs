@@ -12,16 +12,19 @@ public sealed class SurfaceChartRenderHostIntegrationTests
     [Fact]
     public void SurfaceChartView_UsesRenderHostInsteadOfControlOwnedRendererState()
     {
-        var renderHostField = typeof(SurfaceChartView).GetField("_renderHost", BindingFlags.Instance | BindingFlags.NonPublic);
-        renderHostField.Should().NotBeNull();
-        renderHostField!.FieldType.Should().Be(typeof(SurfaceChartRenderHost));
+        AvaloniaHeadlessTestSession.Run(() =>
+        {
+            var renderHostField = typeof(SurfaceChartView).GetField("_renderHost", BindingFlags.Instance | BindingFlags.NonPublic);
+            renderHostField.Should().NotBeNull();
+            renderHostField!.FieldType.Should().Be(typeof(SurfaceChartRenderHost));
 
-        typeof(SurfaceChartView).GetField("_renderer", BindingFlags.Instance | BindingFlags.NonPublic).Should().BeNull();
+            typeof(SurfaceChartView).GetField("_renderer", BindingFlags.Instance | BindingFlags.NonPublic).Should().BeNull();
 
-        var view = new SurfaceChartView();
-        SurfaceChartRenderSnapshot snapshot = view.RenderSnapshot;
-        snapshot.ActiveBackend.Should().Be(SurfaceChartRenderBackendKind.Software);
-        snapshot.IsReady.Should().BeFalse();
+            var view = new SurfaceChartView();
+            SurfaceChartRenderSnapshot snapshot = view.RenderSnapshot;
+            snapshot.ActiveBackend.Should().Be(SurfaceChartRenderBackendKind.Software);
+            snapshot.IsReady.Should().BeFalse();
+        });
     }
 
     [Fact]
