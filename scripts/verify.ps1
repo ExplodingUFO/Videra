@@ -71,7 +71,7 @@ Invoke-Check "Build ($Configuration)" {
 
 # Step 2: Tests
 Invoke-TestCheck "Tests" {
-    dotnet test "$root/Videra.slnx" --configuration $Configuration -v m --logger "console;verbosity=detailed" --logger "trx;LogFileName=verify.trx" --results-directory "$testResultsDirectory"
+    dotnet test "$root/Videra.slnx" --configuration $Configuration -v m --logger "console;verbosity=detailed" --logger "trx;LogFilePrefix=verify" --results-directory "$testResultsDirectory"
 } "All tests passed" "Some tests failed"
 
 # Step 3: Demo build

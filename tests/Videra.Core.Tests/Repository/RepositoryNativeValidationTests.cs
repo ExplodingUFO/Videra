@@ -75,6 +75,15 @@ public sealed class RepositoryNativeValidationTests
     }
 
     [Fact]
+    public void NativeValidationVerifyScripts_ShouldPreserveDistinctTrxFilesForSolutionRuns()
+    {
+        var powerShellVerify = File.ReadAllText(Path.Combine(GetRepositoryRoot(), "scripts", "verify.ps1"));
+
+        powerShellVerify.Should().Contain("trx;LogFilePrefix=verify");
+        powerShellVerify.Should().NotContain("trx;LogFileName=verify.trx");
+    }
+
+    [Fact]
     public void NativeValidationDocs_ShouldExistAndBeLinkedFromPublicEntrypoints()
     {
         var repositoryRoot = GetRepositoryRoot();
