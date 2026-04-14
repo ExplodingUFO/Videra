@@ -1,0 +1,155 @@
+using FluentAssertions;
+using Videra.SurfaceCharts.Core;
+using Videra.SurfaceCharts.Rendering;
+using Xunit;
+
+namespace Videra.SurfaceCharts.Core.Tests.Rendering;
+
+public sealed class SurfaceChartRenderStateTests
+{
+    [Fact]
+    public void ViewportChanges_MarkProjectionDirty_WithoutRebuildingUnchangedResidentGeometry()
+    {
+        var metadata = CreateMetadata(width: 8, height: 8);
+        var tile = CreateTile(metadata, new SurfaceTileKey(0, 0, 0, 0), tileValue: 6f);
+        var colorMap = CreateColorMap(metadata, startColor: 0xFF203040u, endColor: 0xFFE0F0FFu);
+        var state = new SurfaceChartRenderState();
+
+        state.Update(CreateInputs(metadata, [tile], colorMap, new SurfaceViewport(0, 0, 8, 8)));
+        state.TryGetResidentTile(tile.Key, out var initialResident).Should().BeTrue();
+
+        var viewportChange = state.Update(CreateInputs(metadata, [tile], colorMap, new SurfaceViewport(2, 1, 4, 4)));
+
+        viewportChange.FullResetRequired.Should().BeFalse();
+        viewportChange.ResidencyDirty.Should().BeFalse();
+        viewportChange.ColorDirty.Should().BeFalse();
+        viewportChange.ProjectionDirty.Should().BeTrue();
+        viewportChange.AddedResidentKeys.Should().BeEmpty();
+        viewportChange.RemovedResidentKeys.Should().BeEmpty();
+        state.TryGetResidentTile(tile.Key, out var viewportResident).Should().BeTrue();
+        viewportResident.Geometry.Should().BeSameAs(initialResident.Geometry);
+        viewportResident.SamplePositions.Should().BeSameAs(initialResident.SamplePositions);
+        viewportResident.SampleValues.Should().BeSameAs(initialResident.SampleValues);
+    }
+
+    [Fact]
+    public void ColorMapChanges_UpdateColorTruth_WithoutChangingSamplePositionMapping()
+    {
+        var metadata = CreateMetadata(width: 8, height: 8);
+        var tile = CreateTile(metadata, new SurfaceTileKey(0, 0, 0, 0), tileValue: 9f);
+        var initialColorMap = CreateColorMap(metadata, startColor: 0xFF203040u, endColor: 0xFFE0F0FFu);
+        var updatedColorMap = CreateColorMap(metadata, startColor: 0xFFB03020u, endColor: 0xFF20FFD0u);
+        var state = new SurfaceChartRenderState();
+
+        state.Update(CreateInputs(metadata, [tile], initialColorMap, new SurfaceViewport(0, 0, 8, 8)));
+        state.TryGetResidentTile(tile.Key, out var initialResident).Should().BeTrue();
+
+        var colorChange = state.Update(CreateInputs(metadata, [tile], updatedColorMap, new SurfaceViewport(0, 0, 8, 8)));
+
+        colorChange.FullResetRequired.Should().BeFalse();
+        colorChange.ResidencyDirty.Should().BeFalse();
+        colorChange.ColorDirty.Should().BeTrue();
+        colorChange.ProjectionDirty.Should().BeFalse();
+        colorChange.ColorChangedKeys.Should().Equal(tile.Key);
+        state.TryGetResidentTile(tile.Key, out var colorResident).Should().BeTrue();
+        colorResident.Geometry.Should().BeSameAs(initialResident.Geometry);
+        colorResident.SamplePositions.Should().BeSameAs(initialResident.SamplePositions);
+        colorResident.SampleValues.Should().BeSameAs(initialResident.SampleValues);
+        colorResident.Colors.Should().NotBeSameAs(initialResident.Colors);
+        colorResident.Colors.Should().NotEqual(initialResident.Colors);
+    }
+
+    [Fact]
+    public void ResidencyChanges_OnlyTouchChangedKeys()
+    {
+        var metadata = CreateMetadata(width: 8, height: 8);
+        var overviewTile = CreateTile(metadata, new SurfaceTileKey(0, 0, 0, 0), tileValue: 3f);
+        var detailTile = CreateTile(metadata, new SurfaceTileKey(1, 1, 0, 0), tileValue: 7f);
+        var colorMap = CreateColorMap(metadata, startColor: 0xFF203040u, endColor: 0xFFE0F0FFu);
+        var state = new SurfaceChartRenderState();
+
+        state.Update(CreateInputs(metadata, [overviewTile], colorMap, new SurfaceViewport(0, 0, 8, 8)));
+
+        var residencyChange = state.Update(CreateInputs(metadata, [detailTile], colorMap, new SurfaceViewport(0, 0, 8, 8)));
+
+        residencyChange.FullResetRequired.Should().BeFalse();
+        residencyChange.ResidencyDirty.Should().BeTrue();
+        residencyChange.ColorDirty.Should().BeFalse();
+        residencyChange.ProjectionDirty.Should().BeFalse();
+        residencyChange.AddedResidentKeys.Should().Equal(detailTile.Key);
+        residencyChange.RemovedResidentKeys.Should().Equal(overviewTile.Key);
+        residencyChange.ColorChangedKeys.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void MetadataReplacement_TriggersFullReset()
+    {
+        var metadata = CreateMetadata(width: 8, height: 8);
+        var replacementMetadata = CreateMetadata(width: 8, height: 8, valueMaximum: 250d);
+        var tile = CreateTile(metadata, new SurfaceTileKey(0, 0, 0, 0), tileValue: 11f);
+        var replacementTile = CreateTile(replacementMetadata, new SurfaceTileKey(0, 0, 0, 0), tileValue: 22f);
+        var colorMap = CreateColorMap(metadata, startColor: 0xFF203040u, endColor: 0xFFE0F0FFu);
+        var replacementColorMap = CreateColorMap(replacementMetadata, startColor: 0xFF203040u, endColor: 0xFFE0F0FFu);
+        var state = new SurfaceChartRenderState();
+
+        state.Update(CreateInputs(metadata, [tile], colorMap, new SurfaceViewport(0, 0, 8, 8)));
+
+        var fullReset = state.Update(CreateInputs(replacementMetadata, [replacementTile], replacementColorMap, new SurfaceViewport(0, 0, 8, 8)));
+
+        fullReset.FullResetRequired.Should().BeTrue();
+        state.ResidentTileCount.Should().Be(1);
+        state.TryGetResidentTile(replacementTile.Key, out _).Should().BeTrue();
+    }
+
+    private static SurfaceChartRenderInputs CreateInputs(
+        SurfaceMetadata metadata,
+        IReadOnlyList<SurfaceTile> tiles,
+        SurfaceColorMap colorMap,
+        SurfaceViewport viewport)
+    {
+        return new SurfaceChartRenderInputs
+        {
+            Metadata = metadata,
+            LoadedTiles = tiles,
+            ColorMap = colorMap,
+            Viewport = viewport,
+            ProjectionSettings = SurfaceChartProjectionSettings.Default,
+            ViewWidth = 320d,
+            ViewHeight = 180d,
+            NativeHandle = IntPtr.Zero,
+            HandleBound = false,
+            RenderScale = 1f,
+        };
+    }
+
+    private static SurfaceMetadata CreateMetadata(int width, int height, double valueMaximum = 100d)
+    {
+        return new SurfaceMetadata(
+            width,
+            height,
+            new SurfaceAxisDescriptor("X", unit: null, minimum: 0d, maximum: width - 1d),
+            new SurfaceAxisDescriptor("Y", unit: null, minimum: 0d, maximum: height - 1d),
+            new SurfaceValueRange(0d, valueMaximum));
+    }
+
+    private static SurfaceTile CreateTile(SurfaceMetadata metadata, SurfaceTileKey key, float tileValue)
+    {
+        var tileCountX = 1 << key.LevelX;
+        var tileCountY = 1 << key.LevelY;
+        var startX = (metadata.Width * key.TileX) / tileCountX;
+        var endX = (metadata.Width * (key.TileX + 1)) / tileCountX;
+        var startY = (metadata.Height * key.TileY) / tileCountY;
+        var endY = (metadata.Height * (key.TileY + 1)) / tileCountY;
+        var tileWidth = endX - startX;
+        var tileHeight = endY - startY;
+        var bounds = new SurfaceTileBounds(startX, startY, tileWidth, tileHeight);
+        var values = new float[tileWidth * tileHeight];
+        Array.Fill(values, tileValue);
+        return new SurfaceTile(key, tileWidth, tileHeight, bounds, values, metadata.ValueRange);
+    }
+
+    private static SurfaceColorMap CreateColorMap(SurfaceMetadata metadata, uint startColor, uint endColor)
+    {
+        return new SurfaceColorMap(metadata.ValueRange, new SurfaceColorMapPalette(startColor, endColor));
+    }
+}
