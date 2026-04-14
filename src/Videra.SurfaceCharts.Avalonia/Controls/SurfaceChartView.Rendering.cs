@@ -15,7 +15,7 @@ public partial class SurfaceChartView
         ArgumentNullException.ThrowIfNull(context);
 
         base.Render(context);
-        SurfaceScenePainter.DrawScene(context, _renderScene, Bounds.Size);
+        SurfaceScenePainter.DrawScene(context, _renderScene, ViewState.Camera, Bounds.Size);
         RenderOverlay(context);
     }
 

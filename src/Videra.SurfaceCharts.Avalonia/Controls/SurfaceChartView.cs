@@ -17,6 +17,7 @@ namespace Videra.SurfaceCharts.Avalonia.Controls;
 public partial class SurfaceChartView : Control
 {
     private readonly SurfaceChartRuntime _runtime;
+    private readonly SurfaceChartInteractionController _interactionController;
     private bool _synchronizingViewportFromViewState;
     private bool _synchronizingViewStateFromViewport;
 
@@ -35,6 +36,7 @@ public partial class SurfaceChartView : Control
             OnTileRequestFailed,
             ClearLastTileFailure,
             InvalidateRenderScene);
+        _interactionController = new SurfaceChartInteractionController();
 
         ClipToBounds = true;
     }

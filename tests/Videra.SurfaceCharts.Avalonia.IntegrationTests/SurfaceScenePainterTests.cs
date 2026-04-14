@@ -74,6 +74,34 @@ public sealed class SurfaceScenePainterTests
     }
 
     [Fact]
+    public void ProjectTriangles_WithDifferentCameraPose_ReturnsDifferentProjectedPoints()
+    {
+        AvaloniaHeadlessTestSession.Run(() =>
+        {
+            var metadata = CreateMetadata(width: 2, height: 2);
+            var tile = SurfaceChartTestHelpers.CreateTile(metadata, new SurfaceTileKey(0, 0, 0, 0), tileValue: 12f);
+            var scene = new SurfaceRenderer().BuildScene(metadata, [tile], CreateColorMap(metadata));
+            var defaultCamera = Videra.SurfaceCharts.Avalonia.Controls.Interaction.SurfaceChartRuntime.CreateDefaultCameraPose(
+                new SurfaceDataWindow(0, 2, 0, 2));
+            var rotatedCamera = new SurfaceCameraPose(
+                defaultCamera.Target,
+                defaultCamera.Yaw + 20d,
+                defaultCamera.Pitch - 10d,
+                defaultCamera.Distance,
+                defaultCamera.FieldOfView,
+                defaultCamera.ProjectionMode);
+
+            var defaultTriangles = SurfaceScenePainter.ProjectTriangles(scene, defaultCamera, new Size(320, 180));
+            var rotatedTriangles = SurfaceScenePainter.ProjectTriangles(scene, rotatedCamera, new Size(320, 180));
+
+            defaultTriangles.Should().NotBeEmpty();
+            rotatedTriangles.Should().NotBeEmpty();
+            rotatedTriangles.Select(static triangle => (triangle.A, triangle.B, triangle.C))
+                .Should().NotEqual(defaultTriangles.Select(static triangle => (triangle.A, triangle.B, triangle.C)));
+        });
+    }
+
+    [Fact]
     public Task SurfaceChartView_LoadedTiles_BuildsRenderSceneConsumableByPainter()
     {
         return AvaloniaHeadlessTestSession.RunAsync(async () =>

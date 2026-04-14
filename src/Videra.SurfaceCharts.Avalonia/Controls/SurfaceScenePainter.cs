@@ -10,9 +10,14 @@ internal static class SurfaceScenePainter
 {
     public static void DrawScene(DrawingContext context, SurfaceRenderScene? scene, Size viewSize)
     {
+        DrawScene(context, scene, camera: null, viewSize);
+    }
+
+    public static void DrawScene(DrawingContext context, SurfaceRenderScene? scene, SurfaceCameraPose? camera, Size viewSize)
+    {
         ArgumentNullException.ThrowIfNull(context);
 
-        var triangles = ProjectTriangles(scene, viewSize);
+        var triangles = ProjectTriangles(scene, camera, viewSize);
         if (triangles.Count == 0)
         {
             return;
@@ -33,6 +38,11 @@ internal static class SurfaceScenePainter
     }
 
     internal static IReadOnlyList<ProjectedSurfaceTriangle> ProjectTriangles(SurfaceRenderScene? scene, Size viewSize)
+    {
+        return ProjectTriangles(scene, camera: null, viewSize);
+    }
+
+    internal static IReadOnlyList<ProjectedSurfaceTriangle> ProjectTriangles(SurfaceRenderScene? scene, SurfaceCameraPose? camera, Size viewSize)
     {
         if (scene is null
             || scene.Tiles.Count == 0
@@ -56,7 +66,7 @@ internal static class SurfaceScenePainter
 
             for (var vertexIndex = 0; vertexIndex < tile.Vertices.Count; vertexIndex++)
             {
-                var rawProjection = ProjectRaw(tile.Vertices[vertexIndex].Position);
+                var rawProjection = ProjectRaw(tile.Vertices[vertexIndex].Position, camera);
                 rawVertices[vertexIndex] = rawProjection;
 
                 minRawX = Math.Min(minRawX, rawProjection.X);
@@ -104,7 +114,7 @@ internal static class SurfaceScenePainter
                             tile.Vertices[(int)indices[index]].Color,
                             tile.Vertices[(int)indices[index + 1]].Color,
                             tile.Vertices[(int)indices[index + 2]].Color),
-                        (first.Y + second.Y + third.Y) / 3d));
+                        (first.Depth + second.Depth + third.Depth) / 3d));
             }
         }
 
@@ -112,11 +122,17 @@ internal static class SurfaceScenePainter
         return triangles;
     }
 
-    private static RawProjection ProjectRaw(System.Numerics.Vector3 position)
+    private static RawProjection ProjectRaw(System.Numerics.Vector3 position, SurfaceCameraPose? camera)
     {
+        if (camera is not null)
+        {
+            return ProjectWithCamera(position, camera);
+        }
+
         return new RawProjection(
             X: position.X - position.Z,
-            Y: ((position.X + position.Z) * 0.5d) - position.Y);
+            Y: ((position.X + position.Z) * 0.5d) - position.Y,
+            Depth: ((position.X + position.Z) * 0.5d) - position.Y);
     }
 
     private static ProjectionTransform CreateTransform(
@@ -181,7 +197,53 @@ internal static class SurfaceScenePainter
         return geometry;
     }
 
-    private readonly record struct RawProjection(double X, double Y);
+    private static RawProjection ProjectWithCamera(System.Numerics.Vector3 position, SurfaceCameraPose camera)
+    {
+        var yawRadians = DegreesToRadians(camera.Yaw);
+        var pitchRadians = DegreesToRadians(camera.Pitch);
+        var cosPitch = Math.Cos(pitchRadians);
+        var forward = new System.Numerics.Vector3(
+            (float)(Math.Cos(yawRadians) * cosPitch),
+            (float)Math.Sin(pitchRadians),
+            (float)(Math.Sin(yawRadians) * cosPitch));
+        if (forward.LengthSquared() <= float.Epsilon)
+        {
+            forward = System.Numerics.Vector3.UnitZ;
+        }
+
+        forward = System.Numerics.Vector3.Normalize(forward);
+        var cameraPosition = camera.Target - (forward * (float)camera.Distance);
+
+        var upHint = Math.Abs(System.Numerics.Vector3.Dot(forward, System.Numerics.Vector3.UnitY)) > 0.98f
+            ? System.Numerics.Vector3.UnitZ
+            : System.Numerics.Vector3.UnitY;
+        var right = System.Numerics.Vector3.Normalize(System.Numerics.Vector3.Cross(upHint, forward));
+        var up = System.Numerics.Vector3.Normalize(System.Numerics.Vector3.Cross(forward, right));
+
+        var relative = position - cameraPosition;
+        var cameraX = System.Numerics.Vector3.Dot(relative, right);
+        var cameraY = System.Numerics.Vector3.Dot(relative, up);
+        var cameraZ = System.Numerics.Vector3.Dot(relative, forward);
+        var depth = Math.Max(cameraZ, 0.001d);
+
+        if (camera.ProjectionMode == SurfaceProjectionMode.Orthographic)
+        {
+            return new RawProjection(cameraX, -cameraY, depth);
+        }
+
+        var focalLength = 1d / Math.Tan(DegreesToRadians(camera.FieldOfView) / 2d);
+        return new RawProjection(
+            X: (cameraX / depth) * focalLength,
+            Y: (-cameraY / depth) * focalLength,
+            Depth: depth);
+    }
+
+    private static double DegreesToRadians(double degrees)
+    {
+        return degrees * (Math.PI / 180d);
+    }
+
+    private readonly record struct RawProjection(double X, double Y, double Depth);
 
     private readonly record struct ProjectionTransform(double Scale, double OffsetX, double OffsetY)
     {
