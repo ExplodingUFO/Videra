@@ -50,7 +50,7 @@ public sealed class SurfaceChartIncrementalRenderingTests
         host.UpdateInputs(CreateInputs(metadata, [overviewTile], colorMap, new SurfaceViewport(0, 0, 8, 8), handleBound: false));
         host.UpdateInputs(CreateInputs(metadata, [detailTile], colorMap, new SurfaceViewport(0, 0, 8, 8), handleBound: false));
 
-        var delta = backend.ChangeSets.Last();
+        var delta = backend.ChangeSets[^1];
         delta.ResidencyDirty.Should().BeTrue();
         delta.AddedResidentKeys.Should().Equal(detailTile.Key);
         delta.RemovedResidentKeys.Should().Equal(overviewTile.Key);
@@ -142,7 +142,7 @@ public sealed class SurfaceChartIncrementalRenderingTests
 
         public bool UsesNativeSurface { get; }
 
-        public SurfaceRenderScene? SoftwareScene { get; private set; }
+        public SurfaceRenderScene? SoftwareScene => null;
 
         public List<SurfaceChartRenderChangeSet> ChangeSets { get; } = [];
 

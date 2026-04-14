@@ -9,6 +9,7 @@ public sealed class SurfaceChartRenderHost
     private readonly ISurfaceChartRenderBackend _softwareBackend;
     private readonly ISurfaceChartRenderBackend? _gpuBackend;
     private readonly bool _allowSoftwareFallback;
+    private readonly SurfaceChartRenderState _renderState;
 
     public SurfaceChartRenderHost(
         ISurfaceChartRenderBackend? softwareBackend = null,
@@ -18,7 +19,9 @@ public sealed class SurfaceChartRenderHost
         _softwareBackend = softwareBackend ?? new SurfaceChartSoftwareRenderBackend();
         _gpuBackend = gpuBackend ?? CreateDefaultGpuBackend();
         _allowSoftwareFallback = allowSoftwareFallback;
+        _renderState = new SurfaceChartRenderState();
         Inputs = new SurfaceChartRenderInputs();
+        LastChangeSet = new SurfaceChartRenderChangeSet();
         Snapshot = new SurfaceChartRenderSnapshot
         {
             ActiveBackend = SurfaceChartRenderBackendKind.Software,
@@ -37,6 +40,10 @@ public sealed class SurfaceChartRenderHost
 
     public SurfaceChartRenderingStatus RenderingStatus { get; private set; }
 
+    public SurfaceChartRenderChangeSet LastChangeSet { get; private set; }
+
+    public SurfaceChartRenderState RenderState => _renderState;
+
     public bool HasGpuBackend => _gpuBackend is not null;
 
     public SurfaceRenderScene? SoftwareScene => Snapshot.ActiveBackend == SurfaceChartRenderBackendKind.Gpu
@@ -48,6 +55,7 @@ public sealed class SurfaceChartRenderHost
         ArgumentNullException.ThrowIfNull(inputs);
 
         Inputs = inputs;
+        LastChangeSet = _renderState.Update(inputs);
         Snapshot = Render(inputs);
         RenderingStatus = SurfaceChartRenderingStatus.FromSnapshot(Snapshot);
         return Snapshot;
@@ -59,7 +67,7 @@ public sealed class SurfaceChartRenderHost
         {
             try
             {
-                return _gpuBackend.Render(inputs);
+                return _gpuBackend.Render(inputs, _renderState, LastChangeSet);
             }
             catch (Exception ex) when (_allowSoftwareFallback)
             {
@@ -68,7 +76,9 @@ public sealed class SurfaceChartRenderHost
                     {
                         NativeHandle = IntPtr.Zero,
                         HandleBound = false,
-                    });
+                    },
+                    _renderState,
+                    LastChangeSet);
 
                 return fallbackSnapshot with
                 {
@@ -85,7 +95,9 @@ public sealed class SurfaceChartRenderHost
             {
                 NativeHandle = IntPtr.Zero,
                 HandleBound = false,
-            });
+            },
+            _renderState,
+            LastChangeSet);
     }
 
     private static ISurfaceChartRenderBackend? CreateDefaultGpuBackend()

@@ -8,8 +8,7 @@ namespace Videra.SurfaceCharts.Rendering;
 public sealed class SurfaceChartGpuRenderBackend : ISurfaceChartRenderBackend, IDisposable
 {
     private readonly IGraphicsBackend _graphicsBackend;
-    private readonly SurfaceRenderer _renderer;
-    private readonly List<SurfaceChartGpuTileResources> _tileResources = [];
+    private readonly Dictionary<SurfaceTileKey, SurfaceChartGpuTileResources> _tileResources = [];
     private IBuffer? _frameUniformBuffer;
     private IPipeline? _pipeline;
     private IntPtr _currentHandle;
@@ -19,7 +18,6 @@ public sealed class SurfaceChartGpuRenderBackend : ISurfaceChartRenderBackend, I
     public SurfaceChartGpuRenderBackend(IGraphicsBackend graphicsBackend, SurfaceRenderer? renderer = null)
     {
         _graphicsBackend = graphicsBackend ?? throw new ArgumentNullException(nameof(graphicsBackend));
-        _renderer = renderer ?? new SurfaceRenderer();
     }
 
     public SurfaceChartRenderBackendKind Kind => SurfaceChartRenderBackendKind.Gpu;
@@ -28,15 +26,25 @@ public sealed class SurfaceChartGpuRenderBackend : ISurfaceChartRenderBackend, I
 
     public SurfaceRenderScene? SoftwareScene { get; private set; }
 
-    public SurfaceChartRenderSnapshot Render(SurfaceChartRenderInputs inputs)
+    public SurfaceChartRenderSnapshot Render(
+        SurfaceChartRenderInputs inputs,
+        SurfaceChartRenderState state,
+        SurfaceChartRenderChangeSet changeSet)
     {
         ArgumentNullException.ThrowIfNull(inputs);
+        ArgumentNullException.ThrowIfNull(state);
+        ArgumentNullException.ThrowIfNull(changeSet);
+
+        if (changeSet.FullResetRequired && state.ResidentTileCount == 0)
+        {
+            DisposeTileResources();
+            SoftwareScene = null;
+        }
 
         if (!inputs.HandleBound
             || inputs.NativeHandle == IntPtr.Zero
-            || inputs.Metadata is null
-            || inputs.ColorMap is null
-            || inputs.LoadedTiles.Count == 0
+            || state.Metadata is null
+            || state.ResidentTileCount == 0
             || inputs.ViewWidth <= 0d
             || inputs.ViewHeight <= 0d)
         {
@@ -53,10 +61,13 @@ public sealed class SurfaceChartGpuRenderBackend : ISurfaceChartRenderBackend, I
         }
 
         EnsureBackend(inputs);
+        EnsureSharedResources();
 
-        SoftwareScene = _renderer.BuildScene(inputs.Metadata, inputs.LoadedTiles, inputs.ColorMap);
-        RebuildTileResources(SoftwareScene);
-        RenderFrame(inputs);
+        UpdateTileResources(state, changeSet);
+        SoftwareScene = new SurfaceRenderScene(
+            state.Metadata,
+            state.ResidentTiles.Select(static residentTile => residentTile.ToRenderTile()).ToArray());
+        RenderFrame(inputs, state);
 
         return new SurfaceChartRenderSnapshot
         {
@@ -65,7 +76,7 @@ public sealed class SurfaceChartGpuRenderBackend : ISurfaceChartRenderBackend, I
             IsFallback = false,
             FallbackReason = null,
             UsesNativeSurface = UsesNativeSurface,
-            ResidentTileCount = SoftwareScene.Tiles.Count,
+            ResidentTileCount = state.ResidentTileCount,
         };
     }
 
@@ -101,36 +112,77 @@ public sealed class SurfaceChartGpuRenderBackend : ISurfaceChartRenderBackend, I
         }
     }
 
-    private void RebuildTileResources(SurfaceRenderScene scene)
+    private void EnsureSharedResources()
     {
-        DisposeTileResources();
-
         var resourceFactory = _graphicsBackend.GetResourceFactory();
-        _pipeline?.Dispose();
-        _pipeline = resourceFactory.CreatePipeline(VertexPositionNormalColor.SizeInBytes, hasNormals: true, hasColors: true);
-        foreach (var tile in scene.Tiles)
-        {
-            var vertices = new VertexPositionNormalColor[tile.Vertices.Count];
-            for (var index = 0; index < tile.Vertices.Count; index++)
-            {
-                var vertex = tile.Vertices[index];
-                vertices[index] = new VertexPositionNormalColor(
-                    vertex.Position,
-                    Vector3.UnitY,
-                    ToRgbaFloat(vertex.Color));
-            }
-
-            var indices = tile.Geometry.Indices.ToArray();
-            var vertexBuffer = resourceFactory.CreateVertexBuffer(vertices);
-            var indexBuffer = resourceFactory.CreateIndexBuffer(indices);
-            _tileResources.Add(new SurfaceChartGpuTileResources(vertexBuffer, indexBuffer, (uint)indices.Length));
-        }
-
-        _frameUniformBuffer?.Dispose();
-        _frameUniformBuffer = resourceFactory.CreateUniformBuffer(32);
+        _pipeline ??= resourceFactory.CreatePipeline(VertexPositionNormalColor.SizeInBytes, hasNormals: true, hasColors: true);
+        _frameUniformBuffer ??= resourceFactory.CreateUniformBuffer(32);
     }
 
-    private void RenderFrame(SurfaceChartRenderInputs inputs)
+    private void UpdateTileResources(SurfaceChartRenderState state, SurfaceChartRenderChangeSet changeSet)
+    {
+        if (changeSet.FullResetRequired)
+        {
+            DisposeTileResources();
+            foreach (var residentTile in state.ResidentTiles)
+            {
+                AddOrReplaceTileResources(residentTile);
+            }
+
+            return;
+        }
+
+        foreach (var removedKey in changeSet.RemovedResidentKeys)
+        {
+            if (_tileResources.Remove(removedKey, out var tileResources))
+            {
+                tileResources.Dispose();
+            }
+        }
+
+        foreach (var addedKey in changeSet.AddedResidentKeys)
+        {
+            if (state.TryGetResidentTile(addedKey, out var residentTile))
+            {
+                AddOrReplaceTileResources(residentTile);
+            }
+        }
+
+        foreach (var colorChangedKey in changeSet.ColorChangedKeys)
+        {
+            if (state.TryGetResidentTile(colorChangedKey, out var residentTile))
+            {
+                AddOrReplaceTileResources(residentTile);
+            }
+        }
+    }
+
+    private void AddOrReplaceTileResources(SurfaceChartResidentTile residentTile)
+    {
+        if (_tileResources.Remove(residentTile.Key, out var previousResources))
+        {
+            previousResources.Dispose();
+        }
+
+        var resourceFactory = _graphicsBackend.GetResourceFactory();
+        var renderTile = residentTile.ToRenderTile();
+        var vertices = new VertexPositionNormalColor[renderTile.Vertices.Count];
+        for (var index = 0; index < renderTile.Vertices.Count; index++)
+        {
+            var vertex = renderTile.Vertices[index];
+            vertices[index] = new VertexPositionNormalColor(
+                vertex.Position,
+                Vector3.UnitY,
+                ToRgbaFloat(vertex.Color));
+        }
+
+        var indices = renderTile.Geometry.Indices.ToArray();
+        var vertexBuffer = resourceFactory.CreateVertexBuffer(vertices);
+        var indexBuffer = resourceFactory.CreateIndexBuffer(indices);
+        _tileResources[residentTile.Key] = new SurfaceChartGpuTileResources(vertexBuffer, indexBuffer, (uint)indices.Length);
+    }
+
+    private void RenderFrame(SurfaceChartRenderInputs inputs, SurfaceChartRenderState state)
     {
         var executor = _graphicsBackend.GetCommandExecutor();
         var viewportWidth = Math.Max(1f, (float)(inputs.ViewWidth * inputs.RenderScale));
@@ -154,8 +206,13 @@ public sealed class SurfaceChartGpuRenderBackend : ISurfaceChartRenderBackend, I
             executor.SetPipeline(_pipeline);
         }
 
-        foreach (var tileResource in _tileResources)
+        foreach (var residentTile in state.ResidentTiles)
         {
+            if (!_tileResources.TryGetValue(residentTile.Key, out var tileResource))
+            {
+                continue;
+            }
+
             if (tileResource.IndexCount == 0)
             {
                 continue;
@@ -172,7 +229,7 @@ public sealed class SurfaceChartGpuRenderBackend : ISurfaceChartRenderBackend, I
 
     private void DisposeTileResources()
     {
-        foreach (var tileResource in _tileResources)
+        foreach (var tileResource in _tileResources.Values)
         {
             tileResource.Dispose();
         }

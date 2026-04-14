@@ -10,5 +10,8 @@ public interface ISurfaceChartRenderBackend
 
     SurfaceRenderScene? SoftwareScene { get; }
 
-    SurfaceChartRenderSnapshot Render(SurfaceChartRenderInputs inputs);
+    SurfaceChartRenderSnapshot Render(
+        SurfaceChartRenderInputs inputs,
+        SurfaceChartRenderState state,
+        SurfaceChartRenderChangeSet changeSet);
 }

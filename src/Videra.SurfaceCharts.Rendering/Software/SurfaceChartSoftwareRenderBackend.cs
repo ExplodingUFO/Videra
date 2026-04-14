@@ -4,22 +4,28 @@ namespace Videra.SurfaceCharts.Rendering.Software;
 
 public sealed class SurfaceChartSoftwareRenderBackend : ISurfaceChartRenderBackend
 {
-    private readonly SurfaceRenderer _renderer = new();
-
     public SurfaceChartRenderBackendKind Kind => SurfaceChartRenderBackendKind.Software;
 
     public bool UsesNativeSurface => false;
 
     public SurfaceRenderScene? SoftwareScene { get; private set; }
 
-    public SurfaceChartRenderSnapshot Render(SurfaceChartRenderInputs inputs)
+    public SurfaceChartRenderSnapshot Render(
+        SurfaceChartRenderInputs inputs,
+        SurfaceChartRenderState state,
+        SurfaceChartRenderChangeSet changeSet)
     {
         ArgumentNullException.ThrowIfNull(inputs);
+        ArgumentNullException.ThrowIfNull(state);
+        ArgumentNullException.ThrowIfNull(changeSet);
 
-        var residentTileCount = inputs.LoadedTiles.Count;
-        if (inputs.Metadata is null
-            || inputs.ColorMap is null
-            || residentTileCount == 0
+        if (changeSet.FullResetRequired && state.ResidentTileCount == 0)
+        {
+            SoftwareScene = null;
+        }
+
+        if (state.Metadata is null
+            || state.ResidentTileCount == 0
             || inputs.ViewWidth <= 0d
             || inputs.ViewHeight <= 0d)
         {
@@ -35,7 +41,16 @@ public sealed class SurfaceChartSoftwareRenderBackend : ISurfaceChartRenderBacke
             };
         }
 
-        SoftwareScene = _renderer.BuildScene(inputs.Metadata, inputs.LoadedTiles, inputs.ColorMap);
+        if (SoftwareScene is null
+            || changeSet.FullResetRequired
+            || changeSet.ResidencyDirty
+            || changeSet.ColorDirty)
+        {
+            SoftwareScene = new SurfaceRenderScene(
+                state.Metadata,
+                state.ResidentTiles.Select(static residentTile => residentTile.ToRenderTile()).ToArray());
+        }
+
         return new SurfaceChartRenderSnapshot
         {
             ActiveBackend = Kind,
@@ -43,7 +58,7 @@ public sealed class SurfaceChartSoftwareRenderBackend : ISurfaceChartRenderBacke
             IsFallback = false,
             FallbackReason = null,
             UsesNativeSurface = UsesNativeSurface,
-            ResidentTileCount = residentTileCount,
+            ResidentTileCount = state.ResidentTileCount,
         };
     }
 }
