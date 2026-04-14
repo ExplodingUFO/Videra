@@ -33,6 +33,20 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
     }
 
     [Fact]
+    public void AvaloniaSurfaceChartsDocs_ShouldDescribeViewStateContractAndSiblingBoundary()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var englishReadme = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.SurfaceCharts.Avalonia", "README.md"));
+        var chineseReadme = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "zh-CN", "modules", "videra-surfacecharts-avalonia.md"));
+
+        englishReadme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsAvaloniaBoundarySentence);
+        englishReadme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartViewStateSentence);
+
+        chineseReadme.Should().Contain(SurfaceChartsDocumentationTerms.ChineseSurfaceChartsFamilyBoundarySentence);
+        chineseReadme.Should().Contain(SurfaceChartsDocumentationTerms.ChineseSurfaceChartViewStateSentence);
+    }
+
+    [Fact]
     public void VerifyScripts_ShouldBuildBothDemoApplications()
     {
         var repositoryRoot = GetRepositoryRoot();

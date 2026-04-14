@@ -28,7 +28,7 @@ public partial class SurfaceChartView
             Source,
             Viewport,
             _overlayViewSize,
-            _tileCache.GetLoadedTiles(),
+            _runtime.GetLoadedTiles(),
             _probeScreenPosition);
         InvalidateVisual();
     }

@@ -3,6 +3,7 @@
 [English](../../../src/Videra.SurfaceCharts.Avalonia/README.md) | [中文](videra-surfacecharts-avalonia.md)
 
 `Videra.SurfaceCharts.Avalonia` 提供专用的 `SurfaceChartView` 控件层。它独立于 `VideraView`，不承载 viewer 模式，也不耦合到 `VideraView` 的选择、标注或相机链路。
+surface-chart 模块家族与 `VideraView` 相互独立。
 
 > 中文镜像用于快速查阅，英文版为准。
 
@@ -15,9 +16,11 @@
 ## 当前能力
 
 - 接受宿主提供的 `ISurfaceTileSource`
-- 根据宿主提供的 `Viewport` 渲染曲面 tile
+- 公开 `ViewState` 作为主视图状态契约，并保留 `Viewport` 作为 sample-space 兼容桥接
 - 配合 `Videra.SurfaceCharts.Processing` 走 overview-first 与 lazy cache 读取
 - 保留 probe overlay 的状态与渲染路径
+
+`ViewState` 是 `SurfaceChartView` 的主视图状态契约，`Viewport` 仅作为兼容桥接保留。
 
 ## 当前限制
 

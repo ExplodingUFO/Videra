@@ -1,4 +1,5 @@
 using Avalonia;
+using Videra.SurfaceCharts.Avalonia.Controls.Interaction;
 using Videra.SurfaceCharts.Core;
 
 namespace Videra.SurfaceCharts.Avalonia.Controls;
@@ -20,6 +21,14 @@ public partial class SurfaceChartView
             defaultValue: new SurfaceViewport(0, 0, 1, 1));
 
     /// <summary>
+    /// Identifies the <see cref="ViewState"/> property.
+    /// </summary>
+    public static readonly StyledProperty<SurfaceViewState> ViewStateProperty =
+        AvaloniaProperty.Register<SurfaceChartView, SurfaceViewState>(
+            nameof(ViewState),
+            defaultValue: SurfaceChartRuntime.CreateDefaultViewState(new SurfaceDataWindow(0d, 1d, 0d, 1d)));
+
+    /// <summary>
     /// Identifies the <see cref="ColorMap"/> property.
     /// </summary>
     public static readonly StyledProperty<SurfaceColorMap?> ColorMapProperty =
@@ -31,6 +40,8 @@ public partial class SurfaceChartView
             static (view, args) => view.OnSourceChanged((ISurfaceTileSource?)args.NewValue));
         ViewportProperty.Changed.AddClassHandler<SurfaceChartView>(
             static (view, args) => view.OnViewportChanged((SurfaceViewport)args.NewValue!));
+        ViewStateProperty.Changed.AddClassHandler<SurfaceChartView>(
+            static (view, args) => view.OnViewStateChanged((SurfaceViewState)args.NewValue!));
         ColorMapProperty.Changed.AddClassHandler<SurfaceChartView>(
             static (view, _) => view.InvalidateRenderScene());
     }
@@ -54,6 +65,15 @@ public partial class SurfaceChartView
     }
 
     /// <summary>
+    /// Gets or sets the persisted chart view state. This is the primary public view contract.
+    /// </summary>
+    public SurfaceViewState ViewState
+    {
+        get => GetValue(ViewStateProperty);
+        set => SetValue(ViewStateProperty, value);
+    }
+
+    /// <summary>
     /// Gets or sets the optional color map used when building the render scene.
     /// </summary>
     public SurfaceColorMap? ColorMap
@@ -65,12 +85,51 @@ public partial class SurfaceChartView
     private void OnSourceChanged(ISurfaceTileSource? source)
     {
         LastTileFailure = null;
-        _controller.UpdateSource(source);
+        _runtime.UpdateSource(source);
     }
 
     private void OnViewportChanged(SurfaceViewport viewport)
     {
-        _controller.UpdateViewport(viewport);
-        InvalidateRenderScene();
+        if (_synchronizingViewportFromViewState)
+        {
+            return;
+        }
+
+        var bridgedViewState = _runtime.CreateViewportBridgeViewState(viewport);
+        if (ViewState == bridgedViewState)
+        {
+            return;
+        }
+
+        _synchronizingViewStateFromViewport = true;
+        try
+        {
+            SetCurrentValue(ViewStateProperty, bridgedViewState);
+        }
+        finally
+        {
+            _synchronizingViewStateFromViewport = false;
+        }
+    }
+
+    private void OnViewStateChanged(SurfaceViewState viewState)
+    {
+        ArgumentNullException.ThrowIfNull(viewState);
+
+        var bridgedViewport = SurfaceViewport.FromDataWindow(viewState.DataWindow);
+        if (!_synchronizingViewStateFromViewport && Viewport != bridgedViewport)
+        {
+            _synchronizingViewportFromViewState = true;
+            try
+            {
+                SetCurrentValue(ViewportProperty, bridgedViewport);
+            }
+            finally
+            {
+                _synchronizingViewportFromViewState = false;
+            }
+        }
+
+        _runtime.UpdateViewState(viewState);
     }
 }

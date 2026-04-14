@@ -446,7 +446,7 @@ public partial class VideraView : Decorator
 
             if (becameReady)
             {
-                ApplyViewState();
+                ApplyRenderState();
             }
 
             SynchronizeOverlayPresentation();
@@ -467,7 +467,7 @@ public partial class VideraView : Decorator
         }
     }
 
-    private void ApplyViewState()
+    private void ApplyRenderState()
     {
         var color = BackgroundColor;
         Engine.BackgroundColor = new RgbaFloat(color.R / 255f, color.G / 255f, color.B / 255f, color.A / 255f);
@@ -528,7 +528,7 @@ public partial class VideraView : Decorator
 
         if (becameReady)
         {
-            ApplyViewState();
+            ApplyRenderState();
         }
 
         if (_sessionBridge.WantsNativeBackend())
@@ -646,7 +646,7 @@ public partial class VideraView : Decorator
         RefreshBackendDiagnostics(lastInitializationError: null);
         if (becameReady)
         {
-            ApplyViewState();
+            ApplyRenderState();
         }
     }
 

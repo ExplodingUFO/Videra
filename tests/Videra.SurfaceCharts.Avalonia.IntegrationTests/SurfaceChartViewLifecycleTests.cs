@@ -194,7 +194,26 @@ public sealed class SurfaceChartViewLifecycleTests
     }
 
     [Fact]
-    public async Task ControllerSourceReplacement_DoesNotPublishLateFailuresFromSupersededGeneration()
+    public Task SurfaceChartView_SurfaceChartRuntimeSeam_OwnsTileLifecycleState()
+    {
+        return AvaloniaHeadlessTestSession.RunAsync(async () =>
+        {
+            var metadata = CreateMetadata();
+            var source = new RecordingSurfaceTileSource(metadata);
+            var view = new SurfaceChartView();
+
+            SurfaceChartTestHelpers.GetRuntime(view).Should().NotBeNull();
+
+            view.Source = source;
+
+            await source.WaitForRequestCountAsync(1);
+
+            SurfaceChartTestHelpers.GetLoadedTileKeys(view).Should().Equal(new SurfaceTileKey(0, 0, 0, 0));
+        });
+    }
+
+    [Fact]
+    public async Task SurfaceChartRuntime_SourceReplacement_DoesNotPublishLateFailuresFromSupersededGeneration()
     {
         var metadata = CreateMetadata();
         var staleSource = new ScriptedSurfaceTileSource(metadata, defaultTileValue: 11);
@@ -203,16 +222,14 @@ public sealed class SurfaceChartViewLifecycleTests
         var staleCompletion = new TaskCompletionSource<SurfaceTile?>(TaskCreationOptions.RunContinuationsAsynchronously);
         var staleRequestCompleted = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
         var failures = new ConcurrentQueue<(SurfaceTileKey TileKey, Exception Exception)>();
-        var tileCache = new SurfaceTileCache();
-        var scheduler = new SurfaceTileScheduler(tileCache, static () => { }, (key, exception) => failures.Enqueue((key, exception)));
-        var controller = new SurfaceChartController(
-            new SurfaceCameraController(new SurfaceViewport(0, 0, 512, 512)),
-            tileCache,
-            scheduler,
+        var runtime = new SurfaceChartRuntime(
+            new SurfaceViewport(0, 0, 512, 512),
+            static () => { },
+            (key, exception) => failures.Enqueue((key, exception)),
             static () => { },
             static () => { });
 
-        controller.UpdateViewSize(new Size(256, 256));
+        runtime.UpdateViewSize(new Size(256, 256));
 
         staleSource.EnqueueSuccessResponse();
         staleSource.EnqueueResponse(async (_, _) =>
@@ -229,11 +246,11 @@ public sealed class SurfaceChartViewLifecycleTests
             }
         });
 
-        controller.UpdateSource(staleSource);
+        runtime.UpdateSource(staleSource);
 
         await staleRequestStarted.Task;
 
-        controller.UpdateSource(activeSource);
+        runtime.UpdateSource(activeSource);
 
         await activeSource.WaitForRequestCountAsync(1);
 
@@ -247,7 +264,7 @@ public sealed class SurfaceChartViewLifecycleTests
     }
 
     [Fact]
-    public async Task ControllerResizeSupersession_IgnoresLateFailuresDuringResizeTransition()
+    public async Task SurfaceChartRuntime_ResizeSupersession_IgnoresLateFailuresDuringResizeTransition()
     {
         var metadata = CreateMetadata();
         var source = new ScriptedSurfaceTileSource(metadata, defaultTileValue: 11);
@@ -258,12 +275,10 @@ public sealed class SurfaceChartViewLifecycleTests
         var allowResizeToContinue = new ManualResetEventSlim(false);
         var resizeEnteredInvalidate = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
         var shouldBlockInvalidate = 0;
-        var tileCache = new SurfaceTileCache();
-        var scheduler = new SurfaceTileScheduler(tileCache, static () => { }, (key, exception) => failures.Enqueue((key, exception)));
-        var controller = new SurfaceChartController(
-            new SurfaceCameraController(new SurfaceViewport(0, 0, 512, 512)),
-            tileCache,
-            scheduler,
+        var runtime = new SurfaceChartRuntime(
+            new SurfaceViewport(0, 0, 512, 512),
+            static () => { },
+            (key, exception) => failures.Enqueue((key, exception)),
             static () => { },
             () =>
             {
@@ -276,7 +291,7 @@ public sealed class SurfaceChartViewLifecycleTests
                 allowResizeToContinue.Wait(TimeSpan.FromSeconds(2)).Should().BeTrue();
             });
 
-        controller.UpdateViewSize(new Size(256, 256));
+        runtime.UpdateViewSize(new Size(256, 256));
 
         source.EnqueueSuccessResponse();
         source.EnqueueResponse(async (_, _) =>
@@ -293,12 +308,12 @@ public sealed class SurfaceChartViewLifecycleTests
             }
         });
 
-        controller.UpdateSource(source);
+        runtime.UpdateSource(source);
 
         await staleRequestStarted.Task;
 
         Volatile.Write(ref shouldBlockInvalidate, 1);
-        var resizeTask = Task.Run(() => controller.UpdateViewSize(new Size(384, 384)));
+        var resizeTask = Task.Run(() => runtime.UpdateViewSize(new Size(384, 384)));
 
         await resizeEnteredInvalidate.Task;
 
@@ -709,17 +724,17 @@ internal static class SurfaceChartTestHelpers
 
     public static SurfaceTileKey[] GetLoadedTileKeys(SurfaceChartView view)
     {
-        var tileCacheField = typeof(SurfaceChartView).GetField("_tileCache", BindingFlags.Instance | BindingFlags.NonPublic);
-        tileCacheField.Should().NotBeNull();
+        return GetRuntime(view).GetLoadedTiles().Select(static tile => tile.Key).ToArray();
+    }
 
-        var tileCache = tileCacheField!.GetValue(view);
-        tileCache.Should().NotBeNull();
+    public static SurfaceChartRuntime GetRuntime(SurfaceChartView view)
+    {
+        var runtimeField = typeof(SurfaceChartView).GetField("_runtime", BindingFlags.Instance | BindingFlags.NonPublic);
+        runtimeField.Should().NotBeNull();
 
-        var getLoadedTilesMethod = tileCache!.GetType().GetMethod("GetLoadedTiles", BindingFlags.Instance | BindingFlags.Public);
-        getLoadedTilesMethod.Should().NotBeNull();
-
-        var tiles = (IReadOnlyList<SurfaceTile>)getLoadedTilesMethod!.Invoke(tileCache, null)!;
-        return tiles.Select(static tile => tile.Key).ToArray();
+        var runtime = runtimeField!.GetValue(view);
+        runtime.Should().NotBeNull();
+        return (SurfaceChartRuntime)runtime!;
     }
 
     public static SurfaceTileKey[] GetRenderSceneTileKeys(SurfaceChartView view)
@@ -851,16 +866,7 @@ internal static class SurfaceChartTestHelpers
 
     private static float[] GetLoadedTileValues(SurfaceChartView view)
     {
-        var tileCacheField = typeof(SurfaceChartView).GetField("_tileCache", BindingFlags.Instance | BindingFlags.NonPublic);
-        tileCacheField.Should().NotBeNull();
-
-        var tileCache = tileCacheField!.GetValue(view);
-        tileCache.Should().NotBeNull();
-
-        var getLoadedTilesMethod = tileCache!.GetType().GetMethod("GetLoadedTiles", BindingFlags.Instance | BindingFlags.Public);
-        getLoadedTilesMethod.Should().NotBeNull();
-
-        var tiles = (IReadOnlyList<SurfaceTile>)getLoadedTilesMethod!.Invoke(tileCache, null)!;
+        var tiles = GetRuntime(view).GetLoadedTiles();
         return tiles.SelectMany(static tile => tile.Values.Span.ToArray()).Distinct().ToArray();
     }
 

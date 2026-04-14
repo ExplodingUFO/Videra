@@ -16,9 +16,9 @@ namespace Videra.SurfaceCharts.Avalonia.Controls;
 /// </remarks>
 public partial class SurfaceChartView : Control
 {
-    private readonly SurfaceTileCache _tileCache;
-    private readonly SurfaceCameraController _cameraController;
-    private readonly SurfaceChartController _controller;
+    private readonly SurfaceChartRuntime _runtime;
+    private bool _synchronizingViewportFromViewState;
+    private bool _synchronizingViewStateFromViewport;
 
     internal event EventHandler<SurfaceChartTileRequestFailedEventArgs>? TileRequestFailed;
 
@@ -29,12 +29,10 @@ public partial class SurfaceChartView : Control
     /// </summary>
     public SurfaceChartView()
     {
-        _tileCache = new SurfaceTileCache();
-        _cameraController = new SurfaceCameraController(Viewport);
-        _controller = new SurfaceChartController(
-            _cameraController,
-            _tileCache,
-            new SurfaceTileScheduler(_tileCache, NotifyTilesChanged, OnTileRequestFailed),
+        _runtime = new SurfaceChartRuntime(
+            Viewport,
+            NotifyTilesChanged,
+            OnTileRequestFailed,
             ClearLastTileFailure,
             InvalidateRenderScene);
 
@@ -44,9 +42,33 @@ public partial class SurfaceChartView : Control
     /// <inheritdoc />
     protected override Size ArrangeOverride(Size finalSize)
     {
-        _controller.UpdateViewSize(finalSize);
+        _runtime.UpdateViewSize(finalSize);
         UpdateOverlayViewSize(finalSize);
         return base.ArrangeOverride(finalSize);
+    }
+
+    /// <summary>
+    /// Resets the chart view to show the full dataset when a source is available.
+    /// </summary>
+    public void FitToData()
+    {
+        ApplyViewState(_runtime.CreateFitToDataViewState(Source));
+    }
+
+    /// <summary>
+    /// Resets the persisted camera pose for the current data window.
+    /// </summary>
+    public void ResetCamera()
+    {
+        ApplyViewState(_runtime.CreateResetCameraViewState());
+    }
+
+    /// <summary>
+    /// Updates the chart to the requested sample-space window.
+    /// </summary>
+    public void ZoomTo(double xMin, double xMax, double yMin, double yMax)
+    {
+        ApplyViewState(_runtime.CreateZoomedViewState(new SurfaceDataWindow(xMin, xMax, yMin, yMax)));
     }
 
     private void OnTileRequestFailed(SurfaceTileKey tileKey, Exception exception)
@@ -76,5 +98,17 @@ public partial class SurfaceChartView : Control
     {
         LastTileFailure = args;
         TileRequestFailed?.Invoke(this, args);
+    }
+
+    private void ApplyViewState(SurfaceViewState viewState)
+    {
+        ArgumentNullException.ThrowIfNull(viewState);
+
+        if (ViewState == viewState)
+        {
+            return;
+        }
+
+        SetCurrentValue(ViewStateProperty, viewState);
     }
 }

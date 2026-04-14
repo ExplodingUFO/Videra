@@ -46,7 +46,7 @@ public partial class SurfaceChartView
             return;
         }
 
-        var tiles = _tileCache.GetLoadedTiles();
+        var tiles = _runtime.GetLoadedTiles();
         if (tiles.Count == 0)
         {
             _renderScene = null;

@@ -11,8 +11,17 @@ internal static class SurfaceChartsDocumentationTerms
     public const string SurfaceChartViewSentence =
         "The dedicated `SurfaceChartView` control lives in `Videra.SurfaceCharts.Avalonia`.";
 
+    public const string SurfaceChartsAvaloniaBoundarySentence =
+        "The surface-chart family remains independent from `VideraView`.";
+
+    public const string SurfaceChartViewStateSentence =
+        "`ViewState` is the primary public view contract for `SurfaceChartView`, while `Viewport` remains a compatibility bridge.";
+
     public const string ChineseSurfaceChartsFamilyBoundarySentence =
         "surface-chart 模块家族与 `VideraView` 相互独立。";
+
+    public const string ChineseSurfaceChartViewStateSentence =
+        "`ViewState` 是 `SurfaceChartView` 的主视图状态契约，`Viewport` 仅作为兼容桥接保留。";
 
     public static readonly string[] ExpectedModuleReadmeTerms =
     [

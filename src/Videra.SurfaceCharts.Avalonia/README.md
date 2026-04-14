@@ -3,16 +3,19 @@
 `Videra.SurfaceCharts.Avalonia` provides the dedicated Avalonia control surface for the surface-chart module family.
 
 The control layer remains separate from `VideraView` and only depends on the shared surface-chart contracts in `Videra.SurfaceCharts.Core`.
+The surface-chart family remains independent from `VideraView`.
 
 ## Current Alpha Scope
 
 `SurfaceChartView` currently provides:
 
 - host-driven surface rendering from an `ISurfaceTileSource`
-- host-driven `Viewport` changes in sample space
+- `ViewState` as the primary public view contract, with `Viewport` retained as a compatibility bridge in sample space
 - overview-first tile scheduling with lazy cache-backed reads
 - color-map driven surface rendering
 - overlay state for probe/readout behavior
+
+`ViewState` is the primary public view contract for `SurfaceChartView`, while `Viewport` remains a compatibility bridge.
 
 This module is intentionally a thin UI shell. Tile decoding, preprocessing, cache generation, and LOD policy remain outside the control layer.
 
@@ -45,15 +48,16 @@ using Videra.SurfaceCharts.Processing;
 var chartView = new SurfaceChartView
 {
     Source = new SurfacePyramidBuilder(32, 32).Build(matrix),
-    Viewport = new SurfaceViewport(0d, 0d, matrix.Metadata.Width, matrix.Metadata.Height),
     ColorMap = colorMap
 };
+
+chartView.FitToData();
 ```
 
 Hosts currently own:
 
 - source creation
-- viewport updates
+- `ViewState` updates or legacy `Viewport` bridge updates
 - color-map selection
 - any higher-level UI that wants zoom, pan, orbit, or axes
 
