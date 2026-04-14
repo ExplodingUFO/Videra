@@ -8,6 +8,7 @@ using Xunit;
 
 namespace Videra.Core.IntegrationTests.Rendering;
 
+[Collection(ProcessEnvironmentCollection.Name)]
 public sealed class RenderSessionOrchestrationIntegrationTests
 {
     [Fact]
@@ -57,6 +58,39 @@ public sealed class RenderSessionOrchestrationIntegrationTests
         orchestrator.Snapshot.UsesSoftwarePresentationCopy.Should().BeTrue();
         factory.CreatedBackends.Should().HaveCount(1);
         factory.CreatedBackends[0].IsInitialized.Should().BeTrue();
+    }
+
+    [Fact]
+    public void Native_custom_backend_factory_ignores_process_backend_override_when_rebinding_handle()
+    {
+        var original = Environment.GetEnvironmentVariable("VIDERA_BACKEND");
+
+        try
+        {
+            Environment.SetEnvironmentVariable("VIDERA_BACKEND", "software");
+
+            using var engine = new VideraEngine();
+            var factory = new TrackingBackendFactory();
+            using var orchestrator = new RenderSessionOrchestrator(
+                engine,
+                backendFactory: factory.CreateBackend);
+
+            orchestrator.Attach(GraphicsBackendPreference.D3D11);
+            orchestrator.Resize(160, 120, 1f);
+            orchestrator.BindHandle(new IntPtr(0x1111));
+
+            factory.CreatedBackends.Should().HaveCount(1);
+            orchestrator.BindHandle(IntPtr.Zero);
+
+            factory.CreatedBackends[0].DisposeCalls.Should().Be(1);
+            orchestrator.Snapshot.State.Should().Be(RenderSessionState.WaitingForHandle);
+            orchestrator.Snapshot.HandleState.IsBound.Should().BeFalse();
+            orchestrator.Snapshot.HandleState.Generation.Should().Be(2);
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable("VIDERA_BACKEND", original);
+        }
     }
 
     [Fact]

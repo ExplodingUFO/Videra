@@ -9,6 +9,7 @@ using Xunit;
 
 namespace Videra.Core.IntegrationTests.Rendering;
 
+[Collection(ProcessEnvironmentCollection.Name)]
 public sealed class RenderSessionIntegrationTests
 {
     [Fact]
