@@ -30,6 +30,7 @@ public static class SurfaceCacheWriter
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(tileKeys);
 
+        var fileSystem = SurfaceCacheFileSystem.Current;
         var uniqueKeys = new HashSet<SurfaceTileKey>();
         var tileDtos = new List<TileDto>();
 
@@ -41,10 +42,10 @@ public static class SurfaceCacheWriter
 
         try
         {
-            EnsureDestinationDirectoryExists(cachePath);
+            EnsureDestinationDirectoryExists(fileSystem, cachePath);
 
             #pragma warning disable CA2007
-            await using (var payloadStream = File.Create(tempPayloadPath))
+            await using (var payloadStream = fileSystem.CreateFile(tempPayloadPath))
             {
                 foreach (var tileKey in tileKeys)
                 {
@@ -83,11 +84,11 @@ public static class SurfaceCacheWriter
             var directoryPath = Path.GetDirectoryName(cachePath);
             if (!string.IsNullOrWhiteSpace(directoryPath))
             {
-                Directory.CreateDirectory(directoryPath);
+                fileSystem.CreateDirectory(directoryPath);
             }
 
             #pragma warning disable CA2007
-            await using (var stream = File.Create(tempCachePath))
+            await using (var stream = fileSystem.CreateFile(tempCachePath))
             {
                 await JsonSerializer.SerializeAsync(
                     stream,
@@ -98,27 +99,27 @@ public static class SurfaceCacheWriter
             }
             #pragma warning restore CA2007
 
-            ReplaceFile(tempPayloadPath, payloadPath, payloadBackupPath);
+            ReplaceFile(fileSystem, tempPayloadPath, payloadPath, payloadBackupPath);
 
             try
             {
-                ReplaceFile(tempCachePath, cachePath, manifestBackupPath);
+                ReplaceFile(fileSystem, tempCachePath, cachePath, manifestBackupPath);
             }
             catch
             {
-                RestoreFile(payloadPath, payloadBackupPath);
+                RestoreFile(fileSystem, payloadPath, payloadBackupPath);
                 throw;
             }
 
-            DeleteFile(manifestBackupPath);
-            DeleteFile(payloadBackupPath);
+            DeleteFile(fileSystem, manifestBackupPath);
+            DeleteFile(fileSystem, payloadBackupPath);
         }
         catch
         {
-            DeleteFile(tempCachePath);
-            DeleteFile(tempPayloadPath);
-            DeleteFile(manifestBackupPath);
-            DeleteFile(payloadBackupPath);
+            DeleteFile(fileSystem, tempCachePath);
+            DeleteFile(fileSystem, tempPayloadPath);
+            DeleteFile(fileSystem, manifestBackupPath);
+            DeleteFile(fileSystem, payloadBackupPath);
             throw;
         }
     }
@@ -241,49 +242,49 @@ public static class SurfaceCacheWriter
             : Path.Combine(directoryPath, backupFileName);
     }
 
-    private static void EnsureDestinationDirectoryExists(string destinationPath)
+    private static void EnsureDestinationDirectoryExists(ISurfaceCacheFileSystem fileSystem, string destinationPath)
     {
         var directoryPath = Path.GetDirectoryName(destinationPath);
         if (!string.IsNullOrWhiteSpace(directoryPath))
         {
-            Directory.CreateDirectory(directoryPath);
+            fileSystem.CreateDirectory(directoryPath);
         }
     }
 
-    private static void ReplaceFile(string temporaryPath, string destinationPath, string backupPath)
+    private static void ReplaceFile(ISurfaceCacheFileSystem fileSystem, string temporaryPath, string destinationPath, string backupPath)
     {
-        if (File.Exists(destinationPath))
+        if (fileSystem.FileExists(destinationPath))
         {
-            DeleteFile(backupPath);
-            File.Replace(temporaryPath, destinationPath, destinationBackupFileName: backupPath, ignoreMetadataErrors: true);
+            DeleteFile(fileSystem, backupPath);
+            fileSystem.ReplaceFile(temporaryPath, destinationPath, backupPath);
             return;
         }
 
-        File.Move(temporaryPath, destinationPath);
+        fileSystem.MoveFile(temporaryPath, destinationPath);
     }
 
-    private static void RestoreFile(string destinationPath, string backupPath)
+    private static void RestoreFile(ISurfaceCacheFileSystem fileSystem, string destinationPath, string backupPath)
     {
-        if (File.Exists(backupPath))
+        if (fileSystem.FileExists(backupPath))
         {
-            if (File.Exists(destinationPath))
+            if (fileSystem.FileExists(destinationPath))
             {
-                File.Replace(backupPath, destinationPath, destinationBackupFileName: null, ignoreMetadataErrors: true);
+                fileSystem.ReplaceFile(backupPath, destinationPath, backupPath: null);
                 return;
             }
 
-            File.Move(backupPath, destinationPath);
+            fileSystem.MoveFile(backupPath, destinationPath);
             return;
         }
 
-        DeleteFile(destinationPath);
+        DeleteFile(fileSystem, destinationPath);
     }
 
-    private static void DeleteFile(string path)
+    private static void DeleteFile(ISurfaceCacheFileSystem fileSystem, string path)
     {
-        if (File.Exists(path))
+        if (fileSystem.FileExists(path))
         {
-            File.Delete(path);
+            fileSystem.DeleteFile(path);
         }
     }
 }
