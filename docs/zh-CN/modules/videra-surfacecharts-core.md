@@ -12,9 +12,21 @@
 - `SurfaceChartView` 是专用的 Avalonia 控件层，而不是 `VideraView` 的一种模式。
 - 首版面向离线大矩阵、曲面图和时频图类可视化，强调 LOD 与缓存友好性。
 
+## 核心契约
+
+- `SurfaceMetadata`
+- `SurfaceViewport`
+- `SurfaceLodPolicy`
+- `SurfaceTileKey`
+- `SurfaceTile`
+- `ISurfaceTileSource`
+
+这里最重要的约定是：`SurfaceTile.Width` / `Height` 表示 value-grid 维度，而 `SurfaceTile.Bounds` 表示原始数据集里的 source-space 覆盖范围。粗粒度 LOD tile 因此不再假设 `1:1 sample -> value`。
+
 ## 相关入口
 
 - [Videra.SurfaceCharts.Avalonia](videra-surfacecharts-avalonia.md)
+- [Videra.SurfaceCharts.Processing](videra-surfacecharts-processing.md)
 - [独立 Demo](../../../samples/Videra.SurfaceCharts.Demo/README.md)
 
 ## 术语

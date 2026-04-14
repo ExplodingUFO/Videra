@@ -7,6 +7,12 @@ Videra 是一套面向 .NET 桌面应用的跨平台 3D 查看组件库，核心
 surface-chart 模块家族与 `VideraView` 相互独立。
 它面向离线大矩阵、曲面图和时频图一类可视化场景，独立 Demo 也单独发布为 `Videra.SurfaceCharts.Demo`。
 
+当前 `alpha` 阶段需要明确说明：
+
+- 已完成独立模块边界、LOD、缓存读取、基础曲面渲染与 Demo 路径
+- 尚未完成完整的鼠标缩放 / 拖拽 / orbit 交互
+- 尚未完成坐标轴、刻度、标签与图例系统
+
 ## 项目状态
 
 - 当前处于早期 `alpha`
@@ -55,6 +61,7 @@ dotnet add package Videra.Core --version 0.1.0-alpha.1 --source github-Exploding
 - [交互示例](../../samples/Videra.InteractionSample/README.md)：`host owns` `SelectionState`、`Annotations` 和 annotation state，`Navigate` / `Select` / `Annotate`，`SelectionRequested` / `AnnotationRequested`，以及 `VideraNodeAnnotation` / `VideraWorldPointAnnotation`
 - [SurfaceCharts.Core](modules/videra-surfacecharts-core.md)：`SurfaceChartView` 之外的领域契约、viewport / LOD、tile source 与 probe contract
 - [SurfaceCharts.Avalonia](modules/videra-surfacecharts-avalonia.md)：专用 `SurfaceChartView` 控件层，独立于 `VideraView`
+- [SurfaceCharts.Processing](modules/videra-surfacecharts-processing.md)：离线 pyramid / cache 构建与 manifest + sidecar 读取路径
 - [独立 Demo](../../samples/Videra.SurfaceCharts.Demo/README.md)：`Videra.SurfaceCharts.Demo`
 - [架构说明](ARCHITECTURE.md)
 - [贡献指南](CONTRIBUTING.md)
@@ -72,6 +79,7 @@ dotnet add package Videra.Core --version 0.1.0-alpha.1 --source github-Exploding
 - [Videra.Demo](modules/demo.md)
 - [Videra.SurfaceCharts.Core](modules/videra-surfacecharts-core.md)
 - [Videra.SurfaceCharts.Avalonia](modules/videra-surfacecharts-avalonia.md)
+- [Videra.SurfaceCharts.Processing](modules/videra-surfacecharts-processing.md)
 - [Videra.SurfaceCharts.Demo](../../samples/Videra.SurfaceCharts.Demo/README.md)
 
 ## 说明
