@@ -1,23 +1,42 @@
 <Solution>
-  <Project Path="samples/Videra.Demo/Videra.Demo.csproj" />
-  <Project Path="samples/Videra.ExtensibilitySample/Videra.ExtensibilitySample.csproj" />
-  <Project Path="samples/Videra.InteractionSample/Videra.InteractionSample.csproj" />
-  <Project Path="samples/Videra.SurfaceCharts.Demo/Videra.SurfaceCharts.Demo.csproj" />
-  <Project Path="src/Videra.Avalonia/Videra.Avalonia.csproj" />
-  <Project Path="src/Videra.Core/Videra.Core.csproj" />
-  <Project Path="src/Videra.SurfaceCharts.Avalonia/Videra.SurfaceCharts.Avalonia.csproj" />
-  <Project Path="src/Videra.SurfaceCharts.Core/Videra.SurfaceCharts.Core.csproj" />
-  <Project Path="src/Videra.SurfaceCharts.Processing/Videra.SurfaceCharts.Processing.csproj" />
-  <Project Path="src/Videra.Platform.Linux/Videra.Platform.Linux.csproj" />
-  <Project Path="src/Videra.Platform.macOS/Videra.Platform.macOS.csproj" />
-  <Project Path="src/Videra.Platform.Windows/Videra.Platform.Windows.csproj" />
-  <Project Path="tests/Tests.Common/Tests.Common.csproj" />
-  <Project Path="tests/Videra.Core.Tests/Videra.Core.Tests.csproj" />
-  <Project Path="tests/Videra.Core.IntegrationTests/Videra.Core.IntegrationTests.csproj" />
-  <Project Path="tests/Videra.SurfaceCharts.Avalonia.IntegrationTests/Videra.SurfaceCharts.Avalonia.IntegrationTests.csproj" />
-  <Project Path="tests/Videra.SurfaceCharts.Core.Tests/Videra.SurfaceCharts.Core.Tests.csproj" />
-  <Project Path="tests/Videra.SurfaceCharts.Processing.Tests/Videra.SurfaceCharts.Processing.Tests.csproj" />
-  <Project Path="tests/Videra.Platform.Windows.Tests/Videra.Platform.Windows.Tests.csproj" />
-  <Project Path="tests/Videra.Platform.Linux.Tests/Videra.Platform.Linux.Tests.csproj" />
-  <Project Path="tests/Videra.Platform.macOS.Tests/Videra.Platform.macOS.Tests.csproj" />
+  <Folder Name="/Libraries/" />
+  <Folder Name="/Libraries/Platforms/">
+    <Project Path="src/Videra.Platform.Linux/Videra.Platform.Linux.csproj" />
+    <Project Path="src/Videra.Platform.macOS/Videra.Platform.macOS.csproj" />
+    <Project Path="src/Videra.Platform.Windows/Videra.Platform.Windows.csproj" />
+  </Folder>
+  <Folder Name="/Libraries/SurfaceCharts/">
+    <Project Path="src/Videra.SurfaceCharts.Avalonia/Videra.SurfaceCharts.Avalonia.csproj" />
+    <Project Path="src/Videra.SurfaceCharts.Core/Videra.SurfaceCharts.Core.csproj" />
+    <Project Path="src/Videra.SurfaceCharts.Processing/Videra.SurfaceCharts.Processing.csproj" />
+  </Folder>
+  <Folder Name="/Libraries/Videra/">
+    <Project Path="src/Videra.Avalonia/Videra.Avalonia.csproj" />
+    <Project Path="src/Videra.Core/Videra.Core.csproj" />
+  </Folder>
+  <Folder Name="/Samples/" />
+  <Folder Name="/Samples/SurfaceCharts/">
+    <Project Path="samples/Videra.SurfaceCharts.Demo/Videra.SurfaceCharts.Demo.csproj" />
+  </Folder>
+  <Folder Name="/Samples/Videra/">
+    <Project Path="samples/Videra.Demo/Videra.Demo.csproj" />
+    <Project Path="samples/Videra.ExtensibilitySample/Videra.ExtensibilitySample.csproj" />
+    <Project Path="samples/Videra.InteractionSample/Videra.InteractionSample.csproj" />
+  </Folder>
+  <Folder Name="/Tests/" />
+  <Folder Name="/Tests/Core/">
+    <Project Path="tests/Tests.Common/Tests.Common.csproj" />
+    <Project Path="tests/Videra.Core.IntegrationTests/Videra.Core.IntegrationTests.csproj" />
+    <Project Path="tests/Videra.Core.Tests/Videra.Core.Tests.csproj" />
+  </Folder>
+  <Folder Name="/Tests/Platforms/">
+    <Project Path="tests/Videra.Platform.Linux.Tests/Videra.Platform.Linux.Tests.csproj" />
+    <Project Path="tests/Videra.Platform.macOS.Tests/Videra.Platform.macOS.Tests.csproj" />
+    <Project Path="tests/Videra.Platform.Windows.Tests/Videra.Platform.Windows.Tests.csproj" />
+  </Folder>
+  <Folder Name="/Tests/SurfaceCharts/">
+    <Project Path="tests/Videra.SurfaceCharts.Avalonia.IntegrationTests/Videra.SurfaceCharts.Avalonia.IntegrationTests.csproj" />
+    <Project Path="tests/Videra.SurfaceCharts.Core.Tests/Videra.SurfaceCharts.Core.Tests.csproj" />
+    <Project Path="tests/Videra.SurfaceCharts.Processing.Tests/Videra.SurfaceCharts.Processing.Tests.csproj" />
+  </Folder>
 </Solution>
