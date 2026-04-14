@@ -54,7 +54,7 @@ switch ($Platform)
                 throw "DISPLAY is not set. Start an X11 session or run under xvfb-run."
             }
 
-            pwsh -File (Join-Path $root "verify.ps1") -Configuration $Configuration -IncludeNativeLinux
+            pwsh -File (Join-Path $root "scripts/verify.ps1") -Configuration $Configuration -IncludeNativeLinux
             break
         }
 
@@ -73,7 +73,7 @@ switch ($Platform)
             $env:XDG_SESSION_TYPE = "wayland"
         }
 
-        pwsh -File (Join-Path $root "verify.ps1") -Configuration $Configuration -IncludeNativeLinuxXWayland
+        pwsh -File (Join-Path $root "scripts/verify.ps1") -Configuration $Configuration -IncludeNativeLinuxXWayland
         break
     }
 
@@ -84,7 +84,7 @@ switch ($Platform)
             throw "macOS native validation must run on a macOS host."
         }
 
-        pwsh -File (Join-Path $root "verify.ps1") -Configuration $Configuration -IncludeNativeMacOS
+        pwsh -File (Join-Path $root "scripts/verify.ps1") -Configuration $Configuration -IncludeNativeMacOS
         break
     }
 
@@ -95,7 +95,7 @@ switch ($Platform)
             throw "Windows native validation must run on a Windows host."
         }
 
-        pwsh -File (Join-Path $root "verify.ps1") -Configuration $Configuration -IncludeNativeWindows
+        pwsh -File (Join-Path $root "scripts/verify.ps1") -Configuration $Configuration -IncludeNativeWindows
         break
     }
 }

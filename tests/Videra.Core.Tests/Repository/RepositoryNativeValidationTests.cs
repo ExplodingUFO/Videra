@@ -60,6 +60,7 @@ public sealed class RepositoryNativeValidationTests
         powerShellScript.Should().Contain("\"Windows\"");
         powerShellScript.Should().Contain("DISPLAY is not set");
         powerShellScript.Should().Contain("WAYLAND_DISPLAY is not set");
+        powerShellScript.Should().Contain("scripts/verify.ps1");
     }
 
     [Fact]
@@ -67,7 +68,7 @@ public sealed class RepositoryNativeValidationTests
     {
         var repositoryRoot = GetRepositoryRoot();
         var shellVerify = File.ReadAllText(Path.Combine(repositoryRoot, "verify.sh"));
-        var powerShellVerify = File.ReadAllText(Path.Combine(repositoryRoot, "verify.ps1"));
+        var powerShellVerify = File.ReadAllText(Path.Combine(repositoryRoot, "scripts", "verify.ps1"));
 
         shellVerify.Should().Contain("console;verbosity=detailed");
         powerShellVerify.Should().Contain("console;verbosity=detailed");
@@ -286,7 +287,7 @@ public sealed class RepositoryNativeValidationTests
         var helperSource = File.ReadAllText(Path.Combine(repositoryRoot, "tests", "Tests.Common", "Platform", "NativeHostTestHelpers.cs"));
         var lifecycleSource = File.ReadAllText(Path.Combine(repositoryRoot, "tests", "Videra.Platform.Linux.Tests", "Backend", "VulkanBackendLifecycleTests.cs"));
         var shellVerify = File.ReadAllText(Path.Combine(repositoryRoot, "verify.sh"));
-        var powerShellVerify = File.ReadAllText(Path.Combine(repositoryRoot, "verify.ps1"));
+        var powerShellVerify = File.ReadAllText(Path.Combine(repositoryRoot, "scripts", "verify.ps1"));
 
         supportedOsSource.Should().Contain("public sealed class LinuxNativeFactAttribute");
         supportedOsSource.Should().Contain("VIDERA_RUN_LINUX_NATIVE_TESTS");
