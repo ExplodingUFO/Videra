@@ -161,6 +161,8 @@ public sealed class RepositoryReleaseReadinessTests
         workflow.Should().Contain("src/Videra.Avalonia/Videra.Avalonia.csproj");
         workflow.Should().Contain("pwsh -File ./scripts/verify.ps1 -Configuration Release");
         workflow.Should().NotContain("pwsh -File ./verify.ps1 -Configuration Release");
+        ciWorkflow.Should().Contain("pwsh -File ./scripts/verify.ps1 -Configuration Release");
+        ciWorkflow.Should().NotContain("pwsh -File ./verify.ps1 -Configuration Release");
         ciWorkflow.Should().Contain("ubuntu-latest");
         ciWorkflow.Should().Contain("macos-latest");
         ciWorkflow.Should().Contain("dotnet pack");
