@@ -61,7 +61,7 @@ Run the standard verification entrypoint before submitting work:
 ./verify.sh --configuration Release
 
 # PowerShell
-pwsh -File ./verify.ps1 -Configuration Release
+pwsh -File ./scripts/verify.ps1 -Configuration Release
 ```
 
 If your change touches native-host paths, add explicit platform validation:
@@ -69,11 +69,11 @@ If your change touches native-host paths, add explicit platform validation:
 ```bash
 # Linux
 ./verify.sh --configuration Release --include-native-linux
-pwsh -File ./verify.ps1 -Configuration Release -IncludeNativeLinux
+pwsh -File ./scripts/verify.ps1 -Configuration Release -IncludeNativeLinux
 
 # macOS
 ./verify.sh --configuration Release --include-native-macos
-pwsh -File ./verify.ps1 -Configuration Release -IncludeNativeMacOS
+pwsh -File ./scripts/verify.ps1 -Configuration Release -IncludeNativeMacOS
 ```
 
 You can also run tests directly when needed:

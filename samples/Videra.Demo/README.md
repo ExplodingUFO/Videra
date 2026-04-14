@@ -59,7 +59,7 @@ Repository-wide validation:
 
 ```bash
 ./verify.sh --configuration Release
-pwsh -File ./verify.ps1 -Configuration Release
+pwsh -File ./scripts/verify.ps1 -Configuration Release
 ```
 
 Demo-only build check:

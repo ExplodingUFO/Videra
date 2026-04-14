@@ -24,9 +24,17 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
-$root = $PSScriptRoot
+$root = Split-Path -Parent $PSScriptRoot
 $allPass = $true
 $sw = [System.Diagnostics.Stopwatch]::StartNew()
+$testResultsDirectory = Join-Path $root "artifacts/test-results/verify"
+
+if (Test-Path -LiteralPath $testResultsDirectory)
+{
+    Remove-Item -LiteralPath $testResultsDirectory -Recurse -Force
+}
+
+New-Item -ItemType Directory -Force -Path $testResultsDirectory | Out-Null
 
 function Write-Step([string]$title) {
     Write-Host ""
@@ -44,14 +52,26 @@ function Invoke-Check([string]$title, [scriptblock]$command, [string]$successMes
     }
 }
 
+function Invoke-TestCheck([string]$title, [scriptblock]$command, [string]$successMessage, [string]$failureMessage) {
+    Write-Step $title
+    & $command
+    if ($LASTEXITCODE -eq 0) {
+        Write-Host "  [PASS] $successMessage" -ForegroundColor Green
+    } else {
+        Write-Host "  [FAIL] $failureMessage" -ForegroundColor Red
+        Write-Host "  Test results directory: $testResultsDirectory" -ForegroundColor Yellow
+        $script:allPass = $false
+    }
+}
+
 # Step 1: Build
 Invoke-Check "Build ($Configuration)" {
     dotnet build "$root/Videra.slnx" --configuration $Configuration -v q 2>$null
 } "Build succeeded" "Build failed"
 
 # Step 2: Tests
-Invoke-Check "Tests" {
-    dotnet test "$root/Videra.slnx" --configuration $Configuration -v q 2>$null
+Invoke-TestCheck "Tests" {
+    dotnet test "$root/Videra.slnx" --configuration $Configuration -v m --logger "console;verbosity=detailed" --logger "trx;LogFilePrefix=verify" --results-directory "$testResultsDirectory"
 } "All tests passed" "Some tests failed"
 
 # Step 3: Demo build

@@ -18,7 +18,7 @@ Standard repository verification remains:
 
 ```bash
 ./verify.sh --configuration Release
-pwsh -File ./verify.ps1 -Configuration Release
+pwsh -File ./scripts/verify.ps1 -Configuration Release
 ```
 
 That standard path does not automatically exercise the dedicated matching-host native jobs. Use the native-specific entrypoints below when you need the same path that GitHub Actions pull requests enforce.
@@ -159,9 +159,9 @@ pwsh -File ./scripts/run-native-validation.ps1 -Platform Windows -Configuration 
 - Linux X11: `./verify.sh --configuration Release --include-native-linux`
 - Linux Wayland-session `XWayland`: `./verify.sh --configuration Release --include-native-linux-xwayland`
 - macOS: `./verify.sh --configuration Release --include-native-macos`
-- Windows: `pwsh -File ./verify.ps1 -Configuration Release -IncludeNativeWindows`
+- Windows: `pwsh -File ./scripts/verify.ps1 -Configuration Release -IncludeNativeWindows`
 
-The PowerShell wrapper calls the equivalent `verify.ps1` entrypoint.
+The PowerShell wrapper calls the equivalent `scripts/verify.ps1` entrypoint.
 
 ## Success Evidence
 

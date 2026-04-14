@@ -26,7 +26,7 @@ dotnet run --project samples/Videra.Demo/Videra.Demo.csproj
 
 ```bash
 ./verify.sh --configuration Release
-pwsh -File ./verify.ps1 -Configuration Release
+pwsh -File ./scripts/verify.ps1 -Configuration Release
 ```
 
 如改动涉及 Linux 或 macOS 原生宿主，请补充对应平台验证。

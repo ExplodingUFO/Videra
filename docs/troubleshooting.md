@@ -13,7 +13,7 @@ Run the standard repository verification entrypoint first:
 ./verify.sh --configuration Release
 
 # PowerShell
-pwsh -File ./verify.ps1 -Configuration Release
+pwsh -File ./scripts/verify.ps1 -Configuration Release
 ```
 
 If the issue is specific to Linux or macOS native backends, enable the explicit native validation switches:
@@ -22,8 +22,8 @@ If the issue is specific to Linux or macOS native backends, enable the explicit 
 ./verify.sh --configuration Release --include-native-linux
 ./verify.sh --configuration Release --include-native-macos
 
-pwsh -File ./verify.ps1 -Configuration Release -IncludeNativeLinux
-pwsh -File ./verify.ps1 -Configuration Release -IncludeNativeMacOS
+pwsh -File ./scripts/verify.ps1 -Configuration Release -IncludeNativeLinux
+pwsh -File ./scripts/verify.ps1 -Configuration Release -IncludeNativeMacOS
 ```
 
 If you need a matching-host runbook or the hosted GitHub Actions entrypoint, use [Native Validation](native-validation.md).
@@ -56,7 +56,7 @@ If you need a matching-host runbook or the hosted GitHub Actions entrypoint, use
 - If your change affects D3D11 initialization, swapchain behavior, or native host handling, rerun:
 
 ```bash
-pwsh -File ./verify.ps1 -Configuration Release
+pwsh -File ./scripts/verify.ps1 -Configuration Release
 ```
 
 ### Linux

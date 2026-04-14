@@ -10,7 +10,7 @@
 
 ```bash
 ./verify.sh --configuration Release
-pwsh -File ./verify.ps1 -Configuration Release
+pwsh -File ./scripts/verify.ps1 -Configuration Release
 ```
 
 如果问题与 Linux 或 macOS 原生后端有关，请显式启用：
@@ -20,9 +20,9 @@ pwsh -File ./verify.ps1 -Configuration Release
 ./verify.sh --configuration Release --include-native-linux-xwayland
 ./verify.sh --configuration Release --include-native-macos
 
-pwsh -File ./verify.ps1 -Configuration Release -IncludeNativeLinux
-pwsh -File ./verify.ps1 -Configuration Release -IncludeNativeLinuxXWayland
-pwsh -File ./verify.ps1 -Configuration Release -IncludeNativeMacOS
+pwsh -File ./scripts/verify.ps1 -Configuration Release -IncludeNativeLinux
+pwsh -File ./scripts/verify.ps1 -Configuration Release -IncludeNativeLinuxXWayland
+pwsh -File ./scripts/verify.ps1 -Configuration Release -IncludeNativeMacOS
 ```
 
 如果你需要匹配宿主执行步骤，或想使用 GitHub Actions 上的手动入口，请查看[原生宿主验证](native-validation.md)。

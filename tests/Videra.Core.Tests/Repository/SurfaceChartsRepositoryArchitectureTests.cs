@@ -37,7 +37,7 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
     {
         var repositoryRoot = GetRepositoryRoot();
         var shellVerify = File.ReadAllText(Path.Combine(repositoryRoot, "verify.sh"));
-        var powerShellVerify = File.ReadAllText(Path.Combine(repositoryRoot, "verify.ps1"));
+        var powerShellVerify = File.ReadAllText(Path.Combine(repositoryRoot, "scripts", "verify.ps1"));
 
         foreach (var verifyContent in new[] { shellVerify, powerShellVerify })
         {

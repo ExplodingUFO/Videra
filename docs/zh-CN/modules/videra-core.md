@@ -269,7 +269,7 @@ Videra.Core/
 ./verify.sh --configuration Release
 
 # PowerShell
-pwsh -File ./verify.ps1 -Configuration Release
+pwsh -File ./scripts/verify.ps1 -Configuration Release
 ```
 
 如需仅执行 Core 相关测试，可直接运行：
