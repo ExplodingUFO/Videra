@@ -96,15 +96,15 @@ Videra 支持两条后端选择路径：
 标准验证入口：
 
 ```bash
-./verify.sh --configuration Release
+./scripts/verify.sh --configuration Release
 pwsh -File ./scripts/verify.ps1 -Configuration Release
 ```
 
 Linux 和 macOS 的原生宿主闭环验证需要显式启用：
 
 ```bash
-./verify.sh --configuration Release --include-native-linux
-./verify.sh --configuration Release --include-native-macos
+./scripts/verify.sh --configuration Release --include-native-linux
+./scripts/verify.sh --configuration Release --include-native-macos
 
 pwsh -File ./scripts/verify.ps1 -Configuration Release -IncludeNativeLinux
 pwsh -File ./scripts/verify.ps1 -Configuration Release -IncludeNativeMacOS
@@ -115,3 +115,4 @@ pwsh -File ./scripts/verify.ps1 -Configuration Release -IncludeNativeMacOS
 - [英文架构文档](../../ARCHITECTURE.md)
 - [中文文档导航](index.md)
 - [故障排查](troubleshooting.md)
+

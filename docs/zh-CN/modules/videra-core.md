@@ -266,7 +266,7 @@ Videra.Core/
 
 ```bash
 # Unix shell
-./verify.sh --configuration Release
+./scripts/verify.sh --configuration Release
 
 # PowerShell
 pwsh -File ./scripts/verify.ps1 -Configuration Release
@@ -284,3 +284,4 @@ dotnet test tests/Videra.Core.IntegrationTests/Videra.Core.IntegrationTests.cspr
 - .NET 8.0
 - System.Numerics.Vectors
 - SharpGLTF.Core (模型导入)
+

@@ -223,8 +223,8 @@ Videra.Platform.Linux/
 
 ```bash
 # Unix shell
-./verify.sh --configuration Release --include-native-linux
-./verify.sh --configuration Release --include-native-linux-xwayland
+./scripts/verify.sh --configuration Release --include-native-linux
+./scripts/verify.sh --configuration Release --include-native-linux-xwayland
 
 # PowerShell
 pwsh -File ./scripts/verify.ps1 -Configuration Release -IncludeNativeLinux
@@ -232,3 +232,4 @@ pwsh -File ./scripts/verify.ps1 -Configuration Release -IncludeNativeLinuxXWayla
 ```
 
 这一步用于执行 `tests/Videra.Platform.Linux.Tests` 中的真实 X11-backed lifecycle/render-path 验证；如果在 Wayland 会话中运行，则同时验证 `XWayland` 兼容路径，而不仅仅是跨平台构建或非原生主机上的常规测试。
+

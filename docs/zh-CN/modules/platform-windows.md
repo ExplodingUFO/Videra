@@ -188,7 +188,7 @@ Videra.Platform.Windows/
 
 ```bash
 # Unix shell
-./verify.sh --configuration Release
+./scripts/verify.sh --configuration Release
 
 # PowerShell
 pwsh -File ./scripts/verify.ps1 -Configuration Release
@@ -201,3 +201,4 @@ pwsh -File ./scripts/verify.ps1 -Configuration Release
 - Windows 10 或更高版本
 - Direct3D 11 兼容显卡
 - 支持 Feature Level 11_0
+

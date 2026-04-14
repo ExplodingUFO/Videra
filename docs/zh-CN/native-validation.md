@@ -17,7 +17,7 @@
 仓库默认验证入口仍然是：
 
 ```bash
-./verify.sh --configuration Release
+./scripts/verify.sh --configuration Release
 pwsh -File ./scripts/verify.ps1 -Configuration Release
 ```
 
@@ -155,9 +155,9 @@ pwsh -File ./scripts/run-native-validation.ps1 -Platform Windows -Configuration 
 
 ## 脚本实际执行内容
 
-- Linux X11：`./verify.sh --configuration Release --include-native-linux`
-- Linux Wayland 会话 `XWayland`：`./verify.sh --configuration Release --include-native-linux-xwayland`
-- macOS：`./verify.sh --configuration Release --include-native-macos`
+- Linux X11：`./scripts/verify.sh --configuration Release --include-native-linux`
+- Linux Wayland 会话 `XWayland`：`./scripts/verify.sh --configuration Release --include-native-linux-xwayland`
+- macOS：`./scripts/verify.sh --configuration Release --include-native-macos`
 - Windows：`pwsh -File ./scripts/verify.ps1 -Configuration Release -IncludeNativeWindows`
 
 PowerShell 包装脚本会调用等价的 `scripts/verify.ps1` 入口。
@@ -186,3 +186,4 @@ PowerShell 包装脚本会调用等价的 `scripts/verify.ps1` 入口。
 - [故障排查](troubleshooting.md)
 - [文档导航](index.md)
 - [英文原生验证文档](../native-validation.md)
+

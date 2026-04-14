@@ -10,7 +10,7 @@ Run the standard repository verification entrypoint first:
 
 ```bash
 # Unix shell
-./verify.sh --configuration Release
+./scripts/verify.sh --configuration Release
 
 # PowerShell
 pwsh -File ./scripts/verify.ps1 -Configuration Release
@@ -19,8 +19,8 @@ pwsh -File ./scripts/verify.ps1 -Configuration Release
 If the issue is specific to Linux or macOS native backends, enable the explicit native validation switches:
 
 ```bash
-./verify.sh --configuration Release --include-native-linux
-./verify.sh --configuration Release --include-native-macos
+./scripts/verify.sh --configuration Release --include-native-linux
+./scripts/verify.sh --configuration Release --include-native-macos
 
 pwsh -File ./scripts/verify.ps1 -Configuration Release -IncludeNativeLinux
 pwsh -File ./scripts/verify.ps1 -Configuration Release -IncludeNativeMacOS
@@ -99,3 +99,4 @@ Include:
 - [CONTRIBUTING.md](../CONTRIBUTING.md)
 - [Native Validation](native-validation.md)
 - [Chinese Troubleshooting Guide](zh-CN/troubleshooting.md)
+

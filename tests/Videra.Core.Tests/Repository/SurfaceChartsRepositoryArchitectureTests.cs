@@ -36,7 +36,7 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
     public void VerifyScripts_ShouldBuildBothDemoApplications()
     {
         var repositoryRoot = GetRepositoryRoot();
-        var shellVerify = File.ReadAllText(Path.Combine(repositoryRoot, "verify.sh"));
+        var shellVerify = File.ReadAllText(Path.Combine(repositoryRoot, "scripts", "verify.sh"));
         var powerShellVerify = File.ReadAllText(Path.Combine(repositoryRoot, "scripts", "verify.ps1"));
 
         foreach (var verifyContent in new[] { shellVerify, powerShellVerify })

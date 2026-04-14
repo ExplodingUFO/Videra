@@ -25,7 +25,7 @@ dotnet run --project samples/Videra.Demo/Videra.Demo.csproj
 ## 提交前验证
 
 ```bash
-./verify.sh --configuration Release
+./scripts/verify.sh --configuration Release
 pwsh -File ./scripts/verify.ps1 -Configuration Release
 ```
 
@@ -44,3 +44,4 @@ pwsh -File ./scripts/verify.ps1 -Configuration Release
 - [英文贡献指南](../../CONTRIBUTING.md)
 - [中文文档导航](index.md)
 - [故障排查](troubleshooting.md)
+

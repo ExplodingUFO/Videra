@@ -80,7 +80,7 @@ case "$PLATFORM" in
           printf 'DISPLAY is not set. Start an X11 session or run this command under xvfb-run.\n' >&2
           exit 2
         fi
-        bash "$ROOT_DIR/verify.sh" --configuration "$CONFIGURATION" --include-native-linux
+        bash "$ROOT_DIR/scripts/verify.sh" --configuration "$CONFIGURATION" --include-native-linux
         ;;
       xwayland)
         if [[ -z "${DISPLAY:-}" ]]; then
@@ -92,7 +92,7 @@ case "$PLATFORM" in
           exit 2
         fi
         XDG_SESSION_TYPE="${XDG_SESSION_TYPE:-wayland}" \
-          bash "$ROOT_DIR/verify.sh" --configuration "$CONFIGURATION" --include-native-linux-xwayland
+          bash "$ROOT_DIR/scripts/verify.sh" --configuration "$CONFIGURATION" --include-native-linux-xwayland
         ;;
       *)
         printf 'Unsupported Linux display server value: %s\n' "$LINUX_DISPLAY_SERVER" >&2
@@ -105,7 +105,7 @@ case "$PLATFORM" in
       printf 'macOS native validation must run on a macOS host.\n' >&2
       exit 2
     fi
-    bash "$ROOT_DIR/verify.sh" --configuration "$CONFIGURATION" --include-native-macos
+    bash "$ROOT_DIR/scripts/verify.sh" --configuration "$CONFIGURATION" --include-native-macos
     ;;
   *)
     printf 'Unsupported platform value: %s\n' "$PLATFORM" >&2

@@ -180,7 +180,7 @@ For the end-to-end public flow, see [samples/Videra.InteractionSample](../../sam
 Use the repository verification scripts for standard and native-host validation:
 
 ```bash
-./verify.sh --configuration Release
+./scripts/verify.sh --configuration Release
 pwsh -File ./scripts/verify.ps1 -Configuration Release
 ```
 
@@ -192,3 +192,4 @@ Linux and macOS native-host validation still require explicit opt-in switches an
 - [Extensibility Contract](../../docs/extensibility.md)
 - [Architecture](../../ARCHITECTURE.md)
 - [Chinese Module Doc](../../docs/zh-CN/modules/videra-avalonia.md)
+

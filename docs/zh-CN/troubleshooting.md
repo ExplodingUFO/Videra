@@ -9,16 +9,16 @@
 优先运行仓库统一验证入口：
 
 ```bash
-./verify.sh --configuration Release
+./scripts/verify.sh --configuration Release
 pwsh -File ./scripts/verify.ps1 -Configuration Release
 ```
 
 如果问题与 Linux 或 macOS 原生后端有关，请显式启用：
 
 ```bash
-./verify.sh --configuration Release --include-native-linux
-./verify.sh --configuration Release --include-native-linux-xwayland
-./verify.sh --configuration Release --include-native-macos
+./scripts/verify.sh --configuration Release --include-native-linux
+./scripts/verify.sh --configuration Release --include-native-linux-xwayland
+./scripts/verify.sh --configuration Release --include-native-macos
 
 pwsh -File ./scripts/verify.ps1 -Configuration Release -IncludeNativeLinux
 pwsh -File ./scripts/verify.ps1 -Configuration Release -IncludeNativeLinuxXWayland
@@ -55,3 +55,4 @@ pwsh -File ./scripts/verify.ps1 -Configuration Release -IncludeNativeMacOS
 - 当前 Linux 渲染路径仍然基于 X11 句柄
 - 在 Wayland 会话中，`Auto` 会在可用时走 `XWayland` 兼容路径
 - 缺少 `libX11.so.6` 时，即使是 Wayland 会话也无法完成当前这条原生渲染链路
+

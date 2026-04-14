@@ -67,7 +67,7 @@ public sealed class RepositoryNativeValidationTests
     public void NativeValidationVerifyScripts_ShouldUseDetailedNativeTestLogging()
     {
         var repositoryRoot = GetRepositoryRoot();
-        var shellVerify = File.ReadAllText(Path.Combine(repositoryRoot, "verify.sh"));
+        var shellVerify = File.ReadAllText(Path.Combine(repositoryRoot, "scripts", "verify.sh"));
         var powerShellVerify = File.ReadAllText(Path.Combine(repositoryRoot, "scripts", "verify.ps1"));
 
         shellVerify.Should().Contain("console;verbosity=detailed");
@@ -295,7 +295,7 @@ public sealed class RepositoryNativeValidationTests
         var supportedOsSource = File.ReadAllText(Path.Combine(repositoryRoot, "tests", "Tests.Common", "Platform", "SupportedOSFactAttribute.cs"));
         var helperSource = File.ReadAllText(Path.Combine(repositoryRoot, "tests", "Tests.Common", "Platform", "NativeHostTestHelpers.cs"));
         var lifecycleSource = File.ReadAllText(Path.Combine(repositoryRoot, "tests", "Videra.Platform.Linux.Tests", "Backend", "VulkanBackendLifecycleTests.cs"));
-        var shellVerify = File.ReadAllText(Path.Combine(repositoryRoot, "verify.sh"));
+        var shellVerify = File.ReadAllText(Path.Combine(repositoryRoot, "scripts", "verify.sh"));
         var powerShellVerify = File.ReadAllText(Path.Combine(repositoryRoot, "scripts", "verify.ps1"));
 
         supportedOsSource.Should().Contain("public sealed class LinuxNativeFactAttribute");

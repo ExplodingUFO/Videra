@@ -17,7 +17,7 @@ This runbook covers the matching-host validation path for Videra's Linux, macOS,
 Standard repository verification remains:
 
 ```bash
-./verify.sh --configuration Release
+./scripts/verify.sh --configuration Release
 pwsh -File ./scripts/verify.ps1 -Configuration Release
 ```
 
@@ -156,9 +156,9 @@ pwsh -File ./scripts/run-native-validation.ps1 -Platform Windows -Configuration 
 
 ## What The Scripts Run
 
-- Linux X11: `./verify.sh --configuration Release --include-native-linux`
-- Linux Wayland-session `XWayland`: `./verify.sh --configuration Release --include-native-linux-xwayland`
-- macOS: `./verify.sh --configuration Release --include-native-macos`
+- Linux X11: `./scripts/verify.sh --configuration Release --include-native-linux`
+- Linux Wayland-session `XWayland`: `./scripts/verify.sh --configuration Release --include-native-linux-xwayland`
+- macOS: `./scripts/verify.sh --configuration Release --include-native-macos`
 - Windows: `pwsh -File ./scripts/verify.ps1 -Configuration Release -IncludeNativeWindows`
 
 The PowerShell wrapper calls the equivalent `scripts/verify.ps1` entrypoint.
@@ -187,3 +187,4 @@ Relevant test projects:
 - [Troubleshooting](troubleshooting.md)
 - [Documentation Index](index.md)
 - [Chinese Native Validation Guide](zh-CN/native-validation.md)
+

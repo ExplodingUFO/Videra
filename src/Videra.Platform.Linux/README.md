@@ -40,8 +40,8 @@ This package supplies the Vulkan backend for the current Linux native path. On A
 Linux matching-host validation is explicit and should be run on a real Linux host:
 
 ```bash
-./verify.sh --configuration Release --include-native-linux
-./verify.sh --configuration Release --include-native-linux-xwayland
+./scripts/verify.sh --configuration Release --include-native-linux
+./scripts/verify.sh --configuration Release --include-native-linux-xwayland
 pwsh -File ./scripts/verify.ps1 -Configuration Release -IncludeNativeLinux
 pwsh -File ./scripts/verify.ps1 -Configuration Release -IncludeNativeLinuxXWayland
 ```
@@ -57,3 +57,4 @@ pwsh -File ./scripts/verify.ps1 -Configuration Release -IncludeNativeLinuxXWayla
 
 - [Repository README](../../README.md)
 - [Chinese Module Doc](../../docs/zh-CN/modules/platform-linux.md)
+

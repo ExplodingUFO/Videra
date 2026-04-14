@@ -68,7 +68,7 @@ dotnet run --project samples/Videra.Demo/Videra.Demo.csproj
 仓库级验证：
 
 ```bash
-./verify.sh --configuration Release
+./scripts/verify.sh --configuration Release
 pwsh -File ./scripts/verify.ps1 -Configuration Release
 ```
 
@@ -98,3 +98,4 @@ Videra.Demo/
 ├── App.axaml.cs
 └── Program.cs
 ```
+

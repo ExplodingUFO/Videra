@@ -39,7 +39,7 @@ This package supplies the Metal backend for the `NSView` / `CAMetalLayer` native
 macOS matching-host validation is explicit and should be run on a real macOS host:
 
 ```bash
-./verify.sh --configuration Release --include-native-macos
+./scripts/verify.sh --configuration Release --include-native-macos
 pwsh -File ./scripts/verify.ps1 -Configuration Release -IncludeNativeMacOS
 ```
 
@@ -53,3 +53,4 @@ pwsh -File ./scripts/verify.ps1 -Configuration Release -IncludeNativeMacOS
 
 - [Repository README](../../README.md)
 - [Chinese Module Doc](../../docs/zh-CN/modules/platform-macos.md)
+

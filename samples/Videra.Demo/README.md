@@ -58,7 +58,7 @@ dotnet run --project samples/Videra.Demo/Videra.Demo.csproj
 Repository-wide validation:
 
 ```bash
-./verify.sh --configuration Release
+./scripts/verify.sh --configuration Release
 pwsh -File ./scripts/verify.ps1 -Configuration Release
 ```
 
@@ -94,3 +94,4 @@ Videra.Demo/
 - [Repository README](../../README.md)
 - [Videra.Avalonia](../../src/Videra.Avalonia/README.md)
 - [Chinese Demo Doc](../../docs/zh-CN/modules/demo.md)
+

@@ -103,8 +103,9 @@ Videra/
 │   └── Videra.ExtensibilitySample/
 ├── tests/
 ├── docs/
-├── verify.sh
-└── scripts/verify.ps1
+└── scripts/
+    ├── verify.sh
+    └── verify.ps1
 ```
 
 ## Runtime Flow
@@ -217,13 +218,13 @@ If the native backend is unavailable, or if `software` is selected explicitly, r
 Repository-wide validation entrypoints:
 
 ```bash
-./verify.sh --configuration Release
+./scripts/verify.sh --configuration Release
 pwsh -File ./scripts/verify.ps1 -Configuration Release
 ```
 
 By default:
 
-- Standard validation covers solution build, tests, and common checks through `verify.sh` / `scripts/verify.ps1`
+- Standard validation covers solution build, tests, and common checks through `scripts/verify.sh` / `scripts/verify.ps1`
 - GitHub-hosted required checks additionally cover `windows-native`, `macos-native`, `linux-x11-native`, and `linux-wayland-xwayland-native`
 - Linux Wayland sessions are validated through the XWayland compatibility path, not compositor-native embedding
 

@@ -177,7 +177,7 @@ Current alpha limitations are important:
 
 ```bash
 # Unix shell
-./verify.sh --configuration Release
+./scripts/verify.sh --configuration Release
 
 # PowerShell
 pwsh -File ./scripts/verify.ps1 -Configuration Release
@@ -186,9 +186,9 @@ pwsh -File ./scripts/verify.ps1 -Configuration Release
 Default verification does not automatically cover Linux or macOS native-host end-to-end paths. Enable them explicitly when needed:
 
 ```bash
-./verify.sh --configuration Release --include-native-linux
-./verify.sh --configuration Release --include-native-linux-xwayland
-./verify.sh --configuration Release --include-native-macos
+./scripts/verify.sh --configuration Release --include-native-linux
+./scripts/verify.sh --configuration Release --include-native-linux-xwayland
+./scripts/verify.sh --configuration Release --include-native-macos
 
 pwsh -File ./scripts/verify.ps1 -Configuration Release -IncludeNativeLinux
 pwsh -File ./scripts/verify.ps1 -Configuration Release -IncludeNativeLinuxXWayland
@@ -344,3 +344,4 @@ Issues, documentation fixes, and pull requests are welcome. Start with [CONTRIBU
 ## License
 
 Released under the [MIT License](LICENSE.txt).
+

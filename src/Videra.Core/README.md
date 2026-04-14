@@ -94,7 +94,7 @@ Repository validation entrypoints:
 
 ```bash
 # Unix shell
-./verify.sh --configuration Release
+./scripts/verify.sh --configuration Release
 
 # PowerShell
 pwsh -File ./scripts/verify.ps1 -Configuration Release
@@ -118,3 +118,4 @@ dotnet test tests/Videra.Core.IntegrationTests/Videra.Core.IntegrationTests.cspr
 - [Extensibility Contract](../../docs/extensibility.md)
 - [Architecture](../../ARCHITECTURE.md)
 - [Chinese Module Doc](../../docs/zh-CN/modules/videra-core.md)
+

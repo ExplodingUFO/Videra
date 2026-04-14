@@ -58,7 +58,7 @@ Run the standard verification entrypoint before submitting work:
 
 ```bash
 # Unix shell
-./verify.sh --configuration Release
+./scripts/verify.sh --configuration Release
 
 # PowerShell
 pwsh -File ./scripts/verify.ps1 -Configuration Release
@@ -68,11 +68,11 @@ If your change touches native-host paths, add explicit platform validation:
 
 ```bash
 # Linux
-./verify.sh --configuration Release --include-native-linux
+./scripts/verify.sh --configuration Release --include-native-linux
 pwsh -File ./scripts/verify.ps1 -Configuration Release -IncludeNativeLinux
 
 # macOS
-./verify.sh --configuration Release --include-native-macos
+./scripts/verify.sh --configuration Release --include-native-macos
 pwsh -File ./scripts/verify.ps1 -Configuration Release -IncludeNativeMacOS
 ```
 
@@ -174,3 +174,4 @@ For `master`, the intended required checks are:
 ## Chinese Docs
 
 - [中文入口](docs/zh-CN/index.md)
+
