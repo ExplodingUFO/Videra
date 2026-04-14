@@ -1,3 +1,5 @@
+using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Threading;
 using Videra.SurfaceCharts.Avalonia.Controls.Overlay;
@@ -8,7 +10,6 @@ namespace Videra.SurfaceCharts.Avalonia.Controls;
 
 public partial class SurfaceChartView
 {
-    private readonly SurfaceChartRenderHost _renderHost = new();
     private SurfaceRenderScene? _renderScene;
 
     /// <inheritdoc />
@@ -22,8 +23,6 @@ public partial class SurfaceChartView
         {
             SurfaceScenePainter.DrawScene(context, _renderHost.SoftwareScene, projection);
         }
-
-        RenderOverlay(context);
     }
 
     private void NotifyTilesChanged()
@@ -52,6 +51,13 @@ public partial class SurfaceChartView
             ? _overlayViewSize
             : Bounds.Size;
         var colorMap = source is null ? null : ColorMap ?? CreateFallbackColorMap(source.Metadata.ValueRange);
+        if (ShouldAttemptNativeHost(renderSize))
+        {
+            EnsureNativeHost();
+        }
+
+        var nativeHandle = _nativeHost?.CurrentHandle ?? IntPtr.Zero;
+        var handleBound = nativeHandle != IntPtr.Zero;
 
         _renderHost.UpdateInputs(
             new SurfaceChartRenderInputs
@@ -63,12 +69,18 @@ public partial class SurfaceChartView
                 ProjectionSettings = _cameraController.ProjectionSettings,
                 ViewWidth = renderSize.Width,
                 ViewHeight = renderSize.Height,
-                NativeHandle = IntPtr.Zero,
-                HandleBound = false,
+                NativeHandle = nativeHandle,
+                HandleBound = handleBound,
                 RenderScale = (float)(VisualRoot?.RenderScaling ?? 1.0),
             });
 
         _renderScene = _renderHost.SoftwareScene;
+        UpdateRenderingStatus(_renderHost.RenderingStatus);
+
+        if (!RenderingStatus.UsesNativeSurface && _nativeHost is not null)
+        {
+            ReleaseNativeHost();
+        }
     }
 
     private static SurfaceColorMap CreateFallbackColorMap(SurfaceValueRange range)
@@ -97,5 +109,105 @@ public partial class SurfaceChartView
             _cameraController.ProjectionSettings);
         _chartProjection = projection;
         return projection;
+    }
+
+    private bool ShouldAttemptNativeHost(Size renderSize)
+    {
+        return _renderHost.HasGpuBackend
+            && Source is not null
+            && renderSize.Width > 0d
+            && renderSize.Height > 0d
+            && !RenderingStatus.IsFallback;
+    }
+
+    private void EnsureNativeHost()
+    {
+        if (_nativeHost is not null)
+        {
+            return;
+        }
+
+        var host = _nativeHostFactory.CreateHost();
+        if (host is null)
+        {
+            return;
+        }
+
+        if (host is not Control nativeControl)
+        {
+            throw new InvalidOperationException("Surface-chart native host factory must return an Avalonia control.");
+        }
+
+        host.HandleCreated += OnNativeHandleCreated;
+        host.HandleDestroyed += OnNativeHandleDestroyed;
+        _nativeHost = host;
+        _hostContainer.Children.Insert(0, nativeControl);
+
+        if (host.CurrentHandle != IntPtr.Zero)
+        {
+            OnNativeHandleCreated(host.CurrentHandle);
+        }
+    }
+
+    private void ReleaseNativeHost()
+    {
+        if (_nativeHost is null)
+        {
+            return;
+        }
+
+        _nativeHost.HandleCreated -= OnNativeHandleCreated;
+        _nativeHost.HandleDestroyed -= OnNativeHandleDestroyed;
+
+        if (_nativeHost is Control nativeControl)
+        {
+            _hostContainer.Children.Remove(nativeControl);
+        }
+
+        _nativeHost = null;
+    }
+
+    private void OnNativeHandleCreated(IntPtr handle)
+    {
+        _ = handle;
+        SyncRenderHost();
+        InvalidateVisual();
+        _overlayLayer.InvalidateVisual();
+    }
+
+    private void OnNativeHandleDestroyed()
+    {
+        SyncRenderHost();
+        InvalidateVisual();
+        _overlayLayer.InvalidateVisual();
+    }
+
+    private void UpdateRenderingStatus(SurfaceChartRenderingStatus nextStatus)
+    {
+        ArgumentNullException.ThrowIfNull(nextStatus);
+
+        if (RenderingStatus == nextStatus)
+        {
+            return;
+        }
+
+        RenderingStatus = nextStatus;
+        RenderStatusChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    private sealed class SurfaceChartOverlayLayer : Control
+    {
+        private readonly SurfaceChartView _owner;
+
+        public SurfaceChartOverlayLayer(SurfaceChartView owner)
+        {
+            _owner = owner ?? throw new ArgumentNullException(nameof(owner));
+        }
+
+        public override void Render(DrawingContext context)
+        {
+            context.FillRectangle(Brushes.Transparent, new Rect(Bounds.Size));
+            _owner.RenderOverlay(context);
+        }
     }
 }

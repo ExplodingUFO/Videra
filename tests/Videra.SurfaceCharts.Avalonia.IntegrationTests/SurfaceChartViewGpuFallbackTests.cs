@@ -107,9 +107,16 @@ public sealed class SurfaceChartViewGpuFallbackTests
 
     private static object? GetPrivateField(object instance, string fieldName)
     {
-        return instance.GetType()
-            .GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic)?
-            .GetValue(instance);
+        for (var currentType = instance.GetType(); currentType is not null; currentType = currentType.BaseType)
+        {
+            var field = currentType.GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic);
+            if (field is not null)
+            {
+                return field.GetValue(instance);
+            }
+        }
+
+        return null;
     }
 
     private static int GetCollectionCount(object? instance, string propertyName)
@@ -157,16 +164,6 @@ public sealed class SurfaceChartViewGpuFallbackTests
         public event Action? HandleDestroyed;
 
         public IntPtr CurrentHandle { get; }
-
-        public void PublishHandleCreated()
-        {
-            HandleCreated?.Invoke(CurrentHandle);
-        }
-
-        public void PublishHandleDestroyed()
-        {
-            HandleDestroyed?.Invoke();
-        }
     }
 
     private sealed class FakeGraphicsBackend : IGraphicsBackend

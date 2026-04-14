@@ -84,7 +84,7 @@ public partial class SurfaceChartView
             _probeScreenPosition,
             _pinnedProbeRequests,
             _probeService);
-        InvalidateVisual();
+        _overlayLayer.InvalidateVisual();
     }
 
     private void RenderOverlay(DrawingContext context)
