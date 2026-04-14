@@ -104,6 +104,8 @@ internal static class SurfaceProbeOverlayPresenter
                 continue;
             }
 
+            // Loaded coarse tiles no longer assume a 1:1 bounds-to-grid shape, so probe lookups
+            // must remap source-space coordinates back into the tile's value grid.
             var tileX = MapSampleToTileIndex(sampleX, tile.Bounds.StartX, tile.Bounds.Width, tile.Width);
             var tileY = MapSampleToTileIndex(sampleY, tile.Bounds.StartY, tile.Bounds.Height, tile.Height);
             var valueIndex = (tileY * tile.Width) + tileX;

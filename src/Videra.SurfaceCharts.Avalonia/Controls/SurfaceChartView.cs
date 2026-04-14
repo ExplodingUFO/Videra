@@ -7,8 +7,13 @@ using Videra.SurfaceCharts.Core;
 namespace Videra.SurfaceCharts.Avalonia.Controls;
 
 /// <summary>
-/// Avalonia control shell for surface-chart tile scheduling and render-scene composition.
+/// Avalonia control shell for host-driven surface-chart tile scheduling and render-scene composition.
 /// </summary>
+/// <remarks>
+/// The current alpha surface expects hosts to provide the tile source, viewport updates, and any
+/// higher-level zoom/pan/orbit UI. Full built-in chart interaction and axis presentation are not
+/// complete yet.
+/// </remarks>
 public partial class SurfaceChartView : Control
 {
     private readonly SurfaceTileCache _tileCache;

@@ -43,6 +43,8 @@ public sealed class SurfaceRenderer
             {
                 var vertexIndex = checked((row * tile.Width) + column);
                 var value = sourceValues[vertexIndex];
+                // Coarse LOD tiles can cover a wider source-space span than their value grid,
+                // so vertex placement must be distributed across the covered bounds.
                 var sampleX = MapTileSampleCoordinate(tile.Bounds.StartX, tile.Bounds.Width, tile.Width, column);
                 var sampleY = MapTileSampleCoordinate(tile.Bounds.StartY, tile.Bounds.Height, tile.Height, row);
 

@@ -155,6 +155,24 @@ dotnet run --project samples/Videra.Demo/Videra.Demo.csproj
 
 The sample app seeds a default demo cube when backend initialization succeeds, surfaces backend diagnostics in the demo status area, and reports import feedback there as models load or fail.
 
+### Run the Surface Charts Demo
+
+```bash
+dotnet run --project samples/Videra.SurfaceCharts.Demo/Videra.SurfaceCharts.Demo.csproj
+```
+
+The surface-chart demo is a separate Avalonia app that currently focuses on the chart data path and module boundary:
+
+- switching between an in-memory source and a cache-backed source
+- switching between overview and zoomed-detail viewports
+- exercising overview-first LOD and lazy tile loading
+
+Current alpha limitations are important:
+
+- full built-in mouse orbit / pan / zoom interaction is not complete yet
+- axis, tick, label, and legend presentation is not complete yet
+- the demo currently uses host-driven viewport presets rather than a finished interactive chart camera
+
 ### Verify the Repository
 
 ```bash
