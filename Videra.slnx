@@ -14,11 +14,11 @@
     <Project Path="src/Videra.Avalonia/Videra.Avalonia.csproj" />
     <Project Path="src/Videra.Core/Videra.Core.csproj" />
   </Folder>
-  <Folder Name="/Samples/" />
-  <Folder Name="/Samples/SurfaceCharts/">
+  <Folder Name="/Startups/" />
+  <Folder Name="/Startups/SurfaceCharts/">
     <Project Path="samples/Videra.SurfaceCharts.Demo/Videra.SurfaceCharts.Demo.csproj" />
   </Folder>
-  <Folder Name="/Samples/Videra/">
+  <Folder Name="/Startups/Videra/">
     <Project Path="samples/Videra.Demo/Videra.Demo.csproj" />
     <Project Path="samples/Videra.ExtensibilitySample/Videra.ExtensibilitySample.csproj" />
     <Project Path="samples/Videra.InteractionSample/Videra.InteractionSample.csproj" />
