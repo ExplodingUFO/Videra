@@ -8,6 +8,7 @@
   <Folder Name="/Libraries/SurfaceCharts/">
     <Project Path="src/Videra.SurfaceCharts.Avalonia/Videra.SurfaceCharts.Avalonia.csproj" />
     <Project Path="src/Videra.SurfaceCharts.Core/Videra.SurfaceCharts.Core.csproj" />
+    <Project Path="src/Videra.SurfaceCharts.Rendering/Videra.SurfaceCharts.Rendering.csproj" />
     <Project Path="src/Videra.SurfaceCharts.Processing/Videra.SurfaceCharts.Processing.csproj" />
   </Folder>
   <Folder Name="/Libraries/Videra/">

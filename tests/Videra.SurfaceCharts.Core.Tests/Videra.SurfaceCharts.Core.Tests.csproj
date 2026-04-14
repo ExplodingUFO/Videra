@@ -24,6 +24,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Videra.SurfaceCharts.Core\Videra.SurfaceCharts.Core.csproj" />
+    <ProjectReference Include="..\..\src\Videra.SurfaceCharts.Rendering\Videra.SurfaceCharts.Rendering.csproj" />
   </ItemGroup>
 
 </Project>
