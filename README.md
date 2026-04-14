@@ -70,7 +70,7 @@ The repository is split into UI integration, a platform-agnostic rendering core,
 | `samples/Videra.SurfaceCharts.Demo` | Independent surface-chart demo application |
 | `samples/Videra.ExtensibilitySample` | Narrow public sample for contributors, frame hooks, capabilities, and diagnostics |
 | `samples/Videra.InteractionSample` | Focused public sample for host-owned selection state, annotation state, and mode switching |
-| `docs` | Long-lived documentation, troubleshooting, ADRs, and archive |
+| `docs` | Long-lived documentation and runbooks |
 
 ## Platform Support
 
@@ -335,7 +335,6 @@ Detailed package-level docs:
 - [Native Validation](docs/native-validation.md)
 - [Contributing](CONTRIBUTING.md)
 - [Chinese Documentation Entry](docs/zh-CN/index.md)
-- [Archive](docs/archive/README.md)
 
 ## Contributing
 

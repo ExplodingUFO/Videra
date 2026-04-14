@@ -33,4 +33,3 @@
 - [英文文档首页](../index.md)
 - 英文版为准
 - `package discovery` 与 `plugin loading` 仍然不在当前公开扩展范围内，详情见 [扩展合同](extensibility.md)
-- [历史归档](../archive/README.md)
