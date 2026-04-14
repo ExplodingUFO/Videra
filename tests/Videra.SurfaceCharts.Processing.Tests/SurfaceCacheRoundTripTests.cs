@@ -156,12 +156,13 @@ public class SurfaceCacheRoundTripTests
 
             var originalManifest = await File.ReadAllTextAsync(cachePath);
             var expectedTile = await originalSource.GetRequiredTileAsync(tileKey);
+            SurfaceCacheFileSystem.Current = new ThrowingSurfaceCacheFileSystem(
+                SurfaceCacheFileSystem.Current,
+                destinationPath => string.Equals(destinationPath, payloadPath, StringComparison.Ordinal),
+                "Simulated payload replacement failure.");
 
-            await using (var payloadLock = new FileStream(payloadPath, FileMode.Open, FileAccess.Read, FileShare.None))
-            {
-                var act = async () => await SurfaceCacheWriter.WriteAsync(cachePath, replacementSource, new[] { tileKey });
-                await act.Should().ThrowAsync<Exception>();
-            }
+            var act = async () => await SurfaceCacheWriter.WriteAsync(cachePath, replacementSource, new[] { tileKey });
+            await act.Should().ThrowAsync<IOException>();
 
             var currentManifest = await File.ReadAllTextAsync(cachePath);
             currentManifest.Should().Be(originalManifest);
@@ -176,6 +177,7 @@ public class SurfaceCacheRoundTripTests
         }
         finally
         {
+            SurfaceCacheFileSystem.ResetForTests();
             DeleteCachePath(cachePath);
         }
     }
@@ -195,12 +197,13 @@ public class SurfaceCacheRoundTripTests
 
             var originalManifest = await File.ReadAllTextAsync(cachePath);
             var expectedTile = await originalSource.GetRequiredTileAsync(tileKey);
+            SurfaceCacheFileSystem.Current = new ThrowingSurfaceCacheFileSystem(
+                SurfaceCacheFileSystem.Current,
+                destinationPath => string.Equals(destinationPath, cachePath, StringComparison.Ordinal),
+                "Simulated manifest replacement failure.");
 
-            await using (var manifestLock = new FileStream(cachePath, FileMode.Open, FileAccess.Read, FileShare.None))
-            {
-                var act = async () => await SurfaceCacheWriter.WriteAsync(cachePath, replacementSource, new[] { tileKey });
-                await act.Should().ThrowAsync<Exception>();
-            }
+            var act = async () => await SurfaceCacheWriter.WriteAsync(cachePath, replacementSource, new[] { tileKey });
+            await act.Should().ThrowAsync<IOException>();
 
             var currentManifest = await File.ReadAllTextAsync(cachePath);
             currentManifest.Should().Be(originalManifest);
@@ -216,6 +219,7 @@ public class SurfaceCacheRoundTripTests
         }
         finally
         {
+            SurfaceCacheFileSystem.ResetForTests();
             DeleteCachePath(cachePath);
         }
     }
@@ -288,6 +292,58 @@ public class SurfaceCacheRoundTripTests
         public ValueTask<SurfaceTile?> GetTileAsync(SurfaceTileKey tileKey, CancellationToken cancellationToken = default)
         {
             throw new Exception("Simulated serialization failure.");
+        }
+    }
+
+    private sealed class ThrowingSurfaceCacheFileSystem : ISurfaceCacheFileSystem
+    {
+        private readonly ISurfaceCacheFileSystem inner;
+        private readonly Func<string, bool> shouldThrowOnDestination;
+        private readonly string errorMessage;
+
+        public ThrowingSurfaceCacheFileSystem(
+            ISurfaceCacheFileSystem inner,
+            Func<string, bool> shouldThrowOnDestination,
+            string errorMessage)
+        {
+            this.inner = inner;
+            this.shouldThrowOnDestination = shouldThrowOnDestination;
+            this.errorMessage = errorMessage;
+        }
+
+        public Stream CreateFile(string path)
+        {
+            return inner.CreateFile(path);
+        }
+
+        public bool FileExists(string path)
+        {
+            return inner.FileExists(path);
+        }
+
+        public void CreateDirectory(string path)
+        {
+            inner.CreateDirectory(path);
+        }
+
+        public void ReplaceFile(string sourcePath, string destinationPath, string? backupPath)
+        {
+            if (shouldThrowOnDestination(destinationPath))
+            {
+                throw new IOException(errorMessage);
+            }
+
+            inner.ReplaceFile(sourcePath, destinationPath, backupPath);
+        }
+
+        public void MoveFile(string sourcePath, string destinationPath)
+        {
+            inner.MoveFile(sourcePath, destinationPath);
+        }
+
+        public void DeleteFile(string path)
+        {
+            inner.DeleteFile(path);
         }
     }
 }
