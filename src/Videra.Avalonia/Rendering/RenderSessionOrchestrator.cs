@@ -11,6 +11,7 @@ internal sealed class RenderSessionOrchestrator : IDisposable
     private readonly VideraEngine _engine;
     private readonly Func<GraphicsBackendPreference, IGraphicsBackend> _backendFactory;
     private readonly Func<GraphicsBackendRequest, GraphicsBackendResolution> _backendResolutionFactory;
+    private readonly bool _usesCustomBackendFactoryResolution;
 
     private IGraphicsBackend? _backend;
     private RenderSessionInputs _inputs = new();
@@ -28,6 +29,7 @@ internal sealed class RenderSessionOrchestrator : IDisposable
             ?? (backendFactory == null
                 ? GraphicsBackendFactory.ResolveBackend
                 : CreateResolutionFromFactory);
+        _usesCustomBackendFactoryResolution = backendFactory != null && backendResolutionFactory == null;
     }
 
     public RenderSessionHandle HandleState => _handleState;
@@ -248,7 +250,15 @@ internal sealed class RenderSessionOrchestrator : IDisposable
             return false;
         }
 
-        if (RequiresNativeHandle(request) && !_handleState.IsBound)
+        if (_usesCustomBackendFactoryResolution)
+        {
+            if (RequiresNativeHandleForCustomFactory(request) && !_handleState.IsBound)
+            {
+                _state = RenderSessionState.WaitingForHandle;
+                return false;
+            }
+        }
+        else if (RequiresNativeHandleWithOverrides(request) && !_handleState.IsBound)
         {
             _state = RenderSessionState.WaitingForHandle;
             return false;
@@ -333,9 +343,9 @@ internal sealed class RenderSessionOrchestrator : IDisposable
             resolvedPreference);
     }
 
-    private static bool RequiresNativeHandle(GraphicsBackendRequest request)
+    private static bool RequiresNativeHandleForCustomFactory(GraphicsBackendRequest request)
     {
-        var preference = GraphicsBackendFactory.ResolveRequestedPreference(request);
+        var preference = request.RequestedPreference;
         if (preference == GraphicsBackendPreference.Software)
         {
             return false;
@@ -352,15 +362,29 @@ internal sealed class RenderSessionOrchestrator : IDisposable
         }
 
         var request = CreateBackendRequest();
+        var requiresNativeHandle = _usesCustomBackendFactoryResolution
+            ? RequiresNativeHandleForCustomFactory(request)
+            : RequiresNativeHandleWithOverrides(request);
         if (_inputs.Width == 0 || _inputs.Height == 0)
         {
             _state = RenderSessionState.WaitingForSize;
             return;
         }
 
-        _state = RequiresNativeHandle(request) && !_handleState.IsBound
+        _state = requiresNativeHandle && !_handleState.IsBound
             ? RenderSessionState.WaitingForHandle
             : RenderSessionState.Detached;
+    }
+
+    private static bool RequiresNativeHandleWithOverrides(GraphicsBackendRequest request)
+    {
+        var preference = GraphicsBackendFactory.ResolveRequestedPreference(request);
+        if (preference == GraphicsBackendPreference.Software)
+        {
+            return false;
+        }
+
+        return OperatingSystem.IsWindows() || OperatingSystem.IsLinux() || OperatingSystem.IsMacOS();
     }
 
     internal readonly record struct RenderSessionRenderResult(
