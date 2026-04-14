@@ -41,7 +41,7 @@ Windows repository validation already covers matching-host validation through th
 Standard repository verification already covers Windows-specific tests and real `HWND` lifecycle checks:
 
 ```bash
-pwsh -File ./verify.ps1 -Configuration Release
+pwsh -File ./scripts/verify.ps1 -Configuration Release
 ```
 
 ## Requirements

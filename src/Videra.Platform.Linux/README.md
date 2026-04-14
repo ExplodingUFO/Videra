@@ -42,8 +42,8 @@ Linux matching-host validation is explicit and should be run on a real Linux hos
 ```bash
 ./verify.sh --configuration Release --include-native-linux
 ./verify.sh --configuration Release --include-native-linux-xwayland
-pwsh -File ./verify.ps1 -Configuration Release -IncludeNativeLinux
-pwsh -File ./verify.ps1 -Configuration Release -IncludeNativeLinuxXWayland
+pwsh -File ./scripts/verify.ps1 -Configuration Release -IncludeNativeLinux
+pwsh -File ./scripts/verify.ps1 -Configuration Release -IncludeNativeLinuxXWayland
 ```
 
 ## Requirements

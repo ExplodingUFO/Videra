@@ -19,7 +19,7 @@ jobs:
 
       - name: Run repository verification
         shell: pwsh
-        run: ./verify.ps1 -Configuration Release
+        run: pwsh -File ./scripts/verify.ps1 -Configuration Release
 
   linux-package-evidence:
     runs-on: ubuntu-latest

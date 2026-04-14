@@ -97,7 +97,7 @@ Videra 支持两条后端选择路径：
 
 ```bash
 ./verify.sh --configuration Release
-pwsh -File ./verify.ps1 -Configuration Release
+pwsh -File ./scripts/verify.ps1 -Configuration Release
 ```
 
 Linux 和 macOS 的原生宿主闭环验证需要显式启用：
@@ -106,8 +106,8 @@ Linux 和 macOS 的原生宿主闭环验证需要显式启用：
 ./verify.sh --configuration Release --include-native-linux
 ./verify.sh --configuration Release --include-native-macos
 
-pwsh -File ./verify.ps1 -Configuration Release -IncludeNativeLinux
-pwsh -File ./verify.ps1 -Configuration Release -IncludeNativeMacOS
+pwsh -File ./scripts/verify.ps1 -Configuration Release -IncludeNativeLinux
+pwsh -File ./scripts/verify.ps1 -Configuration Release -IncludeNativeMacOS
 ```
 
 ## 相关文档

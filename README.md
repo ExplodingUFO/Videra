@@ -180,7 +180,7 @@ Current alpha limitations are important:
 ./verify.sh --configuration Release
 
 # PowerShell
-pwsh -File ./verify.ps1 -Configuration Release
+pwsh -File ./scripts/verify.ps1 -Configuration Release
 ```
 
 Default verification does not automatically cover Linux or macOS native-host end-to-end paths. Enable them explicitly when needed:
@@ -190,9 +190,9 @@ Default verification does not automatically cover Linux or macOS native-host end
 ./verify.sh --configuration Release --include-native-linux-xwayland
 ./verify.sh --configuration Release --include-native-macos
 
-pwsh -File ./verify.ps1 -Configuration Release -IncludeNativeLinux
-pwsh -File ./verify.ps1 -Configuration Release -IncludeNativeLinuxXWayland
-pwsh -File ./verify.ps1 -Configuration Release -IncludeNativeMacOS
+pwsh -File ./scripts/verify.ps1 -Configuration Release -IncludeNativeLinux
+pwsh -File ./scripts/verify.ps1 -Configuration Release -IncludeNativeLinuxXWayland
+pwsh -File ./scripts/verify.ps1 -Configuration Release -IncludeNativeMacOS
 ```
 
 GitHub Actions now runs matching-host native validation for Linux X11, Linux Wayland-session `XWayland`, macOS, and Windows on pull requests through `.github/workflows/native-validation.yml`. Use the dedicated [Native Validation runbook](docs/native-validation.md) when you want to inspect that CI path, use `Run workflow` for targeted reruns, or reproduce failures locally on a matching host.

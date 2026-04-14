@@ -40,7 +40,7 @@ macOS matching-host validation is explicit and should be run on a real macOS hos
 
 ```bash
 ./verify.sh --configuration Release --include-native-macos
-pwsh -File ./verify.ps1 -Configuration Release -IncludeNativeMacOS
+pwsh -File ./scripts/verify.ps1 -Configuration Release -IncludeNativeMacOS
 ```
 
 ## Requirements

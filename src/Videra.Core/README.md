@@ -97,7 +97,7 @@ Repository validation entrypoints:
 ./verify.sh --configuration Release
 
 # PowerShell
-pwsh -File ./verify.ps1 -Configuration Release
+pwsh -File ./scripts/verify.ps1 -Configuration Release
 ```
 
 Core-focused test runs:

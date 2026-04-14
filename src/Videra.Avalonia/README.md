@@ -181,7 +181,7 @@ Use the repository verification scripts for standard and native-host validation:
 
 ```bash
 ./verify.sh --configuration Release
-pwsh -File ./verify.ps1 -Configuration Release
+pwsh -File ./scripts/verify.ps1 -Configuration Release
 ```
 
 Linux and macOS native-host validation still require explicit opt-in switches and matching hosts.

@@ -224,7 +224,7 @@ jobs:
 
       - name: Run repository verification
         shell: pwsh
-        run: pwsh -File ./verify.ps1 -Configuration Release
+        run: pwsh -File ./scripts/verify.ps1 -Configuration Release
 
       - name: Download package evidence
         uses: actions/download-artifact@v4

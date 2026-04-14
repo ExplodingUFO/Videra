@@ -191,7 +191,7 @@ Videra.Platform.Windows/
 ./verify.sh --configuration Release
 
 # PowerShell
-pwsh -File ./verify.ps1 -Configuration Release
+pwsh -File ./scripts/verify.ps1 -Configuration Release
 ```
 
 这一步会覆盖解决方案构建、测试以及 `tests/Videra.Platform.Windows.Tests` 中的真实 HWND-backed D3D11 验证路径。

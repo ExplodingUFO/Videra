@@ -18,7 +18,7 @@
 
 ```bash
 ./verify.sh --configuration Release
-pwsh -File ./verify.ps1 -Configuration Release
+pwsh -File ./scripts/verify.ps1 -Configuration Release
 ```
 
 但默认入口不会自动执行专用的匹配宿主 native jobs。要走和 GitHub Actions pull requests 相同的路径，请使用下面的专用入口。
@@ -158,9 +158,9 @@ pwsh -File ./scripts/run-native-validation.ps1 -Platform Windows -Configuration 
 - Linux X11：`./verify.sh --configuration Release --include-native-linux`
 - Linux Wayland 会话 `XWayland`：`./verify.sh --configuration Release --include-native-linux-xwayland`
 - macOS：`./verify.sh --configuration Release --include-native-macos`
-- Windows：`pwsh -File ./verify.ps1 -Configuration Release -IncludeNativeWindows`
+- Windows：`pwsh -File ./scripts/verify.ps1 -Configuration Release -IncludeNativeWindows`
 
-PowerShell 包装脚本会调用等价的 `verify.ps1` 入口。
+PowerShell 包装脚本会调用等价的 `scripts/verify.ps1` 入口。
 
 ## 何时算有效验证
 

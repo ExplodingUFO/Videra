@@ -236,7 +236,7 @@ Videra.Platform.macOS/
 ./verify.sh --configuration Release --include-native-macos
 
 # PowerShell
-pwsh -File ./verify.ps1 -Configuration Release -IncludeNativeMacOS
+pwsh -File ./scripts/verify.ps1 -Configuration Release -IncludeNativeMacOS
 ```
 
 这一步用于执行 `tests/Videra.Platform.macOS.Tests` 中的真实 NSView-backed lifecycle/render-path 验证，而不仅仅是当前非 macOS 主机上的构建级验证。

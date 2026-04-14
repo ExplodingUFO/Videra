@@ -69,7 +69,7 @@ dotnet run --project samples/Videra.Demo/Videra.Demo.csproj
 
 ```bash
 ./verify.sh --configuration Release
-pwsh -File ./verify.ps1 -Configuration Release
+pwsh -File ./scripts/verify.ps1 -Configuration Release
 ```
 
 仅验证 Demo 构建：
