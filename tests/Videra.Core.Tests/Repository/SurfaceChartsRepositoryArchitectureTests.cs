@@ -48,6 +48,23 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
         }
     }
 
+    [Fact]
+    public void SurfaceChartAxisProbeOverlay_ShouldStayOutOfVideraView()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var videraView = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Avalonia", "Controls", "VideraView.cs"));
+        var videraViewOverlay = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Avalonia", "Controls", "VideraView.Overlay.cs"));
+
+        foreach (var content in new[] { videraView, videraViewOverlay })
+        {
+            content.Should().NotContain("SurfaceAxisOverlayPresenter");
+            content.Should().NotContain("SurfaceLegendOverlayPresenter");
+            content.Should().NotContain("SurfaceProbeService");
+            content.Should().NotContain("SurfaceProbeInfo");
+            content.Should().NotContain("Videra.SurfaceCharts");
+        }
+    }
+
     private static string GetRepositoryRoot()
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);
