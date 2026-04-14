@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Media;
+using Videra.SurfaceCharts.Avalonia.Controls.Overlay;
 using Videra.SurfaceCharts.Core;
 
 namespace Videra.SurfaceCharts.Avalonia.Controls;
@@ -12,7 +13,15 @@ internal static class SurfaceScenePainter
     {
         ArgumentNullException.ThrowIfNull(context);
 
-        var triangles = ProjectTriangles(scene, viewSize);
+        var projection = SurfaceChartProjection.Create(scene, viewSize);
+        DrawScene(context, scene, projection);
+    }
+
+    internal static void DrawScene(DrawingContext context, SurfaceRenderScene? scene, SurfaceChartProjection? projection)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+
+        var triangles = ProjectTriangles(scene, projection);
         if (triangles.Count == 0)
         {
             return;
@@ -34,61 +43,39 @@ internal static class SurfaceScenePainter
 
     internal static IReadOnlyList<ProjectedSurfaceTriangle> ProjectTriangles(SurfaceRenderScene? scene, Size viewSize)
     {
+        var projection = SurfaceChartProjection.Create(scene, viewSize);
+        return ProjectTriangles(scene, projection);
+    }
+
+    internal static IReadOnlyList<ProjectedSurfaceTriangle> ProjectTriangles(SurfaceRenderScene? scene, SurfaceChartProjection? projection)
+    {
         if (scene is null
             || scene.Tiles.Count == 0
-            || viewSize.Width <= 0d
-            || viewSize.Height <= 0d)
+            || projection is null)
         {
             return Array.Empty<ProjectedSurfaceTriangle>();
         }
 
-        var projectedTiles = new (SurfaceRenderTile Tile, RawProjection[] Vertices)[scene.Tiles.Count];
-        var hasProjectedVertex = false;
-        var minRawX = double.PositiveInfinity;
-        var maxRawX = double.NegativeInfinity;
-        var minRawY = double.PositiveInfinity;
-        var maxRawY = double.NegativeInfinity;
-
-        for (var tileIndex = 0; tileIndex < scene.Tiles.Count; tileIndex++)
-        {
-            var tile = scene.Tiles[tileIndex];
-            var rawVertices = new RawProjection[tile.Vertices.Count];
-
-            for (var vertexIndex = 0; vertexIndex < tile.Vertices.Count; vertexIndex++)
-            {
-                var rawProjection = ProjectRaw(tile.Vertices[vertexIndex].Position);
-                rawVertices[vertexIndex] = rawProjection;
-
-                minRawX = Math.Min(minRawX, rawProjection.X);
-                maxRawX = Math.Max(maxRawX, rawProjection.X);
-                minRawY = Math.Min(minRawY, rawProjection.Y);
-                maxRawY = Math.Max(maxRawY, rawProjection.Y);
-                hasProjectedVertex = true;
-            }
-
-            projectedTiles[tileIndex] = (tile, rawVertices);
-        }
-
-        if (!hasProjectedVertex)
-        {
-            return Array.Empty<ProjectedSurfaceTriangle>();
-        }
-
-        var transform = CreateTransform(viewSize, minRawX, maxRawX, minRawY, maxRawY);
         List<ProjectedSurfaceTriangle> triangles = [];
 
-        foreach (var (tile, rawVertices) in projectedTiles)
+        foreach (var tile in scene.Tiles)
         {
+            var projectedVertices = new SurfaceChartProjectedPoint[tile.Vertices.Count];
+            for (var vertexIndex = 0; vertexIndex < tile.Vertices.Count; vertexIndex++)
+            {
+                projectedVertices[vertexIndex] = projection.ProjectPoint(tile.Vertices[vertexIndex].Position);
+            }
+
             var indices = tile.Geometry.Indices;
             for (var index = 0; index <= indices.Count - 3; index += 3)
             {
-                var first = rawVertices[(int)indices[index]];
-                var second = rawVertices[(int)indices[index + 1]];
-                var third = rawVertices[(int)indices[index + 2]];
+                var first = projectedVertices[(int)indices[index]];
+                var second = projectedVertices[(int)indices[index + 1]];
+                var third = projectedVertices[(int)indices[index + 2]];
 
-                var firstPoint = transform.Apply(first);
-                var secondPoint = transform.Apply(second);
-                var thirdPoint = transform.Apply(third);
+                var firstPoint = first.ScreenPoint;
+                var secondPoint = second.ScreenPoint;
+                var thirdPoint = third.ScreenPoint;
 
                 if (IsDegenerate(firstPoint, secondPoint, thirdPoint))
                 {
@@ -104,39 +91,12 @@ internal static class SurfaceScenePainter
                             tile.Vertices[(int)indices[index]].Color,
                             tile.Vertices[(int)indices[index + 1]].Color,
                             tile.Vertices[(int)indices[index + 2]].Color),
-                        (first.Y + second.Y + third.Y) / 3d));
+                        (first.SortKey + second.SortKey + third.SortKey) / 3d));
             }
         }
 
         triangles.Sort(static (left, right) => left.SortKey.CompareTo(right.SortKey));
         return triangles;
-    }
-
-    private static RawProjection ProjectRaw(System.Numerics.Vector3 position)
-    {
-        return new RawProjection(
-            X: position.X - position.Z,
-            Y: ((position.X + position.Z) * 0.5d) - position.Y);
-    }
-
-    private static ProjectionTransform CreateTransform(
-        Size viewSize,
-        double minRawX,
-        double maxRawX,
-        double minRawY,
-        double maxRawY)
-    {
-        var spanX = Math.Max(maxRawX - minRawX, 1d);
-        var spanY = Math.Max(maxRawY - minRawY, 1d);
-        var availableWidth = Math.Max(viewSize.Width * 0.9d, 1d);
-        var availableHeight = Math.Max(viewSize.Height * 0.9d, 1d);
-        var scale = Math.Min(availableWidth / spanX, availableHeight / spanY);
-        var projectedWidth = spanX * scale;
-        var projectedHeight = spanY * scale;
-        var offsetX = (viewSize.Width - projectedWidth) / 2d - (minRawX * scale);
-        var offsetY = (viewSize.Height - projectedHeight) / 2d - (minRawY * scale);
-
-        return new ProjectionTransform(scale, offsetX, offsetY);
     }
 
     private static bool IsDegenerate(Point firstPoint, Point secondPoint, Point thirdPoint)
@@ -181,15 +141,4 @@ internal static class SurfaceScenePainter
         return geometry;
     }
 
-    private readonly record struct RawProjection(double X, double Y);
-
-    private readonly record struct ProjectionTransform(double Scale, double OffsetX, double OffsetY)
-    {
-        public Point Apply(RawProjection rawProjection)
-        {
-            return new Point(
-                x: OffsetX + (rawProjection.X * Scale),
-                y: OffsetY + (rawProjection.Y * Scale));
-        }
-    }
 }
