@@ -59,6 +59,11 @@ Invoke-Check "Demo Build" {
     dotnet build "$root/samples/Videra.Demo/Videra.Demo.csproj" --configuration $Configuration -v q 2>$null
 } "Demo builds" "Demo build failed"
 
+# Step 4: Surface Charts Demo build
+Invoke-Check "Surface Charts Demo Build" {
+    dotnet build "$root/samples/Videra.SurfaceCharts.Demo/Videra.SurfaceCharts.Demo.csproj" --configuration $Configuration -v q 2>$null
+} "Surface charts demo builds" "Surface charts demo build failed"
+
 # Optional native validation packages
 if ($IncludeNativeLinux) {
     Invoke-Check "Linux X11 Native Validation" {

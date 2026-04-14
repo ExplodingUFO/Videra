@@ -1,0 +1,133 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:charts="using:Videra.SurfaceCharts.Avalonia.Controls"
+        x:Class="Videra.SurfaceCharts.Demo.Views.MainWindow"
+        Title="Videra Surface Charts Demo"
+        Width="1440"
+        Height="900"
+        MinWidth="1180"
+        MinHeight="760"
+        Background="#08111F">
+  <Grid ColumnDefinitions="2.2*,1*" RowDefinitions="Auto,*">
+    <Border Grid.ColumnSpan="2"
+            Background="#101A2D"
+            BorderBrush="#1F2B44"
+            BorderThickness="0,0,0,1"
+            Padding="24,18">
+      <StackPanel Spacing="6">
+        <TextBlock FontSize="26"
+                   FontWeight="SemiBold"
+                   Foreground="#E2E8F0"
+                   Text="Surface Charts Demo" />
+        <TextBlock Foreground="#CBD5E1"
+                   TextWrapping="Wrap"
+                   Text="Switch between an in-memory example and a cache-backed example, then switch the viewport between overview and zoomed detail. The demo stays in its own sample app and only depends on the surface-chart module family." />
+      </StackPanel>
+    </Border>
+
+    <Border Grid.Row="1"
+            Margin="24,24,12,24"
+            Background="#0F172A"
+            BorderBrush="#1F2B44"
+            BorderThickness="1"
+            CornerRadius="20"
+            ClipToBounds="True">
+      <charts:SurfaceChartView x:Name="ChartView" />
+    </Border>
+
+    <ScrollViewer Grid.Row="1"
+                  Grid.Column="1"
+                  Margin="12,24,24,24"
+                  VerticalScrollBarVisibility="Auto">
+      <StackPanel Spacing="14">
+        <Border Padding="18"
+                Background="#111A2B"
+                BorderBrush="#1F2B44"
+                BorderThickness="1"
+                CornerRadius="18">
+          <StackPanel Spacing="10">
+            <TextBlock FontSize="18"
+                       FontWeight="SemiBold"
+                       Foreground="#E2E8F0"
+                       Text="Source selection" />
+            <ComboBox x:Name="SourceSelector">
+              <ComboBoxItem Content="In-memory example" />
+              <ComboBoxItem Content="Cache-backed example" />
+            </ComboBox>
+            <TextBlock Foreground="#CBD5E1"
+                       TextWrapping="Wrap"
+                       Text="The selection switches the chart source without routing demo loading logic into the control library." />
+          </StackPanel>
+        </Border>
+
+        <Border Padding="18"
+                Background="#111A2B"
+                BorderBrush="#1F2B44"
+                BorderThickness="1"
+                CornerRadius="18">
+          <StackPanel Spacing="10">
+            <TextBlock FontSize="18"
+                       FontWeight="SemiBold"
+                       Foreground="#E2E8F0"
+                       Text="Viewport selection" />
+            <ComboBox x:Name="ViewportSelector">
+              <ComboBoxItem Content="Overview" Tag="overview" />
+              <ComboBoxItem Content="Zoomed detail" Tag="detail" />
+            </ComboBox>
+            <TextBlock Foreground="#CBD5E1"
+                       TextWrapping="Wrap"
+                       Text="The demo switches between a full-range overview and a stable zoomed detail viewport computed from the active dataset metadata." />
+          </StackPanel>
+        </Border>
+
+        <Border Padding="18"
+                Background="#111A2B"
+                BorderBrush="#1F2B44"
+                BorderThickness="1"
+                CornerRadius="18">
+          <StackPanel Spacing="8">
+            <TextBlock FontSize="16"
+                       FontWeight="SemiBold"
+                       Foreground="#E2E8F0"
+                       Text="Current path" />
+            <TextBlock x:Name="StatusText"
+                       Foreground="#CBD5E1"
+                       TextWrapping="Wrap" />
+          </StackPanel>
+        </Border>
+
+        <Border Padding="18"
+                Background="#111A2B"
+                BorderBrush="#1F2B44"
+                BorderThickness="1"
+                CornerRadius="18">
+          <StackPanel Spacing="8">
+            <TextBlock FontSize="16"
+                       FontWeight="SemiBold"
+                       Foreground="#E2E8F0"
+                       Text="Seed cache asset" />
+            <TextBlock x:Name="CachePathText"
+                       Foreground="#CBD5E1"
+                       TextWrapping="Wrap" />
+          </StackPanel>
+        </Border>
+
+        <Border Padding="18"
+                Background="#111A2B"
+                BorderBrush="#1F2B44"
+                BorderThickness="1"
+                CornerRadius="18">
+          <StackPanel Spacing="8">
+            <TextBlock FontSize="16"
+                       FontWeight="SemiBold"
+                       Foreground="#E2E8F0"
+                       Text="Dataset summary" />
+            <TextBlock x:Name="DatasetText"
+                       Foreground="#CBD5E1"
+                       TextWrapping="Wrap" />
+          </StackPanel>
+        </Border>
+      </StackPanel>
+    </ScrollViewer>
+  </Grid>
+</Window>

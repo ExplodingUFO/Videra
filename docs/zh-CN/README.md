@@ -4,6 +4,9 @@
 
 Videra 是一套面向 .NET 桌面应用的跨平台 3D 查看组件库，核心目标是在 Avalonia 应用中提供可复用、可嵌入、可扩展的 3D 查看能力。
 
+surface-chart 模块家族与 `VideraView` 相互独立。
+它面向离线大矩阵、曲面图和时频图一类可视化场景，独立 Demo 也单独发布为 `Videra.SurfaceCharts.Demo`。
+
 ## 项目状态
 
 - 当前处于早期 `alpha`
@@ -50,6 +53,9 @@ dotnet add package Videra.Core --version 0.1.0-alpha.1 --source github-Exploding
 - [英文首页](../../README.md)
 - [扩展合同](extensibility.md)：`VideraView.Engine`、`RegisterPassContributor(...)`、`RegisterFrameHook(...)`、`RenderCapabilities`、`BackendDiagnostics` 与 `samples/Videra.ExtensibilitySample`
 - [交互示例](../../samples/Videra.InteractionSample/README.md)：`host owns` `SelectionState`、`Annotations` 和 annotation state，`Navigate` / `Select` / `Annotate`，`SelectionRequested` / `AnnotationRequested`，以及 `VideraNodeAnnotation` / `VideraWorldPointAnnotation`
+- [SurfaceCharts.Core](modules/videra-surfacecharts-core.md)：`SurfaceChartView` 之外的领域契约、viewport / LOD、tile source 与 probe contract
+- [SurfaceCharts.Avalonia](modules/videra-surfacecharts-avalonia.md)：专用 `SurfaceChartView` 控件层，独立于 `VideraView`
+- [独立 Demo](../../samples/Videra.SurfaceCharts.Demo/README.md)：`Videra.SurfaceCharts.Demo`
 - [架构说明](ARCHITECTURE.md)
 - [贡献指南](CONTRIBUTING.md)
 - [故障排查](troubleshooting.md)
@@ -64,6 +70,9 @@ dotnet add package Videra.Core --version 0.1.0-alpha.1 --source github-Exploding
 - [Videra.Platform.Linux](modules/platform-linux.md)
 - [Videra.Platform.macOS](modules/platform-macos.md)
 - [Videra.Demo](modules/demo.md)
+- [Videra.SurfaceCharts.Core](modules/videra-surfacecharts-core.md)
+- [Videra.SurfaceCharts.Avalonia](modules/videra-surfacecharts-avalonia.md)
+- [Videra.SurfaceCharts.Demo](../../samples/Videra.SurfaceCharts.Demo/README.md)
 
 ## 说明
 
@@ -74,3 +83,5 @@ dotnet add package Videra.Core --version 0.1.0-alpha.1 --source github-Exploding
 `host owns` `SelectionState`、`Annotations` 与 annotation state。
 
 受控交互入口则以 [samples/Videra.InteractionSample](../../samples/Videra.InteractionSample/README.md) 为主：`host owns` `SelectionState`、`Annotations` 与 annotation state，内建模式是 `Navigate`、`Select`、`Annotate`，选择保持 `object-level`，标注同时覆盖 object anchors 与 world-point anchors，并通过 `VideraNodeAnnotation` / `VideraWorldPointAnnotation` 表达，overlay responsibilities split between `3D highlight/render state` and `2D label/feedback rendering`。
+
+surface-chart 模块家族则以 `SurfaceChartView` 为中心，独立于 `VideraView`，并保持与 viewer 侧选择、标注和 camera 流程解耦。

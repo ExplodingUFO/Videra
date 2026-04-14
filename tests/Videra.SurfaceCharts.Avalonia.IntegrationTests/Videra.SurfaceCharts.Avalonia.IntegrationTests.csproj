@@ -6,8 +6,6 @@
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
-    <!-- Test names intentionally use underscores for BDD-style readability. -->
-    <NoWarn>$(NoWarn);CA1707</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -17,7 +15,6 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Moq" Version="4.20.72" />
     <PackageReference Include="FluentAssertions" Version="7.0.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.3.0" />
     <PackageReference Include="coverlet.collector" Version="6.0.2">
@@ -27,16 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Videra.Core\Videra.Core.csproj" />
-    <ProjectReference Include="..\..\samples\Videra.SurfaceCharts.Demo\Videra.SurfaceCharts.Demo.csproj" />
-    <ProjectReference Include="..\..\samples\Videra.Demo\Videra.Demo.csproj" />
-    <ProjectReference Include="..\Tests.Common\Tests.Common.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="IO\TestData\**">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+    <ProjectReference Include="..\..\src\Videra.SurfaceCharts.Avalonia\Videra.SurfaceCharts.Avalonia.csproj" />
   </ItemGroup>
 
 </Project>
