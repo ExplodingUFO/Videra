@@ -85,4 +85,33 @@ public readonly record struct SurfaceProbeInfo
     /// Gets a value indicating whether the probe result comes from a coarse tile approximation.
     /// </summary>
     public bool IsApproximate { get; }
+
+    internal static SurfaceProbeInfo FromResolvedSample(
+        SurfaceMetadata metadata,
+        SurfaceTile tile,
+        SurfaceProbeRequest probeRequest,
+        double value)
+    {
+        ArgumentNullException.ThrowIfNull(metadata);
+        ArgumentNullException.ThrowIfNull(tile);
+
+        return new SurfaceProbeInfo(
+            probeRequest.SampleX,
+            probeRequest.SampleY,
+            MapAxis(metadata.HorizontalAxis, probeRequest.SampleX, metadata.Width),
+            MapAxis(metadata.VerticalAxis, probeRequest.SampleY, metadata.Height),
+            value,
+            isApproximate: tile.Bounds.Width != tile.Width || tile.Bounds.Height != tile.Height);
+    }
+
+    private static double MapAxis(SurfaceAxisDescriptor axis, double sampleIndex, int sampleCount)
+    {
+        if (sampleCount <= 1 || axis.Maximum <= axis.Minimum)
+        {
+            return axis.Minimum;
+        }
+
+        var normalized = sampleIndex / (sampleCount - 1d);
+        return axis.Minimum + (axis.Span * normalized);
+    }
 }

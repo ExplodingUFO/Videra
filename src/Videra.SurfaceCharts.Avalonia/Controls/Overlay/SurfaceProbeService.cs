@@ -70,27 +70,10 @@ internal sealed class SurfaceProbeService
                 return null;
             }
 
-            return new SurfaceProbeInfo(
-                probeRequest.SampleX,
-                probeRequest.SampleY,
-                MapAxis(metadata.HorizontalAxis, probeRequest.SampleX, metadata.Width),
-                MapAxis(metadata.VerticalAxis, probeRequest.SampleY, metadata.Height),
-                value,
-                isApproximate: tile.Bounds.Width != tile.Width || tile.Bounds.Height != tile.Height);
+            return SurfaceProbeInfo.FromResolvedSample(metadata, tile, probeRequest, value);
         }
 
         return null;
-    }
-
-    private static double MapAxis(SurfaceAxisDescriptor axis, double sampleIndex, int sampleCount)
-    {
-        if (sampleCount <= 1 || axis.Maximum <= axis.Minimum)
-        {
-            return axis.Minimum;
-        }
-
-        var normalized = sampleIndex / (sampleCount - 1d);
-        return axis.Minimum + (axis.Span * normalized);
     }
 
     private static int MapSampleToTileIndex(double sampleCoordinate, int start, int span, int gridSize)
