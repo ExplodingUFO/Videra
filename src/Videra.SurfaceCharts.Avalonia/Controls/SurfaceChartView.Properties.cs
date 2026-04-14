@@ -64,6 +64,8 @@ public partial class SurfaceChartView
 
     private void OnSourceChanged(ISurfaceTileSource? source)
     {
+        _pinnedProbeRequests.Clear();
+        _probeScreenPosition = null;
         LastTileFailure = null;
         _controller.UpdateSource(source);
     }

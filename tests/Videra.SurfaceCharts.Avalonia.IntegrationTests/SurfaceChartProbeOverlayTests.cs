@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Reflection;
 using Avalonia;
 using FluentAssertions;
@@ -137,6 +138,67 @@ public sealed class SurfaceChartProbeOverlayTests
         state.ProbeResult.Value.Value.Should().Be(10d);
     }
 
+    [Fact]
+    public void ProbeOverlay_ConvertsSampleCoordinatesToAxisValues()
+    {
+        var metadata = new SurfaceMetadata(
+            width: 5,
+            height: 5,
+            new SurfaceAxisDescriptor("Time", "s", 10d, 20d),
+            new SurfaceAxisDescriptor("Frequency", "Hz", 100d, 200d),
+            new SurfaceValueRange(-1d, 1d));
+        var tile = new SurfaceTile(
+            new SurfaceTileKey(0, 0, 0, 0),
+            width: 5,
+            height: 5,
+            new SurfaceTileBounds(0, 0, 5, 5),
+            Enumerable.Repeat(3f, 25).ToArray(),
+            metadata.ValueRange);
+
+        var state = SurfaceProbeOverlayPresenter.CreateState(
+            new StaticTileSource(metadata),
+            new SurfaceViewport(0, 0, 4, 4),
+            new Size(200, 200),
+            [tile],
+            new Point(100, 100));
+
+        var hoveredProbe = GetHoveredProbe(state);
+        GetDoubleProperty(hoveredProbe, "SampleX").Should().BeApproximately(2d, 0.0001d);
+        GetDoubleProperty(hoveredProbe, "SampleY").Should().BeApproximately(2d, 0.0001d);
+        GetDoubleProperty(hoveredProbe, "AxisX").Should().BeApproximately(15d, 0.0001d);
+        GetDoubleProperty(hoveredProbe, "AxisY").Should().BeApproximately(150d, 0.0001d);
+        GetDoubleProperty(hoveredProbe, "Value").Should().Be(3d);
+        GetBooleanProperty(hoveredProbe, "IsApproximate").Should().BeFalse();
+    }
+
+    [Fact]
+    public void ProbeOverlay_FlagsApproximateWhenTileDensityIsCoarse()
+    {
+        var metadata = SurfaceChartViewLifecycleTests.CreateMetadata();
+        var coarseTile = new SurfaceTile(
+            new SurfaceTileKey(0, 0, 0, 0),
+            width: 2,
+            height: 2,
+            new SurfaceTileBounds(0, 0, 1024, 1024),
+            new float[]
+            {
+                10f, 20f,
+                30f, 40f
+            },
+            metadata.ValueRange);
+
+        var state = SurfaceProbeOverlayPresenter.CreateState(
+            new StaticTileSource(metadata),
+            new SurfaceViewport(-50, -40, 200, 200),
+            new Size(100, 100),
+            [coarseTile],
+            new Point(50, 50));
+
+        var hoveredProbe = GetHoveredProbe(state);
+        GetBooleanProperty(hoveredProbe, "IsApproximate").Should().BeTrue();
+        GetDoubleProperty(hoveredProbe, "Value").Should().Be(10d);
+    }
+
     private static void UpdateProbeScreenPosition(SurfaceChartView view, Point probeScreenPosition)
     {
         var method = typeof(SurfaceChartView).GetMethod(
@@ -155,6 +217,13 @@ public sealed class SurfaceChartProbeOverlayTests
 
         field.Should().NotBeNull("Task 9 requires SurfaceChartView to retain overlay state separately from scheduling.");
         return field!.GetValue(view)!;
+    }
+
+    private static object GetHoveredProbe(object overlayState)
+    {
+        var hoveredProbe = GetPropertyValue(overlayState, "HoveredProbe");
+        hoveredProbe.Should().NotBeNull("the overlay state should keep the currently hovered probe.");
+        return hoveredProbe!;
     }
 
     private static object? GetPropertyValue(object instance, string propertyName)
