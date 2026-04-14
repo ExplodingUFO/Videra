@@ -97,6 +97,25 @@ public sealed class SurfaceChartViewViewStateTests
         });
     }
 
+    [Fact]
+    public void ResetCamera_AfterFocusZoomTo_UsesFocusedWindowDefaultCamera()
+    {
+        AvaloniaHeadlessTestSession.Run(() =>
+        {
+            var view = new SurfaceChartView();
+
+            view.ZoomTo(25, 125, 50, 150);
+            view.ViewState = new SurfaceViewState(
+                view.ViewState.DataWindow,
+                new SurfaceCameraPose(new Vector3(9, 8, 7), 5, 10, 15, 60, SurfaceProjectionMode.Perspective));
+
+            view.ResetCamera();
+
+            view.ViewState.DataWindow.Should().Be(new SurfaceDataWindow(25, 125, 50, 150));
+            view.ViewState.Camera.Should().Be(CreateCamera(new SurfaceDataWindow(25, 125, 50, 150)));
+        });
+    }
+
     private static SurfaceCameraPose CreateCamera(SurfaceDataWindow dataWindow)
     {
         return new SurfaceCameraPose(

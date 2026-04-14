@@ -28,7 +28,13 @@ public partial class SurfaceChartView
         base.OnPointerReleased(e);
         UpdateProbeScreenPosition(e.GetPosition(this));
 
-        if (_interactionController.HandlePointerReleased(e))
+        var releaseResult = _interactionController.HandlePointerReleased(e, ViewState, Bounds.Size);
+        if (releaseResult.ViewState is not null)
+        {
+            ApplyViewState(releaseResult.ViewState);
+        }
+
+        if (releaseResult.Handled)
         {
             if (ReferenceEquals(e.Pointer.Captured, this))
             {
