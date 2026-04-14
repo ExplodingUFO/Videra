@@ -3,6 +3,7 @@ using Avalonia;
 using Avalonia.Input;
 using FluentAssertions;
 using Videra.SurfaceCharts.Avalonia.Controls;
+using Videra.SurfaceCharts.Avalonia.Controls.Overlay;
 using Videra.SurfaceCharts.Core;
 using Xunit;
 using BindingFlags = System.Reflection.BindingFlags;
@@ -72,6 +73,45 @@ public sealed class SurfaceChartPinnedProbeTests
         });
     }
 
+    [Fact]
+    public Task PinnedProbe_SurvivesViewportAndProjectionChanges_WithStableAxisTruth()
+    {
+        return AvaloniaHeadlessTestSession.RunAsync(async () =>
+        {
+            var metadata = new SurfaceMetadata(
+                width: 5,
+                height: 5,
+                new SurfaceAxisDescriptor("Time", "s", 10d, 20d),
+                new SurfaceAxisDescriptor("Frequency", "Hz", 100d, 200d),
+                new SurfaceValueRange(-2d, 2d));
+            var source = new ScriptedSurfaceTileSource(metadata, defaultTileValue: 11f);
+            var view = new RoutedProbeTestView();
+            var pointer = new Pointer(1, PointerType.Mouse, isPrimary: true);
+            var point = new Point(100, 100);
+
+            view.Measure(new Size(200, 200));
+            view.Arrange(new Rect(0, 0, 200, 200));
+            view.Viewport = new SurfaceViewport(0, 0, 4, 4);
+            view.Source = source;
+
+            await SurfaceChartTestHelpers.WaitForLoadedTileValuesAsync(view, [11f]);
+
+            view.RoutePointerMoved(pointer, point, RawInputModifiers.None);
+            TogglePinnedProbe(view, pointer, point);
+
+            var initialPinnedProbe = GetSinglePinnedProbe(GetOverlayState(view));
+            AssertProbeTruth(initialPinnedProbe, sampleX: 2d, sampleY: 2d, axisX: 15d, axisY: 150d, value: 11d, isApproximate: false);
+
+            view.Viewport = new SurfaceViewport(3d, 3d, 1d, 1d);
+            UpdateProjectionSettings(view, new SurfaceChartProjectionSettings(210d, 15d));
+
+            await SurfaceChartTestHelpers.AssertLoadedTileValuesStayAsync(view, [11f]);
+
+            var persistedPinnedProbe = GetSinglePinnedProbe(GetOverlayState(view));
+            AssertProbeTruth(persistedPinnedProbe, sampleX: 2d, sampleY: 2d, axisX: 15d, axisY: 150d, value: 11d, isApproximate: false);
+        });
+    }
+
     private static object GetOverlayState(SurfaceChartView view)
     {
         var field = typeof(SurfaceChartView).GetField(
@@ -94,6 +134,65 @@ public sealed class SurfaceChartPinnedProbeTests
         var pinned = GetPropertyValue(overlayState, "PinnedProbes");
         pinned.Should().BeAssignableTo<IEnumerable>();
         return ((IEnumerable)pinned!).Cast<object>().ToArray();
+    }
+
+    private static object GetSinglePinnedProbe(object overlayState)
+    {
+        return GetPinnedProbes(overlayState).Should().ContainSingle().Subject;
+    }
+
+    private static void AssertProbeTruth(
+        object probe,
+        double sampleX,
+        double sampleY,
+        double axisX,
+        double axisY,
+        double value,
+        bool isApproximate)
+    {
+        GetDoubleProperty(probe, "SampleX").Should().BeApproximately(sampleX, 0.0001d);
+        GetDoubleProperty(probe, "SampleY").Should().BeApproximately(sampleY, 0.0001d);
+        GetDoubleProperty(probe, "AxisX").Should().BeApproximately(axisX, 0.0001d);
+        GetDoubleProperty(probe, "AxisY").Should().BeApproximately(axisY, 0.0001d);
+        GetDoubleProperty(probe, "Value").Should().Be(value);
+        GetBooleanProperty(probe, "IsApproximate").Should().Be(isApproximate);
+    }
+
+    private static void TogglePinnedProbe(RoutedProbeTestView view, Pointer pointer, Point position)
+    {
+        view.RoutePointerPressed(
+            pointer,
+            position,
+            RawInputModifiers.LeftMouseButton | RawInputModifiers.Shift,
+            PointerUpdateKind.LeftButtonPressed,
+            KeyModifiers.Shift);
+        view.RoutePointerReleased(
+            pointer,
+            position,
+            RawInputModifiers.Shift,
+            PointerUpdateKind.LeftButtonReleased,
+            MouseButton.Left,
+            KeyModifiers.Shift);
+    }
+
+    private static void UpdateProjectionSettings(SurfaceChartView view, SurfaceChartProjectionSettings settings)
+    {
+        var method = typeof(SurfaceChartView).GetMethod(
+            "UpdateProjectionSettings",
+            BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+
+        method.Should().NotBeNull("Phase 15 keeps camera/projection changes behind a narrow chart-local seam.");
+        method!.Invoke(view, [settings]);
+    }
+
+    private static double GetDoubleProperty(object instance, string propertyName)
+    {
+        return (double)GetPropertyValue(instance, propertyName)!;
+    }
+
+    private static bool GetBooleanProperty(object instance, string propertyName)
+    {
+        return (bool)GetPropertyValue(instance, propertyName)!;
     }
 
     private sealed class RoutedProbeTestView : SurfaceChartView

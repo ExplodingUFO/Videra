@@ -135,7 +135,11 @@ public sealed class SurfaceChartProbeOverlayTests
         state.ProbeResult.Should().NotBeNull();
         state.ProbeResult!.Value.SampleX.Should().BeApproximately(100d, 0.0001d);
         state.ProbeResult.Value.SampleY.Should().BeApproximately(100d, 0.0001d);
+        var hoveredProbe = GetHoveredProbe(state);
+        GetDoubleProperty(hoveredProbe, "AxisX").Should().BeApproximately(100d, 0.0001d);
+        GetDoubleProperty(hoveredProbe, "AxisY").Should().BeApproximately(100d, 0.0001d);
         state.ProbeResult.Value.Value.Should().Be(10d);
+        GetBooleanProperty(hoveredProbe, "IsApproximate").Should().BeTrue();
     }
 
     [Fact]
@@ -169,6 +173,81 @@ public sealed class SurfaceChartProbeOverlayTests
         GetDoubleProperty(hoveredProbe, "AxisY").Should().BeApproximately(150d, 0.0001d);
         GetDoubleProperty(hoveredProbe, "Value").Should().Be(3d);
         GetBooleanProperty(hoveredProbe, "IsApproximate").Should().BeFalse();
+    }
+
+    [Fact]
+    public void ProbeOverlay_ClampsViewportAndReportsAxisTruth()
+    {
+        var metadata = new SurfaceMetadata(
+            width: 5,
+            height: 5,
+            new SurfaceAxisDescriptor("Time", "s", 10d, 20d),
+            new SurfaceAxisDescriptor("Frequency", "Hz", 100d, 200d),
+            new SurfaceValueRange(-1d, 1d));
+        var tile = new SurfaceTile(
+            new SurfaceTileKey(0, 0, 0, 0),
+            width: 5,
+            height: 5,
+            new SurfaceTileBounds(0, 0, 5, 5),
+            Enumerable.Repeat(3f, 25).ToArray(),
+            metadata.ValueRange);
+
+        var state = SurfaceProbeOverlayPresenter.CreateState(
+            new StaticTileSource(metadata),
+            new SurfaceViewport(-2, -2, 10, 10),
+            new Size(100, 100),
+            [tile],
+            new Point(50, 50));
+
+        var hoveredProbe = GetHoveredProbe(state);
+        GetDoubleProperty(hoveredProbe, "SampleX").Should().BeApproximately(2.5d, 0.0001d);
+        GetDoubleProperty(hoveredProbe, "SampleY").Should().BeApproximately(2.5d, 0.0001d);
+        GetDoubleProperty(hoveredProbe, "AxisX").Should().BeApproximately(16.25d, 0.0001d);
+        GetDoubleProperty(hoveredProbe, "AxisY").Should().BeApproximately(162.5d, 0.0001d);
+        GetDoubleProperty(hoveredProbe, "Value").Should().Be(3d);
+        GetBooleanProperty(hoveredProbe, "IsApproximate").Should().BeFalse();
+    }
+
+    [Fact]
+    public Task ProbeUpdate_ViewportFocusChange_RecomputesAxisValues()
+    {
+        return AvaloniaHeadlessTestSession.RunAsync(async () =>
+        {
+            var metadata = new SurfaceMetadata(
+                width: 5,
+                height: 5,
+                new SurfaceAxisDescriptor("Time", "s", 10d, 20d),
+                new SurfaceAxisDescriptor("Frequency", "Hz", 100d, 200d),
+                new SurfaceValueRange(-2d, 2d));
+            var source = new ScriptedSurfaceTileSource(metadata, defaultTileValue: 5f);
+            var view = new SurfaceChartView();
+
+            view.Measure(new Size(200, 200));
+            view.Arrange(new Rect(0, 0, 200, 200));
+            view.Viewport = new SurfaceViewport(0, 0, 4, 4);
+            view.Source = source;
+
+            await SurfaceChartTestHelpers.WaitForLoadedTileValuesAsync(view, [5f]);
+
+            UpdateProbeScreenPosition(view, new Point(100, 100));
+
+            var initialProbe = GetHoveredProbe(GetOverlayState(view));
+            GetDoubleProperty(initialProbe, "SampleX").Should().BeApproximately(2d, 0.0001d);
+            GetDoubleProperty(initialProbe, "SampleY").Should().BeApproximately(2d, 0.0001d);
+            GetDoubleProperty(initialProbe, "AxisX").Should().BeApproximately(15d, 0.0001d);
+            GetDoubleProperty(initialProbe, "AxisY").Should().BeApproximately(150d, 0.0001d);
+
+            view.Viewport = new SurfaceViewport(2d, 1d, 1d, 2d);
+
+            await SurfaceChartTestHelpers.AssertLoadedTileValuesStayAsync(view, [5f]);
+
+            var focusedProbe = GetHoveredProbe(GetOverlayState(view));
+            GetDoubleProperty(focusedProbe, "SampleX").Should().BeApproximately(2.5d, 0.0001d);
+            GetDoubleProperty(focusedProbe, "SampleY").Should().BeApproximately(2d, 0.0001d);
+            GetDoubleProperty(focusedProbe, "AxisX").Should().BeApproximately(16.25d, 0.0001d);
+            GetDoubleProperty(focusedProbe, "AxisY").Should().BeApproximately(150d, 0.0001d);
+            GetBooleanProperty(focusedProbe, "IsApproximate").Should().BeFalse();
+        });
     }
 
     [Fact]
