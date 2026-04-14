@@ -1,5 +1,6 @@
 using Avalonia.Media;
 using Avalonia.Threading;
+using Videra.SurfaceCharts.Avalonia.Controls.Overlay;
 using Videra.SurfaceCharts.Core;
 
 namespace Videra.SurfaceCharts.Avalonia.Controls;
@@ -15,7 +16,8 @@ public partial class SurfaceChartView
         ArgumentNullException.ThrowIfNull(context);
 
         base.Render(context);
-        SurfaceScenePainter.DrawScene(context, _renderScene, Bounds.Size);
+        var projection = _chartProjection ?? CreateChartProjection();
+        SurfaceScenePainter.DrawScene(context, _renderScene, projection);
         RenderOverlay(context);
     }
 
@@ -60,5 +62,28 @@ public partial class SurfaceChartView
     private static SurfaceColorMap CreateFallbackColorMap(SurfaceValueRange range)
     {
         return new SurfaceColorMap(range, new SurfaceColorMapPalette(0xFF102030u, 0xFFE6EEF5u));
+    }
+
+    private SurfaceChartProjection? CreateChartProjection()
+    {
+        var source = Source;
+        if (source is null || _overlayViewSize.Width <= 0d || _overlayViewSize.Height <= 0d)
+        {
+            return null;
+        }
+
+        var loadedTiles = _tileCache.GetLoadedTiles();
+        if (loadedTiles.Count == 0)
+        {
+            return null;
+        }
+
+        var projection = SurfaceChartProjection.Create(
+            _renderScene,
+            _overlayViewSize,
+            SurfaceChartProjection.CreateChartBoundsPoints(source.Metadata, source.Metadata.ValueRange),
+            _cameraController.ProjectionSettings);
+        _chartProjection = projection;
+        return projection;
     }
 }
