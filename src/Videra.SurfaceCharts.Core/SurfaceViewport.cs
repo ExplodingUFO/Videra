@@ -82,6 +82,26 @@ public readonly record struct SurfaceViewport
     public double EndYExclusive => StartY + Height;
 
     /// <summary>
+    /// Converts the viewport to a data-window contract with explicit min/max bounds.
+    /// </summary>
+    /// <returns>The equivalent data window.</returns>
+    public SurfaceDataWindow ToDataWindow()
+    {
+        return new SurfaceDataWindow(StartX, EndXExclusive, StartY, EndYExclusive);
+    }
+
+    /// <summary>
+    /// Creates a viewport from a data-window contract.
+    /// </summary>
+    /// <param name="dataWindow">The source data window.</param>
+    /// <returns>The equivalent sample-space viewport.</returns>
+    public static SurfaceViewport FromDataWindow(SurfaceDataWindow dataWindow)
+    {
+        ArgumentNullException.ThrowIfNull(dataWindow);
+        return new SurfaceViewport(dataWindow.XMin, dataWindow.YMin, dataWindow.Width, dataWindow.Height);
+    }
+
+    /// <summary>
     /// Clamps the viewport to the supplied dataset metadata.
     /// </summary>
     /// <param name="metadata">The dataset metadata to clamp against.</param>
@@ -90,43 +110,7 @@ public readonly record struct SurfaceViewport
     public SurfaceViewport ClampTo(SurfaceMetadata metadata)
     {
         ArgumentNullException.ThrowIfNull(metadata);
-
-        var clampedWidth = Math.Min(Width, metadata.Width);
-        var clampedHeight = Math.Min(Height, metadata.Height);
-
-        var clampedStartX = StartX;
-        if (clampedStartX < 0.0)
-        {
-            clampedStartX = 0.0;
-        }
-
-        if (clampedStartX + clampedWidth > metadata.Width)
-        {
-            clampedStartX = metadata.Width - clampedWidth;
-        }
-
-        if (clampedStartX < 0.0)
-        {
-            clampedStartX = 0.0;
-        }
-
-        var clampedStartY = StartY;
-        if (clampedStartY < 0.0)
-        {
-            clampedStartY = 0.0;
-        }
-
-        if (clampedStartY + clampedHeight > metadata.Height)
-        {
-            clampedStartY = metadata.Height - clampedHeight;
-        }
-
-        if (clampedStartY < 0.0)
-        {
-            clampedStartY = 0.0;
-        }
-
-        return new SurfaceViewport(clampedStartX, clampedStartY, clampedWidth, clampedHeight);
+        return FromDataWindow(ToDataWindow().ClampTo(metadata));
     }
 
     /// <summary>

@@ -15,13 +15,28 @@ public readonly record struct SurfaceViewportRequest
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="metadata"/> is <c>null</c>.</exception>
     /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="outputWidth"/> or <paramref name="outputHeight"/> is not positive.</exception>
     public SurfaceViewportRequest(SurfaceMetadata metadata, SurfaceViewport viewport, int outputWidth, int outputHeight)
+        : this(metadata, viewport.ToDataWindow(), outputWidth, outputHeight)
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="SurfaceViewportRequest"/> struct.
+    /// </summary>
+    /// <param name="metadata">The dataset metadata.</param>
+    /// <param name="dataWindow">The requested data window.</param>
+    /// <param name="outputWidth">The output width in pixels.</param>
+    /// <param name="outputHeight">The output height in pixels.</param>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="metadata"/> or <paramref name="dataWindow"/> is <c>null</c>.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="outputWidth"/> or <paramref name="outputHeight"/> is not positive.</exception>
+    public SurfaceViewportRequest(SurfaceMetadata metadata, SurfaceDataWindow dataWindow, int outputWidth, int outputHeight)
     {
         ArgumentNullException.ThrowIfNull(metadata);
+        ArgumentNullException.ThrowIfNull(dataWindow);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(outputWidth);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(outputHeight);
 
         Metadata = metadata;
-        Viewport = viewport;
+        DataWindow = dataWindow;
         OutputWidth = outputWidth;
         OutputHeight = outputHeight;
     }
@@ -32,9 +47,14 @@ public readonly record struct SurfaceViewportRequest
     public SurfaceMetadata Metadata { get; }
 
     /// <summary>
-    /// Gets the requested viewport.
+    /// Gets the requested data window.
     /// </summary>
-    public SurfaceViewport Viewport { get; }
+    public SurfaceDataWindow DataWindow { get; }
+
+    /// <summary>
+    /// Gets the requested viewport compatibility view of the data window.
+    /// </summary>
+    public SurfaceViewport Viewport => SurfaceViewport.FromDataWindow(DataWindow);
 
     /// <summary>
     /// Gets the output width in pixels.
@@ -47,9 +67,14 @@ public readonly record struct SurfaceViewportRequest
     public int OutputHeight { get; }
 
     /// <summary>
+    /// Gets the data window clamped to the dataset bounds.
+    /// </summary>
+    public SurfaceDataWindow ClampedDataWindow => DataWindow.ClampTo(Metadata);
+
+    /// <summary>
     /// Gets the viewport clamped to the dataset bounds.
     /// </summary>
-    public SurfaceViewport ClampedViewport => Viewport.ClampTo(Metadata);
+    public SurfaceViewport ClampedViewport => SurfaceViewport.FromDataWindow(ClampedDataWindow);
 
     /// <summary>
     /// Gets the clamped viewport normalized to unit space.
@@ -59,12 +84,12 @@ public readonly record struct SurfaceViewportRequest
     /// <summary>
     /// Gets the horizontal zoom density measured in samples per output pixel.
     /// </summary>
-    public double HorizontalZoomDensity => ClampedViewport.Width / OutputWidth;
+    public double HorizontalZoomDensity => ClampedDataWindow.Width / OutputWidth;
 
     /// <summary>
     /// Gets the vertical zoom density measured in samples per output pixel.
     /// </summary>
-    public double VerticalZoomDensity => ClampedViewport.Height / OutputHeight;
+    public double VerticalZoomDensity => ClampedDataWindow.Height / OutputHeight;
 
     /// <summary>
     /// Gets the zoom density measured in samples per output pixel.

@@ -81,6 +81,32 @@ public class SurfaceViewportTests
         request.NormalizedViewport.Should().BeOfType<SurfaceNormalizedViewport>();
     }
 
+    [Fact]
+    public void SurfaceViewport_ToDataWindow_PreservesSampleSpaceBounds()
+    {
+        var viewport = new SurfaceViewport(10.0, 15.0, 80.0, 40.0);
+
+        var dataWindow = viewport.ToDataWindow();
+
+        dataWindow.XMin.Should().Be(10.0);
+        dataWindow.XMax.Should().Be(90.0);
+        dataWindow.YMin.Should().Be(15.0);
+        dataWindow.YMax.Should().Be(55.0);
+    }
+
+    [Fact]
+    public void SurfaceViewport_FromDataWindow_RestoresViewportSpan()
+    {
+        var dataWindow = new SurfaceDataWindow(5.0, 25.0, 30.0, 45.0);
+
+        var viewport = SurfaceViewport.FromDataWindow(dataWindow);
+
+        viewport.StartX.Should().Be(5.0);
+        viewport.StartY.Should().Be(30.0);
+        viewport.Width.Should().Be(20.0);
+        viewport.Height.Should().Be(15.0);
+    }
+
     private static SurfaceMetadata CreateMetadata(int width, int height)
     {
         return new SurfaceMetadata(
