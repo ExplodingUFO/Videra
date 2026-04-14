@@ -5,6 +5,18 @@ namespace Videra.Core.Tests.Repository;
 
 public sealed class SurfaceChartsRepositoryArchitectureTests
 {
+    private const string ChartRendererBoundarySentence =
+        "`SurfaceChartView` works through a chart-local renderer seam";
+
+    private const string GpuFallbackSentence =
+        "The renderer is `GPU-first`, but `software fallback` remains a shipped path";
+
+    private const string DemoGpuFallbackSentence =
+        "the shipped `GPU-first` renderer path used by `SurfaceChartView`, with `software fallback` still available";
+
+    private const string LinuxWaylandLimitSentence =
+        "On Wayland sessions the chart host uses an `XWayland compatibility` path; compositor-native Wayland surface embedding is not available";
+
     [Fact]
     public void RootReadme_ShouldDescribeSurfaceChartsAsIndependentSiblingFamily()
     {
@@ -61,8 +73,28 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
             content.Should().NotContain("SurfaceLegendOverlayPresenter");
             content.Should().NotContain("SurfaceProbeService");
             content.Should().NotContain("SurfaceProbeInfo");
+            content.Should().NotContain("SurfaceChartRenderHost");
+            content.Should().NotContain("SurfaceChartGpuRenderBackend");
+            content.Should().NotContain("Videra.SurfaceCharts.Rendering");
             content.Should().NotContain("Videra.SurfaceCharts");
         }
+    }
+
+    [Fact]
+    public void SurfaceChartReadmes_ShouldDescribeRendererTruthWithoutCrossingSiblingBoundary()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var avaloniaReadme = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.SurfaceCharts.Avalonia", "README.md"));
+        var demoReadme = File.ReadAllText(Path.Combine(repositoryRoot, "samples", "Videra.SurfaceCharts.Demo", "README.md"));
+
+        avaloniaReadme.Should().Contain(ChartRendererBoundarySentence);
+        avaloniaReadme.Should().Contain(GpuFallbackSentence);
+        avaloniaReadme.Should().Contain(LinuxWaylandLimitSentence);
+        avaloniaReadme.Should().Contain("independent from `VideraView`");
+
+        demoReadme.Should().Contain("not a `VideraView` mode");
+        demoReadme.Should().Contain(DemoGpuFallbackSentence);
+        demoReadme.Should().Contain("`XWayland compatibility` only, not compositor-native Wayland surface embedding");
     }
 
     private static string GetRepositoryRoot()
