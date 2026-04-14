@@ -15,6 +15,7 @@ public partial class SurfaceChartView
 
         if (_interactionController.HandlePointerPressed(e))
         {
+            _runtime.EnterInteractiveMode();
             e.Pointer.Capture(this);
             e.Handled = true;
         }
@@ -36,6 +37,8 @@ public partial class SurfaceChartView
 
         if (releaseResult.Handled)
         {
+            _runtime.ScheduleRefineMode();
+
             if (ReferenceEquals(e.Pointer.Captured, this))
             {
                 e.Pointer.Capture(null);
@@ -72,7 +75,9 @@ public partial class SurfaceChartView
         var updatedViewState = SurfaceChartInteractionController.HandlePointerWheel(e, ViewState);
         if (updatedViewState is not null)
         {
+            _runtime.EnterInteractiveMode();
             ApplyViewState(updatedViewState);
+            _runtime.ScheduleRefineMode();
             e.Handled = true;
         }
     }
@@ -84,5 +89,6 @@ public partial class SurfaceChartView
 
         base.OnPointerCaptureLost(e);
         _interactionController.Reset();
+        _runtime.ScheduleRefineMode();
     }
 }

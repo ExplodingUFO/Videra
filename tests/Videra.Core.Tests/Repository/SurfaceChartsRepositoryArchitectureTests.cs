@@ -62,6 +62,17 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
         }
     }
 
+    [Fact]
+    public void VideraView_ShouldNotReferenceSurfaceChartInteractiveOrRefineContracts()
+    {
+        var videraView = File.ReadAllText(Path.Combine(GetRepositoryRoot(), "src", "Videra.Avalonia", "Controls", "VideraView.cs"));
+
+        videraView.Should().NotContain("SurfaceInteractionQualityMode");
+        videraView.Should().NotContain("SurfaceChartInteractionController");
+        videraView.Should().NotContain("SurfaceChartRuntime");
+        videraView.Should().NotContain("Videra.SurfaceCharts");
+    }
+
     private static string GetRepositoryRoot()
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);

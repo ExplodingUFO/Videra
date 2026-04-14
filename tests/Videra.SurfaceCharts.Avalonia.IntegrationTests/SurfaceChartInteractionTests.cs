@@ -4,6 +4,7 @@ using Avalonia.Input;
 using Avalonia.Input.Raw;
 using FluentAssertions;
 using Videra.SurfaceCharts.Avalonia.Controls;
+using Videra.SurfaceCharts.Avalonia.Controls.Interaction;
 using Xunit;
 
 namespace Videra.SurfaceCharts.Avalonia.IntegrationTests;
@@ -21,6 +22,8 @@ public sealed class SurfaceChartInteractionTests
 
             view.RoutePointerPressed(pointer, new Point(100, 100), RawInputModifiers.LeftMouseButton, PointerUpdateKind.LeftButtonPressed);
             view.RoutePointerMoved(pointer, new Point(136, 118), RawInputModifiers.LeftMouseButton);
+
+            SurfaceChartTestHelpers.GetRuntime(view).CurrentInteractionQualityMode.Should().Be(SurfaceInteractionQualityMode.Interactive);
             view.RoutePointerReleased(pointer, new Point(136, 118), RawInputModifiers.None, PointerUpdateKind.LeftButtonReleased, MouseButton.Left);
 
             view.ViewState.DataWindow.Should().Be(initialViewState.DataWindow);
@@ -59,6 +62,7 @@ public sealed class SurfaceChartInteractionTests
 
             view.RoutePointerWheel(pointer, new Point(128, 96), RawInputModifiers.None, new global::Avalonia.Vector(0, 1));
 
+            SurfaceChartTestHelpers.GetRuntime(view).CurrentInteractionQualityMode.Should().Be(SurfaceInteractionQualityMode.Interactive);
             view.ViewState.Camera.Distance.Should().NotBe(initialDistance);
         });
     }
