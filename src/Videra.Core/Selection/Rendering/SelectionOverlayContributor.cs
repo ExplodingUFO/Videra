@@ -20,17 +20,14 @@ public sealed class SelectionOverlayContributor : IRenderPassContributor, IDispo
         }
 
         var selectedObjectIds = context.SelectionOverlay.SelectedObjectIds;
-        foreach (var sceneObject in context.SceneObjects)
+        foreach (var sceneObject in context.SceneObjects.Where(sceneObject => selectedObjectIds.Contains(sceneObject.Id)))
         {
-            if (selectedObjectIds.Contains(sceneObject.Id))
-            {
-                RenderWireframeOverlay(
-                    sceneObject,
-                    context.CommandExecutor,
-                    context.ResourceFactory,
-                    context.MeshPipeline,
-                    context.SelectionOverlay.SelectedLineColor);
-            }
+            RenderWireframeOverlay(
+                sceneObject,
+                context.CommandExecutor,
+                context.ResourceFactory,
+                context.MeshPipeline,
+                context.SelectionOverlay.SelectedLineColor);
         }
 
         if (context.SelectionOverlay.HoverObjectId is not Guid hoverObjectId)

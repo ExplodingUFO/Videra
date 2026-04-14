@@ -71,7 +71,7 @@ public sealed class SurfaceChartTileSchedulingTests
                     break;
 
                 default:
-                    throw new ArgumentOutOfRangeException(nameof(outcome), outcome, null);
+                    throw new InvalidOperationException($"Unexpected scripted request outcome value {outcome}.");
             }
 
             source.EnqueueSuccessResponse();

@@ -6,6 +6,9 @@
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
+    <!-- Test continuations intentionally stay readable here, and the headless application type
+         is just an Avalonia marker shell for session bootstrapping. -->
+    <NoWarn>$(NoWarn);CA2007;S2094</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

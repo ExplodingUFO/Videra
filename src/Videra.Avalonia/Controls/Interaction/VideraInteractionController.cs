@@ -96,40 +96,44 @@ internal sealed partial class VideraInteractionController : IDisposable
             handled = true;
             if (_host.InteractionMode == VideraInteractionMode.Select)
             {
-                var request = _state.IsSelectionBoxActive
-                    ? _selectionIntentResolver.CreateBoxRequest(
+                VideraSelectionRequest? request = null;
+                if (_state.IsSelectionBoxActive)
+                {
+                    request = _selectionIntentResolver.CreateBoxRequest(
                         _host.Engine.Camera,
                         _host.GetInteractionViewportSize(),
                         _host.SceneObjects,
                         _state.PointerDownPosition,
                         snapshot.Position,
                         _state.PointerDownModifiers,
-                        _host.InteractionOptions)
-                    : !_state.HasExceededClickThreshold
-                        ? _selectionIntentResolver.CreateClickRequest(
-                            _host.Engine.Camera,
-                            _host.GetInteractionViewportSize(),
-                            _host.SceneObjects,
-                            snapshot.Position,
-                            snapshot.Modifiers,
-                            _host.InteractionOptions)
-                        : null;
+                        _host.InteractionOptions);
+                }
+                else if (!_state.HasExceededClickThreshold)
+                {
+                    request = _selectionIntentResolver.CreateClickRequest(
+                        _host.Engine.Camera,
+                        _host.GetInteractionViewportSize(),
+                        _host.SceneObjects,
+                        snapshot.Position,
+                        snapshot.Modifiers,
+                        _host.InteractionOptions);
+                }
+
                 if (request is not null)
                 {
                     _host.RaiseSelectionRequested(new SelectionRequestedEventArgs(request));
                 }
             }
-            else if (_host.InteractionMode == VideraInteractionMode.Annotate && !_state.HasExceededClickThreshold)
+            else if (_host.InteractionMode == VideraInteractionMode.Annotate &&
+                     !_state.HasExceededClickThreshold &&
+                     _annotationIntentResolver.TryResolveAnchor(
+                         _host.Engine.Camera,
+                         _host.GetInteractionViewportSize(),
+                         _host.SceneObjects,
+                         snapshot.Position,
+                         out var anchor))
             {
-                if (_annotationIntentResolver.TryResolveAnchor(
-                    _host.Engine.Camera,
-                    _host.GetInteractionViewportSize(),
-                    _host.SceneObjects,
-                    snapshot.Position,
-                    out var anchor))
-                {
-                    _host.RaiseAnnotationRequested(new AnnotationRequestedEventArgs(anchor));
-                }
+                _host.RaiseAnnotationRequested(new AnnotationRequestedEventArgs(anchor));
             }
 
             _state.IsLeftButtonDown = false;

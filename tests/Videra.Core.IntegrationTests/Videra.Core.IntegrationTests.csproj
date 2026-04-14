@@ -7,8 +7,9 @@
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
     <!-- Test names intentionally use underscores for BDD-style readability.
-         CA1859 here only targets a test double factory return type and is not valuable. -->
-    <NoWarn>$(NoWarn);CA1707;CA1859</NoWarn>
+         CA1859 here only targets a test double factory return type and is not valuable.
+         CS0067 comes from interface-shaped native-host test doubles that intentionally expose unused events. -->
+    <NoWarn>$(NoWarn);CA1707;CA1859;CS0067</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
