@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Numerics;
 using Avalonia;
 using Avalonia.Media;
 using Videra.SurfaceCharts.Core;
@@ -12,13 +13,17 @@ internal static class SurfaceProbeOverlayPresenter
     private static readonly IBrush BubbleBorder = Brushes.White;
     private static readonly IBrush BubbleForeground = Brushes.White;
     private static readonly IBrush EmptyForeground = new SolidColorBrush(Color.FromArgb(220, 255, 255, 255));
+    private static readonly IBrush PinnedMarkerFill = new SolidColorBrush(Color.FromArgb(255, 255, 208, 64));
+    private const double BubbleMargin = 8d;
 
     public static SurfaceProbeOverlayState CreateState(
         ISurfaceTileSource? source,
         SurfaceViewport viewport,
         Size viewSize,
         IReadOnlyList<SurfaceTile> loadedTiles,
-        Point? probeScreenPosition)
+        Point? probeScreenPosition,
+        IReadOnlyList<SurfaceProbeRequest>? pinnedProbeRequests = null,
+        SurfaceProbeService? probeService = null)
     {
         ArgumentNullException.ThrowIfNull(loadedTiles);
 
@@ -27,32 +32,30 @@ internal static class SurfaceProbeOverlayPresenter
             return new SurfaceProbeOverlayState(
                 hasNoData: true,
                 noDataText: "No data",
-                readoutText: null,
-                probeScreenPosition: null,
-                probeResult: null);
+                hoveredProbeScreenPosition: null,
+                hoveredProbe: null,
+                pinnedProbes: []);
         }
 
-        if (probeScreenPosition is null || viewSize.Width <= 0d || viewSize.Height <= 0d)
-        {
-            return SurfaceProbeOverlayState.Empty;
-        }
-
-        var probeResult = ResolveProbeResult(source.Metadata, viewport, viewSize, loadedTiles, probeScreenPosition.Value);
-        var readoutText = probeResult is null
-            ? null
-            : string.Create(
-                CultureInfo.InvariantCulture,
-                $"X {probeResult.Value.SampleX:0.###}, Y {probeResult.Value.SampleY:0.###}, Value {probeResult.Value.Value:0.###}");
+        var resolvedProbeService = probeService ?? new SurfaceProbeService();
+        var hoveredProbe = probeScreenPosition is Point hoveredProbeScreenPosition
+            ? resolvedProbeService.ResolveFromScreenPosition(source.Metadata, viewport, viewSize, loadedTiles, hoveredProbeScreenPosition)
+            : null;
+        var pinnedProbes = ResolvePinnedProbes(source.Metadata, loadedTiles, pinnedProbeRequests);
 
         return new SurfaceProbeOverlayState(
             hasNoData: false,
             noDataText: null,
-            readoutText: readoutText,
-            probeScreenPosition: probeScreenPosition,
-            probeResult: probeResult);
+            hoveredProbeScreenPosition: hoveredProbe is null ? null : probeScreenPosition,
+            hoveredProbe: hoveredProbe,
+            pinnedProbes: pinnedProbes);
     }
 
-    public static void Render(DrawingContext context, SurfaceProbeOverlayState overlayState, Size viewSize)
+    public static void Render(
+        DrawingContext context,
+        SurfaceProbeOverlayState overlayState,
+        Size viewSize,
+        SurfaceChartProjection? projection)
     {
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(overlayState);
@@ -62,75 +65,45 @@ internal static class SurfaceProbeOverlayPresenter
             DrawCenteredText(context, overlayState.NoDataText, viewSize, EmptyForeground);
         }
 
-        if (!string.IsNullOrWhiteSpace(overlayState.ReadoutText) && overlayState.ProbeScreenPosition is Point probeScreenPosition)
+        if (projection is not null && overlayState.PinnedProbes.Count > 0)
         {
-            DrawReadout(context, overlayState.ReadoutText, probeScreenPosition);
+            DrawPinnedReadouts(context, overlayState.PinnedProbes, projection, viewSize);
+        }
+
+        if (overlayState.HoveredProbe is SurfaceProbeInfo hoveredProbe &&
+            overlayState.HoveredProbeScreenPosition is Point hoveredProbeScreenPosition)
+        {
+            DrawReadoutBubble(
+                context,
+                CreateHoveredReadoutText(hoveredProbe),
+                hoveredProbeScreenPosition,
+                viewSize,
+                bubbleIndex: 0,
+                markerPosition: null);
         }
     }
 
-    private static SurfaceProbeResult? ResolveProbeResult(
+    private static IReadOnlyList<SurfaceProbeInfo> ResolvePinnedProbes(
         SurfaceMetadata metadata,
-        SurfaceViewport viewport,
-        Size viewSize,
         IReadOnlyList<SurfaceTile> loadedTiles,
-        Point probeScreenPosition)
+        IReadOnlyList<SurfaceProbeRequest>? pinnedProbeRequests)
     {
-        var clampedViewport = viewport.ClampTo(metadata);
-        var normalizedX = Math.Clamp(probeScreenPosition.X / viewSize.Width, 0d, 1d);
-        var normalizedY = Math.Clamp(probeScreenPosition.Y / viewSize.Height, 0d, 1d);
-        var sampleX = Math.Clamp(
-            clampedViewport.StartX + (normalizedX * clampedViewport.Width),
-            0d,
-            metadata.Width - 1d);
-        var sampleY = Math.Clamp(
-            clampedViewport.StartY + (normalizedY * clampedViewport.Height),
-            0d,
-            metadata.Height - 1d);
-        var sampleIndexX = Math.Clamp((int)Math.Floor(sampleX), 0, metadata.Width - 1);
-        var sampleIndexY = Math.Clamp((int)Math.Floor(sampleY), 0, metadata.Height - 1);
-
-        foreach (var tile in loadedTiles
-                     .OrderByDescending(static tile => tile.Key.LevelX + tile.Key.LevelY)
-                     .ThenByDescending(static tile => tile.Key.LevelX)
-                     .ThenByDescending(static tile => tile.Key.LevelY))
+        if (pinnedProbeRequests is null || pinnedProbeRequests.Count == 0)
         {
-            if (sampleIndexX < tile.Bounds.StartX || sampleIndexX >= tile.Bounds.EndXExclusive)
-            {
-                continue;
-            }
-
-            if (sampleIndexY < tile.Bounds.StartY || sampleIndexY >= tile.Bounds.EndYExclusive)
-            {
-                continue;
-            }
-
-            // Loaded coarse tiles no longer assume a 1:1 bounds-to-grid shape, so probe lookups
-            // must remap source-space coordinates back into the tile's value grid.
-            var tileX = MapSampleToTileIndex(sampleX, tile.Bounds.StartX, tile.Bounds.Width, tile.Width);
-            var tileY = MapSampleToTileIndex(sampleY, tile.Bounds.StartY, tile.Bounds.Height, tile.Height);
-            var valueIndex = (tileY * tile.Width) + tileX;
-            var value = tile.Values.Span[valueIndex];
-            if (!float.IsFinite(value))
-            {
-                return null;
-            }
-
-            return new SurfaceProbeResult(sampleX, sampleY, value);
+            return [];
         }
 
-        return null;
-    }
-
-    private static int MapSampleToTileIndex(double sampleCoordinate, int start, int span, int gridSize)
-    {
-        if (gridSize <= 1)
+        List<SurfaceProbeInfo> pinnedProbes = new(pinnedProbeRequests.Count);
+        foreach (var pinnedProbeRequest in pinnedProbeRequests)
         {
-            return 0;
+            var resolvedProbe = SurfaceProbeService.Resolve(metadata, loadedTiles, pinnedProbeRequest);
+            if (resolvedProbe is SurfaceProbeInfo probe)
+            {
+                pinnedProbes.Add(probe);
+            }
         }
 
-        var offset = sampleCoordinate - start;
-        var normalized = Math.Clamp(offset / span, 0d, 1d);
-        return Math.Min(gridSize - 1, (int)Math.Floor(normalized * gridSize));
+        return pinnedProbes;
     }
 
     private static void DrawCenteredText(DrawingContext context, string text, Size viewSize, IBrush foreground)
@@ -142,20 +115,97 @@ internal static class SurfaceProbeOverlayPresenter
         context.DrawText(formattedText, origin);
     }
 
-    private static void DrawReadout(DrawingContext context, string readoutText, Point probeScreenPosition)
+    private static void DrawPinnedReadouts(
+        DrawingContext context,
+        IReadOnlyList<SurfaceProbeInfo> pinnedProbes,
+        SurfaceChartProjection projection,
+        Size viewSize)
+    {
+        for (var index = 0; index < pinnedProbes.Count; index++)
+        {
+            var probe = pinnedProbes[index];
+            var markerPosition = projection.Project(CreateMarkerVector(probe));
+            context.DrawEllipse(PinnedMarkerFill, new Pen(BubbleBorder, 1d), markerPosition, 4d, 4d);
+
+            DrawReadoutBubble(
+                context,
+                CreatePinnedReadoutText(index + 1, probe),
+                markerPosition,
+                viewSize,
+                bubbleIndex: index,
+                markerPosition: markerPosition);
+        }
+    }
+
+    private static void DrawReadoutBubble(
+        DrawingContext context,
+        string readoutText,
+        Point anchorPosition,
+        Size viewSize,
+        int bubbleIndex,
+        Point? markerPosition)
     {
         var text = CreateText(readoutText, BubbleForeground);
-        var bubbleOrigin = new Point(probeScreenPosition.X + 8d, probeScreenPosition.Y - text.Height - 6d);
+        var bubbleOrigin = markerPosition is not null
+            ? CreatePinnedBubbleOrigin(text, viewSize, bubbleIndex)
+            : CreateHoveredBubbleOrigin(text, anchorPosition, viewSize);
         var bubbleRect = new Rect(
             bubbleOrigin.X - 4d,
             bubbleOrigin.Y - 2d,
             text.Width + 8d,
             text.Height + 4d);
 
-        context.DrawLine(new Pen(BubbleForeground, 1d), probeScreenPosition, new Point(bubbleRect.X, bubbleRect.Bottom));
-        context.DrawEllipse(BubbleForeground, null, probeScreenPosition, 3d, 3d);
+        var lineStart = markerPosition ?? anchorPosition;
+        var lineEnd = markerPosition is null
+            ? new Point(bubbleRect.X, bubbleRect.Bottom)
+            : new Point(bubbleRect.X, bubbleRect.Center.Y);
+
+        context.DrawLine(new Pen(BubbleForeground, 1d), lineStart, lineEnd);
+        context.DrawEllipse(markerPosition is null ? BubbleForeground : PinnedMarkerFill, new Pen(BubbleBorder, 1d), lineStart, 3d, 3d);
         context.DrawRectangle(BubbleBackground, new Pen(BubbleBorder, 1d), bubbleRect, 4d, 4d);
         context.DrawText(text, bubbleOrigin);
+    }
+
+    private static Point CreateHoveredBubbleOrigin(FormattedText text, Point anchorPosition, Size viewSize)
+    {
+        var candidate = new Point(anchorPosition.X + BubbleMargin, anchorPosition.Y - text.Height - 6d);
+        return ClampBubbleOrigin(candidate, text, viewSize);
+    }
+
+    private static Point CreatePinnedBubbleOrigin(FormattedText text, Size viewSize, int bubbleIndex)
+    {
+        var candidate = new Point(
+            Math.Max(BubbleMargin, viewSize.Width - text.Width - 20d),
+            BubbleMargin + (bubbleIndex * (text.Height + BubbleMargin)));
+        return ClampBubbleOrigin(candidate, text, viewSize);
+    }
+
+    private static Point ClampBubbleOrigin(Point candidate, FormattedText text, Size viewSize)
+    {
+        var maxX = Math.Max(BubbleMargin, viewSize.Width - text.Width - BubbleMargin);
+        var maxY = Math.Max(BubbleMargin, viewSize.Height - text.Height - BubbleMargin);
+        return new Point(
+            Math.Clamp(candidate.X, BubbleMargin, maxX),
+            Math.Clamp(candidate.Y, BubbleMargin, maxY));
+    }
+
+    private static string CreateHoveredReadoutText(SurfaceProbeInfo probe)
+    {
+        return string.Create(
+            CultureInfo.InvariantCulture,
+            $"X {probe.AxisX:0.###} (sample {probe.SampleX:0.###})\nY {probe.AxisY:0.###} (sample {probe.SampleY:0.###})\nValue {probe.Value:0.###} {(probe.IsApproximate ? "Approx" : "Exact")}");
+    }
+
+    private static string CreatePinnedReadoutText(int pinnedIndex, SurfaceProbeInfo probe)
+    {
+        return string.Create(
+            CultureInfo.InvariantCulture,
+            $"Pin {pinnedIndex} {(probe.IsApproximate ? "Approx" : "Exact")}\nX {probe.AxisX:0.###} (sample {probe.SampleX:0.###})\nY {probe.AxisY:0.###} (sample {probe.SampleY:0.###})\nValue {probe.Value:0.###}");
+    }
+
+    private static Vector3 CreateMarkerVector(SurfaceProbeInfo probe)
+    {
+        return new Vector3((float)probe.AxisX, (float)probe.Value, (float)probe.AxisY);
     }
 
     private static FormattedText CreateText(string text, IBrush foreground)

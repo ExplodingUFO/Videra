@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Media;
 using Videra.SurfaceCharts.Avalonia.Controls.Overlay;
+using Videra.SurfaceCharts.Core;
 
 namespace Videra.SurfaceCharts.Avalonia.Controls;
 
@@ -10,12 +11,36 @@ public partial class SurfaceChartView
     private SurfaceAxisOverlayState _axisOverlayState = SurfaceAxisOverlayState.Empty;
     private SurfaceLegendOverlayState _legendOverlayState = SurfaceLegendOverlayState.Empty;
     private SurfaceChartProjection? _chartProjection;
+    private readonly SurfaceProbeService _probeService = new();
+    private readonly List<SurfaceProbeRequest> _pinnedProbeRequests = [];
     private Size _overlayViewSize;
     private Point? _probeScreenPosition;
 
     internal void UpdateProbeScreenPosition(Point probeScreenPosition)
     {
         _probeScreenPosition = probeScreenPosition;
+        InvalidateOverlay();
+    }
+
+    internal SurfaceProbeInfo? GetHoveredProbe()
+    {
+        return _overlayState.HoveredProbe;
+    }
+
+    internal void TogglePinnedProbe(SurfaceProbeInfo probe)
+    {
+        var existingIndex = _pinnedProbeRequests.FindIndex(
+            request => MatchesPinnedProbe(request, probe));
+
+        if (existingIndex >= 0)
+        {
+            _pinnedProbeRequests.RemoveAt(existingIndex);
+        }
+        else
+        {
+            _pinnedProbeRequests.Add(new SurfaceProbeRequest(probe.SampleX, probe.SampleY));
+        }
+
         InvalidateOverlay();
     }
 
@@ -55,7 +80,9 @@ public partial class SurfaceChartView
             Viewport,
             _overlayViewSize,
             loadedTiles,
-            _probeScreenPosition);
+            _probeScreenPosition,
+            _pinnedProbeRequests,
+            _probeService);
         InvalidateVisual();
     }
 
@@ -63,6 +90,12 @@ public partial class SurfaceChartView
     {
         SurfaceAxisOverlayPresenter.Render(context, _axisOverlayState);
         SurfaceLegendOverlayPresenter.Render(context, _legendOverlayState);
-        SurfaceProbeOverlayPresenter.Render(context, _overlayState, _overlayViewSize);
+        SurfaceProbeOverlayPresenter.Render(context, _overlayState, _overlayViewSize, _chartProjection);
+    }
+
+    private static bool MatchesPinnedProbe(SurfaceProbeRequest request, SurfaceProbeInfo probe)
+    {
+        return Math.Abs(request.SampleX - probe.SampleX) <= double.Epsilon &&
+               Math.Abs(request.SampleY - probe.SampleY) <= double.Epsilon;
     }
 }
