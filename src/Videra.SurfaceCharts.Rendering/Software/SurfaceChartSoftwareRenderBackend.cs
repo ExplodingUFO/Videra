@@ -4,6 +4,8 @@ namespace Videra.SurfaceCharts.Rendering.Software;
 
 public sealed class SurfaceChartSoftwareRenderBackend : ISurfaceChartRenderBackend
 {
+    private readonly SurfaceRenderer _renderer = new();
+
     public SurfaceChartRenderBackendKind Kind => SurfaceChartRenderBackendKind.Software;
 
     public bool UsesNativeSurface => false;
@@ -46,9 +48,23 @@ public sealed class SurfaceChartSoftwareRenderBackend : ISurfaceChartRenderBacke
             || changeSet.ResidencyDirty
             || changeSet.ColorDirty)
         {
+            if (inputs.ColorMap is null)
+            {
+                SoftwareScene = null;
+                return new SurfaceChartRenderSnapshot
+                {
+                    ActiveBackend = Kind,
+                    IsReady = false,
+                    IsFallback = false,
+                    FallbackReason = null,
+                    UsesNativeSurface = UsesNativeSurface,
+                    ResidentTileCount = 0,
+                };
+            }
+
             SoftwareScene = new SurfaceRenderScene(
                 state.Metadata,
-                state.ResidentTiles.Select(static residentTile => residentTile.ToRenderTile()).ToArray());
+                state.ResidentTiles.Select(residentTile => _renderer.BuildTile(state.Metadata, residentTile.SourceTile, inputs.ColorMap)).ToArray());
         }
 
         return new SurfaceChartRenderSnapshot

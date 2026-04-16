@@ -1,6 +1,7 @@
 using System.Numerics;
 using FluentAssertions;
 using Videra.SurfaceCharts.Rendering;
+using Videra.SurfaceCharts.Core.Rendering;
 using Xunit;
 
 namespace Videra.SurfaceCharts.Core.Tests;
@@ -49,6 +50,27 @@ public sealed class SurfaceViewStateTests
         state.Camera.Target.Y.Should().BeApproximately(5.0f, 0.0001f);
         state.Camera.Target.Z.Should().BeApproximately(172.0f, 0.0001f);
         state.Camera.ToProjectionSettings().Should().Be(SurfaceChartProjectionSettings.Default);
+    }
+
+    [Fact]
+    public void SurfaceCameraPose_CreateCameraFrame_UsesTargetAndFieldOfView()
+    {
+        var metadata = CreateMetadata();
+        var dataWindow = new SurfaceDataWindow(25.0, 10.0, 20.0, 16.0);
+        var pose = new SurfaceCameraPose(
+            new Vector3(12.0f, 5.0f, 20.0f),
+            yawDegrees: 210.0,
+            pitchDegrees: 15.0,
+            distance: 48.0,
+            fieldOfViewDegrees: 40.0);
+
+        var frame = pose.CreateCameraFrame(metadata, dataWindow, 320d, 200d, 1f);
+
+        frame.Target.Should().Be(pose.Target);
+        frame.Position.Should().NotBe(pose.Target);
+        frame.NearPlane.Should().BePositive();
+        frame.FarPlane.Should().BeGreaterThan(frame.NearPlane);
+        frame.ProjectionSettings.Should().Be(new SurfaceChartProjectionSettings(210.0, 15.0));
     }
 
     [Fact]

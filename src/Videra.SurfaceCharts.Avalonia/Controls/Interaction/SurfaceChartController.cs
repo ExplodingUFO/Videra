@@ -1,5 +1,6 @@
 using Avalonia;
 using Videra.SurfaceCharts.Core;
+using Videra.SurfaceCharts.Core.Rendering;
 
 namespace Videra.SurfaceCharts.Avalonia.Controls.Interaction;
 
@@ -15,6 +16,7 @@ internal sealed class SurfaceChartController
     private long _requestGeneration;
     private Size _viewSize;
     private SurfaceChartInteractionQuality _interactionQuality = SurfaceChartInteractionQuality.Refine;
+    private SurfaceTileRequestPlan? _currentPlan;
 
     public SurfaceChartController(
         SurfaceCameraController cameraController,
@@ -36,13 +38,16 @@ internal sealed class SurfaceChartController
         _tileCache.Clear();
         _tileScheduler.UpdateSource(source);
         _invalidateScene();
+        _currentPlan = null;
 
         if (source is null)
         {
             return;
         }
 
-        StartRequestPipeline(CreateCurrentRequestPlan(), requestGeneration);
+        var plan = CreateCurrentRequestPlan();
+        _currentPlan = plan;
+        StartRequestPipeline(plan, requestGeneration);
     }
 
     public void UpdateViewport(SurfaceViewport viewport)
@@ -59,13 +64,6 @@ internal sealed class SurfaceChartController
         }
 
         _cameraController.UpdateViewState(viewState);
-
-        if (currentViewState.DataWindow == viewState.DataWindow)
-        {
-            _clearFailureState();
-            _invalidateScene();
-            return;
-        }
 
         RefreshRequestPipeline();
     }
@@ -100,7 +98,24 @@ internal sealed class SurfaceChartController
 
     private SurfaceTileRequestPlan CreateCurrentRequestPlan()
     {
-        return _tileScheduler.CreateRequestPlan(_cameraController.CurrentViewport, GetEffectiveOutputSize());
+        var effectiveOutputSize = GetEffectiveOutputSize();
+        var metadata = _tileScheduler.Metadata;
+        if (metadata is null || effectiveOutputSize.Width <= 0d || effectiveOutputSize.Height <= 0d)
+        {
+            return _tileScheduler.CreateRequestPlan(_cameraController.CurrentViewport, effectiveOutputSize);
+        }
+
+        var cameraFrame = SurfaceProjectionMath.CreateCameraFrame(
+            metadata,
+            _cameraController.CurrentViewState,
+            effectiveOutputSize.Width,
+            effectiveOutputSize.Height,
+            1f);
+        return _tileScheduler.CreateRequestPlan(
+            _cameraController.CurrentViewState,
+            cameraFrame,
+            effectiveOutputSize,
+            _interactionQuality);
     }
 
     private Size GetEffectiveOutputSize()
@@ -117,11 +132,20 @@ internal sealed class SurfaceChartController
 
     private void RefreshRequestPipeline()
     {
-        var requestGeneration = SupersedeOutstandingRequests();
-        _clearFailureState();
         var plan = CreateCurrentRequestPlan();
+        _clearFailureState();
+
+        if (plan.IsEquivalentTo(_currentPlan))
+        {
+            _tileCache.PruneToKeys(plan.RetainedKeys);
+            _invalidateScene();
+            return;
+        }
+
+        var requestGeneration = SupersedeOutstandingRequests();
         _tileCache.PruneToKeys(plan.RetainedKeys);
         _invalidateScene();
+        _currentPlan = plan;
         StartRequestPipeline(plan, requestGeneration);
     }
 

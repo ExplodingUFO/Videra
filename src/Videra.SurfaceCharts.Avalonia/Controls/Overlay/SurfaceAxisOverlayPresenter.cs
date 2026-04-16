@@ -13,51 +13,72 @@ internal static class SurfaceAxisOverlayPresenter
     private static readonly IBrush AxisBrush = new SolidColorBrush(Color.FromArgb(220, 245, 245, 245));
     private static readonly Pen AxisPen = new(AxisBrush, 1.5d);
     private static readonly Pen TickPen = new(AxisBrush, 1d);
+    private static readonly Pen MinorTickPen = new(new SolidColorBrush(Color.FromArgb(180, 220, 220, 220)), 0.8d);
+    private static readonly Pen GridPen = new(new SolidColorBrush(Color.FromArgb(90, 180, 210, 240)), 0.75d);
     private const double TickLength = 6d;
+    private const double MinorTickLength = 3.5d;
     private const double LabelOffset = 3d;
     private const double TitleOffset = 12d;
 
     public static SurfaceAxisOverlayState CreateState(
         SurfaceMetadata? metadata,
-        SurfaceChartProjection? projection)
+        SurfaceChartProjection? projection,
+        SurfaceChartOverlayOptions? overlayOptions)
     {
         if (metadata is null || projection is null)
         {
             return SurfaceAxisOverlayState.Empty;
         }
 
+        overlayOptions ??= SurfaceChartOverlayOptions.Default;
         var valueRange = metadata.ValueRange;
         var projectedCenter = projection.ProjectCenter(metadata, valueRange);
-        var frontCorner = SelectFrontCorner(metadata, valueRange, projection);
+        var frontCorner = SelectFrontCorner(metadata, valueRange, projection, overlayOptions);
 
         var xAxis = CreateAxisState(
             axisKey: "X",
-            titleText: FormatAxisTitle(metadata.HorizontalAxis.Label, metadata.HorizontalAxis.Unit),
+            titleText: FormatAxisTitle(
+                overlayOptions.HorizontalAxisTitleOverride ?? metadata.HorizontalAxis.Label,
+                overlayOptions.HorizontalAxisUnitOverride ?? metadata.HorizontalAxis.Unit),
             axisMinimum: metadata.HorizontalAxis.Minimum,
             axisMaximum: metadata.HorizontalAxis.Maximum,
             start: projection.Project(new Vector3((float)metadata.HorizontalAxis.Minimum, (float)valueRange.Minimum, frontCorner.Z)),
             end: projection.Project(new Vector3((float)metadata.HorizontalAxis.Maximum, (float)valueRange.Minimum, frontCorner.Z)),
-            projectedCenter);
+            projectedCenter,
+            overlayOptions);
 
         var yAxis = CreateAxisState(
             axisKey: "Y",
-            titleText: "Value",
+            titleText: FormatAxisTitle(
+                overlayOptions.ValueAxisTitleOverride ?? "Value",
+                overlayOptions.ValueAxisUnitOverride),
             axisMinimum: valueRange.Minimum,
             axisMaximum: valueRange.Maximum,
             start: projection.Project(new Vector3(frontCorner.X, (float)valueRange.Minimum, frontCorner.Z)),
             end: projection.Project(new Vector3(frontCorner.X, (float)valueRange.Maximum, frontCorner.Z)),
-            projectedCenter);
+            projectedCenter,
+            overlayOptions);
 
         var zAxis = CreateAxisState(
             axisKey: "Z",
-            titleText: FormatAxisTitle(metadata.VerticalAxis.Label, metadata.VerticalAxis.Unit),
+            titleText: FormatAxisTitle(
+                overlayOptions.DepthAxisTitleOverride ?? metadata.VerticalAxis.Label,
+                overlayOptions.DepthAxisUnitOverride ?? metadata.VerticalAxis.Unit),
             axisMinimum: metadata.VerticalAxis.Minimum,
             axisMaximum: metadata.VerticalAxis.Maximum,
             start: projection.Project(new Vector3(frontCorner.X, (float)valueRange.Minimum, (float)metadata.VerticalAxis.Minimum)),
             end: projection.Project(new Vector3(frontCorner.X, (float)valueRange.Minimum, (float)metadata.VerticalAxis.Maximum)),
-            projectedCenter);
+            projectedCenter,
+            overlayOptions);
 
-        return new SurfaceAxisOverlayState([xAxis, yAxis, zAxis]);
+        var gridLines = CreateGridLines(metadata, projection, valueRange, frontCorner, xAxis, yAxis, zAxis, overlayOptions);
+
+        return new SurfaceAxisOverlayState(
+            [xAxis, yAxis, zAxis],
+            ResolveGridPlaneKey(overlayOptions.GridPlane),
+            gridLines,
+            frontCorner.X,
+            frontCorner.Z);
     }
 
     public static void Render(DrawingContext context, SurfaceAxisOverlayState axisOverlayState)
@@ -65,9 +86,19 @@ internal static class SurfaceAxisOverlayPresenter
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(axisOverlayState);
 
+        foreach (var gridLine in axisOverlayState.GridLines)
+        {
+            context.DrawLine(GridPen, gridLine.Start, gridLine.End);
+        }
+
         foreach (var axis in axisOverlayState.Axes)
         {
             context.DrawLine(AxisPen, axis.AxisLine.Start, axis.AxisLine.End);
+
+            foreach (var minorTick in axis.MinorTicks)
+            {
+                context.DrawLine(MinorTickPen, minorTick.Start, minorTick.End);
+            }
 
             foreach (var tick in axis.Ticks)
             {
@@ -86,30 +117,50 @@ internal static class SurfaceAxisOverlayPresenter
         double axisMaximum,
         Point start,
         Point end,
-        Point projectedCenter)
+        Point projectedCenter,
+        SurfaceChartOverlayOptions overlayOptions)
     {
         var outwardNormal = GetOutwardNormal(start, end, projectedCenter);
         var titleAnchor = GetOuterEndpoint(start, end, projectedCenter);
         var titlePosition = titleAnchor + (outwardNormal * TitleOffset);
-        var ticks = CreateTicks(axisMinimum, axisMaximum, start, end, outwardNormal);
+        var majorTickValues = SurfaceAxisTickGenerator.CreateMajorTickValues(axisMinimum, axisMaximum, GetDistance(start, end));
+        var ticks = CreateTicks(axisKey, majorTickValues, start, end, outwardNormal, overlayOptions);
+        var minorTicks = overlayOptions.ShowMinorTicks
+            ? CreateMinorTicks(
+                SurfaceAxisTickGenerator.CreateMinorTickValues(majorTickValues, overlayOptions.MinorTickDivisions),
+                axisMinimum,
+                axisMaximum,
+                start,
+                end,
+                outwardNormal)
+            : Array.Empty<SurfaceAxisLineGeometry>();
 
         return new SurfaceAxisState(
             axisKey,
             new SurfaceAxisLineGeometry(start, end),
             titleText,
             titlePosition,
-            ticks);
+            SurfaceAxisLayoutEngine.CullDenseLabels(ticks),
+            minorTicks,
+            ticks.Count);
     }
 
     private static IReadOnlyList<SurfaceAxisTickState> CreateTicks(
-        double axisMinimum,
-        double axisMaximum,
+        string axisKey,
+        IReadOnlyList<double> tickValues,
         Point start,
         Point end,
-        AvaVector outwardNormal)
+        AvaVector outwardNormal,
+        SurfaceChartOverlayOptions overlayOptions)
     {
         List<SurfaceAxisTickState> ticks = [];
-        var tickValues = CreateTickValues(axisMinimum, axisMaximum, GetDistance(start, end));
+        if (tickValues.Count == 0)
+        {
+            return ticks;
+        }
+
+        var axisMinimum = tickValues[0];
+        var axisMaximum = tickValues[^1];
         var axisSpan = axisMaximum - axisMinimum;
 
         foreach (var tickValue in tickValues)
@@ -124,7 +175,7 @@ internal static class SurfaceAxisOverlayPresenter
             ticks.Add(
                 new SurfaceAxisTickState(
                     tickValue,
-                    FormatNumber(tickValue),
+                    overlayOptions.FormatLabel(axisKey, tickValue),
                     new SurfaceAxisLineGeometry(tickStart, tickEnd),
                     labelPosition));
         }
@@ -132,47 +183,26 @@ internal static class SurfaceAxisOverlayPresenter
         return ticks;
     }
 
-    private static IReadOnlyList<double> CreateTickValues(double axisMinimum, double axisMaximum, double axisLength)
+    private static IReadOnlyList<SurfaceAxisLineGeometry> CreateMinorTicks(
+        IReadOnlyList<double> tickValues,
+        double axisMinimum,
+        double axisMaximum,
+        Point start,
+        Point end,
+        AvaVector outwardNormal)
     {
-        if (axisMaximum <= axisMinimum)
-        {
-            return [axisMinimum];
-        }
-
+        List<SurfaceAxisLineGeometry> ticks = [];
         var axisSpan = axisMaximum - axisMinimum;
-        var targetTickCount = Math.Clamp((int)Math.Round(axisLength / 72d), 2, 7);
-        var step = ComputeNiceStep(axisSpan / targetTickCount);
-        var firstTick = Math.Ceiling(axisMinimum / step) * step;
-        var ticks = new List<double>();
-
-        for (var tick = firstTick; tick <= axisMaximum + (step * 0.5d); tick += step)
+        foreach (var tickValue in tickValues)
         {
-            ticks.Add(Math.Round(tick, 12, MidpointRounding.AwayFromZero));
-        }
-
-        if (ticks.Count == 0)
-        {
-            return [axisMinimum, axisMaximum];
+            var t = axisSpan <= 0d ? 0d : (tickValue - axisMinimum) / axisSpan;
+            t = Math.Clamp(t, 0d, 1d);
+            var tickStart = Lerp(start, end, t);
+            var tickEnd = tickStart + (outwardNormal * MinorTickLength);
+            ticks.Add(new SurfaceAxisLineGeometry(tickStart, tickEnd));
         }
 
         return ticks;
-    }
-
-    private static double ComputeNiceStep(double roughStep)
-    {
-        roughStep = Math.Max(roughStep, double.Epsilon);
-
-        var exponent = Math.Pow(10d, Math.Floor(Math.Log10(roughStep)));
-        foreach (var factor in new[] { 1d, 2d, 2.5d, 5d, 10d })
-        {
-            var candidate = factor * exponent;
-            if (candidate >= roughStep)
-            {
-                return candidate;
-            }
-        }
-
-        return exponent * 10d;
     }
 
     private static string FormatAxisTitle(string label, string? unit)
@@ -184,12 +214,21 @@ internal static class SurfaceAxisOverlayPresenter
             : $"{label} ({unit})";
     }
 
-    private static string FormatNumber(double value)
+    private static FrontCorner SelectFrontCorner(
+        SurfaceMetadata metadata,
+        SurfaceValueRange valueRange,
+        SurfaceChartProjection projection,
+        SurfaceChartOverlayOptions overlayOptions)
     {
-        return value.ToString("0.###", CultureInfo.InvariantCulture);
+        return overlayOptions.AxisSideMode switch
+        {
+            SurfaceChartAxisSideMode.MinimumBounds => CreateFrontCorner(metadata.HorizontalAxis.Minimum, metadata.VerticalAxis.Minimum, valueRange.Minimum, projection),
+            SurfaceChartAxisSideMode.MaximumBounds => CreateFrontCorner(metadata.HorizontalAxis.Maximum, metadata.VerticalAxis.Maximum, valueRange.Minimum, projection),
+            _ => SelectAutoFrontCorner(metadata, valueRange, projection),
+        };
     }
 
-    private static FrontCorner SelectFrontCorner(
+    private static FrontCorner SelectAutoFrontCorner(
         SurfaceMetadata metadata,
         SurfaceValueRange valueRange,
         SurfaceChartProjection projection)
@@ -206,6 +245,92 @@ internal static class SurfaceAxisOverlayPresenter
             .OrderByDescending(static corner => corner.ScreenPoint.Y)
             .ThenBy(static corner => corner.ScreenPoint.X)
             .First();
+    }
+
+    private static IReadOnlyList<SurfaceAxisLineGeometry> CreateGridLines(
+        SurfaceMetadata metadata,
+        SurfaceChartProjection projection,
+        SurfaceValueRange valueRange,
+        FrontCorner frontCorner,
+        SurfaceAxisState xAxis,
+        SurfaceAxisState yAxis,
+        SurfaceAxisState zAxis,
+        SurfaceChartOverlayOptions overlayOptions)
+    {
+        var gridPlane = overlayOptions.GridPlane == SurfaceChartGridPlane.Auto
+            ? SurfaceChartGridPlane.XZ
+            : overlayOptions.GridPlane;
+
+        List<SurfaceAxisLineGeometry> lines = [];
+        switch (gridPlane)
+        {
+            case SurfaceChartGridPlane.XY:
+                foreach (var tick in xAxis.Ticks)
+                {
+                    lines.Add(ProjectLine(
+                        projection,
+                        new Vector3((float)tick.Value, (float)valueRange.Minimum, frontCorner.Z),
+                        new Vector3((float)tick.Value, (float)valueRange.Maximum, frontCorner.Z)));
+                }
+
+                foreach (var tick in yAxis.Ticks)
+                {
+                    lines.Add(ProjectLine(
+                        projection,
+                        new Vector3((float)metadata.HorizontalAxis.Minimum, (float)tick.Value, frontCorner.Z),
+                        new Vector3((float)metadata.HorizontalAxis.Maximum, (float)tick.Value, frontCorner.Z)));
+                }
+
+                break;
+            case SurfaceChartGridPlane.YZ:
+                foreach (var tick in zAxis.Ticks)
+                {
+                    lines.Add(ProjectLine(
+                        projection,
+                        new Vector3(frontCorner.X, (float)valueRange.Minimum, (float)tick.Value),
+                        new Vector3(frontCorner.X, (float)valueRange.Maximum, (float)tick.Value)));
+                }
+
+                foreach (var tick in yAxis.Ticks)
+                {
+                    lines.Add(ProjectLine(
+                        projection,
+                        new Vector3(frontCorner.X, (float)tick.Value, (float)metadata.VerticalAxis.Minimum),
+                        new Vector3(frontCorner.X, (float)tick.Value, (float)metadata.VerticalAxis.Maximum)));
+                }
+
+                break;
+            default:
+                foreach (var tick in xAxis.Ticks)
+                {
+                    lines.Add(ProjectLine(
+                        projection,
+                        new Vector3((float)tick.Value, (float)valueRange.Minimum, (float)metadata.VerticalAxis.Minimum),
+                        new Vector3((float)tick.Value, (float)valueRange.Minimum, (float)metadata.VerticalAxis.Maximum)));
+                }
+
+                foreach (var tick in zAxis.Ticks)
+                {
+                    lines.Add(ProjectLine(
+                        projection,
+                        new Vector3((float)metadata.HorizontalAxis.Minimum, (float)valueRange.Minimum, (float)tick.Value),
+                        new Vector3((float)metadata.HorizontalAxis.Maximum, (float)valueRange.Minimum, (float)tick.Value)));
+                }
+
+                break;
+        }
+
+        return lines;
+    }
+
+    private static SurfaceAxisLineGeometry ProjectLine(SurfaceChartProjection projection, Vector3 start, Vector3 end)
+    {
+        return new SurfaceAxisLineGeometry(projection.Project(start), projection.Project(end));
+    }
+
+    private static string ResolveGridPlaneKey(SurfaceChartGridPlane gridPlane)
+    {
+        return (gridPlane == SurfaceChartGridPlane.Auto ? SurfaceChartGridPlane.XZ : gridPlane).ToString();
     }
 
     private static FrontCorner CreateFrontCorner(

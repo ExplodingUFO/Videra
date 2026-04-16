@@ -191,6 +191,22 @@
             <TextBlock FontSize="16"
                        FontWeight="SemiBold"
                        Foreground="#E2E8F0"
+                       Text="Overlay options" />
+            <TextBlock x:Name="OverlayOptionsText"
+                       Foreground="#CBD5E1"
+                       TextWrapping="Wrap" />
+          </StackPanel>
+        </Border>
+
+        <Border Padding="18"
+                Background="#111A2B"
+                BorderBrush="#1F2B44"
+                BorderThickness="1"
+                CornerRadius="18">
+          <StackPanel Spacing="8">
+            <TextBlock FontSize="16"
+                       FontWeight="SemiBold"
+                       Foreground="#E2E8F0"
                        Text="Seed cache asset" />
             <TextBlock x:Name="CachePathText"
                        Foreground="#CBD5E1"

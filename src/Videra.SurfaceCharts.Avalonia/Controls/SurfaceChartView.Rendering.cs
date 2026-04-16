@@ -58,6 +58,8 @@ public partial class SurfaceChartView
 
         var nativeHandle = _nativeHost?.CurrentHandle ?? IntPtr.Zero;
         var handleBound = nativeHandle != IntPtr.Zero;
+        var renderScale = (float)(VisualRoot?.RenderScaling ?? 1.0);
+        var cameraFrame = _runtime.CreateCameraFrame(renderSize, renderScale);
 
         _renderHost.UpdateInputs(
             new SurfaceChartRenderInputs
@@ -65,13 +67,13 @@ public partial class SurfaceChartView
                 Metadata = source?.Metadata,
                 LoadedTiles = tiles,
                 ColorMap = colorMap,
-                Viewport = _runtime.CurrentViewport,
-                ProjectionSettings = _runtime.ProjectionSettings,
+                ViewState = _runtime.ViewState,
+                CameraFrame = cameraFrame,
                 ViewWidth = renderSize.Width,
                 ViewHeight = renderSize.Height,
                 NativeHandle = nativeHandle,
                 HandleBound = handleBound,
-                RenderScale = (float)(VisualRoot?.RenderScaling ?? 1.0),
+                RenderScale = renderScale,
             });
 
         _renderScene = _renderHost.SoftwareScene;
@@ -102,11 +104,16 @@ public partial class SurfaceChartView
             return null;
         }
 
+        var cameraFrame = _runtime.CreateCameraFrame(_overlayViewSize, 1f);
+        if (cameraFrame is null)
+        {
+            return null;
+        }
+
         var projection = SurfaceChartProjection.Create(
             _renderHost.SoftwareScene,
-            _overlayViewSize,
-            SurfaceChartProjection.CreateChartBoundsPoints(source.Metadata, source.Metadata.ValueRange),
-            _runtime.ProjectionSettings);
+            cameraFrame.Value,
+            SurfaceChartProjection.CreateChartBoundsPoints(source.Metadata, source.Metadata.ValueRange));
         _chartProjection = projection;
         return projection;
     }

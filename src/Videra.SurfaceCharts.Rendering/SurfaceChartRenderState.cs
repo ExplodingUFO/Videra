@@ -36,12 +36,11 @@ public sealed class SurfaceChartRenderState
     private readonly Dictionary<SurfaceTileKey, SurfaceChartResidentTile> _residentTiles = [];
     private SurfaceMetadata? _metadata;
     private SurfaceColorMap? _colorMap;
-    private SurfaceViewport _viewport;
-    private SurfaceChartProjectionSettings _projectionSettings = SurfaceChartProjectionSettings.Default;
+    private SurfaceViewState _viewState;
     private double _viewWidth;
     private double _viewHeight;
     private float _renderScale = 1f;
-    private bool _hasViewportState;
+    private bool _hasViewState;
 
     public SurfaceChartRenderState(SurfaceRenderer? renderer = null)
     {
@@ -86,12 +85,11 @@ public sealed class SurfaceChartRenderState
 
         _metadata = inputs.Metadata;
         _colorMap = inputs.ColorMap;
-        _viewport = inputs.Viewport;
-        _projectionSettings = inputs.ProjectionSettings;
+        _viewState = inputs.ViewState;
         _viewWidth = inputs.ViewWidth;
         _viewHeight = inputs.ViewHeight;
         _renderScale = inputs.RenderScale;
-        _hasViewportState = true;
+        _hasViewState = true;
 
         return changeSet;
     }
@@ -113,13 +111,12 @@ public sealed class SurfaceChartRenderState
 
     private bool ViewConfigurationChanged(SurfaceChartRenderInputs inputs)
     {
-        if (!_hasViewportState)
+        if (!_hasViewState)
         {
             return false;
         }
 
-        return _viewport != inputs.Viewport
-            || _projectionSettings != inputs.ProjectionSettings
+        return _viewState != inputs.ViewState
             || !NearlyEqual(_viewWidth, inputs.ViewWidth)
             || !NearlyEqual(_viewHeight, inputs.ViewHeight)
             || !NearlyEqual(_renderScale, inputs.RenderScale);
@@ -173,7 +170,6 @@ public sealed class SurfaceChartRenderState
         var incomingTiles = inputs.LoadedTiles.ToDictionary(static tile => tile.Key);
         var removedKeys = new List<SurfaceTileKey>();
         var addedKeys = new List<SurfaceTileKey>();
-        var colorChangedKeys = new List<SurfaceTileKey>();
         var colorMapChanged = !ReferenceEquals(_colorMap, inputs.ColorMap);
 
         foreach (var existingKey in _residentTiles.Keys.ToArray())
@@ -201,27 +197,20 @@ public sealed class SurfaceChartRenderState
                 continue;
             }
 
-            if (colorMapChanged)
-            {
-                var updatedColors = BuildColors(residentTile.SampleValues, inputs.ColorMap!);
-                _residentTiles[tile.Key] = residentTile.WithColors(updatedColors);
-                colorChangedKeys.Add(tile.Key);
-            }
+            _ = residentTile;
         }
 
         removedKeys.Sort(TileKeyComparison);
         addedKeys.Sort(TileKeyComparison);
-        colorChangedKeys.Sort(TileKeyComparison);
 
         return new SurfaceChartRenderChangeSet
         {
             FullResetRequired = false,
             ResidencyDirty = addedKeys.Count > 0 || removedKeys.Count > 0,
-            ColorDirty = colorChangedKeys.Count > 0,
+            ColorDirty = colorMapChanged,
             ProjectionDirty = projectionDirty,
             AddedResidentKeys = Array.AsReadOnly(addedKeys.ToArray()),
             RemovedResidentKeys = Array.AsReadOnly(removedKeys.ToArray()),
-            ColorChangedKeys = Array.AsReadOnly(colorChangedKeys.ToArray()),
         };
     }
 
@@ -248,26 +237,11 @@ public sealed class SurfaceChartRenderState
         SurfaceColorMap colorMap)
     {
         var renderTile = _renderer.BuildTile(metadata, sourceTile, colorMap);
-        var samplePositions = renderTile.Vertices.Select(static vertex => vertex.Position).ToArray();
         var sampleValues = sourceTile.Values.ToArray();
-        var colors = renderTile.Vertices.Select(static vertex => vertex.Color).ToArray();
 
         return new SurfaceChartResidentTile(
             sourceTile,
-            renderTile.Geometry,
-            Array.AsReadOnly(samplePositions),
-            Array.AsReadOnly(sampleValues),
-            Array.AsReadOnly(colors));
-    }
-
-    private static IReadOnlyList<uint> BuildColors(IReadOnlyList<float> sampleValues, SurfaceColorMap colorMap)
-    {
-        var colors = new uint[sampleValues.Count];
-        for (var index = 0; index < colors.Length; index++)
-        {
-            colors[index] = colorMap.Map(sampleValues[index]);
-        }
-
-        return Array.AsReadOnly(colors);
+            renderTile,
+            Array.AsReadOnly(sampleValues));
     }
 }

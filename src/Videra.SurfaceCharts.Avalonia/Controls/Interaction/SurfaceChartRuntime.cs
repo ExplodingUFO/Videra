@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Threading;
 using Videra.SurfaceCharts.Core;
+using Videra.SurfaceCharts.Core.Rendering;
 using Videra.SurfaceCharts.Rendering;
 
 namespace Videra.SurfaceCharts.Avalonia.Controls.Interaction;
@@ -63,6 +64,17 @@ internal sealed class SurfaceChartRuntime
     public SurfaceChartProjectionSettings ProjectionSettings => _cameraController.ProjectionSettings;
 
     public SurfaceChartInteractionQuality InteractionQuality { get; private set; } = SurfaceChartInteractionQuality.Refine;
+
+    public SurfaceCameraFrame? CreateCameraFrame(Size viewSize, float renderScale)
+    {
+        var metadata = Source?.Metadata;
+        if (metadata is null || viewSize.Width <= 0d || viewSize.Height <= 0d)
+        {
+            return null;
+        }
+
+        return SurfaceProjectionMath.CreateCameraFrame(metadata, ViewState, viewSize.Width, viewSize.Height, renderScale);
+    }
 
     public void UpdateSource(ISurfaceTileSource? source)
     {

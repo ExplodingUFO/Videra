@@ -33,9 +33,29 @@ public sealed class SurfaceLodPolicy
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="request"/> is invalid.</exception>
     public SurfaceLodSelection Select(in SurfaceViewportRequest request)
     {
+        return SelectCore(request, request.HorizontalZoomDensity, request.VerticalZoomDensity);
+    }
+
+    /// <summary>
+    /// Gets the selected level and tile range for the specified camera-aware request.
+    /// </summary>
+    /// <param name="request">The viewport request to evaluate.</param>
+    /// <param name="cameraFrame">The active camera frame.</param>
+    /// <returns>The resulting LOD selection.</returns>
+    public SurfaceLodSelection Select(in SurfaceViewportRequest request, in Rendering.SurfaceCameraFrame cameraFrame)
+    {
+        var footprint = SurfaceScreenErrorEstimator.EstimateDataWindowFootprint(request.Metadata, request.DataWindow, cameraFrame);
+        return SelectCore(request, footprint.HorizontalSamplesPerPixel, footprint.VerticalSamplesPerPixel);
+    }
+
+    private SurfaceLodSelection SelectCore(
+        in SurfaceViewportRequest request,
+        double horizontalZoomDensity,
+        double verticalZoomDensity)
+    {
         var clampedViewport = request.ClampedViewport;
-        var levelX = GetTargetLevel(request.HorizontalZoomDensity);
-        var levelY = GetTargetLevel(request.VerticalZoomDensity);
+        var levelX = GetTargetLevel(horizontalZoomDensity);
+        var levelY = GetTargetLevel(verticalZoomDensity);
 
         var tileCountX = 1 << levelX;
         var tileCountY = 1 << levelY;

@@ -1,5 +1,6 @@
 using FluentAssertions;
 using Videra.SurfaceCharts.Core;
+using Videra.SurfaceCharts.Core.Rendering;
 using Videra.SurfaceCharts.Rendering;
 using Xunit;
 
@@ -27,9 +28,39 @@ public sealed class SurfaceChartRenderStateTests
         viewportChange.AddedResidentKeys.Should().BeEmpty();
         viewportChange.RemovedResidentKeys.Should().BeEmpty();
         state.TryGetResidentTile(tile.Key, out var viewportResident).Should().BeTrue();
-        viewportResident.Geometry.Should().BeSameAs(initialResident.Geometry);
-        viewportResident.SamplePositions.Should().BeSameAs(initialResident.SamplePositions);
+        viewportResident.SoftwareRenderTile.Should().BeSameAs(initialResident.SoftwareRenderTile);
         viewportResident.SampleValues.Should().BeSameAs(initialResident.SampleValues);
+    }
+
+    [Fact]
+    public void CameraFrameChanges_MarkProjectionDirty_WithoutRebuildingUnchangedResidentGeometry()
+    {
+        var metadata = CreateMetadata(width: 8, height: 8);
+        var tile = CreateTile(metadata, new SurfaceTileKey(0, 0, 0, 0), tileValue: 6f);
+        var colorMap = CreateColorMap(metadata, startColor: 0xFF203040u, endColor: 0xFFE0F0FFu);
+        var viewState = SurfaceViewState.CreateDefault(metadata, new SurfaceDataWindow(0d, 0d, 8d, 8d));
+        var rotatedViewState = new SurfaceViewState(
+            viewState.DataWindow,
+            new SurfaceCameraPose(
+                viewState.Camera.Target,
+                yawDegrees: 210d,
+                pitchDegrees: 15d,
+                distance: viewState.Camera.Distance,
+                fieldOfViewDegrees: viewState.Camera.FieldOfViewDegrees));
+        var state = new SurfaceChartRenderState();
+
+        state.Update(CreateInputs(metadata, [tile], colorMap, new SurfaceViewport(0, 0, 8, 8)));
+        state.TryGetResidentTile(tile.Key, out var initialResident).Should().BeTrue();
+
+        var cameraChange = state.Update(CreateInputs(metadata, [tile], colorMap, new SurfaceViewport(0, 0, 8, 8), rotatedViewState));
+
+        cameraChange.FullResetRequired.Should().BeFalse();
+        cameraChange.ResidencyDirty.Should().BeFalse();
+        cameraChange.ColorDirty.Should().BeFalse();
+        cameraChange.ProjectionDirty.Should().BeTrue();
+        state.TryGetResidentTile(tile.Key, out var rotatedResident).Should().BeTrue();
+        rotatedResident.SoftwareRenderTile.Should().BeSameAs(initialResident.SoftwareRenderTile);
+        rotatedResident.SampleValues.Should().BeSameAs(initialResident.SampleValues);
     }
 
     [Fact]
@@ -50,13 +81,10 @@ public sealed class SurfaceChartRenderStateTests
         colorChange.ResidencyDirty.Should().BeFalse();
         colorChange.ColorDirty.Should().BeTrue();
         colorChange.ProjectionDirty.Should().BeFalse();
-        colorChange.ColorChangedKeys.Should().Equal(tile.Key);
+        colorChange.ColorChangedKeys.Should().BeEmpty();
         state.TryGetResidentTile(tile.Key, out var colorResident).Should().BeTrue();
-        colorResident.Geometry.Should().BeSameAs(initialResident.Geometry);
-        colorResident.SamplePositions.Should().BeSameAs(initialResident.SamplePositions);
+        colorResident.SoftwareRenderTile.Should().BeSameAs(initialResident.SoftwareRenderTile);
         colorResident.SampleValues.Should().BeSameAs(initialResident.SampleValues);
-        colorResident.Colors.Should().NotBeSameAs(initialResident.Colors);
-        colorResident.Colors.Should().NotEqual(initialResident.Colors);
     }
 
     [Fact]
@@ -105,13 +133,18 @@ public sealed class SurfaceChartRenderStateTests
         SurfaceMetadata metadata,
         IReadOnlyList<SurfaceTile> tiles,
         SurfaceColorMap colorMap,
-        SurfaceViewport viewport)
+        SurfaceViewport viewport,
+        SurfaceViewState? viewState = null)
     {
+        var resolvedViewState = viewState ?? SurfaceViewState.CreateDefault(metadata, viewport.ToDataWindow());
+
         return new SurfaceChartRenderInputs
         {
             Metadata = metadata,
             LoadedTiles = tiles,
             ColorMap = colorMap,
+            ViewState = resolvedViewState,
+            CameraFrame = SurfaceProjectionMath.CreateCameraFrame(metadata, resolvedViewState, 320d, 180d, 1f),
             Viewport = viewport,
             ProjectionSettings = SurfaceChartProjectionSettings.Default,
             ViewWidth = 320d,

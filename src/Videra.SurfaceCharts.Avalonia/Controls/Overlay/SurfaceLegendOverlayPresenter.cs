@@ -17,13 +17,15 @@ internal static class SurfaceLegendOverlayPresenter
         SurfaceMetadata? metadata,
         SurfaceColorMap? colorMap,
         bool useColorMapRange,
-        SurfaceChartProjection? projection)
+        SurfaceChartProjection? projection,
+        SurfaceChartOverlayOptions? overlayOptions)
     {
         if (metadata is null || colorMap is null || projection is null)
         {
             return SurfaceLegendOverlayState.Empty;
         }
 
+        overlayOptions ??= SurfaceChartOverlayOptions.Default;
         var legendRange = useColorMapRange ? colorMap.Range : metadata.ValueRange;
 
         var maximumSwatchHeight = Math.Max(72d, projection.ViewSize.Height - 40d);
@@ -40,13 +42,13 @@ internal static class SurfaceLegendOverlayPresenter
         var labelX = swatchBounds.Right + 8d;
 
         return new SurfaceLegendOverlayState(
-            titleText: "Value",
+            titleText: overlayOptions.LegendTitleOverride ?? overlayOptions.ValueAxisTitleOverride ?? "Value",
             titlePosition: new Point(swatchBounds.X - 2d, swatchBounds.Y - 18d),
             swatchBounds,
             CreateSwatches(colorMap, legendRange, swatchBounds),
-            minimumText: FormatNumber(legendRange.Minimum),
+            minimumText: overlayOptions.FormatLabel("Legend", legendRange.Minimum),
             minimumTextPosition: new Point(labelX, swatchBounds.Bottom - 8d),
-            maximumText: FormatNumber(legendRange.Maximum),
+            maximumText: overlayOptions.FormatLabel("Legend", legendRange.Maximum),
             maximumTextPosition: new Point(labelX, swatchBounds.Y - 8d));
     }
 
@@ -105,11 +107,6 @@ internal static class SurfaceLegendOverlayPresenter
         }
 
         return swatches;
-    }
-
-    private static string FormatNumber(double value)
-    {
-        return value.ToString("0.###", CultureInfo.InvariantCulture);
     }
 
     private static FormattedText CreateText(string text)

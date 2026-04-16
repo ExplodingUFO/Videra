@@ -63,24 +63,25 @@ public partial class SurfaceChartView
         var loadedTiles = _tileCache.GetLoadedTiles();
         var source = _runtime.Source;
         var activeColorMap = source is null ? null : ColorMap ?? CreateFallbackColorMap(source.Metadata.ValueRange);
+        var cameraFrame = source is not null
+            ? _runtime.CreateCameraFrame(_overlayViewSize, 1f)
+            : null;
 
-        _chartProjection = source is not null && loadedTiles.Count > 0
+        _chartProjection = source is not null && loadedTiles.Count > 0 && cameraFrame is not null
             ? SurfaceChartProjection.Create(
                 _renderScene,
-                _overlayViewSize,
-                SurfaceChartProjection.CreateChartBoundsPoints(source.Metadata, source.Metadata.ValueRange),
-                _runtime.ProjectionSettings)
+                cameraFrame.Value,
+                SurfaceChartProjection.CreateChartBoundsPoints(source.Metadata, source.Metadata.ValueRange))
             : null;
         _axisOverlayState = source is not null && loadedTiles.Count > 0
-            ? SurfaceAxisOverlayPresenter.CreateState(source.Metadata, _chartProjection)
+            ? SurfaceAxisOverlayPresenter.CreateState(source.Metadata, _chartProjection, OverlayOptions)
             : SurfaceAxisOverlayState.Empty;
         _legendOverlayState = loadedTiles.Count > 0
-            ? SurfaceLegendOverlayPresenter.CreateState(source?.Metadata, activeColorMap, ColorMap is not null, _chartProjection)
+            ? SurfaceLegendOverlayPresenter.CreateState(source?.Metadata, activeColorMap, ColorMap is not null, _chartProjection, OverlayOptions)
             : SurfaceLegendOverlayState.Empty;
         _overlayState = SurfaceProbeOverlayPresenter.CreateState(
             source,
-            _runtime.CurrentViewport,
-            _overlayViewSize,
+            cameraFrame,
             loadedTiles,
             _probeScreenPosition,
             _pinnedProbeRequests,

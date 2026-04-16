@@ -1,4 +1,6 @@
 using FluentAssertions;
+using Videra.SurfaceCharts.Core;
+using Videra.SurfaceCharts.Core.Rendering;
 using Videra.SurfaceCharts.Rendering;
 using Xunit;
 
@@ -53,6 +55,35 @@ public sealed class SurfaceChartRenderHostTests
         host.SoftwareScene.Should().NotBeNull();
         host.SoftwareScene!.Metadata.Should().BeSameAs(metadata);
         host.SoftwareScene.Tiles.Should().HaveCount(1);
+    }
+
+    [Fact]
+    public void UpdateInputs_WithViewStateAndCameraFrame_PersistsCameraTruthOnHost()
+    {
+        var host = new SurfaceChartRenderHost();
+        var metadata = CreateMetadata(width: 4, height: 4);
+        var tile = CreateTile(metadata, new SurfaceTileKey(0, 0, 0, 0), tileValue: 12f);
+        var viewState = SurfaceViewState.CreateDefault(metadata, new SurfaceDataWindow(0d, 0d, metadata.Width, metadata.Height));
+        var cameraFrame = SurfaceProjectionMath.CreateCameraFrame(metadata, viewState, 320d, 180d, 1f);
+        var inputs = new SurfaceChartRenderInputs
+        {
+            Metadata = metadata,
+            LoadedTiles = [tile],
+            ColorMap = CreateColorMap(metadata),
+            ViewState = viewState,
+            CameraFrame = cameraFrame,
+            ViewWidth = 320d,
+            ViewHeight = 180d,
+            NativeHandle = IntPtr.Zero,
+            HandleBound = false,
+            RenderScale = 1f,
+        };
+
+        host.UpdateInputs(inputs);
+
+        host.Inputs.ViewState.Should().Be(viewState);
+        host.Inputs.CameraFrame.Should().Be(cameraFrame);
+        host.Snapshot.IsReady.Should().BeTrue();
     }
 
     private static SurfaceMetadata CreateMetadata(int width, int height)

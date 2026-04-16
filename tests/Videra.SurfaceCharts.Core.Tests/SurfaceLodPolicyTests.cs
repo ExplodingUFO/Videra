@@ -1,4 +1,5 @@
 using FluentAssertions;
+using Videra.SurfaceCharts.Core.Rendering;
 using Xunit;
 
 #pragma warning disable CA2007
@@ -124,6 +125,43 @@ public class SurfaceLodPolicyTests
             var tile = await tileSource.GetTileAsync(tileKey);
             tile.Should().NotBeNull($"policy-selected tile {tileKey} should resolve from the built source");
         }
+    }
+
+    [Fact]
+    public void Select_WithCameraFrame_RespondsToProjectedFootprintInsteadOfOnlyViewportDensity()
+    {
+        var metadata = CreateMetadata(4096, 2048);
+        var dataWindow = new SurfaceDataWindow(0d, 0d, metadata.Width, metadata.Height);
+        var request = new SurfaceViewportRequest(
+            metadata,
+            dataWindow,
+            outputWidth: 256,
+            outputHeight: 256);
+        var nearCamera = SurfaceCameraPose.CreateDefault(metadata, dataWindow);
+        var farCamera = new SurfaceCameraPose(
+            nearCamera.Target,
+            nearCamera.YawDegrees,
+            nearCamera.PitchDegrees,
+            nearCamera.Distance * 4d,
+            nearCamera.FieldOfViewDegrees);
+        var nearFrame = SurfaceProjectionMath.CreateCameraFrame(
+            metadata,
+            new SurfaceViewState(dataWindow, nearCamera),
+            viewWidth: 256d,
+            viewHeight: 256d,
+            renderScale: 1f);
+        var farFrame = SurfaceProjectionMath.CreateCameraFrame(
+            metadata,
+            new SurfaceViewState(dataWindow, farCamera),
+            viewWidth: 256d,
+            viewHeight: 256d,
+            renderScale: 1f);
+
+        var nearSelection = SurfaceLodPolicy.Default.Select(request, nearFrame);
+        var farSelection = SurfaceLodPolicy.Default.Select(request, farFrame);
+
+        farSelection.LevelX.Should().BeGreaterThan(nearSelection.LevelX);
+        farSelection.LevelY.Should().BeGreaterThanOrEqualTo(nearSelection.LevelY);
     }
 
     [Fact]

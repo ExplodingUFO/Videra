@@ -26,6 +26,9 @@ internal static class SurfaceChartsDocumentationTerms
     public const string SurfaceChartsInteractionQualitySentence =
         "The chart enters `Interactive` quality during motion and returns to `Refine` after input settles.";
 
+    public const string SurfaceChartsOverlayOptionsSentence =
+        "Hosts can keep professional axis, grid, and legend behavior chart-local through `OverlayOptions` for formatter, title/unit override, minor ticks, grid plane, and axis-side selection.";
+
     public const string SurfaceChartsDemoProbeSentence =
         "hover readout and `Shift + LeftClick` pinned probes on the chart surface";
 
@@ -40,6 +43,9 @@ internal static class SurfaceChartsDocumentationTerms
 
     public const string ChineseSurfaceChartsInteractionQualitySentence =
         "图表在交互过程中进入 `Interactive` 质量模式，并在输入停稳后回到 `Refine`。";
+
+    public const string ChineseSurfaceChartsOverlayOptionsSentence =
+        "SurfaceChartView 通过 chart-local `OverlayOptions` 提供 formatter、标题/单位覆盖、minor ticks、grid plane 与 axis-side 行为。";
 
     public const string ChineseAvaloniaRenderStatusSentence =
         "暴露宿主可见的 `RenderingStatus` / `RenderStatusChanged`";

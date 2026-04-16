@@ -38,6 +38,14 @@ public partial class SurfaceChartView
     public static readonly StyledProperty<SurfaceColorMap?> ColorMapProperty =
         AvaloniaProperty.Register<SurfaceChartView, SurfaceColorMap?>(nameof(ColorMap));
 
+    /// <summary>
+    /// Identifies the <see cref="OverlayOptions"/> property.
+    /// </summary>
+    public static readonly StyledProperty<SurfaceChartOverlayOptions> OverlayOptionsProperty =
+        AvaloniaProperty.Register<SurfaceChartView, SurfaceChartOverlayOptions>(
+            nameof(OverlayOptions),
+            defaultValue: SurfaceChartOverlayOptions.Default);
+
     static SurfaceChartView()
     {
         SourceProperty.Changed.AddClassHandler<SurfaceChartView>(
@@ -48,6 +56,8 @@ public partial class SurfaceChartView
             static (view, args) => view.OnViewStateChanged((SurfaceViewState)args.NewValue!));
         ColorMapProperty.Changed.AddClassHandler<SurfaceChartView>(
             static (view, _) => view.InvalidateRenderScene());
+        OverlayOptionsProperty.Changed.AddClassHandler<SurfaceChartView>(
+            static (view, _) => view.InvalidateOverlay());
     }
 
     /// <summary>
@@ -84,6 +94,15 @@ public partial class SurfaceChartView
     {
         get => GetValue(ColorMapProperty);
         set => SetValue(ColorMapProperty, value);
+    }
+
+    /// <summary>
+    /// Gets or sets chart-local overlay layout and formatting options.
+    /// </summary>
+    public SurfaceChartOverlayOptions OverlayOptions
+    {
+        get => GetValue(OverlayOptionsProperty);
+        set => SetValue(OverlayOptionsProperty, value);
     }
 
     /// <summary>

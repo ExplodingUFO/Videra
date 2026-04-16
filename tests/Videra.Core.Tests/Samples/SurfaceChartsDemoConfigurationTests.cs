@@ -49,6 +49,7 @@ public sealed class SurfaceChartsDemoConfigurationTests
         mainWindow.Should().Contain("Probe workflow");
         mainWindow.Should().Contain("Shift + LeftClick");
         mainWindow.Should().Contain("Axes and legend");
+        mainWindow.Should().Contain("Overlay options");
         mainWindow.Should().Contain("View-state contract");
         mainWindow.Should().Contain("Fit to data");
         mainWindow.Should().Contain("Reset camera");
@@ -65,6 +66,11 @@ public sealed class SurfaceChartsDemoConfigurationTests
         mainWindowCodeBehind.Should().Contain("ViewStateText");
         mainWindowCodeBehind.Should().Contain("InteractionQualityText");
         mainWindowCodeBehind.Should().Contain("InteractionQualityChanged");
+        mainWindowCodeBehind.Should().Contain("OverlayOptionsText");
+        mainWindowCodeBehind.Should().Contain("SurfaceChartOverlayOptions");
+        mainWindowCodeBehind.Should().Contain(".OverlayOptions");
+        mainWindowCodeBehind.Should().Contain("ShowMinorTicks");
+        mainWindowCodeBehind.Should().Contain("SurfaceChartGridPlane");
         mainWindowCodeBehind.Should().Contain("CacheManifestFileName");
         mainWindowCodeBehind.Should().Contain("CachePayloadSuffix");
         mainWindowCodeBehind.Should().Contain("RenderStatusChanged");

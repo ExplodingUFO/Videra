@@ -14,6 +14,7 @@ surface-chart 模块家族与 `VideraView` 相互独立。
 - SurfaceChartView 现在以 `ViewState` 作为主 chart-view 契约，而 `Viewport` 只保留为兼容桥接。
 - 当前对外交付 built-in `left-drag orbit` / `right-drag pan` / `wheel dolly` / `Ctrl + Left drag` focus zoom
 - 图表在交互过程中进入 `Interactive` 质量模式，并在输入停稳后回到 `Refine`。
+- SurfaceChartView 通过 chart-local `OverlayOptions` 提供 formatter、标题/单位覆盖、minor ticks、grid plane 与 axis-side 行为。
 - Linux Wayland 会话当前仍是 `XWayland compatibility` 路径，不是 compositor-native Wayland surface embedding
 
 ## 项目状态
@@ -96,3 +97,4 @@ dotnet add package Videra.Core --version 0.1.0-alpha.1 --source github-Exploding
 受控交互入口则以 [samples/Videra.InteractionSample](../../samples/Videra.InteractionSample/README.md) 为主：`host owns` `SelectionState`、`Annotations` 与 annotation state，内建模式是 `Navigate`、`Select`、`Annotate`，选择保持 `object-level`，标注同时覆盖 object anchors 与 world-point anchors，并通过 `VideraNodeAnnotation` / `VideraWorldPointAnnotation` 表达，overlay responsibilities split between `3D highlight/render state` and `2D label/feedback rendering`。
 
 surface-chart 模块家族则以 `SurfaceChartView` 为中心，独立于 `VideraView`，并保持与 viewer 侧选择、标注和 camera 流程解耦。当前对外 truth 是：独立 Demo、built-in `left-drag orbit` / `right-drag pan` / `wheel dolly` / `Ctrl + Left drag` focus zoom、hover 与 `Shift + LeftClick` pinned probe、可见 `RenderingStatus`，以及显式 `Interactive` / `Refine` 质量切换。SurfaceChartView 现在以 `ViewState` 作为主 chart-view 契约，而 `Viewport` 只保留为兼容桥接。图表在交互过程中进入 `Interactive` 质量模式，并在输入停稳后回到 `Refine`。
+SurfaceChartView 通过 chart-local `OverlayOptions` 提供 formatter、标题/单位覆盖、minor ticks、grid plane 与 axis-side 行为。

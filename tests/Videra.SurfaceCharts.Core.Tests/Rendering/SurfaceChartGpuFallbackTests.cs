@@ -26,8 +26,70 @@ public sealed class SurfaceChartGpuFallbackTests
         host.Snapshot.UsesNativeSurface.Should().BeTrue();
         host.RenderingStatus.ActiveBackend.Should().Be(SurfaceChartRenderBackendKind.Gpu);
         host.RenderingStatus.UsesNativeSurface.Should().BeTrue();
+        host.SoftwareScene.Should().BeNull();
         graphicsBackend.InitializeCallCount.Should().Be(1);
         graphicsBackend.BeginFrameCallCount.Should().Be(1);
+    }
+
+    [Fact]
+    public void HandleBoundInputs_WithSameShapeTiles_ReusesSharedIndexBuffer()
+    {
+        var resourceFactory = new FakeResourceFactory();
+        var graphicsBackend = new FakeGraphicsBackend(resourceFactory: resourceFactory);
+        var host = new SurfaceChartRenderHost(
+            softwareBackend: new SurfaceChartSoftwareRenderBackend(),
+            gpuBackend: new SurfaceChartGpuRenderBackend(graphicsBackend),
+            allowSoftwareFallback: true);
+        var metadata = CreateMetadata(width: 8, height: 8);
+        var leftTile = CreateTile(metadata, new SurfaceTileKey(1, 1, 0, 0), tileValue: 12f);
+        var rightTile = CreateTile(metadata, new SurfaceTileKey(1, 1, 1, 0), tileValue: 24f);
+
+        host.UpdateInputs(CreateInputs(handleBound: true) with
+        {
+            Metadata = metadata,
+            LoadedTiles = [leftTile, rightTile],
+            ColorMap = CreateColorMap(metadata),
+        });
+
+        resourceFactory.IndexBufferCreationCount.Should().Be(1);
+        resourceFactory.VertexBufferCreationCount.Should().Be(2);
+    }
+
+    [Fact]
+    public void ColorMapChanges_UpdateExistingGpuVertexBuffers_WithoutRecreatingResources()
+    {
+        var resourceFactory = new FakeResourceFactory();
+        var graphicsBackend = new FakeGraphicsBackend(resourceFactory: resourceFactory);
+        var host = new SurfaceChartRenderHost(
+            softwareBackend: new SurfaceChartSoftwareRenderBackend(),
+            gpuBackend: new SurfaceChartGpuRenderBackend(graphicsBackend),
+            allowSoftwareFallback: true);
+        var metadata = CreateMetadata(width: 4, height: 4);
+        var tile = CreateTile(metadata, new SurfaceTileKey(0, 0, 0, 0), tileValue: 18f);
+        var initialColorMap = CreateColorMap(metadata);
+        var replacementColorMap = new SurfaceColorMap(metadata.ValueRange, new SurfaceColorMapPalette(0xFF804020u, 0xFF20C0F0u));
+
+        host.UpdateInputs(CreateInputs(handleBound: true) with
+        {
+            Metadata = metadata,
+            LoadedTiles = [tile],
+            ColorMap = initialColorMap,
+        });
+
+        resourceFactory.VertexBufferCreationCount.Should().Be(1);
+        resourceFactory.IndexBufferCreationCount.Should().Be(1);
+        resourceFactory.VertexBufferUpdateCount.Should().Be(0);
+
+        host.UpdateInputs(CreateInputs(handleBound: true) with
+        {
+            Metadata = metadata,
+            LoadedTiles = [tile],
+            ColorMap = replacementColorMap,
+        });
+
+        resourceFactory.VertexBufferCreationCount.Should().Be(1);
+        resourceFactory.IndexBufferCreationCount.Should().Be(1);
+        resourceFactory.VertexBufferUpdateCount.Should().Be(1);
     }
 
     [Fact]
@@ -123,11 +185,16 @@ public sealed class SurfaceChartGpuFallbackTests
     {
         private readonly Exception? _initializeException;
         private readonly Exception? _beginFrameException;
+        private readonly FakeResourceFactory _resourceFactory;
 
-        public FakeGraphicsBackend(Exception? initializeException = null, Exception? beginFrameException = null)
+        public FakeGraphicsBackend(
+            Exception? initializeException = null,
+            Exception? beginFrameException = null,
+            FakeResourceFactory? resourceFactory = null)
         {
             _initializeException = initializeException;
             _beginFrameException = beginFrameException;
+            _resourceFactory = resourceFactory ?? new FakeResourceFactory();
         }
 
         public bool IsInitialized { get; private set; }
@@ -138,7 +205,7 @@ public sealed class SurfaceChartGpuFallbackTests
 
         public IResourceFactory GetResourceFactory()
         {
-            return new FakeResourceFactory();
+            return _resourceFactory;
         }
 
         public ICommandExecutor GetCommandExecutor()
@@ -185,29 +252,39 @@ public sealed class SurfaceChartGpuFallbackTests
 
     private sealed class FakeResourceFactory : IResourceFactory
     {
+        public int VertexBufferCreationCount { get; private set; }
+
+        public int IndexBufferCreationCount { get; private set; }
+
+        public int VertexBufferUpdateCount { get; private set; }
+
         public IBuffer CreateVertexBuffer(VertexPositionNormalColor[] vertices)
         {
-            return new FakeBuffer((uint)(vertices.Length * 40));
+            VertexBufferCreationCount++;
+            return new FakeBuffer((uint)(vertices.Length * 40), this, trackVertexUpdates: true);
         }
 
         public IBuffer CreateVertexBuffer(uint sizeInBytes)
         {
-            return new FakeBuffer(sizeInBytes);
+            VertexBufferCreationCount++;
+            return new FakeBuffer(sizeInBytes, this, trackVertexUpdates: true);
         }
 
         public IBuffer CreateIndexBuffer(uint[] indices)
         {
-            return new FakeBuffer((uint)(indices.Length * sizeof(uint)));
+            IndexBufferCreationCount++;
+            return new FakeBuffer((uint)(indices.Length * sizeof(uint)), this, trackVertexUpdates: false);
         }
 
         public IBuffer CreateIndexBuffer(uint sizeInBytes)
         {
-            return new FakeBuffer(sizeInBytes);
+            IndexBufferCreationCount++;
+            return new FakeBuffer(sizeInBytes, this, trackVertexUpdates: false);
         }
 
         public IBuffer CreateUniformBuffer(uint sizeInBytes)
         {
-            return new FakeBuffer(sizeInBytes);
+            return new FakeBuffer(sizeInBytes, this, trackVertexUpdates: false);
         }
 
         public IPipeline CreatePipeline(PipelineDescription description)
@@ -228,6 +305,11 @@ public sealed class SurfaceChartGpuFallbackTests
         public IResourceSet CreateResourceSet(ResourceSetDescription description)
         {
             return new FakeResourceSet();
+        }
+
+        public void RecordVertexBufferUpdate()
+        {
+            VertexBufferUpdateCount++;
         }
     }
 
@@ -284,9 +366,14 @@ public sealed class SurfaceChartGpuFallbackTests
 
     private sealed class FakeBuffer : IBuffer
     {
-        public FakeBuffer(uint sizeInBytes)
+        private readonly FakeResourceFactory _owner;
+        private readonly bool _trackVertexUpdates;
+
+        public FakeBuffer(uint sizeInBytes, FakeResourceFactory owner, bool trackVertexUpdates)
         {
             SizeInBytes = sizeInBytes;
+            _owner = owner;
+            _trackVertexUpdates = trackVertexUpdates;
         }
 
         public uint SizeInBytes { get; }
@@ -294,11 +381,19 @@ public sealed class SurfaceChartGpuFallbackTests
         public void Update<T>(T data)
             where T : unmanaged
         {
+            if (_trackVertexUpdates)
+            {
+                _owner.RecordVertexBufferUpdate();
+            }
         }
 
         public void UpdateArray<T>(T[] data)
             where T : unmanaged
         {
+            if (_trackVertexUpdates)
+            {
+                _owner.RecordVertexBufferUpdate();
+            }
         }
 
         public void SetData<T>(T data, uint offset)

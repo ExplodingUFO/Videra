@@ -168,6 +168,7 @@ The surface-chart demo is a separate Avalonia app that currently focuses on the 
 - exposing `ViewState`, `Fit to data`, and `Reset camera` on `SurfaceChartView`
 - exercising overview-first LOD and lazy tile loading
 - showing axis/legend overlays plus hover and pinned probe readout
+- keeping formatter, minor ticks, grid plane, and axis-side behavior chart-local through `OverlayOptions`
 - surfacing the current rendering path through `RenderingStatus` / `RenderStatusChanged`
 
 SurfaceChartView now exposes `ViewState` as the primary chart-view contract while `Viewport` remains a compatibility bridge for existing hosts.
@@ -288,6 +289,7 @@ Contract highlights:
 - SurfaceChartView now exposes `ViewState` as the primary chart-view contract while `Viewport` remains a compatibility bridge for existing hosts.
 - SurfaceChartView now ships built-in `left-drag orbit`, `right-drag pan`, `wheel dolly`, and `Ctrl + Left drag` focus zoom on top of the `ViewState` runtime contract.
 - The chart enters `Interactive` quality during motion and returns to `Refine` after input settles.
+- Hosts can keep professional axis, grid, and legend behavior chart-local through `OverlayOptions` for formatter, title/unit override, minor ticks, grid plane, and axis-side selection.
 
 ## Packages
 

@@ -48,6 +48,31 @@ public sealed class SurfaceProbeInfoTests
         probe.IsApproximate.Should().BeTrue();
     }
 
+    [Fact]
+    public void FromPickHit_PublishesWorldAndTileTruth()
+    {
+        var hit = new SurfacePickHit(
+            new SurfaceTileKey(2, 1, 3, 4),
+            sampleX: 4d,
+            sampleY: 3d,
+            worldPosition: new System.Numerics.Vector3(15f, 12.5f, 160f),
+            value: 12.5d,
+            isApproximate: true,
+            distanceToCamera: 48d);
+
+        var probe = SurfaceProbeInfo.FromPickHit(CreateMetadata(), hit);
+
+        probe.SampleX.Should().Be(4d);
+        probe.SampleY.Should().Be(3d);
+        probe.AxisX.Should().BeApproximately(15d, 0.0001d);
+        probe.AxisY.Should().BeApproximately(160d, 0.0001d);
+        probe.Value.Should().Be(12.5d);
+        probe.IsApproximate.Should().BeTrue();
+        probe.WorldPosition.Should().Be(hit.WorldPosition);
+        probe.TileKey.Should().Be(hit.TileKey);
+        probe.DistanceToCamera.Should().Be(48d);
+    }
+
     private static SurfaceMetadata CreateMetadata()
     {
         return new SurfaceMetadata(

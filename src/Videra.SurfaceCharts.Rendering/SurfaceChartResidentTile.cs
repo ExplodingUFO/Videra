@@ -1,5 +1,4 @@
 using System.Collections.ObjectModel;
-using System.Numerics;
 using Videra.SurfaceCharts.Core;
 
 namespace Videra.SurfaceCharts.Rendering;
@@ -8,39 +7,33 @@ public sealed class SurfaceChartResidentTile
 {
     public SurfaceChartResidentTile(
         SurfaceTile sourceTile,
-        SurfacePatchGeometry geometry,
-        IReadOnlyList<Vector3> samplePositions,
+        SurfaceRenderTile softwareRenderTile,
         IReadOnlyList<float> sampleValues,
-        IReadOnlyList<uint> colors,
         bool isResident = true)
     {
         ArgumentNullException.ThrowIfNull(sourceTile);
-        ArgumentNullException.ThrowIfNull(geometry);
-        ArgumentNullException.ThrowIfNull(samplePositions);
+        ArgumentNullException.ThrowIfNull(softwareRenderTile);
         ArgumentNullException.ThrowIfNull(sampleValues);
-        ArgumentNullException.ThrowIfNull(colors);
 
-        if (samplePositions.Count != geometry.VertexCount)
+        if (softwareRenderTile.Key != sourceTile.Key)
         {
-            throw new ArgumentException("Sample positions must match the geometry vertex count.", nameof(samplePositions));
+            throw new ArgumentException("Software render tile key must match the source tile.", nameof(softwareRenderTile));
         }
 
-        if (sampleValues.Count != geometry.VertexCount)
+        if (softwareRenderTile.Bounds != sourceTile.Bounds)
+        {
+            throw new ArgumentException("Software render tile bounds must match the source tile.", nameof(softwareRenderTile));
+        }
+
+        if (sampleValues.Count != softwareRenderTile.Geometry.VertexCount)
         {
             throw new ArgumentException("Sample values must match the geometry vertex count.", nameof(sampleValues));
         }
 
-        if (colors.Count != geometry.VertexCount)
-        {
-            throw new ArgumentException("Colors must match the geometry vertex count.", nameof(colors));
-        }
-
         Key = sourceTile.Key;
         SourceTile = sourceTile;
-        Geometry = geometry;
-        SamplePositions = AsReadOnly(samplePositions);
+        SoftwareRenderTile = softwareRenderTile;
         SampleValues = AsReadOnly(sampleValues);
-        Colors = AsReadOnly(colors);
         IsResident = isResident;
     }
 
@@ -50,43 +43,28 @@ public sealed class SurfaceChartResidentTile
 
     public SurfaceTileBounds Bounds => SourceTile.Bounds;
 
-    public SurfacePatchGeometry Geometry { get; }
+    public SurfacePatchGeometry Geometry => SoftwareRenderTile.Geometry;
 
-    public IReadOnlyList<Vector3> SamplePositions { get; }
+    public SurfaceRenderTile SoftwareRenderTile { get; }
 
     public IReadOnlyList<float> SampleValues { get; }
 
-    public IReadOnlyList<uint> Colors { get; }
-
     public bool IsResident { get; }
 
-    public SurfaceChartResidentTile WithColors(IReadOnlyList<uint> colors)
+    public SurfaceChartResidentTile WithSoftwareRenderTile(SurfaceRenderTile softwareRenderTile)
     {
-        ArgumentNullException.ThrowIfNull(colors);
-
-        if (colors.Count != Geometry.VertexCount)
-        {
-            throw new ArgumentException("Colors must match the geometry vertex count.", nameof(colors));
-        }
+        ArgumentNullException.ThrowIfNull(softwareRenderTile);
 
         return new SurfaceChartResidentTile(
             SourceTile,
-            Geometry,
-            SamplePositions,
+            softwareRenderTile,
             SampleValues,
-            AsReadOnly(colors),
             IsResident);
     }
 
     public SurfaceRenderTile ToRenderTile()
     {
-        var vertices = new SurfaceRenderVertex[Geometry.VertexCount];
-        for (var index = 0; index < vertices.Length; index++)
-        {
-            vertices[index] = new SurfaceRenderVertex(SamplePositions[index], Colors[index]);
-        }
-
-        return new SurfaceRenderTile(Key, Bounds, Geometry, vertices);
+        return SoftwareRenderTile;
     }
 
     private static IReadOnlyList<T> AsReadOnly<T>(IReadOnlyList<T> values)

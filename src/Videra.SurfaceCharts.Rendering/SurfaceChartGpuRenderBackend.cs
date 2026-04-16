@@ -8,7 +8,9 @@ namespace Videra.SurfaceCharts.Rendering;
 public sealed class SurfaceChartGpuRenderBackend : ISurfaceChartRenderBackend, IDisposable
 {
     private readonly IGraphicsBackend _graphicsBackend;
-    private readonly Dictionary<SurfaceTileKey, SurfaceChartGpuTileResources> _tileResources = [];
+    private readonly Dictionary<SurfaceTileKey, SurfaceChartGpuResidentTile> _tileResources = [];
+    private readonly SurfacePatchTopologyCache _topologyCache = new();
+    private readonly SurfaceColorMapUploadCache _colorMapUploadCache = new();
     private IBuffer? _frameUniformBuffer;
     private IPipeline? _pipeline;
     private IntPtr _currentHandle;
@@ -63,10 +65,8 @@ public sealed class SurfaceChartGpuRenderBackend : ISurfaceChartRenderBackend, I
         EnsureBackend(inputs);
         EnsureSharedResources();
 
-        UpdateTileResources(state, changeSet);
-        SoftwareScene = new SurfaceRenderScene(
-            state.Metadata,
-            state.ResidentTiles.Select(static residentTile => residentTile.ToRenderTile()).ToArray());
+        UpdateTileResources(inputs, state, changeSet);
+        SoftwareScene = null;
         RenderFrame(inputs, state);
 
         return new SurfaceChartRenderSnapshot
@@ -83,6 +83,7 @@ public sealed class SurfaceChartGpuRenderBackend : ISurfaceChartRenderBackend, I
     public void Dispose()
     {
         DisposeTileResources();
+        _topologyCache.Dispose();
         _frameUniformBuffer?.Dispose();
         _frameUniformBuffer = null;
         _pipeline?.Dispose();
@@ -119,14 +120,22 @@ public sealed class SurfaceChartGpuRenderBackend : ISurfaceChartRenderBackend, I
         _frameUniformBuffer ??= resourceFactory.CreateUniformBuffer(32);
     }
 
-    private void UpdateTileResources(SurfaceChartRenderState state, SurfaceChartRenderChangeSet changeSet)
+    private void UpdateTileResources(
+        SurfaceChartRenderInputs inputs,
+        SurfaceChartRenderState state,
+        SurfaceChartRenderChangeSet changeSet)
     {
+        if (inputs.ColorMap is null)
+        {
+            return;
+        }
+
         if (changeSet.FullResetRequired)
         {
             DisposeTileResources();
             foreach (var residentTile in state.ResidentTiles)
             {
-                AddOrReplaceTileResources(residentTile);
+                AddOrReplaceTileResources(residentTile, inputs.ColorMap);
             }
 
             return;
@@ -144,20 +153,26 @@ public sealed class SurfaceChartGpuRenderBackend : ISurfaceChartRenderBackend, I
         {
             if (state.TryGetResidentTile(addedKey, out var residentTile))
             {
-                AddOrReplaceTileResources(residentTile);
+                AddOrReplaceTileResources(residentTile, inputs.ColorMap);
             }
         }
 
-        foreach (var colorChangedKey in changeSet.ColorChangedKeys)
+        if (!changeSet.ColorDirty)
         {
-            if (state.TryGetResidentTile(colorChangedKey, out var residentTile))
+            return;
+        }
+
+        var colorMapLut = _colorMapUploadCache.Resolve(inputs.ColorMap);
+        foreach (var residentTile in state.ResidentTiles)
+        {
+            if (_tileResources.TryGetValue(residentTile.Key, out var tileResources))
             {
-                AddOrReplaceTileResources(residentTile);
+                tileResources.UpdateColors(residentTile.SampleValues, colorMapLut);
             }
         }
     }
 
-    private void AddOrReplaceTileResources(SurfaceChartResidentTile residentTile)
+    private void AddOrReplaceTileResources(SurfaceChartResidentTile residentTile, SurfaceColorMap colorMap)
     {
         if (_tileResources.Remove(residentTile.Key, out var previousResources))
         {
@@ -165,21 +180,17 @@ public sealed class SurfaceChartGpuRenderBackend : ISurfaceChartRenderBackend, I
         }
 
         var resourceFactory = _graphicsBackend.GetResourceFactory();
-        var renderTile = residentTile.ToRenderTile();
-        var vertices = new VertexPositionNormalColor[renderTile.Vertices.Count];
-        for (var index = 0; index < renderTile.Vertices.Count; index++)
-        {
-            var vertex = renderTile.Vertices[index];
-            vertices[index] = new VertexPositionNormalColor(
-                vertex.Position,
-                Vector3.UnitY,
-                ToRgbaFloat(vertex.Color));
-        }
-
-        var indices = renderTile.Geometry.Indices.ToArray();
+        var renderTile = residentTile.SoftwareRenderTile;
+        var colorMapLut = _colorMapUploadCache.Resolve(colorMap);
+        var vertices = BuildVertices(residentTile, renderTile, colorMapLut);
         var vertexBuffer = resourceFactory.CreateVertexBuffer(vertices);
-        var indexBuffer = resourceFactory.CreateIndexBuffer(indices);
-        _tileResources[residentTile.Key] = new SurfaceChartGpuTileResources(vertexBuffer, indexBuffer, (uint)indices.Length);
+        var topology = _topologyCache.Acquire(renderTile.Geometry, resourceFactory);
+        _tileResources[residentTile.Key] = new SurfaceChartGpuResidentTile(
+            residentTile.Key,
+            vertices,
+            vertexBuffer,
+            (uint)(vertices.Length * VertexPositionNormalColor.SizeInBytes),
+            topology);
     }
 
     private void RenderFrame(SurfaceChartRenderInputs inputs, SurfaceChartRenderState state)
@@ -213,14 +224,14 @@ public sealed class SurfaceChartGpuRenderBackend : ISurfaceChartRenderBackend, I
                 continue;
             }
 
-            if (tileResource.IndexCount == 0)
+            if (tileResource.Topology.IndexCount == 0)
             {
                 continue;
             }
 
             executor.SetVertexBuffer(tileResource.VertexBuffer);
-            executor.SetIndexBuffer(tileResource.IndexBuffer);
-            executor.DrawIndexed(tileResource.IndexCount);
+            executor.SetIndexBuffer(tileResource.Topology.IndexBuffer);
+            executor.DrawIndexed(tileResource.Topology.IndexCount);
         }
 
         executor.ResetDepthState();
@@ -237,6 +248,24 @@ public sealed class SurfaceChartGpuRenderBackend : ISurfaceChartRenderBackend, I
         _tileResources.Clear();
     }
 
+    private static VertexPositionNormalColor[] BuildVertices(
+        SurfaceChartResidentTile residentTile,
+        SurfaceRenderTile renderTile,
+        SurfaceColorMapLut colorMapLut)
+    {
+        var vertices = new VertexPositionNormalColor[renderTile.Vertices.Count];
+        for (var index = 0; index < renderTile.Vertices.Count; index++)
+        {
+            var vertex = renderTile.Vertices[index];
+            vertices[index] = new VertexPositionNormalColor(
+                vertex.Position,
+                Vector3.UnitY,
+                ToRgbaFloat(colorMapLut.Map(residentTile.SampleValues[index])));
+        }
+
+        return vertices;
+    }
+
     private static RgbaFloat ToRgbaFloat(uint argb)
     {
         var a = ((argb >> 24) & 0xFF) / 255f;
@@ -248,25 +277,4 @@ public sealed class SurfaceChartGpuRenderBackend : ISurfaceChartRenderBackend, I
 
     private readonly record struct SurfaceChartGpuFrameUniform(Vector4 ViewParameters, Vector4 ViewportParameters);
 
-    private sealed class SurfaceChartGpuTileResources : IDisposable
-    {
-        public SurfaceChartGpuTileResources(IBuffer vertexBuffer, IBuffer indexBuffer, uint indexCount)
-        {
-            VertexBuffer = vertexBuffer ?? throw new ArgumentNullException(nameof(vertexBuffer));
-            IndexBuffer = indexBuffer ?? throw new ArgumentNullException(nameof(indexBuffer));
-            IndexCount = indexCount;
-        }
-
-        public IBuffer VertexBuffer { get; }
-
-        public IBuffer IndexBuffer { get; }
-
-        public uint IndexCount { get; }
-
-        public void Dispose()
-        {
-            VertexBuffer.Dispose();
-            IndexBuffer.Dispose();
-        }
-    }
 }

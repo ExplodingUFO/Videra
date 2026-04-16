@@ -22,4 +22,15 @@ internal sealed class SurfaceTileRequestPlan
     public IReadOnlySet<SurfaceTileKey> RetainedKeys { get; }
 
     public bool IncludesOverview { get; }
+
+    public bool IsEquivalentTo(SurfaceTileRequestPlan? other)
+    {
+        if (other is null || IncludesOverview != other.IncludesOverview)
+        {
+            return false;
+        }
+
+        return OrderedKeys.SequenceEqual(other.OrderedKeys) &&
+               RetainedKeys.SetEquals(other.RetainedKeys);
+    }
 }

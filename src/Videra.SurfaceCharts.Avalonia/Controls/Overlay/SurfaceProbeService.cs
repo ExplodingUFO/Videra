@@ -1,10 +1,37 @@
 using Avalonia;
 using Videra.SurfaceCharts.Core;
+using Videra.SurfaceCharts.Core.Rendering;
 
 namespace Videra.SurfaceCharts.Avalonia.Controls.Overlay;
 
 internal sealed class SurfaceProbeService
 {
+    public SurfaceProbeInfo? ResolveFromScreenPosition(
+        SurfaceMetadata metadata,
+        SurfaceCameraFrame cameraFrame,
+        IReadOnlyList<SurfaceTile> loadedTiles,
+        Point probeScreenPosition)
+    {
+        ArgumentNullException.ThrowIfNull(metadata);
+        ArgumentNullException.ThrowIfNull(loadedTiles);
+
+        if (probeScreenPosition.X < 0d ||
+            probeScreenPosition.Y < 0d ||
+            probeScreenPosition.X > cameraFrame.ViewportPixels.X ||
+            probeScreenPosition.Y > cameraFrame.ViewportPixels.Y)
+        {
+            return null;
+        }
+
+        var pickRay = SurfaceHeightfieldPicker.CreatePickRay(
+            new System.Numerics.Vector2((float)probeScreenPosition.X, (float)probeScreenPosition.Y),
+            cameraFrame);
+        var pickHit = SurfaceHeightfieldPicker.Pick(metadata, loadedTiles, pickRay);
+        return pickHit is SurfacePickHit hit
+            ? SurfaceProbeInfo.FromPickHit(metadata, hit)
+            : null;
+    }
+
     public SurfaceProbeInfo? ResolveFromScreenPosition(
         SurfaceMetadata metadata,
         SurfaceViewport viewport,

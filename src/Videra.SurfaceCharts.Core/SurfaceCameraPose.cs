@@ -1,4 +1,5 @@
 using System.Numerics;
+using Videra.SurfaceCharts.Core.Rendering;
 using Videra.SurfaceCharts.Rendering;
 
 namespace Videra.SurfaceCharts.Core;
@@ -111,6 +112,32 @@ public readonly record struct SurfaceCameraPose
     }
 
     /// <summary>
+    /// Creates a complete camera frame for the supplied dataset, data window, and output size.
+    /// </summary>
+    /// <param name="metadata">The dataset metadata.</param>
+    /// <param name="dataWindow">The active data window.</param>
+    /// <param name="viewWidth">The output width in device-independent pixels.</param>
+    /// <param name="viewHeight">The output height in device-independent pixels.</param>
+    /// <param name="renderScale">The active render scale.</param>
+    /// <returns>The resolved camera frame.</returns>
+    public SurfaceCameraFrame CreateCameraFrame(
+        SurfaceMetadata metadata,
+        SurfaceDataWindow dataWindow,
+        double viewWidth,
+        double viewHeight,
+        float renderScale)
+    {
+        ArgumentNullException.ThrowIfNull(metadata);
+
+        return SurfaceProjectionMath.CreateCameraFrame(
+            metadata,
+            new SurfaceViewState(dataWindow.ClampTo(metadata), this),
+            viewWidth,
+            viewHeight,
+            renderScale);
+    }
+
+    /// <summary>
     /// Creates a default camera pose centered on the active data window and metadata value range.
     /// </summary>
     /// <param name="metadata">The dataset metadata.</param>
@@ -130,7 +157,8 @@ public readonly record struct SurfaceCameraPose
         var verticalSpan = MapWindowSpan(metadata.VerticalAxis, clampedWindow.Height, metadata.Height);
         var valueSpan = metadata.ValueRange.Span;
         var diagonal = Math.Sqrt((horizontalSpan * horizontalSpan) + (valueSpan * valueSpan) + (verticalSpan * verticalSpan));
-        var distance = Math.Max(diagonal, 1d);
+        var halfFieldOfViewRadians = (DefaultFieldOfViewDegrees * (Math.PI / 180d)) * 0.5d;
+        var distance = Math.Max((diagonal * 0.5d) / Math.Tan(halfFieldOfViewRadians), 1d);
 
         return new SurfaceCameraPose(
             target,

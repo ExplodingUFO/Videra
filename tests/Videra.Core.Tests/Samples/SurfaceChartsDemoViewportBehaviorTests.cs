@@ -120,6 +120,33 @@ public sealed class SurfaceChartsDemoViewportBehaviorTests
     }
 
     [Fact]
+    public Task DemoWindow_OverlayOptionsPanelProjectsChartLocalCustomizationTruth()
+    {
+        return AvaloniaHeadlessTestSession.RunAsync(async () =>
+        {
+            var window = new MainWindow();
+            var chartView = window.FindControl<SurfaceChartView>("ChartView")
+                ?? throw new InvalidOperationException("ChartView is missing.");
+            var overlayOptionsText = window.FindControl<TextBlock>("OverlayOptionsText")
+                ?? throw new InvalidOperationException("OverlayOptionsText is missing.");
+
+            await WaitForConditionAsync(
+                () => !string.IsNullOrWhiteSpace(overlayOptionsText.Text),
+                "the demo should project overlay customization truth into visible onboarding text.")
+                .ConfigureAwait(true);
+
+            chartView.OverlayOptions.ShowMinorTicks.Should().BeTrue();
+            chartView.OverlayOptions.MinorTickDivisions.Should().Be(4);
+            chartView.OverlayOptions.GridPlane.Should().Be(SurfaceChartGridPlane.XZ);
+            chartView.OverlayOptions.AxisSideMode.Should().Be(SurfaceChartAxisSideMode.Auto);
+            overlayOptionsText.Text.Should().Contain("OverlayOptions");
+            overlayOptionsText.Text.Should().Contain("Minor ticks");
+            overlayOptionsText.Text.Should().Contain("Grid plane");
+            overlayOptionsText.Text.Should().Contain("Axis side");
+        });
+    }
+
+    [Fact]
     public Task DemoWindow_RenderingPathProjectsRenderingStatusIntoVisibleText()
     {
         return AvaloniaHeadlessTestSession.RunAsync(async () =>

@@ -3,6 +3,7 @@ using System.Numerics;
 using Avalonia;
 using Avalonia.Media;
 using Videra.SurfaceCharts.Core;
+using Videra.SurfaceCharts.Core.Rendering;
 
 namespace Videra.SurfaceCharts.Avalonia.Controls.Overlay;
 
@@ -15,6 +16,40 @@ internal static class SurfaceProbeOverlayPresenter
     private static readonly IBrush EmptyForeground = new SolidColorBrush(Color.FromArgb(220, 255, 255, 255));
     private static readonly IBrush PinnedMarkerFill = new SolidColorBrush(Color.FromArgb(255, 255, 208, 64));
     private const double BubbleMargin = 8d;
+
+    public static SurfaceProbeOverlayState CreateState(
+        ISurfaceTileSource? source,
+        SurfaceCameraFrame? cameraFrame,
+        IReadOnlyList<SurfaceTile> loadedTiles,
+        Point? probeScreenPosition,
+        IReadOnlyList<SurfaceProbeRequest>? pinnedProbeRequests = null,
+        SurfaceProbeService? probeService = null)
+    {
+        ArgumentNullException.ThrowIfNull(loadedTiles);
+
+        if (source is null || loadedTiles.Count == 0)
+        {
+            return new SurfaceProbeOverlayState(
+                hasNoData: true,
+                noDataText: "No data",
+                hoveredProbeScreenPosition: null,
+                hoveredProbe: null,
+                pinnedProbes: []);
+        }
+
+        var resolvedProbeService = probeService ?? new SurfaceProbeService();
+        var hoveredProbe = probeScreenPosition is Point hoveredProbeScreenPosition && cameraFrame is SurfaceCameraFrame resolvedCameraFrame
+            ? resolvedProbeService.ResolveFromScreenPosition(source.Metadata, resolvedCameraFrame, loadedTiles, hoveredProbeScreenPosition)
+            : null;
+        var pinnedProbes = ResolvePinnedProbes(source.Metadata, loadedTiles, pinnedProbeRequests);
+
+        return new SurfaceProbeOverlayState(
+            hasNoData: false,
+            noDataText: null,
+            hoveredProbeScreenPosition: hoveredProbe is null ? null : probeScreenPosition,
+            hoveredProbe: hoveredProbe,
+            pinnedProbes: pinnedProbes);
+    }
 
     public static SurfaceProbeOverlayState CreateState(
         ISurfaceTileSource? source,

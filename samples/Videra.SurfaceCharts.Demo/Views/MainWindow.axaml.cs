@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
+using System.Globalization;
 using Videra.SurfaceCharts.Avalonia.Controls;
 using Videra.SurfaceCharts.Core;
 using Videra.SurfaceCharts.Processing;
@@ -23,6 +24,7 @@ public partial class MainWindow : Window
     private readonly TextBlock _viewStateText;
     private readonly TextBlock _interactionQualityText;
     private readonly TextBlock _renderingPathText;
+    private readonly TextBlock _overlayOptionsText;
     private readonly TextBlock _cachePathText;
     private readonly TextBlock _datasetText;
     private readonly ISurfaceTileSource _inMemorySource;
@@ -53,6 +55,8 @@ public partial class MainWindow : Window
             ?? throw new InvalidOperationException("InteractionQualityText is missing.");
         _renderingPathText = this.FindControl<TextBlock>("RenderingPathText")
             ?? throw new InvalidOperationException("Rendering path text control is missing.");
+        _overlayOptionsText = this.FindControl<TextBlock>("OverlayOptionsText")
+            ?? throw new InvalidOperationException("Overlay options text control is missing.");
         _cachePathText = this.FindControl<TextBlock>("CachePathText")
             ?? throw new InvalidOperationException("Cache path text control is missing.");
         _datasetText = this.FindControl<TextBlock>("DatasetText")
@@ -67,6 +71,7 @@ public partial class MainWindow : Window
 
         _inMemorySource = CreateInMemorySource();
         _colorMap = CreateColorMap(_inMemorySource.Metadata.ValueRange);
+        _chartView.OverlayOptions = CreateOverlayOptions();
 
         _sourceSelector.SelectedIndex = 0;
         _chartView.ColorMap = _colorMap;
@@ -85,6 +90,7 @@ public partial class MainWindow : Window
 
         UpdateRenderingPathText(_chartView.RenderingStatus);
         UpdateInteractionQualityText(_chartView.InteractionQuality);
+        UpdateOverlayOptionsText(_chartView.OverlayOptions);
         _cachePathText.Text = $"Manifest: {_cachePath}\nPayload sidecar: {_cachePayloadPath}";
         _datasetText.Text = CreateDatasetSummary();
         UpdateStatusText();
@@ -220,6 +226,16 @@ public partial class MainWindow : Window
             $"Resident tiles: {status.ResidentTileCount}";
     }
 
+    private void UpdateOverlayOptionsText(SurfaceChartOverlayOptions overlayOptions)
+    {
+        _overlayOptionsText.Text =
+            "Chart-local `OverlayOptions` keep formatter, minor ticks, grid plane, and axis-side behavior inside `SurfaceChartView` instead of pushing chart semantics into `VideraView`.\n" +
+            $"Minor ticks: {(overlayOptions.ShowMinorTicks ? "enabled" : "disabled")} (divisions {overlayOptions.MinorTickDivisions})\n" +
+            $"Grid plane: {overlayOptions.GridPlane}\n" +
+            $"Axis side: {overlayOptions.AxisSideMode}\n" +
+            "Formatter: legend and axis labels share the same chart-local numeric formatting contract.";
+    }
+
     private static ISurfaceTileSource CreateInMemorySource()
     {
         var matrix = CreateSampleMatrix();
@@ -287,6 +303,18 @@ public partial class MainWindow : Window
                 0xFF2DD4BFu,
                 0xFFFDE68Au,
                 0xFFF97316u));
+    }
+
+    private static SurfaceChartOverlayOptions CreateOverlayOptions()
+    {
+        return new SurfaceChartOverlayOptions
+        {
+            ShowMinorTicks = true,
+            MinorTickDivisions = 4,
+            GridPlane = SurfaceChartGridPlane.XZ,
+            AxisSideMode = SurfaceChartAxisSideMode.Auto,
+            LabelFormatter = static (_, value) => value.ToString("0.##", CultureInfo.InvariantCulture),
+        };
     }
 
     private static string CreateDatasetSummary()

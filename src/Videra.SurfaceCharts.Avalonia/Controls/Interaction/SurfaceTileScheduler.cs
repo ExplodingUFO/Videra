@@ -1,11 +1,18 @@
+using System.Numerics;
 using Avalonia;
 using Videra.SurfaceCharts.Core;
+using Videra.SurfaceCharts.Core.Rendering;
 
 namespace Videra.SurfaceCharts.Avalonia.Controls.Interaction;
 
 internal sealed class SurfaceTileScheduler
 {
     private static readonly SurfaceTileKey OverviewKey = new(0, 0, 0, 0);
+    private const float RefineCenterDistanceBucketPixels = 16f;
+    private const float InteractiveCenterDistanceBucketPixels = 32f;
+    private const float RefineScreenAreaBucketPixels = 512f;
+    private const float InteractiveScreenAreaBucketPixels = 2048f;
+    private const float DepthBucketStep = 0.05f;
 
     private readonly SurfaceTileCache _tileCache;
     private readonly SurfaceLodPolicy _lodPolicy;
@@ -35,6 +42,8 @@ internal sealed class SurfaceTileScheduler
     {
         _source = source;
     }
+
+    public SurfaceMetadata? Metadata => _source?.Metadata;
 
     public void SetActiveGeneration(long requestGeneration)
     {
@@ -86,7 +95,66 @@ internal sealed class SurfaceTileScheduler
                     entry.Sequence)
             })
             .OrderBy(entry => entry.Priority.Bucket)
-            .ThenBy(entry => entry.Priority.Distance)
+            .ThenBy(entry => entry.Priority.CenterDistanceBucket)
+            .ThenBy(entry => entry.Priority.DepthBucket)
+            .ThenBy(entry => entry.Priority.ScreenAreaPenalty)
+            .ThenBy(entry => entry.Priority.LevelPenalty)
+            .ThenBy(entry => entry.Priority.Sequence)
+            .Select(entry => entry.Key)
+            .ToArray();
+
+        foreach (var key in prioritizedKeys)
+        {
+            retainedKeys.Add(key);
+        }
+
+        orderedKeys.AddRange(prioritizedKeys);
+        return new SurfaceTileRequestPlan(orderedKeys.ToArray(), retainedKeys, includeOverview);
+    }
+
+    public SurfaceTileRequestPlan CreateRequestPlan(
+        SurfaceViewState viewState,
+        SurfaceCameraFrame cameraFrame,
+        Size outputSize,
+        SurfaceChartInteractionQuality interactionQuality)
+    {
+        var retainedKeys = new HashSet<SurfaceTileKey> { OverviewKey };
+        var orderedKeys = new List<SurfaceTileKey>();
+        var source = _source;
+        var includeOverview = source is not null && !_tileCache.Contains(OverviewKey);
+
+        if (includeOverview)
+        {
+            orderedKeys.Add(OverviewKey);
+        }
+
+        var outputWidth = (int)Math.Ceiling(outputSize.Width);
+        var outputHeight = (int)Math.Ceiling(outputSize.Height);
+        if (source is null || outputWidth <= 0 || outputHeight <= 0)
+        {
+            return new SurfaceTileRequestPlan(orderedKeys.ToArray(), retainedKeys, includeOverview);
+        }
+
+        var request = new SurfaceViewportRequest(source.Metadata, viewState.DataWindow, outputWidth, outputHeight);
+        var selection = _lodPolicy.Select(request, cameraFrame);
+
+        var prioritizedKeys = selection.EnumerateTileKeys()
+            .Where(key => key != OverviewKey)
+            .Select(static (key, sequence) => new { Key = key, Sequence = sequence })
+            .Select(entry => new
+            {
+                entry.Key,
+                Priority = CreateCameraAwarePriority(
+                    source.Metadata,
+                    cameraFrame,
+                    interactionQuality,
+                    entry.Key,
+                    entry.Sequence)
+            })
+            .OrderBy(entry => entry.Priority.Bucket)
+            .ThenBy(entry => entry.Priority.CenterDistanceBucket)
+            .ThenBy(entry => entry.Priority.DepthBucket)
+            .ThenBy(entry => entry.Priority.ScreenAreaPenalty)
             .ThenBy(entry => entry.Priority.LevelPenalty)
             .ThenBy(entry => entry.Priority.Sequence)
             .Select(entry => entry.Key)
@@ -181,7 +249,46 @@ internal sealed class SurfaceTileScheduler
         return new SurfaceTileRequestPriority(
             isVisible ? 0 : 1,
             distance,
+            0,
+            0,
             levelPenalty,
+            sequence);
+    }
+
+    private static SurfaceTileRequestPriority CreateCameraAwarePriority(
+        SurfaceMetadata metadata,
+        SurfaceCameraFrame cameraFrame,
+        SurfaceChartInteractionQuality interactionQuality,
+        SurfaceTileKey key,
+        int sequence)
+    {
+        if (!TryGetTileBounds(metadata, key, out var tileBounds))
+        {
+            return new SurfaceTileRequestPriority(
+                Bucket: 2,
+                CenterDistanceBucket: int.MaxValue,
+                DepthBucket: int.MaxValue,
+                ScreenAreaPenalty: int.MaxValue,
+                LevelPenalty: key.LevelX + key.LevelY,
+                Sequence: sequence);
+        }
+
+        var footprint = SurfaceScreenErrorEstimator.EstimateTileFootprint(metadata, tileBounds, cameraFrame);
+        var viewportCenter = cameraFrame.ViewportPixels * 0.5f;
+        var centerDistance = Vector2.Distance(footprint.ScreenCenter, viewportCenter);
+        var centerBucketSize = interactionQuality == SurfaceChartInteractionQuality.Interactive
+            ? InteractiveCenterDistanceBucketPixels
+            : RefineCenterDistanceBucketPixels;
+        var screenAreaBucketSize = interactionQuality == SurfaceChartInteractionQuality.Interactive
+            ? InteractiveScreenAreaBucketPixels
+            : RefineScreenAreaBucketPixels;
+
+        return new SurfaceTileRequestPriority(
+            footprint.IsVisible ? 0 : 1,
+            QuantizeNonNegative(centerDistance, centerBucketSize),
+            QuantizeNonNegative(footprint.ViewDepth, DepthBucketStep),
+            -QuantizeNonNegative(footprint.ScreenAreaPixels, screenAreaBucketSize),
+            key.LevelX + key.LevelY,
             sequence);
     }
 
@@ -197,6 +304,58 @@ internal sealed class SurfaceTileScheduler
         var normalizedEndExclusive = viewportEndExclusive / datasetSpan;
         var tileIndex = (int)Math.Ceiling(normalizedEndExclusive * tileCount) - 1;
         return Math.Clamp(tileIndex, 0, tileCount - 1);
+    }
+
+    private static bool TryGetTileBounds(SurfaceMetadata metadata, SurfaceTileKey key, out SurfaceTileBounds tileBounds)
+    {
+        tileBounds = default;
+
+        if (!TryGetTilePartition(metadata.Width, key.LevelX, key.TileX, out var startX, out var width) ||
+            !TryGetTilePartition(metadata.Height, key.LevelY, key.TileY, out var startY, out var height))
+        {
+            return false;
+        }
+
+        tileBounds = new SurfaceTileBounds(startX, startY, width, height);
+        return true;
+    }
+
+    private static bool TryGetTilePartition(int dimension, int level, int tileIndex, out int start, out int size)
+    {
+        start = 0;
+        size = 0;
+
+        if (level >= 63)
+        {
+            return false;
+        }
+
+        var tileCount = 1L << level;
+        if (tileIndex >= tileCount)
+        {
+            return false;
+        }
+
+        var startLong = ((long)dimension * tileIndex) / tileCount;
+        var endLong = ((long)dimension * (tileIndex + 1L)) / tileCount;
+        if (endLong <= startLong)
+        {
+            return false;
+        }
+
+        start = (int)startLong;
+        size = (int)(endLong - startLong);
+        return true;
+    }
+
+    private static int QuantizeNonNegative(float value, float step)
+    {
+        if (!float.IsFinite(value))
+        {
+            return int.MaxValue;
+        }
+
+        return (int)MathF.Floor(MathF.Max(value, 0f) / step);
     }
 
     private async Task RequestTileAsync(

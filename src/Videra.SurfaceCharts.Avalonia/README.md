@@ -7,6 +7,7 @@ The control layer remains separate from `VideraView` and only depends on the sha
 SurfaceChartView now exposes `ViewState` as the primary chart-view contract while `Viewport` remains a compatibility bridge for existing hosts.
 SurfaceChartView now ships built-in `left-drag orbit`, `right-drag pan`, `wheel dolly`, and `Ctrl + Left drag` focus zoom on top of the `ViewState` runtime contract.
 The chart enters `Interactive` quality during motion and returns to `Refine` after input settles.
+Hosts can keep professional axis, grid, and legend behavior chart-local through `OverlayOptions` for formatter, title/unit override, minor ticks, grid plane, and axis-side selection.
 
 ## Current Scope
 
@@ -20,6 +21,7 @@ The chart enters `Interactive` quality during motion and returns to `Refine` aft
 - host-driven `FitToData()`, `ResetCamera()`, and `ZoomTo(...)` commands
 - built-in `left-drag orbit`, `right-drag pan`, `wheel dolly`, and `Ctrl + Left drag` focus zoom
 - explicit `Interactive` and `Refine` interaction-quality states
+- chart-local `OverlayOptions` for formatter, title/unit override, minor ticks, grid plane, and axis-side selection
 - overview-first tile scheduling with lazy cache-backed reads
 - color-map driven surface rendering
 - chart-local axis/legend overlays and hover/pinned probe readout, including `Shift + LeftClick` pinning
@@ -59,7 +61,13 @@ var chartView = new SurfaceChartView
     ViewState = SurfaceViewState.CreateDefault(
         matrix.Metadata,
         new SurfaceDataWindow(0d, 0d, matrix.Metadata.Width, matrix.Metadata.Height)),
-    ColorMap = colorMap
+    ColorMap = colorMap,
+    OverlayOptions = new SurfaceChartOverlayOptions
+    {
+        ShowMinorTicks = true,
+        GridPlane = SurfaceChartGridPlane.XZ,
+        LabelFormatter = static (_, value) => value.ToString("0.##")
+    }
 };
 
 chartView.ZoomTo(new SurfaceDataWindow(64d, 32d, 128d, 96d));

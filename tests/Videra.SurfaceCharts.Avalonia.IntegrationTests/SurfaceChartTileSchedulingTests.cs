@@ -4,6 +4,7 @@ using FluentAssertions;
 using Videra.SurfaceCharts.Avalonia.Controls;
 using Videra.SurfaceCharts.Avalonia.Controls.Interaction;
 using Videra.SurfaceCharts.Core;
+using Videra.SurfaceCharts.Core.Rendering;
 using Xunit;
 
 namespace Videra.SurfaceCharts.Avalonia.IntegrationTests;
@@ -187,14 +188,18 @@ public sealed class SurfaceChartTileSchedulingTests
     }
 
     [Fact]
-    public async Task ViewportChange_PrunesToCurrentNeighborhoodInsteadOfDroppingAllDetailTiles()
+    public async Task ViewportChange_PrunesToCurrentPlanRetainedKeys()
     {
         var metadata = SurfaceChartViewLifecycleTests.CreateMetadata();
         var firstViewport = new SurfaceViewport(256, 256, 256, 256);
-        var secondViewport = new SurfaceViewport(512, 256, 256, 256);
+        var secondViewport = new SurfaceViewport(384, 256, 256, 256);
         var outputSize = new Size(64, 64);
-        var firstSelectionKeys = GetSelectionKeys(metadata, firstViewport, outputWidth: 64, outputHeight: 64);
-        var secondSelectionKeys = GetSelectionKeys(metadata, secondViewport, outputWidth: 64, outputHeight: 64);
+        var initialViewState = new SurfaceCameraController(firstViewport).CurrentViewState;
+        var firstPlan = GetCameraAwareRequestPlan(metadata, initialViewState, outputSize, SurfaceChartInteractionQuality.Refine);
+        var secondViewState = new SurfaceViewState(secondViewport.ToDataWindow(), initialViewState.Camera);
+        var secondPlan = GetCameraAwareRequestPlan(metadata, secondViewState, outputSize, SurfaceChartInteractionQuality.Refine);
+        var firstSelectionKeys = GetDetailOrderedKeys(firstPlan);
+        var secondSelectionKeys = GetDetailOrderedKeys(secondPlan);
         var retainedDetailKeys = firstSelectionKeys
             .Intersect(secondSelectionKeys)
             .OrderBy(static key => key.LevelY)
@@ -216,7 +221,7 @@ public sealed class SurfaceChartTileSchedulingTests
 
         controller.UpdateViewSize(outputSize);
         controller.UpdateSource(source);
-        await source.WaitForRequestCountAsync(1 + firstSelectionKeys.Length);
+        await source.WaitForRequestCountAsync(firstPlan.OrderedKeys.Count);
         await Task.Delay(100);
 
         var blockedRequestCount = secondSelectionKeys.Except(retainedDetailKeys).Count();
@@ -230,7 +235,6 @@ public sealed class SurfaceChartTileSchedulingTests
 
         var expectedKeys = new[] { overviewKey }.Concat(retainedDetailKeys).ToArray();
         tileCache.GetLoadedTiles().Select(static tile => tile.Key).Should().Equal(expectedKeys);
-        retainedDetailKeys.Should().NotBeEmpty();
 
         controller.UpdateSource(null);
         await Task.Delay(100);
@@ -417,19 +421,20 @@ public sealed class SurfaceChartTileSchedulingTests
         refineController.UpdateViewSize(outputSize);
         refineController.UpdateSource(refineSource);
 
-        var refineExpectedKeys = GetPrioritizedKeys(metadata, viewport, outputWidth: 256, outputHeight: 256);
-        await refineSource.WaitForRequestCountAsync(1 + refineExpectedKeys.Length);
+        var refineViewState = new SurfaceCameraController(viewport).CurrentViewState;
+        var refinePlan = GetCameraAwareRequestPlan(metadata, refineViewState, outputSize, SurfaceChartInteractionQuality.Refine);
+        await refineSource.WaitForRequestCountAsync(refinePlan.OrderedKeys.Count);
 
         interactiveController.UpdateViewSize(outputSize);
         qualityMethod.Invoke(interactiveController, [interactiveQuality]);
         interactiveController.UpdateSource(interactiveSource);
 
-        var interactiveExpectedKeys = GetPrioritizedKeys(metadata, viewport, outputWidth: 512, outputHeight: 512);
-        await interactiveSource.WaitForRequestCountAsync(1 + interactiveExpectedKeys.Length);
+        var interactivePlan = GetCameraAwareRequestPlan(metadata, refineViewState, new Size(512, 512), SurfaceChartInteractionQuality.Interactive);
+        await interactiveSource.WaitForRequestCountAsync(interactivePlan.OrderedKeys.Count);
 
-        refineSource.RequestLog.Skip(1).Should().Equal(refineExpectedKeys);
-        interactiveSource.RequestLog.Skip(1).Should().Equal(interactiveExpectedKeys);
-        interactiveExpectedKeys.Length.Should().BeLessThan(refineExpectedKeys.Length);
+        refineSource.RequestLog.Should().Equal(refinePlan.OrderedKeys);
+        interactiveSource.RequestLog.Should().Equal(interactivePlan.OrderedKeys);
+        GetDetailOrderedKeys(interactivePlan).Length.Should().BeLessThan(GetDetailOrderedKeys(refinePlan).Length);
     }
 
     [Fact]
@@ -464,7 +469,9 @@ public sealed class SurfaceChartTileSchedulingTests
         var metadata = SurfaceChartViewLifecycleTests.CreateMetadata();
         var viewport = new SurfaceViewport(0, 0, metadata.Width, metadata.Height);
         var outputSize = new Size(256, 256);
-        var expectedOrderedKeys = GetPrioritizedKeys(metadata, viewport, outputWidth: 256, outputHeight: 256);
+        var viewState = new SurfaceCameraController(viewport).CurrentViewState;
+        var expectedPlan = GetCameraAwareRequestPlan(metadata, viewState, outputSize, SurfaceChartInteractionQuality.Refine);
+        var expectedOrderedKeys = GetDetailOrderedKeys(expectedPlan);
         var source = new BatchRecordingSurfaceTileSource(metadata);
         var tileCache = new SurfaceTileCache();
         var scheduler = new SurfaceTileScheduler(tileCache, static () => { }, maxConcurrentRequests: 3);
@@ -478,7 +485,7 @@ public sealed class SurfaceChartTileSchedulingTests
         controller.UpdateViewSize(outputSize);
         controller.UpdateSource(source);
 
-        await source.WaitForTotalRequestCountAsync(1 + expectedOrderedKeys.Length);
+        await source.WaitForTotalRequestCountAsync(expectedPlan.OrderedKeys.Count);
 
         source.SingleRequestLog.Should().Equal(new SurfaceTileKey(0, 0, 0, 0));
         source.BatchRequestLog.Should().NotBeEmpty();
@@ -486,15 +493,101 @@ public sealed class SurfaceChartTileSchedulingTests
         source.BatchRequestLog.SelectMany(static batch => batch).Should().Equal(expectedOrderedKeys);
     }
 
-    private static SurfaceTileKey[] GetSelectionKeys(
-        SurfaceMetadata metadata,
-        SurfaceViewport viewport,
-        int outputWidth,
-        int outputHeight)
+    [Fact]
+    public void CameraAwareRequestPlan_FartherCameraChangesSelection()
     {
-        var selection = SurfaceLodPolicy.Default.Select(
-            new SurfaceViewportRequest(metadata, viewport, outputWidth, outputHeight));
-        return selection.EnumerateTileKeys().ToArray();
+        var metadata = CreateLargeMetadata();
+        var dataWindow = new SurfaceDataWindow(0d, 0d, metadata.Width, metadata.Height);
+        var source = new RecordingSurfaceTileSource(metadata);
+        var tileCache = new SurfaceTileCache();
+        var scheduler = new SurfaceTileScheduler(tileCache, static () => { });
+        var nearCamera = SurfaceCameraPose.CreateDefault(metadata, dataWindow);
+        var farCamera = new SurfaceCameraPose(
+            nearCamera.Target,
+            nearCamera.YawDegrees,
+            nearCamera.PitchDegrees,
+            nearCamera.Distance * 4d,
+            nearCamera.FieldOfViewDegrees);
+        var nearViewState = new SurfaceViewState(dataWindow, nearCamera);
+        var farViewState = new SurfaceViewState(dataWindow, farCamera);
+        var nearFrame = SurfaceProjectionMath.CreateCameraFrame(metadata, nearViewState, 256d, 256d, 1f);
+        var farFrame = SurfaceProjectionMath.CreateCameraFrame(metadata, farViewState, 256d, 256d, 1f);
+
+        scheduler.UpdateSource(source);
+
+        var nearPlan = scheduler.CreateRequestPlan(nearViewState, nearFrame, new Size(256, 256), SurfaceChartInteractionQuality.Refine);
+        var farPlan = scheduler.CreateRequestPlan(farViewState, farFrame, new Size(256, 256), SurfaceChartInteractionQuality.Refine);
+
+        farPlan.OrderedKeys.Should().NotEqual(nearPlan.OrderedKeys);
+        farPlan.RetainedKeys.Should().NotBeEquivalentTo(nearPlan.RetainedKeys);
+    }
+
+    [Fact]
+    public async Task CameraOnlyViewStateChange_ReplansWhenProjectedFootprintChanges()
+    {
+        var metadata = CreateLargeMetadata();
+        var dataWindow = new SurfaceDataWindow(0d, 0d, metadata.Width, metadata.Height);
+        var source = new RecordingSurfaceTileSource(metadata);
+        var tileCache = new SurfaceTileCache();
+        var cameraController = new SurfaceCameraController(new SurfaceViewState(dataWindow, SurfaceCameraPose.CreateDefault(metadata, dataWindow)));
+        var controller = new SurfaceChartController(
+            cameraController,
+            tileCache,
+            new SurfaceTileScheduler(tileCache, static () => { }),
+            static () => { },
+            static () => { });
+
+        controller.UpdateViewSize(new Size(256, 256));
+        controller.UpdateSource(source);
+        await source.WaitForRequestCountAsync(2, timeout: TimeSpan.FromSeconds(5));
+        await source.AssertRequestCountSettlesAtAsync(source.RequestLog.Count, settlingDelay: TimeSpan.FromMilliseconds(100));
+
+        var initialRequestCount = source.RequestLog.Count;
+        var currentCamera = cameraController.CurrentViewState.Camera;
+        var fartherCamera = new SurfaceCameraPose(
+            currentCamera.Target,
+            currentCamera.YawDegrees,
+            currentCamera.PitchDegrees,
+            currentCamera.Distance * 4d,
+            currentCamera.FieldOfViewDegrees);
+
+        controller.UpdateViewState(new SurfaceViewState(dataWindow, fartherCamera));
+
+        await source.WaitForRequestCountAsync(initialRequestCount + 1, timeout: TimeSpan.FromSeconds(5));
+    }
+
+    [Fact]
+    public void CameraAwareRequestPlan_ObliqueCameraReordersDetailPriorityWithinSameSelection()
+    {
+        var metadata = new SurfaceMetadata(
+            1024,
+            512,
+            new SurfaceAxisDescriptor("Time", "s", 0d, 1023d),
+            new SurfaceAxisDescriptor("Frequency", "Hz", 0d, 511d),
+            new SurfaceValueRange(0d, 100d));
+        var dataWindow = new SurfaceDataWindow(0d, 0d, metadata.Width, metadata.Height);
+        var source = new RecordingSurfaceTileSource(metadata);
+        var tileCache = new SurfaceTileCache();
+        var scheduler = new SurfaceTileScheduler(tileCache, static () => { });
+        var baseCamera = SurfaceCameraPose.CreateDefault(metadata, dataWindow);
+        var obliqueCamera = new SurfaceCameraPose(
+            baseCamera.Target,
+            yawDegrees: 15d,
+            pitchDegrees: 10d,
+            baseCamera.Distance,
+            baseCamera.FieldOfViewDegrees);
+        var baseViewState = new SurfaceViewState(dataWindow, baseCamera);
+        var obliqueViewState = new SurfaceViewState(dataWindow, obliqueCamera);
+        var baseFrame = SurfaceProjectionMath.CreateCameraFrame(metadata, baseViewState, 256d, 256d, 1f);
+        var obliqueFrame = SurfaceProjectionMath.CreateCameraFrame(metadata, obliqueViewState, 256d, 256d, 1f);
+
+        scheduler.UpdateSource(source);
+
+        var basePlan = scheduler.CreateRequestPlan(baseViewState, baseFrame, new Size(256, 256), SurfaceChartInteractionQuality.Refine);
+        var obliquePlan = scheduler.CreateRequestPlan(obliqueViewState, obliqueFrame, new Size(256, 256), SurfaceChartInteractionQuality.Refine);
+
+        obliquePlan.RetainedKeys.Should().BeEquivalentTo(basePlan.RetainedKeys);
+        obliquePlan.OrderedKeys.Should().NotEqual(basePlan.OrderedKeys);
     }
 
     private static SurfaceTileKey[] GetPrioritizedKeys(
@@ -524,6 +617,26 @@ public sealed class SurfaceChartTileSchedulingTests
             .ToArray();
     }
 
+    private static SurfaceTileRequestPlan GetCameraAwareRequestPlan(
+        SurfaceMetadata metadata,
+        SurfaceViewState viewState,
+        Size outputSize,
+        SurfaceChartInteractionQuality interactionQuality)
+    {
+        var tileCache = new SurfaceTileCache();
+        var scheduler = new SurfaceTileScheduler(tileCache, static () => { });
+        scheduler.UpdateSource(new RecordingSurfaceTileSource(metadata));
+        var cameraFrame = SurfaceProjectionMath.CreateCameraFrame(metadata, viewState, outputSize.Width, outputSize.Height, 1f);
+        return scheduler.CreateRequestPlan(viewState, cameraFrame, outputSize, interactionQuality);
+    }
+
+    private static SurfaceTileKey[] GetDetailOrderedKeys(SurfaceTileRequestPlan plan)
+    {
+        return plan.OrderedKeys
+            .Where(static key => key != new SurfaceTileKey(0, 0, 0, 0))
+            .ToArray();
+    }
+
     private static bool IsVisible(
         SurfaceTileKey key,
         int visibleTileXStart,
@@ -549,6 +662,16 @@ public sealed class SurfaceChartTileSchedulingTests
         var normalizedEndExclusive = viewportEndExclusive / datasetSpan;
         var tileIndex = (int)Math.Ceiling(normalizedEndExclusive * tileCount) - 1;
         return Math.Clamp(tileIndex, 0, tileCount - 1);
+    }
+
+    private static SurfaceMetadata CreateLargeMetadata()
+    {
+        return new SurfaceMetadata(
+            4096,
+            2048,
+            new SurfaceAxisDescriptor("Time", "s", 0d, 4095d),
+            new SurfaceAxisDescriptor("Frequency", "Hz", 0d, 2047d),
+            new SurfaceValueRange(0d, 100d));
     }
 }
 

@@ -38,6 +38,7 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
         readme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsViewStateSentence);
         readme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsInteractionSentence);
         readme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsInteractionQualitySentence);
+        readme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsOverlayOptionsSentence);
         readme.Should().Contain("axis/legend overlays");
         readme.Should().Contain("src/Videra.SurfaceCharts.Core/README.md");
         readme.Should().Contain("src/Videra.SurfaceCharts.Avalonia/README.md");
@@ -61,6 +62,7 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
         readme.Should().Contain(SurfaceChartsDocumentationTerms.ChineseSurfaceChartsTruthSentence);
         readme.Should().Contain(SurfaceChartsDocumentationTerms.ChineseSurfaceChartsViewStateSentence);
         readme.Should().Contain(SurfaceChartsDocumentationTerms.ChineseSurfaceChartsInteractionQualitySentence);
+        readme.Should().Contain(SurfaceChartsDocumentationTerms.ChineseSurfaceChartsOverlayOptionsSentence);
     }
 
     [Fact]
@@ -112,9 +114,11 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
         avaloniaReadme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsViewStateSentence);
         avaloniaReadme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsInteractionSentence);
         avaloniaReadme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsInteractionQualitySentence);
+        avaloniaReadme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsOverlayOptionsSentence);
         avaloniaReadme.Should().Contain("independent from `VideraView`");
         avaloniaReadme.Should().Contain("hover/pinned probe");
         avaloniaReadme.Should().Contain("Shift + LeftClick");
+        avaloniaReadme.Should().Contain("OverlayOptions");
         avaloniaReadme.Should().Contain("FitToData()");
         avaloniaReadme.Should().Contain("ResetCamera()");
         avaloniaReadme.Should().Contain("ZoomTo(...)");
@@ -133,6 +137,9 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
         demoReadme.Should().Contain("Ctrl + Left drag");
         demoReadme.Should().Contain("Interactive");
         demoReadme.Should().Contain("Refine");
+        demoReadme.Should().Contain("OverlayOptions");
+        demoReadme.Should().Contain("minor ticks");
+        demoReadme.Should().Contain("grid plane");
     }
 
     [Fact]
@@ -169,9 +176,11 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
         avaloniaPage.Should().Contain(SurfaceChartsDocumentationTerms.ChineseAvaloniaProbeSentence);
         avaloniaPage.Should().Contain(SurfaceChartsDocumentationTerms.ChineseSurfaceChartsViewStateSentence);
         avaloniaPage.Should().Contain(SurfaceChartsDocumentationTerms.ChineseSurfaceChartsInteractionQualitySentence);
+        avaloniaPage.Should().Contain(SurfaceChartsDocumentationTerms.ChineseSurfaceChartsOverlayOptionsSentence);
         avaloniaPage.Should().Contain("FitToData()");
         avaloniaPage.Should().Contain("ResetCamera()");
         avaloniaPage.Should().Contain("ZoomTo(...)");
+        avaloniaPage.Should().Contain("OverlayOptions");
         avaloniaPage.Should().Contain("XWayland compatibility");
 
         processingPage.Should().Contain(SurfaceChartsDocumentationTerms.ChineseProcessingStatisticsSentence);

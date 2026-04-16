@@ -7,6 +7,7 @@ using FluentAssertions;
 using Videra.SurfaceCharts.Avalonia.Controls;
 using Videra.SurfaceCharts.Avalonia.Controls.Interaction;
 using Videra.SurfaceCharts.Core;
+using Videra.SurfaceCharts.Core.Rendering;
 using Xunit;
 
 namespace Videra.SurfaceCharts.Avalonia.IntegrationTests;
@@ -245,10 +246,10 @@ public sealed class SurfaceChartViewLifecycleTests
     public async Task ControllerSourceReplacement_DoesNotPublishLateFailuresFromSupersededGeneration()
     {
         var metadata = CreateMetadata();
-        var expectedPipelineRequestCount = 1 + SurfaceLodPolicy.Default
-            .Select(new SurfaceViewportRequest(metadata, new SurfaceViewport(0, 0, 512, 512), 256, 256))
-            .EnumerateTileKeys()
-            .Count();
+        var expectedPipelineRequestCount = GetCameraAwarePipelineRequestCount(
+            metadata,
+            new SurfaceViewport(0, 0, 512, 512),
+            new Size(256, 256));
         var staleSource = new ScriptedSurfaceTileSource(metadata, defaultTileValue: 11);
         var activeSource = new ScriptedSurfaceTileSource(metadata, defaultTileValue: 42);
         var staleRequestStarted = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -519,6 +520,21 @@ public sealed class SurfaceChartViewLifecycleTests
             new SurfaceAxisDescriptor("X", unit: null, minimum: 0, maximum: 1023),
             new SurfaceAxisDescriptor("Y", unit: null, minimum: 0, maximum: 1023),
             new SurfaceValueRange(0, 100));
+    }
+
+    private static int GetCameraAwarePipelineRequestCount(
+        SurfaceMetadata metadata,
+        SurfaceViewport viewport,
+        Size viewSize,
+        SurfaceChartInteractionQuality interactionQuality = SurfaceChartInteractionQuality.Refine)
+    {
+        var tileCache = new SurfaceTileCache();
+        var scheduler = new SurfaceTileScheduler(tileCache, static () => { });
+        scheduler.UpdateSource(new RecordingSurfaceTileSource(metadata));
+
+        var viewState = new SurfaceCameraController(viewport).CurrentViewState;
+        var cameraFrame = SurfaceProjectionMath.CreateCameraFrame(metadata, viewState, viewSize.Width, viewSize.Height, 1f);
+        return scheduler.CreateRequestPlan(viewState, cameraFrame, viewSize, interactionQuality).OrderedKeys.Count;
     }
 }
 

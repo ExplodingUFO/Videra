@@ -1,10 +1,12 @@
 using System.Linq;
 using System.Reflection;
+using System.Numerics;
 using Avalonia;
 using FluentAssertions;
 using Videra.SurfaceCharts.Avalonia.Controls;
 using Videra.SurfaceCharts.Avalonia.Controls.Overlay;
 using Videra.SurfaceCharts.Core;
+using Videra.SurfaceCharts.Core.Rendering;
 using Xunit;
 
 namespace Videra.SurfaceCharts.Avalonia.IntegrationTests;
@@ -318,6 +320,61 @@ public sealed class SurfaceChartProbeOverlayTests
         GetDoubleProperty(hoveredProbe, "Value").Should().Be(10d);
     }
 
+    [Fact]
+    public void ProbeOverlay_CameraFramePicking_ResolvesProjectedPeakAndWorldTruth()
+    {
+        var metadata = new SurfaceMetadata(
+            width: 5,
+            height: 5,
+            new SurfaceAxisDescriptor("Time", "s", 10d, 20d),
+            new SurfaceAxisDescriptor("Frequency", "Hz", 100d, 200d),
+            new SurfaceValueRange(0d, 10d));
+        var tile = new SurfaceTile(
+            new SurfaceTileKey(2, 2, 0, 0),
+            width: 5,
+            height: 5,
+            new SurfaceTileBounds(0, 0, 5, 5),
+            new float[]
+            {
+                0f, 1f, 2f, 1f, 0f,
+                1f, 3f, 5f, 3f, 1f,
+                2f, 5f, 10f, 5f, 2f,
+                1f, 3f, 5f, 3f, 1f,
+                0f, 1f, 2f, 1f, 0f,
+            },
+            metadata.ValueRange);
+        var camera = new SurfaceCameraPose(
+            target: new Vector3(15f, 5f, 150f),
+            yawDegrees: 210d,
+            pitchDegrees: 15d,
+            distance: 40d,
+            fieldOfViewDegrees: 45d);
+        var cameraFrame = SurfaceProjectionMath.CreateCameraFrame(
+            metadata,
+            new SurfaceViewState(new SurfaceDataWindow(0d, 0d, 5d, 5d), camera),
+            viewWidth: 320d,
+            viewHeight: 240d,
+            renderScale: 1f);
+        var peakWorldPosition = new Vector3(15f, 10f, 150f);
+        var screenPoint = SurfaceProjectionMath.ProjectToScreen(peakWorldPosition, cameraFrame);
+
+        var state = SurfaceProbeOverlayPresenter.CreateState(
+            new StaticTileSource(metadata),
+            cameraFrame,
+            [tile],
+            new Point(screenPoint.X, screenPoint.Y));
+
+        var hoveredProbe = GetHoveredProbe(state);
+        GetDoubleProperty(hoveredProbe, "SampleX").Should().BeApproximately(2d, 0.01d);
+        GetDoubleProperty(hoveredProbe, "SampleY").Should().BeApproximately(2d, 0.01d);
+        GetDoubleProperty(hoveredProbe, "AxisX").Should().BeApproximately(15d, 0.0001d);
+        GetDoubleProperty(hoveredProbe, "AxisY").Should().BeApproximately(150d, 0.0001d);
+        GetDoubleProperty(hoveredProbe, "Value").Should().BeApproximately(10d, 0.01d);
+        GetBooleanProperty(hoveredProbe, "IsApproximate").Should().BeFalse();
+        GetPropertyValue(hoveredProbe, "TileKey").Should().Be(tile.Key);
+        GetVector3Property(hoveredProbe, "WorldPosition").Should().Be(peakWorldPosition);
+    }
+
     private static void UpdateProbeScreenPosition(SurfaceChartView view, Point probeScreenPosition)
     {
         var method = typeof(SurfaceChartView).GetMethod(
@@ -360,6 +417,11 @@ public sealed class SurfaceChartProbeOverlayTests
     private static double GetDoubleProperty(object instance, string propertyName)
     {
         return (double)GetPropertyValue(instance, propertyName)!;
+    }
+
+    private static Vector3 GetVector3Property(object instance, string propertyName)
+    {
+        return (Vector3)GetPropertyValue(instance, propertyName)!;
     }
 
     private static string? GetStringProperty(object instance, string propertyName)

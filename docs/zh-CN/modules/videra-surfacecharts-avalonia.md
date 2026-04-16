@@ -6,6 +6,7 @@
 
 SurfaceChartView 现在以 `ViewState` 作为主 chart-view 契约，而 `Viewport` 只保留为兼容桥接。
 图表在交互过程中进入 `Interactive` 质量模式，并在输入停稳后回到 `Refine`。
+SurfaceChartView 通过 chart-local `OverlayOptions` 提供 formatter、标题/单位覆盖、minor ticks、grid plane 与 axis-side 行为。
 
 > 中文镜像用于快速查阅，英文版为准。
 
@@ -24,6 +25,7 @@ SurfaceChartView 现在以 `ViewState` 作为主 chart-view 契约，而 `Viewpo
 - 提供显式 `Interactive` / `Refine` 质量切换
 - 提供 chart-local `GPU-first` 渲染主路径，并保留显式 `software fallback`
 - 暴露宿主可见的 `RenderingStatus` / `RenderStatusChanged`
+- 提供 chart-local `OverlayOptions`，用于 formatter、标题/单位覆盖、minor ticks、grid plane 与 axis-side 行为
 - 提供 axis/legend overlays、hover readout 与 `Shift + LeftClick` pinned probe
 - 配合 `Videra.SurfaceCharts.Processing` 走 overview-first、lazy cache 读取与 view-aware tile residency
 

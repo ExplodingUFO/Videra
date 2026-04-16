@@ -29,6 +29,7 @@ dotnet run --project samples/Videra.SurfaceCharts.Demo/Videra.SurfaceCharts.Demo
 - overview-first LOD behavior
 - lazy cache-backed tile reads through the committed `sample.surfacecache.json` and `.bin` sidecar
 - axis/legend overlays rendered by `SurfaceChartView`
+- an `Overlay options` panel that shows chart-local `OverlayOptions` for formatter, minor ticks, grid plane, and axis-side behavior
 - hover readout and `Shift + LeftClick` pinned probes on the chart surface
 - the shipped `GPU-first` renderer path used by `SurfaceChartView`, with `software fallback` still available when native-host or GPU initialization is unavailable
 - a lightweight rendering-path panel driven by `RenderingStatus` / `RenderStatusChanged`
