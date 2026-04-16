@@ -43,7 +43,7 @@ jobs:
         run: dotnet pack src/Videra.Platform.Linux/Videra.Platform.Linux.csproj -c Release -o ./nupkgs /p:PackageVersion=${{ github.event.inputs.version }}
 
       - name: Upload Linux preview evidence
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: preview-package-evidence-linux
           path: |
@@ -65,7 +65,7 @@ jobs:
         run: dotnet pack src/Videra.Platform.macOS/Videra.Platform.macOS.csproj -c Release -o ./nupkgs /p:PackageVersion=${{ github.event.inputs.version }}
 
       - name: Upload macOS preview evidence
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: preview-package-evidence-macos
           path: |
@@ -91,7 +91,7 @@ jobs:
           dotnet pack src/Videra.Platform.Windows/Videra.Platform.Windows.csproj -c Release -o ./nupkgs /p:PackageVersion=${{ github.event.inputs.version }}
 
       - name: Upload Windows and neutral preview evidence
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: preview-package-evidence-windows-neutral
           path: |

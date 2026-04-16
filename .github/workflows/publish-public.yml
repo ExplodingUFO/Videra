@@ -128,7 +128,7 @@ jobs:
           dotnet pack src/Videra.Avalonia/Videra.Avalonia.csproj -c Release -o ./nupkgs /p:PackageVersion=${{ needs.determine-version.outputs.version }}
 
       - name: Upload neutral package evidence
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: package-evidence-neutral
           path: |
@@ -153,7 +153,7 @@ jobs:
         run: dotnet pack src/Videra.Platform.Linux/Videra.Platform.Linux.csproj -c Release -o ./nupkgs /p:PackageVersion=${{ needs.determine-version.outputs.version }}
 
       - name: Upload Linux package evidence
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: package-evidence-linux
           path: |
@@ -177,7 +177,7 @@ jobs:
         run: dotnet pack src/Videra.Platform.macOS/Videra.Platform.macOS.csproj -c Release -o ./nupkgs /p:PackageVersion=${{ needs.determine-version.outputs.version }}
 
       - name: Upload macOS package evidence
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: package-evidence-macos
           path: |
@@ -202,7 +202,7 @@ jobs:
         run: dotnet pack src/Videra.Platform.Windows/Videra.Platform.Windows.csproj -c Release -o ./nupkgs /p:PackageVersion=${{ needs.determine-version.outputs.version }}
 
       - name: Upload Windows package evidence
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: package-evidence-windows
           path: |
