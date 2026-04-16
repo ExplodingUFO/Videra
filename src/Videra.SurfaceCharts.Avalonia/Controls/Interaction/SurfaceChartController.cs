@@ -5,6 +5,7 @@ namespace Videra.SurfaceCharts.Avalonia.Controls.Interaction;
 
 internal sealed class SurfaceChartController
 {
+    private const double InteractiveOutputScale = 2d;
     private readonly SurfaceCameraController _cameraController;
     private readonly SurfaceTileCache _tileCache;
     private readonly SurfaceTileScheduler _tileScheduler;
@@ -13,6 +14,7 @@ internal sealed class SurfaceChartController
     private CancellationTokenSource? _requestCts;
     private long _requestGeneration;
     private Size _viewSize;
+    private SurfaceChartInteractionQuality _interactionQuality = SurfaceChartInteractionQuality.Refine;
 
     public SurfaceChartController(
         SurfaceCameraController cameraController,
@@ -40,17 +42,38 @@ internal sealed class SurfaceChartController
             return;
         }
 
-        StartRequestPipeline(includeViewportRequest: _viewSize.Width > 0 && _viewSize.Height > 0, requestGeneration);
+        StartRequestPipeline(CreateCurrentRequestPlan(), requestGeneration);
     }
 
     public void UpdateViewport(SurfaceViewport viewport)
     {
-        _cameraController.UpdateViewport(viewport);
-        var requestGeneration = SupersedeOutstandingRequests();
-        _clearFailureState();
-        _tileCache.PruneDetailTiles();
-        _invalidateScene();
-        StartRequestPipeline(includeViewportRequest: true, requestGeneration);
+        UpdateDataWindow(viewport.ToDataWindow());
+    }
+
+    public void UpdateViewState(SurfaceViewState viewState)
+    {
+        var currentViewState = _cameraController.CurrentViewState;
+        if (currentViewState == viewState)
+        {
+            return;
+        }
+
+        _cameraController.UpdateViewState(viewState);
+
+        if (currentViewState.DataWindow == viewState.DataWindow)
+        {
+            _clearFailureState();
+            _invalidateScene();
+            return;
+        }
+
+        RefreshRequestPipeline();
+    }
+
+    public void UpdateDataWindow(SurfaceDataWindow dataWindow)
+    {
+        _cameraController.UpdateDataWindow(dataWindow);
+        RefreshRequestPipeline();
     }
 
     public void UpdateViewSize(Size viewSize)
@@ -61,19 +84,52 @@ internal sealed class SurfaceChartController
         }
 
         _viewSize = viewSize;
-        var requestGeneration = SupersedeOutstandingRequests();
-        _clearFailureState();
-        _tileCache.PruneDetailTiles();
-        _invalidateScene();
-
-        StartRequestPipeline(includeViewportRequest: viewSize.Width > 0 && viewSize.Height > 0, requestGeneration);
+        RefreshRequestPipeline();
     }
 
-    private void StartRequestPipeline(bool includeViewportRequest, long requestGeneration)
+    public void UpdateInteractionQuality(SurfaceChartInteractionQuality interactionQuality)
+    {
+        if (_interactionQuality == interactionQuality)
+        {
+            return;
+        }
+
+        _interactionQuality = interactionQuality;
+        RefreshRequestPipeline();
+    }
+
+    private SurfaceTileRequestPlan CreateCurrentRequestPlan()
+    {
+        return _tileScheduler.CreateRequestPlan(_cameraController.CurrentViewport, GetEffectiveOutputSize());
+    }
+
+    private Size GetEffectiveOutputSize()
+    {
+        if (_interactionQuality != SurfaceChartInteractionQuality.Interactive)
+        {
+            return _viewSize;
+        }
+
+        return new Size(
+            Math.Ceiling(_viewSize.Width * InteractiveOutputScale),
+            Math.Ceiling(_viewSize.Height * InteractiveOutputScale));
+    }
+
+    private void RefreshRequestPipeline()
+    {
+        var requestGeneration = SupersedeOutstandingRequests();
+        _clearFailureState();
+        var plan = CreateCurrentRequestPlan();
+        _tileCache.PruneToKeys(plan.RetainedKeys);
+        _invalidateScene();
+        StartRequestPipeline(plan, requestGeneration);
+    }
+
+    private void StartRequestPipeline(SurfaceTileRequestPlan plan, long requestGeneration)
     {
         var cancellationTokenSource = new CancellationTokenSource();
         _requestCts = cancellationTokenSource;
-        _ = RunRequestPipelineAsync(includeViewportRequest, requestGeneration, cancellationTokenSource.Token);
+        _ = RunRequestPipelineAsync(plan, requestGeneration, cancellationTokenSource.Token);
     }
 
     private long SupersedeOutstandingRequests()
@@ -85,23 +141,13 @@ internal sealed class SurfaceChartController
     }
 
     private async Task RunRequestPipelineAsync(
-        bool includeViewportRequest,
+        SurfaceTileRequestPlan plan,
         long requestGeneration,
         CancellationToken cancellationToken)
     {
         try
         {
-            await _tileScheduler.RequestOverviewAsync(requestGeneration, cancellationToken).ConfigureAwait(false);
-
-            if (includeViewportRequest)
-            {
-                await _tileScheduler.RequestViewportAsync(
-                        _cameraController.CurrentViewport,
-                        _viewSize,
-                        requestGeneration,
-                        cancellationToken)
-                    .ConfigureAwait(false);
-            }
+            await _tileScheduler.RequestPlanAsync(plan, requestGeneration, cancellationToken).ConfigureAwait(false);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {

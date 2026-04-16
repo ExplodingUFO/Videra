@@ -1,4 +1,5 @@
 using Avalonia.Controls;
+using Avalonia.Interactivity;
 using FluentAssertions;
 using Videra.SurfaceCharts.Avalonia.Controls;
 using Videra.SurfaceCharts.Core;
@@ -10,7 +11,7 @@ namespace Videra.Core.Tests.Samples;
 public sealed class SurfaceChartsDemoViewportBehaviorTests
 {
     [Fact]
-    public Task DemoWindow_ViewportSelectionAndSourceSwitch_UseMetadataDrivenViewportPresets()
+    public Task DemoWindow_UsesBuiltInInteractionWorkflowAndRemovesViewportSelector()
     {
         return AvaloniaHeadlessTestSession.RunAsync(async () =>
         {
@@ -19,98 +20,125 @@ public sealed class SurfaceChartsDemoViewportBehaviorTests
                 ?? throw new InvalidOperationException("ChartView is missing.");
             var sourceSelector = window.FindControl<ComboBox>("SourceSelector")
                 ?? throw new InvalidOperationException("SourceSelector is missing.");
-            var viewportSelector = window.FindControl<ComboBox>("ViewportSelector")
-                ?? throw new InvalidOperationException("ViewportSelector is missing.");
             var statusText = window.FindControl<TextBlock>("StatusText")
                 ?? throw new InvalidOperationException("StatusText is missing.");
+            var interactionQualityText = window.FindControl<TextBlock>("InteractionQualityText")
+                ?? throw new InvalidOperationException("InteractionQualityText is missing.");
 
             chartView.Source.Should().NotBeNull();
-            chartView.Viewport.Should().Be(CreateOverviewViewport(chartView.Source!.Metadata));
-
-            SelectItem(viewportSelector, GetComboBoxItemByTag(viewportSelector, "detail"));
-
-            await WaitForConditionAsync(
-                () => chartView.Viewport == CreateZoomedDetailViewport(chartView.Source!.Metadata),
-                "selecting the detail viewport should reapply the metadata-driven detail preset.")
-                .ConfigureAwait(true);
-
-            chartView.Viewport.Should().Be(CreateZoomedDetailViewport(chartView.Source!.Metadata));
-            statusText.Text.Should().Contain("Zoomed detail");
+            window.FindControl<ComboBox>("ViewportSelector").Should().BeNull();
+            chartView.ViewState.DataWindow.Should().Be(new SurfaceDataWindow(0d, 0d, chartView.Source!.Metadata.Width, chartView.Source.Metadata.Height));
+            statusText.Text.Should().Contain("Built-in navigation");
+            interactionQualityText.Text.Should().Contain("Refine");
 
             SelectItem(sourceSelector, GetComboBoxItemByContent(sourceSelector, "Cache-backed example"));
 
             await WaitForConditionAsync(
                 () => chartView.Source is not null &&
-                      chartView.Viewport == CreateZoomedDetailViewport(chartView.Source.Metadata) &&
                       statusText.Text?.Contains("Cache-backed example", StringComparison.Ordinal) == true,
-                "switching sources should preserve the selected detail viewport using the active metadata.")
+                "switching sources should keep the built-in interaction workflow active on the new source.")
                 .ConfigureAwait(true);
 
-            chartView.Viewport.Should().Be(CreateZoomedDetailViewport(chartView.Source!.Metadata));
+            chartView.ViewState.DataWindow.Should().Be(new SurfaceDataWindow(0d, 0d, chartView.Source!.Metadata.Width, chartView.Source.Metadata.Height));
             statusText.Text.Should().Contain("Cache-backed example");
             statusText.Text.Should().Contain("lazy");
+        });
+    }
 
-            SelectItem(viewportSelector, GetComboBoxItemByTag(viewportSelector, "overview"));
+    [Fact]
+    public Task DemoWindow_ViewStateContractButtonsDrivePublicApi()
+    {
+        return AvaloniaHeadlessTestSession.RunAsync(async () =>
+        {
+            var window = new MainWindow();
+            var chartView = window.FindControl<SurfaceChartView>("ChartView")
+                ?? throw new InvalidOperationException("ChartView is missing.");
+            var fitToDataButton = window.FindControl<Button>("FitToDataButton")
+                ?? throw new InvalidOperationException("FitToDataButton is missing.");
+            var resetCameraButton = window.FindControl<Button>("ResetCameraButton")
+                ?? throw new InvalidOperationException("ResetCameraButton is missing.");
+            var viewStateText = window.FindControl<TextBlock>("ViewStateText")
+                ?? throw new InvalidOperationException("ViewStateText is missing.");
+            var interactionQualityText = window.FindControl<TextBlock>("InteractionQualityText")
+                ?? throw new InvalidOperationException("InteractionQualityText is missing.");
+
+            var focusedWindow = new SurfaceDataWindow(8d, 6d, 32d, 24d);
+            chartView.ZoomTo(focusedWindow);
+            chartView.ViewState.DataWindow.Should().Be(focusedWindow);
+
+            chartView.ViewState = new SurfaceViewState(
+                chartView.ViewState.DataWindow,
+                new SurfaceCameraPose(new System.Numerics.Vector3(2f, 3f, 4f), 180d, 22d, 16d, 40d));
+
+            ClickButton(resetCameraButton);
 
             await WaitForConditionAsync(
-                () => chartView.Viewport == CreateOverviewViewport(chartView.Source!.Metadata),
-                "selecting the overview viewport should restore the full-metadata viewport.")
+                () => chartView.ViewState.Camera == SurfaceCameraPose.CreateDefault(chartView.Source!.Metadata, chartView.ViewState.DataWindow),
+                "Reset camera should restore the default pose for the active data window.")
                 .ConfigureAwait(true);
 
-            chartView.Viewport.Should().Be(CreateOverviewViewport(chartView.Source!.Metadata));
-            statusText.Text.Should().Contain("Overview");
+            ClickButton(fitToDataButton);
+
+            await WaitForConditionAsync(
+                () => chartView.ViewState.DataWindow == new SurfaceDataWindow(0d, 0d, chartView.Source!.Metadata.Width, chartView.Source.Metadata.Height),
+                "Fit to data should restore the full dataset window through the public API.")
+                .ConfigureAwait(true);
+
+            viewStateText.Text.Should().Contain("ViewState");
+            viewStateText.Text.Should().Contain("Data window");
+            viewStateText.Text.Should().Contain("Camera");
+            interactionQualityText.Text.Should().Contain("Refine");
         });
     }
 
     [Fact]
-    public Task DemoWindow_ViewportSelectionThrowsForUnknownViewportTag()
+    public Task DemoWindow_InteractionGuidancePanels_ProjectBuiltInTruth()
     {
-        return AvaloniaHeadlessTestSession.RunAsync(() =>
+        return AvaloniaHeadlessTestSession.RunAsync(async () =>
         {
             var window = new MainWindow();
-            var viewportSelector = window.FindControl<ComboBox>("ViewportSelector")
-                ?? throw new InvalidOperationException("ViewportSelector is missing.");
-            var detailItem = GetComboBoxItemByTag(viewportSelector, "detail");
+            var statusText = window.FindControl<TextBlock>("StatusText")
+                ?? throw new InvalidOperationException("StatusText is missing.");
+            var interactionQualityText = window.FindControl<TextBlock>("InteractionQualityText")
+                ?? throw new InvalidOperationException("InteractionQualityText is missing.");
+            var viewStateText = window.FindControl<TextBlock>("ViewStateText")
+                ?? throw new InvalidOperationException("ViewStateText is missing.");
 
-            detailItem.Tag = "unexpected";
+            await WaitForConditionAsync(
+                () => !string.IsNullOrWhiteSpace(statusText.Text) &&
+                      !string.IsNullOrWhiteSpace(interactionQualityText.Text) &&
+                      !string.IsNullOrWhiteSpace(viewStateText.Text),
+                "the demo should project the built-in interaction contract into visible onboarding text.")
+                .ConfigureAwait(true);
 
-            Action act = () => SelectItem(viewportSelector, detailItem);
-            act.Should().Throw<InvalidOperationException>()
-                .WithMessage("Viewport selector tag 'unexpected' is not supported. Expected 'overview' or 'detail'.");
-
-            return Task.CompletedTask;
+            statusText.Text.Should().Contain("Built-in navigation");
+            statusText.Text.Should().Contain("Ctrl + Left drag");
+            interactionQualityText.Text.Should().Contain("Interactive");
+            interactionQualityText.Text.Should().Contain("Refine");
+            viewStateText.Text.Should().Contain("ViewState");
         });
     }
 
     [Fact]
-    public Task DemoWindow_ViewportSelectionThrowsForMissingViewportTag()
+    public Task DemoWindow_RenderingPathProjectsRenderingStatusIntoVisibleText()
     {
-        return AvaloniaHeadlessTestSession.RunAsync(() =>
+        return AvaloniaHeadlessTestSession.RunAsync(async () =>
         {
             var window = new MainWindow();
-            var viewportSelector = window.FindControl<ComboBox>("ViewportSelector")
-                ?? throw new InvalidOperationException("ViewportSelector is missing.");
-            var detailItem = GetComboBoxItemByTag(viewportSelector, "detail");
+            var chartView = window.FindControl<SurfaceChartView>("ChartView")
+                ?? throw new InvalidOperationException("ChartView is missing.");
+            var renderingPathText = window.FindControl<TextBlock>("RenderingPathText")
+                ?? throw new InvalidOperationException("RenderingPathText is missing.");
 
-            detailItem.Tag = null;
+            await WaitForConditionAsync(
+                () => !string.IsNullOrWhiteSpace(renderingPathText.Text),
+                "the demo should project rendering status into visible onboarding text.")
+                .ConfigureAwait(true);
 
-            Action act = () => SelectItem(viewportSelector, detailItem);
-            act.Should().Throw<InvalidOperationException>()
-                .WithMessage("Viewport selector items must define a non-empty string tag.");
-
-            return Task.CompletedTask;
+            renderingPathText.Text.Should().Contain("Active backend");
+            renderingPathText.Text.Should().Contain(chartView.RenderingStatus.ActiveBackend.ToString());
+            renderingPathText.Text.Should().Contain("Resident tiles");
         });
-    }
-
-    private static ComboBoxItem GetComboBoxItemByTag(ComboBox selector, string tag)
-    {
-        var item = selector.Items
-            .Cast<object?>()
-            .OfType<ComboBoxItem>()
-            .SingleOrDefault(candidate => string.Equals(candidate.Tag as string, tag, StringComparison.Ordinal));
-
-        item.Should().NotBeNull($"Expected a ComboBoxItem tagged '{tag}'.");
-        return item!;
     }
 
     private static ComboBoxItem GetComboBoxItemByContent(ComboBox selector, string content)
@@ -136,19 +164,9 @@ public sealed class SurfaceChartsDemoViewportBehaviorTests
         selector.SelectedIndex = itemIndex;
     }
 
-    private static SurfaceViewport CreateOverviewViewport(SurfaceMetadata metadata)
+    private static void ClickButton(Button button)
     {
-        return new SurfaceViewport(0d, 0d, metadata.Width, metadata.Height);
-    }
-
-    private static SurfaceViewport CreateZoomedDetailViewport(SurfaceMetadata metadata)
-    {
-        var detailWidth = Math.Max(1d, metadata.Width / 4d);
-        var detailHeight = Math.Max(1d, metadata.Height / 4d);
-        var startX = (metadata.Width - detailWidth) / 2d;
-        var startY = (metadata.Height - detailHeight) / 2d;
-
-        return new SurfaceViewport(startX, startY, detailWidth, detailHeight).ClampTo(metadata);
+        button.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
     }
 
     private static async Task WaitForConditionAsync(Func<bool> condition, string because, TimeSpan? timeout = null)

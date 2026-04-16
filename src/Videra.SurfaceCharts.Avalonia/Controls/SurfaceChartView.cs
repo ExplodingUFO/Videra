@@ -8,18 +8,16 @@ using Videra.SurfaceCharts.Rendering;
 namespace Videra.SurfaceCharts.Avalonia.Controls;
 
 /// <summary>
-/// Avalonia control shell for host-driven surface-chart tile scheduling and render-scene composition.
+/// Avalonia control shell for built-in surface-chart interaction, tile scheduling, and render-scene composition.
 /// </summary>
 /// <remarks>
-/// The current alpha surface expects hosts to provide the tile source, viewport updates, and any
-/// higher-level zoom/pan/orbit UI. Full built-in chart interaction and axis presentation are not
-/// complete yet.
+/// Hosts still own the tile source and persisted <see cref="ViewState"/>, but the control now ships
+/// built-in orbit, pan, dolly, and focus interaction on top of the chart-local runtime contract.
 /// </remarks>
 public partial class SurfaceChartView : Decorator
 {
     private readonly SurfaceTileCache _tileCache;
-    private readonly SurfaceCameraController _cameraController;
-    private readonly SurfaceChartController _controller;
+    private readonly SurfaceChartRuntime _runtime;
     private readonly SurfaceChartRenderHost _renderHost;
     private readonly ISurfaceChartNativeHostFactory _nativeHostFactory;
     private readonly Grid _hostContainer;
@@ -32,6 +30,11 @@ public partial class SurfaceChartView : Decorator
     /// Raised when the chart-local rendering backend, fallback state, or native-surface usage changes.
     /// </summary>
     public event EventHandler? RenderStatusChanged;
+
+    /// <summary>
+    /// Raised when the current diagnostic interaction-quality mode changes.
+    /// </summary>
+    public event EventHandler? InteractionQualityChanged;
 
     internal SurfaceChartTileRequestFailedEventArgs? LastTileFailure { get; private set; }
 
@@ -58,13 +61,15 @@ public partial class SurfaceChartView : Decorator
         _nativeHostFactory = nativeHostFactory ?? new DefaultSurfaceChartNativeHostFactory();
         RenderingStatus = _renderHost.RenderingStatus;
         _tileCache = new SurfaceTileCache();
-        _cameraController = new SurfaceCameraController(Viewport);
-        _controller = new SurfaceChartController(
-            _cameraController,
+        _runtime = new SurfaceChartRuntime(
+            Viewport,
             _tileCache,
-            new SurfaceTileScheduler(_tileCache, NotifyTilesChanged, OnTileRequestFailed),
+            NotifyTilesChanged,
+            OnTileRequestFailed,
             ClearLastTileFailure,
-            InvalidateRenderScene);
+            UpdateInteractionQuality,
+            InvalidateRenderScene,
+            InvalidateOverlay);
 
         _overlayLayer = new SurfaceChartOverlayLayer(this)
         {
@@ -75,12 +80,14 @@ public partial class SurfaceChartView : Decorator
         Child = _hostContainer;
 
         ClipToBounds = true;
+        SynchronizeViewStateProperties(_runtime.ViewState);
+        UpdateInteractionQuality(_runtime.InteractionQuality);
     }
 
     /// <inheritdoc />
     protected override Size ArrangeOverride(Size finalSize)
     {
-        _controller.UpdateViewSize(finalSize);
+        _runtime.UpdateViewSize(finalSize);
         UpdateOverlayViewSize(finalSize);
         return base.ArrangeOverride(finalSize);
     }
@@ -112,5 +119,33 @@ public partial class SurfaceChartView : Decorator
     {
         LastTileFailure = args;
         TileRequestFailed?.Invoke(this, args);
+    }
+
+    /// <summary>
+    /// Resets the active data window to the full bounds of the current source.
+    /// </summary>
+    public void FitToData()
+    {
+        _runtime.FitToData();
+        SynchronizeViewStateProperties(_runtime.ViewState);
+    }
+
+    /// <summary>
+    /// Restores the default camera pose for the current data window.
+    /// </summary>
+    public void ResetCamera()
+    {
+        _runtime.ResetCamera();
+        SynchronizeViewStateProperties(_runtime.ViewState);
+    }
+
+    /// <summary>
+    /// Updates the active data window through the public chart-view contract.
+    /// </summary>
+    /// <param name="dataWindow">The target data window.</param>
+    public void ZoomTo(SurfaceDataWindow dataWindow)
+    {
+        _runtime.ZoomTo(dataWindow);
+        SynchronizeViewStateProperties(_runtime.ViewState);
     }
 }

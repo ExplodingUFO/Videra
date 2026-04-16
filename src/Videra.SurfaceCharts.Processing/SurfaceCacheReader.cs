@@ -1,5 +1,4 @@
 using System.Collections.ObjectModel;
-using System.Runtime.InteropServices;
 using System.Text.Json;
 using Videra.SurfaceCharts.Core;
 
@@ -59,8 +58,9 @@ public sealed class SurfaceCacheReader
         try
         {
             CacheDocumentDto? document;
+            var fileSystem = SurfaceCacheFileSystem.Current;
             #pragma warning disable CA2007
-            await using (var stream = File.OpenRead(cachePath))
+            await using (var stream = fileSystem.OpenRead(cachePath))
             {
                 document = await JsonSerializer.DeserializeAsync<CacheDocumentDto>(
                     stream,
@@ -132,41 +132,58 @@ public sealed class SurfaceCacheReader
     /// <exception cref="IOException">Thrown when the payload file is missing or inaccessible.</exception>
     public async ValueTask<SurfaceTile?> LoadTileAsync(SurfaceTileKey tileKey, CancellationToken cancellationToken = default)
     {
-        if (!entriesByKey.TryGetValue(tileKey, out var entry))
+        if (!entriesByKey.ContainsKey(tileKey))
         {
             return null;
         }
 
-        if (!File.Exists(payloadPath))
+        await using var session = CreatePayloadSession();
+        return await session.LoadTileAsync(tileKey, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Loads multiple tiles from the cache payload while preserving input order.
+    /// </summary>
+    /// <param name="tileKeys">The requested tile keys.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>The loaded tiles, preserving input order.</returns>
+    public async ValueTask<IReadOnlyList<SurfaceTile?>> LoadTilesAsync(
+        IReadOnlyList<SurfaceTileKey> tileKeys,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(tileKeys);
+        if (tileKeys.Count == 0)
         {
-            throw new IOException($"Surface cache payload file '{payloadPath}' is missing.");
+            return Array.Empty<SurfaceTile?>();
         }
 
-        var values = new float[entry.Width * entry.Height];
-        var buffer = new byte[entry.PayloadLength];
-
-        #pragma warning disable CA2007
-        await using (var stream = File.OpenRead(payloadPath))
+        var hasCachedTile = false;
+        foreach (var tileKey in tileKeys)
         {
-            EnsurePayloadRangeIsReadable(stream, entry);
-            stream.Seek(entry.PayloadOffset, SeekOrigin.Begin);
-
-            var totalRead = 0;
-            while (totalRead < entry.PayloadLength)
+            if (entriesByKey.ContainsKey(tileKey))
             {
-                var read = await stream.ReadAsync(buffer.AsMemory(totalRead), cancellationToken).ConfigureAwait(false);
-                if (read == 0)
-                {
-                    throw CreatePayloadRangeException(entry, stream.Length);
-                }
-                totalRead += read;
+                hasCachedTile = true;
+                break;
             }
         }
-        #pragma warning restore CA2007
 
-        MemoryMarshal.Cast<byte, float>(buffer.AsSpan()).CopyTo(values);
+        if (!hasCachedTile)
+        {
+            return new SurfaceTile?[tileKeys.Count];
+        }
 
-        return new SurfaceTile(entry.Key, entry.Width, entry.Height, entry.Bounds, values, entry.ValueRange);
+        await using var session = CreatePayloadSession();
+        return await session.LoadTilesAsync(tileKeys, cancellationToken).ConfigureAwait(false);
+    }
+
+    internal bool ContainsTile(SurfaceTileKey tileKey)
+    {
+        return entriesByKey.ContainsKey(tileKey);
+    }
+
+    internal SurfaceCachePayloadSession CreatePayloadSession()
+    {
+        return new SurfaceCachePayloadSession(payloadPath, entriesByKey);
     }
 
     private sealed record CacheDocumentDto(
@@ -238,6 +255,7 @@ public sealed class SurfaceCacheReader
         int Height,
         TileBoundsDto? Bounds,
         ValueRangeDto? ValueRange,
+        StatisticsDto? Statistics,
         long PayloadOffset,
         int PayloadLength)
     {
@@ -249,8 +267,25 @@ public sealed class SurfaceCacheReader
                 Height,
                 Bounds?.ToModel() ?? throw new InvalidDataException("Surface cache tile bounds are missing."),
                 ValueRange?.ToModel() ?? throw new InvalidDataException("Surface cache tile value range is missing."),
+                Statistics?.ToModel(),
                 PayloadOffset,
                 PayloadLength);
+        }
+    }
+
+    private sealed record StatisticsDto(
+        ValueRangeDto? Range,
+        double Average,
+        int SampleCount,
+        bool IsExact)
+    {
+        public SurfaceTileStatistics ToModel()
+        {
+            return new SurfaceTileStatistics(
+                Range?.ToModel() ?? throw new InvalidDataException("Surface cache tile statistics range is missing."),
+                Average,
+                SampleCount,
+                IsExact);
         }
     }
 
@@ -278,7 +313,7 @@ public sealed class SurfaceCacheReader
         }
     }
 
-    private sealed class SurfaceCacheEntry
+    internal sealed class SurfaceCacheEntry
     {
         public SurfaceCacheEntry(
             SurfaceTileKey key,
@@ -286,6 +321,7 @@ public sealed class SurfaceCacheReader
             int height,
             SurfaceTileBounds bounds,
             SurfaceValueRange valueRange,
+            SurfaceTileStatistics? statistics,
             long payloadOffset,
             int payloadLength)
         {
@@ -294,6 +330,7 @@ public sealed class SurfaceCacheReader
             Height = height;
             Bounds = bounds;
             ValueRange = valueRange;
+            Statistics = statistics;
             PayloadOffset = payloadOffset;
             PayloadLength = payloadLength;
         }
@@ -303,6 +340,7 @@ public sealed class SurfaceCacheReader
         public int Height { get; }
         public SurfaceTileBounds Bounds { get; }
         public SurfaceValueRange ValueRange { get; }
+        public SurfaceTileStatistics? Statistics { get; }
         public long PayloadOffset { get; }
         public int PayloadLength { get; }
     }
@@ -350,7 +388,7 @@ public sealed class SurfaceCacheReader
         return (int)expectedPayloadLength;
     }
 
-    private static void EnsurePayloadRangeIsReadable(FileStream stream, SurfaceCacheEntry entry)
+    internal static void EnsurePayloadRangeIsReadable(Stream stream, SurfaceCacheEntry entry)
     {
         if (entry.PayloadOffset > stream.Length || stream.Length - entry.PayloadOffset < entry.PayloadLength)
         {
@@ -358,7 +396,7 @@ public sealed class SurfaceCacheReader
         }
     }
 
-    private static InvalidDataException CreatePayloadRangeException(SurfaceCacheEntry entry, long payloadFileLength)
+    internal static InvalidDataException CreatePayloadRangeException(SurfaceCacheEntry entry, long payloadFileLength)
     {
         return new InvalidDataException(
             $"Surface cache tile '{entry.Key}' payload range starting at '{entry.PayloadOffset}' with length '{entry.PayloadLength}' exceeds payload file length '{payloadFileLength}'.");

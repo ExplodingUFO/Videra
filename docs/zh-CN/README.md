@@ -9,9 +9,12 @@ surface-chart 模块家族与 `VideraView` 相互独立。
 
 当前 `alpha` 阶段需要明确说明：
 
-- 已完成独立模块边界、LOD、缓存读取、基础曲面渲染与 Demo 路径
-- 尚未完成完整的鼠标缩放 / 拖拽 / orbit 交互
-- 尚未完成坐标轴、刻度、标签与图例系统
+- 已完成独立模块边界、LOD、缓存读取、`GPU-first` 渲染主路径与 Demo 路径
+- `SurfaceChartView` 当前已经交付 axis/legend overlays、hover readout、`Shift + LeftClick` pinned probe，以及可见的 `RenderingStatus` / `RenderStatusChanged`
+- SurfaceChartView 现在以 `ViewState` 作为主 chart-view 契约，而 `Viewport` 只保留为兼容桥接。
+- 当前对外交付 built-in `left-drag orbit` / `right-drag pan` / `wheel dolly` / `Ctrl + Left drag` focus zoom
+- 图表在交互过程中进入 `Interactive` 质量模式，并在输入停稳后回到 `Refine`。
+- Linux Wayland 会话当前仍是 `XWayland compatibility` 路径，不是 compositor-native Wayland surface embedding
 
 ## 项目状态
 
@@ -60,9 +63,9 @@ dotnet add package Videra.Core --version 0.1.0-alpha.1 --source github-Exploding
 - [扩展合同](extensibility.md)：`VideraView.Engine`、`RegisterPassContributor(...)`、`RegisterFrameHook(...)`、`RenderCapabilities`、`BackendDiagnostics` 与 `samples/Videra.ExtensibilitySample`
 - [交互示例](../../samples/Videra.InteractionSample/README.md)：`host owns` `SelectionState`、`Annotations` 和 annotation state，`Navigate` / `Select` / `Annotate`，`SelectionRequested` / `AnnotationRequested`，以及 `VideraNodeAnnotation` / `VideraWorldPointAnnotation`
 - [SurfaceCharts.Core](modules/videra-surfacecharts-core.md)：`SurfaceChartView` 之外的领域契约、viewport / LOD、tile source 与 probe contract
-- [SurfaceCharts.Avalonia](modules/videra-surfacecharts-avalonia.md)：专用 `SurfaceChartView` 控件层，独立于 `VideraView`
-- [SurfaceCharts.Processing](modules/videra-surfacecharts-processing.md)：离线 pyramid / cache 构建与 manifest + sidecar 读取路径
-- [独立 Demo](../../samples/Videra.SurfaceCharts.Demo/README.md)：`Videra.SurfaceCharts.Demo`
+- [SurfaceCharts.Avalonia](modules/videra-surfacecharts-avalonia.md)：专用 `SurfaceChartView` 控件层，独立于 `VideraView`，包含 `RenderingStatus` / `RenderStatusChanged`、axis/legend overlays 与 probe overlay
+- [SurfaceCharts.Processing](modules/videra-surfacecharts-processing.md)：离线 pyramid / cache 构建、persistent payload session、ordered batch reads 与 `SurfaceTileStatistics`
+- [独立 Demo](../../samples/Videra.SurfaceCharts.Demo/README.md)：`Videra.SurfaceCharts.Demo`，展示 source 切换、built-in interaction、probe workflow 与 rendering path truth
 - [架构说明](ARCHITECTURE.md)
 - [贡献指南](CONTRIBUTING.md)
 - [故障排查](troubleshooting.md)
@@ -92,4 +95,4 @@ dotnet add package Videra.Core --version 0.1.0-alpha.1 --source github-Exploding
 
 受控交互入口则以 [samples/Videra.InteractionSample](../../samples/Videra.InteractionSample/README.md) 为主：`host owns` `SelectionState`、`Annotations` 与 annotation state，内建模式是 `Navigate`、`Select`、`Annotate`，选择保持 `object-level`，标注同时覆盖 object anchors 与 world-point anchors，并通过 `VideraNodeAnnotation` / `VideraWorldPointAnnotation` 表达，overlay responsibilities split between `3D highlight/render state` and `2D label/feedback rendering`。
 
-surface-chart 模块家族则以 `SurfaceChartView` 为中心，独立于 `VideraView`，并保持与 viewer 侧选择、标注和 camera 流程解耦。
+surface-chart 模块家族则以 `SurfaceChartView` 为中心，独立于 `VideraView`，并保持与 viewer 侧选择、标注和 camera 流程解耦。当前对外 truth 是：独立 Demo、built-in `left-drag orbit` / `right-drag pan` / `wheel dolly` / `Ctrl + Left drag` focus zoom、hover 与 `Shift + LeftClick` pinned probe、可见 `RenderingStatus`，以及显式 `Interactive` / `Refine` 质量切换。SurfaceChartView 现在以 `ViewState` 作为主 chart-view 契约，而 `Viewport` 只保留为兼容桥接。图表在交互过程中进入 `Interactive` 质量模式，并在输入停稳后回到 `Refine`。

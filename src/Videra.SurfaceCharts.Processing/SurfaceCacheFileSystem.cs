@@ -8,6 +8,8 @@ internal interface ISurfaceCacheFileSystem
 {
     Stream CreateFile(string path);
 
+    Stream OpenRead(string path);
+
     bool FileExists(string path);
 
     void CreateDirectory(string path);
@@ -40,6 +42,11 @@ internal static class SurfaceCacheFileSystem
         public Stream CreateFile(string path)
         {
             return File.Create(path);
+        }
+
+        public Stream OpenRead(string path)
+        {
+            return File.OpenRead(path);
         }
 
         public bool FileExists(string path)

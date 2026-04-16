@@ -113,6 +113,34 @@ public sealed class SurfaceChartPinnedProbeTests
         });
     }
 
+    [Fact]
+    public Task PinnedProbe_ShiftClick_RemainsAvailable_AfterOrbitGesture()
+    {
+        return AvaloniaHeadlessTestSession.RunAsync(async () =>
+        {
+            var source = new ScriptedSurfaceTileSource(SurfaceChartViewLifecycleTests.CreateMetadata(), defaultTileValue: 11f);
+            var view = new RoutedProbeTestView();
+            var pointer = new Pointer(1, PointerType.Mouse, isPrimary: true);
+            var point = new Point(96, 72);
+
+            view.Measure(new Size(256, 192));
+            view.Arrange(new Rect(0, 0, 256, 192));
+            view.Viewport = new SurfaceViewport(128, 64, 256, 192);
+            view.Source = source;
+
+            await SurfaceChartTestHelpers.WaitForLoadedTileValuesAsync(view, [11f]);
+
+            view.RoutePointerPressed(pointer, point, RawInputModifiers.LeftMouseButton, PointerUpdateKind.LeftButtonPressed);
+            view.RoutePointerMoved(pointer, new Point(point.X + 36d, point.Y + 18d), RawInputModifiers.LeftMouseButton);
+            view.RoutePointerReleased(pointer, new Point(point.X + 36d, point.Y + 18d), RawInputModifiers.None, PointerUpdateKind.LeftButtonReleased, MouseButton.Left);
+
+            view.RoutePointerMoved(pointer, point, RawInputModifiers.None);
+            TogglePinnedProbe(view, pointer, point);
+
+            GetPinnedProbes(GetOverlayState(view)).Should().HaveCount(1);
+        });
+    }
+
     private static object GetOverlayState(SurfaceChartView view)
     {
         var field = typeof(SurfaceChartView).GetField(

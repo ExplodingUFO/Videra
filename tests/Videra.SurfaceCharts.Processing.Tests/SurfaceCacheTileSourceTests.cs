@@ -21,7 +21,7 @@ public class SurfaceCacheTileSourceTests
             await SurfaceCacheWriter.WriteAsync(cachePath, source, new[] { overviewKey, detailKey });
 
             var reader = await SurfaceCacheReader.ReadAsync(cachePath);
-            ISurfaceTileSource cacheSource = new SurfaceCacheTileSource(reader);
+            await using var cacheSource = new SurfaceCacheTileSource(reader);
 
             var overviewTile = await cacheSource.GetRequiredTileAsync(overviewKey);
             var detailTile = await cacheSource.GetRequiredTileAsync(detailKey);
@@ -237,7 +237,7 @@ public class SurfaceCacheTileSourceTests
             await File.WriteAllBytesAsync(cachePath + ".bin", new byte[8]);
 
             var reader = await SurfaceCacheReader.ReadAsync(cachePath);
-            ISurfaceTileSource cacheSource = new SurfaceCacheTileSource(reader);
+            await using var cacheSource = new SurfaceCacheTileSource(reader);
 
             var act = async () => await cacheSource.GetTileAsync(tileKey);
 
@@ -263,7 +263,7 @@ public class SurfaceCacheTileSourceTests
             await SurfaceCacheWriter.WriteAsync(cachePath, source, new[] { tileKey });
 
             var reader = await SurfaceCacheReader.ReadAsync(cachePath);
-            ISurfaceTileSource cacheSource = new SurfaceCacheTileSource(reader);
+            await using var cacheSource = new SurfaceCacheTileSource(reader);
 
             // Verify the payload file exists
             File.Exists(payloadPath).Should().BeTrue("Payload file should have been created during WriteAsync");
@@ -279,6 +279,52 @@ public class SurfaceCacheTileSourceTests
         }
         finally
         {
+            DeleteCachePath(cachePath);
+        }
+    }
+
+    [Fact]
+    public async Task GetTilesAsync_BatchesReadsThroughPersistentSession()
+    {
+        var cachePath = CreateCachePath();
+        var source = CreateSource();
+        var fileSystem = new CountingSurfaceCacheFileSystem(SurfaceCacheFileSystem.Current);
+
+        try
+        {
+            SurfaceCacheFileSystem.Current = fileSystem;
+            await SurfaceCacheWriter.WriteAsync(
+                cachePath,
+                source,
+                new[]
+                {
+                    new SurfaceTileKey(0, 0, 0, 0),
+                    new SurfaceTileKey(2, 1, 3, 1)
+                });
+
+            var reader = await SurfaceCacheReader.ReadAsync(cachePath);
+            await using var cacheSource = new SurfaceCacheTileSource(reader);
+            var batchSource = cacheSource.Should().BeAssignableTo<ISurfaceTileBatchSource>().Subject;
+            fileSystem.PayloadOpenReadCount.Should().Be(0);
+
+            var tiles = await batchSource.GetTilesAsync(
+                new[]
+                {
+                    new SurfaceTileKey(0, 0, 0, 0),
+                    new SurfaceTileKey(2, 1, 3, 1)
+                });
+
+            tiles.Should().HaveCount(2);
+            tiles[0]!.Key.Should().Be(new SurfaceTileKey(0, 0, 0, 0));
+            tiles[1]!.Key.Should().Be(new SurfaceTileKey(2, 1, 3, 1));
+            fileSystem.PayloadOpenReadCount.Should().Be(1);
+
+            _ = await cacheSource.GetRequiredTileAsync(new SurfaceTileKey(0, 0, 0, 0));
+            fileSystem.PayloadOpenReadCount.Should().Be(1);
+        }
+        finally
+        {
+            SurfaceCacheFileSystem.ResetForTests();
             DeleteCachePath(cachePath);
         }
     }
@@ -385,6 +431,61 @@ public class SurfaceCacheTileSourceTests
               ]
             }
             """;
+    }
+
+    private sealed class CountingSurfaceCacheFileSystem : ISurfaceCacheFileSystem
+    {
+        private readonly ISurfaceCacheFileSystem inner;
+
+        public CountingSurfaceCacheFileSystem(ISurfaceCacheFileSystem inner)
+        {
+            this.inner = inner;
+        }
+
+        public int OpenReadCount { get; private set; }
+
+        public int PayloadOpenReadCount { get; private set; }
+
+        public Stream CreateFile(string path)
+        {
+            return inner.CreateFile(path);
+        }
+
+        public Stream OpenRead(string path)
+        {
+            OpenReadCount++;
+            if (path.EndsWith(".bin", StringComparison.OrdinalIgnoreCase))
+            {
+                PayloadOpenReadCount++;
+            }
+
+            return inner.OpenRead(path);
+        }
+
+        public bool FileExists(string path)
+        {
+            return inner.FileExists(path);
+        }
+
+        public void CreateDirectory(string path)
+        {
+            inner.CreateDirectory(path);
+        }
+
+        public void ReplaceFile(string sourcePath, string destinationPath, string? backupPath)
+        {
+            inner.ReplaceFile(sourcePath, destinationPath, backupPath);
+        }
+
+        public void MoveFile(string sourcePath, string destinationPath)
+        {
+            inner.MoveFile(sourcePath, destinationPath);
+        }
+
+        public void DeleteFile(string path)
+        {
+            inner.DeleteFile(path);
+        }
     }
 }
 

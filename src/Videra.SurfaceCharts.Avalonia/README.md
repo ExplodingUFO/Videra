@@ -4,6 +4,10 @@
 
 The control layer remains separate from `VideraView` and only depends on the shared surface-chart contracts in `Videra.SurfaceCharts.Core`.
 
+SurfaceChartView now exposes `ViewState` as the primary chart-view contract while `Viewport` remains a compatibility bridge for existing hosts.
+SurfaceChartView now ships built-in `left-drag orbit`, `right-drag pan`, `wheel dolly`, and `Ctrl + Left drag` focus zoom on top of the `ViewState` runtime contract.
+The chart enters `Interactive` quality during motion and returns to `Refine` after input settles.
+
 ## Current Scope
 
 `SurfaceChartView` currently provides:
@@ -12,10 +16,13 @@ The control layer remains separate from `VideraView` and only depends on the sha
 - a `GPU-first` renderer path with an explicit `software fallback`
 - control-visible `RenderingStatus` / `RenderStatusChanged` truth for `ActiveBackend`, `IsFallback`, `FallbackReason`, and `UsesNativeSurface`
 - host-driven surface rendering from an `ISurfaceTileSource`
-- host-driven `Viewport` changes in sample space
+- `ViewState` as the primary chart-view contract while `Viewport` remains a compatibility bridge for existing hosts
+- host-driven `FitToData()`, `ResetCamera()`, and `ZoomTo(...)` commands
+- built-in `left-drag orbit`, `right-drag pan`, `wheel dolly`, and `Ctrl + Left drag` focus zoom
+- explicit `Interactive` and `Refine` interaction-quality states
 - overview-first tile scheduling with lazy cache-backed reads
 - color-map driven surface rendering
-- chart-local overlay state for axes, legend, and hover/pinned probe readout
+- chart-local axis/legend overlays and hover/pinned probe readout, including `Shift + LeftClick` pinning
 
 This module is intentionally a thin UI shell. Tile decoding, preprocessing, cache generation, and LOD policy remain outside the control layer.
 
@@ -28,13 +35,8 @@ This module is intentionally a thin UI shell. Tile decoding, preprocessing, cach
 
 ## Current Limitations
 
-The chart control is still an early alpha surface. Today it does not yet provide a complete end-user interaction stack:
-
-- built-in mouse orbit / pan / zoom is not complete
-- the demo drives viewport changes through presets rather than a finished interactive camera workflow
 - exhaustive native-host validation still depends on the host/platform combination; Linux Wayland validation remains limited to the documented XWayland compatibility path
-
-These limits are intentional documentation, not hidden gaps. The current implementation is primarily the rendering, LOD, and cache boundary.
+- the current public demo stays intentionally narrow and does not expose every renderer diagnostic or cache-control knob
 
 ## Minimal Usage
 
@@ -54,17 +56,23 @@ using Videra.SurfaceCharts.Processing;
 var chartView = new SurfaceChartView
 {
     Source = new SurfacePyramidBuilder(32, 32).Build(matrix),
-    Viewport = new SurfaceViewport(0d, 0d, matrix.Metadata.Width, matrix.Metadata.Height),
+    ViewState = SurfaceViewState.CreateDefault(
+        matrix.Metadata,
+        new SurfaceDataWindow(0d, 0d, matrix.Metadata.Width, matrix.Metadata.Height)),
     ColorMap = colorMap
 };
+
+chartView.ZoomTo(new SurfaceDataWindow(64d, 32d, 128d, 96d));
+chartView.ResetCamera();
 ```
 
 Hosts currently own:
 
 - source creation
-- viewport updates
+- `ViewState` persistence and compatibility `Viewport` updates when older hosts still depend on them
 - color-map selection
-- any higher-level UI that wants a finished zoom / pan / orbit workflow or custom render-status presentation
+- any product-specific UI layered on top of the built-in orbit / pan / dolly / focus workflow
+- any custom render-status presentation beyond `RenderingStatus`, `RenderStatusChanged`, and the read-only `InteractionQuality` seam
 
 ## Boundary Guidance
 

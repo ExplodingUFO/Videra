@@ -8,6 +8,8 @@ namespace Videra.SurfaceCharts.Avalonia.Controls;
 
 public partial class SurfaceChartView
 {
+    private static readonly IBrush SelectionFillBrush = new SolidColorBrush(Color.FromArgb(40, 0x4D, 0xA3, 0xFF));
+    private static readonly Pen SelectionBorderPen = new(new SolidColorBrush(Color.FromArgb(220, 0x4D, 0xA3, 0xFF)), thickness: 1.5d);
     private SurfaceProbeOverlayState _overlayState = SurfaceProbeOverlayState.Empty;
     private SurfaceAxisOverlayState _axisOverlayState = SurfaceAxisOverlayState.Empty;
     private SurfaceLegendOverlayState _legendOverlayState = SurfaceLegendOverlayState.Empty;
@@ -47,8 +49,7 @@ public partial class SurfaceChartView
 
     internal void UpdateProjectionSettings(SurfaceChartProjectionSettings projectionSettings)
     {
-        _cameraController.UpdateProjectionSettings(projectionSettings);
-        InvalidateRenderScene();
+        _runtime.UpdateProjectionSettings(projectionSettings);
     }
 
     private void UpdateOverlayViewSize(Size viewSize)
@@ -60,7 +61,7 @@ public partial class SurfaceChartView
     private void InvalidateOverlay()
     {
         var loadedTiles = _tileCache.GetLoadedTiles();
-        var source = Source;
+        var source = _runtime.Source;
         var activeColorMap = source is null ? null : ColorMap ?? CreateFallbackColorMap(source.Metadata.ValueRange);
 
         _chartProjection = source is not null && loadedTiles.Count > 0
@@ -68,7 +69,7 @@ public partial class SurfaceChartView
                 _renderScene,
                 _overlayViewSize,
                 SurfaceChartProjection.CreateChartBoundsPoints(source.Metadata, source.Metadata.ValueRange),
-                _cameraController.ProjectionSettings)
+                _runtime.ProjectionSettings)
             : null;
         _axisOverlayState = source is not null && loadedTiles.Count > 0
             ? SurfaceAxisOverlayPresenter.CreateState(source.Metadata, _chartProjection)
@@ -78,7 +79,7 @@ public partial class SurfaceChartView
             : SurfaceLegendOverlayState.Empty;
         _overlayState = SurfaceProbeOverlayPresenter.CreateState(
             source,
-            Viewport,
+            _runtime.CurrentViewport,
             _overlayViewSize,
             loadedTiles,
             _probeScreenPosition,
@@ -89,6 +90,13 @@ public partial class SurfaceChartView
 
     private void RenderOverlay(DrawingContext context)
     {
+        if (_interactionController.ActiveSelectionRect is Rect selectionRect &&
+            selectionRect.Width > 0d &&
+            selectionRect.Height > 0d)
+        {
+            context.DrawRectangle(SelectionFillBrush, SelectionBorderPen, selectionRect);
+        }
+
         SurfaceAxisOverlayPresenter.Render(context, _axisOverlayState);
         SurfaceLegendOverlayPresenter.Render(context, _legendOverlayState);
         SurfaceProbeOverlayPresenter.Render(context, _overlayState, _overlayViewSize, _chartProjection);

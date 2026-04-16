@@ -14,6 +14,7 @@ public sealed class SurfaceTile
     /// <param name="bounds">The inclusive-exclusive source-space sample bounds covered by the tile.</param>
     /// <param name="values">The tile values laid out in row-major order.</param>
     /// <param name="valueRange">The inclusive value range for the tile.</param>
+    /// <param name="statistics">Optional summary statistics for the covered source region.</param>
     /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="width"/> or <paramref name="height"/> is not positive.</exception>
     /// <exception cref="ArgumentException">Thrown when <paramref name="bounds"/> cannot cover the declared tile grid or when <paramref name="values"/> does not match the declared tile shape.</exception>
     public SurfaceTile(
@@ -22,7 +23,8 @@ public sealed class SurfaceTile
         int height,
         SurfaceTileBounds bounds,
         ReadOnlyMemory<float> values,
-        SurfaceValueRange valueRange)
+        SurfaceValueRange valueRange,
+        SurfaceTileStatistics? statistics = null)
     {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(width);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(height);
@@ -49,6 +51,7 @@ public sealed class SurfaceTile
         Bounds = bounds;
         Values = values;
         ValueRange = valueRange;
+        Statistics = statistics ?? SurfaceTileStatistics.FromValues(values.Span, isExact: true);
     }
 
     /// <summary>
@@ -80,4 +83,9 @@ public sealed class SurfaceTile
     /// Gets the inclusive value range covered by the tile.
     /// </summary>
     public SurfaceValueRange ValueRange { get; }
+
+    /// <summary>
+    /// Gets summary statistics for the covered source region.
+    /// </summary>
+    public SurfaceTileStatistics Statistics { get; }
 }

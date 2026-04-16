@@ -21,7 +21,7 @@
                    Text="Surface Charts Demo" />
         <TextBlock Foreground="#CBD5E1"
                    TextWrapping="Wrap"
-                   Text="Switch between an in-memory example and a cache-backed example, then switch the viewport between overview and zoomed detail. The demo stays in its own sample app and only depends on the surface-chart module family." />
+                   Text="Switch between an in-memory example and a cache-backed example, then drive the chart directly with built-in orbit, pan, dolly, and focus interaction. The demo stays in its own sample app and only depends on the surface-chart module family." />
       </StackPanel>
     </Border>
 
@@ -69,14 +69,20 @@
             <TextBlock FontSize="18"
                        FontWeight="SemiBold"
                        Foreground="#E2E8F0"
-                       Text="Viewport selection" />
-            <ComboBox x:Name="ViewportSelector">
-              <ComboBoxItem Content="Overview" Tag="overview" />
-              <ComboBoxItem Content="Zoomed detail" Tag="detail" />
-            </ComboBox>
+                       Text="View-state contract" />
+            <StackPanel Orientation="Horizontal"
+                        Spacing="8">
+              <Button x:Name="FitToDataButton"
+                      Content="Fit to data" />
+              <Button x:Name="ResetCameraButton"
+                      Content="Reset camera" />
+            </StackPanel>
+            <TextBlock x:Name="ViewStateText"
+                       Foreground="#CBD5E1"
+                       TextWrapping="Wrap" />
             <TextBlock Foreground="#CBD5E1"
                        TextWrapping="Wrap"
-                       Text="The demo switches between a full-range overview and a stable zoomed detail viewport computed from the active dataset metadata." />
+                       Text="`ViewState` is the primary chart-view contract. `Fit to data` and `Reset camera` stay as deterministic host commands on top of the same built-in interaction runtime." />
           </StackPanel>
         </Border>
 
@@ -93,6 +99,86 @@
             <TextBlock x:Name="StatusText"
                        Foreground="#CBD5E1"
                        TextWrapping="Wrap" />
+          </StackPanel>
+        </Border>
+
+        <Border Padding="18"
+                Background="#111A2B"
+                BorderBrush="#1F2B44"
+                BorderThickness="1"
+                CornerRadius="18">
+          <StackPanel Spacing="8">
+            <TextBlock FontSize="16"
+                       FontWeight="SemiBold"
+                       Foreground="#E2E8F0"
+                       Text="Built-in interaction" />
+            <TextBlock Foreground="#CBD5E1"
+                       TextWrapping="Wrap"
+                       Text="Left drag orbit. Right drag pan. Wheel dolly. Ctrl + Left drag focus zoom." />
+          </StackPanel>
+        </Border>
+
+        <Border Padding="18"
+                Background="#111A2B"
+                BorderBrush="#1F2B44"
+                BorderThickness="1"
+                CornerRadius="18">
+          <StackPanel Spacing="8">
+            <TextBlock FontSize="16"
+                       FontWeight="SemiBold"
+                       Foreground="#E2E8F0"
+                       Text="Interaction quality" />
+            <TextBlock x:Name="InteractionQualityText"
+                       Foreground="#CBD5E1"
+                       TextWrapping="Wrap" />
+          </StackPanel>
+        </Border>
+
+        <Border Padding="18"
+                Background="#111A2B"
+                BorderBrush="#1F2B44"
+                BorderThickness="1"
+                CornerRadius="18">
+          <StackPanel Spacing="8">
+            <TextBlock FontSize="16"
+                       FontWeight="SemiBold"
+                       Foreground="#E2E8F0"
+                       Text="Rendering path" />
+            <TextBlock x:Name="RenderingPathText"
+                       Foreground="#CBD5E1"
+                       TextWrapping="Wrap" />
+          </StackPanel>
+        </Border>
+
+        <Border Padding="18"
+                Background="#111A2B"
+                BorderBrush="#1F2B44"
+                BorderThickness="1"
+                CornerRadius="18">
+          <StackPanel Spacing="8">
+            <TextBlock FontSize="16"
+                       FontWeight="SemiBold"
+                       Foreground="#E2E8F0"
+                       Text="Probe workflow" />
+            <TextBlock Foreground="#CBD5E1"
+                       TextWrapping="Wrap"
+                       Text="Hover readout follows the current tile truth. Use Shift + LeftClick to pin a probe and keep it visible while detail tiles continue refining." />
+          </StackPanel>
+        </Border>
+
+        <Border Padding="18"
+                Background="#111A2B"
+                BorderBrush="#1F2B44"
+                BorderThickness="1"
+                CornerRadius="18">
+          <StackPanel Spacing="8">
+            <TextBlock FontSize="16"
+                       FontWeight="SemiBold"
+                       Foreground="#E2E8F0"
+                       Text="Axes and legend" />
+            <TextBlock Foreground="#CBD5E1"
+                       TextWrapping="Wrap"
+                       Text="Axes, labels, and legend overlays ship with the chart surface today, alongside built-in orbit, pan, dolly, and focus interaction." />
           </StackPanel>
         </Border>
 

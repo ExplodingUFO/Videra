@@ -18,12 +18,21 @@
 - 从 `SurfaceMatrix` 构建 overview-first pyramid
 - 读写 `*.surfacecache.json` + `*.surfacecache.json.bin`
 - 先读取 manifest 元数据，再按 viewport 需要懒加载 tile payload
+- 对 cache-backed source 复用 persistent payload session，而不是每个 tile 重新打开 sidecar
+- 通过 `ISurfaceTileBatchSource` 提供 ordered batch reads
+- 通过 `SurfaceTileStatistics` 保留 reduced tile 的 source-region truth、range、average 与 exact-vs-reduced 语义
 
 ## 当前限制
 
 - 当前主要面向离线数据准备
 - 还不是实时 streaming pipeline
 - 还不是 UI 层的相机或交互状态管理入口
+- `XWayland` compatibility 这类宿主渲染限制由 Avalonia 控制层记录，不属于 Processing 的职责
+
+## 性能与可选 native seam
+
+- `BenchmarkDotNet` 基准当前覆盖 viewport selection、cache batch reads 与 pyramid/statistics 路径
+- optional native seam 只允许停留在粗粒度 reduction / cache-processing hotspot，不把交互或 renderer orchestration 拉过边界
 
 ## 相关入口
 

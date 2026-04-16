@@ -180,6 +180,7 @@ public static class SurfaceCacheWriter
         int Height,
         TileBoundsDto? Bounds,
         ValueRangeDto? ValueRange,
+        StatisticsDto? Statistics,
         long PayloadOffset,
         int PayloadLength)
     {
@@ -191,8 +192,25 @@ public static class SurfaceCacheWriter
                 tile.Height,
                 TileBoundsDto.FromModel(tile.Bounds),
                 ValueRangeDto.FromModel(tile.ValueRange),
+                StatisticsDto.FromModel(tile.Statistics),
                 offset,
                 length);
+        }
+    }
+
+    private sealed record StatisticsDto(
+        ValueRangeDto? Range,
+        double Average,
+        int SampleCount,
+        bool IsExact)
+    {
+        public static StatisticsDto FromModel(SurfaceTileStatistics statistics)
+        {
+            return new StatisticsDto(
+                ValueRangeDto.FromModel(statistics.Range),
+                statistics.Average,
+                statistics.SampleCount,
+                statistics.IsExact);
         }
     }
 

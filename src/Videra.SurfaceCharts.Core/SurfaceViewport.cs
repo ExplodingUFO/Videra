@@ -82,6 +82,25 @@ public readonly record struct SurfaceViewport
     public double EndYExclusive => StartY + Height;
 
     /// <summary>
+    /// Converts the viewport to the authoritative data-window contract.
+    /// </summary>
+    /// <returns>The equivalent data window.</returns>
+    public SurfaceDataWindow ToDataWindow()
+    {
+        return SurfaceDataWindow.FromViewport(this);
+    }
+
+    /// <summary>
+    /// Converts the authoritative data-window contract into a viewport compatibility shell.
+    /// </summary>
+    /// <param name="dataWindow">The data window to convert.</param>
+    /// <returns>The equivalent viewport.</returns>
+    public static SurfaceViewport FromDataWindow(SurfaceDataWindow dataWindow)
+    {
+        return dataWindow.ToViewport();
+    }
+
+    /// <summary>
     /// Clamps the viewport to the supplied dataset metadata.
     /// </summary>
     /// <param name="metadata">The dataset metadata to clamp against.</param>

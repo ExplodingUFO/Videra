@@ -9,28 +9,44 @@ namespace Videra.SurfaceCharts.Core;
 /// </summary>
 public sealed class InMemorySurfaceTileSource : ISurfaceTileSource
 {
+    private readonly SurfaceMatrix sourceMatrix;
     private readonly Dictionary<(int LevelX, int LevelY), SurfacePyramidLevel> levelsByIndex;
+    private readonly int detailLevelX;
+    private readonly int detailLevelY;
+    private readonly ISurfaceTileReductionKernel reductionKernel;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="InMemorySurfaceTileSource"/> class.
     /// </summary>
+    /// <param name="sourceMatrix">The source matrix used to compute source-region statistics.</param>
     /// <param name="metadata">The source metadata.</param>
     /// <param name="levels">The pyramid levels.</param>
     /// <param name="maxTileWidth">The maximum tile width in samples.</param>
     /// <param name="maxTileHeight">The maximum tile height in samples.</param>
+    /// <param name="detailLevelX">The horizontal detail level that maps to exact source samples.</param>
+    /// <param name="detailLevelY">The vertical detail level that maps to exact source samples.</param>
+    /// <param name="reductionKernel">The reduction kernel used to summarize source regions.</param>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="metadata"/> or <paramref name="levels"/> is <c>null</c>.</exception>
     /// <exception cref="ArgumentOutOfRangeException">Thrown when a tile size is not positive.</exception>
     /// <exception cref="ArgumentException">Thrown when the level set is empty or contains duplicates.</exception>
     public InMemorySurfaceTileSource(
+        SurfaceMatrix sourceMatrix,
         SurfaceMetadata metadata,
         IEnumerable<SurfacePyramidLevel> levels,
         int maxTileWidth,
-        int maxTileHeight)
+        int maxTileHeight,
+        int detailLevelX,
+        int detailLevelY,
+        ISurfaceTileReductionKernel reductionKernel)
     {
+        ArgumentNullException.ThrowIfNull(sourceMatrix);
         ArgumentNullException.ThrowIfNull(metadata);
         ArgumentNullException.ThrowIfNull(levels);
+        ArgumentNullException.ThrowIfNull(reductionKernel);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(maxTileWidth);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(maxTileHeight);
+        ArgumentOutOfRangeException.ThrowIfNegative(detailLevelX);
+        ArgumentOutOfRangeException.ThrowIfNegative(detailLevelY);
 
         var levelList = new List<SurfacePyramidLevel>();
         levelsByIndex = new Dictionary<(int LevelX, int LevelY), SurfacePyramidLevel>();
@@ -54,8 +70,12 @@ public sealed class InMemorySurfaceTileSource : ISurfaceTileSource
             throw new ArgumentException("At least one surface pyramid level must be provided.", nameof(levels));
         }
 
+        this.sourceMatrix = sourceMatrix;
         Metadata = metadata;
         Levels = new ReadOnlyCollection<SurfacePyramidLevel>(levelList);
+        this.detailLevelX = detailLevelX;
+        this.detailLevelY = detailLevelY;
+        this.reductionKernel = reductionKernel;
     }
 
     /// <inheritdoc />
@@ -92,9 +112,9 @@ public sealed class InMemorySurfaceTileSource : ISurfaceTileSource
         var tileValues = new float[tileWidth * tileHeight];
         var sourceValues = matrix.Values.Span;
         var matrixWidth = matrix.Metadata.Width;
+        var tileMinimum = double.PositiveInfinity;
+        var tileMaximum = double.NegativeInfinity;
 
-        var minimum = double.PositiveInfinity;
-        var maximum = double.NegativeInfinity;
         var destinationIndex = 0;
 
         for (var offsetY = 0; offsetY < tileHeight; offsetY++)
@@ -104,11 +124,18 @@ public sealed class InMemorySurfaceTileSource : ISurfaceTileSource
             {
                 var value = sourceValues[sourceIndex + offsetX];
                 tileValues[destinationIndex++] = value;
-
-                minimum = Math.Min(minimum, value);
-                maximum = Math.Max(maximum, value);
+                tileMinimum = Math.Min(tileMinimum, value);
+                tileMaximum = Math.Max(tileMaximum, value);
             }
         }
+
+        var valueRange = new SurfaceValueRange(tileMinimum, tileMaximum);
+        var statistics = BuildStatistics(
+            sourceStartX,
+            sourceStartY,
+            sourceWidth,
+            sourceHeight,
+            tileKey.LevelX == detailLevelX && tileKey.LevelY == detailLevelY);
 
         var tile = new SurfaceTile(
             tileKey,
@@ -116,9 +143,27 @@ public sealed class InMemorySurfaceTileSource : ISurfaceTileSource
             tileHeight,
             new SurfaceTileBounds(sourceStartX, sourceStartY, sourceWidth, sourceHeight),
             tileValues,
-            new SurfaceValueRange(minimum, maximum));
+            valueRange,
+            statistics);
 
         return ValueTask.FromResult<SurfaceTile?>(tile);
+    }
+
+    private SurfaceTileStatistics BuildStatistics(int startX, int startY, int width, int height, bool isExact)
+    {
+        var reducedStatistics = reductionKernel.ReduceRegion(
+            sourceMatrix.Values.Span,
+            sourceMatrix.Metadata.Width,
+            startX,
+            startY,
+            width,
+            height);
+
+        return new SurfaceTileStatistics(
+            reducedStatistics.Range,
+            reducedStatistics.Average,
+            reducedStatistics.SampleCount,
+            isExact);
     }
 
     private static bool TryGetTilePartition(int dimension, int level, int tileIndex, out int start, out int size)

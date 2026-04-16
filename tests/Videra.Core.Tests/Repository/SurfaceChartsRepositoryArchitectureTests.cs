@@ -1,4 +1,5 @@
 using FluentAssertions;
+using System.Text.RegularExpressions;
 using Xunit;
 
 namespace Videra.Core.Tests.Repository;
@@ -17,14 +18,27 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
     private const string LinuxWaylandLimitSentence =
         "On Wayland sessions the chart host uses an `XWayland compatibility` path; compositor-native Wayland surface embedding is not available";
 
+    private static readonly string[] NativeInteropTokens =
+    [
+        "DllImport",
+        "LibraryImport",
+        "NativeLibraryHelper"
+    ];
+
     [Fact]
     public void RootReadme_ShouldDescribeSurfaceChartsAsIndependentSiblingFamily()
     {
         var readme = File.ReadAllText(Path.Combine(GetRepositoryRoot(), "README.md"));
 
+        readme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsOnboardingHeading);
         readme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsFamilyBoundarySentence);
         readme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsDemoSentence);
         readme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartViewSentence);
+        readme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsRendererStatusSentence);
+        readme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsViewStateSentence);
+        readme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsInteractionSentence);
+        readme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsInteractionQualitySentence);
+        readme.Should().Contain("axis/legend overlays");
         readme.Should().Contain("src/Videra.SurfaceCharts.Core/README.md");
         readme.Should().Contain("src/Videra.SurfaceCharts.Avalonia/README.md");
         readme.Should().Contain("src/Videra.SurfaceCharts.Processing/README.md");
@@ -38,10 +52,15 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
 
         readme.Should().Contain("modules/videra-surfacecharts-core.md");
         readme.Should().Contain("modules/videra-surfacecharts-avalonia.md");
+        readme.Should().Contain("modules/videra-surfacecharts-processing.md");
         readme.Should().Contain("samples/Videra.SurfaceCharts.Demo/README.md");
         readme.Should().Contain("SurfaceChartView");
         readme.Should().Contain("Videra.SurfaceCharts.Demo");
         readme.Should().Contain(SurfaceChartsDocumentationTerms.ChineseSurfaceChartsFamilyBoundarySentence);
+        readme.Should().Contain("RenderStatusChanged");
+        readme.Should().Contain(SurfaceChartsDocumentationTerms.ChineseSurfaceChartsTruthSentence);
+        readme.Should().Contain(SurfaceChartsDocumentationTerms.ChineseSurfaceChartsViewStateSentence);
+        readme.Should().Contain(SurfaceChartsDocumentationTerms.ChineseSurfaceChartsInteractionQualitySentence);
     }
 
     [Fact]
@@ -90,11 +109,142 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
         avaloniaReadme.Should().Contain(ChartRendererBoundarySentence);
         avaloniaReadme.Should().Contain(GpuFallbackSentence);
         avaloniaReadme.Should().Contain(LinuxWaylandLimitSentence);
+        avaloniaReadme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsViewStateSentence);
+        avaloniaReadme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsInteractionSentence);
+        avaloniaReadme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsInteractionQualitySentence);
         avaloniaReadme.Should().Contain("independent from `VideraView`");
+        avaloniaReadme.Should().Contain("hover/pinned probe");
+        avaloniaReadme.Should().Contain("Shift + LeftClick");
+        avaloniaReadme.Should().Contain("FitToData()");
+        avaloniaReadme.Should().Contain("ResetCamera()");
+        avaloniaReadme.Should().Contain("ZoomTo(...)");
 
         demoReadme.Should().Contain("not a `VideraView` mode");
         demoReadme.Should().Contain(DemoGpuFallbackSentence);
+        demoReadme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsDemoProbeSentence);
+        demoReadme.Should().Contain("ViewState");
+        demoReadme.Should().Contain("Fit to data");
+        demoReadme.Should().Contain("Reset camera");
+        demoReadme.Should().Contain("RenderingStatus");
         demoReadme.Should().Contain("`XWayland compatibility` only, not compositor-native Wayland surface embedding");
+        demoReadme.Should().Contain("left-drag orbit");
+        demoReadme.Should().Contain("right-drag pan");
+        demoReadme.Should().Contain("wheel dolly");
+        demoReadme.Should().Contain("Ctrl + Left drag");
+        demoReadme.Should().Contain("Interactive");
+        demoReadme.Should().Contain("Refine");
+    }
+
+    [Fact]
+    public void SurfaceChartInteractionAndRenderingLayers_ShouldStayFreeOfNativeInteropHelpers()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var interactionDirectory = Path.Combine(repositoryRoot, "src", "Videra.SurfaceCharts.Avalonia", "Controls", "Interaction");
+        var renderingDirectory = Path.Combine(repositoryRoot, "src", "Videra.SurfaceCharts.Rendering");
+
+        AssertDirectoryDoesNotContainNativeInteropTokens(interactionDirectory);
+        AssertDirectoryDoesNotContainNativeInteropTokens(renderingDirectory);
+    }
+
+    [Fact]
+    public void SurfaceChartProcessingReadme_ShouldDescribeBenchmarkingAndOptionalNativeSeam()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var readme = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.SurfaceCharts.Processing", "README.md"));
+
+        readme.Should().Contain("BenchmarkDotNet");
+        readme.Should().Contain("optional native seam");
+        readme.Should().Contain("The live scheduler now consumes those ordered batch reads whenever a source implements `ISurfaceTileBatchSource`");
+        readme.Should().Contain("per-tile fallback path");
+    }
+
+    [Fact]
+    public void ChineseSurfaceChartPages_ShouldMirrorRendererAndProcessingTruth()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var avaloniaPage = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "zh-CN", "modules", "videra-surfacecharts-avalonia.md"));
+        var processingPage = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "zh-CN", "modules", "videra-surfacecharts-processing.md"));
+
+        avaloniaPage.Should().Contain(SurfaceChartsDocumentationTerms.ChineseAvaloniaRenderStatusSentence);
+        avaloniaPage.Should().Contain(SurfaceChartsDocumentationTerms.ChineseAvaloniaProbeSentence);
+        avaloniaPage.Should().Contain(SurfaceChartsDocumentationTerms.ChineseSurfaceChartsViewStateSentence);
+        avaloniaPage.Should().Contain(SurfaceChartsDocumentationTerms.ChineseSurfaceChartsInteractionQualitySentence);
+        avaloniaPage.Should().Contain("FitToData()");
+        avaloniaPage.Should().Contain("ResetCamera()");
+        avaloniaPage.Should().Contain("ZoomTo(...)");
+        avaloniaPage.Should().Contain("XWayland compatibility");
+
+        processingPage.Should().Contain(SurfaceChartsDocumentationTerms.ChineseProcessingStatisticsSentence);
+        processingPage.Should().Contain("optional native seam");
+        processingPage.Should().Contain("XWayland");
+    }
+
+    [Fact]
+    public void SurfaceChartEntryPoints_ShouldNotContainStaleLimitationLanguage()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var guardedFiles = new[]
+        {
+            Path.Combine(repositoryRoot, "README.md"),
+            Path.Combine(repositoryRoot, "docs", "zh-CN", "README.md"),
+            Path.Combine(repositoryRoot, "src", "Videra.SurfaceCharts.Avalonia", "README.md"),
+            Path.Combine(repositoryRoot, "docs", "zh-CN", "modules", "videra-surfacecharts-avalonia.md")
+        };
+
+        var contents = guardedFiles
+            .Select(path => File.ReadAllText(path))
+            .ToArray();
+
+        foreach (var staleTerm in SurfaceChartsDocumentationTerms.StaleSurfaceChartsTerms)
+        {
+            contents.Should().OnlyContain(
+                content => !content.Contains(staleTerm, StringComparison.Ordinal),
+                $"stale chart limitation wording '{staleTerm}' should stay out of the guarded entrypoints");
+        }
+    }
+
+    [Fact]
+    public void SurfaceChartViewStateAndCommandApis_ShouldStayOutOfVideraView()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var videraView = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Avalonia", "Controls", "VideraView.cs"));
+
+        Regex.IsMatch(videraView, @"public\s+.*\bViewState\b").Should().BeFalse();
+        Regex.IsMatch(videraView, @"public\s+.*\bFitToData\s*\(").Should().BeFalse();
+        Regex.IsMatch(videraView, @"public\s+.*\bResetCamera\s*\(").Should().BeFalse();
+        Regex.IsMatch(videraView, @"public\s+.*\bZoomTo\s*\(").Should().BeFalse();
+    }
+
+    [Fact]
+    public void RecoveredSurfaceChartSummaries_ShouldDeclareRequirementsCompletedMetadata()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+
+        foreach (var (relativePath, requirements) in SurfaceChartsDocumentationTerms.RecoveredSummaryRequirementMetadata)
+        {
+            var content = File.ReadAllText(Path.Combine(repositoryRoot, relativePath));
+
+            content.Should().Contain("requirements-completed:");
+            foreach (var requirement in requirements)
+            {
+                content.Should().Contain(requirement);
+            }
+        }
+    }
+
+    [Fact]
+    public void SurfaceChartPlanningArtifacts_ShouldStayAlignedWithRecoveredMilestoneTruth()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var phase13Verification = File.ReadAllText(Path.Combine(repositoryRoot, ".planning", "phases", "13-surfacechart-runtime-and-view-state-contract", "13-VERIFICATION.md"));
+        var phase14Verification = File.ReadAllText(Path.Combine(repositoryRoot, ".planning", "phases", "14-built-in-interaction-and-camera-workflow", "14-VERIFICATION.md"));
+        var phase18Verification = File.ReadAllText(Path.Combine(repositoryRoot, ".planning", "phases", "18-demo-docs-and-repository-truth-for-professional-charts", "18-VERIFICATION.md"));
+        var phase19Verification = File.ReadAllText(Path.Combine(repositoryRoot, ".planning", "phases", "19-surfacechart-runtime-and-view-state-recovery", "19-VERIFICATION.md"));
+
+        phase13Verification.Should().Contain(SurfaceChartsDocumentationTerms.Phase13HistoricalRecoverySentence);
+        phase14Verification.Should().Contain(SurfaceChartsDocumentationTerms.Phase14HistoricalRecoverySentence);
+        phase18Verification.Should().Contain(SurfaceChartsDocumentationTerms.Phase18HistoricalRecoverySentence);
+        phase19Verification.Should().Contain(SurfaceChartsDocumentationTerms.Phase19HistoricalRecoverySentence);
     }
 
     private static string GetRepositoryRoot()
@@ -112,5 +262,21 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
         }
 
         throw new DirectoryNotFoundException("Could not locate repository root containing Videra.slnx.");
+    }
+
+    private static void AssertDirectoryDoesNotContainNativeInteropTokens(string directoryPath)
+    {
+        var fileContents = Directory.GetFiles(directoryPath, "*.cs", SearchOption.AllDirectories)
+            .Select(path => new { Path = path, Content = File.ReadAllText(path) })
+            .ToArray();
+
+        fileContents.Should().NotBeEmpty();
+
+        foreach (var token in NativeInteropTokens)
+        {
+            fileContents.Should().OnlyContain(
+                file => !file.Content.Contains(token, StringComparison.Ordinal),
+                $"native interop token '{token}' should stay out of {directoryPath}");
+        }
     }
 }

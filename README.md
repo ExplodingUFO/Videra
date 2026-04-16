@@ -164,14 +164,20 @@ dotnet run --project samples/Videra.SurfaceCharts.Demo/Videra.SurfaceCharts.Demo
 The surface-chart demo is a separate Avalonia app that currently focuses on the chart data path and module boundary:
 
 - switching between an in-memory source and a cache-backed source
-- switching between overview and zoomed-detail viewports
+- built-in `left-drag orbit`, `right-drag pan`, `wheel dolly`, and `Ctrl + Left drag` focus zoom
+- exposing `ViewState`, `Fit to data`, and `Reset camera` on `SurfaceChartView`
 - exercising overview-first LOD and lazy tile loading
+- showing axis/legend overlays plus hover and pinned probe readout
+- surfacing the current rendering path through `RenderingStatus` / `RenderStatusChanged`
+
+SurfaceChartView now exposes `ViewState` as the primary chart-view contract while `Viewport` remains a compatibility bridge for existing hosts.
+SurfaceChartView now ships built-in `left-drag orbit`, `right-drag pan`, `wheel dolly`, and `Ctrl + Left drag` focus zoom on top of the `ViewState` runtime contract.
+The chart enters `Interactive` quality during motion and returns to `Refine` after input settles.
 
 Current alpha limitations are important:
 
-- full built-in mouse orbit / pan / zoom interaction is not complete yet
-- axis, tick, label, and legend presentation is not complete yet
-- the demo currently uses host-driven viewport presets rather than a finished interactive chart camera
+- the sample surfaces one truthful rendering-path panel, not an exhaustive backend diagnostics matrix
+- Linux Wayland sessions remain on the documented `XWayland compatibility` path, not compositor-native Wayland embedding
 
 ### Verify the Repository
 
@@ -277,7 +283,11 @@ Contract highlights:
 - `Videra.SurfaceCharts.Demo` is the independent demo application for the surface-chart module family.
 - `Videra.SurfaceCharts.Core` owns chart-domain models, tile identities, probe contracts, and LOD selection.
 - `Videra.SurfaceCharts.Processing` owns cache and pyramid generation.
-- `Videra.SurfaceCharts.Avalonia` owns the UI shell and Avalonia-specific overlay behavior.
+- `Videra.SurfaceCharts.Avalonia` owns the UI shell, axis/legend overlays, hover/pinned probe behavior, and renderer-status surface.
+- The shipped chart surface is `GPU-first` with explicit `software fallback`, and hosts can inspect `RenderingStatus` / `RenderStatusChanged`.
+- SurfaceChartView now exposes `ViewState` as the primary chart-view contract while `Viewport` remains a compatibility bridge for existing hosts.
+- SurfaceChartView now ships built-in `left-drag orbit`, `right-drag pan`, `wheel dolly`, and `Ctrl + Left drag` focus zoom on top of the `ViewState` runtime contract.
+- The chart enters `Interactive` quality during motion and returns to `Refine` after input settles.
 
 ## Packages
 

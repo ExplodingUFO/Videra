@@ -14,6 +14,22 @@ namespace Videra.SurfaceCharts.Avalonia.IntegrationTests;
 public sealed class SurfaceChartViewLifecycleTests
 {
     [Fact]
+    public void SurfaceChartView_DelegatesAuthoritativeStateToSurfaceChartRuntime()
+    {
+        AvaloniaHeadlessTestSession.Run(() =>
+        {
+            var runtimeField = typeof(SurfaceChartView).GetField("_runtime", BindingFlags.Instance | BindingFlags.NonPublic);
+            runtimeField.Should().NotBeNull();
+            runtimeField!.FieldType.Should().Be(typeof(SurfaceChartRuntime));
+
+            var view = new SurfaceChartView();
+            var runtime = SurfaceChartTestHelpers.GetRuntime(view);
+
+            runtime.ViewState.DataWindow.Should().Be(view.Viewport.ToDataWindow());
+        });
+    }
+
+    [Fact]
     public void ControlInitialization_WithoutSource_DoesNotThrow()
     {
         AvaloniaHeadlessTestSession.Run(() =>
@@ -138,6 +154,38 @@ public sealed class SurfaceChartViewLifecycleTests
     }
 
     [Fact]
+    public Task SourceSwap_DoesNotAllowStaleRequestsToRepopulateActiveTiles()
+    {
+        return AvaloniaHeadlessTestSession.RunAsync(async () =>
+        {
+            var metadata = CreateMetadata();
+            var staleSource = new ScriptedSurfaceTileSource(metadata, defaultTileValue: 11);
+            var activeSource = new ScriptedSurfaceTileSource(metadata, defaultTileValue: 42);
+            var staleRequestStarted = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var staleCompletion = new TaskCompletionSource<SurfaceTile?>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var overviewKey = new SurfaceTileKey(0, 0, 0, 0);
+            var view = new SurfaceChartView();
+
+            staleSource.EnqueuePendingResponse(staleRequestStarted, staleCompletion, observeCancellation: false);
+
+            view.Source = staleSource;
+
+            await staleRequestStarted.Task;
+
+            view.Source = activeSource;
+
+            await activeSource.WaitForRequestCountAsync(1);
+            await SurfaceChartTestHelpers.WaitForLoadedTileValuesAsync(view, [42]);
+
+            staleCompletion.SetResult(staleSource.CreateTile(overviewKey));
+
+            await staleSource.AssertRequestCountSettlesAtAsync(1);
+            await activeSource.AssertRequestCountSettlesAtAsync(1);
+            await SurfaceChartTestHelpers.AssertLoadedTileValuesStayAsync(view, [42]);
+        });
+    }
+
+    [Fact]
     public Task RapidSourceReplacement_DoesNotPublishLateFailuresFromSupersededSource()
     {
         return AvaloniaHeadlessTestSession.RunAsync(async () =>
@@ -197,6 +245,10 @@ public sealed class SurfaceChartViewLifecycleTests
     public async Task ControllerSourceReplacement_DoesNotPublishLateFailuresFromSupersededGeneration()
     {
         var metadata = CreateMetadata();
+        var expectedPipelineRequestCount = 1 + SurfaceLodPolicy.Default
+            .Select(new SurfaceViewportRequest(metadata, new SurfaceViewport(0, 0, 512, 512), 256, 256))
+            .EnumerateTileKeys()
+            .Count();
         var staleSource = new ScriptedSurfaceTileSource(metadata, defaultTileValue: 11);
         var activeSource = new ScriptedSurfaceTileSource(metadata, defaultTileValue: 42);
         var staleRequestStarted = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -235,12 +287,12 @@ public sealed class SurfaceChartViewLifecycleTests
 
         controller.UpdateSource(activeSource);
 
-        await activeSource.WaitForRequestCountAsync(1);
+        await activeSource.WaitForRequestCountAsync(expectedPipelineRequestCount);
 
         staleCompletion.SetException(new InvalidOperationException("stale fault"));
 
         await staleRequestCompleted.Task;
-        await staleSource.AssertRequestCountSettlesAtAsync(2);
+        await staleSource.AssertRequestCountSettlesAtAsync(expectedPipelineRequestCount);
         await Task.Delay(100);
 
         failures.Should().BeEmpty();
@@ -575,6 +627,115 @@ internal sealed class RecordingSurfaceTileSource : ISurfaceTileSource
     }
 }
 
+internal sealed class ConcurrencyTrackingSurfaceTileSource : ISurfaceTileSource
+{
+    private static readonly SurfaceTileKey OverviewKey = new(0, 0, 0, 0);
+
+    private readonly object _sync = new();
+    private readonly List<SurfaceTileKey> _requestLog = [];
+    private readonly List<TaskCompletionSource<bool>> _waiters = [];
+    private readonly TimeSpan _requestDelay;
+    private readonly float _defaultTileValue;
+    private int _inFlightRequests;
+    private int _maxObservedConcurrency;
+
+    public ConcurrencyTrackingSurfaceTileSource(
+        SurfaceMetadata metadata,
+        float defaultTileValue,
+        TimeSpan requestDelay)
+    {
+        Metadata = metadata;
+        _defaultTileValue = defaultTileValue;
+        _requestDelay = requestDelay;
+    }
+
+    public SurfaceMetadata Metadata { get; }
+
+    public int MaxObservedConcurrency => Volatile.Read(ref _maxObservedConcurrency);
+
+    public IReadOnlyList<SurfaceTileKey> RequestLog
+    {
+        get
+        {
+            lock (_sync)
+            {
+                return _requestLog.ToArray();
+            }
+        }
+    }
+
+    public async ValueTask<SurfaceTile?> GetTileAsync(SurfaceTileKey tileKey, CancellationToken cancellationToken = default)
+    {
+        lock (_sync)
+        {
+            _requestLog.Add(tileKey);
+            for (var index = _waiters.Count - 1; index >= 0; index--)
+            {
+                _waiters[index].TrySetResult(true);
+            }
+        }
+
+        if (tileKey == OverviewKey)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            return CreateTile(tileKey);
+        }
+
+        var currentConcurrency = Interlocked.Increment(ref _inFlightRequests);
+        UpdateMaxObservedConcurrency(currentConcurrency);
+
+        try
+        {
+            await Task.Delay(_requestDelay, cancellationToken).ConfigureAwait(false);
+            return CreateTile(tileKey);
+        }
+        finally
+        {
+            Interlocked.Decrement(ref _inFlightRequests);
+        }
+    }
+
+    public Task WaitForRequestCountAsync(int expectedCount, TimeSpan? timeout = null)
+    {
+        return SurfaceChartTestHelpers.WaitForRequestCountAsync(_sync, _requestLog, _waiters, expectedCount, timeout);
+    }
+
+    public async Task WaitForIdleAsync(TimeSpan? timeout = null)
+    {
+        timeout ??= TimeSpan.FromSeconds(5);
+        var deadline = Stopwatch.GetTimestamp() + (long)(timeout.Value.TotalSeconds * Stopwatch.Frequency);
+
+        while (Volatile.Read(ref _inFlightRequests) != 0 && Stopwatch.GetTimestamp() < deadline)
+        {
+            await Task.Delay(TimeSpan.FromMilliseconds(10)).ConfigureAwait(false);
+        }
+
+        Volatile.Read(ref _inFlightRequests).Should().Be(0);
+    }
+
+    private SurfaceTile CreateTile(SurfaceTileKey key)
+    {
+        return SurfaceChartTestHelpers.CreateTile(Metadata, key, _defaultTileValue);
+    }
+
+    private void UpdateMaxObservedConcurrency(int currentConcurrency)
+    {
+        while (true)
+        {
+            var observed = Volatile.Read(ref _maxObservedConcurrency);
+            if (currentConcurrency <= observed)
+            {
+                return;
+            }
+
+            if (Interlocked.CompareExchange(ref _maxObservedConcurrency, currentConcurrency, observed) == observed)
+            {
+                return;
+            }
+        }
+    }
+}
+
 internal sealed class ScriptedSurfaceTileSource : ISurfaceTileSource
 {
     private readonly object _sync = new();
@@ -691,6 +852,13 @@ internal sealed class ScriptedSurfaceTileSource : ISurfaceTileSource
 
 internal static class SurfaceChartTestHelpers
 {
+    public static SurfaceChartRuntime GetRuntime(SurfaceChartView view)
+    {
+        var runtimeField = typeof(SurfaceChartView).GetField("_runtime", BindingFlags.Instance | BindingFlags.NonPublic);
+        runtimeField.Should().NotBeNull();
+        return (SurfaceChartRuntime)runtimeField!.GetValue(view)!;
+    }
+
     public static SurfaceTile CreateTile(SurfaceMetadata metadata, SurfaceTileKey key, float tileValue)
     {
         var tileCountX = 1 << key.LevelX;

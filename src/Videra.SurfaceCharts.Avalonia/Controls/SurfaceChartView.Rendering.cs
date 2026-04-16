@@ -45,7 +45,7 @@ public partial class SurfaceChartView
 
     private void SyncRenderHost()
     {
-        var source = Source;
+        var source = _runtime.Source;
         var tiles = _tileCache.GetLoadedTiles();
         var renderSize = _overlayViewSize.Width > 0d && _overlayViewSize.Height > 0d
             ? _overlayViewSize
@@ -65,8 +65,8 @@ public partial class SurfaceChartView
                 Metadata = source?.Metadata,
                 LoadedTiles = tiles,
                 ColorMap = colorMap,
-                Viewport = Viewport,
-                ProjectionSettings = _cameraController.ProjectionSettings,
+                Viewport = _runtime.CurrentViewport,
+                ProjectionSettings = _runtime.ProjectionSettings,
                 ViewWidth = renderSize.Width,
                 ViewHeight = renderSize.Height,
                 NativeHandle = nativeHandle,
@@ -90,7 +90,7 @@ public partial class SurfaceChartView
 
     private SurfaceChartProjection? CreateChartProjection()
     {
-        var source = Source;
+        var source = _runtime.Source;
         if (source is null || _overlayViewSize.Width <= 0d || _overlayViewSize.Height <= 0d)
         {
             return null;
@@ -106,7 +106,7 @@ public partial class SurfaceChartView
             _renderHost.SoftwareScene,
             _overlayViewSize,
             SurfaceChartProjection.CreateChartBoundsPoints(source.Metadata, source.Metadata.ValueRange),
-            _cameraController.ProjectionSettings);
+            _runtime.ProjectionSettings);
         _chartProjection = projection;
         return projection;
     }
@@ -114,7 +114,7 @@ public partial class SurfaceChartView
     private bool ShouldAttemptNativeHost(Size renderSize)
     {
         return _renderHost.HasGpuBackend
-            && Source is not null
+            && _runtime.Source is not null
             && renderSize.Width > 0d
             && renderSize.Height > 0d
             && !RenderingStatus.IsFallback;

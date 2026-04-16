@@ -87,6 +87,29 @@ public class SurfacePyramidBuilderTests
         builder.LastBuildPeakScratchSampleCount.Should().Be(16);
     }
 
+    [Fact]
+    public async Task Build_PreservesAverageSamplesWhileProducingTileStatistics()
+    {
+        var source = CreateMatrix(4, 4, new float[]
+        {
+            1, 2, 3, 4,
+            5, 6, 7, 8,
+            9, 10, 11, 12,
+            13, 14, 15, 16
+        });
+
+        var builder = new SurfacePyramidBuilder(maxTileWidth: 2, maxTileHeight: 2);
+        ISurfaceTileSource tileSource = builder.Build(source);
+        var overviewTile = await tileSource.GetRequiredTileAsync(new SurfaceTileKey(0, 0, 0, 0));
+
+        overviewTile.Values.ToArray().Should().Equal(3.5f, 5.5f, 11.5f, 13.5f);
+        overviewTile.ValueRange.Should().Be(new SurfaceValueRange(3.5, 13.5));
+        overviewTile.Statistics.Range.Should().Be(new SurfaceValueRange(1, 16));
+        overviewTile.Statistics.Average.Should().Be(8.5d);
+        overviewTile.Statistics.SampleCount.Should().Be(16);
+        overviewTile.Statistics.IsExact.Should().BeFalse();
+    }
+
     private static SurfaceMatrix CreateMatrix(int width, int height, float[] values)
     {
         return new SurfaceMatrix(CreateMetadata(width, height), values);

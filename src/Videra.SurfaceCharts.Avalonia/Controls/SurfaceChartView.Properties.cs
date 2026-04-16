@@ -1,3 +1,4 @@
+using System.Numerics;
 using Avalonia;
 using Videra.SurfaceCharts.Core;
 
@@ -5,6 +6,10 @@ namespace Videra.SurfaceCharts.Avalonia.Controls;
 
 public partial class SurfaceChartView
 {
+    private static readonly SurfaceViewState DefaultViewState = CreateCompatibilityViewState(new SurfaceViewport(0d, 0d, 1d, 1d));
+    private bool _isSynchronizingViewStateProperties;
+    private SurfaceChartInteractionQuality _interactionQuality = SurfaceChartInteractionQuality.Refine;
+
     /// <summary>
     /// Identifies the <see cref="Source"/> property.
     /// </summary>
@@ -20,6 +25,14 @@ public partial class SurfaceChartView
             defaultValue: new SurfaceViewport(0, 0, 1, 1));
 
     /// <summary>
+    /// Identifies the <see cref="ViewState"/> property.
+    /// </summary>
+    public static readonly StyledProperty<SurfaceViewState> ViewStateProperty =
+        AvaloniaProperty.Register<SurfaceChartView, SurfaceViewState>(
+            nameof(ViewState),
+            defaultValue: DefaultViewState);
+
+    /// <summary>
     /// Identifies the <see cref="ColorMap"/> property.
     /// </summary>
     public static readonly StyledProperty<SurfaceColorMap?> ColorMapProperty =
@@ -31,6 +44,8 @@ public partial class SurfaceChartView
             static (view, args) => view.OnSourceChanged((ISurfaceTileSource?)args.NewValue));
         ViewportProperty.Changed.AddClassHandler<SurfaceChartView>(
             static (view, args) => view.OnViewportChanged((SurfaceViewport)args.NewValue!));
+        ViewStateProperty.Changed.AddClassHandler<SurfaceChartView>(
+            static (view, args) => view.OnViewStateChanged((SurfaceViewState)args.NewValue!));
         ColorMapProperty.Changed.AddClassHandler<SurfaceChartView>(
             static (view, _) => view.InvalidateRenderScene());
     }
@@ -54,6 +69,15 @@ public partial class SurfaceChartView
     }
 
     /// <summary>
+    /// Gets or sets the authoritative persisted chart-view state.
+    /// </summary>
+    public SurfaceViewState ViewState
+    {
+        get => GetValue(ViewStateProperty);
+        set => SetValue(ViewStateProperty, value);
+    }
+
+    /// <summary>
     /// Gets or sets the optional color map used when building the render scene.
     /// </summary>
     public SurfaceColorMap? ColorMap
@@ -62,17 +86,94 @@ public partial class SurfaceChartView
         set => SetValue(ColorMapProperty, value);
     }
 
+    /// <summary>
+    /// Gets the current diagnostic interaction-quality mode.
+    /// </summary>
+    public SurfaceChartInteractionQuality InteractionQuality => _interactionQuality;
+
     private void OnSourceChanged(ISurfaceTileSource? source)
     {
         _pinnedProbeRequests.Clear();
         _probeScreenPosition = null;
         LastTileFailure = null;
-        _controller.UpdateSource(source);
+        _runtime.UpdateSource(source);
     }
 
     private void OnViewportChanged(SurfaceViewport viewport)
     {
-        _controller.UpdateViewport(viewport);
-        InvalidateRenderScene();
+        if (_isSynchronizingViewStateProperties)
+        {
+            return;
+        }
+
+        var nextViewState = new SurfaceViewState(viewport.ToDataWindow(), _runtime.ViewState.Camera);
+        ApplyViewState(nextViewState);
+    }
+
+    private void OnViewStateChanged(SurfaceViewState viewState)
+    {
+        if (_isSynchronizingViewStateProperties)
+        {
+            return;
+        }
+
+        ApplyViewState(viewState);
+    }
+
+    private void ApplyViewState(SurfaceViewState viewState)
+    {
+        _runtime.UpdateViewState(viewState);
+        SynchronizeViewStateProperties(_runtime.ViewState);
+    }
+
+    private void SynchronizeViewStateProperties(SurfaceViewState viewState)
+    {
+        _isSynchronizingViewStateProperties = true;
+
+        try
+        {
+            if (GetValue(ViewStateProperty) != viewState)
+            {
+                SetCurrentValue(ViewStateProperty, viewState);
+            }
+
+            var viewport = viewState.ToViewport();
+            if (GetValue(ViewportProperty) != viewport)
+            {
+                SetCurrentValue(ViewportProperty, viewport);
+            }
+        }
+        finally
+        {
+            _isSynchronizingViewStateProperties = false;
+        }
+    }
+
+    private void UpdateInteractionQuality(SurfaceChartInteractionQuality interactionQuality)
+    {
+        if (_interactionQuality == interactionQuality)
+        {
+            return;
+        }
+
+        _interactionQuality = interactionQuality;
+        InteractionQualityChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    private static SurfaceViewState CreateCompatibilityViewState(SurfaceViewport viewport)
+    {
+        var target = new Vector3(
+            (float)(viewport.StartX + (viewport.Width * 0.5d)),
+            0f,
+            (float)(viewport.StartY + (viewport.Height * 0.5d)));
+        var diagonal = Math.Sqrt((viewport.Width * viewport.Width) + (viewport.Height * viewport.Height));
+        var camera = new SurfaceCameraPose(
+            target,
+            SurfaceCameraPose.DefaultYawDegrees,
+            SurfaceCameraPose.DefaultPitchDegrees,
+            Math.Max(diagonal, 1d),
+            SurfaceCameraPose.DefaultFieldOfViewDegrees);
+
+        return new SurfaceViewState(viewport.ToDataWindow(), camera);
     }
 }

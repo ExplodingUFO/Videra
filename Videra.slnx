@@ -15,6 +15,10 @@
     <Project Path="src/Videra.Avalonia/Videra.Avalonia.csproj" />
     <Project Path="src/Videra.Core/Videra.Core.csproj" />
   </Folder>
+  <Folder Name="/Benchmarks/" />
+  <Folder Name="/Benchmarks/SurfaceCharts/">
+    <Project Path="benchmarks/Videra.SurfaceCharts.Benchmarks/Videra.SurfaceCharts.Benchmarks.csproj" />
+  </Folder>
   <Folder Name="/Startups/" />
   <Folder Name="/Startups/SurfaceCharts/">
     <Project Path="samples/Videra.SurfaceCharts.Demo/Videra.SurfaceCharts.Demo.csproj" />

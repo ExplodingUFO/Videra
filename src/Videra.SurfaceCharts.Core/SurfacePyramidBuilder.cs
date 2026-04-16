@@ -5,19 +5,26 @@ namespace Videra.SurfaceCharts.Core;
 /// </summary>
 public sealed class SurfacePyramidBuilder
 {
+    private readonly ISurfaceTileReductionKernel reductionKernel;
+
     /// <summary>
     /// Initializes a new instance of the <see cref="SurfacePyramidBuilder"/> class.
     /// </summary>
     /// <param name="maxTileWidth">The target maximum tile width in samples.</param>
     /// <param name="maxTileHeight">The target maximum tile height in samples.</param>
+    /// <param name="reductionKernel">The reduction kernel used for pyramid generation and statistics.</param>
     /// <exception cref="ArgumentOutOfRangeException">Thrown when a tile size is not positive.</exception>
-    public SurfacePyramidBuilder(int maxTileWidth, int maxTileHeight)
+    public SurfacePyramidBuilder(
+        int maxTileWidth,
+        int maxTileHeight,
+        ISurfaceTileReductionKernel? reductionKernel = null)
     {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(maxTileWidth);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(maxTileHeight);
 
         MaxTileWidth = maxTileWidth;
         MaxTileHeight = maxTileHeight;
+        this.reductionKernel = reductionKernel ?? new ManagedSurfaceTileReductionKernel();
     }
 
     /// <summary>
@@ -62,7 +69,7 @@ public sealed class SurfacePyramidBuilder
                 }
                 else
                 {
-                    matrix = CreateLevelMatrix(source, sourceLevelX, sourceLevelY, levelX, levelY);
+                    matrix = CreateLevelMatrix(source, sourceLevelX, sourceLevelY, levelX, levelY, reductionKernel);
                     LastBuildPeakScratchSampleCount = Math.Max(LastBuildPeakScratchSampleCount, matrix.Values.Length);
                 }
 
@@ -70,7 +77,15 @@ public sealed class SurfacePyramidBuilder
             }
         }
 
-        return new InMemorySurfaceTileSource(source.Metadata, levels, MaxTileWidth, MaxTileHeight);
+        return new InMemorySurfaceTileSource(
+            source,
+            source.Metadata,
+            levels,
+            MaxTileWidth,
+            MaxTileHeight,
+            sourceLevelX,
+            sourceLevelY,
+            reductionKernel);
     }
 
     private static int CalculateDetailLevel(int dimension, int maxTileDimension)
@@ -90,7 +105,8 @@ public sealed class SurfacePyramidBuilder
         int sourceLevelX,
         int sourceLevelY,
         int levelX,
-        int levelY)
+        int levelY,
+        ISurfaceTileReductionKernel reductionKernel)
     {
         var blockWidth = 1L << (sourceLevelX - levelX);
         var blockHeight = 1L << (sourceLevelY - levelY);
@@ -110,20 +126,15 @@ public sealed class SurfacePyramidBuilder
             {
                 var startX = (int)(outputX * blockWidth);
                 var endX = (int)Math.Min(source.Metadata.Width, startX + blockWidth);
-                double sum = 0;
-                var count = 0;
+                var statistics = reductionKernel.ReduceRegion(
+                    sourceValues,
+                    sourceWidth,
+                    startX,
+                    startY,
+                    endX - startX,
+                    endY - startY);
 
-                for (var sourceY = startY; sourceY < endY; sourceY++)
-                {
-                    var rowOffset = sourceY * sourceWidth;
-                    for (var sourceX = startX; sourceX < endX; sourceX++)
-                    {
-                        sum += sourceValues[rowOffset + sourceX];
-                        count++;
-                    }
-                }
-
-                outputValues[destinationIndex++] = (float)(sum / count);
+                outputValues[destinationIndex++] = (float)statistics.Average;
             }
         }
 

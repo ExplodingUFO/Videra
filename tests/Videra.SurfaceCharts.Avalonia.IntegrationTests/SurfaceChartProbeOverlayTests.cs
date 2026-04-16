@@ -251,6 +251,46 @@ public sealed class SurfaceChartProbeOverlayTests
     }
 
     [Fact]
+    public Task SurfaceChartRuntime_ViewStateChangesRecomputeOverlayFromCompatibilityViewport()
+    {
+        return AvaloniaHeadlessTestSession.RunAsync(async () =>
+        {
+            var metadata = new SurfaceMetadata(
+                width: 5,
+                height: 5,
+                new SurfaceAxisDescriptor("Time", "s", 10d, 20d),
+                new SurfaceAxisDescriptor("Frequency", "Hz", 100d, 200d),
+                new SurfaceValueRange(-2d, 2d));
+            var source = new ScriptedSurfaceTileSource(metadata, defaultTileValue: 5f);
+            var view = new SurfaceChartView();
+
+            view.Measure(new Size(200, 200));
+            view.Arrange(new Rect(0, 0, 200, 200));
+            view.Source = source;
+
+            await SurfaceChartTestHelpers.WaitForLoadedTileValuesAsync(view, [5f]);
+
+            var runtime = SurfaceChartTestHelpers.GetRuntime(view);
+            runtime.UpdateViewState(SurfaceViewState.CreateDefault(metadata, new SurfaceDataWindow(0d, 0d, 4d, 4d)));
+
+            UpdateProbeScreenPosition(view, new Point(100, 100));
+
+            var initialProbe = GetHoveredProbe(GetOverlayState(view));
+            GetDoubleProperty(initialProbe, "SampleX").Should().BeApproximately(2d, 0.0001d);
+            GetDoubleProperty(initialProbe, "SampleY").Should().BeApproximately(2d, 0.0001d);
+
+            runtime.UpdateViewState(SurfaceViewState.CreateDefault(metadata, new SurfaceDataWindow(2d, 1d, 1d, 2d)));
+
+            var focusedProbe = GetHoveredProbe(GetOverlayState(view));
+            GetDoubleProperty(focusedProbe, "SampleX").Should().BeApproximately(2.5d, 0.0001d);
+            GetDoubleProperty(focusedProbe, "SampleY").Should().BeApproximately(2d, 0.0001d);
+            GetDoubleProperty(focusedProbe, "AxisX").Should().BeApproximately(16.25d, 0.0001d);
+            GetDoubleProperty(focusedProbe, "AxisY").Should().BeApproximately(150d, 0.0001d);
+            GetBooleanProperty(focusedProbe, "IsApproximate").Should().BeFalse();
+        });
+    }
+
+    [Fact]
     public void ProbeOverlay_FlagsApproximateWhenTileDensityIsCoarse()
     {
         var metadata = SurfaceChartViewLifecycleTests.CreateMetadata();

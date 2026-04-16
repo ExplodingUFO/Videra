@@ -2,13 +2,16 @@
 
 `Videra.SurfaceCharts.Demo` is the independent demo application for the surface-chart module family.
 
-The sample stays separate from `Videra.Demo` and `VideraView`. It exercises the chart-local renderer seam shipped in `SurfaceChartView`, not a `VideraView` mode. It provides switchable source and viewport paths:
+The sample stays separate from `Videra.Demo` and `VideraView`. It exercises the chart-local renderer seam shipped in `SurfaceChartView`, not a `VideraView` mode. It provides switchable sources and built-in chart interaction:
 
 - `in-memory example`: builds a sample surface matrix at startup and feeds it through `SurfacePyramidBuilder`.
 - `cache-backed example`: loads manifest metadata from `Assets/sample-surface-cache/sample.surfacecache.json`, then uses lazy tile streaming from `Assets/sample-surface-cache/sample.surfacecache.json.bin` through `SurfaceCacheReader` and `SurfaceCacheTileSource`.
-- `overview` and `zoomed detail`: switches the chart viewport between the full dataset and a stable zoomed-in viewport computed from the active dataset metadata.
 
-The committed cache sample uses a tiled manifest+sidecar layout so switching between overview and detail requests different cache tiles instead of materializing every tile value into memory up front.
+SurfaceChartView now exposes `ViewState` as the primary chart-view contract while `Viewport` remains a compatibility bridge for existing hosts.
+SurfaceChartView now ships built-in `left-drag orbit`, `right-drag pan`, `wheel dolly`, and `Ctrl + Left drag` focus zoom on top of the `ViewState` runtime contract.
+The chart enters `Interactive` quality during motion and returns to `Refine` after input settles.
+
+The committed cache sample uses a tiled manifest+sidecar layout so panning, dolly, and focus changes request different cache tiles instead of materializing every tile value into memory up front.
 
 ## Run
 
@@ -20,18 +23,21 @@ dotnet run --project samples/Videra.SurfaceCharts.Demo/Videra.SurfaceCharts.Demo
 
 - an independent chart application boundary
 - in-memory versus cache-backed source selection
+- built-in `left-drag orbit`, `right-drag pan`, `wheel dolly`, and `Ctrl + Left drag` focus zoom
+- a `View-state contract` panel that projects `ViewState`, `Fit to data`, and `Reset camera`
+- an `Interaction quality` panel that projects `Interactive` and `Refine`
 - overview-first LOD behavior
 - lazy cache-backed tile reads through the committed `sample.surfacecache.json` and `.bin` sidecar
-- host-driven viewport switching between overview and zoomed detail
+- axis/legend overlays rendered by `SurfaceChartView`
+- hover readout and `Shift + LeftClick` pinned probes on the chart surface
 - the shipped `GPU-first` renderer path used by `SurfaceChartView`, with `software fallback` still available when native-host or GPU initialization is unavailable
-- host code can inspect `RenderingStatus` / `RenderStatusChanged`, even though this sample does not add a dedicated backend-status dashboard
+- a lightweight rendering-path panel driven by `RenderingStatus` / `RenderStatusChanged`
 
 ## What The Demo Does Not Show Yet
 
-This is still an alpha demo. It does not yet provide a full interactive chart UX:
+The current sample is still a focused onboarding surface, not a finished end-user chart workstation:
 
-- no finished mouse zoom / pan / orbit workflow
 - no dedicated UI that walks every GPU host / fallback combination or surfaces every `RenderingStatus` field
 - on Linux, native GPU hosting still depends on X11 handles; Wayland sessions are `XWayland compatibility` only, not compositor-native Wayland surface embedding
 
-That gap is real. The current demo primarily proves the control boundary, renderer path, and cache/LOD behavior.
+That gap is intentional. The current demo primarily proves the control boundary, built-in interaction contract, renderer path, probe/overlay behavior, and cache/LOD story without trying to be a full workstation shell.

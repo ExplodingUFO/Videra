@@ -22,6 +22,7 @@ public partial class SurfaceChartView
                 pointerPosition,
                 e.KeyModifiers))
         {
+            e.Pointer.Capture(this);
             e.Handled = true;
         }
     }
@@ -31,7 +32,14 @@ public partial class SurfaceChartView
     {
         ArgumentNullException.ThrowIfNull(e);
         base.OnPointerMoved(e);
-        SurfaceChartInteractionController.HandlePointerMoved(e.GetPosition(this), UpdateProbeScreenPosition);
+
+        var pointerPosition = e.GetPosition(this);
+        UpdateProbeScreenPosition(pointerPosition);
+
+        if (_interactionController.HandlePointerMoved(pointerPosition, _runtime))
+        {
+            e.Handled = true;
+        }
     }
 
     /// <inheritdoc />
@@ -43,10 +51,43 @@ public partial class SurfaceChartView
         var pointerPosition = e.GetPosition(this);
         UpdateProbeScreenPosition(pointerPosition);
 
-        if (_interactionController.HandlePointerReleased(e.InitialPressMouseButton, pointerPosition, e.KeyModifiers) &&
+        var releaseResult = _interactionController.HandlePointerReleased(
+            e.InitialPressMouseButton,
+            pointerPosition,
+            e.KeyModifiers,
+            _runtime);
+
+        if (releaseResult.TogglePinnedProbe &&
             GetHoveredProbe() is SurfaceProbeInfo hoveredProbe)
         {
             TogglePinnedProbe(hoveredProbe);
+        }
+
+        if (releaseResult.Handled)
+        {
+            InvalidateOverlay();
+
+            if (!_interactionController.HasActiveGesture &&
+                ReferenceEquals(e.Pointer.Captured, this))
+            {
+                e.Pointer.Capture(null);
+            }
+
+            e.Handled = true;
+        }
+    }
+
+    /// <inheritdoc />
+    protected override void OnPointerWheelChanged(PointerWheelEventArgs e)
+    {
+        ArgumentNullException.ThrowIfNull(e);
+        base.OnPointerWheelChanged(e);
+
+        var pointerPosition = e.GetPosition(this);
+        UpdateProbeScreenPosition(pointerPosition);
+
+        if (_interactionController.HandlePointerWheelChanged(e.Delta, _runtime, GetHoveredProbe()))
+        {
             e.Handled = true;
         }
     }
@@ -56,6 +97,7 @@ public partial class SurfaceChartView
     {
         ArgumentNullException.ThrowIfNull(e);
         _interactionController.Reset();
+        InvalidateOverlay();
         base.OnPointerCaptureLost(e);
     }
 }

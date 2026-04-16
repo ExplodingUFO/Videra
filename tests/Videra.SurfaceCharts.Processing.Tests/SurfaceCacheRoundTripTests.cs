@@ -84,6 +84,30 @@ public class SurfaceCacheRoundTripTests
     }
 
     [Fact]
+    public async Task WriteAsync_PersistsTileStatisticsAcrossRoundTrip()
+    {
+        var cachePath = CreateCachePath();
+        var source = CreateSource();
+        var tileKey = new SurfaceTileKey(0, 0, 0, 0);
+
+        try
+        {
+            await SurfaceCacheWriter.WriteAsync(cachePath, source, new[] { tileKey });
+
+            var reader = await SurfaceCacheReader.ReadAsync(cachePath);
+            var expectedTile = await source.GetRequiredTileAsync(tileKey);
+            var actualTile = await reader.LoadTileAsync(tileKey);
+
+            actualTile.Should().NotBeNull();
+            actualTile!.Statistics.Should().Be(expectedTile.Statistics);
+        }
+        finally
+        {
+            DeleteCachePath(cachePath);
+        }
+    }
+
+    [Fact]
     public async Task WriteAsync_PreservesExistingCacheWhenSerializationFails()
     {
         var cachePath = CreateCachePath();
@@ -231,6 +255,7 @@ public class SurfaceCacheRoundTripTests
         actual.Height.Should().Be(expected.Height);
         actual.Bounds.Should().Be(expected.Bounds);
         actual.ValueRange.Should().Be(expected.ValueRange);
+        actual.Statistics.Should().Be(expected.Statistics);
         actual.Values.ToArray().Should().Equal(expected.Values.ToArray());
     }
 
@@ -319,6 +344,11 @@ public class SurfaceCacheRoundTripTests
         public bool FileExists(string path)
         {
             return inner.FileExists(path);
+        }
+
+        public Stream OpenRead(string path)
+        {
+            return inner.OpenRead(path);
         }
 
         public void CreateDirectory(string path)

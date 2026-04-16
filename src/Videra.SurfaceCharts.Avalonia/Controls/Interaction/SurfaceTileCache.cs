@@ -17,22 +17,33 @@ internal sealed class SurfaceTileCache
         }
     }
 
-    /// <summary>
-    /// Removes all detail loaded/requested tiles while preserving overview (0,0,0,0) when present.
-    /// </summary>
-    public void PruneDetailTiles()
+    public bool Contains(SurfaceTileKey key)
     {
-        var overviewKey = new SurfaceTileKey(0, 0, 0, 0);
+        lock (_sync)
+        {
+            return _requestedKeys.ContainsKey(key) || _loadedTiles.ContainsKey(key);
+        }
+    }
+
+    public void PruneToKeys(IReadOnlyCollection<SurfaceTileKey> retainedKeys)
+    {
+        ArgumentNullException.ThrowIfNull(retainedKeys);
+
+        var retainedKeySet = retainedKeys as HashSet<SurfaceTileKey> ?? retainedKeys.ToHashSet();
 
         lock (_sync)
         {
-            var requestedKeysToRemove = _requestedKeys.Keys.Where(k => k != overviewKey).ToList();
+            var requestedKeysToRemove = _requestedKeys.Keys
+                .Where(key => !retainedKeySet.Contains(key))
+                .ToList();
             foreach (var key in requestedKeysToRemove)
             {
                 _requestedKeys.Remove(key);
             }
 
-            var loadedKeysToRemove = _loadedTiles.Keys.Where(k => k != overviewKey).ToList();
+            var loadedKeysToRemove = _loadedTiles.Keys
+                .Where(key => !retainedKeySet.Contains(key))
+                .ToList();
             foreach (var key in loadedKeysToRemove)
             {
                 _loadedTiles.Remove(key);
