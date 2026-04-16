@@ -6,6 +6,9 @@ namespace Tests.Common.Platform;
 
 public static class NativeHostTestHelpers
 {
+    private const int X11DisplayOpenRetryAttempts = 10;
+    private static readonly TimeSpan X11DisplayOpenRetryDelay = TimeSpan.FromMilliseconds(100);
+
     public static Win32TestWindow CreateHiddenWin32Window(int width = 64, int height = 64)
         => new(width, height);
 
@@ -21,14 +24,54 @@ public static class NativeHostTestHelpers
             return false;
         }
 
-        var display = XOpenDisplayProbe(IntPtr.Zero);
+        return ProbeX11DisplayWithRetry(
+            openDisplay: () => XOpenDisplayProbe(IntPtr.Zero),
+            closeDisplay: display => XCloseDisplayProbe(display),
+            maxAttempts: X11DisplayOpenRetryAttempts,
+            retryDelay: X11DisplayOpenRetryDelay);
+    }
+
+    internal static bool ProbeX11DisplayWithRetry(
+        Func<IntPtr> openDisplay,
+        Action<IntPtr> closeDisplay,
+        int maxAttempts,
+        TimeSpan retryDelay)
+    {
+        var display = OpenX11DisplayWithRetry(openDisplay, maxAttempts, retryDelay);
         if (display == IntPtr.Zero)
         {
             return false;
         }
 
-        XCloseDisplayProbe(display);
+        closeDisplay(display);
         return true;
+    }
+
+    internal static IntPtr OpenX11DisplayWithRetry(
+        Func<IntPtr> openDisplay,
+        int maxAttempts,
+        TimeSpan retryDelay)
+    {
+        if (maxAttempts < 1)
+        {
+            throw new ArgumentOutOfRangeException(nameof(maxAttempts), maxAttempts, "At least one attempt is required.");
+        }
+
+        for (var attempt = 1; attempt <= maxAttempts; attempt++)
+        {
+            var display = openDisplay();
+            if (display != IntPtr.Zero)
+            {
+                return display;
+            }
+
+            if (attempt < maxAttempts && retryDelay > TimeSpan.Zero)
+            {
+                Thread.Sleep(retryDelay);
+            }
+        }
+
+        return IntPtr.Zero;
     }
 
     public sealed class Win32TestWindow : IDisposable
@@ -196,7 +239,12 @@ public static class NativeHostTestHelpers
 
         public X11TestWindow(int width, int height)
         {
-            _display = XOpenDisplay(IntPtr.Zero);
+            // xvfb-run and other ephemeral CI hosts can take a brief moment before
+            // XOpenDisplay succeeds for both discovery-time probes and window creation.
+            _display = OpenX11DisplayWithRetry(
+                openDisplay: () => XOpenDisplay(IntPtr.Zero),
+                maxAttempts: X11DisplayOpenRetryAttempts,
+                retryDelay: X11DisplayOpenRetryDelay);
             if (_display == IntPtr.Zero)
                 throw new InvalidOperationException("Failed to open X11 display. Ensure an X11 display server is running.");
 
