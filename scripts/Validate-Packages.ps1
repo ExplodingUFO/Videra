@@ -19,8 +19,10 @@ $expectedPackages = @(
 
 $expectedRepositoryUrl = "https://github.com/ExplodingUFO/Videra" # RepositoryUrl
 $expectedLicenseExpression = "MIT" # PackageLicenseExpression
+$expectedPackageIcon = "icon.png" # PackageIcon
 $expectedPackageRoot = (Resolve-Path $PackageRoot).Path
 $packageFiles = Get-ChildItem -Path $expectedPackageRoot -Recurse -Filter *.nupkg | Sort-Object Name
+$symbolPackageFiles = Get-ChildItem -Path $expectedPackageRoot -Recurse -Filter *.snupkg | Sort-Object Name
 
 if ($packageFiles.Count -lt $expectedPackages.Count)
 {
@@ -32,6 +34,12 @@ Remove-Item -LiteralPath $validationRoot -Recurse -Force -ErrorAction SilentlyCo
 New-Item -ItemType Directory -Path $validationRoot | Out-Null
 
 $metadataById = @{}
+$symbolPackagesByBaseName = @{}
+
+foreach ($symbolPackage in $symbolPackageFiles)
+{
+    $symbolPackagesByBaseName[$symbolPackage.BaseName] = $symbolPackage.FullName
+}
 
 foreach ($package in $packageFiles)
 {
@@ -64,6 +72,11 @@ foreach ($package in $packageFiles)
         throw "Package '$packageId' is missing README.md."
     }
 
+    if (-not (Test-Path (Join-Path $extractPath $expectedPackageIcon)))
+    {
+        throw "Package '$packageId' is missing package icon '$expectedPackageIcon'."
+    }
+
     if ([string]::IsNullOrWhiteSpace([string]$metadata.description))
     {
         throw "Package '$packageId' is missing description metadata."
@@ -72,6 +85,16 @@ foreach ($package in $packageFiles)
     if ([string]::IsNullOrWhiteSpace([string]$metadata.tags))
     {
         throw "Package '$packageId' is missing tags metadata."
+    }
+
+    if ([string]::IsNullOrWhiteSpace([string]$metadata.icon))
+    {
+        throw "Package '$packageId' is missing PackageIcon metadata."
+    }
+
+    if ([string]$metadata.icon -ne $expectedPackageIcon)
+    {
+        throw "Package '$packageId' must use package icon '$expectedPackageIcon'."
     }
 
     $repositoryNode = $metadata.repository
@@ -126,6 +149,7 @@ foreach ($package in $packageFiles)
 
     $metadataById[$packageId] = [pscustomobject]@{
         Path = $package.FullName
+        BaseName = $package.BaseName
         Description = [string]$metadata.description
         Tags = [string]$metadata.tags
         Dependencies = $dependencies
@@ -137,6 +161,12 @@ foreach ($expectedPackage in $expectedPackages)
     if (-not $metadataById.ContainsKey($expectedPackage))
     {
         throw "Expected package '$expectedPackage' was not found in '$expectedPackageRoot'."
+    }
+
+    $packageMetadata = $metadataById[$expectedPackage]
+    if (-not $symbolPackagesByBaseName.ContainsKey($packageMetadata.BaseName))
+    {
+        throw "Expected symbol package for '$expectedPackage' was not found in '$expectedPackageRoot'."
     }
 }
 

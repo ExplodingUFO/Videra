@@ -27,6 +27,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="..\..\eng\icon.png" Pack="true" PackagePath="\" Link="icon.png" />
     <None Include="README.md" Pack="true" PackagePath="\" />
     <PackageReference Include="Avalonia" Version="11.3.9" />
     <PackageReference Include="Avalonia.Desktop" Version="11.3.9" />

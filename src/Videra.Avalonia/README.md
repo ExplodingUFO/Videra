@@ -16,7 +16,18 @@ Current status: `alpha`. `Videra.Avalonia` is the entry package for Avalonia app
 
 ## Install
 
-Configure GitHub Packages before adding the package:
+The default public consumer path is `nuget.org`. Install the Avalonia entry package and exactly one matching platform package:
+
+```bash
+dotnet add package Videra.Avalonia
+dotnet add package Videra.Platform.Windows
+# or
+dotnet add package Videra.Platform.Linux
+# or
+dotnet add package Videra.Platform.macOS
+```
+
+Current `alpha` and contributor `preview` validation can still use `GitHub Packages`, but that feed is not the default public install route:
 
 ```bash
 dotnet nuget add source "https://nuget.pkg.github.com/ExplodingUFO/index.json" \
@@ -24,17 +35,9 @@ dotnet nuget add source "https://nuget.pkg.github.com/ExplodingUFO/index.json" \
   --username YOUR_GITHUB_USER \
   --password YOUR_GITHUB_PAT \
   --store-password-in-clear-text
-```
 
-Install the Avalonia entry package and exactly one matching platform package:
-
-```bash
 dotnet add package Videra.Avalonia --version 0.1.0-alpha.1 --source github-ExplodingUFO
 dotnet add package Videra.Platform.Windows --version 0.1.0-alpha.1 --source github-ExplodingUFO
-# or
-dotnet add package Videra.Platform.Linux --version 0.1.0-alpha.1 --source github-ExplodingUFO
-# or
-dotnet add package Videra.Platform.macOS --version 0.1.0-alpha.1 --source github-ExplodingUFO
 ```
 
 If no matching platform package is installed, the software fallback path can still help with diagnostics, but it does not install missing platform packages.

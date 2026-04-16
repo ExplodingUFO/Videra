@@ -70,7 +70,15 @@ Scope boundary:
 
 ## Typical Use
 
-Configure GitHub Packages before installing the package:
+The default public consumer path is `nuget.org`:
+
+```bash
+dotnet add package Videra.Core
+```
+
+Install `Videra.Core` directly when you need the core scene and backend abstractions without the Avalonia UI layer.
+
+Current `alpha` and contributor `preview` validation can still use `GitHub Packages`, but that feed is not the default public install route:
 
 ```bash
 dotnet nuget add source "https://nuget.pkg.github.com/ExplodingUFO/index.json" \
@@ -78,11 +86,7 @@ dotnet nuget add source "https://nuget.pkg.github.com/ExplodingUFO/index.json" \
   --username YOUR_GITHUB_USER \
   --password YOUR_GITHUB_PAT \
   --store-password-in-clear-text
-```
 
-Install `Videra.Core` directly when you need the core scene and backend abstractions without the Avalonia UI layer:
-
-```bash
 dotnet add package Videra.Core --version 0.1.0-alpha.1 --source github-ExplodingUFO
 ```
 

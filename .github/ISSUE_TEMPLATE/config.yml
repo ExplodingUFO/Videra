@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Usage questions / design discussion
+    url: https://github.com/ExplodingUFO/Videra/discussions
+    about: Ask how to use Videra, discuss API design, or share integration ideas.
+  - name: Security report
+    url: https://github.com/ExplodingUFO/Videra/security/policy
+    about: Please do not open a public issue for security vulnerabilities.

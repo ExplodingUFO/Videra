@@ -9,7 +9,13 @@
     <RepositoryType>git</RepositoryType>
     <PackageProjectUrl>https://github.com/ExplodingUFO/Videra</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageIcon>icon.png</PackageIcon>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+    <Deterministic>true</Deterministic>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <!-- The repo still carries a large backlog of analyzer findings across referenced projects.
          Keep local Debug builds usable by making warnings-as-errors opt-in instead of always-on. -->
     <WarningsAsErrorsInDebug Condition="'$(WarningsAsErrorsInDebug)' == ''">false</WarningsAsErrorsInDebug>
@@ -17,6 +23,7 @@
     <RunAnalyzersDuringBuild>true</RunAnalyzersDuringBuild>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="all" />
     <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="9.0.0" PrivateAssets="all" />
     <PackageReference Include="SonarAnalyzer.CSharp" Version="10.6.0.109712" PrivateAssets="all" />
   </ItemGroup>

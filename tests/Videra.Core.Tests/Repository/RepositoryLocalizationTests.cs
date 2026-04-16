@@ -175,10 +175,19 @@ public sealed class RepositoryLocalizationTests
         readme.Should().Contain("Videra.Platform.Linux");
         readme.Should().Contain("Videra.Platform.macOS");
         readme.Should().Contain("VIDERA_BACKEND");
+        readme.Should().Contain("nuget.org");
+        readme.Should().Contain("GitHub Packages");
+        readme.Should().Contain("preview");
+        readme.Should().Contain("package-matrix.md");
+        readme.Should().Contain("support-matrix.md");
+        readme.Should().Contain("release-policy.md");
         readme.Should().Contain("英文版为准");
 
         index.Should().Contain("安装");
         index.Should().Contain("故障排查");
+        index.Should().Contain("package-matrix.md");
+        index.Should().Contain("support-matrix.md");
+        index.Should().Contain("release-policy.md");
 
         troubleshooting.Should().Contain("VIDERA_BACKEND");
         troubleshooting.Should().Contain("不会安装缺失的平台包");
@@ -187,8 +196,9 @@ public sealed class RepositoryLocalizationTests
 
         foreach (var module in new[] { avaloniaModule, coreModule, windowsModule, linuxModule, macosModule })
         {
-            module.Should().Contain("dotnet nuget add source");
-            module.Should().Contain("https://nuget.pkg.github.com/ExplodingUFO/index.json");
+            module.Should().Contain("nuget.org");
+            module.Should().Contain("GitHub Packages");
+            module.Should().Contain("preview");
             module.Should().Contain("英文版为准");
         }
 

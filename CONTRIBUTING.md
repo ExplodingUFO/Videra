@@ -12,7 +12,7 @@ Thanks for contributing to Videra. This guide explains how to build, validate, a
 - New platform integration and backend improvements
 - Demo usability improvements
 
-For larger capability changes, open an issue first to discuss scope and approach.
+For larger capability changes, open a Discussion or issue first to discuss scope and approach.
 
 ## Development Environment
 
@@ -168,8 +168,11 @@ For `master`, the intended required checks are:
 
 ## Questions and Feedback
 
-- Use Issues for bugs, compatibility problems, and documentation gaps
-- For larger design disagreements, sync in an issue before opening a major PR
+- Use GitHub Discussions for usage questions, API design discussion, and integration ideas
+- Use Issues for `kind: bug`, `kind: feature`, `kind: docs`, and `dependencies` work
+- Choose the closest product area when filing issues: `area: core`, `area: avalonia`, `area: windows`, `area: linux`, `area: macos`, or `area: surfacecharts`
+- For larger design disagreements, sync in a Discussion or issue before opening a major PR
+- Security problems belong in [SECURITY.md](SECURITY.md). Do not post private vulnerabilities as public issues.
 
 ## Chinese Docs
 

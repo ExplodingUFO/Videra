@@ -8,7 +8,15 @@
 
 ## 安装前置
 
-当前 `alpha` 包通过 GitHub Packages 提供。先配置包源：
+公开消费者默认从 `nuget.org` 安装：
+
+```bash
+dotnet add package Videra.Core
+```
+
+只在需要核心渲染抽象和导入管线时直接安装。桌面 UI 集成更推荐从 `Videra.Avalonia` 加匹配平台包开始。
+
+当前 `alpha` 的 `preview` 验证仍可使用 `GitHub Packages`，但那不是默认公开安装路径：
 
 ```bash
 dotnet nuget add source "https://nuget.pkg.github.com/ExplodingUFO/index.json" \
@@ -16,15 +24,9 @@ dotnet nuget add source "https://nuget.pkg.github.com/ExplodingUFO/index.json" \
   --username YOUR_GITHUB_USER \
   --password YOUR_GITHUB_PAT \
   --store-password-in-clear-text
-```
 
-只在需要核心渲染抽象和导入管线时直接安装：
-
-```bash
 dotnet add package Videra.Core --version 0.1.0-alpha.1 --source github-ExplodingUFO
 ```
-
-桌面 UI 集成更推荐从 `Videra.Avalonia` 加匹配平台包开始。
 
 ## 模块架构
 

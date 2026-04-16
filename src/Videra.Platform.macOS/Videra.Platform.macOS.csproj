@@ -35,6 +35,7 @@
     <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
       <_Parameter1>Videra.Avalonia</_Parameter1>
     </AssemblyAttribute>
+    <None Include="..\..\eng\icon.png" Pack="true" PackagePath="\" Link="icon.png" />
     <None Include="README.md" Pack="true" PackagePath="\" />
     <!-- Metal 通过 Objective-C Runtime 直接访问，不需要额外的 NuGet 包 -->
     <PackageReference Include="Silk.NET.Core" Version="2.21.0" />

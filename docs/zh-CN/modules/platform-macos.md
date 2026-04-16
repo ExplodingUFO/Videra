@@ -8,7 +8,14 @@ macOS 平台的 Metal 图形后端实现。
 
 ## 安装前置
 
-当前 `alpha` 包通过 GitHub Packages 提供。先配置包源：
+公开消费者默认从 `nuget.org` 安装：
+
+```bash
+dotnet add package Videra.Avalonia
+dotnet add package Videra.Platform.macOS
+```
+
+当前 `alpha` 的 `preview` 验证仍可使用 `GitHub Packages`，但那不是默认公开安装路径：
 
 ```bash
 dotnet nuget add source "https://nuget.pkg.github.com/ExplodingUFO/index.json" \
@@ -16,11 +23,7 @@ dotnet nuget add source "https://nuget.pkg.github.com/ExplodingUFO/index.json" \
   --username YOUR_GITHUB_USER \
   --password YOUR_GITHUB_PAT \
   --store-password-in-clear-text
-```
 
-macOS 应用通常与 `Videra.Avalonia` 搭配安装：
-
-```bash
 dotnet add package Videra.Avalonia --version 0.1.0-alpha.1 --source github-ExplodingUFO
 dotnet add package Videra.Platform.macOS --version 0.1.0-alpha.1 --source github-ExplodingUFO
 ```

@@ -1,0 +1,131 @@
+name: Publish Preview Packages to GitHub Packages
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Preview package version to publish
+        required: true
+        default: 0.1.0-alpha.1
+        type: string
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  verify:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Run repository verification
+        shell: pwsh
+        run: pwsh -File ./scripts/verify.ps1 -Configuration Release
+
+  linux-package-evidence:
+    needs: verify
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Pack Linux preview package
+        run: dotnet pack src/Videra.Platform.Linux/Videra.Platform.Linux.csproj -c Release -o ./nupkgs /p:PackageVersion=${{ github.event.inputs.version }}
+
+      - name: Upload Linux preview evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: preview-package-evidence-linux
+          path: |
+            ./nupkgs/*.nupkg
+            ./nupkgs/*.snupkg
+
+  macos-package-evidence:
+    needs: verify
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Pack macOS preview package
+        run: dotnet pack src/Videra.Platform.macOS/Videra.Platform.macOS.csproj -c Release -o ./nupkgs /p:PackageVersion=${{ github.event.inputs.version }}
+
+      - name: Upload macOS preview evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: preview-package-evidence-macos
+          path: |
+            ./nupkgs/*.nupkg
+            ./nupkgs/*.snupkg
+
+  windows-and-neutral-package-evidence:
+    needs: verify
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Pack neutral and Windows preview packages
+        shell: pwsh
+        run: |
+          dotnet pack src/Videra.Core/Videra.Core.csproj -c Release -o ./nupkgs /p:PackageVersion=${{ github.event.inputs.version }}
+          dotnet pack src/Videra.Avalonia/Videra.Avalonia.csproj -c Release -o ./nupkgs /p:PackageVersion=${{ github.event.inputs.version }}
+          dotnet pack src/Videra.Platform.Windows/Videra.Platform.Windows.csproj -c Release -o ./nupkgs /p:PackageVersion=${{ github.event.inputs.version }}
+
+      - name: Upload Windows and neutral preview evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: preview-package-evidence-windows-neutral
+          path: |
+            ./nupkgs/*.nupkg
+            ./nupkgs/*.snupkg
+
+  publish-preview:
+    needs:
+      - verify
+      - linux-package-evidence
+      - macos-package-evidence
+      - windows-and-neutral-package-evidence
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Download preview package evidence
+        uses: actions/download-artifact@v4
+        with:
+          pattern: preview-package-evidence-*
+          path: ./nupkgs
+          merge-multiple: true
+
+      - name: Validate packed preview artifacts
+        shell: pwsh
+        run: pwsh -File ./scripts/Validate-Packages.ps1 -PackageRoot ./nupkgs -ExpectedVersion ${{ github.event.inputs.version }}
+
+      - name: Push preview packages to GitHub Packages
+        shell: pwsh
+        run: |
+          dotnet nuget push ./nupkgs/*.nupkg --source https://nuget.pkg.github.com/ExplodingUFO/index.json --api-key ${{ secrets.GITHUB_TOKEN }} --skip-duplicate
+          dotnet nuget push ./nupkgs/*.snupkg --source https://nuget.pkg.github.com/ExplodingUFO/index.json --api-key ${{ secrets.GITHUB_TOKEN }} --skip-duplicate

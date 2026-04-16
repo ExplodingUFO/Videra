@@ -4,8 +4,7 @@
 
 Videra 是一套面向 .NET 桌面应用的跨平台 3D 查看组件库，核心目标是在 Avalonia 应用中提供可复用、可嵌入、可扩展的 3D 查看能力。
 
-surface-chart 模块家族与 `VideraView` 相互独立。
-它面向离线大矩阵、曲面图和时频图一类可视化场景，独立 Demo 也单独发布为 `Videra.SurfaceCharts.Demo`。
+surface-chart 模块家族与 `VideraView` 相互独立。它面向离线大矩阵、曲面图和时频图一类可视化场景，独立 Demo 也单独发布为 `Videra.SurfaceCharts.Demo`。
 
 当前 `alpha` 阶段需要明确说明：
 
@@ -21,46 +20,42 @@ surface-chart 模块家族与 `VideraView` 相互独立。
 
 - 当前处于早期 `alpha`
 - 当前默认版本线为 `0.1.0-alpha.1`
-- API、包结构和部分平台行为在 `1.0` 前仍可能调整
-- 当前 GitHub Packages 安装线更适合 Windows + Avalonia 评估；Linux/macOS 原生后端更建议按源码验证
+- 公开消费者入口以 `nuget.org` 为准
+- `GitHub Packages` 只保留给 `preview` / internal 验证和贡献者实验
+- `Videra.SurfaceCharts.*` 仍是 source-only modules，不在当前公开包承诺内
 - GitHub Actions 会在 pull requests 中自动执行跨平台原生验证；Linux 会同时覆盖 `X11` 原生路径和 Wayland 会话下的 `XWayland` 兼容路径；本地 matching-host 运行仍主要用于复现和排障
 
 ## 安装与包选择
 
 以下中文说明用于快速索引，英文版为准。
 
-先配置 GitHub Packages 源：
+公开消费者默认从 `nuget.org` 安装。Avalonia 应用推荐安装 `Videra.Avalonia` 加一个匹配平台包：
 
 ```bash
-dotnet nuget add source "https://nuget.pkg.github.com/ExplodingUFO/index.json" \
-  --name github-ExplodingUFO \
-  --username YOUR_GITHUB_USER \
-  --password YOUR_GITHUB_PAT \
-  --store-password-in-clear-text
-```
-
-Avalonia 应用推荐安装 `Videra.Avalonia` 加一个匹配平台包：
-
-```bash
-dotnet add package Videra.Avalonia --version 0.1.0-alpha.1 --source github-ExplodingUFO
-dotnet add package Videra.Platform.Windows --version 0.1.0-alpha.1 --source github-ExplodingUFO
+dotnet add package Videra.Avalonia
+dotnet add package Videra.Platform.Windows
 # 或
-dotnet add package Videra.Platform.Linux --version 0.1.0-alpha.1 --source github-ExplodingUFO
+dotnet add package Videra.Platform.Linux
 # 或
-dotnet add package Videra.Platform.macOS --version 0.1.0-alpha.1 --source github-ExplodingUFO
+dotnet add package Videra.Platform.macOS
 ```
 
 如果只需要渲染抽象和导入管线，则直接安装 `Videra.Core`：
 
 ```bash
-dotnet add package Videra.Core --version 0.1.0-alpha.1 --source github-ExplodingUFO
+dotnet add package Videra.Core
 ```
+
+当前 `alpha` 预览线在需要时仍可通过 `GitHub Packages` 进行 `preview` 验证，但那不是默认公开安装路径。
 
 `VIDERA_BACKEND` 只影响后端选择偏好，不会安装缺失的平台包，也不会替代 matching-host 原生验证。
 
 ## 快速入口
 
 - [英文首页](../../README.md)
+- [包矩阵](../package-matrix.md)
+- [支持矩阵](../support-matrix.md)
+- [发布策略](../release-policy.md)
 - [扩展合同](extensibility.md)：`VideraView.Engine`、`RegisterPassContributor(...)`、`RegisterFrameHook(...)`、`RenderCapabilities`、`BackendDiagnostics` 与 `samples/Videra.ExtensibilitySample`
 - [交互示例](../../samples/Videra.InteractionSample/README.md)：`host owns` `SelectionState`、`Annotations` 和 annotation state，`Navigate` / `Select` / `Annotate`，`SelectionRequested` / `AnnotationRequested`，以及 `VideraNodeAnnotation` / `VideraWorldPointAnnotation`
 - [SurfaceCharts.Core](modules/videra-surfacecharts-core.md)：`SurfaceChartView` 之外的领域契约、viewport / LOD、tile source 与 probe contract
@@ -96,5 +91,4 @@ dotnet add package Videra.Core --version 0.1.0-alpha.1 --source github-Exploding
 
 受控交互入口则以 [samples/Videra.InteractionSample](../../samples/Videra.InteractionSample/README.md) 为主：`host owns` `SelectionState`、`Annotations` 与 annotation state，内建模式是 `Navigate`、`Select`、`Annotate`，选择保持 `object-level`，标注同时覆盖 object anchors 与 world-point anchors，并通过 `VideraNodeAnnotation` / `VideraWorldPointAnnotation` 表达，overlay responsibilities split between `3D highlight/render state` and `2D label/feedback rendering`。
 
-surface-chart 模块家族则以 `SurfaceChartView` 为中心，独立于 `VideraView`，并保持与 viewer 侧选择、标注和 camera 流程解耦。当前对外 truth 是：独立 Demo、built-in `left-drag orbit` / `right-drag pan` / `wheel dolly` / `Ctrl + Left drag` focus zoom、hover 与 `Shift + LeftClick` pinned probe、可见 `RenderingStatus`，以及显式 `Interactive` / `Refine` 质量切换。SurfaceChartView 现在以 `ViewState` 作为主 chart-view 契约，而 `Viewport` 只保留为兼容桥接。图表在交互过程中进入 `Interactive` 质量模式，并在输入停稳后回到 `Refine`。
-SurfaceChartView 通过 chart-local `OverlayOptions` 提供 formatter、标题/单位覆盖、minor ticks、grid plane 与 axis-side 行为。
+surface-chart 模块家族则以 `SurfaceChartView` 为中心，独立于 `VideraView`，并保持与 viewer 侧选择、标注和 camera 流程解耦。当前对外 truth 是：独立 Demo、built-in `left-drag orbit` / `right-drag pan` / `wheel dolly` / `Ctrl + Left drag` focus zoom、hover 与 `Shift + LeftClick` pinned probe、可见 `RenderingStatus`，以及显式 `Interactive` / `Refine` 质量切换。SurfaceChartView 现在以 `ViewState` 作为主 chart-view 契约，而 `Viewport` 只保留为兼容桥接。图表在交互过程中进入 `Interactive` 质量模式，并在输入停稳后回到 `Refine`。SurfaceChartView 通过 chart-local `OverlayOptions` 提供 formatter、标题/单位覆盖、minor ticks、grid plane 与 axis-side 行为。

@@ -16,7 +16,14 @@ Current status: `alpha`. This package is the Linux platform companion for `Vider
 
 ## Install
 
-Configure GitHub Packages before adding the package:
+The default public consumer path is `nuget.org`:
+
+```bash
+dotnet add package Videra.Avalonia
+dotnet add package Videra.Platform.Linux
+```
+
+Current `alpha` and contributor `preview` validation can still use `GitHub Packages`, but that feed is not the default public install route:
 
 ```bash
 dotnet nuget add source "https://nuget.pkg.github.com/ExplodingUFO/index.json" \
@@ -24,11 +31,7 @@ dotnet nuget add source "https://nuget.pkg.github.com/ExplodingUFO/index.json" \
   --username YOUR_GITHUB_USER \
   --password YOUR_GITHUB_PAT \
   --store-password-in-clear-text
-```
 
-Install it together with `Videra.Avalonia` on Linux:
-
-```bash
 dotnet add package Videra.Avalonia --version 0.1.0-alpha.1 --source github-ExplodingUFO
 dotnet add package Videra.Platform.Linux --version 0.1.0-alpha.1 --source github-ExplodingUFO
 ```

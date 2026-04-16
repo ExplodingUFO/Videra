@@ -8,7 +8,18 @@
 
 ## 安装
 
-当前 `alpha` 包通过 GitHub Packages 提供。先配置包源：
+公开消费者默认从 `nuget.org` 安装。Avalonia 应用请安装入口包和一个匹配平台包：
+
+```bash
+dotnet add package Videra.Avalonia
+dotnet add package Videra.Platform.Windows
+# 或
+dotnet add package Videra.Platform.Linux
+# 或
+dotnet add package Videra.Platform.macOS
+```
+
+当前 `alpha` 的 `preview` 验证仍可使用 `GitHub Packages`，但那不是默认公开安装路径：
 
 ```bash
 dotnet nuget add source "https://nuget.pkg.github.com/ExplodingUFO/index.json" \
@@ -16,17 +27,9 @@ dotnet nuget add source "https://nuget.pkg.github.com/ExplodingUFO/index.json" \
   --username YOUR_GITHUB_USER \
   --password YOUR_GITHUB_PAT \
   --store-password-in-clear-text
-```
 
-Avalonia 应用请安装入口包和一个匹配平台包：
-
-```bash
 dotnet add package Videra.Avalonia --version 0.1.0-alpha.1 --source github-ExplodingUFO
 dotnet add package Videra.Platform.Windows --version 0.1.0-alpha.1 --source github-ExplodingUFO
-# 或
-dotnet add package Videra.Platform.Linux --version 0.1.0-alpha.1 --source github-ExplodingUFO
-# 或
-dotnet add package Videra.Platform.macOS --version 0.1.0-alpha.1 --source github-ExplodingUFO
 ```
 
 `PreferredBackend` 和 `VIDERA_BACKEND` 只影响后端偏好，不会安装缺失的平台包，也不会替代 matching-host 原生验证。
