@@ -9,7 +9,10 @@ namespace Videra.SurfaceCharts.Core;
 public static class SurfaceHeightfieldPicker
 {
     private const float IntersectionEpsilon = 0.0001f;
-    private const float VertexSnapDistanceEpsilon = 0.01f;
+    // Exact screen->ray round-trips can drift slightly across runtimes/platforms when the
+    // ray lands on a shared peak vertex. Keep the vertex-snap fallback comfortably above
+    // that cross-platform projection noise while staying far below the tile's sample spacing.
+    private const float VertexSnapDistanceEpsilon = 0.05f;
     private const float VertexSnapDistanceTieEpsilon = 0.05f;
 
     /// <summary>
