@@ -114,7 +114,7 @@ jobs:
           dotnet-version: 8.0.x
 
       - name: Download preview package evidence
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           pattern: preview-package-evidence-*
           path: ./nupkgs

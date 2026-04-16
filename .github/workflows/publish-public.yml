@@ -234,7 +234,7 @@ jobs:
         run: pwsh -File ./scripts/verify.ps1 -Configuration Release
 
       - name: Download package evidence
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           pattern: package-evidence-*
           path: ./nupkgs
