@@ -1,0 +1,140 @@
+name: Publish Existing Public Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing git tag to publish to nuget.org
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  publish-existing-release:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.tag }}
+          fetch-depth: 0
+
+      - name: Determine version from tag
+        id: version
+        shell: pwsh
+        run: |
+          $tag = "${{ inputs.tag }}".Trim()
+          if ([string]::IsNullOrWhiteSpace($tag)) {
+            throw "Tag input is required."
+          }
+
+          if (-not $tag.StartsWith("v")) {
+            throw "Expected a version tag that starts with 'v'."
+          }
+
+          $version = $tag.Substring(1)
+          if ([string]::IsNullOrWhiteSpace($version)) {
+            throw "Could not determine package version from tag $tag."
+          }
+
+          "tag=$tag" >> $env:GITHUB_OUTPUT
+          "version=$version" >> $env:GITHUB_OUTPUT
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Run repository verification
+        shell: pwsh
+        run: |
+          if (Test-Path ./scripts/verify.ps1) {
+            pwsh -File ./scripts/verify.ps1 -Configuration Release
+            exit $LASTEXITCODE
+          }
+
+          if (Test-Path ./verify.ps1) {
+            pwsh -File ./verify.ps1 -Configuration Release
+            exit $LASTEXITCODE
+          }
+
+          throw "Could not find a repository verification script for this tag."
+
+      - name: Pack public packages
+        shell: pwsh
+        run: |
+          dotnet pack src/Videra.Core/Videra.Core.csproj -c Release -o ./nupkgs /p:PackageVersion=${{ steps.version.outputs.version }}
+          dotnet pack src/Videra.Avalonia/Videra.Avalonia.csproj -c Release -o ./nupkgs /p:PackageVersion=${{ steps.version.outputs.version }}
+          dotnet pack src/Videra.Platform.Windows/Videra.Platform.Windows.csproj -c Release -o ./nupkgs /p:PackageVersion=${{ steps.version.outputs.version }}
+          dotnet pack src/Videra.Platform.Linux/Videra.Platform.Linux.csproj -c Release -o ./nupkgs /p:PackageVersion=${{ steps.version.outputs.version }}
+          dotnet pack src/Videra.Platform.macOS/Videra.Platform.macOS.csproj -c Release -o ./nupkgs /p:PackageVersion=${{ steps.version.outputs.version }}
+
+      - name: Validate packed artifacts
+        shell: pwsh
+        run: |
+          $expectedVersion = "${{ steps.version.outputs.version }}"
+          $expectedPackages = @(
+            "Videra.Core",
+            "Videra.Avalonia",
+            "Videra.Platform.Windows",
+            "Videra.Platform.Linux",
+            "Videra.Platform.macOS"
+          )
+
+          $packages = Get-ChildItem -Path ./nupkgs/*.nupkg | Where-Object { $_.Name -notlike "*.symbols.nupkg" }
+          if ($packages.Count -ne $expectedPackages.Count) {
+            throw "Expected $($expectedPackages.Count) public packages, found $($packages.Count)."
+          }
+
+          $validationRoot = Join-Path $PWD ".package-validation"
+          Remove-Item -LiteralPath $validationRoot -Recurse -Force -ErrorAction SilentlyContinue
+          New-Item -ItemType Directory -Path $validationRoot | Out-Null
+
+          foreach ($packageId in $expectedPackages) {
+            $package = $packages | Where-Object { $_.Name -eq "$packageId.$expectedVersion.nupkg" } | Select-Object -First 1
+            if ($null -eq $package) {
+              throw "Expected package $packageId.$expectedVersion.nupkg was not produced."
+            }
+
+            $extractPath = Join-Path $validationRoot $package.BaseName
+            Expand-Archive -LiteralPath $package.FullName -DestinationPath $extractPath -Force
+
+            $nuspec = Get-ChildItem -Path $extractPath -Filter *.nuspec | Select-Object -First 1
+            if ($null -eq $nuspec) {
+              throw "Package $($package.Name) is missing a nuspec."
+            }
+
+            [xml]$nuspecXml = Get-Content -Raw $nuspec.FullName
+            if ($nuspecXml.package.metadata.id -ne $packageId) {
+              throw "Package $($package.Name) has mismatched package id $($nuspecXml.package.metadata.id)."
+            }
+
+            if ($nuspecXml.package.metadata.version -ne $expectedVersion) {
+              throw "Package $($package.Name) has mismatched nuspec version $($nuspecXml.package.metadata.version)."
+            }
+          }
+
+      - name: Push public packages to nuget.org
+        shell: pwsh
+        run: dotnet nuget push ./nupkgs/*.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_API_KEY }} --skip-duplicate
+
+      - name: Push symbol packages to nuget.org
+        shell: pwsh
+        run: |
+          $symbolPackages = Get-ChildItem -Path ./nupkgs/*.snupkg -ErrorAction SilentlyContinue
+          if ($symbolPackages.Count -eq 0) {
+            Write-Host "No symbol packages were generated for this tag."
+            exit 0
+          }
+
+          dotnet nuget push ./nupkgs/*.snupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_API_KEY }} --skip-duplicate
+
+      - name: Update GitHub release assets
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          files: |
+            ./nupkgs/*.nupkg
+            ./nupkgs/*.snupkg
+          fail_on_unmatched_files: false
