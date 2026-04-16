@@ -117,7 +117,11 @@ jobs:
 
       - name: Push public packages to nuget.org
         shell: pwsh
-        run: dotnet nuget push ./nupkgs/*.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_API_KEY }} --skip-duplicate
+        run: |
+          $packages = Get-ChildItem -Path ./nupkgs/*.nupkg | Where-Object { $_.Name -notlike "*.symbols.nupkg" }
+          foreach ($package in $packages) {
+            dotnet nuget push $package.FullName --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_API_KEY }} --skip-duplicate
+          }
 
       - name: Push symbol packages to nuget.org
         shell: pwsh
@@ -128,7 +132,9 @@ jobs:
             exit 0
           }
 
-          dotnet nuget push ./nupkgs/*.snupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_API_KEY }} --skip-duplicate
+          foreach ($package in $symbolPackages) {
+            dotnet nuget push $package.FullName --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_API_KEY }} --skip-duplicate
+          }
 
       - name: Update GitHub release assets
         uses: softprops/action-gh-release@v2

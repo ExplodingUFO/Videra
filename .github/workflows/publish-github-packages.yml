@@ -127,5 +127,12 @@ jobs:
       - name: Push preview packages to GitHub Packages
         shell: pwsh
         run: |
-          dotnet nuget push ./nupkgs/*.nupkg --source https://nuget.pkg.github.com/ExplodingUFO/index.json --api-key ${{ secrets.GITHUB_TOKEN }} --skip-duplicate
-          dotnet nuget push ./nupkgs/*.snupkg --source https://nuget.pkg.github.com/ExplodingUFO/index.json --api-key ${{ secrets.GITHUB_TOKEN }} --skip-duplicate
+          $packages = Get-ChildItem -Path ./nupkgs/*.nupkg
+          foreach ($package in $packages) {
+            dotnet nuget push $package.FullName --source https://nuget.pkg.github.com/ExplodingUFO/index.json --api-key ${{ secrets.GITHUB_TOKEN }} --skip-duplicate
+          }
+
+          $symbolPackages = Get-ChildItem -Path ./nupkgs/*.snupkg -ErrorAction SilentlyContinue
+          foreach ($package in $symbolPackages) {
+            dotnet nuget push $package.FullName --source https://nuget.pkg.github.com/ExplodingUFO/index.json --api-key ${{ secrets.GITHUB_TOKEN }} --skip-duplicate
+          }
