@@ -5,13 +5,13 @@ changelog:
         - breaking
     - title: Features
       labels:
-        - kind: feature
+        - 'kind: feature'
     - title: Fixes
       labels:
-        - kind: bug
+        - 'kind: bug'
     - title: Docs
       labels:
-        - kind: docs
+        - 'kind: docs'
     - title: CI / Build
       labels:
         - ci
