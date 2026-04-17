@@ -284,6 +284,14 @@ public partial class VideraView : Decorator
             return;
         }
 
+        if (change.Property == ItemsProperty)
+        {
+            var oldList = change.GetOldValue<IEnumerable>();
+            var newList = change.GetNewValue<IEnumerable>();
+            _runtime.UpdateItemsSubscription(oldList, newList);
+            return;
+        }
+
         if (!_runtime.RenderSession.IsReady)
             return;
 
@@ -302,12 +310,6 @@ public partial class VideraView : Decorator
         {
             Engine.Camera.InvertY = change.GetNewValue<bool>();
             _runtime.RenderSession.Invalidate(RenderInvalidationKinds.Style);
-        }
-        else if (change.Property == ItemsProperty)
-        {
-            var oldList = change.GetOldValue<IEnumerable>();
-            var newList = change.GetNewValue<IEnumerable>();
-            _runtime.UpdateItemsSubscription(oldList, newList);
         }
         else if (change.Property == IsGridVisibleProperty ||
                  change.Property == GridHeightProperty ||

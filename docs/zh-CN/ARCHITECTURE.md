@@ -6,7 +6,7 @@
 
 ## 分层结构
 
-- `Videra.Core`：平台无关的渲染核心、抽象接口、导入与软件回退；`VideraEngine` 负责构建帧计划并执行管线
+- `Videra.Core`：平台无关的渲染核心、抽象接口、`SceneDocument` 场景真相、导入与软件回退；`VideraEngine` 负责构建帧计划并执行管线
 - `Videra.Avalonia`：Avalonia 控件层、渲染会话与原生宿主桥接；包含
   - `VideraViewRuntime` 负责 view-local 协调
   - 主机无关的会话编排入口 `RenderSessionOrchestrator`
@@ -22,6 +22,8 @@
 - `VideraEngine` 拥有帧计划与管线执行能力。
 - `VideraViewRuntime` 负责 view-local 协调、native-host 生命周期、overlay 同步与 session forwarding。
 - `RenderSessionOrchestrator` 负责跨平台无关的会话编排（会话创建、绑定、驱动渲染时序）。
+- `SceneDocument` 是 viewer scene 的 authoritative contract；imported asset 在 resource factory ready 前保持 backend-neutral。
+- 原生 backend 现在直接满足内部 `IGraphicsDevice` / `IRenderSurface` 分层；`LegacyGraphicsBackendAdapter` 只保留给旧 monolithic backend 的兼容路径。
 - `RenderSession` 承载 Avalonia 专用的运行时/呈现适配器生命周期。
 - `VideraViewSessionBridge` 将同步后的 Avalonia 视图输入、事件与配置翻译为会话侧状态更新。
 - `VideraView` 仍然是 UI 壳和原生宿主/输入表面，不直接承担核心渲染调度。

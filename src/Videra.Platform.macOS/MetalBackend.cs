@@ -2,6 +2,7 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 using Microsoft.Extensions.Logging;
 using Videra.Core.Exceptions;
+using Videra.Core.Graphics;
 using Videra.Core.Graphics.Abstractions;
 
 namespace Videra.Platform.macOS;
@@ -12,7 +13,7 @@ namespace Videra.Platform.macOS;
 /// via <c>ObjCRuntime</c>. Requires a valid NSView handle on macOS. Supports Retina display
 /// scaling by querying the backing scale factor of the host window.
 /// </summary>
-public unsafe partial class MetalBackend : IGraphicsBackend
+public unsafe partial class MetalBackend : IGraphicsBackend, IGraphicsDevice, IRenderSurface
 {
     private static readonly DepthBufferConfiguration DepthConfig = DepthBufferConfiguration.Default;
 
@@ -41,6 +42,20 @@ public unsafe partial class MetalBackend : IGraphicsBackend
     /// and is ready for rendering operations.
     /// </summary>
     public bool IsInitialized { get; private set; }
+
+    GraphicsBackendPreference? IGraphicsDevice.ActiveBackendPreference => GraphicsBackendPreference.Metal;
+
+    bool IGraphicsDevice.IsSoftwareBackend => false;
+
+    IResourceFactory IGraphicsDevice.ResourceFactory => GetResourceFactory();
+
+    ICommandExecutor IGraphicsDevice.CommandExecutor => GetCommandExecutor();
+
+    IRenderSurface IGraphicsDevice.CreateRenderSurface() => this;
+
+    bool IRenderSurface.IsInitialized => IsInitialized;
+
+    bool IRenderSurface.UsesSoftwarePresentationCopy => false;
 
     /// <summary>
     /// Initializes the Metal backend with the specified NSView handle and rendering dimensions.
@@ -248,6 +263,13 @@ public unsafe partial class MetalBackend : IGraphicsBackend
     /// <param name="color">The clear color as a <see cref="Vector4"/> with RGBA components in the range [0, 1].</param>
     public void SetClearColor(Vector4 color) => _clearColor = color;
 
+    IFrameContext IRenderSurface.BeginFrame(Vector4 clearColor)
+    {
+        SetClearColor(clearColor);
+        BeginFrame();
+        return new MetalFrameContext(this);
+    }
+
     /// <summary>
     /// Gets the Metal resource factory used to create GPU resources such as buffers, textures, and shaders.
     /// </summary>
@@ -343,5 +365,22 @@ public unsafe partial class MetalBackend : IGraphicsBackend
 
         [LoggerMessage(EventId = 4, Level = LogLevel.Debug, Message = "No window found, using scale factor 2.0 (Retina default)")]
         public static partial void WindowMissingUsingRetinaDefault(ILogger logger);
+    }
+
+    private sealed class MetalFrameContext(MetalBackend backend) : IFrameContext
+    {
+        private readonly MetalBackend _backend = backend;
+        private bool _disposed;
+
+        public void Dispose()
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            _disposed = true;
+            _backend.EndFrame();
+        }
     }
 }

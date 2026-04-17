@@ -304,7 +304,7 @@ public partial class MainWindowViewModel : ViewModelBase
         }
 
         var lastFailure = loadResult.Failures[^1];
-        return $"Imported {loadResult.LoadedObjects.Count} model(s); {loadResult.Failures.Count} failed. Last error: {lastFailure.ErrorMessage}";
+        return $"Imported {loadResult.LoadedObjects.Count} model(s), but the active scene was not replaced because {loadResult.Failures.Count} import(s) failed. Last error: {lastFailure.ErrorMessage}";
     }
 
     private void ApplyBackendStatus(bool isReady, string statusMessage)

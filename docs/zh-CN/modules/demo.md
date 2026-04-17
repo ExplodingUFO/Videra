@@ -14,6 +14,7 @@
 - 提供 `Frame All` / `Reset Camera` 快捷操作
 - 通过 `BackendDiagnostics` 展示当前请求后端、实际解析后端、native host 绑定状态和 fallback 信息
 - 切换渲染风格、线框模式、网格可见性和对象变换
+- 一个收窄的 `Scene Pipeline Lab` 面板，用来说明 deferred upload、原子 scene replace 与 backend rebind 真相
 
 ## 运行时行为
 
@@ -48,8 +49,14 @@ if (result.LoadedObjects.Count > 0)
 var diagnostics = View3D.BackendDiagnostics;
 ```
 
-如果导入中有失败项，Demo 会保留成功加载的模型，并把失败信息汇总到状态栏中。
+如果导入中有失败项，Demo 不会替换当前 active scene，而是保留原场景，并把最后一个失败信息连同成功计数一起汇总到状态栏中。
 导入结果与默认场景失败信息都会进入状态区域，避免只写日志而用户不可见。
+
+右侧 `Scene Pipeline Lab` 文案会把三件事直接投到可见界面里：
+
+- `SceneDocument` 才是运行时场景真相
+- imported asset 会先保持 CPU / backend-neutral 状态，等 resource factory ready 后再上传
+- backend fallback / rebind 发生时，scene truth 会被保留，而不是依赖 steady-state software staging path
 
 ## 界面说明
 

@@ -34,6 +34,27 @@ public sealed class GraphicsDeviceSurfaceIntegrationTests
     }
 
     [Fact]
+    public void SoftwareBackend_ExposesDirectGraphicsDeviceAndSurfaceContracts()
+    {
+        using IGraphicsBackend backend = new SoftwareBackend();
+
+        var device = backend as IGraphicsDevice;
+        var surface = backend as IRenderSurface;
+
+        device.Should().NotBeNull();
+        surface.Should().NotBeNull();
+        device!.ActiveBackendPreference.Should().Be(GraphicsBackendPreference.Software);
+        device.IsSoftwareBackend.Should().BeTrue();
+
+        using var createdSurface = device.CreateRenderSurface();
+        createdSurface.Should().BeSameAs(surface);
+
+        createdSurface.Initialize(IntPtr.Zero, 96, 64);
+        using var frame = createdSurface.BeginFrame(new Vector4(0.2f, 0.3f, 0.4f, 1f));
+        frame.Should().NotBeNull();
+    }
+
+    [Fact]
     public void VideraEngine_CanRenderThroughGraphicsDeviceAndSurface()
     {
         using var backend = new SoftwareBackend();

@@ -240,7 +240,15 @@ internal sealed partial class VideraViewRuntime : IDisposable
         _engine.Camera.InvertX = _owner.CameraInvertX;
         _engine.Camera.InvertY = _owner.CameraInvertY;
         ApplyGridSettings();
-        UpdateItemsSubscription(_owner.Items, _owner.Items);
+        if (_owner.Items is not null)
+        {
+            UpdateItemsSubscription(_owner.Items, _owner.Items);
+        }
+        else
+        {
+            SynchronizeSceneDocumentToEngine();
+        }
+
         SynchronizeOverlayState();
     }
 

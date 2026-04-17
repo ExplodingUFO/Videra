@@ -3,6 +3,7 @@ using System.Runtime.InteropServices;
 using Silk.NET.Vulkan;
 using Silk.NET.Vulkan.Extensions.KHR;
 using Videra.Core.Exceptions;
+using Videra.Core.Graphics;
 using Videra.Core.Graphics.Abstractions;
 using VkSemaphore = Silk.NET.Vulkan.Semaphore;
 using VkBuffer = Silk.NET.Vulkan.Buffer;
@@ -16,7 +17,7 @@ namespace Videra.Platform.Linux;
 /// <see cref="ISurfaceCreator"/> (defaulting to <see cref="X11SurfaceCreator"/>) to abstract
 /// platform-specific surface creation.
 /// </summary>
-public unsafe class VulkanBackend : IGraphicsBackend
+public unsafe class VulkanBackend : IGraphicsBackend, IGraphicsDevice, IRenderSurface
 {
     private static readonly DepthBufferConfiguration DepthConfig = DepthBufferConfiguration.Default;
 
@@ -66,6 +67,20 @@ public unsafe class VulkanBackend : IGraphicsBackend
     /// and is ready for rendering operations.
     /// </summary>
     public bool IsInitialized { get; private set; }
+
+    GraphicsBackendPreference? IGraphicsDevice.ActiveBackendPreference => GraphicsBackendPreference.Vulkan;
+
+    bool IGraphicsDevice.IsSoftwareBackend => false;
+
+    IResourceFactory IGraphicsDevice.ResourceFactory => GetResourceFactory();
+
+    ICommandExecutor IGraphicsDevice.CommandExecutor => GetCommandExecutor();
+
+    IRenderSurface IGraphicsDevice.CreateRenderSurface() => this;
+
+    bool IRenderSurface.IsInitialized => IsInitialized;
+
+    bool IRenderSurface.UsesSoftwarePresentationCopy => false;
 
     /// <summary>
     /// Creates a VulkanBackend with the default X11 surface creator.
@@ -913,6 +928,13 @@ public unsafe class VulkanBackend : IGraphicsBackend
         _clearColor = color;
     }
 
+    IFrameContext IRenderSurface.BeginFrame(Vector4 clearColor)
+    {
+        SetClearColor(clearColor);
+        BeginFrame();
+        return new VulkanFrameContext(this);
+    }
+
     /// <summary>
     /// Gets the Vulkan resource factory used to create GPU resources such as buffers, textures, and shaders.
     /// </summary>
@@ -992,5 +1014,22 @@ public unsafe class VulkanBackend : IGraphicsBackend
             throw new GraphicsInitializationException(
                 $"{message} Result: {result}.",
                 operation);
+    }
+
+    private sealed class VulkanFrameContext(VulkanBackend backend) : IFrameContext
+    {
+        private readonly VulkanBackend _backend = backend;
+        private bool _disposed;
+
+        public void Dispose()
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            _disposed = true;
+            _backend.EndFrame();
+        }
     }
 }

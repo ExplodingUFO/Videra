@@ -5,6 +5,7 @@ using Silk.NET.Direct3D11;
 using Silk.NET.DXGI;
 using Silk.NET.Maths;
 using Videra.Core.Exceptions;
+using Videra.Core.Graphics;
 using Videra.Core.Graphics.Abstractions;
 using Videra.Core.Geometry;
 
@@ -15,7 +16,7 @@ namespace Videra.Platform.Windows;
 /// Provides hardware-accelerated rendering using the Direct3D 11 API via Silk.NET bindings.
 /// Requires a valid HWND window handle on the Windows operating system.
 /// </summary>
-public unsafe class D3D11Backend : IGraphicsBackend
+public unsafe class D3D11Backend : IGraphicsBackend, IGraphicsDevice, IRenderSurface
 {
     private ComPtr<ID3D11Device> _device;
     private ComPtr<ID3D11DeviceContext> _context;
@@ -50,6 +51,20 @@ public unsafe class D3D11Backend : IGraphicsBackend
     /// and is ready for rendering operations.
     /// </summary>
     public bool IsInitialized { get; private set; }
+
+    GraphicsBackendPreference? IGraphicsDevice.ActiveBackendPreference => GraphicsBackendPreference.D3D11;
+
+    bool IGraphicsDevice.IsSoftwareBackend => false;
+
+    IResourceFactory IGraphicsDevice.ResourceFactory => GetResourceFactory();
+
+    ICommandExecutor IGraphicsDevice.CommandExecutor => GetCommandExecutor();
+
+    IRenderSurface IGraphicsDevice.CreateRenderSurface() => this;
+
+    bool IRenderSurface.IsInitialized => IsInitialized;
+
+    bool IRenderSurface.UsesSoftwarePresentationCopy => false;
 
     public D3D11Backend() : this(null)
     {
@@ -435,6 +450,13 @@ public unsafe class D3D11Backend : IGraphicsBackend
         _clearColor = color;
     }
 
+    IFrameContext IRenderSurface.BeginFrame(Vector4 clearColor)
+    {
+        SetClearColor(clearColor);
+        BeginFrame();
+        return new D3D11FrameContext(this);
+    }
+
     /// <summary>
     /// Gets the Direct3D 11 resource factory used to create GPU resources such as buffers, textures, and shaders.
     /// </summary>
@@ -470,5 +492,22 @@ public unsafe class D3D11Backend : IGraphicsBackend
         _d3d11?.Dispose();
         _dxgi?.Dispose();
         GC.SuppressFinalize(this);
+    }
+
+    private sealed class D3D11FrameContext(D3D11Backend backend) : IFrameContext
+    {
+        private readonly D3D11Backend _backend = backend;
+        private bool _disposed;
+
+        public void Dispose()
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            _disposed = true;
+            _backend.EndFrame();
+        }
     }
 }

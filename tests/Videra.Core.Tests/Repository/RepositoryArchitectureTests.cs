@@ -123,6 +123,32 @@ public sealed class RepositoryArchitectureTests
     }
 
     [Fact]
+    public void ArchitectureDocs_ShouldDescribeSceneDocumentTruth_AndDirectDeviceSurfacePath()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var architecture = File.ReadAllText(Path.Combine(repositoryRoot, "ARCHITECTURE.md"));
+        var coreReadme = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Core", "README.md"));
+        var avaloniaReadme = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Avalonia", "README.md"));
+        var extensibilityDoc = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "extensibility.md"));
+
+        architecture.Should().Contain("SceneDocument");
+        architecture.Should().Contain("IGraphicsDevice");
+        architecture.Should().Contain("IRenderSurface");
+        architecture.Should().Contain("LegacyGraphicsBackendAdapter");
+        architecture.Should().Contain("compatibility");
+
+        coreReadme.Should().Contain("IGraphicsDevice");
+        coreReadme.Should().Contain("IRenderSurface");
+        coreReadme.Should().Contain("SceneDocument");
+        avaloniaReadme.Should().Contain("SceneDocument");
+        avaloniaReadme.Should().Contain("LoadModelsAsync(...)");
+        avaloniaReadme.Should().Contain("active scene only when every requested file succeeds");
+        extensibilityDoc.Should().Contain("SceneDocument");
+        extensibilityDoc.Should().Contain("LoadModelsAsync(...)");
+        extensibilityDoc.Should().Contain("active scene is replaced only when every requested file succeeds");
+    }
+
+    [Fact]
     public void EnglishExtensibilityDocs_ShouldAlignEntrypointsSampleAndBoundaryVocabulary()
     {
         var repositoryRoot = GetRepositoryRoot();

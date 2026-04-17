@@ -12,6 +12,7 @@ Current status: `alpha`. `Videra.Avalonia` is the entry package for Avalonia app
 - Host the internal `VideraViewRuntime` coordinator behind that public shell
 - Connect Avalonia visual-tree lifecycle to backend initialization
 - Coordinate backend preference and render-session creation
+- Keep `SceneDocument` as the internal scene truth while `VideraView` stays the public shell
 - Map pointer input to camera interaction
 - Manage native-host integration for Windows, Linux, and macOS
 
@@ -98,6 +99,8 @@ var diagnostics = View3D.BackendDiagnostics;
 var capabilities = View3D.RenderCapabilities;
 ```
 
+`LoadModelsAsync(...)` imports in bounded parallel and replaces the active scene only when every requested file succeeds. Partial import success is reported through `ModelLoadBatchResult`, but the active scene stays unchanged until the batch is fully successful.
+
 `VideraView.Engine` is the public extensibility root for custom contributors and frame hooks. `VideraView.BackendDiagnostics` remains the backend/runtime diagnostics shell, while `VideraView.RenderCapabilities` exposes the Core-side capability snapshot.
 
 For the complete public flow, see [docs/extensibility.md](../../docs/extensibility.md) and [samples/Videra.ExtensibilitySample](../../samples/Videra.ExtensibilitySample/README.md). The narrow sample uses `VideraView.Engine`, `RegisterPassContributor(...)`, `RegisterFrameHook(...)`, `LoadModelAsync(...)`, `FrameAll()`, `RenderCapabilities`, and `BackendDiagnostics` together.
@@ -108,6 +111,7 @@ Contract notes:
 - `RenderCapabilities` remains queryable before initialization and after disposal.
 - With `AllowSoftwareFallback = true`, `BackendDiagnostics.IsUsingSoftwareFallback` and `BackendDiagnostics.FallbackReason` explain native backend fallback.
 - With `AllowSoftwareFallback = false`, the view stays not ready until the native backend issue is fixed; it does not silently recover through fallback.
+- Scene loading uses retained imported assets and `SceneDocument` truth so backend rebind can restore scene resources without a steady-state software staging path.
 - `package discovery` and `plugin loading` remain out of scope.
 
 ## Interaction Contract

@@ -26,6 +26,8 @@
 7. 调用 `FrameAll()`。
 8. 检查 `RenderCapabilities` 与 `BackendDiagnostics`。
 
+`LoadModelsAsync(...)` 仍属于同一条公开入口，但 scene 语义更严格：导入任务可以部分成功，active scene 只有在全部导入成功时才会被替换。
+
 ```csharp
 using Videra.Avalonia.Controls;
 using Videra.Core.Graphics;
@@ -71,10 +73,18 @@ var diagnostics = view.BackendDiagnostics;
 | Native unavailable with software fallback | 注册接口不变；engine 会切到 software backend，而不是改掉 API 形状。 | 当 `AllowSoftwareFallback = true` 时，`BackendDiagnostics.IsUsingSoftwareFallback` 为 `true`，`ResolvedBackend` 会变成 `Software`，`FallbackReason` 会解释 native backend 为什么不可用。`RenderCapabilities` 继续暴露相同的 contributor/hook support 标志。 | 在 ready 之后，窄 sample 仍可调用 `LoadModelAsync(...)` 与 `FrameAll()`，但宿主应用应把 fallback 状态显式展示给用户。 |
 | Native unavailable without software fallback | 注册合同不变，但不会创建 ready session。同一份 unavailable 原因会以 failure 的形式暴露，而不是 fallback。 | 当 `AllowSoftwareFallback = false` 时，backend resolution 会失败，而不是走带 `FallbackReason` 的 software 路径。在 Core-first 流程中，`GraphicsBackendFactory.ResolveBackend(...)` 会抛出同一份 unavailable reason；在 Avalonia 流程中，view 会保持 not ready，并通过 `InitializationFailed` / `LastInitializationError` 暴露失败。 | 在缺失 package/runtime 问题修复并且 view 能正常初始化之前，不要调用 `LoadModelAsync(...)` 或 `FrameAll()`。 |
 
+## 场景加载真相
+
+- `SceneDocument` 是公开加载 helper 背后的 authoritative viewer-scene contract。
+- `LoadModelAsync(...)` 会先得到 backend-neutral imported asset，只有在 resource factory ready 时才真正上传。
+- `LoadModelsAsync(...)` 使用有界并发导入，并且只有在所有请求都成功时才替换 active scene。
+- backend rebind 或 fallback 恢复时，会从保留的 imported asset 和 scene object 恢复场景，而不是长期依赖 software staging path。
+
 ## 范围边界
 
 - `VideraEngine` 是唯一的公开扩展根。
 - `VideraViewRuntime`、`RenderSessionOrchestrator`、`RenderSession` 与 `VideraViewSessionBridge` 仍然是 internal orchestration seam。
+- `SceneDocument`、`SceneUploadCoordinator`、`IGraphicsDevice`、`IRenderSurface` 与 `LegacyGraphicsBackendAdapter` 仍属于 internal contract，不是公开扩展点。
 - 公开合同刻意保持 C#-first、in-process。
 - `package discovery` 与 `plugin loading` 继续保持 out of scope。
 - 公开 sample 与文档不应依赖 `SoftwareBackend` 这类 internal-only 类型。

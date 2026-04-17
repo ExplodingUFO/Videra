@@ -95,7 +95,9 @@ graph TB
 - 等待 `BackendDiagnostics.IsReady` 或 `BackendReady`
 - 调用 `LoadModelAsync(...)`、`FrameAll()`，然后检查 `RenderCapabilities`、`BackendDiagnostics` 与 `FallbackReason`
 
-合同语义保持与英文版一致：`disposed` 后的新注册调用保持 `no-op`；若 native backend unavailable 且允许回退，则 `BackendDiagnostics` / `FallbackReason` 说明 software fallback；`package discovery` 与 `plugin loading` 仍不在公开范围内。
+`LoadModelsAsync(...)` 现在使用有界并发导入，并且只有在全部导入成功时才替换 active scene；部分成功只会通过 `ModelLoadBatchResult` 报告，不会污染当前场景。
+
+合同语义保持与英文版一致：`disposed` 后的新注册调用保持 `no-op`；若 native backend unavailable 且允许回退，则 `BackendDiagnostics` / `FallbackReason` 说明 software fallback；`package discovery` 与 `plugin loading` 仍不在公开范围内。`SceneDocument` 继续作为 internal scene truth，让 backend rebind 时可以恢复场景资源，而不是依赖 steady-state software staging path。
 
 ### 受控交互合同
 

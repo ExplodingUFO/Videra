@@ -51,7 +51,7 @@ public partial class AvaloniaModelImporter : IModelImporter
             Log.ImportFailed(_logger, failure.Path, failure.Exception);
         }
 
-        if (result.LoadedObjects.Count > 0)
+        if (result.Succeeded && result.LoadedObjects.Count > 0)
         {
             _view.FrameAll();
         }

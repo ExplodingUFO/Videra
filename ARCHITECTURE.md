@@ -38,6 +38,7 @@ Platform-agnostic rendering layer responsible for:
 
 - Rendering abstractions
 - Scene object and engine lifecycle
+- `SceneDocument` scene ownership and backend-neutral imported assets
 - Camera, grid, axis, and wireframe logic
 - Model import
 - Render-style presets
@@ -47,6 +48,8 @@ Platform-agnostic rendering layer responsible for:
 Key abstractions:
 
 - `IGraphicsBackend`
+- `IGraphicsDevice`
+- `IRenderSurface`
 - `IResourceFactory`
 - `ICommandExecutor`
 - `GraphicsBackendFactory`
@@ -78,6 +81,7 @@ These packages handle:
 - Swapchain / drawable lifecycle
 - Depth-buffer and frame management
 - Resource factories and command executors
+- The direct internal `device/surface` seam used by `RenderSessionOrchestrator`; `LegacyGraphicsBackendAdapter` remains the compatibility bridge for older monolithic backends only
 
 ### `Videra.Demo`
 
@@ -187,7 +191,9 @@ Boundary summary:
 
 - `VideraEngine` owns frame-plan and pipeline execution semantics.
 - `VideraViewRuntime` owns view-local coordination, native-host lifecycle, overlay sync, and session forwarding.
+- `SceneDocument` is the authoritative viewer-scene contract; imported assets remain backend-neutral until a ready resource factory uploads them.
 - `RenderSessionOrchestrator` owns host-agnostic session orchestration and rendering cadence.
+- Built-in backends now satisfy the internal `IGraphicsDevice` / `IRenderSurface` split directly; `LegacyGraphicsBackendAdapter` is a compatibility seam, not the preferred steady-state path.
 - `RenderSession` owns Avalonia-specific runtime/presentation adapter setup.
 - `VideraViewSessionBridge` translates synchronized Avalonia view options/events into session-facing state updates.
 - `VideraView` remains the UI shell and native-host/input surface.

@@ -120,6 +120,29 @@ public sealed class DemoConfigurationTests
         demoReadme.Should().Contain("status area");
         demoReadme.Should().Contain("Model import remains available");
         demoReadme.Should().Contain("summarized in the status area");
+        demoReadme.Should().Contain("replaced only when every requested file succeeds");
+    }
+
+    [Fact]
+    public void Demo_ShouldExposeScenePipelineLabTruth()
+    {
+        var mainWindowPath = Path.Combine(GetRepositoryRoot(), "samples", "Videra.Demo", "Views", "MainWindow.axaml");
+        var xaml = File.ReadAllText(mainWindowPath);
+
+        xaml.Should().Contain("SCENE PIPELINE LAB");
+        xaml.Should().Contain("bounded parallel import");
+        xaml.Should().Contain("backend-neutral");
+        xaml.Should().Contain("backend rebind");
+    }
+
+    [Fact]
+    public void DemoImporter_ShouldFrameOnlyAfterFullySuccessfulBatchReplace()
+    {
+        var importerPath = Path.Combine(GetRepositoryRoot(), "samples", "Videra.Demo", "Services", "AvaloniaModelImporter.cs");
+        var importer = File.ReadAllText(importerPath);
+
+        importer.Should().Contain("result.Succeeded && result.LoadedObjects.Count > 0");
+        importer.Should().NotContain("if (result.LoadedObjects.Count > 0)");
     }
 
     [Fact]

@@ -147,6 +147,33 @@ public partial class Object3D : IDisposable
         LineIndexCount = 0;
     }
 
+    internal void PrepareDeferredMesh(MeshData mesh)
+    {
+        ArgumentNullException.ThrowIfNull(mesh);
+
+        if (mesh.Vertices == null || mesh.Vertices.Length == 0)
+            throw new ArgumentException("Invalid mesh data", nameof(mesh));
+
+        if (mesh.Indices == null || mesh.Indices.Length == 0)
+            throw new ArgumentException("Invalid index data", nameof(mesh));
+
+        _cachedMesh = new MeshData
+        {
+            Vertices = (VertexPositionNormalColor[])mesh.Vertices.Clone(),
+            Indices = (uint[])mesh.Indices.Clone(),
+            Topology = mesh.Topology
+        };
+        _localBounds = BoundingBox3.FromVertices(mesh.Vertices);
+        _wireframeResourcesRequested = false;
+        ReleaseGpuResources();
+        Topology = mesh.Topology;
+        IndexCount = (uint)mesh.Indices.Length;
+        _cachedVertices = (VertexPositionNormalColor[])mesh.Vertices.Clone();
+        _cachedTriangleIndices = mesh.Topology == MeshTopology.Triangles
+            ? (uint[])mesh.Indices.Clone()
+            : null;
+    }
+
     // Initialize GPU resources (called by Engine)
 
     /// <summary>

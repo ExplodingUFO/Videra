@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.ObjectModel;
 using System.Numerics;
 using System.Reflection;
 using Avalonia;
@@ -59,7 +60,37 @@ public sealed class VideraViewSceneIntegrationTests : IDisposable
     }
 
     [Fact]
-    public async Task LoadModelsAsync_MixedPaths_ReturnsLoadedObjectsAndFailures()
+    public async Task LoadModelAsync_BeforeBackendReady_CreatesDeferredSceneObjectAndRetainsImportedAsset()
+    {
+        var path = WriteObj("deferred-triangle.obj", """
+            v 0.0 0.0 0.0
+            v 1.0 0.0 0.0
+            v 0.0 1.0 0.0
+            vn 0.0 0.0 1.0
+            f 1//1 2//1 3//1
+            """);
+
+        var view = new VideraView();
+        try
+        {
+            var result = await view.LoadModelAsync(path);
+
+            result.Succeeded.Should().BeTrue();
+            result.LoadedObject.Should().NotBeNull();
+            GetSceneObjectCount(view).Should().Be(1);
+            ReadSceneDocumentObjects(view).Should().ContainSingle().Which.Should().BeSameAs(result.LoadedObject);
+            ReadSceneDocumentImportedAssets(view).Should().ContainSingle(asset => asset.FilePath == path);
+            ReadObjectVertexBuffer(result.LoadedObject!).Should().BeNull();
+            result.LoadedObject!.LocalBounds.Should().NotBeNull();
+        }
+        finally
+        {
+            view.Engine.Dispose();
+        }
+    }
+
+    [Fact]
+    public async Task LoadModelsAsync_MixedPaths_ReturnsLoadedObjectsAndFailuresWithoutReplacingScene()
     {
         var validPath = WriteObj("triangle.obj", """
             v 0.0 0.0 0.0
@@ -78,7 +109,7 @@ public sealed class VideraViewSceneIntegrationTests : IDisposable
             result.LoadedObjects.Should().HaveCount(1);
             result.Failures.Should().HaveCount(1);
             result.Failures[0].Path.Should().Be(missingPath);
-            GetSceneObjectCount(view).Should().Be(1);
+            GetSceneObjectCount(view).Should().Be(0);
         }
         finally
         {
@@ -133,6 +164,75 @@ public sealed class VideraViewSceneIntegrationTests : IDisposable
     }
 
     [Fact]
+    public async Task LoadModelsAsync_WithFailures_DoesNotReplaceActiveScene()
+    {
+        var validPath = WriteObj("atomic-valid.obj", """
+            v 0.0 0.0 0.0
+            v 1.0 0.0 0.0
+            v 0.0 1.0 0.0
+            vn 0.0 0.0 1.0
+            f 1//1 2//1 3//1
+            """);
+        var missingPath = Path.Combine(_tempDir, "atomic-missing.obj");
+
+        var view = new VideraView();
+        try
+        {
+            var initial = DemoMeshFactory.CreateTestCube(new SoftwareResourceFactory(), size: 1f);
+            view.AddObject(initial);
+
+            var result = await view.LoadModelsAsync(new[] { validPath, missingPath });
+
+            result.Succeeded.Should().BeFalse();
+            result.LoadedObjects.Should().HaveCount(1);
+            GetSceneObjects(view).Should().ContainSingle().Which.Should().BeSameAs(initial);
+            ReadSceneDocumentObjects(view).Should().ContainSingle().Which.Should().BeSameAs(initial);
+        }
+        finally
+        {
+            view.Engine.Dispose();
+        }
+    }
+
+    [Fact]
+    public async Task LoadModelsAsync_AllValid_ReplacesSceneAtomically()
+    {
+        var firstPath = WriteObj("replace-a.obj", """
+            v 0.0 0.0 0.0
+            v 1.0 0.0 0.0
+            v 0.0 1.0 0.0
+            vn 0.0 0.0 1.0
+            f 1//1 2//1 3//1
+            """);
+        var secondPath = WriteObj("replace-b.obj", """
+            v 0.0 0.0 0.0
+            v 0.0 1.0 0.0
+            v 0.0 0.0 1.0
+            vn 1.0 0.0 0.0
+            f 1//1 2//1 3//1
+            """);
+
+        var view = new VideraView();
+        try
+        {
+            var initial = DemoMeshFactory.CreateTestCube(new SoftwareResourceFactory(), size: 1f);
+            view.AddObject(initial);
+
+            var result = await view.LoadModelsAsync(new[] { firstPath, secondPath });
+
+            result.Succeeded.Should().BeTrue();
+            result.LoadedObjects.Should().HaveCount(2);
+            GetSceneObjects(view).Should().HaveCount(2);
+            GetSceneObjects(view).Should().NotContain(initial);
+            ReadSceneDocumentImportedAssets(view).Should().HaveCount(2);
+        }
+        finally
+        {
+            view.Engine.Dispose();
+        }
+    }
+
+    [Fact]
     public void RuntimeSceneDocument_TracksSceneMutations()
     {
         var view = new VideraView();
@@ -150,6 +250,72 @@ public sealed class VideraViewSceneIntegrationTests : IDisposable
 
             view.ClearScene();
             ReadSceneDocumentObjects(view).Should().BeEmpty();
+        }
+        finally
+        {
+            view.Engine.Dispose();
+        }
+    }
+
+    [Fact]
+    public void RuntimeSceneDocument_TracksBoundItemsCollectionMutations()
+    {
+        var view = new VideraView();
+        try
+        {
+            var factory = new SoftwareResourceFactory();
+            var items = new ObservableCollection<Object3D>();
+            view.Items = items;
+
+            items.Add(DemoMeshFactory.CreateTestCube(factory, size: 1f));
+            ReadSceneDocumentObjects(view).Should().HaveCount(1);
+            GetSceneObjects(view).Should().HaveCount(1);
+
+            items.Add(DemoMeshFactory.CreateTestCube(factory, size: 2f));
+            ReadSceneDocumentObjects(view).Should().HaveCount(2);
+            GetSceneObjects(view).Should().HaveCount(2);
+
+            items.RemoveAt(0);
+            ReadSceneDocumentObjects(view).Should().HaveCount(1);
+            GetSceneObjects(view).Should().HaveCount(1);
+
+            items.Clear();
+            ReadSceneDocumentObjects(view).Should().BeEmpty();
+            GetSceneObjects(view).Should().BeEmpty();
+        }
+        finally
+        {
+            view.Engine.Dispose();
+        }
+    }
+
+    [Fact]
+    public async Task DeferredImportedSceneObject_RehydratesWhenGraphicsResourcesBecomeAvailable()
+    {
+        var path = WriteObj("rehydrate.obj", """
+            v 0.0 0.0 0.0
+            v 1.0 0.0 0.0
+            v 0.0 1.0 0.0
+            vn 0.0 0.0 1.0
+            f 1//1 2//1 3//1
+            """);
+
+        var view = new VideraView(nativeHostFactory: null, bitmapFactory: static (_, _) => null);
+        try
+        {
+            var result = await view.LoadModelAsync(path);
+            var loadedObject = result.LoadedObject!;
+
+            loadedObject.Should().NotBeNull();
+            ReadObjectVertexBuffer(loadedObject).Should().BeNull();
+
+            var session = VideraViewRuntimeTestAccess.ReadRenderSession(view);
+            session.Attach(GraphicsBackendPreference.Software);
+            session.Resize(128, 96, 1f);
+            VideraViewRuntimeTestAccess.ReadRuntimeMethod(view, "ApplyViewState").Invoke(VideraViewRuntimeTestAccess.ReadRuntime(view), Array.Empty<object>());
+
+            ReadObjectVertexBuffer(loadedObject).Should().NotBeNull();
+            GetSceneObjects(view).Should().Contain(loadedObject);
         }
         finally
         {
@@ -673,6 +839,34 @@ public sealed class VideraViewSceneIntegrationTests : IDisposable
         var sceneDocument = VideraViewRuntimeTestAccess.ReadRuntimeField<object>(view, "_sceneDocument");
         sceneDocument.Should().BeAssignableTo<SceneDocument>();
         return ((SceneDocument)sceneDocument).SceneObjects;
+    }
+
+    private static IReadOnlyList<ImportedSceneAsset> ReadSceneDocumentImportedAssets(VideraView view)
+    {
+        var sceneDocument = VideraViewRuntimeTestAccess.ReadRuntimeField<object>(view, "_sceneDocument");
+        sceneDocument.Should().BeAssignableTo<SceneDocument>();
+
+        var entriesProperty = sceneDocument.GetType().GetProperty("Entries", BindingFlags.Instance | BindingFlags.NonPublic);
+        entriesProperty.Should().NotBeNull("scene document should expose internal entries for imported-asset truth");
+        var entries = ((IEnumerable?)entriesProperty!.GetValue(sceneDocument))?.Cast<object>().ToArray() ?? Array.Empty<object>();
+
+        return entries
+            .Select(entry =>
+            {
+                var importedAssetProperty = entry.GetType().GetProperty("ImportedAsset", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+                importedAssetProperty.Should().NotBeNull();
+                return importedAssetProperty!.GetValue(entry) as ImportedSceneAsset;
+            })
+            .Where(asset => asset is not null)
+            .Cast<ImportedSceneAsset>()
+            .ToArray();
+    }
+
+    private static object? ReadObjectVertexBuffer(Object3D sceneObject)
+    {
+        var property = typeof(Object3D).GetProperty("VertexBuffer", BindingFlags.Instance | BindingFlags.NonPublic);
+        property.Should().NotBeNull();
+        return property!.GetValue(sceneObject);
     }
 
     private sealed class RecordingNativeHostFactory : INativeHostFactory

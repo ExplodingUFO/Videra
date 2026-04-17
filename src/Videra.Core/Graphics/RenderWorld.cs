@@ -54,13 +54,14 @@ internal sealed class RenderWorld
         return projections;
     }
 
-    public void AddObject(Object3D obj, IResourceFactory? resourceFactory)
+    public void AddObject(Object3D obj, IResourceFactory? resourceFactory, ILogger? logger = null)
     {
         _sceneObjects.Add(obj);
 
         if (resourceFactory != null)
         {
-            obj.InitializeWireframe(resourceFactory);
+            obj.RecreateGraphicsResources(resourceFactory, logger);
+            obj.InitializeWireframe(resourceFactory, logger);
         }
     }
 

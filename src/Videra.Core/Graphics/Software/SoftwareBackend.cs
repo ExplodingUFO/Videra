@@ -4,7 +4,7 @@ using Videra.Core.Graphics.Abstractions;
 
 namespace Videra.Core.Graphics.Software;
 
-internal sealed class SoftwareBackend : IGraphicsBackend, ISoftwareBackend
+internal sealed class SoftwareBackend : IGraphicsBackend, ISoftwareBackend, IGraphicsDevice, IRenderSurface
 {
     private readonly SoftwareFrameBuffer _frameBuffer = new();
     private readonly SoftwareResourceFactory _resourceFactory = new();
@@ -18,6 +18,20 @@ internal sealed class SoftwareBackend : IGraphicsBackend, ISoftwareBackend
     public bool IsInitialized { get; private set; }
     public int Width => _frameBuffer.Width;
     public int Height => _frameBuffer.Height;
+
+    GraphicsBackendPreference? IGraphicsDevice.ActiveBackendPreference => GraphicsBackendPreference.Software;
+
+    bool IGraphicsDevice.IsSoftwareBackend => true;
+
+    IResourceFactory IGraphicsDevice.ResourceFactory => GetResourceFactory();
+
+    ICommandExecutor IGraphicsDevice.CommandExecutor => GetCommandExecutor();
+
+    IRenderSurface IGraphicsDevice.CreateRenderSurface() => this;
+
+    bool IRenderSurface.IsInitialized => IsInitialized;
+
+    bool IRenderSurface.UsesSoftwarePresentationCopy => true;
 
     public void Initialize(IntPtr windowHandle, int width, int height)
     {
@@ -43,6 +57,13 @@ internal sealed class SoftwareBackend : IGraphicsBackend, ISoftwareBackend
     public void SetClearColor(Vector4 color)
     {
         _frameBuffer.ClearColor = color;
+    }
+
+    IFrameContext IRenderSurface.BeginFrame(Vector4 clearColor)
+    {
+        SetClearColor(clearColor);
+        BeginFrame();
+        return new SoftwareFrameContext(this);
     }
 
     public IResourceFactory GetResourceFactory() => _resourceFactory;
@@ -73,5 +94,22 @@ internal sealed class SoftwareBackend : IGraphicsBackend, ISoftwareBackend
 
     public void Dispose()
     {
+    }
+
+    private sealed class SoftwareFrameContext(SoftwareBackend backend) : IFrameContext
+    {
+        private readonly SoftwareBackend _backend = backend;
+        private bool _disposed;
+
+        public void Dispose()
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            _disposed = true;
+            _backend.EndFrame();
+        }
     }
 }

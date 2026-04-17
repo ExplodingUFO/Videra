@@ -273,7 +273,7 @@ public partial class VideraEngine : IDisposable
             }
 
             ArgumentNullException.ThrowIfNull(obj);
-            _renderWorld.AddObject(obj, _resources.ResourceFactory);
+            _renderWorld.AddObject(obj, _resources.ResourceFactory, _logger);
         }
         Log.ObjectAdded(_logger, obj.Name);
     }

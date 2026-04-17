@@ -16,6 +16,7 @@
 - Grid visibility, color, and height controls
 - Basic object transform editing
 - Backend diagnostics via `BackendDiagnostics`, including readiness, native-host binding, and fallback details
+- A focused `Scene Pipeline Lab` panel that calls out deferred upload, atomic scene replacement, and backend-rebind truth
 
 ## Runtime Behavior
 
@@ -43,9 +44,15 @@ if (result.Succeeded)
 var diagnostics = View3D.BackendDiagnostics;
 ```
 
-Import results are summarized in the status area. Partial success keeps the loaded models in the scene and reports the last failure message alongside the success count.
+Import results are summarized in the status area. Batch import uses bounded parallel import, and the active scene is replaced only when every requested file succeeds. If any file fails, the active scene stays unchanged and the status area carries the last failure message alongside the success count.
 
 `Import Model`, `Frame All`, and `Reset Camera` follow command/capability readiness rather than a raw `IsBackendReady` XAML assumption, so the visible controls stay aligned with the live importer and viewport wiring.
+
+The `Scene Pipeline Lab` copy in the side panel is deliberate. It projects three internal truths into a user-visible onboarding surface without turning `Videra.Demo` into another broad workstation shell:
+
+- `SceneDocument` is the runtime scene truth, not a mirror of `Engine.SceneObjects`
+- imported assets stay CPU-side until a ready resource factory uploads them
+- backend diagnostics explain fallback/rebind behavior while the scene survives backend recreation
 
 ## Run
 

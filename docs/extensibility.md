@@ -24,6 +24,8 @@ The supported public flow is:
 7. Call `FrameAll()`.
 8. Inspect `RenderCapabilities` and `BackendDiagnostics`.
 
+`LoadModelsAsync(...)` follows the same public boundary but with stricter scene semantics: import work can partially succeed, while the active scene is replaced only when every requested file succeeds.
+
 ```csharp
 using Videra.Avalonia.Controls;
 using Videra.Core.Graphics;
@@ -69,10 +71,18 @@ The concrete sample lives at `samples/Videra.ExtensibilitySample`, and its main 
 | Native unavailable with software fallback | Registrations still use the same public surface because the engine runs on the software backend instead of failing the API shape. | With `AllowSoftwareFallback = true`, `BackendDiagnostics.IsUsingSoftwareFallback` is `true`, `ResolvedBackend` becomes `Software`, and `FallbackReason` describes why the native backend could not be used. `RenderCapabilities` continues to expose the same contributor/hook support flags. | The narrow sample can still call `LoadModelAsync(...)` and `FrameAll()` after readiness, but host apps should surface the fallback state to users. |
 | Native unavailable without software fallback | No registration contract changes, but no ready session is created. The same unavailable reason is surfaced as a failure instead of a fallback. | With `AllowSoftwareFallback = false`, backend resolution fails instead of populating `FallbackReason` on a software path. In Core-first flows, `GraphicsBackendFactory.ResolveBackend(...)` throws the same unavailable reason. In Avalonia flows, the view stays not ready and surfaces the failure through `InitializationFailed` / `LastInitializationError`. | Do not call `LoadModelAsync(...)` or `FrameAll()` until the missing package/runtime issue is fixed and the view can initialize normally. |
 
+## Scene Loading Truth
+
+- `SceneDocument` is the authoritative viewer-scene contract behind the public loading helpers.
+- `LoadModelAsync(...)` imports a backend-neutral asset first, then uploads it only when a ready resource factory is available.
+- `LoadModelsAsync(...)` uses bounded parallel import and replaces the active scene only when every requested import succeeds.
+- Backend rebind and fallback recovery restore the scene from retained imported assets and scene objects; they do not rely on a steady-state software staging path.
+
 ## Scope Boundaries
 
 - `VideraEngine` is the only public extensibility root.
 - `VideraViewRuntime`, `RenderSessionOrchestrator`, `RenderSession`, and `VideraViewSessionBridge` are internal orchestration seams.
+- `SceneDocument`, `SceneUploadCoordinator`, `IGraphicsDevice`, `IRenderSurface`, and `LegacyGraphicsBackendAdapter` are internal contracts; they inform diagnostics and docs truth, not public extension points.
 - The public contract is intentionally C#-first and in-process.
 - `package discovery` and `plugin loading` remain out of scope.
 - Public samples and docs should not rely on internal-only types such as `SoftwareBackend`.

@@ -73,7 +73,12 @@ internal sealed class RenderSessionOrchestrator : IDisposable
         UsesSoftwarePresentationCopy = IsSoftwareBackend
     };
 
-    internal ISoftwareBackend? SoftwareBackend => (_device as LegacyGraphicsBackendAdapter)?.LegacyBackend as ISoftwareBackend;
+    internal ISoftwareBackend? SoftwareBackend => _device switch
+    {
+        ISoftwareBackend softwareBackend => softwareBackend,
+        LegacyGraphicsBackendAdapter adapter => adapter.LegacyBackend as ISoftwareBackend,
+        _ => null
+    };
 
     public bool Attach(GraphicsBackendPreference preference, VideraBackendOptions? backendOptions = null)
     {
@@ -272,7 +277,8 @@ internal sealed class RenderSessionOrchestrator : IDisposable
         try
         {
             var resolution = _backendResolutionFactory(request);
-            device = new LegacyGraphicsBackendAdapter(resolution.Backend, resolution.ResolvedPreference);
+            device = resolution.Backend as IGraphicsDevice
+                ?? new LegacyGraphicsBackendAdapter(resolution.Backend, resolution.ResolvedPreference);
             renderSurface = device.CreateRenderSurface();
             var handle = resolution.ResolvedPreference == GraphicsBackendPreference.Software
                 ? IntPtr.Zero
