@@ -18,6 +18,20 @@ body:
         - area: surfacecharts
     validations:
       required: true
+  - type: dropdown
+    id: consumer_path
+    attributes:
+      label: Consumer path
+      description: Which public entry path is this request trying to improve?
+      options:
+        - Happy path (`Videra.MinimalSample` / `Videra.Avalonia` README)
+        - Extensibility (`VideraView.Engine`)
+        - Interaction contract
+        - Consumer smoke / install validation
+        - Benchmark / regression workflow
+        - Alpha docs / support surface
+    validations:
+      required: true
   - type: textarea
     id: problem
     attributes:
@@ -29,6 +43,13 @@ body:
     id: proposal
     attributes:
       label: Proposed change
-      description: Describe the intended feature, docs change, or API adjustment.
+      description: Describe the intended feature, docs change, or API adjustment, and say whether it changes the default happy path or an advanced integration path.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence or reproduction context
+      description: Link sample code, diagnostics, benchmark artifacts, or reproduction notes that justify the request.
     validations:
       required: true

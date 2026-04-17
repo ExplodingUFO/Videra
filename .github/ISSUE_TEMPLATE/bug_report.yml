@@ -18,6 +18,31 @@ body:
         - area: surfacecharts
     validations:
       required: true
+  - type: dropdown
+    id: install_path
+    attributes:
+      label: Install path
+      description: Which consumer path reproduced the issue?
+      options:
+        - nuget.org public packages
+        - GitHub Packages preview packages
+        - Repository source build
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Package version or commit
+      description: For example `0.1.0-alpha.2` or a repository SHA.
+    validations:
+      required: true
+  - type: input
+    id: host_environment
+    attributes:
+      label: Host environment
+      description: Operating system, GPU, driver, and display-server/session details if relevant.
+    validations:
+      required: true
   - type: textarea
     id: summary
     attributes:
@@ -26,9 +51,17 @@ body:
     validations:
       required: true
   - type: textarea
+    id: diagnostics
+    attributes:
+      label: Backend diagnostics
+      description: Paste the `BackendDiagnostics` snapshot, including resolved backend, fallback reason, and Linux display-server fields when relevant.
+      render: text
+    validations:
+      required: true
+  - type: textarea
     id: repro
     attributes:
       label: Reproduction
-      description: Include steps, commands, logs, screenshots, or matching-host validation notes.
+      description: Include steps, commands, logs, screenshots, matching-host validation notes, and whether the issue reproduces in Videra.MinimalSample or consumer smoke.
     validations:
       required: true

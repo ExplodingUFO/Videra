@@ -11,6 +11,8 @@ This page maps the long-lived public documentation for Videra. Start with the re
 - [Support Matrix](support-matrix.md) for platform, validation, and support-level truth
 - [Release Policy](release-policy.md) for public-vs-preview feed rules, versioning scope, and what is or is not published
 - [Releasing Runbook](releasing.md) for tag, asset, and release-page workflow
+- [Benchmark Gates](benchmark-gates.md) for manual and label-triggered benchmark evidence runs
+- [Alpha Feedback](alpha-feedback.md) for bug-report diagnostics, consumer-path evidence, and support-boundary expectations
 - [Extensibility Contract](extensibility.md) for the `VideraView.Engine` flow, `samples/Videra.ExtensibilitySample`, the ready / disposed / fallback behavior matrix, and the boundary that keeps `package discovery` and `plugin loading` out of scope
 - [Troubleshooting](troubleshooting.md) for the relationship between package installation, `VIDERA_BACKEND`, software fallback, and matching-host validation
 - [Native Validation](native-validation.md) for the GitHub Actions and local matching-host validation runbook

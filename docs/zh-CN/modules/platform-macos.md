@@ -24,8 +24,8 @@ dotnet nuget add source "https://nuget.pkg.github.com/ExplodingUFO/index.json" \
   --password YOUR_GITHUB_PAT \
   --store-password-in-clear-text
 
-dotnet add package Videra.Avalonia --version 0.1.0-alpha.1 --source github-ExplodingUFO
-dotnet add package Videra.Platform.macOS --version 0.1.0-alpha.1 --source github-ExplodingUFO
+dotnet add package Videra.Avalonia --version 0.1.0-alpha.2 --source github-ExplodingUFO
+dotnet add package Videra.Platform.macOS --version 0.1.0-alpha.2 --source github-ExplodingUFO
 ```
 
 当前原生路径依赖 `NSView` 和 `CAMetalLayer`，matching-host 原生验证仍需要真实 macOS 宿主。

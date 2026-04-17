@@ -32,8 +32,8 @@ dotnet nuget add source "https://nuget.pkg.github.com/ExplodingUFO/index.json" \
   --password YOUR_GITHUB_PAT \
   --store-password-in-clear-text
 
-dotnet add package Videra.Avalonia --version 0.1.0-alpha.1 --source github-ExplodingUFO
-dotnet add package Videra.Platform.Linux --version 0.1.0-alpha.1 --source github-ExplodingUFO
+dotnet add package Videra.Avalonia --version 0.1.0-alpha.2 --source github-ExplodingUFO
+dotnet add package Videra.Platform.Linux --version 0.1.0-alpha.2 --source github-ExplodingUFO
 ```
 
 This package supplies the Vulkan backend for the current Linux native path. On Avalonia 11, native embedding remains X11-based; Wayland sessions use `XWayland` when available. `VIDERA_BACKEND` can prefer Vulkan, but it does not install missing platform packages.

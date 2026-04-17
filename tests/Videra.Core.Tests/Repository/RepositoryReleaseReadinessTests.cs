@@ -28,6 +28,7 @@ public sealed class RepositoryReleaseReadinessTests
         readme.Should().Contain("Videra.SurfaceCharts.Core");
         readme.Should().Contain("Videra.SurfaceCharts.Avalonia");
         readme.Should().Contain("Videra.SurfaceCharts.Processing");
+        readme.Should().Contain("Videra.MinimalSample");
         readme.Should().Contain("Videra.Demo");
         readme.Should().Contain("Videra.SurfaceCharts.Demo");
         readme.Should().Contain("Videra.ExtensibilitySample");
@@ -68,7 +69,9 @@ public sealed class RepositoryReleaseReadinessTests
 
         readme.Should().Contain("LoadModelAsync");
         readme.Should().Contain("FrameAll");
+        readme.Should().Contain("ResetCamera");
         readme.Should().Contain("BackendDiagnostics");
+        readme.Should().Contain("Videra.MinimalSample");
     }
 
     [Fact]
@@ -343,6 +346,7 @@ public sealed class RepositoryReleaseReadinessTests
     {
         var changelog = File.ReadAllText(Path.Combine(GetRepositoryRoot(), "CHANGELOG.md"));
 
+        changelog.Should().Contain("## [0.1.0-alpha.2] - 2026-04-17");
         changelog.Should().Contain("## [0.1.0-alpha.1] - 2026-04-06");
     }
 

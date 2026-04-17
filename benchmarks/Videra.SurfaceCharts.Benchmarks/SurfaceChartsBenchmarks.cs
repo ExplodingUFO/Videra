@@ -7,7 +7,7 @@ using Videra.SurfaceCharts.Rendering;
 namespace Videra.SurfaceCharts.Benchmarks;
 
 [MemoryDiagnoser]
-public sealed class SurfaceChartsBenchmarks
+public class SurfaceChartsBenchmarks
 {
     private static readonly SurfaceTileKey OverviewKey = new(0, 0, 0, 0);
     private static readonly SurfaceTileKey DetailKeyA = new(3, 3, 2, 2);

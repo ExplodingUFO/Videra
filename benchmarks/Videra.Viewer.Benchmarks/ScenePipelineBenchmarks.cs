@@ -10,7 +10,7 @@ using Videra.Core.Scene;
 namespace Videra.Viewer.Benchmarks;
 
 [MemoryDiagnoser]
-public sealed class ScenePipelineBenchmarks
+public class ScenePipelineBenchmarks
 {
     private readonly SceneDocumentMutator _mutator = new();
     private readonly SceneDeltaPlanner _deltaPlanner = new();

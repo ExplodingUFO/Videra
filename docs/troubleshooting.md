@@ -87,9 +87,14 @@ Include:
 
 - Operating system and version
 - GPU and driver details
+- Package install path (`nuget.org`, `GitHub Packages`, or source build)
+- Package version or commit SHA
 - Backend preference or `VIDERA_BACKEND` value
+- `BackendDiagnostics` snapshot
+- `ResolvedDisplayServer`, `DisplayServerFallbackUsed`, and `DisplayServerFallbackReason` on Linux when relevant
 - Failing command and full error output
 - Whether the issue reproduces on the matching native host
+- Whether the issue reproduces in `Videra.MinimalSample` or `consumer smoke`
 - Whether software rendering works
 
 ## Related Docs
@@ -97,6 +102,7 @@ Include:
 - [README.md](../README.md)
 - [ARCHITECTURE.md](../ARCHITECTURE.md)
 - [CONTRIBUTING.md](../CONTRIBUTING.md)
+- [Alpha Feedback](alpha-feedback.md)
 - [Native Validation](native-validation.md)
 - [Chinese Troubleshooting Guide](zh-CN/troubleshooting.md)
 

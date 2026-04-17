@@ -22,7 +22,7 @@ Videra is not a general-purpose game engine. It is shaped around desktop visuali
 ## Current Status
 
 - Early `alpha`
-- Current repository baseline: `0.1.0-alpha.1`
+- Current repository baseline: `0.1.0-alpha.2`
 - Public release tags are intended to publish the consumer packages on `nuget.org`
 - `GitHub Packages` remains the `preview` / internal feed for contributors and pre-release validation
 - `Videra.SurfaceCharts.*` is still a source-first module family, not a published public package line
@@ -65,11 +65,14 @@ dotnet add package Videra.Core
 `Videra.Avalonia` remains the UI/control entry package. `PreferredBackend` and `VIDERA_BACKEND` only change backend preference. They do not install missing platform packages, and they do not replace matching-host native validation.
 The public install flow does not install missing platform packages for you.
 
+For the shortest copyable first-scene path, start with [Videra.MinimalSample](samples/Videra.MinimalSample/README.md) and the [Videra.Avalonia package README](src/Videra.Avalonia/README.md). Move to [Videra.ExtensibilitySample](samples/Videra.ExtensibilitySample/README.md) only when you need `VideraView.Engine`, frame hooks, or pass contributors.
+
 Current `alpha` preview builds may still be validated through `GitHub Packages`. Treat that path as `preview`, not as the default public install flow. Feed policy and package classification live in [docs/package-matrix.md](docs/package-matrix.md), [docs/support-matrix.md](docs/support-matrix.md), [docs/release-policy.md](docs/release-policy.md), and [docs/releasing.md](docs/releasing.md).
 
 ### Contribution
 
 Use [CONTRIBUTING.md](CONTRIBUTING.md) when you want to build, validate, and submit changes. Usage questions and design discussion belong in GitHub Discussions, while private vulnerabilities belong in [SECURITY.md](SECURITY.md).
+For alpha adoption feedback, use [Alpha Feedback](docs/alpha-feedback.md) before filing an issue so reports include the diagnostics and consumer-path details needed to reproduce them.
 
 ## Published packages
 
@@ -93,19 +96,20 @@ Use [CONTRIBUTING.md](CONTRIBUTING.md) when you want to build, validate, and sub
 
 | Entry | Purpose |
 | --- | --- |
+| `Videra.MinimalSample` | Shortest first-scene reference for `VideraViewOptions`, `LoadModelAsync`, `FrameAll`, `ResetCamera`, and `BackendDiagnostics` |
 | `Videra.Demo` | Viewer demo for backend diagnostics, import feedback, and baseline interaction |
 | `Videra.SurfaceCharts.Demo` | Independent surface-chart demo for `SurfaceChartView`, chart-local overlays, and rendering-path truth |
 | `Videra.ExtensibilitySample` | Narrow public reference for `VideraView.Engine`, `RegisterPassContributor(...)`, and `RegisterFrameHook(...)` |
 | `Videra.InteractionSample` | Public sample for the controlled interaction contract and host-owned state |
 
-`Videra.Demo` remains the quickest end-to-end viewer reference. It surfaces backend diagnostics, seeds a default demo cube on the ready path, and summarizes import feedback in the status area.
-It now also includes a narrow `Scene Pipeline Lab` panel for `SceneDocument` versioning, pending/resident/dirty upload counts, atomic batch replacement, and backend-rebind truth.
+`Videra.MinimalSample` is the quickest end-to-end viewer reference. It stays on the alpha happy path: `Options -> LoadModelAsync -> FrameAll / ResetCamera -> BackendDiagnostics`.
+`Videra.Demo` remains the broader diagnostics and import-feedback surface. It seeds a default demo cube on the ready path, summarizes import feedback in the status area, and includes a narrow `Scene Pipeline Lab` panel for `SceneDocument` versioning, pending/resident/dirty upload counts, atomic batch replacement, and backend-rebind truth.
 
 ## Extensibility Onboarding
 
-Use [Videra.ExtensibilitySample](samples/Videra.ExtensibilitySample/README.md) as the narrow public reference and [docs/extensibility.md](docs/extensibility.md) as the long-lived behavior contract.
+Use [Videra.ExtensibilitySample](samples/Videra.ExtensibilitySample/README.md) as the narrow public reference and [docs/extensibility.md](docs/extensibility.md) as the long-lived behavior contract when you need custom pass contributors or frame hooks.
 
-The supported flow is `VideraView.Engine` -> `RegisterPassContributor(...)` / `RegisterFrameHook(...)` -> `LoadModelAsync(...)` -> `FrameAll()` -> inspect `RenderCapabilities` and `BackendDiagnostics`.
+The advanced extensibility flow is `VideraView.Engine` -> `RegisterPassContributor(...)` / `RegisterFrameHook(...)` -> `LoadModelAsync(...)` -> `FrameAll()` -> inspect `RenderCapabilities` and `BackendDiagnostics`.
 
 Contract highlights:
 
@@ -161,6 +165,8 @@ Contract highlights:
 - [Support Matrix](docs/support-matrix.md)
 - [Release Policy](docs/release-policy.md)
 - [Releasing Runbook](docs/releasing.md)
+- [Benchmark Gates](docs/benchmark-gates.md)
+- [Alpha Feedback](docs/alpha-feedback.md)
 - [Extensibility Contract](docs/extensibility.md)
 - [Architecture](ARCHITECTURE.md)
 - [Troubleshooting](docs/troubleshooting.md)

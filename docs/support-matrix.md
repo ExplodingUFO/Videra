@@ -27,3 +27,4 @@ This matrix describes the current support boundary for the public viewer package
 - They do not install missing platform packages.
 - They do not replace matching-host native validation.
 - Linux Wayland remains an `XWayland compatibility` story, not compositor-native embedding.
+- Use [Alpha Feedback](alpha-feedback.md) when reporting integration issues so the report carries package path, diagnostics, and display-server truth.

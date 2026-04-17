@@ -30,6 +30,7 @@
     <Project Path="samples/Videra.Demo/Videra.Demo.csproj" />
     <Project Path="samples/Videra.ExtensibilitySample/Videra.ExtensibilitySample.csproj" />
     <Project Path="samples/Videra.InteractionSample/Videra.InteractionSample.csproj" />
+    <Project Path="samples/Videra.MinimalSample/Videra.MinimalSample.csproj" />
   </Folder>
   <Folder Name="/Tests/" />
   <Folder Name="/Tests/Core/">

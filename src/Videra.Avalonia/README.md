@@ -38,15 +38,15 @@ dotnet nuget add source "https://nuget.pkg.github.com/ExplodingUFO/index.json" \
   --password YOUR_GITHUB_PAT \
   --store-password-in-clear-text
 
-dotnet add package Videra.Avalonia --version 0.1.0-alpha.1 --source github-ExplodingUFO
-dotnet add package Videra.Platform.Windows --version 0.1.0-alpha.1 --source github-ExplodingUFO
+dotnet add package Videra.Avalonia --version 0.1.0-alpha.2 --source github-ExplodingUFO
+dotnet add package Videra.Platform.Windows --version 0.1.0-alpha.2 --source github-ExplodingUFO
 ```
 
 If no matching platform package is installed, the software fallback path can still help with diagnostics, but it does not install missing platform packages.
 
 `PreferredBackend` and `VIDERA_BACKEND` only change backend preference. They do not install missing platform packages and do not replace matching-host native validation.
 
-## Example
+## Happy Path
 
 ```xml
 <Window xmlns:videra="using:Videra.Avalonia.Controls">
@@ -74,36 +74,29 @@ View3D.Options = new VideraViewOptions
     }
 };
 
-var result = await View3D.LoadModelsAsync(new[] { "Models/ship.glb", "Models/cube.obj" });
-if (!result.Succeeded)
+var result = await View3D.LoadModelAsync("Models/reference-cube.obj");
+if (!result.Succeeded && result.Failure is not null)
 {
-    foreach (var failure in result.Failures)
-    {
-        Console.WriteLine($"{failure.Path}: {failure.ErrorMessage}");
-    }
+    Console.WriteLine(result.Failure.ErrorMessage);
 }
 
-var singleResult = await View3D.LoadModelAsync("Models/highlight.glb");
-if (!singleResult.Succeeded && singleResult.Failure is not null)
-{
-    Console.WriteLine(singleResult.Failure.ErrorMessage);
-}
+var framed = View3D.FrameAll();
+View3D.ResetCamera();
 
-View3D.Engine.RegisterFrameHook(RenderFrameHookPoint.FrameEnd, context =>
-{
-    Console.WriteLine(context.HookPoint);
-});
-
-View3D.FrameAll();
 var diagnostics = View3D.BackendDiagnostics;
-var capabilities = View3D.RenderCapabilities;
 ```
 
-`LoadModelsAsync(...)` imports in bounded parallel and replaces the active scene only when every requested file succeeds. Partial import success is reported through `ModelLoadBatchResult`, but the active scene stays unchanged until the batch is fully successful.
+`LoadModelAsync(...)` is the shortest public first-scene path. `LoadModelsAsync(...)` remains available when a host wants bounded parallel import with atomic replace semantics across a batch, and it replaces the active scene only when every requested file succeeds.
 
-`VideraView.Engine` is the public extensibility root for custom contributors and frame hooks. `VideraView.BackendDiagnostics` remains the backend/runtime diagnostics shell, while `VideraView.RenderCapabilities` exposes the Core-side capability snapshot.
+`VideraView.BackendDiagnostics` remains the backend/runtime diagnostics shell. `VideraView.RenderCapabilities` and `VideraView.Engine` stay available, but they are not part of the default alpha happy path.
 
-For the complete public flow, see [docs/extensibility.md](../../docs/extensibility.md) and [samples/Videra.ExtensibilitySample](../../samples/Videra.ExtensibilitySample/README.md). The narrow sample uses `VideraView.Engine`, `RegisterPassContributor(...)`, `RegisterFrameHook(...)`, `LoadModelAsync(...)`, `FrameAll()`, `RenderCapabilities`, and `BackendDiagnostics` together.
+For the copyable first-scene flow, see [samples/Videra.MinimalSample](../../samples/Videra.MinimalSample/README.md).
+
+## Extensibility
+
+`VideraView.Engine` is the public extensibility root for custom contributors and frame hooks.
+
+For the complete advanced flow, see [docs/extensibility.md](../../docs/extensibility.md) and [samples/Videra.ExtensibilitySample](../../samples/Videra.ExtensibilitySample/README.md). The narrow extensibility sample uses `VideraView.Engine`, `RegisterPassContributor(...)`, `RegisterFrameHook(...)`, `LoadModelAsync(...)`, `FrameAll()`, `RenderCapabilities`, and `BackendDiagnostics` together.
 For scene-runtime diagnostics, [Videra.Demo](../../samples/Videra.Demo/README.md) includes the narrow `Scene Pipeline Lab` surface for document version, pending/resident upload counts, and backend rebind recovery.
 
 Contract notes:

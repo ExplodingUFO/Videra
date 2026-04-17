@@ -24,8 +24,8 @@ dotnet nuget add source "https://nuget.pkg.github.com/ExplodingUFO/index.json" \
   --password YOUR_GITHUB_PAT \
   --store-password-in-clear-text
 
-dotnet add package Videra.Avalonia --version 0.1.0-alpha.1 --source github-ExplodingUFO
-dotnet add package Videra.Platform.Linux --version 0.1.0-alpha.1 --source github-ExplodingUFO
+dotnet add package Videra.Avalonia --version 0.1.0-alpha.2 --source github-ExplodingUFO
+dotnet add package Videra.Platform.Linux --version 0.1.0-alpha.2 --source github-ExplodingUFO
 ```
 
 当前 Linux 原生渲染链路仍基于 X11 句柄；如果运行在 Wayland 会话中，则依赖 `XWayland` 兼容路径。matching-host 原生验证仍需要真实 Linux 宿主。

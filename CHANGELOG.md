@@ -6,19 +6,24 @@ The format is based on Keep a Changelog, and this repository is currently in an 
 
 ## [Unreleased]
 
+## [0.1.0-alpha.2] - 2026-04-17
+
 ### Added
 
-- GitHub Packages installation guidance, including feed setup and package install examples
-- Release workflow package validation before push
+- `Videra.MinimalSample` as the shortest public first-scene reference
+- package-based consumer smoke validation from install to first scene
+- viewer and surface-chart benchmark workflow gates with published artifacts
+- alpha feedback and support surfaces centered on diagnostics-rich reproduction data
 
 ### Changed
 
-- Clarified alpha distribution boundaries and default verification scope
-- Tightened release workflow to publish from tags only
+- Simplified the default `VideraView` onboarding path and moved advanced extensibility behind explicit opt-in docs
+- Bumped the default package version baseline to `0.1.0-alpha.2`
 
 ### Fixed
 
-- Strengthened security reporting and PR review templates for public collaboration
+- Repository truth drift between happy-path docs and `LoadModelsAsync(...)` batch-replace semantics
+- Missing workflow-visible consumer and benchmark validation for the public alpha path
 
 ## [0.1.0-alpha.1] - 2026-04-06
 

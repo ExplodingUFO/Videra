@@ -1,0 +1,20 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:videra="using:Videra.Avalonia.Controls"
+        x:Class="Videra.ConsumerSmoke.Views.MainWindow"
+        Width="960"
+        Height="640"
+        Title="Videra Consumer Smoke"
+        Background="#020617">
+  <Grid RowDefinitions="*,Auto">
+    <videra:VideraView x:Name="View3D"
+                       BackgroundColor="#0F172A"
+                       GridColor="#475569"
+                       IsGridVisible="True" />
+    <TextBlock Grid.Row="1"
+               x:Name="StatusText"
+               Margin="12"
+               Foreground="#CBD5E1"
+               TextWrapping="Wrap" />
+  </Grid>
+</Window>

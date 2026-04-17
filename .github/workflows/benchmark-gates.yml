@@ -1,0 +1,65 @@
+name: Benchmark Gates
+
+on:
+  workflow_dispatch:
+    inputs:
+      suite:
+        description: Benchmark suite
+        required: true
+        default: all
+        type: choice
+        options:
+          - all
+          - viewer
+          - surfacecharts
+  pull_request:
+    types:
+      - labeled
+      - synchronize
+      - reopened
+
+permissions:
+  contents: read
+
+jobs:
+  viewer-benchmarks:
+    if: ${{ github.event_name == 'workflow_dispatch' && (github.event.inputs.suite == 'all' || github.event.inputs.suite == 'viewer') || github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'run-benchmarks') }}
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Run viewer benchmarks
+        shell: pwsh
+        run: pwsh -File ./scripts/Run-Benchmarks.ps1 -Suite Viewer -Configuration Release -OutputRoot artifacts/benchmarks
+
+      - name: Upload viewer benchmark artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmarks-viewer
+          path: artifacts/benchmarks/viewer
+
+  surfacecharts-benchmarks:
+    if: ${{ github.event_name == 'workflow_dispatch' && (github.event.inputs.suite == 'all' || github.event.inputs.suite == 'surfacecharts') || github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'run-benchmarks') }}
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Run surface charts benchmarks
+        shell: pwsh
+        run: pwsh -File ./scripts/Run-Benchmarks.ps1 -Suite SurfaceCharts -Configuration Release -OutputRoot artifacts/benchmarks
+
+      - name: Upload surface charts benchmark artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmarks-surfacecharts
+          path: artifacts/benchmarks/surfacecharts

@@ -79,7 +79,12 @@ Invoke-Check "Demo Build" {
     dotnet build "$root/samples/Videra.Demo/Videra.Demo.csproj" --configuration $Configuration -v q 2>$null
 } "Demo builds" "Demo build failed"
 
-# Step 4: Surface Charts Demo build
+# Step 4: Minimal Sample build
+Invoke-Check "Minimal Sample Build" {
+    dotnet build "$root/samples/Videra.MinimalSample/Videra.MinimalSample.csproj" --configuration $Configuration -v q 2>$null
+} "Minimal sample builds" "Minimal sample build failed"
+
+# Step 5: Surface Charts Demo build
 Invoke-Check "Surface Charts Demo Build" {
     dotnet build "$root/samples/Videra.SurfaceCharts.Demo/Videra.SurfaceCharts.Demo.csproj" --configuration $Configuration -v q 2>$null
 } "Surface charts demo builds" "Surface charts demo build failed"

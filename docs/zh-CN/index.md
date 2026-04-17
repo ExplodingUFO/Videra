@@ -10,12 +10,15 @@
 - [包矩阵](../package-matrix.md)：published packages、source-only modules 与 demos/samples 的边界
 - [支持矩阵](../support-matrix.md)：平台、验证方式与支持级别
 - [发布策略](../release-policy.md)：公开 feed、preview feed 和 source-only 边界
+- [Benchmark Gates](../benchmark-gates.md)：viewer / surface charts benchmark 的手动与 PR label 入口
+- [Alpha Feedback](../alpha-feedback.md)：alpha 集成反馈、诊断快照和支持边界
 - [故障排查](troubleshooting.md)：`VIDERA_BACKEND`、软件回退和 matching-host 原生验证的边界
 - [原生宿主验证](native-validation.md)：GitHub Actions 与本地 matching-host 验证入口
 
 ## 开始使用
 
 - [项目首页](README.md)
+- [Videra.MinimalSample](../../samples/Videra.MinimalSample/README.md)
 - [扩展合同](extensibility.md)：`VideraView.Engine` 流程、`samples/Videra.ExtensibilitySample`、`RegisterPassContributor(...)` / `RegisterFrameHook(...)`、`RenderCapabilities`、`BackendDiagnostics`
 - [架构说明](ARCHITECTURE.md)
 - [故障排查](troubleshooting.md)
