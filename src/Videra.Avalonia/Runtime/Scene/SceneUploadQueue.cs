@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using Videra.Core.Graphics.Abstractions;
 using Videra.Core.Scene;
+using System.Diagnostics;
 
 namespace Videra.Avalonia.Runtime.Scene;
 
@@ -43,9 +44,13 @@ internal sealed class SceneUploadQueue
 
         if (factory is null || budget.MaxObjectsPerFrame <= 0 || budget.MaxBytesPerFrame <= 0)
         {
-            return SceneUploadFlushResult.Empty;
+            return SceneUploadFlushResult.Empty with
+            {
+                ResolvedBudget = budget
+            };
         }
 
+        var stopwatch = Stopwatch.StartNew();
         var uploaded = new List<SceneResidencyRecord>();
         var failed = 0;
         var uploadedBytes = 0L;
@@ -96,7 +101,8 @@ internal sealed class SceneUploadQueue
             }
         }
 
-        return new SceneUploadFlushResult(uploaded, failed, uploadedBytes);
+        stopwatch.Stop();
+        return new SceneUploadFlushResult(uploaded, failed, uploadedBytes, budget, stopwatch.Elapsed);
     }
 
     private void Enqueue(SceneEntryId id)
@@ -111,12 +117,16 @@ internal sealed class SceneUploadQueue
 internal sealed record SceneUploadFlushResult(
     IReadOnlyList<SceneResidencyRecord> UploadedRecords,
     int FailedCount,
-    long UploadedBytes)
+    long UploadedBytes,
+    SceneUploadBudget ResolvedBudget,
+    TimeSpan Duration)
 {
     public static SceneUploadFlushResult Empty { get; } = new(
         Array.Empty<SceneResidencyRecord>(),
         0,
-        0);
+        0,
+        SceneUploadBudget.None,
+        TimeSpan.Zero);
 
     public bool HasChanges => UploadedRecords.Count > 0 || FailedCount > 0;
 }

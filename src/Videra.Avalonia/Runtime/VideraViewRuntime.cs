@@ -26,16 +26,10 @@ internal sealed partial class VideraViewRuntime : IDisposable
     private VideraViewOptions _options = new();
     private VideraBackendDiagnostics _backendDiagnostics;
     private SceneDocument _sceneDocument = SceneDocument.Empty;
-    private readonly SceneDocumentMutator _sceneDocumentMutator = new();
-    private readonly SceneDocumentStore _sceneDocumentStore;
-    private readonly SceneDeltaPlanner _sceneDeltaPlanner = new();
-    private readonly SceneResidencyRegistry _sceneResidencyRegistry = new();
-    private readonly SceneUploadQueue _sceneUploadQueue = new();
-    private readonly SceneEngineApplicator _sceneEngineApplicator = new();
-    private readonly SceneItemsAdapter _sceneItemsAdapter;
-    private readonly SceneImportService _sceneImportService;
+    private readonly SceneRuntimeCoordinator _sceneCoordinator;
     private SceneResidencyDiagnostics _sceneDiagnostics;
-    private ulong _sceneResourceEpoch = 1;
+    private SceneUploadFlushResult _lastSceneUploadFlushResult = SceneUploadFlushResult.Empty;
+    private SceneUploadBudget _lastResolvedSceneUploadBudget = SceneUploadBudget.None;
     private RuntimeFramePrelude _framePrelude;
     private VideraSelectionState _selectionState = new();
     private IReadOnlyList<VideraAnnotation> _annotations = Array.Empty<VideraAnnotation>();
@@ -54,9 +48,12 @@ internal sealed partial class VideraViewRuntime : IDisposable
         _engine = engine ?? throw new ArgumentNullException(nameof(engine));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _bitmapFactory = bitmapFactory;
-        _sceneDocumentStore = new SceneDocumentStore(_sceneDocument);
-        _sceneItemsAdapter = new SceneItemsAdapter(_sceneDocumentMutator);
-        _sceneImportService = new SceneImportService(_sceneDocumentMutator);
+        _sceneCoordinator = new SceneRuntimeCoordinator(
+            _engine,
+            refreshOverlay: SynchronizeOverlayPresentation,
+            refreshSceneDiagnostics: RefreshSceneDiagnostics,
+            refreshBackendDiagnostics: RefreshSceneBackendDiagnosticsFromCoordinator,
+            invalidateRender: InvalidateSceneRenderFromCoordinator);
         _interactionController = new VideraInteractionController(_owner, _logger);
         _interactionRouter = new VideraInteractionRouter(_owner, _interactionController);
         _renderSession = CreateRenderSession();
@@ -114,7 +111,7 @@ internal sealed partial class VideraViewRuntime : IDisposable
 
     public VideraViewOverlayState OverlayState => _overlayState;
 
-    internal IReadOnlyList<Object3D> SceneObjects => _sceneDocument.SceneObjects;
+    internal IReadOnlyList<Object3D> SceneObjects => _sceneCoordinator.SceneObjects;
 
     public void Dispose()
     {
@@ -140,13 +137,13 @@ internal sealed partial class VideraViewRuntime : IDisposable
     internal RuntimeFramePrelude CreateFramePrelude()
     {
         return new RuntimeFramePrelude(
-            _sceneUploadQueue,
-            _sceneResidencyRegistry,
-            _sceneEngineApplicator,
+            _sceneCoordinator.UploadQueue,
+            _sceneCoordinator.ResidencyRegistry,
+            new SceneEngineApplicator(),
             _engine,
             () => _renderSession.ResourceFactory,
             () => _renderSession.HasInteractiveLease,
-            () => _sceneResourceEpoch,
+            () => _sceneCoordinator.ResourceEpoch,
             PushOverlayRenderState,
             _logger);
     }
@@ -335,14 +332,38 @@ internal sealed partial class VideraViewRuntime : IDisposable
 
     internal void RefreshSceneDiagnostics()
     {
-        _sceneDiagnostics = _sceneResidencyRegistry.CreateDiagnostics(_sceneDocument.Version);
+        _sceneDocument = _sceneCoordinator.CurrentDocument;
+        _sceneDiagnostics = _sceneCoordinator.CreateDiagnostics(
+            _lastSceneUploadFlushResult,
+            _lastResolvedSceneUploadBudget);
     }
 
     private void OnBeforeRender()
     {
-        _ = _framePrelude.Execute();
+        var flushResult = _framePrelude.Execute();
+        if (flushResult.ResolvedBudget.MaxObjectsPerFrame > 0 &&
+            flushResult.ResolvedBudget.MaxBytesPerFrame > 0)
+        {
+            _lastResolvedSceneUploadBudget = flushResult.ResolvedBudget;
+        }
+
+        if (flushResult.HasChanges)
+        {
+            _lastSceneUploadFlushResult = flushResult;
+        }
+
         RefreshSceneDiagnostics();
         RefreshBackendDiagnostics(_backendDiagnostics.LastInitializationError);
+    }
+
+    private void RefreshSceneBackendDiagnosticsFromCoordinator()
+    {
+        RefreshBackendDiagnostics(_backendDiagnostics.LastInitializationError);
+    }
+
+    private void InvalidateSceneRenderFromCoordinator(RenderInvalidationKinds flags)
+    {
+        _renderSession.Invalidate(flags);
     }
 
     private void SubscribeToOptions(VideraViewOptions options)

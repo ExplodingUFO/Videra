@@ -6,11 +6,18 @@ namespace Videra.Avalonia.Controls;
 
 public partial class VideraView
 {
+    /// <summary>
+    /// Resets the orbit camera to its default target, radius, yaw, and pitch.
+    /// </summary>
     public void ResetCamera()
     {
         Engine.Camera.Reset();
     }
 
+    /// <summary>
+    /// Frames every scene object that currently contributes world bounds.
+    /// </summary>
+    /// <returns><c>true</c> when scene bounds were available and the camera was updated; otherwise <c>false</c>.</returns>
     public bool FrameAll()
     {
         if (!TryGetSceneBounds(out var sceneBounds))
@@ -21,6 +28,11 @@ public partial class VideraView
         return Engine.Camera.FrameBounds(sceneBounds);
     }
 
+    /// <summary>
+    /// Frames a single scene object using its current world bounds.
+    /// </summary>
+    /// <param name="obj">The scene object to frame.</param>
+    /// <returns><c>true</c> when the object exposed world bounds and the camera was updated; otherwise <c>false</c>.</returns>
     public bool Frame(Object3D obj)
     {
         ArgumentNullException.ThrowIfNull(obj);
@@ -33,6 +45,10 @@ public partial class VideraView
         return Engine.Camera.FrameBounds(bounds);
     }
 
+    /// <summary>
+    /// Applies one of the built-in orbit view presets while preserving the current camera target and radius.
+    /// </summary>
+    /// <param name="preset">The preset view orientation to apply.</param>
     public void SetViewPreset(ViewPreset preset)
     {
         var target = Engine.Camera.Target;

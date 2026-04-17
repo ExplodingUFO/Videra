@@ -3,6 +3,13 @@ namespace Videra.Avalonia.Runtime.Scene;
 internal readonly record struct SceneResidencyDiagnostics(
     int SceneDocumentVersion,
     int PendingUploads,
+    long PendingUploadBytes,
     int ResidentObjects,
     int DirtyObjects,
-    int FailedUploads);
+    int FailedUploads,
+    int LastUploadedObjects,
+    long LastUploadedBytes,
+    int LastUploadFailures,
+    TimeSpan LastUploadDuration,
+    int LastBudgetMaxObjects,
+    long LastBudgetMaxBytes);

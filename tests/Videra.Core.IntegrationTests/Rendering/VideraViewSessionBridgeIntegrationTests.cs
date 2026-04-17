@@ -135,9 +135,50 @@ public sealed class VideraViewSessionBridgeIntegrationTests
     private static SceneResidencyDiagnostics DefaultSceneDiagnostics => new(
         SceneDocumentVersion: 0,
         PendingUploads: 0,
+        PendingUploadBytes: 0,
         ResidentObjects: 0,
         DirtyObjects: 0,
-        FailedUploads: 0);
+        FailedUploads: 0,
+        LastUploadedObjects: 0,
+        LastUploadedBytes: 0,
+        LastUploadFailures: 0,
+        LastUploadDuration: TimeSpan.Zero,
+        LastBudgetMaxObjects: 0,
+        LastBudgetMaxBytes: 0);
+
+    [Fact]
+    public void DiagnosticsSnapshot_Projects_scene_upload_telemetry()
+    {
+        using var engine = new VideraEngine();
+        using var session = new RenderSession(
+            engine,
+            backendFactory: static _ => new TrackingSoftwareBackend(),
+            bitmapFactory: static (_, _) => null);
+        var bridge = CreateBridge(session, new VideraBackendOptions(), new VideraDiagnosticsOptions());
+        var diagnostics = bridge.CreateDiagnosticsSnapshot(
+            lastInitializationError: null,
+            new SceneResidencyDiagnostics(
+                SceneDocumentVersion: 3,
+                PendingUploads: 2,
+                PendingUploadBytes: 4096,
+                ResidentObjects: 4,
+                DirtyObjects: 1,
+                FailedUploads: 0,
+                LastUploadedObjects: 1,
+                LastUploadedBytes: 2048,
+                LastUploadFailures: 0,
+                LastUploadDuration: TimeSpan.FromMilliseconds(12),
+                LastBudgetMaxObjects: 2,
+                LastBudgetMaxBytes: 16384));
+
+        diagnostics.PendingSceneUploadBytes.Should().Be(4096);
+        diagnostics.LastFrameUploadedObjects.Should().Be(1);
+        diagnostics.LastFrameUploadedBytes.Should().Be(2048);
+        diagnostics.LastFrameUploadFailures.Should().Be(0);
+        diagnostics.LastFrameUploadDuration.Should().Be(TimeSpan.FromMilliseconds(12));
+        diagnostics.ResolvedUploadBudgetObjects.Should().Be(2);
+        diagnostics.ResolvedUploadBudgetBytes.Should().Be(16384);
+    }
 
     private sealed class TrackingSoftwareBackend : IGraphicsBackend, ISoftwareBackend
     {

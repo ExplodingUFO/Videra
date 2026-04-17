@@ -2,7 +2,6 @@ using System.Collections;
 using System.Collections.Specialized;
 using System.Diagnostics;
 using Videra.Avalonia.Controls;
-using Videra.Avalonia.Rendering;
 using Videra.Avalonia.Runtime.Scene;
 using Videra.Core.Graphics;
 using Videra.Core.Graphics.Abstractions;
@@ -17,7 +16,7 @@ internal sealed partial class VideraViewRuntime
         ArgumentException.ThrowIfNullOrWhiteSpace(path);
 
         var startedAt = Stopwatch.StartNew();
-        var importResult = await _sceneImportService.ImportSingleAsync(path, cancellationToken).ConfigureAwait(true);
+        var importResult = await _sceneCoordinator.ImportSingleAsync(path, cancellationToken).ConfigureAwait(true);
         if (importResult.Failure is not null)
         {
             return ModelLoadResult.Failed(path, importResult.Failure.Exception, startedAt.Elapsed);
@@ -32,7 +31,7 @@ internal sealed partial class VideraViewRuntime
         ArgumentNullException.ThrowIfNull(paths);
 
         var startedAt = Stopwatch.StartNew();
-        var importResult = await _sceneImportService.ImportBatchAsync(paths, cancellationToken).ConfigureAwait(true);
+        var importResult = await _sceneCoordinator.ImportBatchAsync(paths, cancellationToken).ConfigureAwait(true);
 
         if (importResult.Failures.Count == 0)
         {
@@ -52,7 +51,8 @@ internal sealed partial class VideraViewRuntime
             return;
         }
 
-        PublishSceneDocument(_sceneDocumentMutator.Add(_sceneDocument, obj));
+        _sceneCoordinator.AddObject(obj);
+        RefreshSceneDiagnostics();
     }
 
     public void ReplaceScene(IEnumerable<Object3D> objects)
@@ -70,7 +70,8 @@ internal sealed partial class VideraViewRuntime
             return;
         }
 
-        PublishSceneDocument(BuildSceneDocument(objects));
+        _sceneCoordinator.ReplaceScene(objects);
+        RefreshSceneDiagnostics();
     }
 
     public void ClearScene()
@@ -81,7 +82,8 @@ internal sealed partial class VideraViewRuntime
             return;
         }
 
-        PublishSceneDocument(_sceneDocumentMutator.Clear(_sceneDocument));
+        _sceneCoordinator.ClearScene();
+        RefreshSceneDiagnostics();
     }
 
     public IResourceFactory? GetResourceFactory() => _renderSession.ResourceFactory;
@@ -98,55 +100,34 @@ internal sealed partial class VideraViewRuntime
             newIncc.CollectionChanged += OnCollectionChanged;
         }
 
-        PublishSceneDocument(_sceneItemsAdapter.Rebuild(_sceneDocument, newList));
+        _sceneCoordinator.RebuildFromItems(newList);
+        RefreshSceneDiagnostics();
     }
 
     internal void OnCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
-        PublishSceneDocument(_sceneItemsAdapter.ApplyChange(_sceneDocument, e, sender as IEnumerable));
+        _sceneCoordinator.ApplyCollectionChange(sender, e);
+        RefreshSceneDiagnostics();
     }
 
     private void AppendSceneEntry(SceneDocumentEntry entry)
     {
         ArgumentNullException.ThrowIfNull(entry);
-        PublishSceneDocument(_sceneDocumentMutator.ReplaceEntries(_sceneDocument, _sceneDocument.Entries.Append(entry)));
+        _sceneCoordinator.AppendSceneEntry(entry);
+        RefreshSceneDiagnostics();
     }
 
     private void ReplaceSceneEntries(IEnumerable<SceneDocumentEntry> entries)
     {
         ArgumentNullException.ThrowIfNull(entries);
-        PublishSceneDocument(_sceneDocumentMutator.ReplaceEntries(SceneDocument.Empty, entries));
-    }
-
-    private void PublishSceneDocument(SceneDocument sceneDocument)
-    {
-        var (previous, current) = _sceneDocumentStore.Publish(sceneDocument ?? SceneDocument.Empty);
-        _sceneDocument = current;
-
-        var delta = _sceneDeltaPlanner.Diff(previous, current);
-        _sceneResidencyRegistry.Apply(delta, _sceneResourceEpoch);
-        _sceneEngineApplicator.ApplyRemovals(_engine, delta.Removed, _sceneResidencyRegistry);
-        _sceneEngineApplicator.ApplyReadyAdds(_engine, _sceneResidencyRegistry.GetReadyAdds(delta.Added), _sceneResidencyRegistry);
-        _sceneUploadQueue.Enqueue(_sceneResidencyRegistry.GetPendingCandidates());
-
-        if (delta.RequiresOverlayRefresh)
-        {
-            SynchronizeOverlayPresentation();
-        }
-
+        _sceneCoordinator.ReplaceSceneEntries(entries);
         RefreshSceneDiagnostics();
-        RefreshBackendDiagnostics(_backendDiagnostics.LastInitializationError);
-        _renderSession.Invalidate(RenderInvalidationKinds.Scene);
     }
 
     private void OnSceneBackendReady()
     {
-        _sceneResourceEpoch++;
-        _sceneUploadQueue.Enqueue(_sceneResidencyRegistry.MarkDirtyForResourceEpoch(_sceneResourceEpoch));
-        _sceneEngineApplicator.ApplyReadyAdds(_engine, _sceneResidencyRegistry.GetReadyAdds(_sceneDocument.Entries), _sceneResidencyRegistry);
+        _sceneCoordinator.OnBackendReady();
         RefreshSceneDiagnostics();
-        RefreshBackendDiagnostics(_backendDiagnostics.LastInitializationError);
-        _renderSession.Invalidate(RenderInvalidationKinds.Scene);
     }
 
     private bool TryGetMutableSceneCollection(out IList boundCollection)
@@ -161,19 +142,4 @@ internal sealed partial class VideraViewRuntime
         return false;
     }
 
-    private SceneDocument BuildSceneDocument(IEnumerable<Object3D> sceneObjects)
-    {
-        ArgumentNullException.ThrowIfNull(sceneObjects);
-        return _sceneItemsAdapter.Rebuild(_sceneDocument, sceneObjects);
-    }
-
-    private static IEnumerable<Object3D> EnumerateSceneObjects(IEnumerable? sequence)
-    {
-        if (sequence is null)
-        {
-            return Array.Empty<Object3D>();
-        }
-
-        return sequence.OfType<Object3D>().ToArray();
-    }
 }

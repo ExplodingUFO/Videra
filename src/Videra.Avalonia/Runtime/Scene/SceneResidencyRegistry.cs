@@ -184,14 +184,26 @@ internal sealed class SceneResidencyRegistry
             .Sum(static record => Math.Max(record.ApproximateUploadBytes, 1L));
     }
 
-    public SceneResidencyDiagnostics CreateDiagnostics(int sceneDocumentVersion)
+    public SceneResidencyDiagnostics CreateDiagnostics(
+        int sceneDocumentVersion,
+        SceneUploadFlushResult? lastFlush = null,
+        SceneUploadBudget? lastResolvedBudget = null)
     {
+        var flush = lastFlush ?? SceneUploadFlushResult.Empty;
+        var budget = lastResolvedBudget ?? flush.ResolvedBudget;
         return new SceneResidencyDiagnostics(
             sceneDocumentVersion,
             _records.Values.Count(static record => record.State == SceneResidencyState.PendingUpload || record.State == SceneResidencyState.Uploading),
+            GetPendingUploadBytes(),
             _records.Values.Count(static record => record.State == SceneResidencyState.Resident),
             _records.Values.Count(static record => record.State == SceneResidencyState.Dirty),
-            _records.Values.Count(static record => record.State == SceneResidencyState.Failed));
+            _records.Values.Count(static record => record.State == SceneResidencyState.Failed),
+            flush.UploadedRecords.Count,
+            flush.UploadedBytes,
+            flush.FailedCount,
+            flush.Duration,
+            budget.MaxObjectsPerFrame,
+            budget.MaxBytesPerFrame);
     }
 
     private static SceneResidencyRecord CreateRecord(SceneDocumentEntry entry, ulong resourceEpoch)

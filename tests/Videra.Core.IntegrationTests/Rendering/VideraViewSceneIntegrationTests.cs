@@ -344,6 +344,7 @@ public sealed class VideraViewSceneIntegrationTests : IDisposable
 
             view.BackendDiagnostics.SceneDocumentVersion.Should().BeGreaterThan(0);
             view.BackendDiagnostics.PendingSceneUploads.Should().Be(1);
+            view.BackendDiagnostics.PendingSceneUploadBytes.Should().BeGreaterThan(0);
             view.BackendDiagnostics.ResidentSceneObjects.Should().Be(0);
             view.BackendDiagnostics.DirtySceneObjects.Should().Be(0);
             view.BackendDiagnostics.FailedSceneUploads.Should().Be(0);
@@ -354,10 +355,20 @@ public sealed class VideraViewSceneIntegrationTests : IDisposable
             session.RenderOnce();
             RefreshBackendDiagnostics(view);
 
+            var lastFlush = VideraViewRuntimeTestAccess.ReadRuntimeField<object>(view, "_lastSceneUploadFlushResult");
+            var lastFlushType = lastFlush.GetType();
+            var uploadedRecords = (IReadOnlyList<object>)lastFlushType.GetProperty("UploadedRecords")!.GetValue(lastFlush)!;
+            uploadedRecords.Should().HaveCount(1);
+
             view.BackendDiagnostics.PendingSceneUploads.Should().Be(0);
             view.BackendDiagnostics.ResidentSceneObjects.Should().Be(1);
             view.BackendDiagnostics.DirtySceneObjects.Should().Be(0);
             view.BackendDiagnostics.FailedSceneUploads.Should().Be(0);
+            view.BackendDiagnostics.LastFrameUploadedObjects.Should().Be(1);
+            view.BackendDiagnostics.LastFrameUploadedBytes.Should().BeGreaterThan(0);
+            view.BackendDiagnostics.ResolvedUploadBudgetObjects.Should().BeGreaterThan(0);
+            view.BackendDiagnostics.ResolvedUploadBudgetBytes.Should().BeGreaterThan(0);
+            view.BackendDiagnostics.LastFrameUploadDuration.Should().BeGreaterThanOrEqualTo(TimeSpan.Zero);
         }
         finally
         {

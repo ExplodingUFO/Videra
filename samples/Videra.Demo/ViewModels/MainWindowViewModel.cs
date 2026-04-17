@@ -197,7 +197,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
         BackendDetails = string.Join(" | ", details);
         ScenePipelineMetrics =
-            $"Document v{diagnostics.SceneDocumentVersion} | Pending {diagnostics.PendingSceneUploads} | Resident {diagnostics.ResidentSceneObjects} | Dirty {diagnostics.DirtySceneObjects} | Failed {diagnostics.FailedSceneUploads}";
+            $"Document v{diagnostics.SceneDocumentVersion} | Pending {diagnostics.PendingSceneUploads} ({diagnostics.PendingSceneUploadBytes / 1024d:N1} KB) | Resident {diagnostics.ResidentSceneObjects} | Dirty {diagnostics.DirtySceneObjects} | Failed {diagnostics.FailedSceneUploads} | Last upload {diagnostics.LastFrameUploadedObjects} obj / {diagnostics.LastFrameUploadedBytes / 1024d:N1} KB in {diagnostics.LastFrameUploadDuration.TotalMilliseconds:N1} ms | Budget {diagnostics.ResolvedUploadBudgetObjects} obj / {diagnostics.ResolvedUploadBudgetBytes / 1024d:N1} KB";
     }
 
     public void SetStatusMessage(string message)

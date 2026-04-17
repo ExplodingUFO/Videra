@@ -104,6 +104,7 @@ var capabilities = View3D.RenderCapabilities;
 `VideraView.Engine` is the public extensibility root for custom contributors and frame hooks. `VideraView.BackendDiagnostics` remains the backend/runtime diagnostics shell, while `VideraView.RenderCapabilities` exposes the Core-side capability snapshot.
 
 For the complete public flow, see [docs/extensibility.md](../../docs/extensibility.md) and [samples/Videra.ExtensibilitySample](../../samples/Videra.ExtensibilitySample/README.md). The narrow sample uses `VideraView.Engine`, `RegisterPassContributor(...)`, `RegisterFrameHook(...)`, `LoadModelAsync(...)`, `FrameAll()`, `RenderCapabilities`, and `BackendDiagnostics` together.
+For scene-runtime diagnostics, [Videra.Demo](../../samples/Videra.Demo/README.md) includes the narrow `Scene Pipeline Lab` surface for document version, pending/resident upload counts, and backend rebind recovery.
 
 Contract notes:
 

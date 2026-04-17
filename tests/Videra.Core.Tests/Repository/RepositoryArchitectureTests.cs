@@ -55,6 +55,97 @@ public sealed class RepositoryArchitectureTests
     };
 
     [Fact]
+    public void Repository_ShouldIncludeViewerBenchmarkProjectForScenePipelineEvidence()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var solution = File.ReadAllText(Path.Combine(repositoryRoot, "Videra.slnx"));
+        var benchmarkProjectPath = Path.Combine(repositoryRoot, "benchmarks", "Videra.Viewer.Benchmarks", "Videra.Viewer.Benchmarks.csproj");
+        var benchmarkSourcePath = Path.Combine(repositoryRoot, "benchmarks", "Videra.Viewer.Benchmarks", "ScenePipelineBenchmarks.cs");
+
+        File.Exists(benchmarkProjectPath).Should().BeTrue();
+        File.Exists(benchmarkSourcePath).Should().BeTrue();
+
+        solution.Should().Contain("benchmarks/Videra.Viewer.Benchmarks/Videra.Viewer.Benchmarks.csproj");
+
+        var benchmarkProject = File.ReadAllText(benchmarkProjectPath);
+        benchmarkProject.Should().Contain("BenchmarkDotNet");
+        benchmarkProject.Should().Contain(@"..\..\src\Videra.Core\Videra.Core.csproj");
+        benchmarkProject.Should().Contain(@"..\..\src\Videra.Avalonia\Videra.Avalonia.csproj");
+
+        var benchmarkSource = File.ReadAllText(benchmarkSourcePath);
+        benchmarkSource.Should().Contain("ModelImporter_Import");
+        benchmarkSource.Should().Contain("SceneResidencyRegistry_ApplyDelta");
+        benchmarkSource.Should().Contain("SceneUploadQueue_Drain");
+        benchmarkSource.Should().Contain("ScenePipeline_RehydrateAfterBackendReady");
+    }
+
+    [Fact]
+    public void VideraViewRuntime_ShouldDelegateSceneOrchestrationToSceneRuntimeCoordinator()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var coordinatorPath = Path.Combine(repositoryRoot, "src", "Videra.Avalonia", "Runtime", "Scene", "SceneRuntimeCoordinator.cs");
+        var runtimeScenePath = Path.Combine(repositoryRoot, "src", "Videra.Avalonia", "Runtime", "VideraViewRuntime.Scene.cs");
+
+        File.Exists(coordinatorPath).Should().BeTrue();
+        File.Exists(runtimeScenePath).Should().BeTrue();
+
+        var coordinatorSource = File.ReadAllText(coordinatorPath);
+        coordinatorSource.Should().Contain("SceneDocumentStore");
+        coordinatorSource.Should().Contain("SceneDeltaPlanner");
+        coordinatorSource.Should().Contain("SceneResidencyRegistry");
+        coordinatorSource.Should().Contain("SceneUploadQueue");
+        coordinatorSource.Should().Contain("PublishSceneDocument");
+
+        var runtimeSceneSource = File.ReadAllText(runtimeScenePath);
+        runtimeSceneSource.Should().Contain("_sceneCoordinator");
+        runtimeSceneSource.Should().NotContain("_sceneDocumentStore");
+        runtimeSceneSource.Should().NotContain("_sceneDeltaPlanner");
+        runtimeSceneSource.Should().NotContain("_sceneResidencyRegistry");
+        runtimeSceneSource.Should().NotContain("_sceneUploadQueue");
+        runtimeSceneSource.Should().NotContain("_sceneEngineApplicator");
+        runtimeSceneSource.Should().NotContain("private void PublishSceneDocument(");
+    }
+
+    [Fact]
+    public void PublicViewerSceneAndCameraApis_ShouldCarryXmlDocs_AndSharedQuickStartVocabulary()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var sceneApi = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Avalonia", "Controls", "VideraView.Scene.cs"));
+        var cameraApi = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Avalonia", "Controls", "VideraView.Camera.cs"));
+        var loadResultApi = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Avalonia", "Controls", "ModelLoadResult.cs"));
+        var readme = File.ReadAllText(Path.Combine(repositoryRoot, "README.md"));
+        var avaloniaReadme = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Avalonia", "README.md"));
+        var extensibilityDoc = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "extensibility.md"));
+
+        sceneApi.Should().Contain("/// <summary>");
+        sceneApi.Should().Contain("LoadModelAsync");
+        sceneApi.Should().Contain("LoadModelsAsync");
+        sceneApi.Should().Contain("AddObject");
+        sceneApi.Should().Contain("ReplaceScene");
+        sceneApi.Should().Contain("ClearScene");
+
+        cameraApi.Should().Contain("/// <summary>");
+        cameraApi.Should().Contain("ResetCamera");
+        cameraApi.Should().Contain("FrameAll");
+        cameraApi.Should().Contain("SetViewPreset");
+
+        loadResultApi.Should().Contain("/// <summary>");
+        loadResultApi.Should().Contain("ModelLoadResult");
+        loadResultApi.Should().Contain("ModelLoadBatchResult");
+        loadResultApi.Should().Contain("ModelLoadFailure");
+
+        readme.Should().Contain("LoadModelAsync");
+        readme.Should().Contain("BackendDiagnostics");
+        readme.Should().Contain("FrameAll()");
+        avaloniaReadme.Should().Contain("LoadModelsAsync(...)");
+        avaloniaReadme.Should().Contain("BackendDiagnostics");
+        avaloniaReadme.Should().Contain("Scene Pipeline Lab");
+        extensibilityDoc.Should().Contain("LoadModelAsync(...)");
+        extensibilityDoc.Should().Contain("FrameAll()");
+        extensibilityDoc.Should().Contain("BackendDiagnostics");
+    }
+
+    [Fact]
     public void VideraEngine_ShouldSplitRenderingAndResourceOrchestrationAcrossDedicatedPartialFiles()
     {
         var repositoryRoot = GetRepositoryRoot();

@@ -19,9 +19,16 @@ public sealed class VideraBackendDiagnostics
             LastFrameStageNames = Array.Empty<string>(),
             SceneDocumentVersion = 0,
             PendingSceneUploads = 0,
+            PendingSceneUploadBytes = 0,
             ResidentSceneObjects = 0,
             DirtySceneObjects = 0,
             FailedSceneUploads = 0,
+            LastFrameUploadedObjects = 0,
+            LastFrameUploadedBytes = 0,
+            LastFrameUploadFailures = 0,
+            LastFrameUploadDuration = TimeSpan.Zero,
+            ResolvedUploadBudgetObjects = 0,
+            ResolvedUploadBudgetBytes = 0,
             SupportsPassContributors = true,
             SupportsPassReplacement = true,
             SupportsFrameHooks = true,
@@ -78,11 +85,25 @@ public sealed class VideraBackendDiagnostics
 
     public int PendingSceneUploads { get; init; }
 
+    public long PendingSceneUploadBytes { get; init; }
+
     public int ResidentSceneObjects { get; init; }
 
     public int DirtySceneObjects { get; init; }
 
     public int FailedSceneUploads { get; init; }
+
+    public int LastFrameUploadedObjects { get; init; }
+
+    public long LastFrameUploadedBytes { get; init; }
+
+    public int LastFrameUploadFailures { get; init; }
+
+    public TimeSpan LastFrameUploadDuration { get; init; }
+
+    public int ResolvedUploadBudgetObjects { get; init; }
+
+    public long ResolvedUploadBudgetBytes { get; init; }
 
     /// <summary>
     /// Gets a value indicating whether pass contributor registration is supported on the public surface.
