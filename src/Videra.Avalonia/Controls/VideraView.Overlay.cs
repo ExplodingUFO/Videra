@@ -1,75 +1,26 @@
-using System.Numerics;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
-using Videra.Core.Geometry;
-using Videra.Core.Selection.Rendering;
 
 namespace Videra.Avalonia.Controls;
 
 public partial class VideraView
 {
-    private static readonly RgbaFloat DefaultSelectedLineColor = RgbaFloat.Black;
-    private static readonly RgbaFloat DefaultHoverLineColor = RgbaFloat.Green;
-    private static readonly RgbaFloat DefaultMarkerColor = RgbaFloat.Red;
+    private void SynchronizeOverlayState() => _runtime.SynchronizeOverlayState();
 
-    private void SynchronizeOverlayState()
-    {
-        PushOverlayRenderState();
-        SynchronizeOverlayPresentation();
-    }
+    private void PushOverlayRenderState() => _runtime.PushOverlayRenderState();
 
-    private void PushOverlayRenderState()
-    {
-        var selectionOverlay = new SelectionOverlayRenderState(
-            selectedObjectIds: _selectionState.ObjectIds,
-            hoverObjectId: null,
-            selectedLineColor: DefaultSelectedLineColor,
-            hoverLineColor: DefaultHoverLineColor);
-        var annotationOverlay = new AnnotationOverlayRenderState(
-            anchors: _annotations
-                .Where(annotation => annotation.IsVisible)
-                .Select(annotation => new AnnotationOverlayAnchor(annotation.Id, annotation.Anchor))
-                .ToArray(),
-            markerColor: DefaultMarkerColor,
-            markerWorldSize: 0.08f);
-
-        Engine.SetSelectionOverlayState(selectionOverlay);
-        Engine.SetAnnotationOverlayState(annotationOverlay);
-    }
-
-    private void SynchronizeOverlayPresentation()
-    {
-        _overlayState = _sessionBridge.CreateOverlayState(
-            _selectionState,
-            _annotations,
-            CreateOverlayViewportSize());
-        _overlayPresenter?.UpdateOverlayState(_overlayState);
-    }
-
-    private Vector2 CreateOverlayViewportSize()
-    {
-        var width = (float)Math.Max(0d, Bounds.Width);
-        var height = (float)Math.Max(0d, Bounds.Height);
-        if (width > 0f && height > 0f)
-        {
-            return new Vector2(width, height);
-        }
-
-        var snapshot = _renderSession.OrchestrationSnapshot;
-        return snapshot.Inputs.Width > 0 && snapshot.Inputs.Height > 0
-            ? new Vector2(snapshot.Inputs.Width, snapshot.Inputs.Height)
-            : Vector2.Zero;
-    }
+    private void SynchronizeOverlayPresentation() => _runtime.SynchronizeOverlayPresentation();
 
     private void RenderOverlay(DrawingContext context)
     {
-        if (_overlayState.SelectionOutlines.Count == 0 && _overlayState.Labels.Count == 0)
+        var overlayState = _runtime.OverlayState;
+        if (overlayState.SelectionOutlines.Count == 0 && overlayState.Labels.Count == 0)
         {
             return;
         }
 
-        VideraViewOverlayPresenter.RenderOverlay(context, _overlayState);
+        VideraViewOverlayPresenter.RenderOverlay(context, overlayState);
     }
 }
 

@@ -15,6 +15,7 @@ internal sealed partial class RenderSession : IDisposable
 {
     private static readonly TimeSpan RenderInterval = TimeSpan.FromMilliseconds(16);
     private readonly object _sync = new();
+    private readonly FrameScheduler _frameScheduler = new();
 
     private readonly Action? _beforeRender;
     private readonly Action? _requestRender;
@@ -80,6 +81,25 @@ internal sealed partial class RenderSession : IDisposable
 
     internal RenderCapabilitySnapshot RenderCapabilities => _orchestrator.RenderCapabilities;
 
+    internal InteractiveFrameLease AcquireInteractiveLease()
+    {
+        lock (_sync)
+        {
+            var lease = _frameScheduler.AcquireInteractiveLease(OnInteractiveLeaseReleased);
+            SyncRuntimeShellUnsafe();
+            return lease;
+        }
+    }
+
+    internal void Invalidate(RenderInvalidationKinds flags)
+    {
+        lock (_sync)
+        {
+            _frameScheduler.Invalidate(flags);
+            FlushScheduledRenderUnsafe();
+        }
+    }
+
     internal void SetDisplayServerDiagnostics(string? resolvedDisplayServer, bool fallbackUsed, string? fallbackReason)
     {
         lock (_sync)
@@ -105,6 +125,7 @@ internal sealed partial class RenderSession : IDisposable
             }
             finally
             {
+                _frameScheduler.Invalidate(RenderInvalidationKinds.Lifecycle);
                 SyncRuntimeShellUnsafe();
             }
         }
@@ -127,6 +148,7 @@ internal sealed partial class RenderSession : IDisposable
             }
             finally
             {
+                _frameScheduler.Invalidate(RenderInvalidationKinds.Lifecycle);
                 SyncRuntimeShellUnsafe();
             }
         }
@@ -149,6 +171,7 @@ internal sealed partial class RenderSession : IDisposable
             }
             finally
             {
+                _frameScheduler.Invalidate(RenderInvalidationKinds.Lifecycle);
                 SyncRuntimeShellUnsafe();
             }
         }
@@ -163,33 +186,8 @@ internal sealed partial class RenderSession : IDisposable
     {
         lock (_sync)
         {
-            _beforeRender?.Invoke();
-            var result = _orchestrator.RenderOnce();
-            if (result.Faulted)
-            {
-                if (result.Error != null)
-                {
-                    Log.RenderFrameFailed(_logger, result.Error.Message, result.Error);
-                }
-
-                StopRenderLoopUnsafe();
-                _bitmap?.Dispose();
-                _bitmap = null;
-                return;
-            }
-
-            if (result.SoftwareBackend != null)
-            {
-                var snapshot = _orchestrator.Snapshot;
-                EnsureBitmapUnsafe(snapshot.Inputs.Width, snapshot.Inputs.Height);
-                if (_bitmap != null)
-                {
-                    using var locked = _bitmap.Lock();
-                    result.SoftwareBackend.CopyFrameTo(locked.Address, locked.RowBytes);
-                }
-            }
-
-            _requestRender?.Invoke();
+            RenderFrameUnsafe(forceRender: true);
+            SyncRuntimeShellUnsafe();
         }
     }
 
@@ -216,7 +214,7 @@ internal sealed partial class RenderSession : IDisposable
     {
         var snapshot = _orchestrator.Snapshot;
 
-        if (_orchestrator.IsReady)
+        if (_orchestrator.IsReady && _frameScheduler.HasInteractiveLease)
         {
             StartRenderLoopUnsafe();
         }
@@ -233,6 +231,30 @@ internal sealed partial class RenderSession : IDisposable
         }
 
         EnsureBitmapUnsafe(snapshot.Inputs.Width, snapshot.Inputs.Height);
+    }
+
+    private void FlushScheduledRenderUnsafe()
+    {
+        if (!_orchestrator.IsReady)
+        {
+            SyncRuntimeShellUnsafe();
+            return;
+        }
+
+        if (_frameScheduler.HasInteractiveLease)
+        {
+            SyncRuntimeShellUnsafe();
+            return;
+        }
+
+        if (!_frameScheduler.HasPendingFrame)
+        {
+            SyncRuntimeShellUnsafe();
+            return;
+        }
+
+        RenderFrameUnsafe(forceRender: false);
+        SyncRuntimeShellUnsafe();
     }
 
     private void EnsureBitmapUnsafe(uint width, uint height)
@@ -285,7 +307,73 @@ internal sealed partial class RenderSession : IDisposable
 
     private void OnRenderLoopTick(object? sender, EventArgs e)
     {
-        RenderOnce();
+        lock (_sync)
+        {
+            if (!_orchestrator.IsReady)
+            {
+                StopRenderLoopUnsafe();
+                return;
+            }
+
+            if (_frameScheduler.HasPendingFrame)
+            {
+                RenderFrameUnsafe(forceRender: false);
+            }
+
+            SyncRuntimeShellUnsafe();
+        }
+    }
+
+    private void OnInteractiveLeaseReleased()
+    {
+        lock (_sync)
+        {
+            FlushScheduledRenderUnsafe();
+        }
+    }
+
+    private void RenderFrameUnsafe(bool forceRender)
+    {
+        if (!forceRender)
+        {
+            var invalidations = _frameScheduler.ConsumeInvalidations();
+            if (invalidations == RenderInvalidationKinds.None)
+            {
+                return;
+            }
+        }
+        else
+        {
+            _ = _frameScheduler.ConsumeInvalidations();
+        }
+
+        _beforeRender?.Invoke();
+        var result = _orchestrator.RenderOnce();
+        if (result.Faulted)
+        {
+            if (result.Error != null)
+            {
+                Log.RenderFrameFailed(_logger, result.Error.Message, result.Error);
+            }
+
+            StopRenderLoopUnsafe();
+            _bitmap?.Dispose();
+            _bitmap = null;
+            return;
+        }
+
+        if (result.SoftwareBackend != null)
+        {
+            var snapshot = _orchestrator.Snapshot;
+            EnsureBitmapUnsafe(snapshot.Inputs.Width, snapshot.Inputs.Height);
+            if (_bitmap != null)
+            {
+                using var locked = _bitmap.Lock();
+                result.SoftwareBackend.CopyFrameTo(locked.Address, locked.RowBytes);
+            }
+        }
+
+        _requestRender?.Invoke();
     }
 
     private static partial class Log

@@ -9,6 +9,7 @@ Current status: `alpha`. `Videra.Avalonia` is the entry package for Avalonia app
 ## Responsibilities
 
 - Expose the `VideraView` control
+- Host the internal `VideraViewRuntime` coordinator behind that public shell
 - Connect Avalonia visual-tree lifecycle to backend initialization
 - Coordinate backend preference and render-session creation
 - Map pointer input to camera interaction

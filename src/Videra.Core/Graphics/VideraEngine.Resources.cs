@@ -9,9 +9,9 @@ public partial class VideraEngine
 {
     private void OnStyleChanged(object? sender, StyleChangedEventArgs e)
     {
-        if (_styleUniformBuffer != null)
+        if (_resources.StyleUniformBuffer != null)
         {
-            _styleUniformBuffer.Update(e.UniformData);
+            _resources.StyleUniformBuffer.Update(e.UniformData);
         }
     }
 
@@ -48,6 +48,15 @@ public partial class VideraEngine
 	/// <param name="backend">The platform-specific graphics back-end to use for rendering.</param>
 	public void Initialize(IGraphicsBackend backend)
 	{
+        ArgumentNullException.ThrowIfNull(backend);
+
+        var device = new LegacyGraphicsBackendAdapter(backend);
+        var renderSurface = device.CreateRenderSurface();
+        Initialize(device, renderSurface);
+	}
+
+    internal void Initialize(IGraphicsDevice device, IRenderSurface renderSurface)
+	{
         lock (_lock)
         {
             if (_state == EngineLifecycleState.Disposed)
@@ -55,16 +64,15 @@ public partial class VideraEngine
                 return;
             }
 
-            ArgumentNullException.ThrowIfNull(backend);
+            ArgumentNullException.ThrowIfNull(device);
+            ArgumentNullException.ThrowIfNull(renderSurface);
 
             if (_state == EngineLifecycleState.Active)
             {
                 return;
             }
 
-            _backend = backend;
-            _factory = backend.GetResourceFactory();
-            _executor = backend.GetCommandExecutor();
+            _resources.Attach(device, renderSurface);
 
             CreateResourcesUnsafe();
             RestoreGraphicsResourcesUnsafe();
@@ -92,71 +100,23 @@ public partial class VideraEngine
 
     private void CreateResourcesUnsafe()
     {
-        if (_factory == null) return;
-
-        _cameraBuffer = _factory.CreateUniformBuffer(128);
-        _styleUniformBuffer = _factory.CreateUniformBuffer(128);
-        _styleUniformBuffer.Update(_styleService.CurrentParameters.ToUniformData());
-        _meshPipeline = _factory.CreatePipeline(
-            vertexSize: (uint)Unsafe.SizeOf<VertexPositionNormalColor>(),
-            hasNormals: true,
-            hasColors: true);
-
+        _resources.CreateResources(_styleService);
         Log.ResourcesCreated(_logger);
     }
 
     private void RestoreGraphicsResourcesUnsafe()
     {
-        if (_factory == null)
+        if (_resources.ResourceFactory == null)
         {
             return;
         }
 
-        Grid.Initialize(_factory);
-        _axisRenderer.Initialize(_factory);
-        Wireframe.Initialize(_factory);
-
-        foreach (var obj in _sceneObjects)
-        {
-            obj.RecreateGraphicsResources(_factory, _logger);
-        }
+        _resources.RestoreGraphicsResources(Grid, _axisRenderer, Wireframe, _renderWorld, _logger);
     }
 
     private void ReleaseGraphicsResourcesUnsafe(bool preserveSceneObjects, bool disposeBackend)
     {
-        Grid.Dispose();
-        _axisRenderer.Dispose();
-        Wireframe.Dispose();
-
-        _meshPipeline?.Dispose();
-        _meshPipeline = null;
-
-        _cameraBuffer?.Dispose();
-        _cameraBuffer = null;
-
-        _styleUniformBuffer?.Dispose();
-        _styleUniformBuffer = null;
-
-        if (preserveSceneObjects)
-        {
-            foreach (var obj in _sceneObjects)
-            {
-                obj.ReleaseGpuResources();
-            }
-        }
-        else
-        {
-            ClearSceneObjectsUnsafe();
-        }
-
-        if (disposeBackend)
-        {
-            _backend?.Dispose();
-        }
-
-        _backend = null;
-        _factory = null;
-        _executor = null;
+        _resources.ReleaseGraphicsResources(Grid, _axisRenderer, Wireframe, _renderWorld, preserveSceneObjects, disposeBackend);
         _width = 0;
         _height = 0;
     }
@@ -183,7 +143,7 @@ public partial class VideraEngine
             try
             {
                 Log.Resizing(_logger, width, height);
-                _backend?.Resize((int)width, (int)height);
+                _resources.RenderSurface?.Resize((int)width, (int)height);
                 Camera.UpdateProjection(width, height);
                 _width = width;
                 _height = height;

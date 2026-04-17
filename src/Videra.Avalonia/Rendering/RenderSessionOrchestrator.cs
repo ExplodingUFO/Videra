@@ -13,7 +13,8 @@ internal sealed class RenderSessionOrchestrator : IDisposable
     private readonly Func<GraphicsBackendRequest, GraphicsBackendResolution> _backendResolutionFactory;
     private readonly bool _usesCustomBackendFactoryResolution;
 
-    private IGraphicsBackend? _backend;
+    private IGraphicsDevice? _device;
+    private IRenderSurface? _renderSurface;
     private RenderSessionInputs _inputs = new();
     private RenderSessionHandle _handleState = RenderSessionHandle.Unbound;
     private RenderSessionState _state = RenderSessionState.Detached;
@@ -38,9 +39,9 @@ internal sealed class RenderSessionOrchestrator : IDisposable
 
     public bool IsReady => _state == RenderSessionState.Ready && _engine.IsInitialized;
 
-    public bool IsSoftwareBackend => _backend is ISoftwareBackend;
+    public bool IsSoftwareBackend => _device?.IsSoftwareBackend == true;
 
-    public IResourceFactory? ResourceFactory => _backend?.GetResourceFactory();
+    public IResourceFactory? ResourceFactory => _device?.ResourceFactory;
 
     internal VideraEngine Engine => _engine;
 
@@ -72,7 +73,7 @@ internal sealed class RenderSessionOrchestrator : IDisposable
         UsesSoftwarePresentationCopy = IsSoftwareBackend
     };
 
-    internal ISoftwareBackend? SoftwareBackend => _backend as ISoftwareBackend;
+    internal ISoftwareBackend? SoftwareBackend => (_device as LegacyGraphicsBackendAdapter)?.LegacyBackend as ISoftwareBackend;
 
     public bool Attach(GraphicsBackendPreference preference, VideraBackendOptions? backendOptions = null)
     {
@@ -165,14 +166,13 @@ internal sealed class RenderSessionOrchestrator : IDisposable
             return TryInitialize();
         }
 
-        _backend?.Resize((int)width, (int)height);
         _engine.Resize(width, height);
         return false;
     }
 
     public RenderSessionRenderResult RenderOnce()
     {
-        if (!IsReady || _backend == null)
+        if (!IsReady || _device == null || _renderSurface == null)
         {
             return RenderSessionRenderResult.NotReady;
         }
@@ -184,7 +184,7 @@ internal sealed class RenderSessionOrchestrator : IDisposable
             return new RenderSessionRenderResult(
                 false,
                 null,
-                _backend as ISoftwareBackend);
+                SoftwareBackend);
         }
         catch (Exception ex)
         {
@@ -195,10 +195,12 @@ internal sealed class RenderSessionOrchestrator : IDisposable
             }
             else
             {
-                _backend?.Dispose();
+                _renderSurface?.Dispose();
+                _device?.Dispose();
             }
 
-            _backend = null;
+            _renderSurface = null;
+            _device = null;
             _state = RenderSessionState.Faulted;
             return new RenderSessionRenderResult(
                 true,
@@ -223,7 +225,8 @@ internal sealed class RenderSessionOrchestrator : IDisposable
 
         _state = RenderSessionState.Disposed;
         _engine.Dispose();
-        _backend = null;
+        _renderSurface = null;
+        _device = null;
         _handleState = RenderSessionHandle.Unbound;
         _inputs = _inputs with
         {
@@ -264,21 +267,24 @@ internal sealed class RenderSessionOrchestrator : IDisposable
             return false;
         }
 
-        IGraphicsBackend? backend = null;
+        IGraphicsDevice? device = null;
+        IRenderSurface? renderSurface = null;
         try
         {
             var resolution = _backendResolutionFactory(request);
-            backend = resolution.Backend;
+            device = new LegacyGraphicsBackendAdapter(resolution.Backend, resolution.ResolvedPreference);
+            renderSurface = device.CreateRenderSurface();
             var handle = resolution.ResolvedPreference == GraphicsBackendPreference.Software
                 ? IntPtr.Zero
                 : _handleState.Handle;
 
-            backend.Initialize(handle, (int)_inputs.Width, (int)_inputs.Height);
+            renderSurface.Initialize(handle, (int)_inputs.Width, (int)_inputs.Height);
 
-            _backend = backend;
+            _device = device;
+            _renderSurface = renderSurface;
             LastBackendResolution = resolution;
             LastInitializationError = null;
-            _engine.Initialize(backend);
+            _engine.Initialize(device, renderSurface);
             _engine.Resize(_inputs.Width, _inputs.Height);
             _state = RenderSessionState.Ready;
             return true;
@@ -294,10 +300,12 @@ internal sealed class RenderSessionOrchestrator : IDisposable
             }
             else
             {
-                backend?.Dispose();
+                renderSurface?.Dispose();
+                device?.Dispose();
             }
 
-            _backend = null;
+            _renderSurface = null;
+            _device = null;
             throw;
         }
     }
@@ -309,7 +317,8 @@ internal sealed class RenderSessionOrchestrator : IDisposable
             _engine.Suspend();
         }
 
-        _backend = null;
+        _renderSurface = null;
+        _device = null;
         LastPipelineSnapshot = null;
         TransitionToWaitingState();
     }

@@ -6,6 +6,7 @@ using Videra.Avalonia.Controls.Interaction;
 using Videra.Core.Cameras;
 using Videra.Core.Geometry;
 using Videra.Core.Graphics;
+using Videra.Core.Overlay;
 using Videra.Core.Selection;
 using Videra.Core.Selection.Rendering;
 
@@ -13,11 +14,15 @@ namespace Videra.Avalonia.Controls;
 
 internal sealed class VideraViewSessionBridge
 {
+    private static readonly Color PrimarySelectionColor = Colors.Green;
+    private static readonly Color SecondarySelectionColor = Colors.Black;
+
     private readonly RenderSession _session;
     private readonly Func<bool> _isPreferredBackendOverrideSet;
     private readonly Func<GraphicsBackendPreference> _preferredBackendValue;
     private readonly Func<VideraBackendOptions?> _backendOptionsAccessor;
     private readonly Func<VideraDiagnosticsOptions?> _diagnosticsOptionsAccessor;
+    private readonly OverlayProjectionService _overlayProjectionService = new();
 
     public VideraViewSessionBridge(
         RenderSession session,
@@ -111,11 +116,22 @@ internal sealed class VideraViewSessionBridge
         var sceneObjects = _session.Engine.SceneObjects;
         var camera = _session.Engine.Camera;
 
-        var selectionOutlines = effectiveSelectionState.ObjectIds
-            .Distinct()
-            .Select(objectId => TryCreateSelectionOutline(objectId, effectiveSelectionState.PrimaryObjectId, sceneObjects, camera, viewportSize))
-            .Where(outline => outline is not null)
-            .Select(outline => outline!)
+        var selectionOutlines = _overlayProjectionService
+            .ProjectSelectionOutlines(
+                effectiveSelectionState.ObjectIds,
+                effectiveSelectionState.PrimaryObjectId,
+                sceneObjects,
+                camera,
+                viewportSize)
+            .Select(projection => new VideraSelectionOutline(
+                projection.ObjectId,
+                new Rect(
+                    projection.ScreenBounds.MinX,
+                    projection.ScreenBounds.MinY,
+                    Math.Max(1d, projection.ScreenBounds.Width),
+                    Math.Max(1d, projection.ScreenBounds.Height)),
+                projection.IsPrimary ? PrimarySelectionColor : SecondarySelectionColor,
+                projection.IsPrimary))
             .ToArray();
 
         var visibleAnnotations = effectiveAnnotations
@@ -126,10 +142,10 @@ internal sealed class VideraViewSessionBridge
                 .Select(annotation => new AnnotationOverlayAnchor(annotation.Id, annotation.Anchor))
                 .ToArray(),
             markerColor: new RgbaFloat(1f, 0f, 0f, 1f));
-        var projectedAnchors = _session.Engine.ProjectAnnotationAnchors(overlayState, viewportSize);
         var annotationLookup = visibleAnnotations.ToDictionary(annotation => annotation.Id);
-        var labels = projectedAnchors
-            .Where(projection => projection.Projection.IsVisible && annotationLookup.ContainsKey(projection.AnnotationId))
+        var labels = _overlayProjectionService
+            .ProjectAnnotationLabels(_session.Engine, overlayState, viewportSize)
+            .Where(projection => annotationLookup.ContainsKey(projection.AnnotationId))
             .Select(projection =>
             {
                 var annotation = annotationLookup[projection.AnnotationId];
@@ -137,9 +153,9 @@ internal sealed class VideraViewSessionBridge
                     annotation.Id,
                     annotation.Text,
                     annotation.Color,
-                    projection.Projection.ScreenPosition,
+                    projection.ScreenPosition,
                     projection.Anchor,
-                    projection.Projection.ResolvedObjectId);
+                    projection.ResolvedObjectId);
             })
             .ToArray();
 
@@ -197,37 +213,5 @@ internal sealed class VideraViewSessionBridge
             EnvironmentOverrideMode = source.EnvironmentOverrideMode,
             AllowSoftwareFallback = source.AllowSoftwareFallback
         };
-    }
-
-    private static VideraSelectionOutline? TryCreateSelectionOutline(
-        Guid objectId,
-        Guid? primaryObjectId,
-        IReadOnlyList<Object3D> sceneObjects,
-        OrbitCamera camera,
-        Vector2 viewportSize)
-    {
-        if (viewportSize.X <= 0f || viewportSize.Y <= 0f)
-        {
-            return null;
-        }
-
-        var sceneObject = sceneObjects.FirstOrDefault(obj => obj.Id == objectId);
-        if (sceneObject?.WorldBounds is not BoundingBox3 bounds)
-        {
-            return null;
-        }
-
-        if (!SceneBoundsProjector.TryProjectBounds(bounds, camera, viewportSize, out var screenBounds))
-        {
-            return null;
-        }
-
-        var outlineColor = objectId == primaryObjectId ? Colors.Green : Colors.Black;
-
-        return new VideraSelectionOutline(
-            objectId,
-            new Rect(screenBounds.MinX, screenBounds.MinY, Math.Max(1d, screenBounds.Width), Math.Max(1d, screenBounds.Height)),
-            outlineColor,
-            objectId == primaryObjectId);
     }
 }

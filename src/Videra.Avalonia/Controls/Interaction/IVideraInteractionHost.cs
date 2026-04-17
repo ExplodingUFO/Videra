@@ -2,6 +2,7 @@ using System.Numerics;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Videra.Avalonia.Rendering;
 using Videra.Core.Graphics;
 
 namespace Videra.Avalonia.Controls.Interaction;
@@ -29,4 +30,8 @@ internal interface IVideraInteractionHost
     void RaiseSelectionRequested(SelectionRequestedEventArgs e);
 
     void RaiseAnnotationRequested(AnnotationRequestedEventArgs e);
+
+    InteractiveFrameLease BeginInteractiveFrameLease();
+
+    void InvalidateRender(RenderInvalidationKinds flags);
 }

@@ -174,7 +174,7 @@ internal static class SceneBoundsProjector
     }
 }
 
-internal readonly record struct ProjectedScreenRect(float MinX, float MinY, float MaxX, float MaxY)
+public readonly record struct ProjectedScreenRect(float MinX, float MinY, float MaxX, float MaxY)
 {
     public float Width => MaxX - MinX;
 

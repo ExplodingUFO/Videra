@@ -12,6 +12,8 @@ using Videra.Core.Graphics;
 using Videra.Core.Graphics.Abstractions;
 using Videra.Core.Graphics.Wireframe;
 using Videra.Core.Graphics.Software;
+using Videra.Core.IO;
+using Videra.Core.Scene;
 using Videra.Core.Selection.Annotations;
 using Videra.Core.Styles.Presets;
 using Xunit;
@@ -128,6 +130,51 @@ public sealed class VideraViewSceneIntegrationTests : IDisposable
         {
             view.Engine.Dispose();
         }
+    }
+
+    [Fact]
+    public void RuntimeSceneDocument_TracksSceneMutations()
+    {
+        var view = new VideraView();
+        try
+        {
+            var factory = new SoftwareResourceFactory();
+            var first = DemoMeshFactory.CreateTestCube(factory, size: 1f);
+            var second = DemoMeshFactory.CreateTestCube(factory, size: 2f);
+
+            view.AddObject(first);
+            ReadSceneDocumentObjects(view).Should().ContainSingle().Which.Should().BeSameAs(first);
+
+            view.ReplaceScene(new[] { second });
+            ReadSceneDocumentObjects(view).Should().ContainSingle().Which.Should().BeSameAs(second);
+
+            view.ClearScene();
+            ReadSceneDocumentObjects(view).Should().BeEmpty();
+        }
+        finally
+        {
+            view.Engine.Dispose();
+        }
+    }
+
+    [Fact]
+    public void ModelImporter_ImportAndUpload_ProduceBackendNeutralSceneAsset()
+    {
+        var path = WriteObj("asset-triangle.obj", """
+            v 0.0 0.0 0.0
+            v 1.0 0.0 0.0
+            v 0.0 1.0 0.0
+            vn 0.0 0.0 1.0
+            f 1//1 2//1 3//1
+            """);
+
+        var asset = ModelImporter.Import(path);
+        var uploaded = SceneUploadCoordinator.Upload(asset, new SoftwareResourceFactory());
+
+        asset.Name.Should().Be("asset-triangle.obj");
+        uploaded.Name.Should().Be("asset-triangle.obj");
+        uploaded.LocalBounds.Should().NotBeNull();
+        uploaded.IndexCount.Should().BeGreaterThan(0u);
     }
 
     [Fact]
@@ -385,10 +432,7 @@ public sealed class VideraViewSceneIntegrationTests : IDisposable
         var view = new VideraView();
         try
         {
-            var renderSessionField = typeof(VideraView).GetField("_renderSession", BindingFlags.Instance | BindingFlags.NonPublic);
-            renderSessionField.Should().NotBeNull();
-
-            var renderSession = renderSessionField!.GetValue(view);
+            var renderSession = VideraViewRuntimeTestAccess.ReadRenderSession(view);
             renderSession.Should().NotBeNull();
 
             var setDisplayServerDiagnostics = renderSession!.GetType().GetMethod(
@@ -423,10 +467,7 @@ public sealed class VideraViewSceneIntegrationTests : IDisposable
         var view = new VideraView(nativeHostFactory: null, bitmapFactory: static (_, _) => null);
         try
         {
-            var renderSessionField = typeof(VideraView).GetField("_renderSession", BindingFlags.Instance | BindingFlags.NonPublic);
-            renderSessionField.Should().NotBeNull();
-
-            var renderSession = (RenderSession?)renderSessionField!.GetValue(view);
+            var renderSession = VideraViewRuntimeTestAccess.ReadRenderSession(view);
             renderSession.Should().NotBeNull();
 
             renderSession!.Attach(GraphicsBackendPreference.Software);
@@ -457,10 +498,7 @@ public sealed class VideraViewSceneIntegrationTests : IDisposable
         var view = new VideraView(new RecordingNativeHostFactory(), bitmapFactory: static (_, _) => null);
         try
         {
-            var renderSessionField = typeof(VideraView).GetField("_renderSession", BindingFlags.Instance | BindingFlags.NonPublic);
-            renderSessionField.Should().NotBeNull();
-
-            var renderSession = (RenderSession?)renderSessionField!.GetValue(view);
+            var renderSession = VideraViewRuntimeTestAccess.ReadRenderSession(view);
             renderSession.Should().NotBeNull();
             renderSession!.Attach(GraphicsBackendPreference.Software);
             renderSession.Resize(200, 200, 1f);
@@ -536,9 +574,7 @@ public sealed class VideraViewSceneIntegrationTests : IDisposable
             nativeHostFactory.LastCreatedHost.Should().NotBeNull();
             nativeHostFactory.LastCreatedHost!.RaiseHandleCreated(new IntPtr(0x1234));
 
-            var renderSessionField = typeof(VideraView).GetField("_renderSession", BindingFlags.Instance | BindingFlags.NonPublic);
-            renderSessionField.Should().NotBeNull();
-            var renderSession = (RenderSession?)renderSessionField!.GetValue(view);
+            var renderSession = VideraViewRuntimeTestAccess.ReadRenderSession(view);
             renderSession.Should().NotBeNull();
             renderSession!.IsReady.Should().BeTrue();
             renderSession.IsSoftwareBackend.Should().BeFalse();
@@ -629,12 +665,14 @@ public sealed class VideraViewSceneIntegrationTests : IDisposable
 
     private static IList<Object3D> GetSceneObjects(VideraView view)
     {
-        var field = typeof(VideraEngine).GetField("_sceneObjects", BindingFlags.Instance | BindingFlags.NonPublic);
-        field.Should().NotBeNull();
+        return view.Engine.SceneObjects.ToList();
+    }
 
-        var value = field!.GetValue(view.Engine);
-        value.Should().BeAssignableTo<IList<Object3D>>();
-        return (IList<Object3D>)value!;
+    private static IReadOnlyList<Object3D> ReadSceneDocumentObjects(VideraView view)
+    {
+        var sceneDocument = VideraViewRuntimeTestAccess.ReadRuntimeField<object>(view, "_sceneDocument");
+        sceneDocument.Should().BeAssignableTo<SceneDocument>();
+        return ((SceneDocument)sceneDocument).SceneObjects;
     }
 
     private sealed class RecordingNativeHostFactory : INativeHostFactory
@@ -694,24 +732,6 @@ public sealed class VideraViewSceneIntegrationTests : IDisposable
 
     private sealed class NativeTrackingSessionSwap : IDisposable
     {
-        private static readonly FieldInfo RenderSessionField =
-            typeof(VideraView).GetField("_renderSession", BindingFlags.Instance | BindingFlags.NonPublic)!;
-
-        private static readonly FieldInfo SessionBridgeField =
-            typeof(VideraView).GetField("_sessionBridge", BindingFlags.Instance | BindingFlags.NonPublic)!;
-
-        private static readonly MethodInfo CreateSessionBridgeMethod =
-            typeof(VideraView).GetMethod("CreateSessionBridge", BindingFlags.Instance | BindingFlags.NonPublic)!;
-
-        private static readonly MethodInfo OnBackendReadyMethod =
-            typeof(VideraView).GetMethod("OnRenderSessionBackendReady", BindingFlags.Instance | BindingFlags.NonPublic)!;
-
-        private static readonly MethodInfo PushOverlayRenderStateMethod =
-            typeof(VideraView).GetMethod("PushOverlayRenderState", BindingFlags.Instance | BindingFlags.NonPublic)!;
-
-        private static readonly MethodInfo OnRenderSessionFrameRequestedMethod =
-            typeof(VideraView).GetMethod("OnRenderSessionFrameRequested", BindingFlags.Instance | BindingFlags.NonPublic)!;
-
         private static readonly MethodInfo ReleaseNativeHostMethod =
             typeof(VideraView).GetMethod("ReleaseNativeHost", BindingFlags.Instance | BindingFlags.NonPublic)!;
 
@@ -738,30 +758,29 @@ public sealed class VideraViewSceneIntegrationTests : IDisposable
 
         public static NativeTrackingSessionSwap Install(VideraView view)
         {
-            RenderSessionField.Should().NotBeNull();
-            SessionBridgeField.Should().NotBeNull();
-            CreateSessionBridgeMethod.Should().NotBeNull();
-            OnBackendReadyMethod.Should().NotBeNull();
-            PushOverlayRenderStateMethod.Should().NotBeNull();
-            OnRenderSessionFrameRequestedMethod.Should().NotBeNull();
             ReleaseNativeHostMethod.Should().NotBeNull();
 
-            var originalSession = (RenderSession?)RenderSessionField.GetValue(view);
-            var originalSessionBridge = SessionBridgeField.GetValue(view);
+            var originalSession = VideraViewRuntimeTestAccess.ReadRenderSession(view);
+            var originalSessionBridge = VideraViewRuntimeTestAccess.ReadSessionBridge(view);
+            var createSessionBridgeMethod = VideraViewRuntimeTestAccess.ReadRuntimeMethod(view, "CreateSessionBridge");
+            var onBackendReadyMethod = VideraViewRuntimeTestAccess.ReadRuntimeMethod(view, "OnRenderSessionBackendReady");
+            var pushOverlayRenderStateMethod = VideraViewRuntimeTestAccess.ReadRuntimeMethod(view, "PushOverlayRenderState");
+            var onRenderSessionFrameRequestedMethod = VideraViewRuntimeTestAccess.ReadRuntimeMethod(view, "OnRenderSessionFrameRequested");
+
             originalSession.Should().NotBeNull();
             originalSessionBridge.Should().NotBeNull();
 
             var replacementSession = new RenderSession(
                 view.Engine,
                 backendFactory: static _ => new NativeTrackingBackend(),
-                beforeRender: () => PushOverlayRenderStateMethod.Invoke(view, Array.Empty<object>()),
-                requestRender: () => OnRenderSessionFrameRequestedMethod.Invoke(view, Array.Empty<object>()),
+                beforeRender: () => pushOverlayRenderStateMethod.Invoke(VideraViewRuntimeTestAccess.ReadRuntime(view), Array.Empty<object>()),
+                requestRender: () => onRenderSessionFrameRequestedMethod.Invoke(VideraViewRuntimeTestAccess.ReadRuntime(view), Array.Empty<object>()),
                 bitmapFactory: static (_, _) => null);
-            EventHandler backendReadyHandler = (sender, args) => OnBackendReadyMethod.Invoke(view, [sender, args]);
+            EventHandler backendReadyHandler = (sender, args) => onBackendReadyMethod.Invoke(VideraViewRuntimeTestAccess.ReadRuntime(view), [sender, args]);
             replacementSession.BackendReady += backendReadyHandler;
 
-            RenderSessionField.SetValue(view, replacementSession);
-            SessionBridgeField.SetValue(view, CreateSessionBridgeMethod.Invoke(view, Array.Empty<object>())!);
+            VideraViewRuntimeTestAccess.WriteRuntimeField(view, "_renderSession", replacementSession);
+            VideraViewRuntimeTestAccess.WriteRuntimeField(view, "_sessionBridge", createSessionBridgeMethod.Invoke(VideraViewRuntimeTestAccess.ReadRuntime(view), Array.Empty<object>())!);
 
             return new NativeTrackingSessionSwap(
                 view,
@@ -782,8 +801,8 @@ public sealed class VideraViewSceneIntegrationTests : IDisposable
             ReleaseNativeHostMethod.Invoke(_view, Array.Empty<object>());
             _replacementSession.BackendReady -= _backendReadyHandler;
             _replacementSession.BindHandle(IntPtr.Zero);
-            RenderSessionField.SetValue(_view, _originalSession);
-            SessionBridgeField.SetValue(_view, _originalSessionBridge);
+            VideraViewRuntimeTestAccess.WriteRuntimeField(_view, "_renderSession", _originalSession);
+            VideraViewRuntimeTestAccess.WriteRuntimeField(_view, "_sessionBridge", _originalSessionBridge);
         }
     }
 

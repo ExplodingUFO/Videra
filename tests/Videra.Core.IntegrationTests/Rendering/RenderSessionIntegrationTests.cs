@@ -233,6 +233,87 @@ public sealed class RenderSessionIntegrationTests
     }
 
     [Fact]
+    public void RenderSession_ReadyState_DoesNotStartRenderLoopUntilInteractiveLeaseBegins()
+    {
+        using var engine = new VideraEngine();
+        using var driver = new TrackingRenderLoopDriver();
+        using var session = new RenderSession(
+            engine,
+            renderLoopFactory: () => driver,
+            bitmapFactory: static (_, _) => null);
+
+        session.Attach(GraphicsBackendPreference.Software);
+        session.Resize(128, 96, 1f);
+
+        driver.StartCalls.Should().Be(0);
+
+        using var lease = session.AcquireInteractiveLease();
+
+        driver.StartCalls.Should().Be(1);
+
+        lease.Dispose();
+
+        driver.StopCalls.Should().Be(1);
+    }
+
+    [Fact]
+    public void RenderSession_InvalidateWithoutInteractiveLease_RendersSingleDirtyFrameWithoutStartingLoop()
+    {
+        using var engine = new VideraEngine();
+        using var driver = new TrackingRenderLoopDriver();
+        var requestRenderCalls = 0;
+        using var session = new RenderSession(
+            engine,
+            requestRender: () => requestRenderCalls++,
+            renderLoopFactory: () => driver,
+            bitmapFactory: static (_, _) => null);
+
+        session.Attach(GraphicsBackendPreference.Software);
+        session.Resize(128, 96, 1f);
+
+        driver.Reset();
+        requestRenderCalls = 0;
+
+        session.Invalidate(RenderInvalidationKinds.Scene);
+
+        requestRenderCalls.Should().Be(1);
+        driver.StartCalls.Should().Be(0);
+    }
+
+    [Fact]
+    public void RenderSession_InvalidateWithInteractiveLease_RendersOnScheduledTick()
+    {
+        using var engine = new VideraEngine();
+        using var driver = new TrackingRenderLoopDriver();
+        var requestRenderCalls = 0;
+        using var session = new RenderSession(
+            engine,
+            requestRender: () => requestRenderCalls++,
+            renderLoopFactory: () => driver,
+            bitmapFactory: static (_, _) => null);
+
+        session.Attach(GraphicsBackendPreference.Software);
+        session.Resize(128, 96, 1f);
+
+        driver.Reset();
+        requestRenderCalls = 0;
+
+        using var lease = session.AcquireInteractiveLease();
+        session.Invalidate(RenderInvalidationKinds.Interaction);
+
+        requestRenderCalls.Should().Be(0);
+        driver.StartCalls.Should().Be(1);
+
+        driver.RaiseTick();
+
+        requestRenderCalls.Should().Be(1);
+
+        lease.Dispose();
+
+        driver.StopCalls.Should().Be(1);
+    }
+
+    [Fact]
     public void RenderSession_ExposesOrchestrationSnapshotTruth()
     {
         using var engine = new VideraEngine();
@@ -434,6 +515,45 @@ public sealed class RenderSessionIntegrationTests
     {
         public void Dispose()
         {
+        }
+    }
+
+    private sealed class TrackingRenderLoopDriver : RenderSession.IRenderLoopDriver
+    {
+        private EventHandler? _tick;
+
+        public int StartCalls { get; private set; }
+
+        public int StopCalls { get; private set; }
+
+        public void Start(TimeSpan interval, EventHandler tick)
+        {
+            _ = interval;
+            StartCalls++;
+            _tick = tick;
+        }
+
+        public void Stop()
+        {
+            StopCalls++;
+            _tick = null;
+        }
+
+        public void RaiseTick()
+        {
+            _tick?.Invoke(this, EventArgs.Empty);
+        }
+
+        public void Reset()
+        {
+            StartCalls = 0;
+            StopCalls = 0;
+            _tick = null;
+        }
+
+        public void Dispose()
+        {
+            _tick = null;
         }
     }
 }

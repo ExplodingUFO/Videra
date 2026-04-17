@@ -3,45 +3,24 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Videra.Avalonia.Controls.Interaction;
+using Videra.Avalonia.Rendering;
 using Videra.Core.Graphics;
 
 namespace Videra.Avalonia.Controls;
 
 public partial class VideraView : IVideraInteractionHost
 {
-    private VideraInteractionController _interactionController = null!;
-    private VideraInteractionRouter _interactionRouter = null!;
-
-    private void InitializeInteractionController()
-    {
-        _interactionController = new VideraInteractionController(this, _logger);
-        _interactionRouter = new VideraInteractionRouter(this, _interactionController);
-    }
-
     TopLevel? IVideraInteractionHost.ResolveTopLevel() => TopLevel.GetTopLevel(this);
 
     VideraInteractionMode IVideraInteractionHost.InteractionMode => InteractionMode;
 
-    VideraInteractionOptions IVideraInteractionHost.InteractionOptions => InteractionOptions;
+    VideraInteractionOptions IVideraInteractionHost.InteractionOptions => _runtime.InteractionOptions;
 
     IReadOnlyList<Object3D> IVideraInteractionHost.SceneObjects => Engine.SceneObjects;
 
     IInputElement IVideraInteractionHost.PointerCaptureTarget => this;
 
-    Vector2 IVideraInteractionHost.GetInteractionViewportSize()
-    {
-        var width = (float)Math.Max(0d, Bounds.Width);
-        var height = (float)Math.Max(0d, Bounds.Height);
-        if (width > 0f && height > 0f)
-        {
-            return new Vector2(width, height);
-        }
-
-        var snapshot = _renderSession.OrchestrationSnapshot;
-        return snapshot.Inputs.Width > 0 && snapshot.Inputs.Height > 0
-            ? new Vector2(snapshot.Inputs.Width, snapshot.Inputs.Height)
-            : Vector2.Zero;
-    }
+    Vector2 IVideraInteractionHost.GetInteractionViewportSize() => _runtime.GetInteractionViewportSize();
 
     bool IVideraInteractionHost.IsPointWithinHost(Point position)
     {
@@ -65,5 +44,12 @@ public partial class VideraView : IVideraInteractionHost
     void IVideraInteractionHost.RaiseAnnotationRequested(AnnotationRequestedEventArgs e)
     {
         RaiseAnnotationRequested(e);
+    }
+
+    InteractiveFrameLease IVideraInteractionHost.BeginInteractiveFrameLease() => _runtime.RenderSession.AcquireInteractiveLease();
+
+    void IVideraInteractionHost.InvalidateRender(RenderInvalidationKinds flags)
+    {
+        _runtime.RenderSession.Invalidate(flags);
     }
 }

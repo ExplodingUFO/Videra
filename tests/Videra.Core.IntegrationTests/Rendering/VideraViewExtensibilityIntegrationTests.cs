@@ -178,7 +178,7 @@ public sealed class VideraViewExtensibilityIntegrationTests
         var view = new VideraView(nativeHostFactory: null, bitmapFactory: static (_, _) => null);
         try
         {
-            var renderSession = ReadPrivateField<RenderSession>(view, "_renderSession");
+            var renderSession = VideraViewRuntimeTestAccess.ReadRenderSession(view);
             renderSession.Attach(GraphicsBackendPreference.Software);
             renderSession.Resize(200, 200, 1f);
 
@@ -230,7 +230,7 @@ public sealed class VideraViewExtensibilityIntegrationTests
         var view = new VideraView(nativeHostFactory: null, bitmapFactory: static (_, _) => null);
         try
         {
-            var renderSession = ReadPrivateField<RenderSession>(view, "_renderSession");
+            var renderSession = VideraViewRuntimeTestAccess.ReadRenderSession(view);
             renderSession.Attach(GraphicsBackendPreference.Software);
             renderSession.Resize(200, 200, 1f);
 
@@ -400,15 +400,5 @@ public sealed class VideraViewExtensibilityIntegrationTests
         property.Should().NotBeNull($"property {propertyName} should exist on {instance.GetType().FullName}");
         property!.CanWrite.Should().BeTrue($"property {propertyName} should be writable on {instance.GetType().FullName}");
         property.SetValue(instance, value);
-    }
-
-    private static T ReadPrivateField<T>(object instance, string fieldName)
-    {
-        var field = instance.GetType().GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic);
-        field.Should().NotBeNull($"field {fieldName} should exist on {instance.GetType().FullName}");
-
-        var value = field!.GetValue(instance);
-        value.Should().BeAssignableTo<T>();
-        return (T)value!;
     }
 }

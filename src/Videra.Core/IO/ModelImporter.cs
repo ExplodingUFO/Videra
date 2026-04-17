@@ -5,6 +5,7 @@ using Videra.Core.Exceptions;
 using Videra.Core.Geometry;
 using Videra.Core.Graphics;
 using Videra.Core.Graphics.Abstractions;
+using Videra.Core.Scene;
 using SharpGLTF.Schema2;
 using SharpGLTF.Validation;
 
@@ -30,25 +31,24 @@ public static partial class ModelImporter
         { "*.gltf", "*.glb", "*.obj" };
 
     /// <summary>
-    /// Loads a 3D model from disk and initializes it for rendering.
+    /// Imports a 3D model from disk into a backend-neutral asset payload.
     /// Supports glTF (<c>.gltf</c>/<c>.glb</c>) and Wavefront OBJ (<c>.obj</c>) formats.
-    /// The returned <see cref="Object3D"/> has its GPU buffers allocated and is ready to draw.
+    /// The returned asset contains CPU-side mesh data only; GPU upload is deferred to
+    /// <see cref="SceneUploadCoordinator"/>.
     /// </summary>
     /// <param name="filePath">Absolute or relative path to the model file.</param>
-    /// <param name="factory">The resource factory used to create GPU vertex and index buffers.</param>
     /// <param name="logger">
     /// Optional logger for diagnostic output. When <c>null</c>, a no-op logger is used.
     /// </param>
-    /// <returns>A fully initialized <see cref="Object3D"/> containing the loaded mesh data.</returns>
+    /// <returns>A backend-neutral imported scene asset containing mesh data and identity.</returns>
     /// <exception cref="InvalidModelInputException">
     /// Thrown when the file path is invalid, the format is unsupported, or the file does not exist.
     /// </exception>
     /// <exception cref="Exception">
     /// Re-thrown from the underlying parser when the model file is corrupt or cannot be read.
     /// </exception>
-    public static Object3D Load(string filePath, IResourceFactory factory, ILogger? logger = null)
+    public static ImportedSceneAsset Import(string filePath, ILogger? logger = null)
     {
-        ArgumentNullException.ThrowIfNull(factory);
         var log = logger ?? Microsoft.Extensions.Logging.Abstractions.NullLoggerFactory.Instance.CreateLogger("ModelImporter");
 
         try
@@ -70,17 +70,37 @@ public static partial class ModelImporter
             };
 
             Log.Loaded(log, meshData.Vertices.Length, meshData.Indices.Length);
-
-            var obj = new Object3D
-            {
-                Name = Path.GetFileName(filePath)
-            };
-
-            Log.InitializingGpuResources(log);
-            obj.Initialize(factory, meshData, log);
             Log.LoadSucceeded(log, filePath);
 
-            return obj;
+            return new ImportedSceneAsset(
+                filePath,
+                Path.GetFileName(filePath),
+                meshData);
+        }
+        catch (VideraException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            Log.LoadFailed(log, filePath, ex.Message, ex);
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// Loads a 3D model from disk and initializes it for rendering immediately.
+    /// </summary>
+    public static Object3D Load(string filePath, IResourceFactory factory, ILogger? logger = null)
+    {
+        ArgumentNullException.ThrowIfNull(factory);
+        var log = logger ?? Microsoft.Extensions.Logging.Abstractions.NullLoggerFactory.Instance.CreateLogger("ModelImporter");
+
+        try
+        {
+            var asset = Import(filePath, log);
+            Log.InitializingGpuResources(log);
+            return SceneUploadCoordinator.Upload(asset, factory, log);
         }
         catch (VideraException)
         {

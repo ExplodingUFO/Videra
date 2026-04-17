@@ -199,9 +199,11 @@ public sealed class RepositoryArchitectureTests
         var renderSessionInputsFile = FindRepositoryFile(repositoryRoot, "RenderSessionInputs.cs");
         var renderSessionSnapshotFile = FindRepositoryFile(repositoryRoot, "RenderSessionSnapshot.cs");
         var renderSessionBridgeFile = FindRepositoryFile(repositoryRoot, "VideraViewSessionBridge.cs");
+        var runtimeFile = FindRepositoryFile(repositoryRoot, "VideraViewRuntime.cs");
         var videraViewFile = FindRepositoryFile(repositoryRoot, "VideraView.cs");
 
         architecture.Should().Contain("RenderSessionOrchestrator");
+        architecture.Should().Contain("VideraViewRuntime");
         architecture.Should().Contain("VideraViewSessionBridge");
 
         var orchestratorSource = File.ReadAllText(orchestratorFile);
@@ -211,15 +213,19 @@ public sealed class RepositoryArchitectureTests
         }
 
         var viewSource = File.ReadAllText(videraViewFile);
-        viewSource.Should().Contain("VideraViewSessionBridge");
+        viewSource.Should().Contain("VideraViewRuntime");
         viewSource.Should().NotContain("_renderSession.Attach(");
         viewSource.Should().NotContain("_renderSession.BindHandle(");
         viewSource.Should().NotContain("_renderSession.Resize(");
+
+        var runtimeSource = File.ReadAllText(runtimeFile);
+        runtimeSource.Should().Contain("VideraViewSessionBridge");
 
         orchestratorFile.Should().NotBeNullOrWhiteSpace();
         renderSessionInputsFile.Should().NotBeNullOrWhiteSpace();
         renderSessionSnapshotFile.Should().NotBeNullOrWhiteSpace();
         renderSessionBridgeFile.Should().NotBeNullOrWhiteSpace();
+        runtimeFile.Should().NotBeNullOrWhiteSpace();
         videraViewFile.Should().NotBeNullOrWhiteSpace();
     }
 

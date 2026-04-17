@@ -596,7 +596,7 @@ public sealed class VideraViewInteractionIntegrationTests
         view.Measure(new Size(200, 200));
         view.Arrange(new Rect(0, 0, 200, 200));
 
-        var renderSession = view.ReadPrivateField<RenderSession>("_renderSession");
+        var renderSession = VideraViewRuntimeTestAccess.ReadRenderSession(view);
         renderSession.Attach(GraphicsBackendPreference.Software);
         renderSession.Resize(200, 200, 1f);
 
@@ -612,7 +612,7 @@ public sealed class VideraViewInteractionIntegrationTests
 
     private static Object3D AddQuad(RoutedInteractionTestView view, Vector3 position)
     {
-        var renderSession = view.ReadPrivateField<RenderSession>("_renderSession");
+        var renderSession = VideraViewRuntimeTestAccess.ReadRenderSession(view);
         renderSession.ResourceFactory.Should().NotBeNull();
         var sceneObject = DemoMeshFactory.CreateWhiteQuad(renderSession.ResourceFactory!);
         sceneObject.Position = position;
@@ -829,15 +829,6 @@ public sealed class VideraViewInteractionIntegrationTests
             base.OnDetachedFromVisualTree(args);
         }
 
-        public T ReadPrivateField<T>(string fieldName)
-        {
-            var field = typeof(VideraView).GetField(fieldName, System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
-            field.Should().NotBeNull($"field {fieldName} should exist on {typeof(VideraView).FullName}");
-
-            var value = field!.GetValue(this);
-            value.Should().BeAssignableTo<T>();
-            return (T)value!;
-        }
     }
 
     private sealed class RecordingNativeHostFactory : INativeHostFactory

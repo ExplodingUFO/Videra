@@ -21,34 +21,23 @@ public partial class VideraEngine : IDisposable
 {
     private readonly object _lock = new();
     private readonly ILogger _logger;
-    private IGraphicsBackend? _backend;
-    private IResourceFactory? _factory;
-    private ICommandExecutor? _executor;
-
-    private IPipeline? _meshPipeline;
-    private IBuffer? _cameraBuffer;
-    private IBuffer? _styleUniformBuffer;
+    private readonly ResourceLifetimeRegistry _resources = new();
 
     private uint _width, _height;
     private EngineLifecycleState _state = EngineLifecycleState.Uninitialized;
 
-    private readonly List<Object3D> _sceneObjects = new();
+    private readonly RenderWorld _renderWorld = new();
     private readonly IRenderStyleService _styleService;
-    private readonly Dictionary<RenderPassSlot, IRenderPassContributor> _passContributorOverrides = new();
-    private readonly Dictionary<RenderPassSlot, List<IRenderPassContributor>> _passContributorRegistrations = new();
-    private readonly Dictionary<RenderFrameHookPoint, List<Action<RenderFrameHookContext>>> _frameHooks = new();
-    private readonly AnnotationAnchorProjector _annotationAnchorProjector = new();
+    private readonly PassRegistry _passRegistry = new();
     private readonly SelectionOverlayContributor _selectionOverlayContributor = new();
     private readonly AnnotationAnchorOverlayContributor _annotationOverlayContributor = new();
-    private SelectionOverlayRenderState _selectionOverlayState = SelectionOverlayRenderState.Empty;
-    private AnnotationOverlayRenderState _annotationOverlayState = AnnotationOverlayRenderState.Empty;
 
     /// <summary>
     /// Gets the orbit camera used to view the scene.
     /// </summary>
     public OrbitCamera Camera { get; } = new();
 
-    internal IReadOnlyList<Object3D> SceneObjects => _sceneObjects;
+    internal IReadOnlyList<Object3D> SceneObjects => _renderWorld.SceneObjects;
 
     /// <summary>
     /// Gets a value indicating whether the engine has been initialized and is ready to render.
@@ -118,13 +107,7 @@ public partial class VideraEngine : IDisposable
                 return;
             }
 
-            if (!_passContributorRegistrations.TryGetValue(slot, out var contributors))
-            {
-                contributors = new List<IRenderPassContributor>();
-                _passContributorRegistrations[slot] = contributors;
-            }
-
-            contributors.Add(contributor);
+            _passRegistry.RegisterPassContributor(slot, contributor);
         }
     }
 
@@ -151,7 +134,7 @@ public partial class VideraEngine : IDisposable
                 return;
             }
 
-            _passContributorOverrides[slot] = contributor;
+            _passRegistry.ReplacePassContributor(slot, contributor);
         }
     }
 
@@ -178,13 +161,7 @@ public partial class VideraEngine : IDisposable
                 return;
             }
 
-            if (!_frameHooks.TryGetValue(hookPoint, out var hooks))
-            {
-                hooks = new List<Action<RenderFrameHookContext>>();
-                _frameHooks[hookPoint] = hooks;
-            }
-
-            hooks.Add(hook);
+            _passRegistry.RegisterFrameHook(hookPoint, hook);
         }
     }
 
@@ -222,7 +199,7 @@ public partial class VideraEngine : IDisposable
                 return;
             }
 
-            _selectionOverlayState = (state ?? SelectionOverlayRenderState.Empty).Snapshot();
+            _renderWorld.SetSelectionOverlayState(state);
         }
     }
 
@@ -235,7 +212,7 @@ public partial class VideraEngine : IDisposable
                 return;
             }
 
-            _annotationOverlayState = (state ?? AnnotationOverlayRenderState.Empty).Snapshot();
+            _renderWorld.SetAnnotationOverlayState(state);
         }
     }
 
@@ -250,23 +227,7 @@ public partial class VideraEngine : IDisposable
                 return Array.Empty<AnnotationOverlayProjection>();
             }
 
-            var overlayState = (state ?? _annotationOverlayState).Snapshot();
-            if (overlayState.Anchors.Count == 0)
-            {
-                return Array.Empty<AnnotationOverlayProjection>();
-            }
-
-            var projections = new AnnotationOverlayProjection[overlayState.Anchors.Count];
-            for (var i = 0; i < overlayState.Anchors.Count; i++)
-            {
-                var anchor = overlayState.Anchors[i];
-                projections[i] = new AnnotationOverlayProjection(
-                    anchor.AnnotationId,
-                    anchor.Anchor,
-                    _annotationAnchorProjector.Project(anchor.Anchor, Camera, viewportSize, _sceneObjects));
-            }
-
-            return projections;
+            return _renderWorld.ProjectAnnotationAnchors(state, Camera, viewportSize);
         }
     }
 
@@ -312,12 +273,7 @@ public partial class VideraEngine : IDisposable
             }
 
             ArgumentNullException.ThrowIfNull(obj);
-            _sceneObjects.Add(obj);
-
-            if (_factory != null)
-            {
-                obj.InitializeWireframe(_factory);
-            }
+            _renderWorld.AddObject(obj, _resources.ResourceFactory);
         }
         Log.ObjectAdded(_logger, obj.Name);
     }
@@ -336,8 +292,7 @@ public partial class VideraEngine : IDisposable
             }
 
             ArgumentNullException.ThrowIfNull(obj);
-            _sceneObjects.Remove(obj);
-            obj.Dispose();
+            _renderWorld.RemoveObject(obj);
         }
         Log.ObjectRemoved(_logger, obj.Name);
     }
@@ -354,7 +309,7 @@ public partial class VideraEngine : IDisposable
                 return;
             }
 
-            ClearSceneObjectsUnsafe();
+            _renderWorld.ClearObjects();
         }
         Log.ObjectsCleared(_logger);
     }
@@ -440,16 +395,6 @@ public partial class VideraEngine : IDisposable
         IsInitialized = nextState == EngineLifecycleState.Active;
     }
 
-    private void ClearSceneObjectsUnsafe()
-    {
-        foreach (var obj in _sceneObjects)
-        {
-            obj.Dispose();
-        }
-
-        _sceneObjects.Clear();
-    }
-
     private enum EngineLifecycleState
     {
         Uninitialized = 0,
@@ -460,37 +405,6 @@ public partial class VideraEngine : IDisposable
 
     private GraphicsBackendPreference? GetActiveBackendPreferenceUnsafe()
     {
-        if (_backend == null)
-        {
-            return null;
-        }
-
-        if (_backend is ISoftwareBackend)
-        {
-            return GraphicsBackendPreference.Software;
-        }
-
-        var typeName = _backend.GetType().Name;
-        if (typeName.Contains("D3D11", StringComparison.OrdinalIgnoreCase))
-        {
-            return GraphicsBackendPreference.D3D11;
-        }
-
-        if (typeName.Contains("Vulkan", StringComparison.OrdinalIgnoreCase))
-        {
-            return GraphicsBackendPreference.Vulkan;
-        }
-
-        if (typeName.Contains("Metal", StringComparison.OrdinalIgnoreCase))
-        {
-            return GraphicsBackendPreference.Metal;
-        }
-
-        if (typeName.Contains("Software", StringComparison.OrdinalIgnoreCase))
-        {
-            return GraphicsBackendPreference.Software;
-        }
-
-        return null;
+        return _resources.Device?.ActiveBackendPreference;
     }
 }

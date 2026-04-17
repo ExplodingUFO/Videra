@@ -14,12 +14,12 @@ public partial class VideraView
     {
         base.OnAttachedToVisualTree(e);
         OnViewAttached();
-        _interactionRouter.Attach();
+        _runtime.AttachInteractionRouter();
     }
 
     protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
     {
-        _interactionRouter.Detach();
+        _runtime.DetachInteractionRouter();
         OnViewDetached();
         base.OnDetachedFromVisualTree(e);
     }
@@ -27,55 +27,55 @@ public partial class VideraView
     protected override void OnPointerPressed(PointerPressedEventArgs e)
     {
         base.OnPointerPressed(e);
-        _interactionRouter.RoutePressed(e, VideraPointerRoute.View);
+        _runtime.RoutePointerPressed(e, VideraPointerRoute.View);
     }
 
     protected override void OnPointerReleased(PointerReleasedEventArgs e)
     {
         base.OnPointerReleased(e);
-        _interactionRouter.RouteReleased(e, VideraPointerRoute.View);
+        _runtime.RoutePointerReleased(e, VideraPointerRoute.View);
     }
 
     protected override void OnPointerMoved(PointerEventArgs e)
     {
         base.OnPointerMoved(e);
-        _interactionRouter.RouteMoved(e, VideraPointerRoute.View);
+        _runtime.RoutePointerMoved(e, VideraPointerRoute.View);
     }
 
     protected override void OnPointerWheelChanged(PointerWheelEventArgs e)
     {
         base.OnPointerWheelChanged(e);
-        _interactionRouter.RouteWheel(e, VideraPointerRoute.View);
+        _runtime.RoutePointerWheel(e, VideraPointerRoute.View);
     }
 
     protected override void OnPointerCaptureLost(PointerCaptureLostEventArgs e)
     {
         base.OnPointerCaptureLost(e);
-        _interactionRouter.RouteCaptureLost(e);
+        _runtime.RoutePointerCaptureLost(e);
     }
 
     private void OnOverlayPointerPressed(object? sender, PointerPressedEventArgs e)
     {
-        _interactionRouter.RoutePressed(e, VideraPointerRoute.Overlay);
+        _runtime.RoutePointerPressed(e, VideraPointerRoute.Overlay);
     }
 
     private void OnOverlayPointerReleased(object? sender, PointerReleasedEventArgs e)
     {
-        _interactionRouter.RouteReleased(e, VideraPointerRoute.Overlay);
+        _runtime.RoutePointerReleased(e, VideraPointerRoute.Overlay);
     }
 
     private void OnOverlayPointerMoved(object? sender, PointerEventArgs e)
     {
-        _interactionRouter.RouteMoved(e, VideraPointerRoute.Overlay);
+        _runtime.RoutePointerMoved(e, VideraPointerRoute.Overlay);
     }
 
     private void OnOverlayPointerWheel(object? sender, PointerWheelEventArgs e)
     {
-        _interactionRouter.RouteWheel(e, VideraPointerRoute.Overlay);
+        _runtime.RoutePointerWheel(e, VideraPointerRoute.Overlay);
     }
 
     private void OnNativePointer(NativePointerEvent e)
     {
-        _interactionRouter.RouteNativePointer(e);
+        _runtime.RouteNativePointer(e);
     }
 }

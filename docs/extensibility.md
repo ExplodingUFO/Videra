@@ -72,7 +72,7 @@ The concrete sample lives at `samples/Videra.ExtensibilitySample`, and its main 
 ## Scope Boundaries
 
 - `VideraEngine` is the only public extensibility root.
-- `RenderSessionOrchestrator`, `RenderSession`, and `VideraViewSessionBridge` are internal orchestration seams.
+- `VideraViewRuntime`, `RenderSessionOrchestrator`, `RenderSession`, and `VideraViewSessionBridge` are internal orchestration seams.
 - The public contract is intentionally C#-first and in-process.
 - `package discovery` and `plugin loading` remain out of scope.
 - Public samples and docs should not rely on internal-only types such as `SoftwareBackend`.

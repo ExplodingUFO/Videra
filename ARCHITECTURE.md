@@ -56,6 +56,7 @@ Key abstractions:
 UI integration layer responsible for:
 
 - Hosting the `VideraView` UI shell
+- Hosting the internal `VideraViewRuntime` coordinator for view-local state
 - Host-agnostic orchestration through `RenderSessionOrchestrator`
 - Coordinating render-session lifecycle and backend selection
 - Hosting Avalonia-specific runtime/presentation adapters in `RenderSession`
@@ -114,6 +115,7 @@ Videra/
 sequenceDiagram
     participant App as Host App
     participant View as VideraView
+    participant Runtime as VideraViewRuntime
     participant Orchestrator as RenderSessionOrchestrator
     participant Session as RenderSession
     participant Engine as VideraEngine
@@ -121,8 +123,9 @@ sequenceDiagram
     participant Bridge as VideraViewSessionBridge
 
     App->>View: Create control
-    View->>Bridge: Bind options/events/input
-    View->>Orchestrator: Attach bridge, preferences
+    View->>Runtime: Forward public API and lifecycle
+    Runtime->>Bridge: Bind options/events/input
+    Runtime->>Orchestrator: Attach session inputs, preferences
     Orchestrator->>Session: Create and configure
     Orchestrator->>Session: Resolve native backend
     Session->>Engine: Initialize engine
@@ -173,7 +176,7 @@ Phase 11 ships a narrow public extensibility surface on top of the existing pipe
 Boundary notes:
 
 - `VideraEngine` is the public extensibility root.
-- `RenderSessionOrchestrator`, `RenderSession`, and `VideraViewSessionBridge` remain internal orchestration seams, not public extension roots.
+- `VideraViewRuntime`, `RenderSessionOrchestrator`, `RenderSession`, and `VideraViewSessionBridge` remain internal orchestration seams, not public extension roots.
 - Before initialization, registrations can be queued, but `RenderCapabilities.IsInitialized` remains `false` and host apps should wait for readiness before `LoadModelAsync(...)` and `FrameAll()`.
 - After `VideraEngine` is `disposed`, `RegisterPassContributor(...)`, `ReplacePassContributor(...)`, and `RegisterFrameHook(...)` are harmless `no-op` calls; `GetRenderCapabilities()` stays queryable and can retain the last pipeline snapshot.
 - When a native backend is unavailable and `AllowSoftwareFallback` is enabled, the view resolves to software and `VideraView.BackendDiagnostics.FallbackReason` records the native failure reason.
@@ -183,9 +186,10 @@ Boundary notes:
 Boundary summary:
 
 - `VideraEngine` owns frame-plan and pipeline execution semantics.
+- `VideraViewRuntime` owns view-local coordination, native-host lifecycle, overlay sync, and session forwarding.
 - `RenderSessionOrchestrator` owns host-agnostic session orchestration and rendering cadence.
 - `RenderSession` owns Avalonia-specific runtime/presentation adapter setup.
-- `VideraViewSessionBridge` translates Avalonia view options/events into synchronized session state updates.
+- `VideraViewSessionBridge` translates synchronized Avalonia view options/events into session-facing state updates.
 - `VideraView` remains the UI shell and native-host/input surface.
 
 ## Backend Selection

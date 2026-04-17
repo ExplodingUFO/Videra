@@ -30,7 +30,7 @@ public partial class VideraEngine
 
             if (shouldLog)
             {
-                Log.DrawingFrame(_logger, _frameCount, _sceneObjects.Count, Grid.IsVisible);
+                Log.DrawingFrame(_logger, _frameCount, _renderWorld.SceneObjects.Count, Grid.IsVisible);
             }
 
             RenderFrame(shouldLog);
@@ -40,9 +40,9 @@ public partial class VideraEngine
     private bool CanDrawFrame()
     {
         return _state == EngineLifecycleState.Active
-            && _backend != null
-            && _executor != null
-            && _meshPipeline != null;
+            && _resources.RenderSurface != null
+            && _resources.CommandExecutor != null
+            && _resources.MeshPipeline != null;
     }
 
     private void RenderFrame(bool shouldLog)
@@ -103,38 +103,39 @@ public partial class VideraEngine
         var executedStages = new List<RenderPipelineStage>(plan.PlannedStages.Count);
         InvokeFrameHooks(RenderFrameHookPoint.FrameBegin, plan, lastPipelineSnapshot: null);
 
-        BeginFrame();
-        executedStages.Add(RenderPipelineStage.PrepareFrame);
-
-        BindSharedFrameState(shouldLog);
-        executedStages.Add(RenderPipelineStage.BindSharedFrameState);
-        InvokeFrameHooks(RenderFrameHookPoint.SceneSubmit, plan, lastPipelineSnapshot: null);
-
-        if (plan.RenderGrid)
+        using (BeginFrame())
         {
-            ExecutePassSlot(RenderPassSlot.Grid, plan, shouldLog);
-            executedStages.Add(RenderPipelineStage.GridPass);
+            executedStages.Add(RenderPipelineStage.PrepareFrame);
+
+            BindSharedFrameState(shouldLog);
+            executedStages.Add(RenderPipelineStage.BindSharedFrameState);
+            InvokeFrameHooks(RenderFrameHookPoint.SceneSubmit, plan, lastPipelineSnapshot: null);
+
+            if (plan.RenderGrid)
+            {
+                ExecutePassSlot(RenderPassSlot.Grid, plan, shouldLog);
+                executedStages.Add(RenderPipelineStage.GridPass);
+            }
+
+            if (plan.RenderSolidGeometry)
+            {
+                ExecutePassSlot(RenderPassSlot.SolidGeometry, plan, shouldLog);
+                executedStages.Add(RenderPipelineStage.SolidGeometryPass);
+            }
+
+            if (plan.RenderWireframe)
+            {
+                ExecutePassSlot(RenderPassSlot.Wireframe, plan, shouldLog);
+                executedStages.Add(RenderPipelineStage.WireframePass);
+            }
+
+            if (plan.RenderAxis)
+            {
+                ExecutePassSlot(RenderPassSlot.Axis, plan, shouldLog);
+                executedStages.Add(RenderPipelineStage.AxisPass);
+            }
         }
 
-        if (plan.RenderSolidGeometry)
-        {
-            ExecutePassSlot(RenderPassSlot.SolidGeometry, plan, shouldLog);
-            executedStages.Add(RenderPipelineStage.SolidGeometryPass);
-        }
-
-        if (plan.RenderWireframe)
-        {
-            ExecutePassSlot(RenderPassSlot.Wireframe, plan, shouldLog);
-            executedStages.Add(RenderPipelineStage.WireframePass);
-        }
-
-        if (plan.RenderAxis)
-        {
-            ExecutePassSlot(RenderPassSlot.Axis, plan, shouldLog);
-            executedStages.Add(RenderPipelineStage.AxisPass);
-        }
-
-        _backend!.EndFrame();
         executedStages.Add(RenderPipelineStage.PresentFrame);
 
         LastPipelineSnapshot = new RenderPipelineSnapshot(
@@ -148,19 +149,19 @@ public partial class VideraEngine
         InvokeFrameHooks(RenderFrameHookPoint.FrameEnd, plan, LastPipelineSnapshot);
     }
 
-    private void BeginFrame()
+    private IFrameContext BeginFrame()
     {
-        _backend!.SetClearColor(new Vector4(BackgroundColor.R, BackgroundColor.G, BackgroundColor.B, BackgroundColor.A));
-        _backend.BeginFrame();
-        _executor!.Clear(BackgroundColor.R, BackgroundColor.G, BackgroundColor.B, BackgroundColor.A);
-        _executor.SetViewport(0, 0, _width, _height);
+        var frameContext = _resources.RenderSurface!.BeginFrame(new Vector4(BackgroundColor.R, BackgroundColor.G, BackgroundColor.B, BackgroundColor.A));
+        _resources.CommandExecutor!.Clear(BackgroundColor.R, BackgroundColor.G, BackgroundColor.B, BackgroundColor.A);
+        _resources.CommandExecutor.SetViewport(0, 0, _width, _height);
+        return frameContext;
     }
 
     private void BindSharedFrameState(bool shouldLog)
     {
-        if (_cameraBuffer != null)
+        if (_resources.CameraBuffer != null)
         {
-            _cameraBuffer.Update(new CameraUniform(Camera.ViewMatrix, Camera.ProjectionMatrix));
+            _resources.CameraBuffer.Update(new CameraUniform(Camera.ViewMatrix, Camera.ProjectionMatrix));
 
             if (shouldLog)
             {
@@ -175,20 +176,20 @@ public partial class VideraEngine
             }
         }
 
-        _executor!.SetPipeline(_meshPipeline!);
+        _resources.CommandExecutor!.SetPipeline(_resources.MeshPipeline!);
 
-        if (_cameraBuffer != null)
+        if (_resources.CameraBuffer != null)
         {
-            _executor.SetVertexBuffer(_cameraBuffer, RenderBindingSlots.Camera);
+            _resources.CommandExecutor.SetVertexBuffer(_resources.CameraBuffer, RenderBindingSlots.Camera);
             if (shouldLog)
             {
                 Log.CameraUniformBound(_logger);
             }
         }
 
-        if (_styleUniformBuffer != null)
+        if (_resources.StyleUniformBuffer != null)
         {
-            _executor.SetVertexBuffer(_styleUniformBuffer, RenderBindingSlots.Style);
+            _resources.CommandExecutor.SetVertexBuffer(_resources.StyleUniformBuffer, RenderBindingSlots.Style);
         }
     }
 
@@ -199,17 +200,17 @@ public partial class VideraEngine
             Log.DrawingGrid(_logger, Grid.IsVisible);
         }
 
-        Grid.Draw(_executor, _meshPipeline, Camera, _width, _height);
-        _executor!.SetPipeline(_meshPipeline!);
+        Grid.Draw(_resources.CommandExecutor, _resources.MeshPipeline, Camera, _width, _height);
+        _resources.CommandExecutor!.SetPipeline(_resources.MeshPipeline!);
     }
 
     private void RenderSolidObjects(bool shouldLog, WireframeMode effectiveWireframeMode)
     {
         bool shouldRenderSolid = effectiveWireframeMode != WireframeMode.WireframeOnly;
 
-        if (shouldLog && _sceneObjects.Count > 0)
+        if (shouldLog && _renderWorld.SceneObjects.Count > 0)
         {
-            Log.StartingObjectRender(_logger, _sceneObjects.Count, shouldRenderSolid);
+            Log.StartingObjectRender(_logger, _renderWorld.SceneObjects.Count, shouldRenderSolid);
         }
 
         if (!shouldRenderSolid)
@@ -217,7 +218,7 @@ public partial class VideraEngine
             return;
         }
 
-        foreach (var obj in _sceneObjects)
+        foreach (var obj in _renderWorld.SceneObjects)
         {
             RenderSolidObject(obj, shouldLog);
         }
@@ -235,10 +236,10 @@ public partial class VideraEngine
             return;
         }
 
-        obj.UpdateUniforms(_executor!);
-        _executor!.SetVertexBuffer(obj.VertexBuffer, RenderBindingSlots.Vertex);
-        _executor.SetVertexBuffer(obj.WorldBuffer, RenderBindingSlots.World);
-        _executor.SetIndexBuffer(obj.IndexBuffer);
+        obj.UpdateUniforms(_resources.CommandExecutor!);
+        _resources.CommandExecutor!.SetVertexBuffer(obj.VertexBuffer, RenderBindingSlots.Vertex);
+        _resources.CommandExecutor.SetVertexBuffer(obj.WorldBuffer, RenderBindingSlots.World);
+        _resources.CommandExecutor.SetIndexBuffer(obj.IndexBuffer);
 
         if (shouldLog)
         {
@@ -248,13 +249,13 @@ public partial class VideraEngine
         switch (obj.Topology)
         {
             case MeshTopology.Lines:
-                _executor.DrawIndexed(PrimitiveCommandKind.LineList, obj.IndexCount, 1, 0, 0, 0);
+                _resources.CommandExecutor.DrawIndexed(PrimitiveCommandKind.LineList, obj.IndexCount, 1, 0, 0, 0);
                 break;
             case MeshTopology.Points:
-                _executor.DrawIndexed(PrimitiveCommandKind.PointList, obj.IndexCount, 1, 0, 0, 0);
+                _resources.CommandExecutor.DrawIndexed(PrimitiveCommandKind.PointList, obj.IndexCount, 1, 0, 0, 0);
                 break;
             default:
-                _executor.DrawIndexed(obj.IndexCount, 1, 0, 0, 0);
+                _resources.CommandExecutor.DrawIndexed(obj.IndexCount, 1, 0, 0, 0);
                 break;
         }
     }
@@ -289,27 +290,19 @@ public partial class VideraEngine
 
     private void EnsureWireframeResources(WireframeMode effectiveWireframeMode)
     {
-        if ((effectiveWireframeMode == WireframeMode.None && !_selectionOverlayState.HasOverlay) || _factory == null)
+        if ((effectiveWireframeMode == WireframeMode.None && !_renderWorld.SelectionOverlayState.HasOverlay) || _resources.ResourceFactory == null)
         {
             return;
         }
 
-        foreach (var obj in _sceneObjects)
-        {
-            if (obj.LineIndexBuffer != null && obj.LineVertexBuffer != null && obj.LineIndexCount > 0)
-            {
-                continue;
-            }
-
-            obj.InitializeWireframe(_factory, _logger);
-        }
+        _renderWorld.EnsureWireframeResources(_resources.ResourceFactory, _logger);
     }
 
     private void RenderWireframes(WireframeMode effectiveWireframeMode)
     {
         if (Wireframe.Mode == effectiveWireframeMode)
         {
-            Wireframe.RenderWireframes(_sceneObjects, _executor!, _meshPipeline!, Camera, _width, _height);
+            Wireframe.RenderWireframes(_renderWorld.SceneObjects, _resources.CommandExecutor!, _resources.MeshPipeline!, Camera, _width, _height);
             return;
         }
 
@@ -318,7 +311,7 @@ public partial class VideraEngine
         try
         {
             Wireframe.Mode = effectiveWireframeMode;
-            Wireframe.RenderWireframes(_sceneObjects, _executor!, _meshPipeline!, Camera, _width, _height);
+            Wireframe.RenderWireframes(_renderWorld.SceneObjects, _resources.CommandExecutor!, _resources.MeshPipeline!, Camera, _width, _height);
         }
         finally
         {
@@ -328,26 +321,27 @@ public partial class VideraEngine
 
     private void ExecutePassSlot(RenderPassSlot slot, RenderFramePlan plan, bool shouldLog)
     {
+        var sharedFrameState = CreateSharedFrameStateUnsafe();
         var context = new RenderPassContributionContext
         {
             Slot = slot,
             FramePlan = plan,
-            CommandExecutor = _executor!,
-            ResourceFactory = _factory!,
-            MeshPipeline = _meshPipeline!,
-            SceneObjects = _sceneObjects,
-            Width = _width,
-            Height = _height,
-            RenderScale = RenderScale,
+            CommandExecutor = sharedFrameState.CommandExecutor,
+            ResourceFactory = sharedFrameState.ResourceFactory,
+            MeshPipeline = sharedFrameState.MeshPipeline,
+            SceneObjects = _renderWorld.SceneObjects,
+            Width = sharedFrameState.Width,
+            Height = sharedFrameState.Height,
+            RenderScale = sharedFrameState.RenderScale,
             ShouldLog = shouldLog,
             IsInitialized = _state == EngineLifecycleState.Active,
-            ActiveBackendPreference = GetActiveBackendPreferenceUnsafe(),
-            LastPipelineSnapshot = LastPipelineSnapshot,
-            SelectionOverlay = _selectionOverlayState,
-            AnnotationOverlay = _annotationOverlayState
+            ActiveBackendPreference = sharedFrameState.ActiveBackendPreference,
+            LastPipelineSnapshot = sharedFrameState.LastPipelineSnapshot,
+            SelectionOverlay = _renderWorld.SelectionOverlayState,
+            AnnotationOverlay = _renderWorld.AnnotationOverlayState
         };
 
-        var hasReplacement = _passContributorOverrides.TryGetValue(slot, out var replacement);
+        var hasReplacement = _passRegistry.TryGetReplacement(slot, out var replacement);
         if (hasReplacement)
         {
             replacement!.Contribute(context);
@@ -363,12 +357,9 @@ public partial class VideraEngine
             }
         }
 
-        if (_passContributorRegistrations.TryGetValue(slot, out var registrations))
+        foreach (var contributor in _passRegistry.GetRegistrations(slot))
         {
-            foreach (var contributor in registrations)
-            {
-                contributor.Contribute(context);
-            }
+            contributor.Contribute(context);
         }
     }
 
@@ -386,7 +377,7 @@ public partial class VideraEngine
                 RenderWireframes(context.FramePlan.EffectiveWireframeMode);
                 break;
             case RenderPassSlot.Axis:
-                _axisRenderer.Draw(_executor!, _meshPipeline!, Camera, _width, _height, RenderScale);
+                _axisRenderer.Draw(_resources.CommandExecutor!, _resources.MeshPipeline!, Camera, _width, _height, RenderScale);
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(slot), slot, "Unknown render pass slot.");
@@ -395,7 +386,7 @@ public partial class VideraEngine
 
     private bool HasOverlayWireframePassUnsafe()
     {
-        return _selectionOverlayState.HasOverlay || _annotationOverlayState.HasOverlay;
+        return _renderWorld.HasOverlayWireframe;
     }
 
     private void InvokeFrameHooks(
@@ -403,11 +394,6 @@ public partial class VideraEngine
         RenderFramePlan plan,
         RenderPipelineSnapshot? lastPipelineSnapshot)
     {
-        if (!_frameHooks.TryGetValue(hookPoint, out var hooks))
-        {
-            return;
-        }
-
         var context = new RenderFrameHookContext
         {
             HookPoint = hookPoint,
@@ -420,9 +406,24 @@ public partial class VideraEngine
             LastPipelineSnapshot = lastPipelineSnapshot
         };
 
-        foreach (var hook in hooks)
+        foreach (var hook in _passRegistry.GetHooks(hookPoint))
         {
             hook(context);
         }
+    }
+
+    private SharedFrameState CreateSharedFrameStateUnsafe()
+    {
+        return new SharedFrameState(
+            _resources.CommandExecutor!,
+            _resources.ResourceFactory!,
+            _resources.MeshPipeline!,
+            _resources.CameraBuffer,
+            _resources.StyleUniformBuffer,
+            _width,
+            _height,
+            RenderScale,
+            GetActiveBackendPreferenceUnsafe(),
+            LastPipelineSnapshot);
     }
 }

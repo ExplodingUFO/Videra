@@ -1,6 +1,11 @@
+using System.Numerics;
 using Avalonia;
 using Avalonia.Input;
 using Microsoft.Extensions.Logging;
+using Videra.Avalonia.Rendering;
+using Videra.Core.Interaction;
+using Videra.Core.Picking;
+using Videra.Core.Selection;
 
 namespace Videra.Avalonia.Controls.Interaction;
 
@@ -14,9 +19,11 @@ internal sealed partial class VideraInteractionController : IDisposable
 
     private readonly IVideraInteractionHost _host;
     private readonly ILogger _logger;
-    private readonly VideraSelectionIntentResolver _selectionIntentResolver = new();
-    private readonly VideraAnnotationIntentResolver _annotationIntentResolver = new();
+    private readonly OrbitCameraManipulator _cameraManipulator = new();
+    private readonly PickingService _pickingService = new();
+    private readonly SelectionBoxService _selectionBoxService = new();
     private readonly VideraInteractionState _state = new();
+    private InteractiveFrameLease? _interactiveFrameLease;
     private bool _disposed;
 
     public VideraInteractionController(IVideraInteractionHost host, ILogger logger)
@@ -39,6 +46,8 @@ internal sealed partial class VideraInteractionController : IDisposable
 
     public void Reset()
     {
+        _interactiveFrameLease?.Dispose();
+        _interactiveFrameLease = null;
         _state.Reset();
     }
 
@@ -66,12 +75,14 @@ internal sealed partial class VideraInteractionController : IDisposable
             _state.PointerDownModifiers = snapshot.Modifiers;
             _state.HasExceededClickThreshold = false;
             _state.IsSelectionBoxActive = false;
+            AcquireInteractiveLeaseIfNeeded();
             handled = true;
         }
 
         if (snapshot.IsRightButtonPressed && !_state.IsRightButtonDown)
         {
             _state.IsRightButtonDown = true;
+            AcquireInteractiveLeaseIfNeeded();
             handled = true;
         }
 
@@ -99,24 +110,17 @@ internal sealed partial class VideraInteractionController : IDisposable
                 VideraSelectionRequest? request = null;
                 if (_state.IsSelectionBoxActive)
                 {
-                    request = _selectionIntentResolver.CreateBoxRequest(
+                    var result = _selectionBoxService.Select(
                         _host.Engine.Camera,
                         _host.GetInteractionViewportSize(),
-                        _host.SceneObjects,
-                        _state.PointerDownPosition,
-                        snapshot.Position,
-                        _state.PointerDownModifiers,
-                        _host.InteractionOptions);
+                        ToVector2(_state.PointerDownPosition),
+                        ToVector2(snapshot.Position),
+                        _host.SceneObjects);
+                    request = CreateBoxRequest(result, _state.PointerDownModifiers);
                 }
                 else if (!_state.HasExceededClickThreshold)
                 {
-                    request = _selectionIntentResolver.CreateClickRequest(
-                        _host.Engine.Camera,
-                        _host.GetInteractionViewportSize(),
-                        _host.SceneObjects,
-                        snapshot.Position,
-                        snapshot.Modifiers,
-                        _host.InteractionOptions);
+                    request = CreateClickRequest(snapshot.Position, snapshot.Modifiers);
                 }
 
                 if (request is not null)
@@ -126,11 +130,11 @@ internal sealed partial class VideraInteractionController : IDisposable
             }
             else if (_host.InteractionMode == VideraInteractionMode.Annotate &&
                      !_state.HasExceededClickThreshold &&
-                     _annotationIntentResolver.TryResolveAnchor(
+                     _pickingService.TryResolveAnnotationAnchor(
                          _host.Engine.Camera,
                          _host.GetInteractionViewportSize(),
+                         ToVector2(snapshot.Position),
                          _host.SceneObjects,
-                         snapshot.Position,
                          out var anchor))
             {
                 _host.RaiseAnnotationRequested(new AnnotationRequestedEventArgs(anchor));
@@ -149,6 +153,8 @@ internal sealed partial class VideraInteractionController : IDisposable
         if (!_state.HasActiveGesture)
         {
             _state.PointerDownModifiers = RawInputModifiers.None;
+            _interactiveFrameLease?.Dispose();
+            _interactiveFrameLease = null;
         }
 
         return handled;
@@ -184,7 +190,8 @@ internal sealed partial class VideraInteractionController : IDisposable
 
             if (_host.InteractionMode == VideraInteractionMode.Navigate && CanNavigateCamera())
             {
-                _host.Engine.Camera.Rotate(dx * 0.5f, dy * 0.5f);
+                _cameraManipulator.Rotate(_host.Engine.Camera, dx, dy);
+                _host.InvalidateRender(RenderInvalidationKinds.Interaction);
             }
 
             return true;
@@ -192,7 +199,8 @@ internal sealed partial class VideraInteractionController : IDisposable
 
         if (_state.IsRightButtonDown && CanNavigateCamera())
         {
-            _host.Engine.Camera.Pan(-dx * 0.01f, dy * 0.01f);
+            _cameraManipulator.Pan(_host.Engine.Camera, dx, dy);
+            _host.InvalidateRender(RenderInvalidationKinds.Interaction);
             return true;
         }
 
@@ -211,7 +219,8 @@ internal sealed partial class VideraInteractionController : IDisposable
             Log.PointerWheelChanged(_logger, snapshot.WheelDeltaY, route.ToString());
         }
 
-        _host.Engine.Camera.Zoom(snapshot.WheelDeltaY * 0.5f);
+        _cameraManipulator.Zoom(_host.Engine.Camera, snapshot.WheelDeltaY);
+        _host.InvalidateRender(RenderInvalidationKinds.Interaction);
         return true;
     }
 
@@ -219,6 +228,75 @@ internal sealed partial class VideraInteractionController : IDisposable
     {
         return _host.InteractionOptions.AllowCameraNavigation;
     }
+
+    private void AcquireInteractiveLeaseIfNeeded()
+    {
+        if (!CanNavigateCamera() || _interactiveFrameLease is not null)
+        {
+            return;
+        }
+
+        _interactiveFrameLease = _host.BeginInteractiveFrameLease();
+    }
+
+    private VideraSelectionRequest? CreateClickRequest(Point position, RawInputModifiers modifiers)
+    {
+        var hit = _pickingService.HitTest(
+            _host.Engine.Camera,
+            _host.GetInteractionViewportSize(),
+            ToVector2(position),
+            _host.SceneObjects).PrimaryHit;
+
+        if (hit is null)
+        {
+            if (HasAdditiveModifier(modifiers) || _host.InteractionOptions.EmptySpaceSelectionBehavior == VideraEmptySpaceSelectionBehavior.PreserveSelection)
+            {
+                return null;
+            }
+
+            return new VideraSelectionRequest(
+                VideraSelectionOperation.Replace,
+                Array.Empty<Guid>(),
+                primaryObjectId: null,
+                _host.InteractionOptions.EmptySpaceSelectionBehavior);
+        }
+
+        return new VideraSelectionRequest(
+            HasAdditiveModifier(modifiers) ? VideraSelectionOperation.Toggle : VideraSelectionOperation.Replace,
+            [hit.ObjectId],
+            hit.ObjectId,
+            _host.InteractionOptions.EmptySpaceSelectionBehavior);
+    }
+
+    private VideraSelectionRequest? CreateBoxRequest(SceneBoxSelectionResult result, RawInputModifiers modifiers)
+    {
+        if (result.ObjectIds.Count == 0)
+        {
+            if (HasAdditiveModifier(modifiers) || _host.InteractionOptions.EmptySpaceSelectionBehavior == VideraEmptySpaceSelectionBehavior.PreserveSelection)
+            {
+                return null;
+            }
+
+            return new VideraSelectionRequest(
+                VideraSelectionOperation.Replace,
+                Array.Empty<Guid>(),
+                primaryObjectId: null,
+                _host.InteractionOptions.EmptySpaceSelectionBehavior);
+        }
+
+        return new VideraSelectionRequest(
+            HasAdditiveModifier(modifiers) ? VideraSelectionOperation.Add : VideraSelectionOperation.Replace,
+            result.ObjectIds,
+            result.ObjectIds[0],
+            _host.InteractionOptions.EmptySpaceSelectionBehavior);
+    }
+
+    private static bool HasAdditiveModifier(RawInputModifiers modifiers)
+    {
+        return (modifiers & RawInputModifiers.Control) != 0 || (modifiers & RawInputModifiers.Shift) != 0;
+    }
+
+    private static Vector2 ToVector2(Point point) => new((float)point.X, (float)point.Y);
 
     private static double Distance(Point left, Point right)
     {
