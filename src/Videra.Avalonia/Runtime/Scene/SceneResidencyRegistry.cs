@@ -110,7 +110,7 @@ internal sealed class SceneResidencyRegistry
         }
     }
 
-    public IReadOnlyList<SceneResidencyRecord> MarkAllDirty(ulong resourceEpoch)
+    public IReadOnlyList<SceneResidencyRecord> MarkDirtyForResourceEpoch(ulong resourceEpoch)
     {
         var dirtyRecords = new List<SceneResidencyRecord>();
         foreach (var pair in _records.ToArray())
@@ -118,6 +118,12 @@ internal sealed class SceneResidencyRegistry
             var record = pair.Value;
             if (!CanUpload(record))
             {
+                continue;
+            }
+
+            if (record.State is SceneResidencyState.PendingUpload or SceneResidencyState.Uploading or SceneResidencyState.Dirty)
+            {
+                _records[pair.Key] = record with { ResourceEpoch = resourceEpoch };
                 continue;
             }
 
@@ -167,6 +173,15 @@ internal sealed class SceneResidencyRegistry
                 record.State == SceneResidencyState.PendingUpload ||
                 record.State == SceneResidencyState.Dirty)
             .ToArray();
+    }
+
+    public long GetPendingUploadBytes()
+    {
+        return _records.Values
+            .Where(static record =>
+                record.State == SceneResidencyState.PendingUpload ||
+                record.State == SceneResidencyState.Dirty)
+            .Sum(static record => Math.Max(record.ApproximateUploadBytes, 1L));
     }
 
     public SceneResidencyDiagnostics CreateDiagnostics(int sceneDocumentVersion)

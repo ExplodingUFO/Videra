@@ -8,5 +8,7 @@ public sealed record ImportedSceneAsset(
     string Name,
     MeshData MeshData)
 {
+    internal MeshPayload Payload { get; init; } = MeshPayload.FromMesh(MeshData, cloneArrays: false);
+
     public SceneAssetMetrics? Metrics { get; init; }
 }

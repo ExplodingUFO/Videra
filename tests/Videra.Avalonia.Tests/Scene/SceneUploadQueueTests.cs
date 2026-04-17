@@ -37,6 +37,33 @@ public sealed class SceneUploadQueueTests
         record.State.Should().Be(SceneResidencyState.Resident);
     }
 
+    [Fact]
+    public void Drain_respects_object_budget_and_leaves_remaining_entries_pending()
+    {
+        var assetA = SceneTestMeshes.CreateImportedAsset("triangle-a.obj");
+        var assetB = SceneTestMeshes.CreateImportedAsset("triangle-b.obj");
+        var entryA = _mutator.CreateImportedEntry(SceneObjectFactory.CreateDeferred(assetA), assetA);
+        var entryB = _mutator.CreateImportedEntry(SceneObjectFactory.CreateDeferred(assetB), assetB);
+        var registry = new SceneResidencyRegistry();
+        registry.Apply(new SceneDelta([entryA, entryB], Array.Empty<SceneDocumentEntry>(), Array.Empty<SceneDocumentEntry>(), Array.Empty<SceneDocumentEntry>()), 1);
+
+        var queue = new SceneUploadQueue();
+        queue.Enqueue([entryA, entryB]);
+
+        var result = queue.Drain(
+            new RecordingResourceFactory(),
+            new SceneUploadBudget(MaxObjectsPerFrame: 1, MaxBytesPerFrame: long.MaxValue),
+            resourceEpoch: 2,
+            registry,
+            NullLogger.Instance);
+
+        result.UploadedRecords.Should().ContainSingle();
+        registry.TryGet(entryA.Id, out var recordA).Should().BeTrue();
+        registry.TryGet(entryB.Id, out var recordB).Should().BeTrue();
+        new[] { recordA.State, recordB.State }.Should().Contain(SceneResidencyState.Resident);
+        new[] { recordA.State, recordB.State }.Should().Contain(SceneResidencyState.PendingUpload);
+    }
+
     private sealed class RecordingResourceFactory : IResourceFactory
     {
         public IBuffer CreateVertexBuffer(VertexPositionNormalColor[] vertices) => new RecordingBuffer((uint)(vertices.Length * sizeof(float) * 10));

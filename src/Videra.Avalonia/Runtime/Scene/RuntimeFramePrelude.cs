@@ -40,15 +40,15 @@ internal sealed class RuntimeFramePrelude
 
     public SceneUploadFlushResult Execute()
     {
-        var dirtyRecords = _residencyRegistry.MarkAllDirty(_resourceEpochAccessor());
-        if (dirtyRecords.Count > 0)
-        {
-            _uploadQueue.Enqueue(dirtyRecords);
-        }
-
+        var pendingCount = _uploadQueue.PendingCount;
+        var pendingBytes = _residencyRegistry.GetPendingUploadBytes();
+        var budget = SceneUploadBudget.Resolve(
+            _isInteractiveAccessor(),
+            pendingCount,
+            pendingBytes);
         var result = _uploadQueue.Drain(
             _resourceFactoryAccessor(),
-            _isInteractiveAccessor() ? SceneUploadBudget.Interactive : SceneUploadBudget.Idle,
+            budget,
             _resourceEpochAccessor(),
             _residencyRegistry,
             _logger);

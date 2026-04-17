@@ -1,9 +1,11 @@
 using System.Numerics;
+using System.Reflection;
 using FluentAssertions;
 using Moq;
 using Videra.Core.Geometry;
 using Videra.Core.Graphics;
 using Videra.Core.Graphics.Abstractions;
+using Videra.Core.Scene;
 using Xunit;
 
 namespace Videra.Core.Tests.Graphics;
@@ -369,5 +371,27 @@ public class Object3DTests
         obj.WorldBounds.Should().NotBeNull();
         obj.WorldBounds!.Value.Min.Should().Be(new Vector3(10f, -2f, 5f));
         obj.WorldBounds!.Value.Max.Should().Be(new Vector3(12f, 1f, 5f));
+    }
+
+    [Fact]
+    public void SceneObjectFactory_CreateDeferred_ReusesSharedPayloadAcrossObjects()
+    {
+        var asset = new ImportedSceneAsset("triangle.obj", "triangle.obj", CreateTestMesh());
+        var payloadProperty = typeof(ImportedSceneAsset).GetProperty("Payload", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+        var objectPayloadProperty = typeof(Object3D).GetProperty("MeshPayload", BindingFlags.Instance | BindingFlags.NonPublic);
+        var retentionPolicyProperty = typeof(Object3D).GetProperty("CpuMeshRetentionPolicy", BindingFlags.Instance | BindingFlags.NonPublic);
+
+        var first = SceneObjectFactory.CreateDeferred(asset);
+        var second = SceneObjectFactory.CreateDeferred(asset);
+
+        payloadProperty.Should().NotBeNull();
+        objectPayloadProperty.Should().NotBeNull();
+        retentionPolicyProperty.Should().NotBeNull();
+
+        var payload = payloadProperty!.GetValue(asset);
+        payload.Should().NotBeNull();
+        objectPayloadProperty!.GetValue(first).Should().BeSameAs(payload);
+        objectPayloadProperty.GetValue(second).Should().BeSameAs(payload);
+        retentionPolicyProperty!.GetValue(first).Should().Be(CpuMeshRetentionPolicy.KeepForReuploadAndPicking);
     }
 }

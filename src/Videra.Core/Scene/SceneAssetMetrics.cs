@@ -15,16 +15,17 @@ public sealed record SceneAssetMetrics(
         ArgumentNullException.ThrowIfNull(mesh);
         ArgumentNullException.ThrowIfNull(mesh.Vertices);
         ArgumentNullException.ThrowIfNull(mesh.Indices);
+        return FromPayload(MeshPayload.FromMesh(mesh, cloneArrays: false));
+    }
 
-        var approximateGpuBytes =
-            (long)mesh.Vertices.Length * Unsafe.SizeOf<VertexPositionNormalColor>() +
-            (long)mesh.Indices.Length * sizeof(uint) +
-            64L;
+    internal static SceneAssetMetrics FromPayload(MeshPayload payload)
+    {
+        ArgumentNullException.ThrowIfNull(payload);
 
         return new SceneAssetMetrics(
-            mesh.Vertices.Length,
-            mesh.Indices.Length,
-            approximateGpuBytes,
-            BoundingBox3.FromVertices(mesh.Vertices));
+            payload.Vertices.Length,
+            payload.Indices.Length,
+            payload.ApproximateGpuBytes,
+            payload.LocalBounds);
     }
 }

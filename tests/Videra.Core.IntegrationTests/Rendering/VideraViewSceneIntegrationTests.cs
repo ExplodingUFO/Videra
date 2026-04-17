@@ -366,6 +366,47 @@ public sealed class VideraViewSceneIntegrationTests : IDisposable
     }
 
     [Fact]
+    public async Task SteadyStateRender_ShouldNotReuploadResidentSceneObjectsWithoutDirtyEvent()
+    {
+        var path = WriteObj("steady-state.obj", """
+            v 0.0 0.0 0.0
+            v 1.0 0.0 0.0
+            v 0.0 1.0 0.0
+            vn 0.0 0.0 1.0
+            f 1//1 2//1 3//1
+            """);
+
+        var view = new VideraView(nativeHostFactory: null, bitmapFactory: static (_, _) => null);
+        try
+        {
+            var result = await view.LoadModelAsync(path);
+            var loadedObject = result.LoadedObject!;
+
+            var session = VideraViewRuntimeTestAccess.ReadRenderSession(view);
+            session.Attach(GraphicsBackendPreference.Software);
+            session.Resize(128, 96, 1f);
+            session.RenderOnce();
+            RefreshBackendDiagnostics(view);
+
+            var firstVertexBuffer = ReadObjectVertexBuffer(loadedObject);
+            firstVertexBuffer.Should().NotBeNull();
+
+            session.RenderOnce();
+            RefreshBackendDiagnostics(view);
+
+            ReadObjectVertexBuffer(loadedObject).Should().BeSameAs(firstVertexBuffer);
+            var residencyDiagnostics = ReadSceneResidencyDiagnostics(view);
+            residencyDiagnostics.PendingUploads.Should().Be(0);
+            residencyDiagnostics.DirtyObjects.Should().Be(0);
+            residencyDiagnostics.ResidentObjects.Should().Be(1);
+        }
+        finally
+        {
+            view.Engine.Dispose();
+        }
+    }
+
+    [Fact]
     public async Task BackendRebind_ShouldRequeueResidentImportedSceneObjectsForUpload()
     {
         var path = WriteObj("rebind-reupload.obj", """

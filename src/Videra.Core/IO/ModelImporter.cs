@@ -72,12 +72,14 @@ public static partial class ModelImporter
             Log.Loaded(log, meshData.Vertices.Length, meshData.Indices.Length);
             Log.LoadSucceeded(log, filePath);
 
+            var payload = MeshPayload.FromMesh(meshData, cloneArrays: false);
             return new ImportedSceneAsset(
                 filePath,
                 Path.GetFileName(filePath),
                 meshData)
             {
-                Metrics = SceneAssetMetrics.FromMesh(meshData)
+                Payload = payload,
+                Metrics = SceneAssetMetrics.FromPayload(payload)
             };
         }
         catch (VideraException)

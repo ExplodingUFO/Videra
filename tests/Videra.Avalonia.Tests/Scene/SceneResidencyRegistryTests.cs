@@ -26,14 +26,15 @@ public sealed class SceneResidencyRegistryTests
     }
 
     [Fact]
-    public void Mark_all_dirty_only_marks_rehydratable_objects_without_live_gpu_buffers()
+    public void Mark_dirty_for_resource_epoch_only_marks_resident_rehydratable_objects()
     {
         var registry = new SceneResidencyRegistry();
         var sceneObject = SceneTestMeshes.CreateDeferredObject();
         var entry = _mutator.CreateExternalEntry(sceneObject);
         registry.Apply(new SceneDelta([entry], Array.Empty<SceneDocumentEntry>(), Array.Empty<SceneDocumentEntry>(), Array.Empty<SceneDocumentEntry>()), 1);
+        registry.MarkResident(entry.Id, resourceEpoch: 1);
 
-        var dirty = registry.MarkAllDirty(2);
+        var dirty = registry.MarkDirtyForResourceEpoch(2);
 
         dirty.Should().ContainSingle();
         dirty[0].State.Should().Be(SceneResidencyState.Dirty);

@@ -12,7 +12,7 @@ public static class SceneObjectFactory
         {
             Name = asset.Name
         };
-        sceneObject.PrepareDeferredMesh(asset.MeshData);
+        sceneObject.PrepareDeferredMesh(asset.Payload);
         return sceneObject;
     }
 }

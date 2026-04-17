@@ -29,6 +29,8 @@ internal sealed class SceneUploadQueue
         }
     }
 
+    public int PendingCount => _pendingIds.Count;
+
     public SceneUploadFlushResult Drain(
         IResourceFactory? factory,
         SceneUploadBudget budget,

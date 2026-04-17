@@ -15,7 +15,7 @@ namespace Videra.Core.Graphics;
 public partial class Object3D : IDisposable
 {
     private bool _disposed;
-    private MeshData? _cachedMesh;
+    private MeshPayload? _meshPayload;
     private bool _wireframeResourcesRequested;
     private BoundingBox3? _localBounds;
 
@@ -99,9 +99,6 @@ public partial class Object3D : IDisposable
     /// </summary>
     internal uint LineIndexCount { get; private set; }
 
-    private uint[]? _cachedTriangleIndices;
-    private VertexPositionNormalColor[]? _cachedVertices;
-
     // Compute the world matrix from SRT transforms
 
     /// <summary>
@@ -118,29 +115,19 @@ public partial class Object3D : IDisposable
 
     public BoundingBox3? WorldBounds => _localBounds?.Transform(WorldMatrix);
 
-    internal bool HasPreparedMesh => _cachedMesh is not null;
+    internal MeshPayload? MeshPayload => _meshPayload;
 
-    internal bool CanRecreateGraphicsResources => _cachedMesh is not null;
+    internal CpuMeshRetentionPolicy CpuMeshRetentionPolicy { get; private set; } = CpuMeshRetentionPolicy.KeepForReuploadAndPicking;
+
+    internal bool HasPreparedMesh => _meshPayload is not null;
+
+    internal bool CanRecreateGraphicsResources => _meshPayload is not null;
 
     internal long ApproximateGpuBytes
     {
         get
         {
-            if (_cachedMesh != null)
-            {
-                return (long)_cachedMesh.Vertices.Length * Unsafe.SizeOf<VertexPositionNormalColor>() +
-                       (long)_cachedMesh.Indices.Length * sizeof(uint) +
-                       64L;
-            }
-
-            if (_cachedVertices != null)
-            {
-                return (long)_cachedVertices.Length * Unsafe.SizeOf<VertexPositionNormalColor>() +
-                       (long)IndexCount * sizeof(uint) +
-                       64L;
-            }
-
-            return 0L;
+            return _meshPayload?.ApproximateGpuBytes ?? 0L;
         }
     }
 
@@ -176,28 +163,25 @@ public partial class Object3D : IDisposable
     internal void PrepareDeferredMesh(MeshData mesh)
     {
         ArgumentNullException.ThrowIfNull(mesh);
+        PrepareDeferredMesh(MeshPayload.FromMesh(mesh, cloneArrays: true));
+    }
 
-        if (mesh.Vertices == null || mesh.Vertices.Length == 0)
-            throw new ArgumentException("Invalid mesh data", nameof(mesh));
+    internal void PrepareDeferredMesh(MeshPayload payload)
+    {
+        PrepareDeferredMesh(payload, CpuMeshRetentionPolicy.KeepForReuploadAndPicking);
+    }
 
-        if (mesh.Indices == null || mesh.Indices.Length == 0)
-            throw new ArgumentException("Invalid index data", nameof(mesh));
+    internal void PrepareDeferredMesh(MeshPayload payload, CpuMeshRetentionPolicy retentionPolicy)
+    {
+        ArgumentNullException.ThrowIfNull(payload);
 
-        _cachedMesh = new MeshData
-        {
-            Vertices = (VertexPositionNormalColor[])mesh.Vertices.Clone(),
-            Indices = (uint[])mesh.Indices.Clone(),
-            Topology = mesh.Topology
-        };
-        _localBounds = BoundingBox3.FromVertices(mesh.Vertices);
+        _meshPayload = payload;
+        CpuMeshRetentionPolicy = retentionPolicy;
+        _localBounds = payload.LocalBounds;
         _wireframeResourcesRequested = false;
         ReleaseGpuResources();
-        Topology = mesh.Topology;
-        IndexCount = (uint)mesh.Indices.Length;
-        _cachedVertices = (VertexPositionNormalColor[])mesh.Vertices.Clone();
-        _cachedTriangleIndices = mesh.Topology == MeshTopology.Triangles
-            ? (uint[])mesh.Indices.Clone()
-            : null;
+        Topology = payload.Topology;
+        IndexCount = (uint)payload.Indices.Length;
     }
 
     // Initialize GPU resources (called by Engine)
@@ -220,68 +204,56 @@ public partial class Object3D : IDisposable
     /// </exception>
     public void Initialize(IResourceFactory factory, MeshData mesh, ILogger? logger = null)
     {
-        ArgumentNullException.ThrowIfNull(factory);
         ArgumentNullException.ThrowIfNull(mesh);
+        Initialize(factory, MeshPayload.FromMesh(mesh, cloneArrays: true), logger, resetWireframeRequest: true);
+    }
+
+    private void Initialize(
+        IResourceFactory factory,
+        MeshPayload payload,
+        ILogger? logger,
+        bool resetWireframeRequest)
+    {
+        ArgumentNullException.ThrowIfNull(factory);
+        ArgumentNullException.ThrowIfNull(payload);
         var log = logger ?? Microsoft.Extensions.Logging.Abstractions.NullLoggerFactory.Instance.CreateLogger<Object3D>();
         try
         {
-            // 验证输入
-            if (mesh.Vertices == null || mesh.Vertices.Length == 0)
-                throw new ArgumentException("Invalid mesh data");
+            Log.Initializing(log, Name, payload.Vertices.Length, payload.Indices.Length);
 
-            if (mesh.Indices == null || mesh.Indices.Length == 0)
-                throw new ArgumentException("Invalid index data");
-
-            Log.Initializing(log, Name, mesh.Vertices.Length, mesh.Indices.Length);
-
-            _cachedMesh = new MeshData
+            _meshPayload = payload;
+            _localBounds = payload.LocalBounds;
+            if (resetWireframeRequest)
             {
-                Vertices = (VertexPositionNormalColor[])mesh.Vertices.Clone(),
-                Indices = (uint[])mesh.Indices.Clone(),
-                Topology = mesh.Topology
-            };
-            _localBounds = BoundingBox3.FromVertices(mesh.Vertices);
-            _wireframeResourcesRequested = false;
+                _wireframeResourcesRequested = false;
+            }
             ReleaseGpuResources();
-            Topology = mesh.Topology;
-            IndexCount = (uint)mesh.Indices.Length;
+            Topology = payload.Topology;
+            IndexCount = (uint)payload.Indices.Length;
 
             // 安全的大小计算
             var vertexSize = Unsafe.SizeOf<VertexPositionNormalColor>();
 
-            if ((long)mesh.Vertices.Length * vertexSize > uint.MaxValue)
-                throw new InvalidOperationException($"Vertex buffer too large: {mesh.Vertices.Length} vertices");
+            if ((long)payload.Vertices.Length * vertexSize > uint.MaxValue)
+                throw new InvalidOperationException($"Vertex buffer too large: {payload.Vertices.Length} vertices");
 
-            var vSize = (uint)(mesh.Vertices.Length * vertexSize);
+            var vSize = (uint)(payload.Vertices.Length * vertexSize);
 
             Log.VertexBufferSize(log, Name, vSize, vSize / 1024.0 / 1024.0);
 
             VertexBuffer = factory.CreateVertexBuffer(vSize);
-            VertexBuffer.SetData(mesh.Vertices, 0);
-
-            // 缓存顶点数据用于线框
-            _cachedVertices = (VertexPositionNormalColor[])mesh.Vertices.Clone();
+            VertexBuffer.SetData(payload.Vertices, 0);
 
             // 索引 Buffer
-            if ((long)mesh.Indices.Length * sizeof(uint) > uint.MaxValue)
-                throw new InvalidOperationException($"Index buffer too large: {mesh.Indices.Length} indices");
+            if ((long)payload.Indices.Length * sizeof(uint) > uint.MaxValue)
+                throw new InvalidOperationException($"Index buffer too large: {payload.Indices.Length} indices");
 
-            var iSize = (uint)(mesh.Indices.Length * sizeof(uint));
+            var iSize = (uint)(payload.Indices.Length * sizeof(uint));
 
             Log.IndexBufferSize(log, Name, iSize, iSize / 1024.0 / 1024.0);
 
             IndexBuffer = factory.CreateIndexBuffer(iSize);
-            IndexBuffer.SetData(mesh.Indices, 0);
-
-            // 缓存三角形索引用于线框提取
-            if (mesh.Topology == MeshTopology.Triangles)
-            {
-                _cachedTriangleIndices = (uint[])mesh.Indices.Clone();
-            }
-            else
-            {
-                _cachedTriangleIndices = null;
-            }
+            IndexBuffer.SetData(payload.Indices, 0);
 
             // World Uniform Buffer
             WorldBuffer = factory.CreateUniformBuffer(64);
@@ -294,7 +266,11 @@ public partial class Object3D : IDisposable
 
             // 清理已创建的资源
             ReleaseGpuResources();
-            _localBounds = null;
+            if (resetWireframeRequest)
+            {
+                _localBounds = null;
+                _meshPayload = null;
+            }
 
             throw;
         }
@@ -340,14 +316,16 @@ public partial class Object3D : IDisposable
         LineVertexBuffer = null;
         LineIndexCount = 0;
 
-        if (_cachedTriangleIndices == null || _cachedTriangleIndices.Length == 0)
+        if (_meshPayload is null ||
+            _meshPayload.Topology != MeshTopology.Triangles ||
+            _meshPayload.Indices.Length == 0)
         {
             Log.WireframeNoTriangleIndices(log, Name);
             return;
         }
 
         // 从三角形索引中提取唯一边缘
-        var lineIndices = EdgeExtractor.ExtractUniqueEdges(_cachedTriangleIndices);
+        var lineIndices = EdgeExtractor.ExtractUniqueEdges(_meshPayload.Indices);
 
         if (lineIndices.Length == 0)
         {
@@ -362,13 +340,10 @@ public partial class Object3D : IDisposable
         LineIndexBuffer.SetData(lineIndices, 0);
 
         // 创建线框顶点缓冲（初始时复制原始顶点）
-        if (_cachedVertices != null)
-        {
-            var vertexSize = Unsafe.SizeOf<VertexPositionNormalColor>();
-            var vSize = (uint)(_cachedVertices.Length * vertexSize);
-            LineVertexBuffer = factory.CreateVertexBuffer(vSize);
-            LineVertexBuffer.SetData(_cachedVertices, 0);
-        }
+        var vertexSize = Unsafe.SizeOf<VertexPositionNormalColor>();
+        var vSize = (uint)(_meshPayload.Vertices.Length * vertexSize);
+        LineVertexBuffer = factory.CreateVertexBuffer(vSize);
+        LineVertexBuffer.SetData(_meshPayload.Vertices, 0);
 
         Log.WireframeInitialized(log, Name, LineIndexCount / 2);
     }
@@ -377,13 +352,13 @@ public partial class Object3D : IDisposable
     {
         ArgumentNullException.ThrowIfNull(factory);
 
-        if (_cachedMesh == null)
+        if (_meshPayload == null)
         {
             return;
         }
 
         var restoreWireframe = _wireframeResourcesRequested;
-        Initialize(factory, _cachedMesh, logger);
+        Initialize(factory, _meshPayload, logger, resetWireframeRequest: false);
         if (restoreWireframe)
         {
             InitializeWireframe(factory, logger);
@@ -398,16 +373,17 @@ public partial class Object3D : IDisposable
     /// <param name="color">The RGBA color to apply to all wireframe vertices.</param>
     public void UpdateWireframeColor(RgbaFloat color)
     {
-        if (_cachedVertices == null || LineVertexBuffer == null)
+        if (_meshPayload is null || LineVertexBuffer == null)
             return;
 
         // 创建带新颜色的顶点数组
-        var coloredVertices = new VertexPositionNormalColor[_cachedVertices.Length];
-        for (int i = 0; i < _cachedVertices.Length; i++)
+        var sourceVertices = _meshPayload.Vertices;
+        var coloredVertices = new VertexPositionNormalColor[sourceVertices.Length];
+        for (int i = 0; i < sourceVertices.Length; i++)
         {
             coloredVertices[i] = new VertexPositionNormalColor(
-                _cachedVertices[i].Position,
-                _cachedVertices[i].Normal,
+                sourceVertices[i].Position,
+                sourceVertices[i].Normal,
                 color
             );
         }
@@ -419,18 +395,19 @@ public partial class Object3D : IDisposable
         RgbaFloat color,
         out VertexPositionNormalColor[] vertices)
     {
-        if (_cachedVertices == null || _cachedVertices.Length == 0)
+        if (_meshPayload is null || _meshPayload.Vertices.Length == 0)
         {
             vertices = Array.Empty<VertexPositionNormalColor>();
             return false;
         }
 
-        vertices = new VertexPositionNormalColor[_cachedVertices.Length];
-        for (var i = 0; i < _cachedVertices.Length; i++)
+        var sourceVertices = _meshPayload.Vertices;
+        vertices = new VertexPositionNormalColor[sourceVertices.Length];
+        for (var i = 0; i < sourceVertices.Length; i++)
         {
             vertices[i] = new VertexPositionNormalColor(
-                _cachedVertices[i].Position,
-                _cachedVertices[i].Normal,
+                sourceVertices[i].Position,
+                sourceVertices[i].Normal,
                 color);
         }
 

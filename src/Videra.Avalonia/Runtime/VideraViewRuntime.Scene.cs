@@ -142,7 +142,7 @@ internal sealed partial class VideraViewRuntime
     private void OnSceneBackendReady()
     {
         _sceneResourceEpoch++;
-        _sceneUploadQueue.Enqueue(_sceneResidencyRegistry.MarkAllDirty(_sceneResourceEpoch));
+        _sceneUploadQueue.Enqueue(_sceneResidencyRegistry.MarkDirtyForResourceEpoch(_sceneResourceEpoch));
         _sceneEngineApplicator.ApplyReadyAdds(_engine, _sceneResidencyRegistry.GetReadyAdds(_sceneDocument.Entries), _sceneResidencyRegistry);
         RefreshSceneDiagnostics();
         RefreshBackendDiagnostics(_backendDiagnostics.LastInitializationError);
