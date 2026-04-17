@@ -38,8 +38,8 @@ dotnet nuget add source "https://nuget.pkg.github.com/ExplodingUFO/index.json" \
   --password YOUR_GITHUB_PAT \
   --store-password-in-clear-text
 
-dotnet add package Videra.Avalonia --version 0.1.0-alpha.2 --source github-ExplodingUFO
-dotnet add package Videra.Platform.Windows --version 0.1.0-alpha.2 --source github-ExplodingUFO
+dotnet add package Videra.Avalonia --version 0.1.0-alpha.3 --source github-ExplodingUFO
+dotnet add package Videra.Platform.Windows --version 0.1.0-alpha.3 --source github-ExplodingUFO
 ```
 
 If no matching platform package is installed, the software fallback path can still help with diagnostics, but it does not install missing platform packages.

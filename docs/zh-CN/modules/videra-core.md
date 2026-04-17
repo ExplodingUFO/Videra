@@ -25,7 +25,7 @@ dotnet nuget add source "https://nuget.pkg.github.com/ExplodingUFO/index.json" \
   --password YOUR_GITHUB_PAT \
   --store-password-in-clear-text
 
-dotnet add package Videra.Core --version 0.1.0-alpha.2 --source github-ExplodingUFO
+dotnet add package Videra.Core --version 0.1.0-alpha.3 --source github-ExplodingUFO
 ```
 
 ## 模块架构

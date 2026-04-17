@@ -6,6 +6,12 @@ The format is based on Keep a Changelog, and this repository is currently in an 
 
 ## [Unreleased]
 
+## [0.1.0-alpha.3] - 2026-04-17
+
+### Fixed
+
+- Cross-platform native validation now tracks `samples/Videra.MinimalSample/Assets/reference-cube.obj` in git so Linux and macOS checkouts can build the minimal sample reliably
+
 ## [0.1.0-alpha.2] - 2026-04-17
 
 ### Added

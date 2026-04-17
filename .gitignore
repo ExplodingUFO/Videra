@@ -77,6 +77,7 @@ StyleCopReport.xml
 *.meta
 *.obj
 !samples/Videra.InteractionSample/Assets/reference-cube.obj
+!samples/Videra.MinimalSample/Assets/reference-cube.obj
 *.iobj
 *.pch
 *.pdb
