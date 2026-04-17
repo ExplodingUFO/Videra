@@ -2,6 +2,7 @@ using System.Numerics;
 using Avalonia;
 using Avalonia.Media;
 using Videra.Avalonia.Rendering;
+using Videra.Avalonia.Runtime.Scene;
 using Videra.Avalonia.Controls.Interaction;
 using Videra.Core.Cameras;
 using Videra.Core.Geometry;
@@ -162,7 +163,7 @@ internal sealed class VideraViewSessionBridge
         return new VideraViewOverlayState(selectionOutlines, labels);
     }
 
-    public VideraBackendDiagnostics CreateDiagnosticsSnapshot(string? lastInitializationError)
+    public VideraBackendDiagnostics CreateDiagnosticsSnapshot(string? lastInitializationError, SceneResidencyDiagnostics sceneDiagnostics)
     {
         var backendOptions = CreateBackendOptionsSnapshot();
         var diagnosticsOptions = _diagnosticsOptionsAccessor() ?? new VideraDiagnosticsOptions();
@@ -188,6 +189,11 @@ internal sealed class VideraViewSessionBridge
             RenderPipelineProfile = pipelineSnapshot?.Profile.ToString(),
             LastFrameStageNames = pipelineSnapshot?.StageNames?.ToArray() ?? Array.Empty<string>(),
             UsesSoftwarePresentationCopy = snapshot.UsesSoftwarePresentationCopy,
+            SceneDocumentVersion = sceneDiagnostics.SceneDocumentVersion,
+            PendingSceneUploads = sceneDiagnostics.PendingUploads,
+            ResidentSceneObjects = sceneDiagnostics.ResidentObjects,
+            DirtySceneObjects = sceneDiagnostics.DirtyObjects,
+            FailedSceneUploads = sceneDiagnostics.FailedUploads,
             SupportsPassContributors = capabilities.SupportsPassContributors,
             SupportsPassReplacement = capabilities.SupportsPassReplacement,
             SupportsFrameHooks = capabilities.SupportsFrameHooks,

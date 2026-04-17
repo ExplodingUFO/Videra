@@ -17,6 +17,11 @@ public sealed class VideraBackendDiagnostics
             DisplayServerFallbackUsed = false,
             DisplayServerFallbackReason = null,
             LastFrameStageNames = Array.Empty<string>(),
+            SceneDocumentVersion = 0,
+            PendingSceneUploads = 0,
+            ResidentSceneObjects = 0,
+            DirtySceneObjects = 0,
+            FailedSceneUploads = 0,
             SupportsPassContributors = true,
             SupportsPassReplacement = true,
             SupportsFrameHooks = true,
@@ -68,6 +73,16 @@ public sealed class VideraBackendDiagnostics
     public IReadOnlyList<string>? LastFrameStageNames { get; init; }
 
     public bool UsesSoftwarePresentationCopy { get; init; }
+
+    public int SceneDocumentVersion { get; init; }
+
+    public int PendingSceneUploads { get; init; }
+
+    public int ResidentSceneObjects { get; init; }
+
+    public int DirtySceneObjects { get; init; }
+
+    public int FailedSceneUploads { get; init; }
 
     /// <summary>
     /// Gets a value indicating whether pass contributor registration is supported on the public surface.

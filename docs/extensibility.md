@@ -76,13 +76,15 @@ The concrete sample lives at `samples/Videra.ExtensibilitySample`, and its main 
 - `SceneDocument` is the authoritative viewer-scene contract behind the public loading helpers.
 - `LoadModelAsync(...)` imports a backend-neutral asset first, then uploads it only when a ready resource factory is available.
 - `LoadModelsAsync(...)` uses bounded parallel import and replaces the active scene only when every requested import succeeds.
+- `SceneDocumentStore` publishes desired-scene versions, `SceneDeltaPlanner` computes add/remove/reupload work, and `SceneResidencyRegistry` keeps pending/resident/dirty upload state internal to the runtime.
+- `SceneUploadQueue` drains GPU upload work during the render/session cadence instead of synchronously allocating GPU resources on the public API path.
 - Backend rebind and fallback recovery restore the scene from retained imported assets and scene objects; they do not rely on a steady-state software staging path.
 
 ## Scope Boundaries
 
 - `VideraEngine` is the only public extensibility root.
 - `VideraViewRuntime`, `RenderSessionOrchestrator`, `RenderSession`, and `VideraViewSessionBridge` are internal orchestration seams.
-- `SceneDocument`, `SceneUploadCoordinator`, `IGraphicsDevice`, `IRenderSurface`, and `LegacyGraphicsBackendAdapter` are internal contracts; they inform diagnostics and docs truth, not public extension points.
+- `SceneDocument`, `SceneDocumentStore`, `SceneDeltaPlanner`, `SceneResidencyRegistry`, `SceneUploadQueue`, `SceneUploadCoordinator`, `IGraphicsDevice`, `IRenderSurface`, and `LegacyGraphicsBackendAdapter` are internal contracts; they inform diagnostics and docs truth, not public extension points.
 - The public contract is intentionally C#-first and in-process.
 - `package discovery` and `plugin loading` remain out of scope.
 - Public samples and docs should not rely on internal-only types such as `SoftwareBackend`.

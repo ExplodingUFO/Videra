@@ -1,6 +1,7 @@
 using FluentAssertions;
 using Videra.Avalonia.Controls;
 using Videra.Avalonia.Rendering;
+using Videra.Avalonia.Runtime.Scene;
 using Videra.Core.Geometry;
 using Videra.Core.Graphics;
 using Videra.Core.Graphics.Abstractions;
@@ -22,12 +23,12 @@ public sealed class VideraViewSessionBridgeIntegrationTests
         var diagnosticsOptions = new VideraDiagnosticsOptions();
         var bridge = CreateBridge(session, backendOptions, diagnosticsOptions);
 
-        bridge.CreateDiagnosticsSnapshot(lastInitializationError: null).RequestedBackend.Should().Be(GraphicsBackendPreference.Auto);
+        bridge.CreateDiagnosticsSnapshot(lastInitializationError: null, DefaultSceneDiagnostics).RequestedBackend.Should().Be(GraphicsBackendPreference.Auto);
 
         backendOptions.PreferredBackend = GraphicsBackendPreference.Metal;
         bridge.OnBackendOptionsChanged(160, 120, 1f);
 
-        bridge.CreateDiagnosticsSnapshot(lastInitializationError: null).RequestedBackend.Should().Be(GraphicsBackendPreference.Metal);
+        bridge.CreateDiagnosticsSnapshot(lastInitializationError: null, DefaultSceneDiagnostics).RequestedBackend.Should().Be(GraphicsBackendPreference.Metal);
     }
 
     [Fact]
@@ -47,7 +48,7 @@ public sealed class VideraViewSessionBridgeIntegrationTests
         bridge.OnBackendOptionsChanged(256, 144, 1f);
         bridge.OnNativeHandleCreated(new IntPtr(0x1), "XWayland", true, "compat fallback", 256, 144, 1f);
 
-        var afterCreate = bridge.CreateDiagnosticsSnapshot(lastInitializationError: null);
+        var afterCreate = bridge.CreateDiagnosticsSnapshot(lastInitializationError: null, DefaultSceneDiagnostics);
         afterCreate.NativeHostBound.Should().BeTrue();
         afterCreate.ResolvedDisplayServer.Should().Be("XWayland");
         afterCreate.DisplayServerFallbackUsed.Should().BeTrue();
@@ -56,7 +57,7 @@ public sealed class VideraViewSessionBridgeIntegrationTests
 
         bridge.OnNativeHandleDestroyed();
 
-        var afterDestroy = bridge.CreateDiagnosticsSnapshot(lastInitializationError: null);
+        var afterDestroy = bridge.CreateDiagnosticsSnapshot(lastInitializationError: null, DefaultSceneDiagnostics);
         afterDestroy.NativeHostBound.Should().BeFalse();
         afterDestroy.ResolvedDisplayServer.Should().BeNull();
         afterDestroy.DisplayServerFallbackUsed.Should().BeFalse();
@@ -107,7 +108,7 @@ public sealed class VideraViewSessionBridgeIntegrationTests
         var snapshot = session.OrchestrationSnapshot.LastPipelineSnapshot;
         snapshot.Should().NotBeNull();
 
-        var diagnostics = bridge.CreateDiagnosticsSnapshot(lastInitializationError: null);
+        var diagnostics = bridge.CreateDiagnosticsSnapshot(lastInitializationError: null, DefaultSceneDiagnostics);
         diagnostics.RenderPipelineProfile.Should().Be(snapshot!.Profile.ToString());
         diagnostics.LastFrameStageNames.Should().NotBeNull();
         diagnostics.LastFrameStageNames.Should().Contain("PrepareFrame");
@@ -130,6 +131,13 @@ public sealed class VideraViewSessionBridgeIntegrationTests
             backendOptionsAccessor: () => backendOptions,
             diagnosticsOptionsAccessor: () => diagnosticsOptions);
     }
+
+    private static SceneResidencyDiagnostics DefaultSceneDiagnostics => new(
+        SceneDocumentVersion: 0,
+        PendingUploads: 0,
+        ResidentObjects: 0,
+        DirtyObjects: 0,
+        FailedUploads: 0);
 
     private sealed class TrackingSoftwareBackend : IGraphicsBackend, ISoftwareBackend
     {

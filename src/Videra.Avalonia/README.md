@@ -112,6 +112,7 @@ Contract notes:
 - With `AllowSoftwareFallback = true`, `BackendDiagnostics.IsUsingSoftwareFallback` and `BackendDiagnostics.FallbackReason` explain native backend fallback.
 - With `AllowSoftwareFallback = false`, the view stays not ready until the native backend issue is fixed; it does not silently recover through fallback.
 - Scene loading uses retained imported assets and `SceneDocument` truth so backend rebind can restore scene resources without a steady-state software staging path.
+- `SceneDocumentStore`, `SceneDeltaPlanner`, `SceneResidencyRegistry`, and `SceneUploadQueue` stay internal to `Videra.Avalonia`; they let `VideraViewRuntime` publish document deltas, queue uploads, and expose read-only scene residency counts through `BackendDiagnostics`.
 - `package discovery` and `plugin loading` remain out of scope.
 
 ## Interaction Contract

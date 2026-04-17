@@ -121,6 +121,9 @@ public sealed class DemoConfigurationTests
         demoReadme.Should().Contain("Model import remains available");
         demoReadme.Should().Contain("summarized in the status area");
         demoReadme.Should().Contain("replaced only when every requested file succeeds");
+        demoReadme.Should().Contain("document version");
+        demoReadme.Should().Contain("resident");
+        demoReadme.Should().Contain("failed");
     }
 
     [Fact]
@@ -130,8 +133,11 @@ public sealed class DemoConfigurationTests
         var xaml = File.ReadAllText(mainWindowPath);
 
         xaml.Should().Contain("SCENE PIPELINE LAB");
+        xaml.Should().Contain("Text=\"{Binding ScenePipelineMetrics}\"");
         xaml.Should().Contain("bounded parallel import");
         xaml.Should().Contain("backend-neutral");
+        xaml.Should().Contain("scene upload queue");
+        xaml.Should().Contain("residency counts");
         xaml.Should().Contain("backend rebind");
     }
 

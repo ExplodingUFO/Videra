@@ -30,6 +30,7 @@
   </Folder>
   <Folder Name="/Tests/" />
   <Folder Name="/Tests/Core/">
+    <Project Path="tests/Videra.Avalonia.Tests/Videra.Avalonia.Tests.csproj" />
     <Project Path="tests/Tests.Common/Tests.Common.csproj" />
     <Project Path="tests/Videra.Core.IntegrationTests/Videra.Core.IntegrationTests.csproj" />
     <Project Path="tests/Videra.Core.Tests/Videra.Core.Tests.csproj" />

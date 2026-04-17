@@ -54,21 +54,24 @@ internal sealed class RenderWorld
         return projections;
     }
 
-    public void AddObject(Object3D obj, IResourceFactory? resourceFactory, ILogger? logger = null)
+    public void AddObject(Object3D obj, IResourceFactory? resourceFactory, ILogger? logger = null, bool uploadIfPossible = true)
     {
         _sceneObjects.Add(obj);
 
-        if (resourceFactory != null)
+        if (uploadIfPossible && resourceFactory != null)
         {
             obj.RecreateGraphicsResources(resourceFactory, logger);
             obj.InitializeWireframe(resourceFactory, logger);
         }
     }
 
-    public void RemoveObject(Object3D obj)
+    public void RemoveObject(Object3D obj, bool disposeObject)
     {
         _sceneObjects.Remove(obj);
-        obj.Dispose();
+        if (disposeObject)
+        {
+            obj.Dispose();
+        }
     }
 
     public void ClearObjects()
@@ -115,5 +118,10 @@ internal sealed class RenderWorld
 
             obj.InitializeWireframe(resourceFactory, logger);
         }
+    }
+
+    public bool Contains(Object3D obj)
+    {
+        return _sceneObjects.Contains(obj);
     }
 }

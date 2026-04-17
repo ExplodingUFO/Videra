@@ -8,14 +8,7 @@ public static class SceneUploadCoordinator
 {
     public static Object3D CreateDeferredObject(ImportedSceneAsset asset)
     {
-        ArgumentNullException.ThrowIfNull(asset);
-
-        var sceneObject = new Object3D
-        {
-            Name = asset.Name
-        };
-        sceneObject.PrepareDeferredMesh(asset.MeshData);
-        return sceneObject;
+        return SceneObjectFactory.CreateDeferred(asset);
     }
 
     public static Object3D Upload(ImportedSceneAsset asset, IResourceFactory factory, ILogger? logger = null)
@@ -23,8 +16,8 @@ public static class SceneUploadCoordinator
         ArgumentNullException.ThrowIfNull(asset);
         ArgumentNullException.ThrowIfNull(factory);
 
-        var sceneObject = CreateDeferredObject(asset);
-        Upload(sceneObject, factory, logger);
+        var sceneObject = SceneObjectFactory.CreateDeferred(asset);
+        SceneObjectUploader.Upload(sceneObject, factory, logger);
         return sceneObject;
     }
 
@@ -33,6 +26,6 @@ public static class SceneUploadCoordinator
         ArgumentNullException.ThrowIfNull(sceneObject);
         ArgumentNullException.ThrowIfNull(factory);
 
-        sceneObject.RecreateGraphicsResources(factory, logger);
+        SceneObjectUploader.Upload(sceneObject, factory, logger);
     }
 }

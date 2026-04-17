@@ -273,7 +273,7 @@ public partial class VideraEngine : IDisposable
             }
 
             ArgumentNullException.ThrowIfNull(obj);
-            _renderWorld.AddObject(obj, _resources.ResourceFactory, _logger);
+            _renderWorld.AddObject(obj, _resources.ResourceFactory, _logger, uploadIfPossible: true);
         }
         Log.ObjectAdded(_logger, obj.Name);
     }
@@ -284,6 +284,11 @@ public partial class VideraEngine : IDisposable
     /// <param name="obj">The <see cref="Object3D"/> to remove.</param>
     public void RemoveObject(Object3D obj)
     {
+        RemoveObject(obj, disposeObject: true);
+    }
+
+    internal void AddObject(Object3D obj, bool uploadIfPossible)
+    {
         lock (_lock)
         {
             if (_state == EngineLifecycleState.Disposed)
@@ -292,7 +297,28 @@ public partial class VideraEngine : IDisposable
             }
 
             ArgumentNullException.ThrowIfNull(obj);
-            _renderWorld.RemoveObject(obj);
+            if (_renderWorld.Contains(obj))
+            {
+                return;
+            }
+
+            _renderWorld.AddObject(obj, _resources.ResourceFactory, _logger, uploadIfPossible);
+        }
+
+        Log.ObjectAdded(_logger, obj.Name);
+    }
+
+    internal void RemoveObject(Object3D obj, bool disposeObject)
+    {
+        lock (_lock)
+        {
+            if (_state == EngineLifecycleState.Disposed)
+            {
+                return;
+            }
+
+            ArgumentNullException.ThrowIfNull(obj);
+            _renderWorld.RemoveObject(obj, disposeObject);
         }
         Log.ObjectRemoved(_logger, obj.Name);
     }

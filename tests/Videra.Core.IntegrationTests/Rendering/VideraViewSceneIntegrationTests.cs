@@ -51,7 +51,8 @@ public sealed class VideraViewSceneIntegrationTests : IDisposable
             result.Succeeded.Should().BeTrue();
             result.LoadedObject.Should().NotBeNull();
             result.Failure.Should().BeNull();
-            GetSceneObjectCount(view).Should().Be(1);
+            GetSceneObjectCount(view).Should().Be(0);
+            ReadSceneDocumentObjects(view).Should().ContainSingle().Which.Should().BeSameAs(result.LoadedObject);
         }
         finally
         {
@@ -77,7 +78,7 @@ public sealed class VideraViewSceneIntegrationTests : IDisposable
 
             result.Succeeded.Should().BeTrue();
             result.LoadedObject.Should().NotBeNull();
-            GetSceneObjectCount(view).Should().Be(1);
+            GetSceneObjectCount(view).Should().Be(0);
             ReadSceneDocumentObjects(view).Should().ContainSingle().Which.Should().BeSameAs(result.LoadedObject);
             ReadSceneDocumentImportedAssets(view).Should().ContainSingle(asset => asset.FilePath == path);
             ReadObjectVertexBuffer(result.LoadedObject!).Should().BeNull();
@@ -222,8 +223,9 @@ public sealed class VideraViewSceneIntegrationTests : IDisposable
 
             result.Succeeded.Should().BeTrue();
             result.LoadedObjects.Should().HaveCount(2);
-            GetSceneObjects(view).Should().HaveCount(2);
-            GetSceneObjects(view).Should().NotContain(initial);
+            GetSceneObjects(view).Should().BeEmpty();
+            ReadSceneDocumentObjects(view).Should().HaveCount(2);
+            ReadSceneDocumentObjects(view).Should().NotContain(initial);
             ReadSceneDocumentImportedAssets(view).Should().HaveCount(2);
         }
         finally
@@ -316,6 +318,91 @@ public sealed class VideraViewSceneIntegrationTests : IDisposable
 
             ReadObjectVertexBuffer(loadedObject).Should().NotBeNull();
             GetSceneObjects(view).Should().Contain(loadedObject);
+        }
+        finally
+        {
+            view.Engine.Dispose();
+        }
+    }
+
+    [Fact]
+    public async Task BackendDiagnostics_ShouldExposeSceneResidencyCountsBeforeAndAfterUpload()
+    {
+        var path = WriteObj("diagnostics-residency.obj", """
+            v 0.0 0.0 0.0
+            v 1.0 0.0 0.0
+            v 0.0 1.0 0.0
+            vn 0.0 0.0 1.0
+            f 1//1 2//1 3//1
+            """);
+
+        var view = new VideraView(nativeHostFactory: null, bitmapFactory: static (_, _) => null);
+        try
+        {
+            var result = await view.LoadModelAsync(path);
+            result.Succeeded.Should().BeTrue();
+
+            view.BackendDiagnostics.SceneDocumentVersion.Should().BeGreaterThan(0);
+            view.BackendDiagnostics.PendingSceneUploads.Should().Be(1);
+            view.BackendDiagnostics.ResidentSceneObjects.Should().Be(0);
+            view.BackendDiagnostics.DirtySceneObjects.Should().Be(0);
+            view.BackendDiagnostics.FailedSceneUploads.Should().Be(0);
+
+            var session = VideraViewRuntimeTestAccess.ReadRenderSession(view);
+            session.Attach(GraphicsBackendPreference.Software);
+            session.Resize(128, 96, 1f);
+            session.RenderOnce();
+            RefreshBackendDiagnostics(view);
+
+            view.BackendDiagnostics.PendingSceneUploads.Should().Be(0);
+            view.BackendDiagnostics.ResidentSceneObjects.Should().Be(1);
+            view.BackendDiagnostics.DirtySceneObjects.Should().Be(0);
+            view.BackendDiagnostics.FailedSceneUploads.Should().Be(0);
+        }
+        finally
+        {
+            view.Engine.Dispose();
+        }
+    }
+
+    [Fact]
+    public async Task BackendRebind_ShouldRequeueResidentImportedSceneObjectsForUpload()
+    {
+        var path = WriteObj("rebind-reupload.obj", """
+            v 0.0 0.0 0.0
+            v 1.0 0.0 0.0
+            v 0.0 1.0 0.0
+            vn 0.0 0.0 1.0
+            f 1//1 2//1 3//1
+            """);
+
+        var view = new VideraView(nativeHostFactory: null, bitmapFactory: static (_, _) => null);
+        try
+        {
+            var result = await view.LoadModelAsync(path);
+            var loadedObject = result.LoadedObject!;
+
+            var session = VideraViewRuntimeTestAccess.ReadRenderSession(view);
+            session.Attach(GraphicsBackendPreference.Software);
+            session.Resize(128, 96, 1f);
+            session.RenderOnce();
+            RefreshBackendDiagnostics(view);
+
+            var originalVertexBuffer = ReadObjectVertexBuffer(loadedObject);
+            originalVertexBuffer.Should().NotBeNull();
+
+            VideraViewRuntimeTestAccess.ReadRuntimeMethod(view, "OnSceneBackendReady")
+                .Invoke(VideraViewRuntimeTestAccess.ReadRuntime(view), Array.Empty<object>());
+
+            session.RenderOnce();
+            RefreshBackendDiagnostics(view);
+
+            ReadObjectVertexBuffer(loadedObject).Should().NotBeNull();
+            ReadObjectVertexBuffer(loadedObject).Should().NotBeSameAs(originalVertexBuffer);
+            var residencyDiagnostics = ReadSceneResidencyDiagnostics(view);
+            residencyDiagnostics.PendingUploads.Should().Be(0);
+            residencyDiagnostics.ResidentObjects.Should().Be(1);
+            residencyDiagnostics.DirtyObjects.Should().Be(0);
         }
         finally
         {
@@ -867,6 +954,26 @@ public sealed class VideraViewSceneIntegrationTests : IDisposable
         var property = typeof(Object3D).GetProperty("VertexBuffer", BindingFlags.Instance | BindingFlags.NonPublic);
         property.Should().NotBeNull();
         return property!.GetValue(sceneObject);
+    }
+
+    private static void RefreshBackendDiagnostics(VideraView view)
+    {
+        var refreshDiagnostics = typeof(VideraView).GetMethod(
+            "RefreshBackendDiagnostics",
+            BindingFlags.Instance | BindingFlags.NonPublic);
+        refreshDiagnostics.Should().NotBeNull();
+        refreshDiagnostics!.Invoke(view, new object?[] { null });
+    }
+
+    private static (int PendingUploads, int ResidentObjects, int DirtyObjects, int FailedUploads) ReadSceneResidencyDiagnostics(VideraView view)
+    {
+        var diagnostics = VideraViewRuntimeTestAccess.ReadRuntimeField<object>(view, "_sceneDiagnostics");
+        var diagnosticsType = diagnostics.GetType();
+        return (
+            PendingUploads: (int)diagnosticsType.GetProperty("PendingUploads")!.GetValue(diagnostics)!,
+            ResidentObjects: (int)diagnosticsType.GetProperty("ResidentObjects")!.GetValue(diagnostics)!,
+            DirtyObjects: (int)diagnosticsType.GetProperty("DirtyObjects")!.GetValue(diagnostics)!,
+            FailedUploads: (int)diagnosticsType.GetProperty("FailedUploads")!.GetValue(diagnostics)!);
     }
 
     private sealed class RecordingNativeHostFactory : INativeHostFactory

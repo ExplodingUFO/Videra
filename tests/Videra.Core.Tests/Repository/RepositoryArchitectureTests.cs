@@ -46,6 +46,14 @@ public sealed class RepositoryArchitectureTests
         "FrameAll()"
     };
 
+    private static readonly string[] ScenePipelineInternalSymbols =
+    {
+        "SceneDocumentStore",
+        "SceneDeltaPlanner",
+        "SceneResidencyRegistry",
+        "SceneUploadQueue"
+    };
+
     [Fact]
     public void VideraEngine_ShouldSplitRenderingAndResourceOrchestrationAcrossDedicatedPartialFiles()
     {
@@ -136,14 +144,24 @@ public sealed class RepositoryArchitectureTests
         architecture.Should().Contain("IRenderSurface");
         architecture.Should().Contain("LegacyGraphicsBackendAdapter");
         architecture.Should().Contain("compatibility");
+        foreach (var symbol in ScenePipelineInternalSymbols)
+        {
+            architecture.Should().Contain(symbol);
+        }
 
         coreReadme.Should().Contain("IGraphicsDevice");
         coreReadme.Should().Contain("IRenderSurface");
         coreReadme.Should().Contain("SceneDocument");
+        coreReadme.Should().Contain("ImportedSceneAsset.Metrics");
         avaloniaReadme.Should().Contain("SceneDocument");
+        avaloniaReadme.Should().Contain("SceneUploadQueue");
+        avaloniaReadme.Should().Contain("SceneResidencyRegistry");
         avaloniaReadme.Should().Contain("LoadModelsAsync(...)");
         avaloniaReadme.Should().Contain("active scene only when every requested file succeeds");
         extensibilityDoc.Should().Contain("SceneDocument");
+        extensibilityDoc.Should().Contain("SceneDeltaPlanner");
+        extensibilityDoc.Should().Contain("SceneResidencyRegistry");
+        extensibilityDoc.Should().Contain("SceneUploadQueue");
         extensibilityDoc.Should().Contain("LoadModelsAsync(...)");
         extensibilityDoc.Should().Contain("active scene is replaced only when every requested file succeeds");
     }

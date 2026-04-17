@@ -55,7 +55,7 @@ public partial class VideraView
 
     private bool TryGetSceneBounds(out BoundingBox3 sceneBounds)
     {
-        var sceneObjects = Engine.SceneObjects;
+        var sceneObjects = _runtime.SceneObjects;
         BoundingBox3? aggregateBounds = null;
 
         foreach (var sceneObject in sceneObjects)

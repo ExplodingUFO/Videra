@@ -118,6 +118,32 @@ public partial class Object3D : IDisposable
 
     public BoundingBox3? WorldBounds => _localBounds?.Transform(WorldMatrix);
 
+    internal bool HasPreparedMesh => _cachedMesh is not null;
+
+    internal bool CanRecreateGraphicsResources => _cachedMesh is not null;
+
+    internal long ApproximateGpuBytes
+    {
+        get
+        {
+            if (_cachedMesh != null)
+            {
+                return (long)_cachedMesh.Vertices.Length * Unsafe.SizeOf<VertexPositionNormalColor>() +
+                       (long)_cachedMesh.Indices.Length * sizeof(uint) +
+                       64L;
+            }
+
+            if (_cachedVertices != null)
+            {
+                return (long)_cachedVertices.Length * Unsafe.SizeOf<VertexPositionNormalColor>() +
+                       (long)IndexCount * sizeof(uint) +
+                       64L;
+            }
+
+            return 0L;
+        }
+    }
+
     /// <summary>
     /// Releases all GPU resources (vertex, index, world, and wireframe buffers) held by this object.
     /// </summary>

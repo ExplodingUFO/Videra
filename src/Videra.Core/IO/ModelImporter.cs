@@ -75,7 +75,10 @@ public static partial class ModelImporter
             return new ImportedSceneAsset(
                 filePath,
                 Path.GetFileName(filePath),
-                meshData);
+                meshData)
+            {
+                Metrics = SceneAssetMetrics.FromMesh(meshData)
+            };
         }
         catch (VideraException)
         {

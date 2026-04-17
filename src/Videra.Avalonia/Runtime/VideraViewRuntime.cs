@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using Videra.Avalonia.Controls;
 using Videra.Avalonia.Controls.Interaction;
 using Videra.Avalonia.Rendering;
+using Videra.Avalonia.Runtime.Scene;
 using Videra.Core.Geometry;
 using Videra.Core.Graphics;
 using Videra.Core.Scene;
@@ -25,6 +26,17 @@ internal sealed partial class VideraViewRuntime : IDisposable
     private VideraViewOptions _options = new();
     private VideraBackendDiagnostics _backendDiagnostics;
     private SceneDocument _sceneDocument = SceneDocument.Empty;
+    private readonly SceneDocumentMutator _sceneDocumentMutator = new();
+    private readonly SceneDocumentStore _sceneDocumentStore;
+    private readonly SceneDeltaPlanner _sceneDeltaPlanner = new();
+    private readonly SceneResidencyRegistry _sceneResidencyRegistry = new();
+    private readonly SceneUploadQueue _sceneUploadQueue = new();
+    private readonly SceneEngineApplicator _sceneEngineApplicator = new();
+    private readonly SceneItemsAdapter _sceneItemsAdapter;
+    private readonly SceneImportService _sceneImportService;
+    private SceneResidencyDiagnostics _sceneDiagnostics;
+    private ulong _sceneResourceEpoch = 1;
+    private RuntimeFramePrelude _framePrelude;
     private VideraSelectionState _selectionState = new();
     private IReadOnlyList<VideraAnnotation> _annotations = Array.Empty<VideraAnnotation>();
     private VideraViewOverlayState _overlayState = VideraViewOverlayState.Empty;
@@ -42,12 +54,17 @@ internal sealed partial class VideraViewRuntime : IDisposable
         _engine = engine ?? throw new ArgumentNullException(nameof(engine));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _bitmapFactory = bitmapFactory;
+        _sceneDocumentStore = new SceneDocumentStore(_sceneDocument);
+        _sceneItemsAdapter = new SceneItemsAdapter(_sceneDocumentMutator);
+        _sceneImportService = new SceneImportService(_sceneDocumentMutator);
         _interactionController = new VideraInteractionController(_owner, _logger);
         _interactionRouter = new VideraInteractionRouter(_owner, _interactionController);
         _renderSession = CreateRenderSession();
         _sessionBridge = CreateSessionBridge();
+        _framePrelude = CreateFramePrelude();
         SubscribeToOptions(_options);
-        _backendDiagnostics = _sessionBridge.CreateDiagnosticsSnapshot(lastInitializationError: null);
+        RefreshSceneDiagnostics();
+        _backendDiagnostics = _sessionBridge.CreateDiagnosticsSnapshot(lastInitializationError: null, _sceneDiagnostics);
     }
 
     public RenderSession RenderSession => _renderSession;
@@ -97,6 +114,8 @@ internal sealed partial class VideraViewRuntime : IDisposable
 
     public VideraViewOverlayState OverlayState => _overlayState;
 
+    internal IReadOnlyList<Object3D> SceneObjects => _sceneDocument.SceneObjects;
+
     public void Dispose()
     {
         UnsubscribeFromOptions(_options);
@@ -109,13 +128,27 @@ internal sealed partial class VideraViewRuntime : IDisposable
     {
         var session = new RenderSession(
             _engine,
-            beforeRender: PushOverlayRenderState,
+            beforeRender: OnBeforeRender,
             requestRender: OnRenderSessionFrameRequested,
             logger: _logger,
             renderLoopFactory: static () => new RenderSession.DispatcherRenderLoopDriver(),
             bitmapFactory: _bitmapFactory);
         session.BackendReady += OnRenderSessionBackendReady;
         return session;
+    }
+
+    internal RuntimeFramePrelude CreateFramePrelude()
+    {
+        return new RuntimeFramePrelude(
+            _sceneUploadQueue,
+            _sceneResidencyRegistry,
+            _sceneEngineApplicator,
+            _engine,
+            () => _renderSession.ResourceFactory,
+            () => _renderSession.HasInteractiveLease,
+            () => _sceneResourceEpoch,
+            PushOverlayRenderState,
+            _logger);
     }
 
     internal VideraViewSessionBridge CreateSessionBridge()
@@ -179,6 +212,7 @@ internal sealed partial class VideraViewRuntime : IDisposable
         _sessionBridge.OnViewDetached();
         _renderSession = CreateRenderSession();
         _sessionBridge = CreateSessionBridge();
+        _framePrelude = CreateFramePrelude();
         RefreshBackendDiagnostics(lastInitializationError: null);
     }
 
@@ -246,7 +280,7 @@ internal sealed partial class VideraViewRuntime : IDisposable
         }
         else
         {
-            SynchronizeSceneDocumentToEngine();
+            RefreshSceneDiagnostics();
         }
 
         SynchronizeOverlayState();
@@ -293,9 +327,22 @@ internal sealed partial class VideraViewRuntime : IDisposable
 
     internal void RefreshBackendDiagnostics(string? lastInitializationError)
     {
-        var next = _sessionBridge.CreateDiagnosticsSnapshot(lastInitializationError);
+        RefreshSceneDiagnostics();
+        var next = _sessionBridge.CreateDiagnosticsSnapshot(lastInitializationError, _sceneDiagnostics);
         _backendDiagnostics = next;
         _owner.PublishBackendDiagnosticsFromRuntime(next);
+    }
+
+    internal void RefreshSceneDiagnostics()
+    {
+        _sceneDiagnostics = _sceneResidencyRegistry.CreateDiagnostics(_sceneDocument.Version);
+    }
+
+    private void OnBeforeRender()
+    {
+        _ = _framePrelude.Execute();
+        RefreshSceneDiagnostics();
+        RefreshBackendDiagnostics(_backendDiagnostics.LastInitializationError);
     }
 
     private void SubscribeToOptions(VideraViewOptions options)

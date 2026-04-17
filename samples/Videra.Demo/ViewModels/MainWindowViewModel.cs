@@ -63,6 +63,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
     [ObservableProperty] private string _backendDisplay = "Requested: Auto | Resolved: Auto";
     [ObservableProperty] private string _backendDetails = "Ready: false | Native host: false | Render loop: Dispatcher";
+    [ObservableProperty] private string _scenePipelineMetrics = "Document v0 | Pending 0 | Resident 0 | Dirty 0 | Failed 0";
     [ObservableProperty] private Color _bgColor = Color.Parse("#1e1e1e");
 
     [ObservableProperty]
@@ -195,6 +196,8 @@ public partial class MainWindowViewModel : ViewModelBase
         }
 
         BackendDetails = string.Join(" | ", details);
+        ScenePipelineMetrics =
+            $"Document v{diagnostics.SceneDocumentVersion} | Pending {diagnostics.PendingSceneUploads} | Resident {diagnostics.ResidentSceneObjects} | Dirty {diagnostics.DirtySceneObjects} | Failed {diagnostics.FailedSceneUploads}";
     }
 
     public void SetStatusMessage(string message)

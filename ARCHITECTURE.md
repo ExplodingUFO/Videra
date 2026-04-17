@@ -64,6 +64,7 @@ UI integration layer responsible for:
 - Coordinating render-session lifecycle and backend selection
 - Hosting Avalonia-specific runtime/presentation adapters in `RenderSession`
 - Translating view-level input/options/events through `VideraViewSessionBridge`
+- Hosting scene-runtime services such as `SceneDocumentStore`, `SceneDeltaPlanner`, `SceneResidencyRegistry`, and `SceneUploadQueue`
 
 This layer lets host apps use the 3D view from XAML or code without coupling UI surface code to rendering internals.
 
@@ -192,6 +193,8 @@ Boundary summary:
 - `VideraEngine` owns frame-plan and pipeline execution semantics.
 - `VideraViewRuntime` owns view-local coordination, native-host lifecycle, overlay sync, and session forwarding.
 - `SceneDocument` is the authoritative viewer-scene contract; imported assets remain backend-neutral until a ready resource factory uploads them.
+- `SceneDocumentStore` owns the current desired scene truth, while `SceneDeltaPlanner` and `SceneEngineApplicator` turn document changes into engine add/remove work.
+- `SceneResidencyRegistry` and `SceneUploadQueue` own upload state and frame-budgeted GPU realization; scene mutations do not synchronously allocate GPU resources on the public API path.
 - `RenderSessionOrchestrator` owns host-agnostic session orchestration and rendering cadence.
 - Built-in backends now satisfy the internal `IGraphicsDevice` / `IRenderSurface` split directly; `LegacyGraphicsBackendAdapter` is a compatibility seam, not the preferred steady-state path.
 - `RenderSession` owns Avalonia-specific runtime/presentation adapter setup.

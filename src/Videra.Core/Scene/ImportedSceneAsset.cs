@@ -6,4 +6,7 @@ namespace Videra.Core.Scene;
 public sealed record ImportedSceneAsset(
     string FilePath,
     string Name,
-    MeshData MeshData);
+    MeshData MeshData)
+{
+    public SceneAssetMetrics? Metrics { get; init; }
+}

@@ -42,9 +42,10 @@
 
                     <StackPanel Spacing="8">
                         <TextBlock Text="SCENE PIPELINE LAB" FontWeight="Bold" Foreground="#007ACC" FontSize="12"/>
+                        <TextBlock Text="{Binding ScenePipelineMetrics}" Foreground="#8DD3FF" FontWeight="SemiBold" TextWrapping="Wrap"/>
                         <TextBlock Text="Batch import uses bounded parallel import and replaces the active scene only when every file succeeds." Foreground="#CCCCCC" TextWrapping="Wrap"/>
-                        <TextBlock Text="Imported assets stay backend-neutral until a ready resource factory uploads them into GPU resources." Foreground="#CCCCCC" TextWrapping="Wrap"/>
-                        <TextBlock Text="Backend diagnostics explain fallback resolution, and scene truth survives backend rebind without replaying a software staging path." Foreground="#CCCCCC" TextWrapping="Wrap"/>
+                        <TextBlock Text="Imported assets stay backend-neutral until a ready resource factory uploads them into GPU resources through the scene upload queue." Foreground="#CCCCCC" TextWrapping="Wrap"/>
+                        <TextBlock Text="Backend diagnostics explain fallback resolution, residency counts, and backend rebind without replaying a software staging path." Foreground="#CCCCCC" TextWrapping="Wrap"/>
                     </StackPanel>
                     <Separator Background="#3E3E42"/>
 

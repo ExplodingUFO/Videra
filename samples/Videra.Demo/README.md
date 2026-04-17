@@ -16,7 +16,7 @@
 - Grid visibility, color, and height controls
 - Basic object transform editing
 - Backend diagnostics via `BackendDiagnostics`, including readiness, native-host binding, and fallback details
-- A focused `Scene Pipeline Lab` panel that calls out deferred upload, atomic scene replacement, and backend-rebind truth
+- A focused `Scene Pipeline Lab` panel that calls out `SceneDocument` versioning, deferred upload, residency counts, atomic scene replacement, and backend-rebind truth
 
 ## Runtime Behavior
 
@@ -51,7 +51,8 @@ Import results are summarized in the status area. Batch import uses bounded para
 The `Scene Pipeline Lab` copy in the side panel is deliberate. It projects three internal truths into a user-visible onboarding surface without turning `Videra.Demo` into another broad workstation shell:
 
 - `SceneDocument` is the runtime scene truth, not a mirror of `Engine.SceneObjects`
-- imported assets stay CPU-side until a ready resource factory uploads them
+- imported assets stay CPU-side until a ready resource factory uploads them through the scene upload queue
+- backend diagnostics surface `document version`, `pending`, `resident`, `dirty`, and `failed` scene-upload counts
 - backend diagnostics explain fallback/rebind behavior while the scene survives backend recreation
 
 ## Run

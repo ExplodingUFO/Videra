@@ -99,7 +99,7 @@ Use [CONTRIBUTING.md](CONTRIBUTING.md) when you want to build, validate, and sub
 | `Videra.InteractionSample` | Public sample for the controlled interaction contract and host-owned state |
 
 `Videra.Demo` remains the quickest end-to-end viewer reference. It surfaces backend diagnostics, seeds a default demo cube on the ready path, and summarizes import feedback in the status area.
-It now also includes a narrow `Scene Pipeline Lab` panel for deferred upload, atomic batch replacement, and backend-rebind truth.
+It now also includes a narrow `Scene Pipeline Lab` panel for `SceneDocument` versioning, pending/resident/dirty upload counts, atomic batch replacement, and backend-rebind truth.
 
 ## Extensibility Onboarding
 

@@ -4,45 +4,73 @@ namespace Videra.Core.Scene;
 
 public sealed class SceneDocument
 {
-    private readonly DocumentEntry[] _entries;
+    private readonly SceneDocumentEntry[] _entries;
 
-    public static SceneDocument Empty { get; } = new(Array.Empty<DocumentEntry>());
+    public static SceneDocument Empty { get; } = new(version: 0, Array.Empty<SceneDocumentEntry>());
 
     public SceneDocument(IEnumerable<Object3D> sceneObjects)
-        : this(CreateEntries(sceneObjects))
+        : this(version: 1, CreateEntries(sceneObjects))
     {
     }
 
-    internal SceneDocument(IEnumerable<DocumentEntry> entries)
+    internal SceneDocument(int version, IEnumerable<SceneDocumentEntry> entries)
     {
         ArgumentNullException.ThrowIfNull(entries);
+        Version = version;
         _entries = entries.ToArray();
         SceneObjects = _entries.Select(static entry => entry.SceneObject).ToArray();
     }
 
+    public int Version { get; }
+
     public IReadOnlyList<Object3D> SceneObjects { get; }
 
-    internal IReadOnlyList<DocumentEntry> Entries => _entries;
+    internal IReadOnlyList<SceneDocumentEntry> Entries => _entries;
 
-    internal SceneDocument Add(Object3D sceneObject, ImportedSceneAsset? importedAsset = null)
+    internal bool TryGetEntry(Object3D sceneObject, out SceneDocumentEntry entry)
     {
         ArgumentNullException.ThrowIfNull(sceneObject);
-        return new SceneDocument(_entries.Append(new DocumentEntry(sceneObject, importedAsset)));
+
+        for (var i = 0; i < _entries.Length; i++)
+        {
+            if (ReferenceEquals(_entries[i].SceneObject, sceneObject))
+            {
+                entry = _entries[i];
+                return true;
+            }
+        }
+
+        entry = default!;
+        return false;
     }
 
-    internal SceneDocument Replace(IEnumerable<DocumentEntry> entries)
+    internal bool TryGetEntry(SceneEntryId id, out SceneDocumentEntry entry)
     {
-        ArgumentNullException.ThrowIfNull(entries);
-        return new SceneDocument(entries);
+        for (var i = 0; i < _entries.Length; i++)
+        {
+            if (_entries[i].Id == id)
+            {
+                entry = _entries[i];
+                return true;
+            }
+        }
+
+        entry = default!;
+        return false;
     }
 
-    internal sealed record DocumentEntry(
-        Object3D SceneObject,
-        ImportedSceneAsset? ImportedAsset);
+    internal SceneDocument WithEntries(IEnumerable<SceneDocumentEntry> entries, int version)
+    {
+        return new SceneDocument(version, entries);
+    }
 
-    private static IEnumerable<DocumentEntry> CreateEntries(IEnumerable<Object3D> sceneObjects)
+    private static IEnumerable<SceneDocumentEntry> CreateEntries(IEnumerable<Object3D> sceneObjects)
     {
         ArgumentNullException.ThrowIfNull(sceneObjects);
-        return sceneObjects.Select(static sceneObject => new DocumentEntry(sceneObject, ImportedAsset: null));
+        return sceneObjects.Select(static sceneObject => new SceneDocumentEntry(
+            SceneEntryId.New(),
+            sceneObject,
+            ImportedAsset: null,
+            SceneOwnership.ExternalObject));
     }
 }

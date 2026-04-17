@@ -3,9 +3,9 @@ using System.Collections.Specialized;
 using System.Diagnostics;
 using Videra.Avalonia.Controls;
 using Videra.Avalonia.Rendering;
+using Videra.Avalonia.Runtime.Scene;
 using Videra.Core.Graphics;
 using Videra.Core.Graphics.Abstractions;
-using Videra.Core.IO;
 using Videra.Core.Scene;
 
 namespace Videra.Avalonia.Runtime;
@@ -17,21 +17,14 @@ internal sealed partial class VideraViewRuntime
         ArgumentException.ThrowIfNullOrWhiteSpace(path);
 
         var startedAt = Stopwatch.StartNew();
-        try
+        var importResult = await _sceneImportService.ImportSingleAsync(path, cancellationToken).ConfigureAwait(true);
+        if (importResult.Failure is not null)
         {
-            var asset = await Task.Run(() => ModelImporter.Import(path), cancellationToken).ConfigureAwait(true);
-            var loadedObject = SceneUploadCoordinator.CreateDeferredObject(asset);
-            AppendSceneEntry(loadedObject, asset);
-            return ModelLoadResult.Success(path, loadedObject, startedAt.Elapsed);
+            return ModelLoadResult.Failed(path, importResult.Failure.Exception, startedAt.Elapsed);
         }
-        catch (OperationCanceledException)
-        {
-            throw;
-        }
-        catch (Exception ex)
-        {
-            return ModelLoadResult.Failed(path, ex, startedAt.Elapsed);
-        }
+
+        AppendSceneEntry(importResult.Entry!);
+        return ModelLoadResult.Success(path, importResult.SceneObject!, startedAt.Elapsed);
     }
 
     public async Task<ModelLoadBatchResult> LoadModelsAsync(IEnumerable<string> paths, CancellationToken cancellationToken = default)
@@ -39,31 +32,14 @@ internal sealed partial class VideraViewRuntime
         ArgumentNullException.ThrowIfNull(paths);
 
         var startedAt = Stopwatch.StartNew();
-        var pathArray = paths.ToArray();
-        var maxConcurrency = Math.Clamp(Environment.ProcessorCount, 1, 4);
-        using var gate = new SemaphoreSlim(maxConcurrency, maxConcurrency);
+        var importResult = await _sceneImportService.ImportBatchAsync(paths, cancellationToken).ConfigureAwait(true);
 
-        var imports = await Task.WhenAll(pathArray.Select(
-                (path, index) => ImportSceneEntryAsync(path, index, gate, cancellationToken)))
-            .ConfigureAwait(true);
-
-        Array.Sort(imports, static (left, right) => left.Index.CompareTo(right.Index));
-
-        var loadedObjects = imports
-            .Where(static result => result.SceneObject is not null)
-            .Select(static result => result.SceneObject!)
-            .ToArray();
-        var failures = imports
-            .Where(static result => result.Failure is not null)
-            .Select(static result => result.Failure!)
-            .ToArray();
-
-        if (failures.Length == 0)
+        if (importResult.Failures.Count == 0)
         {
-            ReplaceSceneEntries(imports.Select(static result => result.DocumentEntry!));
+            ReplaceSceneEntries(importResult.Entries);
         }
 
-        return new ModelLoadBatchResult(loadedObjects, failures, startedAt.Elapsed);
+        return new ModelLoadBatchResult(importResult.SceneObjects, importResult.Failures, startedAt.Elapsed);
     }
 
     public void AddObject(Object3D obj)
@@ -76,7 +52,7 @@ internal sealed partial class VideraViewRuntime
             return;
         }
 
-        PublishSceneDocument(_sceneDocument.Add(obj));
+        PublishSceneDocument(_sceneDocumentMutator.Add(_sceneDocument, obj));
     }
 
     public void ReplaceScene(IEnumerable<Object3D> objects)
@@ -105,7 +81,7 @@ internal sealed partial class VideraViewRuntime
             return;
         }
 
-        PublishSceneDocument(SceneDocument.Empty);
+        PublishSceneDocument(_sceneDocumentMutator.Clear(_sceneDocument));
     }
 
     public IResourceFactory? GetResourceFactory() => _renderSession.ResourceFactory;
@@ -122,64 +98,55 @@ internal sealed partial class VideraViewRuntime
             newIncc.CollectionChanged += OnCollectionChanged;
         }
 
-        PublishSceneDocument(BuildSceneDocument(EnumerateSceneObjects(newList)));
+        PublishSceneDocument(_sceneItemsAdapter.Rebuild(_sceneDocument, newList));
     }
 
     internal void OnCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
-        _ = e;
-        PublishSceneDocument(BuildSceneDocument(EnumerateSceneObjects(sender as IEnumerable)));
+        PublishSceneDocument(_sceneItemsAdapter.ApplyChange(_sceneDocument, e, sender as IEnumerable));
     }
 
-    private void AppendSceneEntry(Object3D sceneObject, ImportedSceneAsset importedAsset)
+    private void AppendSceneEntry(SceneDocumentEntry entry)
     {
-        ArgumentNullException.ThrowIfNull(sceneObject);
-        ArgumentNullException.ThrowIfNull(importedAsset);
-
-        PublishSceneDocument(_sceneDocument.Add(sceneObject, importedAsset));
+        ArgumentNullException.ThrowIfNull(entry);
+        PublishSceneDocument(_sceneDocumentMutator.ReplaceEntries(_sceneDocument, _sceneDocument.Entries.Append(entry)));
     }
 
-    private void ReplaceSceneEntries(IEnumerable<SceneDocument.DocumentEntry> entries)
+    private void ReplaceSceneEntries(IEnumerable<SceneDocumentEntry> entries)
     {
         ArgumentNullException.ThrowIfNull(entries);
-        PublishSceneDocument(SceneDocument.Empty.Replace(entries));
+        PublishSceneDocument(_sceneDocumentMutator.ReplaceEntries(SceneDocument.Empty, entries));
     }
 
     private void PublishSceneDocument(SceneDocument sceneDocument)
     {
-        _sceneDocument = sceneDocument ?? SceneDocument.Empty;
-        SynchronizeSceneDocumentToEngine();
-        SynchronizeOverlayPresentation();
+        var (previous, current) = _sceneDocumentStore.Publish(sceneDocument ?? SceneDocument.Empty);
+        _sceneDocument = current;
+
+        var delta = _sceneDeltaPlanner.Diff(previous, current);
+        _sceneResidencyRegistry.Apply(delta, _sceneResourceEpoch);
+        _sceneEngineApplicator.ApplyRemovals(_engine, delta.Removed, _sceneResidencyRegistry);
+        _sceneEngineApplicator.ApplyReadyAdds(_engine, _sceneResidencyRegistry.GetReadyAdds(delta.Added), _sceneResidencyRegistry);
+        _sceneUploadQueue.Enqueue(_sceneResidencyRegistry.GetPendingCandidates());
+
+        if (delta.RequiresOverlayRefresh)
+        {
+            SynchronizeOverlayPresentation();
+        }
+
+        RefreshSceneDiagnostics();
+        RefreshBackendDiagnostics(_backendDiagnostics.LastInitializationError);
         _renderSession.Invalidate(RenderInvalidationKinds.Scene);
     }
 
-    private void SynchronizeSceneDocumentToEngine()
+    private void OnSceneBackendReady()
     {
-        var desiredObjects = _sceneDocument.SceneObjects;
-        var desiredSet = desiredObjects.ToHashSet(ReferenceEqualityComparer.Instance);
-
-        foreach (var existing in _engine.SceneObjects.ToArray())
-        {
-            if (!desiredSet.Contains(existing))
-            {
-                _engine.RemoveObject(existing);
-            }
-        }
-
-        var resourceFactory = GetResourceFactory();
-        var currentSet = _engine.SceneObjects.ToHashSet(ReferenceEqualityComparer.Instance);
-        foreach (var sceneObject in desiredObjects)
-        {
-            if (resourceFactory != null && sceneObject.VertexBuffer == null)
-            {
-                SceneUploadCoordinator.Upload(sceneObject, resourceFactory, _logger);
-            }
-
-            if (!currentSet.Contains(sceneObject))
-            {
-                _engine.AddObject(sceneObject);
-            }
-        }
+        _sceneResourceEpoch++;
+        _sceneUploadQueue.Enqueue(_sceneResidencyRegistry.MarkAllDirty(_sceneResourceEpoch));
+        _sceneEngineApplicator.ApplyReadyAdds(_engine, _sceneResidencyRegistry.GetReadyAdds(_sceneDocument.Entries), _sceneResidencyRegistry);
+        RefreshSceneDiagnostics();
+        RefreshBackendDiagnostics(_backendDiagnostics.LastInitializationError);
+        _renderSession.Invalidate(RenderInvalidationKinds.Scene);
     }
 
     private bool TryGetMutableSceneCollection(out IList boundCollection)
@@ -197,19 +164,7 @@ internal sealed partial class VideraViewRuntime
     private SceneDocument BuildSceneDocument(IEnumerable<Object3D> sceneObjects)
     {
         ArgumentNullException.ThrowIfNull(sceneObjects);
-
-        var importedAssetsByObject = new Dictionary<Object3D, ImportedSceneAsset?>(
-            ReferenceEqualityComparer.Instance);
-        foreach (var entry in _sceneDocument.Entries)
-        {
-            importedAssetsByObject[entry.SceneObject] = entry.ImportedAsset;
-        }
-
-        return SceneDocument.Empty.Replace(sceneObjects.Select(sceneObject =>
-        {
-            importedAssetsByObject.TryGetValue(sceneObject, out var importedAsset);
-            return new SceneDocument.DocumentEntry(sceneObject, importedAsset);
-        }));
+        return _sceneItemsAdapter.Rebuild(_sceneDocument, sceneObjects);
     }
 
     private static IEnumerable<Object3D> EnumerateSceneObjects(IEnumerable? sequence)
@@ -221,45 +176,4 @@ internal sealed partial class VideraViewRuntime
 
         return sequence.OfType<Object3D>().ToArray();
     }
-
-    private static async Task<ImportedSceneEntryResult> ImportSceneEntryAsync(
-        string path,
-        int index,
-        SemaphoreSlim gate,
-        CancellationToken cancellationToken)
-    {
-        await gate.WaitAsync(cancellationToken).ConfigureAwait(false);
-        try
-        {
-            var asset = await Task.Run(() => ModelImporter.Import(path), cancellationToken).ConfigureAwait(false);
-            var sceneObject = SceneUploadCoordinator.CreateDeferredObject(asset);
-            return new ImportedSceneEntryResult(
-                index,
-                new SceneDocument.DocumentEntry(sceneObject, asset),
-                sceneObject,
-                Failure: null);
-        }
-        catch (OperationCanceledException)
-        {
-            throw;
-        }
-        catch (Exception ex)
-        {
-            return new ImportedSceneEntryResult(
-                index,
-                DocumentEntry: null,
-                SceneObject: null,
-                new ModelLoadFailure(path, ex));
-        }
-        finally
-        {
-            gate.Release();
-        }
-    }
-
-    private sealed record ImportedSceneEntryResult(
-        int Index,
-        SceneDocument.DocumentEntry? DocumentEntry,
-        Object3D? SceneObject,
-        ModelLoadFailure? Failure);
 }

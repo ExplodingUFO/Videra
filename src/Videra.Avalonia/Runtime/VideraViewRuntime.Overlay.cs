@@ -66,6 +66,7 @@ internal sealed partial class VideraViewRuntime
     {
         _ = sender;
         _ = e;
+        OnSceneBackendReady();
         SynchronizeOverlayState();
         RefreshBackendDiagnostics(lastInitializationError: null);
         _owner.RaiseBackendReadyFromRuntime();
@@ -74,6 +75,7 @@ internal sealed partial class VideraViewRuntime
     internal void OnRenderSessionFrameRequested()
     {
         SynchronizeOverlayPresentation();
+        RefreshBackendDiagnostics(_backendDiagnostics.LastInitializationError);
         _owner.InvalidateVisualsFromRuntime();
     }
 }
