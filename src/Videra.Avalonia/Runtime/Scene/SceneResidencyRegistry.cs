@@ -140,6 +140,46 @@ internal sealed class SceneResidencyRegistry
         return dirtyRecords;
     }
 
+    public IReadOnlyList<SceneResidencyRecord> MarkDirty(IEnumerable<SceneDocumentEntry> entries, ulong resourceEpoch)
+    {
+        ArgumentNullException.ThrowIfNull(entries);
+
+        var dirtyRecords = new List<SceneResidencyRecord>();
+        foreach (var entry in entries)
+        {
+            if (!_records.TryGetValue(entry.Id, out var record) || !CanUpload(record))
+            {
+                continue;
+            }
+
+            if (record.State is SceneResidencyState.PendingUpload or SceneResidencyState.Uploading or SceneResidencyState.Dirty)
+            {
+                _records[entry.Id] = record with
+                {
+                    ResourceEpoch = resourceEpoch,
+                    ApproximateUploadBytes = ResolveApproximateUploadBytes(entry),
+                    LastError = null
+                };
+                continue;
+            }
+
+            var dirty = record with
+            {
+                SceneObject = entry.SceneObject,
+                ImportedAsset = entry.ImportedAsset,
+                Ownership = entry.Ownership,
+                ApproximateUploadBytes = ResolveApproximateUploadBytes(entry),
+                State = SceneResidencyState.Dirty,
+                ResourceEpoch = resourceEpoch,
+                LastError = null
+            };
+            _records[entry.Id] = dirty;
+            dirtyRecords.Add(dirty);
+        }
+
+        return dirtyRecords;
+    }
+
     public bool TryGet(SceneEntryId id, out SceneResidencyRecord record)
     {
         return _records.TryGetValue(id, out record!);

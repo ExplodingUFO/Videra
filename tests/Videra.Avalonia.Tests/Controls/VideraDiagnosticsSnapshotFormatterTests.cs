@@ -33,7 +33,12 @@ public sealed class VideraDiagnosticsSnapshotFormatterTests
             LastFrameUploadFailures = 0,
             LastFrameUploadDuration = TimeSpan.FromMilliseconds(12),
             ResolvedUploadBudgetObjects = 2,
-            ResolvedUploadBudgetBytes = 16384
+            ResolvedUploadBudgetBytes = 16384,
+            IsClippingActive = true,
+            ActiveClippingPlaneCount = 1,
+            MeasurementCount = 2,
+            LastSnapshotExportPath = "artifacts/inspection/snapshot.png",
+            LastSnapshotExportStatus = "Succeeded"
         };
 
         var snapshot = VideraDiagnosticsSnapshotFormatter.Format(diagnostics);
@@ -48,5 +53,10 @@ public sealed class VideraDiagnosticsSnapshotFormatterTests
         snapshot.Should().Contain("DisplayServerFallbackUsed: True");
         snapshot.Should().Contain("PendingSceneUploadBytes: 4096");
         snapshot.Should().Contain("ResolvedUploadBudgetBytes: 16384");
+        snapshot.Should().Contain("IsClippingActive: True");
+        snapshot.Should().Contain("ActiveClippingPlaneCount: 1");
+        snapshot.Should().Contain("MeasurementCount: 2");
+        snapshot.Should().Contain("LastSnapshotExportPath: artifacts/inspection/snapshot.png");
+        snapshot.Should().Contain("LastSnapshotExportStatus: Succeeded");
     }
 }

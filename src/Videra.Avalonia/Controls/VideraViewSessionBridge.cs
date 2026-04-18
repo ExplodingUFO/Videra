@@ -2,13 +2,16 @@ using System.Numerics;
 using Avalonia;
 using Avalonia.Media;
 using Videra.Avalonia.Rendering;
+using Videra.Avalonia.Runtime;
 using Videra.Avalonia.Runtime.Scene;
 using Videra.Avalonia.Controls.Interaction;
 using Videra.Core.Cameras;
 using Videra.Core.Geometry;
 using Videra.Core.Graphics;
+using Videra.Core.Inspection;
 using Videra.Core.Overlay;
 using Videra.Core.Selection;
+using Videra.Core.Selection.Annotations;
 using Videra.Core.Selection.Rendering;
 
 namespace Videra.Avalonia.Controls;
@@ -24,6 +27,8 @@ internal sealed class VideraViewSessionBridge
     private readonly Func<VideraBackendOptions?> _backendOptionsAccessor;
     private readonly Func<VideraDiagnosticsOptions?> _diagnosticsOptionsAccessor;
     private readonly OverlayProjectionService _overlayProjectionService = new();
+    private readonly MeasurementOverlayProjector _measurementOverlayProjector = new();
+    private static readonly Color MeasurementColor = Colors.Gold;
 
     public VideraViewSessionBridge(
         RenderSession session,
@@ -110,10 +115,12 @@ internal sealed class VideraViewSessionBridge
     public VideraViewOverlayState CreateOverlayState(
         VideraSelectionState? selectionState,
         IReadOnlyList<VideraAnnotation>? annotations,
+        IReadOnlyList<VideraMeasurement>? measurements,
         Vector2 viewportSize)
     {
         var effectiveSelectionState = selectionState ?? new VideraSelectionState();
         var effectiveAnnotations = annotations ?? Array.Empty<VideraAnnotation>();
+        var effectiveMeasurements = measurements ?? Array.Empty<VideraMeasurement>();
         var sceneObjects = _session.Engine.SceneObjects;
         var camera = _session.Engine.Camera;
 
@@ -138,9 +145,18 @@ internal sealed class VideraViewSessionBridge
         var visibleAnnotations = effectiveAnnotations
             .Where(annotation => annotation is { IsVisible: true })
             .ToArray();
+        var measurementAnchors = effectiveMeasurements
+            .Where(static measurement => measurement is { IsVisible: true })
+            .SelectMany(static measurement => new[]
+            {
+                new AnnotationOverlayAnchor(CreateMeasurementAnchorId(measurement.Id, isStart: true), AnnotationAnchorDescriptor.ForWorldPoint(measurement.Start.WorldPoint)),
+                new AnnotationOverlayAnchor(CreateMeasurementAnchorId(measurement.Id, isStart: false), AnnotationAnchorDescriptor.ForWorldPoint(measurement.End.WorldPoint))
+            })
+            .ToArray();
         var overlayState = new AnnotationOverlayRenderState(
             visibleAnnotations
                 .Select(annotation => new AnnotationOverlayAnchor(annotation.Id, annotation.Anchor))
+                .Concat(measurementAnchors)
                 .ToArray(),
             markerColor: new RgbaFloat(1f, 0f, 0f, 1f));
         var annotationLookup = visibleAnnotations.ToDictionary(annotation => annotation.Id);
@@ -159,11 +175,31 @@ internal sealed class VideraViewSessionBridge
                     projection.ResolvedObjectId);
             })
             .ToArray();
+        var measurementOverlays = _measurementOverlayProjector
+            .Project(effectiveMeasurements, camera, viewportSize)
+            .Select(projection => new VideraOverlayMeasurement(
+                projection.MeasurementId,
+                projection.StartScreenPosition,
+                projection.EndScreenPosition,
+                projection.Text,
+                MeasurementColor))
+            .ToArray();
 
-        return new VideraViewOverlayState(selectionOutlines, labels);
+        return new VideraViewOverlayState(selectionOutlines, labels, measurementOverlays);
     }
 
-    public VideraBackendDiagnostics CreateDiagnosticsSnapshot(string? lastInitializationError, SceneResidencyDiagnostics sceneDiagnostics)
+    public VideraViewOverlayState CreateOverlayState(
+        VideraSelectionState? selectionState,
+        IReadOnlyList<VideraAnnotation>? annotations,
+        Vector2 viewportSize)
+    {
+        return CreateOverlayState(selectionState, annotations, measurements: null, viewportSize);
+    }
+
+    public VideraBackendDiagnostics CreateDiagnosticsSnapshot(
+        string? lastInitializationError,
+        SceneResidencyDiagnostics sceneDiagnostics,
+        InspectionWorkflowDiagnostics inspectionDiagnostics)
     {
         var backendOptions = CreateBackendOptionsSnapshot();
         var diagnosticsOptions = _diagnosticsOptionsAccessor() ?? new VideraDiagnosticsOptions();
@@ -201,11 +237,21 @@ internal sealed class VideraViewSessionBridge
             LastFrameUploadDuration = sceneDiagnostics.LastUploadDuration,
             ResolvedUploadBudgetObjects = sceneDiagnostics.LastBudgetMaxObjects,
             ResolvedUploadBudgetBytes = sceneDiagnostics.LastBudgetMaxBytes,
+            IsClippingActive = inspectionDiagnostics.IsClippingActive,
+            ActiveClippingPlaneCount = inspectionDiagnostics.ActiveClippingPlaneCount,
+            MeasurementCount = inspectionDiagnostics.MeasurementCount,
+            LastSnapshotExportPath = inspectionDiagnostics.LastSnapshotExportPath,
+            LastSnapshotExportStatus = inspectionDiagnostics.LastSnapshotExportStatus,
             SupportsPassContributors = capabilities.SupportsPassContributors,
             SupportsPassReplacement = capabilities.SupportsPassReplacement,
             SupportsFrameHooks = capabilities.SupportsFrameHooks,
             SupportsPipelineSnapshots = capabilities.SupportsPipelineSnapshots
         };
+    }
+
+    public VideraBackendDiagnostics CreateDiagnosticsSnapshot(string? lastInitializationError, SceneResidencyDiagnostics sceneDiagnostics)
+    {
+        return CreateDiagnosticsSnapshot(lastInitializationError, sceneDiagnostics, InspectionWorkflowDiagnostics.Empty);
     }
 
     private bool SynchronizeSession(uint widthPx, uint heightPx, float renderScale)
@@ -226,5 +272,12 @@ internal sealed class VideraViewSessionBridge
             EnvironmentOverrideMode = source.EnvironmentOverrideMode,
             AllowSoftwareFallback = source.AllowSoftwareFallback
         };
+    }
+
+    private static Guid CreateMeasurementAnchorId(Guid measurementId, bool isStart)
+    {
+        var bytes = measurementId.ToByteArray();
+        bytes[15] ^= isStart ? (byte)0x41 : (byte)0x82;
+        return new Guid(bytes);
     }
 }

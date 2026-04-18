@@ -14,7 +14,9 @@ $projectPath = Join-Path $root $Project
 $outputPath = Join-Path $root $OutputRoot
 $jsonPath = Join-Path $outputPath "consumer-smoke-result.json"
 $snapshotPath = Join-Path $outputPath "diagnostics-snapshot.txt"
+$inspectionSnapshotPath = Join-Path $outputPath "inspection-snapshot.png"
 $packageOutputPath = Join-Path $outputPath "packages"
+$packagesCachePath = Join-Path $outputPath "global-packages"
 $nugetConfigPath = Join-Path $outputPath "NuGet.Config"
 $publicPackageProjects = @(
     "src/Videra.Core/Videra.Core.csproj",
@@ -35,6 +37,7 @@ if (Test-Path -LiteralPath $outputPath)
 }
 
 New-Item -ItemType Directory -Force -Path $outputPath | Out-Null
+New-Item -ItemType Directory -Force -Path $packagesCachePath | Out-Null
 
 Write-Host "=== Pack Public Consumer Packages ===" -ForegroundColor Cyan
 New-Item -ItemType Directory -Force -Path $packageOutputPath | Out-Null
@@ -79,14 +82,14 @@ $nugetConfig = @"
 $nugetConfig | Set-Content -Path $nugetConfigPath
 
 Write-Host "=== Consumer Smoke Restore ===" -ForegroundColor Cyan
-dotnet restore $projectPath --configfile $nugetConfigPath -p:VideraConsumerPackageVersion=$packageVersion
+dotnet restore $projectPath --configfile $nugetConfigPath --packages $packagesCachePath -p:VideraConsumerPackageVersion=$packageVersion
 if ($LASTEXITCODE -ne 0)
 {
     throw "Consumer smoke restore failed."
 }
 
 Write-Host "=== Consumer Smoke Build ===" -ForegroundColor Cyan
-dotnet build $projectPath --configuration $Configuration --no-restore -p:VideraConsumerPackageVersion=$packageVersion
+dotnet build $projectPath --configuration $Configuration --no-restore --packages $packagesCachePath -p:VideraConsumerPackageVersion=$packageVersion
 if ($LASTEXITCODE -ne 0)
 {
     throw "Consumer smoke build failed."
@@ -99,7 +102,7 @@ $hadPreviousOutput = Test-Path Env:VIDERA_CONSUMER_SMOKE_OUTPUT
 try
 {
     $env:VIDERA_CONSUMER_SMOKE_OUTPUT = $jsonPath
-    dotnet run --project $projectPath --configuration $Configuration --no-build -p:VideraConsumerPackageVersion=$packageVersion
+    dotnet run --project $projectPath --configuration $Configuration --no-build --packages $packagesCachePath -p:VideraConsumerPackageVersion=$packageVersion
     if ($LASTEXITCODE -ne 0)
     {
         throw "Consumer smoke app exited with code $LASTEXITCODE."
@@ -127,6 +130,16 @@ if (-not (Test-Path -LiteralPath $snapshotPath))
     throw "Consumer smoke did not produce '$snapshotPath'."
 }
 
+if (-not (Test-Path -LiteralPath $inspectionSnapshotPath))
+{
+    throw "Consumer smoke did not produce '$inspectionSnapshotPath'."
+}
+
+if ((Get-Item -LiteralPath $inspectionSnapshotPath).Length -le 0)
+{
+    throw "Consumer smoke produced '$inspectionSnapshotPath' but it was empty."
+}
+
 $report = Get-Content -Raw $jsonPath | ConvertFrom-Json
 if (-not $report.Succeeded)
 {
@@ -149,3 +162,4 @@ Write-Host "ResolvedBackend: $($report.ResolvedBackend)"
 Write-Host "ResolvedDisplayServer: $($report.ResolvedDisplayServer)"
 Write-Host "IsUsingSoftwareFallback: $($report.IsUsingSoftwareFallback)"
 Write-Host "DiagnosticsSnapshot: $snapshotPath"
+Write-Host "InspectionSnapshot: $inspectionSnapshotPath"

@@ -15,6 +15,7 @@ public partial class MainWindow : Window
     private readonly TextBlock _statusText;
     private readonly string? _outputPath;
     private readonly string? _diagnosticsSnapshotPath;
+    private readonly string? _inspectionSnapshotPath;
     private bool _completed;
     private EventHandler? _backendReadyHandler;
     private EventHandler? _openedHandler;
@@ -31,6 +32,9 @@ public partial class MainWindow : Window
         _diagnosticsSnapshotPath = string.IsNullOrWhiteSpace(_outputPath)
             ? null
             : Path.Combine(Path.GetDirectoryName(_outputPath!)!, "diagnostics-snapshot.txt");
+        _inspectionSnapshotPath = string.IsNullOrWhiteSpace(_outputPath)
+            ? null
+            : Path.Combine(Path.GetDirectoryName(_outputPath!)!, "inspection-snapshot.png");
 
         _view3D.Options = new VideraViewOptions
         {
@@ -94,10 +98,22 @@ public partial class MainWindow : Window
             var framed = _view3D.FrameAll();
             _view3D.ResetCamera();
 
+            string? snapshotFailure = null;
+            if (framed && !string.IsNullOrWhiteSpace(_inspectionSnapshotPath))
+            {
+                var snapshot = await _view3D.ExportSnapshotAsync(_inspectionSnapshotPath).ConfigureAwait(true);
+                if (!snapshot.Succeeded)
+                {
+                    snapshotFailure = snapshot.Failure?.Message ?? "Snapshot export failed.";
+                }
+            }
+
             await CompleteAsync(
-                succeeded: framed,
+                succeeded: framed && snapshotFailure is null,
                 frameAllReturned: framed,
-                failure: framed ? null : "FrameAll() returned false.").ConfigureAwait(true);
+                failure: !framed
+                    ? "FrameAll() returned false."
+                    : snapshotFailure).ConfigureAwait(true);
         }
         catch (Exception ex)
         {
@@ -152,7 +168,8 @@ public partial class MainWindow : Window
             diagnostics.DisplayServerFallbackUsed,
             diagnostics.DisplayServerFallbackReason,
             diagnostics.LastInitializationError,
-            _diagnosticsSnapshotPath);
+            _diagnosticsSnapshotPath,
+            _inspectionSnapshotPath);
 
         if (!string.IsNullOrWhiteSpace(_outputPath))
         {
@@ -194,5 +211,6 @@ public partial class MainWindow : Window
         bool DisplayServerFallbackUsed,
         string? DisplayServerFallbackReason,
         string? LastInitializationError,
-        string? DiagnosticsSnapshotPath);
+        string? DiagnosticsSnapshotPath,
+        string? InspectionSnapshotPath);
 }

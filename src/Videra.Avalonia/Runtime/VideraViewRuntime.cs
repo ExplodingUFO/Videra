@@ -10,6 +10,7 @@ using Videra.Avalonia.Rendering;
 using Videra.Avalonia.Runtime.Scene;
 using Videra.Core.Geometry;
 using Videra.Core.Graphics;
+using Videra.Core.Inspection;
 using Videra.Core.Scene;
 
 namespace Videra.Avalonia.Runtime;
@@ -28,11 +29,13 @@ internal sealed partial class VideraViewRuntime : IDisposable
     private SceneDocument _sceneDocument = SceneDocument.Empty;
     private readonly SceneRuntimeCoordinator _sceneCoordinator;
     private SceneResidencyDiagnostics _sceneDiagnostics;
+    private InspectionWorkflowDiagnostics _inspectionDiagnostics = InspectionWorkflowDiagnostics.Empty;
     private SceneUploadFlushResult _lastSceneUploadFlushResult = SceneUploadFlushResult.Empty;
     private SceneUploadBudget _lastResolvedSceneUploadBudget = SceneUploadBudget.None;
     private RuntimeFramePrelude _framePrelude;
     private VideraSelectionState _selectionState = new();
     private IReadOnlyList<VideraAnnotation> _annotations = Array.Empty<VideraAnnotation>();
+    private IReadOnlyList<VideraMeasurement> _measurements = Array.Empty<VideraMeasurement>();
     private VideraViewOverlayState _overlayState = VideraViewOverlayState.Empty;
     private VideraInteractionOptions _interactionOptions = new();
     private VideraInteractionController _interactionController;
@@ -61,7 +64,8 @@ internal sealed partial class VideraViewRuntime : IDisposable
         _framePrelude = CreateFramePrelude();
         SubscribeToOptions(_options);
         RefreshSceneDiagnostics();
-        _backendDiagnostics = _sessionBridge.CreateDiagnosticsSnapshot(lastInitializationError: null, _sceneDiagnostics);
+        RefreshInspectionDiagnostics();
+        _backendDiagnostics = _sessionBridge.CreateDiagnosticsSnapshot(lastInitializationError: null, _sceneDiagnostics, _inspectionDiagnostics);
     }
 
     public RenderSession RenderSession => _renderSession;
@@ -100,6 +104,30 @@ internal sealed partial class VideraViewRuntime : IDisposable
             _annotations = value ?? Array.Empty<VideraAnnotation>();
             SynchronizeOverlayState();
             _renderSession.Invalidate(RenderInvalidationKinds.Overlay);
+        }
+    }
+
+    public IReadOnlyList<VideraMeasurement> Measurements
+    {
+        get => _measurements;
+        set
+        {
+            _measurements = value ?? Array.Empty<VideraMeasurement>();
+            SynchronizeOverlayState();
+            RefreshInspectionDiagnostics();
+            RefreshBackendDiagnostics(_backendDiagnostics.LastInitializationError);
+            _renderSession.Invalidate(RenderInvalidationKinds.Overlay);
+        }
+    }
+
+    public IReadOnlyList<VideraClipPlane> ClippingPlanes
+    {
+        get => _sceneCoordinator.ClippingPlanes;
+        set
+        {
+            _sceneCoordinator.UpdateClippingPlanes(value);
+            RefreshInspectionDiagnostics();
+            RefreshBackendDiagnostics(_backendDiagnostics.LastInitializationError);
         }
     }
 
@@ -325,7 +353,8 @@ internal sealed partial class VideraViewRuntime : IDisposable
     internal void RefreshBackendDiagnostics(string? lastInitializationError)
     {
         RefreshSceneDiagnostics();
-        var next = _sessionBridge.CreateDiagnosticsSnapshot(lastInitializationError, _sceneDiagnostics);
+        RefreshInspectionDiagnostics();
+        var next = _sessionBridge.CreateDiagnosticsSnapshot(lastInitializationError, _sceneDiagnostics, _inspectionDiagnostics);
         _backendDiagnostics = next;
         _owner.PublishBackendDiagnosticsFromRuntime(next);
     }
@@ -336,6 +365,16 @@ internal sealed partial class VideraViewRuntime : IDisposable
         _sceneDiagnostics = _sceneCoordinator.CreateDiagnostics(
             _lastSceneUploadFlushResult,
             _lastResolvedSceneUploadBudget);
+    }
+
+    internal void RefreshInspectionDiagnostics()
+    {
+        _inspectionDiagnostics = new InspectionWorkflowDiagnostics(
+            _sceneCoordinator.ClippingPlanes.Count > 0,
+            _sceneCoordinator.ClippingPlanes.Count,
+            MeasurementCount: _measurements.Count,
+            LastSnapshotExportPath: _lastSnapshotExportPath,
+            LastSnapshotExportStatus: _lastSnapshotExportStatus);
     }
 
     private void OnBeforeRender()

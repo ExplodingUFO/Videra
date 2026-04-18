@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using Videra.Core.Geometry;
 using Videra.Core.Graphics.Abstractions;
 using Videra.Core.Graphics.Wireframe;
+using Videra.Core.Inspection;
 
 namespace Videra.Core.Graphics;
 
@@ -15,6 +16,7 @@ namespace Videra.Core.Graphics;
 public partial class Object3D : IDisposable
 {
     private bool _disposed;
+    private MeshPayload? _sourceMeshPayload;
     private MeshPayload? _meshPayload;
     private bool _wireframeResourcesRequested;
     private BoundingBox3? _localBounds;
@@ -117,11 +119,13 @@ public partial class Object3D : IDisposable
 
     internal MeshPayload? MeshPayload => _meshPayload;
 
+    internal MeshPayload? SourceMeshPayload => _sourceMeshPayload;
+
     internal CpuMeshRetentionPolicy CpuMeshRetentionPolicy { get; private set; } = CpuMeshRetentionPolicy.KeepForReuploadAndPicking;
 
     internal bool HasPreparedMesh => _meshPayload is not null;
 
-    internal bool CanRecreateGraphicsResources => _meshPayload is not null;
+    internal bool CanRecreateGraphicsResources => _sourceMeshPayload is not null;
 
     internal long ApproximateGpuBytes
     {
@@ -175,6 +179,7 @@ public partial class Object3D : IDisposable
     {
         ArgumentNullException.ThrowIfNull(payload);
 
+        _sourceMeshPayload = payload;
         _meshPayload = payload;
         CpuMeshRetentionPolicy = retentionPolicy;
         _localBounds = payload.LocalBounds;
@@ -221,6 +226,7 @@ public partial class Object3D : IDisposable
         {
             Log.Initializing(log, Name, payload.Vertices.Length, payload.Indices.Length);
 
+            _sourceMeshPayload = payload;
             _meshPayload = payload;
             _localBounds = payload.LocalBounds;
             if (resetWireframeRequest)
@@ -363,6 +369,29 @@ public partial class Object3D : IDisposable
         {
             InitializeWireframe(factory, logger);
         }
+    }
+
+    internal void ApplyClippingPlanes(IReadOnlyList<VideraClipPlane> clippingPlanes)
+    {
+        if (_sourceMeshPayload is null)
+        {
+            return;
+        }
+
+        var payloadService = new VideraClipPayloadService();
+        var nextPayload = payloadService.Clip(_sourceMeshPayload, clippingPlanes);
+        if (ReferenceEquals(nextPayload, _meshPayload))
+        {
+            return;
+        }
+
+        _meshPayload = nextPayload;
+        _localBounds = nextPayload?.LocalBounds;
+        _wireframeResourcesRequested = false;
+        ReleaseGpuResources();
+        Topology = nextPayload?.Topology ?? _sourceMeshPayload.Topology;
+        IndexCount = (uint)(nextPayload?.Indices.Length ?? 0);
+        LineIndexCount = 0;
     }
 
     /// <summary>

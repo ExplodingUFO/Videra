@@ -54,6 +54,11 @@ public static class VideraDiagnosticsSnapshotFormatter
         builder.AppendLine($"LastFrameUploadDuration: {diagnostics.LastFrameUploadDuration}");
         builder.AppendLine($"ResolvedUploadBudgetObjects: {diagnostics.ResolvedUploadBudgetObjects}");
         builder.AppendLine($"ResolvedUploadBudgetBytes: {diagnostics.ResolvedUploadBudgetBytes}");
+        builder.AppendLine($"IsClippingActive: {diagnostics.IsClippingActive}");
+        builder.AppendLine($"ActiveClippingPlaneCount: {diagnostics.ActiveClippingPlaneCount}");
+        builder.AppendLine($"MeasurementCount: {diagnostics.MeasurementCount}");
+        builder.AppendLine($"LastSnapshotExportPath: {FormatNullable(diagnostics.LastSnapshotExportPath)}");
+        builder.AppendLine($"LastSnapshotExportStatus: {FormatNullable(diagnostics.LastSnapshotExportStatus)}");
         return builder.ToString();
     }
 

@@ -21,7 +21,7 @@
                    Text="Focused public interaction sample" />
         <TextBlock Foreground="#6B4B2D"
                    TextWrapping="Wrap"
-                   Text="The host owns SelectionState, Annotations, and annotation state, switches between Navigate, Select, and Annotate, applies SelectionRequested and AnnotationRequested, and lets VideraView project that state into object-level highlights plus overlay labels." />
+                   Text="The host owns SelectionState, Annotations, and annotation state, switches between Navigate, Select, Annotate, and Measure, and exercises clipping, view-state capture, and snapshot export through the public inspection workflow." />
       </StackPanel>
     </Border>
 
@@ -84,10 +84,13 @@
               <Button x:Name="AnnotateModeButton"
                       Click="OnAnnotateModeClicked"
                       Content="Annotate" />
+              <Button x:Name="MeasureModeButton"
+                      Click="OnMeasureModeClicked"
+                      Content="Measure" />
             </StackPanel>
             <TextBlock Foreground="#6B4B2D"
                        TextWrapping="Wrap"
-                       Text="Navigate keeps camera motion on the control. Select emits SelectionRequested without mutating host state. Annotate emits AnnotationRequested for either an object hit or a world-point click." />
+                       Text="Navigate keeps camera motion on the control. Select emits SelectionRequested without mutating host state. Annotate emits AnnotationRequested for either an object hit or a world-point click. Measure creates lightweight viewer-first distance probes directly on the public inspection surface." />
           </StackPanel>
         </Border>
 
@@ -107,12 +110,44 @@
                       Content="Clear Selection" />
               <Button Click="OnClearAnnotationsClicked"
                       Content="Clear Annotations" />
+              <Button Click="OnClearMeasurementsClicked"
+                      Content="Clear Measurements" />
               <Button Click="OnReseedAnnotationsClicked"
                       Content="Reseed Notes" />
             </StackPanel>
             <TextBlock Foreground="#6B4B2D"
                        TextWrapping="Wrap"
-                       Text="These buttons update the host-owned SelectionState and annotation list, then push the new state back through View3D.SelectionState and View3D.Annotations." />
+                       Text="These buttons update host-owned selection/annotation state and clear the public inspection measurements carried by View3D.Measurements." />
+          </StackPanel>
+        </Border>
+
+        <Border Padding="18"
+                Background="#FFF8EE"
+                BorderBrush="#D8B48D"
+                BorderThickness="1"
+                CornerRadius="18">
+          <StackPanel Spacing="10">
+            <TextBlock FontSize="18"
+                       FontWeight="SemiBold"
+                       Foreground="#3D2716"
+                       Text="Inspection workflow" />
+            <WrapPanel ItemWidth="150"
+                       Orientation="Horizontal">
+              <Button Click="OnToggleSectionPlaneClicked"
+                      Content="Toggle Section Plane" />
+              <Button Click="OnCaptureInspectionStateClicked"
+                      Content="Save View State" />
+              <Button Click="OnRestoreInspectionStateClicked"
+                      Content="Restore View State" />
+              <Button Click="OnExportSnapshotClicked"
+                      Content="Export Snapshot" />
+            </WrapPanel>
+            <TextBlock Foreground="#6B4B2D"
+                       TextWrapping="Wrap"
+                       Text="The inspection surface stays viewer-first: clipping uses public ClippingPlanes, state persistence uses CaptureInspectionState/ApplyInspectionState, and snapshot export stays on ExportSnapshotAsync." />
+            <TextBlock x:Name="InspectionStatusText"
+                       Foreground="#6B4B2D"
+                       TextWrapping="Wrap" />
           </StackPanel>
         </Border>
 
@@ -175,6 +210,22 @@
                        Foreground="#3D2716"
                        Text="Annotations" />
             <TextBlock x:Name="AnnotationStatusText"
+                       Foreground="#6B4B2D"
+                       TextWrapping="Wrap" />
+          </StackPanel>
+        </Border>
+
+        <Border Padding="18"
+                Background="#FFF8EE"
+                BorderBrush="#D8B48D"
+                BorderThickness="1"
+                CornerRadius="18">
+          <StackPanel Spacing="8">
+            <TextBlock FontSize="16"
+                       FontWeight="SemiBold"
+                       Foreground="#3D2716"
+                       Text="Measurements" />
+            <TextBlock x:Name="MeasurementStatusText"
                        Foreground="#6B4B2D"
                        TextWrapping="Wrap" />
           </StackPanel>

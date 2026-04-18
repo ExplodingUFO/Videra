@@ -73,6 +73,12 @@ public sealed class InteractionSampleConfigurationTests
         codeBehind.Should().Contain("View3D.InteractionMode = VideraInteractionMode.Navigate;");
         codeBehind.Should().Contain("VideraInteractionMode.Select");
         codeBehind.Should().Contain("VideraInteractionMode.Annotate");
+        codeBehind.Should().Contain("VideraInteractionMode.Measure");
+        codeBehind.Should().Contain("View3D.Measurements");
+        codeBehind.Should().Contain("View3D.ClippingPlanes");
+        codeBehind.Should().Contain("CaptureInspectionState()");
+        codeBehind.Should().Contain("ApplyInspectionState");
+        codeBehind.Should().Contain("ExportSnapshotAsync");
         codeBehind.Should().Contain("new VideraNodeAnnotation");
         codeBehind.Should().Contain("new VideraWorldPointAnnotation");
 
@@ -101,7 +107,7 @@ public sealed class InteractionSampleConfigurationTests
         typeof(VideraView).GetEvent(nameof(VideraView.SelectionRequested)).Should().NotBeNull();
         typeof(VideraView).GetEvent(nameof(VideraView.AnnotationRequested)).Should().NotBeNull();
 
-        Enum.GetNames<VideraInteractionMode>().Should().Equal("Navigate", "Select", "Annotate");
+        Enum.GetNames<VideraInteractionMode>().Should().Equal("Navigate", "Select", "Annotate", "Measure");
         Enum.GetNames<AnnotationAnchorKind>().Should().Equal("Object", "WorldPoint");
         Enum.GetNames<AnnotationAnchorKind>().Should().NotContain(name => name.Contains("Node", StringComparison.Ordinal));
     }

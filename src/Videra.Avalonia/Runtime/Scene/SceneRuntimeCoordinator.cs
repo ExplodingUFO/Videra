@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Specialized;
 using Videra.Avalonia.Rendering;
 using Videra.Core.Graphics;
+using Videra.Core.Inspection;
 using Videra.Core.Scene;
 
 namespace Videra.Avalonia.Runtime.Scene;
@@ -22,6 +23,7 @@ internal sealed class SceneRuntimeCoordinator
     private readonly SceneEngineApplicator _sceneEngineApplicator = new();
     private readonly SceneItemsAdapter _sceneItemsAdapter;
     private readonly SceneImportService _sceneImportService;
+    private IReadOnlyList<VideraClipPlane> _clippingPlanes = Array.Empty<VideraClipPlane>();
 
     public SceneRuntimeCoordinator(
         VideraEngine engine,
@@ -51,6 +53,8 @@ internal sealed class SceneRuntimeCoordinator
     public ulong ResourceEpoch { get; private set; } = 1;
 
     public IReadOnlyList<Object3D> SceneObjects => CurrentDocument.SceneObjects;
+
+    public IReadOnlyList<VideraClipPlane> ClippingPlanes => _clippingPlanes;
 
     public Task<ImportedSceneResult> ImportSingleAsync(string path, CancellationToken cancellationToken)
     {
@@ -112,6 +116,26 @@ internal sealed class SceneRuntimeCoordinator
         _invalidateRender(RenderInvalidationKinds.Scene);
     }
 
+    public void UpdateClippingPlanes(IReadOnlyList<VideraClipPlane>? clippingPlanes)
+    {
+        var normalizedPlanes = clippingPlanes?
+            .Where(static plane => plane.IsEnabled)
+            .ToArray() ?? Array.Empty<VideraClipPlane>();
+
+        if (_clippingPlanes.SequenceEqual(normalizedPlanes))
+        {
+            return;
+        }
+
+        _clippingPlanes = normalizedPlanes;
+        ApplyClippingToEntries(CurrentDocument.Entries);
+        _sceneUploadQueue.Enqueue(_sceneResidencyRegistry.MarkDirty(CurrentDocument.Entries, ResourceEpoch));
+        _refreshOverlay();
+        _refreshSceneDiagnostics();
+        _refreshBackendDiagnostics();
+        _invalidateRender(RenderInvalidationKinds.Scene);
+    }
+
     public SceneResidencyDiagnostics CreateDiagnostics(SceneUploadFlushResult lastFlush, SceneUploadBudget lastResolvedBudget)
     {
         return _sceneResidencyRegistry.CreateDiagnostics(CurrentDocument.Version, lastFlush, lastResolvedBudget);
@@ -120,6 +144,7 @@ internal sealed class SceneRuntimeCoordinator
     private void PublishSceneDocument(SceneDocument sceneDocument)
     {
         var (previous, current) = _sceneDocumentStore.Publish(sceneDocument ?? SceneDocument.Empty);
+        ApplyClippingToEntries(current.Entries);
         CurrentDocument = current;
 
         var delta = _sceneDeltaPlanner.Diff(previous, current);
@@ -136,5 +161,13 @@ internal sealed class SceneRuntimeCoordinator
         _refreshSceneDiagnostics();
         _refreshBackendDiagnostics();
         _invalidateRender(RenderInvalidationKinds.Scene);
+    }
+
+    private void ApplyClippingToEntries(IEnumerable<SceneDocumentEntry> entries)
+    {
+        foreach (var entry in entries)
+        {
+            entry.SceneObject.ApplyClippingPlanes(_clippingPlanes);
+        }
     }
 }

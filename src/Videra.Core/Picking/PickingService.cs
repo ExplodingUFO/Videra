@@ -1,6 +1,7 @@
 using System.Numerics;
 using Videra.Core.Cameras;
 using Videra.Core.Graphics;
+using Videra.Core.Inspection;
 using Videra.Core.Selection;
 using Videra.Core.Selection.Annotations;
 
@@ -65,6 +66,48 @@ public sealed class PickingService
         }
 
         anchor = AnnotationAnchorDescriptor.ForWorldPoint(origin + direction * distance);
+        return true;
+    }
+
+    public bool TryResolveMeasurementAnchor(
+        OrbitCamera camera,
+        Vector2 viewportSize,
+        Vector2 screenPoint,
+        IReadOnlyList<Object3D> objects,
+        out VideraMeasurementAnchor anchor)
+    {
+        ArgumentNullException.ThrowIfNull(camera);
+        ArgumentNullException.ThrowIfNull(objects);
+
+        if (!camera.TryCreatePickingRay(screenPoint, viewportSize, out var origin, out var direction))
+        {
+            anchor = default;
+            return false;
+        }
+
+        var hit = HitTest(camera, viewportSize, screenPoint, objects).PrimaryHit;
+        if (hit is not null)
+        {
+            anchor = VideraMeasurementAnchor.ForObjectPoint(hit.ObjectId, origin + (direction * hit.Distance));
+            return true;
+        }
+
+        var planeNormal = Vector3.Normalize(camera.Target - camera.Position);
+        var denominator = Vector3.Dot(direction, planeNormal);
+        if (Math.Abs(denominator) <= 1e-5f)
+        {
+            anchor = default;
+            return false;
+        }
+
+        var distance = Vector3.Dot(camera.Target - origin, planeNormal) / denominator;
+        if (distance <= 0f)
+        {
+            anchor = default;
+            return false;
+        }
+
+        anchor = VideraMeasurementAnchor.ForWorldPoint(origin + direction * distance);
         return true;
     }
 }

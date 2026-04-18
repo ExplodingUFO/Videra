@@ -14,6 +14,7 @@ using Videra.Core.Graphics;
 using Videra.Core.Graphics.Abstractions;
 using Videra.Core.Graphics.RenderPipeline.Extensibility;
 using Videra.Core.Graphics.Wireframe;
+using Videra.Core.Inspection;
 using Videra.Core.Styles.Parameters;
 using Videra.Core.Styles.Presets;
 
@@ -150,6 +151,24 @@ public partial class VideraView : Decorator
     {
         get => _runtime.Annotations;
         set => _runtime.Annotations = value;
+    }
+
+    /// <summary>
+    /// Gets or sets the host-readable measurement set projected by the inspection workflow.
+    /// </summary>
+    public IReadOnlyList<VideraMeasurement> Measurements
+    {
+        get => _runtime.Measurements;
+        set => _runtime.Measurements = value;
+    }
+
+    /// <summary>
+    /// Gets or sets the viewer-first clipping planes applied to the active inspection scene.
+    /// </summary>
+    public IReadOnlyList<VideraClipPlane> ClippingPlanes
+    {
+        get => _runtime.ClippingPlanes;
+        set => _runtime.ClippingPlanes = value;
     }
 
     /// <summary>

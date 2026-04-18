@@ -18,6 +18,12 @@ internal static class InteractionContractDocumentationTerms
         "Navigate",
         "Select",
         "Annotate",
+        "Measure",
+        "Measurements",
+        "ClippingPlanes",
+        "CaptureInspectionState",
+        "ApplyInspectionState",
+        "ExportSnapshotAsync",
         "object-level"
     };
 

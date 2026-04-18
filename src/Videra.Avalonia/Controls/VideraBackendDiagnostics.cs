@@ -29,6 +29,11 @@ public sealed class VideraBackendDiagnostics
             LastFrameUploadDuration = TimeSpan.Zero,
             ResolvedUploadBudgetObjects = 0,
             ResolvedUploadBudgetBytes = 0,
+            IsClippingActive = false,
+            ActiveClippingPlaneCount = 0,
+            MeasurementCount = 0,
+            LastSnapshotExportPath = null,
+            LastSnapshotExportStatus = null,
             SupportsPassContributors = true,
             SupportsPassReplacement = true,
             SupportsFrameHooks = true,
@@ -104,6 +109,16 @@ public sealed class VideraBackendDiagnostics
     public int ResolvedUploadBudgetObjects { get; init; }
 
     public long ResolvedUploadBudgetBytes { get; init; }
+
+    public bool IsClippingActive { get; init; }
+
+    public int ActiveClippingPlaneCount { get; init; }
+
+    public int MeasurementCount { get; init; }
+
+    public string? LastSnapshotExportPath { get; init; }
+
+    public string? LastSnapshotExportStatus { get; init; }
 
     /// <summary>
     /// Gets a value indicating whether pass contributor registration is supported on the public surface.

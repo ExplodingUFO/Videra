@@ -100,7 +100,7 @@ For alpha adoption feedback, use [Alpha Feedback](docs/alpha-feedback.md) before
 | `Videra.Demo` | Viewer demo for backend diagnostics, import feedback, and baseline interaction |
 | `Videra.SurfaceCharts.Demo` | Independent surface-chart demo for `SurfaceChartView`, chart-local overlays, and rendering-path truth |
 | `Videra.ExtensibilitySample` | Narrow public reference for `VideraView.Engine`, `RegisterPassContributor(...)`, and `RegisterFrameHook(...)` |
-| `Videra.InteractionSample` | Public sample for the controlled interaction contract and host-owned state |
+| `Videra.InteractionSample` | Public sample for the controlled interaction contract plus viewer-first inspection workflows such as measurement, clipping, state restore, and snapshot export |
 
 `Videra.MinimalSample` is the quickest end-to-end viewer reference. It stays on the alpha happy path: `Options -> LoadModelAsync -> FrameAll / ResetCamera -> BackendDiagnostics`, then uses `VideraDiagnosticsSnapshotFormatter` to export the same support artifact requested by alpha bug reports.
 `Videra.Demo` remains the broader diagnostics and import-feedback surface. It seeds a default demo cube on the ready path, summarizes import feedback in the status area, and includes a narrow `Scene Pipeline Lab` panel for `SceneDocument` versioning, pending/resident/dirty upload counts, atomic batch replacement, and backend-rebind truth.
@@ -121,15 +121,16 @@ Contract highlights:
 
 ## Interaction Onboarding
 
-Use [Videra.InteractionSample](samples/Videra.InteractionSample/README.md) as the focused public reference for controlled viewer interaction.
+Use [Videra.InteractionSample](samples/Videra.InteractionSample/README.md) as the focused public reference for controlled viewer interaction and inspection.
 
 Contract highlights:
 
 - The `host owns` `SelectionState`, `Annotations`, and annotation state.
-- Built-in interaction modes are `Navigate`, `Select`, and `Annotate`.
+- Built-in interaction modes are `Navigate`, `Select`, `Annotate`, and `Measure`.
 - Selection is object-level and changes only when the host applies `SelectionRequested`.
 - Annotation clicks surface `AnnotationRequested` for either object anchors or world-point anchors.
 - Hosts typically materialize those anchors through `VideraNodeAnnotation` and `VideraWorldPointAnnotation`.
+- Measurements stay on the public `Measurements` surface, clipping stays on `ClippingPlanes`, and saved inspection views flow through `CaptureInspectionState()`, `ApplyInspectionState(...)`, and `ExportSnapshotAsync(...)`.
 - Overlay responsibilities are split between `3D highlight/render state` and `2D label/feedback rendering`.
 
 ## Surface Charts Onboarding

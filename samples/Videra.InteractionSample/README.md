@@ -1,15 +1,18 @@
 # Videra.InteractionSample
 
-`Videra.InteractionSample` is the focused public interaction reference for controlled selection and annotations in Avalonia.
+`Videra.InteractionSample` is the focused public interaction and inspection reference for controlled selection, annotations, measurements, clipping, and snapshot export in Avalonia.
 
 ## Public contract exercised
 
 - The host owns `SelectionState` and annotation state
 - The host owns `Annotations`
-- Built-in interaction modes: `Navigate`, `Select`, `Annotate`
+- Built-in interaction modes: `Navigate`, `Select`, `Annotate`, `Measure`
 - Selection is `object-level`
 - The host applies `SelectionRequested` and `AnnotationRequested`
 - `AnnotationRequested` resolves to object anchors and world-point anchors
+- Measurements stay on the public `Measurements` surface and are created through `Measure`
+- Clipping stays on the public `ClippingPlanes` surface
+- Inspection persistence/export uses `CaptureInspectionState()`, `ApplyInspectionState(...)`, and `ExportSnapshotAsync(...)`
 - Annotations use `VideraNodeAnnotation` and `VideraWorldPointAnnotation`
 - Overlay responsibilities are split between `3D highlight/render state` and `2D label/feedback rendering`
 
@@ -17,11 +20,13 @@ The sample keeps the interaction flow on public APIs only:
 
 1. It loads a narrow two-object scene through `LoadModelsAsync(...)`.
 2. The window sets `View3D.SelectionState = _selectionState;` and `View3D.Annotations = _annotations;`.
-3. The window switches `View3D.InteractionMode` between `Navigate`, `Select`, and `Annotate`.
+3. The window switches `View3D.InteractionMode` between `Navigate`, `Select`, `Annotate`, and `Measure`.
 4. `SelectionRequested` updates host-owned `SelectionState`.
 5. `AnnotationRequested` appends either a `VideraNodeAnnotation` for an object anchor or a `VideraWorldPointAnnotation` for a world-point anchor.
+6. `Measure` writes lightweight distance probes to `View3D.Measurements`.
+7. The inspection panel toggles `ClippingPlanes`, saves/restores view state, and calls `ExportSnapshotAsync(...)`.
 
-`host owns` is the key rule: the control reports intent, while the sample window decides how `SelectionState` and `Annotations` change.
+`host owns` is still the key rule for selection and annotations: the control reports intent, while the sample window decides how `SelectionState` and `Annotations` change. Measurements, clipping, and snapshot export stay on the public inspection surface without reaching into internal runtime seams.
 
 ## Run
 

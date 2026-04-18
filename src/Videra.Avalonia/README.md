@@ -156,10 +156,12 @@ View3D.AnnotationRequested += (_, e) =>
 
 Contract notes:
 
-- Built-in modes are `Navigate`, `Select`, and `Annotate`.
+- Built-in modes are `Navigate`, `Select`, `Annotate`, and `Measure`.
 - Selection is `object-level`.
 - `SelectionRequested` reports intent; the view does not mutate host state for you.
 - `AnnotationRequested` supports object anchors and world-point anchors.
+- `Measure` writes lightweight viewer-first probes to `VideraView.Measurements`.
+- `ClippingPlanes`, `CaptureInspectionState()`, `ApplyInspectionState(...)`, and `ExportSnapshotAsync(...)` stay on the public inspection surface.
 - Overlay responsibilities are split between `3D highlight/render state` and `2D label/feedback rendering`.
 
 For the end-to-end public flow, see [samples/Videra.InteractionSample](../../samples/Videra.InteractionSample/README.md).

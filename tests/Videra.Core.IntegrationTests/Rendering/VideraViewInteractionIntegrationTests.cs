@@ -9,6 +9,7 @@ using Videra.Avalonia.Controls;
 using Videra.Avalonia.Controls.Interaction;
 using Videra.Avalonia.Rendering;
 using Videra.Core.Graphics;
+using Videra.Core.Inspection;
 using Videra.Core.Selection.Annotations;
 using Xunit;
 
@@ -321,6 +322,46 @@ public sealed class VideraViewInteractionIntegrationTests
             requests[0].Anchor.ObjectId.Should().Be(sceneObject.Id);
             requests[1].Anchor.Kind.Should().Be(AnnotationAnchorKind.WorldPoint);
             requests[1].Anchor.WorldPoint.Should().NotBeNull();
+        }
+        finally
+        {
+            view.Engine.Dispose();
+        }
+    }
+
+    [Fact]
+    public void MeasureMode_ControllerWorkflow_CreatesMeasurement_AndUpdatesDiagnostics()
+    {
+        var view = CreateInteractiveView();
+        try
+        {
+            AddCenteredQuad(view);
+            view.InteractionMode = VideraInteractionMode.Measure;
+            var startPoint = ProjectPoint(view, Vector3.Zero);
+            var endPoint = new Point(18d, 18d);
+            var controller = VideraViewRuntimeTestAccess.ReadRuntimeField<VideraInteractionController>(view, "_interactionController");
+
+            controller.HandlePressed(
+                new VideraPointerGestureSnapshot(startPoint, RawInputModifiers.LeftMouseButton, true, false, MouseButton.Left, 0f),
+                VideraPointerRoute.View).Should().BeTrue();
+            controller.HandleReleased(
+                new VideraPointerGestureSnapshot(startPoint, RawInputModifiers.None, false, false, MouseButton.Left, 0f),
+                VideraPointerRoute.View).Should().BeTrue();
+
+            controller.HandlePressed(
+                new VideraPointerGestureSnapshot(endPoint, RawInputModifiers.LeftMouseButton, true, false, MouseButton.Left, 0f),
+                VideraPointerRoute.View).Should().BeTrue();
+            controller.HandleReleased(
+                new VideraPointerGestureSnapshot(endPoint, RawInputModifiers.None, false, false, MouseButton.Left, 0f),
+                VideraPointerRoute.View).Should().BeTrue();
+
+            view.Measurements.Should().ContainSingle();
+            var measurement = view.Measurements[0];
+            measurement.Should().BeOfType<VideraMeasurement>();
+            measurement.Start.ObjectId.Should().NotBeNull();
+            measurement.Distance.Should().BeGreaterThan(0f);
+
+            view.BackendDiagnostics.MeasurementCount.Should().Be(1);
         }
         finally
         {

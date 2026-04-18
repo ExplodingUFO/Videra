@@ -4,5 +4,6 @@ public enum VideraInteractionMode
 {
     Navigate,
     Select,
-    Annotate
+    Annotate,
+    Measure
 }

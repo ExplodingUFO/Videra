@@ -5,6 +5,7 @@ using Avalonia.Input;
 using Videra.Avalonia.Controls.Interaction;
 using Videra.Avalonia.Rendering;
 using Videra.Core.Graphics;
+using Videra.Core.Inspection;
 
 namespace Videra.Avalonia.Controls;
 
@@ -17,6 +18,12 @@ public partial class VideraView : IVideraInteractionHost
     VideraInteractionOptions IVideraInteractionHost.InteractionOptions => _runtime.InteractionOptions;
 
     IReadOnlyList<Object3D> IVideraInteractionHost.SceneObjects => Engine.SceneObjects;
+
+    IReadOnlyList<VideraMeasurement> IVideraInteractionHost.Measurements
+    {
+        get => _runtime.Measurements;
+        set => _runtime.Measurements = value;
+    }
 
     IInputElement IVideraInteractionHost.PointerCaptureTarget => this;
 

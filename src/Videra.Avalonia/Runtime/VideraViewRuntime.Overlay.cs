@@ -1,6 +1,7 @@
 using System.Numerics;
 using Avalonia;
 using Videra.Core.Geometry;
+using Videra.Core.Selection.Annotations;
 using Videra.Core.Selection.Rendering;
 
 namespace Videra.Avalonia.Runtime;
@@ -28,6 +29,13 @@ internal sealed partial class VideraViewRuntime
             anchors: _annotations
                 .Where(annotation => annotation.IsVisible)
                 .Select(annotation => new AnnotationOverlayAnchor(annotation.Id, annotation.Anchor))
+                .Concat(_measurements
+                    .Where(measurement => measurement.IsVisible)
+                    .SelectMany(measurement => new[]
+                    {
+                        new AnnotationOverlayAnchor(CreateMeasurementAnchorId(measurement.Id, isStart: true), AnnotationAnchorDescriptor.ForWorldPoint(measurement.Start.WorldPoint)),
+                        new AnnotationOverlayAnchor(CreateMeasurementAnchorId(measurement.Id, isStart: false), AnnotationAnchorDescriptor.ForWorldPoint(measurement.End.WorldPoint))
+                    }))
                 .ToArray(),
             markerColor: DefaultMarkerColor,
             markerWorldSize: 0.08f);
@@ -41,6 +49,7 @@ internal sealed partial class VideraViewRuntime
         _overlayState = _sessionBridge.CreateOverlayState(
             _selectionState,
             _annotations,
+            _measurements,
             CreateOverlayViewportSize());
         _owner.UpdateOverlayPresentationFromRuntime(_overlayState);
     }
@@ -77,5 +86,12 @@ internal sealed partial class VideraViewRuntime
         SynchronizeOverlayPresentation();
         RefreshBackendDiagnostics(_backendDiagnostics.LastInitializationError);
         _owner.InvalidateVisualsFromRuntime();
+    }
+
+    private static Guid CreateMeasurementAnchorId(Guid measurementId, bool isStart)
+    {
+        var bytes = measurementId.ToByteArray();
+        bytes[15] ^= isStart ? (byte)0x41 : (byte)0x82;
+        return new Guid(bytes);
     }
 }

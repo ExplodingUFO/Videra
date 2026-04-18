@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using Videra.Avalonia.Rendering;
 using Videra.Core.Interaction;
 using Videra.Core.Picking;
+using Videra.Core.Inspection;
 using Videra.Core.Selection;
 
 namespace Videra.Avalonia.Controls.Interaction;
@@ -23,6 +24,7 @@ internal sealed partial class VideraInteractionController : IDisposable
     private readonly PickingService _pickingService = new();
     private readonly SelectionBoxService _selectionBoxService = new();
     private readonly VideraInteractionState _state = new();
+    private VideraMeasurementAnchor? _pendingMeasurementAnchor;
     private InteractiveFrameLease? _interactiveFrameLease;
     private bool _disposed;
 
@@ -48,6 +50,7 @@ internal sealed partial class VideraInteractionController : IDisposable
     {
         _interactiveFrameLease?.Dispose();
         _interactiveFrameLease = null;
+        _pendingMeasurementAnchor = null;
         _state.Reset();
     }
 
@@ -64,6 +67,7 @@ internal sealed partial class VideraInteractionController : IDisposable
         }
 
         _host.FocusHost();
+        ResetMeasurementIntentIfInactive();
         _state.LastPosition = snapshot.Position;
 
         var handled = false;
@@ -138,6 +142,31 @@ internal sealed partial class VideraInteractionController : IDisposable
                          out var anchor))
             {
                 _host.RaiseAnnotationRequested(new AnnotationRequestedEventArgs(anchor));
+            }
+            else if (_host.InteractionMode == VideraInteractionMode.Measure &&
+                     !_state.HasExceededClickThreshold &&
+                     _pickingService.TryResolveMeasurementAnchor(
+                         _host.Engine.Camera,
+                         _host.GetInteractionViewportSize(),
+                         ToVector2(snapshot.Position),
+                         _host.SceneObjects,
+                         out var measurementAnchor))
+            {
+                if (_pendingMeasurementAnchor is VideraMeasurementAnchor startAnchor)
+                {
+                    _host.Measurements = _host.Measurements
+                        .Append(new VideraMeasurement
+                        {
+                            Start = startAnchor,
+                            End = measurementAnchor
+                        })
+                        .ToArray();
+                    _pendingMeasurementAnchor = null;
+                }
+                else
+                {
+                    _pendingMeasurementAnchor = measurementAnchor;
+                }
             }
 
             _state.IsLeftButtonDown = false;
@@ -237,6 +266,14 @@ internal sealed partial class VideraInteractionController : IDisposable
         }
 
         _interactiveFrameLease = _host.BeginInteractiveFrameLease();
+    }
+
+    private void ResetMeasurementIntentIfInactive()
+    {
+        if (_host.InteractionMode != VideraInteractionMode.Measure)
+        {
+            _pendingMeasurementAnchor = null;
+        }
     }
 
     private VideraSelectionRequest? CreateClickRequest(Point position, RawInputModifiers modifiers)

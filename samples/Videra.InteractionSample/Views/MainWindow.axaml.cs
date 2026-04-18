@@ -6,6 +6,7 @@ using Avalonia.Media;
 using Videra.Avalonia.Controls;
 using Videra.Avalonia.Controls.Interaction;
 using Videra.Core.Graphics;
+using Videra.Core.Inspection;
 using Videra.Core.Selection.Annotations;
 
 namespace Videra.InteractionSample.Views;
@@ -17,19 +18,25 @@ public partial class MainWindow : Window
     private readonly TextBlock _sceneStatusText;
     private readonly TextBlock _selectionStatusText;
     private readonly TextBlock _annotationStatusText;
+    private readonly TextBlock _measurementStatusText;
+    private readonly TextBlock _inspectionStatusText;
     private readonly TextBlock _lastRequestText;
     private readonly Button _navigateModeButton;
     private readonly Button _selectModeButton;
     private readonly Button _annotateModeButton;
+    private readonly Button _measureModeButton;
     private readonly Dictionary<Guid, string> _objectNames = new();
     private readonly List<Object3D> _sceneObjects = new();
 
     private VideraSelectionState _selectionState = new();
     private IReadOnlyList<VideraAnnotation> _annotations = Array.Empty<VideraAnnotation>();
+    private VideraInspectionState? _savedInspectionState;
 
     private bool _sampleStarted;
+    private bool _sectionPlaneEnabled;
     private int _annotationSequence = 1;
     private string _loadSummary = "Waiting for backend readiness before loading the focused interaction scene.";
+    private string _inspectionSummary = "Toggle a section plane, save the current view state, or export a snapshot after the scene loads.";
     private string _lastRequestSummary = "Switch modes, click objects, or click empty space to drive the public interaction flow.";
 
     public MainWindow()
@@ -46,6 +53,10 @@ public partial class MainWindow : Window
             ?? throw new InvalidOperationException("Selection status control is missing.");
         _annotationStatusText = this.FindControl<TextBlock>("AnnotationStatusText")
             ?? throw new InvalidOperationException("Annotation status control is missing.");
+        _measurementStatusText = this.FindControl<TextBlock>("MeasurementStatusText")
+            ?? throw new InvalidOperationException("Measurement status control is missing.");
+        _inspectionStatusText = this.FindControl<TextBlock>("InspectionStatusText")
+            ?? throw new InvalidOperationException("Inspection status control is missing.");
         _lastRequestText = this.FindControl<TextBlock>("LastRequestText")
             ?? throw new InvalidOperationException("Last request control is missing.");
         _navigateModeButton = this.FindControl<Button>("NavigateModeButton")
@@ -54,6 +65,8 @@ public partial class MainWindow : Window
             ?? throw new InvalidOperationException("Select mode button is missing.");
         _annotateModeButton = this.FindControl<Button>("AnnotateModeButton")
             ?? throw new InvalidOperationException("Annotate mode button is missing.");
+        _measureModeButton = this.FindControl<Button>("MeasureModeButton")
+            ?? throw new InvalidOperationException("Measure mode button is missing.");
 
         View3D.InteractionOptions = new VideraInteractionOptions
         {
@@ -61,6 +74,8 @@ public partial class MainWindow : Window
         };
         View3D.SelectionState = _selectionState;
         View3D.Annotations = _annotations;
+        View3D.Measurements = Array.Empty<VideraMeasurement>();
+        View3D.ClippingPlanes = Array.Empty<VideraClipPlane>();
         View3D.InteractionMode = VideraInteractionMode.Navigate;
         View3D.SelectionRequested += OnSelectionRequested;
         View3D.AnnotationRequested += OnAnnotationRequested;
@@ -216,8 +231,13 @@ public partial class MainWindow : Window
             }
         ];
 
+        View3D.Measurements = Array.Empty<VideraMeasurement>();
+        _savedInspectionState = null;
+        _sectionPlaneEnabled = false;
+        View3D.ClippingPlanes = Array.Empty<VideraClipPlane>();
         PushHostState();
         _lastRequestSummary = "Seeded host-owned object selection plus one object-anchor note and one world-point note.";
+        _inspectionSummary = "The inspection workflow is ready. Toggle a section plane, switch to Measure, or export a snapshot.";
     }
 
     private void OnSelectionRequested(object? sender, SelectionRequestedEventArgs e)
@@ -343,6 +363,16 @@ public partial class MainWindow : Window
         UpdateStatusPanel();
     }
 
+    private void OnMeasureModeClicked(object? sender, global::Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        _ = sender;
+        _ = e;
+        View3D.InteractionMode = VideraInteractionMode.Measure;
+        _lastRequestSummary = "InteractionMode switched to Measure. Click two points to create a viewer-first distance measurement.";
+        UpdateModeButtons();
+        UpdateStatusPanel();
+    }
+
     private void OnClearSelectionClicked(object? sender, global::Avalonia.Interactivity.RoutedEventArgs e)
     {
         _ = sender;
@@ -361,6 +391,15 @@ public partial class MainWindow : Window
         PushHostState();
     }
 
+    private void OnClearMeasurementsClicked(object? sender, global::Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        _ = sender;
+        _ = e;
+        View3D.Measurements = Array.Empty<VideraMeasurement>();
+        _lastRequestSummary = "The host cleared the current measurement set from the public inspection surface.";
+        UpdateStatusPanel();
+    }
+
     private void OnReseedAnnotationsClicked(object? sender, global::Avalonia.Interactivity.RoutedEventArgs e)
     {
         _ = sender;
@@ -375,15 +414,73 @@ public partial class MainWindow : Window
         SeedHostOwnedState();
     }
 
+    private void OnToggleSectionPlaneClicked(object? sender, global::Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        _ = sender;
+        _ = e;
+        _sectionPlaneEnabled = !_sectionPlaneEnabled;
+        View3D.ClippingPlanes = _sectionPlaneEnabled
+            ? [VideraClipPlane.FromPointNormal(Vector3.Zero, Vector3.UnitZ)]
+            : Array.Empty<VideraClipPlane>();
+        _inspectionSummary = _sectionPlaneEnabled
+            ? "Section plane enabled. The active scene now clips against a world-space Z plane through the origin."
+            : "Section plane disabled. The full scene is visible again.";
+        UpdateStatusPanel();
+    }
+
+    private void OnCaptureInspectionStateClicked(object? sender, global::Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        _ = sender;
+        _ = e;
+        _savedInspectionState = View3D.CaptureInspectionState();
+        _inspectionSummary = "Captured the current inspection state, including camera, selection, clipping, and measurements.";
+        UpdateStatusPanel();
+    }
+
+    private void OnRestoreInspectionStateClicked(object? sender, global::Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        _ = sender;
+        _ = e;
+        if (_savedInspectionState is null)
+        {
+            _inspectionSummary = "No saved inspection state is available yet.";
+            UpdateStatusPanel();
+            return;
+        }
+
+        View3D.ApplyInspectionState(_savedInspectionState);
+        _sectionPlaneEnabled = View3D.ClippingPlanes.Count > 0;
+        _inspectionSummary = "Restored the previously captured inspection state.";
+        UpdateModeButtons();
+        UpdateStatusPanel();
+    }
+
+    private async void OnExportSnapshotClicked(object? sender, global::Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        _ = sender;
+        _ = e;
+
+        var outputPath = Path.Combine(
+            Path.GetTempPath(),
+            $"videra-interaction-snapshot-{DateTime.UtcNow:yyyyMMddHHmmss}.png");
+        var result = await View3D.ExportSnapshotAsync(outputPath).ConfigureAwait(true);
+        _inspectionSummary = result.Succeeded
+            ? $"ExportSnapshotAsync wrote {result.Path} at {result.Width}x{result.Height} in {result.Duration.TotalMilliseconds:N0} ms."
+            : $"ExportSnapshotAsync failed: {result.Failure?.Message ?? "Unknown error."}";
+        UpdateStatusPanel();
+    }
+
     private void UpdateStatusPanel()
     {
         _contractStatusText.Text =
             $"Current mode: {View3D.InteractionMode}. The host owns SelectionState, Annotations, and annotation state, " +
-            "while VideraView translates that state into 3D highlight/render state and 2D label/feedback rendering.";
+            "while VideraView translates that state into 3D highlight/render state, 2D label/feedback rendering, and viewer-first inspection workflows.";
         _loadStatusText.Text = _loadSummary;
         _sceneStatusText.Text = FormatSceneSummary();
         _selectionStatusText.Text = FormatSelectionSummary();
         _annotationStatusText.Text = FormatAnnotationSummary();
+        _measurementStatusText.Text = FormatMeasurementSummary();
+        _inspectionStatusText.Text = FormatInspectionSummary();
         _lastRequestText.Text = _lastRequestSummary;
     }
 
@@ -392,6 +489,7 @@ public partial class MainWindow : Window
         UpdateModeButton(_navigateModeButton, View3D.InteractionMode == VideraInteractionMode.Navigate);
         UpdateModeButton(_selectModeButton, View3D.InteractionMode == VideraInteractionMode.Select);
         UpdateModeButton(_annotateModeButton, View3D.InteractionMode == VideraInteractionMode.Annotate);
+        UpdateModeButton(_measureModeButton, View3D.InteractionMode == VideraInteractionMode.Measure);
     }
 
     private static void UpdateModeButton(Button button, bool isActive)
@@ -461,6 +559,43 @@ public partial class MainWindow : Window
         }
 
         builder.Append("The host owns the annotation list; overlay labels and markers reflect this state.");
+        return builder.ToString();
+    }
+
+    private string FormatMeasurementSummary()
+    {
+        var measurements = View3D.Measurements;
+        if (measurements.Count == 0)
+        {
+            return "No measurements yet. Switch to Measure and click two points to create one.";
+        }
+
+        var builder = new StringBuilder();
+        foreach (var measurement in measurements)
+        {
+            builder.AppendLine(
+                $"- {measurement.Label ?? "Measurement"}: distance={measurement.Distance:0.00}, " +
+                $"horizontal={measurement.HorizontalDistance:0.00}, height={measurement.HeightDelta:0.00}");
+        }
+
+        builder.Append("Measurements stay on the public inspection surface and are included in captured view state.");
+        return builder.ToString();
+    }
+
+    private string FormatInspectionSummary()
+    {
+        var diagnostics = View3D.BackendDiagnostics;
+        var builder = new StringBuilder();
+        builder.AppendLine(_inspectionSummary);
+        builder.AppendLine($"Clipping active: {diagnostics.IsClippingActive} ({diagnostics.ActiveClippingPlaneCount} plane(s))");
+        builder.AppendLine($"Measurements tracked: {diagnostics.MeasurementCount}");
+        builder.AppendLine($"Saved view state: {(_savedInspectionState is null ? "Unavailable" : "Available")}");
+        builder.Append($"Last snapshot export: {diagnostics.LastSnapshotExportStatus ?? "Unavailable"}");
+        if (!string.IsNullOrWhiteSpace(diagnostics.LastSnapshotExportPath))
+        {
+            builder.Append($" @ {diagnostics.LastSnapshotExportPath}");
+        }
+
         return builder.ToString();
     }
 
