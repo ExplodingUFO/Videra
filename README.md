@@ -22,7 +22,7 @@ Videra is not a general-purpose game engine. It is shaped around desktop visuali
 ## Current Status
 
 - Early `alpha`
-- Current repository baseline: `0.1.0-alpha.5`
+- Current repository baseline: `0.1.0-alpha.7`
 - Public release tags are intended to publish the consumer packages on `nuget.org`
 - `GitHub Packages` remains the `preview` / internal feed for contributors and pre-release validation
 - `Videra.SurfaceCharts.*` is still a source-first module family, not a published public package line

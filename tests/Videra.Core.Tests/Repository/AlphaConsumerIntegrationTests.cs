@@ -47,7 +47,9 @@ public sealed class AlphaConsumerIntegrationTests
         smokeScript.Should().Contain("--configfile");
         smokeScript.Should().Contain("https://api.nuget.org/v3/index.json");
         smokeScript.Should().Contain("dotnet build");
-        smokeScript.Should().Contain("dotnet run");
+        smokeScript.Should().Contain("Start-Process");
+        smokeScript.Should().Contain("-FilePath \"dotnet\"");
+        smokeScript.Should().Contain("\"run\",");
         smokeScript.Should().Contain("FrameAllReturned");
         smokeScript.Should().Contain("ResolvedBackend");
         smokeScript.Should().Contain("ResolvedDisplayServer");

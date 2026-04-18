@@ -24,8 +24,8 @@ dotnet nuget add source "https://nuget.pkg.github.com/ExplodingUFO/index.json" \
   --password YOUR_GITHUB_PAT \
   --store-password-in-clear-text
 
-dotnet add package Videra.Avalonia --version 0.1.0-alpha.5 --source github-ExplodingUFO
-dotnet add package Videra.Platform.Windows --version 0.1.0-alpha.5 --source github-ExplodingUFO
+dotnet add package Videra.Avalonia --version 0.1.0-alpha.7 --source github-ExplodingUFO
+dotnet add package Videra.Platform.Windows --version 0.1.0-alpha.7 --source github-ExplodingUFO
 ```
 
 Windows matching-host validation 已经纳入标准仓库验证与 GitHub Actions。

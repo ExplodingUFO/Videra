@@ -6,6 +6,14 @@ The format is based on Keep a Changelog, and this repository is currently in an 
 
 ## [Unreleased]
 
+## [0.1.0-alpha.7] - 2026-04-19
+
+### Fixed
+
+- deferred native X11 backend initialization until real view bounds are available so Linux consumer-smoke no longer races a synthetic `64x64` startup surface
+- retained X11 lifecycle diagnostics in the smoke path to make future startup regressions reproducible from workflow artifacts
+- bumped the default package version baseline to `0.1.0-alpha.7`
+
 ## [0.1.0-alpha.6] - 2026-04-19
 
 ### Fixed

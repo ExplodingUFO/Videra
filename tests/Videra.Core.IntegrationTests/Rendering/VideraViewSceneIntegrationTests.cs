@@ -932,6 +932,8 @@ public sealed class VideraViewSceneIntegrationTests : IDisposable
         {
             sessionSwap = NativeTrackingSessionSwap.Install(view);
             view.PreferredBackend = GraphicsBackendPreference.D3D11;
+            view.Measure(new Size(200, 200));
+            view.Arrange(new Rect(0, 0, 200, 200));
 
             var ensureNativeHost = typeof(VideraView).GetMethod("EnsureNativeHost", BindingFlags.Instance | BindingFlags.NonPublic);
             ensureNativeHost.Should().NotBeNull();
