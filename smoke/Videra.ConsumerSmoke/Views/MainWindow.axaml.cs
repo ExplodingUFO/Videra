@@ -16,6 +16,7 @@ public partial class MainWindow : Window
     private readonly string? _outputPath;
     private readonly string? _diagnosticsSnapshotPath;
     private readonly string? _inspectionSnapshotPath;
+    private readonly string? _tracePath;
     private bool _completed;
     private EventHandler? _backendReadyHandler;
     private EventHandler? _openedHandler;
@@ -35,6 +36,8 @@ public partial class MainWindow : Window
         _inspectionSnapshotPath = string.IsNullOrWhiteSpace(_outputPath)
             ? null
             : Path.Combine(Path.GetDirectoryName(_outputPath!)!, "inspection-snapshot.png");
+        _tracePath = Environment.GetEnvironmentVariable("VIDERA_CONSUMER_SMOKE_TRACE");
+        Trace("MainWindow constructed.");
 
         _view3D.Options = new VideraViewOptions
         {
@@ -48,6 +51,7 @@ public partial class MainWindow : Window
         _backendReadyHandler = (_, _) => _ = TryExecuteSmokeAsync();
         _openedHandler = (_, _) =>
         {
+            Trace("Window opened.");
             _statusText.Text = "Waiting for backend readiness.";
             _ = RunTimeoutGuardAsync();
             _ = TryExecuteSmokeAsync();
@@ -56,12 +60,16 @@ public partial class MainWindow : Window
         _view3D.BackendReady += _backendReadyHandler;
         _view3D.BackendStatusChanged += (_, e) =>
         {
+            Trace(
+                $"BackendStatusChanged: ready={e.Diagnostics.IsReady}; backend={e.Diagnostics.ResolvedBackend}; " +
+                $"display={e.Diagnostics.ResolvedDisplayServer ?? "Unavailable"}; fallback={e.Diagnostics.IsUsingSoftwareFallback}.");
             _statusText.Text =
                 $"IsReady={e.Diagnostics.IsReady}; ResolvedBackend={e.Diagnostics.ResolvedBackend}; " +
                 $"ResolvedDisplayServer={e.Diagnostics.ResolvedDisplayServer ?? "Unavailable"}";
         };
         _view3D.InitializationFailed += (_, e) =>
         {
+            Trace($"Initialization failed: {e.Exception}");
             CompleteAsync(
                 succeeded: false,
                 frameAllReturned: false,
@@ -78,6 +86,7 @@ public partial class MainWindow : Window
 
     private async Task TryExecuteSmokeAsync()
     {
+        Trace($"TryExecuteSmokeAsync entered. completed={_completed}; isReady={_view3D.BackendDiagnostics.IsReady}.");
         if (_completed || !_view3D.BackendDiagnostics.IsReady)
         {
             return;
@@ -85,9 +94,11 @@ public partial class MainWindow : Window
 
         try
         {
+            Trace("LoadModelAsync starting.");
             var result = await _view3D.LoadModelAsync("Assets/reference-cube.obj").ConfigureAwait(true);
             if (!result.Succeeded)
             {
+                Trace($"LoadModelAsync failed: {result.Failure?.ErrorMessage ?? "Unknown"}");
                 await CompleteAsync(
                     succeeded: false,
                     frameAllReturned: false,
@@ -95,16 +106,25 @@ public partial class MainWindow : Window
                 return;
             }
 
+            Trace("LoadModelAsync succeeded.");
             var framed = _view3D.FrameAll();
+            Trace($"FrameAll returned {framed}.");
             _view3D.ResetCamera();
+            Trace("ResetCamera completed.");
 
             string? snapshotFailure = null;
             if (framed && !string.IsNullOrWhiteSpace(_inspectionSnapshotPath))
             {
+                Trace($"ExportSnapshotAsync starting: {_inspectionSnapshotPath}");
                 var snapshot = await _view3D.ExportSnapshotAsync(_inspectionSnapshotPath).ConfigureAwait(true);
                 if (!snapshot.Succeeded)
                 {
                     snapshotFailure = snapshot.Failure?.Message ?? "Snapshot export failed.";
+                    Trace($"ExportSnapshotAsync failed: {snapshotFailure}");
+                }
+                else
+                {
+                    Trace($"ExportSnapshotAsync succeeded: {_inspectionSnapshotPath}");
                 }
             }
 
@@ -117,6 +137,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
+            Trace($"TryExecuteSmokeAsync threw: {ex}");
             await CompleteAsync(
                 succeeded: false,
                 frameAllReturned: false,
@@ -132,6 +153,7 @@ public partial class MainWindow : Window
             return;
         }
 
+        Trace("Timeout guard elapsed.");
         await CompleteAsync(
             succeeded: false,
             frameAllReturned: false,
@@ -149,6 +171,7 @@ public partial class MainWindow : Window
         }
 
         _completed = true;
+        Trace($"CompleteAsync starting. succeeded={succeeded}; frameAllReturned={frameAllReturned}; failure={failure ?? "<none>"}");
         _statusText.Text = succeeded
             ? "Consumer smoke passed."
             : $"Consumer smoke failed: {failure}";
@@ -178,16 +201,19 @@ public partial class MainWindow : Window
             {
                 WriteIndented = true
             }));
+            Trace($"Wrote report: {_outputPath}");
         }
 
         if (!string.IsNullOrWhiteSpace(_diagnosticsSnapshotPath))
         {
             Directory.CreateDirectory(Path.GetDirectoryName(_diagnosticsSnapshotPath!)!);
             File.WriteAllText(_diagnosticsSnapshotPath!, VideraDiagnosticsSnapshotFormatter.Format(diagnostics));
+            Trace($"Wrote diagnostics snapshot: {_diagnosticsSnapshotPath}");
         }
 
         Dispatcher.UIThread.Post(() =>
         {
+            Trace($"Posting shutdown with exit code {(succeeded ? 0 : 1)}.");
             if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
                 desktop.Shutdown(succeeded ? 0 : 1);
@@ -195,6 +221,26 @@ public partial class MainWindow : Window
         }, DispatcherPriority.Background);
 
         return Task.CompletedTask;
+    }
+
+    private void Trace(string message)
+    {
+        if (string.IsNullOrWhiteSpace(_tracePath))
+        {
+            return;
+        }
+
+        try
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(_tracePath!)!);
+            File.AppendAllText(
+                _tracePath!,
+                $"[{DateTimeOffset.UtcNow:O}] {message}{Environment.NewLine}");
+        }
+        catch
+        {
+            // Best-effort diagnostics only.
+        }
     }
 
     private sealed record ConsumerSmokeReport(

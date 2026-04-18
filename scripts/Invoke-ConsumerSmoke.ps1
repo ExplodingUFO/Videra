@@ -15,6 +15,9 @@ $outputPath = Join-Path $root $OutputRoot
 $jsonPath = Join-Path $outputPath "consumer-smoke-result.json"
 $snapshotPath = Join-Path $outputPath "diagnostics-snapshot.txt"
 $inspectionSnapshotPath = Join-Path $outputPath "inspection-snapshot.png"
+$tracePath = Join-Path $outputPath "consumer-smoke-trace.log"
+$stdoutPath = Join-Path $outputPath "consumer-smoke-stdout.log"
+$stderrPath = Join-Path $outputPath "consumer-smoke-stderr.log"
 $packageOutputPath = Join-Path $outputPath "packages"
 $packagesCachePath = Join-Path $outputPath "global-packages"
 $nugetConfigPath = Join-Path $outputPath "NuGet.Config"
@@ -98,14 +101,55 @@ if ($LASTEXITCODE -ne 0)
 Write-Host "=== Consumer Smoke Run ===" -ForegroundColor Cyan
 $previousOutput = $env:VIDERA_CONSUMER_SMOKE_OUTPUT
 $hadPreviousOutput = Test-Path Env:VIDERA_CONSUMER_SMOKE_OUTPUT
+$previousTrace = $env:VIDERA_CONSUMER_SMOKE_TRACE
+$hadPreviousTrace = Test-Path Env:VIDERA_CONSUMER_SMOKE_TRACE
 
 try
 {
     $env:VIDERA_CONSUMER_SMOKE_OUTPUT = $jsonPath
-    dotnet run --project $projectPath --configuration $Configuration --no-build --packages $packagesCachePath -p:VideraConsumerPackageVersion=$packageVersion
-    if ($LASTEXITCODE -ne 0)
+    $env:VIDERA_CONSUMER_SMOKE_TRACE = $tracePath
+    $consumerSmokeProcess = Start-Process `
+        -FilePath "dotnet" `
+        -ArgumentList @(
+            "run",
+            "--project",
+            $projectPath,
+            "--configuration",
+            $Configuration,
+            "--no-build",
+            "--packages",
+            $packagesCachePath,
+            "-p:VideraConsumerPackageVersion=$packageVersion") `
+        -Wait `
+        -PassThru `
+        -NoNewWindow `
+        -RedirectStandardOutput $stdoutPath `
+        -RedirectStandardError $stderrPath
+
+    if ($consumerSmokeProcess.ExitCode -ne 0)
     {
-        throw "Consumer smoke app exited with code $LASTEXITCODE."
+        if (Test-Path -LiteralPath $tracePath)
+        {
+            Write-Host "=== Consumer Smoke Trace ===" -ForegroundColor Yellow
+            Get-Content -LiteralPath $tracePath
+        }
+
+        if (Test-Path -LiteralPath $stdoutPath)
+        {
+            Write-Host "=== Consumer Smoke Stdout ===" -ForegroundColor Yellow
+            Get-Content -LiteralPath $stdoutPath
+        }
+
+        if (Test-Path -LiteralPath $stderrPath)
+        {
+            Write-Host "=== Consumer Smoke Stderr ===" -ForegroundColor Yellow
+            Get-Content -LiteralPath $stderrPath
+        }
+
+        Write-Host "=== Consumer Smoke Output Directory ===" -ForegroundColor Yellow
+        Get-ChildItem -LiteralPath $outputPath -Recurse | Select-Object FullName, Length
+
+        throw "Consumer smoke app exited with code $($consumerSmokeProcess.ExitCode)."
     }
 }
 finally
@@ -117,6 +161,15 @@ finally
     else
     {
         Remove-Item Env:VIDERA_CONSUMER_SMOKE_OUTPUT -ErrorAction SilentlyContinue
+    }
+
+    if ($hadPreviousTrace)
+    {
+        $env:VIDERA_CONSUMER_SMOKE_TRACE = $previousTrace
+    }
+    else
+    {
+        Remove-Item Env:VIDERA_CONSUMER_SMOKE_TRACE -ErrorAction SilentlyContinue
     }
 }
 
