@@ -798,6 +798,33 @@ public sealed class VideraViewSceneIntegrationTests : IDisposable
     }
 
     [Fact]
+    public void ReleaseNativeHost_ShouldUnbindRenderSessionBeforeRemovingNativeChild()
+    {
+        var nativeHostFactory = new RecordingNativeHostFactory();
+        var view = new ReleaseOrderTrackingView(nativeHostFactory, bitmapFactory: static (_, _) => null);
+        try
+        {
+            view.Measure(new Size(200, 200));
+            view.Arrange(new Rect(0, 0, 200, 200));
+
+            InvokeNonPublicMethod(view, "EnsureNativeHost");
+
+            nativeHostFactory.LastCreatedHost.Should().NotBeNull();
+            nativeHostFactory.LastCreatedHost!.RaiseHandleCreated(new IntPtr(0x1234));
+            VideraViewRuntimeTestAccess.ReadRenderSession(view).HandleState.IsBound.Should().BeTrue();
+
+            InvokeNonPublicMethod(view, "ReleaseNativeHost");
+
+            view.WasRenderSessionHandleBoundWhenChildRemoved.Should().BeFalse();
+            VideraViewRuntimeTestAccess.ReadRenderSession(view).HandleState.IsBound.Should().BeFalse();
+        }
+        finally
+        {
+            view.Engine.Dispose();
+        }
+    }
+
+    [Fact]
     public void OverlayPresenter_ConsumesHostOwnedOverlayState_WhenOverlayContainerIsPresent()
     {
         var view = new VideraView(new RecordingNativeHostFactory(), bitmapFactory: static (_, _) => null);
@@ -1051,6 +1078,32 @@ public sealed class VideraViewSceneIntegrationTests : IDisposable
         }
     }
 
+    private sealed class ReleaseOrderTrackingView : VideraView
+    {
+        public ReleaseOrderTrackingView(
+            INativeHostFactory? nativeHostFactory,
+            Func<uint, uint, global::Avalonia.Media.Imaging.WriteableBitmap?>? bitmapFactory)
+            : base(nativeHostFactory, bitmapFactory)
+        {
+        }
+
+        public bool? WasRenderSessionHandleBoundWhenChildRemoved { get; private set; }
+
+        protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+        {
+            if (change.Property == ChildProperty &&
+                change is AvaloniaPropertyChangedEventArgs<Control?> childChange &&
+                childChange.OldValue.GetValueOrDefault() is not null &&
+                childChange.NewValue.GetValueOrDefault() is null)
+            {
+                WasRenderSessionHandleBoundWhenChildRemoved =
+                    VideraViewRuntimeTestAccess.ReadRenderSession(this).HandleState.IsBound;
+            }
+
+            base.OnPropertyChanged(change);
+        }
+    }
+
     private static Rect GetPresenterSelectionRect(VideraView view)
     {
         var overlayState = GetOverlayState(view);
@@ -1081,6 +1134,20 @@ public sealed class VideraViewSceneIntegrationTests : IDisposable
         var overlayState = overlayStateField!.GetValue(inputOverlay.Child!);
         overlayState.Should().NotBeNull();
         return overlayState!;
+    }
+
+    private static void InvokeNonPublicMethod(object target, string methodName)
+    {
+        var type = target.GetType();
+        MethodInfo? method = null;
+        while (type is not null && method is null)
+        {
+            method = type.GetMethod(methodName, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.DeclaredOnly);
+            type = type.BaseType;
+        }
+
+        method.Should().NotBeNull($"method {methodName} should exist on {target.GetType().FullName}");
+        method!.Invoke(target, Array.Empty<object>());
     }
 
     private sealed class NativeTrackingSessionSwap : IDisposable

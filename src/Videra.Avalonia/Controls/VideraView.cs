@@ -440,12 +440,12 @@ public partial class VideraView : Decorator
             host.NativePointer -= OnNativePointer;
         }
 
+        _runtime.OnNativeHandleDestroyed();
         Child = null;
         _nativeHost = null;
         _nativeContainer = null;
         _inputOverlay = null;
         _overlayPresenter = null;
-        _runtime.OnNativeHandleDestroyed();
     }
 
     private void OnNativeHandleCreated(IntPtr handle)
