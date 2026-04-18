@@ -172,7 +172,7 @@ For `master`, the intended required checks are:
 - Use GitHub Discussions for usage questions, API design discussion, and integration ideas
 - Use Issues for `kind: bug`, `kind: feature`, `kind: docs`, and `dependencies` work
 - Choose the closest product area when filing issues: `area: core`, `area: avalonia`, `area: windows`, `area: linux`, `area: macos`, or `area: surfacecharts`
-- For alpha integration bugs, include package path, package version, `BackendDiagnostics`, and Linux display-server diagnostics when relevant. Start from [docs/alpha-feedback.md](docs/alpha-feedback.md).
+- For alpha integration bugs, include package path, package version, the `VideraDiagnosticsSnapshotFormatter` output for `BackendDiagnostics`, and Linux display-server diagnostics when relevant. Start from [docs/alpha-feedback.md](docs/alpha-feedback.md).
 - For larger design disagreements, sync in a Discussion or issue before opening a major PR
 - Security problems belong in [SECURITY.md](SECURITY.md). Do not post private vulnerabilities as public issues.
 

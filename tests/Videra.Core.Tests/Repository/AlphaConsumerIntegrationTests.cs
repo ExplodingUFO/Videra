@@ -51,6 +51,7 @@ public sealed class AlphaConsumerIntegrationTests
         smokeScript.Should().Contain("FrameAllReturned");
         smokeScript.Should().Contain("ResolvedBackend");
         smokeScript.Should().Contain("ResolvedDisplayServer");
+        smokeScript.Should().Contain("diagnostics-snapshot.txt");
     }
 
     [Fact]
@@ -88,6 +89,8 @@ public sealed class AlphaConsumerIntegrationTests
         docs.Should().Contain("Run-Benchmarks.ps1");
         docs.Should().Contain("viewer");
         docs.Should().Contain("surfacecharts");
+        docs.Should().Contain("compare runs over time");
+        docs.Should().Contain("trend");
 
         docsIndex.Should().Contain("benchmark-gates.md");
         rootReadme.Should().Contain("docs/benchmark-gates.md");
@@ -103,13 +106,15 @@ public sealed class AlphaConsumerIntegrationTests
         var contributingPath = Path.Combine(repositoryRoot, "CONTRIBUTING.md");
         var troubleshootingPath = Path.Combine(repositoryRoot, "docs", "troubleshooting.md");
         var supportMatrixPath = Path.Combine(repositoryRoot, "docs", "support-matrix.md");
+        var avaloniaReadmePath = Path.Combine(repositoryRoot, "src", "Videra.Avalonia", "README.md");
 
         File.Exists(feedbackDocPath).Should().BeTrue();
 
         var feedbackDoc = File.ReadAllText(feedbackDocPath);
         feedbackDoc.Should().Contain("Videra.MinimalSample");
         feedbackDoc.Should().Contain("consumer smoke");
-        feedbackDoc.Should().Contain("BackendDiagnostics");
+        feedbackDoc.Should().Contain("diagnostics snapshot");
+        feedbackDoc.Should().Contain("VideraDiagnosticsSnapshotFormatter");
         feedbackDoc.Should().Contain("ResolvedDisplayServer");
         feedbackDoc.Should().Contain("DisplayServerFallbackUsed");
         feedbackDoc.Should().Contain("DisplayServerFallbackReason");
@@ -120,7 +125,8 @@ public sealed class AlphaConsumerIntegrationTests
         bugForm.Should().Contain("install_path");
         bugForm.Should().Contain("version");
         bugForm.Should().Contain("host_environment");
-        bugForm.Should().Contain("diagnostics");
+        bugForm.Should().Contain("diagnostics snapshot");
+        bugForm.Should().Contain("VideraDiagnosticsSnapshotFormatter");
         bugForm.Should().Contain("Videra.MinimalSample");
         bugForm.Should().Contain("consumer smoke");
 
@@ -137,10 +143,14 @@ public sealed class AlphaConsumerIntegrationTests
         var troubleshooting = File.ReadAllText(troubleshootingPath);
         troubleshooting.Should().Contain("Videra.MinimalSample");
         troubleshooting.Should().Contain("consumer smoke");
-        troubleshooting.Should().Contain("BackendDiagnostics");
+        troubleshooting.Should().Contain("diagnostics snapshot");
+        troubleshooting.Should().Contain("VideraDiagnosticsSnapshotFormatter");
 
         var supportMatrix = File.ReadAllText(supportMatrixPath);
         supportMatrix.Should().Contain("alpha-feedback.md");
+
+        var avaloniaReadme = File.ReadAllText(avaloniaReadmePath);
+        avaloniaReadme.Should().Contain("VideraDiagnosticsSnapshotFormatter");
     }
 
     private static string GetRepositoryRoot()

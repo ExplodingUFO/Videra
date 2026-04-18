@@ -72,6 +72,31 @@ public sealed class RepositoryReleaseReadinessTests
         readme.Should().Contain("ResetCamera");
         readme.Should().Contain("BackendDiagnostics");
         readme.Should().Contain("Videra.MinimalSample");
+        readme.Should().Contain("VideraViewOptions");
+        readme.Should().Contain("VideraDiagnosticsSnapshotFormatter");
+        readme.Should().NotContain("PreferredBackend=\"Auto\"");
+    }
+
+    [Fact]
+    public void PublicReadmes_ShouldDescribeOneCanonicalHappyPath()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var rootReadme = File.ReadAllText(Path.Combine(repositoryRoot, "README.md"));
+        var avaloniaReadme = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Avalonia", "README.md"));
+        var minimalSampleReadme = File.ReadAllText(Path.Combine(repositoryRoot, "samples", "Videra.MinimalSample", "README.md"));
+
+        foreach (var readme in new[] { rootReadme, avaloniaReadme, minimalSampleReadme })
+        {
+            readme.Should().Contain("VideraViewOptions");
+            readme.Should().Contain("LoadModelAsync");
+            readme.Should().Contain("FrameAll");
+            readme.Should().Contain("ResetCamera");
+            readme.Should().Contain("BackendDiagnostics");
+        }
+
+        avaloniaReadme.Should().Contain("VideraDiagnosticsSnapshotFormatter");
+        rootReadme.Should().Contain("Videra.ExtensibilitySample");
+        avaloniaReadme.Should().Contain("Videra.ExtensibilitySample");
     }
 
     [Fact]
@@ -230,6 +255,7 @@ public sealed class RepositoryReleaseReadinessTests
         publicWorkflow.Should().Contain("actions/download-artifact@");
         publicWorkflow.Should().Contain(".github/release.yml");
         publicWorkflow.Should().Contain("scripts/Validate-Packages.ps1");
+        publicWorkflow.Should().Contain("Invoke-ConsumerSmoke.ps1");
 
         previewWorkflow.Should().Contain("GitHub Packages");
         previewWorkflow.Should().Contain("workflow_dispatch:");
@@ -248,6 +274,20 @@ public sealed class RepositoryReleaseReadinessTests
         packageValidationScript.Should().Contain("Videra.Platform.macOS");
         packageValidationScript.Should().Contain("PackageIcon");
         packageValidationScript.Should().Contain(".snupkg");
+    }
+
+    [Fact]
+    public void ReleaseDocs_ShouldTieAlphaPublishingToConsumerSmokeAndBenchmarkEvidence()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var releasing = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "releasing.md"));
+        var benchmarkGates = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "benchmark-gates.md"));
+
+        releasing.Should().Contain("Consumer Smoke");
+        releasing.Should().Contain("Benchmark Gates");
+        releasing.Should().Contain("Invoke-ConsumerSmoke.ps1");
+        benchmarkGates.Should().Contain("compare runs over time");
+        benchmarkGates.Should().Contain("not yet a hard numeric blocker");
     }
 
     [Fact]

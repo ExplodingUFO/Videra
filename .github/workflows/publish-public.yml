@@ -110,6 +110,98 @@ jobs:
         shell: pwsh
         run: pwsh -File ./scripts/run-native-validation.ps1 -Platform Windows -Configuration Release
 
+  windows-consumer-smoke:
+    needs: determine-version
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Run Windows consumer smoke
+        shell: pwsh
+        run: pwsh -File ./scripts/Invoke-ConsumerSmoke.ps1 -Configuration Release -OutputRoot artifacts/consumer-smoke/windows
+
+      - name: Upload Windows consumer smoke artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: consumer-smoke-windows
+          path: artifacts/consumer-smoke/windows
+
+  linux-x11-consumer-smoke:
+    needs: determine-version
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Install Linux X11 consumer smoke prerequisites
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb libx11-6 libvulkan1 libshaderc1 mesa-vulkan-drivers vulkan-tools powershell
+
+      - name: Run Linux X11 consumer smoke
+        run: xvfb-run -a pwsh -File ./scripts/Invoke-ConsumerSmoke.ps1 -Configuration Release -OutputRoot artifacts/consumer-smoke/linux-x11
+
+      - name: Upload Linux X11 consumer smoke artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: consumer-smoke-linux-x11
+          path: artifacts/consumer-smoke/linux-x11
+
+  linux-xwayland-consumer-smoke:
+    needs: determine-version
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Install Linux XWayland consumer smoke prerequisites
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xwayland-run libx11-6 libwayland-client0 libvulkan1 libshaderc1 mesa-vulkan-drivers vulkan-tools powershell
+
+      - name: Run Linux XWayland consumer smoke
+        run: xwfb-run -- pwsh -File ./scripts/Invoke-ConsumerSmoke.ps1 -Configuration Release -OutputRoot artifacts/consumer-smoke/linux-xwayland
+
+      - name: Upload Linux XWayland consumer smoke artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: consumer-smoke-linux-xwayland
+          path: artifacts/consumer-smoke/linux-xwayland
+
+  macos-consumer-smoke:
+    needs: determine-version
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Run macOS consumer smoke
+        shell: pwsh
+        run: pwsh -File ./scripts/Invoke-ConsumerSmoke.ps1 -Configuration Release -OutputRoot artifacts/consumer-smoke/macos
+
+      - name: Upload macOS consumer smoke artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: consumer-smoke-macos
+          path: artifacts/consumer-smoke/macos
+
   neutral-package-evidence:
     needs: determine-version
     runs-on: windows-latest
@@ -216,6 +308,10 @@ jobs:
       - linux-wayland-xwayland-native-validation
       - macos-native-validation
       - windows-native-validation
+      - windows-consumer-smoke
+      - linux-x11-consumer-smoke
+      - linux-xwayland-consumer-smoke
+      - macos-consumer-smoke
       - neutral-package-evidence
       - linux-package-evidence
       - macos-package-evidence

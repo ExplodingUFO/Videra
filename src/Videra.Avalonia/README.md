@@ -48,19 +48,6 @@ If no matching platform package is installed, the software fallback path can sti
 
 ## Happy Path
 
-```xml
-<Window xmlns:videra="using:Videra.Avalonia.Controls">
-    <videra:VideraView
-        x:Name="View3D"
-        BackgroundColor="{Binding BackgroundColor}"
-        RenderStyle="{Binding RenderStyle}"
-        WireframeMode="{Binding WireframeMode}"
-        WireframeColor="{Binding WireframeColor}"
-        IsGridVisible="{Binding IsGridVisible}"
-        PreferredBackend="Auto" />
-</Window>
-```
-
 ```csharp
 using Videra.Avalonia.Controls;
 using Videra.Core.Graphics;
@@ -84,13 +71,18 @@ var framed = View3D.FrameAll();
 View3D.ResetCamera();
 
 var diagnostics = View3D.BackendDiagnostics;
+var diagnosticsSnapshot = VideraDiagnosticsSnapshotFormatter.Format(diagnostics);
 ```
 
 `LoadModelAsync(...)` is the shortest public first-scene path. `LoadModelsAsync(...)` remains available when a host wants bounded parallel import with atomic replace semantics across a batch, and it replaces the active scene only when every requested file succeeds.
 
-`VideraView.BackendDiagnostics` remains the backend/runtime diagnostics shell. `VideraView.RenderCapabilities` and `VideraView.Engine` stay available, but they are not part of the default alpha happy path.
+`VideraView.BackendDiagnostics` remains the backend/runtime diagnostics shell, and `VideraDiagnosticsSnapshotFormatter` turns it into the copy-pasteable alpha support artifact used by `Videra.MinimalSample` and `consumer smoke`. `VideraView.RenderCapabilities` and `VideraView.Engine` stay available, but they are not part of the default alpha happy path.
 
 For the copyable first-scene flow, see [samples/Videra.MinimalSample](../../samples/Videra.MinimalSample/README.md).
+
+## Compatibility and Advanced Entry Points
+
+Compatibility properties such as `PreferredBackend`, `RenderStyle`, `WireframeMode`, `WireframeColor`, and `IsGridVisible` remain available for existing hosts, but they are not the canonical alpha onboarding path. Prefer `View3D.Options = new VideraViewOptions { ... }` for new code.
 
 ## Extensibility
 

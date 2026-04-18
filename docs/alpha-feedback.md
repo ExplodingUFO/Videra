@@ -14,6 +14,7 @@ Videra is still an early alpha embeddable viewer stack. Good feedback is not jus
    - [Videra.ExtensibilitySample](../samples/Videra.ExtensibilitySample/README.md) for `VideraView.Engine`
    - [Videra.InteractionSample](../samples/Videra.InteractionSample/README.md) for controlled interaction
    - [Videra.Demo](../samples/Videra.Demo/README.md) for backend diagnostics and scene-pipeline visibility
+4. Export a diagnostics snapshot with `VideraDiagnosticsSnapshotFormatter.Format(View3D.BackendDiagnostics)` or attach the `consumer smoke` `diagnostics-snapshot.txt` artifact.
 
 ## What to include in a bug report
 
@@ -21,7 +22,7 @@ Videra is still an early alpha embeddable viewer stack. Good feedback is not jus
 - GPU and driver details when native rendering is involved
 - Package install path and package version
 - `PreferredBackend` or `VIDERA_BACKEND` value, if you overrode backend preference
-- `BackendDiagnostics` snapshot
+- diagnostics snapshot from `VideraDiagnosticsSnapshotFormatter`
 - Linux display-server context when relevant:
   - `ResolvedDisplayServer`
   - `DisplayServerFallbackUsed`

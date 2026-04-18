@@ -65,7 +65,7 @@ dotnet add package Videra.Core
 `Videra.Avalonia` remains the UI/control entry package. `PreferredBackend` and `VIDERA_BACKEND` only change backend preference. They do not install missing platform packages, and they do not replace matching-host native validation.
 The public install flow does not install missing platform packages for you.
 
-For the shortest copyable first-scene path, start with [Videra.MinimalSample](samples/Videra.MinimalSample/README.md) and the [Videra.Avalonia package README](src/Videra.Avalonia/README.md). Move to [Videra.ExtensibilitySample](samples/Videra.ExtensibilitySample/README.md) only when you need `VideraView.Engine`, frame hooks, or pass contributors.
+For the shortest copyable first-scene path, start with [Videra.MinimalSample](samples/Videra.MinimalSample/README.md) and the [Videra.Avalonia package README](src/Videra.Avalonia/README.md). The canonical alpha flow is `Options -> LoadModelAsync -> FrameAll / ResetCamera -> BackendDiagnostics`, and `VideraDiagnosticsSnapshotFormatter` is the copy-pasteable support artifact for that path. Move to [Videra.ExtensibilitySample](samples/Videra.ExtensibilitySample/README.md) only when you need `VideraView.Engine`, frame hooks, or pass contributors.
 
 Current `alpha` preview builds may still be validated through `GitHub Packages`. Treat that path as `preview`, not as the default public install flow. Feed policy and package classification live in [docs/package-matrix.md](docs/package-matrix.md), [docs/support-matrix.md](docs/support-matrix.md), [docs/release-policy.md](docs/release-policy.md), and [docs/releasing.md](docs/releasing.md).
 
@@ -96,13 +96,13 @@ For alpha adoption feedback, use [Alpha Feedback](docs/alpha-feedback.md) before
 
 | Entry | Purpose |
 | --- | --- |
-| `Videra.MinimalSample` | Shortest first-scene reference for `VideraViewOptions`, `LoadModelAsync`, `FrameAll`, `ResetCamera`, and `BackendDiagnostics` |
+| `Videra.MinimalSample` | Shortest first-scene reference for `VideraViewOptions`, `LoadModelAsync`, `FrameAll`, `ResetCamera`, `BackendDiagnostics`, and diagnostics snapshot export |
 | `Videra.Demo` | Viewer demo for backend diagnostics, import feedback, and baseline interaction |
 | `Videra.SurfaceCharts.Demo` | Independent surface-chart demo for `SurfaceChartView`, chart-local overlays, and rendering-path truth |
 | `Videra.ExtensibilitySample` | Narrow public reference for `VideraView.Engine`, `RegisterPassContributor(...)`, and `RegisterFrameHook(...)` |
 | `Videra.InteractionSample` | Public sample for the controlled interaction contract and host-owned state |
 
-`Videra.MinimalSample` is the quickest end-to-end viewer reference. It stays on the alpha happy path: `Options -> LoadModelAsync -> FrameAll / ResetCamera -> BackendDiagnostics`.
+`Videra.MinimalSample` is the quickest end-to-end viewer reference. It stays on the alpha happy path: `Options -> LoadModelAsync -> FrameAll / ResetCamera -> BackendDiagnostics`, then uses `VideraDiagnosticsSnapshotFormatter` to export the same support artifact requested by alpha bug reports.
 `Videra.Demo` remains the broader diagnostics and import-feedback surface. It seeds a default demo cube on the ready path, summarizes import feedback in the status area, and includes a narrow `Scene Pipeline Lab` panel for `SceneDocument` versioning, pending/resident/dirty upload counts, atomic batch replacement, and backend-rebind truth.
 
 ## Extensibility Onboarding

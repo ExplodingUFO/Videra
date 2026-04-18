@@ -116,6 +116,9 @@
                        FontWeight="SemiBold"
                        Foreground="#F8FAFC"
                        Text="Backend diagnostics" />
+            <Button x:Name="CopyDiagnosticsButton"
+                    Content="Copy Diagnostics Snapshot"
+                    HorizontalAlignment="Stretch" />
             <TextBlock x:Name="DiagnosticsText"
                        Foreground="#CBD5E1"
                        TextWrapping="Wrap" />

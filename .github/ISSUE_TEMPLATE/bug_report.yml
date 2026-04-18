@@ -2,7 +2,7 @@ name: Bug report
 description: Report a behavior defect, compatibility regression, or validation gap
 title: "[bug] "
 labels:
-  - kind: bug
+  - 'kind: bug'
 body:
   - type: dropdown
     id: area
@@ -10,12 +10,12 @@ body:
       label: Area
       description: Choose the closest product area.
       options:
-        - area: core
-        - area: avalonia
-        - area: windows
-        - area: linux
-        - area: macos
-        - area: surfacecharts
+        - 'area: core'
+        - 'area: avalonia'
+        - 'area: windows'
+        - 'area: linux'
+        - 'area: macos'
+        - 'area: surfacecharts'
     validations:
       required: true
   - type: dropdown
@@ -53,8 +53,8 @@ body:
   - type: textarea
     id: diagnostics
     attributes:
-      label: Backend diagnostics
-      description: Paste the `BackendDiagnostics` snapshot, including resolved backend, fallback reason, and Linux display-server fields when relevant.
+      label: Diagnostics snapshot
+      description: Paste the diagnostics snapshot from `VideraDiagnosticsSnapshotFormatter.Format(View3D.BackendDiagnostics)`, including resolved backend, fallback reason, and Linux display-server fields when relevant.
       render: text
     validations:
       required: true

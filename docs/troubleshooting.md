@@ -90,7 +90,7 @@ Include:
 - Package install path (`nuget.org`, `GitHub Packages`, or source build)
 - Package version or commit SHA
 - Backend preference or `VIDERA_BACKEND` value
-- `BackendDiagnostics` snapshot
+- diagnostics snapshot from `VideraDiagnosticsSnapshotFormatter`
 - `ResolvedDisplayServer`, `DisplayServerFallbackUsed`, and `DisplayServerFallbackReason` on Linux when relevant
 - Failing command and full error output
 - Whether the issue reproduces on the matching native host

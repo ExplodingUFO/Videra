@@ -2,7 +2,7 @@ name: Feature request
 description: Propose a user-facing capability, API change, or docs improvement
 title: "[feature] "
 labels:
-  - kind: feature
+  - 'kind: feature'
 body:
   - type: dropdown
     id: area
@@ -10,12 +10,12 @@ body:
       label: Area
       description: Choose the closest product area.
       options:
-        - area: core
-        - area: avalonia
-        - area: windows
-        - area: linux
-        - area: macos
-        - area: surfacecharts
+        - 'area: core'
+        - 'area: avalonia'
+        - 'area: windows'
+        - 'area: linux'
+        - 'area: macos'
+        - 'area: surfacecharts'
     validations:
       required: true
   - type: dropdown

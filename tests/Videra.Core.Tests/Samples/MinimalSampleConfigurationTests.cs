@@ -11,7 +11,8 @@ public sealed class MinimalSampleConfigurationTests
         "LoadModelAsync(\"Assets/reference-cube.obj\")",
         "FrameAll()",
         "ResetCamera()",
-        "BackendDiagnostics"
+        "BackendDiagnostics",
+        "VideraDiagnosticsSnapshotFormatter"
     };
 
     private static readonly string[] ForbiddenAdvancedSeams =
@@ -68,11 +69,20 @@ public sealed class MinimalSampleConfigurationTests
         codeBehind.Should().Contain("FrameAll()");
         codeBehind.Should().Contain("ResetCamera()");
         codeBehind.Should().Contain("BackendDiagnostics");
+        codeBehind.Should().Contain("VideraDiagnosticsSnapshotFormatter");
 
         foreach (var forbidden in ForbiddenAdvancedSeams)
         {
             codeBehind.Should().NotContain(forbidden);
         }
+    }
+
+    [Fact]
+    public void MainWindowXaml_ShouldExposeDiagnosticsSnapshotAction()
+    {
+        var xaml = File.ReadAllText(Path.Combine(GetRepositoryRoot(), "samples", "Videra.MinimalSample", "Views", "MainWindow.axaml"));
+
+        xaml.Should().Contain("Copy Diagnostics Snapshot");
     }
 
     [Fact]

@@ -1,4 +1,3 @@
-using System.Text;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using Videra.Avalonia.Controls;
@@ -11,6 +10,7 @@ public partial class MainWindow : Window
     private readonly Button _frameAllButton;
     private readonly Button _reloadButton;
     private readonly Button _resetCameraButton;
+    private readonly Button _copyDiagnosticsButton;
     private readonly TextBlock _diagnosticsText;
     private readonly TextBlock _statusText;
     private bool _initialSceneRequested;
@@ -25,6 +25,8 @@ public partial class MainWindow : Window
             ?? throw new InvalidOperationException("ReloadButton is missing.");
         _resetCameraButton = this.FindControl<Button>("ResetCameraButton")
             ?? throw new InvalidOperationException("ResetCameraButton is missing.");
+        _copyDiagnosticsButton = this.FindControl<Button>("CopyDiagnosticsButton")
+            ?? throw new InvalidOperationException("CopyDiagnosticsButton is missing.");
         _diagnosticsText = this.FindControl<TextBlock>("DiagnosticsText")
             ?? throw new InvalidOperationException("DiagnosticsText is missing.");
         _statusText = this.FindControl<TextBlock>("StatusText")
@@ -46,6 +48,7 @@ public partial class MainWindow : Window
         _frameAllButton.Click += OnFrameAllClicked;
         _resetCameraButton.Click += OnResetCameraClicked;
         _reloadButton.Click += OnReloadClicked;
+        _copyDiagnosticsButton.Click += OnCopyDiagnosticsClicked;
 
         Opened += OnOpened;
         Closed += OnClosed;
@@ -74,6 +77,7 @@ public partial class MainWindow : Window
         _frameAllButton.Click -= OnFrameAllClicked;
         _resetCameraButton.Click -= OnResetCameraClicked;
         _reloadButton.Click -= OnReloadClicked;
+        _copyDiagnosticsButton.Click -= OnCopyDiagnosticsClicked;
     }
 
     private void OnBackendReady(object? sender, EventArgs e)
@@ -150,6 +154,22 @@ public partial class MainWindow : Window
         _ = TryLoadSampleSceneAsync(forceReload: true);
     }
 
+    private async void OnCopyDiagnosticsClicked(object? sender, EventArgs e)
+    {
+        var snapshot = VideraDiagnosticsSnapshotFormatter.Format(View3D.BackendDiagnostics);
+        var topLevel = TopLevel.GetTopLevel(this);
+        if (topLevel?.Clipboard is { } clipboard)
+        {
+            await clipboard.SetTextAsync(snapshot).ConfigureAwait(true);
+            SetStatus("Copied diagnostics snapshot to the clipboard.");
+            RefreshDiagnostics();
+            return;
+        }
+
+        SetStatus("Clipboard is unavailable. The diagnostics snapshot remains visible below.");
+        RefreshDiagnostics();
+    }
+
     private void SetStatus(string message)
     {
         _statusText.Text = message;
@@ -162,15 +182,6 @@ public partial class MainWindow : Window
 
     private void RefreshDiagnostics(VideraBackendDiagnostics diagnostics)
     {
-        var builder = new StringBuilder();
-        builder.AppendLine($"IsReady: {diagnostics.IsReady}");
-        builder.AppendLine($"RequestedBackend: {diagnostics.RequestedBackend}");
-        builder.AppendLine($"ResolvedBackend: {diagnostics.ResolvedBackend}");
-        builder.AppendLine($"ResolvedDisplayServer: {diagnostics.ResolvedDisplayServer ?? "Unavailable"}");
-        builder.AppendLine($"IsUsingSoftwareFallback: {diagnostics.IsUsingSoftwareFallback}");
-        builder.AppendLine($"FallbackReason: {diagnostics.FallbackReason ?? "None"}");
-        builder.AppendLine($"NativeHostBound: {diagnostics.NativeHostBound}");
-        builder.AppendLine($"LastInitializationError: {diagnostics.LastInitializationError ?? "None"}");
-        _diagnosticsText.Text = builder.ToString();
+        _diagnosticsText.Text = VideraDiagnosticsSnapshotFormatter.Format(diagnostics);
     }
 }

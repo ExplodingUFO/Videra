@@ -14,6 +14,7 @@ public partial class MainWindow : Window
     private readonly VideraView _view3D;
     private readonly TextBlock _statusText;
     private readonly string? _outputPath;
+    private readonly string? _diagnosticsSnapshotPath;
     private bool _completed;
     private EventHandler? _backendReadyHandler;
     private EventHandler? _openedHandler;
@@ -27,6 +28,9 @@ public partial class MainWindow : Window
         _statusText = this.FindControl<TextBlock>("StatusText")
             ?? throw new InvalidOperationException("StatusText is missing.");
         _outputPath = Environment.GetEnvironmentVariable("VIDERA_CONSUMER_SMOKE_OUTPUT");
+        _diagnosticsSnapshotPath = string.IsNullOrWhiteSpace(_outputPath)
+            ? null
+            : Path.Combine(Path.GetDirectoryName(_outputPath!)!, "diagnostics-snapshot.txt");
 
         _view3D.Options = new VideraViewOptions
         {
@@ -147,7 +151,8 @@ public partial class MainWindow : Window
             diagnostics.ResolvedDisplayServer,
             diagnostics.DisplayServerFallbackUsed,
             diagnostics.DisplayServerFallbackReason,
-            diagnostics.LastInitializationError);
+            diagnostics.LastInitializationError,
+            _diagnosticsSnapshotPath);
 
         if (!string.IsNullOrWhiteSpace(_outputPath))
         {
@@ -156,6 +161,12 @@ public partial class MainWindow : Window
             {
                 WriteIndented = true
             }));
+        }
+
+        if (!string.IsNullOrWhiteSpace(_diagnosticsSnapshotPath))
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(_diagnosticsSnapshotPath!)!);
+            File.WriteAllText(_diagnosticsSnapshotPath!, VideraDiagnosticsSnapshotFormatter.Format(diagnostics));
         }
 
         Dispatcher.UIThread.Post(() =>
@@ -182,5 +193,6 @@ public partial class MainWindow : Window
         string? ResolvedDisplayServer,
         bool DisplayServerFallbackUsed,
         string? DisplayServerFallbackReason,
-        string? LastInitializationError);
+        string? LastInitializationError,
+        string? DiagnosticsSnapshotPath);
 }

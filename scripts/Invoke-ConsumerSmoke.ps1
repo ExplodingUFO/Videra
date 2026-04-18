@@ -13,6 +13,7 @@ $root = Split-Path -Parent $PSScriptRoot
 $projectPath = Join-Path $root $Project
 $outputPath = Join-Path $root $OutputRoot
 $jsonPath = Join-Path $outputPath "consumer-smoke-result.json"
+$snapshotPath = Join-Path $outputPath "diagnostics-snapshot.txt"
 $packageOutputPath = Join-Path $outputPath "packages"
 $nugetConfigPath = Join-Path $outputPath "NuGet.Config"
 $publicPackageProjects = @(
@@ -121,6 +122,11 @@ if (-not (Test-Path -LiteralPath $jsonPath))
     throw "Consumer smoke did not produce '$jsonPath'."
 }
 
+if (-not (Test-Path -LiteralPath $snapshotPath))
+{
+    throw "Consumer smoke did not produce '$snapshotPath'."
+}
+
 $report = Get-Content -Raw $jsonPath | ConvertFrom-Json
 if (-not $report.Succeeded)
 {
@@ -142,3 +148,4 @@ Write-Host "Resolved package version: $packageVersion"
 Write-Host "ResolvedBackend: $($report.ResolvedBackend)"
 Write-Host "ResolvedDisplayServer: $($report.ResolvedDisplayServer)"
 Write-Host "IsUsingSoftwareFallback: $($report.IsUsingSoftwareFallback)"
+Write-Host "DiagnosticsSnapshot: $snapshotPath"

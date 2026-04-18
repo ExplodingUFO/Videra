@@ -9,6 +9,7 @@
 - `FrameAll()`
 - `ResetCamera()`
 - `BackendDiagnostics`
+- `VideraDiagnosticsSnapshotFormatter`
 
 The sample keeps the default flow intentionally short:
 
@@ -17,6 +18,7 @@ The sample keeps the default flow intentionally short:
 3. Call `LoadModelAsync("Assets/reference-cube.obj")`.
 4. Call `FrameAll()`.
 5. Read `BackendDiagnostics`.
+6. Copy the diagnostics snapshot with `VideraDiagnosticsSnapshotFormatter`.
 
 ## Run
 

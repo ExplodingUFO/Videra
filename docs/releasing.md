@@ -15,10 +15,11 @@ That workflow is expected to:
 
 1. Resolve the version from the tag.
 2. Run matching-host native validation for Linux X11, Linux Wayland-session `XWayland`, macOS, and Windows.
-3. Pack the public package set.
-4. Validate package metadata and assets through `scripts/Validate-Packages.ps1`.
-5. Push `.nupkg` and `.snupkg` assets to `nuget.org`.
-6. Create or update the GitHub Release with generated notes and attached package assets.
+3. Run `Consumer Smoke` on the packaged alpha happy path through `scripts/Invoke-ConsumerSmoke.ps1`.
+4. Pack the public package set.
+5. Validate package metadata and assets through `scripts/Validate-Packages.ps1`.
+6. Push `.nupkg` and `.snupkg` assets to `nuget.org`.
+7. Create or update the GitHub Release with generated notes and attached package assets.
 
 ## Preview flow
 
@@ -47,6 +48,9 @@ The public package set is limited to:
 ## Maintainer checklist
 
 - Confirm `CHANGELOG.md` and public docs match the shipped truth.
+- Confirm the canonical alpha happy path still matches `Videra.MinimalSample`, `consumer smoke`, and the `Videra.Avalonia` README.
+- Confirm `Consumer Smoke` artifacts include the diagnostics snapshot produced by `VideraDiagnosticsSnapshotFormatter`.
+- Review [Benchmark Gates](benchmark-gates.md) artifacts for trend regressions before promoting the tag.
 - Confirm release notes categories in `.github/release.yml` still match the current label taxonomy.
 - Confirm `NUGET_API_KEY` is configured for the public workflow.
 - Confirm preview/internal workflows do not override the public-feed truth.
