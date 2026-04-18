@@ -72,6 +72,11 @@ internal sealed class ResourceLifetimeRegistry
         bool preserveSceneObjects,
         bool disposeDevice)
     {
+        if (disposeDevice && Device is IGraphicsDeviceIdleBarrier idleBarrier)
+        {
+            idleBarrier.WaitForIdle();
+        }
+
         grid.Dispose();
         axisRenderer.Dispose();
         wireframeRenderer.Dispose();

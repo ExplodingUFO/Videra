@@ -17,7 +17,7 @@ namespace Videra.Platform.Linux;
 /// <see cref="ISurfaceCreator"/> (defaulting to <see cref="X11SurfaceCreator"/>) to abstract
 /// platform-specific surface creation.
 /// </summary>
-public unsafe class VulkanBackend : IGraphicsBackend, IGraphicsDevice, IRenderSurface
+public unsafe class VulkanBackend : IGraphicsBackend, IGraphicsDevice, IRenderSurface, IGraphicsDeviceIdleBarrier
 {
     private static readonly DepthBufferConfiguration DepthConfig = DepthBufferConfiguration.Default;
 
@@ -1006,6 +1006,16 @@ public unsafe class VulkanBackend : IGraphicsBackend, IGraphicsDevice, IRenderSu
 
         _vk?.Dispose();
         GC.SuppressFinalize(this);
+    }
+
+    public void WaitForIdle()
+    {
+        if (_disposed || _device.Handle == 0)
+        {
+            return;
+        }
+
+        _vk.DeviceWaitIdle(_device);
     }
 
     private static void ThrowIfFailed(Result result, string operation, string message)

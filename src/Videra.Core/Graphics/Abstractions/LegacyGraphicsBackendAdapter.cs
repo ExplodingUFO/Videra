@@ -6,7 +6,7 @@ namespace Videra.Core.Graphics.Abstractions;
 /// Bridges the v1 monolithic backend contract into the internal device/surface split.
 /// This keeps platform backends unchanged while the orchestrator and engine migrate.
 /// </summary>
-internal sealed class LegacyGraphicsBackendAdapter : IGraphicsDevice
+internal sealed class LegacyGraphicsBackendAdapter : IGraphicsDevice, IGraphicsDeviceIdleBarrier
 {
     private readonly IGraphicsBackend _backend;
 
@@ -34,6 +34,14 @@ internal sealed class LegacyGraphicsBackendAdapter : IGraphicsDevice
     public void Dispose()
     {
         _backend.Dispose();
+    }
+
+    public void WaitForIdle()
+    {
+        if (_backend is IGraphicsDeviceIdleBarrier idleBarrier)
+        {
+            idleBarrier.WaitForIdle();
+        }
     }
 
     private static GraphicsBackendPreference? InferPreference(IGraphicsBackend backend)

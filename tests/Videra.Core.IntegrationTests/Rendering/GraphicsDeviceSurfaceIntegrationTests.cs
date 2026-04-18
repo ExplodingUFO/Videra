@@ -78,6 +78,26 @@ public sealed class GraphicsDeviceSurfaceIntegrationTests
         DemoMeshFactory.CountPixels(frame, DemoMeshFactory.PixelColor.White).Should().BeGreaterThan(0);
     }
 
+    [Fact]
+    public void VideraEngine_Suspend_WaitsForDeviceIdle_BeforeReleasingGpuBuffers()
+    {
+        using var device = new IdleTrackingGraphicsDevice();
+        using var surface = device.CreateRenderSurface();
+        surface.Initialize(IntPtr.Zero, 160, 120);
+
+        using var engine = new VideraEngine();
+        engine.Initialize(device, surface);
+        engine.Resize(160, 120);
+        engine.AddObject(CreateDeferredQuad());
+
+        var act = () => engine.Suspend();
+
+        act.Should().NotThrow();
+        device.WaitForIdleCalls.Should().BeGreaterThan(0);
+        device.BufferDisposedBeforeIdle.Should().BeFalse();
+        device.Events.Should().ContainInOrder("wait-idle", "buffer-dispose");
+    }
+
     private sealed class TrackingBackend : IGraphicsBackend
     {
         private readonly TrackingResourceFactory _resourceFactory = new();
@@ -250,5 +270,165 @@ public sealed class GraphicsDeviceSurfaceIntegrationTests
         public void Dispose()
         {
         }
+    }
+
+    private sealed class IdleTrackingGraphicsDevice : IGraphicsDevice, IGraphicsDeviceIdleBarrier
+    {
+        private readonly IdleTrackingResourceFactory _resourceFactory;
+        private readonly TrackingCommandExecutor _commandExecutor = new();
+
+        public IdleTrackingGraphicsDevice()
+        {
+            _resourceFactory = new IdleTrackingResourceFactory(this);
+        }
+
+        public List<string> Events { get; } = [];
+
+        public GraphicsBackendPreference? ActiveBackendPreference => GraphicsBackendPreference.Vulkan;
+
+        public bool IsSoftwareBackend => false;
+
+        public IResourceFactory ResourceFactory => _resourceFactory;
+
+        public ICommandExecutor CommandExecutor => _commandExecutor;
+
+        public bool WaitedForIdle { get; private set; }
+
+        public int WaitForIdleCalls { get; private set; }
+
+        public bool BufferDisposedBeforeIdle { get; private set; }
+
+        public IRenderSurface CreateRenderSurface() => new IdleTrackingRenderSurface();
+
+        public void WaitForIdle()
+        {
+            WaitForIdleCalls++;
+            WaitedForIdle = true;
+            Events.Add("wait-idle");
+        }
+
+        public void Dispose()
+        {
+            Events.Add("device-dispose");
+        }
+
+        private sealed class IdleTrackingRenderSurface : IRenderSurface
+        {
+            public bool IsInitialized { get; private set; }
+
+            public bool UsesSoftwarePresentationCopy => false;
+
+            public void Initialize(IntPtr windowHandle, int width, int height)
+            {
+                _ = windowHandle;
+                _ = width;
+                _ = height;
+                IsInitialized = true;
+            }
+
+            public void Resize(int width, int height)
+            {
+                _ = width;
+                _ = height;
+            }
+
+            public IFrameContext BeginFrame(Vector4 clearColor)
+            {
+                _ = clearColor;
+                return new IdleTrackingFrameContext();
+            }
+
+            public void Dispose()
+            {
+                IsInitialized = false;
+            }
+        }
+
+        private sealed class IdleTrackingFrameContext : IFrameContext
+        {
+            public void Dispose()
+            {
+            }
+        }
+
+        private sealed class IdleTrackingResourceFactory(IdleTrackingGraphicsDevice owner) : IResourceFactory
+        {
+            public IBuffer CreateVertexBuffer(VertexPositionNormalColor[] vertices) => new IdleTrackingBuffer(owner, (uint)(vertices.Length * sizeof(float) * 10));
+
+            public IBuffer CreateVertexBuffer(uint sizeInBytes) => new IdleTrackingBuffer(owner, sizeInBytes);
+
+            public IBuffer CreateIndexBuffer(uint[] indices) => new IdleTrackingBuffer(owner, (uint)(indices.Length * sizeof(uint)));
+
+            public IBuffer CreateIndexBuffer(uint sizeInBytes) => new IdleTrackingBuffer(owner, sizeInBytes);
+
+            public IBuffer CreateUniformBuffer(uint sizeInBytes) => new IdleTrackingBuffer(owner, sizeInBytes);
+
+            public IPipeline CreatePipeline(PipelineDescription description) => new TrackingPipeline();
+
+            public IPipeline CreatePipeline(uint vertexSize, bool hasNormals, bool hasColors) => new TrackingPipeline();
+
+            public IShader CreateShader(ShaderStage stage, byte[] bytecode, string entryPoint) => new TrackingShader();
+
+            public IResourceSet CreateResourceSet(ResourceSetDescription description) => new TrackingResourceSet();
+        }
+
+        private sealed class IdleTrackingBuffer(IdleTrackingGraphicsDevice owner, uint sizeInBytes) : IBuffer
+        {
+            private bool _disposed;
+
+            public uint SizeInBytes { get; } = sizeInBytes;
+
+            public void Update<T>(T data) where T : unmanaged
+            {
+            }
+
+            public void UpdateArray<T>(T[] data) where T : unmanaged
+            {
+            }
+
+            public void SetData<T>(T data, uint offset) where T : unmanaged
+            {
+            }
+
+            public void SetData<T>(T[] data, uint offset) where T : unmanaged
+            {
+            }
+
+            public void Dispose()
+            {
+                if (_disposed)
+                {
+                    return;
+                }
+
+                _disposed = true;
+                owner.Events.Add("buffer-dispose");
+                if (!owner.WaitedForIdle)
+                {
+                    owner.BufferDisposedBeforeIdle = true;
+                    throw new InvalidOperationException("GPU buffer was disposed before the device became idle.");
+                }
+            }
+        }
+    }
+
+    private static Object3D CreateDeferredQuad(float halfExtent = 0.8f)
+    {
+        var mesh = new MeshData
+        {
+            Vertices =
+            [
+                new VertexPositionNormalColor(new Vector3(-halfExtent, -halfExtent, 0f), Vector3.UnitZ, RgbaFloat.White),
+                new VertexPositionNormalColor(new Vector3(halfExtent, -halfExtent, 0f), Vector3.UnitZ, RgbaFloat.White),
+                new VertexPositionNormalColor(new Vector3(halfExtent, halfExtent, 0f), Vector3.UnitZ, RgbaFloat.White),
+                new VertexPositionNormalColor(new Vector3(-halfExtent, halfExtent, 0f), Vector3.UnitZ, RgbaFloat.White)
+            ],
+            Indices = [0, 1, 2, 0, 2, 3],
+            Topology = MeshTopology.Triangles
+        };
+
+        var quad = new Object3D { Name = "DeferredQuad" };
+        quad.PrepareDeferredMesh(mesh);
+        return quad;
     }
 }
