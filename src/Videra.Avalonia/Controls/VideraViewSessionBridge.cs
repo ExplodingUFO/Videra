@@ -65,6 +65,7 @@ internal sealed class VideraViewSessionBridge
 
     public bool OnViewAttached()
     {
+        RuntimeTraceLog.Write("VideraViewSessionBridge.OnViewAttached");
         var wasReady = _session.IsReady;
         var backendOptions = CreateBackendOptionsSnapshot();
         _session.Attach(backendOptions.PreferredBackend, backendOptions);
@@ -73,6 +74,7 @@ internal sealed class VideraViewSessionBridge
 
     public void OnViewDetached()
     {
+        RuntimeTraceLog.Write("VideraViewSessionBridge.OnViewDetached");
         _session.Dispose();
     }
 
@@ -95,6 +97,7 @@ internal sealed class VideraViewSessionBridge
         uint heightPx,
         float renderScale)
     {
+        RuntimeTraceLog.Write($"VideraViewSessionBridge.OnNativeHandleCreated handle=0x{handle.ToInt64():X}");
         var wasReady = _session.IsReady;
         _session.SetDisplayServerDiagnostics(resolvedDisplayServer, fallbackUsed, fallbackReason);
         _session.BindHandle(handle);
@@ -108,6 +111,7 @@ internal sealed class VideraViewSessionBridge
 
     public void OnNativeHandleDestroyed()
     {
+        RuntimeTraceLog.Write("VideraViewSessionBridge.OnNativeHandleDestroyed");
         _session.SetDisplayServerDiagnostics(null, fallbackUsed: false, fallbackReason: null);
         _session.BindHandle(IntPtr.Zero);
     }

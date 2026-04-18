@@ -197,6 +197,7 @@ internal sealed partial class VideraViewRuntime : IDisposable
     internal void OnViewAttached()
     {
         VideraView.Log.ViewAttached(_logger);
+        RuntimeTraceLog.Write("VideraViewRuntime.OnViewAttached");
         var becameReady = _sessionBridge.OnViewAttached();
         RefreshBackendDiagnostics(lastInitializationError: null);
 
@@ -207,10 +208,12 @@ internal sealed partial class VideraViewRuntime : IDisposable
 
         if (_sessionBridge.WantsNativeBackend())
         {
+            RuntimeTraceLog.Write("VideraViewRuntime.OnViewAttached ensuring native host");
             _owner.EnsureNativeHostForRuntime();
         }
         else
         {
+            RuntimeTraceLog.Write("VideraViewRuntime.OnViewAttached releasing native host");
             _owner.ReleaseNativeHostForRuntime();
         }
 
@@ -228,6 +231,7 @@ internal sealed partial class VideraViewRuntime : IDisposable
     internal void OnViewDetached()
     {
         VideraView.Log.ViewDetached(_logger);
+        RuntimeTraceLog.Write("VideraViewRuntime.OnViewDetached");
         if (_owner.Items is INotifyCollectionChanged incc)
         {
             incc.CollectionChanged -= OnCollectionChanged;
@@ -261,6 +265,8 @@ internal sealed partial class VideraViewRuntime : IDisposable
             return;
         }
 
+        RuntimeTraceLog.Write(
+            $"VideraViewRuntime.SynchronizeSession width={widthPx} height={heightPx} retry={retryCount} backendChange={useBackendChangePath} handleBound={_renderSession.HandleState.IsBound}");
         try
         {
             var scaling = (float)_owner.ResolveRenderScalingForRuntime();
@@ -325,6 +331,8 @@ internal sealed partial class VideraViewRuntime : IDisposable
     {
         var diagnostics = _owner.GetNativeHostDisplayServerDiagnosticsForRuntime();
         VideraView.Log.NativeHandleCreated(_logger, handle.ToInt64());
+        RuntimeTraceLog.Write(
+            $"VideraViewRuntime.OnNativeHandleCreated handle=0x{handle.ToInt64():X} display={diagnostics.ResolvedDisplayServer ?? "Unavailable"} fallback={diagnostics.FallbackUsed}");
 
         var scaling = _owner.ResolveRenderScalingForRuntime();
         var widthPx = (uint)Math.Max(64, Math.Round(_owner.Bounds.Width * scaling));
@@ -346,6 +354,7 @@ internal sealed partial class VideraViewRuntime : IDisposable
 
     internal void OnNativeHandleDestroyed()
     {
+        RuntimeTraceLog.Write("VideraViewRuntime.OnNativeHandleDestroyed");
         _sessionBridge.OnNativeHandleDestroyed();
         RefreshBackendDiagnostics(_backendDiagnostics.LastInitializationError);
     }

@@ -1,4 +1,5 @@
 using Videra.Avalonia.Controls;
+using Videra.Avalonia.Runtime;
 using Videra.Core.Graphics;
 using Videra.Core.Graphics.Abstractions;
 using Videra.Core.Graphics.RenderPipeline;
@@ -82,6 +83,7 @@ internal sealed class RenderSessionOrchestrator : IDisposable
 
     public bool Attach(GraphicsBackendPreference preference, VideraBackendOptions? backendOptions = null)
     {
+        RuntimeTraceLog.Write($"RenderSessionOrchestrator.Attach preference={preference} state={_state} handleBound={_handleState.IsBound}");
         if (_state == RenderSessionState.Disposed)
         {
             return false;
@@ -103,6 +105,7 @@ internal sealed class RenderSessionOrchestrator : IDisposable
 
     public bool BindHandle(IntPtr handle)
     {
+        RuntimeTraceLog.Write($"RenderSessionOrchestrator.BindHandle handle=0x{handle.ToInt64():X} state={_state} currentlyBound={_handleState.IsBound}");
         if (_state == RenderSessionState.Disposed)
         {
             return false;
@@ -153,6 +156,7 @@ internal sealed class RenderSessionOrchestrator : IDisposable
 
     public bool Resize(uint width, uint height, float renderScale)
     {
+        RuntimeTraceLog.Write($"RenderSessionOrchestrator.Resize {width}x{height} scale={renderScale} state={_state} handleBound={_handleState.IsBound}");
         if (_state == RenderSessionState.Disposed || width == 0 || height == 0)
         {
             return false;
@@ -246,6 +250,7 @@ internal sealed class RenderSessionOrchestrator : IDisposable
 
     private bool TryInitialize()
     {
+        RuntimeTraceLog.Write($"RenderSessionOrchestrator.TryInitialize state={_state} width={_inputs.Width} height={_inputs.Height} handleBound={_handleState.IsBound}");
         if (_state == RenderSessionState.Disposed || IsReady)
         {
             return false;
@@ -293,10 +298,12 @@ internal sealed class RenderSessionOrchestrator : IDisposable
             _engine.Initialize(device, renderSurface);
             _engine.Resize(_inputs.Width, _inputs.Height);
             _state = RenderSessionState.Ready;
+            RuntimeTraceLog.Write($"RenderSessionOrchestrator.TryInitialize -> Ready backend={resolution.ResolvedPreference}");
             return true;
         }
         catch (Exception ex)
         {
+            RuntimeTraceLog.Write($"RenderSessionOrchestrator.TryInitialize faulted: {ex.Message}");
             LastInitializationError = ex;
             _state = RenderSessionState.Faulted;
 
@@ -318,6 +325,7 @@ internal sealed class RenderSessionOrchestrator : IDisposable
 
     private void Suspend()
     {
+        RuntimeTraceLog.Write($"RenderSessionOrchestrator.Suspend state={_state} handleBound={_handleState.IsBound}");
         if (_engine.IsInitialized)
         {
             _engine.Suspend();

@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Platform;
 using Videra.Avalonia.Controls.Linux;
+using Videra.Avalonia.Runtime;
 
 namespace Videra.Avalonia.Controls;
 
@@ -37,6 +38,7 @@ internal sealed partial class VideraLinuxNativeHost : NativeControlHost, IVidera
         if (!OperatingSystem.IsLinux())
             throw new PlatformNotSupportedException("Linux native host is only supported on Linux.");
 
+        RuntimeTraceLog.Write("VideraLinuxNativeHost.CreateNativeControlCore");
         _isDisposed = false;
         _selection = _nativeHostFactory.CreateHost();
         _selectedHost = _selection.Host;
@@ -55,6 +57,7 @@ internal sealed partial class VideraLinuxNativeHost : NativeControlHost, IVidera
         if (_isDisposed)
             return;
 
+        RuntimeTraceLog.Write("VideraLinuxNativeHost.DestroyNativeControlCore");
         _isDisposed = true;
 
         if (_selectedHost != null)

@@ -75,6 +75,7 @@ internal sealed partial class VideraViewRuntime
     {
         _ = sender;
         _ = e;
+        RuntimeTraceLog.Write("VideraViewRuntime.OnRenderSessionBackendReady");
         OnSceneBackendReady();
         SynchronizeOverlayState();
         RefreshBackendDiagnostics(lastInitializationError: null);

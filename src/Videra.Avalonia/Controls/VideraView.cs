@@ -398,6 +398,7 @@ public partial class VideraView : Decorator
         if (_nativeHost != null)
             return;
 
+        RuntimeTraceLog.Write("VideraView.EnsureNativeHost");
         var host = _nativeHostFactory.CreateHost();
         if (host == null)
         {
@@ -433,6 +434,7 @@ public partial class VideraView : Decorator
 
     private void ReleaseNativeHost()
     {
+        RuntimeTraceLog.Write("VideraView.ReleaseNativeHost");
         if (_nativeHost is IVideraNativeHost host)
         {
             host.HandleCreated -= OnNativeHandleCreated;
@@ -450,11 +452,13 @@ public partial class VideraView : Decorator
 
     private void OnNativeHandleCreated(IntPtr handle)
     {
+        RuntimeTraceLog.Write($"VideraView.OnNativeHandleCreated handle=0x{handle.ToInt64():X}");
         _runtime.OnNativeHandleCreated(handle);
     }
 
     private void OnNativeHandleDestroyed()
     {
+        RuntimeTraceLog.Write("VideraView.OnNativeHandleDestroyed");
         _runtime.OnNativeHandleDestroyed();
     }
 
