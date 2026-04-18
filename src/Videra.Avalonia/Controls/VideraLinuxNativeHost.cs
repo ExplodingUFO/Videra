@@ -59,9 +59,10 @@ internal sealed partial class VideraLinuxNativeHost : NativeControlHost, IVidera
 
         if (_selectedHost != null)
         {
-            _selectedHost.Destroy();
+            var selectedHost = _selectedHost;
             _selectedHost = null;
             HandleDestroyed?.Invoke();
+            selectedHost.Destroy();
         }
 
         _selection = null;
