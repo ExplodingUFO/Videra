@@ -109,6 +109,17 @@ internal sealed class VideraViewSessionBridge
         return !wasReady && _session.IsReady;
     }
 
+    public void OnNativeHandleBoundWithoutSize(
+        IntPtr handle,
+        string? resolvedDisplayServer,
+        bool fallbackUsed,
+        string? fallbackReason)
+    {
+        RuntimeTraceLog.Write($"VideraViewSessionBridge.OnNativeHandleBoundWithoutSize handle=0x{handle.ToInt64():X}");
+        _session.SetDisplayServerDiagnostics(resolvedDisplayServer, fallbackUsed, fallbackReason);
+        _session.BindHandle(handle);
+    }
+
     public void OnNativeHandleDestroyed()
     {
         RuntimeTraceLog.Write("VideraViewSessionBridge.OnNativeHandleDestroyed");

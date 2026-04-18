@@ -825,6 +825,40 @@ public sealed class VideraViewSceneIntegrationTests : IDisposable
     }
 
     [Fact]
+    public void NativeHandleCreated_WithZeroBounds_BindsHandleWithoutPrematureNativeInitialization()
+    {
+        var view = new VideraView(new RecordingNativeHostFactory(), bitmapFactory: static (_, _) => null);
+        NativeTrackingSessionSwap? sessionSwap = null;
+        try
+        {
+            sessionSwap = NativeTrackingSessionSwap.Install(view);
+            view.PreferredBackend = GraphicsBackendPreference.D3D11;
+
+            var onNativeHandleCreated = VideraViewRuntimeTestAccess.ReadRuntimeMethod(view, "OnNativeHandleCreated");
+            var runtime = VideraViewRuntimeTestAccess.ReadRuntime(view);
+            var renderSession = VideraViewRuntimeTestAccess.ReadRenderSession(view);
+
+            view.Bounds.Width.Should().Be(0d);
+            view.Bounds.Height.Should().Be(0d);
+
+            onNativeHandleCreated.Invoke(runtime, [new IntPtr(0x1234)]);
+
+            renderSession.HandleState.IsBound.Should().BeTrue();
+            renderSession.IsReady.Should().BeFalse("native startup should wait for a real size instead of initializing a synthetic 64x64 surface");
+
+            var synchronizeSession = VideraViewRuntimeTestAccess.ReadRuntimeMethod(view, "SynchronizeSession");
+            synchronizeSession.Invoke(runtime, [960u, 599u, 0, false]);
+
+            renderSession.IsReady.Should().BeTrue();
+        }
+        finally
+        {
+            sessionSwap?.Dispose();
+            view.Engine.Dispose();
+        }
+    }
+
+    [Fact]
     public void OverlayPresenter_ConsumesHostOwnedOverlayState_WhenOverlayContainerIsPresent()
     {
         var view = new VideraView(new RecordingNativeHostFactory(), bitmapFactory: static (_, _) => null);

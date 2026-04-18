@@ -334,6 +334,18 @@ internal sealed partial class VideraViewRuntime : IDisposable
         RuntimeTraceLog.Write(
             $"VideraViewRuntime.OnNativeHandleCreated handle=0x{handle.ToInt64():X} display={diagnostics.ResolvedDisplayServer ?? "Unavailable"} fallback={diagnostics.FallbackUsed}");
 
+        if (_owner.Bounds.Width <= 0 || _owner.Bounds.Height <= 0)
+        {
+            RuntimeTraceLog.Write("VideraViewRuntime.OnNativeHandleCreated deferring initialization until non-zero bounds are available");
+            _sessionBridge.OnNativeHandleBoundWithoutSize(
+                handle,
+                diagnostics.ResolvedDisplayServer,
+                diagnostics.FallbackUsed,
+                diagnostics.FallbackReason);
+            RefreshBackendDiagnostics(lastInitializationError: null);
+            return;
+        }
+
         var scaling = _owner.ResolveRenderScalingForRuntime();
         var widthPx = (uint)Math.Max(64, Math.Round(_owner.Bounds.Width * scaling));
         var heightPx = (uint)Math.Max(64, Math.Round(_owner.Bounds.Height * scaling));
