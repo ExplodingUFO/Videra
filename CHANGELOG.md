@@ -6,6 +6,13 @@ The format is based on Keep a Changelog, and this repository is currently in an 
 
 ## [Unreleased]
 
+## [0.1.0-alpha.5] - 2026-04-19
+
+### Fixed
+
+- tracked `smoke/Videra.ConsumerSmoke/Assets/reference-cube.obj` in git so release checkouts can build the consumer smoke app on Windows, Linux, and macOS
+- bumped the default package version baseline to `0.1.0-alpha.5`
+
 ## [0.1.0-alpha.4] - 2026-04-19
 
 ### Added

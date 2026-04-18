@@ -55,6 +55,34 @@ public sealed class AlphaConsumerIntegrationTests
     }
 
     [Fact]
+    public void ConsumerSmokeAsset_ShouldBeTrackedByGit()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var relativeAssetPath = "smoke/Videra.ConsumerSmoke/Assets/reference-cube.obj";
+        var assetPath = Path.Combine(repositoryRoot, "smoke", "Videra.ConsumerSmoke", "Assets", "reference-cube.obj");
+
+        File.Exists(assetPath).Should().BeTrue();
+
+        var startInfo = new System.Diagnostics.ProcessStartInfo("git", $"ls-files --error-unmatch -- \"{relativeAssetPath}\"")
+        {
+            WorkingDirectory = repositoryRoot,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            UseShellExecute = false
+        };
+
+        using var process = System.Diagnostics.Process.Start(startInfo);
+        process.Should().NotBeNull();
+        process!.WaitForExit();
+
+        var standardOutput = process.StandardOutput.ReadToEnd();
+        var standardError = process.StandardError.ReadToEnd();
+
+        process.ExitCode.Should().Be(0, $"the consumer smoke asset must be committed so release checkouts can build.{Environment.NewLine}{standardOutput}{standardError}");
+        standardOutput.Should().Contain(relativeAssetPath);
+    }
+
+    [Fact]
     public void BenchmarkGate_ShouldHaveWorkflowScriptAndDocsTruth()
     {
         var repositoryRoot = GetRepositoryRoot();
