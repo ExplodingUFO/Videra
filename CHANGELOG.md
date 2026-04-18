@@ -6,6 +6,17 @@ The format is based on Keep a Changelog, and this repository is currently in an 
 
 ## [Unreleased]
 
+## [0.1.0-alpha.4] - 2026-04-19
+
+### Added
+
+- viewer-first inspection workflow with clipping planes, lightweight measurements, inspection-state capture/restore, and snapshot export
+
+### Changed
+
+- diagnostics snapshot, interaction sample, consumer smoke, and public docs now describe the same inspection workflow
+- bumped the default package version baseline to `0.1.0-alpha.4`
+
 ## [0.1.0-alpha.3] - 2026-04-17
 
 ### Fixed

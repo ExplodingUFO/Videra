@@ -386,7 +386,7 @@ public sealed class RepositoryReleaseReadinessTests
     {
         var changelog = File.ReadAllText(Path.Combine(GetRepositoryRoot(), "CHANGELOG.md"));
 
-        changelog.Should().Contain("## [0.1.0-alpha.3] - 2026-04-17");
+        changelog.Should().Contain("## [0.1.0-alpha.4] - 2026-04-19");
         changelog.Should().Contain("## [0.1.0-alpha.2] - 2026-04-17");
         changelog.Should().Contain("## [0.1.0-alpha.1] - 2026-04-06");
     }

@@ -28,8 +28,8 @@ dotnet nuget add source "https://nuget.pkg.github.com/ExplodingUFO/index.json" \
   --password YOUR_GITHUB_PAT \
   --store-password-in-clear-text
 
-dotnet add package Videra.Avalonia --version 0.1.0-alpha.3 --source github-ExplodingUFO
-dotnet add package Videra.Platform.Windows --version 0.1.0-alpha.3 --source github-ExplodingUFO
+dotnet add package Videra.Avalonia --version 0.1.0-alpha.4 --source github-ExplodingUFO
+dotnet add package Videra.Platform.Windows --version 0.1.0-alpha.4 --source github-ExplodingUFO
 ```
 
 `PreferredBackend` 和 `VIDERA_BACKEND` 只影响后端偏好，不会安装缺失的平台包，也不会替代 matching-host 原生验证。
