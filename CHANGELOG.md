@@ -6,6 +6,14 @@ The format is based on Keep a Changelog, and this repository is currently in an 
 
 ## [Unreleased]
 
+## [0.1.0-alpha.6] - 2026-04-19
+
+### Fixed
+
+- suspended Linux native Vulkan sessions before tearing down the X11 host window so pure X11 consumer-smoke no longer crashes during viewer shutdown
+- waited for Vulkan devices to become idle before releasing engine-owned GPU buffers during suspend and teardown
+- bumped the default package version baseline to `0.1.0-alpha.6`
+
 ## [0.1.0-alpha.5] - 2026-04-19
 
 ### Fixed

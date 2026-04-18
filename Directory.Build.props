@@ -2,7 +2,7 @@
   <PropertyGroup>
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
     <AnalysisLevel>latest-recommended</AnalysisLevel>
-    <Version>0.1.0-alpha.5</Version>
+    <Version>0.1.0-alpha.6</Version>
     <Authors>ExplodingUFO</Authors>
     <Company>ExplodingUFO</Company>
     <RepositoryUrl>https://github.com/ExplodingUFO/Videra</RepositoryUrl>
