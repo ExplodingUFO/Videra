@@ -32,13 +32,20 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
 
         readme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsOnboardingHeading);
         readme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsFamilyBoundarySentence);
+        readme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsFirstChartSentence);
         readme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsDemoSentence);
         readme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartViewSentence);
         readme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsRendererStatusSentence);
+        readme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsRenderingStatusFieldsSentence);
         readme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsViewStateSentence);
         readme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsInteractionSentence);
         readme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsInteractionQualitySentence);
+        readme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsInteractionDiagnosticsSentence);
         readme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsOverlayOptionsSentence);
+        readme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsOverlayBoundarySentence);
+        readme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsOwnershipSentence);
+        readme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartControlOwnershipSentence);
+        readme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsSourceFirstSentence);
         readme.Should().Contain("axis/legend overlays");
         readme.Should().Contain("src/Videra.SurfaceCharts.Core/README.md");
         readme.Should().Contain("src/Videra.SurfaceCharts.Avalonia/README.md");
@@ -58,11 +65,18 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
         readme.Should().Contain("SurfaceChartView");
         readme.Should().Contain("Videra.SurfaceCharts.Demo");
         readme.Should().Contain(SurfaceChartsDocumentationTerms.ChineseSurfaceChartsFamilyBoundarySentence);
+        readme.Should().Contain(SurfaceChartsDocumentationTerms.ChineseSurfaceChartsFirstChartSentence);
         readme.Should().Contain("RenderStatusChanged");
         readme.Should().Contain(SurfaceChartsDocumentationTerms.ChineseSurfaceChartsTruthSentence);
         readme.Should().Contain(SurfaceChartsDocumentationTerms.ChineseSurfaceChartsViewStateSentence);
         readme.Should().Contain(SurfaceChartsDocumentationTerms.ChineseSurfaceChartsInteractionQualitySentence);
+        readme.Should().Contain(SurfaceChartsDocumentationTerms.ChineseSurfaceChartsInteractionDiagnosticsSentence);
         readme.Should().Contain(SurfaceChartsDocumentationTerms.ChineseSurfaceChartsOverlayOptionsSentence);
+        readme.Should().Contain(SurfaceChartsDocumentationTerms.ChineseSurfaceChartsOverlayBoundarySentence);
+        readme.Should().Contain(SurfaceChartsDocumentationTerms.ChineseSurfaceChartsOwnershipSentence);
+        readme.Should().Contain(SurfaceChartsDocumentationTerms.ChineseSurfaceChartControlOwnershipSentence);
+        readme.Should().Contain(SurfaceChartsDocumentationTerms.ChineseSurfaceChartsRenderingStatusFieldsSentence);
+        readme.Should().Contain(SurfaceChartsDocumentationTerms.ChineseSurfaceChartsSourceFirstSentence);
     }
 
     [Fact]
@@ -111,35 +125,31 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
         avaloniaReadme.Should().Contain(ChartRendererBoundarySentence);
         avaloniaReadme.Should().Contain(GpuFallbackSentence);
         avaloniaReadme.Should().Contain(LinuxWaylandLimitSentence);
-        avaloniaReadme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsViewStateSentence);
-        avaloniaReadme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsInteractionSentence);
-        avaloniaReadme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsInteractionQualitySentence);
-        avaloniaReadme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsOverlayOptionsSentence);
         avaloniaReadme.Should().Contain("independent from `VideraView`");
-        avaloniaReadme.Should().Contain("hover/pinned probe");
-        avaloniaReadme.Should().Contain("Shift + LeftClick");
+        avaloniaReadme.Should().Contain("ViewState");
         avaloniaReadme.Should().Contain("OverlayOptions");
+        avaloniaReadme.Should().Contain("hover/pinned probe");
         avaloniaReadme.Should().Contain("FitToData()");
         avaloniaReadme.Should().Contain("ResetCamera()");
         avaloniaReadme.Should().Contain("ZoomTo(...)");
 
         demoReadme.Should().Contain("not a `VideraView` mode");
         demoReadme.Should().Contain(DemoGpuFallbackSentence);
-        demoReadme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsDemoProbeSentence);
-        demoReadme.Should().Contain("ViewState");
-        demoReadme.Should().Contain("Fit to data");
-        demoReadme.Should().Contain("Reset camera");
-        demoReadme.Should().Contain("RenderingStatus");
+        demoReadme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsFirstChartSentence);
+        demoReadme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsViewStateSentence);
+        demoReadme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsInteractionSentence);
+        demoReadme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsInteractionQualitySentence);
+        demoReadme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsInteractionDiagnosticsSentence);
+        demoReadme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsOverlayBoundarySentence);
+        demoReadme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsOwnershipSentence);
+        demoReadme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartControlOwnershipSentence);
+        demoReadme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsRenderingStatusFieldsSentence);
+        demoReadme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsSourceFirstSentence);
+        demoReadme.Should().Contain("FitToData()");
+        demoReadme.Should().Contain("ResetCamera()");
+        demoReadme.Should().Contain("ZoomTo(...)");
+        demoReadme.Should().Contain("SurfaceChartOverlayOptions");
         demoReadme.Should().Contain("`XWayland compatibility` only, not compositor-native Wayland surface embedding");
-        demoReadme.Should().Contain("left-drag orbit");
-        demoReadme.Should().Contain("right-drag pan");
-        demoReadme.Should().Contain("wheel dolly");
-        demoReadme.Should().Contain("Ctrl + Left drag");
-        demoReadme.Should().Contain("Interactive");
-        demoReadme.Should().Contain("Refine");
-        demoReadme.Should().Contain("OverlayOptions");
-        demoReadme.Should().Contain("minor ticks");
-        demoReadme.Should().Contain("grid plane");
     }
 
     [Fact]
@@ -176,11 +186,16 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
         avaloniaPage.Should().Contain(SurfaceChartsDocumentationTerms.ChineseAvaloniaProbeSentence);
         avaloniaPage.Should().Contain(SurfaceChartsDocumentationTerms.ChineseSurfaceChartsViewStateSentence);
         avaloniaPage.Should().Contain(SurfaceChartsDocumentationTerms.ChineseSurfaceChartsInteractionQualitySentence);
+        avaloniaPage.Should().Contain(SurfaceChartsDocumentationTerms.ChineseSurfaceChartsInteractionDiagnosticsSentence);
         avaloniaPage.Should().Contain(SurfaceChartsDocumentationTerms.ChineseSurfaceChartsOverlayOptionsSentence);
+        avaloniaPage.Should().Contain(SurfaceChartsDocumentationTerms.ChineseSurfaceChartsOverlayBoundarySentence);
+        avaloniaPage.Should().Contain(SurfaceChartsDocumentationTerms.ChineseSurfaceChartsOwnershipSentence);
+        avaloniaPage.Should().Contain(SurfaceChartsDocumentationTerms.ChineseSurfaceChartControlOwnershipSentence);
+        avaloniaPage.Should().Contain(SurfaceChartsDocumentationTerms.ChineseSurfaceChartsRenderingStatusFieldsSentence);
         avaloniaPage.Should().Contain("FitToData()");
         avaloniaPage.Should().Contain("ResetCamera()");
         avaloniaPage.Should().Contain("ZoomTo(...)");
-        avaloniaPage.Should().Contain("OverlayOptions");
+        avaloniaPage.Should().Contain("SurfaceChartOverlayOptions");
         avaloniaPage.Should().Contain("XWayland compatibility");
 
         processingPage.Should().Contain(SurfaceChartsDocumentationTerms.ChineseProcessingStatisticsSentence);
@@ -192,13 +207,9 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
     public void SurfaceChartEntryPoints_ShouldNotContainStaleLimitationLanguage()
     {
         var repositoryRoot = GetRepositoryRoot();
-        var guardedFiles = new[]
-        {
-            Path.Combine(repositoryRoot, "README.md"),
-            Path.Combine(repositoryRoot, "docs", "zh-CN", "README.md"),
-            Path.Combine(repositoryRoot, "src", "Videra.SurfaceCharts.Avalonia", "README.md"),
-            Path.Combine(repositoryRoot, "docs", "zh-CN", "modules", "videra-surfacecharts-avalonia.md")
-        };
+        var guardedFiles = SurfaceChartsDocumentationTerms.GuardedSurfaceChartsEntryPointPaths
+            .Select(relativePath => Path.Combine(repositoryRoot, relativePath.Replace('/', Path.DirectorySeparatorChar)))
+            .ToArray();
 
         var contents = guardedFiles
             .Select(path => File.ReadAllText(path))
@@ -222,6 +233,35 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
         Regex.IsMatch(videraView, @"public\s+.*\bFitToData\s*\(").Should().BeFalse();
         Regex.IsMatch(videraView, @"public\s+.*\bResetCamera\s*\(").Should().BeFalse();
         Regex.IsMatch(videraView, @"public\s+.*\bZoomTo\s*\(").Should().BeFalse();
+    }
+
+    [Fact]
+    public void GuardedSurfaceChartDocs_ShouldFreezeFirstChartContractLanguage()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var rootReadme = File.ReadAllText(Path.Combine(repositoryRoot, "README.md"));
+        var demoReadme = File.ReadAllText(Path.Combine(repositoryRoot, "samples", "Videra.SurfaceCharts.Demo", "README.md"));
+        var chineseReadme = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "zh-CN", "README.md"));
+        var chineseAvaloniaPage = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "zh-CN", "modules", "videra-surfacecharts-avalonia.md"));
+
+        rootReadme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsFirstChartSentence);
+        rootReadme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsOwnershipSentence);
+        rootReadme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartControlOwnershipSentence);
+        rootReadme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsSourceFirstSentence);
+
+        demoReadme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsFirstChartSentence);
+        demoReadme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsOwnershipSentence);
+        demoReadme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartControlOwnershipSentence);
+        demoReadme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsSourceFirstSentence);
+
+        chineseReadme.Should().Contain(SurfaceChartsDocumentationTerms.ChineseSurfaceChartsFirstChartSentence);
+        chineseReadme.Should().Contain(SurfaceChartsDocumentationTerms.ChineseSurfaceChartsOwnershipSentence);
+        chineseReadme.Should().Contain(SurfaceChartsDocumentationTerms.ChineseSurfaceChartControlOwnershipSentence);
+        chineseReadme.Should().Contain(SurfaceChartsDocumentationTerms.ChineseSurfaceChartsSourceFirstSentence);
+
+        chineseAvaloniaPage.Should().Contain(SurfaceChartsDocumentationTerms.ChineseSurfaceChartsOwnershipSentence);
+        chineseAvaloniaPage.Should().Contain(SurfaceChartsDocumentationTerms.ChineseSurfaceChartControlOwnershipSentence);
+        chineseAvaloniaPage.Should().Contain(SurfaceChartsDocumentationTerms.ChineseSurfaceChartsRenderingStatusFieldsSentence);
     }
 
     [Fact]

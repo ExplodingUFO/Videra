@@ -136,21 +136,27 @@ Contract highlights:
 
 ## Surface Charts Onboarding
 
-Use [Videra.SurfaceCharts.Demo](samples/Videra.SurfaceCharts.Demo/README.md) as the public reference for the independent surface-chart module family.
+For the canonical first-chart story, use [Videra.SurfaceCharts.Demo](samples/Videra.SurfaceCharts.Demo/README.md) as the current public chart reference and `SurfaceChartView` in `Videra.SurfaceCharts.Avalonia` as the primary chart control entrypoint.
 
 Contract highlights:
 
 - The surface-chart module family is a sibling product area, independent from `VideraView`.
-- The dedicated `SurfaceChartView` control lives in `Videra.SurfaceCharts.Avalonia`.
+- The dedicated `SurfaceChartView` control remains the primary chart control entrypoint in `Videra.SurfaceCharts.Avalonia`.
 - `Videra.SurfaceCharts.Demo` is the independent demo application for the surface-chart module family.
 - `Videra.SurfaceCharts.Core` owns chart-domain models, tile identities, probe contracts, and LOD selection.
 - `Videra.SurfaceCharts.Processing` owns cache and pyramid generation.
 - `Videra.SurfaceCharts.Avalonia` owns the UI shell, axis/legend overlays, hover/pinned probe behavior, and renderer-status surface.
 - The shipped chart surface is `GPU-first` with explicit `software fallback`, and hosts can inspect `RenderingStatus` / `RenderStatusChanged`.
+- The public rendering truth is `RenderingStatus` + `RenderStatusChanged` with `ActiveBackend`, `IsReady`, `IsFallback`, `FallbackReason`, `UsesNativeSurface`, and `ResidentTileCount`.
 - SurfaceChartView now exposes `ViewState` as the primary chart-view contract while `Viewport` remains a compatibility bridge for existing hosts.
-- SurfaceChartView now ships built-in `left-drag orbit`, `right-drag pan`, `wheel dolly`, and `Ctrl + Left drag` focus zoom on top of the `ViewState` runtime contract.
+- SurfaceChartView now ships built-in `left-drag orbit`, `right-drag pan`, `wheel dolly`, `Ctrl + left-drag` focus zoom, and `Shift + left-click` pinned probe on top of the `ViewState` runtime contract.
 - The chart enters `Interactive` quality during motion and returns to `Refine` after input settles.
+- The public interaction diagnostics are `InteractionQuality` + `InteractionQualityChanged` with `Interactive` / `Refine`.
 - Hosts can keep professional axis, grid, and legend behavior chart-local through `OverlayOptions` for formatter, title/unit override, minor ticks, grid plane, and axis-side selection.
+- The public overlay configuration seam is `SurfaceChartOverlayOptions` through `OverlayOptions`; overlay state types remain internal.
+- Hosts own `ISurfaceTileSource`, persisted `ViewState`, color-map selection, and chart-local product UI.
+- `SurfaceChartView` owns chart-local built-in gestures, tile scheduling/cache, overlay presentation, native-host/render-host orchestration, and `RenderingStatus` projection.
+- The `Videra.SurfaceCharts.*` family stays source-first and is not part of the current public package promise.
 
 ## Current Boundaries
 
