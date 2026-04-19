@@ -29,7 +29,6 @@ public sealed class RuntimeFramePreludeTests
         var prelude = new RuntimeFramePrelude(
             new SceneUploadQueue(),
             registry,
-            new SceneEngineApplicator(),
             engine,
             resourceFactoryAccessor: static () => null,
             isInteractiveAccessor: static () => false,
@@ -61,7 +60,6 @@ public sealed class RuntimeFramePreludeTests
         var prelude = new RuntimeFramePrelude(
             queue,
             registry,
-            new SceneEngineApplicator(),
             engine,
             resourceFactoryAccessor: static () => new RecordingResourceFactory(),
             isInteractiveAccessor: static () => false,

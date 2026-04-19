@@ -1,7 +1,9 @@
 using FluentAssertions;
 using System.Runtime.InteropServices;
 using Tests.Common.Platform;
+using Videra.Core.Exceptions;
 using Videra.Core.Graphics;
+using Videra.Core.Graphics.Abstractions;
 using Videra.Platform.macOS;
 using Xunit;
 
@@ -32,5 +34,52 @@ public sealed class MetalBackendSmokeTests
         }
 
         RuntimeInformation.IsOSPlatform(OSPlatform.OSX).Should().BeTrue("a real NSView-backed smoke path still needs a reusable test host fixture");
+    }
+
+    [MacOSFact]
+    public void MetalResourceFactory_CreatePipelineDescription_UsesBuiltInMinimumContract()
+    {
+        if (!RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+        {
+            return;
+        }
+
+        using var window = NativeHostTestHelpers.CreateHiddenNSViewWindow();
+        using var backend = new MetalBackend();
+        backend.Initialize(window.ViewHandle, 64, 64);
+
+        var factory = backend.GetResourceFactory();
+
+        var act = () => factory.CreatePipeline(new PipelineDescription());
+
+        act.Should().NotThrow();
+    }
+
+    [MacOSFact]
+    public void MetalCommandExecutor_SetResourceSet_ThrowsUnsupportedOperationException()
+    {
+        if (!RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+        {
+            return;
+        }
+
+        using var window = NativeHostTestHelpers.CreateHiddenNSViewWindow();
+        using var backend = new MetalBackend();
+        backend.Initialize(window.ViewHandle, 64, 64);
+
+        var executor = backend.GetCommandExecutor();
+        var mockResourceSet = new MockResourceSet();
+
+        var act = () => executor.SetResourceSet(0, mockResourceSet);
+
+        act.Should().Throw<UnsupportedOperationException>()
+            .Which.Operation.Should().Be("SetResourceSet");
+    }
+
+    private sealed class MockResourceSet : IResourceSet
+    {
+        public void Dispose()
+        {
+        }
     }
 }

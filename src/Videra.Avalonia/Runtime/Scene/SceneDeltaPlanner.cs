@@ -2,9 +2,9 @@ using Videra.Core.Scene;
 
 namespace Videra.Avalonia.Runtime.Scene;
 
-internal sealed class SceneDeltaPlanner
+internal static class SceneDeltaPlanner
 {
-    public SceneDelta Diff(SceneDocument previous, SceneDocument next)
+    public static SceneDelta Diff(SceneDocument previous, SceneDocument next)
     {
         ArgumentNullException.ThrowIfNull(previous);
         ArgumentNullException.ThrowIfNull(next);

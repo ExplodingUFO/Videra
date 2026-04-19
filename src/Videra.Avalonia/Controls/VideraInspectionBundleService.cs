@@ -40,10 +40,10 @@ public static class VideraInspectionBundleService
             var assetManifest = CreateBundledAssetManifest(sourceAssetManifest, directoryPath);
             var diagnostics = VideraDiagnosticsSnapshotFormatter.Format(view.BackendDiagnostics);
 
-            WriteJson(Path.Combine(directoryPath, InspectionStateFileName), inspectionState);
-            WriteJson(Path.Combine(directoryPath, AnnotationsFileName), annotations);
-            WriteJson(Path.Combine(directoryPath, AssetManifestFileName), assetManifest);
-            File.WriteAllText(Path.Combine(directoryPath, DiagnosticsFileName), diagnostics);
+            await WriteJsonAsync(Path.Combine(directoryPath, InspectionStateFileName), inspectionState, cancellationToken).ConfigureAwait(true);
+            await WriteJsonAsync(Path.Combine(directoryPath, AnnotationsFileName), annotations, cancellationToken).ConfigureAwait(true);
+            await WriteJsonAsync(Path.Combine(directoryPath, AssetManifestFileName), assetManifest, cancellationToken).ConfigureAwait(true);
+            await File.WriteAllTextAsync(Path.Combine(directoryPath, DiagnosticsFileName), diagnostics, cancellationToken).ConfigureAwait(true);
 
             var snapshotPath = Path.Combine(directoryPath, SnapshotFileName);
             var snapshot = await view.ExportSnapshotAsync(snapshotPath, cancellationToken).ConfigureAwait(true);
@@ -144,9 +144,9 @@ public static class VideraInspectionBundleService
         }
     }
 
-    private static void WriteJson<T>(string path, T value)
+    private static Task WriteJsonAsync<T>(string path, T value, CancellationToken cancellationToken)
     {
-        File.WriteAllText(path, JsonSerializer.Serialize(value, JsonOptions));
+        return File.WriteAllTextAsync(path, JsonSerializer.Serialize(value, JsonOptions), cancellationToken);
     }
 
     private static T ReadJson<T>(string directoryPath, string fileName)

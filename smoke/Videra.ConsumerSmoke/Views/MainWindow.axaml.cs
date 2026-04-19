@@ -64,12 +64,15 @@ public partial class MainWindow : Window
         _view3D.BackendReady += _backendReadyHandler;
         _view3D.BackendStatusChanged += (_, e) =>
         {
+            var displayServerCompatibility = VideraDiagnosticsSnapshotFormatter.DescribeDisplayServerCompatibility(e.Diagnostics);
             Trace(
                 $"BackendStatusChanged: ready={e.Diagnostics.IsReady}; backend={e.Diagnostics.ResolvedBackend}; " +
-                $"display={e.Diagnostics.ResolvedDisplayServer ?? "Unavailable"}; fallback={e.Diagnostics.IsUsingSoftwareFallback}.");
+                $"display={e.Diagnostics.ResolvedDisplayServer ?? "Unavailable"}; " +
+                $"displayCompatibility={displayServerCompatibility}; fallback={e.Diagnostics.IsUsingSoftwareFallback}.");
             _statusText.Text =
                 $"IsReady={e.Diagnostics.IsReady}; ResolvedBackend={e.Diagnostics.ResolvedBackend}; " +
-                $"ResolvedDisplayServer={e.Diagnostics.ResolvedDisplayServer ?? "Unavailable"}";
+                $"ResolvedDisplayServer={e.Diagnostics.ResolvedDisplayServer ?? "Unavailable"}; " +
+                $"DisplayServerCompatibility={displayServerCompatibility}";
         };
         _view3D.InitializationFailed += (_, e) =>
         {
@@ -197,6 +200,7 @@ public partial class MainWindow : Window
             : $"Consumer smoke failed: {failure}";
 
         var diagnostics = _view3D.BackendDiagnostics;
+        var displayServerCompatibility = VideraDiagnosticsSnapshotFormatter.DescribeDisplayServerCompatibility(diagnostics);
         var report = new ConsumerSmokeReport(
             succeeded,
             frameAllReturned,
@@ -210,6 +214,7 @@ public partial class MainWindow : Window
             diagnostics.ResolvedDisplayServer,
             diagnostics.DisplayServerFallbackUsed,
             diagnostics.DisplayServerFallbackReason,
+            displayServerCompatibility,
             diagnostics.LastInitializationError,
             _diagnosticsSnapshotPath,
             _inspectionSnapshotPath,
@@ -277,6 +282,7 @@ public partial class MainWindow : Window
         string? ResolvedDisplayServer,
         bool DisplayServerFallbackUsed,
         string? DisplayServerFallbackReason,
+        string DisplayServerCompatibility,
         string? LastInitializationError,
         string? DiagnosticsSnapshotPath,
         string? InspectionSnapshotPath,

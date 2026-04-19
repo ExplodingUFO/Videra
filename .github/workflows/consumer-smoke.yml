@@ -1,6 +1,10 @@
 name: Consumer Smoke
 
 on:
+  pull_request:
+  push:
+    branches:
+      - master
   workflow_dispatch:
     inputs:
       target:
@@ -20,7 +24,7 @@ permissions:
 
 jobs:
   windows-consumer-smoke:
-    if: ${{ github.event.inputs.target == 'all' || github.event.inputs.target == 'windows' }}
+    if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.target == 'all' || github.event.inputs.target == 'windows' }}
     runs-on: windows-latest
 
     steps:
@@ -42,7 +46,7 @@ jobs:
           path: artifacts/consumer-smoke/windows
 
   linux-x11-consumer-smoke:
-    if: ${{ github.event.inputs.target == 'all' || github.event.inputs.target == 'linux-x11' }}
+    if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.target == 'all' || github.event.inputs.target == 'linux-x11' }}
     runs-on: ubuntu-latest
 
     steps:
@@ -68,7 +72,7 @@ jobs:
           path: artifacts/consumer-smoke/linux-x11
 
   linux-xwayland-consumer-smoke:
-    if: ${{ github.event.inputs.target == 'all' || github.event.inputs.target == 'linux-xwayland' }}
+    if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.target == 'all' || github.event.inputs.target == 'linux-xwayland' }}
     runs-on: ubuntu-latest
 
     steps:
@@ -94,7 +98,7 @@ jobs:
           path: artifacts/consumer-smoke/linux-xwayland
 
   macos-consumer-smoke:
-    if: ${{ github.event.inputs.target == 'all' || github.event.inputs.target == 'macos' }}
+    if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.target == 'all' || github.event.inputs.target == 'macos' }}
     runs-on: macos-latest
 
     steps:

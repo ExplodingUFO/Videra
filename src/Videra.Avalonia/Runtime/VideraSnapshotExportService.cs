@@ -14,9 +14,9 @@ using Videra.Core.Scene;
 
 namespace Videra.Avalonia.Runtime;
 
-internal sealed class VideraSnapshotExportService
+internal static class VideraSnapshotExportService
 {
-    public Task ExportAsync(
+    public static Task ExportAsync(
         string path,
         uint width,
         uint height,

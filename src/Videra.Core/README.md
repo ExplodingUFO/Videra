@@ -47,6 +47,25 @@ Current profiles:
 
 When consumed through `Videra.Avalonia`, the control diagnostics mirror the same information through `RenderPipelineProfile`, `LastFrameStageNames`, and `UsesSoftwarePresentationCopy`.
 
+## Built-in Backend Minimum Contract
+
+The shipped native backends (`D3D11`, `Vulkan`, and `Metal`) intentionally share a narrow common contract instead of exposing every backend-specific graphics feature through the public abstractions.
+
+Portable built-in backend expectations:
+
+- `CreateVertexBuffer(...)`, `CreateIndexBuffer(...)`, and `CreateUniformBuffer(...)`
+- `CreatePipeline(...)` for the current viewer pipeline shape
+- Direct buffer binding through `SetVertexBuffer(...)` and `SetIndexBuffer(...)`
+- Draw submission, viewport/scissor control, clear, and best-effort depth-state toggles via `SetDepthState(...)` / `ResetDepthState()`
+
+Non-portable advanced seams:
+
+- `CreateShader(...)`
+- `CreateResourceSet(...)`
+- `SetResourceSet(...)`
+
+Those advanced seams remain on the abstractions for compatibility and test doubles, but the shipped native backends manage shader compilation and resource binding internally and may throw `UnsupportedOperationException` there. This minimum-contract documentation does not imply an `OpenGL` backend promise.
+
 ## Public Extensibility Contract
 
 Phase 11 adds a narrow public extensibility surface in Core:

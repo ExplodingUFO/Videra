@@ -336,8 +336,10 @@ internal sealed unsafe class VulkanResourceFactory : IResourceFactory
 
     public IShader CreateShader(ShaderStage stage, byte[] bytecode, string entryPoint)
     {
-        var module = CreateShaderModule(bytecode);
-        return new VulkanShader(_vk, _device, module);
+        throw new UnsupportedOperationException(
+            "Shader creation is handled internally for the Vulkan backend. Use the pipeline creation methods instead.",
+            "CreateShader",
+            "Linux");
     }
 
     public IResourceSet CreateResourceSet(ResourceSetDescription description)

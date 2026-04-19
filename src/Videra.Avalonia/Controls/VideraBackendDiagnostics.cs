@@ -74,10 +74,23 @@ public sealed class VideraBackendDiagnostics
 
     public string? LastInitializationError { get; init; }
 
+    /// <summary>
+    /// Gets the resolved Linux display-server path when native host selection is relevant.
+    /// `X11` means the direct supported X11 host path. `XWayland` means a Wayland session is
+    /// running through the documented X11 compatibility bridge rather than compositor-native
+    /// Wayland embedding.
+    /// </summary>
     public string? ResolvedDisplayServer { get; init; }
 
+    /// <summary>
+    /// Gets a value indicating whether native host selection had to fall back from a preferred
+    /// Linux display-server candidate to a compatibility path such as `XWayland`.
+    /// </summary>
     public bool DisplayServerFallbackUsed { get; init; }
 
+    /// <summary>
+    /// Gets the reason a Linux display-server fallback or compatibility path was selected.
+    /// </summary>
     public string? DisplayServerFallbackReason { get; init; }
 
     public string? RenderPipelineProfile { get; init; }

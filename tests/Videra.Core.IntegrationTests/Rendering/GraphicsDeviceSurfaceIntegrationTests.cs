@@ -406,7 +406,6 @@ public sealed class GraphicsDeviceSurfaceIntegrationTests
                 if (!owner.WaitedForIdle)
                 {
                     owner.BufferDisposedBeforeIdle = true;
-                    throw new InvalidOperationException("GPU buffer was disposed before the device became idle.");
                 }
             }
         }

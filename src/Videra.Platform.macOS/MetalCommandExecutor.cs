@@ -1,5 +1,6 @@
 using System.Numerics;
 using Microsoft.Extensions.Logging;
+using Videra.Core.Exceptions;
 using Videra.Core.Graphics.Abstractions;
 
 namespace Videra.Platform.macOS;
@@ -160,7 +161,10 @@ internal sealed partial class MetalCommandExecutor : ICommandExecutor
 
     public void SetResourceSet(uint slot, IResourceSet resourceSet)
     {
-        // Placeholder: Would set resource bindings here
+        throw new UnsupportedOperationException(
+            "Resource sets are not supported on the Metal backend. Built-in pipelines bind buffers directly through SetVertexBuffer.",
+            "SetResourceSet",
+            "macOS");
     }
 
     public void DrawIndexed(uint indexCount, uint instanceCount = 1, uint firstIndex = 0, int vertexOffset = 0, uint firstInstance = 0)

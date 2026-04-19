@@ -167,7 +167,6 @@ internal sealed partial class VideraViewRuntime : IDisposable
         return new RuntimeFramePrelude(
             _sceneCoordinator.UploadQueue,
             _sceneCoordinator.ResidencyRegistry,
-            new SceneEngineApplicator(),
             _engine,
             () => _renderSession.ResourceFactory,
             () => _renderSession.HasInteractiveLease,

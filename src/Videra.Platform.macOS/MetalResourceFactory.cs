@@ -283,10 +283,7 @@ fragment float4 fragment_main(VertexOut in [[stage_in]])
 
     public IPipeline CreatePipeline(PipelineDescription description)
     {
-        throw new UnsupportedOperationException(
-            "Pipeline creation will be implemented in a future Metal backend release.",
-            "CreatePipeline",
-            "macOS");
+        return CreatePipeline(VertexPositionNormalColor.SizeInBytes, hasNormals: true, hasColors: true);
     }
 
     public IShader CreateShader(ShaderStage stage, byte[] bytecode, string entryPoint)

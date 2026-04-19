@@ -51,6 +51,7 @@ public sealed class VideraDiagnosticsSnapshotFormatterTests
         snapshot.Should().Contain("FallbackReason: Native backend unavailable.");
         snapshot.Should().Contain("ResolvedDisplayServer: XWayland");
         snapshot.Should().Contain("DisplayServerFallbackUsed: True");
+        snapshot.Should().Contain("DisplayServerCompatibility: Wayland session using XWayland compatibility fallback; compositor-native Wayland embedding is not active.");
         snapshot.Should().Contain("PendingSceneUploadBytes: 4096");
         snapshot.Should().Contain("ResolvedUploadBudgetBytes: 16384");
         snapshot.Should().Contain("IsClippingActive: True");

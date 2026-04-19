@@ -37,4 +37,6 @@ Artifacts are written under `artifacts/benchmarks/<suite>`.
 
 This workflow is a regression gate in the alpha sense: it makes benchmark evidence visible and comparable before merge or release.
 
+When a pull request carries the `run-benchmarks` label, the uploaded benchmark artifacts become part of the merge decision and should be reviewed before the PR is considered green.
+
 It is not yet a hard numeric blocker with automatic threshold enforcement. Use the artifacts to spot step-function regressions, then tighten thresholds once the team has enough historical runs to justify them.

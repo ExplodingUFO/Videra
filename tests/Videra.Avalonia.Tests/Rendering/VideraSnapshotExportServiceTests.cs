@@ -28,10 +28,9 @@ public sealed class VideraSnapshotExportServiceTests : IDisposable
     {
         var outputPath = Path.Combine(_tempDirectory, "fast-path.png");
         var backend = new TrackingSoftwareBackend(width: 4, height: 3);
-        var service = new VideraSnapshotExportService();
         using var engine = new VideraEngine();
 
-        await service.ExportAsync(
+        await VideraSnapshotExportService.ExportAsync(
             outputPath,
             width: 4,
             height: 3,

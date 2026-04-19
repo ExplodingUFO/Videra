@@ -4,7 +4,11 @@ using Videra.Core.Geometry;
 namespace Videra.Core.Graphics.Abstractions;
 
 /// <summary>
-/// GPU 资源创建工厂接口
+/// GPU 资源创建工厂接口。
+/// Built-in D3D11/Vulkan/Metal backends guarantee the minimum contract around buffer creation
+/// and pipeline creation. Advanced seams such as <c>CreateShader</c> and <c>CreateResourceSet</c>
+/// are not a portability promise on the shipped native backends and may throw
+/// <see cref="Videra.Core.Exceptions.UnsupportedOperationException"/>.
 /// </summary>
 public interface IResourceFactory
 {
@@ -34,7 +38,9 @@ public interface IResourceFactory
     IBuffer CreateUniformBuffer(uint sizeInBytes);
     
     /// <summary>
-    /// 创建 Pipeline (渲染管线)
+    /// 创建 Pipeline (渲染管线)。
+    /// Built-in native backends adapt this richer description to the current minimum contract
+    /// instead of promising full backend-specific shader/resource-layout parity.
     /// </summary>
     IPipeline CreatePipeline(PipelineDescription description);
     
@@ -44,12 +50,17 @@ public interface IResourceFactory
     IPipeline CreatePipeline(uint vertexSize, bool hasNormals, bool hasColors);
     
     /// <summary>
-    /// 创建 Shader (着色器)
+    /// 创建 Shader (着色器)。
+    /// This remains an advanced seam; shipped native backends manage shaders internally and may
+    /// throw <see cref="Videra.Core.Exceptions.UnsupportedOperationException"/>.
     /// </summary>
     IShader CreateShader(ShaderStage stage, byte[] bytecode, string entryPoint);
-    
+
     /// <summary>
-    /// 创建 Resource Set (资源绑定集)
+    /// 创建 Resource Set (资源绑定集)。
+    /// This remains an advanced seam; shipped native backends may bind resources through
+    /// backend-specific internal paths and throw
+    /// <see cref="Videra.Core.Exceptions.UnsupportedOperationException"/>.
     /// </summary>
     IResourceSet CreateResourceSet(ResourceSetDescription description);
 }

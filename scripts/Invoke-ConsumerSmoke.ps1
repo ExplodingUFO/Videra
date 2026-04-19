@@ -5,7 +5,11 @@ param(
 
     [string]$Project = "smoke/Videra.ConsumerSmoke/Videra.ConsumerSmoke.csproj",
 
-    [string]$OutputRoot = "artifacts/consumer-smoke"
+    [string]$OutputRoot = "artifacts/consumer-smoke",
+
+    [switch]$BuildOnly,
+
+    [switch]$TreatWarningsAsErrors
 )
 
 $ErrorActionPreference = "Stop"
@@ -66,7 +70,19 @@ $packageVersion =
 foreach ($relativeProject in $publicPackageProjects)
 {
     $fullProjectPath = Join-Path $root $relativeProject
-    dotnet pack $fullProjectPath --configuration $Configuration --output $packageOutputPath -p:PackageVersion=$packageVersion
+    $packArgs = @(
+        $fullProjectPath,
+        "--configuration", $Configuration,
+        "--output", $packageOutputPath,
+        "-p:PackageVersion=$packageVersion"
+    )
+
+    if ($TreatWarningsAsErrors)
+    {
+        $packArgs += "-p:TreatWarningsAsErrors=true"
+    }
+
+    dotnet pack @packArgs
     if ($LASTEXITCODE -ne 0)
     {
         throw "Packing '$relativeProject' failed."
@@ -86,17 +102,43 @@ $nugetConfig = @"
 $nugetConfig | Set-Content -Path $nugetConfigPath
 
 Write-Host "=== Consumer Smoke Restore ===" -ForegroundColor Cyan
-dotnet restore $projectPath --configfile $nugetConfigPath --packages $packagesCachePath -p:VideraConsumerPackageVersion=$packageVersion
+$restoreArgs = @(
+    $projectPath,
+    "--configfile", $nugetConfigPath,
+    "--packages", $packagesCachePath,
+    "-p:VideraConsumerPackageVersion=$packageVersion"
+)
+dotnet restore @restoreArgs
 if ($LASTEXITCODE -ne 0)
 {
     throw "Consumer smoke restore failed."
 }
 
 Write-Host "=== Consumer Smoke Build ===" -ForegroundColor Cyan
-dotnet build $projectPath --configuration $Configuration --no-restore --packages $packagesCachePath -p:VideraConsumerPackageVersion=$packageVersion
+$buildArgs = @(
+    $projectPath,
+    "--configuration", $Configuration,
+    "--no-restore",
+    "--packages", $packagesCachePath,
+    "-p:VideraConsumerPackageVersion=$packageVersion"
+)
+
+if ($TreatWarningsAsErrors)
+{
+    $buildArgs += "-p:TreatWarningsAsErrors=true"
+}
+
+dotnet build @buildArgs
 if ($LASTEXITCODE -ne 0)
 {
     throw "Consumer smoke build failed."
+}
+
+if ($BuildOnly)
+{
+    Write-Host "Consumer smoke packaged build passed." -ForegroundColor Green
+    Write-Host "Resolved package version: $packageVersion"
+    return
 }
 
 Write-Host "=== Consumer Smoke Run ===" -ForegroundColor Cyan
@@ -229,6 +271,7 @@ Write-Host "Consumer smoke passed." -ForegroundColor Green
 Write-Host "Resolved package version: $packageVersion"
 Write-Host "ResolvedBackend: $($report.ResolvedBackend)"
 Write-Host "ResolvedDisplayServer: $($report.ResolvedDisplayServer)"
+Write-Host "DisplayServerCompatibility: $($report.DisplayServerCompatibility)"
 Write-Host "IsUsingSoftwareFallback: $($report.IsUsingSoftwareFallback)"
 Write-Host "DiagnosticsSnapshot: $snapshotPath"
 Write-Host "InspectionSnapshot: $inspectionSnapshotPath"

@@ -202,6 +202,33 @@ public sealed class RepositoryArchitectureTests
     }
 
     [Fact]
+    public void BackendDocs_ShouldDescribeBuiltInMinimumContract_WithoutOpenGlPromise()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var architecture = File.ReadAllText(Path.Combine(repositoryRoot, "ARCHITECTURE.md"));
+        var coreReadme = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Core", "README.md"));
+        var supportMatrix = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "support-matrix.md"));
+
+        architecture.Should().Contain("Built-in backend minimum contract");
+        architecture.Should().Contain("CreateShader(...)");
+        architecture.Should().Contain("CreateResourceSet(...)");
+        architecture.Should().Contain("SetResourceSet(...)");
+        architecture.Should().Contain("OpenGL");
+
+        coreReadme.Should().Contain("Built-in Backend Minimum Contract");
+        coreReadme.Should().Contain("CreateShader(...)");
+        coreReadme.Should().Contain("CreateResourceSet(...)");
+        coreReadme.Should().Contain("SetResourceSet(...)");
+        coreReadme.Should().Contain("OpenGL");
+
+        supportMatrix.Should().Contain("built-in backend minimum contract");
+        supportMatrix.Should().Contain("CreateShader(...)");
+        supportMatrix.Should().Contain("CreateResourceSet(...)");
+        supportMatrix.Should().Contain("SetResourceSet(...)");
+        supportMatrix.Should().Contain("OpenGL");
+    }
+
+    [Fact]
     public void ArchitectureDocs_ShouldDescribeShippedPublicRenderPassExtensibility()
     {
         var repositoryRoot = GetRepositoryRoot();

@@ -27,7 +27,8 @@ Videra is not a general-purpose game engine. It is shaped around desktop visuali
 - `GitHub Packages` remains the `preview` / internal feed for contributors and pre-release validation
 - `Videra.SurfaceCharts.*` is still a source-first module family, not a published public package line
 - Linux native rendering remains `X11`-hosted, and Wayland sessions stay on the documented `XWayland compatibility` path
-- GitHub Actions runs matching-host native validation on pull requests, and the [Native Validation runbook](docs/native-validation.md) documents how to use `Run workflow` for targeted reruns
+- GitHub Actions runs matching-host native validation, packaged consumer smoke, and explicit sample-contract evidence on pull requests, and the [Native Validation runbook](docs/native-validation.md) documents how to use `Run workflow` for targeted reruns
+- The current alpha-ready `green` line is repository verification + native validation + packaged consumer smoke + sample-contract evidence, with `quality-gate-evidence` keeping the packaged consumer path and curated Core test surfaces warning-clean and `run-benchmarks` remaining the explicit benchmark-review switch
 
 ## Getting Started
 

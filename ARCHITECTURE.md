@@ -84,6 +84,12 @@ These packages handle:
 - Resource factories and command executors
 - The direct internal `device/surface` seam used by `RenderSessionOrchestrator`; `LegacyGraphicsBackendAdapter` remains the compatibility bridge for older monolithic backends only
 
+Built-in backend minimum contract:
+
+- Portable: buffer creation, current-viewer pipeline creation, direct buffer binding, draw calls, viewport/scissor, clear, and standard frame depth behavior with best-effort `SetDepthState(...)` / `ResetDepthState()`
+- Not a built-in portability promise: `CreateShader(...)`, `CreateResourceSet(...)`, and `SetResourceSet(...)`
+- This architecture does not imply an `OpenGL` backend promise; current native support remains Windows=`D3D11`, Linux=`Vulkan`, and macOS=`Metal`
+
 ### `Videra.Demo`
 
 The demo application shows:
