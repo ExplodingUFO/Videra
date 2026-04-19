@@ -7,6 +7,7 @@ Videra 是一套面向 .NET 桌面应用的跨平台 3D 查看组件库，核心
 surface-chart 模块家族与 `VideraView` 相互独立。它面向离线大矩阵、曲面图和时频图一类可视化场景，独立 Demo 也单独发布为 `Videra.SurfaceCharts.Demo`。
 
 默认 first-chart 入口请先把 [Videra.SurfaceCharts.Demo](../../samples/Videra.SurfaceCharts.Demo/README.md) 当作当前公开 chart reference，并把 `Videra.SurfaceCharts.Avalonia` 中的 `SurfaceChartView` 视为主 chart control entrypoint。
+先从 Demo 默认的 `Start here: In-memory first chart` 路径开始，确认 source-first first chart 可以渲染后，再切到 `Explore next: Cache-backed streaming` 做下一步验证。
 
 当前 `alpha` 阶段需要明确说明：
 

@@ -279,6 +279,7 @@ public sealed class RepositoryLocalizationTests
         readme.Should().Contain("samples/Videra.SurfaceCharts.Demo/README.md");
         readme.Should().Contain(SurfaceChartsDocumentationTerms.ChineseSurfaceChartsFamilyBoundarySentence);
         AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.ChineseSurfaceChartsFirstChartTokens);
+        AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.ChineseSurfaceChartsStartHereTokens);
         AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.ChineseSurfaceChartsOwnershipTokens);
         AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.ChineseSurfaceChartControlOwnershipTokens);
         AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.ChineseSurfaceChartsRenderingStatusFieldTokens);
@@ -293,6 +294,7 @@ public sealed class RepositoryLocalizationTests
 
         AssertContainsAllTokens(avaloniaModule, SurfaceChartsDocumentationTerms.ChineseSurfaceChartsOwnershipTokens);
         AssertContainsAllTokens(avaloniaModule, SurfaceChartsDocumentationTerms.ChineseSurfaceChartControlOwnershipTokens);
+        AssertContainsAllTokens(avaloniaModule, SurfaceChartsDocumentationTerms.ChineseSurfaceChartsStartHereTokens);
         AssertContainsAllTokens(avaloniaModule, SurfaceChartsDocumentationTerms.ChineseSurfaceChartsInteractionDiagnosticsTokens);
         AssertContainsAllTokens(avaloniaModule, SurfaceChartsDocumentationTerms.ChineseSurfaceChartsOverlayBoundaryTokens);
         AssertContainsAllTokens(avaloniaModule, SurfaceChartsDocumentationTerms.ChineseSurfaceChartsRenderingStatusFieldTokens);

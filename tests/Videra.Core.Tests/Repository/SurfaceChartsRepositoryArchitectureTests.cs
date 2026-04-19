@@ -6,21 +6,13 @@ namespace Videra.Core.Tests.Repository;
 
 public sealed class SurfaceChartsRepositoryArchitectureTests
 {
-    private const string ChartRendererBoundarySentence =
-        "`SurfaceChartView` works through a chart-local renderer seam";
-
-    private const string GpuFallbackSentence =
-        "The renderer is `GPU-first`, but `software fallback` remains a shipped path";
-
-    private const string DemoGpuFallbackSentence =
-        "the shipped `GPU-first` renderer path used by `SurfaceChartView`, with `software fallback` still available";
-
     private const string LinuxWaylandLimitSentence =
         "On Wayland sessions the chart host uses an `XWayland compatibility` path; compositor-native Wayland surface embedding is not available";
 
     private static readonly Regex MarkdownLinkRegex = new(@"\[[^\]]+\]\(([^)]+)\)", RegexOptions.Compiled);
     private static readonly Regex MarkdownReferenceUsageRegex = new(@"\[(?<text>[^\]]+)\]\[(?<label>[^\]]*)\]", RegexOptions.Compiled);
     private static readonly Regex MarkdownReferenceDefinitionRegex = new(@"^\s*\[(?<label>[^\]]+)\]:\s*(?<target>\S+)", RegexOptions.Compiled | RegexOptions.Multiline);
+    private static readonly Regex MarkdownShortcutReferenceUsageRegex = new(@"\[(?<label>[^\[\]]+)\](?![\(\[:])", RegexOptions.Compiled);
 
     private static readonly string[] NativeInteropTokens =
     [
@@ -35,10 +27,11 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
         var readme = File.ReadAllText(Path.Combine(GetRepositoryRoot(), "README.md"));
 
         readme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsOnboardingHeading);
-        readme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsFamilyBoundarySentence);
-        readme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsDemoSentence);
-        readme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartViewSentence);
+        AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.SurfaceChartsFamilyBoundaryTokens);
+        AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.SurfaceChartsDemoEntryTokens);
+        AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.SurfaceChartViewEntryTokens);
         AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.SurfaceChartsFirstChartTokens);
+        AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.SurfaceChartsStartHereTokens);
         AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.SurfaceChartsRendererStatusTokens);
         AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.SurfaceChartsViewStateTokens);
         AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.SurfaceChartsInteractionTokens);
@@ -68,9 +61,10 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
         readme.Should().Contain("samples/Videra.SurfaceCharts.Demo/README.md");
         readme.Should().Contain("SurfaceChartView");
         readme.Should().Contain("Videra.SurfaceCharts.Demo");
-        readme.Should().Contain(SurfaceChartsDocumentationTerms.ChineseSurfaceChartsFamilyBoundarySentence);
+        AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.ChineseSurfaceChartsFamilyBoundaryTokens);
         readme.Should().Contain("RenderStatusChanged");
         AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.ChineseSurfaceChartsFirstChartTokens);
+        AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.ChineseSurfaceChartsStartHereTokens);
         AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.ChineseSurfaceChartsTruthTokens);
         AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.ChineseSurfaceChartsViewStateTokens);
         AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.ChineseSurfaceChartsInteractionQualityTokens);
@@ -126,8 +120,8 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
         var avaloniaReadme = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.SurfaceCharts.Avalonia", "README.md"));
         var demoReadme = File.ReadAllText(Path.Combine(repositoryRoot, "samples", "Videra.SurfaceCharts.Demo", "README.md"));
 
-        avaloniaReadme.Should().Contain(ChartRendererBoundarySentence);
-        avaloniaReadme.Should().Contain(GpuFallbackSentence);
+        AssertContainsAllTokens(avaloniaReadme, SurfaceChartsDocumentationTerms.SurfaceChartsRendererBoundaryTokens);
+        AssertContainsAllTokens(avaloniaReadme, SurfaceChartsDocumentationTerms.SurfaceChartsGpuFallbackTokens);
         avaloniaReadme.Should().Contain(LinuxWaylandLimitSentence);
         avaloniaReadme.Should().Contain("independent from `VideraView`");
         avaloniaReadme.Should().Contain("ViewState");
@@ -139,7 +133,7 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
         AssertContainsAllTokens(avaloniaReadme, SurfaceChartsDocumentationTerms.SurfaceChartsAvaloniaReadmeContractTokens);
 
         demoReadme.Should().Contain("not a `VideraView` mode");
-        demoReadme.Should().Contain(DemoGpuFallbackSentence);
+        AssertContainsAllTokens(demoReadme, SurfaceChartsDocumentationTerms.SurfaceChartsDemoGpuFallbackTokens);
         AssertContainsAllTokens(demoReadme, SurfaceChartsDocumentationTerms.SurfaceChartsDemoFirstChartTokens);
         AssertContainsAllTokens(demoReadme, SurfaceChartsDocumentationTerms.SurfaceChartsViewStateTokens);
         AssertContainsAllTokens(demoReadme, SurfaceChartsDocumentationTerms.SurfaceChartsInteractionTokens);
@@ -188,8 +182,9 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
         var avaloniaPage = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "zh-CN", "modules", "videra-surfacecharts-avalonia.md"));
         var processingPage = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "zh-CN", "modules", "videra-surfacecharts-processing.md"));
 
-        avaloniaPage.Should().Contain(SurfaceChartsDocumentationTerms.ChineseAvaloniaRenderStatusSentence);
-        avaloniaPage.Should().Contain(SurfaceChartsDocumentationTerms.ChineseAvaloniaProbeSentence);
+        AssertContainsAllTokens(avaloniaPage, SurfaceChartsDocumentationTerms.ChineseAvaloniaRenderStatusTokens);
+        AssertContainsAllTokens(avaloniaPage, SurfaceChartsDocumentationTerms.ChineseAvaloniaProbeTokens);
+        AssertContainsAllTokens(avaloniaPage, SurfaceChartsDocumentationTerms.ChineseSurfaceChartsStartHereTokens);
         AssertContainsAllTokens(avaloniaPage, SurfaceChartsDocumentationTerms.ChineseSurfaceChartsViewStateTokens);
         AssertContainsAllTokens(avaloniaPage, SurfaceChartsDocumentationTerms.ChineseSurfaceChartsInteractionQualityTokens);
         AssertContainsAllTokens(avaloniaPage, SurfaceChartsDocumentationTerms.ChineseSurfaceChartsOverlayOptionsTokens);
@@ -411,6 +406,17 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
                 label = match.Groups["text"].Value;
             }
 
+            if (!referenceTargets.TryGetValue(NormalizeMarkdownReferenceLabel(label), out var target))
+            {
+                continue;
+            }
+
+            AssertMarkdownTargetIsNotSelfReferential(markdownPath, absoluteMarkdownPath, markdownDirectory, target);
+        }
+
+        foreach (Match match in MarkdownShortcutReferenceUsageRegex.Matches(content))
+        {
+            var label = match.Groups["label"].Value;
             if (!referenceTargets.TryGetValue(NormalizeMarkdownReferenceLabel(label), out var target))
             {
                 continue;

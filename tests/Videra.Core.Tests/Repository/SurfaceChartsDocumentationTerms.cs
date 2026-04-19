@@ -135,12 +135,63 @@ internal static class SurfaceChartsDocumentationTerms
         "primary chart control entrypoint"
     ];
 
+    public static readonly string[] SurfaceChartsFamilyBoundaryTokens =
+    [
+        "surface-chart module family",
+        "sibling",
+        "independent from `VideraView`"
+    ];
+
+    public static readonly string[] SurfaceChartsDemoEntryTokens =
+    [
+        "`Videra.SurfaceCharts.Demo`",
+        "independent demo application",
+        "surface-chart module family"
+    ];
+
+    public static readonly string[] SurfaceChartViewEntryTokens =
+    [
+        "`SurfaceChartView`",
+        "primary chart control entrypoint",
+        "`Videra.SurfaceCharts.Avalonia`"
+    ];
+
+    public static readonly string[] SurfaceChartsStartHereTokens =
+    [
+        "`Start here: In-memory first chart`",
+        "`Explore next: Cache-backed streaming`",
+        "source-first",
+        "first chart"
+    ];
+
     public static readonly string[] SurfaceChartsRendererStatusTokens =
     [
         "`GPU-first`",
         "`software fallback`",
         "`RenderingStatus`",
         "`RenderStatusChanged`"
+    ];
+
+    public static readonly string[] SurfaceChartsRendererBoundaryTokens =
+    [
+        "`SurfaceChartView`",
+        "chart-local renderer seam",
+        "`VideraView`"
+    ];
+
+    public static readonly string[] SurfaceChartsGpuFallbackTokens =
+    [
+        "`GPU-first`",
+        "`software fallback`",
+        "unsupported or fallback-triggering environments"
+    ];
+
+    public static readonly string[] SurfaceChartsDemoGpuFallbackTokens =
+    [
+        "`GPU-first`",
+        "`software fallback`",
+        "`SurfaceChartView`",
+        "native-host or GPU initialization"
     ];
 
     public static readonly string[] SurfaceChartsViewStateTokens =
@@ -316,6 +367,21 @@ internal static class SurfaceChartsDocumentationTerms
         "主 chart control entrypoint"
     ];
 
+    public static readonly string[] ChineseSurfaceChartsFamilyBoundaryTokens =
+    [
+        "surface-chart",
+        "`VideraView`",
+        "相互独立"
+    ];
+
+    public static readonly string[] ChineseSurfaceChartsStartHereTokens =
+    [
+        "`Start here: In-memory first chart`",
+        "`Explore next: Cache-backed streaming`",
+        "source-first",
+        "first chart"
+    ];
+
     public static readonly string[] ChineseSurfaceChartsTruthTokens =
     [
         "独立 Demo",
@@ -369,6 +435,20 @@ internal static class SurfaceChartsDocumentationTerms
         "minor ticks",
         "grid plane",
         "axis-side"
+    ];
+
+    public static readonly string[] ChineseAvaloniaRenderStatusTokens =
+    [
+        "`RenderingStatus`",
+        "`RenderStatusChanged`"
+    ];
+
+    public static readonly string[] ChineseAvaloniaProbeTokens =
+    [
+        "axis/legend overlays",
+        "hover readout",
+        "`Shift + left-click`",
+        "pinned probe"
     ];
 
     public static readonly string[] ChineseSurfaceChartsOwnershipTokens =

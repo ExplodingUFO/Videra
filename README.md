@@ -137,6 +137,7 @@ Contract highlights:
 ## Surface Charts Onboarding
 
 For the canonical first-chart story, use [Videra.SurfaceCharts.Demo](samples/Videra.SurfaceCharts.Demo/README.md) as the current public chart reference and `SurfaceChartView` in `Videra.SurfaceCharts.Avalonia` as the primary chart control entrypoint.
+Inside that demo, keep the default `Start here: In-memory first chart` path for the source-first happy path, then move to `Explore next: Cache-backed streaming` when you want to validate lazy tile reads and the broader chart diagnostics surface.
 
 Contract highlights:
 
