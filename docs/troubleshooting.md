@@ -28,6 +28,14 @@ pwsh -File ./scripts/verify.ps1 -Configuration Release -IncludeNativeMacOS
 
 If you need a matching-host runbook or the hosted GitHub Actions entrypoint, use [Native Validation](native-validation.md).
 
+## SurfaceCharts source-first triage
+
+For `area: surfacecharts`, start from `Videra.SurfaceCharts.Demo` and keep the repro path source-first:
+
+- `Start here: In-memory first chart` is the default first repro path.
+- `Explore next: Cache-backed streaming` is only the follow-up path after the in-memory chart already renders.
+- Use `Copy support summary` to paste the demo `Support summary` block into the issue so support has the same `ViewState`, `InteractionQuality`, `RenderingStatus`, and `OverlayOptions` contract the sample exposes.
+
 ## Package Selection vs Backend Preference
 
 - For Avalonia apps, install `Videra.Avalonia` together with the matching `Videra.Platform.Windows`, `Videra.Platform.Linux`, or `Videra.Platform.macOS` package.
@@ -94,6 +102,12 @@ Include:
 - Package version or commit SHA
 - Backend preference or `VIDERA_BACKEND` value
 - diagnostics snapshot from `VideraDiagnosticsSnapshotFormatter`
+- `Support summary` from `Videra.SurfaceCharts.Demo` when the issue is in `area: surfacecharts`
+- the exact SurfaceCharts source path you used:
+  - `Start here: In-memory first chart`
+  - `Explore next: Cache-backed streaming`
+- use `Copy support summary` after reproducing `Start here: In-memory first chart`; continue to `Explore next: Cache-backed streaming` only if needed
+- `ViewState`, `InteractionQuality`, `RenderingStatus`, and `OverlayOptions` from the SurfaceCharts support summary when relevant
 - inspection bundle from `VideraInspectionBundleService.ExportAsync(...)` when you need support to replay camera, clipping, measurements, and annotations together
 - `ResolvedDisplayServer`, `DisplayServerFallbackUsed`, `DisplayServerFallbackReason`, and `DisplayServerCompatibility` on Linux when relevant
 - Failing command and full error output

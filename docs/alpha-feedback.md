@@ -14,6 +14,9 @@ Videra is still an early alpha embeddable viewer stack. Good feedback is not jus
    - [Videra.ExtensibilitySample](../samples/Videra.ExtensibilitySample/README.md) for `VideraView.Engine`
    - [Videra.InteractionSample](../samples/Videra.InteractionSample/README.md) for controlled interaction
    - [Videra.Demo](../samples/Videra.Demo/README.md) for backend diagnostics and scene-pipeline visibility
+   - `Videra.SurfaceCharts.Demo` for the source-first chart path:
+     - `Start here: In-memory first chart` before any cache-backed investigation
+     - `Explore next: Cache-backed streaming` only after the first-chart path renders
 4. Export a diagnostics snapshot with `VideraDiagnosticsSnapshotFormatter.Format(View3D.BackendDiagnostics)` or attach the `consumer smoke` `diagnostics-snapshot.txt` artifact.
 5. If the issue is visual or inspection-related, attach either:
    - a snapshot exported through `ExportSnapshotAsync(...)`, or
@@ -28,6 +31,17 @@ Videra is still an early alpha embeddable viewer stack. Good feedback is not jus
 - diagnostics snapshot from `VideraDiagnosticsSnapshotFormatter`
 - exported inspection snapshot, when the issue affects clipping, measurements, labels, or camera state
 - inspection bundle directory when you need camera, clipping, measurements, annotations, and imported assets to replay together
+- `SurfaceCharts support summary` copied from the `Videra.SurfaceCharts.Demo` `Support summary` panel when the issue is in `area: surfacecharts`
+- use `Copy support summary` after reproducing `Start here: In-memory first chart`; continue to `Explore next: Cache-backed streaming` only if needed
+- SurfaceCharts source-path choice when relevant:
+  - `Start here: In-memory first chart`
+  - `Explore next: Cache-backed streaming`
+- SurfaceCharts chart state when relevant:
+  - `ViewState`
+  - `InteractionQuality`
+  - `RenderingStatus`
+  - `OverlayOptions`
+- cache manifest and payload sidecar path when the cache-backed route is involved
 - Linux display-server context when relevant:
   - `ResolvedDisplayServer`
   - `DisplayServerFallbackUsed`

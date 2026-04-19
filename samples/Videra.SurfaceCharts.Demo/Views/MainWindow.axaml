@@ -229,6 +229,29 @@
                        TextWrapping="Wrap" />
           </StackPanel>
         </Border>
+
+        <Border Padding="18"
+                Background="#111A2B"
+                BorderBrush="#1F2B44"
+                BorderThickness="1"
+                CornerRadius="18">
+          <StackPanel Spacing="8">
+            <TextBlock FontSize="16"
+                       FontWeight="SemiBold"
+                       Foreground="#E2E8F0"
+                       Text="Support summary" />
+            <Button x:Name="CopySupportSummaryButton"
+                    HorizontalAlignment="Left"
+                    Content="Copy support summary" />
+            <TextBlock x:Name="SupportSummaryStatusText"
+                       Foreground="#94A3B8"
+                       TextWrapping="Wrap"
+                       Text="Reproduce with Start here first. Continue to Explore next only if needed, then copy this block into the issue." />
+            <TextBlock x:Name="SupportSummaryText"
+                       Foreground="#CBD5E1"
+                       TextWrapping="Wrap" />
+          </StackPanel>
+        </Border>
       </StackPanel>
     </ScrollViewer>
   </Grid>

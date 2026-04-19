@@ -171,6 +171,80 @@ public sealed class SurfaceChartsDemoViewportBehaviorTests
         });
     }
 
+    [Fact]
+    public Task DemoWindow_SupportSummaryProjectsSupportReadyChartTruth()
+    {
+        return AvaloniaHeadlessTestSession.RunAsync(async () =>
+        {
+            var window = new MainWindow();
+            var copySupportSummaryButton = window.FindControl<Button>("CopySupportSummaryButton")
+                ?? throw new InvalidOperationException("CopySupportSummaryButton is missing.");
+            var supportSummaryText = window.FindControl<TextBlock>("SupportSummaryText")
+                ?? throw new InvalidOperationException("SupportSummaryText is missing.");
+            var supportSummaryStatusText = window.FindControl<TextBlock>("SupportSummaryStatusText")
+                ?? throw new InvalidOperationException("SupportSummaryStatusText is missing.");
+
+            await WaitForConditionAsync(
+                () => !string.IsNullOrWhiteSpace(supportSummaryText.Text),
+                "the demo should project a support-ready chart summary into visible text.")
+                .ConfigureAwait(true);
+
+            ClickButton(copySupportSummaryButton);
+
+            await WaitForConditionAsync(
+                () => supportSummaryStatusText.Text?.Contains("Copied support summary to the clipboard.", StringComparison.Ordinal) == true ||
+                      supportSummaryStatusText.Text?.Contains("Clipboard is unavailable. The support summary remains visible below.", StringComparison.Ordinal) == true,
+                "the demo should give users a copy workflow for the support summary.")
+                .ConfigureAwait(true);
+
+            supportSummaryText.Text.Should().Contain("Source path:");
+            supportSummaryText.Text.Should().Contain("ViewState:");
+            supportSummaryText.Text.Should().Contain("InteractionQuality:");
+            supportSummaryText.Text.Should().Contain("RenderingStatus:");
+            supportSummaryText.Text.Should().Contain("OverlayOptions:");
+            supportSummaryText.Text.Should().Contain("Cache asset:");
+            supportSummaryText.Text.Should().Contain("Dataset:");
+            supportSummaryStatusText.Text.Should().MatchRegex("Copied support summary to the clipboard\\.|Clipboard is unavailable\\. The support summary remains visible below\\.");
+        });
+    }
+
+    [Fact]
+    public Task DemoWindow_CopySupportSummaryCapturesCurrentSourceAndViewState()
+    {
+        return AvaloniaHeadlessTestSession.RunAsync(async () =>
+        {
+            var window = new MainWindow();
+            var chartView = window.FindControl<SurfaceChartView>("ChartView")
+                ?? throw new InvalidOperationException("ChartView is missing.");
+            var sourceSelector = window.FindControl<ComboBox>("SourceSelector")
+                ?? throw new InvalidOperationException("SourceSelector is missing.");
+            var copySupportSummaryButton = window.FindControl<Button>("CopySupportSummaryButton")
+                ?? throw new InvalidOperationException("CopySupportSummaryButton is missing.");
+            var supportSummaryText = window.FindControl<TextBlock>("SupportSummaryText")
+                ?? throw new InvalidOperationException("SupportSummaryText is missing.");
+
+            SelectItem(sourceSelector, GetComboBoxItemByContent(sourceSelector, "Explore next: Cache-backed streaming"));
+
+            await WaitForConditionAsync(
+                () => chartView.Source is not null &&
+                      supportSummaryText.Text?.Contains("Explore next: Cache-backed streaming", StringComparison.Ordinal) == true,
+                "switching sources should project the new source path into the visible support summary.")
+                .ConfigureAwait(true);
+
+            chartView.ZoomTo(new SurfaceDataWindow(8d, 6d, 32d, 24d));
+            ClickButton(copySupportSummaryButton);
+
+            await WaitForConditionAsync(
+                () => supportSummaryText.Text?.Contains("Explore next: Cache-backed streaming", StringComparison.Ordinal) == true &&
+                      supportSummaryText.Text?.Contains("Width 32", StringComparison.Ordinal) == true,
+                "copying the support summary should refresh it from the current source and view state before export.")
+                .ConfigureAwait(true);
+
+            supportSummaryText.Text.Should().Contain("Explore next: Cache-backed streaming");
+            supportSummaryText.Text.Should().Contain("Width 32");
+        });
+    }
+
     private static ComboBoxItem GetComboBoxItemByContent(ComboBox selector, string content)
     {
         var item = selector.Items

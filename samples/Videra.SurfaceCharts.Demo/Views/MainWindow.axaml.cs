@@ -27,6 +27,9 @@ public partial class MainWindow : Window
     private readonly TextBlock _overlayOptionsText;
     private readonly TextBlock _cachePathText;
     private readonly TextBlock _datasetText;
+    private readonly Button _copySupportSummaryButton;
+    private readonly TextBlock _supportSummaryStatusText;
+    private readonly TextBlock _supportSummaryText;
     private readonly ISurfaceTileSource _inMemorySource;
     private readonly SurfaceColorMap _colorMap;
     private readonly string _cachePath;
@@ -61,6 +64,12 @@ public partial class MainWindow : Window
             ?? throw new InvalidOperationException("Cache path text control is missing.");
         _datasetText = this.FindControl<TextBlock>("DatasetText")
             ?? throw new InvalidOperationException("Dataset text control is missing.");
+        _copySupportSummaryButton = this.FindControl<Button>("CopySupportSummaryButton")
+            ?? throw new InvalidOperationException("CopySupportSummaryButton is missing.");
+        _supportSummaryStatusText = this.FindControl<TextBlock>("SupportSummaryStatusText")
+            ?? throw new InvalidOperationException("SupportSummaryStatusText is missing.");
+        _supportSummaryText = this.FindControl<TextBlock>("SupportSummaryText")
+            ?? throw new InvalidOperationException("SupportSummaryText is missing.");
 
         _cachePath = Path.Combine(
             AppContext.BaseDirectory,
@@ -87,6 +96,7 @@ public partial class MainWindow : Window
         _sourceSelector.SelectionChanged += OnSourceSelectionChanged;
         _fitToDataButton.Click += OnFitToDataClicked;
         _resetCameraButton.Click += OnResetCameraClicked;
+        _copySupportSummaryButton.Click += OnCopySupportSummaryClicked;
 
         UpdateRenderingPathText(_chartView.RenderingStatus);
         UpdateInteractionQualityText(_chartView.InteractionQuality);
@@ -95,6 +105,7 @@ public partial class MainWindow : Window
         _datasetText.Text = CreateDatasetSummary();
         UpdateStatusText();
         UpdateViewStateText();
+        UpdateSupportSummaryText();
     }
 
     private void InitializeComponent()
@@ -142,6 +153,7 @@ public partial class MainWindow : Window
         _activeSourceDetails = details;
         UpdateStatusText();
         UpdateViewStateText();
+        UpdateSupportSummaryText();
     }
 
     private void OnRenderStatusChanged(object? sender, EventArgs e)
@@ -176,6 +188,7 @@ public partial class MainWindow : Window
         _chartView.FitToData();
         UpdateStatusText();
         UpdateViewStateText();
+        UpdateSupportSummaryText();
     }
 
     private void OnResetCameraClicked(object? sender, RoutedEventArgs e)
@@ -185,17 +198,30 @@ public partial class MainWindow : Window
         _chartView.ResetCamera();
         UpdateStatusText();
         UpdateViewStateText();
+        UpdateSupportSummaryText();
+    }
+
+    private async void OnCopySupportSummaryClicked(object? sender, RoutedEventArgs e)
+    {
+        _ = sender;
+        _ = e;
+
+        UpdateSupportSummaryText();
+
+        var topLevel = TopLevel.GetTopLevel(this);
+        if (topLevel?.Clipboard is { } clipboard)
+        {
+            await clipboard.SetTextAsync(_supportSummaryText.Text ?? string.Empty).ConfigureAwait(true);
+            _supportSummaryStatusText.Text = "Copied support summary to the clipboard.";
+            return;
+        }
+
+        _supportSummaryStatusText.Text = "Clipboard is unavailable. The support summary remains visible below.";
     }
 
     private void UpdateViewStateText()
     {
-        var viewState = _chartView.ViewState;
-        var dataWindow = viewState.DataWindow;
-        var camera = viewState.Camera;
-        _viewStateText.Text =
-            $"ViewState\n" +
-            $"Data window: StartX {dataWindow.StartX:0.###}, StartY {dataWindow.StartY:0.###}, Width {dataWindow.Width:0.###}, Height {dataWindow.Height:0.###}\n" +
-            $"Camera: Target ({camera.Target.X:0.###}, {camera.Target.Y:0.###}, {camera.Target.Z:0.###}), Yaw {camera.YawDegrees:0.###}, Pitch {camera.PitchDegrees:0.###}, Distance {camera.Distance:0.###}";
+        _viewStateText.Text = $"ViewState\n{CreateViewStateSummary()}";
     }
 
     private void UpdateInteractionQualityText(SurfaceChartInteractionQuality interactionQuality)
@@ -218,17 +244,11 @@ public partial class MainWindow : Window
 
     private void UpdateRenderingPathText(SurfaceChartRenderingStatus status)
     {
-        var fallbackText = status.IsFallback
-            ? $"software fallback active ({status.FallbackReason ?? "reason unavailable"})"
-            : "no fallback active";
-        var hostText = status.UsesNativeSurface
-            ? "native surface host is active"
-            : "control-owned surface is active";
         _renderingPathText.Text =
             $"Active backend: {status.ActiveBackend}\n" +
             $"Ready: {status.IsReady}\n" +
-            $"Fallback: {fallbackText}\n" +
-            $"Host path: {hostText}\n" +
+            $"Fallback: {CreateFallbackText(status)}\n" +
+            $"Host path: {CreateHostText(status)}\n" +
             $"Resident tiles: {status.ResidentTileCount}";
     }
 
@@ -327,5 +347,52 @@ public partial class MainWindow : Window
     {
         return "The start-here in-memory path uses a generated 64x48 matrix with an overview-first pyramid. " +
                "The explore-next cache-backed path loads a committed manifest plus binary sidecar and lazily reads only the tiles needed for the current built-in interaction view.";
+    }
+
+    private void UpdateSupportSummaryText()
+    {
+        var status = _chartView.RenderingStatus;
+        _supportSummaryText.Text =
+            "SurfaceCharts support summary\n" +
+            $"Source path: {_activeSourceHeading}\n" +
+            $"Source details: {_activeSourceDetails}\n" +
+            $"ViewState: {CreateViewStateSummary()}\n" +
+            $"InteractionQuality: {_chartView.InteractionQuality}\n" +
+            $"RenderingStatus: ActiveBackend {status.ActiveBackend}; IsReady {status.IsReady}; IsFallback {status.IsFallback}; FallbackReason {status.FallbackReason ?? "none"}; UsesNativeSurface {status.UsesNativeSurface}; ResidentTileCount {status.ResidentTileCount}\n" +
+            $"OverlayOptions: {CreateOverlayOptionsSummary(_chartView.OverlayOptions)}\n" +
+            $"Cache asset: Manifest {_cachePath}; Payload sidecar {_cachePayloadPath}\n" +
+            $"Dataset: {CreateDatasetSummary()}";
+    }
+
+    private string CreateViewStateSummary()
+    {
+        var viewState = _chartView.ViewState;
+        var dataWindow = viewState.DataWindow;
+        var camera = viewState.Camera;
+        return
+            $"Data window StartX {dataWindow.StartX:0.###}, StartY {dataWindow.StartY:0.###}, Width {dataWindow.Width:0.###}, Height {dataWindow.Height:0.###}; " +
+            $"Camera target ({camera.Target.X:0.###}, {camera.Target.Y:0.###}, {camera.Target.Z:0.###}), Yaw {camera.YawDegrees:0.###}, Pitch {camera.PitchDegrees:0.###}, Distance {camera.Distance:0.###}";
+    }
+
+    private static string CreateOverlayOptionsSummary(SurfaceChartOverlayOptions overlayOptions)
+    {
+        return
+            $"Minor ticks {(overlayOptions.ShowMinorTicks ? "enabled" : "disabled")} (divisions {overlayOptions.MinorTickDivisions}); " +
+            $"Grid plane {overlayOptions.GridPlane}; " +
+            $"Axis side {overlayOptions.AxisSideMode}";
+    }
+
+    private static string CreateFallbackText(SurfaceChartRenderingStatus status)
+    {
+        return status.IsFallback
+            ? $"software fallback active ({status.FallbackReason ?? "reason unavailable"})"
+            : "no fallback active";
+    }
+
+    private static string CreateHostText(SurfaceChartRenderingStatus status)
+    {
+        return status.UsesNativeSurface
+            ? "native surface host is active"
+            : "control-owned surface is active";
     }
 }

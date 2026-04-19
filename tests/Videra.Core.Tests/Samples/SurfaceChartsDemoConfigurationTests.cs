@@ -56,6 +56,8 @@ public sealed class SurfaceChartsDemoConfigurationTests
         mainWindow.Should().Contain("Explore next: Axes and legend");
         mainWindow.Should().Contain("Explore next: Overlay options");
         mainWindow.Should().Contain("Advanced: cache asset");
+        mainWindow.Should().Contain("Support summary");
+        mainWindow.Should().Contain("Copy support summary");
         mainWindow.Should().Contain("View-state contract");
         mainWindow.Should().Contain("Fit to data");
         mainWindow.Should().Contain("Reset camera");
@@ -73,6 +75,9 @@ public sealed class SurfaceChartsDemoConfigurationTests
         mainWindowCodeBehind.Should().Contain("InteractionQualityText");
         mainWindowCodeBehind.Should().Contain("InteractionQualityChanged");
         mainWindowCodeBehind.Should().Contain("OverlayOptionsText");
+        mainWindowCodeBehind.Should().Contain("SupportSummaryText");
+        mainWindowCodeBehind.Should().Contain("CopySupportSummaryButton");
+        mainWindowCodeBehind.Should().Contain("SupportSummaryStatusText");
         mainWindowCodeBehind.Should().Contain("SurfaceChartOverlayOptions");
         mainWindowCodeBehind.Should().Contain(".OverlayOptions");
         mainWindowCodeBehind.Should().Contain("ShowMinorTicks");
@@ -86,6 +91,9 @@ public sealed class SurfaceChartsDemoConfigurationTests
         mainWindowCodeBehind.Should().Contain(".ResetCamera(");
         mainWindowCodeBehind.Should().Contain("UpdateViewStateText");
         mainWindowCodeBehind.Should().Contain("UpdateInteractionQualityText");
+        mainWindowCodeBehind.Should().Contain("UpdateSupportSummaryText");
+        mainWindowCodeBehind.Should().Contain("OnCopySupportSummaryClicked");
+        mainWindowCodeBehind.Should().Contain("Clipboard");
         mainWindowCodeBehind.Should().Contain("Start here: In-memory first chart");
         mainWindowCodeBehind.Should().Contain("Explore next: Cache-backed streaming");
         mainWindowCodeBehind.Should().NotContain("ViewportSelector");
