@@ -42,6 +42,7 @@ pwsh -File ./scripts/verify.ps1 -Configuration Release -IncludeNativeMacOS
 - `Failed to create Metal device`：确认 macOS 主机支持 Metal
 - 渲染区域空白：优先尝试 `VIDERA_BACKEND=software`
 - Demo 无内容：等待 `VideraView` 完成后端初始化
+- inspection 问题需要可重放上下文时：同时附上 `VideraDiagnosticsSnapshotFormatter` 输出和 `VideraInspectionBundleService.ExportAsync(...)` 导出的 bundle
 
 ## 相关文档
 

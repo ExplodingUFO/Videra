@@ -100,7 +100,7 @@ For alpha adoption feedback, use [Alpha Feedback](docs/alpha-feedback.md) before
 | `Videra.Demo` | Viewer demo for backend diagnostics, import feedback, and baseline interaction |
 | `Videra.SurfaceCharts.Demo` | Independent surface-chart demo for `SurfaceChartView`, chart-local overlays, and rendering-path truth |
 | `Videra.ExtensibilitySample` | Narrow public reference for `VideraView.Engine`, `RegisterPassContributor(...)`, and `RegisterFrameHook(...)` |
-| `Videra.InteractionSample` | Public sample for the controlled interaction contract plus viewer-first inspection workflows such as measurement, clipping, state restore, and snapshot export |
+| `Videra.InteractionSample` | Public sample for the controlled interaction contract plus viewer-first inspection workflows such as measurement, clipping, state restore, snapshot export, and replayable inspection bundles |
 
 `Videra.MinimalSample` is the quickest end-to-end viewer reference. It stays on the alpha happy path: `Options -> LoadModelAsync -> FrameAll / ResetCamera -> BackendDiagnostics`, then uses `VideraDiagnosticsSnapshotFormatter` to export the same support artifact requested by alpha bug reports.
 `Videra.Demo` remains the broader diagnostics and import-feedback surface. It seeds a default demo cube on the ready path, summarizes import feedback in the status area, and includes a narrow `Scene Pipeline Lab` panel for `SceneDocument` versioning, pending/resident/dirty upload counts, atomic batch replacement, and backend-rebind truth.
@@ -130,7 +130,7 @@ Contract highlights:
 - Selection is object-level and changes only when the host applies `SelectionRequested`.
 - Annotation clicks surface `AnnotationRequested` for either object anchors or world-point anchors.
 - Hosts typically materialize those anchors through `VideraNodeAnnotation` and `VideraWorldPointAnnotation`.
-- Measurements stay on the public `Measurements` surface, clipping stays on `ClippingPlanes`, and saved inspection views flow through `CaptureInspectionState()`, `ApplyInspectionState(...)`, and `ExportSnapshotAsync(...)`.
+- Measurements stay on the public `Measurements` surface, `MeasurementSnapMode` stays on `InteractionOptions`, clipping stays on `ClippingPlanes`, saved inspection views flow through `CaptureInspectionState()` / `ApplyInspectionState(...)`, snapshots stay on `ExportSnapshotAsync(...)`, and replayable support artifacts flow through `VideraInspectionBundleService`.
 - Overlay responsibilities are split between `3D highlight/render state` and `2D label/feedback rendering`.
 
 ## Surface Charts Onboarding

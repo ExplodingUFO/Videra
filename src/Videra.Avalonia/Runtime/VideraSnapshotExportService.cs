@@ -5,6 +5,7 @@ using Videra.Avalonia.Controls;
 using Videra.Avalonia.Controls.Interaction;
 using Videra.Core.Geometry;
 using Videra.Core.Graphics;
+using Videra.Core.Graphics.Abstractions;
 using Videra.Core.Graphics.Software;
 using Videra.Core.Inspection;
 using Videra.Core.Selection.Annotations;
@@ -25,6 +26,7 @@ internal sealed class VideraSnapshotExportService
         IReadOnlyList<VideraAnnotation> annotations,
         IReadOnlyList<VideraMeasurement> measurements,
         VideraViewOverlayState overlayState,
+        ISoftwareBackend? preferredReadbackBackend,
         ILogger logger,
         CancellationToken cancellationToken)
     {
@@ -39,6 +41,17 @@ internal sealed class VideraSnapshotExportService
 
         cancellationToken.ThrowIfCancellationRequested();
         Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(path))!);
+        if (TryExportFromPreferredReadback(
+                path,
+                width,
+                height,
+                overlayState,
+                preferredReadbackBackend,
+                logger,
+                cancellationToken))
+        {
+            return Task.CompletedTask;
+        }
 
         using var exportEngine = new VideraEngine();
         using var backend = new SoftwareBackend();
@@ -61,24 +74,79 @@ internal sealed class VideraSnapshotExportService
         cancellationToken.ThrowIfCancellationRequested();
         exportEngine.Draw();
 
-        SaveSceneWithOverlay(path, backend, (int)width, (int)height, overlayState);
+        var pixels = CaptureFramePixels(backend, (int)width, (int)height);
+        SavePixelsWithOverlay(path, pixels, (int)width, (int)height, overlayState);
         return Task.CompletedTask;
     }
 
-    private static void SaveSceneWithOverlay(
+    private static bool TryExportFromPreferredReadback(
         string path,
-        SoftwareBackend backend,
-        int width,
-        int height,
-        VideraViewOverlayState overlayState)
+        uint width,
+        uint height,
+        VideraViewOverlayState overlayState,
+        ISoftwareBackend? preferredReadbackBackend,
+        ILogger logger,
+        CancellationToken cancellationToken)
     {
+        if (preferredReadbackBackend is null)
+        {
+            return false;
+        }
+
+        if (preferredReadbackBackend.Width != width || preferredReadbackBackend.Height != height)
+        {
+            return false;
+        }
+
+        try
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var pixels = CaptureFramePixels(preferredReadbackBackend, (int)width, (int)height);
+            SavePixelsWithOverlay(path, pixels, (int)width, (int)height, overlayState);
+            return true;
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            logger.LogDebug(ex, "Snapshot live-readback fast path failed; falling back to software export.");
+            return false;
+        }
+    }
+
+    private static byte[] CaptureFramePixels(ISoftwareBackend backend, int width, int height)
+    {
+        ArgumentNullException.ThrowIfNull(backend);
+
         var stride = checked(width * 4);
         var pixels = new byte[checked(stride * height)];
         var handle = GCHandle.Alloc(pixels, GCHandleType.Pinned);
         try
         {
             backend.CopyFrameTo(handle.AddrOfPinnedObject(), stride);
+            return pixels;
+        }
+        finally
+        {
+            handle.Free();
+        }
+    }
 
+    private static void SavePixelsWithOverlay(
+        string path,
+        byte[] pixels,
+        int width,
+        int height,
+        VideraViewOverlayState overlayState)
+    {
+        ArgumentNullException.ThrowIfNull(pixels);
+
+        var stride = checked(width * 4);
+        var handle = GCHandle.Alloc(pixels, GCHandleType.Pinned);
+        try
+        {
             var imageInfo = new SKImageInfo(width, height, SKColorType.Bgra8888, SKAlphaType.Premul);
             using var surface = SKSurface.Create(imageInfo, handle.AddrOfPinnedObject(), stride);
             RenderOverlay(surface.Canvas, overlayState);

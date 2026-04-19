@@ -90,6 +90,10 @@ public sealed class VideraViewInspectionIntegrationTests
                     End = VideraMeasurementAnchor.ForWorldPoint(new Vector3(0f, 2f, 0f))
                 }
             ];
+            view.InteractionOptions = new VideraInteractionOptions
+            {
+                MeasurementSnapMode = VideraMeasurementSnapMode.EdgeMidpoint
+            };
             view.ClippingPlanes =
             [
                 VideraClipPlane.FromPointNormal(new Vector3(0.5f, 0f, 0f), Vector3.UnitX)
@@ -100,6 +104,10 @@ public sealed class VideraViewInspectionIntegrationTests
 
             view.SelectionState = new VideraSelectionState();
             view.Measurements = Array.Empty<VideraMeasurement>();
+            view.InteractionOptions = new VideraInteractionOptions
+            {
+                MeasurementSnapMode = VideraMeasurementSnapMode.Free
+            };
             view.ClippingPlanes = Array.Empty<VideraClipPlane>();
             view.Engine.Camera.Reset();
 
@@ -109,6 +117,7 @@ public sealed class VideraViewInspectionIntegrationTests
             view.SelectionState.PrimaryObjectId.Should().Be(sceneObject.Id);
             view.Measurements.Should().ContainSingle();
             view.Measurements[0].Label.Should().Be("Edge");
+            view.InteractionOptions.MeasurementSnapMode.Should().Be(VideraMeasurementSnapMode.EdgeMidpoint);
             view.ClippingPlanes.Should().ContainSingle();
             view.Engine.Camera.Target.Should().Be(new Vector3(2f, 3f, 4f));
             view.Engine.Camera.Radius.Should().BeApproximately(7f, 0.0001f);

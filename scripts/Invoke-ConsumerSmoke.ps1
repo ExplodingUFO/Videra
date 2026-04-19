@@ -15,6 +15,7 @@ $outputPath = Join-Path $root $OutputRoot
 $jsonPath = Join-Path $outputPath "consumer-smoke-result.json"
 $snapshotPath = Join-Path $outputPath "diagnostics-snapshot.txt"
 $inspectionSnapshotPath = Join-Path $outputPath "inspection-snapshot.png"
+$inspectionBundlePath = Join-Path $outputPath "inspection-bundle"
 $tracePath = Join-Path $outputPath "consumer-smoke-trace.log"
 $stdoutPath = Join-Path $outputPath "consumer-smoke-stdout.log"
 $stderrPath = Join-Path $outputPath "consumer-smoke-stderr.log"
@@ -193,6 +194,21 @@ if ((Get-Item -LiteralPath $inspectionSnapshotPath).Length -le 0)
     throw "Consumer smoke produced '$inspectionSnapshotPath' but it was empty."
 }
 
+if (-not (Test-Path -LiteralPath $inspectionBundlePath))
+{
+    throw "Consumer smoke did not produce '$inspectionBundlePath'."
+}
+
+if (-not (Test-Path -LiteralPath (Join-Path $inspectionBundlePath "inspection-state.json")))
+{
+    throw "Consumer smoke bundle did not include 'inspection-state.json'."
+}
+
+if (-not (Test-Path -LiteralPath (Join-Path $inspectionBundlePath "asset-manifest.json")))
+{
+    throw "Consumer smoke bundle did not include 'asset-manifest.json'."
+}
+
 $report = Get-Content -Raw $jsonPath | ConvertFrom-Json
 if (-not $report.Succeeded)
 {
@@ -216,3 +232,4 @@ Write-Host "ResolvedDisplayServer: $($report.ResolvedDisplayServer)"
 Write-Host "IsUsingSoftwareFallback: $($report.IsUsingSoftwareFallback)"
 Write-Host "DiagnosticsSnapshot: $snapshotPath"
 Write-Host "InspectionSnapshot: $inspectionSnapshotPath"
+Write-Host "InspectionBundle: $inspectionBundlePath"

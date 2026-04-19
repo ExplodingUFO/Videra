@@ -1,4 +1,5 @@
 using Videra.Core.Graphics;
+using System.Numerics;
 
 namespace Videra.Core.Selection;
 
@@ -15,5 +16,11 @@ public sealed class SceneHitTestResult
 
     public SceneHit? PrimaryHit => Hits.Count > 0 ? Hits[0] : null;
 
-    public sealed record SceneHit(Guid ObjectId, Object3D Object, float Distance);
+    public sealed record SceneHit(
+        Guid ObjectId,
+        Object3D Object,
+        float Distance,
+        Vector3 WorldPoint,
+        Vector3 WorldNormal,
+        int? PrimitiveIndex);
 }

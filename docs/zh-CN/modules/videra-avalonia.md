@@ -110,11 +110,11 @@ graph TB
 - `SelectionRequested` 只报告选择意图，host 决定如何更新 `SelectionState`
 - `AnnotationRequested` 可返回 object anchors 或 world-point anchors，然后由 host 创建 `VideraNodeAnnotation` 或 `VideraWorldPointAnnotation`
 - `Measure` 通过 `Measurements` 暴露轻量测量结果
-- `ClippingPlanes`、`CaptureInspectionState()`、`ApplyInspectionState(...)` 与 `ExportSnapshotAsync(...)` 组成 viewer-first inspection workflow
+- `ClippingPlanes`、`CaptureInspectionState()`、`ApplyInspectionState(...)`、`ExportSnapshotAsync(...)` 与 `VideraInspectionBundleService` 组成 viewer-first inspection workflow
 - selection 保持 `object-level`
 - overlay responsibilities split between `3D highlight/render state` and `2D label/feedback rendering`
 
-这条合同强调 public flow，而不是内部 seam。也就是说，示例只通过 `View3D.SelectionState`、`View3D.Annotations`、`View3D.InteractionMode`、`Measurements`、`ClippingPlanes`、`CaptureInspectionState()`、`ApplyInspectionState(...)`、`ExportSnapshotAsync(...)`、`SelectionRequested`、`AnnotationRequested` 往返状态，不直接接触内部 overlay 类型。
+这条合同强调 public flow，而不是内部 seam。也就是说，示例只通过 `View3D.SelectionState`、`View3D.Annotations`、`View3D.InteractionMode`、`Measurements`、`ClippingPlanes`、`CaptureInspectionState()`、`ApplyInspectionState(...)`、`ExportSnapshotAsync(...)`、`VideraInspectionBundleService`、`SelectionRequested`、`AnnotationRequested` 往返状态，不直接接触内部 overlay 类型。
 
 ### 使用示例
 

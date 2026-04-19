@@ -15,7 +15,9 @@ Videra is still an early alpha embeddable viewer stack. Good feedback is not jus
    - [Videra.InteractionSample](../samples/Videra.InteractionSample/README.md) for controlled interaction
    - [Videra.Demo](../samples/Videra.Demo/README.md) for backend diagnostics and scene-pipeline visibility
 4. Export a diagnostics snapshot with `VideraDiagnosticsSnapshotFormatter.Format(View3D.BackendDiagnostics)` or attach the `consumer smoke` `diagnostics-snapshot.txt` artifact.
-5. If the issue is visual or inspection-related, attach a snapshot exported through `ExportSnapshotAsync(...)` when possible.
+5. If the issue is visual or inspection-related, attach either:
+   - a snapshot exported through `ExportSnapshotAsync(...)`, or
+   - a replayable inspection bundle exported through `VideraInspectionBundleService.ExportAsync(...)`
 
 ## What to include in a bug report
 
@@ -25,6 +27,7 @@ Videra is still an early alpha embeddable viewer stack. Good feedback is not jus
 - `PreferredBackend` or `VIDERA_BACKEND` value, if you overrode backend preference
 - diagnostics snapshot from `VideraDiagnosticsSnapshotFormatter`
 - exported inspection snapshot, when the issue affects clipping, measurements, labels, or camera state
+- inspection bundle directory when you need camera, clipping, measurements, annotations, and imported assets to replay together
 - Linux display-server context when relevant:
   - `ResolvedDisplayServer`
   - `DisplayServerFallbackUsed`
@@ -34,6 +37,7 @@ Videra is still an early alpha embeddable viewer stack. Good feedback is not jus
   - `ActiveClippingPlaneCount`
   - `MeasurementCount`
   - `LastSnapshotExportStatus`
+  - active `MeasurementSnapMode`
 - Whether the issue reproduces in:
   - your host app
   - `Videra.MinimalSample`

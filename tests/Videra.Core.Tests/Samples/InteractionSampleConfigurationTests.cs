@@ -1,6 +1,7 @@
 using FluentAssertions;
 using Videra.Avalonia.Controls;
 using Videra.Avalonia.Controls.Interaction;
+using Videra.Core.Inspection;
 using Videra.Core.Selection.Annotations;
 using Videra.Core.Tests.Repository;
 using Xunit;
@@ -75,10 +76,13 @@ public sealed class InteractionSampleConfigurationTests
         codeBehind.Should().Contain("VideraInteractionMode.Annotate");
         codeBehind.Should().Contain("VideraInteractionMode.Measure");
         codeBehind.Should().Contain("View3D.Measurements");
+        codeBehind.Should().Contain("View3D.InteractionOptions.MeasurementSnapMode");
         codeBehind.Should().Contain("View3D.ClippingPlanes");
         codeBehind.Should().Contain("CaptureInspectionState()");
         codeBehind.Should().Contain("ApplyInspectionState");
         codeBehind.Should().Contain("ExportSnapshotAsync");
+        codeBehind.Should().Contain("VideraInspectionBundleService.ExportAsync");
+        codeBehind.Should().Contain("VideraInspectionBundleService.ImportAsync");
         codeBehind.Should().Contain("new VideraNodeAnnotation");
         codeBehind.Should().Contain("new VideraWorldPointAnnotation");
 
@@ -104,10 +108,12 @@ public sealed class InteractionSampleConfigurationTests
         typeof(VideraView).GetProperty(nameof(VideraView.SelectionState)).Should().NotBeNull();
         typeof(VideraView).GetProperty(nameof(VideraView.Annotations)).Should().NotBeNull();
         typeof(VideraView).GetProperty(nameof(VideraView.InteractionMode)).Should().NotBeNull();
+        typeof(VideraInteractionOptions).GetProperty(nameof(VideraInteractionOptions.MeasurementSnapMode)).Should().NotBeNull();
         typeof(VideraView).GetEvent(nameof(VideraView.SelectionRequested)).Should().NotBeNull();
         typeof(VideraView).GetEvent(nameof(VideraView.AnnotationRequested)).Should().NotBeNull();
 
         Enum.GetNames<VideraInteractionMode>().Should().Equal("Navigate", "Select", "Annotate", "Measure");
+        Enum.GetNames<VideraMeasurementSnapMode>().Should().Equal("Free", "Vertex", "EdgeMidpoint", "Face", "AxisLocked");
         Enum.GetNames<AnnotationAnchorKind>().Should().Equal("Object", "WorldPoint");
         Enum.GetNames<AnnotationAnchorKind>().Should().NotContain(name => name.Contains("Node", StringComparison.Ordinal));
     }

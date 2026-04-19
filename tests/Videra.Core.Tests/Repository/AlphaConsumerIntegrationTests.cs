@@ -54,6 +54,7 @@ public sealed class AlphaConsumerIntegrationTests
         smokeScript.Should().Contain("ResolvedBackend");
         smokeScript.Should().Contain("ResolvedDisplayServer");
         smokeScript.Should().Contain("diagnostics-snapshot.txt");
+        smokeScript.Should().Contain("inspection-bundle");
     }
 
     [Fact]
@@ -145,6 +146,7 @@ public sealed class AlphaConsumerIntegrationTests
         feedbackDoc.Should().Contain("consumer smoke");
         feedbackDoc.Should().Contain("diagnostics snapshot");
         feedbackDoc.Should().Contain("VideraDiagnosticsSnapshotFormatter");
+        feedbackDoc.Should().Contain("VideraInspectionBundleService");
         feedbackDoc.Should().Contain("ResolvedDisplayServer");
         feedbackDoc.Should().Contain("DisplayServerFallbackUsed");
         feedbackDoc.Should().Contain("DisplayServerFallbackReason");
@@ -175,6 +177,7 @@ public sealed class AlphaConsumerIntegrationTests
         troubleshooting.Should().Contain("consumer smoke");
         troubleshooting.Should().Contain("diagnostics snapshot");
         troubleshooting.Should().Contain("VideraDiagnosticsSnapshotFormatter");
+        troubleshooting.Should().Contain("VideraInspectionBundleService");
 
         var supportMatrix = File.ReadAllText(supportMatrixPath);
         supportMatrix.Should().Contain("alpha-feedback.md");

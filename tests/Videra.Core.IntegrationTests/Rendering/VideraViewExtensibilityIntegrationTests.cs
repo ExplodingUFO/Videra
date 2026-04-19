@@ -7,6 +7,7 @@ using Videra.Avalonia.Rendering;
 using Videra.Core.Graphics;
 using Videra.Core.Graphics.RenderPipeline.Extensibility;
 using Videra.Core.Graphics.Software;
+using Videra.Core.Inspection;
 using Videra.Core.Selection.Annotations;
 using Videra.Core.Selection.Rendering;
 using Xunit;
@@ -106,13 +107,17 @@ public sealed class VideraViewExtensibilityIntegrationTests
             ReadPrimaryObjectId(view).Should().BeNull();
             ReadAnnotations(view).Should().BeEmpty();
             ReadProperty(view, "InteractionMode").ToString().Should().Be("Navigate");
-            ReadProperty(view, "InteractionOptions").Should().NotBeNull();
-
+            var initialInteractionOptions = ReadProperty(view, "InteractionOptions");
+            initialInteractionOptions.Should().NotBeNull();
+            ((VideraInteractionOptions)initialInteractionOptions).MeasurementSnapMode.Should().Be(VideraMeasurementSnapMode.Free);
             var objectId = Guid.NewGuid();
             var selectionState = CreateSelectionState(objectId);
             var nodeAnnotation = CreateNodeAnnotation(objectId);
             var interactionOptions = Activator.CreateInstance(GetInteractionType("VideraInteractionOptions"));
+            interactionOptions.Should().BeAssignableTo<VideraInteractionOptions>();
             var navigateMode = Enum.Parse(GetInteractionType("VideraInteractionMode"), "Navigate");
+            var snapMode = VideraMeasurementSnapMode.Vertex;
+            ((VideraInteractionOptions)interactionOptions!).MeasurementSnapMode = snapMode;
 
             WriteProperty(view, "SelectionState", selectionState);
             WriteProperty(view, "Annotations", CreateAnnotations(nodeAnnotation));
@@ -124,6 +129,7 @@ public sealed class VideraViewExtensibilityIntegrationTests
             ReadAnnotations(view).Should().ContainSingle().Which.Should().BeSameAs(nodeAnnotation);
             ReadProperty(view, "InteractionMode").Should().Be(navigateMode);
             ReadProperty(view, "InteractionOptions").Should().BeSameAs(interactionOptions);
+            ((VideraInteractionOptions)ReadProperty(view, "InteractionOptions")).MeasurementSnapMode.Should().Be(snapMode);
 
             view.Engine.Dispose();
 
@@ -132,6 +138,7 @@ public sealed class VideraViewExtensibilityIntegrationTests
             ReadAnnotations(view).Should().ContainSingle().Which.Should().BeSameAs(nodeAnnotation);
             ReadProperty(view, "InteractionMode").Should().Be(navigateMode);
             ReadProperty(view, "InteractionOptions").Should().BeSameAs(interactionOptions);
+            ((VideraInteractionOptions)ReadProperty(view, "InteractionOptions")).MeasurementSnapMode.Should().Be(snapMode);
         }
         finally
         {

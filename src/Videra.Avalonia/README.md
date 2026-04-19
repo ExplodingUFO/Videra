@@ -161,7 +161,9 @@ Contract notes:
 - `SelectionRequested` reports intent; the view does not mutate host state for you.
 - `AnnotationRequested` supports object anchors and world-point anchors.
 - `Measure` writes lightweight viewer-first probes to `VideraView.Measurements`.
+- `InteractionOptions.MeasurementSnapMode` keeps snap behavior viewer-first with `Free`, `Vertex`, `EdgeMidpoint`, `Face`, and `AxisLocked`.
 - `ClippingPlanes`, `CaptureInspectionState()`, `ApplyInspectionState(...)`, and `ExportSnapshotAsync(...)` stay on the public inspection surface.
+- `VideraInspectionBundleService` exports and restores replayable inspection bundles without widening `VideraView` into a larger project-format surface.
 - Overlay responsibilities are split between `3D highlight/render state` and `2D label/feedback rendering`.
 
 For the end-to-end public flow, see [samples/Videra.InteractionSample](../../samples/Videra.InteractionSample/README.md).

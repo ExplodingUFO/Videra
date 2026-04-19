@@ -16,6 +16,7 @@ public partial class MainWindow : Window
     private readonly string? _outputPath;
     private readonly string? _diagnosticsSnapshotPath;
     private readonly string? _inspectionSnapshotPath;
+    private readonly string? _inspectionBundlePath;
     private readonly string? _tracePath;
     private bool _completed;
     private EventHandler? _backendReadyHandler;
@@ -36,6 +37,9 @@ public partial class MainWindow : Window
         _inspectionSnapshotPath = string.IsNullOrWhiteSpace(_outputPath)
             ? null
             : Path.Combine(Path.GetDirectoryName(_outputPath!)!, "inspection-snapshot.png");
+        _inspectionBundlePath = string.IsNullOrWhiteSpace(_outputPath)
+            ? null
+            : Path.Combine(Path.GetDirectoryName(_outputPath!)!, "inspection-bundle");
         _tracePath = Environment.GetEnvironmentVariable("VIDERA_CONSUMER_SMOKE_TRACE");
         Trace("MainWindow constructed.");
 
@@ -128,12 +132,28 @@ public partial class MainWindow : Window
                 }
             }
 
+            string? bundleFailure = null;
+            if (framed && !string.IsNullOrWhiteSpace(_inspectionBundlePath))
+            {
+                Trace($"VideraInspectionBundleService.ExportAsync starting: {_inspectionBundlePath}");
+                var bundle = await VideraInspectionBundleService.ExportAsync(_view3D, _inspectionBundlePath).ConfigureAwait(true);
+                if (!bundle.Succeeded)
+                {
+                    bundleFailure = bundle.FailureMessage ?? "Inspection bundle export failed.";
+                    Trace($"VideraInspectionBundleService.ExportAsync failed: {bundleFailure}");
+                }
+                else
+                {
+                    Trace($"VideraInspectionBundleService.ExportAsync succeeded: {_inspectionBundlePath}");
+                }
+            }
+
             await CompleteAsync(
-                succeeded: framed && snapshotFailure is null,
+                succeeded: framed && snapshotFailure is null && bundleFailure is null,
                 frameAllReturned: framed,
                 failure: !framed
                     ? "FrameAll() returned false."
-                    : snapshotFailure).ConfigureAwait(true);
+                    : snapshotFailure ?? bundleFailure).ConfigureAwait(true);
         }
         catch (Exception ex)
         {
@@ -192,7 +212,8 @@ public partial class MainWindow : Window
             diagnostics.DisplayServerFallbackReason,
             diagnostics.LastInitializationError,
             _diagnosticsSnapshotPath,
-            _inspectionSnapshotPath);
+            _inspectionSnapshotPath,
+            _inspectionBundlePath);
 
         if (!string.IsNullOrWhiteSpace(_outputPath))
         {
@@ -258,5 +279,6 @@ public partial class MainWindow : Window
         string? DisplayServerFallbackReason,
         string? LastInitializationError,
         string? DiagnosticsSnapshotPath,
-        string? InspectionSnapshotPath);
+        string? InspectionSnapshotPath,
+        string? InspectionBundlePath);
 }

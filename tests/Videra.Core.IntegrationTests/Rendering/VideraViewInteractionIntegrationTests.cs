@@ -8,7 +8,9 @@ using FluentAssertions;
 using Videra.Avalonia.Controls;
 using Videra.Avalonia.Controls.Interaction;
 using Videra.Avalonia.Rendering;
+using Videra.Core.Geometry;
 using Videra.Core.Graphics;
+using Videra.Core.Graphics.Abstractions;
 using Videra.Core.Inspection;
 using Videra.Core.Selection.Annotations;
 using Xunit;
@@ -335,9 +337,9 @@ public sealed class VideraViewInteractionIntegrationTests
         var view = CreateInteractiveView();
         try
         {
-            AddCenteredQuad(view);
+            AddSlantedTriangle(view);
             view.InteractionMode = VideraInteractionMode.Measure;
-            var startPoint = ProjectPoint(view, Vector3.Zero);
+            var startPoint = ProjectPoint(view, new Vector3(0f, 0f, 1.5f));
             var endPoint = new Point(18d, 18d);
             var controller = VideraViewRuntimeTestAccess.ReadRuntimeField<VideraInteractionController>(view, "_interactionController");
 
@@ -359,6 +361,7 @@ public sealed class VideraViewInteractionIntegrationTests
             var measurement = view.Measurements[0];
             measurement.Should().BeOfType<VideraMeasurement>();
             measurement.Start.ObjectId.Should().NotBeNull();
+            measurement.Start.WorldPoint.Z.Should().BeApproximately(1.5f, 0.01f);
             measurement.Distance.Should().BeGreaterThan(0f);
 
             view.BackendDiagnostics.MeasurementCount.Should().Be(1);
@@ -649,6 +652,23 @@ public sealed class VideraViewInteractionIntegrationTests
     private static Object3D AddCenteredQuad(RoutedInteractionTestView view)
     {
         return AddQuad(view, Vector3.Zero);
+    }
+
+    private static void AddSlantedTriangle(RoutedInteractionTestView view)
+    {
+        var sceneObject = new Object3D { Name = "SlantedTriangle" };
+        sceneObject.PrepareDeferredMesh(new MeshData
+        {
+            Vertices =
+            [
+                new VertexPositionNormalColor(new Vector3(-1f, -1f, 0f), Vector3.UnitZ, RgbaFloat.White),
+                new VertexPositionNormalColor(new Vector3(1f, -1f, 2f), Vector3.UnitZ, RgbaFloat.White),
+                new VertexPositionNormalColor(new Vector3(0f, 1f, 2f), Vector3.UnitZ, RgbaFloat.White)
+            ],
+            Indices = [0u, 1u, 2u],
+            Topology = MeshTopology.Triangles
+        });
+        view.AddObject(sceneObject);
     }
 
     private static Object3D AddQuad(RoutedInteractionTestView view, Vector3 position)

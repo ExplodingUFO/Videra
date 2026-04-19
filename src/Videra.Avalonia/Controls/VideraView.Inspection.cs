@@ -20,4 +20,7 @@ public partial class VideraView
     /// <param name="cancellationToken">Cancellation token for export work.</param>
     public Task<VideraSnapshotExportResult> ExportSnapshotAsync(string path, CancellationToken cancellationToken = default) =>
         _runtime.ExportSnapshotAsync(path, cancellationToken);
+
+    internal VideraInspectionBundleAssetManifest CaptureInspectionBundleAssetManifestForRuntime() =>
+        _runtime.CaptureInspectionBundleAssetManifest();
 }

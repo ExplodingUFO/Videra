@@ -1,4 +1,6 @@
 using System.Numerics;
+using System.Runtime.CompilerServices;
+using System.Text;
 using Videra.Core.Geometry;
 using Videra.Core.Graphics;
 using Videra.Core.Graphics.Abstractions;
@@ -7,15 +9,13 @@ namespace Videra.Core.Inspection;
 
 internal sealed class VideraClipPayloadService
 {
+    private static readonly ConditionalWeakTable<MeshPayload, CachedClipPayloads> Cache = new();
+
     public MeshPayload? Clip(MeshPayload sourcePayload, IReadOnlyList<VideraClipPlane> clippingPlanes)
     {
         ArgumentNullException.ThrowIfNull(sourcePayload);
 
-        var activePlanes = clippingPlanes?
-            .Select(static plane => plane)
-            .Where(static plane => plane.IsEnabled)
-            .ToArray() ?? Array.Empty<VideraClipPlane>();
-
+        var activePlanes = NormalizePlanes(clippingPlanes);
         if (activePlanes.Length == 0)
         {
             return sourcePayload;
@@ -24,6 +24,13 @@ internal sealed class VideraClipPayloadService
         if (sourcePayload.Topology != MeshTopology.Triangles)
         {
             return sourcePayload;
+        }
+
+        var signature = CreateSignature(activePlanes);
+        var cachedPayloads = Cache.GetOrCreateValue(sourcePayload);
+        if (cachedPayloads.TryGet(signature, out var cachedPayload))
+        {
+            return cachedPayload;
         }
 
         var outputVertices = new List<VertexPositionNormalColor>();
@@ -64,28 +71,64 @@ internal sealed class VideraClipPayloadService
 
         if (outputVertices.Count == 0 || outputIndices.Count == 0)
         {
+            cachedPayloads.Set(signature, payload: null);
             return null;
         }
 
-        return new MeshPayload(outputVertices.ToArray(), outputIndices.ToArray(), MeshTopology.Triangles);
+        var clippedPayload = new MeshPayload(outputVertices.ToArray(), outputIndices.ToArray(), MeshTopology.Triangles);
+        cachedPayloads.Set(signature, clippedPayload);
+        return clippedPayload;
+    }
+
+    private static NormalizedClipPlane[] NormalizePlanes(IReadOnlyList<VideraClipPlane>? clippingPlanes)
+    {
+        if (clippingPlanes is null || clippingPlanes.Count == 0)
+        {
+            return Array.Empty<NormalizedClipPlane>();
+        }
+
+        var normalized = new List<NormalizedClipPlane>(clippingPlanes.Count);
+        foreach (var plane in clippingPlanes)
+        {
+            if (!plane.IsEnabled || !plane.TryGetNormalized(out var planePoint, out var planeNormal))
+            {
+                continue;
+            }
+
+            normalized.Add(new NormalizedClipPlane(planePoint, planeNormal));
+        }
+
+        return normalized.ToArray();
+    }
+
+    private static string CreateSignature(IReadOnlyList<NormalizedClipPlane> clippingPlanes)
+    {
+        var builder = new StringBuilder(clippingPlanes.Count * 48);
+        foreach (var plane in clippingPlanes)
+        {
+            AppendFloatBits(builder, plane.Point.X);
+            AppendFloatBits(builder, plane.Point.Y);
+            AppendFloatBits(builder, plane.Point.Z);
+            AppendFloatBits(builder, plane.Normal.X);
+            AppendFloatBits(builder, plane.Normal.Y);
+            AppendFloatBits(builder, plane.Normal.Z);
+            builder.Append('|');
+        }
+
+        return builder.ToString();
     }
 
     private static List<VertexPositionNormalColor> ClipPolygonAgainstPlane(
         IReadOnlyList<VertexPositionNormalColor> polygon,
-        VideraClipPlane plane)
+        NormalizedClipPlane plane)
     {
-        if (!plane.TryGetNormalized(out var planePoint, out var planeNormal))
-        {
-            return polygon.ToList();
-        }
-
         var clipped = new List<VertexPositionNormalColor>();
         for (var i = 0; i < polygon.Count; i++)
         {
             var current = polygon[i];
             var previous = polygon[(i + polygon.Count - 1) % polygon.Count];
-            var currentDistance = SignedDistance(current.Position, planePoint, planeNormal);
-            var previousDistance = SignedDistance(previous.Position, planePoint, planeNormal);
+            var currentDistance = SignedDistance(current.Position, plane.Point, plane.Normal);
+            var previousDistance = SignedDistance(previous.Position, plane.Point, plane.Normal);
             var currentInside = currentDistance >= 0f;
             var previousInside = previousDistance >= 0f;
 
@@ -135,4 +178,42 @@ internal sealed class VideraClipPayloadService
     }
 
     private static float Lerp(float start, float end, float amount) => start + ((end - start) * amount);
+
+    private static void AppendFloatBits(StringBuilder builder, float value)
+    {
+        builder.Append(BitConverter.SingleToInt32Bits(value));
+        builder.Append(',');
+    }
+
+    private readonly record struct NormalizedClipPlane(Vector3 Point, Vector3 Normal);
+
+    private sealed class CachedClipPayloads
+    {
+        private readonly Dictionary<string, CachedClipPayload> _entries = new(StringComparer.Ordinal);
+
+        public bool TryGet(string signature, out MeshPayload? payload)
+        {
+            lock (_entries)
+            {
+                if (_entries.TryGetValue(signature, out var cachedPayload))
+                {
+                    payload = cachedPayload.Payload;
+                    return true;
+                }
+            }
+
+            payload = null;
+            return false;
+        }
+
+        public void Set(string signature, MeshPayload? payload)
+        {
+            lock (_entries)
+            {
+                _entries[signature] = new CachedClipPayload(payload);
+            }
+        }
+    }
+
+    private sealed record CachedClipPayload(MeshPayload? Payload);
 }

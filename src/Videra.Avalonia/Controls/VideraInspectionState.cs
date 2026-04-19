@@ -20,6 +20,8 @@ public sealed class VideraInspectionState
 
     public Guid? PrimarySelectedObjectId { get; init; }
 
+    public VideraMeasurementSnapMode MeasurementSnapMode { get; init; } = VideraMeasurementSnapMode.Free;
+
     public IReadOnlyList<VideraClipPlane> ClippingPlanes { get; init; } = Array.Empty<VideraClipPlane>();
 
     public IReadOnlyList<VideraMeasurement> Measurements { get; init; } = Array.Empty<VideraMeasurement>();

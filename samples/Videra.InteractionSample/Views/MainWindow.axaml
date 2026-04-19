@@ -87,10 +87,13 @@
               <Button x:Name="MeasureModeButton"
                       Click="OnMeasureModeClicked"
                       Content="Measure" />
+              <Button x:Name="MeasurementSnapModeButton"
+                      Click="OnMeasurementSnapModeClicked"
+                      Content="Snap: Free" />
             </StackPanel>
             <TextBlock Foreground="#6B4B2D"
                        TextWrapping="Wrap"
-                       Text="Navigate keeps camera motion on the control. Select emits SelectionRequested without mutating host state. Annotate emits AnnotationRequested for either an object hit or a world-point click. Measure creates lightweight viewer-first distance probes directly on the public inspection surface." />
+                       Text="Navigate keeps camera motion on the control. Select emits SelectionRequested without mutating host state. Annotate emits AnnotationRequested for either an object hit or a world-point click. Measure creates lightweight viewer-first distance probes directly on the public inspection surface, and the snap button cycles Free / Vertex / EdgeMidpoint / Face / AxisLocked without introducing editor UI." />
           </StackPanel>
         </Border>
 
@@ -141,10 +144,14 @@
                       Content="Restore View State" />
               <Button Click="OnExportSnapshotClicked"
                       Content="Export Snapshot" />
+              <Button Click="OnExportInspectionBundleClicked"
+                      Content="Export Bundle" />
+              <Button Click="OnImportInspectionBundleClicked"
+                      Content="Import Bundle" />
             </WrapPanel>
             <TextBlock Foreground="#6B4B2D"
                        TextWrapping="Wrap"
-                       Text="The inspection surface stays viewer-first: clipping uses public ClippingPlanes, state persistence uses CaptureInspectionState/ApplyInspectionState, and snapshot export stays on ExportSnapshotAsync." />
+                       Text="The inspection surface stays viewer-first: clipping uses public ClippingPlanes, state persistence uses CaptureInspectionState/ApplyInspectionState, snapshot export stays on ExportSnapshotAsync, and replayable support artifacts flow through VideraInspectionBundleService." />
             <TextBlock x:Name="InspectionStatusText"
                        Foreground="#6B4B2D"
                        TextWrapping="Wrap" />

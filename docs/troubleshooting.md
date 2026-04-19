@@ -91,6 +91,7 @@ Include:
 - Package version or commit SHA
 - Backend preference or `VIDERA_BACKEND` value
 - diagnostics snapshot from `VideraDiagnosticsSnapshotFormatter`
+- inspection bundle from `VideraInspectionBundleService.ExportAsync(...)` when you need support to replay camera, clipping, measurements, and annotations together
 - `ResolvedDisplayServer`, `DisplayServerFallbackUsed`, and `DisplayServerFallbackReason` on Linux when relevant
 - Failing command and full error output
 - Whether the issue reproduces on the matching native host

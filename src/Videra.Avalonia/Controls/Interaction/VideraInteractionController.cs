@@ -150,6 +150,8 @@ internal sealed partial class VideraInteractionController : IDisposable
                          _host.GetInteractionViewportSize(),
                          ToVector2(snapshot.Position),
                          _host.SceneObjects,
+                         _host.InteractionOptions.MeasurementSnapMode,
+                         _pendingMeasurementAnchor,
                          out var measurementAnchor))
             {
                 if (_pendingMeasurementAnchor is VideraMeasurementAnchor startAnchor)

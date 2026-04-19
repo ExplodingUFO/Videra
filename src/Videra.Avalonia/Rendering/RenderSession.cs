@@ -81,6 +81,8 @@ internal sealed partial class RenderSession : IDisposable
 
     internal RenderCapabilitySnapshot RenderCapabilities => _orchestrator.RenderCapabilities;
 
+    internal ISoftwareBackend? SoftwareBackend => _orchestrator.SoftwareBackend;
+
     internal bool HasInteractiveLease => _frameScheduler.HasInteractiveLease;
 
     internal InteractiveFrameLease AcquireInteractiveLease()

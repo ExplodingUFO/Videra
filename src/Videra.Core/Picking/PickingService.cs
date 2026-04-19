@@ -10,6 +10,7 @@ namespace Videra.Core.Picking;
 public sealed class PickingService
 {
     private readonly SceneHitTestService _hitTestService = new();
+    private readonly VideraMeasurementSnapService _measurementSnapService = new();
 
     public SceneHitTestResult HitTest(
         OrbitCamera camera,
@@ -74,6 +75,8 @@ public sealed class PickingService
         Vector2 viewportSize,
         Vector2 screenPoint,
         IReadOnlyList<Object3D> objects,
+        VideraMeasurementSnapMode snapMode,
+        VideraMeasurementAnchor? pendingAnchor,
         out VideraMeasurementAnchor anchor)
     {
         ArgumentNullException.ThrowIfNull(camera);
@@ -88,7 +91,11 @@ public sealed class PickingService
         var hit = HitTest(camera, viewportSize, screenPoint, objects).PrimaryHit;
         if (hit is not null)
         {
-            anchor = VideraMeasurementAnchor.ForObjectPoint(hit.ObjectId, origin + (direction * hit.Distance));
+            anchor = _measurementSnapService.ResolveAnchor(
+                hit,
+                snapMode,
+                pendingAnchor,
+                hit.WorldPoint);
             return true;
         }
 
@@ -107,7 +114,11 @@ public sealed class PickingService
             return false;
         }
 
-        anchor = VideraMeasurementAnchor.ForWorldPoint(origin + direction * distance);
+        anchor = _measurementSnapService.ResolveAnchor(
+            null,
+            snapMode,
+            pendingAnchor,
+            origin + (direction * distance));
         return true;
     }
 }

@@ -4,7 +4,7 @@ This runbook turns the viewer and surface-chart benchmarks into repeatable evide
 
 ## Suites
 
-- `Viewer` -> `benchmarks/Videra.Viewer.Benchmarks/ScenePipelineBenchmarks.cs`
+- `Viewer` -> `benchmarks/Videra.Viewer.Benchmarks/ScenePipelineBenchmarks.cs` and `benchmarks/Videra.Viewer.Benchmarks/InspectionBenchmarks.cs`
 - `SurfaceCharts` -> `benchmarks/Videra.SurfaceCharts.Benchmarks/SurfaceChartsBenchmarks.cs`
 
 ## Workflow entrypoints
@@ -29,7 +29,7 @@ Artifacts are written under `artifacts/benchmarks/<suite>`.
 ## What to watch
 
 - `Mean` and `Allocated` are the primary quick signals.
-- Viewer benchmarks are expected to show scene import, residency apply, upload drain, and backend rehydrate costs.
+- Viewer benchmarks are expected to show scene import, residency apply, upload drain, backend rehydrate costs, and inspection pick/clip/snapshot costs.
 - Surface-chart benchmarks are expected to show LOD selection, resident render-state change sets, cache batch reads, and pyramid-build costs.
 - compare runs over time before reacting to a single noisy data point. This workflow is meant to build trend evidence across alpha iterations, not to reward one-off wins.
 

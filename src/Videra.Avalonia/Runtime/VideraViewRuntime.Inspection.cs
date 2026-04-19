@@ -2,6 +2,7 @@ using System.Diagnostics;
 using Videra.Avalonia.Controls;
 using Videra.Avalonia.Controls.Interaction;
 using Videra.Avalonia.Rendering;
+using Videra.Core.Graphics.Abstractions;
 using Videra.Core.Inspection;
 
 namespace Videra.Avalonia.Runtime;
@@ -22,6 +23,7 @@ internal sealed partial class VideraViewRuntime
             CameraPitch = _engine.Camera.Pitch,
             SelectedObjectIds = _selectionState.ObjectIds.ToArray(),
             PrimarySelectedObjectId = _selectionState.PrimaryObjectId,
+            MeasurementSnapMode = _interactionOptions.MeasurementSnapMode,
             ClippingPlanes = _sceneCoordinator.ClippingPlanes.ToArray(),
             Measurements = CloneMeasurements(_measurements)
         };
@@ -37,6 +39,7 @@ internal sealed partial class VideraViewRuntime
             ObjectIds = state.SelectedObjectIds?.ToArray() ?? Array.Empty<Guid>(),
             PrimaryObjectId = state.PrimarySelectedObjectId
         };
+        _interactionOptions.MeasurementSnapMode = state.MeasurementSnapMode;
         _measurements = CloneMeasurements(state.Measurements);
         _sceneCoordinator.UpdateClippingPlanes(state.ClippingPlanes);
         SynchronizeOverlayState();
@@ -70,6 +73,7 @@ internal sealed partial class VideraViewRuntime
                 _annotations,
                 _measurements,
                 overlayState,
+                ResolveSnapshotReadbackBackend(exportSize),
                 _logger,
                 cancellationToken).ConfigureAwait(true);
             _lastSnapshotExportPath = path;
@@ -123,5 +127,21 @@ internal sealed partial class VideraViewRuntime
         }
 
         return (512u, 512u);
+    }
+
+    private ISoftwareBackend? ResolveSnapshotReadbackBackend((uint Width, uint Height) exportSize)
+    {
+        if (!_renderSession.IsReady || !_renderSession.IsSoftwareBackend)
+        {
+            return null;
+        }
+
+        var snapshot = _renderSession.OrchestrationSnapshot;
+        if (snapshot.Inputs.Width != exportSize.Width || snapshot.Inputs.Height != exportSize.Height)
+        {
+            return null;
+        }
+
+        return _renderSession.SoftwareBackend;
     }
 }

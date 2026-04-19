@@ -21,6 +21,7 @@
 
 - `VideraEngine` 拥有帧计划与管线执行能力。
 - `VideraViewRuntime` 负责 view-local 协调、native-host 生命周期、overlay 同步与 session forwarding。
+- inspection fidelity 相关逻辑继续收敛在 `VideraViewRuntime` 与 Core helper 中；`VideraInspectionBundleService` 负责把 inspection truth 导出成可重放支持工件，而不是继续扩大 `VideraView` 本身。
 - `RenderSessionOrchestrator` 负责跨平台无关的会话编排（会话创建、绑定、驱动渲染时序）。
 - `SceneDocument` 是 viewer scene 的 authoritative contract；imported asset 在 resource factory ready 前保持 backend-neutral。
 - 原生 backend 现在直接满足内部 `IGraphicsDevice` / `IRenderSurface` 分层；`LegacyGraphicsBackendAdapter` 只保留给旧 monolithic backend 的兼容路径。
@@ -115,6 +116,8 @@ Linux 和 macOS 的原生宿主闭环验证需要显式启用：
 pwsh -File ./scripts/verify.ps1 -Configuration Release -IncludeNativeLinux
 pwsh -File ./scripts/verify.ps1 -Configuration Release -IncludeNativeMacOS
 ```
+
+inspection fidelity 还通过 `benchmarks/Videra.Viewer.Benchmarks/InspectionBenchmarks.cs` 把 mesh-accurate picking、clipping fast path 和 snapshot fast path 纳入 trend evidence。
 
 ## 相关文档
 

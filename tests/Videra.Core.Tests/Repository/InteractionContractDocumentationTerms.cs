@@ -24,6 +24,7 @@ internal static class InteractionContractDocumentationTerms
         "CaptureInspectionState",
         "ApplyInspectionState",
         "ExportSnapshotAsync",
+        "VideraInspectionBundleService",
         "object-level"
     };
 

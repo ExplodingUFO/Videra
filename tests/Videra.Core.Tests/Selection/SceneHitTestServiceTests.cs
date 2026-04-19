@@ -1,6 +1,5 @@
 using System.Numerics;
 using FluentAssertions;
-using Moq;
 using Videra.Core.Cameras;
 using Videra.Core.Geometry;
 using Videra.Core.Graphics;
@@ -48,6 +47,51 @@ public class SceneHitTestServiceTests
         result.Hits.Should().NotBeNull().And.BeEmpty();
     }
 
+    [Fact]
+    public void HitTest_WhenTriangleMeshIsHit_ExposesMeshAccurateWorldHitMetadata()
+    {
+        var sceneObject = CreateDeferredObject(CreateSlantedTriangleMesh());
+        var camera = CreateCamera();
+        var request = new SceneHitTestRequest(
+            camera,
+            new Vector2(800f, 600f),
+            new Vector2(400f, 300f),
+            [sceneObject]);
+
+        var result = new SceneHitTestService().HitTest(request);
+
+        result.PrimaryHit.Should().NotBeNull();
+        var hit = result.PrimaryHit!;
+        hit.ObjectId.Should().Be(sceneObject.Id);
+        hit.PrimitiveIndex.Should().Be(0);
+        hit.Distance.Should().BeApproximately(8.5f, 0.01f);
+        hit.WorldPoint.X.Should().BeApproximately(0f, 0.01f);
+        hit.WorldPoint.Y.Should().BeApproximately(0f, 0.01f);
+        hit.WorldPoint.Z.Should().BeApproximately(1.5f, 0.01f);
+        hit.WorldNormal.X.Should().BeApproximately(-0.6667f, 0.01f);
+        hit.WorldNormal.Y.Should().BeApproximately(-0.3333f, 0.01f);
+        hit.WorldNormal.Z.Should().BeApproximately(0.6667f, 0.01f);
+    }
+
+    [Fact]
+    public void HitTest_WhenTriangleMeshHasOutOfRangeIndices_FallsBackToBoundsHit()
+    {
+        var sceneObject = CreateDeferredObject(CreateMalformedTriangleMesh());
+        var camera = CreateCamera();
+        var request = new SceneHitTestRequest(
+            camera,
+            new Vector2(800f, 600f),
+            new Vector2(400f, 300f),
+            [sceneObject]);
+
+        var act = () => new SceneHitTestService().HitTest(request);
+
+        var result = act.Should().NotThrow().Subject;
+        result.PrimaryHit.Should().NotBeNull();
+        result.PrimaryHit!.ObjectId.Should().Be(sceneObject.Id);
+        result.PrimaryHit.PrimitiveIndex.Should().BeNull();
+    }
+
     private static OrbitCamera CreateCamera()
     {
         var camera = new OrbitCamera();
@@ -59,8 +103,14 @@ public class SceneHitTestServiceTests
     private static Object3D CreateBoundsObject(Vector3 min, Vector3 max)
     {
         var obj = new Object3D();
-        var mockFactory = CreateMockFactory();
-        obj.Initialize(mockFactory.Object, CreateBoundsMesh(min, max));
+        obj.PrepareDeferredMesh(CreateBoundsMesh(min, max));
+        return obj;
+    }
+
+    private static Object3D CreateDeferredObject(MeshData mesh)
+    {
+        var obj = new Object3D();
+        obj.PrepareDeferredMesh(mesh);
         return obj;
     }
 
@@ -84,16 +134,33 @@ public class SceneHitTestServiceTests
         };
     }
 
-    private static Mock<IResourceFactory> CreateMockFactory()
+    private static MeshData CreateSlantedTriangleMesh()
     {
-        var mockFactory = new Mock<IResourceFactory>();
-        var mockBuffer = new Mock<IBuffer>();
-        mockBuffer.SetupGet(b => b.SizeInBytes).Returns(1024u);
+        return new MeshData
+        {
+            Vertices =
+            [
+                new VertexPositionNormalColor(new Vector3(-1f, -1f, 0f), Vector3.UnitZ, RgbaFloat.White),
+                new VertexPositionNormalColor(new Vector3(1f, -1f, 2f), Vector3.UnitZ, RgbaFloat.White),
+                new VertexPositionNormalColor(new Vector3(0f, 1f, 2f), Vector3.UnitZ, RgbaFloat.White)
+            ],
+            Indices = [0u, 1u, 2u],
+            Topology = MeshTopology.Triangles
+        };
+    }
 
-        mockFactory.Setup(f => f.CreateVertexBuffer(It.IsAny<uint>())).Returns(mockBuffer.Object);
-        mockFactory.Setup(f => f.CreateIndexBuffer(It.IsAny<uint>())).Returns(mockBuffer.Object);
-        mockFactory.Setup(f => f.CreateUniformBuffer(It.IsAny<uint>())).Returns(mockBuffer.Object);
-
-        return mockFactory;
+    private static MeshData CreateMalformedTriangleMesh()
+    {
+        return new MeshData
+        {
+            Vertices =
+            [
+                new VertexPositionNormalColor(new Vector3(-1f, -1f, 0f), Vector3.UnitZ, RgbaFloat.White),
+                new VertexPositionNormalColor(new Vector3(1f, -1f, 0f), Vector3.UnitZ, RgbaFloat.White),
+                new VertexPositionNormalColor(new Vector3(0f, 1f, 0f), Vector3.UnitZ, RgbaFloat.White)
+            ],
+            Indices = [0u, 1u, 99u],
+            Topology = MeshTopology.Triangles
+        };
     }
 }

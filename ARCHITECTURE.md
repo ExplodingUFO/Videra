@@ -192,6 +192,7 @@ Boundary summary:
 
 - `VideraEngine` owns frame-plan and pipeline execution semantics.
 - `VideraViewRuntime` owns view-local coordination, native-host lifecycle, overlay sync, and session forwarding.
+- Inspection fidelity stays split across `VideraViewRuntime`, Core helpers, and a narrow `VideraInspectionBundleService` support surface instead of turning `VideraView` into a broader project-format API.
 - `SceneDocument` is the authoritative viewer-scene contract; imported assets remain backend-neutral until a ready resource factory uploads them.
 - `SceneDocumentStore` owns the current desired scene truth, while `SceneDeltaPlanner` and `SceneEngineApplicator` turn document changes into engine add/remove work.
 - `SceneResidencyRegistry` and `SceneUploadQueue` own upload state and frame-budgeted GPU realization; scene mutations do not synchronously allocate GPU resources on the public API path.
@@ -220,6 +221,7 @@ If the native backend is unavailable, or if `software` is selected explicitly, r
 
 - Model import: `.gltf`, `.glb`, `.obj`
 - Orbit camera and basic scene interaction
+- Viewer-first inspection workflows: mesh-accurate picking, measurement snap modes, snapshot export, and replayable inspection bundles
 - Render-style presets
 - Wireframe and overlay modes
 - Grid and axis helpers
