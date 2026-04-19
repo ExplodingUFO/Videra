@@ -29,5 +29,5 @@ This matrix describes the current support boundary for the public viewer package
 - The built-in backend minimum contract is buffer creation, current-viewer pipeline creation, direct buffer binding, draw calls, viewport/scissor, clear, and standard frame depth behavior with best-effort depth-state toggles.
 - `CreateShader(...)`, `CreateResourceSet(...)`, and `SetResourceSet(...)` are not a cross-backend portability promise for the shipped native backends.
 - Linux Wayland remains an `XWayland compatibility` story, not compositor-native embedding.
-- This matrix does not imply an `OpenGL` backend promise.
+- This matrix does not imply an `OpenGL` product promise.
 - Use [Alpha Feedback](alpha-feedback.md) when reporting integration issues so the report carries package path, diagnostics, and display-server truth.

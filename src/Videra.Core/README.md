@@ -64,7 +64,7 @@ Non-portable advanced seams:
 - `CreateResourceSet(...)`
 - `SetResourceSet(...)`
 
-Those advanced seams remain on the abstractions for compatibility and test doubles, but the shipped native backends manage shader compilation and resource binding internally and may throw `UnsupportedOperationException` there. This minimum-contract documentation does not imply an `OpenGL` backend promise.
+Those advanced seams remain on the abstractions for compatibility and test doubles, but the shipped native backends manage shader compilation and resource binding internally and may throw `UnsupportedOperationException` there. This minimum-contract documentation does not imply an `OpenGL` product promise.
 
 ## Public Extensibility Contract
 

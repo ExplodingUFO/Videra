@@ -228,7 +228,7 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
     public void RecoveredSurfaceChartSummaries_ShouldDeclareRequirementsCompletedMetadata()
     {
         var repositoryRoot = GetRepositoryRoot();
-        if (!HasLocalPlanningArtifacts(repositoryRoot))
+        if (!HasRecoveredSurfaceChartSummaryArtifacts(repositoryRoot))
         {
             return;
         }
@@ -249,7 +249,7 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
     public void SurfaceChartPlanningArtifacts_ShouldStayAlignedWithRecoveredMilestoneTruth()
     {
         var repositoryRoot = GetRepositoryRoot();
-        if (!HasLocalPlanningArtifacts(repositoryRoot))
+        if (!HasRecoveredSurfaceChartVerificationArtifacts(repositoryRoot))
         {
             return;
         }
@@ -282,9 +282,22 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
         throw new DirectoryNotFoundException("Could not locate repository root containing Videra.slnx.");
     }
 
-    private static bool HasLocalPlanningArtifacts(string repositoryRoot)
+    private static bool HasRecoveredSurfaceChartSummaryArtifacts(string repositoryRoot)
     {
-        return Directory.Exists(Path.Combine(repositoryRoot, ".planning"));
+        return SurfaceChartsDocumentationTerms.RecoveredSummaryRequirementMetadata
+            .Select(metadata => Path.Combine(repositoryRoot, metadata.Path))
+            .All(File.Exists);
+    }
+
+    private static bool HasRecoveredSurfaceChartVerificationArtifacts(string repositoryRoot)
+    {
+        return new[]
+        {
+            Path.Combine(repositoryRoot, ".planning", "phases", "13-surfacechart-runtime-and-view-state-contract", "13-VERIFICATION.md"),
+            Path.Combine(repositoryRoot, ".planning", "phases", "14-built-in-interaction-and-camera-workflow", "14-VERIFICATION.md"),
+            Path.Combine(repositoryRoot, ".planning", "phases", "18-demo-docs-and-repository-truth-for-professional-charts", "18-VERIFICATION.md"),
+            Path.Combine(repositoryRoot, ".planning", "phases", "19-surfacechart-runtime-and-view-state-recovery", "19-VERIFICATION.md")
+        }.All(File.Exists);
     }
 
     private static void AssertDirectoryDoesNotContainNativeInteropTokens(string directoryPath)

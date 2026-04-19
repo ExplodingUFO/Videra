@@ -202,7 +202,7 @@ public sealed class RepositoryArchitectureTests
     }
 
     [Fact]
-    public void BackendDocs_ShouldDescribeBuiltInMinimumContract_WithoutOpenGlPromise()
+    public void BackendDocs_ShouldDescribeBuiltInMinimumContract_AndExplicitlyDenyOpenGlProductPromise()
     {
         var repositoryRoot = GetRepositoryRoot();
         var architecture = File.ReadAllText(Path.Combine(repositoryRoot, "ARCHITECTURE.md"));
@@ -213,19 +213,24 @@ public sealed class RepositoryArchitectureTests
         architecture.Should().Contain("CreateShader(...)");
         architecture.Should().Contain("CreateResourceSet(...)");
         architecture.Should().Contain("SetResourceSet(...)");
-        architecture.Should().Contain("OpenGL");
+        architecture.Should().Contain("current native support remains Windows=`D3D11`, Linux=`Vulkan`, and macOS=`Metal`");
+        ShouldExplicitlyDenyOpenGlProductPromise(architecture);
 
         coreReadme.Should().Contain("Built-in Backend Minimum Contract");
         coreReadme.Should().Contain("CreateShader(...)");
         coreReadme.Should().Contain("CreateResourceSet(...)");
         coreReadme.Should().Contain("SetResourceSet(...)");
-        coreReadme.Should().Contain("OpenGL");
+        coreReadme.Should().Contain("The shipped native backends (`D3D11`, `Vulkan`, and `Metal`)");
+        ShouldExplicitlyDenyOpenGlProductPromise(coreReadme);
 
         supportMatrix.Should().Contain("built-in backend minimum contract");
         supportMatrix.Should().Contain("CreateShader(...)");
         supportMatrix.Should().Contain("CreateResourceSet(...)");
         supportMatrix.Should().Contain("SetResourceSet(...)");
-        supportMatrix.Should().Contain("OpenGL");
+        supportMatrix.Should().Contain("Direct3D 11");
+        supportMatrix.Should().Contain("Vulkan");
+        supportMatrix.Should().Contain("Metal");
+        ShouldExplicitlyDenyOpenGlProductPromise(supportMatrix);
     }
 
     [Fact]
@@ -413,5 +418,10 @@ public sealed class RepositoryArchitectureTests
         var file = Directory.EnumerateFiles(repositoryRoot, fileName, SearchOption.AllDirectories).FirstOrDefault();
         file.Should().NotBeNullOrWhiteSpace($"expected {fileName} to exist in repository tree");
         return file!;
+    }
+
+    private static void ShouldExplicitlyDenyOpenGlProductPromise(string document)
+    {
+        document.Should().Contain("does not imply an `OpenGL` product promise");
     }
 }

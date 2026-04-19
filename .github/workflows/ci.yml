@@ -112,3 +112,9 @@ jobs:
         run: >
           dotnet build tests/Videra.Core.IntegrationTests/Videra.Core.IntegrationTests.csproj -c Release
           -p:TreatWarningsAsErrors=true
+
+      - name: Build SurfaceCharts demo evidence with warnings as errors
+        shell: pwsh
+        run: >
+          dotnet build samples/Videra.SurfaceCharts.Demo/Videra.SurfaceCharts.Demo.csproj -c Release
+          -p:TreatWarningsAsErrors=true
