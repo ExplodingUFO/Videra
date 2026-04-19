@@ -41,6 +41,7 @@ public static class VideraDiagnosticsSnapshotFormatter
         builder.AppendLine($"ResolvedDisplayServer: {FormatNullable(diagnostics.ResolvedDisplayServer)}");
         builder.AppendLine($"DisplayServerFallbackUsed: {diagnostics.DisplayServerFallbackUsed}");
         builder.AppendLine($"DisplayServerFallbackReason: {FormatNullable(diagnostics.DisplayServerFallbackReason)}");
+        builder.AppendLine($"DisplayServerCompatibility: {DescribeDisplayServerCompatibility(diagnostics)}");
         builder.AppendLine($"LastInitializationError: {FormatNullable(diagnostics.LastInitializationError)}");
         builder.AppendLine($"SceneDocumentVersion: {diagnostics.SceneDocumentVersion}");
         builder.AppendLine($"PendingSceneUploads: {diagnostics.PendingSceneUploads}");
@@ -60,6 +61,23 @@ public static class VideraDiagnosticsSnapshotFormatter
         builder.AppendLine($"LastSnapshotExportPath: {FormatNullable(diagnostics.LastSnapshotExportPath)}");
         builder.AppendLine($"LastSnapshotExportStatus: {FormatNullable(diagnostics.LastSnapshotExportStatus)}");
         return builder.ToString();
+    }
+
+    /// <summary>
+    /// Summarizes the current Linux display-server support boundary in one stable line suitable
+    /// for diagnostics snapshots, support artifacts, and consumer smoke evidence.
+    /// </summary>
+    public static string DescribeDisplayServerCompatibility(VideraBackendDiagnostics diagnostics)
+    {
+        ArgumentNullException.ThrowIfNull(diagnostics);
+
+        return diagnostics.ResolvedDisplayServer switch
+        {
+            "X11" => "Direct X11 native host path.",
+            "XWayland" => "Wayland session using XWayland compatibility fallback; compositor-native Wayland embedding is not active.",
+            "Wayland" => "Compositor-native Wayland host path.",
+            _ => "Unavailable"
+        };
     }
 
     private static string FormatNullable(string? value) =>

@@ -8,7 +8,6 @@ internal sealed class RuntimeFramePrelude
 {
     private readonly SceneUploadQueue _uploadQueue;
     private readonly SceneResidencyRegistry _residencyRegistry;
-    private readonly SceneEngineApplicator _engineApplicator;
     private readonly VideraEngine _engine;
     private readonly Func<IResourceFactory?> _resourceFactoryAccessor;
     private readonly Func<bool> _isInteractiveAccessor;
@@ -19,7 +18,6 @@ internal sealed class RuntimeFramePrelude
     public RuntimeFramePrelude(
         SceneUploadQueue uploadQueue,
         SceneResidencyRegistry residencyRegistry,
-        SceneEngineApplicator engineApplicator,
         VideraEngine engine,
         Func<IResourceFactory?> resourceFactoryAccessor,
         Func<bool> isInteractiveAccessor,
@@ -29,7 +27,6 @@ internal sealed class RuntimeFramePrelude
     {
         _uploadQueue = uploadQueue ?? throw new ArgumentNullException(nameof(uploadQueue));
         _residencyRegistry = residencyRegistry ?? throw new ArgumentNullException(nameof(residencyRegistry));
-        _engineApplicator = engineApplicator ?? throw new ArgumentNullException(nameof(engineApplicator));
         _engine = engine ?? throw new ArgumentNullException(nameof(engine));
         _resourceFactoryAccessor = resourceFactoryAccessor ?? throw new ArgumentNullException(nameof(resourceFactoryAccessor));
         _isInteractiveAccessor = isInteractiveAccessor ?? throw new ArgumentNullException(nameof(isInteractiveAccessor));
@@ -55,7 +52,7 @@ internal sealed class RuntimeFramePrelude
 
         if (result.UploadedRecords.Count > 0)
         {
-            _engineApplicator.ApplyReadyAdds(_engine, result.UploadedRecords, _residencyRegistry);
+            SceneEngineApplicator.ApplyReadyAdds(_engine, result.UploadedRecords, _residencyRegistry);
         }
 
         _afterSceneApplied();

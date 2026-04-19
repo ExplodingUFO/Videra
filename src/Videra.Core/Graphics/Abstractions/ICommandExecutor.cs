@@ -3,7 +3,11 @@ using System.Numerics;
 namespace Videra.Core.Graphics.Abstractions;
 
 /// <summary>
-/// 命令执行器接口（封装 CommandList/CommandBuffer）
+/// 命令执行器接口（封装 CommandList/CommandBuffer）。
+/// Built-in D3D11/Vulkan/Metal backends share the portable path around direct buffer binding,
+/// draw submission, viewport/scissor, clear, and best-effort depth-state toggles. Advanced
+/// resource-set binding is not a common portability promise and may throw
+/// <see cref="Videra.Core.Exceptions.UnsupportedOperationException"/>.
 /// </summary>
 public interface ICommandExecutor
 {
@@ -23,7 +27,9 @@ public interface ICommandExecutor
     void SetIndexBuffer(IBuffer buffer);
     
     /// <summary>
-    /// 绑定 Resource Set
+    /// 绑定 Resource Set。
+    /// Shipped native backends do not expose this as a common portable capability and may throw
+    /// <see cref="Videra.Core.Exceptions.UnsupportedOperationException"/>.
     /// </summary>
     void SetResourceSet(uint slot, IResourceSet resourceSet);
     
@@ -58,12 +64,15 @@ public interface ICommandExecutor
     void Clear(float r, float g, float b, float a);
 
     /// <summary>
-    /// 设置深度状态
+    /// 设置深度状态。
+    /// Backends that cannot mutate depth state dynamically may treat this as a best-effort hint
+    /// and rely on their default pipeline/frame depth configuration.
     /// </summary>
     void SetDepthState(bool testEnabled, bool writeEnabled);
 
     /// <summary>
-    /// 重置深度状态为默认
+    /// 重置深度状态为默认。
+    /// The portable expectation is to return to the backend's standard frame depth behavior.
     /// </summary>
     void ResetDepthState();
 }

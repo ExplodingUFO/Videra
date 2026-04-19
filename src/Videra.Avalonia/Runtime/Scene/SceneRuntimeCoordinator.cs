@@ -17,10 +17,8 @@ internal sealed class SceneRuntimeCoordinator
 
     private readonly SceneDocumentMutator _sceneDocumentMutator = new();
     private readonly SceneDocumentStore _sceneDocumentStore;
-    private readonly SceneDeltaPlanner _sceneDeltaPlanner = new();
     private readonly SceneResidencyRegistry _sceneResidencyRegistry = new();
     private readonly SceneUploadQueue _sceneUploadQueue = new();
-    private readonly SceneEngineApplicator _sceneEngineApplicator = new();
     private readonly SceneItemsAdapter _sceneItemsAdapter;
     private readonly SceneImportService _sceneImportService;
     private IReadOnlyList<VideraClipPlane> _clippingPlanes = Array.Empty<VideraClipPlane>();
@@ -110,7 +108,7 @@ internal sealed class SceneRuntimeCoordinator
     {
         ResourceEpoch++;
         _sceneUploadQueue.Enqueue(_sceneResidencyRegistry.MarkDirtyForResourceEpoch(ResourceEpoch));
-        _sceneEngineApplicator.ApplyReadyAdds(_engine, _sceneResidencyRegistry.GetReadyAdds(CurrentDocument.Entries), _sceneResidencyRegistry);
+        SceneEngineApplicator.ApplyReadyAdds(_engine, _sceneResidencyRegistry.GetReadyAdds(CurrentDocument.Entries), _sceneResidencyRegistry);
         _refreshSceneDiagnostics();
         _refreshBackendDiagnostics();
         _invalidateRender(RenderInvalidationKinds.Scene);
@@ -147,10 +145,10 @@ internal sealed class SceneRuntimeCoordinator
         ApplyClippingToEntries(current.Entries);
         CurrentDocument = current;
 
-        var delta = _sceneDeltaPlanner.Diff(previous, current);
+        var delta = SceneDeltaPlanner.Diff(previous, current);
         _sceneResidencyRegistry.Apply(delta, ResourceEpoch);
-        _sceneEngineApplicator.ApplyRemovals(_engine, delta.Removed, _sceneResidencyRegistry);
-        _sceneEngineApplicator.ApplyReadyAdds(_engine, _sceneResidencyRegistry.GetReadyAdds(delta.Added), _sceneResidencyRegistry);
+        SceneEngineApplicator.ApplyRemovals(_engine, delta.Removed, _sceneResidencyRegistry);
+        SceneEngineApplicator.ApplyReadyAdds(_engine, _sceneResidencyRegistry.GetReadyAdds(delta.Added), _sceneResidencyRegistry);
         _sceneUploadQueue.Enqueue(_sceneResidencyRegistry.GetPendingCandidates());
 
         if (delta.RequiresOverlayRefresh)

@@ -287,7 +287,8 @@ public sealed class RepositoryReleaseReadinessTests
         releasing.Should().Contain("Benchmark Gates");
         releasing.Should().Contain("Invoke-ConsumerSmoke.ps1");
         benchmarkGates.Should().Contain("compare runs over time");
-        benchmarkGates.Should().Contain("not yet a hard numeric blocker");
+        benchmarkGates.Should().Contain("label-gated review switch");
+        benchmarkGates.Should().Contain("not a hard numeric blocker with automatic threshold enforcement");
     }
 
     [Fact]

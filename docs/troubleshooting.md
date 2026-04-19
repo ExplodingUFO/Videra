@@ -63,6 +63,9 @@ pwsh -File ./scripts/verify.ps1 -Configuration Release
 
 - The official Linux render path is still Vulkan with X11 handles
 - In Wayland sessions, `Auto` currently resolves to an `XWayland` compatibility path when that bridge is available
+- `ResolvedDisplayServer = X11` means the direct supported native-host path is active
+- `ResolvedDisplayServer = XWayland` means the session is running through the documented X11 compatibility bridge, not compositor-native Wayland embedding
+- `DisplayServerCompatibility` in the diagnostics snapshot summarizes that boundary in one line for bug reports and support artifacts
 - Missing `libX11.so.6` can still be diagnosed with the repository fallback loader, but a usable X11 or `XWayland` runtime is still required
 
 ### macOS
@@ -92,7 +95,7 @@ Include:
 - Backend preference or `VIDERA_BACKEND` value
 - diagnostics snapshot from `VideraDiagnosticsSnapshotFormatter`
 - inspection bundle from `VideraInspectionBundleService.ExportAsync(...)` when you need support to replay camera, clipping, measurements, and annotations together
-- `ResolvedDisplayServer`, `DisplayServerFallbackUsed`, and `DisplayServerFallbackReason` on Linux when relevant
+- `ResolvedDisplayServer`, `DisplayServerFallbackUsed`, `DisplayServerFallbackReason`, and `DisplayServerCompatibility` on Linux when relevant
 - Failing command and full error output
 - Whether the issue reproduces on the matching native host
 - Whether the issue reproduces in `Videra.MinimalSample` or `consumer smoke`

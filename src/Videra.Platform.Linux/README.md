@@ -38,6 +38,12 @@ dotnet add package Videra.Platform.Linux --version 0.1.0-alpha.7 --source github
 
 This package supplies the Vulkan backend for the current Linux native path. On Avalonia 11, native embedding remains X11-based; Wayland sessions use `XWayland` when available. `VIDERA_BACKEND` can prefer Vulkan, but it does not install missing platform packages.
 
+Support-boundary diagnostics:
+
+- `ResolvedDisplayServer = X11` means the direct supported X11 host path is active.
+- `ResolvedDisplayServer = XWayland` means a Wayland session is using the documented X11 compatibility bridge.
+- `XWayland` does not mean compositor-native Wayland embedding is active.
+
 ## Validation
 
 Linux matching-host validation is explicit and should be run on a real Linux host:

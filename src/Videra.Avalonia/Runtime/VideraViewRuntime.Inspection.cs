@@ -9,7 +9,6 @@ namespace Videra.Avalonia.Runtime;
 
 internal sealed partial class VideraViewRuntime
 {
-    private readonly VideraSnapshotExportService _snapshotExportService = new();
     private string? _lastSnapshotExportPath;
     private string? _lastSnapshotExportStatus;
 
@@ -63,7 +62,7 @@ internal sealed partial class VideraViewRuntime
                 _annotations,
                 _measurements,
                 new System.Numerics.Vector2(exportSize.Width, exportSize.Height));
-            await _snapshotExportService.ExportAsync(
+            await VideraSnapshotExportService.ExportAsync(
                 path,
                 exportSize.Width,
                 exportSize.Height,

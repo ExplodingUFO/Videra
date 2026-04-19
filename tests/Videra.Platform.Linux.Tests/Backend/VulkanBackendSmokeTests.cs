@@ -1,7 +1,9 @@
 using FluentAssertions;
 using System.Runtime.InteropServices;
 using Tests.Common.Platform;
+using Videra.Core.Exceptions;
 using Videra.Core.Graphics;
+using Videra.Core.Graphics.Abstractions;
 using Videra.Platform.Linux;
 using Xunit;
 
@@ -49,5 +51,25 @@ public sealed class VulkanBackendSmokeTests
         }
 
         RuntimeInformation.IsOSPlatform(OSPlatform.Linux).Should().BeTrue("a real X11-backed smoke path still needs a reusable test host fixture");
+    }
+
+    [LinuxNativeFact]
+    public void VulkanResourceFactory_CreateShader_ThrowsUnsupportedOperationException()
+    {
+        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+        {
+            return;
+        }
+
+        using var window = NativeHostTestHelpers.CreateHiddenX11Window();
+        using var backend = new VulkanBackend();
+        backend.Initialize(window.WindowHandle, 64, 64);
+
+        var factory = backend.GetResourceFactory();
+
+        var act = () => factory.CreateShader(ShaderStage.Vertex, Array.Empty<byte>(), "main");
+
+        act.Should().Throw<UnsupportedOperationException>()
+            .Which.Operation.Should().Be("CreateShader");
     }
 }

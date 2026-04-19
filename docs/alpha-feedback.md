@@ -32,6 +32,7 @@ Videra is still an early alpha embeddable viewer stack. Good feedback is not jus
   - `ResolvedDisplayServer`
   - `DisplayServerFallbackUsed`
   - `DisplayServerFallbackReason`
+  - `DisplayServerCompatibility`
 - inspection workflow context when relevant:
   - `IsClippingActive`
   - `ActiveClippingPlaneCount`
@@ -48,6 +49,8 @@ Videra is still an early alpha embeddable viewer stack. Good feedback is not jus
 
 - `Videra.Avalonia` + one matching platform package is the default public install path.
 - Linux native hosting is still `X11` plus `XWayland` compatibility, not compositor-native Wayland embedding.
+- `ResolvedDisplayServer = X11` means the direct supported X11 host path.
+- `ResolvedDisplayServer = XWayland` means a Wayland session is using the documented X11 compatibility bridge, not compositor-native Wayland embedding.
 - `Videra.SurfaceCharts.*` remains source-first and is not part of the public package promise.
 
 ## Where to send feedback

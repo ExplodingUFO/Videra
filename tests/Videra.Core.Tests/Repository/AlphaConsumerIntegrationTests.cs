@@ -25,6 +25,9 @@ public sealed class AlphaConsumerIntegrationTests
         smokeProject.Should().NotContain("<ProjectReference");
 
         var smokeWorkflow = File.ReadAllText(smokeWorkflowPath);
+        smokeWorkflow.Should().Contain("pull_request:");
+        smokeWorkflow.Should().Contain("push:");
+        smokeWorkflow.Should().Contain("github.event_name != 'workflow_dispatch'");
         smokeWorkflow.Should().Contain("workflow_dispatch:");
         smokeWorkflow.Should().Contain("windows");
         smokeWorkflow.Should().Contain("linux-x11");
@@ -53,6 +56,7 @@ public sealed class AlphaConsumerIntegrationTests
         smokeScript.Should().Contain("FrameAllReturned");
         smokeScript.Should().Contain("ResolvedBackend");
         smokeScript.Should().Contain("ResolvedDisplayServer");
+        smokeScript.Should().Contain("DisplayServerCompatibility");
         smokeScript.Should().Contain("diagnostics-snapshot.txt");
         smokeScript.Should().Contain("inspection-bundle");
     }
@@ -150,7 +154,9 @@ public sealed class AlphaConsumerIntegrationTests
         feedbackDoc.Should().Contain("ResolvedDisplayServer");
         feedbackDoc.Should().Contain("DisplayServerFallbackUsed");
         feedbackDoc.Should().Contain("DisplayServerFallbackReason");
+        feedbackDoc.Should().Contain("DisplayServerCompatibility");
         feedbackDoc.Should().Contain("XWayland");
+        feedbackDoc.Should().Contain("compositor-native Wayland");
         feedbackDoc.Should().Contain("Videra.SurfaceCharts.*");
 
         var bugForm = File.ReadAllText(bugFormPath);
@@ -178,12 +184,44 @@ public sealed class AlphaConsumerIntegrationTests
         troubleshooting.Should().Contain("diagnostics snapshot");
         troubleshooting.Should().Contain("VideraDiagnosticsSnapshotFormatter");
         troubleshooting.Should().Contain("VideraInspectionBundleService");
+        troubleshooting.Should().Contain("DisplayServerCompatibility");
 
         var supportMatrix = File.ReadAllText(supportMatrixPath);
         supportMatrix.Should().Contain("alpha-feedback.md");
 
         var avaloniaReadme = File.ReadAllText(avaloniaReadmePath);
         avaloniaReadme.Should().Contain("VideraDiagnosticsSnapshotFormatter");
+    }
+
+    [Fact]
+    public void SampleContracts_ShouldHaveExplicitPullRequestEvidence()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var ciWorkflow = File.ReadAllText(Path.Combine(repositoryRoot, ".github", "workflows", "ci.yml"));
+        var releasing = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "releasing.md"));
+        var readme = File.ReadAllText(Path.Combine(repositoryRoot, "README.md"));
+
+        ciWorkflow.Should().Contain("sample-contract-evidence:");
+        ciWorkflow.Should().Contain("Run sample configuration evidence");
+        ciWorkflow.Should().Contain("Run sample runtime evidence");
+        ciWorkflow.Should().Contain("ExtensibilitySampleConfigurationTests");
+        ciWorkflow.Should().Contain("InteractionSampleConfigurationTests");
+        ciWorkflow.Should().Contain("VideraViewExtensibilityIntegrationTests");
+        ciWorkflow.Should().Contain("VideraViewInteractionIntegrationTests");
+        ciWorkflow.Should().Contain("VideraViewInspectionIntegrationTests");
+        ciWorkflow.Should().Contain("VideraInspectionBundleIntegrationTests");
+
+        releasing.Should().Contain("sample-contract-evidence");
+        releasing.Should().Contain("Videra.ExtensibilitySample");
+        releasing.Should().Contain("Videra.InteractionSample");
+        readme.Should().Contain("sample-contract evidence");
+        ciWorkflow.Should().Contain("quality-gate-evidence:");
+        ciWorkflow.Should().Contain("Build packaged consumer smoke with warnings as errors");
+        ciWorkflow.Should().Contain("Invoke-ConsumerSmoke.ps1 -Configuration Release");
+        ciWorkflow.Should().Contain("-BuildOnly");
+        ciWorkflow.Should().Contain("-TreatWarningsAsErrors");
+        releasing.Should().Contain("packaged consumer path");
+        readme.Should().Contain("packaged consumer path");
     }
 
     private static string GetRepositoryRoot()

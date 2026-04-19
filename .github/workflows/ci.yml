@@ -60,3 +60,61 @@ jobs:
       - name: Pack Windows platform package
         shell: pwsh
         run: dotnet pack src/Videra.Platform.Windows/Videra.Platform.Windows.csproj -c Release -o ./ci-pack/windows
+
+  sample-contract-evidence:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Run sample configuration evidence
+        shell: pwsh
+        run: >
+          dotnet test tests/Videra.Core.Tests/Videra.Core.Tests.csproj -c Release
+          --filter "FullyQualifiedName~ExtensibilitySampleConfigurationTests|FullyQualifiedName~InteractionSampleConfigurationTests"
+
+      - name: Run sample runtime evidence
+        shell: pwsh
+        run: >
+          dotnet test tests/Videra.Core.IntegrationTests/Videra.Core.IntegrationTests.csproj -c Release
+          --filter "FullyQualifiedName~VideraViewExtensibilityIntegrationTests|FullyQualifiedName~VideraViewInteractionIntegrationTests|FullyQualifiedName~VideraViewInspectionIntegrationTests|FullyQualifiedName~VideraInspectionBundleIntegrationTests"
+
+  quality-gate-evidence:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Build packaged consumer smoke with warnings as errors
+        shell: pwsh
+        run: >
+          pwsh -File ./scripts/Invoke-ConsumerSmoke.ps1 -Configuration Release
+          -OutputRoot artifacts/consumer-smoke-quality
+          -BuildOnly
+          -TreatWarningsAsErrors
+
+      - name: Build core test evidence with warnings as errors
+        shell: pwsh
+        run: >
+          dotnet build tests/Videra.Core.Tests/Videra.Core.Tests.csproj -c Release
+          -p:TreatWarningsAsErrors=true
+
+      - name: Build core integration evidence with warnings as errors
+        shell: pwsh
+        run: >
+          dotnet build tests/Videra.Core.IntegrationTests/Videra.Core.IntegrationTests.csproj -c Release
+          -p:TreatWarningsAsErrors=true
+
+      - name: Build minimal sample evidence with warnings as errors
+        shell: pwsh
+        run: >
+          dotnet build samples/Videra.MinimalSample/Videra.MinimalSample.csproj -c Release
+          -p:TreatWarningsAsErrors=true

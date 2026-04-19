@@ -1,4 +1,4 @@
-name: Benchmark Gates
+name: Benchmark Gates (Label-Gated Review)
 
 on:
   workflow_dispatch:
@@ -33,11 +33,11 @@ jobs:
         with:
           dotnet-version: 8.0.x
 
-      - name: Run viewer benchmarks
+      - name: Run viewer benchmark evidence
         shell: pwsh
         run: pwsh -File ./scripts/Run-Benchmarks.ps1 -Suite Viewer -Configuration Release -OutputRoot artifacts/benchmarks
 
-      - name: Upload viewer benchmark artifacts
+      - name: Upload viewer benchmark evidence
         uses: actions/upload-artifact@v4
         with:
           name: benchmarks-viewer
@@ -54,11 +54,11 @@ jobs:
         with:
           dotnet-version: 8.0.x
 
-      - name: Run surface charts benchmarks
+      - name: Run surface charts benchmark evidence
         shell: pwsh
         run: pwsh -File ./scripts/Run-Benchmarks.ps1 -Suite SurfaceCharts -Configuration Release -OutputRoot artifacts/benchmarks
 
-      - name: Upload surface charts benchmark artifacts
+      - name: Upload surface charts benchmark evidence
         uses: actions/upload-artifact@v4
         with:
           name: benchmarks-surfacecharts
