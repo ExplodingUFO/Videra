@@ -1,12 +1,40 @@
 # Milestones
 
+## v1.15 Repository Guard and Evidence Calibration
+
+**Shipped:** 2026-04-20  
+**Phases:** 3 (`84-86`)  
+**Plans:** 9  
+**Timeline:** 1 day (`2026-04-20` → `2026-04-20`)  
+**Repo state:** local worktree closeout recorded after focused verification and milestone audit; no milestone tag was retained because release tags stay version-aligned
+
+### Key Accomplishments
+
+1. Replaced the token-only `OpenGL` guard with an explicit “no `OpenGL` product promise” contract across shared backend-minimum-contract docs and repository tests.
+2. Expanded `quality-gate-evidence` to the outward-facing `Videra.SurfaceCharts.Demo` path and removed a false-red worktree baseline assumption in SurfaceCharts repository guards.
+3. Aligned benchmark workflow naming, benchmark runbook wording, README wording, release guidance, and live planning around one opt-in, label-gated, non-numeric benchmark-review contract.
+
+### Archived Materials
+
+- `.planning/milestones/v1.15-ROADMAP.md`
+- `.planning/milestones/v1.15-REQUIREMENTS.md`
+- `.planning/milestones/v1.15-MILESTONE-AUDIT.md`
+
+### Notes
+
+- Raw phase execution history remains in `.planning/phases/`
+- `OpenGL`, compositor-native Wayland, whole-repo warnings-as-errors, and automated benchmark thresholds remain deliberately deferred
+- The work landed in an isolated worktree branch so follow-up branch management remains a separate choice from milestone closeout
+
+---
+
 ## v1.14 Compatibility and Quality Hardening
 
 **Shipped:** 2026-04-20  
 **Phases:** 4 (`80-83`)  
 **Plans:** 12  
 **Timeline:** 1 day (`2026-04-20` → `2026-04-20`)  
-**Repo state:** milestone implementation and closeout were committed locally; audit status is `tech_debt` with 3 accepted follow-up items, and `git tag -a v1.14` was created at closeout
+**Repo state:** milestone implementation and closeout were committed locally; audit status is `tech_debt` with 3 accepted follow-up items, and no milestone tag was retained because release tags stay version-aligned
 
 ### Key Accomplishments
 

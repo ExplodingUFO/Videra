@@ -12,19 +12,41 @@ Videra 是一个基于 `.NET 8` 的跨平台 3D 渲染引擎，提供 Windows (`
 
 ## Current State
 
-- 最新已完成 milestone：`v1.14 Compatibility and Quality Hardening`
+- 最新已完成 milestone：`v1.15 Repository Guard and Evidence Calibration`
 - 当前 active milestone：`None`
-- 当前状态：`v1.14` 已在本地完成实现、审计与归档准备；兼容性 truth、consumer/sample evidence、backend contract 收口和 quality-gate hardening 已全部落地
-- 当前 focus：基于 `v1.14` 的 closeout 结果决定下一轮里程碑是继续收 tech debt，还是转向新的用户价值主线
+- 当前状态：`v1.15` 已在隔离 worktree 中完成实现、审计与归档；当前回到等待下一轮 milestone 定义的状态
+- 当前 focus：基于 `v1.15` closeout 后的证据决定下一轮是继续收窄 tech debt，还是转向新的用户价值主线
 
 ## Next Milestone Goals
 
-- 决定是否把 `BACK-03` 的仓库防线补强成显式“no OpenGL product promise”语义保护
-- 评估是否扩大 `warnings-as-errors` 覆盖范围，而不破坏当前迭代速度
-- 继续观察 benchmark stewardship 是否需要从 label-gated 审阅升级为更强约束
-- 结合真实 consumer 环境反馈，再判断 `GL-01` 或 compositor-native Wayland 是否值得从 deferred 提升
+- 基于 `v1.15` 完成后的证据，决定下一轮是否继续做小型质量/兼容性 cleanup，还是回到更直接的用户价值面
+- 继续观察 `Videra.SurfaceCharts.Demo` 进入 quality-gate 后的维护成本，判断是否值得再扩一个 outward-facing surface
+- 观察 benchmark review 的实际使用频率，再决定 soft threshold / trend compare 是否真的值得进下一轮
+- 继续把 `OpenGL` 与 compositor-native Wayland 保持在 deferred，除非新的 consumer evidence 改变优先级
 
-## Latest Completed Milestone: v1.13 Inspection Fidelity
+## Latest Completed Milestone: v1.15 Repository Guard and Evidence Calibration
+
+**Goal:** 把 `v1.14` 审计里最明确的 follow-up 收口成可验证、低风险、可审计的 cleanup：repository guard 语义更准确，quality-gate scope 更真实，benchmark stewardship 说法更一致。
+
+**Status:** shipped locally on `2026-04-20`
+
+**Delivered outcomes:**
+- converted the `OpenGL` repository guard from token presence into an explicit no-product-promise contract
+- widened `quality-gate-evidence` to the outward-facing `Videra.SurfaceCharts.Demo` path and removed a false-red repository-test assumption for fresh worktrees
+- aligned benchmark workflow naming, benchmark runbook guidance, README wording, release guidance, and planning language around an opt-in label-gated review model
+## Previously Completed Milestone: v1.14 Compatibility and Quality Hardening
+
+**Goal:** 在不增加 `OpenGL`、不扩 public API、也不追求 compositor-native Wayland 的前提下，把 alpha 当前最真实的兼容性与质量风险收成更清晰、更可验证、更少误导的 contract。
+
+**Status:** shipped locally on `2026-04-20`
+
+**Delivered outcomes:**
+- normalized the built-in backend minimum contract across `D3D11`, `Vulkan`, and `Metal`, making unsupported seams explicit instead of backend-specific folklore
+- aligned Linux host/display-server truth across diagnostics, smoke output, and public docs around the same `X11` / `XWayland` compatibility story
+- promoted packaged consumer smoke plus advanced public sample evidence into routine merge-time validation
+- tightened the alpha-ready `green` definition around packaged consumer and curated-Core quality evidence without pretending benchmark review is already a hard numeric blocker
+
+## Previously Completed Milestone: v1.13 Inspection Fidelity
 
 **Goal:** 把 inspection workflow 从 viewer-first 能用提升到 inspection truth 更可信：命中结果 mesh-accurate、measurement snapping 明确、same-API fast path 有证据、support 可以交付可重放的 inspection bundle。
 
@@ -140,7 +162,7 @@ Videra 是一个基于 `.NET 8` 的跨平台 3D 渲染引擎，提供 Windows (`
 
 ### Active
 
-- [ ] Define the next milestone based on `v1.14` closeout, accepted tech debt, and fresh adoption evidence.
+- [ ] Define the next milestone after `v1.15` closeout and fresh evidence review.
 
 ### Out of Scope
 
@@ -198,6 +220,8 @@ Videra 是一个基于 `.NET 8` 的跨平台 3D 渲染引擎，提供 Windows (`
 | Use viewer-first inspection workflows to pressure stabilized runtime seams before another architecture/performance milestone | Clipping, measurement, inspection-state, and snapshot export are user-visible features that validate the current alpha viewer as a working inspection component | completed in `v1.12` |
 | Use inspection fidelity as the `v1.13` direction instead of widening product surface | The biggest remaining gap is trust in hit truth, reproducibility, and supportability, not another package or plugin seam | completed in `v1.13` |
 | Start `v1.14` with compatibility and quality hardening instead of an `OpenGL` line | The highest current alpha risk is truthful compatibility/evidence and backend contract drift, not the absence of a fourth graphics API | completed in `v1.14` |
+| Start `v1.15` as a small cleanup milestone instead of reopening platform expansion | The accepted debt is now concrete enough to close directly, while `OpenGL` and native Wayland still lack evidence to outrank guard/evidence hardening | completed in `v1.15` |
+| Keep benchmark review opt-in and label-gated in `v1.15` | The current workflow uploads comparable artifacts but has no reliable threshold/baseline machinery for automatic numeric blocking | completed in `v1.15` |
 
 ## Evolution
 

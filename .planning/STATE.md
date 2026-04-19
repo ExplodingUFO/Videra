@@ -5,23 +5,23 @@
 See: `.planning/PROJECT.md` (updated 2026-04-20)
 
 **Core value:** 跨平台 3D 渲染引擎的可靠性
-**Current focus:** define the next milestone after closing `v1.14 Compatibility and Quality Hardening`
+**Current focus:** define the next milestone after closing `v1.15 Repository Guard and Evidence Calibration`
 
 ## Current Position
 
 Milestone: `None active`
 Phase: `Awaiting next milestone definition`
-Plan: `v1.14 is archived locally; next entrypoint is $gsd-new-milestone`
-Status: `v1.14 shipped locally with accepted tech debt; roadmap collapsed and requirements archived`
-Last activity: `2026-04-20` — archived v1.14 planning materials, updated project state, and prepared the workspace for the next milestone
+Plan: `v1.15 is archived locally; next entrypoint is $gsd-new-milestone`
+Status: `v1.15 shipped locally with clean milestone audit and archived planning materials`
+Last activity: `2026-04-20` — archived v1.15 planning materials, updated project state, and returned the worktree to no-active-milestone mode
 
-Progress: `[████████] v1.14 complete; waiting for next milestone`
+Progress: `[████████] v1.15 complete; waiting for next milestone`
 
 ## Performance Metrics
 
-- Latest completed milestone: `v1.14 Compatibility and Quality Hardening`
-- Phases shipped in latest milestone: `4`
-- Requirements satisfied in latest milestone: `12/12`
+- Latest completed milestone: `v1.15 Repository Guard and Evidence Calibration`
+- Phases shipped in latest milestone: `3`
+- Requirements satisfied in latest milestone: `4/4`
 - Active milestone phases: `0`
 - Active milestone requirements: `0`
 
@@ -47,14 +47,13 @@ Progress: `[████████] v1.14 complete; waiting for next milestone
 ### Pending Todos
 
 - Start the next milestone with `$gsd-new-milestone`.
-- Decide whether the accepted `BACK-03` repo-guard weakness should become an immediate cleanup task or stay deferred.
+- Decide whether to keep the local worktree branch as an execution branch or fold the changes elsewhere.
 
 ### Blockers/Concerns
 
 - Most of `.planning` still remains gitignored/local-only, while explicitly archived milestone closeout files can be force-added when a durable release boundary is needed.
 - Linux compatibility risk is now better bounded, but future consumer evidence may still raise native Wayland or `OpenGL` pressure later.
-- The accepted v1.14 tech debt includes a semantically weak repository guard around the “no `OpenGL` promise” contract.
-- Benchmark review is now an actionable merge signal, but it is still label-gated rather than a hard numeric blocker.
+- Benchmark review is an opt-in merge-review signal when `run-benchmarks` is requested, not part of the default green line and not a hard numeric blocker.
 - Compositor-native Wayland hosting and any future `OpenGL` evaluation remain explicitly deferred beyond this milestone.
 
 ## Deferred Items
@@ -70,5 +69,5 @@ Progress: `[████████] v1.14 complete; waiting for next milestone
 ## Session Continuity
 
 Last session: `2026-04-20 +08:00`
-Stopped at: `Milestone v1.14 archived locally; next step is to define the next milestone`
+Stopped at: `v1.15 created locally; phase 84 repository-guard hardening started in an isolated worktree`
 Resume file: `None`
