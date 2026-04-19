@@ -127,6 +127,134 @@ internal static class SurfaceChartsDocumentationTerms
         "docs/zh-CN/modules/videra-surfacecharts-avalonia.md"
     ];
 
+    public static readonly string[] SurfaceChartsFirstChartTokens =
+    [
+        "canonical first-chart",
+        "current public chart reference",
+        "`SurfaceChartView`",
+        "primary chart control entrypoint"
+    ];
+
+    public static readonly string[] SurfaceChartsDemoFirstChartTokens =
+    [
+        "canonical first-chart",
+        "this demo",
+        "current public chart reference",
+        "`SurfaceChartView`",
+        "primary chart control entrypoint"
+    ];
+
+    public static readonly string[] SurfaceChartsInteractionDiagnosticsTokens =
+    [
+        "`InteractionQuality`",
+        "`InteractionQualityChanged`",
+        "`Interactive`",
+        "`Refine`"
+    ];
+
+    public static readonly string[] SurfaceChartsOverlayBoundaryTokens =
+    [
+        "`SurfaceChartOverlayOptions`",
+        "`OverlayOptions`",
+        "internal"
+    ];
+
+    public static readonly string[] SurfaceChartsOwnershipTokens =
+    [
+        "`ISurfaceTileSource`",
+        "persisted `ViewState`",
+        "color-map selection",
+        "chart-local product UI"
+    ];
+
+    public static readonly string[] SurfaceChartControlOwnershipTokens =
+    [
+        "`SurfaceChartView` owns",
+        "tile scheduling/cache",
+        "overlay presentation",
+        "native-host/render-host orchestration",
+        "`RenderingStatus` projection"
+    ];
+
+    public static readonly string[] SurfaceChartsRenderingStatusFieldTokens =
+    [
+        "`RenderingStatus`",
+        "`RenderStatusChanged`",
+        "`ActiveBackend`",
+        "`IsReady`",
+        "`IsFallback`",
+        "`FallbackReason`",
+        "`UsesNativeSurface`",
+        "`ResidentTileCount`"
+    ];
+
+    public static readonly string[] SurfaceChartsSourceFirstTokens =
+    [
+        "`Videra.SurfaceCharts.*`",
+        "source-first",
+        "public package promise"
+    ];
+
+    public static readonly string[] ChineseSurfaceChartsFirstChartTokens =
+    [
+        "first-chart",
+        "Videra.SurfaceCharts.Demo",
+        "当前公开 chart reference",
+        "SurfaceChartView",
+        "主 chart control entrypoint"
+    ];
+
+    public static readonly string[] ChineseSurfaceChartsInteractionDiagnosticsTokens =
+    [
+        "`InteractionQuality`",
+        "`InteractionQualityChanged`",
+        "`Interactive`",
+        "`Refine`"
+    ];
+
+    public static readonly string[] ChineseSurfaceChartsOverlayBoundaryTokens =
+    [
+        "`SurfaceChartOverlayOptions`",
+        "`OverlayOptions`",
+        "internal"
+    ];
+
+    public static readonly string[] ChineseSurfaceChartsOwnershipTokens =
+    [
+        "`ISurfaceTileSource`",
+        "`ViewState`",
+        "color-map",
+        "chart-local 产品 UI"
+    ];
+
+    public static readonly string[] ChineseSurfaceChartControlOwnershipTokens =
+    [
+        "`SurfaceChartView`",
+        "chart-local built-in 手势",
+        "tile scheduling/cache",
+        "overlay presentation",
+        "`RenderingStatus` 投影"
+    ];
+
+    public static readonly string[] ChineseSurfaceChartsRenderingStatusFieldTokens =
+    [
+        "`RenderingStatus`",
+        "`RenderStatusChanged`",
+        "`ActiveBackend`",
+        "`IsReady`",
+        "`IsFallback`",
+        "`FallbackReason`",
+        "`UsesNativeSurface`",
+        "`ResidentTileCount`"
+    ];
+
+    public static readonly string[] ChineseSurfaceChartsSourceFirstTokens =
+    [
+        "`Videra.SurfaceCharts.*`",
+        "source-first",
+        "公开包承诺"
+    ];
+
     public static readonly string[] ExpectedChineseModulePages =
     [
         "docs/zh-CN/modules/videra-surfacecharts-core.md",

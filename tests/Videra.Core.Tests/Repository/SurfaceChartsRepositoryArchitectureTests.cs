@@ -18,6 +18,8 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
     private const string LinuxWaylandLimitSentence =
         "On Wayland sessions the chart host uses an `XWayland compatibility` path; compositor-native Wayland surface embedding is not available";
 
+    private static readonly Regex MarkdownLinkRegex = new(@"\[[^\]]+\]\(([^)]+)\)", RegexOptions.Compiled);
+
     private static readonly string[] NativeInteropTokens =
     [
         "DllImport",
@@ -32,20 +34,20 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
 
         readme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsOnboardingHeading);
         readme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsFamilyBoundarySentence);
-        readme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsFirstChartSentence);
         readme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsDemoSentence);
         readme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartViewSentence);
         readme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsRendererStatusSentence);
-        readme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsRenderingStatusFieldsSentence);
         readme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsViewStateSentence);
         readme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsInteractionSentence);
         readme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsInteractionQualitySentence);
-        readme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsInteractionDiagnosticsSentence);
         readme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsOverlayOptionsSentence);
-        readme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsOverlayBoundarySentence);
-        readme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsOwnershipSentence);
-        readme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartControlOwnershipSentence);
-        readme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsSourceFirstSentence);
+        AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.SurfaceChartsFirstChartTokens);
+        AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.SurfaceChartsRenderingStatusFieldTokens);
+        AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.SurfaceChartsInteractionDiagnosticsTokens);
+        AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.SurfaceChartsOverlayBoundaryTokens);
+        AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.SurfaceChartsOwnershipTokens);
+        AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.SurfaceChartControlOwnershipTokens);
+        AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.SurfaceChartsSourceFirstTokens);
         readme.Should().Contain("axis/legend overlays");
         readme.Should().Contain("src/Videra.SurfaceCharts.Core/README.md");
         readme.Should().Contain("src/Videra.SurfaceCharts.Avalonia/README.md");
@@ -65,18 +67,18 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
         readme.Should().Contain("SurfaceChartView");
         readme.Should().Contain("Videra.SurfaceCharts.Demo");
         readme.Should().Contain(SurfaceChartsDocumentationTerms.ChineseSurfaceChartsFamilyBoundarySentence);
-        readme.Should().Contain(SurfaceChartsDocumentationTerms.ChineseSurfaceChartsFirstChartSentence);
         readme.Should().Contain("RenderStatusChanged");
         readme.Should().Contain(SurfaceChartsDocumentationTerms.ChineseSurfaceChartsTruthSentence);
         readme.Should().Contain(SurfaceChartsDocumentationTerms.ChineseSurfaceChartsViewStateSentence);
         readme.Should().Contain(SurfaceChartsDocumentationTerms.ChineseSurfaceChartsInteractionQualitySentence);
-        readme.Should().Contain(SurfaceChartsDocumentationTerms.ChineseSurfaceChartsInteractionDiagnosticsSentence);
         readme.Should().Contain(SurfaceChartsDocumentationTerms.ChineseSurfaceChartsOverlayOptionsSentence);
-        readme.Should().Contain(SurfaceChartsDocumentationTerms.ChineseSurfaceChartsOverlayBoundarySentence);
-        readme.Should().Contain(SurfaceChartsDocumentationTerms.ChineseSurfaceChartsOwnershipSentence);
-        readme.Should().Contain(SurfaceChartsDocumentationTerms.ChineseSurfaceChartControlOwnershipSentence);
-        readme.Should().Contain(SurfaceChartsDocumentationTerms.ChineseSurfaceChartsRenderingStatusFieldsSentence);
-        readme.Should().Contain(SurfaceChartsDocumentationTerms.ChineseSurfaceChartsSourceFirstSentence);
+        AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.ChineseSurfaceChartsFirstChartTokens);
+        AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.ChineseSurfaceChartsInteractionDiagnosticsTokens);
+        AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.ChineseSurfaceChartsOverlayBoundaryTokens);
+        AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.ChineseSurfaceChartsOwnershipTokens);
+        AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.ChineseSurfaceChartControlOwnershipTokens);
+        AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.ChineseSurfaceChartsRenderingStatusFieldTokens);
+        AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.ChineseSurfaceChartsSourceFirstTokens);
     }
 
     [Fact]
@@ -135,22 +137,22 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
 
         demoReadme.Should().Contain("not a `VideraView` mode");
         demoReadme.Should().Contain(DemoGpuFallbackSentence);
-        demoReadme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsDemoFirstChartSentence);
-        demoReadme.Should().NotContain("[Videra.SurfaceCharts.Demo](samples/Videra.SurfaceCharts.Demo/README.md)");
+        AssertContainsAllTokens(demoReadme, SurfaceChartsDocumentationTerms.SurfaceChartsDemoFirstChartTokens);
         demoReadme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsViewStateSentence);
         demoReadme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsInteractionSentence);
         demoReadme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsInteractionQualitySentence);
-        demoReadme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsInteractionDiagnosticsSentence);
-        demoReadme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsOverlayBoundarySentence);
-        demoReadme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsOwnershipSentence);
-        demoReadme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartControlOwnershipSentence);
-        demoReadme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsRenderingStatusFieldsSentence);
-        demoReadme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsSourceFirstSentence);
+        AssertContainsAllTokens(demoReadme, SurfaceChartsDocumentationTerms.SurfaceChartsInteractionDiagnosticsTokens);
+        AssertContainsAllTokens(demoReadme, SurfaceChartsDocumentationTerms.SurfaceChartsOverlayBoundaryTokens);
+        AssertContainsAllTokens(demoReadme, SurfaceChartsDocumentationTerms.SurfaceChartsOwnershipTokens);
+        AssertContainsAllTokens(demoReadme, SurfaceChartsDocumentationTerms.SurfaceChartControlOwnershipTokens);
+        AssertContainsAllTokens(demoReadme, SurfaceChartsDocumentationTerms.SurfaceChartsRenderingStatusFieldTokens);
+        AssertContainsAllTokens(demoReadme, SurfaceChartsDocumentationTerms.SurfaceChartsSourceFirstTokens);
         demoReadme.Should().Contain("FitToData()");
         demoReadme.Should().Contain("ResetCamera()");
         demoReadme.Should().Contain("ZoomTo(...)");
         demoReadme.Should().Contain("SurfaceChartOverlayOptions");
         demoReadme.Should().Contain("`XWayland compatibility` only, not compositor-native Wayland surface embedding");
+        AssertMarkdownFileDoesNotContainSelfReferentialFileLinks(Path.Combine(repositoryRoot, "samples", "Videra.SurfaceCharts.Demo", "README.md"));
     }
 
     [Fact]
@@ -187,12 +189,12 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
         avaloniaPage.Should().Contain(SurfaceChartsDocumentationTerms.ChineseAvaloniaProbeSentence);
         avaloniaPage.Should().Contain(SurfaceChartsDocumentationTerms.ChineseSurfaceChartsViewStateSentence);
         avaloniaPage.Should().Contain(SurfaceChartsDocumentationTerms.ChineseSurfaceChartsInteractionQualitySentence);
-        avaloniaPage.Should().Contain(SurfaceChartsDocumentationTerms.ChineseSurfaceChartsInteractionDiagnosticsSentence);
         avaloniaPage.Should().Contain(SurfaceChartsDocumentationTerms.ChineseSurfaceChartsOverlayOptionsSentence);
-        avaloniaPage.Should().Contain(SurfaceChartsDocumentationTerms.ChineseSurfaceChartsOverlayBoundarySentence);
-        avaloniaPage.Should().Contain(SurfaceChartsDocumentationTerms.ChineseSurfaceChartsOwnershipSentence);
-        avaloniaPage.Should().Contain(SurfaceChartsDocumentationTerms.ChineseSurfaceChartControlOwnershipSentence);
-        avaloniaPage.Should().Contain(SurfaceChartsDocumentationTerms.ChineseSurfaceChartsRenderingStatusFieldsSentence);
+        AssertContainsAllTokens(avaloniaPage, SurfaceChartsDocumentationTerms.ChineseSurfaceChartsInteractionDiagnosticsTokens);
+        AssertContainsAllTokens(avaloniaPage, SurfaceChartsDocumentationTerms.ChineseSurfaceChartsOverlayBoundaryTokens);
+        AssertContainsAllTokens(avaloniaPage, SurfaceChartsDocumentationTerms.ChineseSurfaceChartsOwnershipTokens);
+        AssertContainsAllTokens(avaloniaPage, SurfaceChartsDocumentationTerms.ChineseSurfaceChartControlOwnershipTokens);
+        AssertContainsAllTokens(avaloniaPage, SurfaceChartsDocumentationTerms.ChineseSurfaceChartsRenderingStatusFieldTokens);
         avaloniaPage.Should().Contain("FitToData()");
         avaloniaPage.Should().Contain("ResetCamera()");
         avaloniaPage.Should().Contain("ZoomTo(...)");
@@ -245,25 +247,25 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
         var chineseReadme = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "zh-CN", "README.md"));
         var chineseAvaloniaPage = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "zh-CN", "modules", "videra-surfacecharts-avalonia.md"));
 
-        rootReadme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsFirstChartSentence);
-        rootReadme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsOwnershipSentence);
-        rootReadme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartControlOwnershipSentence);
-        rootReadme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsSourceFirstSentence);
+        AssertContainsAllTokens(rootReadme, SurfaceChartsDocumentationTerms.SurfaceChartsFirstChartTokens);
+        AssertContainsAllTokens(rootReadme, SurfaceChartsDocumentationTerms.SurfaceChartsOwnershipTokens);
+        AssertContainsAllTokens(rootReadme, SurfaceChartsDocumentationTerms.SurfaceChartControlOwnershipTokens);
+        AssertContainsAllTokens(rootReadme, SurfaceChartsDocumentationTerms.SurfaceChartsSourceFirstTokens);
 
-        demoReadme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsDemoFirstChartSentence);
-        demoReadme.Should().NotContain("[Videra.SurfaceCharts.Demo](samples/Videra.SurfaceCharts.Demo/README.md)");
-        demoReadme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsOwnershipSentence);
-        demoReadme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartControlOwnershipSentence);
-        demoReadme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsSourceFirstSentence);
+        AssertContainsAllTokens(demoReadme, SurfaceChartsDocumentationTerms.SurfaceChartsDemoFirstChartTokens);
+        AssertContainsAllTokens(demoReadme, SurfaceChartsDocumentationTerms.SurfaceChartsOwnershipTokens);
+        AssertContainsAllTokens(demoReadme, SurfaceChartsDocumentationTerms.SurfaceChartControlOwnershipTokens);
+        AssertContainsAllTokens(demoReadme, SurfaceChartsDocumentationTerms.SurfaceChartsSourceFirstTokens);
+        AssertMarkdownFileDoesNotContainSelfReferentialFileLinks(Path.Combine(repositoryRoot, "samples", "Videra.SurfaceCharts.Demo", "README.md"));
 
-        chineseReadme.Should().Contain(SurfaceChartsDocumentationTerms.ChineseSurfaceChartsFirstChartSentence);
-        chineseReadme.Should().Contain(SurfaceChartsDocumentationTerms.ChineseSurfaceChartsOwnershipSentence);
-        chineseReadme.Should().Contain(SurfaceChartsDocumentationTerms.ChineseSurfaceChartControlOwnershipSentence);
-        chineseReadme.Should().Contain(SurfaceChartsDocumentationTerms.ChineseSurfaceChartsSourceFirstSentence);
+        AssertContainsAllTokens(chineseReadme, SurfaceChartsDocumentationTerms.ChineseSurfaceChartsFirstChartTokens);
+        AssertContainsAllTokens(chineseReadme, SurfaceChartsDocumentationTerms.ChineseSurfaceChartsOwnershipTokens);
+        AssertContainsAllTokens(chineseReadme, SurfaceChartsDocumentationTerms.ChineseSurfaceChartControlOwnershipTokens);
+        AssertContainsAllTokens(chineseReadme, SurfaceChartsDocumentationTerms.ChineseSurfaceChartsSourceFirstTokens);
 
-        chineseAvaloniaPage.Should().Contain(SurfaceChartsDocumentationTerms.ChineseSurfaceChartsOwnershipSentence);
-        chineseAvaloniaPage.Should().Contain(SurfaceChartsDocumentationTerms.ChineseSurfaceChartControlOwnershipSentence);
-        chineseAvaloniaPage.Should().Contain(SurfaceChartsDocumentationTerms.ChineseSurfaceChartsRenderingStatusFieldsSentence);
+        AssertContainsAllTokens(chineseAvaloniaPage, SurfaceChartsDocumentationTerms.ChineseSurfaceChartsOwnershipTokens);
+        AssertContainsAllTokens(chineseAvaloniaPage, SurfaceChartsDocumentationTerms.ChineseSurfaceChartControlOwnershipTokens);
+        AssertContainsAllTokens(chineseAvaloniaPage, SurfaceChartsDocumentationTerms.ChineseSurfaceChartsRenderingStatusFieldTokens);
     }
 
     [Fact]
@@ -355,6 +357,49 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
             fileContents.Should().OnlyContain(
                 file => !file.Content.Contains(token, StringComparison.Ordinal),
                 $"native interop token '{token}' should stay out of {directoryPath}");
+        }
+    }
+
+    private static void AssertContainsAllTokens(string content, IEnumerable<string> tokens)
+    {
+        foreach (var token in tokens)
+        {
+            content.Should().Contain(token);
+        }
+    }
+
+    private static void AssertMarkdownFileDoesNotContainSelfReferentialFileLinks(string markdownPath)
+    {
+        var absoluteMarkdownPath = Path.GetFullPath(markdownPath);
+        var markdownDirectory = Path.GetDirectoryName(absoluteMarkdownPath)
+            ?? throw new DirectoryNotFoundException($"Could not determine directory for markdown file '{markdownPath}'.");
+        var content = File.ReadAllText(absoluteMarkdownPath);
+
+        foreach (Match match in MarkdownLinkRegex.Matches(content))
+        {
+            var target = match.Groups[1].Value.Trim();
+            if (string.IsNullOrWhiteSpace(target) || target.StartsWith("#", StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            var targetPath = target.Split('#')[0];
+            if (string.IsNullOrWhiteSpace(targetPath))
+            {
+                continue;
+            }
+
+            if (Uri.TryCreate(targetPath, UriKind.Absolute, out var uri) && uri.IsAbsoluteUri)
+            {
+                continue;
+            }
+
+            var resolvedPath = Path.GetFullPath(
+                Path.Combine(markdownDirectory, targetPath.Replace('/', Path.DirectorySeparatorChar)));
+
+            resolvedPath.Should().NotBe(
+                absoluteMarkdownPath,
+                $"markdown file '{markdownPath}' should not link back to itself through '{target}'.");
         }
     }
 }
