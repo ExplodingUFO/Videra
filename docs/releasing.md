@@ -51,7 +51,7 @@ The public package set is limited to:
 - Confirm the canonical alpha happy path still matches `Videra.MinimalSample`, `consumer smoke`, and the `Videra.Avalonia` README.
 - Confirm `Consumer Smoke` artifacts include the diagnostics snapshot produced by `VideraDiagnosticsSnapshotFormatter`.
 - Confirm pull-request `sample-contract-evidence` stayed green for `Videra.ExtensibilitySample` and `Videra.InteractionSample` configuration/runtime contracts.
-- Confirm pull-request `quality-gate-evidence` stayed green so the packaged consumer path, curated Core test surfaces, and `Videra.SurfaceCharts.Demo` still build with warnings treated as errors.
+- Confirm pull-request `quality-gate-evidence` stayed green so the packaged consumer path, curated Core test surfaces, and `Videra.MinimalSample` still build with warnings treated as errors.
 - Review [Benchmark Gates](benchmark-gates.md) artifacts for trend regressions before promoting the tag when benchmark evidence was explicitly requested; treat them as review evidence, not as proof that a hard numeric threshold passed.
 - Confirm release notes categories in `.github/release.yml` still match the current label taxonomy.
 - Confirm `NUGET_API_KEY` is configured for the public workflow.

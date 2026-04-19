@@ -32,7 +32,7 @@ Videra 是一个基于 `.NET 8` 的跨平台 3D 渲染引擎，提供 Windows (`
 
 **Delivered outcomes:**
 - converted the `OpenGL` repository guard from token presence into an explicit no-product-promise contract
-- widened `quality-gate-evidence` to the outward-facing `Videra.SurfaceCharts.Demo` path and removed a false-red repository-test assumption for fresh worktrees
+- widened `quality-gate-evidence` to the outward-facing `Videra.MinimalSample` path and removed a false-red repository-test assumption for fresh worktrees
 - aligned benchmark workflow naming, benchmark runbook guidance, README wording, release guidance, and planning language around an opt-in label-gated review model
 ## Previously Completed Milestone: v1.14 Compatibility and Quality Hardening
 

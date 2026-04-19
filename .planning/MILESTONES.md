@@ -11,7 +11,7 @@
 ### Key Accomplishments
 
 1. Replaced the token-only `OpenGL` guard with an explicit “no `OpenGL` product promise” contract across shared backend-minimum-contract docs and repository tests.
-2. Expanded `quality-gate-evidence` to the outward-facing `Videra.SurfaceCharts.Demo` path and removed a false-red worktree baseline assumption in SurfaceCharts repository guards.
+2. Expanded `quality-gate-evidence` to the outward-facing `Videra.MinimalSample` path and removed a false-red worktree baseline assumption in SurfaceCharts repository guards.
 3. Aligned benchmark workflow naming, benchmark runbook wording, README wording, release guidance, and live planning around one opt-in, label-gated, non-numeric benchmark-review contract.
 
 ### Archived Materials
