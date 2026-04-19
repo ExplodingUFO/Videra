@@ -135,7 +135,8 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
 
         demoReadme.Should().Contain("not a `VideraView` mode");
         demoReadme.Should().Contain(DemoGpuFallbackSentence);
-        demoReadme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsFirstChartSentence);
+        demoReadme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsDemoFirstChartSentence);
+        demoReadme.Should().NotContain("[Videra.SurfaceCharts.Demo](samples/Videra.SurfaceCharts.Demo/README.md)");
         demoReadme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsViewStateSentence);
         demoReadme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsInteractionSentence);
         demoReadme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsInteractionQualitySentence);
@@ -249,7 +250,8 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
         rootReadme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartControlOwnershipSentence);
         rootReadme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsSourceFirstSentence);
 
-        demoReadme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsFirstChartSentence);
+        demoReadme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsDemoFirstChartSentence);
+        demoReadme.Should().NotContain("[Videra.SurfaceCharts.Demo](samples/Videra.SurfaceCharts.Demo/README.md)");
         demoReadme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsOwnershipSentence);
         demoReadme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartControlOwnershipSentence);
         demoReadme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsSourceFirstSentence);

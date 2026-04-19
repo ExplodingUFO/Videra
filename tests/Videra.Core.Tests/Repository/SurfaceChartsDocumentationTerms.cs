@@ -11,6 +11,9 @@ internal static class SurfaceChartsDocumentationTerms
     public const string SurfaceChartsFirstChartSentence =
         "For the canonical first-chart story, use [Videra.SurfaceCharts.Demo](samples/Videra.SurfaceCharts.Demo/README.md) as the current public chart reference and `SurfaceChartView` in `Videra.SurfaceCharts.Avalonia` as the primary chart control entrypoint.";
 
+    public const string SurfaceChartsDemoFirstChartSentence =
+        "For the canonical first-chart story, this demo is the current public chart reference and `SurfaceChartView` in `Videra.SurfaceCharts.Avalonia` remains the primary chart control entrypoint.";
+
     public const string SurfaceChartsDemoSentence =
         "`Videra.SurfaceCharts.Demo` is the independent demo application for the surface-chart module family.";
 
