@@ -278,6 +278,11 @@ public sealed class RepositoryLocalizationTests
         readme.Should().Contain("modules/videra-surfacecharts-avalonia.md");
         readme.Should().Contain("samples/Videra.SurfaceCharts.Demo/README.md");
         readme.Should().Contain(SurfaceChartsDocumentationTerms.ChineseSurfaceChartsFamilyBoundarySentence);
+        AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.ChineseSurfaceChartsFirstChartTokens);
+        AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.ChineseSurfaceChartsOwnershipTokens);
+        AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.ChineseSurfaceChartControlOwnershipTokens);
+        AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.ChineseSurfaceChartsRenderingStatusFieldTokens);
+        AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.ChineseSurfaceChartsSourceFirstTokens);
 
         foreach (var module in new[] { coreModule, avaloniaModule })
         {
@@ -285,6 +290,12 @@ public sealed class RepositoryLocalizationTests
             module.Should().Contain("Videra.SurfaceCharts.Demo");
             module.Should().Contain("独立于 `VideraView`");
         }
+
+        AssertContainsAllTokens(avaloniaModule, SurfaceChartsDocumentationTerms.ChineseSurfaceChartsOwnershipTokens);
+        AssertContainsAllTokens(avaloniaModule, SurfaceChartsDocumentationTerms.ChineseSurfaceChartControlOwnershipTokens);
+        AssertContainsAllTokens(avaloniaModule, SurfaceChartsDocumentationTerms.ChineseSurfaceChartsInteractionDiagnosticsTokens);
+        AssertContainsAllTokens(avaloniaModule, SurfaceChartsDocumentationTerms.ChineseSurfaceChartsOverlayBoundaryTokens);
+        AssertContainsAllTokens(avaloniaModule, SurfaceChartsDocumentationTerms.ChineseSurfaceChartsRenderingStatusFieldTokens);
     }
 
     [Fact]
@@ -364,5 +375,13 @@ public sealed class RepositoryLocalizationTests
         }
 
         throw new DirectoryNotFoundException("Could not locate repository root containing Videra.slnx.");
+    }
+
+    private static void AssertContainsAllTokens(string content, IEnumerable<string> tokens)
+    {
+        foreach (var token in tokens)
+        {
+            content.Should().Contain(token);
+        }
     }
 }
