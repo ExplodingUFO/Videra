@@ -138,6 +138,7 @@ Contract highlights:
 
 For the canonical first-chart story, use [Videra.SurfaceCharts.Demo](samples/Videra.SurfaceCharts.Demo/README.md) as the current public chart reference and `SurfaceChartView` in `Videra.SurfaceCharts.Avalonia` as the primary chart control entrypoint.
 Inside that demo, keep the default `Start here: In-memory first chart` path for the source-first happy path, then move to `Explore next: Cache-backed streaming` when you want to validate lazy tile reads and the broader chart diagnostics surface.
+Use `Copy support summary` when you need the chart support artifact that matches the docs and bug template. Public tags do not publish `Videra.SurfaceCharts.*` package assets; the chart release truth in `v1.16` stays on the source-first demo/docs/CI/support-summary path.
 
 Contract highlights:
 

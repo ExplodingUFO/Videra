@@ -19,7 +19,7 @@ This matrix describes the current support boundary for the public viewer package
 | `Videra.SurfaceCharts.Core` | Repository source only | Core tests | Source-first `alpha` | No public package promise yet |
 | `Videra.SurfaceCharts.Avalonia` | Repository source only | Avalonia integration tests and demo validation | Source-first `alpha` | Independent from `VideraView` |
 | `Videra.SurfaceCharts.Processing` | Repository source only | Processing tests and benchmarks | Source-first `alpha` | Data-preparation layer for offline matrices |
-| `Videra.SurfaceCharts.Demo` | Repository source only | Demo verification and repository guards | Source-first `alpha` | Public reference for chart behavior |
+| `Videra.SurfaceCharts.Demo` | Repository source only | `sample-contract-evidence`, SurfaceCharts runtime evidence, and `Support summary` validation | Source-first `alpha` | `Start here: In-memory first chart` first, `Copy support summary` for support capture, and public tags do not publish `Videra.SurfaceCharts.*` package assets |
 
 ## Compatibility notes
 

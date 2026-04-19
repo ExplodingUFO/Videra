@@ -13,16 +13,25 @@ Videra 是一个基于 `.NET 8` 的跨平台 3D 渲染引擎，提供 Windows (`
 ## Current State
 
 - 最新已完成 milestone：`v1.15 Repository Guard and Evidence Calibration`
-- 当前 active milestone：`None`
-- 当前状态：`v1.15` 已在隔离 worktree 中完成实现、审计与归档；当前回到等待下一轮 milestone 定义的状态
-- 当前 focus：基于 `v1.15` closeout 后的证据决定下一轮是继续收窄 tech debt，还是转向新的用户价值主线
+- 当前 active milestone：`v1.16 SurfaceCharts Adoption Surface`
+- 当前状态：`v1.16` 的 `SurfaceCharts` adoption / support / release truth 四个 phase 已在本地完成，里程碑进入 audit / closeout 准备状态
+- 当前 focus：确认 `v1.16` 的 closeout 工件和 archive 边界，然后再决定下一轮 milestone
 
 ## Next Milestone Goals
 
-- 基于 `v1.15` 完成后的证据，决定下一轮是否继续做小型质量/兼容性 cleanup，还是回到更直接的用户价值面
-- 继续观察 `Videra.SurfaceCharts.Demo` 进入 quality-gate 后的维护成本，判断是否值得再扩一个 outward-facing surface
-- 观察 benchmark review 的实际使用频率，再决定 soft threshold / trend compare 是否真的值得进下一轮
-- 继续把 `OpenGL` 与 compositor-native Wayland 保持在 deferred，除非新的 consumer evidence 改变优先级
+- 给 `SurfaceCharts` 一条清晰、最小、可复制的 `first chart` adoption story，而不是只让用户从完整 demo 里反推
+- 把 `SurfaceChartView` 的公开合同、chart-local ownership 和 runtime truth 收成稳定文档/样例语言
+- 为 `SurfaceCharts` 建立 source-first consumer evidence 和 support truth，而不是复用 viewer package story
+- 保持 `SurfaceCharts` 在本 milestone 仍是 source-first，不误导成已承诺 public package 的产品线
+
+## Current Milestone: v1.16 SurfaceCharts Adoption Surface
+
+**Goal:** 把 `SurfaceCharts` 收成一个清晰的 source-first adoption surface：有 canonical `first chart` 路径、有稳定 public contract、有 consumer-facing evidence，也有和 viewer package 真相分开的 release/support 叙述。
+
+**Target features:**
+- canonical `first chart` sample / onboarding path for `SurfaceChartView`
+- source-first consumer evidence and support artifact story for charts
+- release/docs/support truth that keeps `SurfaceCharts` clearly independent from `VideraView` and still non-package by default
 
 ## Latest Completed Milestone: v1.15 Repository Guard and Evidence Calibration
 
@@ -162,14 +171,16 @@ Videra 是一个基于 `.NET 8` 的跨平台 3D 渲染引擎，提供 Windows (`
 
 ### Active
 
-- [ ] Define the next milestone after `v1.15` closeout and fresh evidence review.
+- [x] Give `SurfaceCharts` one canonical source-first adoption path independent from `VideraView`.
+- [x] Freeze the chart-local public contract and first-chart story around `SurfaceChartView`, `ViewState`, interaction, overlays, and rendering status.
+- [x] Align consumer evidence, release docs, and support truth so `SurfaceCharts` can be evaluated without implying a public package promise.
 
 ### Out of Scope
 
 - Promoting new viewer/runtime orchestration APIs to public surface — `VideraEngine` remains the only public extensibility root
 - Native Wayland compositor-hosted embedding beyond the current X11/XWayland truth — ROI is still lower than stabilizing precise, reproducible inspection workflows
 - Explicit `OpenGL` backend work in the current milestone — current compatibility risk is native-host/display-server truth plus backend-contract drift, not the absence of a fourth graphics API
-- Publishing `Videra.SurfaceCharts.*` as public consumer packages in the same milestone — that is the “product width” branch, not the current “viewer depth” branch
+- Publishing `Videra.SurfaceCharts.*` as stable public consumer packages in `v1.16` — this milestone focuses on source-first adoption proof before any public package promise
 - Plugin/package discovery or a broader extensibility system — the current public model remains C#-first and in-process
 - Editor-style authoring tools, transform handles, or gizmos — `Videra` stays viewer-first
 - Another deep scene/runtime performance rewrite — this milestone only adds same-API fast paths plus benchmark evidence, not a new internal optimization program
@@ -222,6 +233,8 @@ Videra 是一个基于 `.NET 8` 的跨平台 3D 渲染引擎，提供 Windows (`
 | Start `v1.14` with compatibility and quality hardening instead of an `OpenGL` line | The highest current alpha risk is truthful compatibility/evidence and backend contract drift, not the absence of a fourth graphics API | completed in `v1.14` |
 | Start `v1.15` as a small cleanup milestone instead of reopening platform expansion | The accepted debt is now concrete enough to close directly, while `OpenGL` and native Wayland still lack evidence to outrank guard/evidence hardening | completed in `v1.15` |
 | Keep benchmark review opt-in and label-gated in `v1.15` | The current workflow uploads comparable artifacts but has no reliable threshold/baseline machinery for automatic numeric blocking | completed in `v1.15` |
+| Start `v1.16` with `SurfaceCharts` adoption instead of another viewer-only cleanup loop | The highest-value unanswered question is now whether the chart stack can become a credible source-first product surface for external consumers | active in `v1.16` |
+| Keep `v1.16` SurfaceCharts release truth on demo/docs/CI/support-summary evidence instead of package assets | The milestone goal is adoption proof and supportability, not an accidental public package promise | completed in `v1.16` |
 
 ## Evolution
 
