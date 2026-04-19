@@ -31,25 +31,31 @@ public sealed class SurfaceChartsDemoConfigurationTests
         project.Should().Contain(@"..\..\src\Videra.SurfaceCharts.Processing\Videra.SurfaceCharts.Processing.csproj");
 
         var readme = File.ReadAllText(demoReadmePath);
+        readme.Should().Contain("Start here");
+        readme.Should().Contain("in-memory first chart");
+        readme.Should().Contain("Explore next");
         readme.Should().Contain("in-memory");
         readme.Should().Contain("cache-backed");
         readme.Should().Contain("lazy");
         readme.Should().Contain("sample.surfacecache.json.bin");
 
         var mainWindow = File.ReadAllText(mainWindowXamlPath);
-        mainWindow.Should().Contain("In-memory example");
-        mainWindow.Should().Contain("Cache-backed example");
+        mainWindow.Should().Contain("Start here: In-memory first chart");
+        mainWindow.Should().Contain("Explore next: Cache-backed streaming");
+        mainWindow.Should().Contain("First-chart source");
+        mainWindow.Should().Contain("Start here status");
         mainWindow.Should().Contain("Built-in interaction");
         mainWindow.Should().Contain("Left drag orbit");
         mainWindow.Should().Contain("Right drag pan");
         mainWindow.Should().Contain("Wheel dolly");
         mainWindow.Should().Contain("Ctrl + Left drag");
-        mainWindow.Should().Contain("Rendering path");
+        mainWindow.Should().Contain("Explore next: Rendering path");
         mainWindow.Should().Contain("Interaction quality");
-        mainWindow.Should().Contain("Probe workflow");
+        mainWindow.Should().Contain("Explore next: Probe workflow");
         mainWindow.Should().Contain("Shift + LeftClick");
-        mainWindow.Should().Contain("Axes and legend");
-        mainWindow.Should().Contain("Overlay options");
+        mainWindow.Should().Contain("Explore next: Axes and legend");
+        mainWindow.Should().Contain("Explore next: Overlay options");
+        mainWindow.Should().Contain("Advanced: cache asset");
         mainWindow.Should().Contain("View-state contract");
         mainWindow.Should().Contain("Fit to data");
         mainWindow.Should().Contain("Reset camera");
@@ -80,6 +86,8 @@ public sealed class SurfaceChartsDemoConfigurationTests
         mainWindowCodeBehind.Should().Contain(".ResetCamera(");
         mainWindowCodeBehind.Should().Contain("UpdateViewStateText");
         mainWindowCodeBehind.Should().Contain("UpdateInteractionQualityText");
+        mainWindowCodeBehind.Should().Contain("Start here: In-memory first chart");
+        mainWindowCodeBehind.Should().Contain("Explore next: Cache-backed streaming");
         mainWindowCodeBehind.Should().NotContain("ViewportSelector");
         mainWindowCodeBehind.Should().NotContain("CreateOverviewViewport");
         mainWindowCodeBehind.Should().NotContain("CreateZoomedDetailViewport");

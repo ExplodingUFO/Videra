@@ -21,7 +21,7 @@
                    Text="Surface Charts Demo" />
         <TextBlock Foreground="#CBD5E1"
                    TextWrapping="Wrap"
-                   Text="Switch between an in-memory example and a cache-backed example, then drive the chart directly with built-in orbit, pan, dolly, and focus interaction. The demo stays in its own sample app and only depends on the surface-chart module family." />
+                   Text="Start with the in-memory first-chart path, then opt into cache-backed streaming and the secondary chart diagnostics once that happy path renders. The demo stays in its own sample app and only depends on the surface-chart module family." />
       </StackPanel>
     </Border>
 
@@ -49,14 +49,14 @@
             <TextBlock FontSize="18"
                        FontWeight="SemiBold"
                        Foreground="#E2E8F0"
-                       Text="Source selection" />
+                       Text="First-chart source" />
             <ComboBox x:Name="SourceSelector">
-              <ComboBoxItem Content="In-memory example" />
-              <ComboBoxItem Content="Cache-backed example" />
+              <ComboBoxItem Content="Start here: In-memory first chart" />
+              <ComboBoxItem Content="Explore next: Cache-backed streaming" />
             </ComboBox>
             <TextBlock Foreground="#CBD5E1"
                        TextWrapping="Wrap"
-                       Text="The selection switches the chart source without routing demo loading logic into the control library." />
+                       Text="Start here with the in-memory source-first first chart. Switch to cache-backed streaming only after the first chart renders and you want the broader exploration path." />
           </StackPanel>
         </Border>
 
@@ -95,7 +95,7 @@
             <TextBlock FontSize="16"
                        FontWeight="SemiBold"
                        Foreground="#E2E8F0"
-                       Text="Current path" />
+                       Text="Start here status" />
             <TextBlock x:Name="StatusText"
                        Foreground="#CBD5E1"
                        TextWrapping="Wrap" />
@@ -143,7 +143,7 @@
             <TextBlock FontSize="16"
                        FontWeight="SemiBold"
                        Foreground="#E2E8F0"
-                       Text="Rendering path" />
+                       Text="Explore next: Rendering path" />
             <TextBlock x:Name="RenderingPathText"
                        Foreground="#CBD5E1"
                        TextWrapping="Wrap" />
@@ -159,7 +159,7 @@
             <TextBlock FontSize="16"
                        FontWeight="SemiBold"
                        Foreground="#E2E8F0"
-                       Text="Probe workflow" />
+                       Text="Explore next: Probe workflow" />
             <TextBlock Foreground="#CBD5E1"
                        TextWrapping="Wrap"
                        Text="Hover readout follows the current tile truth. Use Shift + LeftClick to pin a probe and keep it visible while detail tiles continue refining." />
@@ -175,7 +175,7 @@
             <TextBlock FontSize="16"
                        FontWeight="SemiBold"
                        Foreground="#E2E8F0"
-                       Text="Axes and legend" />
+                       Text="Explore next: Axes and legend" />
             <TextBlock Foreground="#CBD5E1"
                        TextWrapping="Wrap"
                        Text="Axes, labels, and legend overlays ship with the chart surface today, alongside built-in orbit, pan, dolly, and focus interaction." />
@@ -191,7 +191,7 @@
             <TextBlock FontSize="16"
                        FontWeight="SemiBold"
                        Foreground="#E2E8F0"
-                       Text="Overlay options" />
+                       Text="Explore next: Overlay options" />
             <TextBlock x:Name="OverlayOptionsText"
                        Foreground="#CBD5E1"
                        TextWrapping="Wrap" />
@@ -207,7 +207,7 @@
             <TextBlock FontSize="16"
                        FontWeight="SemiBold"
                        Foreground="#E2E8F0"
-                       Text="Seed cache asset" />
+                       Text="Advanced: cache asset" />
             <TextBlock x:Name="CachePathText"
                        Foreground="#CBD5E1"
                        TextWrapping="Wrap" />

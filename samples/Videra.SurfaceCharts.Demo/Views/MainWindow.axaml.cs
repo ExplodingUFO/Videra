@@ -78,8 +78,8 @@ public partial class MainWindow : Window
 
         ApplySource(
             _inMemorySource,
-            "In-memory example",
-            "Generated at runtime from a dense matrix and built with SurfacePyramidBuilder.");
+            "Start here: In-memory first chart",
+            "Start here first. Generated at runtime from a dense matrix, built with SurfacePyramidBuilder, and kept source-first inside this demo.");
 
         _chartView.RenderStatusChanged += OnRenderStatusChanged;
         _chartView.InteractionQualityChanged += OnInteractionQualityChanged;
@@ -109,7 +109,10 @@ public partial class MainWindow : Window
 
         if (_sourceSelector.SelectedIndex == 0)
         {
-            ApplySource(_inMemorySource, "In-memory example", "Generated at runtime from a dense matrix and built with SurfacePyramidBuilder.");
+            ApplySource(
+                _inMemorySource,
+                "Start here: In-memory first chart",
+                "Start here first. Generated at runtime from a dense matrix, built with SurfacePyramidBuilder, and kept source-first inside this demo.");
             return;
         }
 
@@ -118,12 +121,15 @@ public partial class MainWindow : Window
             var cacheSource = await GetOrCreateCacheSourceAsync().ConfigureAwait(true);
             ApplySource(
                 cacheSource,
-                "Cache-backed example",
-                $"Loads manifest metadata from {_cachePath} and uses lazy viewport tile streaming from {_cachePayloadPath}.");
+                "Explore next: Cache-backed streaming",
+                $"Advanced follow-up after the first chart renders. Loads manifest metadata from {_cachePath} and uses lazy viewport tile streaming from {_cachePayloadPath}.");
         }
         catch (Exception exception)
         {
-            ApplySource(_inMemorySource, "In-memory example", $"Cache-backed example failed to load: {exception.Message}");
+            ApplySource(
+                _inMemorySource,
+                "Start here: In-memory first chart",
+                $"Start here fallback. Cache-backed streaming failed to load: {exception.Message}");
             _sourceSelector.SelectedIndex = 0;
         }
     }
@@ -206,7 +212,7 @@ public partial class MainWindow : Window
         _statusText.Text =
             $"{_activeSourceHeading}\n" +
             $"{_activeSourceDetails}\n" +
-            "Built-in navigation: Left drag orbit, Right drag pan, Wheel dolly, Ctrl + Left drag focus zoom.\n" +
+            "First-chart navigation: Left drag orbit, Right drag pan, Wheel dolly, Ctrl + Left drag focus zoom.\n" +
             $"Current window: StartX {dataWindow.StartX:0.###}, StartY {dataWindow.StartY:0.###}, Width {dataWindow.Width:0.###}, Height {dataWindow.Height:0.###}";
     }
 
@@ -319,7 +325,7 @@ public partial class MainWindow : Window
 
     private static string CreateDatasetSummary()
     {
-        return "The in-memory path uses a generated 64x48 matrix with an overview-first pyramid. " +
-               "The cache-backed path loads a committed manifest plus binary sidecar and lazily reads only the tiles needed for the current built-in interaction view.";
+        return "The start-here in-memory path uses a generated 64x48 matrix with an overview-first pyramid. " +
+               "The explore-next cache-backed path loads a committed manifest plus binary sidecar and lazily reads only the tiles needed for the current built-in interaction view.";
     }
 }

@@ -6,8 +6,8 @@ For the canonical first-chart story, this demo is the current public chart refer
 
 The sample stays separate from `Videra.Demo` and `VideraView`. It exercises the chart-local renderer seam shipped in `SurfaceChartView`, not a `VideraView` mode. It provides switchable sources and built-in chart interaction:
 
-- `in-memory example`: builds a sample surface matrix at startup and feeds it through `SurfacePyramidBuilder`.
-- `cache-backed example`: loads manifest metadata from `Assets/sample-surface-cache/sample.surfacecache.json`, then uses lazy tile streaming from `Assets/sample-surface-cache/sample.surfacecache.json.bin` through `SurfaceCacheReader` and `SurfaceCacheTileSource`.
+- `Start here: in-memory first chart`: builds a sample surface matrix at startup and feeds it through `SurfacePyramidBuilder`.
+- `Explore next: cache-backed streaming`: loads manifest metadata from `Assets/sample-surface-cache/sample.surfacecache.json`, then uses lazy tile streaming from `Assets/sample-surface-cache/sample.surfacecache.json.bin` through `SurfaceCacheReader` and `SurfaceCacheTileSource`.
 
 SurfaceChartView now exposes `ViewState` as the primary chart-view contract while `Viewport` remains a compatibility bridge for existing hosts.
 SurfaceChartView now ships built-in `left-drag orbit`, `right-drag pan`, `wheel dolly`, `Ctrl + left-drag` focus zoom, and `Shift + left-click` pinned probe on top of the `ViewState` runtime contract.
@@ -21,6 +21,12 @@ The `Videra.SurfaceCharts.*` family stays source-first and is not part of the cu
 
 The committed cache sample uses a tiled manifest+sidecar layout so panning, dolly, and focus changes request different cache tiles instead of materializing every tile value into memory up front.
 
+## Start Here
+
+1. Run the sample and keep the default `Start here: In-memory first chart` source.
+2. Confirm the source-first first chart renders, then try `FitToData()`, `ResetCamera()`, orbit, pan, dolly, and focus zoom.
+3. Move to `Explore next: Cache-backed streaming` only after the first chart path works and you want to validate lazy tile reads plus the broader demo surfaces.
+
 ## Run
 
 ```bash
@@ -30,7 +36,8 @@ dotnet run --project samples/Videra.SurfaceCharts.Demo/Videra.SurfaceCharts.Demo
 ## What The Demo Shows Today
 
 - an independent chart application boundary
-- in-memory versus cache-backed source selection
+- a `Start here` in-memory first chart path
+- an `Explore next` cache-backed streaming path
 - built-in `left-drag orbit`, `right-drag pan`, `wheel dolly`, and `Ctrl + left-drag` focus zoom
 - a `View-state contract` panel that projects `ViewState`, `FitToData()`, `ResetCamera()`, and `ZoomTo(...)`
 - an `Interaction quality` panel that projects `Interactive` and `Refine`

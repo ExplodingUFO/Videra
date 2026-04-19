@@ -28,19 +28,21 @@ public sealed class SurfaceChartsDemoViewportBehaviorTests
             chartView.Source.Should().NotBeNull();
             window.FindControl<ComboBox>("ViewportSelector").Should().BeNull();
             chartView.ViewState.DataWindow.Should().Be(new SurfaceDataWindow(0d, 0d, chartView.Source!.Metadata.Width, chartView.Source.Metadata.Height));
-            statusText.Text.Should().Contain("Built-in navigation");
+            statusText.Text.Should().Contain("Start here: In-memory first chart");
+            statusText.Text.Should().Contain("source-first");
             interactionQualityText.Text.Should().Contain("Refine");
 
-            SelectItem(sourceSelector, GetComboBoxItemByContent(sourceSelector, "Cache-backed example"));
+            SelectItem(sourceSelector, GetComboBoxItemByContent(sourceSelector, "Explore next: Cache-backed streaming"));
 
             await WaitForConditionAsync(
                 () => chartView.Source is not null &&
-                      statusText.Text?.Contains("Cache-backed example", StringComparison.Ordinal) == true,
+                      statusText.Text?.Contains("Explore next: Cache-backed streaming", StringComparison.Ordinal) == true,
                 "switching sources should keep the built-in interaction workflow active on the new source.")
                 .ConfigureAwait(true);
 
             chartView.ViewState.DataWindow.Should().Be(new SurfaceDataWindow(0d, 0d, chartView.Source!.Metadata.Width, chartView.Source.Metadata.Height));
-            statusText.Text.Should().Contain("Cache-backed example");
+            statusText.Text.Should().Contain("Explore next: Cache-backed streaming");
+            statusText.Text.Should().Contain("Advanced follow-up");
             statusText.Text.Should().Contain("lazy");
         });
     }
@@ -111,7 +113,8 @@ public sealed class SurfaceChartsDemoViewportBehaviorTests
                 "the demo should project the built-in interaction contract into visible onboarding text.")
                 .ConfigureAwait(true);
 
-            statusText.Text.Should().Contain("Built-in navigation");
+            statusText.Text.Should().Contain("Start here: In-memory first chart");
+            statusText.Text.Should().Contain("first chart");
             statusText.Text.Should().Contain("Ctrl + Left drag");
             interactionQualityText.Text.Should().Contain("Interactive");
             interactionQualityText.Text.Should().Contain("Refine");
