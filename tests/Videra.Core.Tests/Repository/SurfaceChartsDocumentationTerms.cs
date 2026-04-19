@@ -135,6 +135,40 @@ internal static class SurfaceChartsDocumentationTerms
         "primary chart control entrypoint"
     ];
 
+    public static readonly string[] SurfaceChartsRendererStatusTokens =
+    [
+        "`GPU-first`",
+        "`software fallback`",
+        "`RenderingStatus`",
+        "`RenderStatusChanged`"
+    ];
+
+    public static readonly string[] SurfaceChartsViewStateTokens =
+    [
+        "SurfaceChartView",
+        "`ViewState`",
+        "`Viewport`",
+        "compatibility bridge"
+    ];
+
+    public static readonly string[] SurfaceChartsInteractionTokens =
+    [
+        "`left-drag orbit`",
+        "`right-drag pan`",
+        "`wheel dolly`",
+        "`Ctrl + left-drag`",
+        "`Shift + left-click`",
+        "`ViewState`"
+    ];
+
+    public static readonly string[] SurfaceChartsInteractionQualityTokens =
+    [
+        "`Interactive`",
+        "`Refine`",
+        "during motion",
+        "input settles"
+    ];
+
     public static readonly string[] SurfaceChartsDemoFirstChartTokens =
     [
         "canonical first-chart",
@@ -157,6 +191,16 @@ internal static class SurfaceChartsDocumentationTerms
         "`SurfaceChartOverlayOptions`",
         "`OverlayOptions`",
         "internal"
+    ];
+
+    public static readonly string[] SurfaceChartsOverlayOptionsTokens =
+    [
+        "`OverlayOptions`",
+        "formatter",
+        "title/unit override",
+        "minor ticks",
+        "grid plane",
+        "axis-side selection"
     ];
 
     public static readonly string[] SurfaceChartsOwnershipTokens =
@@ -195,6 +239,74 @@ internal static class SurfaceChartsDocumentationTerms
         "public package promise"
     ];
 
+    public static readonly string[] SurfaceChartsAvaloniaReadmeContractTokens =
+    [
+        "`InteractionQuality`",
+        "`InteractionQualityChanged`",
+        "`Interactive`",
+        "`Refine`",
+        "`SurfaceChartOverlayOptions`",
+        "`OverlayOptions`",
+        "internal",
+        "`ISurfaceTileSource`",
+        "persisted `ViewState`",
+        "color-map selection",
+        "chart-local product UI",
+        "`SurfaceChartView` owns",
+        "tile scheduling/cache",
+        "overlay presentation",
+        "native-host/render-host orchestration",
+        "`RenderingStatus` projection",
+        "`ActiveBackend`",
+        "`IsReady`",
+        "`IsFallback`",
+        "`FallbackReason`",
+        "`UsesNativeSurface`",
+        "`ResidentTileCount`"
+    ];
+
+    public static readonly string[] SurfaceChartViewTypeXmlDocTokens =
+    [
+        "persisted <see cref=\"ViewState\"/>",
+        "built-in orbit, pan, dolly, and focus interaction"
+    ];
+
+    public static readonly string[] SurfaceChartRenderingStatusXmlDocTokens =
+    [
+        "chart-local rendering backend",
+        "fallback state",
+        "native-surface usage",
+        "<c>ActiveBackend</c>",
+        "<c>IsReady</c>",
+        "<c>IsFallback</c>",
+        "<c>FallbackReason</c>",
+        "<c>UsesNativeSurface</c>",
+        "<c>ResidentTileCount</c>"
+    ];
+
+    public static readonly string[] SurfaceChartViewportXmlDocTokens =
+    [
+        "compatibility bridge",
+        "authoritative <see cref=\"ViewState\"/>"
+    ];
+
+    public static readonly string[] SurfaceChartOverlayOptionsXmlDocTokens =
+    [
+        "chart-local overlay layout and formatting options",
+        "formatter",
+        "title/unit override",
+        "minor ticks",
+        "grid plane",
+        "axis-side selection"
+    ];
+
+    public static readonly string[] SurfaceChartInteractionQualityXmlDocTokens =
+    [
+        "diagnostic interaction-quality mode",
+        "<c>Interactive</c>",
+        "<c>Refine</c>"
+    ];
+
     public static readonly string[] ChineseSurfaceChartsFirstChartTokens =
     [
         "first-chart",
@@ -202,6 +314,35 @@ internal static class SurfaceChartsDocumentationTerms
         "当前公开 chart reference",
         "SurfaceChartView",
         "主 chart control entrypoint"
+    ];
+
+    public static readonly string[] ChineseSurfaceChartsTruthTokens =
+    [
+        "独立 Demo",
+        "`left-drag orbit`",
+        "`right-drag pan`",
+        "`wheel dolly`",
+        "`Ctrl + left-drag`",
+        "`Shift + left-click`",
+        "`RenderingStatus`",
+        "`Interactive`",
+        "`Refine`"
+    ];
+
+    public static readonly string[] ChineseSurfaceChartsViewStateTokens =
+    [
+        "SurfaceChartView",
+        "`ViewState`",
+        "`Viewport`",
+        "兼容桥接"
+    ];
+
+    public static readonly string[] ChineseSurfaceChartsInteractionQualityTokens =
+    [
+        "`Interactive`",
+        "`Refine`",
+        "交互过程中",
+        "输入停稳后"
     ];
 
     public static readonly string[] ChineseSurfaceChartsInteractionDiagnosticsTokens =
@@ -217,6 +358,17 @@ internal static class SurfaceChartsDocumentationTerms
         "`SurfaceChartOverlayOptions`",
         "`OverlayOptions`",
         "internal"
+    ];
+
+    public static readonly string[] ChineseSurfaceChartsOverlayOptionsTokens =
+    [
+        "SurfaceChartView",
+        "`OverlayOptions`",
+        "formatter",
+        "标题/单位覆盖",
+        "minor ticks",
+        "grid plane",
+        "axis-side"
     ];
 
     public static readonly string[] ChineseSurfaceChartsOwnershipTokens =

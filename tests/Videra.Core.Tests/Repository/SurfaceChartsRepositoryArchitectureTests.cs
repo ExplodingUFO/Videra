@@ -19,6 +19,8 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
         "On Wayland sessions the chart host uses an `XWayland compatibility` path; compositor-native Wayland surface embedding is not available";
 
     private static readonly Regex MarkdownLinkRegex = new(@"\[[^\]]+\]\(([^)]+)\)", RegexOptions.Compiled);
+    private static readonly Regex MarkdownReferenceUsageRegex = new(@"\[(?<text>[^\]]+)\]\[(?<label>[^\]]*)\]", RegexOptions.Compiled);
+    private static readonly Regex MarkdownReferenceDefinitionRegex = new(@"^\s*\[(?<label>[^\]]+)\]:\s*(?<target>\S+)", RegexOptions.Compiled | RegexOptions.Multiline);
 
     private static readonly string[] NativeInteropTokens =
     [
@@ -36,12 +38,12 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
         readme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsFamilyBoundarySentence);
         readme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsDemoSentence);
         readme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartViewSentence);
-        readme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsRendererStatusSentence);
-        readme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsViewStateSentence);
-        readme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsInteractionSentence);
-        readme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsInteractionQualitySentence);
-        readme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsOverlayOptionsSentence);
         AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.SurfaceChartsFirstChartTokens);
+        AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.SurfaceChartsRendererStatusTokens);
+        AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.SurfaceChartsViewStateTokens);
+        AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.SurfaceChartsInteractionTokens);
+        AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.SurfaceChartsInteractionQualityTokens);
+        AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.SurfaceChartsOverlayOptionsTokens);
         AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.SurfaceChartsRenderingStatusFieldTokens);
         AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.SurfaceChartsInteractionDiagnosticsTokens);
         AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.SurfaceChartsOverlayBoundaryTokens);
@@ -68,11 +70,11 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
         readme.Should().Contain("Videra.SurfaceCharts.Demo");
         readme.Should().Contain(SurfaceChartsDocumentationTerms.ChineseSurfaceChartsFamilyBoundarySentence);
         readme.Should().Contain("RenderStatusChanged");
-        readme.Should().Contain(SurfaceChartsDocumentationTerms.ChineseSurfaceChartsTruthSentence);
-        readme.Should().Contain(SurfaceChartsDocumentationTerms.ChineseSurfaceChartsViewStateSentence);
-        readme.Should().Contain(SurfaceChartsDocumentationTerms.ChineseSurfaceChartsInteractionQualitySentence);
-        readme.Should().Contain(SurfaceChartsDocumentationTerms.ChineseSurfaceChartsOverlayOptionsSentence);
         AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.ChineseSurfaceChartsFirstChartTokens);
+        AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.ChineseSurfaceChartsTruthTokens);
+        AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.ChineseSurfaceChartsViewStateTokens);
+        AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.ChineseSurfaceChartsInteractionQualityTokens);
+        AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.ChineseSurfaceChartsOverlayOptionsTokens);
         AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.ChineseSurfaceChartsInteractionDiagnosticsTokens);
         AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.ChineseSurfaceChartsOverlayBoundaryTokens);
         AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.ChineseSurfaceChartsOwnershipTokens);
@@ -134,13 +136,14 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
         avaloniaReadme.Should().Contain("FitToData()");
         avaloniaReadme.Should().Contain("ResetCamera()");
         avaloniaReadme.Should().Contain("ZoomTo(...)");
+        AssertContainsAllTokens(avaloniaReadme, SurfaceChartsDocumentationTerms.SurfaceChartsAvaloniaReadmeContractTokens);
 
         demoReadme.Should().Contain("not a `VideraView` mode");
         demoReadme.Should().Contain(DemoGpuFallbackSentence);
         AssertContainsAllTokens(demoReadme, SurfaceChartsDocumentationTerms.SurfaceChartsDemoFirstChartTokens);
-        demoReadme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsViewStateSentence);
-        demoReadme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsInteractionSentence);
-        demoReadme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsInteractionQualitySentence);
+        AssertContainsAllTokens(demoReadme, SurfaceChartsDocumentationTerms.SurfaceChartsViewStateTokens);
+        AssertContainsAllTokens(demoReadme, SurfaceChartsDocumentationTerms.SurfaceChartsInteractionTokens);
+        AssertContainsAllTokens(demoReadme, SurfaceChartsDocumentationTerms.SurfaceChartsInteractionQualityTokens);
         AssertContainsAllTokens(demoReadme, SurfaceChartsDocumentationTerms.SurfaceChartsInteractionDiagnosticsTokens);
         AssertContainsAllTokens(demoReadme, SurfaceChartsDocumentationTerms.SurfaceChartsOverlayBoundaryTokens);
         AssertContainsAllTokens(demoReadme, SurfaceChartsDocumentationTerms.SurfaceChartsOwnershipTokens);
@@ -187,9 +190,9 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
 
         avaloniaPage.Should().Contain(SurfaceChartsDocumentationTerms.ChineseAvaloniaRenderStatusSentence);
         avaloniaPage.Should().Contain(SurfaceChartsDocumentationTerms.ChineseAvaloniaProbeSentence);
-        avaloniaPage.Should().Contain(SurfaceChartsDocumentationTerms.ChineseSurfaceChartsViewStateSentence);
-        avaloniaPage.Should().Contain(SurfaceChartsDocumentationTerms.ChineseSurfaceChartsInteractionQualitySentence);
-        avaloniaPage.Should().Contain(SurfaceChartsDocumentationTerms.ChineseSurfaceChartsOverlayOptionsSentence);
+        AssertContainsAllTokens(avaloniaPage, SurfaceChartsDocumentationTerms.ChineseSurfaceChartsViewStateTokens);
+        AssertContainsAllTokens(avaloniaPage, SurfaceChartsDocumentationTerms.ChineseSurfaceChartsInteractionQualityTokens);
+        AssertContainsAllTokens(avaloniaPage, SurfaceChartsDocumentationTerms.ChineseSurfaceChartsOverlayOptionsTokens);
         AssertContainsAllTokens(avaloniaPage, SurfaceChartsDocumentationTerms.ChineseSurfaceChartsInteractionDiagnosticsTokens);
         AssertContainsAllTokens(avaloniaPage, SurfaceChartsDocumentationTerms.ChineseSurfaceChartsOverlayBoundaryTokens);
         AssertContainsAllTokens(avaloniaPage, SurfaceChartsDocumentationTerms.ChineseSurfaceChartsOwnershipTokens);
@@ -266,6 +269,20 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
         AssertContainsAllTokens(chineseAvaloniaPage, SurfaceChartsDocumentationTerms.ChineseSurfaceChartsOwnershipTokens);
         AssertContainsAllTokens(chineseAvaloniaPage, SurfaceChartsDocumentationTerms.ChineseSurfaceChartControlOwnershipTokens);
         AssertContainsAllTokens(chineseAvaloniaPage, SurfaceChartsDocumentationTerms.ChineseSurfaceChartsRenderingStatusFieldTokens);
+    }
+
+    [Fact]
+    public void SurfaceChartViewPublicApis_ShouldCarryContractXmlDocs()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var viewApi = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.SurfaceCharts.Avalonia", "Controls", "SurfaceChartView.cs"));
+        var viewPropertiesApi = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.SurfaceCharts.Avalonia", "Controls", "SurfaceChartView.Properties.cs"));
+
+        AssertContainsAllTokens(viewApi, SurfaceChartsDocumentationTerms.SurfaceChartViewTypeXmlDocTokens);
+        AssertContainsAllTokens(viewApi, SurfaceChartsDocumentationTerms.SurfaceChartRenderingStatusXmlDocTokens);
+        AssertContainsAllTokens(viewPropertiesApi, SurfaceChartsDocumentationTerms.SurfaceChartViewportXmlDocTokens);
+        AssertContainsAllTokens(viewPropertiesApi, SurfaceChartsDocumentationTerms.SurfaceChartOverlayOptionsXmlDocTokens);
+        AssertContainsAllTokens(viewPropertiesApi, SurfaceChartsDocumentationTerms.SurfaceChartInteractionQualityXmlDocTokens);
     }
 
     [Fact]
@@ -374,32 +391,67 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
         var markdownDirectory = Path.GetDirectoryName(absoluteMarkdownPath)
             ?? throw new DirectoryNotFoundException($"Could not determine directory for markdown file '{markdownPath}'.");
         var content = File.ReadAllText(absoluteMarkdownPath);
+        var referenceTargets = MarkdownReferenceDefinitionRegex.Matches(content)
+            .ToDictionary(
+                static match => NormalizeMarkdownReferenceLabel(match.Groups["label"].Value),
+                static match => match.Groups["target"].Value.Trim(),
+                StringComparer.Ordinal);
 
         foreach (Match match in MarkdownLinkRegex.Matches(content))
         {
             var target = match.Groups[1].Value.Trim();
-            if (string.IsNullOrWhiteSpace(target) || target.StartsWith("#", StringComparison.Ordinal))
-            {
-                continue;
-            }
-
-            var targetPath = target.Split('#')[0];
-            if (string.IsNullOrWhiteSpace(targetPath))
-            {
-                continue;
-            }
-
-            if (Uri.TryCreate(targetPath, UriKind.Absolute, out var uri) && uri.IsAbsoluteUri)
-            {
-                continue;
-            }
-
-            var resolvedPath = Path.GetFullPath(
-                Path.Combine(markdownDirectory, targetPath.Replace('/', Path.DirectorySeparatorChar)));
-
-            resolvedPath.Should().NotBe(
-                absoluteMarkdownPath,
-                $"markdown file '{markdownPath}' should not link back to itself through '{target}'.");
+            AssertMarkdownTargetIsNotSelfReferential(markdownPath, absoluteMarkdownPath, markdownDirectory, target);
         }
+
+        foreach (Match match in MarkdownReferenceUsageRegex.Matches(content))
+        {
+            var label = match.Groups["label"].Value;
+            if (string.IsNullOrWhiteSpace(label))
+            {
+                label = match.Groups["text"].Value;
+            }
+
+            if (!referenceTargets.TryGetValue(NormalizeMarkdownReferenceLabel(label), out var target))
+            {
+                continue;
+            }
+
+            AssertMarkdownTargetIsNotSelfReferential(markdownPath, absoluteMarkdownPath, markdownDirectory, target);
+        }
+    }
+
+    private static void AssertMarkdownTargetIsNotSelfReferential(
+        string markdownPath,
+        string absoluteMarkdownPath,
+        string markdownDirectory,
+        string target)
+    {
+        if (string.IsNullOrWhiteSpace(target) || target.StartsWith("#", StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        var targetPath = target.Split('#')[0];
+        if (string.IsNullOrWhiteSpace(targetPath))
+        {
+            return;
+        }
+
+        if (Uri.TryCreate(targetPath, UriKind.Absolute, out var uri) && uri.IsAbsoluteUri)
+        {
+            return;
+        }
+
+        var resolvedPath = Path.GetFullPath(
+            Path.Combine(markdownDirectory, targetPath.Replace('/', Path.DirectorySeparatorChar)));
+
+        resolvedPath.Should().NotBe(
+            absoluteMarkdownPath,
+            $"markdown file '{markdownPath}' should not link back to itself through '{target}'.");
+    }
+
+    private static string NormalizeMarkdownReferenceLabel(string label)
+    {
+        return Regex.Replace(label.Trim(), @"\s+", " ").ToLowerInvariant();
     }
 }
