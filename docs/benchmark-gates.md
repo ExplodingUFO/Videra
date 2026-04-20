@@ -5,7 +5,7 @@ This runbook turns the viewer and surface-chart benchmarks into repeatable evide
 ## Suites
 
 - `Viewer` -> `benchmarks/Videra.Viewer.Benchmarks/ScenePipelineBenchmarks.cs` and `benchmarks/Videra.Viewer.Benchmarks/InspectionBenchmarks.cs`
-- `SurfaceCharts` -> `benchmarks/Videra.SurfaceCharts.Benchmarks/SurfaceChartsBenchmarks.cs`
+- `SurfaceCharts` -> `SurfaceChartsSelectionBenchmarks.cs`, `SurfaceChartsRenderStateBenchmarks.cs`, `SurfaceChartsCacheBenchmarks.cs`, `SurfaceChartsProbeBenchmarks.cs`, and `SurfaceChartsRenderHostContractBenchmarks.cs`
 
 ## Workflow entrypoints
 
@@ -38,8 +38,9 @@ Artifacts are written under `artifacts/benchmarks/<suite>`.
 
 - `Mean` and `Allocated` are the primary quick signals.
 - Viewer benchmarks are expected to show scene import, residency apply, upload drain, backend rehydrate costs, and inspection pick/clip/snapshot costs.
-- Surface-charts benchmarks are expected to show recolor, orbit frame cost, probe latency, tile residency churn, cache-miss bursts, and resize-rebind behavior.
-- compare runs over time before reacting to a single noisy data point. This workflow is meant to build trend evidence across alpha iterations, not to reward one-off wins.
+- Surface-chart benchmarks are expected to show LOD selection, resident render-state change sets, cache batch reads, cache lookup-miss filtering, probe latency, tile residency churn, and benchmark-local GPU contract-path recolor/orbit/resize-rebind behavior.
+- The render-host contract benchmarks intentionally use a benchmark-local fake backend. They validate chart-local host/update contract cost and must stay on the GPU contract path without fallback; they do not measure driver, swapchain, or compositor overhead.
+- Compare runs over time before reacting to a single noisy data point. This workflow is meant to build trend evidence across alpha iterations, not to reward one-off wins.
 
 ## Gate semantics
 

@@ -5,17 +5,17 @@
 See: `.planning/PROJECT.md` (updated 2026-04-20)
 
 **Core value:** 跨平台 3D 渲染引擎的可靠性
-**Current focus:** `v1.18 SurfaceCharts Analytics Core` — generalized geometry/axis/scalar contracts, render fast paths, and label-gated analytics benchmark evidence for recolor/orbit/probe/churn/cache-miss/resize-rebind
+**Current focus:** `v1.18 SurfaceCharts Analytics Core` — generalized geometry/axis/scalar contracts, render fast paths, and label-gated analytics benchmark evidence for recolor/orbit/probe/churn/cache lookup-miss/resize-rebind contract paths
 
 ## Current Position
 
 Milestone: `v1.18 SurfaceCharts Analytics Core`
 Phase: `98 Analytics Benchmark Expansion and Milestone Truth`
 Plan: `measure the new hot paths, capture a defensible baseline, and align milestone truth around analytics-core depth`
-Status: `Phase 97 is now complete in code and validation; LUT recolor, derived normals, low-copy residency, and deferred GPU resource release all hold under core, repository/native, fallback integration, and Linux lifecycle evidence, so Phase 98 benchmark expansion is the active next step`
-Last activity: `2026-04-20` — completed Phase 97-04 by validating the fast-path stack across full `Videra.SurfaceCharts.Core.Tests`, repository/native contract guards, targeted Avalonia GPU/software fallback integration coverage, and Linux lifecycle scalar-binding coverage (platform-gated at runtime outside Linux)`
+Status: `Phase 98 is complete in code, benchmark evidence, and docs truth; v1.18 now has generalized contracts, render fast paths, and label-gated analytics hotspot evidence, so the milestone is ready for audit/archive`
+Last activity: `2026-04-20` — completed Phase 98 by splitting the SurfaceCharts benchmark suite into focused hotspot classes, adding dedicated benchmark smoke tests, proving render-host contract benchmarks stay on the GPU path without fallback, and capturing a clean label-gated benchmark run`
 
-Progress: `[█████████] 10/11 requirements complete; Phase 98 benchmark and milestone-truth work remain`
+Progress: `[██████████] 11/11 requirements complete; all v1.18 phases are complete and the milestone is ready for audit/archive`
 
 ## Performance Metrics
 
@@ -47,8 +47,7 @@ Progress: `[█████████] 10/11 requirements complete; Phase 98 b
 
 ### Pending Todos
 
-- Add recolor/orbit/probe/churn/cache-miss/resize-rebind benchmark coverage before scheduling interpolated probe, contour, slice, or extra 3D series work.
-- Capture label-gated defect evidence for residency churn and resize/rebind behavior strongly enough that these hotspots can be reviewed before any hard threshold claims.
+- Run the milestone audit/archive flow for `v1.18` and use the new benchmark evidence as the starting baseline for the next analytics wave.
 
 ### Blockers/Concerns
 
@@ -56,7 +55,7 @@ Progress: `[█████████] 10/11 requirements complete; Phase 98 b
 - surface-cache manifest v1 cannot yet represent explicit-grid or non-linear-axis metadata, so cache v2 or richer DTOs remain future work once scalar contracts settle.
 - Vulkan still carries a finite per-pipeline scalar descriptor cache budget; the current branch reserves the shared descriptor plus the intended cache headroom, but high-residency churn should be exercised explicitly before considering that story closed.
 - low-copy residency now assumes `SurfaceTile` instances are immutable snapshots; callers must publish a new tile object instead of mutating height/color memory in place.
-- Existing chart benchmarks do not yet measure the recolor/orbit/probe/churn/cache-miss/resize-rebind hotspot lane that should drive the next feature wave.
+- render-host contract benchmarks intentionally do not model real driver/swapchain/compositor cost; they are chart-local contract evidence for host/update behavior, not a substitute for future platform-level native rendering measurements.
 - `.planning/phases/` still contains accumulated historical phase directories; they are being retained as local execution history rather than cleared during this milestone initialization.
 
 ## Deferred Items
@@ -73,5 +72,5 @@ Progress: `[█████████] 10/11 requirements complete; Phase 98 b
 ## Session Continuity
 
 Last session: `2026-04-20 +08:00`
-Stopped at: `Phase 97 complete; Phase 98 benchmark expansion is next`
+Stopped at: `All v1.18 phases complete; milestone is ready for audit/archive`
 Resume file: `.planning/ROADMAP.md`

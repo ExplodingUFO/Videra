@@ -4,7 +4,7 @@
 
 - `v1.18 SurfaceCharts Analytics Core`
 - Status: `active`
-- Focus: upgrade `SurfaceCharts` from a source-first surface control into a professional surface analytics core through generalized geometry/scalar contracts, targeted GPU/residency fast paths, and label-gated benchmark coverage for recolor/orbit/probe/churn/cache-miss/resize-rebind hotspots
+- Focus: upgrade `SurfaceCharts` from a source-first surface control into a professional surface analytics core through generalized geometry/scalar contracts, targeted GPU/residency fast paths, and label-gated benchmark coverage for recolor/orbit/probe/churn/cache lookup-miss/resize-rebind contract hotspots
 
 ### Phase 95: Surface Geometry Grid and Axis Scale Contracts
 
@@ -66,17 +66,24 @@ Notes:
 
 ### Phase 98: Analytics Benchmark Expansion and Milestone Truth
 
-**Goal:** measure the new benchmark hotspots (`recolor` / `orbit` / `probe` / `churn` / `cache-miss` / `resize-rebind`) and lock the milestone story so later probe/contour/slice work starts from evidence rather than guesswork.
+**Goal:** measure the new benchmark hotspots (`recolor` / `orbit` / `probe` / `churn` / `cache lookup-miss` / `resize-rebind`) and lock the milestone story so later probe/contour/slice work starts from evidence rather than guesswork.
 **Depends on:** Phase 97
 **Plans:** 5 planned
 
 Plans:
 
-- [ ] 98-01: add benchmark coverage for recolor and orbit hot-path cost in resident chart interactions
-- [ ] 98-02: add benchmark coverage for probe latency and tile residency churn under interactive camera motion
-- [ ] 98-03: add benchmark coverage for cache-miss burst behavior and native-host resize/rebind cost
-- [ ] 98-04: record a defensible, label-gated baseline that can later become threshold candidates when trend history is stable
-- [ ] 98-05: align planning/docs truth around `v1.18` as analytics-core deepening while explicitly deferring generic `Chart3D`, public package expansion, and new backend/OpenGL work
+- [x] 98-01: add benchmark coverage for recolor and orbit GPU contract-path cost in resident chart interactions
+- [x] 98-02: add benchmark coverage for probe latency and tile residency churn under interactive camera motion
+- [x] 98-03: add benchmark coverage for cache lookup-miss filtering and handle resize/rebind contract-path cost
+- [x] 98-04: record a defensible, label-gated baseline that can later become threshold candidates when trend history is stable
+- [x] 98-05: align planning/docs truth around `v1.18` as analytics-core deepening while explicitly deferring generic `Chart3D`, public package expansion, and new backend/OpenGL work
+
+Notes:
+
+- the SurfaceCharts benchmark suite now lives in focused files for selection, render-state, cache, probe, and render-host contract hotspots instead of one monolithic benchmark class
+- render-host contract benchmarks explicitly use a benchmark-local fake graphics backend, disable software fallback, and are backed by dedicated smoke tests so recolor/orbit/resize-rebind evidence cannot silently degrade into software-path numbers
+- cache lookup-miss evidence is now named for what it actually measures: negative-key short-circuit filtering in `SurfaceCacheReader`, not payload I/O against missing cache files
+- the validated local Phase 98 baseline was produced with `pwsh -File ./scripts/Run-Benchmarks.ps1 -Suite SurfaceCharts -Configuration Release`; the latest run emitted clean BenchmarkDotNet logs without exception counters and wrote artifacts under `artifacts/benchmarks/surfacecharts` in the benchmark worktree
 
 ## Operational Baseline
 

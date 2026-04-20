@@ -15,14 +15,14 @@ Videra 是一个基于 `.NET 8` 的跨平台 3D 渲染引擎，提供 Windows (`
 - 最新完整归档 milestone：`v1.16 SurfaceCharts Adoption Surface`
 - `v1.17` repair work 已合并进 `master`，repo 不再被 benchmark compile drift、SurfaceCharts warnings-as-errors、或 Linux `XWayland` smoke 回归锁死
 - 当前 active milestone：`v1.18 SurfaceCharts Analytics Core`
-- 当前 focus：把 `SurfaceCharts` 的一等契约升级到专业分析库级别，先做通用 geometry/axis/scalar model、GPU recolor/normals/residency fast path、以及 recolor / orbit / probe latency / residency churn / cache-miss burst / resize-rebind 这类热点 benchmark baseline（label-gated）
+- 当前 focus：把 `SurfaceCharts` 的一等契约升级到专业分析库级别，先做通用 geometry/axis/scalar model、GPU recolor/normals/residency fast path、以及 recolor / orbit / probe latency / residency churn / cache lookup-miss / resize-rebind contract path 这类热点 benchmark baseline（label-gated）
 
 ## Next Milestone Goals
 
 - 把 surface 一等数据模型从“规则矩形高度场”升级为支持 `RegularGrid` / `ExplicitGrid`、`SurfaceAxisScale`、以及独立 scalar fields 的通用契约
 - 把 `HeightField` 与 `ColorField` 解耦，并把 mask / hole / `NaN` 缺测语义提升成一等数据语义
 - 把调色板切换、法线生成和 resident tile 持有路径改成更专业的 GPU/LUT 与低拷贝 fast path
-- 补齐 `recolor` / `orbit` / `probe latency` / `residency churn` / `cache-miss burst` / `resize-rebind` 这类真正能指导后续分析特性的 benchmark hotspot baseline（label-gated 审核）
+- 补齐 `recolor` / `orbit` / `probe latency` / `residency churn` / `cache lookup-miss` / `resize-rebind contract path` 这类真正能指导后续分析特性的 benchmark hotspot baseline（label-gated 审核）
 
 ## Current Milestone: v1.18 SurfaceCharts Analytics Core
 
@@ -32,7 +32,7 @@ Videra 是一个基于 `.NET 8` 的跨平台 3D 渲染引擎，提供 Windows (`
 - generalized surface geometry contracts through `RegularGrid` / `ExplicitGrid` while keeping `SurfaceMatrix` as a convenience type
 - axis-scale and scalar-field contracts that support non-uniform coordinates, `DateTime`/`TimeSpan`-style axes, independent `HeightField` / `ColorField`, and first-class missing-data semantics
 - render fast paths for shader/LUT recolor, seam-safe derived normals, and lower-copy tile residency
-- analytics benchmark evidence for `recolor` / `orbit` / `probe` / `churn` / `cache-miss` / `resize-rebind` hotspots without widening into generic `Chart3D`
+- analytics benchmark evidence for `recolor` / `orbit` / `probe` / `churn` / `cache lookup-miss` / `resize-rebind` hotspots without widening into generic `Chart3D`
 
 ## Latest Completed Milestone: v1.16 SurfaceCharts Adoption Surface
 
@@ -186,10 +186,10 @@ Videra 是一个基于 `.NET 8` 的跨平台 3D 渲染引擎，提供 Windows (`
 
 ### Active
 
-- [ ] Generalize the surface data contract beyond regular index-linear height matrices so non-uniform grids and richer axis semantics become first-class.
-- [ ] Separate `HeightField` from `ColorField`, and model masks / holes / `NaN` regions as explicit data semantics rather than renderer-only special cases.
-- [ ] Move recolor, shading normals, and tile residency onto targeted fast paths that cut unnecessary rebuilds and copies.
-- [ ] Establish benchmark evidence for recolor/orbit/probe/churn/cache-miss/resize-rebind hotspots before opening the next analytics feature wave.
+- [x] Generalize the surface data contract beyond regular index-linear height matrices so non-uniform grids and richer axis semantics become first-class.
+- [x] Separate `HeightField` from `ColorField`, and model masks / holes / `NaN` regions as explicit data semantics rather than renderer-only special cases.
+- [x] Move recolor, shading normals, and tile residency onto targeted fast paths that cut unnecessary rebuilds and copies.
+- [x] Establish benchmark evidence for recolor/orbit/probe/churn/cache lookup-miss/resize-rebind hotspots before opening the next analytics feature wave.
 
 ### Out of Scope
 
@@ -214,10 +214,10 @@ Videra 是一个基于 `.NET 8` 的跨平台 3D 渲染引擎，提供 Windows (`
 
 ### Current Risks
 
-- The first-class surface model still assumes a regular rectangular height field with index-linear axis mapping, which blocks non-uniform grids, richer axis semantics, and later mesh/slice/contour work.
-- Color semantics are still too tightly coupled to `z`, so professional scenarios where geometry and analytic intensity differ cannot land cleanly.
-- Surface shading and residency still leave high-value performance/quality wins on the table through placeholder normals and unnecessary resident-tile copying.
-- Current chart benchmark coverage still needs the recolor/orbit/probe/churn/cache-miss/resize-rebind hotspot lane to be fully landed before the next analytics feature wave is opened.
+- surface-cache manifest v1 still cannot represent explicit-grid or non-linear-axis metadata, so richer cache DTO work remains a follow-up once the analytics contracts settle.
+- low-copy residency now assumes `SurfaceTile` instances are immutable snapshots; callers must publish a new tile object instead of mutating height/color memory in place.
+- Vulkan still carries a finite scalar-descriptor cache budget under high residency churn; the current milestone reserves headroom but does not claim the story is closed for heavier future analytics scenes.
+- Current chart benchmark coverage now exists for recolor/orbit/probe/churn/cache lookup-miss/resize-rebind hotspots, but the render-host slice is intentionally scoped to benchmark-local contract-path cost rather than real driver/swapchain overhead.
 
 ## Constraints
 
@@ -298,4 +298,4 @@ This document evolves at phase transitions and milestone boundaries.
 - Retrospective: `.planning/RETROSPECTIVE.md`
 
 ---
-*Last updated: 2026-04-20 after starting milestone v1.18 SurfaceCharts Analytics Core*
+*Last updated: 2026-04-20 after completing Phase 98 benchmark and milestone-truth closure for v1.18*
