@@ -77,11 +77,23 @@ jobs:
           dotnet test tests/Videra.Core.Tests/Videra.Core.Tests.csproj -c Release
           --filter "FullyQualifiedName~ExtensibilitySampleConfigurationTests|FullyQualifiedName~InteractionSampleConfigurationTests"
 
+      - name: Run SurfaceCharts sample evidence
+        shell: pwsh
+        run: >
+          dotnet test tests/Videra.Core.Tests/Videra.Core.Tests.csproj -c Release
+          --filter "FullyQualifiedName~SurfaceChartsDemoConfigurationTests|FullyQualifiedName~SurfaceChartsDemoViewportBehaviorTests"
+
       - name: Run sample runtime evidence
         shell: pwsh
         run: >
           dotnet test tests/Videra.Core.IntegrationTests/Videra.Core.IntegrationTests.csproj -c Release
           --filter "FullyQualifiedName~VideraViewExtensibilityIntegrationTests|FullyQualifiedName~VideraViewInteractionIntegrationTests|FullyQualifiedName~VideraViewInspectionIntegrationTests|FullyQualifiedName~VideraInspectionBundleIntegrationTests"
+
+      - name: Run SurfaceCharts runtime evidence
+        shell: pwsh
+        run: >
+          dotnet test tests/Videra.SurfaceCharts.Avalonia.IntegrationTests/Videra.SurfaceCharts.Avalonia.IntegrationTests.csproj -c Release
+          --filter "FullyQualifiedName~SurfaceChartViewViewStateTests|FullyQualifiedName~SurfaceChartInteractionTests|FullyQualifiedName~SurfaceChartViewGpuFallbackTests"
 
   quality-gate-evidence:
     runs-on: windows-latest

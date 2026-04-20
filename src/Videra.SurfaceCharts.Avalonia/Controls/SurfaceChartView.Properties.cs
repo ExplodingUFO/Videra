@@ -70,7 +70,8 @@ public partial class SurfaceChartView
     }
 
     /// <summary>
-    /// Gets or sets the current surface viewport in sample space.
+    /// Gets or sets the current surface viewport in sample space as a compatibility bridge for
+    /// hosts that have not moved to the authoritative <see cref="ViewState"/> contract.
     /// </summary>
     public SurfaceViewport Viewport
     {
@@ -97,7 +98,8 @@ public partial class SurfaceChartView
     }
 
     /// <summary>
-    /// Gets or sets chart-local overlay layout and formatting options.
+    /// Gets or sets chart-local overlay layout and formatting options for formatter,
+    /// title/unit override, minor ticks, grid plane, and axis-side selection.
     /// </summary>
     public SurfaceChartOverlayOptions OverlayOptions
     {
@@ -106,7 +108,8 @@ public partial class SurfaceChartView
     }
 
     /// <summary>
-    /// Gets the current diagnostic interaction-quality mode.
+    /// Gets the current diagnostic interaction-quality mode, exposing <c>Interactive</c>
+    /// while input is active and <c>Refine</c> after it settles.
     /// </summary>
     public SurfaceChartInteractionQuality InteractionQuality => _interactionQuality;
 

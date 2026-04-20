@@ -7,7 +7,9 @@ The control layer remains separate from `VideraView` and only depends on the sha
 SurfaceChartView now exposes `ViewState` as the primary chart-view contract while `Viewport` remains a compatibility bridge for existing hosts.
 SurfaceChartView now ships built-in `left-drag orbit`, `right-drag pan`, `wheel dolly`, and `Ctrl + Left drag` focus zoom on top of the `ViewState` runtime contract.
 The chart enters `Interactive` quality during motion and returns to `Refine` after input settles.
+The public interaction diagnostics are `InteractionQuality` + `InteractionQualityChanged` with `Interactive` / `Refine`.
 Hosts can keep professional axis, grid, and legend behavior chart-local through `OverlayOptions` for formatter, title/unit override, minor ticks, grid plane, and axis-side selection.
+The public overlay configuration seam is `SurfaceChartOverlayOptions` through `OverlayOptions`; overlay state types remain internal.
 
 ## Current Scope
 
@@ -15,16 +17,18 @@ Hosts can keep professional axis, grid, and legend behavior chart-local through 
 
 - a chart-local renderer seam through `SurfaceChartRenderHost`; it is not a `VideraView` mode
 - a `GPU-first` renderer path with an explicit `software fallback`
-- control-visible `RenderingStatus` / `RenderStatusChanged` truth for `ActiveBackend`, `IsFallback`, `FallbackReason`, and `UsesNativeSurface`
+- control-visible `RenderingStatus` / `RenderStatusChanged` truth for `ActiveBackend`, `IsReady`, `IsFallback`, `FallbackReason`, `UsesNativeSurface`, and `ResidentTileCount`
 - host-driven surface rendering from an `ISurfaceTileSource`
 - `ViewState` as the primary chart-view contract while `Viewport` remains a compatibility bridge for existing hosts
 - host-driven `FitToData()`, `ResetCamera()`, and `ZoomTo(...)` commands
 - built-in `left-drag orbit`, `right-drag pan`, `wheel dolly`, and `Ctrl + Left drag` focus zoom
-- explicit `Interactive` and `Refine` interaction-quality states
+- explicit `InteractionQuality` / `InteractionQualityChanged` diagnostics with `Interactive` and `Refine` interaction-quality states
+- public overlay configuration through `SurfaceChartOverlayOptions` / `OverlayOptions`; overlay state types remain internal
 - chart-local `OverlayOptions` for formatter, title/unit override, minor ticks, grid plane, and axis-side selection
 - overview-first tile scheduling with lazy cache-backed reads
 - color-map driven surface rendering
 - chart-local axis/legend overlays and hover/pinned probe readout, including `Shift + LeftClick` pinning
+- `SurfaceChartView` owns chart-local built-in gestures, tile scheduling/cache, overlay presentation, native-host/render-host orchestration, and `RenderingStatus` projection
 
 This module is intentionally a thin UI shell. Tile decoding, preprocessing, cache generation, and LOD policy remain outside the control layer.
 
@@ -76,10 +80,10 @@ chartView.ResetCamera();
 
 Hosts currently own:
 
-- source creation
-- `ViewState` persistence and compatibility `Viewport` updates when older hosts still depend on them
+- `ISurfaceTileSource` creation
+- persisted `ViewState` and compatibility `Viewport` updates when older hosts still depend on them
 - color-map selection
-- any product-specific UI layered on top of the built-in orbit / pan / dolly / focus workflow
+- any chart-local product UI layered on top of the built-in orbit / pan / dolly / focus workflow
 - any custom render-status presentation beyond `RenderingStatus`, `RenderStatusChanged`, and the read-only `InteractionQuality` seam
 
 ## Boundary Guidance

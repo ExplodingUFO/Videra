@@ -59,6 +59,14 @@ body:
     validations:
       required: true
   - type: textarea
+    id: surfacecharts_support_summary
+    attributes:
+      label: SurfaceCharts support summary
+      description: If Area is `area: surfacecharts`, paste the `Support summary` from `Videra.SurfaceCharts.Demo` after reproducing with `Start here: In-memory first chart`, then continue to `Explore next: Cache-backed streaming` only if needed.
+      render: text
+    validations:
+      required: false
+  - type: textarea
     id: repro
     attributes:
       label: Reproduction

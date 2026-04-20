@@ -2,16 +2,30 @@
 
 `Videra.SurfaceCharts.Demo` is the independent demo application for the surface-chart module family.
 
+For the canonical first-chart story, this demo is the current public chart reference and `SurfaceChartView` in `Videra.SurfaceCharts.Avalonia` remains the primary chart control entrypoint.
+
 The sample stays separate from `Videra.Demo` and `VideraView`. It exercises the chart-local renderer seam shipped in `SurfaceChartView`, not a `VideraView` mode. It provides switchable sources and built-in chart interaction:
 
-- `in-memory example`: builds a sample surface matrix at startup and feeds it through `SurfacePyramidBuilder`.
-- `cache-backed example`: loads manifest metadata from `Assets/sample-surface-cache/sample.surfacecache.json`, then uses lazy tile streaming from `Assets/sample-surface-cache/sample.surfacecache.json.bin` through `SurfaceCacheReader` and `SurfaceCacheTileSource`.
+- `Start here: in-memory first chart`: builds a sample surface matrix at startup and feeds it through `SurfacePyramidBuilder`.
+- `Explore next: cache-backed streaming`: loads manifest metadata from `Assets/sample-surface-cache/sample.surfacecache.json`, then uses lazy tile streaming from `Assets/sample-surface-cache/sample.surfacecache.json.bin` through `SurfaceCacheReader` and `SurfaceCacheTileSource`.
 
 SurfaceChartView now exposes `ViewState` as the primary chart-view contract while `Viewport` remains a compatibility bridge for existing hosts.
-SurfaceChartView now ships built-in `left-drag orbit`, `right-drag pan`, `wheel dolly`, and `Ctrl + Left drag` focus zoom on top of the `ViewState` runtime contract.
+SurfaceChartView now ships built-in `left-drag orbit`, `right-drag pan`, `wheel dolly`, `Ctrl + left-drag` focus zoom, and `Shift + left-click` pinned probe on top of the `ViewState` runtime contract.
 The chart enters `Interactive` quality during motion and returns to `Refine` after input settles.
+The public interaction diagnostics are `InteractionQuality` + `InteractionQualityChanged` with `Interactive` / `Refine`.
+The public overlay configuration seam is `SurfaceChartOverlayOptions` through `OverlayOptions`; overlay state types remain internal.
+Hosts own `ISurfaceTileSource`, persisted `ViewState`, color-map selection, and chart-local product UI.
+`SurfaceChartView` owns chart-local built-in gestures, tile scheduling/cache, overlay presentation, native-host/render-host orchestration, and `RenderingStatus` projection.
+The public rendering truth is `RenderingStatus` + `RenderStatusChanged` with `ActiveBackend`, `IsReady`, `IsFallback`, `FallbackReason`, `UsesNativeSurface`, and `ResidentTileCount`.
+The `Videra.SurfaceCharts.*` family stays source-first and is not part of the current public package promise.
 
 The committed cache sample uses a tiled manifest+sidecar layout so panning, dolly, and focus changes request different cache tiles instead of materializing every tile value into memory up front.
+
+## Start Here
+
+1. Run the sample and keep the default `Start here: In-memory first chart` source.
+2. Confirm the source-first first chart renders, then try `FitToData()`, `ResetCamera()`, orbit, pan, dolly, and focus zoom.
+3. Move to `Explore next: Cache-backed streaming` only after the first chart path works and you want to validate lazy tile reads plus the broader demo surfaces.
 
 ## Run
 
@@ -22,15 +36,16 @@ dotnet run --project samples/Videra.SurfaceCharts.Demo/Videra.SurfaceCharts.Demo
 ## What The Demo Shows Today
 
 - an independent chart application boundary
-- in-memory versus cache-backed source selection
-- built-in `left-drag orbit`, `right-drag pan`, `wheel dolly`, and `Ctrl + Left drag` focus zoom
-- a `View-state contract` panel that projects `ViewState`, `Fit to data`, and `Reset camera`
+- a `Start here` in-memory first chart path
+- an `Explore next` cache-backed streaming path
+- built-in `left-drag orbit`, `right-drag pan`, `wheel dolly`, and `Ctrl + left-drag` focus zoom
+- a `View-state contract` panel that projects `ViewState`, `FitToData()`, `ResetCamera()`, and `ZoomTo(...)`
 - an `Interaction quality` panel that projects `Interactive` and `Refine`
 - overview-first LOD behavior
 - lazy cache-backed tile reads through the committed `sample.surfacecache.json` and `.bin` sidecar
 - axis/legend overlays rendered by `SurfaceChartView`
 - an `Overlay options` panel that shows chart-local `OverlayOptions` for formatter, minor ticks, grid plane, and axis-side behavior
-- hover readout and `Shift + LeftClick` pinned probes on the chart surface
+- hover readout and `Shift + left-click` pinned probes on the chart surface
 - the shipped `GPU-first` renderer path used by `SurfaceChartView`, with `software fallback` still available when native-host or GPU initialization is unavailable
 - a lightweight rendering-path panel driven by `RenderingStatus` / `RenderStatusChanged`
 

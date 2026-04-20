@@ -49,6 +49,18 @@ public sealed class SurfaceChartsRepositoryLayoutTests
         }
     }
 
+    [Fact]
+    public void SurfaceChartsCanonicalEntryDocs_ShouldExist()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+
+        foreach (var relativePath in SurfaceChartsDocumentationTerms.GuardedSurfaceChartsEntryPointPaths)
+        {
+            var absolutePath = Path.Combine(repositoryRoot, relativePath.Replace('/', Path.DirectorySeparatorChar));
+            File.Exists(absolutePath).Should().BeTrue($"expected guarded SurfaceCharts entry doc {relativePath} to exist");
+        }
+    }
+
     private static string GetRepositoryRoot()
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);

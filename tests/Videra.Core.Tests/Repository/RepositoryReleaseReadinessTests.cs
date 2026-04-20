@@ -34,6 +34,8 @@ public sealed class RepositoryReleaseReadinessTests
         readme.Should().Contain("Videra.ExtensibilitySample");
         readme.Should().Contain("Videra.InteractionSample");
         readme.Should().Contain("does not install missing platform packages");
+        readme.Should().Contain("Public tags do not publish `Videra.SurfaceCharts.*` package assets");
+        readme.Should().Contain("Copy support summary");
     }
 
     [Fact]
@@ -289,6 +291,27 @@ public sealed class RepositoryReleaseReadinessTests
         benchmarkGates.Should().Contain("compare runs over time");
         benchmarkGates.Should().Contain("label-gated review switch");
         benchmarkGates.Should().Contain("not a hard numeric blocker with automatic threshold enforcement");
+    }
+
+    [Fact]
+    public void SurfaceChartsReleaseBoundaryDocs_ShouldKeepSourceFirstTruthExplicit()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var readme = File.ReadAllText(Path.Combine(repositoryRoot, "README.md"));
+        var supportMatrix = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "support-matrix.md"));
+        var releasePolicy = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "release-policy.md"));
+        var releasing = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "releasing.md"));
+
+        readme.Should().Contain("Public tags do not publish `Videra.SurfaceCharts.*` package assets");
+        supportMatrix.Should().Contain("Start here: In-memory first chart");
+        supportMatrix.Should().Contain("Copy support summary");
+        supportMatrix.Should().Contain("sample-contract-evidence");
+        supportMatrix.Should().Contain("public tags do not publish `Videra.SurfaceCharts.*` package assets");
+        releasePolicy.Should().Contain("SurfaceCharts release truth stays on the source-first demo/docs/CI/support-summary path, not on a package asset line.");
+        releasing.Should().Contain("docs/support-matrix.md");
+        releasing.Should().Contain("public tags do not publish `Videra.SurfaceCharts.*` package assets");
+        releasing.Should().Contain("Copy support summary");
+        releasing.Should().Contain("Videra.SurfaceCharts.Demo");
     }
 
     [Fact]

@@ -231,6 +231,38 @@ public sealed class SurfaceChartInteractionTests
         });
     }
 
+    [Fact]
+    public Task NavigationGesture_RaisesInteractionQualityChanged_ForInteractiveAndRefine()
+    {
+        return AvaloniaHeadlessTestSession.RunAsync(async () =>
+        {
+            var source = new ScriptedSurfaceTileSource(SurfaceChartViewLifecycleTests.CreateMetadata(), defaultTileValue: 11f);
+            var view = new RoutedInteractionTestView();
+            var pointer = new Pointer(1, PointerType.Mouse, isPrimary: true);
+            var observedQualities = new List<SurfaceChartInteractionQuality>();
+
+            view.InteractionQualityChanged += (_, _) => observedQualities.Add(view.InteractionQuality);
+            view.Measure(new Size(256, 192));
+            view.Arrange(new Rect(0, 0, 256, 192));
+            view.Source = source;
+
+            await SurfaceChartTestHelpers.WaitForLoadedTileValuesAsync(view, [11f]);
+
+            var start = new Point(128d, 96d);
+            var end = new Point(168d, 120d);
+            view.RoutePointerPressed(pointer, start, RawInputModifiers.LeftMouseButton, PointerUpdateKind.LeftButtonPressed);
+            view.RoutePointerMoved(pointer, end, RawInputModifiers.LeftMouseButton);
+            view.RoutePointerReleased(pointer, end, RawInputModifiers.None, PointerUpdateKind.LeftButtonReleased, MouseButton.Left);
+
+            await WaitForConditionAsync(
+                () => observedQualities.Contains(SurfaceChartInteractionQuality.Interactive)
+                    && observedQualities.Contains(SurfaceChartInteractionQuality.Refine)
+                    && observedQualities[^1] == SurfaceChartInteractionQuality.Refine,
+                "interaction diagnostics should report both the active and settled states.",
+                3.Seconds()).ConfigureAwait(true);
+        });
+    }
+
     private static double GetCenterX(SurfaceDataWindow dataWindow)
     {
         return dataWindow.StartX + (dataWindow.Width * 0.5d);

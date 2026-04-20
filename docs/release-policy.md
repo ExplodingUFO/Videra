@@ -34,6 +34,8 @@ The following entries are repository-first and are not part of the public packag
 
 They ship as source, documentation, and sample assets inside the repository.
 
+SurfaceCharts release truth stays on the source-first demo/docs/CI/support-summary path, not on a package asset line.
+
 ## Versioning
 
 - Current public baseline remains `alpha`.

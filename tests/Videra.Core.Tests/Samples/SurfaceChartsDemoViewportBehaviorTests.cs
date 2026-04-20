@@ -28,19 +28,21 @@ public sealed class SurfaceChartsDemoViewportBehaviorTests
             chartView.Source.Should().NotBeNull();
             window.FindControl<ComboBox>("ViewportSelector").Should().BeNull();
             chartView.ViewState.DataWindow.Should().Be(new SurfaceDataWindow(0d, 0d, chartView.Source!.Metadata.Width, chartView.Source.Metadata.Height));
-            statusText.Text.Should().Contain("Built-in navigation");
+            statusText.Text.Should().Contain("Start here: In-memory first chart");
+            statusText.Text.Should().Contain("source-first");
             interactionQualityText.Text.Should().Contain("Refine");
 
-            SelectItem(sourceSelector, GetComboBoxItemByContent(sourceSelector, "Cache-backed example"));
+            SelectItem(sourceSelector, GetComboBoxItemByContent(sourceSelector, "Explore next: Cache-backed streaming"));
 
             await WaitForConditionAsync(
                 () => chartView.Source is not null &&
-                      statusText.Text?.Contains("Cache-backed example", StringComparison.Ordinal) == true,
+                      statusText.Text?.Contains("Explore next: Cache-backed streaming", StringComparison.Ordinal) == true,
                 "switching sources should keep the built-in interaction workflow active on the new source.")
                 .ConfigureAwait(true);
 
             chartView.ViewState.DataWindow.Should().Be(new SurfaceDataWindow(0d, 0d, chartView.Source!.Metadata.Width, chartView.Source.Metadata.Height));
-            statusText.Text.Should().Contain("Cache-backed example");
+            statusText.Text.Should().Contain("Explore next: Cache-backed streaming");
+            statusText.Text.Should().Contain("Advanced follow-up");
             statusText.Text.Should().Contain("lazy");
         });
     }
@@ -111,7 +113,8 @@ public sealed class SurfaceChartsDemoViewportBehaviorTests
                 "the demo should project the built-in interaction contract into visible onboarding text.")
                 .ConfigureAwait(true);
 
-            statusText.Text.Should().Contain("Built-in navigation");
+            statusText.Text.Should().Contain("Start here: In-memory first chart");
+            statusText.Text.Should().Contain("first chart");
             statusText.Text.Should().Contain("Ctrl + Left drag");
             interactionQualityText.Text.Should().Contain("Interactive");
             interactionQualityText.Text.Should().Contain("Refine");
@@ -165,6 +168,80 @@ public sealed class SurfaceChartsDemoViewportBehaviorTests
             renderingPathText.Text.Should().Contain("Active backend");
             renderingPathText.Text.Should().Contain(chartView.RenderingStatus.ActiveBackend.ToString());
             renderingPathText.Text.Should().Contain("Resident tiles");
+        });
+    }
+
+    [Fact]
+    public Task DemoWindow_SupportSummaryProjectsSupportReadyChartTruth()
+    {
+        return AvaloniaHeadlessTestSession.RunAsync(async () =>
+        {
+            var window = new MainWindow();
+            var copySupportSummaryButton = window.FindControl<Button>("CopySupportSummaryButton")
+                ?? throw new InvalidOperationException("CopySupportSummaryButton is missing.");
+            var supportSummaryText = window.FindControl<TextBlock>("SupportSummaryText")
+                ?? throw new InvalidOperationException("SupportSummaryText is missing.");
+            var supportSummaryStatusText = window.FindControl<TextBlock>("SupportSummaryStatusText")
+                ?? throw new InvalidOperationException("SupportSummaryStatusText is missing.");
+
+            await WaitForConditionAsync(
+                () => !string.IsNullOrWhiteSpace(supportSummaryText.Text),
+                "the demo should project a support-ready chart summary into visible text.")
+                .ConfigureAwait(true);
+
+            ClickButton(copySupportSummaryButton);
+
+            await WaitForConditionAsync(
+                () => supportSummaryStatusText.Text?.Contains("Copied support summary to the clipboard.", StringComparison.Ordinal) == true ||
+                      supportSummaryStatusText.Text?.Contains("Clipboard is unavailable. The support summary remains visible below.", StringComparison.Ordinal) == true,
+                "the demo should give users a copy workflow for the support summary.")
+                .ConfigureAwait(true);
+
+            supportSummaryText.Text.Should().Contain("Source path:");
+            supportSummaryText.Text.Should().Contain("ViewState:");
+            supportSummaryText.Text.Should().Contain("InteractionQuality:");
+            supportSummaryText.Text.Should().Contain("RenderingStatus:");
+            supportSummaryText.Text.Should().Contain("OverlayOptions:");
+            supportSummaryText.Text.Should().Contain("Cache asset:");
+            supportSummaryText.Text.Should().Contain("Dataset:");
+            supportSummaryStatusText.Text.Should().MatchRegex("Copied support summary to the clipboard\\.|Clipboard is unavailable\\. The support summary remains visible below\\.");
+        });
+    }
+
+    [Fact]
+    public Task DemoWindow_CopySupportSummaryCapturesCurrentSourceAndViewState()
+    {
+        return AvaloniaHeadlessTestSession.RunAsync(async () =>
+        {
+            var window = new MainWindow();
+            var chartView = window.FindControl<SurfaceChartView>("ChartView")
+                ?? throw new InvalidOperationException("ChartView is missing.");
+            var sourceSelector = window.FindControl<ComboBox>("SourceSelector")
+                ?? throw new InvalidOperationException("SourceSelector is missing.");
+            var copySupportSummaryButton = window.FindControl<Button>("CopySupportSummaryButton")
+                ?? throw new InvalidOperationException("CopySupportSummaryButton is missing.");
+            var supportSummaryText = window.FindControl<TextBlock>("SupportSummaryText")
+                ?? throw new InvalidOperationException("SupportSummaryText is missing.");
+
+            SelectItem(sourceSelector, GetComboBoxItemByContent(sourceSelector, "Explore next: Cache-backed streaming"));
+
+            await WaitForConditionAsync(
+                () => chartView.Source is not null &&
+                      supportSummaryText.Text?.Contains("Explore next: Cache-backed streaming", StringComparison.Ordinal) == true,
+                "switching sources should project the new source path into the visible support summary.")
+                .ConfigureAwait(true);
+
+            chartView.ZoomTo(new SurfaceDataWindow(8d, 6d, 32d, 24d));
+            ClickButton(copySupportSummaryButton);
+
+            await WaitForConditionAsync(
+                () => supportSummaryText.Text?.Contains("Explore next: Cache-backed streaming", StringComparison.Ordinal) == true &&
+                      supportSummaryText.Text?.Contains("Width 32", StringComparison.Ordinal) == true,
+                "copying the support summary should refresh it from the current source and view state before export.")
+                .ConfigureAwait(true);
+
+            supportSummaryText.Text.Should().Contain("Explore next: Cache-backed streaming");
+            supportSummaryText.Text.Should().Contain("Width 32");
         });
     }
 

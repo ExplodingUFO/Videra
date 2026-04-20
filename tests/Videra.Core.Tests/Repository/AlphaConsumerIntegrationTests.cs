@@ -158,6 +158,15 @@ public sealed class AlphaConsumerIntegrationTests
         feedbackDoc.Should().Contain("XWayland");
         feedbackDoc.Should().Contain("compositor-native Wayland");
         feedbackDoc.Should().Contain("Videra.SurfaceCharts.*");
+        feedbackDoc.Should().Contain("Videra.SurfaceCharts.Demo");
+        feedbackDoc.Should().Contain("Start here: In-memory first chart");
+        feedbackDoc.Should().Contain("Explore next: Cache-backed streaming");
+        feedbackDoc.Should().Contain("Support summary");
+        feedbackDoc.Should().Contain("Copy support summary");
+        feedbackDoc.Should().Contain("InteractionQuality");
+        feedbackDoc.Should().Contain("RenderingStatus");
+        feedbackDoc.Should().Contain("ViewState");
+        feedbackDoc.Should().Contain("OverlayOptions");
 
         var bugForm = File.ReadAllText(bugFormPath);
         bugForm.Should().Contain("install_path");
@@ -167,6 +176,10 @@ public sealed class AlphaConsumerIntegrationTests
         bugForm.Should().Contain("VideraDiagnosticsSnapshotFormatter");
         bugForm.Should().Contain("Videra.MinimalSample");
         bugForm.Should().Contain("consumer smoke");
+        bugForm.Should().Contain("surfacecharts_support_summary");
+        bugForm.Should().Contain("SurfaceCharts support summary");
+        bugForm.Should().Contain("Start here: In-memory first chart");
+        bugForm.Should().Contain("continue to `Explore next: Cache-backed streaming` only if needed");
 
         var featureForm = File.ReadAllText(featureFormPath);
         featureForm.Should().Contain("consumer_path");
@@ -185,6 +198,13 @@ public sealed class AlphaConsumerIntegrationTests
         troubleshooting.Should().Contain("VideraDiagnosticsSnapshotFormatter");
         troubleshooting.Should().Contain("VideraInspectionBundleService");
         troubleshooting.Should().Contain("DisplayServerCompatibility");
+        troubleshooting.Should().Contain("Videra.SurfaceCharts.Demo");
+        troubleshooting.Should().Contain("Support summary");
+        troubleshooting.Should().Contain("Copy support summary");
+        troubleshooting.Should().Contain("RenderingStatus");
+        troubleshooting.Should().Contain("InteractionQuality");
+        troubleshooting.Should().Contain("ViewState");
+        troubleshooting.Should().Contain("OverlayOptions");
 
         var supportMatrix = File.ReadAllText(supportMatrixPath);
         supportMatrix.Should().Contain("alpha-feedback.md");
@@ -206,10 +226,17 @@ public sealed class AlphaConsumerIntegrationTests
         ciWorkflow.Should().Contain("Run sample runtime evidence");
         ciWorkflow.Should().Contain("ExtensibilitySampleConfigurationTests");
         ciWorkflow.Should().Contain("InteractionSampleConfigurationTests");
+        ciWorkflow.Should().Contain("Run SurfaceCharts sample evidence");
+        ciWorkflow.Should().Contain("SurfaceChartsDemoConfigurationTests");
+        ciWorkflow.Should().Contain("SurfaceChartsDemoViewportBehaviorTests");
         ciWorkflow.Should().Contain("VideraViewExtensibilityIntegrationTests");
         ciWorkflow.Should().Contain("VideraViewInteractionIntegrationTests");
         ciWorkflow.Should().Contain("VideraViewInspectionIntegrationTests");
         ciWorkflow.Should().Contain("VideraInspectionBundleIntegrationTests");
+        ciWorkflow.Should().Contain("Run SurfaceCharts runtime evidence");
+        ciWorkflow.Should().Contain("SurfaceChartViewViewStateTests");
+        ciWorkflow.Should().Contain("SurfaceChartInteractionTests");
+        ciWorkflow.Should().Contain("SurfaceChartViewGpuFallbackTests");
 
         releasing.Should().Contain("sample-contract-evidence");
         releasing.Should().Contain("Videra.ExtensibilitySample");
