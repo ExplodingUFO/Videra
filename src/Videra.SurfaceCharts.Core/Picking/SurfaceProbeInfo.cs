@@ -159,8 +159,8 @@ public readonly record struct SurfaceProbeInfo
         return new SurfaceProbeInfo(
             pickHit.SampleX,
             pickHit.SampleY,
-            MapAxis(metadata.HorizontalAxis, pickHit.SampleX, metadata.Width),
-            MapAxis(metadata.VerticalAxis, pickHit.SampleY, metadata.Height),
+            metadata.MapHorizontalCoordinate(pickHit.SampleX),
+            metadata.MapVerticalCoordinate(pickHit.SampleY),
             pickHit.Value,
             pickHit.IsApproximate,
             pickHit.WorldPosition,
@@ -180,26 +180,15 @@ public readonly record struct SurfaceProbeInfo
         return new SurfaceProbeInfo(
             probeRequest.SampleX,
             probeRequest.SampleY,
-            MapAxis(metadata.HorizontalAxis, probeRequest.SampleX, metadata.Width),
-            MapAxis(metadata.VerticalAxis, probeRequest.SampleY, metadata.Height),
+            metadata.MapHorizontalCoordinate(probeRequest.SampleX),
+            metadata.MapVerticalCoordinate(probeRequest.SampleY),
             value,
             isApproximate: tile.Bounds.Width != tile.Width || tile.Bounds.Height != tile.Height,
             worldPosition: new Vector3(
-                (float)MapAxis(metadata.HorizontalAxis, probeRequest.SampleX, metadata.Width),
+                (float)metadata.MapHorizontalCoordinate(probeRequest.SampleX),
                 (float)value,
-                (float)MapAxis(metadata.VerticalAxis, probeRequest.SampleY, metadata.Height)),
+                (float)metadata.MapVerticalCoordinate(probeRequest.SampleY)),
             tileKey: tile.Key,
             distanceToCamera: 0d);
-    }
-
-    private static double MapAxis(SurfaceAxisDescriptor axis, double sampleIndex, int sampleCount)
-    {
-        if (sampleCount <= 1 || axis.Maximum <= axis.Minimum)
-        {
-            return axis.Minimum;
-        }
-
-        var normalized = sampleIndex / (sampleCount - 1d);
-        return axis.Minimum + (axis.Span * normalized);
     }
 }

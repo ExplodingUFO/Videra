@@ -50,9 +50,9 @@ public sealed class SurfaceRenderer
 
                 vertices[vertexIndex] = new SurfaceRenderVertex(
                     new Vector3(
-                        (float)MapAxis(metadata.HorizontalAxis, sampleX, metadata.Width),
+                        (float)metadata.MapHorizontalCoordinate(sampleX),
                         value,
-                        (float)MapAxis(metadata.VerticalAxis, sampleY, metadata.Height)),
+                        (float)metadata.MapVerticalCoordinate(sampleY)),
                     colorMap.Map(value));
             }
         }
@@ -80,17 +80,6 @@ public sealed class SurfaceRenderer
         }
 
         return new SurfaceRenderScene(metadata, renderTiles);
-    }
-
-    private static double MapAxis(SurfaceAxisDescriptor axis, double sampleIndex, int sampleCount)
-    {
-        if (sampleCount <= 1 || axis.Maximum <= axis.Minimum)
-        {
-            return axis.Minimum;
-        }
-
-        var normalized = sampleIndex / (sampleCount - 1d);
-        return axis.Minimum + (axis.Span * normalized);
     }
 
     private static double MapTileSampleCoordinate(int start, int span, int sampleCount, int sampleIndex)

@@ -15,6 +15,21 @@ public sealed class SurfaceAxisDescriptor
     /// <exception cref="ArgumentException">Thrown when <paramref name="label"/> is blank or <paramref name="maximum"/> is less than <paramref name="minimum"/>.</exception>
     /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="minimum"/> or <paramref name="maximum"/> is not finite.</exception>
     public SurfaceAxisDescriptor(string label, string? unit, double minimum, double maximum)
+        : this(label, unit, minimum, maximum, SurfaceAxisScaleKind.Linear)
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="SurfaceAxisDescriptor"/> class.
+    /// </summary>
+    /// <param name="label">The axis label.</param>
+    /// <param name="unit">The optional unit for the axis.</param>
+    /// <param name="minimum">The inclusive axis minimum.</param>
+    /// <param name="maximum">The inclusive axis maximum.</param>
+    /// <param name="scaleKind">The axis scale semantics.</param>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="label"/> is blank or <paramref name="maximum"/> is less than <paramref name="minimum"/>.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="minimum"/> or <paramref name="maximum"/> is not finite.</exception>
+    public SurfaceAxisDescriptor(string label, string? unit, double minimum, double maximum, SurfaceAxisScaleKind scaleKind)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(label);
 
@@ -28,6 +43,16 @@ public sealed class SurfaceAxisDescriptor
             throw new ArgumentOutOfRangeException(nameof(maximum), "Axis maximum must be finite.");
         }
 
+        if (scaleKind == SurfaceAxisScaleKind.Log && minimum <= 0d)
+        {
+            throw new ArgumentOutOfRangeException(nameof(minimum), "Logarithmic axis minimum must be positive.");
+        }
+
+        if (scaleKind == SurfaceAxisScaleKind.Log && maximum <= 0d)
+        {
+            throw new ArgumentOutOfRangeException(nameof(maximum), "Logarithmic axis maximum must be positive.");
+        }
+
         if (maximum < minimum)
         {
             throw new ArgumentException("Axis maximum must be greater than or equal to axis minimum.", nameof(maximum));
@@ -37,6 +62,7 @@ public sealed class SurfaceAxisDescriptor
         Unit = unit;
         Minimum = minimum;
         Maximum = maximum;
+        ScaleKind = scaleKind;
     }
 
     /// <summary>
@@ -48,6 +74,11 @@ public sealed class SurfaceAxisDescriptor
     /// Gets the optional axis unit.
     /// </summary>
     public string? Unit { get; }
+
+    /// <summary>
+    /// Gets the axis scale semantics.
+    /// </summary>
+    public SurfaceAxisScaleKind ScaleKind { get; }
 
     /// <summary>
     /// Gets the inclusive minimum axis value.

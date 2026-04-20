@@ -271,13 +271,13 @@ public static class SurfaceHeightfieldPicker
         SurfacePickRay pickRay)
     {
         var min = new Vector3(
-            (float)MapAxis(metadata.HorizontalAxis, tile.Bounds.StartX, metadata.Width),
+            (float)metadata.MapHorizontalCoordinate(tile.Bounds.StartX),
             (float)tile.ValueRange.Minimum,
-            (float)MapAxis(metadata.VerticalAxis, tile.Bounds.StartY, metadata.Height));
+            (float)metadata.MapVerticalCoordinate(tile.Bounds.StartY));
         var max = new Vector3(
-            (float)MapAxis(metadata.HorizontalAxis, tile.Bounds.EndXExclusive - 1d, metadata.Width),
+            (float)metadata.MapHorizontalCoordinate(tile.Bounds.EndXExclusive - 1d),
             (float)tile.ValueRange.Maximum,
-            (float)MapAxis(metadata.VerticalAxis, tile.Bounds.EndYExclusive - 1d, metadata.Height));
+            (float)metadata.MapVerticalCoordinate(tile.Bounds.EndYExclusive - 1d));
 
         return IntersectsAxisAlignedBounds(pickRay, min, max);
     }
@@ -329,21 +329,10 @@ public static class SurfaceHeightfieldPicker
         var sampleY = MapTileSampleCoordinate(tile.Bounds.StartY, tile.Bounds.Height, tile.Height, row);
         var value = tile.Values.Span[(row * tile.Width) + column];
         var worldPosition = new Vector3(
-            (float)MapAxis(metadata.HorizontalAxis, sampleX, metadata.Width),
+            (float)metadata.MapHorizontalCoordinate(sampleX),
             value,
-            (float)MapAxis(metadata.VerticalAxis, sampleY, metadata.Height));
+            (float)metadata.MapVerticalCoordinate(sampleY));
         return new TileVertex(sampleX, sampleY, value, worldPosition);
-    }
-
-    private static double MapAxis(SurfaceAxisDescriptor axis, double sampleIndex, int sampleCount)
-    {
-        if (sampleCount <= 1 || axis.Maximum <= axis.Minimum)
-        {
-            return axis.Minimum;
-        }
-
-        var normalized = Math.Clamp(sampleIndex / (sampleCount - 1d), 0d, 1d);
-        return axis.Minimum + (axis.Span * normalized);
     }
 
     private static double MapTileSampleCoordinate(int start, int span, int sampleCount, int sampleIndex)

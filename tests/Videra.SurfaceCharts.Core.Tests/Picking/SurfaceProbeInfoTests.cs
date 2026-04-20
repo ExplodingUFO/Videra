@@ -73,6 +73,34 @@ public sealed class SurfaceProbeInfoTests
         probe.DistanceToCamera.Should().Be(48d);
     }
 
+    [Fact]
+    public void FromResolvedSample_UsesExplicitGridAxisCoordinates()
+    {
+        var metadata = new SurfaceMetadata(
+            new SurfaceExplicitGrid(
+                horizontalCoordinates: new double[] { 10d, 20d, 40d, 80d },
+                verticalCoordinates: new double[] { 100d, 130d, 190d }),
+            new SurfaceAxisDescriptor("Time", "s", 10d, 80d, SurfaceAxisScaleKind.ExplicitCoordinates),
+            new SurfaceAxisDescriptor("Frequency", "Hz", 100d, 190d, SurfaceAxisScaleKind.ExplicitCoordinates),
+            new SurfaceValueRange(-12d, 36d));
+        var tile = new SurfaceTile(
+            new SurfaceTileKey(0, 0, 0, 0),
+            width: 4,
+            height: 3,
+            new SurfaceTileBounds(0, 0, 4, 3),
+            new float[12],
+            new SurfaceValueRange(-12d, 36d));
+
+        var probe = SurfaceProbeInfo.FromResolvedSample(
+            metadata,
+            tile,
+            new SurfaceProbeRequest(2.5d, 1.5d),
+            value: 12.5d);
+
+        probe.AxisX.Should().BeApproximately(60d, 0.0001d);
+        probe.AxisY.Should().BeApproximately(160d, 0.0001d);
+    }
+
     private static SurfaceMetadata CreateMetadata()
     {
         return new SurfaceMetadata(

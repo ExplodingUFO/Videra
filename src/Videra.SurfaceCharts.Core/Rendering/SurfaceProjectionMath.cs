@@ -122,13 +122,13 @@ public static class SurfaceProjectionMath
         var maxSampleY = clampedWindow.Height <= 1d ? minSampleY : clampedWindow.StartY + clampedWindow.Height - 1d;
 
         var minimum = new Vector3(
-            (float)MapAxis(metadata.HorizontalAxis, minSampleX, metadata.Width),
+            (float)metadata.MapHorizontalCoordinate(minSampleX),
             (float)metadata.ValueRange.Minimum,
-            (float)MapAxis(metadata.VerticalAxis, minSampleY, metadata.Height));
+            (float)metadata.MapVerticalCoordinate(minSampleY));
         var maximum = new Vector3(
-            (float)MapAxis(metadata.HorizontalAxis, maxSampleX, metadata.Width),
+            (float)metadata.MapHorizontalCoordinate(maxSampleX),
             (float)metadata.ValueRange.Maximum,
-            (float)MapAxis(metadata.VerticalAxis, maxSampleY, metadata.Height));
+            (float)metadata.MapVerticalCoordinate(maxSampleY));
 
         return new SurfacePlotBounds(minimum, maximum);
     }
@@ -195,17 +195,6 @@ public static class SurfaceProjectionMath
 
         var pitchRotation = Quaternion.CreateFromAxisAngle(right, DegreesToRadians((float)pitchDegrees));
         return Vector3.Normalize(Vector3.Transform(yawed, pitchRotation));
-    }
-
-    private static double MapAxis(SurfaceAxisDescriptor axis, double sampleIndex, int sampleCount)
-    {
-        if (sampleCount <= 1 || axis.Maximum <= axis.Minimum)
-        {
-            return axis.Minimum;
-        }
-
-        var normalized = Math.Clamp(sampleIndex / (sampleCount - 1d), 0d, 1d);
-        return axis.Minimum + (axis.Span * normalized);
     }
 
     private static double GetBoundingRadius(SurfacePlotBounds plotBounds, Vector3 center)
