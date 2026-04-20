@@ -35,6 +35,8 @@ public sealed class SurfaceRenderer
 
         var geometry = geometryBuilder.Build(tile.Width, tile.Height);
         var sourceValues = tile.Values.Span;
+        var hasColorField = tile.ColorField is not null;
+        var colorValues = hasColorField ? tile.ColorField!.Values.Span : default;
         var vertices = new SurfaceRenderVertex[sourceValues.Length];
 
         for (var row = 0; row < tile.Height; row++)
@@ -42,7 +44,8 @@ public sealed class SurfaceRenderer
             for (var column = 0; column < tile.Width; column++)
             {
                 var vertexIndex = checked((row * tile.Width) + column);
-                var value = sourceValues[vertexIndex];
+                var heightValue = sourceValues[vertexIndex];
+                var colorValue = hasColorField ? colorValues[vertexIndex] : heightValue;
                 // Coarse LOD tiles can cover a wider source-space span than their value grid,
                 // so vertex placement must be distributed across the covered bounds.
                 var sampleX = MapTileSampleCoordinate(tile.Bounds.StartX, tile.Bounds.Width, tile.Width, column);
@@ -51,9 +54,9 @@ public sealed class SurfaceRenderer
                 vertices[vertexIndex] = new SurfaceRenderVertex(
                     new Vector3(
                         (float)metadata.MapHorizontalCoordinate(sampleX),
-                        value,
+                        heightValue,
                         (float)metadata.MapVerticalCoordinate(sampleY)),
-                    colorMap.Map(value));
+                    colorMap.Map(colorValue));
             }
         }
 

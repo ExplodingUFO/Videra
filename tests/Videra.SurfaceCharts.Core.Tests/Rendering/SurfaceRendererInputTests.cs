@@ -81,6 +81,35 @@ public class SurfaceRendererInputTests
     }
 
     [Fact]
+    public void BuildTile_UsesIndependentColorFieldWhenPresent()
+    {
+        var renderer = new SurfaceRenderer();
+        var metadata = CreateMetadata(width: 2, height: 2);
+        var colorMap = CreateColorMap();
+        var tile = new SurfaceTile(
+            new SurfaceTileKey(0, 0, 0, 0),
+            new SurfaceTileBounds(0, 0, 2, 2),
+            new SurfaceScalarField(
+                width: 2,
+                height: 2,
+                values: new float[] { 10f, 20f, 30f, 40f },
+                range: new SurfaceValueRange(10d, 40d)),
+            new SurfaceScalarField(
+                width: 2,
+                height: 2,
+                values: new float[] { 40f, 30f, 20f, 10f },
+                range: new SurfaceValueRange(10d, 40d)));
+
+        var renderTile = renderer.BuildTile(metadata, tile, colorMap);
+
+        renderTile.Vertices.Should().Equal(
+            new SurfaceRenderVertex(new Vector3(0f, 10f, 0f), 0xFFFFFFFFu),
+            new SurfaceRenderVertex(new Vector3(30f, 20f, 0f), 0xFFAAAAAAu),
+            new SurfaceRenderVertex(new Vector3(0f, 30f, 20f), 0xFF555555u),
+            new SurfaceRenderVertex(new Vector3(30f, 40f, 20f), 0xFF000000u));
+    }
+
+    [Fact]
     public void BuildTile_DoesNotAllowMutatingExposedVertices()
     {
         var renderer = new SurfaceRenderer();

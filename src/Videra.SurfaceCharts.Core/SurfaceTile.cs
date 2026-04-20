@@ -49,9 +49,47 @@ public sealed class SurfaceTile
         Width = width;
         Height = height;
         Bounds = bounds;
-        Values = values;
-        ValueRange = valueRange;
+        HeightField = new SurfaceScalarField(width, height, values, valueRange);
+        ColorField = null;
         Statistics = statistics ?? SurfaceTileStatistics.FromValues(values.Span, isExact: true);
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="SurfaceTile"/> class.
+    /// </summary>
+    /// <param name="key">The tile key.</param>
+    /// <param name="bounds">The inclusive-exclusive source-space sample bounds covered by the tile.</param>
+    /// <param name="heightField">The primary height field.</param>
+    /// <param name="colorField">The optional independent color field.</param>
+    /// <param name="statistics">Optional summary statistics for the covered source region.</param>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="bounds"/> cannot cover the declared tile grid or when <paramref name="colorField"/> does not match the height-field shape.</exception>
+    public SurfaceTile(
+        SurfaceTileKey key,
+        SurfaceTileBounds bounds,
+        SurfaceScalarField heightField,
+        SurfaceScalarField? colorField = null,
+        SurfaceTileStatistics? statistics = null)
+    {
+        ArgumentNullException.ThrowIfNull(heightField);
+
+        if (bounds.Width < heightField.Width || bounds.Height < heightField.Height)
+        {
+            throw new ArgumentException("Tile bounds must cover the declared tile shape.", nameof(bounds));
+        }
+
+        if (colorField is not null &&
+            (colorField.Width != heightField.Width || colorField.Height != heightField.Height))
+        {
+            throw new ArgumentException("Color-field shape must match the height-field shape.", nameof(colorField));
+        }
+
+        Key = key;
+        Width = heightField.Width;
+        Height = heightField.Height;
+        Bounds = bounds;
+        HeightField = heightField;
+        ColorField = colorField;
+        Statistics = statistics ?? SurfaceTileStatistics.FromValues(heightField.Values.Span, isExact: true);
     }
 
     /// <summary>
@@ -77,12 +115,22 @@ public sealed class SurfaceTile
     /// <summary>
     /// Gets the tile values in row-major order.
     /// </summary>
-    public ReadOnlyMemory<float> Values { get; }
+    public ReadOnlyMemory<float> Values => HeightField.Values;
 
     /// <summary>
     /// Gets the inclusive value range covered by the tile.
     /// </summary>
-    public SurfaceValueRange ValueRange { get; }
+    public SurfaceValueRange ValueRange => HeightField.Range;
+
+    /// <summary>
+    /// Gets the primary height field.
+    /// </summary>
+    public SurfaceScalarField HeightField { get; }
+
+    /// <summary>
+    /// Gets the optional independent color field.
+    /// </summary>
+    public SurfaceScalarField? ColorField { get; }
 
     /// <summary>
     /// Gets summary statistics for the covered source region.
