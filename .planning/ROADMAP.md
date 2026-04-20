@@ -2,57 +2,72 @@
 
 ## Active Milestone
 
-- `v1.17 修`
+- `v1.18 SurfaceCharts Analytics Core`
 - Status: `active`
-- Focus: restore the repo green line after benchmark compile drift, SurfaceCharts warnings-as-errors failures, and the Linux `XWayland` consumer-smoke regression surfaced by the post-`v1.16` CI run
+- Focus: upgrade `SurfaceCharts` from a source-first surface control into a professional surface analytics core through generalized geometry/scalar contracts, targeted GPU/residency fast paths, and benchmark evidence for the new hotspots
 
-### Phase 91: Benchmark Compile Closure
+### Phase 95: Surface Geometry Grid and Axis Scale Contracts
 
-**Goal:** repair the benchmark sources so repo-wide `verify` and matching-host native validation stop failing before platform-specific checks even begin.
-**Depends on:** `v1.16` complete locally
-**Plans:** 3 planned
-
-Plans:
-
-- [x] 91-01: replace invalid static-type instantiation in viewer benchmarks with legal call patterns or narrow wrappers
-- [x] 91-02: prove the shared `verify` prelude no longer fails on benchmark compile drift
-- [x] 91-03: align any benchmark-targeted support code/tests with the repaired viewer runtime usage
-
-### Phase 92: SurfaceCharts Warnings-as-Errors Closure
-
-**Goal:** clear the current SurfaceCharts analyzer failures on the repo-facing quality gate without relaxing the active rule set.
-**Depends on:** Phase 91
-**Plans:** 3 planned
+**Goal:** introduce generalized surface geometry and axis-scale contracts so `SurfaceCharts` is no longer locked to index-linear regular height fields.
+**Depends on:** `v1.17` repair baseline merged on `master`
+**Plans:** 4 planned
 
 Plans:
 
-- [x] 92-01: remove the current `CA2007` / `S3267` / `S2325` / `S4200` failures in `Videra.SurfaceCharts.Processing` and `Videra.SurfaceCharts.Avalonia`
-- [x] 92-02: keep the existing analyzer policy intact instead of suppressing or downgrading the rules
-- [x] 92-03: prove both direct project builds and the `Videra.Core.Tests` warnings-as-errors evidence path pass
+- [x] 95-01: define `SurfaceGeometryGrid` with `RegularGrid` and `ExplicitGrid` shapes that can represent non-uniform coordinates without flattening them into sample indices
+- [x] 95-02: add `SurfaceAxisScale` semantics for `Linear`, `DateTime`, and explicit-coordinate axes while preserving existing label/unit contracts; keep `Log` reserved until display-space separation exists
+- [x] 95-03: keep `SurfaceMatrix` as the regular-grid convenience type rather than the only first-class surface contract
+- [x] 95-04: prove camera-fit and probe math can consume the new geometry/axis abstractions without regressing the existing regular-grid story
 
-### Phase 93: Linux XWayland Consumer Smoke Stabilization
+Notes:
 
-**Goal:** make the Linux `XWayland` consumer smoke path finish with a completed result artifact and actionable diagnostics instead of a silent early exit.
-**Depends on:** Phase 92
-**Plans:** 3 planned
+- `Log` remains a reserved scale kind for future display-space work; constructor-level rejection now prevents the misleading exponential-world-space behavior from escaping into render/probe paths.
+- surface-cache v1 still serializes only regular linear metadata, so writer-side guards now reject explicit-grid and non-linear-axis metadata instead of silently degrading it.
 
-Plans:
+### Phase 96: Scalar Field and Missing-Data Promotion
 
-- [x] 93-01: isolate why the smoke app exits after `LoadModelAsync starting` on the `XWayland` path
-- [x] 93-02: make the smoke artifact set always include enough result/trace context to explain failures
-- [ ] 93-03: validate reference-model load, ready-backend state, and snapshot/bundle export under `XWayland`
-
-### Phase 94: Green-Line Revalidation and Transition
-
-**Goal:** rerun the previously red checks and record one repaired baseline for the next milestone decision.
-**Depends on:** Phase 93
-**Plans:** 3 planned
+**Goal:** separate analytic scalar semantics from geometry so height, color, and missing-data truth can evolve independently.
+**Depends on:** Phase 95
+**Plans:** 4 planned
 
 Plans:
 
-- [ ] 94-01: rerun `verify`, targeted native validation, and quality-gate evidence against the repaired sources
-- [ ] 94-02: rerun Linux `XWayland` consumer smoke and confirm the repaired artifact story
-- [ ] 94-03: update planning/support truth from a red baseline to a repaired baseline and prepare the next closeout handoff
+- [ ] 96-01: introduce explicit `HeightField` and optional `ColorField` contracts so color is no longer implicitly bound to `z`
+- [ ] 96-02: model masks, holes, and `NaN` regions as first-class data semantics instead of renderer-only fallbacks
+- [ ] 96-03: thread the new scalar/mask contracts through chart-local render inputs, probes, and overlays without widening `VideraView`
+- [ ] 96-04: preserve the current source-first adoption path for regular-grid callers while opening the contract for richer analytics payloads
+
+### Phase 97: Rendering Fast Paths and Residency Tightening
+
+**Goal:** land the highest-value implementation upgrades so the generalized analytics contracts do not come with avoidable recolor, shading, or residency cost.
+**Depends on:** Phase 96
+**Plans:** 4 planned
+
+Plans:
+
+- [ ] 97-01: move palette changes onto a shader/LUT recolor path so resident geometry does not rebuild on every colormap change
+- [ ] 97-02: replace placeholder normals with local-gradient or central-difference normals, including seam-safe handling across tile boundaries
+- [ ] 97-03: split data ownership from render residency so resident tiles stop unconditionally copying source values through `ToArray()`
+- [ ] 97-04: validate the fast-path changes against the existing chart-local GPU-first plus software-fallback rendering contract
+
+### Phase 98: Analytics Benchmark Expansion and Milestone Truth
+
+**Goal:** measure the new hotspots and lock the milestone story so later probe/contour/slice work starts from evidence rather than guesswork.
+**Depends on:** Phase 97
+**Plans:** 5 planned
+
+Plans:
+
+- [ ] 98-01: add benchmark coverage for resident-tile recolor and interactive orbit frame cost
+- [ ] 98-02: add benchmark coverage for probe latency and tile residency churn under camera movement
+- [ ] 98-03: add benchmark coverage for cache-miss burst behavior and native-host resize/rebind cost
+- [ ] 98-04: record a defensible baseline that can later become threshold candidates without pretending the repo already has hard numeric benchmark gates
+- [ ] 98-05: align planning/docs truth around `v1.18` as analytics-core deepening while explicitly deferring generic `Chart3D`, package expansion, and new backend work
+
+## Operational Baseline
+
+- `v1.17` repair work is merged on `master`; the benchmark compile, SurfaceCharts analyzer, and Linux `XWayland` smoke regressions no longer define the active milestone
+- the latest fully archived milestone remains `v1.16 SurfaceCharts Adoption Surface`
 
 ## Recently Shipped
 
