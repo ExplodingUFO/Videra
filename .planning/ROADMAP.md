@@ -32,8 +32,8 @@ Notes:
 
 Plans:
 
-- [ ] 96-01: introduce explicit `HeightField` and optional `ColorField` contracts so color is no longer implicitly bound to `z`
-- [ ] 96-02: model masks, holes, and `NaN` regions as first-class data semantics instead of renderer-only fallbacks
+- [x] 96-01: introduce explicit `HeightField` and optional `ColorField` contracts so color is no longer implicitly bound to `z`
+- [x] 96-02: model masks, holes, and `NaN` regions as first-class data semantics instead of renderer-only fallbacks
 - [ ] 96-03: thread the new scalar/mask contracts through chart-local render inputs, probes, and overlays without widening `VideraView`
 - [ ] 96-04: preserve the current source-first adoption path for regular-grid callers while opening the contract for richer analytics payloads
 

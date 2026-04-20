@@ -12,10 +12,10 @@ See: `.planning/PROJECT.md` (updated 2026-04-20)
 Milestone: `v1.18 SurfaceCharts Analytics Core`
 Phase: `96 Scalar Field and Missing-Data Promotion`
 Plan: `introduce explicit HeightField / ColorField / mask contracts without breaking the regular-grid source-first path`
-Status: `Phase 95 geometry/axis contract work is complete in code and verified; conservative guards now defer unsupported log-axis and cache serialization cases instead of silently misrepresenting them`
-Last activity: `2026-04-20` — completed Phase 95 generalized grid/axis integration, then closed reviewer findings by rejecting unsupported log-axis and non-serializable cache metadata combinations`
+Status: `Phase 96 core scalar-field and missing-data contracts are now in code and verified; HeightField/ColorField separation plus first-class mask/NaN semantics are in place, including reduction/value-range propagation through pyramid and tile-source paths`
+Last activity: `2026-04-20` — completed Phase 96 core contract slices for explicit HeightField/ColorField separation and first-class mask/NaN propagation, then closed spec/code-review findings around legacy tile constructors and masked reduction consistency`
 
-Progress: `[██□□□□□□] 3/11 requirements complete; Phase 96 scalar-field separation is next`
+Progress: `[████□□□□] 5/11 requirements complete; Phase 96 chart-local scalar/mask threading is next`
 
 ## Performance Metrics
 
