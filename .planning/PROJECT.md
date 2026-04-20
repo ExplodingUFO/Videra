@@ -4,7 +4,7 @@
 
 Videra 是一个基于 `.NET 8` 的跨平台 3D 渲染引擎，提供 Windows (`D3D11`)、Linux (`Vulkan`)、macOS (`Metal`) 三个平台后端，包含软件渲染回退、viewer 宿主桥接和可扩展 render pipeline。
 
-仓库同时维护与 `VideraView` 独立的 surface-chart 模块家族，用于离线大矩阵、曲面图和时频图一类可视化场景。viewer 主线在 `v1.5-v1.13` 已经完成壳层瘦身、scene truth、backend rehydration 基线、scene realisation / residency / upload closure、event-driven dirty、shared mesh payload、queue-aware upload budgeting、scene telemetry / benchmark evidence / coordinator cleanup、alpha consumer happy path / smoke / feedback surfaces / diagnostics snapshot productization、viewer-first inspection workflow，以及 inspection fidelity 深化；`v1.16` 把 `SurfaceCharts` 收成了 source-first adoption surface，而随后 repair baseline 已回到 `master`。当前最高优先级是把 `SurfaceCharts` 从“做得不错的 surface 控件”推进成“专业的 surface analytics 库”：先升级数据/坐标/标量契约，再收口真正值钱的 render fast path 和 benchmark evidence，而不是提前扩成泛化 `Chart3D`、新 backend 计划或沉重的 package matrix。
+仓库同时维护与 `VideraView` 独立的 surface-chart 模块家族，用于离线大矩阵、曲面图和时频图一类可视化场景。viewer 主线在 `v1.5-v1.13` 已经完成壳层瘦身、scene truth、backend rehydration 基线、scene realisation / residency / upload closure、event-driven dirty、shared mesh payload、queue-aware upload budgeting、scene telemetry / benchmark evidence / coordinator cleanup、alpha consumer happy path / smoke / feedback surfaces / diagnostics snapshot productization、viewer-first inspection workflow，以及 inspection fidelity 深化；`v1.16` 把 `SurfaceCharts` 收成了 source-first adoption surface，而随后 repair baseline 已回到 `master`。当前最高优先级是把 `SurfaceCharts` 从“做得不错的 surface 控件”推进成“专业的 surface analytics 库”：先升级数据/坐标/标量契约，再收口真正值钱的 render fast path 和 benchmark hotspot evidence，而不是提前扩成泛化 `Chart3D`、新的 backend 计划或 public package expansion。
 
 ## Core Value
 
@@ -15,24 +15,24 @@ Videra 是一个基于 `.NET 8` 的跨平台 3D 渲染引擎，提供 Windows (`
 - 最新完整归档 milestone：`v1.16 SurfaceCharts Adoption Surface`
 - `v1.17` repair work 已合并进 `master`，repo 不再被 benchmark compile drift、SurfaceCharts warnings-as-errors、或 Linux `XWayland` smoke 回归锁死
 - 当前 active milestone：`v1.18 SurfaceCharts Analytics Core`
-- 当前 focus：把 `SurfaceCharts` 的一等契约升级到专业分析库级别，先做通用 geometry/axis/scalar model、GPU recolor/normals/residency fast path、以及新的 benchmark baseline
+- 当前 focus：把 `SurfaceCharts` 的一等契约升级到专业分析库级别，先做通用 geometry/axis/scalar model、GPU recolor/normals/residency fast path、以及 recolor / orbit / probe latency / residency churn / cache-miss burst / resize-rebind 这类热点 benchmark baseline（label-gated）
 
 ## Next Milestone Goals
 
 - 把 surface 一等数据模型从“规则矩形高度场”升级为支持 `RegularGrid` / `ExplicitGrid`、`SurfaceAxisScale`、以及独立 scalar fields 的通用契约
 - 把 `HeightField` 与 `ColorField` 解耦，并把 mask / hole / `NaN` 缺测语义提升成一等数据语义
 - 把调色板切换、法线生成和 resident tile 持有路径改成更专业的 GPU/LUT 与低拷贝 fast path
-- 补齐 `recolor` / `orbit` / `probe latency` / `residency churn` / `cache miss burst` / `resize+rebind` 这类真正能指导后续分析特性的 benchmark baseline
+- 补齐 `recolor` / `orbit` / `probe latency` / `residency churn` / `cache-miss burst` / `resize-rebind` 这类真正能指导后续分析特性的 benchmark hotspot baseline（label-gated 审核）
 
 ## Current Milestone: v1.18 SurfaceCharts Analytics Core
 
-**Goal:** 把 `SurfaceCharts` 从 source-first surface control 推进成专业 surface analytics core：优先升级 geometry/axis/scalar contracts，再落 shader/LUT recolor、proper normals、以及 low-copy residency 这类高杠杆实现基础。
+**Goal:** 把 `SurfaceCharts` 从 source-first surface control 推进成专业 surface analytics core：优先升级 geometry/axis/scalar contracts，再落 shader/LUT recolor、proper normals、以及 low-copy residency 这类高杠杆实现基础，并以 label-gated 热点证据替代硬性阈值作为 milestone 收口条件。
 
 **Target features:**
 - generalized surface geometry contracts through `RegularGrid` / `ExplicitGrid` while keeping `SurfaceMatrix` as a convenience type
 - axis-scale and scalar-field contracts that support non-uniform coordinates, `DateTime`/`TimeSpan`-style axes, independent `HeightField` / `ColorField`, and first-class missing-data semantics
 - render fast paths for shader/LUT recolor, seam-safe derived normals, and lower-copy tile residency
-- analytics benchmark evidence for recolor/orbit/probe/churn/cache-miss/resize hotspots without widening into generic `Chart3D`
+- analytics benchmark evidence for `recolor` / `orbit` / `probe` / `churn` / `cache-miss` / `resize-rebind` hotspots without widening into generic `Chart3D`
 
 ## Latest Completed Milestone: v1.16 SurfaceCharts Adoption Surface
 
@@ -189,7 +189,7 @@ Videra 是一个基于 `.NET 8` 的跨平台 3D 渲染引擎，提供 Windows (`
 - [ ] Generalize the surface data contract beyond regular index-linear height matrices so non-uniform grids and richer axis semantics become first-class.
 - [ ] Separate `HeightField` from `ColorField`, and model masks / holes / `NaN` regions as explicit data semantics rather than renderer-only special cases.
 - [ ] Move recolor, shading normals, and tile residency onto targeted fast paths that cut unnecessary rebuilds and copies.
-- [ ] Establish benchmark evidence for recolor/orbit/probe/churn/cache-miss/resize hotspots before opening the next analytics feature wave.
+- [ ] Establish benchmark evidence for recolor/orbit/probe/churn/cache-miss/resize-rebind hotspots before opening the next analytics feature wave.
 
 ### Out of Scope
 
@@ -217,7 +217,7 @@ Videra 是一个基于 `.NET 8` 的跨平台 3D 渲染引擎，提供 Windows (`
 - The first-class surface model still assumes a regular rectangular height field with index-linear axis mapping, which blocks non-uniform grids, richer axis semantics, and later mesh/slice/contour work.
 - Color semantics are still too tightly coupled to `z`, so professional scenarios where geometry and analytic intensity differ cannot land cleanly.
 - Surface shading and residency still leave high-value performance/quality wins on the table through placeholder normals and unnecessary resident-tile copying.
-- The current benchmark suite covers important infrastructure paths, but it still underspecifies the interactive analytics hotspots that should drive the next feature wave.
+- Current chart benchmark coverage still needs the recolor/orbit/probe/churn/cache-miss/resize-rebind hotspot lane to be fully landed before the next analytics feature wave is opened.
 
 ## Constraints
 
@@ -256,7 +256,7 @@ Videra 是一个基于 `.NET 8` 的跨平台 3D 渲染引擎，提供 Windows (`
 | Start `v1.16` with `SurfaceCharts` adoption instead of another viewer-only cleanup loop | The highest-value unanswered question is now whether the chart stack can become a credible source-first product surface for external consumers | completed in `v1.16` |
 | Keep `v1.16` SurfaceCharts release truth on demo/docs/CI/support-summary evidence instead of package assets | The milestone goal is adoption proof and supportability, not an accidental public package promise | completed in `v1.16` |
 | Start `v1.17` as a repair milestone instead of opening another product-surface thread immediately | The latest CI evidence said the trust gap was benchmark compile drift, SurfaceCharts analyzer debt, and Linux `XWayland` smoke stability, so restoring the green line outranked another new feature push | merged on `master`; archive pending |
-| Start `v1.18` with data/coordinate/scalar contract depth instead of `OpenGL`, generic `Chart3D`, or immediate feature sprawl | The highest-value next step is turning `SurfaceCharts` into a professional analytics core; generalized contracts unlock contour, probe, slice, and future series work without premature scene abstraction | active in `v1.18` |
+| Start `v1.18` with data/coordinate/scalar contract depth instead of `OpenGL`, public package expansion, generic `Chart3D`, or immediate feature sprawl | The highest-value next step is turning `SurfaceCharts` into a professional analytics core; generalized contracts unlock contour, probe, slice, and future series work without premature scene abstraction | active in `v1.18` |
 
 ## Evolution
 

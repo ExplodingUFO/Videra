@@ -5,7 +5,7 @@
 See: `.planning/PROJECT.md` (updated 2026-04-20)
 
 **Core value:** 跨平台 3D 渲染引擎的可靠性
-**Current focus:** `v1.18 SurfaceCharts Analytics Core` — generalized geometry/axis/scalar contracts, render fast paths, and analytics benchmark evidence
+**Current focus:** `v1.18 SurfaceCharts Analytics Core` — generalized geometry/axis/scalar contracts, render fast paths, and label-gated analytics benchmark evidence for recolor/orbit/probe/churn/cache-miss/resize-rebind
 
 ## Current Position
 
@@ -43,12 +43,12 @@ Progress: `[█████████] 10/11 requirements complete; Phase 98 b
 - `v1.14`: compatibility hardening beat `OpenGL` expansion; the immediate alpha risk was support truth, package-consumer evidence, backend contract drift, and quality-gate ambiguity.
 - `v1.14`: packaged consumer quality gates must validate the real local-feed package path, not a raw smoke-project build against stale assumptions.
 - `v1.17`: the repair line is now merged on `master`, so benchmark compile drift, SurfaceCharts analyzer debt, and Linux `XWayland` smoke no longer block the next milestone.
-- `v1.18`: `SurfaceCharts` should get deeper before it gets wider; generalized data/axis/scalar contracts outrank generic `Chart3D`, public package expansion, or new backend work.
+- `v1.18`: `SurfaceCharts` should get deeper before it gets wider; generalized data/axis/scalar contracts outrank generic `Chart3D`, public package expansion, and OpenGL/backend expansion.
 
 ### Pending Todos
 
-- Add the new analytics benchmarks before scheduling interpolated probe, contour, slice, or extra 3D series work.
-- Capture descriptor-churn and native resize/rebind evidence strongly enough that selected analytics benchmarks can later graduate into hard thresholds.
+- Add recolor/orbit/probe/churn/cache-miss/resize-rebind benchmark coverage before scheduling interpolated probe, contour, slice, or extra 3D series work.
+- Capture label-gated defect evidence for residency churn and resize/rebind behavior strongly enough that these hotspots can be reviewed before any hard threshold claims.
 
 ### Blockers/Concerns
 
@@ -56,7 +56,7 @@ Progress: `[█████████] 10/11 requirements complete; Phase 98 b
 - surface-cache manifest v1 cannot yet represent explicit-grid or non-linear-axis metadata, so cache v2 or richer DTOs remain future work once scalar contracts settle.
 - Vulkan still carries a finite per-pipeline scalar descriptor cache budget; the current branch reserves the shared descriptor plus the intended cache headroom, but high-residency churn should be exercised explicitly before considering that story closed.
 - low-copy residency now assumes `SurfaceTile` instances are immutable snapshots; callers must publish a new tile object instead of mutating height/color memory in place.
-- Existing chart benchmarks do not yet measure the interactive hotspots that should drive the next feature wave.
+- Existing chart benchmarks do not yet measure the recolor/orbit/probe/churn/cache-miss/resize-rebind hotspot lane that should drive the next feature wave.
 - `.planning/phases/` still contains accumulated historical phase directories; they are being retained as local execution history rather than cleared during this milestone initialization.
 
 ## Deferred Items

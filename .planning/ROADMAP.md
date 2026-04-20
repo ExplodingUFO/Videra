@@ -4,7 +4,7 @@
 
 - `v1.18 SurfaceCharts Analytics Core`
 - Status: `active`
-- Focus: upgrade `SurfaceCharts` from a source-first surface control into a professional surface analytics core through generalized geometry/scalar contracts, targeted GPU/residency fast paths, and benchmark evidence for the new hotspots
+- Focus: upgrade `SurfaceCharts` from a source-first surface control into a professional surface analytics core through generalized geometry/scalar contracts, targeted GPU/residency fast paths, and label-gated benchmark coverage for recolor/orbit/probe/churn/cache-miss/resize-rebind hotspots
 
 ### Phase 95: Surface Geometry Grid and Axis Scale Contracts
 
@@ -66,17 +66,17 @@ Notes:
 
 ### Phase 98: Analytics Benchmark Expansion and Milestone Truth
 
-**Goal:** measure the new hotspots and lock the milestone story so later probe/contour/slice work starts from evidence rather than guesswork.
+**Goal:** measure the new benchmark hotspots (`recolor` / `orbit` / `probe` / `churn` / `cache-miss` / `resize-rebind`) and lock the milestone story so later probe/contour/slice work starts from evidence rather than guesswork.
 **Depends on:** Phase 97
 **Plans:** 5 planned
 
 Plans:
 
-- [ ] 98-01: add benchmark coverage for resident-tile recolor and interactive orbit frame cost
-- [ ] 98-02: add benchmark coverage for probe latency and tile residency churn under camera movement
+- [ ] 98-01: add benchmark coverage for recolor and orbit hot-path cost in resident chart interactions
+- [ ] 98-02: add benchmark coverage for probe latency and tile residency churn under interactive camera motion
 - [ ] 98-03: add benchmark coverage for cache-miss burst behavior and native-host resize/rebind cost
-- [ ] 98-04: record a defensible baseline that can later become threshold candidates without pretending the repo already has hard numeric benchmark gates
-- [ ] 98-05: align planning/docs truth around `v1.18` as analytics-core deepening while explicitly deferring generic `Chart3D`, package expansion, and new backend work
+- [ ] 98-04: record a defensible, label-gated baseline that can later become threshold candidates when trend history is stable
+- [ ] 98-05: align planning/docs truth around `v1.18` as analytics-core deepening while explicitly deferring generic `Chart3D`, public package expansion, and new backend/OpenGL work
 
 ## Operational Baseline
 
