@@ -13,15 +13,25 @@ Videra 是一个基于 `.NET 8` 的跨平台 3D 渲染引擎，提供 Windows (`
 ## Current State
 
 - 最新完整归档 milestone：`v1.18 SurfaceCharts Analytics Core`
-- `v1.17` repair work 与 `v1.18` analytics-core deepening 都已合并进 `master`，repo 当前没有进行中的 milestone
-- 当前 focus：消化 `v1.18` 的 carry-forward debt，并定义下一轮 analytics 能力扩展，而不是继续在未定义 milestone 下直接开新 phase
+- 当前 active milestone：`v1.19 SurfaceCharts Presentation Space and Interaction Defaults`
+- 当前 focus：先修正 `SurfaceCharts.Demo` 的首屏观感、value 轴可读性和默认交互语义，把 chart 从“能显示”推进到“默认就讲得清楚”
 
 ## Next Milestone Candidates
 
-- 在现有 generalized grid / scalar contract 之上补 `interpolated probe` 与 probe confidence semantics
-- 基于已经到位的标量/法线/benchmark 基线补 contour、wireframe、axis-aligned slice 与 arbitrary profile
-- 在不回退 `v1.18` 深度优先策略的前提下，评估 `WaterfallSeries3D` 是否成为第二个值得抽共享 scene contract 的 concrete series
+- 在 `v1.19` 收口后，再补 `interpolated probe` 与 probe confidence semantics
+- 在 display-space 与 overlay defaults 稳住后，再补 contour、wireframe、axis-aligned slice 与 arbitrary profile
+- 在不回退 surface-depth-first 策略的前提下，评估 `WaterfallSeries3D` 是否成为第二个值得抽共享 scene contract 的 concrete series
 - 只在 analytics roadmap 真的暴露后端覆盖缺口时，才重新评估 `OpenGL` 或 compositor-native Wayland
+
+## Current Milestone: v1.19 SurfaceCharts Presentation Space and Interaction Defaults
+
+**Goal:** 把 `SurfaceCharts` 的默认展示和交互语义从“技术上可用”提升到“首屏就清楚、比例更专业、手势方向符合预期”：引入 display-space / presentation transform，强化 value 轴与 overlay 默认表达，并把当前“反转版” X/Y 操作逻辑提升成正式默认 preset。
+
+**Target features:**
+- a display-space transform that can rebalance wide-strip datasets and add value exaggeration without mutating raw data, probe truth, or scalar semantics
+- chart-local overlay defaults that make the value axis and grid plane more legible by default, with semantic axis-role formatting instead of raw `"X"` / `"Y"` / `"Z"` labels only
+- public interaction presets that make orbit/pan direction configurable and promote the current reversed X/Y behavior to the new default while keeping a legacy path
+- a refreshed `SurfaceCharts.Demo` and source-first docs/support truth that visibly prove the new defaults on the canonical first-chart story
 
 ## Latest Completed Milestone: v1.18 SurfaceCharts Analytics Core
 
@@ -262,6 +272,7 @@ Videra 是一个基于 `.NET 8` 的跨平台 3D 渲染引擎，提供 Windows (`
 | Keep `v1.16` SurfaceCharts release truth on demo/docs/CI/support-summary evidence instead of package assets | The milestone goal is adoption proof and supportability, not an accidental public package promise | completed in `v1.16` |
 | Start `v1.17` as a repair milestone instead of opening another product-surface thread immediately | The latest CI evidence said the trust gap was benchmark compile drift, SurfaceCharts analyzer debt, and Linux `XWayland` smoke stability, so restoring the green line outranked another new feature push | merged on `master`; archive pending |
 | Start `v1.18` with data/coordinate/scalar contract depth instead of `OpenGL`, public package expansion, generic `Chart3D`, or immediate feature sprawl | The highest-value next step is turning `SurfaceCharts` into a professional analytics core; generalized contracts unlock contour, probe, slice, and future series work without premature scene abstraction | completed in `v1.18` |
+| Start `v1.19` with presentation-space and interaction-default work instead of jumping straight to contour/probe or second-series expansion | The current highest-value gap is not deeper analytics math but that the default chart does not yet present those semantics clearly; display-space separation also unlocks later log-axis and preset work | active in `v1.19` |
 
 ## Evolution
 
@@ -304,4 +315,4 @@ This document evolves at phase transitions and milestone boundaries.
 - Retrospective: `.planning/RETROSPECTIVE.md`
 
 ---
-*Last updated: 2026-04-20 after archiving the v1.18 SurfaceCharts Analytics Core milestone*
+*Last updated: 2026-04-20 after starting the v1.19 SurfaceCharts Presentation Space and Interaction Defaults milestone*
