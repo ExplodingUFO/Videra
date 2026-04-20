@@ -170,7 +170,7 @@ public sealed class AlphaConsumerIntegrationTests
         docs.Should().Contain("Run-Benchmarks.ps1");
         docs.Should().Contain("viewer");
         docs.Should().Contain("surfacecharts");
-        docs.Should().Contain("compare runs over time");
+        docs.ToLowerInvariant().Should().Contain("compare runs over time");
         docs.Should().Contain("trend");
 
         docsIndex.Should().Contain("benchmark-gates.md");
