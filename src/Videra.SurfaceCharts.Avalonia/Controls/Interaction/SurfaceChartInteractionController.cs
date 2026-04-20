@@ -111,7 +111,7 @@ internal sealed class SurfaceChartInteractionController
         return new SurfaceChartPointerReleaseResult(handled, shouldTogglePin);
     }
 
-    public bool HandlePointerWheelChanged(
+    public static bool HandlePointerWheelChanged(
         Vector delta,
         SurfaceChartRuntime runtime,
         SurfaceProbeInfo? hoveredProbe)

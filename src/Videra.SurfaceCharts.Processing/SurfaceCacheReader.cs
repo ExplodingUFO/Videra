@@ -137,8 +137,11 @@ public sealed class SurfaceCacheReader
             return null;
         }
 
-        await using var session = CreatePayloadSession();
-        return await session.LoadTileAsync(tileKey, cancellationToken).ConfigureAwait(false);
+        var session = CreatePayloadSession();
+        await using (session.ConfigureAwait(false))
+        {
+            return await session.LoadTileAsync(tileKey, cancellationToken).ConfigureAwait(false);
+        }
     }
 
     /// <summary>
@@ -157,23 +160,18 @@ public sealed class SurfaceCacheReader
             return Array.Empty<SurfaceTile?>();
         }
 
-        var hasCachedTile = false;
-        foreach (var tileKey in tileKeys)
-        {
-            if (entriesByKey.ContainsKey(tileKey))
-            {
-                hasCachedTile = true;
-                break;
-            }
-        }
+        var hasCachedTile = tileKeys.Any(entriesByKey.ContainsKey);
 
         if (!hasCachedTile)
         {
             return new SurfaceTile?[tileKeys.Count];
         }
 
-        await using var session = CreatePayloadSession();
-        return await session.LoadTilesAsync(tileKeys, cancellationToken).ConfigureAwait(false);
+        var session = CreatePayloadSession();
+        await using (session.ConfigureAwait(false))
+        {
+            return await session.LoadTilesAsync(tileKeys, cancellationToken).ConfigureAwait(false);
+        }
     }
 
     internal bool ContainsTile(SurfaceTileKey tileKey)

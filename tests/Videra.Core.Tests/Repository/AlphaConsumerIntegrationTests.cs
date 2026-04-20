@@ -93,6 +93,21 @@ public sealed class AlphaConsumerIntegrationTests
     }
 
     [Fact]
+    public void ConsumerSmokeWindow_ShouldAvoidLayoutDrivenViewportResizesDuringStatusUpdates()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var smokeWindowXaml = File.ReadAllText(Path.Combine(repositoryRoot, "smoke", "Videra.ConsumerSmoke", "Views", "MainWindow.axaml"));
+        var smokeWindowCodeBehind = File.ReadAllText(Path.Combine(repositoryRoot, "smoke", "Videra.ConsumerSmoke", "Views", "MainWindow.axaml.cs"));
+
+        smokeWindowXaml.Should().Contain("TextWrapping=\"NoWrap\"");
+        smokeWindowXaml.Should().Contain("TextTrimming=\"CharacterEllipsis\"");
+        smokeWindowXaml.Should().NotContain("TextWrapping=\"Wrap\"");
+        smokeWindowCodeBehind.Should().Contain("_executionStarted");
+        smokeWindowCodeBehind.Should().Contain("ResolvedDisplayServer=");
+        smokeWindowCodeBehind.Should().NotContain("DisplayServerCompatibility=");
+    }
+
+    [Fact]
     public void ConsumerSmokeAsset_ShouldBeTrackedByGit()
     {
         var repositoryRoot = GetRepositoryRoot();

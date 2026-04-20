@@ -49,15 +49,7 @@ public sealed class SurfaceCacheTileSource : ISurfaceTileSource, ISurfaceTileBat
 
         cancellationToken.ThrowIfCancellationRequested();
 
-        var hasCachedTile = false;
-        foreach (var tileKey in tileKeys)
-        {
-            if (cacheReader.ContainsTile(tileKey))
-            {
-                hasCachedTile = true;
-                break;
-            }
-        }
+        var hasCachedTile = tileKeys.Any(cacheReader.ContainsTile);
 
         if (!hasCachedTile)
         {

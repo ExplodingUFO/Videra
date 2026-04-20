@@ -40,13 +40,7 @@ internal sealed class SurfaceChartProjection
 
         if (scene is not null)
         {
-            foreach (var tile in scene.Tiles)
-            {
-                for (var index = 0; index < tile.Vertices.Count; index++)
-                {
-                    modelPoints.Add(tile.Vertices[index].Position);
-                }
-            }
+            AddScenePoints(modelPoints, scene);
         }
 
         if (anchorPoints is not null)
@@ -81,13 +75,7 @@ internal sealed class SurfaceChartProjection
 
         if (scene is not null)
         {
-            foreach (var tile in scene.Tiles)
-            {
-                for (var index = 0; index < tile.Vertices.Count; index++)
-                {
-                    modelPoints.Add(tile.Vertices[index].Position);
-                }
-            }
+            AddScenePoints(modelPoints, scene);
         }
 
         if (anchorPoints is not null)
@@ -170,6 +158,12 @@ internal sealed class SurfaceChartProjection
         return new SurfaceChartProjection(
             cameraFrame,
             new Rect(minX, minY, Math.Max(maxX - minX, 0d), Math.Max(maxY - minY, 0d)));
+    }
+
+    private static void AddScenePoints(List<Vector3> modelPoints, SurfaceRenderScene scene)
+    {
+        modelPoints.AddRange(
+            scene.Tiles.SelectMany(static tile => tile.Vertices.Select(static vertex => vertex.Position)));
     }
 
     private static SurfacePlotBounds CreateBoundsFromPoints(IReadOnlyList<Vector3> modelPoints)

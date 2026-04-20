@@ -22,8 +22,7 @@ internal static class SurfaceProbeOverlayPresenter
         SurfaceCameraFrame? cameraFrame,
         IReadOnlyList<SurfaceTile> loadedTiles,
         Point? probeScreenPosition,
-        IReadOnlyList<SurfaceProbeRequest>? pinnedProbeRequests = null,
-        SurfaceProbeService? probeService = null)
+        IReadOnlyList<SurfaceProbeRequest>? pinnedProbeRequests = null)
     {
         ArgumentNullException.ThrowIfNull(loadedTiles);
 
@@ -37,9 +36,8 @@ internal static class SurfaceProbeOverlayPresenter
                 pinnedProbes: []);
         }
 
-        var resolvedProbeService = probeService ?? new SurfaceProbeService();
         var hoveredProbe = probeScreenPosition is Point hoveredProbeScreenPosition && cameraFrame is SurfaceCameraFrame resolvedCameraFrame
-            ? resolvedProbeService.ResolveFromScreenPosition(source.Metadata, resolvedCameraFrame, loadedTiles, hoveredProbeScreenPosition)
+            ? SurfaceProbeService.ResolveFromScreenPosition(source.Metadata, resolvedCameraFrame, loadedTiles, hoveredProbeScreenPosition)
             : null;
         var pinnedProbes = ResolvePinnedProbes(source.Metadata, loadedTiles, pinnedProbeRequests);
 
@@ -57,8 +55,7 @@ internal static class SurfaceProbeOverlayPresenter
         Size viewSize,
         IReadOnlyList<SurfaceTile> loadedTiles,
         Point? probeScreenPosition,
-        IReadOnlyList<SurfaceProbeRequest>? pinnedProbeRequests = null,
-        SurfaceProbeService? probeService = null)
+        IReadOnlyList<SurfaceProbeRequest>? pinnedProbeRequests = null)
     {
         ArgumentNullException.ThrowIfNull(loadedTiles);
 
@@ -72,9 +69,8 @@ internal static class SurfaceProbeOverlayPresenter
                 pinnedProbes: []);
         }
 
-        var resolvedProbeService = probeService ?? new SurfaceProbeService();
         var hoveredProbe = probeScreenPosition is Point hoveredProbeScreenPosition
-            ? resolvedProbeService.ResolveFromScreenPosition(source.Metadata, viewport, viewSize, loadedTiles, hoveredProbeScreenPosition)
+            ? SurfaceProbeService.ResolveFromScreenPosition(source.Metadata, viewport, viewSize, loadedTiles, hoveredProbeScreenPosition)
             : null;
         var pinnedProbes = ResolvePinnedProbes(source.Metadata, loadedTiles, pinnedProbeRequests);
 
