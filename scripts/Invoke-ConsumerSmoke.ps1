@@ -23,6 +23,7 @@ $inspectionBundlePath = Join-Path $outputPath "inspection-bundle"
 $tracePath = Join-Path $outputPath "consumer-smoke-trace.log"
 $stdoutPath = Join-Path $outputPath "consumer-smoke-stdout.log"
 $stderrPath = Join-Path $outputPath "consumer-smoke-stderr.log"
+$environmentPath = Join-Path $outputPath "consumer-smoke-environment.txt"
 $packageOutputPath = Join-Path $outputPath "packages"
 $packagesCachePath = Join-Path $outputPath "global-packages"
 $nugetConfigPath = Join-Path $outputPath "NuGet.Config"
@@ -33,6 +34,12 @@ $publicPackageProjects = @(
     "src/Videra.Platform.Linux/Videra.Platform.Linux.csproj",
     "src/Videra.Platform.macOS/Videra.Platform.macOS.csproj"
 )
+$sessionEnvironment = [ordered]@{
+    DISPLAY = $env:DISPLAY
+    WAYLAND_DISPLAY = $env:WAYLAND_DISPLAY
+    XDG_RUNTIME_DIR = $env:XDG_RUNTIME_DIR
+    XDG_SESSION_TYPE = $env:XDG_SESSION_TYPE
+}
 
 if (-not (Test-Path -LiteralPath $projectPath))
 {
@@ -46,6 +53,109 @@ if (Test-Path -LiteralPath $outputPath)
 
 New-Item -ItemType Directory -Force -Path $outputPath | Out-Null
 New-Item -ItemType Directory -Force -Path $packagesCachePath | Out-Null
+
+function Format-ConsumerSmokeEnvironmentValue([string]$value)
+{
+    if ([string]::IsNullOrWhiteSpace($value))
+    {
+        return "<unset>"
+    }
+
+    return $value
+}
+
+function Write-ConsumerSmokeEnvironmentSnapshot
+{
+    $lines = foreach ($entry in $script:sessionEnvironment.GetEnumerator())
+    {
+        "{0}={1}" -f $entry.Key, (Format-ConsumerSmokeEnvironmentValue $entry.Value)
+    }
+
+    $lines | Set-Content -Path $script:environmentPath
+
+    Write-Host "=== Consumer Smoke Session Environment ===" -ForegroundColor Cyan
+    Get-Content -LiteralPath $script:environmentPath
+}
+
+function Show-ConsumerSmokeLogs
+{
+    if (Test-Path -LiteralPath $script:tracePath)
+    {
+        Write-Host "=== Consumer Smoke Trace ===" -ForegroundColor Yellow
+        Get-Content -LiteralPath $script:tracePath
+    }
+
+    if (Test-Path -LiteralPath $script:stdoutPath)
+    {
+        Write-Host "=== Consumer Smoke Stdout ===" -ForegroundColor Yellow
+        Get-Content -LiteralPath $script:stdoutPath
+    }
+
+    if (Test-Path -LiteralPath $script:stderrPath)
+    {
+        Write-Host "=== Consumer Smoke Stderr ===" -ForegroundColor Yellow
+        Get-Content -LiteralPath $script:stderrPath
+    }
+
+    Write-Host "=== Consumer Smoke Output Directory ===" -ForegroundColor Yellow
+    Get-ChildItem -LiteralPath $script:outputPath -Recurse | Select-Object FullName, Length
+}
+
+function Write-FallbackConsumerSmokeArtifacts([string]$failure, [int]$processExitCode)
+{
+    if (-not (Test-Path -LiteralPath $script:jsonPath))
+    {
+        $fallbackReport = [ordered]@{
+            Succeeded = $false
+            FrameAllReturned = $false
+            Failure = $failure
+            RequestedBackend = "Unknown"
+            ResolvedBackend = "Unknown"
+            IsReady = $false
+            IsUsingSoftwareFallback = $false
+            FallbackReason = $null
+            NativeHostBound = $false
+            ResolvedDisplayServer = $null
+            DisplayServerFallbackUsed = $false
+            DisplayServerFallbackReason = $null
+            DisplayServerCompatibility = "Unavailable because the consumer smoke app exited before managed completion."
+            LastInitializationError = $failure
+            DiagnosticsSnapshotPath = $script:snapshotPath
+            InspectionSnapshotPath = if (Test-Path -LiteralPath $script:inspectionSnapshotPath) { $script:inspectionSnapshotPath } else { $null }
+            InspectionBundlePath = if (Test-Path -LiteralPath $script:inspectionBundlePath) { $script:inspectionBundlePath } else { $null }
+            ProcessExitCode = $processExitCode
+            Display = Format-ConsumerSmokeEnvironmentValue $script:sessionEnvironment.DISPLAY
+            WaylandDisplay = Format-ConsumerSmokeEnvironmentValue $script:sessionEnvironment.WAYLAND_DISPLAY
+            XdgRuntimeDir = Format-ConsumerSmokeEnvironmentValue $script:sessionEnvironment.XDG_RUNTIME_DIR
+            XdgSessionType = Format-ConsumerSmokeEnvironmentValue $script:sessionEnvironment.XDG_SESSION_TYPE
+            TracePath = if (Test-Path -LiteralPath $script:tracePath) { $script:tracePath } else { $null }
+            StdoutPath = if (Test-Path -LiteralPath $script:stdoutPath) { $script:stdoutPath } else { $null }
+            StderrPath = if (Test-Path -LiteralPath $script:stderrPath) { $script:stderrPath } else { $null }
+            EnvironmentPath = $script:environmentPath
+        }
+
+        $fallbackReport | ConvertTo-Json -Depth 4 | Set-Content -Path $script:jsonPath
+    }
+
+    if (-not (Test-Path -LiteralPath $script:snapshotPath))
+    {
+        @(
+            "Consumer smoke fallback diagnostics"
+            "Failure: $failure"
+            "ProcessExitCode: $processExitCode"
+            "DISPLAY: $(Format-ConsumerSmokeEnvironmentValue $script:sessionEnvironment.DISPLAY)"
+            "WAYLAND_DISPLAY: $(Format-ConsumerSmokeEnvironmentValue $script:sessionEnvironment.WAYLAND_DISPLAY)"
+            "XDG_RUNTIME_DIR: $(Format-ConsumerSmokeEnvironmentValue $script:sessionEnvironment.XDG_RUNTIME_DIR)"
+            "XDG_SESSION_TYPE: $(Format-ConsumerSmokeEnvironmentValue $script:sessionEnvironment.XDG_SESSION_TYPE)"
+            "TracePath: $script:tracePath"
+            "StdoutPath: $script:stdoutPath"
+            "StderrPath: $script:stderrPath"
+            "EnvironmentPath: $script:environmentPath"
+        ) | Set-Content -Path $script:snapshotPath
+    }
+}
+
+Write-ConsumerSmokeEnvironmentSnapshot
 
 Write-Host "=== Pack Public Consumer Packages ===" -ForegroundColor Cyan
 New-Item -ItemType Directory -Force -Path $packageOutputPath | Out-Null
@@ -171,27 +281,9 @@ try
 
     if ($consumerSmokeProcess.ExitCode -ne 0)
     {
-        if (Test-Path -LiteralPath $tracePath)
-        {
-            Write-Host "=== Consumer Smoke Trace ===" -ForegroundColor Yellow
-            Get-Content -LiteralPath $tracePath
-        }
-
-        if (Test-Path -LiteralPath $stdoutPath)
-        {
-            Write-Host "=== Consumer Smoke Stdout ===" -ForegroundColor Yellow
-            Get-Content -LiteralPath $stdoutPath
-        }
-
-        if (Test-Path -LiteralPath $stderrPath)
-        {
-            Write-Host "=== Consumer Smoke Stderr ===" -ForegroundColor Yellow
-            Get-Content -LiteralPath $stderrPath
-        }
-
-        Write-Host "=== Consumer Smoke Output Directory ===" -ForegroundColor Yellow
-        Get-ChildItem -LiteralPath $outputPath -Recurse | Select-Object FullName, Length
-
+        $failureMessage = "Consumer smoke app exited with code $($consumerSmokeProcess.ExitCode)."
+        Write-FallbackConsumerSmokeArtifacts -failure $failureMessage -processExitCode $consumerSmokeProcess.ExitCode
+        Show-ConsumerSmokeLogs
         throw "Consumer smoke app exited with code $($consumerSmokeProcess.ExitCode)."
     }
 }
@@ -216,39 +308,41 @@ finally
     }
 }
 
+$missingArtifactFailure = $null
 if (-not (Test-Path -LiteralPath $jsonPath))
 {
-    throw "Consumer smoke did not produce '$jsonPath'."
+    $missingArtifactFailure = "Consumer smoke did not produce '$jsonPath'."
+}
+elseif (-not (Test-Path -LiteralPath $snapshotPath))
+{
+    $missingArtifactFailure = "Consumer smoke did not produce '$snapshotPath'."
+}
+elseif (-not (Test-Path -LiteralPath $inspectionSnapshotPath))
+{
+    $missingArtifactFailure = "Consumer smoke did not produce '$inspectionSnapshotPath'."
+}
+elseif ((Get-Item -LiteralPath $inspectionSnapshotPath).Length -le 0)
+{
+    $missingArtifactFailure = "Consumer smoke produced '$inspectionSnapshotPath' but it was empty."
+}
+elseif (-not (Test-Path -LiteralPath $inspectionBundlePath))
+{
+    $missingArtifactFailure = "Consumer smoke did not produce '$inspectionBundlePath'."
+}
+elseif (-not (Test-Path -LiteralPath (Join-Path $inspectionBundlePath "inspection-state.json")))
+{
+    $missingArtifactFailure = "Consumer smoke bundle did not include 'inspection-state.json'."
+}
+elseif (-not (Test-Path -LiteralPath (Join-Path $inspectionBundlePath "asset-manifest.json")))
+{
+    $missingArtifactFailure = "Consumer smoke bundle did not include 'asset-manifest.json'."
 }
 
-if (-not (Test-Path -LiteralPath $snapshotPath))
+if ($null -ne $missingArtifactFailure)
 {
-    throw "Consumer smoke did not produce '$snapshotPath'."
-}
-
-if (-not (Test-Path -LiteralPath $inspectionSnapshotPath))
-{
-    throw "Consumer smoke did not produce '$inspectionSnapshotPath'."
-}
-
-if ((Get-Item -LiteralPath $inspectionSnapshotPath).Length -le 0)
-{
-    throw "Consumer smoke produced '$inspectionSnapshotPath' but it was empty."
-}
-
-if (-not (Test-Path -LiteralPath $inspectionBundlePath))
-{
-    throw "Consumer smoke did not produce '$inspectionBundlePath'."
-}
-
-if (-not (Test-Path -LiteralPath (Join-Path $inspectionBundlePath "inspection-state.json")))
-{
-    throw "Consumer smoke bundle did not include 'inspection-state.json'."
-}
-
-if (-not (Test-Path -LiteralPath (Join-Path $inspectionBundlePath "asset-manifest.json")))
-{
-    throw "Consumer smoke bundle did not include 'asset-manifest.json'."
+    Write-FallbackConsumerSmokeArtifacts -failure $missingArtifactFailure -processExitCode 0
+    Show-ConsumerSmokeLogs
+    throw $missingArtifactFailure
 }
 
 $report = Get-Content -Raw $jsonPath | ConvertFrom-Json

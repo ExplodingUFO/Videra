@@ -13,7 +13,6 @@ namespace Videra.Viewer.Benchmarks;
 public class ScenePipelineBenchmarks
 {
     private readonly SceneDocumentMutator _mutator = new();
-    private readonly SceneDeltaPlanner _deltaPlanner = new();
     private readonly SceneUploadBudget _idleBudget = SceneUploadBudget.Idle;
 
     private string _workspace = string.Empty;
@@ -55,7 +54,7 @@ public class ScenePipelineBenchmarks
 
         var previousDocument = _mutator.ReplaceEntries(SceneDocument.Empty, [retainedEntry, removedEntry]);
         _nextDocument = _mutator.ReplaceEntries(SceneDocument.Empty, [retainedEntry, addedEntry]);
-        _sceneDelta = _deltaPlanner.Diff(previousDocument, _nextDocument);
+        _sceneDelta = SceneDeltaPlanner.Diff(previousDocument, _nextDocument);
 
         var rehydrateAsset = ModelImporter.Import(WriteTriangleObj("rehydrate.obj", 6f));
         var rehydrateObject = SceneObjectFactory.CreateDeferred(rehydrateAsset);

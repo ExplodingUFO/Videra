@@ -15,6 +15,7 @@
                x:Name="StatusText"
                Margin="12"
                Foreground="#CBD5E1"
-               TextWrapping="Wrap" />
+               TextWrapping="NoWrap"
+               TextTrimming="CharacterEllipsis" />
   </Grid>
 </Window>

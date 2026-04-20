@@ -109,7 +109,14 @@ internal sealed partial class SurfaceChartMacOSNativeHost : NativeControlHost, I
         [DllImport("/usr/lib/libobjc.A.dylib", EntryPoint = "objc_msgSend")]
         public static extern void SendMessageCGRect(IntPtr receiver, IntPtr selector, CGRect rect);
 
-        public static IntPtr SEL(string name) => RegisterSelector(name);
+        public static IntPtr SEL(string name)
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(name);
+            return RequireNonZeroHandle(
+                RegisterSelector(name),
+                "SEL",
+                $"Failed to register Objective-C selector '{name}'.");
+        }
 
         public static void EnsureAppKitReady()
         {

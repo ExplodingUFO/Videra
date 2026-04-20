@@ -1,5 +1,33 @@
 # Milestones
 
+## v1.16 SurfaceCharts Adoption Surface
+
+**Shipped:** 2026-04-20  
+**Phases:** 4 (`87-90`)  
+**Plans:** 12  
+**Timeline:** 1 day (`2026-04-20` → `2026-04-20`)  
+**Repo state:** local milestone completion was preserved at transition into `v1.17`; roadmap/requirements snapshots were archived, but a dedicated milestone-audit artifact had not yet been captured
+
+### Key Accomplishments
+
+1. Defined one canonical source-first `first chart` story and aligned `SurfaceChartView` contract language around chart-local ownership, `ViewState`, interaction, overlays, and rendering status.
+2. Added a narrow source-first evaluation path so `SurfaceCharts` can be tried without reverse-engineering the broader demo application.
+3. Added CI/support evidence for the chart adoption path so diagnostics and troubleshooting share the same runtime truth.
+4. Aligned README, release, and support wording so `SurfaceCharts` remains explicitly source-first and distinct from `VideraView` package promises.
+
+### Archived Materials
+
+- `.planning/milestones/v1.16-ROADMAP.md`
+- `.planning/milestones/v1.16-REQUIREMENTS.md`
+
+### Notes
+
+- The milestone transitioned directly into `v1.17 修` after CI surfaced benchmark compile drift, SurfaceCharts warnings-as-errors debt, and a Linux `XWayland` consumer-smoke regression
+- No dedicated `.planning/milestones/v1.16-MILESTONE-AUDIT.md` existed at transition time
+- Raw phase execution history remains in `.planning/phases/`
+
+---
+
 ## v1.15 Repository Guard and Evidence Calibration
 
 **Shipped:** 2026-04-20  

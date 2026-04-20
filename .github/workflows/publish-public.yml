@@ -175,7 +175,8 @@ jobs:
           sudo apt-get install -y xwayland-run libx11-6 libwayland-client0 libvulkan1 libshaderc1 mesa-vulkan-drivers vulkan-tools powershell
 
       - name: Run Linux XWayland consumer smoke
-        run: xwfb-run -- pwsh -File ./scripts/Invoke-ConsumerSmoke.ps1 -Configuration Release -OutputRoot artifacts/consumer-smoke/linux-xwayland
+        run: |
+          xwfb-run -- bash -lc 'env | sort | grep -E "^(DISPLAY|WAYLAND_DISPLAY|XDG_RUNTIME_DIR|XDG_SESSION_TYPE)=" || true; if [[ -z "${DISPLAY:-}" ]]; then echo "DISPLAY is not set. Start an XWayland session or run this command under xwfb-run." >&2; exit 2; fi; if [[ -z "${WAYLAND_DISPLAY:-}" ]]; then echo "WAYLAND_DISPLAY is not set. Start a Wayland session with XWayland available before running this target." >&2; exit 2; fi; export XDG_SESSION_TYPE="${XDG_SESSION_TYPE:-wayland}"; pwsh -File ./scripts/Invoke-ConsumerSmoke.ps1 -Configuration Release -OutputRoot artifacts/consumer-smoke/linux-xwayland'
 
       - name: Upload Linux XWayland consumer smoke artifacts
         if: always()

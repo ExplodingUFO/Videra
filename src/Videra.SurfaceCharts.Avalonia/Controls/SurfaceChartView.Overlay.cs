@@ -14,7 +14,6 @@ public partial class SurfaceChartView
     private SurfaceAxisOverlayState _axisOverlayState = SurfaceAxisOverlayState.Empty;
     private SurfaceLegendOverlayState _legendOverlayState = SurfaceLegendOverlayState.Empty;
     private SurfaceChartProjection? _chartProjection;
-    private readonly SurfaceProbeService _probeService = new();
     private readonly List<SurfaceProbeRequest> _pinnedProbeRequests = [];
     private Size _overlayViewSize;
     private Point? _probeScreenPosition;
@@ -84,8 +83,7 @@ public partial class SurfaceChartView
             cameraFrame,
             loadedTiles,
             _probeScreenPosition,
-            _pinnedProbeRequests,
-            _probeService);
+            _pinnedProbeRequests);
         _overlayLayer.InvalidateVisual();
     }
 

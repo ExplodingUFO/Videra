@@ -4,9 +4,9 @@ using Videra.SurfaceCharts.Core.Rendering;
 
 namespace Videra.SurfaceCharts.Avalonia.Controls.Overlay;
 
-internal sealed class SurfaceProbeService
+internal static class SurfaceProbeService
 {
-    public SurfaceProbeInfo? ResolveFromScreenPosition(
+    public static SurfaceProbeInfo? ResolveFromScreenPosition(
         SurfaceMetadata metadata,
         SurfaceCameraFrame cameraFrame,
         IReadOnlyList<SurfaceTile> loadedTiles,
@@ -32,7 +32,7 @@ internal sealed class SurfaceProbeService
             : null;
     }
 
-    public SurfaceProbeInfo? ResolveFromScreenPosition(
+    public static SurfaceProbeInfo? ResolveFromScreenPosition(
         SurfaceMetadata metadata,
         SurfaceViewport viewport,
         Size viewSize,

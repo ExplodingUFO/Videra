@@ -86,7 +86,7 @@ public partial class SurfaceChartView
         var pointerPosition = e.GetPosition(this);
         UpdateProbeScreenPosition(pointerPosition);
 
-        if (_interactionController.HandlePointerWheelChanged(e.Delta, _runtime, GetHoveredProbe()))
+        if (SurfaceChartInteractionController.HandlePointerWheelChanged(e.Delta, _runtime, GetHoveredProbe()))
         {
             e.Handled = true;
         }

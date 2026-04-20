@@ -19,6 +19,7 @@ public partial class MainWindow : Window
     private readonly string? _inspectionBundlePath;
     private readonly string? _tracePath;
     private bool _completed;
+    private bool _executionStarted;
     private EventHandler? _backendReadyHandler;
     private EventHandler? _openedHandler;
 
@@ -71,8 +72,7 @@ public partial class MainWindow : Window
                 $"displayCompatibility={displayServerCompatibility}; fallback={e.Diagnostics.IsUsingSoftwareFallback}.");
             _statusText.Text =
                 $"IsReady={e.Diagnostics.IsReady}; ResolvedBackend={e.Diagnostics.ResolvedBackend}; " +
-                $"ResolvedDisplayServer={e.Diagnostics.ResolvedDisplayServer ?? "Unavailable"}; " +
-                $"DisplayServerCompatibility={displayServerCompatibility}";
+                $"ResolvedDisplayServer={e.Diagnostics.ResolvedDisplayServer ?? "Unavailable"}";
         };
         _view3D.InitializationFailed += (_, e) =>
         {
@@ -93,12 +93,13 @@ public partial class MainWindow : Window
 
     private async Task TryExecuteSmokeAsync()
     {
-        Trace($"TryExecuteSmokeAsync entered. completed={_completed}; isReady={_view3D.BackendDiagnostics.IsReady}.");
-        if (_completed || !_view3D.BackendDiagnostics.IsReady)
+        Trace($"TryExecuteSmokeAsync entered. completed={_completed}; started={_executionStarted}; isReady={_view3D.BackendDiagnostics.IsReady}.");
+        if (_completed || _executionStarted || !_view3D.BackendDiagnostics.IsReady)
         {
             return;
         }
 
+        _executionStarted = true;
         try
         {
             Trace("LoadModelAsync starting.");

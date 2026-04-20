@@ -2,59 +2,59 @@
 
 ## Active Milestone
 
-- `v1.16 SurfaceCharts Adoption Surface`
+- `v1.17 修`
 - Status: `active`
-- Focus: turn `SurfaceCharts` into a clear source-first adoption surface with one first-chart story, one support truth, and one release boundary
+- Focus: restore the repo green line after benchmark compile drift, SurfaceCharts warnings-as-errors failures, and the Linux `XWayland` consumer-smoke regression surfaced by the post-`v1.16` CI run
 
-### Phase 87: SurfaceCharts Product Boundary and First-Chart Contract
+### Phase 91: Benchmark Compile Closure
 
-**Goal:** freeze the public `SurfaceCharts` story around one chart-local contract and one canonical `first chart` vocabulary.
-**Depends on:** `v1.15` complete
+**Goal:** repair the benchmark sources so repo-wide `verify` and matching-host native validation stop failing before platform-specific checks even begin.
+**Depends on:** `v1.16` complete locally
 **Plans:** 3 planned
 
 Plans:
 
-- [x] 87-01: define the canonical `first chart` story and chart-local ownership language
-- [x] 87-02: align `SurfaceChartView` contract docs around `ViewState`, interaction, overlays, and rendering status
-- [x] 87-03: lock root/module/sample docs to the same chart-stack boundary
+- [x] 91-01: replace invalid static-type instantiation in viewer benchmarks with legal call patterns or narrow wrappers
+- [x] 91-02: prove the shared `verify` prelude no longer fails on benchmark compile drift
+- [x] 91-03: align any benchmark-targeted support code/tests with the repaired viewer runtime usage
 
-### Phase 88: Source-First Evaluation Path
+### Phase 92: SurfaceCharts Warnings-as-Errors Closure
 
-**Goal:** give `SurfaceCharts` a narrow source-first sample/evaluation path distinct from the broader demo.
-**Depends on:** Phase 87
+**Goal:** clear the current SurfaceCharts analyzer failures on the repo-facing quality gate without relaxing the active rule set.
+**Depends on:** Phase 91
 **Plans:** 3 planned
 
 Plans:
 
-- [x] 88-01: add or refine a minimal `first chart` sample / entrypoint
-- [x] 88-02: make the sample reflect the chosen public contract instead of demo-only behavior
-- [x] 88-03: align onboarding docs with the new source-first evaluation path
+- [x] 92-01: remove the current `CA2007` / `S3267` / `S2325` / `S4200` failures in `Videra.SurfaceCharts.Processing` and `Videra.SurfaceCharts.Avalonia`
+- [x] 92-02: keep the existing analyzer policy intact instead of suppressing or downgrading the rules
+- [x] 92-03: prove both direct project builds and the `Videra.Core.Tests` warnings-as-errors evidence path pass
 
-### Phase 89: SurfaceCharts Consumer Evidence and Support Contract
+### Phase 93: Linux XWayland Consumer Smoke Stabilization
 
-**Goal:** prove the chosen chart evaluation path in CI and support artifacts so issue reports carry the same runtime truth.
-**Depends on:** Phase 88
+**Goal:** make the Linux `XWayland` consumer smoke path finish with a completed result artifact and actionable diagnostics instead of a silent early exit.
+**Depends on:** Phase 92
 **Plans:** 3 planned
 
 Plans:
 
-- [x] 89-01: add CI evidence for the chart adoption path
-- [x] 89-02: emit diagnostics or support-ready artifacts from the chart path
-- [x] 89-03: align troubleshooting / alpha-feedback guidance with the same chart evidence story
+- [x] 93-01: isolate why the smoke app exits after `LoadModelAsync starting` on the `XWayland` path
+- [x] 93-02: make the smoke artifact set always include enough result/trace context to explain failures
+- [ ] 93-03: validate reference-model load, ready-backend state, and snapshot/bundle export under `XWayland`
 
-### Phase 90: Release Truth and Adoption Checklist
+### Phase 94: Green-Line Revalidation and Transition
 
-**Goal:** align release, support, and package-boundary docs so `SurfaceCharts` source-first truth survives milestone closeout.
-**Depends on:** Phase 89
+**Goal:** rerun the previously red checks and record one repaired baseline for the next milestone decision.
+**Depends on:** Phase 93
 **Plans:** 3 planned
 
 Plans:
 
-- [x] 90-01: align README, support matrix, and release docs around source-first chart truth
-- [x] 90-02: add maintainer checklist items that distinguish viewer package truth from chart adoption truth
-- [x] 90-03: lock the release/support boundary with repository guards or documentation checks
+- [ ] 94-01: rerun `verify`, targeted native validation, and quality-gate evidence against the repaired sources
+- [ ] 94-02: rerun Linux `XWayland` consumer smoke and confirm the repaired artifact story
+- [ ] 94-03: update planning/support truth from a red baseline to a repaired baseline and prepare the next closeout handoff
 
 ## Recently Shipped
 
+- `v1.16 SurfaceCharts Adoption Surface` — completed locally `2026-04-20`; phases `87-90`; requirements `9/9`; archive snapshot: `.planning/milestones/v1.16-ROADMAP.md`, `.planning/milestones/v1.16-REQUIREMENTS.md`; audit artifact not yet captured at transition
 - `v1.15 Repository Guard and Evidence Calibration` — shipped `2026-04-20`; phases `84-86`; requirements `4/4`; audit `pass`; archive: `.planning/milestones/v1.15-ROADMAP.md`, `.planning/milestones/v1.15-REQUIREMENTS.md`, `.planning/milestones/v1.15-MILESTONE-AUDIT.md`
-- `v1.14 Compatibility and Quality Hardening` — shipped `2026-04-20`; phases `80-83`; requirements `12/12`; audit `tech_debt`; archive: `.planning/milestones/v1.14-ROADMAP.md`, `.planning/milestones/v1.14-REQUIREMENTS.md`, `.planning/milestones/v1.14-MILESTONE-AUDIT.md`

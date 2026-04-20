@@ -5,25 +5,25 @@
 See: `.planning/PROJECT.md` (updated 2026-04-20)
 
 **Core value:** 跨平台 3D 渲染引擎的可靠性
-**Current focus:** audit and archive `v1.16 SurfaceCharts Adoption Surface`
+**Current focus:** repair the post-`v1.16` CI red line across benchmark compile, SurfaceCharts quality gate, and Linux `XWayland` consumer smoke
 
 ## Current Position
 
-Milestone: `v1.16 SurfaceCharts Adoption Surface`
-Phase: `All milestone phases complete`
-Plan: `milestone audit and closeout`
-Status: `Phases 87-90 are complete locally; milestone is ready for audit/archival`
-Last activity: `2026-04-20` — completed Phase 90 release-truth docs and repository guards
+Milestone: `v1.17 修`
+Phase: `93 Linux XWayland Consumer Smoke Stabilization`
+Plan: `re-run the repaired XWayland smoke command on a real Linux XWayland environment and validate the runtime artifact set`
+Status: `Phases 91-92 are complete locally; Phase 93 has isolated the workflow/artifact gaps and now needs real Linux XWayland runtime confirmation`
+Last activity: `2026-04-20` — repaired the XWayland smoke workflow contract and added fallback failure artifacts to the smoke wrapper
 
-Progress: `[████████] 9/9 requirements complete; milestone ready for closeout`
+Progress: `[██████□□] 6/8 requirements complete; phase 93 runtime confirmation under real XWayland is next`
 
 ## Performance Metrics
 
-- Latest completed milestone: `v1.15 Repository Guard and Evidence Calibration`
-- Phases shipped in latest milestone: `3`
-- Requirements satisfied in latest milestone: `4/4`
+- Latest completed milestone: `v1.16 SurfaceCharts Adoption Surface` (local transition snapshot)
+- Phases shipped in latest milestone: `4`
+- Requirements satisfied in latest milestone: `9/9`
 - Active milestone phases: `4`
-- Active milestone requirements: `9`
+- Active milestone requirements: `8`
 
 ## Accumulated Context
 
@@ -43,18 +43,21 @@ Progress: `[████████] 9/9 requirements complete; milestone ready
 - `v1.13`: replayable support artifacts live in `VideraInspectionBundleService` rather than widening `VideraView` into a larger project/session surface.
 - `v1.14`: compatibility hardening beat `OpenGL` expansion; the immediate alpha risk was support truth, package-consumer evidence, backend contract drift, and quality-gate ambiguity.
 - `v1.14`: packaged consumer quality gates must validate the real local-feed package path, not a raw smoke-project build against stale assumptions.
+- `v1.17`: the current top blocker is no longer product-surface ambiguity but the broken green line created by benchmark compile drift, SurfaceCharts analyzer debt, and the Linux `XWayland` smoke regression.
+- `v1.17`: benchmark compile drift is now closed through compile-backed benchmark fixes and solution-level verification, not through brittle source-text guards.
+- `v1.17`: the SurfaceCharts warnings-as-errors blocker no longer reproduces on the current workspace; the active analyzer policy and quality-gate evidence path are already green.
+- `v1.17`: the XWayland consumer-smoke root cause split into a workflow/session-contract gap and an artifact-persistence gap; the remaining unknown is runtime success under a real Linux XWayland host.
 
 ### Pending Todos
 
-- Run milestone audit and archive `v1.16`.
-- Decide the next milestone after `SurfaceCharts` adoption truth has been closed.
+- Run the repaired Linux `XWayland` consumer smoke command on a real Linux host or CI runner.
+- Preserve the local `v1.16` archive snapshot while `v1.17` repairs the remaining red baseline.
+- Re-run the previously failing CI-equivalent commands after each repair phase.
 
 ### Blockers/Concerns
 
 - Most of `.planning` still remains gitignored/local-only, while explicitly archived milestone closeout files can be force-added when a durable release boundary is needed.
-- Linux compatibility risk is now better bounded, but future consumer evidence may still raise native Wayland or `OpenGL` pressure later.
-- Benchmark review is an opt-in merge-review signal when `run-benchmarks` is requested, not part of the default green line and not a hard numeric blocker.
-- Milestone archive files and audit summary still need to be written before formal closeout.
+- This Windows workstation does not currently have a prepared Linux/XWayland runtime stack, so `SMOKE-02` still needs CI or a Linux host for final proof.
 - Compositor-native Wayland hosting and any future `OpenGL` evaluation remain explicitly deferred beyond this milestone.
 
 ## Deferred Items
@@ -65,10 +68,11 @@ Progress: `[████████] 9/9 requirements complete; milestone ready
 | Packages | Publishing `Videra.SurfaceCharts.*` as public consumer packages | deferred unless strategy shifts from viewer-depth to product-width expansion | `v1.13` |
 | Public surface | Plugin/package discovery or broader API-surface expansion | deferred while `VideraEngine` remains the only public extensibility root | `v1.13` |
 | Editor tooling | Gizmos, transform handles, or general scene authoring | deferred to keep inspection workflows viewer-first | `v1.13` |
-| Runtime perf | Another deep performance milestone beyond same-API fast paths and inspection benchmarks | deferred until new evidence identifies the next dominant bottleneck | `v1.13` |
+| Runtime perf | Another deep performance milestone beyond same-API fast paths and inspection benchmarks | deferred until the current green-line repair is complete and new evidence identifies the next dominant bottleneck | `v1.13` |
+| Analyzer policy | Whole-repo warnings-as-errors expansion beyond the active repair scope | deferred until `v1.17` closes the current targeted SurfaceCharts debt | `v1.17` |
 
 ## Session Continuity
 
 Last session: `2026-04-20 +08:00`
-Stopped at: `All v1.16 phases complete; milestone audit is next`
+Stopped at: `Phases 91-92 complete; Phase 93 XWayland smoke stabilization is next`
 Resume file: `.planning/ROADMAP.md`

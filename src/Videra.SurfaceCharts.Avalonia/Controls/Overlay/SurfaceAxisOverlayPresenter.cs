@@ -265,57 +265,42 @@ internal static class SurfaceAxisOverlayPresenter
         switch (gridPlane)
         {
             case SurfaceChartGridPlane.XY:
-                foreach (var tick in xAxis.Ticks)
-                {
-                    lines.Add(ProjectLine(
+                lines.AddRange(
+                    xAxis.Ticks.Select(tick => ProjectLine(
                         projection,
                         new Vector3((float)tick.Value, (float)valueRange.Minimum, frontCorner.Z),
-                        new Vector3((float)tick.Value, (float)valueRange.Maximum, frontCorner.Z)));
-                }
-
-                foreach (var tick in yAxis.Ticks)
-                {
-                    lines.Add(ProjectLine(
+                        new Vector3((float)tick.Value, (float)valueRange.Maximum, frontCorner.Z))));
+                lines.AddRange(
+                    yAxis.Ticks.Select(tick => ProjectLine(
                         projection,
                         new Vector3((float)metadata.HorizontalAxis.Minimum, (float)tick.Value, frontCorner.Z),
-                        new Vector3((float)metadata.HorizontalAxis.Maximum, (float)tick.Value, frontCorner.Z)));
-                }
+                        new Vector3((float)metadata.HorizontalAxis.Maximum, (float)tick.Value, frontCorner.Z))));
 
                 break;
             case SurfaceChartGridPlane.YZ:
-                foreach (var tick in zAxis.Ticks)
-                {
-                    lines.Add(ProjectLine(
+                lines.AddRange(
+                    zAxis.Ticks.Select(tick => ProjectLine(
                         projection,
                         new Vector3(frontCorner.X, (float)valueRange.Minimum, (float)tick.Value),
-                        new Vector3(frontCorner.X, (float)valueRange.Maximum, (float)tick.Value)));
-                }
-
-                foreach (var tick in yAxis.Ticks)
-                {
-                    lines.Add(ProjectLine(
+                        new Vector3(frontCorner.X, (float)valueRange.Maximum, (float)tick.Value))));
+                lines.AddRange(
+                    yAxis.Ticks.Select(tick => ProjectLine(
                         projection,
                         new Vector3(frontCorner.X, (float)tick.Value, (float)metadata.VerticalAxis.Minimum),
-                        new Vector3(frontCorner.X, (float)tick.Value, (float)metadata.VerticalAxis.Maximum)));
-                }
+                        new Vector3(frontCorner.X, (float)tick.Value, (float)metadata.VerticalAxis.Maximum))));
 
                 break;
             default:
-                foreach (var tick in xAxis.Ticks)
-                {
-                    lines.Add(ProjectLine(
+                lines.AddRange(
+                    xAxis.Ticks.Select(tick => ProjectLine(
                         projection,
                         new Vector3((float)tick.Value, (float)valueRange.Minimum, (float)metadata.VerticalAxis.Minimum),
-                        new Vector3((float)tick.Value, (float)valueRange.Minimum, (float)metadata.VerticalAxis.Maximum)));
-                }
-
-                foreach (var tick in zAxis.Ticks)
-                {
-                    lines.Add(ProjectLine(
+                        new Vector3((float)tick.Value, (float)valueRange.Minimum, (float)metadata.VerticalAxis.Maximum))));
+                lines.AddRange(
+                    zAxis.Ticks.Select(tick => ProjectLine(
                         projection,
                         new Vector3((float)metadata.HorizontalAxis.Minimum, (float)valueRange.Minimum, (float)tick.Value),
-                        new Vector3((float)metadata.HorizontalAxis.Maximum, (float)valueRange.Minimum, (float)tick.Value)));
-                }
+                        new Vector3((float)metadata.HorizontalAxis.Maximum, (float)valueRange.Minimum, (float)tick.Value))));
 
                 break;
         }

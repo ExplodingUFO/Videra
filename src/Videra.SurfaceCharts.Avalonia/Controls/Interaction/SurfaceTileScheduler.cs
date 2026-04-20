@@ -428,14 +428,9 @@ internal sealed class SurfaceTileScheduler
             return;
         }
 
-        var requestedKeys = new List<SurfaceTileKey>(keys.Count);
-        foreach (var key in keys)
-        {
-            if (_tileCache.TryMarkRequested(key, requestGeneration))
-            {
-                requestedKeys.Add(key);
-            }
-        }
+        var requestedKeys = keys
+            .Where(key => _tileCache.TryMarkRequested(key, requestGeneration))
+            .ToList();
 
         if (requestedKeys.Count == 0)
         {

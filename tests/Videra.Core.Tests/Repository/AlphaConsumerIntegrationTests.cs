@@ -62,6 +62,52 @@ public sealed class AlphaConsumerIntegrationTests
     }
 
     [Fact]
+    public void LinuxXWaylandConsumerSmokeWorkflow_ShouldCaptureWaylandSessionEnvironment()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var smokeWorkflow = File.ReadAllText(Path.Combine(repositoryRoot, ".github", "workflows", "consumer-smoke.yml"));
+        var publishWorkflow = File.ReadAllText(Path.Combine(repositoryRoot, ".github", "workflows", "publish-public.yml"));
+
+        foreach (var workflow in new[] { smokeWorkflow, publishWorkflow })
+        {
+            workflow.Should().Contain("linux-xwayland-consumer-smoke");
+            workflow.Should().Contain("bash -lc");
+            workflow.Should().Contain("env | sort | grep -E \"^(DISPLAY|WAYLAND_DISPLAY|XDG_RUNTIME_DIR|XDG_SESSION_TYPE)=\" || true");
+            workflow.Should().Contain("WAYLAND_DISPLAY");
+            workflow.Should().Contain("XDG_SESSION_TYPE=\"${XDG_SESSION_TYPE:-wayland}\"");
+            workflow.Should().Contain("Invoke-ConsumerSmoke.ps1 -Configuration Release -OutputRoot artifacts/consumer-smoke/linux-xwayland");
+        }
+    }
+
+    [Fact]
+    public void ConsumerSmokeScript_ShouldPersistFallbackFailureArtifactsAndSessionContext()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var smokeScript = File.ReadAllText(Path.Combine(repositoryRoot, "scripts", "Invoke-ConsumerSmoke.ps1"));
+
+        smokeScript.Should().Contain("consumer-smoke-environment.txt");
+        smokeScript.Should().Contain("ProcessExitCode");
+        smokeScript.Should().Contain("WAYLAND_DISPLAY");
+        smokeScript.Should().Contain("XDG_SESSION_TYPE");
+        smokeScript.Should().Contain("Write-FallbackConsumerSmokeArtifacts");
+    }
+
+    [Fact]
+    public void ConsumerSmokeWindow_ShouldAvoidLayoutDrivenViewportResizesDuringStatusUpdates()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var smokeWindowXaml = File.ReadAllText(Path.Combine(repositoryRoot, "smoke", "Videra.ConsumerSmoke", "Views", "MainWindow.axaml"));
+        var smokeWindowCodeBehind = File.ReadAllText(Path.Combine(repositoryRoot, "smoke", "Videra.ConsumerSmoke", "Views", "MainWindow.axaml.cs"));
+
+        smokeWindowXaml.Should().Contain("TextWrapping=\"NoWrap\"");
+        smokeWindowXaml.Should().Contain("TextTrimming=\"CharacterEllipsis\"");
+        smokeWindowXaml.Should().NotContain("TextWrapping=\"Wrap\"");
+        smokeWindowCodeBehind.Should().Contain("_executionStarted");
+        smokeWindowCodeBehind.Should().Contain("ResolvedDisplayServer=");
+        smokeWindowCodeBehind.Should().NotContain("DisplayServerCompatibility=");
+    }
+
+    [Fact]
     public void ConsumerSmokeAsset_ShouldBeTrackedByGit()
     {
         var repositoryRoot = GetRepositoryRoot();
