@@ -59,6 +59,15 @@ using Videra.SurfaceCharts.Avalonia.Controls;
 using Videra.SurfaceCharts.Core;
 using Videra.SurfaceCharts.Processing;
 
+var matrix = new SurfaceMatrix(
+    new SurfaceMetadata(
+        width: 256,
+        height: 128,
+        new SurfaceAxisDescriptor("Time", "s", 0d, 255d),
+        new SurfaceAxisDescriptor("Frequency", "Hz", 0d, 127d),
+        new SurfaceValueRange(-1d, 1d)),
+    sampleValues);
+
 var chartView = new SurfaceChartView
 {
     Source = new SurfacePyramidBuilder(32, 32).Build(matrix),
@@ -77,6 +86,8 @@ var chartView = new SurfaceChartView
 chartView.ZoomTo(new SurfaceDataWindow(64d, 32d, 128d, 96d));
 chartView.ResetCamera();
 ```
+
+`SurfaceMatrix` remains the simplest source-first regular-grid entrypoint. When you need richer analytics payloads, you can keep the same `SurfaceChartView` shell and switch the underlying source construction to `SurfaceScalarField`, an independent `ColorField`, and `SurfaceMask` without widening `SurfaceChartView` itself.
 
 Hosts currently own:
 

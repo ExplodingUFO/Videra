@@ -12,10 +12,10 @@ See: `.planning/PROJECT.md` (updated 2026-04-20)
 Milestone: `v1.18 SurfaceCharts Analytics Core`
 Phase: `96 Scalar Field and Missing-Data Promotion`
 Plan: `introduce explicit HeightField / ColorField / mask contracts without breaking the regular-grid source-first path`
-Status: `Phase 96 scalar/mask threading is now in code and verified; chart-local render residency preserves ColorField truth, and probe/overlay picking now respects first-class masked holes across both viewport and camera-frame paths`
-Last activity: `2026-04-20` — completed Phase 96-03 by threading scalar/mask semantics through render-state residency and probe/overlay consumers, including overlapping detail/overview masked-pick regressions and a GPU recolor regression for independent ColorField truth`
+Status: `Phase 96 is now complete in code, docs, and repository guard coverage; source-first regular-grid onboarding stays anchored on SurfaceMatrix while richer scalar/mask payloads remain opt-in beneath the same SurfaceChartView shell`
+Last activity: `2026-04-20` — completed Phase 96-04 by documenting and guarding the source-first regular-grid story in both English and Chinese, including explicit repository assertions that `SurfaceMatrix` remains the default entrypoint while `SurfaceScalarField`, independent `ColorField`, and first-class `SurfaceMask` stay compatible underneath the existing chart shell`
 
-Progress: `[█████□□□] 6/11 requirements complete; Phase 96 source-first adoption compatibility is next`
+Progress: `[██████□] 7/11 requirements complete; Phase 97 rendering fast paths and residency tightening are next`
 
 ## Performance Metrics
 
@@ -47,12 +47,12 @@ Progress: `[█████□□□] 6/11 requirements complete; Phase 96 sourc
 
 ### Pending Todos
 
-- Preserve source-first adoption compatibility while introducing explicit `HeightField` / `ColorField` / mask semantics.
+- Move palette changes onto a shader/LUT recolor path so resident geometry does not rebuild on every colormap change.
 - Add the new analytics benchmarks before scheduling interpolated probe, contour, slice, or extra 3D series work.
 
 ### Blockers/Concerns
 
-- The current first-class scalar model is still `value == height == color`, so Phase 96 has to split semantics without breaking the existing tile/cache/overlay callers.
+- Resident GPU recolor still rewrites per-tile vertex buffers on color-map changes; Phase 97 needs to move that path toward a shader/LUT-style update so palette changes stop touching resident geometry payloads.
 - `Log` axis rendering remains explicitly deferred until raw axis values and display-space coordinates are separated; the current branch now guards against pretending that support exists.
 - surface-cache manifest v1 cannot yet represent explicit-grid or non-linear-axis metadata, so cache v2 or richer DTOs remain future work once scalar contracts settle.
 - Existing chart benchmarks do not yet measure the interactive hotspots that should drive the next feature wave.
@@ -72,5 +72,5 @@ Progress: `[█████□□□] 6/11 requirements complete; Phase 96 sourc
 ## Session Continuity
 
 Last session: `2026-04-20 +08:00`
-Stopped at: `Phase 96-03 complete in code; Phase 96-04 source-first adoption compatibility is next`
+Stopped at: `Phase 96 complete; Phase 97-01 shader/LUT recolor path is next`
 Resume file: `.planning/ROADMAP.md`
