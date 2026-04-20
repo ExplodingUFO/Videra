@@ -110,6 +110,86 @@ public class SurfacePyramidBuilderTests
         overviewTile.Statistics.IsExact.Should().BeFalse();
     }
 
+    [Fact]
+    public async Task Build_IgnoresNonFiniteSamplesWhenReducingOverviewValuesAndStatistics()
+    {
+        var source = CreateMatrix(4, 4, new float[]
+        {
+            1, float.NaN, 3, 4,
+            5, 6, 7, 8,
+            9, 10, 11, 12,
+            13, 14, 15, 16
+        });
+
+        var builder = new SurfacePyramidBuilder(maxTileWidth: 2, maxTileHeight: 2);
+        ISurfaceTileSource tileSource = builder.Build(source);
+        var overviewTile = await tileSource.GetRequiredTileAsync(new SurfaceTileKey(0, 0, 0, 0));
+
+        overviewTile.Values.ToArray().Should().Equal(4f, 5.5f, 11.5f, 13.5f);
+        overviewTile.Statistics.Range.Should().Be(new SurfaceValueRange(1d, 16d));
+        overviewTile.Statistics.Average.Should().BeApproximately(8.933333333333334d, 1e-12d);
+        overviewTile.Statistics.SampleCount.Should().Be(16);
+    }
+
+    [Fact]
+    public void Build_PropagatesMissingMaskWhenReducedBlockHasNoValidSamples()
+    {
+        var source = CreateMatrix(4, 4, new float[]
+        {
+            float.NaN, float.NaN, 3, 4,
+            float.NaN, float.NaN, 7, 8,
+            9, 10, 11, 12,
+            13, 14, 15, 16
+        });
+
+        var builder = new SurfacePyramidBuilder(maxTileWidth: 2, maxTileHeight: 2);
+        var tileSource = builder.Build(source);
+        var overviewLevel = ((InMemorySurfaceTileSource)tileSource).Levels
+            .Single(level => level.LevelX == 0 && level.LevelY == 0);
+
+        overviewLevel.Matrix.Mask.Should().NotBeNull();
+        overviewLevel.Matrix.Mask!.Values.ToArray().Should().Equal(false, true, true, true);
+    }
+
+    [Fact]
+    public async Task Build_IgnoresExplicitlyMaskedFiniteSamplesWhenReducingOverviewValuesAndStatistics()
+    {
+        var metadata = CreateMetadata(4, 4);
+        var source = new SurfaceMatrix(
+            metadata,
+            new SurfaceScalarField(
+                width: 4,
+                height: 4,
+                values: new float[]
+                {
+                    100, 2, 3, 4,
+                    5, 6, 7, 8,
+                    9, 10, 11, 12,
+                    13, 14, 15, 16
+                },
+                range: metadata.ValueRange),
+            colorField: null,
+            mask: new SurfaceMask(
+                width: 4,
+                height: 4,
+                values: new bool[]
+                {
+                    false, true, true, true,
+                    true, true, true, true,
+                    true, true, true, true,
+                    true, true, true, true
+                }));
+
+        var builder = new SurfacePyramidBuilder(maxTileWidth: 2, maxTileHeight: 2);
+        ISurfaceTileSource tileSource = builder.Build(source);
+        var overviewTile = await tileSource.GetRequiredTileAsync(new SurfaceTileKey(0, 0, 0, 0));
+
+        overviewTile.Values.ToArray().Should().Equal(4.3333335f, 5.5f, 11.5f, 13.5f);
+        overviewTile.Statistics.Range.Should().Be(new SurfaceValueRange(2d, 16d));
+        overviewTile.Statistics.Average.Should().Be(9d);
+        overviewTile.Statistics.SampleCount.Should().Be(16);
+    }
+
     private static SurfaceMatrix CreateMatrix(int width, int height, float[] values)
     {
         return new SurfaceMatrix(CreateMetadata(width, height), values);

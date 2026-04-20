@@ -30,6 +30,24 @@ public sealed class SurfaceMatrix
         SurfaceMetadata metadata,
         SurfaceScalarField heightField,
         SurfaceScalarField? colorField)
+        : this(metadata, heightField, colorField, mask: null)
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="SurfaceMatrix"/> class.
+    /// </summary>
+    /// <param name="metadata">The matrix metadata.</param>
+    /// <param name="heightField">The primary height field.</param>
+    /// <param name="colorField">The optional independent color field.</param>
+    /// <param name="mask">The optional availability mask.</param>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="metadata"/> or <paramref name="heightField"/> is <c>null</c>.</exception>
+    /// <exception cref="ArgumentException">Thrown when a field shape does not match the metadata dimensions or when the height-field range differs from the metadata value range.</exception>
+    public SurfaceMatrix(
+        SurfaceMetadata metadata,
+        SurfaceScalarField heightField,
+        SurfaceScalarField? colorField,
+        SurfaceMask? mask)
     {
         ArgumentNullException.ThrowIfNull(metadata);
         ArgumentNullException.ThrowIfNull(heightField);
@@ -50,9 +68,21 @@ public sealed class SurfaceMatrix
             ValidateFieldShape(colorField, metadata.Width, metadata.Height, nameof(colorField));
         }
 
+        if (mask is not null)
+        {
+            ValidateMaskShape(mask, metadata.Width, metadata.Height, nameof(mask));
+        }
+
         Metadata = metadata;
         HeightField = heightField;
         ColorField = colorField;
+        Mask = SurfaceMask.Normalize(
+            mask,
+            heightField.Width,
+            heightField.Height,
+            heightField.Values.Span,
+            colorField is null ? default : colorField.Values.Span,
+            colorField is not null);
     }
 
     /// <summary>
@@ -71,6 +101,11 @@ public sealed class SurfaceMatrix
     public SurfaceScalarField? ColorField { get; }
 
     /// <summary>
+    /// Gets the optional availability mask where <see langword="true"/> means the sample is present.
+    /// </summary>
+    public SurfaceMask? Mask { get; }
+
+    /// <summary>
     /// Gets the matrix values in row-major order.
     /// </summary>
     public ReadOnlyMemory<float> Values => HeightField.Values;
@@ -86,6 +121,14 @@ public sealed class SurfaceMatrix
         if (field.Width != expectedWidth || field.Height != expectedHeight)
         {
             throw new ArgumentException("Scalar-field shape must match the matrix metadata dimensions.", paramName);
+        }
+    }
+
+    private static void ValidateMaskShape(SurfaceMask mask, int expectedWidth, int expectedHeight, string paramName)
+    {
+        if (mask.Width != expectedWidth || mask.Height != expectedHeight)
+        {
+            throw new ArgumentException("Mask shape must match the matrix metadata dimensions.", paramName);
         }
     }
 }
