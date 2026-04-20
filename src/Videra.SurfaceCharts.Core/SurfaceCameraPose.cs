@@ -148,33 +148,13 @@ public readonly record struct SurfaceCameraPose
         ArgumentNullException.ThrowIfNull(metadata);
 
         var clampedWindow = dataWindow.ClampTo(metadata);
-        var minHorizontal = metadata.MapHorizontalCoordinate(clampedWindow.StartX);
-        var maxHorizontal = metadata.MapHorizontalCoordinate(
-            clampedWindow.Width <= 1d
-                ? clampedWindow.StartX
-                : clampedWindow.StartX + clampedWindow.Width - 1d);
-        var minVertical = metadata.MapVerticalCoordinate(clampedWindow.StartY);
-        var maxVertical = metadata.MapVerticalCoordinate(
-            clampedWindow.Height <= 1d
-                ? clampedWindow.StartY
-                : clampedWindow.StartY + clampedWindow.Height - 1d);
-        var targetX = metadata.Geometry is SurfaceRegularGrid
-            ? MapRegularWindowCenter(metadata.HorizontalAxis, clampedWindow.StartX, clampedWindow.Width, metadata.Width)
-            : (minHorizontal + maxHorizontal) * 0.5d;
-        var targetZ = metadata.Geometry is SurfaceRegularGrid
-            ? MapRegularWindowCenter(metadata.VerticalAxis, clampedWindow.StartY, clampedWindow.Height, metadata.Height)
-            : (minVertical + maxVertical) * 0.5d;
         var target = new Vector3(
-            (float)targetX,
+            (float)metadata.GetHorizontalWindowCenter(clampedWindow.StartX, clampedWindow.Width),
             (float)((metadata.ValueRange.Minimum + metadata.ValueRange.Maximum) * 0.5d),
-            (float)targetZ);
+            (float)metadata.GetVerticalWindowCenter(clampedWindow.StartY, clampedWindow.Height));
 
-        var horizontalSpan = metadata.Geometry is SurfaceRegularGrid
-            ? MapRegularWindowSpan(metadata.HorizontalAxis, clampedWindow.Width, metadata.Width)
-            : Math.Abs(maxHorizontal - minHorizontal);
-        var verticalSpan = metadata.Geometry is SurfaceRegularGrid
-            ? MapRegularWindowSpan(metadata.VerticalAxis, clampedWindow.Height, metadata.Height)
-            : Math.Abs(maxVertical - minVertical);
+        var horizontalSpan = metadata.GetHorizontalWindowSpan(clampedWindow.StartX, clampedWindow.Width);
+        var verticalSpan = metadata.GetVerticalWindowSpan(clampedWindow.StartY, clampedWindow.Height);
         var valueSpan = metadata.ValueRange.Span;
         var diagonal = Math.Sqrt((horizontalSpan * horizontalSpan) + (valueSpan * valueSpan) + (verticalSpan * verticalSpan));
         var halfFieldOfViewRadians = (DefaultFieldOfViewDegrees * (Math.PI / 180d)) * 0.5d;
@@ -186,26 +166,5 @@ public readonly record struct SurfaceCameraPose
             DefaultPitchDegrees,
             distance,
             DefaultFieldOfViewDegrees);
-    }
-
-    private static double MapRegularWindowCenter(SurfaceAxisDescriptor axis, double start, double span, int sampleCount)
-    {
-        if (sampleCount <= 0 || axis.Maximum <= axis.Minimum)
-        {
-            return axis.Minimum;
-        }
-
-        var normalizedCenter = Math.Clamp((start + (span * 0.5d)) / sampleCount, 0d, 1d);
-        return axis.Minimum + (axis.Span * normalizedCenter);
-    }
-
-    private static double MapRegularWindowSpan(SurfaceAxisDescriptor axis, double span, int sampleCount)
-    {
-        if (sampleCount <= 0 || axis.Maximum <= axis.Minimum)
-        {
-            return 0d;
-        }
-
-        return axis.Span * Math.Clamp(span / sampleCount, 0d, 1d);
     }
 }

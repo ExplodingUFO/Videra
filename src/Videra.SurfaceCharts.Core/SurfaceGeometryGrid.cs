@@ -38,6 +38,42 @@ public abstract class SurfaceGeometryGrid
     public abstract double MapVerticalCoordinate(double sampleIndex, SurfaceAxisDescriptor axis);
 
     /// <summary>
+    /// Gets the horizontal window center in axis-space.
+    /// </summary>
+    public virtual double GetHorizontalWindowCenter(double start, double span, SurfaceAxisDescriptor axis)
+    {
+        var end = span <= 1d ? start : start + span - 1d;
+        return (MapHorizontalCoordinate(start, axis) + MapHorizontalCoordinate(end, axis)) * 0.5d;
+    }
+
+    /// <summary>
+    /// Gets the vertical window center in axis-space.
+    /// </summary>
+    public virtual double GetVerticalWindowCenter(double start, double span, SurfaceAxisDescriptor axis)
+    {
+        var end = span <= 1d ? start : start + span - 1d;
+        return (MapVerticalCoordinate(start, axis) + MapVerticalCoordinate(end, axis)) * 0.5d;
+    }
+
+    /// <summary>
+    /// Gets the horizontal window span in axis-space.
+    /// </summary>
+    public virtual double GetHorizontalWindowSpan(double start, double span, SurfaceAxisDescriptor axis)
+    {
+        var end = span <= 1d ? start : start + span - 1d;
+        return Math.Abs(MapHorizontalCoordinate(end, axis) - MapHorizontalCoordinate(start, axis));
+    }
+
+    /// <summary>
+    /// Gets the vertical window span in axis-space.
+    /// </summary>
+    public virtual double GetVerticalWindowSpan(double start, double span, SurfaceAxisDescriptor axis)
+    {
+        var end = span <= 1d ? start : start + span - 1d;
+        return Math.Abs(MapVerticalCoordinate(end, axis) - MapVerticalCoordinate(start, axis));
+    }
+
+    /// <summary>
     /// Gets the mapped horizontal-axis minimum for this grid.
     /// </summary>
     public double GetHorizontalMinimum(SurfaceAxisDescriptor axis)
@@ -82,6 +118,16 @@ public abstract class SurfaceGeometryGrid
         }
 
         var normalized = Math.Clamp(sampleIndex / (sampleCount - 1d), 0d, 1d);
+        return MapNormalizedCoordinate(axis, normalized);
+    }
+
+    /// <summary>
+    /// Maps one normalized axis coordinate into axis-space.
+    /// </summary>
+    protected static double MapNormalizedCoordinate(SurfaceAxisDescriptor axis, double normalized)
+    {
+        ArgumentNullException.ThrowIfNull(axis);
+
         return axis.ScaleKind switch
         {
             SurfaceAxisScaleKind.Linear or SurfaceAxisScaleKind.DateTime =>
@@ -120,6 +166,45 @@ public sealed class SurfaceRegularGrid : SurfaceGeometryGrid
     public override double MapVerticalCoordinate(double sampleIndex, SurfaceAxisDescriptor axis)
     {
         return MapRegularCoordinate(axis, sampleIndex, Height);
+    }
+
+    /// <inheritdoc />
+    public override double GetHorizontalWindowCenter(double start, double span, SurfaceAxisDescriptor axis)
+    {
+        var minimum = MapRegularBoundary(axis, start, Width);
+        var maximum = MapRegularBoundary(axis, start + span, Width);
+        return (minimum + maximum) * 0.5d;
+    }
+
+    /// <inheritdoc />
+    public override double GetVerticalWindowCenter(double start, double span, SurfaceAxisDescriptor axis)
+    {
+        var minimum = MapRegularBoundary(axis, start, Height);
+        var maximum = MapRegularBoundary(axis, start + span, Height);
+        return (minimum + maximum) * 0.5d;
+    }
+
+    /// <inheritdoc />
+    public override double GetHorizontalWindowSpan(double start, double span, SurfaceAxisDescriptor axis)
+    {
+        return Math.Abs(MapRegularBoundary(axis, start + span, Width) - MapRegularBoundary(axis, start, Width));
+    }
+
+    /// <inheritdoc />
+    public override double GetVerticalWindowSpan(double start, double span, SurfaceAxisDescriptor axis)
+    {
+        return Math.Abs(MapRegularBoundary(axis, start + span, Height) - MapRegularBoundary(axis, start, Height));
+    }
+
+    private static double MapRegularBoundary(SurfaceAxisDescriptor axis, double boundaryIndex, int sampleCount)
+    {
+        if (sampleCount <= 0 || axis.Maximum <= axis.Minimum)
+        {
+            return axis.Minimum;
+        }
+
+        var normalized = Math.Clamp(boundaryIndex / sampleCount, 0d, 1d);
+        return MapNormalizedCoordinate(axis, normalized);
     }
 }
 

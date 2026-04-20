@@ -53,6 +53,25 @@ public sealed class SurfaceViewStateTests
     }
 
     [Fact]
+    public void SurfaceViewState_CreateDefault_UsesExplicitGridWindowCenter()
+    {
+        var metadata = new SurfaceMetadata(
+            new SurfaceExplicitGrid(
+                horizontalCoordinates: new double[] { 10d, 20d, 40d, 80d },
+                verticalCoordinates: new double[] { 100d, 130d, 190d }),
+            new SurfaceAxisDescriptor("Time", "s", 10d, 80d, SurfaceAxisScaleKind.ExplicitCoordinates),
+            new SurfaceAxisDescriptor("Frequency", "Hz", 100d, 190d, SurfaceAxisScaleKind.ExplicitCoordinates),
+            new SurfaceValueRange(-5d, 15d));
+        var dataWindow = new SurfaceDataWindow(1.0, 0.0, 2.0, 3.0);
+
+        var state = SurfaceViewState.CreateDefault(metadata, dataWindow);
+
+        state.Camera.Target.X.Should().BeApproximately(30.0f, 0.0001f);
+        state.Camera.Target.Y.Should().BeApproximately(5.0f, 0.0001f);
+        state.Camera.Target.Z.Should().BeApproximately(145.0f, 0.0001f);
+    }
+
+    [Fact]
     public void SurfaceCameraPose_CreateCameraFrame_UsesTargetAndFieldOfView()
     {
         var metadata = CreateMetadata();

@@ -225,6 +225,35 @@ public class SurfaceMetadataTests
             .Where(ex => ex.ParamName == "minimum");
     }
 
+    [Fact]
+    public void Ctor_RejectsExplicitAxisScaleWithoutExplicitGrid()
+    {
+        var act = () => new SurfaceMetadata(
+            width: 4,
+            height: 3,
+            new SurfaceAxisDescriptor("Time", "s", 10d, 80d, SurfaceAxisScaleKind.ExplicitCoordinates),
+            new SurfaceAxisDescriptor("Frequency", "Hz", 100d, 190d, SurfaceAxisScaleKind.ExplicitCoordinates),
+            new SurfaceValueRange(-3.5, 9.25));
+
+        act.Should().Throw<ArgumentException>()
+            .Where(ex => ex.ParamName == "horizontalAxis");
+    }
+
+    [Fact]
+    public void Ctor_RejectsExplicitGridWhenAxisBoundsDoNotMatchCoordinates()
+    {
+        var act = () => new SurfaceMetadata(
+            new SurfaceExplicitGrid(
+                horizontalCoordinates: new double[] { 10d, 20d, 40d, 80d },
+                verticalCoordinates: new double[] { 100d, 130d, 190d }),
+            new SurfaceAxisDescriptor("Time", "s", 10d, 70d, SurfaceAxisScaleKind.ExplicitCoordinates),
+            new SurfaceAxisDescriptor("Frequency", "Hz", 100d, 190d, SurfaceAxisScaleKind.ExplicitCoordinates),
+            new SurfaceValueRange(-3.5, 9.25));
+
+        act.Should().Throw<ArgumentException>()
+            .Where(ex => ex.ParamName == "horizontalAxis");
+    }
+
     private sealed class MissingTileSource : ISurfaceTileSource
     {
         public SurfaceMetadata Metadata => CreateMetadata(16, 8);

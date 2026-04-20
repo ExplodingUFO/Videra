@@ -106,6 +106,38 @@ public sealed class SurfaceMetadata
         return Geometry.MapVerticalCoordinate(sampleY, VerticalAxis);
     }
 
+    /// <summary>
+    /// Gets the horizontal window center in axis-space.
+    /// </summary>
+    public double GetHorizontalWindowCenter(double start, double span)
+    {
+        return Geometry.GetHorizontalWindowCenter(start, span, HorizontalAxis);
+    }
+
+    /// <summary>
+    /// Gets the vertical window center in axis-space.
+    /// </summary>
+    public double GetVerticalWindowCenter(double start, double span)
+    {
+        return Geometry.GetVerticalWindowCenter(start, span, VerticalAxis);
+    }
+
+    /// <summary>
+    /// Gets the horizontal window span in axis-space.
+    /// </summary>
+    public double GetHorizontalWindowSpan(double start, double span)
+    {
+        return Geometry.GetHorizontalWindowSpan(start, span, HorizontalAxis);
+    }
+
+    /// <summary>
+    /// Gets the vertical window span in axis-space.
+    /// </summary>
+    public double GetVerticalWindowSpan(double start, double span)
+    {
+        return Geometry.GetVerticalWindowSpan(start, span, VerticalAxis);
+    }
+
     private static void ValidateAxisCompatibility(
         SurfaceGeometryGrid geometry,
         SurfaceAxisDescriptor axis,
