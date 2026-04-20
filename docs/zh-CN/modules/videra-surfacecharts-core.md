@@ -23,6 +23,14 @@
 
 这里最重要的约定是：`SurfaceTile.Width` / `Height` 表示 value-grid 维度，而 `SurfaceTile.Bounds` 表示原始数据集里的 source-space 覆盖范围。粗粒度 LOD tile 因此不再假设 `1:1 sample -> value`。
 
+## Source-First 与高级负载
+
+`SurfaceMatrix` 仍是默认的 source-first regular-grid 入口。现有宿主可以继续走 `new SurfaceMatrix(metadata, values)` 加 `SurfacePyramidBuilder` 的默认路径，不需要为了新契约先改 `SurfaceChartView` 侧的接入方式。
+
+如果要承载更专业的分析语义，也可以在同一套 chart shell 下逐步切到更丰富的底层负载：`SurfaceMatrix(metadata, heightField, colorField, mask)` 和 `SurfaceTile(..., heightField, colorField, mask)` 现在都支持 `SurfaceScalarField` 高度场、独立的 `ColorField`，以及一等 `SurfaceMask`。
+
+这层拆分是刻意保持的：默认 source-first regular-grid 路径继续保持狭窄，而高级调用者可以在不放大 `SurfaceChartView` public surface 的前提下，选择独立的 `ColorField` 和一等 `SurfaceMask` 语义。
+
 ## 相关入口
 
 - [Videra.SurfaceCharts.Avalonia](videra-surfacecharts-avalonia.md)

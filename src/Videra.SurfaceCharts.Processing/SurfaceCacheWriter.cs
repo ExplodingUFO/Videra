@@ -43,6 +43,7 @@ public static class SurfaceCacheWriter
         try
         {
             EnsureDestinationDirectoryExists(fileSystem, cachePath);
+            ValidateMetadataCompatibility(source.GetRequiredMetadata());
 
             #pragma warning disable CA2007
             await using (var payloadStream = fileSystem.CreateFile(tempPayloadPath))
@@ -235,6 +236,24 @@ public static class SurfaceCacheWriter
         public static TileBoundsDto FromModel(SurfaceTileBounds bounds)
         {
             return new TileBoundsDto(bounds.StartX, bounds.StartY, bounds.Width, bounds.Height);
+        }
+    }
+
+    private static void ValidateMetadataCompatibility(SurfaceMetadata metadata)
+    {
+        ArgumentNullException.ThrowIfNull(metadata);
+
+        if (metadata.Geometry is not SurfaceRegularGrid)
+        {
+            throw new NotSupportedException(
+                "Surface cache serialization currently supports only regular-grid geometry.");
+        }
+
+        if (metadata.HorizontalAxis.ScaleKind != SurfaceAxisScaleKind.Linear ||
+            metadata.VerticalAxis.ScaleKind != SurfaceAxisScaleKind.Linear)
+        {
+            throw new NotSupportedException(
+                "Surface cache serialization currently supports only linear axis semantics.");
         }
     }
 

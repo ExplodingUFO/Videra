@@ -108,6 +108,59 @@ public class SurfaceCacheRoundTripTests
     }
 
     [Fact]
+    public async Task WriteAsync_RejectsExplicitGridMetadataUntilCacheContractSupportsIt()
+    {
+        var cachePath = CreateCachePath();
+        var tileKey = new SurfaceTileKey(0, 0, 0, 0);
+        var source = CreateSingleTileSource(
+            new SurfaceMetadata(
+                new SurfaceExplicitGrid(
+                    horizontalCoordinates: new double[] { 10d, 30d },
+                    verticalCoordinates: new double[] { 100d, 180d }),
+                new SurfaceAxisDescriptor("Time", "s", 10d, 30d, SurfaceAxisScaleKind.ExplicitCoordinates),
+                new SurfaceAxisDescriptor("Frequency", "Hz", 100d, 180d, SurfaceAxisScaleKind.ExplicitCoordinates),
+                new SurfaceValueRange(1d, 4d)));
+
+        try
+        {
+            var act = async () => await SurfaceCacheWriter.WriteAsync(cachePath, source, new[] { tileKey });
+
+            await act.Should().ThrowAsync<NotSupportedException>()
+                .WithMessage("*regular-grid geometry*");
+        }
+        finally
+        {
+            DeleteCachePath(cachePath);
+        }
+    }
+
+    [Fact]
+    public async Task WriteAsync_RejectsNonLinearAxisScaleUntilCacheContractSupportsIt()
+    {
+        var cachePath = CreateCachePath();
+        var tileKey = new SurfaceTileKey(0, 0, 0, 0);
+        var source = CreateSingleTileSource(
+            new SurfaceMetadata(
+                width: 2,
+                height: 2,
+                new SurfaceAxisDescriptor("Time", "ticks", 638800000000000000d, 638800000000010000d, SurfaceAxisScaleKind.DateTime),
+                new SurfaceAxisDescriptor("Frequency", "Hz", 100d, 200d),
+                new SurfaceValueRange(1d, 4d)));
+
+        try
+        {
+            var act = async () => await SurfaceCacheWriter.WriteAsync(cachePath, source, new[] { tileKey });
+
+            await act.Should().ThrowAsync<NotSupportedException>()
+                .WithMessage("*linear axis semantics*");
+        }
+        finally
+        {
+            DeleteCachePath(cachePath);
+        }
+    }
+
+    [Fact]
     public async Task WriteAsync_PreservesExistingCacheWhenSerializationFails()
     {
         var cachePath = CreateCachePath();
@@ -276,6 +329,18 @@ public class SurfaceCacheRoundTripTests
         return new SurfaceMatrix(CreateMetadata(width, height), values);
     }
 
+    private static ISurfaceTileSource CreateSingleTileSource(SurfaceMetadata metadata)
+    {
+        var tile = new SurfaceTile(
+            new SurfaceTileKey(0, 0, 0, 0),
+            width: metadata.Width,
+            height: metadata.Height,
+            new SurfaceTileBounds(0, 0, metadata.Width, metadata.Height),
+            new float[] { 1f, 2f, 3f, 4f },
+            new SurfaceValueRange(1d, 4d));
+        return new SingleTileSource(metadata, tile);
+    }
+
     private static SurfaceMetadata CreateMetadata(int width, int height)
     {
         return new SurfaceMetadata(
@@ -317,6 +382,24 @@ public class SurfaceCacheRoundTripTests
         public ValueTask<SurfaceTile?> GetTileAsync(SurfaceTileKey tileKey, CancellationToken cancellationToken = default)
         {
             throw new Exception("Simulated serialization failure.");
+        }
+    }
+
+    private sealed class SingleTileSource : ISurfaceTileSource
+    {
+        private readonly SurfaceTile tile;
+
+        public SingleTileSource(SurfaceMetadata metadata, SurfaceTile tile)
+        {
+            Metadata = metadata;
+            this.tile = tile;
+        }
+
+        public SurfaceMetadata Metadata { get; }
+
+        public ValueTask<SurfaceTile?> GetTileAsync(SurfaceTileKey tileKey, CancellationToken cancellationToken = default)
+        {
+            return ValueTask.FromResult<SurfaceTile?>(tileKey == tile.Key ? tile : null);
         }
     }
 

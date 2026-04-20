@@ -35,6 +35,8 @@ public sealed class SurfaceRenderer
 
         var geometry = geometryBuilder.Build(tile.Width, tile.Height);
         var sourceValues = tile.Values.Span;
+        var hasColorField = tile.ColorField is not null;
+        var colorValues = hasColorField ? tile.ColorField!.Values.Span : default;
         var vertices = new SurfaceRenderVertex[sourceValues.Length];
 
         for (var row = 0; row < tile.Height; row++)
@@ -42,7 +44,8 @@ public sealed class SurfaceRenderer
             for (var column = 0; column < tile.Width; column++)
             {
                 var vertexIndex = checked((row * tile.Width) + column);
-                var value = sourceValues[vertexIndex];
+                var heightValue = sourceValues[vertexIndex];
+                var colorValue = hasColorField ? colorValues[vertexIndex] : heightValue;
                 // Coarse LOD tiles can cover a wider source-space span than their value grid,
                 // so vertex placement must be distributed across the covered bounds.
                 var sampleX = MapTileSampleCoordinate(tile.Bounds.StartX, tile.Bounds.Width, tile.Width, column);
@@ -50,10 +53,10 @@ public sealed class SurfaceRenderer
 
                 vertices[vertexIndex] = new SurfaceRenderVertex(
                     new Vector3(
-                        (float)MapAxis(metadata.HorizontalAxis, sampleX, metadata.Width),
-                        value,
-                        (float)MapAxis(metadata.VerticalAxis, sampleY, metadata.Height)),
-                    colorMap.Map(value));
+                        (float)metadata.MapHorizontalCoordinate(sampleX),
+                        heightValue,
+                        (float)metadata.MapVerticalCoordinate(sampleY)),
+                    colorMap.Map(colorValue));
             }
         }
 
@@ -80,17 +83,6 @@ public sealed class SurfaceRenderer
         }
 
         return new SurfaceRenderScene(metadata, renderTiles);
-    }
-
-    private static double MapAxis(SurfaceAxisDescriptor axis, double sampleIndex, int sampleCount)
-    {
-        if (sampleCount <= 1 || axis.Maximum <= axis.Minimum)
-        {
-            return axis.Minimum;
-        }
-
-        var normalized = sampleIndex / (sampleCount - 1d);
-        return axis.Minimum + (axis.Span * normalized);
     }
 
     private static double MapTileSampleCoordinate(int start, int span, int sampleCount, int sampleIndex)

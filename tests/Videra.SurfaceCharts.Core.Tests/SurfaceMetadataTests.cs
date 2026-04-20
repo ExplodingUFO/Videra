@@ -198,6 +198,62 @@ public class SurfaceMetadataTests
         metadata.VerticalAxis.Label.Should().Be("Frequency");
     }
 
+    [Fact]
+    public void Ctor_AcceptsExplicitGridAndCentralizedCoordinateMapping()
+    {
+        var metadata = new SurfaceMetadata(
+            new SurfaceExplicitGrid(
+                horizontalCoordinates: new double[] { 10d, 20d, 40d, 80d },
+                verticalCoordinates: new double[] { 100d, 130d, 190d }),
+            new SurfaceAxisDescriptor("Time", "s", 10d, 80d, SurfaceAxisScaleKind.ExplicitCoordinates),
+            new SurfaceAxisDescriptor("Frequency", "Hz", 100d, 190d, SurfaceAxisScaleKind.ExplicitCoordinates),
+            new SurfaceValueRange(-3.5, 9.25));
+
+        metadata.Width.Should().Be(4);
+        metadata.Height.Should().Be(3);
+        metadata.MapHorizontalCoordinate(0d).Should().Be(10d);
+        metadata.MapHorizontalCoordinate(2.5d).Should().BeApproximately(60d, 0.0001d);
+        metadata.MapVerticalCoordinate(1.5d).Should().BeApproximately(160d, 0.0001d);
+    }
+
+    [Fact]
+    public void AxisCtor_RejectsLogScaleUntilDisplaySpaceSupportLands()
+    {
+        var act = () => new SurfaceAxisDescriptor("Frequency", "Hz", 1d, 10d, SurfaceAxisScaleKind.Log);
+
+        act.Should().Throw<ArgumentException>()
+            .Where(ex => ex.ParamName == "scaleKind");
+    }
+
+    [Fact]
+    public void Ctor_RejectsExplicitAxisScaleWithoutExplicitGrid()
+    {
+        var act = () => new SurfaceMetadata(
+            width: 4,
+            height: 3,
+            new SurfaceAxisDescriptor("Time", "s", 10d, 80d, SurfaceAxisScaleKind.ExplicitCoordinates),
+            new SurfaceAxisDescriptor("Frequency", "Hz", 100d, 190d, SurfaceAxisScaleKind.ExplicitCoordinates),
+            new SurfaceValueRange(-3.5, 9.25));
+
+        act.Should().Throw<ArgumentException>()
+            .Where(ex => ex.ParamName == "horizontalAxis");
+    }
+
+    [Fact]
+    public void Ctor_RejectsExplicitGridWhenAxisBoundsDoNotMatchCoordinates()
+    {
+        var act = () => new SurfaceMetadata(
+            new SurfaceExplicitGrid(
+                horizontalCoordinates: new double[] { 10d, 20d, 40d, 80d },
+                verticalCoordinates: new double[] { 100d, 130d, 190d }),
+            new SurfaceAxisDescriptor("Time", "s", 10d, 70d, SurfaceAxisScaleKind.ExplicitCoordinates),
+            new SurfaceAxisDescriptor("Frequency", "Hz", 100d, 190d, SurfaceAxisScaleKind.ExplicitCoordinates),
+            new SurfaceValueRange(-3.5, 9.25));
+
+        act.Should().Throw<ArgumentException>()
+            .Where(ex => ex.ParamName == "horizontalAxis");
+    }
+
     private sealed class MissingTileSource : ISurfaceTileSource
     {
         public SurfaceMetadata Metadata => CreateMetadata(16, 8);

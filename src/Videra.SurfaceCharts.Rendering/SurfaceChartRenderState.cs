@@ -237,11 +237,9 @@ public sealed class SurfaceChartRenderState
         SurfaceColorMap colorMap)
     {
         var renderTile = _renderer.BuildTile(metadata, sourceTile, colorMap);
-        var sampleValues = sourceTile.Values.ToArray();
 
         return new SurfaceChartResidentTile(
             sourceTile,
-            renderTile,
-            Array.AsReadOnly(sampleValues));
+            renderTile);
     }
 }

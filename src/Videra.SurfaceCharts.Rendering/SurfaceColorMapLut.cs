@@ -20,6 +20,13 @@ internal sealed class SurfaceColorMapLut
 
     public SurfaceValueRange Range { get; }
 
+    public int PaletteCount => _palette.Length;
+
+    public uint GetPaletteColor(int index)
+    {
+        return _palette[index];
+    }
+
     public uint Map(double value)
     {
         if (!double.IsFinite(value))

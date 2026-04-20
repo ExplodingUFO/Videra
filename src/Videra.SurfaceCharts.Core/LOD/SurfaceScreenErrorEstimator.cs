@@ -114,19 +114,8 @@ public static class SurfaceScreenErrorEstimator
         float value)
     {
         return new Vector3(
-            (float)MapAxis(metadata.HorizontalAxis, sampleX, metadata.Width),
+            (float)metadata.MapHorizontalCoordinate(sampleX),
             value,
-            (float)MapAxis(metadata.VerticalAxis, sampleY, metadata.Height));
-    }
-
-    private static double MapAxis(SurfaceAxisDescriptor axis, double sampleIndex, int sampleCount)
-    {
-        if (sampleCount <= 1 || axis.Maximum <= axis.Minimum)
-        {
-            return axis.Minimum;
-        }
-
-        var normalized = Math.Clamp(sampleIndex / (sampleCount - 1d), 0d, 1d);
-        return axis.Minimum + (axis.Span * normalized);
+            (float)metadata.MapVerticalCoordinate(sampleY));
     }
 }

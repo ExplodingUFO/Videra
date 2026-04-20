@@ -46,6 +46,7 @@
   </Folder>
   <Folder Name="/Tests/SurfaceCharts/">
     <Project Path="tests/Videra.SurfaceCharts.Avalonia.IntegrationTests/Videra.SurfaceCharts.Avalonia.IntegrationTests.csproj" />
+    <Project Path="tests/Videra.SurfaceCharts.Benchmarks.Tests/Videra.SurfaceCharts.Benchmarks.Tests.csproj" />
     <Project Path="tests/Videra.SurfaceCharts.Core.Tests/Videra.SurfaceCharts.Core.Tests.csproj" />
     <Project Path="tests/Videra.SurfaceCharts.Processing.Tests/Videra.SurfaceCharts.Processing.Tests.csproj" />
   </Folder>

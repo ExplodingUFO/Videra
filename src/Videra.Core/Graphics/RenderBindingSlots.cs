@@ -9,5 +9,7 @@ public static class RenderBindingSlots
     public const uint Camera = 1;
     public const uint World = 2;
     public const uint Style = 3;
+    public const uint SurfaceColorMap = 4;
+    public const uint SurfaceTileScalars = 5;
 }
 

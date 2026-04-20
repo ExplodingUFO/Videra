@@ -91,6 +91,11 @@ internal static class SurfaceProbeService
             var tileX = MapSampleToTileIndex(probeRequest.SampleX, tile.Bounds.StartX, tile.Bounds.Width, tile.Width);
             var tileY = MapSampleToTileIndex(probeRequest.SampleY, tile.Bounds.StartY, tile.Bounds.Height, tile.Height);
             var valueIndex = (tileY * tile.Width) + tileX;
+            if (tile.Mask is not null && !tile.Mask.Values.Span[valueIndex])
+            {
+                return null;
+            }
+
             var value = tile.Values.Span[valueIndex];
             if (!float.IsFinite(value))
             {

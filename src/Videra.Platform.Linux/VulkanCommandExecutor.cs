@@ -1,17 +1,22 @@
 using Silk.NET.Vulkan;
 using Videra.Core.Exceptions;
+using Videra.Core.Graphics;
 using Videra.Core.Graphics.Abstractions;
 
 namespace Videra.Platform.Linux;
 
-internal sealed unsafe class VulkanCommandExecutor : ICommandExecutor
+internal sealed unsafe class VulkanCommandExecutor : ICommandExecutor, IBufferBindingCacheInvalidator
 {
     private readonly Device _device;
     private readonly CommandBuffer _commandBuffer;
     private readonly Vk _vk;
+    private readonly Dictionary<VulkanBuffer, DescriptorSet> _surfaceScalarDescriptorSets = [];
     private VulkanPipeline? _pipeline;
     private VulkanBuffer? _cameraBuffer;
     private VulkanBuffer? _worldBuffer;
+    private VulkanBuffer? _colorMapBuffer;
+    private VulkanBuffer? _surfaceTileScalarBuffer;
+    private DescriptorSet _currentDescriptorSet;
 
     public VulkanCommandExecutor(Device device, CommandBuffer commandBuffer, Vk vk)
     {
@@ -25,7 +30,18 @@ internal sealed unsafe class VulkanCommandExecutor : ICommandExecutor
         if (pipeline is not VulkanPipeline vkPipeline)
             throw new ArgumentException("Pipeline must be a VulkanPipeline");
 
+        if (!ReferenceEquals(_pipeline, vkPipeline))
+        {
+            if (_pipeline is not null)
+            {
+                ReleaseCachedDescriptorSets(_pipeline);
+            }
+
+            _surfaceScalarDescriptorSets.Clear();
+        }
+
         _pipeline = vkPipeline;
+        _currentDescriptorSet = _pipeline.DescriptorSet;
         BindPipeline(0);
         BindDescriptorSet();
     }
@@ -43,10 +59,14 @@ internal sealed unsafe class VulkanCommandExecutor : ICommandExecutor
             return;
         }
 
-        if (index == 1)
+        if (index == RenderBindingSlots.Camera)
             _cameraBuffer = vkBuffer;
-        else if (index == 2)
+        else if (index == RenderBindingSlots.World)
             _worldBuffer = vkBuffer;
+        else if (index == RenderBindingSlots.SurfaceColorMap)
+            _colorMapBuffer = vkBuffer;
+        else if (index == RenderBindingSlots.SurfaceTileScalars)
+            _surfaceTileScalarBuffer = vkBuffer;
 
         UpdateDescriptorSet();
     }
@@ -122,6 +142,35 @@ internal sealed unsafe class VulkanCommandExecutor : ICommandExecutor
         // No-op for Vulkan - depth state is managed through pipeline state
     }
 
+    public void ReleaseBuffer(IBuffer buffer)
+    {
+        if (buffer is not VulkanBuffer vkBuffer)
+        {
+            return;
+        }
+
+        if (ReferenceEquals(_surfaceTileScalarBuffer, vkBuffer))
+        {
+            _surfaceTileScalarBuffer = null;
+        }
+
+        if (_pipeline is null)
+        {
+            return;
+        }
+
+        if (!_surfaceScalarDescriptorSets.Remove(vkBuffer, out var descriptorSet))
+        {
+            return;
+        }
+
+        _ = _vk.FreeDescriptorSets(_device, _pipeline.DescriptorPool, 1, in descriptorSet);
+        if (_currentDescriptorSet.Handle == descriptorSet.Handle)
+        {
+            _currentDescriptorSet = default;
+        }
+    }
+
     private void BindPipeline(uint primitiveType)
     {
         if (_pipeline == null)
@@ -137,7 +186,7 @@ internal sealed unsafe class VulkanCommandExecutor : ICommandExecutor
         if (_pipeline == null)
             return;
 
-        var descriptorSet = _pipeline.DescriptorSet;
+        var descriptorSet = _currentDescriptorSet.Handle != 0 ? _currentDescriptorSet : _pipeline.DescriptorSet;
         _vk.CmdBindDescriptorSets(_commandBuffer, PipelineBindPoint.Graphics, _pipeline.PipelineLayout, 0, 1, &descriptorSet, 0, null);
     }
 
@@ -145,6 +194,20 @@ internal sealed unsafe class VulkanCommandExecutor : ICommandExecutor
     {
         if (_pipeline == null || _cameraBuffer == null || _worldBuffer == null)
             return;
+
+        var descriptorWriteCount = 2u;
+        if (_pipeline.UsesSurfaceChartScalarBindings)
+        {
+            if (_colorMapBuffer == null || _surfaceTileScalarBuffer == null)
+                return;
+
+            descriptorWriteCount = 4u;
+            _currentDescriptorSet = GetOrCreateSurfaceScalarDescriptorSet(_surfaceTileScalarBuffer);
+        }
+        else
+        {
+            _currentDescriptorSet = _pipeline.DescriptorSet;
+        }
 
         var cameraInfo = new DescriptorBufferInfo
         {
@@ -160,11 +223,11 @@ internal sealed unsafe class VulkanCommandExecutor : ICommandExecutor
             Range = _worldBuffer.SizeInBytes
         };
 
-        var writes = stackalloc WriteDescriptorSet[2];
+        var writes = stackalloc WriteDescriptorSet[(int)descriptorWriteCount];
         writes[0] = new WriteDescriptorSet
         {
             SType = StructureType.WriteDescriptorSet,
-            DstSet = _pipeline.DescriptorSet,
+            DstSet = _currentDescriptorSet,
             DstBinding = 0,
             DescriptorCount = 1,
             DescriptorType = DescriptorType.UniformBuffer,
@@ -173,14 +236,87 @@ internal sealed unsafe class VulkanCommandExecutor : ICommandExecutor
         writes[1] = new WriteDescriptorSet
         {
             SType = StructureType.WriteDescriptorSet,
-            DstSet = _pipeline.DescriptorSet,
+            DstSet = _currentDescriptorSet,
             DstBinding = 1,
             DescriptorCount = 1,
             DescriptorType = DescriptorType.UniformBuffer,
             PBufferInfo = &worldInfo
         };
 
-        _vk.UpdateDescriptorSets(_device, 2, writes, 0, null);
+        if (_pipeline.UsesSurfaceChartScalarBindings)
+        {
+            var colorMapInfo = new DescriptorBufferInfo
+            {
+                Buffer = _colorMapBuffer!.NativeBuffer,
+                Offset = 0,
+                Range = _colorMapBuffer.SizeInBytes
+            };
+            var tileScalarInfo = new DescriptorBufferInfo
+            {
+                Buffer = _surfaceTileScalarBuffer!.NativeBuffer,
+                Offset = 0,
+                Range = _surfaceTileScalarBuffer.SizeInBytes
+            };
+
+            writes[2] = new WriteDescriptorSet
+            {
+                SType = StructureType.WriteDescriptorSet,
+                DstSet = _currentDescriptorSet,
+                DstBinding = 2,
+                DescriptorCount = 1,
+                DescriptorType = DescriptorType.UniformBuffer,
+                PBufferInfo = &colorMapInfo
+            };
+            writes[3] = new WriteDescriptorSet
+            {
+                SType = StructureType.WriteDescriptorSet,
+                DstSet = _currentDescriptorSet,
+                DstBinding = 3,
+                DescriptorCount = 1,
+                DescriptorType = DescriptorType.UniformBuffer,
+                PBufferInfo = &tileScalarInfo
+            };
+        }
+
+        _vk.UpdateDescriptorSets(_device, descriptorWriteCount, writes, 0, null);
         BindDescriptorSet();
+    }
+
+    private DescriptorSet GetOrCreateSurfaceScalarDescriptorSet(VulkanBuffer scalarBuffer)
+    {
+        if (_pipeline is null)
+            throw new InvalidOperationException("A Vulkan pipeline must be bound before allocating descriptor sets.");
+
+        if (_surfaceScalarDescriptorSets.TryGetValue(scalarBuffer, out var descriptorSet))
+        {
+            return descriptorSet;
+        }
+
+        var descriptorSetLayout = _pipeline.DescriptorSetLayout;
+        var allocateInfo = new DescriptorSetAllocateInfo
+        {
+            SType = StructureType.DescriptorSetAllocateInfo,
+            DescriptorPool = _pipeline.DescriptorPool,
+            DescriptorSetCount = 1,
+            PSetLayouts = &descriptorSetLayout
+        };
+
+        if (_vk.AllocateDescriptorSets(_device, in allocateInfo, out descriptorSet) != Result.Success)
+        {
+            throw new ResourceCreationException(
+                "Failed to allocate a per-tile Vulkan descriptor set for the SurfaceCharts scalar recolor path.",
+                "UpdateDescriptorSet");
+        }
+
+        _surfaceScalarDescriptorSets[scalarBuffer] = descriptorSet;
+        return descriptorSet;
+    }
+
+    private void ReleaseCachedDescriptorSets(VulkanPipeline pipeline)
+    {
+        foreach (var descriptorSet in _surfaceScalarDescriptorSets.Values)
+        {
+            _ = _vk.FreeDescriptorSets(_device, pipeline.DescriptorPool, 1, in descriptorSet);
+        }
     }
 }

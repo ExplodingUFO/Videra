@@ -110,26 +110,33 @@ public sealed class InMemorySurfaceTileSource : ISurfaceTileSource
         }
 
         var tileValues = new float[tileWidth * tileHeight];
+        bool[]? tileMaskValues = matrix.Mask is not null ? new bool[tileWidth * tileHeight] : null;
         var sourceValues = matrix.Values.Span;
+        var sourceMaskValues = matrix.Mask is not null ? matrix.Mask.Values.Span : default(ReadOnlySpan<bool>);
         var matrixWidth = matrix.Metadata.Width;
-        var tileMinimum = double.PositiveInfinity;
-        var tileMaximum = double.NegativeInfinity;
-
         var destinationIndex = 0;
+        var tileHasMaskedSamples = false;
 
         for (var offsetY = 0; offsetY < tileHeight; offsetY++)
         {
             var sourceIndex = ((startY + offsetY) * matrixWidth) + startX;
             for (var offsetX = 0; offsetX < tileWidth; offsetX++)
             {
-                var value = sourceValues[sourceIndex + offsetX];
-                tileValues[destinationIndex++] = value;
-                tileMinimum = Math.Min(tileMinimum, value);
-                tileMaximum = Math.Max(tileMaximum, value);
+                if (tileMaskValues is not null)
+                {
+                    var isVisible = sourceMaskValues[sourceIndex + offsetX];
+                    tileMaskValues[destinationIndex] = isVisible;
+                    tileHasMaskedSamples |= !isVisible;
+                }
+
+                tileValues[destinationIndex++] = sourceValues[sourceIndex + offsetX];
             }
         }
 
-        var valueRange = new SurfaceValueRange(tileMinimum, tileMaximum);
+        var tileMask = tileHasMaskedSamples
+            ? new SurfaceMask(tileWidth, tileHeight, tileMaskValues!)
+            : null;
+        var valueRange = SurfaceTileStatistics.FromValues(tileValues, isExact: true, tileMask).Range;
         var statistics = BuildStatistics(
             sourceStartX,
             sourceStartY,
@@ -139,11 +146,10 @@ public sealed class InMemorySurfaceTileSource : ISurfaceTileSource
 
         var tile = new SurfaceTile(
             tileKey,
-            tileWidth,
-            tileHeight,
             new SurfaceTileBounds(sourceStartX, sourceStartY, sourceWidth, sourceHeight),
-            tileValues,
-            valueRange,
+            new SurfaceScalarField(tileWidth, tileHeight, tileValues, valueRange),
+            colorField: null,
+            mask: tileMask,
             statistics);
 
         return ValueTask.FromResult<SurfaceTile?>(tile);
@@ -151,13 +157,23 @@ public sealed class InMemorySurfaceTileSource : ISurfaceTileSource
 
     private SurfaceTileStatistics BuildStatistics(int startX, int startY, int width, int height, bool isExact)
     {
-        var reducedStatistics = reductionKernel.ReduceRegion(
-            sourceMatrix.Values.Span,
-            sourceMatrix.Metadata.Width,
-            startX,
-            startY,
-            width,
-            height);
+        var reducedStatistics = sourceMatrix.Mask is not null
+            ? SurfaceMaskedReduction.ReduceRegion(
+                sourceMatrix.Values.Span,
+                sourceMatrix.Mask.Values.Span,
+                sourceMatrix.Metadata.Width,
+                startX,
+                startY,
+                width,
+                height,
+                isExact)
+            : reductionKernel.ReduceRegion(
+                sourceMatrix.Values.Span,
+                sourceMatrix.Metadata.Width,
+                startX,
+                startY,
+                width,
+                height);
 
         return new SurfaceTileStatistics(
             reducedStatistics.Range,

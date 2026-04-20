@@ -30,6 +30,7 @@ public sealed class SurfaceChartRenderStateTests
         state.TryGetResidentTile(tile.Key, out var viewportResident).Should().BeTrue();
         viewportResident.SoftwareRenderTile.Should().BeSameAs(initialResident.SoftwareRenderTile);
         viewportResident.SampleValues.Should().BeSameAs(initialResident.SampleValues);
+        viewportResident.SampleValueMemory.Equals(initialResident.SampleValueMemory).Should().BeTrue();
     }
 
     [Fact]
@@ -61,6 +62,7 @@ public sealed class SurfaceChartRenderStateTests
         state.TryGetResidentTile(tile.Key, out var rotatedResident).Should().BeTrue();
         rotatedResident.SoftwareRenderTile.Should().BeSameAs(initialResident.SoftwareRenderTile);
         rotatedResident.SampleValues.Should().BeSameAs(initialResident.SampleValues);
+        rotatedResident.SampleValueMemory.Equals(initialResident.SampleValueMemory).Should().BeTrue();
     }
 
     [Fact]
@@ -85,6 +87,52 @@ public sealed class SurfaceChartRenderStateTests
         state.TryGetResidentTile(tile.Key, out var colorResident).Should().BeTrue();
         colorResident.SoftwareRenderTile.Should().BeSameAs(initialResident.SoftwareRenderTile);
         colorResident.SampleValues.Should().BeSameAs(initialResident.SampleValues);
+        colorResident.SampleValueMemory.Equals(initialResident.SampleValueMemory).Should().BeTrue();
+    }
+
+    [Fact]
+    public void IndependentColorField_CachesColorScalarSamplesForResidentTile()
+    {
+        var metadata = CreateMetadata(width: 2, height: 2, valueMaximum: 40d);
+        var colorMap = CreateColorMap(metadata, startColor: 0xFF203040u, endColor: 0xFFE0F0FFu);
+        var tile = new SurfaceTile(
+            new SurfaceTileKey(0, 0, 0, 0),
+            new SurfaceTileBounds(0, 0, 2, 2),
+            new SurfaceScalarField(
+                width: 2,
+                height: 2,
+                values: new float[] { 10f, 20f, 30f, 40f },
+                range: metadata.ValueRange),
+            new SurfaceScalarField(
+                width: 2,
+                height: 2,
+                values: new float[] { 40f, 30f, 20f, 10f },
+                range: metadata.ValueRange));
+        var state = new SurfaceChartRenderState();
+
+        state.Update(CreateInputs(metadata, [tile], colorMap, new SurfaceViewport(0, 0, 2, 2)));
+
+        state.TryGetResidentTile(tile.Key, out var residentTile).Should().BeTrue();
+        residentTile.SampleValues.Should().Equal(40f, 30f, 20f, 10f);
+        residentTile.SampleValueMemory.Equals(tile.ColorField!.Values).Should().BeTrue();
+    }
+
+    [Fact]
+    public void ResidentTileCtor_WithExplicitSampleValues_PreservesLegacySequenceContract()
+    {
+        var metadata = CreateMetadata(width: 2, height: 2, valueMaximum: 40d);
+        var tile = CreateTile(metadata, new SurfaceTileKey(0, 0, 0, 0), tileValue: 10f);
+        var renderTile = new SurfaceRenderer().BuildTile(
+            metadata,
+            tile,
+            CreateColorMap(metadata, startColor: 0xFF203040u, endColor: 0xFFE0F0FFu));
+        var sampleValues = new float[] { 4f, 3f, 2f, 1f };
+
+        var residentTile = new SurfaceChartResidentTile(tile, renderTile, sampleValues);
+        sampleValues[0] = 99f;
+
+        residentTile.SampleValues.Should().Equal(4f, 3f, 2f, 1f);
+        residentTile.SampleValueMemory.Span.ToArray().Should().Equal(4f, 3f, 2f, 1f);
     }
 
     [Fact]

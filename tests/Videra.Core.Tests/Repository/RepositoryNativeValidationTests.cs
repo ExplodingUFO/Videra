@@ -223,6 +223,22 @@ public sealed class RepositoryNativeValidationTests
     }
 
     [Fact]
+    public void LinuxVulkanLifecycleDrawTest_ShouldExerciseSurfaceChartScalarBindings()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var lifecycleTestSource = File.ReadAllText(Path.Combine(repositoryRoot, "tests", "Videra.Platform.Linux.Tests", "Backend", "VulkanBackendLifecycleTests.cs"));
+
+        lifecycleTestSource.Should().Contain("SurfaceChartScalarResourceCreation_AndDrawPath_Succeeds");
+        lifecycleTestSource.Should().Contain("CreateUniformBuffer(4112)");
+        lifecycleTestSource.Should().Contain("CreateUniformBuffer(65536)");
+        lifecycleTestSource.Should().Contain("GetProperty(\"UsesSurfaceChartScalarBindings\")");
+        lifecycleTestSource.Should().Contain("usesScalarBindings.Should().Be(true);");
+        lifecycleTestSource.Should().Contain("executor.SetVertexBuffer(colorMapBuffer, RenderBindingSlots.SurfaceColorMap);");
+        lifecycleTestSource.Should().Contain("executor.SetVertexBuffer(scalarBuffer, RenderBindingSlots.SurfaceTileScalars);");
+        lifecycleTestSource.Should().Contain("factory.CreatePipeline(CreateSurfaceChartPipelineDescription())");
+    }
+
+    [Fact]
     public void MacOSNativeHostIntegrationTest_ShouldValidateHandleWithoutConcreteClassAssertion()
     {
         var repositoryRoot = GetRepositoryRoot();
@@ -279,13 +295,63 @@ public sealed class RepositoryNativeValidationTests
         var repositoryRoot = GetRepositoryRoot();
         var executorSource = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Platform.Linux", "VulkanCommandExecutor.cs"));
 
-        var updateCallIndex = executorSource.IndexOf("_vk.UpdateDescriptorSets(_device, 2, writes, 0, null);", StringComparison.Ordinal);
+        var updateCallIndex = executorSource.IndexOf("_vk.UpdateDescriptorSets(_device, descriptorWriteCount, writes, 0, null);", StringComparison.Ordinal);
         updateCallIndex.Should().BeGreaterThanOrEqualTo(0);
 
         var reboundIndex = executorSource.IndexOf("BindDescriptorSet();", updateCallIndex, StringComparison.Ordinal);
         reboundIndex.Should().BeGreaterThan(
             updateCallIndex,
             "descriptor updates must be rebound immediately after uniform writes on stricter Vulkan drivers");
+    }
+
+    [Fact]
+    public void VulkanCommandExecutor_ShouldClearReleasedScalarBufferState()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var executorSource = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Platform.Linux", "VulkanCommandExecutor.cs"));
+
+        executorSource.Should().Contain("if (ReferenceEquals(_surfaceTileScalarBuffer, vkBuffer))");
+        executorSource.Should().Contain("_surfaceTileScalarBuffer = null;");
+    }
+
+    [Fact]
+    public void NativeSurfaceChartScalarPipeline_ShouldPinPaletteAndScalarBindingsAcrossBackends()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var d3d11Factory = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Platform.Windows", "D3D11ResourceFactory.cs"));
+        var metalFactory = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Platform.macOS", "MetalResourceFactory.cs"));
+        var vulkanFactory = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Platform.Linux", "VulkanResourceFactory.cs"));
+        var vulkanExecutor = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Platform.Linux", "VulkanCommandExecutor.cs"));
+
+        d3d11Factory.Should().Contain("cbuffer SurfaceColorMapBuffer : register(b4)");
+        d3d11Factory.Should().Contain("cbuffer SurfaceTileScalarBuffer : register(b5)");
+        metalFactory.Should().Contain("constant SurfaceColorMapUniforms& colorMap [[buffer(4)]]");
+        metalFactory.Should().Contain("constant float4* tileScalars [[buffer(5)]]");
+
+        vulkanFactory.Should().Contain("var bindingCount = usesSurfaceChartScalarBindings ? 4u : 2u;");
+        vulkanFactory.Should().Contain("bindings[2] = new DescriptorSetLayoutBinding");
+        vulkanFactory.Should().Contain("bindings[3] = new DescriptorSetLayoutBinding");
+        vulkanFactory.Should().Contain("BindingCount = bindingCount");
+        vulkanFactory.Should().Contain("SurfaceChartScalarDescriptorSetCapacity = 256;");
+        vulkanFactory.Should().Contain("SurfaceChartScalarDescriptorPoolSetCount = SurfaceChartScalarDescriptorSetCapacity + 1u;");
+        vulkanFactory.Should().Contain("descriptorSetCapacity = usesSurfaceChartScalarBindings ? SurfaceChartScalarDescriptorPoolSetCount : 1u;");
+        vulkanFactory.Should().Contain("DescriptorPoolSize(DescriptorType.UniformBuffer, bindingCount * descriptorSetCapacity)");
+        vulkanFactory.Should().Contain("MaxSets = descriptorSetCapacity");
+        vulkanFactory.Should().Contain("MaxUniformBufferRange");
+        vulkanFactory.Should().Contain("usesSurfaceChartScalarBindings: true");
+        vulkanFactory.Should().Contain("layout(set = 0, binding = 2) uniform SurfaceColorMapBuffer");
+        vulkanFactory.Should().Contain("layout(set = 0, binding = 3) uniform SurfaceTileScalarBuffer");
+        vulkanExecutor.Should().Contain("RenderBindingSlots.SurfaceColorMap");
+        vulkanExecutor.Should().Contain("RenderBindingSlots.SurfaceTileScalars");
+        vulkanExecutor.Should().Contain("_surfaceScalarDescriptorSets");
+        vulkanExecutor.Should().Contain("GetOrCreateSurfaceScalarDescriptorSet");
+        vulkanExecutor.Should().Contain("ReferenceEquals(_surfaceTileScalarBuffer, vkBuffer)");
+        vulkanExecutor.Should().Contain("_surfaceTileScalarBuffer = null;");
+        vulkanExecutor.Should().Contain("ReleaseCachedDescriptorSets(_pipeline)");
+        vulkanExecutor.Should().Contain("_vk.FreeDescriptorSets");
+        vulkanExecutor.Should().Contain("DstBinding = 2");
+        vulkanExecutor.Should().Contain("DstBinding = 3");
+        vulkanExecutor.Should().Contain("_vk.UpdateDescriptorSets(_device, descriptorWriteCount, writes, 0, null);");
     }
 
     [Fact]

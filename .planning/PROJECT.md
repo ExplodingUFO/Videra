@@ -4,7 +4,7 @@
 
 Videra 是一个基于 `.NET 8` 的跨平台 3D 渲染引擎，提供 Windows (`D3D11`)、Linux (`Vulkan`)、macOS (`Metal`) 三个平台后端，包含软件渲染回退、viewer 宿主桥接和可扩展 render pipeline。
 
-仓库同时维护与 `VideraView` 独立的 surface-chart 模块家族，用于离线大矩阵、曲面图和时频图一类可视化场景。viewer 主线在 `v1.5-v1.13` 已经完成壳层瘦身、scene truth、backend rehydration 基线、scene realisation / residency / upload closure、event-driven dirty、shared mesh payload、queue-aware upload budgeting、scene telemetry / benchmark evidence / coordinator cleanup、alpha consumer happy path / smoke / feedback surfaces / diagnostics snapshot productization、viewer-first inspection workflow，以及 inspection fidelity 深化；`v1.16` 又把 `SurfaceCharts` 收成了 source-first adoption surface。当前最高优先级不是继续扩产品面，而是先把 post-merge CI 暴露出来的 benchmark 编译漂移、SurfaceCharts warnings-as-errors 债务和 Linux XWayland smoke 回归收回到一条可信的绿线。
+仓库同时维护与 `VideraView` 独立的 surface-chart 模块家族，用于离线大矩阵、曲面图和时频图一类可视化场景。viewer 主线在 `v1.5-v1.13` 已经完成壳层瘦身、scene truth、backend rehydration 基线、scene realisation / residency / upload closure、event-driven dirty、shared mesh payload、queue-aware upload budgeting、scene telemetry / benchmark evidence / coordinator cleanup、alpha consumer happy path / smoke / feedback surfaces / diagnostics snapshot productization、viewer-first inspection workflow，以及 inspection fidelity 深化；`v1.16` 把 `SurfaceCharts` 收成了 source-first adoption surface，而随后 repair baseline 已回到 `master`。当前最高优先级是把 `SurfaceCharts` 从“做得不错的 surface 控件”推进成“专业的 surface analytics 库”：先升级数据/坐标/标量契约，再收口真正值钱的 render fast path 和 benchmark hotspot evidence，而不是提前扩成泛化 `Chart3D`、新的 backend 计划或 public package expansion。
 
 ## Core Value
 
@@ -12,27 +12,27 @@ Videra 是一个基于 `.NET 8` 的跨平台 3D 渲染引擎，提供 Windows (`
 
 ## Current State
 
-- 最新已本地完成 milestone：`v1.16 SurfaceCharts Adoption Surface`
-- 当前 active milestone：`v1.17 修`
-- 当前状态：post-merge CI 在 `verify` / `native validation` / `quality-gate-evidence` / `linux-xwayland consumer smoke` 暴露出独立但相关的红线，当前里程碑改为先修复这些真实阻塞
-- 当前 focus：恢复 benchmark build、SurfaceCharts warnings-as-errors、以及 Linux XWayland smoke 的可验证绿线，再带着修复后的基线继续做后续 closeout
+- 最新完整归档 milestone：`v1.16 SurfaceCharts Adoption Surface`
+- `v1.17` repair work 已合并进 `master`，repo 不再被 benchmark compile drift、SurfaceCharts warnings-as-errors、或 Linux `XWayland` smoke 回归锁死
+- 当前 active milestone：`v1.18 SurfaceCharts Analytics Core`
+- 当前 focus：把 `SurfaceCharts` 的一等契约升级到专业分析库级别，先做通用 geometry/axis/scalar model、GPU recolor/normals/residency fast path、以及 recolor / orbit / probe latency / residency churn / cache lookup-miss / resize-rebind contract path 这类热点 benchmark baseline（label-gated）
 
 ## Next Milestone Goals
 
-- 修复 repo `verify` / matching-host native validation 里被 benchmark 编译错误锁死的共享前置校验
-- 清掉当前 `SurfaceCharts` 在 warnings-as-errors 质量门上的 analyzer 债务，而不是靠放宽规则过关
-- 稳定 Linux `XWayland` consumer smoke，使其能产出完整结果/诊断工件，而不是在 `LoadModelAsync` 路径上提前退出
-- 用修复后的基线重新定义“绿色”含义，让 CI、文档和 planning 讲同一套 repo 可靠性真相
+- 把 surface 一等数据模型从“规则矩形高度场”升级为支持 `RegularGrid` / `ExplicitGrid`、`SurfaceAxisScale`、以及独立 scalar fields 的通用契约
+- 把 `HeightField` 与 `ColorField` 解耦，并把 mask / hole / `NaN` 缺测语义提升成一等数据语义
+- 把调色板切换、法线生成和 resident tile 持有路径改成更专业的 GPU/LUT 与低拷贝 fast path
+- 补齐 `recolor` / `orbit` / `probe latency` / `residency churn` / `cache lookup-miss` / `resize-rebind contract path` 这类真正能指导后续分析特性的 benchmark hotspot baseline（label-gated 审核）
 
-## Current Milestone: v1.17 修
+## Current Milestone: v1.18 SurfaceCharts Analytics Core
 
-**Goal:** 把刚在主线 CI 里暴露出来的真实阻塞集中修掉：benchmark compile drift、SurfaceCharts warnings-as-errors debt、以及 Linux `XWayland` consumer smoke 回归，恢复一条可解释、可复跑、可依赖的绿线。
+**Goal:** 把 `SurfaceCharts` 从 source-first surface control 推进成专业 surface analytics core：优先升级 geometry/axis/scalar contracts，再落 shader/LUT recolor、proper normals、以及 low-copy residency 这类高杠杆实现基础，并以 label-gated 热点证据替代硬性阈值作为 milestone 收口条件。
 
 **Target features:**
-- benchmark compile closure for repo-wide verify/native-validation prelude
-- SurfaceCharts warnings-as-errors closure without weakening analyzer policy
-- Linux `XWayland` consumer smoke stabilization with actionable diagnostics artifacts
-- repaired green-line evidence across `verify`, quality gate, native validation, and smoke
+- generalized surface geometry contracts through `RegularGrid` / `ExplicitGrid` while keeping `SurfaceMatrix` as a convenience type
+- axis-scale and scalar-field contracts that support non-uniform coordinates, `DateTime`/`TimeSpan`-style axes, independent `HeightField` / `ColorField`, and first-class missing-data semantics
+- render fast paths for shader/LUT recolor, seam-safe derived normals, and lower-copy tile residency
+- analytics benchmark evidence for `recolor` / `orbit` / `probe` / `churn` / `cache lookup-miss` / `resize-rebind` hotspots without widening into generic `Chart3D`
 
 ## Latest Completed Milestone: v1.16 SurfaceCharts Adoption Surface
 
@@ -186,19 +186,20 @@ Videra 是一个基于 `.NET 8` 的跨平台 3D 渲染引擎，提供 Windows (`
 
 ### Active
 
-- [ ] Restore repo-wide `verify` / matching-host native validation by fixing the current benchmark compile drift.
-- [ ] Clear the current `SurfaceCharts` warnings-as-errors failures without suppressing the active analyzer policy.
-- [ ] Stabilize Linux `XWayland` consumer smoke so CI emits completed result/diagnostics artifacts instead of a silent early exit.
+- [x] Generalize the surface data contract beyond regular index-linear height matrices so non-uniform grids and richer axis semantics become first-class.
+- [x] Separate `HeightField` from `ColorField`, and model masks / holes / `NaN` regions as explicit data semantics rather than renderer-only special cases.
+- [x] Move recolor, shading normals, and tile residency onto targeted fast paths that cut unnecessary rebuilds and copies.
+- [x] Establish benchmark evidence for recolor/orbit/probe/churn/cache lookup-miss/resize-rebind hotspots before opening the next analytics feature wave.
 
 ### Out of Scope
 
-- Promoting new viewer/runtime orchestration APIs to public surface — `v1.17` repairs the current green line instead of widening `VideraEngine`/`VideraView`
-- Native Wayland compositor-hosted embedding beyond the current X11/XWayland truth — current blocker is the existing XWayland path failing, not the absence of compositor-native support
-- Explicit `OpenGL` backend work in the current milestone — the active failures are benchmark/analyzer/smoke regressions on already-supported backends, not the absence of a fourth graphics API
-- Publishing `Videra.SurfaceCharts.*` as stable public consumer packages in `v1.17` — source-first adoption proof landed in `v1.16`; distribution expansion is a separate decision
-- Automated benchmark thresholds or wider benchmark-governance changes — this milestone restores correctness/quality green, not a new benchmark policy
+- Promoting new viewer/runtime orchestration APIs to public surface — `v1.18` deepens chart-local analytics contracts instead of widening `VideraEngine`/`VideraView`
+- Generic `Chart3DView` / scene-wide multi-series abstraction before a second concrete analytics series exists — first make `SurfaceCharts` deep, then make 3D charts broad
+- Native Wayland compositor-hosted embedding or explicit `OpenGL` backend work — current priority is analytics depth on already-supported backends, not a fourth graphics API
+- Publishing `Videra.SurfaceCharts.*` as stable public consumer packages in `v1.18` — source-first adoption proof landed in `v1.16`; package expansion comes after contract stabilization
+- Interpolated probe, contour/wireframe, slicing, waterfall/scatter/mesh 3D series, or automated benchmark thresholds — these are deliberately deferred follow-up threads after the core contract and hot-path baseline land
 - Editor-style authoring tools, transform handles, or gizmos — `Videra` stays viewer-first
-- Another deep scene/runtime performance rewrite — current work is repair and validation, not a new optimization program
+- Another viewer-scene runtime rewrite — the active optimization work is chart-local and data-model-driven, not a new engine rewrite
 
 ## Context
 
@@ -208,14 +209,15 @@ Videra 是一个基于 `.NET 8` 的跨平台 3D 渲染引擎，提供 Windows (`
 - `SceneDocument` is authoritative viewer scene truth, and scene publication already flows through explicit delta / residency / upload services
 - built-in backends directly satisfy `IGraphicsDevice` / `IRenderSurface`, while recovery and diagnostics operate against retained scene truth
 - selection / annotation / clipping / measurement / inspection-state seams now sit on richer mesh hit truth, explicit measurement snap modes, and replayable inspection bundles
-- viewer package install, diagnostics shell, benchmark workflows, minimal sample, consumer smoke, and the new source-first chart adoption path all exist, so repair work can target real outward-facing seams instead of hypothetical ones
+- `SurfaceCharts.Core` / `Processing` / `Avalonia` 已经有清晰分层，`SurfaceChartView` 还是 chart-local thin shell，现有 `ViewState`、内建 orbit/pan/dolly/focus、overlay、hover/pinned probe、lazy cache-backed tile scheduling 和独立 benchmark suite 都已经存在
+- viewer package install, diagnostics shell, benchmark workflows, minimal sample, consumer smoke, and the new source-first chart adoption path all exist, so analytics work can target real outward-facing seams instead of hypothetical ones
 
 ### Current Risks
 
-- The mainline green line is currently split across three different failure classes: benchmark compile drift, SurfaceCharts analyzer debt, and Linux `XWayland` smoke regression.
-- The Linux `XWayland` smoke path can exit after `LoadModelAsync starting` without a completed result JSON, which makes support/debug evidence weaker than the package/smoke contract claims.
-- Built-in backend abstractions still expose broader contracts than every backend actually satisfies, which keeps future evolution riskier once the immediate red line is fixed.
-- Analyzer / benchmark / consumer evidence are now visible enough to fail CI, but some paths are still less actionable than they need to be for quick maintainer diagnosis.
+- surface-cache manifest v1 still cannot represent explicit-grid or non-linear-axis metadata, so richer cache DTO work remains a follow-up once the analytics contracts settle.
+- low-copy residency now assumes `SurfaceTile` instances are immutable snapshots; callers must publish a new tile object instead of mutating height/color memory in place.
+- Vulkan still carries a finite scalar-descriptor cache budget under high residency churn; the current milestone reserves headroom but does not claim the story is closed for heavier future analytics scenes.
+- Current chart benchmark coverage now exists for recolor/orbit/probe/churn/cache lookup-miss/resize-rebind hotspots, but the render-host slice is intentionally scoped to benchmark-local contract-path cost rather than real driver/swapchain overhead.
 
 ## Constraints
 
@@ -228,6 +230,9 @@ Videra 是一个基于 `.NET 8` 的跨平台 3D 渲染引擎，提供 Windows (`
 - **Published-package validation**: consumer smoke and release docs must prove the public package install path, not just repo-local project references
 - **Support truth**: Linux support language must stay honest about X11-hosted and XWayland-compatible paths; native Wayland embedding remains deferred
 - **Diagnostics portability**: alpha issue reporting should prefer one copy-paste diagnostics snapshot or one inspection bundle over freeform manual environment summaries
+- **Chart-local depth first**: keep `SurfaceCharts` as a dedicated chart stack in `v1.18`; do not introduce a generic multi-series `Chart3D` scene abstraction until a second concrete 3D series justifies it
+- **Contract migration safety**: `SurfaceMatrix` stays as the regular-grid convenience type even if deeper contracts move to generalized grid/scalar abstractions
+- **Analytics semantics before visuals**: contour, slicing, and richer probe workflows stay deferred until the underlying grid/axis/scalar contracts and benchmark evidence are stable
 
 ## Key Decisions
 
@@ -250,7 +255,8 @@ Videra 是一个基于 `.NET 8` 的跨平台 3D 渲染引擎，提供 Windows (`
 | Keep benchmark review opt-in and label-gated in `v1.15` | The current workflow uploads comparable artifacts but has no reliable threshold/baseline machinery for automatic numeric blocking | completed in `v1.15` |
 | Start `v1.16` with `SurfaceCharts` adoption instead of another viewer-only cleanup loop | The highest-value unanswered question is now whether the chart stack can become a credible source-first product surface for external consumers | completed in `v1.16` |
 | Keep `v1.16` SurfaceCharts release truth on demo/docs/CI/support-summary evidence instead of package assets | The milestone goal is adoption proof and supportability, not an accidental public package promise | completed in `v1.16` |
-| Start `v1.17` as a repair milestone instead of opening another product-surface thread immediately | The latest CI evidence says the current trust gap is now benchmark compile drift, SurfaceCharts analyzer debt, and Linux `XWayland` smoke stability, so restoring the green line outranks another new feature push | active in `v1.17` |
+| Start `v1.17` as a repair milestone instead of opening another product-surface thread immediately | The latest CI evidence said the trust gap was benchmark compile drift, SurfaceCharts analyzer debt, and Linux `XWayland` smoke stability, so restoring the green line outranked another new feature push | merged on `master`; archive pending |
+| Start `v1.18` with data/coordinate/scalar contract depth instead of `OpenGL`, public package expansion, generic `Chart3D`, or immediate feature sprawl | The highest-value next step is turning `SurfaceCharts` into a professional analytics core; generalized contracts unlock contour, probe, slice, and future series work without premature scene abstraction | active in `v1.18` |
 
 ## Evolution
 
@@ -292,4 +298,4 @@ This document evolves at phase transitions and milestone boundaries.
 - Retrospective: `.planning/RETROSPECTIVE.md`
 
 ---
-*Last updated: 2026-04-20 after starting milestone v1.17 修*
+*Last updated: 2026-04-20 after completing Phase 98 benchmark and milestone-truth closure for v1.18*

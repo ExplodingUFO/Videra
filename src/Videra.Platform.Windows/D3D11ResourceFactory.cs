@@ -5,6 +5,7 @@ using Silk.NET.Direct3D.Compilers;
 using Silk.NET.DXGI;
 using Videra.Core.Exceptions;
 using Videra.Core.Geometry;
+using Videra.Core.Graphics;
 using Videra.Core.Graphics.Abstractions;
 
 namespace Videra.Platform.Windows;
@@ -163,12 +164,21 @@ internal unsafe class D3D11ResourceFactory : IResourceFactory
 
     public IPipeline CreatePipeline(PipelineDescription description)
     {
+        if (IsSurfaceChartScalarPipeline(description))
+        {
+            return CreatePipelineFromSource(GetSurfaceChartShaderSource());
+        }
+
         return CreatePipeline(VertexPositionNormalColor.SizeInBytes, true, true);
     }
 
     public IPipeline CreatePipeline(uint vertexSize, bool hasNormals, bool hasColors)
     {
-        var hlsl = GetShaderSource();
+        return CreatePipelineFromSource(GetShaderSource());
+    }
+
+    private IPipeline CreatePipelineFromSource(string hlsl)
+    {
         var vertexShader = CompileShader(hlsl, "main_vs", "vs_5_0");
         var pixelShader = CompileShader(hlsl, "main_ps", "ps_5_0");
 
@@ -276,6 +286,15 @@ internal unsafe class D3D11ResourceFactory : IResourceFactory
         pixelShader.Dispose();
 
         return new D3D11Pipeline(vs, ps, inputLayout, rasterizer);
+    }
+
+    private static bool IsSurfaceChartScalarPipeline(PipelineDescription description)
+    {
+        return description.ResourceLayouts is not null
+            && description.ResourceLayouts.Any(static resourceLayout =>
+                resourceLayout.Elements is not null
+                && resourceLayout.Elements.Any(static element =>
+                    element.Binding == RenderBindingSlots.SurfaceColorMap || element.Binding == RenderBindingSlots.SurfaceTileScalars));
     }
 
     public IShader CreateShader(ShaderStage stage, byte[] bytecode, string entryPoint)
@@ -449,6 +468,126 @@ float4 main_ps(VSOutput input) : SV_TARGET
     color += brightness;
 
     return float4(saturate(color), input.color.a * opacity);
+}
+";
+    }
+
+    private static string GetSurfaceChartShaderSource()
+    {
+        return @"
+cbuffer CameraBuffer : register(b1)
+{
+    row_major float4x4 viewMatrix;
+    row_major float4x4 projectionMatrix;
+};
+
+cbuffer WorldBuffer : register(b2)
+{
+    row_major float4x4 worldMatrix;
+};
+
+cbuffer SurfaceColorMapBuffer : register(b4)
+{
+    float4 colorMapHeader;
+    float4 colorMapPalette[256];
+};
+
+cbuffer SurfaceTileScalarBuffer : register(b5)
+{
+    float4 tileScalarGroups[4096];
+};
+
+struct VSInput
+{
+    float3 position : POSITION;
+    float3 normal : NORMAL;
+    float4 color : COLOR;
+};
+
+struct VSOutput
+{
+    float4 position : SV_POSITION;
+    float3 worldNormal : NORMAL;
+    float4 color : COLOR;
+    float3 worldPos : TEXCOORD0;
+};
+
+float LoadTileScalar(uint vertexId)
+{
+    uint groupIndex = vertexId / 4;
+    uint componentIndex = vertexId % 4;
+    float4 group = tileScalarGroups[groupIndex];
+
+    if (componentIndex == 0)
+    {
+        return group.x;
+    }
+
+    if (componentIndex == 1)
+    {
+        return group.y;
+    }
+
+    if (componentIndex == 2)
+    {
+        return group.z;
+    }
+
+    return group.w;
+}
+
+float4 MapSurfaceColor(float scalar)
+{
+    float minimum = colorMapHeader.x;
+    float maximum = colorMapHeader.y;
+    float paletteCount = colorMapHeader.z;
+    float segmentCount = colorMapHeader.w;
+
+    if (paletteCount <= 1.0f || maximum <= minimum)
+    {
+        return colorMapPalette[0];
+    }
+
+    if (scalar <= minimum)
+    {
+        return colorMapPalette[0];
+    }
+
+    uint lastIndex = (uint)(paletteCount - 1.0f);
+    if (scalar >= maximum)
+    {
+        return colorMapPalette[lastIndex];
+    }
+
+    float normalized = saturate((scalar - minimum) / (maximum - minimum));
+    float scaled = normalized * segmentCount;
+    uint lowerIndex = (uint)floor(scaled);
+    uint upperIndex = min(lowerIndex + 1, lastIndex);
+    float fraction = scaled - lowerIndex;
+    return lerp(colorMapPalette[lowerIndex], colorMapPalette[upperIndex], fraction);
+}
+
+VSOutput main_vs(VSInput input, uint vertexId : SV_VertexID)
+{
+    VSOutput output;
+    float4 worldPos = mul(float4(input.position, 1.0f), worldMatrix);
+    float4 viewPos = mul(worldPos, viewMatrix);
+    output.position = mul(viewPos, projectionMatrix);
+    output.worldNormal = normalize(mul(input.normal, (float3x3)worldMatrix));
+    output.color = MapSurfaceColor(LoadTileScalar(vertexId));
+    output.worldPos = worldPos.xyz;
+    return output;
+}
+
+float4 main_ps(VSOutput input) : SV_TARGET
+{
+    float3 normal = normalize(input.worldNormal);
+    float3 lightDir = normalize(float3(-0.45f, 0.75f, -0.45f));
+    float ambient = 0.35f;
+    float diffuse = max(dot(normal, lightDir), 0.0f) * 0.65f;
+    float lighting = ambient + diffuse;
+    float3 color = input.color.rgb * lighting;
+    return float4(saturate(color), input.color.a);
 }
 ";
     }

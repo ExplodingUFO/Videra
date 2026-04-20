@@ -290,6 +290,27 @@ internal static class SurfaceChartsDocumentationTerms
         "public package promise"
     ];
 
+    public static readonly string[] SurfaceChartsScalarCompatibilityTokens =
+    [
+        "`SurfaceMatrix`",
+        "source-first",
+        "regular-grid",
+        "`SurfaceScalarField`",
+        "`ColorField`",
+        "`SurfaceMask`"
+    ];
+
+    public static readonly string[] SurfaceChartsAvaloniaScalarCompatibilityTokens =
+    [
+        "`SurfaceMatrix`",
+        "source-first",
+        "regular-grid entrypoint",
+        "same `SurfaceChartView` shell",
+        "`SurfaceScalarField`",
+        "`ColorField`",
+        "`SurfaceMask`"
+    ];
+
     public static readonly string[] SurfaceChartsAvaloniaReadmeContractTokens =
     [
         "`InteractionQuality`",
@@ -485,6 +506,16 @@ internal static class SurfaceChartsDocumentationTerms
         "`Videra.SurfaceCharts.*`",
         "source-first",
         "公开包承诺"
+    ];
+
+    public static readonly string[] ChineseSurfaceChartsScalarCompatibilityTokens =
+    [
+        "`SurfaceMatrix`",
+        "source-first",
+        "regular-grid",
+        "`SurfaceScalarField`",
+        "`ColorField`",
+        "`SurfaceMask`"
     ];
 
     public static readonly string[] ExpectedChineseModulePages =

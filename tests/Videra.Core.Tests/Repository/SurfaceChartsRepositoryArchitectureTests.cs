@@ -117,11 +117,19 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
     public void SurfaceChartReadmes_ShouldDescribeRendererTruthWithoutCrossingSiblingBoundary()
     {
         var repositoryRoot = GetRepositoryRoot();
+        var coreReadme = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.SurfaceCharts.Core", "README.md"));
         var avaloniaReadme = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.SurfaceCharts.Avalonia", "README.md"));
         var demoReadme = File.ReadAllText(Path.Combine(repositoryRoot, "samples", "Videra.SurfaceCharts.Demo", "README.md"));
 
+        AssertContainsAllTokens(coreReadme, SurfaceChartsDocumentationTerms.SurfaceChartsScalarCompatibilityTokens);
+        coreReadme.Should().Contain("simplest source-first regular-grid entrypoint");
+        coreReadme.Should().Contain("Advanced callers can keep the same chart shell");
+        coreReadme.Should().Contain("independent `ColorField`");
+        coreReadme.Should().Contain("first-class `SurfaceMask`");
+
         AssertContainsAllTokens(avaloniaReadme, SurfaceChartsDocumentationTerms.SurfaceChartsRendererBoundaryTokens);
         AssertContainsAllTokens(avaloniaReadme, SurfaceChartsDocumentationTerms.SurfaceChartsGpuFallbackTokens);
+        AssertContainsAllTokens(avaloniaReadme, SurfaceChartsDocumentationTerms.SurfaceChartsAvaloniaScalarCompatibilityTokens);
         avaloniaReadme.Should().Contain(LinuxWaylandLimitSentence);
         avaloniaReadme.Should().Contain("independent from `VideraView`");
         avaloniaReadme.Should().Contain("ViewState");
@@ -130,6 +138,7 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
         avaloniaReadme.Should().Contain("FitToData()");
         avaloniaReadme.Should().Contain("ResetCamera()");
         avaloniaReadme.Should().Contain("ZoomTo(...)");
+        avaloniaReadme.Should().Contain("without widening `SurfaceChartView` itself");
         AssertContainsAllTokens(avaloniaReadme, SurfaceChartsDocumentationTerms.SurfaceChartsAvaloniaReadmeContractTokens);
 
         demoReadme.Should().Contain("not a `VideraView` mode");
@@ -164,6 +173,17 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
     }
 
     [Fact]
+    public void SurfaceChartResidency_ShouldNotCloneScalarFieldsIntoResidentCopies()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var renderState = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.SurfaceCharts.Rendering", "SurfaceChartRenderState.cs"));
+        var residentTile = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.SurfaceCharts.Rendering", "SurfaceChartResidentTile.cs"));
+
+        renderState.Should().NotContain("(sourceTile.ColorField?.Values ?? sourceTile.Values).ToArray()");
+        residentTile.Should().NotContain("Array.AsReadOnly(values.ToArray())");
+    }
+
+    [Fact]
     public void SurfaceChartProcessingReadme_ShouldDescribeBenchmarkingAndOptionalNativeSeam()
     {
         var repositoryRoot = GetRepositoryRoot();
@@ -179,8 +199,14 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
     public void ChineseSurfaceChartPages_ShouldMirrorRendererAndProcessingTruth()
     {
         var repositoryRoot = GetRepositoryRoot();
+        var corePage = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "zh-CN", "modules", "videra-surfacecharts-core.md"));
         var avaloniaPage = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "zh-CN", "modules", "videra-surfacecharts-avalonia.md"));
         var processingPage = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "zh-CN", "modules", "videra-surfacecharts-processing.md"));
+
+        AssertContainsAllTokens(corePage, SurfaceChartsDocumentationTerms.ChineseSurfaceChartsScalarCompatibilityTokens);
+        corePage.Should().Contain("默认的 source-first regular-grid 入口");
+        corePage.Should().Contain("独立的 `ColorField`");
+        corePage.Should().Contain("一等 `SurfaceMask`");
 
         AssertContainsAllTokens(avaloniaPage, SurfaceChartsDocumentationTerms.ChineseAvaloniaRenderStatusTokens);
         AssertContainsAllTokens(avaloniaPage, SurfaceChartsDocumentationTerms.ChineseAvaloniaProbeTokens);

@@ -5,6 +5,7 @@ using Silk.NET.Shaderc;
 using Silk.NET.Vulkan;
 using Videra.Core.Exceptions;
 using Videra.Core.Geometry;
+using Videra.Core.Graphics;
 using Videra.Core.Graphics.Abstractions;
 using VkBuffer = Silk.NET.Vulkan.Buffer;
 using CorePrimitiveTopology = Videra.Core.Graphics.Abstractions.PrimitiveTopology;
@@ -14,6 +15,9 @@ namespace Videra.Platform.Linux;
 internal sealed unsafe class VulkanResourceFactory : IResourceFactory
 {
     private static readonly DepthBufferConfiguration DepthConfig = DepthBufferConfiguration.Default;
+    private const uint SurfaceChartScalarUniformBufferSize = 65536;
+    private const uint SurfaceChartScalarDescriptorSetCapacity = 256;
+    private const uint SurfaceChartScalarDescriptorPoolSetCount = SurfaceChartScalarDescriptorSetCapacity + 1u;
     private static readonly string[] ShadercLibraryNames =
     {
         "libshaderc_shared.so",
@@ -69,13 +73,40 @@ internal sealed unsafe class VulkanResourceFactory : IResourceFactory
 
     public IPipeline CreatePipeline(PipelineDescription description)
     {
+        if (IsSurfaceChartScalarPipeline(description))
+        {
+            return CreatePipelineCore(
+                VertexPositionNormalColor.SizeInBytes,
+                GetSurfaceChartVertexShaderSource(),
+                GetFragmentShaderSource(),
+                usesSurfaceChartScalarBindings: true);
+        }
+
         return CreatePipeline(VertexPositionNormalColor.SizeInBytes, true, true);
     }
 
     public IPipeline CreatePipeline(uint vertexSize, bool hasNormals, bool hasColors)
     {
-        var vertexShaderBytes = CompileShader(GetVertexShaderSource(), ShaderKind.GlslVertexShader);
-        var fragmentShaderBytes = CompileShader(GetFragmentShaderSource(), ShaderKind.GlslFragmentShader);
+        return CreatePipelineCore(
+            vertexSize,
+            GetVertexShaderSource(),
+            GetFragmentShaderSource(),
+            usesSurfaceChartScalarBindings: false);
+    }
+
+    private IPipeline CreatePipelineCore(
+        uint vertexSize,
+        string vertexShaderSource,
+        string fragmentShaderSource,
+        bool usesSurfaceChartScalarBindings)
+    {
+        if (usesSurfaceChartScalarBindings)
+        {
+            EnsureSurfaceChartScalarUniformRange();
+        }
+
+        var vertexShaderBytes = CompileShader(vertexShaderSource, ShaderKind.GlslVertexShader);
+        var fragmentShaderBytes = CompileShader(fragmentShaderSource, ShaderKind.GlslFragmentShader);
 
         var vertexModule = CreateShaderModule(vertexShaderBytes);
         var fragmentModule = CreateShaderModule(fragmentShaderBytes);
@@ -214,7 +245,8 @@ internal sealed unsafe class VulkanResourceFactory : IResourceFactory
             PDynamicStates = dynamicStates
         };
 
-        var bindings = stackalloc DescriptorSetLayoutBinding[2];
+        var bindingCount = usesSurfaceChartScalarBindings ? 4u : 2u;
+        var bindings = stackalloc DescriptorSetLayoutBinding[(int)bindingCount];
         bindings[0] = new DescriptorSetLayoutBinding
         {
             Binding = 0,
@@ -229,11 +261,28 @@ internal sealed unsafe class VulkanResourceFactory : IResourceFactory
             DescriptorCount = 1,
             StageFlags = ShaderStageFlags.VertexBit
         };
+        if (usesSurfaceChartScalarBindings)
+        {
+            bindings[2] = new DescriptorSetLayoutBinding
+            {
+                Binding = 2,
+                DescriptorType = DescriptorType.UniformBuffer,
+                DescriptorCount = 1,
+                StageFlags = ShaderStageFlags.VertexBit
+            };
+            bindings[3] = new DescriptorSetLayoutBinding
+            {
+                Binding = 3,
+                DescriptorType = DescriptorType.UniformBuffer,
+                DescriptorCount = 1,
+                StageFlags = ShaderStageFlags.VertexBit
+            };
+        }
 
         var descriptorSetLayoutInfo = new DescriptorSetLayoutCreateInfo
         {
             SType = StructureType.DescriptorSetLayoutCreateInfo,
-            BindingCount = 2,
+            BindingCount = bindingCount,
             PBindings = bindings
         };
 
@@ -294,15 +343,17 @@ internal sealed unsafe class VulkanResourceFactory : IResourceFactory
                 "Failed to create point pipeline.",
                 "CreatePipeline");
 
+        var descriptorSetCapacity = usesSurfaceChartScalarBindings ? SurfaceChartScalarDescriptorPoolSetCount : 1u;
         var poolSizes = stackalloc DescriptorPoolSize[1];
-        poolSizes[0] = new DescriptorPoolSize(DescriptorType.UniformBuffer, 2);
+        poolSizes[0] = new DescriptorPoolSize(DescriptorType.UniformBuffer, bindingCount * descriptorSetCapacity);
 
         var descriptorPoolInfo = new DescriptorPoolCreateInfo
         {
             SType = StructureType.DescriptorPoolCreateInfo,
+            Flags = DescriptorPoolCreateFlags.FreeDescriptorSetBit,
             PoolSizeCount = 1,
             PPoolSizes = poolSizes,
-            MaxSets = 1
+            MaxSets = descriptorSetCapacity
         };
 
         DescriptorPool descriptorPool;
@@ -331,7 +382,39 @@ internal sealed unsafe class VulkanResourceFactory : IResourceFactory
         _vk.DestroyShaderModule(_device, vertexModule, null);
         _vk.DestroyShaderModule(_device, fragmentModule, null);
 
-        return new VulkanPipeline(_vk, _device, trianglePipeline, linePipeline, pointPipeline, pipelineLayout, descriptorSetLayout, descriptorPool, descriptorSet);
+        return new VulkanPipeline(
+            _vk,
+            _device,
+            trianglePipeline,
+            linePipeline,
+            pointPipeline,
+            pipelineLayout,
+            descriptorSetLayout,
+            descriptorPool,
+            descriptorSet,
+            usesSurfaceChartScalarBindings: usesSurfaceChartScalarBindings);
+    }
+
+    private static bool IsSurfaceChartScalarPipeline(PipelineDescription description)
+    {
+        return description.ResourceLayouts is not null
+            && description.ResourceLayouts.Any(static resourceLayout =>
+                resourceLayout.Elements is not null
+                && resourceLayout.Elements.Any(static element =>
+                    element.Binding == RenderBindingSlots.SurfaceColorMap || element.Binding == RenderBindingSlots.SurfaceTileScalars));
+    }
+
+    private void EnsureSurfaceChartScalarUniformRange()
+    {
+        PhysicalDeviceProperties properties;
+        _vk.GetPhysicalDeviceProperties(_physicalDevice, out properties);
+
+        if (properties.Limits.MaxUniformBufferRange < SurfaceChartScalarUniformBufferSize)
+        {
+            throw new PipelineCreationException(
+                $"SurfaceCharts Vulkan recolor path requires MaxUniformBufferRange >= {SurfaceChartScalarUniformBufferSize}, but the device only reports {properties.Limits.MaxUniformBufferRange}.",
+                "CreatePipeline");
+        }
     }
 
     public IShader CreateShader(ShaderStage stage, byte[] bytecode, string entryPoint)
@@ -505,6 +588,107 @@ void main()
     vec4 viewPos = camera.viewMatrix * worldPos;
     gl_Position = camera.projectionMatrix * viewPos;
     fragColor = inColor;
+}
+";
+    }
+
+    private static string GetSurfaceChartVertexShaderSource()
+    {
+        return @"#version 450
+layout(location = 0) in vec3 inPosition;
+layout(location = 1) in vec3 inNormal;
+layout(location = 2) in vec4 inColor;
+
+layout(set = 0, binding = 0) uniform CameraBuffer
+{
+    mat4 viewMatrix;
+    mat4 projectionMatrix;
+} camera;
+
+layout(set = 0, binding = 1) uniform WorldBuffer
+{
+    mat4 worldMatrix;
+} world;
+
+layout(set = 0, binding = 2) uniform SurfaceColorMapBuffer
+{
+    vec4 colorMapHeader;
+    vec4 colorMapPalette[256];
+} colorMap;
+
+layout(set = 0, binding = 3) uniform SurfaceTileScalarBuffer
+{
+    vec4 tileScalarGroups[4096];
+} tileScalars;
+
+layout(location = 0) out vec4 fragColor;
+
+float LoadTileScalar(uint vertexId)
+{
+    vec4 group = tileScalars.tileScalarGroups[vertexId / 4];
+    uint componentIndex = vertexId % 4;
+
+    if (componentIndex == 0u)
+    {
+        return group.x;
+    }
+
+    if (componentIndex == 1u)
+    {
+        return group.y;
+    }
+
+    if (componentIndex == 2u)
+    {
+        return group.z;
+    }
+
+    return group.w;
+}
+
+vec4 MapSurfaceColor(float scalar)
+{
+    float minimum = colorMap.colorMapHeader.x;
+    float maximum = colorMap.colorMapHeader.y;
+    float paletteCount = colorMap.colorMapHeader.z;
+    float segmentCount = colorMap.colorMapHeader.w;
+
+    if (paletteCount <= 1.0 || maximum <= minimum)
+    {
+        return colorMap.colorMapPalette[0];
+    }
+
+    if (scalar <= minimum)
+    {
+        return colorMap.colorMapPalette[0];
+    }
+
+    uint lastIndex = uint(paletteCount - 1.0);
+    if (scalar >= maximum)
+    {
+        return colorMap.colorMapPalette[lastIndex];
+    }
+
+    float normalized = clamp((scalar - minimum) / (maximum - minimum), 0.0, 1.0);
+    float scaled = normalized * segmentCount;
+    uint lowerIndex = uint(floor(scaled));
+    uint upperIndex = min(lowerIndex + 1u, lastIndex);
+    float fraction = scaled - float(lowerIndex);
+    return mix(colorMap.colorMapPalette[lowerIndex], colorMap.colorMapPalette[upperIndex], fraction);
+}
+
+void main()
+{
+    vec4 worldPos = world.worldMatrix * vec4(inPosition, 1.0);
+    vec4 viewPos = camera.viewMatrix * worldPos;
+    gl_Position = camera.projectionMatrix * viewPos;
+
+    vec4 surfaceColor = MapSurfaceColor(LoadTileScalar(gl_VertexIndex));
+    vec3 normal = normalize(inNormal);
+    vec3 lightDir = normalize(vec3(-0.45, 0.75, -0.45));
+    float ambient = 0.35;
+    float diffuse = max(dot(normal, lightDir), 0.0) * 0.65;
+    fragColor = vec4(clamp(surfaceColor.rgb * (ambient + diffuse), 0.0, 1.0), surfaceColor.a);
 }
 ";
     }

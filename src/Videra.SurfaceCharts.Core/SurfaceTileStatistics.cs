@@ -47,28 +47,63 @@ public readonly record struct SurfaceTileStatistics
     /// </summary>
     /// <param name="values">The tile values.</param>
     /// <param name="isExact">Whether the values are exact source samples.</param>
+    /// <param name="mask">The optional availability mask.</param>
     /// <returns>The derived statistics.</returns>
-    public static SurfaceTileStatistics FromValues(ReadOnlySpan<float> values, bool isExact)
+    public static SurfaceTileStatistics FromValues(ReadOnlySpan<float> values, bool isExact, SurfaceMask? mask = null)
     {
         if (values.Length == 0)
         {
             throw new ArgumentException("Tile statistics require at least one value.", nameof(values));
         }
 
+        ReadOnlySpan<bool> maskValues = default;
+        if (mask is not null)
+        {
+            if (mask.Values.Length != values.Length)
+            {
+                throw new ArgumentException("Mask values must match the value span length.", nameof(mask));
+            }
+
+            maskValues = mask.Values.Span;
+        }
+        var hasMask = maskValues.Length != 0;
+
         var minimum = double.PositiveInfinity;
         var maximum = double.NegativeInfinity;
         double sum = 0d;
+        var validSampleCount = 0;
 
-        foreach (var value in values)
+        for (var index = 0; index < values.Length; index++)
         {
+            if (hasMask && !maskValues[index])
+            {
+                continue;
+            }
+
+            var value = values[index];
+            if (!float.IsFinite(value))
+            {
+                continue;
+            }
+
             minimum = Math.Min(minimum, value);
             maximum = Math.Max(maximum, value);
             sum += value;
+            validSampleCount++;
+        }
+
+        if (validSampleCount == 0)
+        {
+            return new SurfaceTileStatistics(
+                new SurfaceValueRange(0d, 0d),
+                average: 0d,
+                sampleCount: values.Length,
+                isExact);
         }
 
         return new SurfaceTileStatistics(
             new SurfaceValueRange(minimum, maximum),
-            sum / values.Length,
+            sum / validSampleCount,
             values.Length,
             isExact);
     }

@@ -96,6 +96,60 @@ public class InMemorySurfaceTileSourceTests
         overviewTile.Statistics.IsExact.Should().BeFalse();
     }
 
+    [Fact]
+    public async Task GetTileAsync_IgnoresNonFiniteSamplesWhenComputingDetailValueRangeAndMask()
+    {
+        var source = CreateMatrix(2, 2, new float[]
+        {
+            1f, float.NaN,
+            3f, 4f
+        });
+
+        var builder = new SurfacePyramidBuilder(maxTileWidth: 2, maxTileHeight: 2);
+        ISurfaceTileSource tileSource = builder.Build(source);
+        var detailTile = await tileSource.GetRequiredTileAsync(new SurfaceTileKey(0, 0, 0, 0));
+
+        detailTile.ValueRange.Should().Be(new SurfaceValueRange(1d, 4d));
+        detailTile.Mask.Should().NotBeNull();
+        detailTile.Mask!.Values.ToArray().Should().Equal(true, false, true, true);
+    }
+
+    [Fact]
+    public async Task GetTileAsync_IgnoresExplicitlyMaskedFiniteSamplesWhenComputingDetailValueRangeAndStatistics()
+    {
+        var metadata = CreateMetadata(2, 2);
+        var source = new SurfaceMatrix(
+            metadata,
+            new SurfaceScalarField(
+                width: 2,
+                height: 2,
+                values: new float[]
+                {
+                    100, 2,
+                    5, 6
+                },
+                range: metadata.ValueRange),
+            colorField: null,
+            mask: new SurfaceMask(
+                width: 2,
+                height: 2,
+                values: new bool[]
+                {
+                    false, true,
+                    true, true
+                }));
+
+        var builder = new SurfacePyramidBuilder(maxTileWidth: 2, maxTileHeight: 2);
+        ISurfaceTileSource tileSource = builder.Build(source);
+        var detailTile = await tileSource.GetRequiredTileAsync(new SurfaceTileKey(0, 0, 0, 0));
+
+        detailTile.ValueRange.Should().Be(new SurfaceValueRange(2d, 6d));
+        detailTile.Statistics.Range.Should().Be(new SurfaceValueRange(2d, 6d));
+        detailTile.Statistics.Average.Should().Be((2d + 5d + 6d) / 3d);
+        detailTile.Mask.Should().NotBeNull();
+        detailTile.Mask!.Values.ToArray().Should().Equal(false, true, true, true);
+    }
+
     private static SurfaceMatrix CreateMatrix(int width, int height, float[] values)
     {
         return new SurfaceMatrix(CreateMetadata(width, height), values);

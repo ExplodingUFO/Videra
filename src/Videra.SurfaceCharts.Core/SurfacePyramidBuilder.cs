@@ -115,6 +115,10 @@ public sealed class SurfacePyramidBuilder
         var outputValues = new float[checked(outputWidth * outputHeight)];
         var sourceValues = source.Values.Span;
         var sourceWidth = source.Metadata.Width;
+        var hasSourceMask = source.Mask is not null;
+        var sourceMaskValues = hasSourceMask ? source.Mask!.Values.Span : default(ReadOnlySpan<bool>);
+        bool[]? outputMaskValues = hasSourceMask ? new bool[outputValues.Length] : null;
+        var hasMaskedOutputSamples = false;
         var destinationIndex = 0;
 
         for (var outputY = 0; outputY < outputHeight; outputY++)
@@ -126,13 +130,36 @@ public sealed class SurfacePyramidBuilder
             {
                 var startX = (int)(outputX * blockWidth);
                 var endX = (int)Math.Min(source.Metadata.Width, startX + blockWidth);
-                var statistics = reductionKernel.ReduceRegion(
-                    sourceValues,
-                    sourceWidth,
-                    startX,
-                    startY,
-                    endX - startX,
-                    endY - startY);
+                var statistics = hasSourceMask
+                    ? SurfaceMaskedReduction.ReduceRegion(
+                        sourceValues,
+                        sourceMaskValues,
+                        sourceWidth,
+                        startX,
+                        startY,
+                        endX - startX,
+                        endY - startY,
+                        isExact: false)
+                    : reductionKernel.ReduceRegion(
+                        sourceValues,
+                        sourceWidth,
+                        startX,
+                        startY,
+                        endX - startX,
+                        endY - startY);
+
+                if (outputMaskValues is not null)
+                {
+                    var hasVisibleSamples = RegionHasVisibleSamples(
+                        sourceMaskValues,
+                        sourceWidth,
+                        startX,
+                        startY,
+                        endX - startX,
+                        endY - startY);
+                    outputMaskValues[destinationIndex] = hasVisibleSamples;
+                    hasMaskedOutputSamples |= !hasVisibleSamples;
+                }
 
                 outputValues[destinationIndex++] = (float)statistics.Average;
             }
@@ -145,11 +172,40 @@ public sealed class SurfacePyramidBuilder
             source.Metadata.VerticalAxis,
             source.Metadata.ValueRange);
 
-        return new SurfaceMatrix(metadata, outputValues);
+        return new SurfaceMatrix(
+            metadata,
+            new SurfaceScalarField(outputWidth, outputHeight, outputValues, metadata.ValueRange),
+            colorField: null,
+            mask: hasMaskedOutputSamples
+                ? new SurfaceMask(outputWidth, outputHeight, outputMaskValues!)
+                : null);
     }
 
     private static int DivideRoundUp(int value, long divisor)
     {
         return checked((int)((value + divisor - 1) / divisor));
+    }
+
+    private static bool RegionHasVisibleSamples(
+        ReadOnlySpan<bool> maskValues,
+        int sourceWidth,
+        int startX,
+        int startY,
+        int width,
+        int height)
+    {
+        for (var offsetY = 0; offsetY < height; offsetY++)
+        {
+            var sourceIndex = ((startY + offsetY) * sourceWidth) + startX;
+            for (var offsetX = 0; offsetX < width; offsetX++)
+            {
+                if (maskValues[sourceIndex + offsetX])
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 }

@@ -25,6 +25,14 @@ Representative contracts include:
 
 The important contract detail is that `SurfaceTile.Width` / `Height` describe the tile value grid, while `SurfaceTile.Bounds` describe the covered source-space span in the original dataset. Coarse LOD tiles therefore do not assume a 1:1 sample-to-vertex mapping.
 
+## Source-First and Advanced Payloads
+
+`SurfaceMatrix` remains the simplest source-first regular-grid entrypoint for the current chart story. Existing hosts can keep the default `new SurfaceMatrix(metadata, values)` path and continue feeding that matrix through `SurfacePyramidBuilder` without learning any new control-layer concepts.
+
+Advanced callers can keep the same chart shell while supplying richer analytics payloads underneath it. The lower-level contracts now also support `SurfaceScalarField`-backed height data, an independent `ColorField`, and a first-class `SurfaceMask` through the `SurfaceMatrix(metadata, heightField, colorField, mask)` and `SurfaceTile(..., heightField, colorField, mask)` overloads.
+
+That split is intentional: the default source-first regular-grid path stays narrow, while advanced callers can opt into independent `ColorField` and first-class `SurfaceMask` semantics without widening `SurfaceChartView` itself.
+
 ## What Does Not Belong Here
 
 - Avalonia controls
