@@ -19,7 +19,6 @@ public class InspectionBenchmarks
 {
     private readonly SceneHitTestService _hitTestService = new();
     private readonly VideraClipPayloadService _clipPayloadService = new();
-    private readonly VideraSnapshotExportService _snapshotExportService = new();
 
     private SceneHitTestRequest _hitRequest = null!;
     private MeshPayload _clipSourcePayload = null!;
@@ -83,7 +82,7 @@ public class InspectionBenchmarks
     public async Task<long> SnapshotExport_LiveReadbackFastPath()
     {
         using var engine = new VideraEngine();
-        await _snapshotExportService.ExportAsync(
+        await VideraSnapshotExportService.ExportAsync(
             _snapshotPath,
             width: 256,
             height: 256,
