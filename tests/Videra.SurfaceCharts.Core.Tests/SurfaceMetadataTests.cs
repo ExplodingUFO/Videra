@@ -217,12 +217,12 @@ public class SurfaceMetadataTests
     }
 
     [Fact]
-    public void AxisCtor_RejectsNonPositiveLogRange()
+    public void AxisCtor_RejectsLogScaleUntilDisplaySpaceSupportLands()
     {
-        var act = () => new SurfaceAxisDescriptor("Frequency", "Hz", 0d, 10d, SurfaceAxisScaleKind.Log);
+        var act = () => new SurfaceAxisDescriptor("Frequency", "Hz", 1d, 10d, SurfaceAxisScaleKind.Log);
 
-        act.Should().Throw<ArgumentOutOfRangeException>()
-            .Where(ex => ex.ParamName == "minimum");
+        act.Should().Throw<ArgumentException>()
+            .Where(ex => ex.ParamName == "scaleKind");
     }
 
     [Fact]

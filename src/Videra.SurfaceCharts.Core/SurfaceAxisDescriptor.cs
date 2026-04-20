@@ -43,14 +43,11 @@ public sealed class SurfaceAxisDescriptor
             throw new ArgumentOutOfRangeException(nameof(maximum), "Axis maximum must be finite.");
         }
 
-        if (scaleKind == SurfaceAxisScaleKind.Log && minimum <= 0d)
+        if (scaleKind == SurfaceAxisScaleKind.Log)
         {
-            throw new ArgumentOutOfRangeException(nameof(minimum), "Logarithmic axis minimum must be positive.");
-        }
-
-        if (scaleKind == SurfaceAxisScaleKind.Log && maximum <= 0d)
-        {
-            throw new ArgumentOutOfRangeException(nameof(maximum), "Logarithmic axis maximum must be positive.");
+            throw new ArgumentException(
+                "Logarithmic axis scaling is reserved until raw axis values and display-space coordinates are separated.",
+                nameof(scaleKind));
         }
 
         if (maximum < minimum)

@@ -87,6 +87,45 @@ public sealed class SurfaceHeightfieldPickerTests
         hit.Value.IsApproximate.Should().BeTrue();
     }
 
+    [Fact]
+    public void Pick_ExplicitGridPeak_ResolvesAxisMappedWorldPosition()
+    {
+        var metadata = new SurfaceMetadata(
+            new SurfaceExplicitGrid(
+                horizontalCoordinates: new double[] { 10d, 20d, 40d, 80d, 160d },
+                verticalCoordinates: new double[] { 100d, 140d, 200d, 290d, 410d }),
+            new SurfaceAxisDescriptor("Time", "s", 10d, 160d, SurfaceAxisScaleKind.ExplicitCoordinates),
+            new SurfaceAxisDescriptor("Frequency", "Hz", 100d, 410d, SurfaceAxisScaleKind.ExplicitCoordinates),
+            new SurfaceValueRange(0d, 10d));
+        var tile = CreateExactTile();
+        var peakWorldPosition = new Vector3(40f, 10f, 200f);
+        var camera = new SurfaceCameraPose(
+            target: peakWorldPosition,
+            yawDegrees: 210d,
+            pitchDegrees: 15d,
+            distance: 120d,
+            fieldOfViewDegrees: 45d);
+        var frame = SurfaceProjectionMath.CreateCameraFrame(
+            metadata,
+            new SurfaceViewState(new SurfaceDataWindow(0d, 0d, 5d, 5d), camera),
+            viewWidth: 320d,
+            viewHeight: 240d,
+            renderScale: 1f);
+        var screenPoint = SurfaceProjectionMath.ProjectToScreen(peakWorldPosition, frame);
+        var pickRay = SurfaceHeightfieldPicker.CreatePickRay(new Vector2(screenPoint.X, screenPoint.Y), frame);
+
+        var hit = SurfaceHeightfieldPicker.Pick(metadata, [tile], pickRay);
+
+        hit.Should().NotBeNull();
+        hit!.Value.SampleX.Should().BeApproximately(2d, 0.02d);
+        hit.Value.SampleY.Should().BeApproximately(2d, 0.02d);
+        hit.Value.Value.Should().BeApproximately(10d, 0.2d);
+        hit.Value.WorldPosition.X.Should().BeApproximately(peakWorldPosition.X, 0.5f);
+        hit.Value.WorldPosition.Y.Should().BeApproximately(peakWorldPosition.Y, 0.2f);
+        hit.Value.WorldPosition.Z.Should().BeApproximately(peakWorldPosition.Z, 0.5f);
+        hit.Value.IsApproximate.Should().BeFalse();
+    }
+
     private static SurfaceMetadata CreateMetadata()
     {
         return new SurfaceMetadata(
