@@ -1,5 +1,35 @@
 # Milestones
 
+## v1.18 SurfaceCharts Analytics Core
+
+**Shipped:** 2026-04-20
+**Phases:** 4 (`95-98`)
+**Plans:** 17
+**Timeline:** 1 day (`2026-04-20` → `2026-04-20`)
+**Repo state:** merged on `master` through PR `#23`; milestone audit status is `tech_debt`, and no milestone tag was retained because release tags stay version-aligned
+
+### Key Accomplishments
+
+1. Generalized the surface data contract around `RegularGrid` / `ExplicitGrid`, richer axis semantics, and a regular-grid `SurfaceMatrix` convenience path.
+2. Separated `HeightField` from `ColorField`, promoted masks / holes / `NaN` regions into first-class semantics, and threaded them through render/probe paths.
+3. Moved recolor, normals, and resident scalar handling onto higher-value GPU and low-copy fast paths without widening the chart stack into generic `Chart3D`.
+4. Replaced the monolithic SurfaceCharts benchmark class with focused hotspot benchmarks, benchmark smoke tests, and aligned benchmark/docs/repository truth, then merged the work after green CI.
+
+### Archived Materials
+
+- `.planning/milestones/v1.18-ROADMAP.md`
+- `.planning/milestones/v1.18-REQUIREMENTS.md`
+- `.planning/milestones/v1.18-MILESTONE-AUDIT.md`
+
+### Notes
+
+- Fresh milestone-close verification reran `Videra.SurfaceCharts.Core.Tests` (`161`), `Videra.SurfaceCharts.Benchmarks.Tests` (`2`), the repository truth slice (`89`), and the SurfaceCharts benchmark project build (`0 warnings`, `0 errors`).
+- The implementation work was executed through isolated worktrees and merged via PR `#23`; dedicated `.planning/phases/95-*` through `98-*` summary/verification artifacts were not materialized.
+- Historical `13-VERIFICATION.md` and `14-VERIFICATION.md` remain `gaps_found`; they were acknowledged at `v1.18` closeout as pre-existing process debt rather than current milestone blockers.
+- Raw historical phase execution history remains in `.planning/phases/`.
+
+---
+
 ## v1.16 SurfaceCharts Adoption Surface
 
 **Shipped:** 2026-04-20  
