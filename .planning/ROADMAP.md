@@ -34,8 +34,13 @@ Plans:
 
 - [x] 96-01: introduce explicit `HeightField` and optional `ColorField` contracts so color is no longer implicitly bound to `z`
 - [x] 96-02: model masks, holes, and `NaN` regions as first-class data semantics instead of renderer-only fallbacks
-- [ ] 96-03: thread the new scalar/mask contracts through chart-local render inputs, probes, and overlays without widening `VideraView`
+- [x] 96-03: thread the new scalar/mask contracts through chart-local render inputs, probes, and overlays without widening `VideraView`
 - [ ] 96-04: preserve the current source-first adoption path for regular-grid callers while opening the contract for richer analytics payloads
+
+Notes:
+
+- resident render-state caching now preserves independent `ColorField` scalar truth for GPU recolor/update paths instead of silently collapsing back to height values
+- masked probe and camera-pick paths now short-circuit at the highest-detail covered tile, including overlapping detail/overview LOD residency, instead of leaking through holes
 
 ### Phase 97: Rendering Fast Paths and Residency Tightening
 

@@ -12,10 +12,10 @@ See: `.planning/PROJECT.md` (updated 2026-04-20)
 Milestone: `v1.18 SurfaceCharts Analytics Core`
 Phase: `96 Scalar Field and Missing-Data Promotion`
 Plan: `introduce explicit HeightField / ColorField / mask contracts without breaking the regular-grid source-first path`
-Status: `Phase 96 core scalar-field and missing-data contracts are now in code and verified; HeightField/ColorField separation plus first-class mask/NaN semantics are in place, including reduction/value-range propagation through pyramid and tile-source paths`
-Last activity: `2026-04-20` — completed Phase 96 core contract slices for explicit HeightField/ColorField separation and first-class mask/NaN propagation, then closed spec/code-review findings around legacy tile constructors and masked reduction consistency`
+Status: `Phase 96 scalar/mask threading is now in code and verified; chart-local render residency preserves ColorField truth, and probe/overlay picking now respects first-class masked holes across both viewport and camera-frame paths`
+Last activity: `2026-04-20` — completed Phase 96-03 by threading scalar/mask semantics through render-state residency and probe/overlay consumers, including overlapping detail/overview masked-pick regressions and a GPU recolor regression for independent ColorField truth`
 
-Progress: `[████□□□□] 5/11 requirements complete; Phase 96 chart-local scalar/mask threading is next`
+Progress: `[█████□□□] 6/11 requirements complete; Phase 96 source-first adoption compatibility is next`
 
 ## Performance Metrics
 
@@ -48,7 +48,6 @@ Progress: `[████□□□□] 5/11 requirements complete; Phase 96 chart
 ### Pending Todos
 
 - Preserve source-first adoption compatibility while introducing explicit `HeightField` / `ColorField` / mask semantics.
-- Thread the new scalar/mask contracts through chart-local render inputs, probe results, and overlay consumers without widening `VideraView`.
 - Add the new analytics benchmarks before scheduling interpolated probe, contour, slice, or extra 3D series work.
 
 ### Blockers/Concerns
@@ -73,5 +72,5 @@ Progress: `[████□□□□] 5/11 requirements complete; Phase 96 chart
 ## Session Continuity
 
 Last session: `2026-04-20 +08:00`
-Stopped at: `Phase 95 complete in code; Phase 96 Scalar Field and Missing-Data Promotion is next`
+Stopped at: `Phase 96-03 complete in code; Phase 96-04 source-first adoption compatibility is next`
 Resume file: `.planning/ROADMAP.md`
