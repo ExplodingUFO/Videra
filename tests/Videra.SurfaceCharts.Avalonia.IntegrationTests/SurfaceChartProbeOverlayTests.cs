@@ -321,6 +321,48 @@ public sealed class SurfaceChartProbeOverlayTests
     }
 
     [Fact]
+    public void ProbeOverlay_MaskedViewportSample_DoesNotResolveProbe()
+    {
+        var metadata = new SurfaceMetadata(
+            width: 5,
+            height: 5,
+            new SurfaceAxisDescriptor("Time", "s", 10d, 20d),
+            new SurfaceAxisDescriptor("Frequency", "Hz", 100d, 200d),
+            new SurfaceValueRange(-1d, 1d));
+        var tile = new SurfaceTile(
+            new SurfaceTileKey(0, 0, 0, 0),
+            new SurfaceTileBounds(0, 0, 5, 5),
+            new SurfaceScalarField(
+                width: 5,
+                height: 5,
+                values: Enumerable.Repeat(3f, 25).ToArray(),
+                range: metadata.ValueRange),
+            colorField: null,
+            mask: new SurfaceMask(
+                width: 5,
+                height: 5,
+                values: new bool[]
+                {
+                    true, true, true, true, true,
+                    true, true, true, true, true,
+                    true, true, false, true, true,
+                    true, true, true, true, true,
+                    true, true, true, true, true,
+                }));
+
+        var state = SurfaceProbeOverlayPresenter.CreateState(
+            new StaticTileSource(metadata),
+            new SurfaceViewport(0, 0, 4, 4),
+            new Size(200, 200),
+            [tile],
+            new Point(100, 100));
+
+        state.ProbeResult.Should().BeNull();
+        GetPropertyValue(state, "HoveredProbe").Should().BeNull();
+        GetPropertyValue(state, "HoveredProbeScreenPosition").Should().BeNull();
+    }
+
+    [Fact]
     public void ProbeOverlay_CameraFramePicking_ResolvesProjectedPeakAndWorldTruth()
     {
         var metadata = new SurfaceMetadata(
@@ -373,6 +415,141 @@ public sealed class SurfaceChartProbeOverlayTests
         GetBooleanProperty(hoveredProbe, "IsApproximate").Should().BeFalse();
         GetPropertyValue(hoveredProbe, "TileKey").Should().Be(tile.Key);
         GetVector3Property(hoveredProbe, "WorldPosition").Should().Be(peakWorldPosition);
+    }
+
+    [Fact]
+    public void ProbeOverlay_CameraFramePicking_SkipsMaskedPeak()
+    {
+        var metadata = new SurfaceMetadata(
+            width: 5,
+            height: 5,
+            new SurfaceAxisDescriptor("Time", "s", 10d, 20d),
+            new SurfaceAxisDescriptor("Frequency", "Hz", 100d, 200d),
+            new SurfaceValueRange(0d, 10d));
+        var tile = new SurfaceTile(
+            new SurfaceTileKey(2, 2, 0, 0),
+            new SurfaceTileBounds(0, 0, 5, 5),
+            new SurfaceScalarField(
+                width: 5,
+                height: 5,
+                values: new float[]
+                {
+                    0f, 1f, 2f, 1f, 0f,
+                    1f, 3f, 5f, 3f, 1f,
+                    2f, 5f, 10f, 5f, 2f,
+                    1f, 3f, 5f, 3f, 1f,
+                    0f, 1f, 2f, 1f, 0f,
+                },
+                range: metadata.ValueRange),
+            colorField: null,
+            mask: new SurfaceMask(
+                width: 5,
+                height: 5,
+                values: new bool[]
+                {
+                    true, true, true, true, true,
+                    true, true, true, true, true,
+                    true, true, false, true, true,
+                    true, true, true, true, true,
+                    true, true, true, true, true,
+                }));
+        var camera = new SurfaceCameraPose(
+            target: new Vector3(15f, 5f, 150f),
+            yawDegrees: 210d,
+            pitchDegrees: 15d,
+            distance: 40d,
+            fieldOfViewDegrees: 45d);
+        var cameraFrame = SurfaceProjectionMath.CreateCameraFrame(
+            metadata,
+            new SurfaceViewState(new SurfaceDataWindow(0d, 0d, 5d, 5d), camera),
+            viewWidth: 320d,
+            viewHeight: 240d,
+            renderScale: 1f);
+        var peakWorldPosition = new Vector3(15f, 10f, 150f);
+        var screenPoint = SurfaceProjectionMath.ProjectToScreen(peakWorldPosition, cameraFrame);
+
+        var state = SurfaceProbeOverlayPresenter.CreateState(
+            new StaticTileSource(metadata),
+            cameraFrame,
+            [tile],
+            new Point(screenPoint.X, screenPoint.Y));
+
+        state.ProbeResult.Should().BeNull();
+        GetPropertyValue(state, "HoveredProbe").Should().BeNull();
+        GetPropertyValue(state, "HoveredProbeScreenPosition").Should().BeNull();
+    }
+
+    [Fact]
+    public void ProbeOverlay_CameraFramePicking_DoesNotFallBackToOverviewWhenDetailedPeakIsMasked()
+    {
+        var metadata = new SurfaceMetadata(
+            width: 5,
+            height: 5,
+            new SurfaceAxisDescriptor("Time", "s", 10d, 20d),
+            new SurfaceAxisDescriptor("Frequency", "Hz", 100d, 200d),
+            new SurfaceValueRange(0d, 10d));
+        var detailTile = new SurfaceTile(
+            new SurfaceTileKey(2, 2, 0, 0),
+            new SurfaceTileBounds(0, 0, 5, 5),
+            new SurfaceScalarField(
+                width: 5,
+                height: 5,
+                values: new float[]
+                {
+                    0f, 1f, 2f, 1f, 0f,
+                    1f, 3f, 5f, 3f, 1f,
+                    2f, 5f, 10f, 5f, 2f,
+                    1f, 3f, 5f, 3f, 1f,
+                    0f, 1f, 2f, 1f, 0f,
+                },
+                range: metadata.ValueRange),
+            colorField: null,
+            mask: new SurfaceMask(
+                width: 5,
+                height: 5,
+                values: new bool[]
+                {
+                    true, true, true, true, true,
+                    true, true, true, true, true,
+                    true, true, false, true, true,
+                    true, true, true, true, true,
+                    true, true, true, true, true,
+                }));
+        var overviewTile = new SurfaceTile(
+            new SurfaceTileKey(0, 0, 0, 0),
+            width: 2,
+            height: 2,
+            new SurfaceTileBounds(0, 0, 5, 5),
+            new float[]
+            {
+                10f, 10f,
+                10f, 10f,
+            },
+            metadata.ValueRange);
+        var camera = new SurfaceCameraPose(
+            target: new Vector3(15f, 5f, 150f),
+            yawDegrees: 210d,
+            pitchDegrees: 15d,
+            distance: 40d,
+            fieldOfViewDegrees: 45d);
+        var cameraFrame = SurfaceProjectionMath.CreateCameraFrame(
+            metadata,
+            new SurfaceViewState(new SurfaceDataWindow(0d, 0d, 5d, 5d), camera),
+            viewWidth: 320d,
+            viewHeight: 240d,
+            renderScale: 1f);
+        var peakWorldPosition = new Vector3(15f, 10f, 150f);
+        var screenPoint = SurfaceProjectionMath.ProjectToScreen(peakWorldPosition, cameraFrame);
+
+        var state = SurfaceProbeOverlayPresenter.CreateState(
+            new StaticTileSource(metadata),
+            cameraFrame,
+            [overviewTile, detailTile],
+            new Point(screenPoint.X, screenPoint.Y));
+
+        state.ProbeResult.Should().BeNull();
+        GetPropertyValue(state, "HoveredProbe").Should().BeNull();
+        GetPropertyValue(state, "HoveredProbeScreenPosition").Should().BeNull();
     }
 
     private static void UpdateProbeScreenPosition(SurfaceChartView view, Point probeScreenPosition)

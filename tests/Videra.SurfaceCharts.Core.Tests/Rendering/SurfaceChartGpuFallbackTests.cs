@@ -93,6 +93,63 @@ public sealed class SurfaceChartGpuFallbackTests
     }
 
     [Fact]
+    public void IndependentColorField_DrivesInitialAndRecolorGpuVertexTruth()
+    {
+        var resourceFactory = new FakeResourceFactory();
+        var graphicsBackend = new FakeGraphicsBackend(resourceFactory: resourceFactory);
+        var host = new SurfaceChartRenderHost(
+            softwareBackend: new SurfaceChartSoftwareRenderBackend(),
+            gpuBackend: new SurfaceChartGpuRenderBackend(graphicsBackend),
+            allowSoftwareFallback: true);
+        var metadata = CreateMetadata(width: 2, height: 2);
+        var tile = new SurfaceTile(
+            new SurfaceTileKey(0, 0, 0, 0),
+            new SurfaceTileBounds(0, 0, 2, 2),
+            new SurfaceScalarField(
+                width: 2,
+                height: 2,
+                values: new float[] { 10f, 20f, 30f, 40f },
+                range: new SurfaceValueRange(0d, 100d)),
+            new SurfaceScalarField(
+                width: 2,
+                height: 2,
+                values: new float[] { 40f, 30f, 20f, 10f },
+                range: new SurfaceValueRange(0d, 100d)));
+        var initialColorMap = CreateColorMap(metadata);
+        var replacementColorMap = new SurfaceColorMap(metadata.ValueRange, new SurfaceColorMapPalette(0xFF804020u, 0xFF20C0F0u));
+
+        host.UpdateInputs(CreateInputs(handleBound: true) with
+        {
+            Metadata = metadata,
+            LoadedTiles = [tile],
+            ColorMap = initialColorMap,
+        });
+
+        resourceFactory.VertexBuffers.Should().ContainSingle();
+        resourceFactory.VertexBuffers[0].LatestVertexData.Should().NotBeNull();
+        resourceFactory.VertexBuffers[0].LatestVertexData!.Select(static vertex => vertex.Color).Should().Equal(
+            ToRgbaFloat(initialColorMap.Map(40f)),
+            ToRgbaFloat(initialColorMap.Map(30f)),
+            ToRgbaFloat(initialColorMap.Map(20f)),
+            ToRgbaFloat(initialColorMap.Map(10f)));
+
+        host.UpdateInputs(CreateInputs(handleBound: true) with
+        {
+            Metadata = metadata,
+            LoadedTiles = [tile],
+            ColorMap = replacementColorMap,
+        });
+
+        resourceFactory.VertexBuffers.Should().ContainSingle();
+        resourceFactory.VertexBuffers[0].LatestVertexData.Should().NotBeNull();
+        resourceFactory.VertexBuffers[0].LatestVertexData!.Select(static vertex => vertex.Color).Should().Equal(
+            ToRgbaFloat(replacementColorMap.Map(40f)),
+            ToRgbaFloat(replacementColorMap.Map(30f)),
+            ToRgbaFloat(replacementColorMap.Map(20f)),
+            ToRgbaFloat(replacementColorMap.Map(10f)));
+    }
+
+    [Fact]
     public void GpuInitializationFailure_WithFallbackAllowed_SwitchesToSoftware()
     {
         var graphicsBackend = new FakeGraphicsBackend(
@@ -181,6 +238,15 @@ public sealed class SurfaceChartGpuFallbackTests
         return new SurfaceColorMap(metadata.ValueRange, new SurfaceColorMapPalette(0xFF203040u, 0xFFE0F0FFu));
     }
 
+    private static RgbaFloat ToRgbaFloat(uint argb)
+    {
+        return new RgbaFloat(
+            ((argb >> 16) & 0xFF) / 255f,
+            ((argb >> 8) & 0xFF) / 255f,
+            (argb & 0xFF) / 255f,
+            ((argb >> 24) & 0xFF) / 255f);
+    }
+
     private sealed class FakeGraphicsBackend : IGraphicsBackend
     {
         private readonly Exception? _initializeException;
@@ -258,16 +324,23 @@ public sealed class SurfaceChartGpuFallbackTests
 
         public int VertexBufferUpdateCount { get; private set; }
 
+        public List<FakeBuffer> VertexBuffers { get; } = [];
+
         public IBuffer CreateVertexBuffer(VertexPositionNormalColor[] vertices)
         {
             VertexBufferCreationCount++;
-            return new FakeBuffer((uint)(vertices.Length * 40), this, trackVertexUpdates: true);
+            var buffer = new FakeBuffer((uint)(vertices.Length * 40), this, trackVertexUpdates: true);
+            buffer.RecordVertexData(vertices);
+            VertexBuffers.Add(buffer);
+            return buffer;
         }
 
         public IBuffer CreateVertexBuffer(uint sizeInBytes)
         {
             VertexBufferCreationCount++;
-            return new FakeBuffer(sizeInBytes, this, trackVertexUpdates: true);
+            var buffer = new FakeBuffer(sizeInBytes, this, trackVertexUpdates: true);
+            VertexBuffers.Add(buffer);
+            return buffer;
         }
 
         public IBuffer CreateIndexBuffer(uint[] indices)
@@ -378,6 +451,8 @@ public sealed class SurfaceChartGpuFallbackTests
 
         public uint SizeInBytes { get; }
 
+        public VertexPositionNormalColor[]? LatestVertexData { get; private set; }
+
         public void Update<T>(T data)
             where T : unmanaged
         {
@@ -390,6 +465,11 @@ public sealed class SurfaceChartGpuFallbackTests
         public void UpdateArray<T>(T[] data)
             where T : unmanaged
         {
+            if (data is VertexPositionNormalColor[] vertices)
+            {
+                RecordVertexData(vertices);
+            }
+
             if (_trackVertexUpdates)
             {
                 _owner.RecordVertexBufferUpdate();
@@ -408,6 +488,11 @@ public sealed class SurfaceChartGpuFallbackTests
 
         public void Dispose()
         {
+        }
+
+        public void RecordVertexData(VertexPositionNormalColor[] vertices)
+        {
+            LatestVertexData = (VertexPositionNormalColor[])vertices.Clone();
         }
     }
 

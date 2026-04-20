@@ -126,6 +126,121 @@ public sealed class SurfaceHeightfieldPickerTests
         hit.Value.IsApproximate.Should().BeFalse();
     }
 
+    [Fact]
+    public void Pick_MaskedPeak_ReturnsNull()
+    {
+        var metadata = CreateMetadata();
+        var tile = new SurfaceTile(
+            new SurfaceTileKey(2, 2, 0, 0),
+            new SurfaceTileBounds(0, 0, 5, 5),
+            new SurfaceScalarField(
+                width: 5,
+                height: 5,
+                values: new float[]
+                {
+                    0f, 1f, 2f, 1f, 0f,
+                    1f, 3f, 5f, 3f, 1f,
+                    2f, 5f, 10f, 5f, 2f,
+                    1f, 3f, 5f, 3f, 1f,
+                    0f, 1f, 2f, 1f, 0f,
+                },
+                range: new SurfaceValueRange(0d, 10d)),
+            colorField: null,
+            mask: new SurfaceMask(
+                width: 5,
+                height: 5,
+                values: new bool[]
+                {
+                    true, true, true, true, true,
+                    true, true, true, true, true,
+                    true, true, false, true, true,
+                    true, true, true, true, true,
+                    true, true, true, true, true,
+                }));
+        var peakWorldPosition = new Vector3(15f, 10f, 150f);
+        var camera = new SurfaceCameraPose(
+            target: new Vector3(15f, 5f, 150f),
+            yawDegrees: 210d,
+            pitchDegrees: 15d,
+            distance: 40d,
+            fieldOfViewDegrees: 45d);
+        var frame = SurfaceProjectionMath.CreateCameraFrame(
+            metadata,
+            new SurfaceViewState(new SurfaceDataWindow(0d, 0d, 5d, 5d), camera),
+            viewWidth: 320d,
+            viewHeight: 240d,
+            renderScale: 1f);
+        var screenPoint = SurfaceProjectionMath.ProjectToScreen(peakWorldPosition, frame);
+        var pickRay = SurfaceHeightfieldPicker.CreatePickRay(new Vector2(screenPoint.X, screenPoint.Y), frame);
+
+        var hit = SurfaceHeightfieldPicker.Pick(metadata, [tile], pickRay);
+
+        hit.Should().BeNull();
+    }
+
+    [Fact]
+    public void Pick_MaskedDetailedPeak_DoesNotFallBackToOverviewTile()
+    {
+        var metadata = CreateMetadata();
+        var detailTile = new SurfaceTile(
+            new SurfaceTileKey(2, 2, 0, 0),
+            new SurfaceTileBounds(0, 0, 5, 5),
+            new SurfaceScalarField(
+                width: 5,
+                height: 5,
+                values: new float[]
+                {
+                    0f, 1f, 2f, 1f, 0f,
+                    1f, 3f, 5f, 3f, 1f,
+                    2f, 5f, 10f, 5f, 2f,
+                    1f, 3f, 5f, 3f, 1f,
+                    0f, 1f, 2f, 1f, 0f,
+                },
+                range: new SurfaceValueRange(0d, 10d)),
+            colorField: null,
+            mask: new SurfaceMask(
+                width: 5,
+                height: 5,
+                values: new bool[]
+                {
+                    true, true, true, true, true,
+                    true, true, true, true, true,
+                    true, true, false, true, true,
+                    true, true, true, true, true,
+                    true, true, true, true, true,
+                }));
+        var overviewTile = new SurfaceTile(
+            new SurfaceTileKey(0, 0, 0, 0),
+            width: 2,
+            height: 2,
+            new SurfaceTileBounds(0, 0, 5, 5),
+            new float[]
+            {
+                10f, 10f,
+                10f, 10f,
+            },
+            metadata.ValueRange);
+        var peakWorldPosition = new Vector3(15f, 10f, 150f);
+        var camera = new SurfaceCameraPose(
+            target: new Vector3(15f, 5f, 150f),
+            yawDegrees: 210d,
+            pitchDegrees: 15d,
+            distance: 40d,
+            fieldOfViewDegrees: 45d);
+        var frame = SurfaceProjectionMath.CreateCameraFrame(
+            metadata,
+            new SurfaceViewState(new SurfaceDataWindow(0d, 0d, 5d, 5d), camera),
+            viewWidth: 320d,
+            viewHeight: 240d,
+            renderScale: 1f);
+        var screenPoint = SurfaceProjectionMath.ProjectToScreen(peakWorldPosition, frame);
+        var pickRay = SurfaceHeightfieldPicker.CreatePickRay(new Vector2(screenPoint.X, screenPoint.Y), frame);
+
+        var hit = SurfaceHeightfieldPicker.Pick(metadata, [overviewTile, detailTile], pickRay);
+
+        hit.Should().BeNull();
+    }
+
     private static SurfaceMetadata CreateMetadata()
     {
         return new SurfaceMetadata(

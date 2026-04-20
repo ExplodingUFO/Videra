@@ -57,16 +57,22 @@ public static class SurfaceHeightfieldPicker
                 continue;
             }
 
-            if (TryPickTile(metadata, tile, pickRay, out var hit))
+            var pickOutcome = TryPickTile(metadata, tile, pickRay, out var hit);
+            if (pickOutcome == TilePickOutcome.Hit)
             {
                 return hit;
+            }
+
+            if (pickOutcome == TilePickOutcome.BlockedByMask)
+            {
+                return null;
             }
         }
 
         return null;
     }
 
-    private static bool TryPickTile(
+    private static TilePickOutcome TryPickTile(
         SurfaceMetadata metadata,
         SurfaceTile tile,
         SurfacePickRay pickRay,
@@ -76,10 +82,11 @@ public static class SurfaceHeightfieldPicker
 
         if (tile.Width < 2 || tile.Height < 2)
         {
-            return false;
+            return TilePickOutcome.Miss;
         }
 
         PickCandidate? bestCandidate = null;
+        var blockedByMask = false;
         for (var row = 0; row < tile.Height - 1; row++)
         {
             for (var column = 0; column < tile.Width - 1; column++)
@@ -91,12 +98,12 @@ public static class SurfaceHeightfieldPicker
 
                 bestCandidate = ChooseCloserCandidate(
                     bestCandidate,
-                    TryCreateCandidate(tile, pickRay, topLeft, bottomLeft, topRight),
-                    TryCreateCandidate(tile, pickRay, topRight, bottomLeft, bottomRight));
+                    TryCreateCandidate(tile, pickRay, topLeft, bottomLeft, topRight, ref blockedByMask),
+                    TryCreateCandidate(tile, pickRay, topRight, bottomLeft, bottomRight, ref blockedByMask));
             }
         }
 
-        var bestVertexSnap = TryCreateVertexSnapCandidate(metadata, tile, pickRay);
+        var bestVertexSnap = TryCreateVertexSnapCandidate(metadata, tile, pickRay, ref blockedByMask);
         if (bestVertexSnap is not null &&
             (bestCandidate is null || bestVertexSnap.Value.Distance <= bestCandidate.Value.Distance + VertexSnapDistanceTieEpsilon))
         {
@@ -105,7 +112,7 @@ public static class SurfaceHeightfieldPicker
 
         if (bestCandidate is null)
         {
-            return false;
+            return blockedByMask ? TilePickOutcome.BlockedByMask : TilePickOutcome.Miss;
         }
 
         hit = new SurfacePickHit(
@@ -116,7 +123,7 @@ public static class SurfaceHeightfieldPicker
             bestCandidate.Value.Value,
             isApproximate: tile.Bounds.Width != tile.Width || tile.Bounds.Height != tile.Height,
             bestCandidate.Value.Distance);
-        return true;
+        return TilePickOutcome.Hit;
     }
 
     private static PickCandidate? ChooseCloserCandidate(
@@ -143,7 +150,8 @@ public static class SurfaceHeightfieldPicker
         SurfacePickRay pickRay,
         TileVertex first,
         TileVertex second,
-        TileVertex third)
+        TileVertex third,
+        ref bool blockedByMask)
     {
         if (!TryIntersectTriangle(
                 pickRay,
@@ -154,6 +162,12 @@ public static class SurfaceHeightfieldPicker
                 out var weightSecond,
                 out var weightThird))
         {
+            return null;
+        }
+
+        if (!first.IsAvailable || !second.IsAvailable || !third.IsAvailable)
+        {
+            blockedByMask = true;
             return null;
         }
 
@@ -183,7 +197,8 @@ public static class SurfaceHeightfieldPicker
     private static PickCandidate? TryCreateVertexSnapCandidate(
         SurfaceMetadata metadata,
         SurfaceTile tile,
-        SurfacePickRay pickRay)
+        SurfacePickRay pickRay,
+        ref bool blockedByMask)
     {
         PickCandidate? bestCandidate = null;
         for (var row = 0; row < tile.Height; row++)
@@ -202,6 +217,12 @@ public static class SurfaceHeightfieldPicker
                 var distanceToRay = Vector3.Distance(projectedPoint, vertex.WorldPosition);
                 if (distanceToRay > VertexSnapDistanceEpsilon)
                 {
+                    continue;
+                }
+
+                if (!vertex.IsAvailable)
+                {
+                    blockedByMask = true;
                     continue;
                 }
 
@@ -327,12 +348,14 @@ public static class SurfaceHeightfieldPicker
     {
         var sampleX = MapTileSampleCoordinate(tile.Bounds.StartX, tile.Bounds.Width, tile.Width, column);
         var sampleY = MapTileSampleCoordinate(tile.Bounds.StartY, tile.Bounds.Height, tile.Height, row);
-        var value = tile.Values.Span[(row * tile.Width) + column];
+        var index = (row * tile.Width) + column;
+        var value = tile.Values.Span[index];
+        var isAvailable = tile.Mask?.Values.Span[index] ?? true;
         var worldPosition = new Vector3(
             (float)metadata.MapHorizontalCoordinate(sampleX),
             value,
             (float)metadata.MapVerticalCoordinate(sampleY));
-        return new TileVertex(sampleX, sampleY, value, worldPosition);
+        return new TileVertex(sampleX, sampleY, value, worldPosition, isAvailable);
     }
 
     private static double MapTileSampleCoordinate(int start, int span, int sampleCount, int sampleIndex)
@@ -345,7 +368,14 @@ public static class SurfaceHeightfieldPicker
         return start + (sampleIndex * ((span - 1d) / (sampleCount - 1d)));
     }
 
-    private readonly record struct TileVertex(double SampleX, double SampleY, float Value, Vector3 WorldPosition);
+    private readonly record struct TileVertex(double SampleX, double SampleY, float Value, Vector3 WorldPosition, bool IsAvailable);
+
+    private enum TilePickOutcome
+    {
+        Miss,
+        Hit,
+        BlockedByMask,
+    }
 
     private readonly record struct PickCandidate(
         SurfaceTileKey TileKey,
