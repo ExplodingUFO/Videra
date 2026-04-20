@@ -16,6 +16,8 @@ public sealed class GraphicsBackendFactoryTests
         RenderBindingSlots.Camera.Should().Be(1);
         RenderBindingSlots.World.Should().Be(2);
         RenderBindingSlots.Style.Should().Be(3);
+        RenderBindingSlots.SurfaceColorMap.Should().Be(4);
+        RenderBindingSlots.SurfaceTileScalars.Should().Be(5);
     }
 
     [Fact]

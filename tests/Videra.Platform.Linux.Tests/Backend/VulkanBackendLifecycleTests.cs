@@ -177,6 +177,64 @@ public sealed class VulkanBackendLifecycleTests
     }
 
     [LinuxNativeFact]
+    public void SurfaceChartScalarResourceCreation_AndDrawPath_Succeeds()
+    {
+        if (!IsLinux) return;
+
+        using var window = NativeHostTestHelpers.CreateHiddenX11Window(128, 96);
+        using var backend = new VulkanBackend();
+        backend.Initialize(window.WindowHandle, 128, 96);
+
+        var factory = backend.GetResourceFactory();
+        var executor = backend.GetCommandExecutor();
+
+        var vertices = new[]
+        {
+            new VertexPositionNormalColor(new Vector3(-0.5f, -0.5f, 0f), Vector3.UnitZ, RgbaFloat.Black),
+            new VertexPositionNormalColor(new Vector3(0f, 0.5f, 0f), Vector3.UnitZ, RgbaFloat.Black),
+            new VertexPositionNormalColor(new Vector3(0.5f, -0.5f, 0f), Vector3.UnitZ, RgbaFloat.Black)
+        };
+        var indices = new uint[] { 0, 1, 2 };
+
+        using var vb = factory.CreateVertexBuffer(vertices);
+        using var ib = factory.CreateIndexBuffer(indices);
+        using var cameraBuffer = factory.CreateUniformBuffer(128);
+        using var worldBuffer = factory.CreateUniformBuffer(64);
+        using var colorMapBuffer = factory.CreateUniformBuffer(4112);
+        using var scalarBuffer = factory.CreateUniformBuffer(65536);
+        using var pipeline = factory.CreatePipeline(CreateSurfaceChartPipelineDescription());
+        var usesScalarBindings = pipeline.GetType().GetProperty("UsesSurfaceChartScalarBindings")?.GetValue(pipeline);
+
+        cameraBuffer.SetData(Matrix4x4.Identity, 0);
+        cameraBuffer.SetData(Matrix4x4.Identity, 64);
+        worldBuffer.SetData(Matrix4x4.Identity, 0);
+        colorMapBuffer.SetData(CreateSurfaceColorMapPayload(), 0);
+        scalarBuffer.SetData(CreateSurfaceScalarPayload(), 0);
+
+        usesScalarBindings.Should().Be(true);
+
+        var act = () =>
+        {
+            backend.BeginFrame();
+            executor.SetPipeline(pipeline);
+            executor.SetVertexBuffer(vb, RenderBindingSlots.Vertex);
+            executor.SetVertexBuffer(cameraBuffer, RenderBindingSlots.Camera);
+            executor.SetVertexBuffer(worldBuffer, RenderBindingSlots.World);
+            executor.SetVertexBuffer(colorMapBuffer, RenderBindingSlots.SurfaceColorMap);
+            executor.SetVertexBuffer(scalarBuffer, RenderBindingSlots.SurfaceTileScalars);
+            executor.SetIndexBuffer(ib);
+            executor.DrawIndexed(3);
+            backend.EndFrame();
+        };
+
+        var exception = Record.Exception(act);
+        if (exception is not null)
+        {
+            throw new Xunit.Sdk.XunitException(exception.ToString());
+        }
+    }
+
+    [LinuxNativeFact]
     public void Backend_Reinitialization_AfterDispose_Succeeds()
     {
         if (!IsLinux) return;
@@ -191,5 +249,67 @@ public sealed class VulkanBackendLifecycleTests
         using var backend2 = new VulkanBackend();
         backend2.Initialize(window.WindowHandle, 64, 64);
         backend2.IsInitialized.Should().BeTrue();
+    }
+
+    private static PipelineDescription CreateSurfaceChartPipelineDescription()
+    {
+        return new PipelineDescription
+        {
+            VertexLayout = new VertexLayoutDescription
+            {
+                Elements =
+                [
+                    new VertexElementDescription { Name = "POSITION", Format = VertexElementFormat.Float3, Offset = 0 },
+                    new VertexElementDescription { Name = "NORMAL", Format = VertexElementFormat.Float3, Offset = 12 },
+                    new VertexElementDescription { Name = "SCALAR_COLOR", Format = VertexElementFormat.Float4, Offset = 24 },
+                ],
+            },
+            ResourceLayouts =
+            [
+                new ResourceLayoutDescription
+                {
+                    Elements =
+                    [
+                        new ResourceLayoutElementDescription { Binding = RenderBindingSlots.Camera, Kind = ResourceKind.UniformBuffer, Stages = ShaderStage.Vertex },
+                        new ResourceLayoutElementDescription { Binding = RenderBindingSlots.World, Kind = ResourceKind.UniformBuffer, Stages = ShaderStage.Vertex },
+                        new ResourceLayoutElementDescription { Binding = RenderBindingSlots.SurfaceColorMap, Kind = ResourceKind.UniformBuffer, Stages = ShaderStage.Vertex },
+                        new ResourceLayoutElementDescription { Binding = RenderBindingSlots.SurfaceTileScalars, Kind = ResourceKind.UniformBuffer, Stages = ShaderStage.Vertex },
+                    ],
+                },
+            ],
+            Topology = PrimitiveTopology.TriangleList,
+            DepthTestEnabled = true,
+            DepthWriteEnabled = true
+        };
+    }
+
+    private static float[] CreateSurfaceColorMapPayload()
+    {
+        var payload = new float[4 + (256 * 4)];
+        payload[0] = 0f;
+        payload[1] = 1f;
+        payload[2] = 2f;
+        payload[3] = 1f;
+
+        WriteColor(payload, 4, 1f, 0f, 0f, 1f);
+        for (var index = 1; index < 256; index++)
+        {
+            WriteColor(payload, 4 + (index * 4), 0f, 0f, 1f, 1f);
+        }
+
+        return payload;
+    }
+
+    private static float[] CreateSurfaceScalarPayload()
+    {
+        return [0f, 0.5f, 1f, 0f];
+    }
+
+    private static void WriteColor(float[] payload, int startIndex, float r, float g, float b, float a)
+    {
+        payload[startIndex] = r;
+        payload[startIndex + 1] = g;
+        payload[startIndex + 2] = b;
+        payload[startIndex + 3] = a;
     }
 }

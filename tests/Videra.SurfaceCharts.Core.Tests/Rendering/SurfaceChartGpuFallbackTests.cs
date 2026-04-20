@@ -1,6 +1,8 @@
 using System.Numerics;
+using System.Runtime.InteropServices;
 using FluentAssertions;
 using Videra.Core.Geometry;
+using Videra.Core.Graphics;
 using Videra.Core.Graphics.Abstractions;
 using Videra.SurfaceCharts.Core;
 using Videra.SurfaceCharts.Rendering;
@@ -56,7 +58,7 @@ public sealed class SurfaceChartGpuFallbackTests
     }
 
     [Fact]
-    public void ColorMapChanges_UpdateExistingGpuVertexBuffers_WithoutRecreatingResources()
+    public void ColorMapChanges_UpdatePaletteUniformWithoutRewritingResidentVertexBuffers()
     {
         var resourceFactory = new FakeResourceFactory();
         var graphicsBackend = new FakeGraphicsBackend(resourceFactory: resourceFactory);
@@ -79,6 +81,11 @@ public sealed class SurfaceChartGpuFallbackTests
         resourceFactory.VertexBufferCreationCount.Should().Be(1);
         resourceFactory.IndexBufferCreationCount.Should().Be(1);
         resourceFactory.VertexBufferUpdateCount.Should().Be(0);
+        resourceFactory.UniformBuffers.Should().Contain(buffer => buffer.SizeInBytes > 32);
+        var paletteBuffer = resourceFactory.UniformBuffers.Single(buffer => buffer.SizeInBytes == 4112);
+        paletteBuffer.LatestRawData.Should().NotBeNull();
+        var initialPaletteUpdateCount = paletteBuffer.UpdateCount;
+        var initialPaletteBytes = paletteBuffer.LatestRawData!.ToArray();
 
         host.UpdateInputs(CreateInputs(handleBound: true) with
         {
@@ -89,11 +96,16 @@ public sealed class SurfaceChartGpuFallbackTests
 
         resourceFactory.VertexBufferCreationCount.Should().Be(1);
         resourceFactory.IndexBufferCreationCount.Should().Be(1);
-        resourceFactory.VertexBufferUpdateCount.Should().Be(1);
+        resourceFactory.VertexBufferUpdateCount.Should().Be(0);
+        paletteBuffer.UpdateCount.Should().Be(initialPaletteUpdateCount + 1);
+        paletteBuffer.LatestRawData.Should().NotBeNull();
+        paletteBuffer.LatestRawData.Should().NotEqual(initialPaletteBytes);
+        graphicsBackend.CommandExecutor.BoundVertexBufferSlots.Should().Contain(RenderBindingSlots.SurfaceColorMap);
+        graphicsBackend.CommandExecutor.BoundVertexBufferSlots.Should().Contain(RenderBindingSlots.SurfaceTileScalars);
     }
 
     [Fact]
-    public void IndependentColorField_DrivesInitialAndRecolorGpuVertexTruth()
+    public void IndependentColorField_DrivesTileScalarUniformAndPaletteRecolor()
     {
         var resourceFactory = new FakeResourceFactory();
         var graphicsBackend = new FakeGraphicsBackend(resourceFactory: resourceFactory);
@@ -127,11 +139,18 @@ public sealed class SurfaceChartGpuFallbackTests
 
         resourceFactory.VertexBuffers.Should().ContainSingle();
         resourceFactory.VertexBuffers[0].LatestVertexData.Should().NotBeNull();
-        resourceFactory.VertexBuffers[0].LatestVertexData!.Select(static vertex => vertex.Color).Should().Equal(
-            ToRgbaFloat(initialColorMap.Map(40f)),
-            ToRgbaFloat(initialColorMap.Map(30f)),
-            ToRgbaFloat(initialColorMap.Map(20f)),
-            ToRgbaFloat(initialColorMap.Map(10f)));
+        var scalarBuffer = resourceFactory.UniformBuffers.Single(buffer => buffer.SizeInBytes == 65536);
+        scalarBuffer.LatestRawData.Should().NotBeNull();
+        ReadScalarPayloadValue(scalarBuffer.LatestRawData!, 0).Should().Be(40f);
+        ReadScalarPayloadValue(scalarBuffer.LatestRawData!, 1).Should().Be(30f);
+        ReadScalarPayloadValue(scalarBuffer.LatestRawData!, 2).Should().Be(20f);
+        ReadScalarPayloadValue(scalarBuffer.LatestRawData!, 3).Should().Be(10f);
+
+        var paletteBuffer = resourceFactory.UniformBuffers.Single(buffer => buffer.SizeInBytes == 4112);
+        paletteBuffer.LatestRawData.Should().NotBeNull();
+        var initialPaletteBytes = paletteBuffer.LatestRawData!.ToArray();
+        var initialPaletteUpdateCount = paletteBuffer.UpdateCount;
+        var initialScalarBytes = scalarBuffer.LatestRawData!.ToArray();
 
         host.UpdateInputs(CreateInputs(handleBound: true) with
         {
@@ -142,11 +161,178 @@ public sealed class SurfaceChartGpuFallbackTests
 
         resourceFactory.VertexBuffers.Should().ContainSingle();
         resourceFactory.VertexBuffers[0].LatestVertexData.Should().NotBeNull();
-        resourceFactory.VertexBuffers[0].LatestVertexData!.Select(static vertex => vertex.Color).Should().Equal(
-            ToRgbaFloat(replacementColorMap.Map(40f)),
-            ToRgbaFloat(replacementColorMap.Map(30f)),
-            ToRgbaFloat(replacementColorMap.Map(20f)),
-            ToRgbaFloat(replacementColorMap.Map(10f)));
+        resourceFactory.VertexBufferUpdateCount.Should().Be(0);
+        scalarBuffer.LatestRawData.Should().NotBeNull();
+        scalarBuffer.LatestRawData.Should().Equal(initialScalarBytes);
+        scalarBuffer.UpdateCount.Should().Be(1);
+        paletteBuffer.UpdateCount.Should().Be(initialPaletteUpdateCount + 1);
+        paletteBuffer.LatestRawData.Should().NotBeNull();
+        paletteBuffer.LatestRawData.Should().NotEqual(initialPaletteBytes);
+        graphicsBackend.CommandExecutor.BoundVertexBufferSlots.Should().Contain(RenderBindingSlots.SurfaceColorMap);
+        graphicsBackend.CommandExecutor.BoundVertexBufferSlots.Should().Contain(RenderBindingSlots.SurfaceTileScalars);
+    }
+
+    [Fact]
+    public void TileScalarUniforms_ReserveShaderDeclaredBufferRange()
+    {
+        var resourceFactory = new FakeResourceFactory();
+        var graphicsBackend = new FakeGraphicsBackend(resourceFactory: resourceFactory);
+        var host = new SurfaceChartRenderHost(
+            softwareBackend: new SurfaceChartSoftwareRenderBackend(),
+            gpuBackend: new SurfaceChartGpuRenderBackend(graphicsBackend),
+            allowSoftwareFallback: true);
+        var metadata = CreateMetadata(width: 2, height: 2);
+        var tile = CreateTile(metadata, new SurfaceTileKey(0, 0, 0, 0), tileValue: 25f);
+
+        host.UpdateInputs(CreateInputs(handleBound: true) with
+        {
+            Metadata = metadata,
+            LoadedTiles = [tile],
+            ColorMap = CreateColorMap(metadata),
+        });
+
+        resourceFactory.UniformBuffers.Should().Contain(buffer => buffer.SizeInBytes == 65536);
+        var scalarBuffer = resourceFactory.UniformBuffers.Single(buffer => buffer.SizeInBytes == 65536);
+        scalarBuffer.LatestRawData.Should().NotBeNull();
+        scalarBuffer.LatestRawData!.Length.Should().Be(16);
+    }
+
+    [Fact]
+    public void LargePalettes_AreResampledIntoGpuLutInsteadOfThrowing()
+    {
+        var resourceFactory = new FakeResourceFactory();
+        var graphicsBackend = new FakeGraphicsBackend(resourceFactory: resourceFactory);
+        var host = new SurfaceChartRenderHost(
+            softwareBackend: new SurfaceChartSoftwareRenderBackend(),
+            gpuBackend: new SurfaceChartGpuRenderBackend(graphicsBackend),
+            allowSoftwareFallback: true);
+        var metadata = CreateMetadata(width: 4, height: 4);
+        var tile = CreateTile(metadata, new SurfaceTileKey(0, 0, 0, 0), tileValue: 42f);
+        var oversizedPalette = Enumerable.Range(0, 300)
+            .Select(index => 0xFF000000u | ((uint)index << 8) | (uint)(299 - index))
+            .ToArray();
+        var colorMap = new SurfaceColorMap(metadata.ValueRange, new SurfaceColorMapPalette(oversizedPalette));
+
+        var act = () => host.UpdateInputs(CreateInputs(handleBound: true) with
+        {
+            Metadata = metadata,
+            LoadedTiles = [tile],
+            ColorMap = colorMap,
+        });
+
+        act.Should().NotThrow();
+        var paletteBuffer = resourceFactory.UniformBuffers.Single(buffer => buffer.SizeInBytes == 4112);
+        paletteBuffer.SizeInBytes.Should().Be(4112);
+        paletteBuffer.LatestRawData.Should().NotBeNull();
+    }
+
+    [Fact]
+    public void SlopedSurface_UsesDerivedNormalsInsteadOfUnitYPlaceholders()
+    {
+        var resourceFactory = new FakeResourceFactory();
+        var graphicsBackend = new FakeGraphicsBackend(resourceFactory: resourceFactory);
+        var host = new SurfaceChartRenderHost(
+            softwareBackend: new SurfaceChartSoftwareRenderBackend(),
+            gpuBackend: new SurfaceChartGpuRenderBackend(graphicsBackend),
+            allowSoftwareFallback: true);
+        var metadata = CreateMetadata(width: 3, height: 3);
+        var tile = CreateTile(
+            new SurfaceTileKey(0, 0, 0, 0),
+            new SurfaceTileBounds(0, 0, 3, 3),
+            3,
+            3,
+            new float[]
+            {
+                0f, 1f, 2f,
+                1f, 2f, 3f,
+                2f, 3f, 4f,
+            },
+            metadata.ValueRange);
+
+        host.UpdateInputs(CreateInputs(handleBound: true) with
+        {
+            Metadata = metadata,
+            LoadedTiles = [tile],
+            ColorMap = CreateColorMap(metadata),
+            Viewport = new SurfaceViewport(0, 0, 3, 3),
+        });
+
+        var expectedNormal = Vector3.Normalize(new Vector3(-1f, 1f, -1f));
+        var centerNormal = resourceFactory.VertexBuffers.Single().LatestVertexData![4].Normal;
+        centerNormal.Should().NotBe(Vector3.UnitY);
+        centerNormal.X.Should().BeApproximately(expectedNormal.X, 0.0001f);
+        centerNormal.Y.Should().BeApproximately(expectedNormal.Y, 0.0001f);
+        centerNormal.Z.Should().BeApproximately(expectedNormal.Z, 0.0001f);
+    }
+
+    [Fact]
+    public void AdjacentTiles_WithNewNeighborArrival_RebuildBoundaryNormalsUsingCrossTileGradients()
+    {
+        var resourceFactory = new FakeResourceFactory();
+        var graphicsBackend = new FakeGraphicsBackend(resourceFactory: resourceFactory);
+        var host = new SurfaceChartRenderHost(
+            softwareBackend: new SurfaceChartSoftwareRenderBackend(),
+            gpuBackend: new SurfaceChartGpuRenderBackend(graphicsBackend),
+            allowSoftwareFallback: true);
+        var metadata = CreateMetadata(width: 4, height: 3);
+        var leftTile = CreateTile(
+            new SurfaceTileKey(1, 0, 0, 0),
+            new SurfaceTileBounds(0, 0, 2, 3),
+            2,
+            3,
+            new float[]
+            {
+                0f, 1f,
+                1f, 2f,
+                2f, 3f,
+            },
+            metadata.ValueRange);
+        var rightTile = CreateTile(
+            new SurfaceTileKey(1, 0, 1, 0),
+            new SurfaceTileBounds(2, 0, 2, 3),
+            2,
+            3,
+            new float[]
+            {
+                4f, 9f,
+                5f, 10f,
+                6f, 11f,
+            },
+            metadata.ValueRange);
+
+        host.UpdateInputs(CreateInputs(handleBound: true) with
+        {
+            Metadata = metadata,
+            LoadedTiles = [leftTile],
+            ColorMap = CreateColorMap(metadata),
+            Viewport = new SurfaceViewport(0, 0, 4, 3),
+        });
+
+        host.UpdateInputs(CreateInputs(handleBound: true) with
+        {
+            Metadata = metadata,
+            LoadedTiles = [leftTile, rightTile],
+            ColorMap = CreateColorMap(metadata),
+            Viewport = new SurfaceViewport(0, 0, 4, 3),
+        });
+
+        var expectedLeftBoundaryNormal = Vector3.Normalize(new Vector3(-2f, 1f, -1f));
+        var expectedRightBoundaryNormal = Vector3.Normalize(new Vector3(-4f, 1f, -1f));
+        var leftVertices = resourceFactory.VertexBuffers.Last(buffer => MathF.Abs(buffer.LatestVertexData![0].Position.X) < 0.0001f).LatestVertexData!;
+        var rightVertices = resourceFactory.VertexBuffers.Last(buffer => MathF.Abs(buffer.LatestVertexData![0].Position.X - 2f) < 0.0001f).LatestVertexData!;
+
+        for (var row = 0; row < 3; row++)
+        {
+            var leftBoundary = leftVertices[(row * 2) + 1].Normal;
+            var rightBoundary = rightVertices[row * 2].Normal;
+
+            leftBoundary.X.Should().BeApproximately(expectedLeftBoundaryNormal.X, 0.0001f);
+            leftBoundary.Y.Should().BeApproximately(expectedLeftBoundaryNormal.Y, 0.0001f);
+            leftBoundary.Z.Should().BeApproximately(expectedLeftBoundaryNormal.Z, 0.0001f);
+            rightBoundary.X.Should().BeApproximately(expectedRightBoundaryNormal.X, 0.0001f);
+            rightBoundary.Y.Should().BeApproximately(expectedRightBoundaryNormal.Y, 0.0001f);
+            rightBoundary.Z.Should().BeApproximately(expectedRightBoundaryNormal.Z, 0.0001f);
+        }
     }
 
     [Fact]
@@ -185,6 +371,112 @@ public sealed class SurfaceChartGpuFallbackTests
         host.RenderingStatus.IsFallback.Should().BeTrue();
         host.RenderingStatus.FallbackReason.Should().Contain("gpu frame prep failed");
         host.Snapshot.FallbackReason.Should().Contain("gpu frame prep failed");
+    }
+
+    [Fact]
+    public void HandleBindingAfterSoftwareFrame_RehydratesGpuTileResources()
+    {
+        var resourceFactory = new FakeResourceFactory();
+        var graphicsBackend = new FakeGraphicsBackend(resourceFactory: resourceFactory);
+        var host = new SurfaceChartRenderHost(
+            softwareBackend: new SurfaceChartSoftwareRenderBackend(),
+            gpuBackend: new SurfaceChartGpuRenderBackend(graphicsBackend),
+            allowSoftwareFallback: true);
+        var inputs = CreateInputs(handleBound: false);
+
+        host.UpdateInputs(inputs);
+
+        host.Snapshot.ActiveBackend.Should().Be(SurfaceChartRenderBackendKind.Software);
+        resourceFactory.VertexBufferCreationCount.Should().Be(0);
+
+        host.UpdateInputs(inputs with
+        {
+            NativeHandle = new IntPtr(0x1234),
+            HandleBound = true,
+        });
+
+        host.Snapshot.ActiveBackend.Should().Be(SurfaceChartRenderBackendKind.Gpu);
+        host.Snapshot.IsReady.Should().BeTrue();
+        resourceFactory.VertexBufferCreationCount.Should().Be(1);
+        resourceFactory.IndexBufferCreationCount.Should().Be(1);
+        resourceFactory.UniformBuffers.Single(buffer => buffer.SizeInBytes == 4112).LatestRawData.Should().NotBeNull();
+    }
+
+    [Fact]
+    public void TileResidencyChurn_ReleasesStaleScalarBuffersFromExecutorCache()
+    {
+        var resourceFactory = new FakeResourceFactory();
+        var graphicsBackend = new FakeGraphicsBackend(resourceFactory: resourceFactory);
+        var host = new SurfaceChartRenderHost(
+            softwareBackend: new SurfaceChartSoftwareRenderBackend(),
+            gpuBackend: new SurfaceChartGpuRenderBackend(graphicsBackend),
+            allowSoftwareFallback: true);
+        var metadata = CreateMetadata(width: 4, height: 4);
+        var firstTile = CreateTile(metadata, new SurfaceTileKey(0, 0, 0, 0), tileValue: 12f);
+        var secondTile = CreateTile(metadata, new SurfaceTileKey(0, 0, 0, 0), tileValue: 36f);
+
+        host.UpdateInputs(CreateInputs(handleBound: true) with
+        {
+            Metadata = metadata,
+            LoadedTiles = [firstTile],
+            ColorMap = CreateColorMap(metadata),
+        });
+
+        var firstScalarBuffer = resourceFactory.UniformBuffers.Single(buffer => buffer.SizeInBytes == 65536);
+
+        host.UpdateInputs(CreateInputs(handleBound: true) with
+        {
+            Metadata = metadata,
+            LoadedTiles = [secondTile],
+            ColorMap = CreateColorMap(metadata),
+        });
+
+        graphicsBackend.CommandExecutor.ReleasedScalarBuffers.Should().Contain(buffer => ReferenceEquals(buffer, firstScalarBuffer));
+        graphicsBackend.CommandExecutor.ReleaseBufferBeginFrameCounts.Should().ContainSingle().Which.Should().Be(2);
+        firstScalarBuffer.DisposeCount.Should().Be(1);
+        firstScalarBuffer.DisposeBeginFrameCounts.Should().ContainSingle().Which.Should().Be(2);
+    }
+
+    [Fact]
+    public void ColorMapChangesDuringSoftwareInterval_ReuploadsPaletteWhenGpuReturns()
+    {
+        var resourceFactory = new FakeResourceFactory();
+        var graphicsBackend = new FakeGraphicsBackend(resourceFactory: resourceFactory);
+        var host = new SurfaceChartRenderHost(
+            softwareBackend: new SurfaceChartSoftwareRenderBackend(),
+            gpuBackend: new SurfaceChartGpuRenderBackend(graphicsBackend),
+            allowSoftwareFallback: true);
+        var metadata = CreateMetadata(width: 4, height: 4);
+        var tile = CreateTile(metadata, new SurfaceTileKey(0, 0, 0, 0), tileValue: 12f);
+        var initialColorMap = CreateColorMap(metadata);
+        var replacementColorMap = new SurfaceColorMap(metadata.ValueRange, new SurfaceColorMapPalette(0xFF804020u, 0xFF20C0F0u));
+
+        host.UpdateInputs(CreateInputs(handleBound: true) with
+        {
+            Metadata = metadata,
+            LoadedTiles = [tile],
+            ColorMap = initialColorMap,
+        });
+
+        var paletteBuffer = resourceFactory.UniformBuffers.Single(buffer => buffer.SizeInBytes == 4112);
+        var initialPaletteBytes = paletteBuffer.LatestRawData!.ToArray();
+
+        host.UpdateInputs(CreateInputs(handleBound: false) with
+        {
+            Metadata = metadata,
+            LoadedTiles = [tile],
+            ColorMap = replacementColorMap,
+        });
+
+        host.UpdateInputs(CreateInputs(handleBound: true) with
+        {
+            Metadata = metadata,
+            LoadedTiles = [tile],
+            ColorMap = replacementColorMap,
+        });
+
+        paletteBuffer.LatestRawData.Should().NotBeNull();
+        paletteBuffer.LatestRawData.Should().NotEqual(initialPaletteBytes);
     }
 
     private static SurfaceChartRenderInputs CreateInputs(bool handleBound)
@@ -233,18 +525,26 @@ public sealed class SurfaceChartGpuFallbackTests
         return new SurfaceTile(key, width, height, bounds, values, metadata.ValueRange);
     }
 
+    private static SurfaceTile CreateTile(
+        SurfaceTileKey key,
+        SurfaceTileBounds bounds,
+        int width,
+        int height,
+        float[] values,
+        SurfaceValueRange range)
+    {
+        return new SurfaceTile(key, width, height, bounds, values, range);
+    }
+
     private static SurfaceColorMap CreateColorMap(SurfaceMetadata metadata)
     {
         return new SurfaceColorMap(metadata.ValueRange, new SurfaceColorMapPalette(0xFF203040u, 0xFFE0F0FFu));
     }
 
-    private static RgbaFloat ToRgbaFloat(uint argb)
+    private static float ReadScalarPayloadValue(byte[] payload, int scalarIndex)
     {
-        return new RgbaFloat(
-            ((argb >> 16) & 0xFF) / 255f,
-            ((argb >> 8) & 0xFF) / 255f,
-            (argb & 0xFF) / 255f,
-            ((argb >> 24) & 0xFF) / 255f);
+        var offset = scalarIndex * sizeof(float);
+        return BitConverter.ToSingle(payload, offset);
     }
 
     private sealed class FakeGraphicsBackend : IGraphicsBackend
@@ -261,6 +561,8 @@ public sealed class SurfaceChartGpuFallbackTests
             _initializeException = initializeException;
             _beginFrameException = beginFrameException;
             _resourceFactory = resourceFactory ?? new FakeResourceFactory();
+            _resourceFactory.Owner = this;
+            CommandExecutor = new FakeCommandExecutor(this);
         }
 
         public bool IsInitialized { get; private set; }
@@ -276,8 +578,10 @@ public sealed class SurfaceChartGpuFallbackTests
 
         public ICommandExecutor GetCommandExecutor()
         {
-            return new FakeCommandExecutor();
+            return CommandExecutor;
         }
+
+        public FakeCommandExecutor CommandExecutor { get; }
 
         public void Initialize(IntPtr windowHandle, int width, int height)
         {
@@ -318,6 +622,8 @@ public sealed class SurfaceChartGpuFallbackTests
 
     private sealed class FakeResourceFactory : IResourceFactory
     {
+        public FakeGraphicsBackend? Owner { get; set; }
+
         public int VertexBufferCreationCount { get; private set; }
 
         public int IndexBufferCreationCount { get; private set; }
@@ -325,6 +631,8 @@ public sealed class SurfaceChartGpuFallbackTests
         public int VertexBufferUpdateCount { get; private set; }
 
         public List<FakeBuffer> VertexBuffers { get; } = [];
+
+        public List<FakeBuffer> UniformBuffers { get; } = [];
 
         public IBuffer CreateVertexBuffer(VertexPositionNormalColor[] vertices)
         {
@@ -357,7 +665,9 @@ public sealed class SurfaceChartGpuFallbackTests
 
         public IBuffer CreateUniformBuffer(uint sizeInBytes)
         {
-            return new FakeBuffer(sizeInBytes, this, trackVertexUpdates: false);
+            var buffer = new FakeBuffer(sizeInBytes, this, trackVertexUpdates: false, trackUniformUpdates: true);
+            UniformBuffers.Add(buffer);
+            return buffer;
         }
 
         public IPipeline CreatePipeline(PipelineDescription description)
@@ -386,14 +696,28 @@ public sealed class SurfaceChartGpuFallbackTests
         }
     }
 
-    private sealed class FakeCommandExecutor : ICommandExecutor
+    private sealed class FakeCommandExecutor : ICommandExecutor, IBufferBindingCacheInvalidator
     {
+        private readonly FakeGraphicsBackend? _owner;
+
+        public FakeCommandExecutor(FakeGraphicsBackend? owner = null)
+        {
+            _owner = owner;
+        }
+
+        public HashSet<uint> BoundVertexBufferSlots { get; } = [];
+
+        public List<IBuffer> ReleasedScalarBuffers { get; } = [];
+
+        public List<int> ReleaseBufferBeginFrameCounts { get; } = [];
+
         public void SetPipeline(IPipeline pipeline)
         {
         }
 
         public void SetVertexBuffer(IBuffer buffer, uint index = 0)
         {
+            BoundVertexBufferSlots.Add(index);
         }
 
         public void SetIndexBuffer(IBuffer buffer)
@@ -435,27 +759,49 @@ public sealed class SurfaceChartGpuFallbackTests
         public void ResetDepthState()
         {
         }
+
+        public void ReleaseBuffer(IBuffer buffer)
+        {
+            ReleasedScalarBuffers.Add(buffer);
+            ReleaseBufferBeginFrameCounts.Add(_owner?.BeginFrameCallCount ?? 0);
+        }
     }
 
     private sealed class FakeBuffer : IBuffer
     {
         private readonly FakeResourceFactory _owner;
         private readonly bool _trackVertexUpdates;
+        private readonly bool _trackUniformUpdates;
 
-        public FakeBuffer(uint sizeInBytes, FakeResourceFactory owner, bool trackVertexUpdates)
+        public FakeBuffer(uint sizeInBytes, FakeResourceFactory owner, bool trackVertexUpdates, bool trackUniformUpdates = false)
         {
             SizeInBytes = sizeInBytes;
             _owner = owner;
             _trackVertexUpdates = trackVertexUpdates;
+            _trackUniformUpdates = trackUniformUpdates;
         }
 
         public uint SizeInBytes { get; }
 
         public VertexPositionNormalColor[]? LatestVertexData { get; private set; }
 
+        public byte[]? LatestRawData { get; private set; }
+
+        public int UpdateCount { get; private set; }
+
+        public int DisposeCount { get; private set; }
+
+        public List<int> DisposeBeginFrameCounts { get; } = [];
+
         public void Update<T>(T data)
             where T : unmanaged
         {
+            LatestRawData = MemoryMarshal.AsBytes(MemoryMarshal.CreateReadOnlySpan(ref data, 1)).ToArray();
+            if (_trackUniformUpdates)
+            {
+                UpdateCount++;
+            }
+
             if (_trackVertexUpdates)
             {
                 _owner.RecordVertexBufferUpdate();
@@ -465,9 +811,16 @@ public sealed class SurfaceChartGpuFallbackTests
         public void UpdateArray<T>(T[] data)
             where T : unmanaged
         {
+            LatestRawData = MemoryMarshal.AsBytes(data.AsSpan()).ToArray();
+
             if (data is VertexPositionNormalColor[] vertices)
             {
                 RecordVertexData(vertices);
+            }
+
+            if (_trackUniformUpdates)
+            {
+                UpdateCount++;
             }
 
             if (_trackVertexUpdates)
@@ -488,6 +841,8 @@ public sealed class SurfaceChartGpuFallbackTests
 
         public void Dispose()
         {
+            DisposeCount++;
+            DisposeBeginFrameCounts.Add(_owner.Owner?.BeginFrameCallCount ?? 0);
         }
 
         public void RecordVertexData(VertexPositionNormalColor[] vertices)

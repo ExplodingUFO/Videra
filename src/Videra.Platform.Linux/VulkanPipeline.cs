@@ -15,6 +15,7 @@ internal sealed unsafe class VulkanPipeline : IPipeline
     public DescriptorSetLayout DescriptorSetLayout { get; }
     public DescriptorPool DescriptorPool { get; }
     public DescriptorSet DescriptorSet { get; }
+    public bool UsesSurfaceChartScalarBindings { get; }
 
     public VulkanPipeline(
         Vk vk,
@@ -25,7 +26,8 @@ internal sealed unsafe class VulkanPipeline : IPipeline
         PipelineLayout pipelineLayout,
         DescriptorSetLayout descriptorSetLayout,
         DescriptorPool descriptorPool,
-        DescriptorSet descriptorSet)
+        DescriptorSet descriptorSet,
+        bool usesSurfaceChartScalarBindings = false)
     {
         _vk = vk;
         _device = device;
@@ -36,6 +38,7 @@ internal sealed unsafe class VulkanPipeline : IPipeline
         DescriptorSetLayout = descriptorSetLayout;
         DescriptorPool = descriptorPool;
         DescriptorSet = descriptorSet;
+        UsesSurfaceChartScalarBindings = usesSurfaceChartScalarBindings;
     }
 
     public Pipeline GetPipeline(uint primitiveType)

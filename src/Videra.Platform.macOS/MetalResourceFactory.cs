@@ -2,6 +2,7 @@ using System.Runtime.InteropServices;
 using Microsoft.Extensions.Logging;
 using Videra.Core.Exceptions;
 using Videra.Core.Geometry;
+using Videra.Core.Graphics;
 using Videra.Core.Graphics.Abstractions;
 
 namespace Videra.Platform.macOS;
@@ -85,12 +86,26 @@ internal sealed partial class MetalResourceFactory : IResourceFactory
 
     public IPipeline CreatePipeline(uint vertexSize, bool hasNormals, bool hasColors)
     {
+        return CreatePipelineCore(vertexSize, hasNormals, hasColors, GetMetalShaderSource());
+    }
+
+    public IPipeline CreatePipeline(PipelineDescription description)
+    {
+        if (IsSurfaceChartScalarPipeline(description))
+        {
+            return CreatePipelineCore(VertexPositionNormalColor.SizeInBytes, hasNormals: true, hasColors: true, GetSurfaceChartShaderSource());
+        }
+
+        return CreatePipeline(VertexPositionNormalColor.SizeInBytes, hasNormals: true, hasColors: true);
+    }
+
+    private IPipeline CreatePipelineCore(uint vertexSize, bool hasNormals, bool hasColors, string shaderSource)
+    {
         Log.CreatingPipeline(_logger, vertexSize, hasNormals, hasColors);
 
         try
         {
             // Create library from source
-            var shaderSource = GetMetalShaderSource();
             IntPtr libraryError = IntPtr.Zero;
             var library = ObjCRuntime.CreateLibraryFromSource(_device, shaderSource, ref libraryError);
             IntPtr vertexFunction = IntPtr.Zero;
@@ -169,6 +184,15 @@ internal sealed partial class MetalResourceFactory : IResourceFactory
             Log.PipelineCreateException(_logger, ex.Message, ex);
             throw new PipelineCreationException($"Exception creating pipeline: {ex.Message}", "CreatePipeline", ex);
         }
+    }
+
+    private static bool IsSurfaceChartScalarPipeline(PipelineDescription description)
+    {
+        return description.ResourceLayouts is not null
+            && description.ResourceLayouts.Any(static resourceLayout =>
+                resourceLayout.Elements is not null
+                && resourceLayout.Elements.Any(static element =>
+                    element.Binding == RenderBindingSlots.SurfaceColorMap || element.Binding == RenderBindingSlots.SurfaceTileScalars));
     }
 
     private static string GetMetalShaderSource()
@@ -281,11 +305,6 @@ fragment float4 fragment_main(VertexOut in [[stage_in]])
         }
     }
 
-    public IPipeline CreatePipeline(PipelineDescription description)
-    {
-        return CreatePipeline(VertexPositionNormalColor.SizeInBytes, hasNormals: true, hasColors: true);
-    }
-
     public IShader CreateShader(ShaderStage stage, byte[] bytecode, string entryPoint)
     {
         throw new UnsupportedOperationException(
@@ -319,5 +338,104 @@ fragment float4 fragment_main(VertexOut in [[stage_in]])
 
         [LoggerMessage(EventId = 4, Level = LogLevel.Error, Message = "Exception creating pipeline: {Error}")]
         public static partial void PipelineCreateException(ILogger logger, string error, Exception exception);
+    }
+
+    private static string GetSurfaceChartShaderSource()
+    {
+        return @"
+#include <metal_stdlib>
+using namespace metal;
+
+struct VertexIn {
+    float3 position [[attribute(0)]];
+    float3 normal   [[attribute(1)]];
+    float4 color    [[attribute(2)]];
+};
+
+struct VertexOut {
+    float4 position [[position]];
+    float3 normal;
+    float4 color;
+};
+
+struct CameraUniforms {
+    float4x4 viewMatrix;
+    float4x4 projectionMatrix;
+};
+
+struct WorldUniforms {
+    float4x4 worldMatrix;
+};
+
+struct SurfaceColorMapUniforms {
+    float minimum;
+    float maximum;
+    float paletteCount;
+    float segmentCount;
+    float4 palette[256];
+};
+
+inline float load_tile_scalar(constant float4* tileScalars, uint vertexId)
+{
+    float4 group = tileScalars[vertexId / 4];
+    uint componentIndex = vertexId % 4;
+    if (componentIndex == 0) return group.x;
+    if (componentIndex == 1) return group.y;
+    if (componentIndex == 2) return group.z;
+    return group.w;
+}
+
+inline float4 map_surface_color(float scalar, constant SurfaceColorMapUniforms& colorMap)
+{
+    if (colorMap.paletteCount <= 1.0 || colorMap.maximum <= colorMap.minimum)
+    {
+        return colorMap.palette[0];
+    }
+
+    if (scalar <= colorMap.minimum)
+    {
+        return colorMap.palette[0];
+    }
+
+    uint lastIndex = uint(colorMap.paletteCount - 1.0);
+    if (scalar >= colorMap.maximum)
+    {
+        return colorMap.palette[lastIndex];
+    }
+
+    float normalized = clamp((scalar - colorMap.minimum) / (colorMap.maximum - colorMap.minimum), 0.0, 1.0);
+    float scaled = normalized * colorMap.segmentCount;
+    uint lowerIndex = uint(floor(scaled));
+    uint upperIndex = min(lowerIndex + 1, lastIndex);
+    float fraction = scaled - float(lowerIndex);
+    return mix(colorMap.palette[lowerIndex], colorMap.palette[upperIndex], fraction);
+}
+
+vertex VertexOut vertex_main(
+    VertexIn in [[stage_in]],
+    constant CameraUniforms& camera [[buffer(1)]],
+    constant WorldUniforms& world [[buffer(2)]],
+    constant SurfaceColorMapUniforms& colorMap [[buffer(4)]],
+    constant float4* tileScalars [[buffer(5)]],
+    uint vid [[vertex_id]])
+{
+    VertexOut out;
+    float4 worldPos = world.worldMatrix * float4(in.position, 1.0);
+    float4 viewPos = camera.viewMatrix * worldPos;
+    out.position = camera.projectionMatrix * viewPos;
+    out.normal = in.normal;
+    out.color = map_surface_color(load_tile_scalar(tileScalars, vid), colorMap);
+    return out;
+}
+
+fragment float4 fragment_main(VertexOut in [[stage_in]])
+{
+    float3 normal = normalize(in.normal);
+    float3 lightDir = normalize(float3(-0.45, 0.75, -0.45));
+    float ambient = 0.35;
+    float diffuse = max(dot(normal, lightDir), 0.0) * 0.65;
+    return float4(saturate(in.color.rgb * (ambient + diffuse)), in.color.a);
+}
+";
     }
 }

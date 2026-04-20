@@ -51,10 +51,18 @@ Notes:
 
 Plans:
 
-- [ ] 97-01: move palette changes onto a shader/LUT recolor path so resident geometry does not rebuild on every colormap change
-- [ ] 97-02: replace placeholder normals with local-gradient or central-difference normals, including seam-safe handling across tile boundaries
-- [ ] 97-03: split data ownership from render residency so resident tiles stop unconditionally copying source values through `ToArray()`
-- [ ] 97-04: validate the fast-path changes against the existing chart-local GPU-first plus software-fallback rendering contract
+- [x] 97-01: move palette changes onto a shader/LUT recolor path so resident geometry does not rebuild on every colormap change
+- [x] 97-02: replace placeholder normals with local-gradient or central-difference normals, including seam-safe handling across tile boundaries
+- [x] 97-03: split data ownership from render residency so resident tiles stop unconditionally copying source values through `ToArray()`
+- [x] 97-04: validate the fast-path changes against the existing chart-local GPU-first plus software-fallback rendering contract
+
+Notes:
+
+- GPU recolor now updates a dedicated color-map/LUT uniform payload while resident tiles keep stable vertex buffers plus per-tile scalar uniform payloads, using stable `SurfaceColorMap` / `SurfaceTileScalars` binding slots instead of rewriting full per-vertex color data on palette changes
+- native D3D11/Metal/Vulkan pipeline creation now recognizes the same palette/scalar binding contract, and Linux lifecycle coverage exercises the real 4-binding surface draw path instead of only repository/fake-backend evidence
+- GPU surface shading now derives normals from local position gradients instead of `UnitY` placeholders, and same-level tile neighbors can refresh boundary normals when residency changes bring new edge context online
+- resident render tiles now read scalar truth directly from `SurfaceTile.HeightField` / `ColorField` memory instead of cloning arrays during promotion, while GPU scalar payload uploads consume spans over that shared source-owned memory
+- Phase 97 validation now includes full `Videra.SurfaceCharts.Core.Tests`, repository/native contract coverage, targeted Avalonia GPU/software fallback integration coverage, and Linux lifecycle compilation plus platform-gated scalar-binding execution coverage
 
 ### Phase 98: Analytics Benchmark Expansion and Milestone Truth
 

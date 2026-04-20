@@ -10,12 +10,12 @@ See: `.planning/PROJECT.md` (updated 2026-04-20)
 ## Current Position
 
 Milestone: `v1.18 SurfaceCharts Analytics Core`
-Phase: `96 Scalar Field and Missing-Data Promotion`
-Plan: `introduce explicit HeightField / ColorField / mask contracts without breaking the regular-grid source-first path`
-Status: `Phase 96 is now complete in code, docs, and repository guard coverage; source-first regular-grid onboarding stays anchored on SurfaceMatrix while richer scalar/mask payloads remain opt-in beneath the same SurfaceChartView shell`
-Last activity: `2026-04-20` — completed Phase 96-04 by documenting and guarding the source-first regular-grid story in both English and Chinese, including explicit repository assertions that `SurfaceMatrix` remains the default entrypoint while `SurfaceScalarField`, independent `ColorField`, and first-class `SurfaceMask` stay compatible underneath the existing chart shell`
+Phase: `98 Analytics Benchmark Expansion and Milestone Truth`
+Plan: `measure the new hot paths, capture a defensible baseline, and align milestone truth around analytics-core depth`
+Status: `Phase 97 is now complete in code and validation; LUT recolor, derived normals, low-copy residency, and deferred GPU resource release all hold under core, repository/native, fallback integration, and Linux lifecycle evidence, so Phase 98 benchmark expansion is the active next step`
+Last activity: `2026-04-20` — completed Phase 97-04 by validating the fast-path stack across full `Videra.SurfaceCharts.Core.Tests`, repository/native contract guards, targeted Avalonia GPU/software fallback integration coverage, and Linux lifecycle scalar-binding coverage (platform-gated at runtime outside Linux)`
 
-Progress: `[██████□] 7/11 requirements complete; Phase 97 rendering fast paths and residency tightening are next`
+Progress: `[█████████] 10/11 requirements complete; Phase 98 benchmark and milestone-truth work remain`
 
 ## Performance Metrics
 
@@ -47,14 +47,15 @@ Progress: `[██████□] 7/11 requirements complete; Phase 97 renderin
 
 ### Pending Todos
 
-- Move palette changes onto a shader/LUT recolor path so resident geometry does not rebuild on every colormap change.
 - Add the new analytics benchmarks before scheduling interpolated probe, contour, slice, or extra 3D series work.
+- Capture descriptor-churn and native resize/rebind evidence strongly enough that selected analytics benchmarks can later graduate into hard thresholds.
 
 ### Blockers/Concerns
 
-- Resident GPU recolor still rewrites per-tile vertex buffers on color-map changes; Phase 97 needs to move that path toward a shader/LUT-style update so palette changes stop touching resident geometry payloads.
 - `Log` axis rendering remains explicitly deferred until raw axis values and display-space coordinates are separated; the current branch now guards against pretending that support exists.
 - surface-cache manifest v1 cannot yet represent explicit-grid or non-linear-axis metadata, so cache v2 or richer DTOs remain future work once scalar contracts settle.
+- Vulkan still carries a finite per-pipeline scalar descriptor cache budget; the current branch reserves the shared descriptor plus the intended cache headroom, but high-residency churn should be exercised explicitly before considering that story closed.
+- low-copy residency now assumes `SurfaceTile` instances are immutable snapshots; callers must publish a new tile object instead of mutating height/color memory in place.
 - Existing chart benchmarks do not yet measure the interactive hotspots that should drive the next feature wave.
 - `.planning/phases/` still contains accumulated historical phase directories; they are being retained as local execution history rather than cleared during this milestone initialization.
 
@@ -72,5 +73,5 @@ Progress: `[██████□] 7/11 requirements complete; Phase 97 renderin
 ## Session Continuity
 
 Last session: `2026-04-20 +08:00`
-Stopped at: `Phase 96 complete; Phase 97-01 shader/LUT recolor path is next`
+Stopped at: `Phase 97 complete; Phase 98 benchmark expansion is next`
 Resume file: `.planning/ROADMAP.md`

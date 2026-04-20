@@ -173,6 +173,17 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
     }
 
     [Fact]
+    public void SurfaceChartResidency_ShouldNotCloneScalarFieldsIntoResidentCopies()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var renderState = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.SurfaceCharts.Rendering", "SurfaceChartRenderState.cs"));
+        var residentTile = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.SurfaceCharts.Rendering", "SurfaceChartResidentTile.cs"));
+
+        renderState.Should().NotContain("(sourceTile.ColorField?.Values ?? sourceTile.Values).ToArray()");
+        residentTile.Should().NotContain("Array.AsReadOnly(values.ToArray())");
+    }
+
+    [Fact]
     public void SurfaceChartProcessingReadme_ShouldDescribeBenchmarkingAndOptionalNativeSeam()
     {
         var repositoryRoot = GetRepositoryRoot();

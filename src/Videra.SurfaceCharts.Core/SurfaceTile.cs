@@ -2,6 +2,7 @@ namespace Videra.SurfaceCharts.Core;
 
 /// <summary>
 /// Represents a rectangular tile of surface data.
+/// Instances are treated as immutable snapshots once published to rendering or cache consumers.
 /// </summary>
 public sealed class SurfaceTile
 {
@@ -155,6 +156,7 @@ public sealed class SurfaceTile
 
     /// <summary>
     /// Gets the tile values in row-major order.
+    /// Callers should replace the tile instance rather than mutating the underlying memory in place.
     /// </summary>
     public ReadOnlyMemory<float> Values => HeightField.Values;
 
@@ -165,11 +167,13 @@ public sealed class SurfaceTile
 
     /// <summary>
     /// Gets the primary height field.
+    /// Callers should replace the tile instance rather than mutating the underlying memory in place.
     /// </summary>
     public SurfaceScalarField HeightField { get; }
 
     /// <summary>
     /// Gets the optional independent color field.
+    /// Callers should replace the tile instance rather than mutating the underlying memory in place.
     /// </summary>
     public SurfaceScalarField? ColorField { get; }
 
