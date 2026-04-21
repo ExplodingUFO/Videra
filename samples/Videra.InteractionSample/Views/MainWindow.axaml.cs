@@ -532,7 +532,7 @@ public partial class MainWindow : Window
         var result = await VideraInspectionBundleService.ExportAsync(View3D, outputDirectory).ConfigureAwait(true);
         _lastInspectionBundleDirectory = result.Succeeded ? result.DirectoryPath : _lastInspectionBundleDirectory;
         _inspectionSummary = result.Succeeded
-            ? $"VideraInspectionBundleService.ExportAsync wrote a bundle at {result.DirectoryPath}. Replayable scene: {result.CanReplayScene}."
+            ? FormatInspectionBundleExportSummary(result)
             : $"VideraInspectionBundleService.ExportAsync failed: {result.FailureMessage ?? "Unknown error."}";
         UpdateStatusPanel();
     }
@@ -729,5 +729,14 @@ public partial class MainWindow : Window
         return worldPoint is Vector3 point
             ? $"({point.X:0.00}, {point.Y:0.00}, {point.Z:0.00})"
             : "<none>";
+    }
+
+    private static string FormatInspectionBundleExportSummary(VideraInspectionBundleExportResult result)
+    {
+        var summary =
+            $"VideraInspectionBundleService.ExportAsync wrote a bundle at {result.DirectoryPath}. Replayable scene: {result.CanReplayScene}.";
+        return string.IsNullOrWhiteSpace(result.ReplayLimitation)
+            ? summary
+            : $"{summary} Replay limitation: {result.ReplayLimitation}";
     }
 }

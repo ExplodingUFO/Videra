@@ -49,12 +49,14 @@ public static class VideraInspectionBundleService
                 return VideraInspectionBundleExportResult.Failed(
                     directoryPath,
                     snapshot.Failure?.Message ?? "Snapshot export failed.",
-                    assetManifest.CanReplayScene);
+                    assetManifest.CanReplayScene,
+                    assetManifest.ReplayLimitation);
             }
 
             return VideraInspectionBundleExportResult.Success(
                 directoryPath,
                 assetManifest.CanReplayScene,
+                assetManifest.ReplayLimitation,
                 assetManifest.Entries.Count,
                 inspectionState.Annotations.Count);
         }
@@ -64,7 +66,11 @@ public static class VideraInspectionBundleService
         }
         catch (Exception ex)
         {
-            return VideraInspectionBundleExportResult.Failed(directoryPath, ex.Message, canReplayScene: false);
+            return VideraInspectionBundleExportResult.Failed(
+                directoryPath,
+                ex.Message,
+                canReplayScene: false,
+                replayLimitation: null);
         }
     }
 
@@ -83,18 +89,18 @@ public static class VideraInspectionBundleService
             var inspectionState = ReadJson<VideraInspectionBundleStateDocument>(directoryPath, InspectionStateFileName);
             var assetManifest = ReadJson<VideraInspectionBundleAssetManifest>(directoryPath, AssetManifestFileName);
 
+            if (!assetManifest.CanReplayScene)
+            {
+                return VideraInspectionBundleImportResult.Failed(
+                    directoryPath,
+                    assetManifest.ReplayLimitation ?? "The inspection bundle cannot replay the original scene.");
+            }
+
             Dictionary<Guid, Guid> objectIdMap = new();
             var sceneReloaded = false;
 
             if (assetManifest.Entries.Count > 0)
             {
-                if (!assetManifest.CanReplayScene)
-                {
-                    return VideraInspectionBundleImportResult.Failed(
-                        directoryPath,
-                        assetManifest.ReplayLimitation ?? "The inspection bundle cannot replay the original scene.");
-                }
-
                 var filePaths = assetManifest.Entries
                     .Select(entry => ResolveBundledAssetPath(directoryPath, entry.FilePath))
                     .ToArray();
@@ -433,6 +439,8 @@ public sealed class VideraInspectionBundleExportResult
 
     public bool CanReplayScene { get; init; }
 
+    public string? ReplayLimitation { get; init; }
+
     public int AssetCount { get; init; }
 
     public int AnnotationCount { get; init; }
@@ -442,6 +450,7 @@ public sealed class VideraInspectionBundleExportResult
     internal static VideraInspectionBundleExportResult Success(
         string directoryPath,
         bool canReplayScene,
+        string? replayLimitation,
         int assetCount,
         int annotationCount)
     {
@@ -450,18 +459,24 @@ public sealed class VideraInspectionBundleExportResult
             Succeeded = true,
             DirectoryPath = directoryPath,
             CanReplayScene = canReplayScene,
+            ReplayLimitation = replayLimitation,
             AssetCount = assetCount,
             AnnotationCount = annotationCount
         };
     }
 
-    internal static VideraInspectionBundleExportResult Failed(string directoryPath, string failureMessage, bool canReplayScene)
+    internal static VideraInspectionBundleExportResult Failed(
+        string directoryPath,
+        string failureMessage,
+        bool canReplayScene,
+        string? replayLimitation)
     {
         return new VideraInspectionBundleExportResult
         {
             Succeeded = false,
             DirectoryPath = directoryPath,
             CanReplayScene = canReplayScene,
+            ReplayLimitation = replayLimitation,
             FailureMessage = failureMessage
         };
     }

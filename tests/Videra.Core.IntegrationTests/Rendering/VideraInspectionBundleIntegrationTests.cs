@@ -4,6 +4,7 @@ using FluentAssertions;
 using Videra.Avalonia.Controls;
 using Videra.Avalonia.Controls.Interaction;
 using Videra.Core.Graphics;
+using Videra.Core.Graphics.Software;
 using Videra.Core.Inspection;
 using Xunit;
 
@@ -96,6 +97,73 @@ public sealed class VideraInspectionBundleIntegrationTests : IDisposable
         finally
         {
             view.Engine.Dispose();
+        }
+    }
+
+    [Fact]
+    public async Task ImportAsync_ShouldRejectBundlesThatCannotReplayHostOwnedSceneState()
+    {
+        var bundlePath = Path.Combine(_tempDirectory, "bundle-host-owned");
+        var sourceView = new VideraView(nativeHostFactory: null, bitmapFactory: static (_, _) => null);
+        var replayView = new VideraView(nativeHostFactory: null, bitmapFactory: static (_, _) => null);
+        var replaySelectionId = Guid.NewGuid();
+        var replayAnnotationId = Guid.NewGuid();
+        try
+        {
+            var sourceObject = DemoMeshFactory.CreateTestCube(new SoftwareResourceFactory(), size: 1f);
+            sourceObject.Name = "Host Owned Cube";
+            sourceObject.Position = new Vector3(1f, 0f, 0f);
+            sourceView.AddObject(sourceObject);
+            sourceView.SelectionState = new VideraSelectionState
+            {
+                ObjectIds = [sourceObject.Id],
+                PrimaryObjectId = sourceObject.Id
+            };
+            sourceView.Annotations =
+            [
+                new VideraNodeAnnotation
+                {
+                    ObjectId = sourceObject.Id,
+                    Text = "Host-owned note"
+                }
+            ];
+
+            replayView.SelectionState = new VideraSelectionState
+            {
+                ObjectIds = [replaySelectionId],
+                PrimaryObjectId = replaySelectionId
+            };
+            replayView.Annotations =
+            [
+                new VideraWorldPointAnnotation
+                {
+                    Id = replayAnnotationId,
+                    Text = "Existing replay note",
+                    WorldPoint = new Vector3(0f, 2f, 0f)
+                }
+            ];
+
+            var export = await VideraInspectionBundleService.ExportAsync(sourceView, bundlePath);
+
+            export.Succeeded.Should().BeTrue(export.FailureMessage);
+            export.CanReplayScene.Should().BeFalse();
+            export.ReplayLimitation.Should().Contain("host-owned objects");
+            export.AssetCount.Should().Be(0);
+            export.AnnotationCount.Should().Be(1);
+
+            var import = await VideraInspectionBundleService.ImportAsync(replayView, bundlePath);
+
+            import.Succeeded.Should().BeFalse();
+            import.FailureMessage.Should().Contain("host-owned objects");
+            replayView.SelectionState.PrimaryObjectId.Should().Be(replaySelectionId);
+            replayView.SelectionState.ObjectIds.Should().ContainSingle().Which.Should().Be(replaySelectionId);
+            replayView.Annotations.Should().ContainSingle();
+            replayView.Annotations.OfType<VideraWorldPointAnnotation>().Single().Id.Should().Be(replayAnnotationId);
+        }
+        finally
+        {
+            sourceView.Engine.Dispose();
+            replayView.Engine.Dispose();
         }
     }
 
