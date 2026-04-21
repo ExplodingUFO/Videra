@@ -5,25 +5,25 @@
 See: `.planning/PROJECT.md` (updated 2026-04-21)
 
 **Core value:** 跨平台 3D 渲染引擎的可靠性
-**Current focus:** 定义 `v1.21 Scene and Material Runtime v1` 的 requirements 和 roadmap
+**Current focus:** `v1.21 Scene and Material Runtime v1` 已定义，下一步开始 `Phase 107`
 
 ## Current Position
 
 Milestone: `v1.21`
-Phase: `Not started (defining requirements)`
+Phase: `Not started (ready for Phase 107)`
 Plan: `—`
-Status: `Defining requirements`
-Last activity: `2026-04-21` — started milestone `v1.21 Scene and Material Runtime v1`
+Status: `Milestone defined`
+Last activity: `2026-04-21` — defined roadmap for `v1.21 Scene and Material Runtime v1`
 
-Progress: `v1.20` is archived locally. `v1.21` milestone initialization is in progress.
+Progress: `v1.20` is archived locally. `v1.21` requirements and roadmap are defined and ready for execution.
 
 ## Performance Metrics
 
 - Latest fully archived milestone: `v1.20 Viewer Product Boundary and Core Slimming`
 - Archived milestone phases: `4`
 - Archived milestone requirements: `9`
-- Active milestone phases: `0`
-- Active milestone requirements: `0`
+- Active milestone phases: `4`
+- Active milestone requirements: `8`
 
 ## Accumulated Context
 
@@ -39,7 +39,7 @@ Progress: `v1.20` is archived locally. `v1.21` milestone initialization is in pr
 
 ### Pending Todos
 
-- Define `v1.21` requirements and roadmap, then start `Phase 107`.
+- Start `Phase 107` for scene node and mesh primitive contracts.
 
 ### Blockers/Concerns
 
@@ -72,5 +72,5 @@ Items acknowledged and deferred at milestone close remain tracked here.
 ## Session Continuity
 
 Last session: `2026-04-21 +08:00`
-Stopped at: `v1.21` milestone start; next step is finalizing requirements and roadmap
-Resume file: `.planning/REQUIREMENTS.md`
+Stopped at: `v1.21` milestone definition; next step is planning `Phase 107`
+Resume file: `.planning/ROADMAP.md`
