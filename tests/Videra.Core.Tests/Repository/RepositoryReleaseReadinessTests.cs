@@ -5,6 +5,17 @@ namespace Videra.Core.Tests.Repository;
 
 public sealed class RepositoryReleaseReadinessTests
 {
+    private static readonly string[] CanonicalPublicPackageIds =
+    [
+        "Videra.Core",
+        "Videra.Import.Gltf",
+        "Videra.Import.Obj",
+        "Videra.Avalonia",
+        "Videra.Platform.Windows",
+        "Videra.Platform.Linux",
+        "Videra.Platform.macOS"
+    ];
+
     [Fact]
     public void Readme_ShouldDocumentPublicEntryPointsAndPackageCategories()
     {
@@ -24,6 +35,8 @@ public sealed class RepositoryReleaseReadinessTests
         readme.Should().Contain("GitHub Packages");
         readme.Should().Contain("preview");
         readme.Should().Contain("Videra.Avalonia");
+        readme.Should().Contain("Videra.Import.Gltf");
+        readme.Should().Contain("Videra.Import.Obj");
         readme.Should().Contain("Videra.Platform.Windows");
         readme.Should().Contain("Videra.SurfaceCharts.Core");
         readme.Should().Contain("Videra.SurfaceCharts.Avalonia");
@@ -62,6 +75,155 @@ public sealed class RepositoryReleaseReadinessTests
         chineseIndex.Should().Contain("package-matrix.md");
         chineseIndex.Should().Contain("support-matrix.md");
         chineseIndex.Should().Contain("release-policy.md");
+    }
+
+    [Fact]
+    public void CanonicalViewerPackageStackDocs_ShouldShareSameBoundaryAndInstallStory()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var packageMatrix = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "package-matrix.md"));
+        var supportMatrix = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "support-matrix.md"));
+        var releasePolicy = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "release-policy.md"));
+        var releasing = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "releasing.md"));
+        var chineseReadme = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "zh-CN", "README.md"));
+        var chineseIndex = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "zh-CN", "index.md"));
+        var chineseAvalonia = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "zh-CN", "modules", "videra-avalonia.md"));
+
+        foreach (var packageId in CanonicalPublicPackageIds)
+        {
+            packageMatrix.Should().Contain(packageId);
+            supportMatrix.Should().Contain(packageId);
+            releasePolicy.Should().Contain(packageId);
+            releasing.Should().Contain(packageId);
+        }
+
+        packageMatrix.Should().Contain("hosting-boundary.md");
+        supportMatrix.Should().Contain("hosting-boundary.md");
+        releasePolicy.Should().Contain("hosting-boundary.md");
+        releasing.Should().Contain("hosting-boundary.md");
+
+        packageMatrix.Should().Contain("exactly one matching `Videra.Platform.*` package");
+        supportMatrix.Should().Contain("exactly one matching `Videra.Platform.*` package");
+        releasePolicy.Should().Contain("exactly one matching `Videra.Platform.*` package");
+        releasing.Should().Contain("exactly one matching `Videra.Platform.*` package");
+
+        packageMatrix.Should().Contain("Videra.SurfaceCharts.*");
+        packageMatrix.Should().Contain("Source-first");
+        packageMatrix.Should().Contain("Do not treat source-only modules or demos as installable public packages.");
+        releasePolicy.Should().Contain("Videra.SurfaceCharts.Core");
+        releasePolicy.Should().Contain("Videra.SurfaceCharts.Avalonia");
+        releasePolicy.Should().Contain("Videra.SurfaceCharts.Processing");
+        releasePolicy.Should().Contain("repository-only");
+        releasing.Should().Contain("Videra.SurfaceCharts.*");
+        releasing.Should().Contain("repository-only");
+
+        chineseReadme.Should().Contain("Videra.Import.Gltf");
+        chineseReadme.Should().Contain("Videra.Import.Obj");
+        chineseReadme.Should().Contain("传递依赖");
+        chineseReadme.Should().Contain("LoadModelAsync");
+        chineseReadme.Should().Contain("FrameAll()");
+        chineseReadme.Should().Contain("ResetCamera()");
+        chineseReadme.Should().Contain("BackendDiagnostics");
+        chineseIndex.Should().Contain("传递依赖");
+        chineseAvalonia.Should().Contain("传递依赖");
+        chineseAvalonia.Should().Contain("LoadModelAsync");
+        chineseAvalonia.Should().Contain("FrameAll()");
+        chineseAvalonia.Should().Contain("ResetCamera()");
+        chineseAvalonia.Should().Contain("BackendDiagnostics");
+    }
+
+    [Fact]
+    public void ProductBoundaryDocs_ShouldPublishCapabilityAndLayerMatrices()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var capabilityMatrixPath = Path.Combine(repositoryRoot, "docs", "capability-matrix.md");
+        var capabilityMatrix = File.ReadAllText(capabilityMatrixPath);
+        var rootReadme = File.ReadAllText(Path.Combine(repositoryRoot, "README.md"));
+        var docsIndex = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "index.md"));
+        var architecture = File.ReadAllText(Path.Combine(repositoryRoot, "ARCHITECTURE.md"));
+        var packageMatrix = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "package-matrix.md"));
+        var supportMatrix = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "support-matrix.md"));
+        var coreReadme = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Core", "README.md"));
+        var coreProject = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Core", "Videra.Core.csproj"));
+        var avaloniaProject = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Avalonia", "Videra.Avalonia.csproj"));
+
+        File.Exists(capabilityMatrixPath).Should().BeTrue();
+
+        capabilityMatrix.Should().Contain("native desktop viewer/runtime");
+        capabilityMatrix.Should().Contain("source-first `SurfaceCharts` family");
+        capabilityMatrix.Should().Contain("not a Three.js-style general runtime");
+        capabilityMatrix.Should().Contain("Core");
+        capabilityMatrix.Should().Contain("Import");
+        capabilityMatrix.Should().Contain("Backend");
+        capabilityMatrix.Should().Contain("UI adapter");
+        capabilityMatrix.Should().Contain("Charts");
+        capabilityMatrix.Should().Contain("OpenGL");
+        capabilityMatrix.Should().Contain("Videra.Import.Gltf");
+        capabilityMatrix.Should().Contain("Videra.Import.Obj");
+        packageMatrix.Should().Contain("Videra.Import.Gltf");
+        packageMatrix.Should().Contain("Videra.Import.Obj");
+
+        rootReadme.Should().Contain("docs/capability-matrix.md");
+        docsIndex.Should().Contain("capability-matrix.md");
+        architecture.Should().Contain("docs/capability-matrix.md");
+        packageMatrix.Should().Contain("capability-matrix.md");
+        supportMatrix.Should().Contain("capability-matrix.md");
+        coreReadme.Should().Contain("docs/capability-matrix.md");
+        coreProject.Should().Contain("Desktop viewer runtime core");
+        coreProject.Should().Contain("inspection");
+        avaloniaProject.Should().Contain("Native desktop viewer and inspection control package");
+        avaloniaProject.Should().Contain("desktop-viewer");
+    }
+
+    [Fact]
+    public void CanonicalPublicPackageTruth_ShouldStayAlignedAcrossDocsAndAutomation()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var packageMatrix = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "package-matrix.md"));
+        var releasePolicy = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "release-policy.md"));
+        var releasing = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "releasing.md"));
+        var consumerSmoke = File.ReadAllText(Path.Combine(repositoryRoot, "scripts", "Invoke-ConsumerSmoke.ps1"));
+        var validatePackages = File.ReadAllText(Path.Combine(repositoryRoot, "scripts", "Validate-Packages.ps1"));
+        var ciWorkflow = File.ReadAllText(Path.Combine(repositoryRoot, ".github", "workflows", "ci.yml"));
+        var publicWorkflow = File.ReadAllText(Path.Combine(repositoryRoot, ".github", "workflows", "publish-public.yml"));
+        var previewWorkflow = File.ReadAllText(Path.Combine(repositoryRoot, ".github", "workflows", "publish-github-packages.yml"));
+        var existingReleaseWorkflow = File.ReadAllText(Path.Combine(repositoryRoot, ".github", "workflows", "publish-existing-public-release.yml"));
+
+        foreach (var packageId in CanonicalPublicPackageIds)
+        {
+            packageMatrix.Should().Contain(packageId);
+            releasePolicy.Should().Contain(packageId);
+            releasing.Should().Contain(packageId);
+            validatePackages.Should().Contain(packageId);
+            publicWorkflow.Should().Contain(packageId);
+            previewWorkflow.Should().Contain(packageId);
+            existingReleaseWorkflow.Should().Contain(packageId);
+        }
+
+        consumerSmoke.Should().Contain("src/Videra.Core/Videra.Core.csproj");
+        consumerSmoke.Should().Contain("src/Videra.Import.Gltf/Videra.Import.Gltf.csproj");
+        consumerSmoke.Should().Contain("src/Videra.Import.Obj/Videra.Import.Obj.csproj");
+        consumerSmoke.Should().Contain("src/Videra.Avalonia/Videra.Avalonia.csproj");
+        consumerSmoke.Should().Contain("src/Videra.Platform.Windows/Videra.Platform.Windows.csproj");
+        consumerSmoke.Should().Contain("src/Videra.Platform.Linux/Videra.Platform.Linux.csproj");
+        consumerSmoke.Should().Contain("src/Videra.Platform.macOS/Videra.Platform.macOS.csproj");
+        ciWorkflow.Should().Contain("Validate-Packages.ps1");
+        ciWorkflow.Should().Contain("artifacts/consumer-smoke-quality/packages");
+        existingReleaseWorkflow.Should().Contain("Invoke-ConsumerSmoke.ps1");
+        existingReleaseWorkflow.Should().Contain("Validate-Packages.ps1");
+        existingReleaseWorkflow.Should().Contain("consumer-smoke-existing-public-release");
+        existingReleaseWorkflow.Should().Contain("only supports tags that already carry the current public package set and helper scripts");
+        validatePackages.Should().Contain("Expected exactly");
+        validatePackages.Should().Contain("Unexpected package");
+
+        foreach (var document in new[]
+                 { consumerSmoke, validatePackages, ciWorkflow, publicWorkflow, previewWorkflow, existingReleaseWorkflow })
+        {
+            document.Should().NotContain("Videra.SurfaceCharts.Core.csproj");
+            document.Should().NotContain("Videra.SurfaceCharts.Avalonia.csproj");
+            document.Should().NotContain("Videra.SurfaceCharts.Processing.csproj");
+            document.Should().NotContain("Videra.SurfaceCharts.Demo.csproj");
+        }
     }
 
     [Fact]
@@ -158,6 +320,8 @@ public sealed class RepositoryReleaseReadinessTests
         var packageReadmes = new[]
         {
             Path.Combine(repositoryRoot, "src", "Videra.Core", "README.md"),
+            Path.Combine(repositoryRoot, "src", "Videra.Import.Gltf", "README.md"),
+            Path.Combine(repositoryRoot, "src", "Videra.Import.Obj", "README.md"),
             Path.Combine(repositoryRoot, "src", "Videra.Avalonia", "README.md"),
             Path.Combine(repositoryRoot, "src", "Videra.Platform.Windows", "README.md"),
             Path.Combine(repositoryRoot, "src", "Videra.Platform.Linux", "README.md"),
@@ -201,6 +365,8 @@ public sealed class RepositoryReleaseReadinessTests
         var repositoryRoot = GetRepositoryRoot();
         var directoryBuildProps = File.ReadAllText(Path.Combine(repositoryRoot, "Directory.Build.props"));
         var coreProject = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Core", "Videra.Core.csproj"));
+        var gltfProject = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Import.Gltf", "Videra.Import.Gltf.csproj"));
+        var objProject = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Import.Obj", "Videra.Import.Obj.csproj"));
         var avaloniaProject = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Avalonia", "Videra.Avalonia.csproj"));
         var windowsProject = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Platform.Windows", "Videra.Platform.Windows.csproj"));
         var linuxProject = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Platform.Linux", "Videra.Platform.Linux.csproj"));
@@ -218,7 +384,7 @@ public sealed class RepositoryReleaseReadinessTests
         directoryBuildProps.Should().Contain("EmbedUntrackedSources");
         directoryBuildProps.Should().Contain("Microsoft.SourceLink.GitHub");
 
-        foreach (var project in new[] { coreProject, avaloniaProject, windowsProject, linuxProject, macosProject })
+        foreach (var project in new[] { coreProject, gltfProject, objProject, avaloniaProject, windowsProject, linuxProject, macosProject })
         {
             project.Should().Contain("PackageReadmeFile");
             project.Should().Contain("PackagePath=\"\\\"");
@@ -270,6 +436,8 @@ public sealed class RepositoryReleaseReadinessTests
         ciWorkflow.Should().Contain("dotnet pack");
 
         packageValidationScript.Should().Contain("Videra.Core");
+        packageValidationScript.Should().Contain("Videra.Import.Gltf");
+        packageValidationScript.Should().Contain("Videra.Import.Obj");
         packageValidationScript.Should().Contain("Videra.Avalonia");
         packageValidationScript.Should().Contain("Videra.Platform.Windows");
         packageValidationScript.Should().Contain("Videra.Platform.Linux");

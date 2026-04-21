@@ -13,6 +13,8 @@ Videra is a Cross-platform 3D viewer component stack for .NET desktop applicatio
 
 Videra is not a general-purpose game engine. It is shaped around desktop visualization, diagnostics, controlled interaction, and host-owned application state.
 
+The `1.0` line is specifically a native desktop viewer/runtime plus inspection workflows and the source-first `SurfaceCharts` family. The public product boundary does not promise general Three.js-style runtime breadth, `WebGL` / `OpenGL` pursuit, or engine-first feature expansion. See [Videra 1.0 Capability Matrix](docs/capability-matrix.md).
+
 ## Who It Is For
 
 - .NET desktop teams that need an Avalonia-facing 3D viewer control
@@ -57,11 +59,20 @@ dotnet add package Videra.Platform.Linux
 dotnet add package Videra.Platform.macOS
 ```
 
-If you only need the rendering abstractions and import pipeline, install `Videra.Core` directly:
+If you only need the runtime kernel and scene/render abstractions without the Avalonia UI layer, install `Videra.Core` directly:
 
 ```bash
 dotnet add package Videra.Core
 ```
+
+If you also need file-format ingestion on the core path, add the dedicated import packages:
+
+```bash
+dotnet add package Videra.Import.Gltf
+dotnet add package Videra.Import.Obj
+```
+
+`Videra.Avalonia` already brings `Videra.Import.Gltf` and `Videra.Import.Obj` transitively for `LoadModelAsync(...)` and `LoadModelsAsync(...)`.
 
 `Videra.Avalonia` remains the UI/control entry package. `PreferredBackend` and `VIDERA_BACKEND` only change backend preference. They do not install missing platform packages, and they do not replace matching-host native validation.
 The public install flow does not install missing platform packages for you.
@@ -80,6 +91,8 @@ For alpha adoption feedback, use [Alpha Feedback](docs/alpha-feedback.md) before
 | Package | Audience | Official feed | Current support level |
 | --- | --- | --- | --- |
 | `Videra.Core` | Core-only consumers and backend integrators | `nuget.org` public tags | `alpha` |
+| `Videra.Import.Gltf` | Core-first consumers that need `.gltf` / `.glb` ingestion | `nuget.org` public tags | `alpha` |
+| `Videra.Import.Obj` | Core-first consumers that need `.obj` ingestion | `nuget.org` public tags | `alpha` |
 | `Videra.Avalonia` | Avalonia desktop applications | `nuget.org` public tags | `alpha` |
 | `Videra.Platform.Windows` | Windows Direct3D 11 hosts | `nuget.org` public tags | `alpha` |
 | `Videra.Platform.Linux` | Linux Vulkan hosts | `nuget.org` public tags | `alpha` |
@@ -105,6 +118,21 @@ For alpha adoption feedback, use [Alpha Feedback](docs/alpha-feedback.md) before
 
 `Videra.MinimalSample` is the quickest end-to-end viewer reference. It stays on the alpha happy path: `Options -> LoadModelAsync -> FrameAll / ResetCamera -> BackendDiagnostics`, then uses `VideraDiagnosticsSnapshotFormatter` to export the same support artifact requested by alpha bug reports.
 `Videra.Demo` remains the broader diagnostics and import-feedback surface. It seeds a default demo cube on the ready path, summarizes import feedback in the status area, and includes a narrow `Scene Pipeline Lab` panel for `SceneDocument` versioning, pending/resident/dirty upload counts, atomic batch replacement, and backend-rebind truth.
+
+## Videra 1.0 Boundary
+
+Use [Videra 1.0 Capability Matrix](docs/capability-matrix.md) when you need the explicit answer to “what is in `1.0`?” versus “what is intentionally deferred?”.
+Use [Hosting Boundary](docs/hosting-boundary.md) when you need the canonical composition story for `Core` / `Import` / `UI adapter` / `Backend` and the internal seam owners behind `VideraView`.
+
+Current package-layer vocabulary:
+
+- `Core`: viewer/runtime kernel
+- `Import`: asset-ingestion layer for viewer/runtime scenes
+- `Backend`: native graphics implementations
+- `UI adapter`: host-framework shell
+- `Charts`: analytics-oriented chart family
+
+That layer split is the guiding product boundary for `v1.20`. It keeps Videra focused on a native desktop viewer/runtime instead of letting the repository read like a general engine roadmap by implication.
 
 ## Extensibility Onboarding
 
@@ -171,6 +199,7 @@ Contract highlights:
 ## Documentation
 
 - [Documentation Index](docs/index.md)
+- [Videra 1.0 Capability Matrix](docs/capability-matrix.md)
 - [Package Matrix](docs/package-matrix.md)
 - [Support Matrix](docs/support-matrix.md)
 - [Release Policy](docs/release-policy.md)

@@ -105,6 +105,25 @@ jobs:
         with:
           dotnet-version: 8.0.x
 
+      - name: Determine consumer smoke package version
+        id: consumer-smoke-version
+        shell: pwsh
+        run: |
+          $resolvedVersion = (dotnet msbuild src/Videra.Avalonia/Videra.Avalonia.csproj -nologo -getProperty:Version | Select-Object -Last 1).Trim()
+          if ([string]::IsNullOrWhiteSpace($resolvedVersion)) {
+            throw "Unable to resolve Videra consumer package version."
+          }
+
+          $packageVersion =
+            if ($resolvedVersion.Contains('-')) {
+              "$resolvedVersion.consumer-smoke"
+            }
+            else {
+              "$resolvedVersion-consumer-smoke"
+            }
+
+          "package_version=$packageVersion" >> $env:GITHUB_OUTPUT
+
       - name: Build packaged consumer smoke with warnings as errors
         shell: pwsh
         run: >
@@ -112,6 +131,13 @@ jobs:
           -OutputRoot artifacts/consumer-smoke-quality
           -BuildOnly
           -TreatWarningsAsErrors
+
+      - name: Validate packaged consumer smoke artifacts
+        shell: pwsh
+        run: >
+          pwsh -File ./scripts/Validate-Packages.ps1
+          -PackageRoot artifacts/consumer-smoke-quality/packages
+          -ExpectedVersion ${{ steps.consumer-smoke-version.outputs.package_version }}
 
       - name: Build core test evidence with warnings as errors
         shell: pwsh

@@ -1,6 +1,10 @@
 # Support Matrix
 
-This matrix describes the current support boundary for the public viewer packages and the source-only chart modules.
+This matrix describes the current support boundary for the public viewer/import packages and the source-only chart modules.
+
+Use [Videra 1.0 Capability Matrix](capability-matrix.md) for the explicit shipped-vs-deferred product boundary and the `Core` / `Import` / `Backend` / `UI adapter` / `Charts` layer vocabulary. Use [Hosting Boundary](hosting-boundary.md) for the canonical viewer composition rules behind these support entries.
+
+The public viewer install rule stays simple: start with `Videra.Avalonia`, add exactly one matching `Videra.Platform.*` package, and treat `Videra.Import.*` as explicit core-path ingestion packages rather than backend selection knobs.
 
 ## Viewer stack
 
@@ -10,6 +14,8 @@ This matrix describes the current support boundary for the public viewer package
 | `Videra.Avalonia` + `Videra.Platform.Linux` | Linux | Vulkan | Public package | Hosted `X11` validation plus Wayland-session `XWayland` validation | `alpha` |
 | `Videra.Avalonia` + `Videra.Platform.macOS` | macOS 10.15+ | Metal | Public package | Hosted and local matching-host validation | `alpha` |
 | `Videra.Core` | Any .NET 8 host | Core abstractions only | Public package | Repository verification and integration tests | `alpha` |
+| `Videra.Import.Gltf` | Any .NET 8 host | n/a | Public package | Repository verification plus importer-focused tests | `alpha` |
+| `Videra.Import.Obj` | Any .NET 8 host | n/a | Public package | Repository verification plus importer-focused tests | `alpha` |
 | Software fallback | Any supported desktop host | Software | Runtime fallback | Covered by repository verification | Diagnostics/fallback only |
 
 ## Source-only chart stack

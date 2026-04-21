@@ -254,12 +254,21 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
     public void SurfaceChartViewStateAndCommandApis_ShouldStayOutOfVideraView()
     {
         var repositoryRoot = GetRepositoryRoot();
-        var videraView = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Avalonia", "Controls", "VideraView.cs"));
+        var controlsRoot = Path.Combine(repositoryRoot, "src", "Videra.Avalonia", "Controls");
+        var publicVideraViewSurface = Directory.GetFiles(controlsRoot, "VideraView*.cs", SearchOption.AllDirectories)
+            .Select(File.ReadAllText)
+            .Where(content => content.Contains("public partial class VideraView", StringComparison.Ordinal))
+            .ToArray();
 
-        Regex.IsMatch(videraView, @"public\s+.*\bViewState\b").Should().BeFalse();
+        publicVideraViewSurface.Should().NotBeEmpty();
+        var videraView = string.Join(Environment.NewLine, publicVideraViewSurface);
+
+        Regex.IsMatch(videraView, @"public\s+.*\bSurfaceViewState\b").Should().BeFalse();
+        Regex.IsMatch(videraView, @"public\s+.*\bSurfaceDataWindow\b").Should().BeFalse();
+        Regex.IsMatch(videraView, @"public\s+.*\bSurfaceDisplaySpace\b").Should().BeFalse();
         Regex.IsMatch(videraView, @"public\s+.*\bFitToData\s*\(").Should().BeFalse();
-        Regex.IsMatch(videraView, @"public\s+.*\bResetCamera\s*\(").Should().BeFalse();
         Regex.IsMatch(videraView, @"public\s+.*\bZoomTo\s*\(").Should().BeFalse();
+        Regex.IsMatch(videraView, @"public\s+.*\bSurfaceChart\w*\b").Should().BeFalse();
     }
 
     [Fact]

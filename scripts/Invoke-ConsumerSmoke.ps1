@@ -29,6 +29,8 @@ $packagesCachePath = Join-Path $outputPath "global-packages"
 $nugetConfigPath = Join-Path $outputPath "NuGet.Config"
 $publicPackageProjects = @(
     "src/Videra.Core/Videra.Core.csproj",
+    "src/Videra.Import.Gltf/Videra.Import.Gltf.csproj",
+    "src/Videra.Import.Obj/Videra.Import.Obj.csproj",
     "src/Videra.Avalonia/Videra.Avalonia.csproj",
     "src/Videra.Platform.Windows/Videra.Platform.Windows.csproj",
     "src/Videra.Platform.Linux/Videra.Platform.Linux.csproj",

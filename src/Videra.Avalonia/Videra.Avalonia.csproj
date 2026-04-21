@@ -4,8 +4,8 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <Description>Avalonia integration layer for Videra, exposing the VideraView control and coordinating native backend selection across platforms.</Description>
-    <PackageTags>videra;avalonia;3d;viewer;rendering;desktop;ui</PackageTags>
+    <Description>Native desktop viewer and inspection control package for Videra on Avalonia, exposing VideraView and coordinating native backend selection across platforms.</Description>
+    <PackageTags>videra;avalonia;desktop-viewer;inspection;native-desktop;ui</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <!-- Suppress pre-existing analyzer warnings until fixed in dedicated cleanup plans.
          S112: throwing System.Exception
@@ -42,6 +42,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Videra.Core\Videra.Core.csproj" />
+    <ProjectReference Include="..\Videra.Import.Gltf\Videra.Import.Gltf.csproj" />
+    <ProjectReference Include="..\Videra.Import.Obj\Videra.Import.Obj.csproj" />
   </ItemGroup>
 
 </Project>

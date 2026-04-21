@@ -42,6 +42,8 @@ public sealed class AlphaConsumerIntegrationTests
 
         var smokeScript = File.ReadAllText(smokeScriptPath);
         smokeScript.Should().Contain("Pack Public Consumer Packages");
+        smokeScript.Should().Contain("src/Videra.Import.Gltf/Videra.Import.Gltf.csproj");
+        smokeScript.Should().Contain("src/Videra.Import.Obj/Videra.Import.Obj.csproj");
         smokeScript.Should().Contain("dotnet pack");
         smokeScript.Should().Contain("VIDERA_CONSUMER_SMOKE_OUTPUT");
         smokeScript.Should().Contain("VideraConsumerPackageVersion");

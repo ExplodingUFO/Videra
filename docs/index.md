@@ -7,7 +7,9 @@ This page maps the long-lived public documentation for Videra. Start with the re
 ## Start Here
 
 - [Project README](../README.md) for what Videra is, who it is for, and the source / public-package / contribution entry paths
+- [Videra 1.0 Capability Matrix](capability-matrix.md) for the shipped viewer/runtime boundary, deferred engine-style features, and the package-layer vocabulary
 - [Package Matrix](package-matrix.md) for published packages, source-only modules, samples, demos, and feed boundaries
+- [Hosting Boundary](hosting-boundary.md) for the canonical viewer composition and the internal seam ownership behind the public shell
 - [Support Matrix](support-matrix.md) for platform, validation, and support-level truth
 - [Release Policy](release-policy.md) for public-vs-preview feed rules, versioning scope, and what is or is not published
 - [Releasing Runbook](releasing.md) for tag, asset, and release-page workflow
@@ -22,6 +24,8 @@ This page maps the long-lived public documentation for Videra. Start with the re
 ## Packages
 
 - [Videra.Core](../src/Videra.Core/README.md) for core-only consumption and software-fallback-oriented integration
+- [Videra.Import.Gltf](../src/Videra.Import.Gltf/README.md) for dedicated `.gltf` / `.glb` ingestion on top of the runtime kernel
+- [Videra.Import.Obj](../src/Videra.Import.Obj/README.md) for dedicated `.obj` ingestion on top of the runtime kernel
 - [Videra.Avalonia](../src/Videra.Avalonia/README.md) for the Avalonia entry package and backend preference configuration
 - [Videra.Platform.Windows](../src/Videra.Platform.Windows/README.md) for the Windows Direct3D 11 platform package
 - [Videra.Platform.Linux](../src/Videra.Platform.Linux/README.md) for the Linux Vulkan platform package, with X11 native hosting and XWayland compatibility in Wayland sessions

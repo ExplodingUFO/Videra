@@ -2,6 +2,8 @@
 
 This runbook describes how public and preview package publication works.
 
+Use [Package Matrix](package-matrix.md) as the authoritative public package table and [Hosting Boundary](hosting-boundary.md) when you need to verify that release notes and package assets still describe the same canonical viewer stack.
+
 ## Tag format
 
 - Public releases start from a git tag named `v<semver>`.
@@ -38,12 +40,18 @@ That workflow is manual (`workflow_dispatch`) and pushes preview artifacts to `G
 The public package set is limited to:
 
 - `Videra.Core`
+- `Videra.Import.Gltf`
+- `Videra.Import.Obj`
 - `Videra.Avalonia`
 - `Videra.Platform.Windows`
 - `Videra.Platform.Linux`
 - `Videra.Platform.macOS`
 
 `Videra.SurfaceCharts.*` and the sample/demo applications remain repository-only until a later milestone explicitly promotes them.
+
+The canonical public viewer stack is `Videra.Avalonia` plus exactly one matching `Videra.Platform.*` package. `Videra.Import.Gltf` and `Videra.Import.Obj` remain explicit ingestion packages on the core path.
+Every public publish path, including `publish-existing-public-release.yml`, is expected to run packaged consumer smoke and `Validate-Packages.ps1` before pushing assets. The existing-tag republish workflow is intentionally limited to tags that already carry the current public package set and helper scripts.
+Every public publish path, including `publish-existing-public-release.yml`, is expected to run packaged consumer smoke and `Validate-Packages.ps1` before pushing assets.
 
 ## Maintainer checklist
 
@@ -52,6 +60,7 @@ The public package set is limited to:
 - Confirm `Consumer Smoke` artifacts include the diagnostics snapshot produced by `VideraDiagnosticsSnapshotFormatter`.
 - Confirm pull-request `sample-contract-evidence` stayed green for `Videra.ExtensibilitySample` and `Videra.InteractionSample` configuration/runtime contracts.
 - Confirm `README.md`, `docs/support-matrix.md`, and `docs/release-policy.md` still say SurfaceCharts stays source-first and that public tags do not publish `Videra.SurfaceCharts.*` package assets.
+- Confirm `docs/package-matrix.md` and `docs/hosting-boundary.md` still describe the same canonical viewer stack as the release assets: `Videra.Avalonia` + one matching `Videra.Platform.*` package, with `Videra.Import.*` remaining explicit ingestion packages.
 - Confirm pull-request `sample-contract-evidence` stayed green for `Videra.SurfaceCharts.Demo`, including `Start here: In-memory first chart`, the `Copy support summary` workflow, and the SurfaceCharts runtime evidence step.
 - Confirm pull-request `quality-gate-evidence` stayed green so the packaged consumer path, curated Core test surfaces, and `Videra.MinimalSample` still build with warnings treated as errors.
 - Confirm public release notes and attached assets do not introduce `Videra.SurfaceCharts.*` package IDs or present `Videra.SurfaceCharts.Demo` as a public package install path.

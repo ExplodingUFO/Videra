@@ -1,7 +1,7 @@
 using System.Numerics;
 using FluentAssertions;
 using Videra.Core.Graphics.Software;
-using Videra.Core.IO;
+using Videra.Import.Obj;
 using Xunit;
 
 namespace Videra.Core.IntegrationTests.IO;
@@ -55,7 +55,7 @@ public class ModelImporterIntegrationTests : IDisposable
             f 1/1 2/2 3/3
             """);
 
-        var obj = ModelImporter.Load(path, factory);
+        var obj = ObjModelImporter.Load(path, factory);
 
         obj.Should().NotBeNull();
         obj.Name.Should().Contain("triangle.obj");
@@ -79,7 +79,7 @@ public class ModelImporterIntegrationTests : IDisposable
             f 2//1 4//1 3//1
             """);
 
-        var obj = ModelImporter.Load(path, factory);
+        var obj = ObjModelImporter.Load(path, factory);
 
         obj.Should().NotBeNull();
         obj.IndexCount.Should().Be(6);
@@ -96,7 +96,7 @@ public class ModelImporterIntegrationTests : IDisposable
             f 1//1 2//1 5//1
             """);
 
-        var act = () => ModelImporter.Load(path, factory);
+        var act = () => ObjModelImporter.Load(path, factory);
         act.Should().NotThrow<IndexOutOfRangeException>();
     }
 
@@ -114,7 +114,7 @@ public class ModelImporterIntegrationTests : IDisposable
             f 1//1 2//2 3//3
             """);
 
-        var obj = ModelImporter.Load(path, factory);
+        var obj = ObjModelImporter.Load(path, factory);
 
         obj.Should().NotBeNull();
         obj.VertexBuffer.Should().NotBeNull();
@@ -135,7 +135,7 @@ public class ModelImporterIntegrationTests : IDisposable
             f 1//1 2//1 3//1
             """);
 
-        var obj = ModelImporter.Load(path, factory);
+        var obj = ObjModelImporter.Load(path, factory);
         obj.InitializeWireframe(factory);
 
         using var engine = new Videra.Core.Graphics.VideraEngine();

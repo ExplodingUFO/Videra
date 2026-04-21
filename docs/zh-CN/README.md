@@ -48,17 +48,27 @@ dotnet add package Videra.Platform.Linux
 dotnet add package Videra.Platform.macOS
 ```
 
-如果只需要渲染抽象和导入管线，则直接安装 `Videra.Core`：
+如果只需要运行时内核而不需要 Avalonia UI 层，则直接安装 `Videra.Core`：
 
 ```bash
 dotnet add package Videra.Core
 ```
+
+如果还需要文件导入能力，则额外安装独立导入包：
+
+```bash
+dotnet add package Videra.Import.Gltf
+dotnet add package Videra.Import.Obj
+```
+
+`Videra.Avalonia` 默认安装路径已经传递依赖 `Videra.Import.Gltf` 与 `Videra.Import.Obj`，所以常规 viewer 使用 `LoadModelAsync(...)` / `LoadModelsAsync(...)` 时不需要额外再装这两个包；只有 `Videra.Core` 单独消费路径才需要显式添加。
 
 当前 `alpha` 预览线在需要时仍可通过 `GitHub Packages` 进行 `preview` 验证，但那不是默认公开安装路径。
 
 `VIDERA_BACKEND` 只影响后端选择偏好，不会安装缺失的平台包，也不会替代 matching-host 原生验证。
 
 默认 first-scene 入口现在优先看 [Videra.MinimalSample](../../samples/Videra.MinimalSample/README.md)，而不是直接跳进 `VideraView.Engine` 扩展流。
+当前公开的 canonical viewer flow 是 `VideraViewOptions -> LoadModelAsync(...) -> FrameAll() / ResetCamera() -> BackendDiagnostics`。
 
 ## 快速入口
 
@@ -83,6 +93,8 @@ dotnet add package Videra.Core
 ## 模块文档
 
 - [Videra.Core](modules/videra-core.md)
+- [Videra.Import.Gltf](../../src/Videra.Import.Gltf/README.md)
+- [Videra.Import.Obj](../../src/Videra.Import.Obj/README.md)
 - [Videra.Avalonia](modules/videra-avalonia.md)
 - [Videra.Platform.Windows](modules/platform-windows.md)
 - [Videra.Platform.Linux](modules/platform-linux.md)

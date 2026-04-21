@@ -22,6 +22,10 @@
   <Folder Name="/Benchmarks/Videra/">
     <Project Path="benchmarks/Videra.Viewer.Benchmarks/Videra.Viewer.Benchmarks.csproj" />
   </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/Videra.Import.Gltf/Videra.Import.Gltf.csproj" />
+    <Project Path="src/Videra.Import.Obj/Videra.Import.Obj.csproj" />
+  </Folder>
   <Folder Name="/Startups/" />
   <Folder Name="/Startups/SurfaceCharts/">
     <Project Path="samples/Videra.SurfaceCharts.Demo/Videra.SurfaceCharts.Demo.csproj" />

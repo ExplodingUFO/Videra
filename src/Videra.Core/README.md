@@ -2,7 +2,7 @@
 
 [English](README.md) | [中文](../../docs/zh-CN/modules/videra-core.md)
 
-`Videra.Core` is the platform-agnostic rendering core of Videra. It provides the shared abstractions, scene engine, import pipeline, and software fallback path used by the higher-level packages.
+`Videra.Core` is the platform-agnostic viewer/runtime kernel of Videra. It provides the shared abstractions, scene engine, and software fallback path used by the higher-level packages.
 
 Current status: `alpha`. This package is the right starting point only for core-only consumption. Most desktop applications should start with `Videra.Avalonia` plus a matching `Videra.Platform.*` package.
 
@@ -11,8 +11,9 @@ Current status: `alpha`. This package is the right starting point only for core-
 - Rendering abstractions such as `IGraphicsBackend`, `IResourceFactory`, and `ICommandExecutor`
 - Scene lifecycle management through `VideraEngine`
 - Camera, grid, axis, and wireframe helpers
-- Model import for `.gltf`, `.glb`, and `.obj`
 - Render-style presets and software fallback rendering
+
+The `v1.20` product boundary treats `Core`, `Import`, `Backend`, `UI adapter`, and `Charts` as separate layers. `Videra.Core` is the runtime kernel in that split; use [docs/capability-matrix.md](../../docs/capability-matrix.md) for the explicit layer matrix.
 
 ## Key Types
 
@@ -99,7 +100,9 @@ The default public consumer path is `nuget.org`:
 dotnet add package Videra.Core
 ```
 
-Install `Videra.Core` directly when you need the core scene and backend abstractions without the Avalonia UI layer.
+Install `Videra.Core` directly when you need the runtime kernel and backend abstractions without the Avalonia UI layer.
+
+Add `Videra.Import.Gltf` and/or `Videra.Import.Obj` when you need `.gltf` / `.glb` / `.obj` ingestion on the core path without taking `Videra.Avalonia`.
 
 Current `alpha` and contributor `preview` validation can still use `GitHub Packages`, but that feed is not the default public install route:
 
@@ -137,11 +140,12 @@ dotnet test tests/Videra.Core.IntegrationTests/Videra.Core.IntegrationTests.cspr
 ## Requirements
 
 - .NET 8
-- `SharpGLTF.Toolkit` for model import
 
 ## Related Docs
 
 - [Repository README](../../README.md)
+- [Hosting Boundary](../../docs/hosting-boundary.md)
+- [Videra 1.0 Capability Matrix](../../docs/capability-matrix.md)
 - [Extensibility Contract](../../docs/extensibility.md)
 - [Architecture](../../ARCHITECTURE.md)
 - [Chinese Module Doc](../../docs/zh-CN/modules/videra-core.md)

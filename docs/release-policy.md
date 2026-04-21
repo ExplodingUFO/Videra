@@ -7,12 +7,18 @@ This document defines what Videra publishes, where those packages go, and what s
 The public package line is limited to:
 
 - `Videra.Core`
+- `Videra.Import.Gltf`
+- `Videra.Import.Obj`
 - `Videra.Avalonia`
 - `Videra.Platform.Windows`
 - `Videra.Platform.Linux`
 - `Videra.Platform.macOS`
 
 Public release tags publish these packages to `nuget.org`.
+
+The canonical public viewer stack is `Videra.Avalonia` plus exactly one matching `Videra.Platform.*` package. `Videra.Import.Gltf` and `Videra.Import.Obj` stay explicit ingestion packages on the core path; they are part of the public package line, but they are not a replacement for the Avalonia + matching-platform viewer stack.
+
+Use [Package Matrix](package-matrix.md) for the published-package table and [Hosting Boundary](hosting-boundary.md) for the canonical composition story behind this release line.
 
 ## Preview and internal feed
 

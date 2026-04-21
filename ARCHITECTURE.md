@@ -2,7 +2,9 @@
 
 [English](ARCHITECTURE.md) | [中文](docs/zh-CN/ARCHITECTURE.md)
 
-This document describes Videra's public architecture boundaries, module responsibilities, and runtime flow for contributors and evaluators.
+This document describes Videra's public architecture boundaries, module responsibilities, and runtime flow for contributors and evaluators. Use [docs/hosting-boundary.md](docs/hosting-boundary.md) when you need the focused public-vs-internal seam ownership view for the shipped viewer path.
+
+The `1.0` line is a native desktop viewer/runtime for Avalonia hosts, inspection workflows, and the source-first `SurfaceCharts` family. It is not a general engine/runtime parity effort. Use [docs/capability-matrix.md](docs/capability-matrix.md) for the explicit `1.0` boundary and deferred-feature matrix.
 
 ## Design Goals
 
@@ -21,16 +23,30 @@ graph TB
     Demo[Videra.Demo]
     Avalonia[Videra.Avalonia]
     Core[Videra.Core]
+    Import[Import Layer]
+    Charts[Videra.SurfaceCharts.*]
     Win[Videra.Platform.Windows]
     Linux[Videra.Platform.Linux]
     Mac[Videra.Platform.macOS]
 
     Demo --> Avalonia
     Avalonia --> Core
+    Import --> Core
     Core --> Win
     Core --> Linux
     Core --> Mac
+    Charts --> Core
 ```
+
+## Videra 1.0 Package Layers
+
+| Layer | Responsibility |
+| --- | --- |
+| `Core` | Viewer/runtime kernel, scene truth, render pipeline, software fallback, and narrow extensibility |
+| `Import` | Asset ingestion for viewer/runtime scenes |
+| `Backend` | Native graphics implementations for `D3D11`, `Vulkan`, and `Metal` |
+| `UI adapter` | Host-framework shell, orchestration, and input/presentation translation |
+| `Charts` | Analytics-oriented chart family that remains independent from `VideraView` |
 
 ### `Videra.Core`
 
@@ -40,10 +56,11 @@ Platform-agnostic rendering layer responsible for:
 - Scene object and engine lifecycle
 - `SceneDocument` scene ownership and backend-neutral imported assets
 - Camera, grid, axis, and wireframe logic
-- Model import
 - Render-style presets
 - Software fallback rendering
 - Frame-plan construction and pipeline execution via `VideraEngine`
+
+`Videra.Core` is the runtime kernel of the viewer stack. The `v1.20` boundary treats import as a distinct layer that composes with the kernel rather than redefining the whole product as a general engine.
 
 Key abstractions:
 
@@ -67,6 +84,15 @@ UI integration layer responsible for:
 - Hosting scene-runtime services such as `SceneDocumentStore`, `SceneDeltaPlanner`, `SceneResidencyRegistry`, and `SceneUploadQueue`
 
 This layer lets host apps use the 3D view from XAML or code without coupling UI surface code to rendering internals.
+
+### Import packages
+
+Dedicated import packages own file-format parsing and CPU-side scene asset creation for viewer/runtime scenes:
+
+- `Videra.Import.Gltf`: `.gltf` and `.glb`
+- `Videra.Import.Obj`: `.obj`
+
+These packages compose with `Videra.Core` directly. `Videra.Avalonia` consumes them transitively so `LoadModelAsync(...)` stays on the default viewer path without moving import parsing back into `Videra.Core`.
 
 ### Native Backend Packages
 
@@ -106,6 +132,8 @@ The demo application shows:
 Videra/
 ├── src/
 │   ├── Videra.Core/
+│   ├── Videra.Import.Gltf/
+│   ├── Videra.Import.Obj/
 │   ├── Videra.Avalonia/
 │   ├── Videra.Platform.Windows/
 │   ├── Videra.Platform.Linux/
@@ -225,7 +253,7 @@ If the native backend is unavailable, or if `software` is selected explicitly, r
 
 ## Supported Capabilities
 
-- Model import: `.gltf`, `.glb`, `.obj`
+- Model import through `Videra.Import.Gltf` and `Videra.Import.Obj`: `.gltf`, `.glb`, `.obj`
 - Orbit camera and basic scene interaction
 - Viewer-first inspection workflows: mesh-accurate picking, measurement snap modes, snapshot export, and replayable inspection bundles
 - Render-style presets
@@ -233,6 +261,8 @@ If the native backend is unavailable, or if `software` is selected explicitly, r
 - Grid and axis helpers
 - Native rendering backends
 - Software fallback backend
+
+For the explicit `1.0` versus deferred capability split, use [docs/capability-matrix.md](docs/capability-matrix.md).
 
 ## Validation Strategy
 
@@ -259,6 +289,7 @@ By default:
 ## Related Docs
 
 - [README.md](README.md)
+- [Hosting Boundary](docs/hosting-boundary.md)
 - [Documentation Index](docs/index.md)
 - [Extensibility Contract](docs/extensibility.md)
 - [Troubleshooting](docs/troubleshooting.md)

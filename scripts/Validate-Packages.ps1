@@ -11,6 +11,8 @@ $ErrorActionPreference = "Stop"
 
 $expectedPackages = @(
     "Videra.Core",
+    "Videra.Import.Gltf",
+    "Videra.Import.Obj",
     "Videra.Avalonia",
     "Videra.Platform.Windows",
     "Videra.Platform.Linux",
@@ -24,9 +26,9 @@ $expectedPackageRoot = (Resolve-Path $PackageRoot).Path
 $packageFiles = Get-ChildItem -Path $expectedPackageRoot -Recurse -Filter *.nupkg | Sort-Object Name
 $symbolPackageFiles = Get-ChildItem -Path $expectedPackageRoot -Recurse -Filter *.snupkg | Sort-Object Name
 
-if ($packageFiles.Count -lt $expectedPackages.Count)
+if ($packageFiles.Count -ne $expectedPackages.Count)
 {
-    throw "Expected at least $($expectedPackages.Count) NuGet packages under '$expectedPackageRoot', found $($packageFiles.Count)."
+    throw "Expected exactly $($expectedPackages.Count) NuGet packages under '$expectedPackageRoot', found $($packageFiles.Count)."
 }
 
 $validationRoot = Join-Path $expectedPackageRoot ".validation"
@@ -170,10 +172,26 @@ foreach ($expectedPackage in $expectedPackages)
     }
 }
 
+foreach ($packageId in $metadataById.Keys)
+{
+    if ($expectedPackages -notcontains $packageId)
+    {
+        throw "Unexpected package '$packageId' was found in '$expectedPackageRoot'."
+    }
+}
+
 $avaloniaMetadata = $metadataById["Videra.Avalonia"]
 if ($avaloniaMetadata.Dependencies -notcontains "Videra.Core")
 {
     throw "Videra.Avalonia must depend on Videra.Core."
+}
+
+foreach ($importDependency in @("Videra.Import.Gltf", "Videra.Import.Obj"))
+{
+    if ($avaloniaMetadata.Dependencies -notcontains $importDependency)
+    {
+        throw "Videra.Avalonia must depend on $importDependency."
+    }
 }
 
 foreach ($platformDependency in @("Videra.Platform.Windows", "Videra.Platform.Linux", "Videra.Platform.macOS"))
@@ -181,6 +199,44 @@ foreach ($platformDependency in @("Videra.Platform.Windows", "Videra.Platform.Li
     if ($avaloniaMetadata.Dependencies -contains $platformDependency)
     {
         throw "Videra.Avalonia must not hard-depend on platform package '$platformDependency'."
+    }
+}
+
+foreach ($importPackage in @("Videra.Import.Gltf", "Videra.Import.Obj"))
+{
+    if ($metadataById[$importPackage].Dependencies -notcontains "Videra.Core")
+    {
+        throw "$importPackage must depend on Videra.Core."
+    }
+}
+
+foreach ($platformPackage in @("Videra.Platform.Windows", "Videra.Platform.Linux", "Videra.Platform.macOS"))
+{
+    $platformMetadata = $metadataById[$platformPackage]
+    if ($platformMetadata.Dependencies -notcontains "Videra.Core")
+    {
+        throw "$platformPackage must depend on Videra.Core."
+    }
+
+    foreach ($forbiddenDependency in @("Videra.Avalonia", "Videra.Import.Gltf", "Videra.Import.Obj"))
+    {
+        if ($platformMetadata.Dependencies -contains $forbiddenDependency)
+        {
+            throw "$platformPackage must not depend on $forbiddenDependency."
+        }
+    }
+
+    foreach ($otherPlatformPackage in @("Videra.Platform.Windows", "Videra.Platform.Linux", "Videra.Platform.macOS"))
+    {
+        if ($otherPlatformPackage -eq $platformPackage)
+        {
+            continue
+        }
+
+        if ($platformMetadata.Dependencies -contains $otherPlatformPackage)
+        {
+            throw "$platformPackage must not depend on peer platform package '$otherPlatformPackage'."
+        }
     }
 }
 

@@ -4,8 +4,8 @@ using Videra.Avalonia.Runtime.Scene;
 using Videra.Core.Geometry;
 using Videra.Core.Graphics;
 using Videra.Core.Graphics.Abstractions;
-using Videra.Core.IO;
 using Videra.Core.Scene;
+using Videra.Import.Obj;
 
 namespace Videra.Viewer.Benchmarks;
 
@@ -41,8 +41,8 @@ public class ScenePipelineBenchmarks
 
         _importService = new SceneImportService(_mutator);
 
-        var previousAsset = ModelImporter.Import(WriteTriangleObj("delta-previous.obj", 4f));
-        var nextAsset = ModelImporter.Import(WriteTriangleObj("delta-next.obj", 5f));
+        var previousAsset = ObjModelImporter.Import(WriteTriangleObj("delta-previous.obj", 4f));
+        var nextAsset = ObjModelImporter.Import(WriteTriangleObj("delta-next.obj", 5f));
 
         var previousObject = SceneObjectFactory.CreateDeferred(previousAsset);
         var nextObject = SceneObjectFactory.CreateDeferred(nextAsset);
@@ -56,7 +56,7 @@ public class ScenePipelineBenchmarks
         _nextDocument = _mutator.ReplaceEntries(SceneDocument.Empty, [retainedEntry, addedEntry]);
         _sceneDelta = SceneDeltaPlanner.Diff(previousDocument, _nextDocument);
 
-        var rehydrateAsset = ModelImporter.Import(WriteTriangleObj("rehydrate.obj", 6f));
+        var rehydrateAsset = ObjModelImporter.Import(WriteTriangleObj("rehydrate.obj", 6f));
         var rehydrateObject = SceneObjectFactory.CreateDeferred(rehydrateAsset);
         _rehydrateEntry = _mutator.CreateImportedEntry(rehydrateObject, rehydrateAsset);
     }
@@ -73,7 +73,7 @@ public class ScenePipelineBenchmarks
     [Benchmark]
     public int ModelImporter_Import()
     {
-        return ModelImporter.Import(_singleImportPath).MeshData.Vertices.Length;
+        return ObjModelImporter.Import(_singleImportPath).MeshData.Vertices.Length;
     }
 
     [Benchmark]
