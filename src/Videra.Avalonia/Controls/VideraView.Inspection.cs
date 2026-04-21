@@ -3,7 +3,7 @@ namespace Videra.Avalonia.Controls;
 public partial class VideraView
 {
     /// <summary>
-    /// Captures the current camera, selection, clipping, and measurement truth for later restoration.
+    /// Captures the current inspection session, including camera, selection, annotations, clipping, and measurement truth for later restoration.
     /// </summary>
     public VideraInspectionState CaptureInspectionState() => _runtime.CaptureInspectionState();
 

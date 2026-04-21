@@ -340,6 +340,35 @@ public partial class MainWindow : Window
         UpdateStatusPanel();
     }
 
+    private void PullHostOwnedStateFromView()
+    {
+        _selectionState = new VideraSelectionState
+        {
+            ObjectIds = View3D.SelectionState.ObjectIds.ToArray(),
+            PrimaryObjectId = View3D.SelectionState.PrimaryObjectId
+        };
+        _annotations = View3D.Annotations.Select(static annotation => annotation switch
+        {
+            VideraNodeAnnotation node => (VideraAnnotation)new VideraNodeAnnotation
+            {
+                Id = node.Id,
+                Text = node.Text,
+                Color = node.Color,
+                IsVisible = node.IsVisible,
+                ObjectId = node.ObjectId
+            },
+            VideraWorldPointAnnotation world => new VideraWorldPointAnnotation
+            {
+                Id = world.Id,
+                Text = world.Text,
+                Color = world.Color,
+                IsVisible = world.IsVisible,
+                WorldPoint = world.WorldPoint
+            },
+            _ => throw new InvalidOperationException("Unsupported annotation type.")
+        }).ToArray();
+    }
+
     private void OnNavigateModeClicked(object? sender, global::Avalonia.Interactivity.RoutedEventArgs e)
     {
         _ = sender;
@@ -454,7 +483,7 @@ public partial class MainWindow : Window
         _ = sender;
         _ = e;
         _savedInspectionState = View3D.CaptureInspectionState();
-        _inspectionSummary = "Captured the current inspection state, including camera, selection, clipping, and measurements.";
+        _inspectionSummary = "Captured the current inspection session, including camera, selection, annotations, clipping, and measurements.";
         UpdateStatusPanel();
     }
 
@@ -470,6 +499,7 @@ public partial class MainWindow : Window
         }
 
         View3D.ApplyInspectionState(_savedInspectionState);
+        PullHostOwnedStateFromView();
         _sectionPlaneEnabled = View3D.ClippingPlanes.Count > 0;
         _inspectionSummary = "Restored the previously captured inspection state.";
         UpdateModeButtons();
@@ -522,6 +552,7 @@ public partial class MainWindow : Window
         var result = await VideraInspectionBundleService.ImportAsync(View3D, _lastInspectionBundleDirectory).ConfigureAwait(true);
         if (result.Succeeded)
         {
+            PullHostOwnedStateFromView();
             _sectionPlaneEnabled = View3D.ClippingPlanes.Count > 0;
             _savedInspectionState = View3D.CaptureInspectionState();
             _inspectionSummary = $"VideraInspectionBundleService.ImportAsync restored the bundle from {_lastInspectionBundleDirectory}. Scene reloaded: {result.SceneReloaded}.";

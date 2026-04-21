@@ -75,11 +75,12 @@ public sealed class VideraInspectionBundleIntegrationTests : IDisposable
             export.AssetCount.Should().Be(1);
             export.AnnotationCount.Should().Be(1);
             File.Exists(Path.Combine(bundlePath, VideraInspectionBundleService.InspectionStateFileName)).Should().BeTrue();
-            File.Exists(Path.Combine(bundlePath, VideraInspectionBundleService.AnnotationsFileName)).Should().BeTrue();
             File.Exists(Path.Combine(bundlePath, VideraInspectionBundleService.DiagnosticsFileName)).Should().BeTrue();
             File.Exists(Path.Combine(bundlePath, VideraInspectionBundleService.SnapshotFileName)).Should().BeTrue();
             var assetManifestPath = Path.Combine(bundlePath, VideraInspectionBundleService.AssetManifestFileName);
             File.Exists(assetManifestPath).Should().BeTrue();
+            using var inspectionState = JsonDocument.Parse(await File.ReadAllTextAsync(Path.Combine(bundlePath, VideraInspectionBundleService.InspectionStateFileName)));
+            inspectionState.RootElement.GetProperty("Annotations").GetArrayLength().Should().Be(1);
 
             using var manifest = JsonDocument.Parse(await File.ReadAllTextAsync(assetManifestPath));
             var bundledAssetPath = manifest.RootElement
@@ -90,6 +91,7 @@ public sealed class VideraInspectionBundleIntegrationTests : IDisposable
             Path.IsPathRooted(bundledAssetPath!).Should().BeFalse();
             File.Exists(Path.Combine(bundlePath, bundledAssetPath!)).Should().BeTrue();
             (await File.ReadAllTextAsync(assetManifestPath)).Should().NotContain(modelPath);
+            File.Exists(Path.Combine(bundlePath, "annotations.json")).Should().BeFalse();
         }
         finally
         {

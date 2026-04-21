@@ -81,6 +81,14 @@ public sealed class VideraViewInspectionIntegrationTests
                 ObjectIds = [sceneObject.Id],
                 PrimaryObjectId = sceneObject.Id
             };
+            view.Annotations =
+            [
+                new VideraNodeAnnotation
+                {
+                    ObjectId = sceneObject.Id,
+                    Text = "Inspection note"
+                }
+            ];
             view.Measurements =
             [
                 new VideraMeasurement
@@ -103,6 +111,7 @@ public sealed class VideraViewInspectionIntegrationTests
             var snapshot = view.CaptureInspectionState();
 
             view.SelectionState = new VideraSelectionState();
+            view.Annotations = Array.Empty<VideraAnnotation>();
             view.Measurements = Array.Empty<VideraMeasurement>();
             view.InteractionOptions = new VideraInteractionOptions
             {
@@ -115,6 +124,9 @@ public sealed class VideraViewInspectionIntegrationTests
 
             view.SelectionState.ObjectIds.Should().ContainSingle().Which.Should().Be(sceneObject.Id);
             view.SelectionState.PrimaryObjectId.Should().Be(sceneObject.Id);
+            view.Annotations.Should().ContainSingle();
+            view.Annotations.OfType<VideraNodeAnnotation>().Single().ObjectId.Should().Be(sceneObject.Id);
+            view.Annotations[0].Text.Should().Be("Inspection note");
             view.Measurements.Should().ContainSingle();
             view.Measurements[0].Label.Should().Be("Edge");
             view.InteractionOptions.MeasurementSnapMode.Should().Be(VideraMeasurementSnapMode.EdgeMidpoint);

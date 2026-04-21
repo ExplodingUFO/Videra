@@ -71,6 +71,7 @@ public sealed class InteractionSampleConfigurationTests
         codeBehind.Should().Contain("View3D.Annotations = _annotations;");
         codeBehind.Should().Contain("View3D.SelectionRequested +=");
         codeBehind.Should().Contain("View3D.AnnotationRequested +=");
+        codeBehind.Should().Contain("PullHostOwnedStateFromView();");
         codeBehind.Should().Contain("View3D.InteractionMode = VideraInteractionMode.Navigate;");
         codeBehind.Should().Contain("VideraInteractionMode.Select");
         codeBehind.Should().Contain("VideraInteractionMode.Annotate");

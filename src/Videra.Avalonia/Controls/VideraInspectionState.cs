@@ -1,4 +1,5 @@
 using System.Numerics;
+using Videra.Avalonia.Controls.Interaction;
 using Videra.Core.Inspection;
 
 namespace Videra.Avalonia.Controls;
@@ -19,6 +20,8 @@ public sealed class VideraInspectionState
     public IReadOnlyList<Guid> SelectedObjectIds { get; init; } = Array.Empty<Guid>();
 
     public Guid? PrimarySelectedObjectId { get; init; }
+
+    public IReadOnlyList<VideraAnnotation> Annotations { get; init; } = Array.Empty<VideraAnnotation>();
 
     public VideraMeasurementSnapMode MeasurementSnapMode { get; init; } = VideraMeasurementSnapMode.Free;
 

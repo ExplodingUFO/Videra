@@ -11,7 +11,6 @@ public static class VideraInspectionBundleService
 {
     private const string AssetsDirectoryName = "assets";
     public const string InspectionStateFileName = "inspection-state.json";
-    public const string AnnotationsFileName = "annotations.json";
     public const string DiagnosticsFileName = "diagnostics.txt";
     public const string SnapshotFileName = "snapshot.png";
     public const string AssetManifestFileName = "asset-manifest.json";
@@ -35,13 +34,11 @@ public static class VideraInspectionBundleService
             Directory.CreateDirectory(directoryPath);
 
             var inspectionState = CreateInspectionStateDocument(view.CaptureInspectionState());
-            var annotations = CreateAnnotationsDocument(view.Annotations);
             var sourceAssetManifest = view.CaptureInspectionBundleAssetManifestForRuntime();
             var assetManifest = CreateBundledAssetManifest(sourceAssetManifest, directoryPath);
             var diagnostics = VideraDiagnosticsSnapshotFormatter.Format(view.BackendDiagnostics);
 
             await WriteJsonAsync(Path.Combine(directoryPath, InspectionStateFileName), inspectionState, cancellationToken).ConfigureAwait(true);
-            await WriteJsonAsync(Path.Combine(directoryPath, AnnotationsFileName), annotations, cancellationToken).ConfigureAwait(true);
             await WriteJsonAsync(Path.Combine(directoryPath, AssetManifestFileName), assetManifest, cancellationToken).ConfigureAwait(true);
             await File.WriteAllTextAsync(Path.Combine(directoryPath, DiagnosticsFileName), diagnostics, cancellationToken).ConfigureAwait(true);
 
@@ -59,7 +56,7 @@ public static class VideraInspectionBundleService
                 directoryPath,
                 assetManifest.CanReplayScene,
                 assetManifest.Entries.Count,
-                annotations.Entries.Count);
+                inspectionState.Annotations.Count);
         }
         catch (OperationCanceledException)
         {
@@ -84,7 +81,6 @@ public static class VideraInspectionBundleService
             cancellationToken.ThrowIfCancellationRequested();
 
             var inspectionState = ReadJson<VideraInspectionBundleStateDocument>(directoryPath, InspectionStateFileName);
-            var annotations = ReadJson<VideraInspectionBundleAnnotationsDocument>(directoryPath, AnnotationsFileName);
             var assetManifest = ReadJson<VideraInspectionBundleAssetManifest>(directoryPath, AssetManifestFileName);
 
             Dictionary<Guid, Guid> objectIdMap = new();
@@ -126,13 +122,12 @@ public static class VideraInspectionBundleService
             }
 
             view.ApplyInspectionState(CreateInspectionState(inspectionState, objectIdMap));
-            view.Annotations = CreateAnnotations(annotations, objectIdMap);
 
             return VideraInspectionBundleImportResult.Success(
                 directoryPath,
                 sceneReloaded,
                 assetManifest.Entries.Count,
-                annotations.Entries.Count);
+                inspectionState.Annotations.Count);
         }
         catch (OperationCanceledException)
         {
@@ -291,6 +286,7 @@ public static class VideraInspectionBundleService
             CameraPitch = state.CameraPitch,
             SelectedObjectIds = state.SelectedObjectIds.ToArray(),
             PrimarySelectedObjectId = state.PrimarySelectedObjectId,
+            Annotations = CreateAnnotationEntries(state.Annotations),
             MeasurementSnapMode = state.MeasurementSnapMode,
             ClippingPlanes = state.ClippingPlanes
                 .Select(static plane => new VideraInspectionBundleClipPlane
@@ -327,6 +323,7 @@ public static class VideraInspectionBundleService
                 .Select(objectId => RemapObjectId(objectId, objectIdMap))
                 .ToArray(),
             PrimarySelectedObjectId = RemapObjectId(document.PrimarySelectedObjectId, objectIdMap),
+            Annotations = CreateAnnotations(document.Annotations, objectIdMap),
             MeasurementSnapMode = document.MeasurementSnapMode,
             ClippingPlanes = document.ClippingPlanes
                 .Select(static plane => VideraClipPlane.FromPointNormal(plane.Point.ToVector3(), plane.Normal.ToVector3(), plane.IsEnabled))
@@ -342,6 +339,32 @@ public static class VideraInspectionBundleService
                 })
                 .ToArray()
         };
+    }
+
+    private static IReadOnlyList<VideraInspectionBundleAnnotationEntry> CreateAnnotationEntries(IReadOnlyList<VideraAnnotation> annotations)
+    {
+        return annotations.Select(static annotation => annotation switch
+        {
+            VideraNodeAnnotation node => new VideraInspectionBundleAnnotationEntry
+            {
+                Kind = AnnotationAnchorKind.Object,
+                Id = node.Id,
+                Text = node.Text,
+                Color = node.Color.ToString(),
+                IsVisible = node.IsVisible,
+                ObjectId = node.ObjectId
+            },
+            VideraWorldPointAnnotation world => new VideraInspectionBundleAnnotationEntry
+            {
+                Kind = AnnotationAnchorKind.WorldPoint,
+                Id = world.Id,
+                Text = world.Text,
+                Color = world.Color.ToString(),
+                IsVisible = world.IsVisible,
+                WorldPoint = BundleVector3.From(world.WorldPoint)
+            },
+            _ => throw new InvalidOperationException($"Unsupported annotation type '{annotation.GetType().FullName}'.")
+        }).ToArray();
     }
 
     private static VideraInspectionBundleMeasurementAnchor CreateMeasurementAnchor(VideraMeasurementAnchor anchor)
@@ -363,40 +386,11 @@ public static class VideraInspectionBundleService
             : VideraMeasurementAnchor.ForWorldPoint(anchor.WorldPoint.ToVector3());
     }
 
-    private static VideraInspectionBundleAnnotationsDocument CreateAnnotationsDocument(IReadOnlyList<VideraAnnotation> annotations)
-    {
-        return new VideraInspectionBundleAnnotationsDocument
-        {
-            Entries = annotations.Select(static annotation => annotation switch
-            {
-                VideraNodeAnnotation node => new VideraInspectionBundleAnnotationEntry
-                {
-                    Kind = AnnotationAnchorKind.Object,
-                    Id = node.Id,
-                    Text = node.Text,
-                    Color = node.Color.ToString(),
-                    IsVisible = node.IsVisible,
-                    ObjectId = node.ObjectId
-                },
-                VideraWorldPointAnnotation world => new VideraInspectionBundleAnnotationEntry
-                {
-                    Kind = AnnotationAnchorKind.WorldPoint,
-                    Id = world.Id,
-                    Text = world.Text,
-                    Color = world.Color.ToString(),
-                    IsVisible = world.IsVisible,
-                    WorldPoint = BundleVector3.From(world.WorldPoint)
-                },
-                _ => throw new InvalidOperationException($"Unsupported annotation type '{annotation.GetType().FullName}'.")
-            }).ToArray()
-        };
-    }
-
     private static IReadOnlyList<VideraAnnotation> CreateAnnotations(
-        VideraInspectionBundleAnnotationsDocument document,
+        IReadOnlyList<VideraInspectionBundleAnnotationEntry> entries,
         IReadOnlyDictionary<Guid, Guid> objectIdMap)
     {
-        return document.Entries.Select<VideraInspectionBundleAnnotationEntry, VideraAnnotation>(entry => entry.Kind switch
+        return entries.Select<VideraInspectionBundleAnnotationEntry, VideraAnnotation>(entry => entry.Kind switch
         {
             AnnotationAnchorKind.Object => new VideraNodeAnnotation
             {
@@ -528,6 +522,8 @@ internal sealed class VideraInspectionBundleStateDocument
 
     public Guid? PrimarySelectedObjectId { get; init; }
 
+    public IReadOnlyList<VideraInspectionBundleAnnotationEntry> Annotations { get; init; } = Array.Empty<VideraInspectionBundleAnnotationEntry>();
+
     public VideraMeasurementSnapMode MeasurementSnapMode { get; init; } = VideraMeasurementSnapMode.Free;
 
     public IReadOnlyList<VideraInspectionBundleClipPlane> ClippingPlanes { get; init; } = Array.Empty<VideraInspectionBundleClipPlane>();
@@ -562,11 +558,6 @@ internal sealed class VideraInspectionBundleMeasurementAnchor
     public required BundleVector3 WorldPoint { get; init; }
 
     public Guid? ObjectId { get; init; }
-}
-
-internal sealed class VideraInspectionBundleAnnotationsDocument
-{
-    public IReadOnlyList<VideraInspectionBundleAnnotationEntry> Entries { get; init; } = Array.Empty<VideraInspectionBundleAnnotationEntry>();
 }
 
 internal sealed class VideraInspectionBundleAnnotationEntry

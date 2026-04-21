@@ -22,6 +22,7 @@ internal sealed partial class VideraViewRuntime
             CameraPitch = _engine.Camera.Pitch,
             SelectedObjectIds = _selectionState.ObjectIds.ToArray(),
             PrimarySelectedObjectId = _selectionState.PrimaryObjectId,
+            Annotations = CloneAnnotations(_annotations),
             MeasurementSnapMode = _interactionOptions.MeasurementSnapMode,
             ClippingPlanes = _sceneCoordinator.ClippingPlanes.ToArray(),
             Measurements = CloneMeasurements(_measurements)
@@ -38,6 +39,7 @@ internal sealed partial class VideraViewRuntime
             ObjectIds = state.SelectedObjectIds?.ToArray() ?? Array.Empty<Guid>(),
             PrimaryObjectId = state.PrimarySelectedObjectId
         };
+        _annotations = CloneAnnotations(state.Annotations);
         _interactionOptions.MeasurementSnapMode = state.MeasurementSnapMode;
         _measurements = CloneMeasurements(state.Measurements);
         _sceneCoordinator.UpdateClippingPlanes(state.ClippingPlanes);
@@ -97,6 +99,30 @@ internal sealed partial class VideraViewRuntime
             RefreshBackendDiagnostics(_backendDiagnostics.LastInitializationError);
             return VideraSnapshotExportResult.Failed(path, exportSize.Width, exportSize.Height, startedAt.Elapsed, ex);
         }
+    }
+
+    private static IReadOnlyList<VideraAnnotation> CloneAnnotations(IReadOnlyList<VideraAnnotation>? annotations)
+    {
+        return annotations?.Select(static annotation => annotation switch
+        {
+            VideraNodeAnnotation node => (VideraAnnotation)new VideraNodeAnnotation
+            {
+                Id = node.Id,
+                Text = node.Text,
+                Color = node.Color,
+                IsVisible = node.IsVisible,
+                ObjectId = node.ObjectId
+            },
+            VideraWorldPointAnnotation world => new VideraWorldPointAnnotation
+            {
+                Id = world.Id,
+                Text = world.Text,
+                Color = world.Color,
+                IsVisible = world.IsVisible,
+                WorldPoint = world.WorldPoint
+            },
+            _ => throw new InvalidOperationException($"Unsupported annotation type '{annotation.GetType().FullName}'.")
+        }).ToArray() ?? Array.Empty<VideraAnnotation>();
     }
 
     private static IReadOnlyList<VideraMeasurement> CloneMeasurements(IReadOnlyList<VideraMeasurement>? measurements)
