@@ -172,12 +172,16 @@ public partial class MainWindowViewModel : ViewModelBase
         ArgumentNullException.ThrowIfNull(diagnostics);
 
         BackendDisplay = $"Requested: {diagnostics.RequestedBackend} | Resolved: {diagnostics.ResolvedBackend}";
+        var lastFrameFeatures = FormatFeatureList(diagnostics.LastFrameFeatureNames);
+        var supportedFeatures = FormatFeatureList(diagnostics.SupportedRenderFeatureNames);
 
         var details = new List<string>
         {
             $"Ready: {diagnostics.IsReady}",
             $"Native host: {diagnostics.NativeHostBound}",
-            $"Render loop: {diagnostics.RenderLoopMode}"
+            $"Render loop: {diagnostics.RenderLoopMode}",
+            $"Last frame features: {lastFrameFeatures}",
+            $"Supported features: {supportedFeatures}"
         };
 
         if (diagnostics.IsUsingSoftwareFallback)
@@ -321,5 +325,12 @@ public partial class MainWindowViewModel : ViewModelBase
         return string.IsNullOrWhiteSpace(errorMessage)
             ? "unknown error"
             : errorMessage;
+    }
+
+    private static string FormatFeatureList(IReadOnlyList<string>? features)
+    {
+        return features is { Count: > 0 }
+            ? string.Join(", ", features)
+            : "None";
     }
 }

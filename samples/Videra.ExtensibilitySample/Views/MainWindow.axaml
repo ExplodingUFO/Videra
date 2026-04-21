@@ -21,7 +21,7 @@
                    Text="Avalonia-first public extensibility sample" />
         <TextBlock Foreground="#CBD5E1"
                    TextWrapping="Wrap"
-                   Text="This sample registers one RenderPass contributor and one FrameEnd hook through VideraView.Engine, loads a bundled OBJ asset with LoadModelAsync(&quot;Assets/reference-cube.obj&quot;), calls FrameAll(), then surfaces RenderCapabilities and BackendDiagnostics through the public control API." />
+                   Text="This sample registers one RenderPass contributor and one FrameEnd hook through VideraView.Engine, loads a bundled OBJ asset with LoadModelAsync(&quot;Assets/reference-cube.obj&quot;), calls FrameAll(), then surfaces RenderCapabilities, SupportedFeatureNames, LastFrameFeatureNames, and SupportedRenderFeatureNames through the public control API." />
       </StackPanel>
     </Border>
 
@@ -64,7 +64,7 @@
             <TextBlock Foreground="#CBD5E1"
                        Text="FrameAll()" />
             <TextBlock Foreground="#CBD5E1"
-                       Text="RenderCapabilities + BackendDiagnostics" />
+                       Text="RenderCapabilities + BackendDiagnostics + render-feature truth" />
           </StackPanel>
         </Border>
 

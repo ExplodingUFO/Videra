@@ -10,6 +10,7 @@ Current status: `alpha`. This package is the right starting point only for core-
 
 - Rendering abstractions such as `IGraphicsBackend`, `IResourceFactory`, and `ICommandExecutor`
 - Scene lifecycle management through `VideraEngine`
+- Backend-neutral scene/material runtime contracts through `SceneDocument`, `ImportedSceneAsset`, `SceneNode`, `MeshPrimitive`, `MaterialInstance`, `Texture2D`, and `Sampler`
 - Camera, grid, axis, and wireframe helpers
 - Render-style presets and software fallback rendering
 
@@ -18,6 +19,13 @@ The `v1.20` product boundary treats `Core`, `Import`, `Backend`, `UI adapter`, a
 ## Key Types
 
 - `VideraEngine`
+- `SceneDocument`
+- `ImportedSceneAsset`
+- `SceneNode`
+- `MeshPrimitive`
+- `MaterialInstance`
+- `Texture2D`
+- `Sampler`
 - `Object3D`
 - `GraphicsBackendFactory`
 - `IGraphicsBackend`
@@ -47,6 +55,16 @@ Current profiles:
 - `WireframeOnly`
 
 When consumed through `Videra.Avalonia`, the control diagnostics mirror the same information through `RenderPipelineProfile`, `LastFrameStageNames`, and `UsesSoftwarePresentationCopy`.
+
+Stable feature vocabulary:
+
+- `Opaque`
+- `Transparent`
+- `Overlay`
+- `Picking`
+- `Screenshot`
+
+Public feature truth flows through `RenderCapabilitySnapshot.SupportedFeatureNames`, `RenderPipelineSnapshot.FeatureNames`, `BackendDiagnostics.LastFrameFeatureNames`, and `BackendDiagnostics.SupportedRenderFeatureNames`.
 
 ## Built-in Backend Minimum Contract
 

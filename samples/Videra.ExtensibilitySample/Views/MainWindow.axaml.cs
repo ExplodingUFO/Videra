@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using Avalonia.Threading;
 using Videra.Avalonia.Controls;
+using Videra.Core.Graphics.RenderPipeline;
 using Videra.Core.Graphics.RenderPipeline.Extensibility;
 using Videra.ExtensibilitySample.Extensibility;
 
@@ -104,10 +105,14 @@ public partial class MainWindow : Window
         var stages = stageNames is { Count: > 0 }
             ? string.Join(", ", stageNames)
             : "Unavailable";
+        var features = context.ActiveFeatures.ToFeatureNames();
+        var featureSummary = features.Count > 0
+            ? string.Join(", ", features)
+            : "None";
 
         _frameHookSummary =
             $"HookPoint={context.HookPoint}; Backend={context.ActiveBackendPreference?.ToString() ?? "Unknown"}; " +
-            $"Profile={context.LastPipelineSnapshot?.Profile.ToString() ?? "Unavailable"}; Stages={stages}";
+            $"Profile={context.LastPipelineSnapshot?.Profile.ToString() ?? "Unavailable"}; Features={featureSummary}; Stages={stages}";
 
         _ = Dispatcher.UIThread.InvokeAsync(UpdateStatusPanel);
     }
@@ -168,6 +173,12 @@ public partial class MainWindow : Window
         var stages = snapshot?.StageNames is { Count: > 0 }
             ? string.Join(", ", snapshot.StageNames)
             : "Unavailable";
+        var supportedFeatures = capabilities.SupportedFeatureNames.Count > 0
+            ? string.Join(", ", capabilities.SupportedFeatureNames)
+            : "None";
+        var lastFrameFeatures = snapshot?.FeatureNames is { Count: > 0 }
+            ? string.Join(", ", snapshot.FeatureNames)
+            : "Unavailable";
 
         var builder = new StringBuilder();
         builder.AppendLine($"IsInitialized: {capabilities.IsInitialized}");
@@ -176,7 +187,9 @@ public partial class MainWindow : Window
         builder.AppendLine($"SupportsPassReplacement: {capabilities.SupportsPassReplacement}");
         builder.AppendLine($"SupportsFrameHooks: {capabilities.SupportsFrameHooks}");
         builder.AppendLine($"SupportsPipelineSnapshots: {capabilities.SupportsPipelineSnapshots}");
+        builder.AppendLine($"SupportedFeatureNames: {supportedFeatures}");
         builder.AppendLine($"LastPipelineProfile: {snapshot?.Profile.ToString() ?? "Unavailable"}");
+        builder.AppendLine($"LastFrameFeatureNames: {lastFrameFeatures}");
         builder.Append($"LastPipelineStages: {stages}");
         return builder.ToString();
     }
@@ -186,6 +199,12 @@ public partial class MainWindow : Window
         var diagnostics = View3D.BackendDiagnostics;
         var stages = diagnostics.LastFrameStageNames is { Count: > 0 }
             ? string.Join(", ", diagnostics.LastFrameStageNames)
+            : "Unavailable";
+        var lastFrameFeatures = diagnostics.LastFrameFeatureNames is { Count: > 0 }
+            ? string.Join(", ", diagnostics.LastFrameFeatureNames)
+            : "Unavailable";
+        var supportedFeatures = diagnostics.SupportedRenderFeatureNames is { Count: > 0 }
+            ? string.Join(", ", diagnostics.SupportedRenderFeatureNames)
             : "Unavailable";
 
         var builder = new StringBuilder();
@@ -197,6 +216,8 @@ public partial class MainWindow : Window
         builder.AppendLine($"NativeHostBound: {diagnostics.NativeHostBound}");
         builder.AppendLine($"RenderPipelineProfile: {diagnostics.RenderPipelineProfile ?? "Unavailable"}");
         builder.AppendLine($"LastFrameStageNames: {stages}");
+        builder.AppendLine($"LastFrameFeatureNames: {lastFrameFeatures}");
+        builder.AppendLine($"SupportedRenderFeatureNames: {supportedFeatures}");
         builder.AppendLine($"UsesSoftwarePresentationCopy: {diagnostics.UsesSoftwarePresentationCopy}");
         builder.Append($"LastInitializationError: {diagnostics.LastInitializationError ?? "None"}");
         return builder.ToString();

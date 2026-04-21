@@ -8,11 +8,16 @@
 - `RegisterPassContributor(RenderPassSlot.SolidGeometry, ...)`
 - `RegisterFrameHook(RenderFrameHookPoint.FrameEnd, ...)`
 - `RenderCapabilities`
+- `RenderCapabilities.SupportedFeatureNames`
 - `BackendDiagnostics`
+- `BackendDiagnostics.LastFrameFeatureNames`
+- `BackendDiagnostics.SupportedRenderFeatureNames`
 - `LoadModelAsync("Assets/reference-cube.obj")`
 - `FrameAll()`
 
 The sample registers exactly one `IRenderPassContributor` for `RenderPassSlot.SolidGeometry`, exactly one `FrameEnd` hook, loads the bundled cube asset, frames the scene, and shows the contributor observation plus capability and diagnostics summaries in the side panel.
+
+Those summaries intentionally surface the public render-feature vocabulary too: `Opaque`, `Transparent`, `Overlay`, `Picking`, and `Screenshot`.
 
 ## Run
 

@@ -10,6 +10,8 @@ The canonical public viewer stack is:
 2. exactly one matching `Videra.Platform.*` package
 3. optional `Videra.Import.Gltf` / `Videra.Import.Obj` when you need explicit core-path ingestion
 
+Viewer/runtime asset truth stays backend-neutral across those layers: the import packages build `ImportedSceneAsset` catalogs from `SceneNode`, `MeshPrimitive`, `MaterialInstance`, `Texture2D`, and `Sampler`, and `Videra.Avalonia` keeps that retained scene/material truth in `SceneDocument` until upload.
+
 ## Package-layer matrix
 
 | Layer | Current mapping | Public status | Notes |

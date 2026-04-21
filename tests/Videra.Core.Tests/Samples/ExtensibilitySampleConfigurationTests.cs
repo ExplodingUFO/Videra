@@ -11,9 +11,17 @@ public sealed class ExtensibilitySampleConfigurationTests
         "RegisterPassContributor(RenderPassSlot.SolidGeometry, ...)",
         "RegisterFrameHook(RenderFrameHookPoint.FrameEnd, ...)",
         "RenderCapabilities",
+        "RenderCapabilities.SupportedFeatureNames",
         "BackendDiagnostics",
+        "BackendDiagnostics.LastFrameFeatureNames",
+        "BackendDiagnostics.SupportedRenderFeatureNames",
         "LoadModelAsync(\"Assets/reference-cube.obj\")",
         "FrameAll()",
+        "Opaque",
+        "Transparent",
+        "Overlay",
+        "Picking",
+        "Screenshot",
         "package discovery",
         "plugin loading"
     };
@@ -61,6 +69,10 @@ public sealed class ExtensibilitySampleConfigurationTests
         codeBehind.Should().Contain("View3D.FrameAll()");
         codeBehind.Should().Contain("View3D.RenderCapabilities");
         codeBehind.Should().Contain("View3D.BackendDiagnostics");
+        codeBehind.Should().Contain("capabilities.SupportedFeatureNames");
+        codeBehind.Should().Contain("snapshot?.FeatureNames");
+        codeBehind.Should().Contain("diagnostics.LastFrameFeatureNames");
+        codeBehind.Should().Contain("diagnostics.SupportedRenderFeatureNames");
 
         foreach (var forbidden in ForbiddenLibraryAndDemoSeams)
         {

@@ -124,6 +124,13 @@ public sealed class DemoConfigurationTests
         demoReadme.Should().Contain("document version");
         demoReadme.Should().Contain("resident");
         demoReadme.Should().Contain("failed");
+        demoReadme.Should().Contain("SceneNode");
+        demoReadme.Should().Contain("MeshPrimitive");
+        demoReadme.Should().Contain("MaterialInstance");
+        demoReadme.Should().Contain("Texture2D");
+        demoReadme.Should().Contain("Sampler");
+        demoReadme.Should().Contain("SupportedRenderFeatureNames");
+        demoReadme.Should().Contain("LastFrameFeatureNames");
     }
 
     [Fact]
@@ -139,6 +146,13 @@ public sealed class DemoConfigurationTests
         xaml.Should().Contain("scene upload queue");
         xaml.Should().Contain("residency counts");
         xaml.Should().Contain("backend rebind");
+        xaml.Should().Contain("SceneNode");
+        xaml.Should().Contain("MeshPrimitive");
+        xaml.Should().Contain("MaterialInstance");
+        xaml.Should().Contain("Texture2D");
+        xaml.Should().Contain("Sampler");
+        xaml.Should().Contain("supported render features");
+        xaml.Should().Contain("last-frame features");
     }
 
     [Fact]
@@ -212,6 +226,18 @@ public sealed class DemoConfigurationTests
         demoProject.Should().Contain(@"..\..\src\Videra.Platform.Windows\Videra.Platform.Windows.csproj");
         demoProject.Should().Contain(@"..\..\src\Videra.Platform.Linux\Videra.Platform.Linux.csproj");
         demoProject.Should().Contain(@"..\..\src\Videra.Platform.macOS\Videra.Platform.macOS.csproj");
+    }
+
+    [Fact]
+    public void DemoViewModel_ShouldProjectRenderFeatureDiagnostics()
+    {
+        var viewModelPath = Path.Combine(GetRepositoryRoot(), "samples", "Videra.Demo", "ViewModels", "MainWindowViewModel.cs");
+        var viewModel = File.ReadAllText(viewModelPath);
+
+        viewModel.Should().Contain("diagnostics.LastFrameFeatureNames");
+        viewModel.Should().Contain("diagnostics.SupportedRenderFeatureNames");
+        viewModel.Should().Contain("Last frame features:");
+        viewModel.Should().Contain("Supported features:");
     }
 
     private static string GetRepositoryRoot()

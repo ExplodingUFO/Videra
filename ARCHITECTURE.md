@@ -55,6 +55,7 @@ Platform-agnostic rendering layer responsible for:
 - Rendering abstractions
 - Scene object and engine lifecycle
 - `SceneDocument` scene ownership and backend-neutral imported assets
+- Scene/material runtime catalogs expressed as `SceneNode`, `MeshPrimitive`, `MaterialInstance`, `Texture2D`, and `Sampler`
 - Camera, grid, axis, and wireframe logic
 - Render-style presets
 - Software fallback rendering
@@ -93,6 +94,19 @@ Dedicated import packages own file-format parsing and CPU-side scene asset creat
 - `Videra.Import.Obj`: `.obj`
 
 These packages compose with `Videra.Core` directly. `Videra.Avalonia` consumes them transitively so `LoadModelAsync(...)` stays on the default viewer path without moving import parsing back into `Videra.Core`.
+
+## Scene and Material Runtime Truth
+
+The viewer/runtime scene model is intentionally viewer-first instead of backend-first:
+
+- `SceneDocument` is the retained scene truth for the active view.
+- `ImportedSceneAsset` carries backend-neutral scene/material catalogs produced by the import layer.
+- `SceneNode` owns node identity, hierarchy, and local transforms.
+- `MeshPrimitive` attaches shared geometry and material references without collapsing node identity into one object.
+- `MaterialInstance`, `Texture2D`, and `Sampler` are explicit runtime assets owned by the imported scene catalog.
+- `SceneDocumentStore`, `SceneDeltaPlanner`, `SceneResidencyRegistry`, and `SceneUploadQueue` keep those retained assets CPU-side until a ready resource factory can realize them on the active backend.
+
+That split is what lets backend rebind/recovery rebuild scene resources from retained scene truth instead of depending on a long-lived staging mirror in the public API.
 
 ### Native Backend Packages
 
@@ -199,6 +213,21 @@ Contract notes:
 - `LastPipelineSnapshot` records the executed stages plus the effective pipeline profile for the last completed frame.
 - `VideraView.BackendDiagnostics` mirrors the same read-only truth through `RenderPipelineProfile`, `LastFrameStageNames`, and `UsesSoftwarePresentationCopy`.
 - `VideraView.RenderCapabilities` exposes the same Core-side capability snapshot to host apps.
+
+Stable feature vocabulary for runtime, contributors, and host diagnostics:
+
+- `Opaque`
+- `Transparent`
+- `Overlay`
+- `Picking`
+- `Screenshot`
+
+Feature truth surfaces:
+
+- `RenderCapabilities.SupportedFeatureNames`
+- `LastPipelineSnapshot.FeatureNames`
+- `VideraView.BackendDiagnostics.LastFrameFeatureNames`
+- `VideraView.BackendDiagnostics.SupportedRenderFeatureNames`
 
 ## Public Extensibility
 
