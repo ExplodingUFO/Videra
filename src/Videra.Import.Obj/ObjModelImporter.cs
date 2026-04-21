@@ -29,10 +29,15 @@ public static partial class ObjModelImporter
             Log.Loading(log, filePath);
 
             var meshData = LoadSimpleObj(filePath);
+            var material = new MaterialInstance(
+                MaterialInstanceId.New(),
+                $"{Path.GetFileName(filePath)}#material0",
+                RgbaFloat.LightGrey);
             var primitive = new MeshPrimitive(
                 MeshPrimitiveId.New(),
                 $"{Path.GetFileName(filePath)}#primitive0",
-                meshData);
+                meshData,
+                material.Id);
             var rootNode = new SceneNode(
                 SceneNodeId.New(),
                 Path.GetFileName(filePath),
@@ -43,7 +48,8 @@ public static partial class ObjModelImporter
                 filePath,
                 Path.GetFileName(filePath),
                 [rootNode],
-                [primitive]);
+                [primitive],
+                [material]);
 
             Log.Loaded(log, meshData.Vertices.Length, meshData.Indices.Length);
             Log.LoadSucceeded(log, filePath);

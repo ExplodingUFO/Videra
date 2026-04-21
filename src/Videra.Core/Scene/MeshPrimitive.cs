@@ -10,7 +10,8 @@ public sealed record MeshPrimitive
     public MeshPrimitive(
         MeshPrimitiveId id,
         string name,
-        MeshData meshData)
+        MeshData meshData,
+        MaterialInstanceId? materialId = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         ArgumentNullException.ThrowIfNull(meshData);
@@ -18,6 +19,7 @@ public sealed record MeshPrimitive
         Id = id;
         Name = name;
         MeshData = meshData;
+        MaterialId = materialId;
         _payload = MeshPayload.FromMesh(meshData, cloneArrays: false);
     }
 
@@ -26,6 +28,8 @@ public sealed record MeshPrimitive
     public string Name { get; }
 
     public MeshData MeshData { get; }
+
+    public MaterialInstanceId? MaterialId { get; }
 
     internal MeshPayload Payload => _payload;
 }
