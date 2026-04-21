@@ -86,6 +86,9 @@ public sealed class HostingBoundaryTests
         var gltfReferences = GetProjectReferenceFileNames(Path.Combine(repositoryRoot, "src", "Videra.Import.Gltf", "Videra.Import.Gltf.csproj"));
         var objReferences = GetProjectReferenceFileNames(Path.Combine(repositoryRoot, "src", "Videra.Import.Obj", "Videra.Import.Obj.csproj"));
         var avaloniaReferences = GetProjectReferenceFileNames(Path.Combine(repositoryRoot, "src", "Videra.Avalonia", "Videra.Avalonia.csproj"));
+        var windowsReferences = GetProjectReferenceFileNames(Path.Combine(repositoryRoot, "src", "Videra.Platform.Windows", "Videra.Platform.Windows.csproj"));
+        var linuxReferences = GetProjectReferenceFileNames(Path.Combine(repositoryRoot, "src", "Videra.Platform.Linux", "Videra.Platform.Linux.csproj"));
+        var macosReferences = GetProjectReferenceFileNames(Path.Combine(repositoryRoot, "src", "Videra.Platform.macOS", "Videra.Platform.macOS.csproj"));
 
         coreReferences.Should().BeEmpty("Videra.Core must stay free of UI, import, and platform project references");
 
@@ -95,6 +98,9 @@ public sealed class HostingBoundaryTests
             "Videra.Core.csproj",
             "Videra.Import.Gltf.csproj",
             "Videra.Import.Obj.csproj");
+        windowsReferences.Should().BeEquivalentTo("Videra.Core.csproj");
+        linuxReferences.Should().BeEquivalentTo("Videra.Core.csproj");
+        macosReferences.Should().BeEquivalentTo("Videra.Core.csproj");
     }
 
     private static HashSet<string> GetPublicSurfaceTypeNames(Assembly assembly)

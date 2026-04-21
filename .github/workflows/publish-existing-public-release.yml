@@ -46,6 +46,27 @@ jobs:
         with:
           dotnet-version: 8.0.x
 
+      - name: Validate tag supports canonical public release helpers
+        shell: pwsh
+        run: |
+          $requiredPaths = @(
+            "scripts/verify.ps1",
+            "scripts/Invoke-ConsumerSmoke.ps1",
+            "scripts/Validate-Packages.ps1",
+            "src/Videra.Core/Videra.Core.csproj",
+            "src/Videra.Import.Gltf/Videra.Import.Gltf.csproj",
+            "src/Videra.Import.Obj/Videra.Import.Obj.csproj",
+            "src/Videra.Avalonia/Videra.Avalonia.csproj",
+            "src/Videra.Platform.Windows/Videra.Platform.Windows.csproj",
+            "src/Videra.Platform.Linux/Videra.Platform.Linux.csproj",
+            "src/Videra.Platform.macOS/Videra.Platform.macOS.csproj"
+          )
+
+          $missingPaths = @($requiredPaths | Where-Object { -not (Test-Path $_) })
+          if ($missingPaths.Count -gt 0) {
+            throw "Tag ${{ steps.version.outputs.tag }} predates the current canonical public package line or release helper stack. publish-existing-public-release.yml only supports tags that already carry the current public package set and helper scripts. Missing paths: $($missingPaths -join ', ')"
+          }
+
       - name: Run repository verification
         shell: pwsh
         run: |
@@ -72,52 +93,20 @@ jobs:
           dotnet pack src/Videra.Platform.Linux/Videra.Platform.Linux.csproj -c Release -o ./nupkgs /p:PackageVersion=${{ steps.version.outputs.version }}
           dotnet pack src/Videra.Platform.macOS/Videra.Platform.macOS.csproj -c Release -o ./nupkgs /p:PackageVersion=${{ steps.version.outputs.version }}
 
+      - name: Run packaged consumer smoke
+        shell: pwsh
+        run: pwsh -File ./scripts/Invoke-ConsumerSmoke.ps1 -Configuration Release -OutputRoot artifacts/consumer-smoke/existing-release
+
+      - name: Upload consumer smoke artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: consumer-smoke-existing-public-release
+          path: artifacts/consumer-smoke/existing-release
+
       - name: Validate packed artifacts
         shell: pwsh
-        run: |
-          $expectedVersion = "${{ steps.version.outputs.version }}"
-          $expectedPackages = @(
-            "Videra.Core",
-            "Videra.Import.Gltf",
-            "Videra.Import.Obj",
-            "Videra.Avalonia",
-            "Videra.Platform.Windows",
-            "Videra.Platform.Linux",
-            "Videra.Platform.macOS"
-          )
-
-          $packages = Get-ChildItem -Path ./nupkgs/*.nupkg | Where-Object { $_.Name -notlike "*.symbols.nupkg" }
-          if ($packages.Count -ne $expectedPackages.Count) {
-            throw "Expected $($expectedPackages.Count) public packages, found $($packages.Count)."
-          }
-
-          $validationRoot = Join-Path $PWD ".package-validation"
-          Remove-Item -LiteralPath $validationRoot -Recurse -Force -ErrorAction SilentlyContinue
-          New-Item -ItemType Directory -Path $validationRoot | Out-Null
-
-          foreach ($packageId in $expectedPackages) {
-            $package = $packages | Where-Object { $_.Name -eq "$packageId.$expectedVersion.nupkg" } | Select-Object -First 1
-            if ($null -eq $package) {
-              throw "Expected package $packageId.$expectedVersion.nupkg was not produced."
-            }
-
-            $extractPath = Join-Path $validationRoot $package.BaseName
-            Expand-Archive -LiteralPath $package.FullName -DestinationPath $extractPath -Force
-
-            $nuspec = Get-ChildItem -Path $extractPath -Filter *.nuspec | Select-Object -First 1
-            if ($null -eq $nuspec) {
-              throw "Package $($package.Name) is missing a nuspec."
-            }
-
-            [xml]$nuspecXml = Get-Content -Raw $nuspec.FullName
-            if ($nuspecXml.package.metadata.id -ne $packageId) {
-              throw "Package $($package.Name) has mismatched package id $($nuspecXml.package.metadata.id)."
-            }
-
-            if ($nuspecXml.package.metadata.version -ne $expectedVersion) {
-              throw "Package $($package.Name) has mismatched nuspec version $($nuspecXml.package.metadata.version)."
-            }
-          }
+        run: pwsh -File ./scripts/Validate-Packages.ps1 -PackageRoot ./nupkgs -ExpectedVersion ${{ steps.version.outputs.version }}
 
       - name: Push public packages to nuget.org
         shell: pwsh

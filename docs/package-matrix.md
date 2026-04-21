@@ -2,7 +2,13 @@
 
 This matrix is the public truth for what Videra publishes, what stays source-only, and what is sample/demo code.
 
-For the explicit `1.0` product boundary and deferred capability split, use [Videra 1.0 Capability Matrix](capability-matrix.md).
+For the explicit `1.0` product boundary and deferred capability split, use [Videra 1.0 Capability Matrix](capability-matrix.md). For the canonical shipped viewer composition and internal seam ownership, use [Hosting Boundary](hosting-boundary.md).
+
+The canonical public viewer stack is:
+
+1. `Videra.Avalonia`
+2. exactly one matching `Videra.Platform.*` package
+3. optional `Videra.Import.Gltf` / `Videra.Import.Obj` when you need explicit core-path ingestion
 
 ## Package-layer matrix
 

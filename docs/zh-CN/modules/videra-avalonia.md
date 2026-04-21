@@ -34,6 +34,8 @@ dotnet add package Videra.Platform.Windows --version 0.1.0-alpha.7 --source gith
 
 `PreferredBackend` 和 `VIDERA_BACKEND` 只影响后端偏好，不会安装缺失的平台包，也不会替代 matching-host 原生验证。
 
+`Videra.Avalonia` 默认安装路径会传递依赖 `Videra.Import.Gltf` 与 `Videra.Import.Obj`，因此常规 `LoadModelAsync(...)` / `LoadModelsAsync(...)` 场景不需要再单独添加导入包；只有 `Videra.Core` 单独消费路径才需要显式引入这些包。
+
 ## 模块架构
 
 ```mermaid
@@ -115,6 +117,8 @@ graph TB
 - overlay responsibilities split between `3D highlight/render state` and `2D label/feedback rendering`
 
 这条合同强调 public flow，而不是内部 seam。也就是说，示例只通过 `View3D.SelectionState`、`View3D.Annotations`、`View3D.InteractionMode`、`Measurements`、`ClippingPlanes`、`CaptureInspectionState()`、`ApplyInspectionState(...)`、`ExportSnapshotAsync(...)`、`VideraInspectionBundleService`、`SelectionRequested`、`AnnotationRequested` 往返状态，不直接接触内部 overlay 类型。
+
+默认 first-scene / first-viewer flow 仍优先对照英文 README：`VideraViewOptions -> LoadModelAsync(...) -> FrameAll() / ResetCamera() -> BackendDiagnostics`。
 
 ### 使用示例
 

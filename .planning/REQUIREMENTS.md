@@ -72,7 +72,7 @@ Explicitly excluded from `v1.20` to keep the milestone focused on product bounda
 | PKG-02 | Phase 104 | Complete |
 | PKG-01 | Phase 104 | Complete |
 | HOST-01 | Phase 105 | Complete |
-| VALD-01 | Phase 106 | Pending |
+| VALD-01 | Phase 106 | Complete |
 
 **Coverage:**
 - v1 requirements: `9` total
@@ -81,4 +81,4 @@ Explicitly excluded from `v1.20` to keep the milestone focused on product bounda
 
 ---
 *Requirements defined: 2026-04-21*
-*Last updated: 2026-04-21 after completing Phase 105*
+*Last updated: 2026-04-21 after completing Phase 106*

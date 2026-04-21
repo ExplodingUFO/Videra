@@ -16,6 +16,10 @@ The public package line is limited to:
 
 Public release tags publish these packages to `nuget.org`.
 
+The canonical public viewer stack is `Videra.Avalonia` plus exactly one matching `Videra.Platform.*` package. `Videra.Import.Gltf` and `Videra.Import.Obj` stay explicit ingestion packages on the core path; they are part of the public package line, but they are not a replacement for the Avalonia + matching-platform viewer stack.
+
+Use [Package Matrix](package-matrix.md) for the published-package table and [Hosting Boundary](hosting-boundary.md) for the canonical composition story behind this release line.
+
 ## Preview and internal feed
 
 `GitHub Packages` is reserved for `preview` / internal validation flows. It can be used for contributor testing, canary validation, and pre-release evidence gathering, but it is not the default public consumer path.

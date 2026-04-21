@@ -5,6 +5,17 @@ namespace Videra.Core.Tests.Repository;
 
 public sealed class RepositoryReleaseReadinessTests
 {
+    private static readonly string[] CanonicalPublicPackageIds =
+    [
+        "Videra.Core",
+        "Videra.Import.Gltf",
+        "Videra.Import.Obj",
+        "Videra.Avalonia",
+        "Videra.Platform.Windows",
+        "Videra.Platform.Linux",
+        "Videra.Platform.macOS"
+    ];
+
     [Fact]
     public void Readme_ShouldDocumentPublicEntryPointsAndPackageCategories()
     {
@@ -67,6 +78,61 @@ public sealed class RepositoryReleaseReadinessTests
     }
 
     [Fact]
+    public void CanonicalViewerPackageStackDocs_ShouldShareSameBoundaryAndInstallStory()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var packageMatrix = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "package-matrix.md"));
+        var supportMatrix = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "support-matrix.md"));
+        var releasePolicy = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "release-policy.md"));
+        var releasing = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "releasing.md"));
+        var chineseReadme = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "zh-CN", "README.md"));
+        var chineseIndex = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "zh-CN", "index.md"));
+        var chineseAvalonia = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "zh-CN", "modules", "videra-avalonia.md"));
+
+        foreach (var packageId in CanonicalPublicPackageIds)
+        {
+            packageMatrix.Should().Contain(packageId);
+            supportMatrix.Should().Contain(packageId);
+            releasePolicy.Should().Contain(packageId);
+            releasing.Should().Contain(packageId);
+        }
+
+        packageMatrix.Should().Contain("hosting-boundary.md");
+        supportMatrix.Should().Contain("hosting-boundary.md");
+        releasePolicy.Should().Contain("hosting-boundary.md");
+        releasing.Should().Contain("hosting-boundary.md");
+
+        packageMatrix.Should().Contain("exactly one matching `Videra.Platform.*` package");
+        supportMatrix.Should().Contain("exactly one matching `Videra.Platform.*` package");
+        releasePolicy.Should().Contain("exactly one matching `Videra.Platform.*` package");
+        releasing.Should().Contain("exactly one matching `Videra.Platform.*` package");
+
+        packageMatrix.Should().Contain("Videra.SurfaceCharts.*");
+        packageMatrix.Should().Contain("Source-first");
+        packageMatrix.Should().Contain("Do not treat source-only modules or demos as installable public packages.");
+        releasePolicy.Should().Contain("Videra.SurfaceCharts.Core");
+        releasePolicy.Should().Contain("Videra.SurfaceCharts.Avalonia");
+        releasePolicy.Should().Contain("Videra.SurfaceCharts.Processing");
+        releasePolicy.Should().Contain("repository-only");
+        releasing.Should().Contain("Videra.SurfaceCharts.*");
+        releasing.Should().Contain("repository-only");
+
+        chineseReadme.Should().Contain("Videra.Import.Gltf");
+        chineseReadme.Should().Contain("Videra.Import.Obj");
+        chineseReadme.Should().Contain("传递依赖");
+        chineseReadme.Should().Contain("LoadModelAsync");
+        chineseReadme.Should().Contain("FrameAll()");
+        chineseReadme.Should().Contain("ResetCamera()");
+        chineseReadme.Should().Contain("BackendDiagnostics");
+        chineseIndex.Should().Contain("传递依赖");
+        chineseAvalonia.Should().Contain("传递依赖");
+        chineseAvalonia.Should().Contain("LoadModelAsync");
+        chineseAvalonia.Should().Contain("FrameAll()");
+        chineseAvalonia.Should().Contain("ResetCamera()");
+        chineseAvalonia.Should().Contain("BackendDiagnostics");
+    }
+
+    [Fact]
     public void ProductBoundaryDocs_ShouldPublishCapabilityAndLayerMatrices()
     {
         var repositoryRoot = GetRepositoryRoot();
@@ -107,6 +173,57 @@ public sealed class RepositoryReleaseReadinessTests
         coreProject.Should().Contain("inspection");
         avaloniaProject.Should().Contain("Native desktop viewer and inspection control package");
         avaloniaProject.Should().Contain("desktop-viewer");
+    }
+
+    [Fact]
+    public void CanonicalPublicPackageTruth_ShouldStayAlignedAcrossDocsAndAutomation()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var packageMatrix = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "package-matrix.md"));
+        var releasePolicy = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "release-policy.md"));
+        var releasing = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "releasing.md"));
+        var consumerSmoke = File.ReadAllText(Path.Combine(repositoryRoot, "scripts", "Invoke-ConsumerSmoke.ps1"));
+        var validatePackages = File.ReadAllText(Path.Combine(repositoryRoot, "scripts", "Validate-Packages.ps1"));
+        var ciWorkflow = File.ReadAllText(Path.Combine(repositoryRoot, ".github", "workflows", "ci.yml"));
+        var publicWorkflow = File.ReadAllText(Path.Combine(repositoryRoot, ".github", "workflows", "publish-public.yml"));
+        var previewWorkflow = File.ReadAllText(Path.Combine(repositoryRoot, ".github", "workflows", "publish-github-packages.yml"));
+        var existingReleaseWorkflow = File.ReadAllText(Path.Combine(repositoryRoot, ".github", "workflows", "publish-existing-public-release.yml"));
+
+        foreach (var packageId in CanonicalPublicPackageIds)
+        {
+            packageMatrix.Should().Contain(packageId);
+            releasePolicy.Should().Contain(packageId);
+            releasing.Should().Contain(packageId);
+            validatePackages.Should().Contain(packageId);
+            publicWorkflow.Should().Contain(packageId);
+            previewWorkflow.Should().Contain(packageId);
+            existingReleaseWorkflow.Should().Contain(packageId);
+        }
+
+        consumerSmoke.Should().Contain("src/Videra.Core/Videra.Core.csproj");
+        consumerSmoke.Should().Contain("src/Videra.Import.Gltf/Videra.Import.Gltf.csproj");
+        consumerSmoke.Should().Contain("src/Videra.Import.Obj/Videra.Import.Obj.csproj");
+        consumerSmoke.Should().Contain("src/Videra.Avalonia/Videra.Avalonia.csproj");
+        consumerSmoke.Should().Contain("src/Videra.Platform.Windows/Videra.Platform.Windows.csproj");
+        consumerSmoke.Should().Contain("src/Videra.Platform.Linux/Videra.Platform.Linux.csproj");
+        consumerSmoke.Should().Contain("src/Videra.Platform.macOS/Videra.Platform.macOS.csproj");
+        ciWorkflow.Should().Contain("Validate-Packages.ps1");
+        ciWorkflow.Should().Contain("artifacts/consumer-smoke-quality/packages");
+        existingReleaseWorkflow.Should().Contain("Invoke-ConsumerSmoke.ps1");
+        existingReleaseWorkflow.Should().Contain("Validate-Packages.ps1");
+        existingReleaseWorkflow.Should().Contain("consumer-smoke-existing-public-release");
+        existingReleaseWorkflow.Should().Contain("only supports tags that already carry the current public package set and helper scripts");
+        validatePackages.Should().Contain("Expected exactly");
+        validatePackages.Should().Contain("Unexpected package");
+
+        foreach (var document in new[]
+                 { consumerSmoke, validatePackages, ciWorkflow, publicWorkflow, previewWorkflow, existingReleaseWorkflow })
+        {
+            document.Should().NotContain("Videra.SurfaceCharts.Core.csproj");
+            document.Should().NotContain("Videra.SurfaceCharts.Avalonia.csproj");
+            document.Should().NotContain("Videra.SurfaceCharts.Processing.csproj");
+            document.Should().NotContain("Videra.SurfaceCharts.Demo.csproj");
+        }
     }
 
     [Fact]

@@ -5,17 +5,17 @@
 See: `.planning/PROJECT.md` (updated 2026-04-21)
 
 **Core value:** 跨平台 3D 渲染引擎的可靠性
-**Current focus:** `v1.20` 已完成 Phase `105`，下一步进入 Phase `106`，把 canonical package stack、consumer truth 和 layering validation 一起收口
+**Current focus:** `v1.20` 已完成 Phase `106`，下一步进入 milestone audit / closeout，确认 viewer-first package boundary 可以直接归档
 
 ## Current Position
 
 Milestone: `v1.20`
-Phase: `Phase 106 ready`
+Phase: `Phase work complete`
 Plan: `—`
-Status: `Phase 105 is complete locally; the canonical hosting boundary is now documented and guarded without widening the public API`
-Last activity: `2026-04-21` — completed Phase `105` by publishing the canonical hosting-boundary doc, adding reflection/project-graph guards for the viewer stack, and tightening the `VideraView` shell guard to cover all public partials
+Status: `Phase 106 is complete locally; package/support/release truth and repository validation now point at the same canonical public viewer stack`
+Last activity: `2026-04-21` — completed Phase `106` by aligning package/support/release docs, extending repository release-readiness guards across docs and automation, and updating the Chinese onboarding mirrors to reflect the same package truth
 
-Progress: `Phase 103-105 are complete locally; Phase 106 is the next executable step.`
+Progress: `Phase 103-106 are complete locally; v1.20 is ready for milestone audit and closeout.`
 
 ## Performance Metrics
 
@@ -38,13 +38,13 @@ Progress: `Phase 103-105 are complete locally; Phase 106 is the next executable 
 
 ### Pending Todos
 
-- Start Phase `106`: lock the canonical package stack into consumer docs, smoke truth, and layering validation so the milestone can close cleanly.
+- Run `v1.20` milestone audit and closeout now that all roadmap phases are complete locally.
 
 ### Blockers/Concerns
 
 - Historical `.planning/phases/13-surfacechart-runtime-and-view-state-contract/13-VERIFICATION.md` and `.planning/phases/14-built-in-interaction-and-camera-workflow/14-VERIFICATION.md` still report `gaps_found`; they were acknowledged at `v1.18` closeout and do not block the archive.
 - Carry-forward engineering debt from `v1.18` lives in `.planning/PROJECT.md` Current Risks and `.planning/milestones/v1.18-MILESTONE-AUDIT.md`.
-- The new host-boundary truth now exists, so Phase `106` has to reuse that exact vocabulary instead of reintroducing alternate package-stack stories in README, smoke, or release guidance.
+- The phase work is done; the remaining risk is milestone closeout drift if audit artifacts are not generated before starting `v1.21`.
 
 ### Quick Tasks Completed
 
@@ -68,5 +68,5 @@ Progress: `Phase 103-105 are complete locally; Phase 106 is the next executable 
 ## Session Continuity
 
 Last session: `2026-04-20 +08:00`
-Stopped at: `Phase 105 complete locally; Phase 106 is ready to start`
+Stopped at: `Phase 106 complete locally; v1.20 is ready for milestone audit and closeout`
 Resume file: `.planning/ROADMAP.md`

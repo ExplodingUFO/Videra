@@ -3,7 +3,7 @@
 ## Active Milestone
 
 - `v1.20 Viewer Product Boundary and Core Slimming`
-- Status: `Phase 103-105 complete locally on 2026-04-21; Phase 106 is next`
+- Status: `Phase 103-106 complete locally on 2026-04-21; milestone is ready for audit/closeout`
 - Focus: keep the viewer/runtime `1.0` boundary fixed while extracting concrete importer and logging dependencies out of `Videra.Core`
 
 ### Phase 103: Viewer Product Boundary and Capability Matrix
@@ -86,15 +86,24 @@ Notes:
 
 Plans:
 
-- [ ] 106-01: update README, architecture docs, and package guidance to teach the canonical slimmed package stack
-- [ ] 106-02: add or upgrade consumer smoke, repository guards, and package-matrix checks for the new layering
-- [ ] 106-03: close the milestone with support/release truth that matches the shipped viewer-first package boundary
+- [x] 106-01: update README, architecture docs, and package guidance to teach the canonical slimmed package stack
+- [x] 106-02: add or upgrade consumer smoke, repository guards, and package-matrix checks for the new layering
+- [x] 106-03: close the milestone with support/release truth that matches the shipped viewer-first package boundary
 
 Success criteria:
 
 1. Consumer-facing docs describe the same canonical package stack that the code actually ships.
 2. Repository guards or smoke tests fail when the new layering regresses.
 3. Support/release truth no longer relies on users reverse-engineering `Videra.Core` internals to understand what belongs where.
+
+Notes:
+
+- `docs/package-matrix.md`, `docs/support-matrix.md`, `docs/release-policy.md`, and `docs/releasing.md` now all point back to the same canonical viewer stack and boundary docs.
+- `RepositoryReleaseReadinessTests` now guards the public package line across docs, smoke scripts, package validation, workflows, and the Chinese onboarding mirrors.
+- PR quality-gate evidence now validates the packed consumer-smoke packages with `Validate-Packages.ps1`, so package metadata/dependency drift fails before publish time.
+- `publish-existing-public-release.yml` now runs packaged consumer smoke and `Validate-Packages.ps1` instead of bypassing the canonical public-release evidence stack, and it fails fast when a tag predates the current public package line/helper scripts.
+- `Validate-Packages.ps1` now enforces the exact canonical public package set rather than merely checking that the expected IDs are present somewhere in a larger artifact set.
+- The milestone-level validation requirement is now satisfied locally; the next step is audit and archive, not another v1.20 phase.
 
 ## Operational Baseline
 

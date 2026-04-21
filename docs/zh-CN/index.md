@@ -6,7 +6,7 @@
 
 ## 安装与分发入口
 
-- [项目首页](README.md)：`nuget.org` 默认安装路径、`GitHub Packages` preview 说明、`Videra.Avalonia` + `Videra.Platform.*` 组合安装、`Videra.Core` 单独消费
+- [项目首页](README.md)：`nuget.org` 默认安装路径、`GitHub Packages` preview 说明、`Videra.Avalonia` + `Videra.Platform.*` 组合安装、`Videra.Core` 单独消费，以及默认 viewer 路径对 `Videra.Import.*` 的传递依赖说明
 - [包矩阵](../package-matrix.md)：published packages、source-only modules 与 demos/samples 的边界
 - [支持矩阵](../support-matrix.md)：平台、验证方式与支持级别
 - [发布策略](../release-policy.md)：公开 feed、preview feed 和 source-only 边界
