@@ -103,6 +103,18 @@ public sealed class HostingBoundaryTests
         macosReferences.Should().BeEquivalentTo("Videra.Core.csproj");
     }
 
+    [Theory]
+    [InlineData(@"..\Videra.Core\Videra.Core.csproj", "Videra.Core.csproj")]
+    [InlineData("../Videra.Core/Videra.Core.csproj", "Videra.Core.csproj")]
+    public void ProjectReferenceFileNameExtraction_ShouldNormalizeCrossPlatformSeparators(
+        string includePath,
+        string expectedFileName)
+    {
+        ArgumentNullException.ThrowIfNull(includePath);
+        ArgumentNullException.ThrowIfNull(expectedFileName);
+        GetProjectReferenceFileName(includePath).Should().Be(expectedFileName);
+    }
+
     private static HashSet<string> GetPublicSurfaceTypeNames(Assembly assembly)
     {
         var names = new HashSet<string>(StringComparer.Ordinal);
@@ -209,8 +221,14 @@ public sealed class HostingBoundaryTests
             .Where(element => element.Name.LocalName == "ProjectReference")
             .Select(element => element.Attribute("Include")?.Value)
             .Where(include => !string.IsNullOrWhiteSpace(include))
-            .Select(include => Path.GetFileName(include!))
+            .Select(include => GetProjectReferenceFileName(include!))
             .OrderBy(name => name, StringComparer.Ordinal)
             .ToArray()!;
+    }
+
+    private static string GetProjectReferenceFileName(string includePath)
+    {
+        ArgumentNullException.ThrowIfNull(includePath);
+        return Path.GetFileName(includePath.Replace('\\', '/'));
     }
 }
