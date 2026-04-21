@@ -4,9 +4,9 @@
 
 Videra 是一套面向 .NET 桌面应用的跨平台 3D 查看组件库，核心目标是在 Avalonia 应用中提供可复用、可嵌入、可扩展的 3D 查看能力。
 
-surface-chart 模块家族与 `VideraView` 相互独立。它面向离线大矩阵、曲面图和时频图一类可视化场景，独立 Demo 也单独发布为 `Videra.SurfaceCharts.Demo`。
+surface-chart 模块家族与 `VideraView` 相互独立。它面向离线大矩阵、曲面图和时频图一类可视化场景；`Videra.SurfaceCharts.Demo` 保持 repository-only，只用于参考和 support repro。
 
-默认 first-chart 入口请先把 [Videra.SurfaceCharts.Demo](../../samples/Videra.SurfaceCharts.Demo/README.md) 当作当前公开 chart reference，并把 `Videra.SurfaceCharts.Avalonia` 中的 `SurfaceChartView` 视为主 chart control entrypoint。
+默认 first-chart 入口请先把 `smoke/Videra.SurfaceCharts.ConsumerSmoke` 当作打包后的 first-chart proof，`surfacecharts-support-summary.txt` 也从这里产出；再把 `Videra.SurfaceCharts.Avalonia` 中的 `SurfaceChartView` 视为主 chart control entrypoint。
 先从 Demo 默认的 `Start here: In-memory first chart` 路径开始，确认基线 first chart 可以渲染后，再切到 `Explore next: Cache-backed streaming` 做下一步验证。
 
 当前 `alpha` 阶段需要明确说明：
@@ -93,7 +93,7 @@ dotnet add package Videra.SurfaceCharts.Processing
 - [SurfaceCharts.Rendering](../../src/Videra.SurfaceCharts.Rendering/README.md)：chart-local render-state orchestration 与 backend runtime seam
 - [SurfaceCharts.Avalonia](modules/videra-surfacecharts-avalonia.md)：专用 `SurfaceChartView` 控件层，独立于 `VideraView`，包含 `RenderingStatus` / `RenderStatusChanged`、axis/legend overlays 与 probe overlay
 - [SurfaceCharts.Processing](modules/videra-surfacecharts-processing.md)：离线 pyramid / cache 构建、persistent payload session、ordered batch reads 与 `SurfaceTileStatistics`
-- [独立 Demo](../../samples/Videra.SurfaceCharts.Demo/README.md)：`Videra.SurfaceCharts.Demo`，作为 repository-only 的 support-ready chart 参考应用，展示 source 切换、built-in interaction、probe workflow 与 rendering path truth
+- [独立 Demo](../../samples/Videra.SurfaceCharts.Demo/README.md)：`Videra.SurfaceCharts.Demo`，作为 repository-only 的 support-ready chart 参考应用，保留 `Copy support summary` 复现路径，展示 source 切换、built-in interaction、probe workflow 与 rendering path truth
 - [架构说明](ARCHITECTURE.md)
 - [贡献指南](CONTRIBUTING.md)
 - [故障排查](troubleshooting.md)

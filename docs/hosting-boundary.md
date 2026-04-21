@@ -13,7 +13,7 @@ The normal viewer stack is:
 3. `Videra.Avalonia`
 4. One matching `Videra.Platform.*` package
 
-`Videra.SurfaceCharts.*` stays a sibling chart family. It is not part of the `VideraView` hosting/runtime path.
+`Videra.SurfaceCharts.*` is the shipped public chart package family. It is not part of the `VideraView` hosting/runtime path.
 
 ### What each layer owns
 
@@ -23,7 +23,7 @@ The normal viewer stack is:
 | `Import` | CPU-side scene asset ingestion | `GltfModelImporter`, `ObjModelImporter`, `ImportedSceneAsset` |
 | `UI adapter` | Avalonia host shell | `VideraView`, `VideraViewOptions`, `BackendDiagnostics`, `RenderCapabilities` |
 | `Backend` | Native graphics implementation | matching `Videra.Platform.Windows` / `Linux` / `macOS` backend package |
-| `Charts` | Source-first analytics sibling | `SurfaceChartView` and `Videra.SurfaceCharts.*` |
+| `Charts` | Shipped public chart package family | `SurfaceChartView` and `Videra.SurfaceCharts.*` |
 
 ## Scene and Material Runtime Model
 
