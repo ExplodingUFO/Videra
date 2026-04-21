@@ -114,14 +114,27 @@ public static partial class GltfModelImporter
         var nodes = new List<SceneNode>();
         var primitives = new Dictionary<SharpGLTF.Schema2.MeshPrimitive, SceneMeshPrimitive>();
         var materials = new Dictionary<SharpGLTF.Schema2.Material, MaterialInstance>();
+        var textures = new Dictionary<SharpGLTF.Schema2.Texture, Texture2D>();
+        var samplers = new Dictionary<SharpGLTF.Schema2.TextureSampler, Sampler>();
         MaterialInstance? defaultMaterial = null;
+        Sampler? defaultSampler = null;
 
         var defaultScene = model.DefaultScene ?? model.LogicalScenes.FirstOrDefault();
         if (defaultScene != null)
         {
             foreach (var node in defaultScene.VisualChildren)
             {
-                ProcessNodeRecursive(node, parentId: null, nodes, primitives, materials, ref defaultMaterial, logger);
+                ProcessNodeRecursive(
+                    node,
+                    parentId: null,
+                    nodes,
+                    primitives,
+                    materials,
+                    textures,
+                    samplers,
+                    ref defaultMaterial,
+                    ref defaultSampler,
+                    logger);
             }
         }
         else
@@ -136,7 +149,10 @@ public static partial class GltfModelImporter
                         mesh.mesh.Name ?? $"Mesh {mesh.index}",
                         primitives,
                         materials,
+                        textures,
+                        samplers,
                         ref defaultMaterial,
+                        ref defaultSampler,
                         logger);
 
                     if (resolvedPrimitive is not null)
@@ -165,12 +181,21 @@ public static partial class GltfModelImporter
             materialCatalog.Add(defaultMaterial);
         }
 
+        var textureCatalog = textures.Values.ToList();
+        var samplerCatalog = samplers.Values.ToList();
+        if (defaultSampler is not null)
+        {
+            samplerCatalog.Add(defaultSampler);
+        }
+
         return new ImportedSceneAsset(
             filePath,
             Path.GetFileName(filePath),
             nodes,
             primitives.Values.ToArray(),
-            materialCatalog);
+            materialCatalog,
+            textureCatalog,
+            samplerCatalog);
     }
 
     private static ModelRoot LoadModelRootWithFallback(string filePath, ILogger logger)
@@ -192,7 +217,10 @@ public static partial class GltfModelImporter
         List<SceneNode> nodes,
         Dictionary<SharpGLTF.Schema2.MeshPrimitive, SceneMeshPrimitive> primitives,
         Dictionary<SharpGLTF.Schema2.Material, MaterialInstance> materials,
+        Dictionary<SharpGLTF.Schema2.Texture, Texture2D> textures,
+        Dictionary<SharpGLTF.Schema2.TextureSampler, Sampler> samplers,
         ref MaterialInstance? defaultMaterial,
+        ref Sampler? defaultSampler,
         ILogger logger)
     {
         var currentNodeId = SceneNodeId.New();
@@ -207,7 +235,10 @@ public static partial class GltfModelImporter
                     node.Mesh.Name ?? node.Name ?? "Mesh",
                     primitives,
                     materials,
+                    textures,
+                    samplers,
                     ref defaultMaterial,
+                    ref defaultSampler,
                     logger);
 
                 if (resolvedPrimitive is not null)
@@ -231,7 +262,17 @@ public static partial class GltfModelImporter
 
         foreach (var child in node.VisualChildren)
         {
-            ProcessNodeRecursive(child, currentNodeId, nodes, primitives, materials, ref defaultMaterial, logger);
+            ProcessNodeRecursive(
+                child,
+                currentNodeId,
+                nodes,
+                primitives,
+                materials,
+                textures,
+                samplers,
+                ref defaultMaterial,
+                ref defaultSampler,
+                logger);
         }
     }
 
@@ -240,7 +281,10 @@ public static partial class GltfModelImporter
         string meshName,
         Dictionary<SharpGLTF.Schema2.MeshPrimitive, SceneMeshPrimitive> primitives,
         Dictionary<SharpGLTF.Schema2.Material, MaterialInstance> materials,
+        Dictionary<SharpGLTF.Schema2.Texture, Texture2D> textures,
+        Dictionary<SharpGLTF.Schema2.TextureSampler, Sampler> samplers,
         ref MaterialInstance? defaultMaterial,
+        ref Sampler? defaultSampler,
         ILogger logger)
     {
         if (primitives.TryGetValue(primitive, out var existing))
@@ -258,7 +302,10 @@ public static partial class GltfModelImporter
             primitive.Material,
             meshName,
             materials,
-            ref defaultMaterial);
+            textures,
+            samplers,
+            ref defaultMaterial,
+            ref defaultSampler);
         var created = new SceneMeshPrimitive(
             MeshPrimitiveId.New(),
             $"{meshName}#primitive{primitives.Count}",
@@ -273,7 +320,10 @@ public static partial class GltfModelImporter
         SharpGLTF.Schema2.Material? sourceMaterial,
         string meshName,
         Dictionary<SharpGLTF.Schema2.Material, MaterialInstance> materials,
-        ref MaterialInstance? defaultMaterial)
+        Dictionary<SharpGLTF.Schema2.Texture, Texture2D> textures,
+        Dictionary<SharpGLTF.Schema2.TextureSampler, Sampler> samplers,
+        ref MaterialInstance? defaultMaterial,
+        ref Sampler? defaultSampler)
     {
         if (sourceMaterial is null)
         {
@@ -289,11 +339,26 @@ public static partial class GltfModelImporter
             return existing;
         }
 
-        var baseColor = sourceMaterial.FindChannel("BaseColor")?.Parameter ?? Vector4.One;
+        var baseColorChannel = sourceMaterial.FindChannel("BaseColor");
+        var baseColor = baseColorChannel?.Parameter ?? Vector4.One;
+        Texture2DId? baseColorTextureId = null;
+        SamplerId? baseColorSamplerId = null;
+        var baseColorTexture = baseColorChannel?.Texture;
+
+        if (baseColorTexture is not null)
+        {
+            var texture = GltfTextureAssetReader.CreateOrGetTexture(baseColorTexture, textures);
+            var sampler = GltfTextureAssetReader.CreateOrGetSampler(baseColorTexture.Sampler, samplers, ref defaultSampler);
+            baseColorTextureId = texture.Id;
+            baseColorSamplerId = sampler.Id;
+        }
+
         var created = new MaterialInstance(
             MaterialInstanceId.New(),
             sourceMaterial.Name ?? $"{meshName}#material{materials.Count}",
-            new RgbaFloat(baseColor.X, baseColor.Y, baseColor.Z, baseColor.W));
+            new RgbaFloat(baseColor.X, baseColor.Y, baseColor.Z, baseColor.W),
+            baseColorTextureId,
+            baseColorSamplerId);
         materials.Add(sourceMaterial, created);
         return created;
     }

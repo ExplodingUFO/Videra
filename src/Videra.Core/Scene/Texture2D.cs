@@ -37,7 +37,7 @@ public sealed class Texture2D
 
     public Texture2DPixelFormat PixelFormat { get; }
 
-    public IReadOnlyList<byte> PixelBytes => _pixelBytes;
+    public ReadOnlyMemory<byte> PixelBytes => _pixelBytes;
 
     public bool IsSrgb { get; }
 }
