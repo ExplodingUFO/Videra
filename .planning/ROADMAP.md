@@ -2,86 +2,86 @@
 
 ## Active Milestone
 
-- `v1.19 SurfaceCharts Presentation Space and Interaction Defaults`
-- Status: `initialized locally on 2026-04-20`
-- Focus: separate display-space from raw analytics truth, make the value axis legible by default, and formalize reversed X/Y interaction semantics as the new presentation preset
+- `v1.20 Viewer Product Boundary and Core Slimming`
+- Status: `initialized locally on 2026-04-21`
+- Focus: define the `1.0` viewer/runtime product boundary, slim `Videra.Core`, and make importer/logging/hosting seams explicit before broader runtime feature expansion
 
-### Phase 99: Display Space Contract and Camera Persistence
+### Phase 103: Viewer Product Boundary and Capability Matrix
 
-**Goal:** add a first-class display-space transform so wide-strip datasets can present with more professional proportions without corrupting raw metadata, scalar semantics, or probe truth.
-**Depends on:** `v1.18` analytics-core contracts merged on `master`
+**Goal:** freeze `Videra 1.0` as a native desktop viewer / inspection / surface-chart product and make the deferred engine-`2.0` line explicit.
+**Depends on:** current viewer/runtime foundation from `v1.18` and the existing Avalonia-first product surface
 **Plans:** 3 planned
 
 Plans:
 
-- [ ] 99-01: define a public display-space contract and persist it inside `SurfaceViewState` instead of baking aspect/exaggeration into raw camera fit math
-- [ ] 99-02: thread display-space resolution through camera defaults, projection, render inputs, and render-state invalidation so display transforms actually change the plotted surface shape
-- [ ] 99-03: keep `FitToData()`, `ResetCamera()`, and `ZoomTo(...)` display-aware so consumers do not lose presentation intent during normal chart commands
+- [ ] 103-01: rewrite product positioning and package guidance so `Videra 1.0` is clearly framed as a native desktop viewer/runtime rather than a generic engine
+- [ ] 103-02: publish a capability matrix that separates shipped viewer/runtime capabilities from explicitly deferred engine-`2.0` features
+- [ ] 103-03: define one package-layer matrix for `Core`, `Import`, `Backend`, `UI adapter`, and `Charts`
 
 Success criteria:
 
-1. Consumers can select a presentation-oriented display transform without changing source metadata, scalar-field values, or probe readouts.
-2. The chart no longer defaults to a visibly stretched “long strip” shape for the demo dataset when the presentation preset is active.
-3. Camera/view commands preserve the selected display transform instead of silently snapping back to raw-axis proportions.
+1. A new consumer can tell from docs/package guidance that Videra is not trying to be a Three.js-style general runtime in `1.0`.
+2. Shipped vs deferred capabilities are spelled out in one explicit matrix instead of being inferred from scattered docs.
+3. The layer vocabulary for `Core` / `Import` / `Backend` / `UI adapter` / `Charts` is consistent across docs and planning.
 
-### Phase 100: Overlay Axis Semantics and Default Presentation
+### Phase 104: Core Dependency Extraction and Logging Split
 
-**Goal:** make the chart explain itself better by default through value-axis-emphasizing overlay behavior and clearer semantic axis formatting.
-**Depends on:** Phase 99
+**Goal:** slim `Videra.Core` into a true runtime core by removing concrete importer and logging provider dependencies.
+**Depends on:** Phase 103
 **Plans:** 3 planned
 
 Plans:
 
-- [ ] 100-01: extend overlay formatting to understand semantic axis roles (`Horizontal`, `Value`, `Depth`, `Legend`) instead of only raw `"X"` / `"Y"` / `"Z"` tokens
-- [ ] 100-02: introduce a chart-local auto grid-plane policy that can prefer value-emphasizing or camera-aware placement instead of always falling back to the `XZ` floor plane
-- [ ] 100-03: promote overlay defaults that make the value axis and axis-side choice legible on the first rendered chart
+- [ ] 104-01: remove concrete importer package references from `Videra.Core` without breaking runtime composition
+- [ ] 104-02: remove concrete Serilog provider dependencies from `Videra.Core` and route them through explicit adapter packages
+- [ ] 104-03: prove the slimmed core still builds and composes through abstractions on the existing viewer path
 
 Success criteria:
 
-1. Value-axis labeling is visually clearer in the demo and no longer feels “missing” because the overlay is anchored to an unhelpful default floor plane.
-2. Consumers can format labels by semantic chart role without reverse-engineering math-space axis letters.
-3. Overlay defaults remain chart-local and do not leak chart semantics back into `VideraView`.
+1. `Videra.Core.csproj` no longer directly references `SharpGLTF.Toolkit`.
+2. `Videra.Core.csproj` no longer directly references concrete `Serilog` provider packages.
+3. Existing viewer/runtime paths still compile and run through explicit abstraction-driven composition.
 
-### Phase 101: Interaction Presets and Reversed Default Semantics
+### Phase 105: Import Package and Hosting Abstractions
 
-**Goal:** turn the current hard-coded orbit/pan sign conventions into a public interaction contract and make the user-preferred reversed X/Y behavior the default preset.
-**Depends on:** Phase 100
+**Goal:** turn import and host composition into explicit packages/contracts instead of implicit `Core` / Avalonia coupling.
+**Depends on:** Phase 104
 **Plans:** 3 planned
 
 Plans:
 
-- [ ] 101-01: add public interaction-options or interaction-preset contracts for orbit and pan inversion instead of leaving sign choices hard-coded in the controller
-- [ ] 101-02: apply those options across built-in orbit and pan paths while preserving a legacy preset for callers who want the previous behavior
-- [ ] 101-03: align interaction status/demo text so the first-chart story explains the new defaults truthfully
+- [ ] 105-01: split glTF and OBJ import into dedicated import packages that compose with the slimmed core
+- [ ] 105-02: define or tighten hosting abstractions so runtime core, backends, UI adapters, and charts can be described independently
+- [ ] 105-03: keep the Avalonia path thin while proving the new seams do not widen backend-specific public API
 
 Success criteria:
 
-1. Orbit and pan direction are configurable through public chart-local API instead of hidden controller math.
-2. The new default preset matches the currently preferred reversed X/Y behavior for both orbit and pan.
-3. Existing callers still have an explicit legacy path instead of being forced to absorb a silent behavioral break with no opt-out.
+1. glTF and OBJ import are delivered through explicit import packages instead of hidden `Videra.Core` baggage.
+2. Hosting seams are concrete enough that `Core`, `Import`, `Backend`, `UI adapter`, and `Charts` can each be explained as separate layers.
+3. The Avalonia shell remains thin and does not become the place where new product coupling leaks back in.
 
-### Phase 102: Demo Proof and Source-First Truth Alignment
+### Phase 106: Package Truth and Layering Validation
 
-**Goal:** prove the new display and interaction defaults in the canonical source-first story so demo, README, and support truth all describe the same chart behavior.
-**Depends on:** Phase 101
+**Goal:** lock the new product boundary into consumer truth and automated validation.
+**Depends on:** Phase 105
 **Plans:** 3 planned
 
 Plans:
 
-- [ ] 102-01: refresh `SurfaceCharts.Demo` defaults, status text, and support-summary content so the first chart opens in the intended presentation and interaction mode
-- [ ] 102-02: update README and consumer-facing guidance to document the new display/overlay/interaction contracts without over-claiming deferred analytics features
-- [ ] 102-03: add focused tests or repository-truth coverage that lock the new demo/default semantics in place
+- [ ] 106-01: update README, architecture docs, and package guidance to teach the canonical slimmed package stack
+- [ ] 106-02: add or upgrade consumer smoke, repository guards, and package-matrix checks for the new layering
+- [ ] 106-03: close the milestone with support/release truth that matches the shipped viewer-first package boundary
 
 Success criteria:
 
-1. The canonical demo visibly demonstrates the new presentation-oriented chart defaults without manual setup steps.
-2. Docs and support summaries match the shipped behavior of the demo and public contracts.
-3. Regression coverage exists for the new defaults so future analytics work does not quietly revert the presentation story.
+1. Consumer-facing docs describe the same canonical package stack that the code actually ships.
+2. Repository guards or smoke tests fail when the new layering regresses.
+3. Support/release truth no longer relies on users reverse-engineering `Videra.Core` internals to understand what belongs where.
 
 ## Operational Baseline
 
-- `v1.18` analytics-core deepening is complete and archived; the next milestone builds on generalized geometry/scalar contracts rather than replacing them
-- the highest-value current gap is presentation clarity and interaction semantics, not additional backend coverage or a wider generic chart product surface
+- the current repository already has native backends, software fallback, scene truth, upload/residency services, inspection workflow seams, and a source-first `SurfaceCharts` stack; the next gap is product/package clarity, not another engine rewrite
+- the highest-leverage next move is to define `1.0` viewer/runtime boundaries before widening into scene/material runtime breadth, static PBR, or second-UI validation
 
 ## Recently Shipped
 

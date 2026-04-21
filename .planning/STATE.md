@@ -5,17 +5,17 @@
 See: `.planning/PROJECT.md` (updated 2026-04-21)
 
 **Core value:** 跨平台 3D 渲染引擎的可靠性
-**Current focus:** `v1.20` 正在定义中，目标是先把 viewer/runtime 的产品边界、包结构和 host seams 定清楚
+**Current focus:** `v1.20` 已完成初始化，下一步是进入 Phase `103`，冻结 viewer/runtime 的产品边界、能力矩阵和分层词汇
 
 ## Current Position
 
 Milestone: `v1.20`
-Phase: `Not started (defining requirements)`
+Phase: `Not started (ready for Phase 103)`
 Plan: `—`
-Status: `Defining requirements and roadmap for viewer product boundary, core slimming, and package split`
-Last activity: `2026-04-21` — started `v1.20`, scoped the milestone around capability matrix, `Videra.Core` slimming, importer/logging split, and host/package seams
+Status: `Milestone defined; requirements and roadmap are committed, waiting to start Phase 103`
+Last activity: `2026-04-21` — finished defining the `v1.20` roadmap around capability matrix, `Videra.Core` slimming, importer/logging split, and explicit host/package seams
 
-Progress: `Requirements and roadmap are being defined for v1.20.`
+Progress: `Requirements and roadmap are defined for v1.20; Phase 103 is the next executable step.`
 
 ## Performance Metrics
 
@@ -23,7 +23,7 @@ Progress: `Requirements and roadmap are being defined for v1.20.`
 - Archived milestone phases: `4`
 - Archived milestone requirements: `11`
 - Active milestone phases: `4`
-- Active milestone requirements: `8`
+- Active milestone requirements: `9`
 
 ## Accumulated Context
 
@@ -68,5 +68,5 @@ Progress: `Requirements and roadmap are being defined for v1.20.`
 ## Session Continuity
 
 Last session: `2026-04-20 +08:00`
-Stopped at: `v1.20 initialized; requirements and roadmap are being defined`
+Stopped at: `v1.20 defined; Phase 103 is ready to start`
 Resume file: `.planning/ROADMAP.md`
