@@ -11,8 +11,8 @@ The source-controlled suite contract lives in `benchmarks/benchmark-contract.jso
 
 ## Workflow entrypoints
 
-- Manual: GitHub Actions -> `Benchmark Gates (Label-Gated Review)` -> `Run workflow`
-- Pull request: apply the `run-benchmarks` label to rerun the same workflow on the PR branch
+- Manual: GitHub Actions -> `Benchmark Gates` -> `Run workflow`
+- Pull request: benchmark gates run automatically on `opened`, `synchronize`, and `reopened`
 
 The workflow uploads suite artifact directories for each suite as GitHub Actions artifacts:
 
@@ -37,16 +37,21 @@ Artifacts are written under `artifacts/benchmarks/<suite>`.
 ## Evidence contract
 
 - `benchmarks/benchmark-contract.json` defines the supported suites and benchmark names that make up the current evidence contract.
+- `benchmarks/benchmark-thresholds.json` defines the committed hard-threshold slice for the current PR benchmark gate.
 - `scripts/Run-Benchmarks.ps1` reads that contract and emits `benchmark-manifest.json` beside the raw exporter output.
-- Review, CI artifacts, and support guidance should all refer to the manifest plus the raw BenchmarkDotNet files, not to ad hoc exporter filenames alone.
+- `scripts/Test-BenchmarkThresholds.ps1` reads the BenchmarkDotNet JSON reports plus `benchmark-manifest.json`, emits threshold-evaluation artifacts, and fails when committed mean-runtime budgets are exceeded.
+- Review, CI artifacts, and support guidance should all refer to the manifest, threshold evaluation, and raw BenchmarkDotNet files, not to ad hoc exporter filenames alone.
 
 ## Current contract
 
-- Default pull requests do not run benchmark evidence automatically.
-- Manual runs and pull requests carrying the `run-benchmarks` label do run benchmark evidence.
-- When a pull request opts into `run-benchmarks`, the uploaded artifacts become part of the review decision and should be checked before the PR is considered green.
-- This is a label-gated review switch, not a hard numeric blocker with automatic threshold enforcement.
-- Hard threshold enforcement and machine-enforced trend comparisons remain future options; they are not the current workflow contract.
+- Pull requests run benchmark gates automatically.
+- Each suite still uploads the full benchmark evidence set, but the hard gate currently enforces only four representative mean-runtime thresholds:
+  - `ScenePipelineBenchmarks.ScenePipeline_RehydrateAfterBackendReady`
+  - `InspectionBenchmarks.SceneHitTest_MeshAccurateDistance`
+  - `SurfaceChartsRenderStateBenchmarks.ApplyResidencyChurnUnderCameraMovement`
+  - `SurfaceChartsProbeBenchmarks.ProbeLatency`
+- If one of those committed thresholds regresses beyond the allowed budget, the PR benchmark job fails and the uploaded artifact directory still includes the threshold evaluation details.
+- This is now a hard numeric blocker for the thresholded slice set, not a label-gated review switch.
 
 ## What to watch
 
@@ -58,12 +63,12 @@ Artifacts are written under `artifacts/benchmarks/<suite>`.
 
 ## Gate semantics
 
-This workflow is a regression gate in the alpha sense: it makes benchmark evidence visible and comparable before merge or release when the team explicitly asks for it.
+This workflow is now a hard numeric blocker for the committed threshold slice and a broader evidence feed for the rest of the benchmark suite.
 
-Treat the artifacts as review evidence for step-function regressions, allocation trend spikes, or newly exposed hotspots. Do not treat the current workflow as proof that a PR passed a numeric benchmark threshold, because no numeric threshold is enforced yet.
+Treat threshold failures as blocking regressions. Treat the remaining non-thresholded benchmark reports as review evidence for wider trend analysis, allocation spikes, or newly exposed hotspots.
 
 ## Future escalation
 
-- Add soft threshold guidance only after enough stable historical runs exist.
-- Consider automated trend comparisons before introducing hard blocking limits.
-- Promote benchmark review into a harder blocker only when the workflow can explain failures without creating noisy false red builds.
+- Tighten the committed thresholds after enough stable CI history exists.
+- Add allocation thresholds once the first mean-runtime gate proves stable in CI.
+- Expand the hard-threshold slice only when the additional benchmarks show low enough noise to avoid false red builds.

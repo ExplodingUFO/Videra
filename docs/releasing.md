@@ -64,7 +64,7 @@ Every public publish path, including `publish-existing-public-release.yml`, is e
 - Confirm pull-request `sample-contract-evidence` stayed green for `Videra.SurfaceCharts.Demo`, including `Start here: In-memory first chart`, the `Copy support summary` workflow, and the SurfaceCharts runtime evidence step.
 - Confirm pull-request `quality-gate-evidence` stayed green so the packaged consumer path, curated Core test surfaces, and `Videra.MinimalSample` still build with warnings treated as errors.
 - Confirm public release notes and attached assets do not introduce `Videra.SurfaceCharts.*` package IDs or present `Videra.SurfaceCharts.Demo` as a public package install path.
-- Review [Benchmark Gates](benchmark-gates.md) artifacts for trend regressions before promoting the tag when benchmark evidence was explicitly requested; treat them as review evidence, not as proof that a hard numeric threshold passed.
+- Confirm pull-request `Benchmark Gates` stayed green and that the threshold evaluation artifacts did not report committed runtime-budget regressions.
 - Confirm release notes categories in `.github/release.yml` still match the current label taxonomy.
 - Confirm `NUGET_API_KEY` is configured for the public workflow.
 - Confirm preview/internal workflows do not override the public-feed truth.
