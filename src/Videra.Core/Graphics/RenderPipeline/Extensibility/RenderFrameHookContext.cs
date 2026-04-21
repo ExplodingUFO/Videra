@@ -1,4 +1,5 @@
 using Videra.Core.Graphics;
+using Videra.Core.Graphics.RenderPipeline;
 
 namespace Videra.Core.Graphics.RenderPipeline.Extensibility;
 
@@ -7,6 +8,8 @@ public sealed class RenderFrameHookContext
     public required RenderFrameHookPoint HookPoint { get; init; }
 
     public required RenderFramePlan FramePlan { get; init; }
+
+    public required RenderFeatureSet ActiveFeatures { get; init; }
 
     public required uint Width { get; init; }
 
