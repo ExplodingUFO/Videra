@@ -77,6 +77,21 @@ public sealed class RepositoryArchitectureTests
         "SupportedRenderFeatureNames"
     };
 
+    private static readonly string[] StaticGltfPbrPerDocumentSymbols =
+    {
+        "static glTF/PBR",
+        "metallic-roughness",
+        "normal-map-ready",
+        "tangent-aware",
+        "morph targets"
+    };
+
+    private static readonly string[] StaticGltfPbrReuseSymbols =
+    {
+        "repeated unchanged imports",
+        "retained imported scene assets"
+    };
+
     [Fact]
     public void Repository_ShouldIncludeViewerBenchmarkProjectForScenePipelineEvidence()
     {
@@ -340,6 +355,41 @@ public sealed class RepositoryArchitectureTests
             hostingBoundary.Should().Contain(symbol);
             coreReadme.Should().Contain(symbol);
             avaloniaReadme.Should().Contain(symbol);
+        }
+    }
+
+    [Fact]
+    public void StaticGltfPbrDocs_ShouldDescribeBaselineAndDeliberateExclusions()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var readme = File.ReadAllText(Path.Combine(repositoryRoot, "README.md"));
+        var architecture = File.ReadAllText(Path.Combine(repositoryRoot, "ARCHITECTURE.md"));
+        var packageMatrix = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "package-matrix.md"));
+        var hostingBoundary = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "hosting-boundary.md"));
+        var coreReadme = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Core", "README.md"));
+        var avaloniaReadme = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Avalonia", "README.md"));
+
+        readme.Should().Contain("static glTF/PBR");
+        architecture.Should().Contain("static glTF/PBR");
+        packageMatrix.Should().Contain("static glTF/PBR");
+        hostingBoundary.Should().Contain("static glTF/PBR");
+        coreReadme.Should().Contain("static glTF/PBR");
+        avaloniaReadme.Should().Contain("static glTF/PBR");
+
+        foreach (var document in new[] { readme, architecture, packageMatrix, hostingBoundary, coreReadme, avaloniaReadme })
+        {
+            foreach (var symbol in StaticGltfPbrPerDocumentSymbols)
+            {
+                document.Should().Contain(symbol);
+            }
+        }
+
+        foreach (var document in new[] { readme, architecture, packageMatrix, hostingBoundary, avaloniaReadme })
+        {
+            foreach (var symbol in StaticGltfPbrReuseSymbols)
+            {
+                document.Should().Contain(symbol);
+            }
         }
     }
 

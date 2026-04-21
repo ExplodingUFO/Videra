@@ -17,6 +17,8 @@ The `1.0` line is specifically a native desktop viewer/runtime plus inspection w
 
 On the viewer/runtime path, `SceneDocument` keeps backend-neutral imported scene truth in `ImportedSceneAsset` catalogs built from `SceneNode`, `MeshPrimitive`, `MaterialInstance`, `Texture2D`, and `Sampler`. Those runtime assets stay CPU-side until a ready resource factory uploads them.
 
+That shipped viewer path now carries one direct static glTF/PBR baseline: UV-backed `Texture2D` / `Sampler` bindings, `MaterialInstance` metallic-roughness and alpha semantics, emissive and normal-map-ready inputs, tangent-aware mesh data, and repeated unchanged imports that can reuse retained imported scene assets while those retained assets stay available. It is intentionally static-scene-only; animation, skeletons, morph targets, and broader advanced-runtime expansion remain deferred.
+
 ## Who It Is For
 
 - .NET desktop teams that need an Avalonia-facing 3D viewer control
@@ -119,7 +121,7 @@ For alpha adoption feedback, use [Alpha Feedback](docs/alpha-feedback.md) before
 | `Videra.InteractionSample` | Public sample for the controlled interaction contract plus viewer-first inspection workflows such as measurement, clipping, state restore, snapshot export, and replayable inspection bundles |
 
 `Videra.MinimalSample` is the quickest end-to-end viewer reference. It stays on the alpha happy path: `Options -> LoadModelAsync -> FrameAll / ResetCamera -> BackendDiagnostics`, then uses `VideraDiagnosticsSnapshotFormatter` to export the same support artifact requested by alpha bug reports.
-`Videra.Demo` remains the broader diagnostics and import-feedback surface. It seeds a default demo cube on the ready path, summarizes import feedback in the status area, and includes a narrow `Scene Pipeline Lab` panel for `SceneDocument` versioning, the retained `SceneNode` / `MeshPrimitive` / `MaterialInstance` / `Texture2D` / `Sampler` runtime model, pending/resident/dirty upload counts, render-feature diagnostics, atomic batch replacement, and backend-rebind truth.
+`Videra.Demo` remains the broader diagnostics and import-feedback surface. It seeds a default demo cube on the ready path, summarizes import feedback in the status area, and includes a narrow `Scene Pipeline Lab` panel for `SceneDocument` versioning, the retained `SceneNode` / `MeshPrimitive` / `MaterialInstance` / `Texture2D` / `Sampler` runtime model, the shipped static glTF/PBR baseline, tangent-aware retained assets, repeated unchanged imports that can reuse retained imported scene assets while they remain retained, pending/resident/dirty upload counts, render-feature diagnostics, atomic batch replacement, and backend-rebind truth.
 
 ## Videra 1.0 Boundary
 

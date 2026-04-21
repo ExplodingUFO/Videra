@@ -17,6 +17,8 @@ Current status: `alpha`. `Videra.Avalonia` is the entry package for Avalonia app
 - Map pointer input to camera interaction
 - Manage native-host integration for Windows, Linux, and macOS
 
+On that shipped viewer path, the current material/runtime baseline is static glTF/PBR: retained imported assets carry UV-backed texture bindings, metallic-roughness and alpha semantics, emissive and normal-map-ready inputs, tangent-aware mesh data, and repeated unchanged imports that can reuse retained imported scene assets while those retained assets stay available. Animation, skeletons, and morph targets remain out of scope for this line.
+
 ## Install
 
 The default public consumer path is `nuget.org`. Install the Avalonia entry package and exactly one matching platform package:
@@ -105,6 +107,7 @@ Contract notes:
 - Scene loading uses retained imported assets and `SceneDocument` truth so backend rebind can restore scene resources without a steady-state software staging path.
 - `SceneDocumentStore`, `SceneDeltaPlanner`, `SceneResidencyRegistry`, and `SceneUploadQueue` stay internal to `Videra.Avalonia`; they let `VideraViewRuntime` publish document deltas, queue uploads, and expose read-only scene residency counts through `BackendDiagnostics`.
 - The retained asset catalog behind that path is `SceneNode` + `MeshPrimitive` + `MaterialInstance` + `Texture2D` + `Sampler`, surfaced to hosts as viewer/runtime truth rather than backend-specific resources.
+- The shipped static glTF/PBR baseline on that path stays viewer-first rather than backend-first: repeated unchanged imports can reuse retained imported scene assets while they remain retained, while animation, skeletons, and morph targets stay deferred.
 - `package discovery` and `plugin loading` remain out of scope.
 
 ## Interaction Contract

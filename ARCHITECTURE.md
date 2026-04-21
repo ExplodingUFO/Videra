@@ -106,6 +106,15 @@ The viewer/runtime scene model is intentionally viewer-first instead of backend-
 - `MaterialInstance`, `Texture2D`, and `Sampler` are explicit runtime assets owned by the imported scene catalog.
 - `SceneDocumentStore`, `SceneDeltaPlanner`, `SceneResidencyRegistry`, and `SceneUploadQueue` keep those retained assets CPU-side until a ready resource factory can realize them on the active backend.
 
+The current shipped material/runtime baseline on that path is static glTF/PBR:
+
+- UV coordinates and texture references become explicit `Texture2D` and `Sampler` runtime assets.
+- `MaterialInstance` carries metallic-roughness and alpha semantics plus emissive and normal-map-ready inputs.
+- Imported assets retain tangent-aware mesh data as runtime truth instead of importer-only side channels.
+- For repeated unchanged imports, retained imported scene assets can be reused before upload while those retained assets stay available, instead of rebuilding ad hoc importer-shaped state.
+
+This baseline is intentionally narrower than a general runtime surface. Animation, skeletons, morph targets, and broader advanced-runtime feature expansion stay deferred.
+
 That split is what lets backend rebind/recovery rebuild scene resources from retained scene truth instead of depending on a long-lived staging mirror in the public API.
 
 ### Native Backend Packages
