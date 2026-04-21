@@ -465,4 +465,77 @@ public sealed class ModelImporterTests : IDisposable
         leftNode.PrimitiveIds.Should().ContainSingle().Which.Should().Be(asset.Primitives[0].Id);
         rightNode.PrimitiveIds.Should().ContainSingle().Which.Should().Be(asset.Primitives[0].Id);
     }
+
+    [Fact]
+    public void Import_GltfSkipsPrimitiveWithoutPositions_AndKeepsValidGeometry()
+    {
+        var path = WriteGltf("skip_invalid_primitive.gltf", """
+            {
+              "asset": { "version": "2.0" },
+              "scene": 0,
+              "scenes": [
+                { "nodes": [0] }
+              ],
+              "nodes": [
+                { "name": "Root", "mesh": 0 }
+              ],
+              "meshes": [
+                {
+                  "name": "MixedMesh",
+                  "primitives": [
+                    {
+                      "attributes": { "POSITION": 0, "NORMAL": 1 },
+                      "indices": 2
+                    },
+                    {
+                      "attributes": { "NORMAL": 1 },
+                      "indices": 2
+                    }
+                  ]
+                }
+              ],
+              "buffers": [
+                {
+                  "byteLength": 78,
+                  "uri": "data:application/octet-stream;base64,AAAAAAAAAAAAAAAAAACAPwAAAAAAAAAAAAAAAAAAgD8AAAAAAAAAQAAAAAAAAAAAAAAAAAAAQEAAAAAAAAAAAAAAAAAAAIBAAAABAAIA"
+                }
+              ],
+              "bufferViews": [
+                { "buffer": 0, "byteOffset": 0, "byteLength": 36, "target": 34962 },
+                { "buffer": 0, "byteOffset": 36, "byteLength": 36, "target": 34962 },
+                { "buffer": 0, "byteOffset": 72, "byteLength": 6, "target": 34963 }
+              ],
+              "accessors": [
+                {
+                  "bufferView": 0,
+                  "componentType": 5126,
+                  "count": 3,
+                  "type": "VEC3",
+                  "min": [0.0, 0.0, 0.0],
+                  "max": [1.0, 1.0, 0.0]
+                },
+                {
+                  "bufferView": 1,
+                  "componentType": 5126,
+                  "count": 3,
+                  "type": "VEC3"
+                },
+                {
+                  "bufferView": 2,
+                  "componentType": 5123,
+                  "count": 3,
+                  "type": "SCALAR"
+                }
+              ]
+            }
+            """);
+
+        var asset = GltfModelImporter.Import(path);
+
+        asset.Nodes.Should().ContainSingle();
+        asset.Primitives.Should().ContainSingle();
+        asset.Nodes[0].PrimitiveIds.Should().ContainSingle().Which.Should().Be(asset.Primitives[0].Id);
+        asset.Metrics.VertexCount.Should().Be(3);
+        asset.Metrics.IndexCount.Should().Be(3);
+    }
 }

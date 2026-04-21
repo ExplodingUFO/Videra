@@ -126,9 +126,20 @@ public static partial class GltfModelImporter
         {
             foreach (var mesh in model.LogicalMeshes.Select((mesh, index) => (mesh, index)))
             {
-                var primitiveIds = mesh.mesh.Primitives
-                    .Select(primitive => CreateOrGetPrimitive(primitive, mesh.mesh.Name ?? $"Mesh {mesh.index}", primitives, logger).Id)
-                    .ToArray();
+                var primitiveIds = new List<MeshPrimitiveId>();
+                foreach (var primitive in mesh.mesh.Primitives)
+                {
+                    var resolvedPrimitive = TryCreateOrGetPrimitive(
+                        primitive,
+                        mesh.mesh.Name ?? $"Mesh {mesh.index}",
+                        primitives,
+                        logger);
+
+                    if (resolvedPrimitive is not null)
+                    {
+                        primitiveIds.Add(resolvedPrimitive.Id);
+                    }
+                }
 
                 nodes.Add(new SceneNode(
                     SceneNodeId.New(),
@@ -172,9 +183,24 @@ public static partial class GltfModelImporter
         ILogger logger)
     {
         var currentNodeId = SceneNodeId.New();
-        var primitiveIds = node.Mesh?.Primitives
-            .Select(primitive => CreateOrGetPrimitive(primitive, node.Mesh.Name ?? node.Name ?? "Mesh", primitives, logger).Id)
-            .ToArray() ?? Array.Empty<MeshPrimitiveId>();
+        var primitiveIds = new List<MeshPrimitiveId>();
+
+        if (node.Mesh is not null)
+        {
+            foreach (var primitive in node.Mesh.Primitives)
+            {
+                var resolvedPrimitive = TryCreateOrGetPrimitive(
+                    primitive,
+                    node.Mesh.Name ?? node.Name ?? "Mesh",
+                    primitives,
+                    logger);
+
+                if (resolvedPrimitive is not null)
+                {
+                    primitiveIds.Add(resolvedPrimitive.Id);
+                }
+            }
+        }
 
         if (node.Mesh != null)
         {
@@ -194,7 +220,7 @@ public static partial class GltfModelImporter
         }
     }
 
-    private static SceneMeshPrimitive CreateOrGetPrimitive(
+    private static SceneMeshPrimitive? TryCreateOrGetPrimitive(
         SharpGLTF.Schema2.MeshPrimitive primitive,
         string meshName,
         Dictionary<SharpGLTF.Schema2.MeshPrimitive, SceneMeshPrimitive> primitives,
@@ -206,6 +232,11 @@ public static partial class GltfModelImporter
         }
 
         var meshData = CreatePrimitiveMeshData(primitive, logger);
+        if (meshData is null)
+        {
+            return null;
+        }
+
         var created = new SceneMeshPrimitive(
             MeshPrimitiveId.New(),
             $"{meshName}#primitive{primitives.Count}",
@@ -215,7 +246,7 @@ public static partial class GltfModelImporter
         return created;
     }
 
-    private static MeshData CreatePrimitiveMeshData(
+    private static MeshData? CreatePrimitiveMeshData(
         SharpGLTF.Schema2.MeshPrimitive primitive,
         ILogger logger)
     {
@@ -226,7 +257,7 @@ public static partial class GltfModelImporter
         if (positions == null)
         {
             Log.SkippingPrimitiveWithoutPositions(logger);
-            throw new InvalidOperationException("glTF primitive does not contain POSITION data.");
+            return null;
         }
 
         var material = primitive.Material;
