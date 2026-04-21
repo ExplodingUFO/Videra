@@ -341,24 +341,25 @@ public static partial class GltfModelImporter
 
         var baseColorChannel = sourceMaterial.FindChannel("BaseColor");
         var baseColor = baseColorChannel?.Parameter ?? Vector4.One;
-        Texture2DId? baseColorTextureId = null;
-        SamplerId? baseColorSamplerId = null;
+        MaterialTextureBinding? baseColorTextureBinding = null;
         var baseColorTexture = baseColorChannel?.Texture;
 
         if (baseColorTexture is not null)
         {
             var texture = GltfTextureAssetReader.CreateOrGetTexture(baseColorTexture, textures);
             var sampler = GltfTextureAssetReader.CreateOrGetSampler(baseColorTexture.Sampler, samplers, ref defaultSampler);
-            baseColorTextureId = texture.Id;
-            baseColorSamplerId = sampler.Id;
+            baseColorTextureBinding = new MaterialTextureBinding(
+                texture.Id,
+                sampler.Id,
+                baseColorChannel?.TextureCoordinate ?? 0,
+                TextureColorSpace.Srgb);
         }
 
         var created = new MaterialInstance(
             MaterialInstanceId.New(),
             sourceMaterial.Name ?? $"{meshName}#material{materials.Count}",
             new RgbaFloat(baseColor.X, baseColor.Y, baseColor.Z, baseColor.W),
-            baseColorTextureId,
-            baseColorSamplerId);
+            baseColorTextureBinding);
         materials.Add(sourceMaterial, created);
         return created;
     }
@@ -381,6 +382,7 @@ public static partial class GltfModelImporter
         var baseColor = material?.FindChannel("BaseColor")?.Parameter ?? Vector4.One;
         var defaultColor = new RgbaFloat(baseColor.X, baseColor.Y, baseColor.Z, baseColor.W);
         var vertices = new VertexPositionNormalColor[positions.Count];
+        var textureCoordinateSets = CreateTextureCoordinateSets(primitive, positions.Count);
 
         for (var i = 0; i < positions.Count; i++)
         {
@@ -400,8 +402,47 @@ public static partial class GltfModelImporter
         {
             Vertices = vertices,
             Indices = indices,
+            TextureCoordinateSets = textureCoordinateSets,
             Topology = MeshTopology.Triangles
         };
+    }
+
+    private static MeshTextureCoordinateSet[] CreateTextureCoordinateSets(
+        SharpGLTF.Schema2.MeshPrimitive primitive,
+        int vertexCount)
+    {
+        var sets = new List<MeshTextureCoordinateSet>(2);
+        AppendTextureCoordinateSet(primitive, "TEXCOORD_0", 0, vertexCount, sets);
+        AppendTextureCoordinateSet(primitive, "TEXCOORD_1", 1, vertexCount, sets);
+        return sets.ToArray();
+    }
+
+    private static void AppendTextureCoordinateSet(
+        SharpGLTF.Schema2.MeshPrimitive primitive,
+        string accessorName,
+        int setIndex,
+        int vertexCount,
+        ICollection<MeshTextureCoordinateSet> sets)
+    {
+        var coordinates = primitive.GetVertexAccessor(accessorName)?.AsVector2Array();
+        if (coordinates is null)
+        {
+            return;
+        }
+
+        if (coordinates.Count != vertexCount)
+        {
+            throw new InvalidDataException(
+                $"Texture coordinate accessor '{accessorName}' count ({coordinates.Count}) does not match POSITION count ({vertexCount}).");
+        }
+
+        var values = new Vector2[coordinates.Count];
+        for (var i = 0; i < coordinates.Count; i++)
+        {
+            values[i] = coordinates[i];
+        }
+
+        sets.Add(new MeshTextureCoordinateSet(setIndex, values));
     }
 
     private static partial class Log

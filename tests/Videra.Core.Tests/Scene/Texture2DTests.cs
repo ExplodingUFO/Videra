@@ -17,8 +17,7 @@ public sealed class Texture2DTests
             1,
             1,
             TextureImageFormat.Png,
-            sourceBytes,
-            isSrgb: false);
+            sourceBytes);
 
         sourceBytes[0] = 99;
 

@@ -456,8 +456,7 @@ public class Object3DTests
             1,
             1,
             TextureImageFormat.Png,
-            [255, 255, 255, 255],
-            isSrgb: true);
+            [255, 255, 255, 255]);
         var sampler = new Sampler(
             SamplerId.New(),
             "LinearClamp",
@@ -469,8 +468,7 @@ public class Object3DTests
             MaterialInstanceId.New(),
             "TexturedMaterial",
             RgbaFloat.White,
-            texture.Id,
-            sampler.Id);
+            new MaterialTextureBinding(texture.Id, sampler.Id, 0, TextureColorSpace.Srgb));
         var primitive = new MeshPrimitive(MeshPrimitiveId.New(), "triangle.obj#primitive0", CreateTestMesh(), material.Id);
         var rootNode = new SceneNode(SceneNodeId.New(), "triangle.obj", Matrix4x4.Identity, parentId: null, [primitive.Id]);
         var asset = new ImportedSceneAsset(
@@ -486,5 +484,10 @@ public class Object3DTests
         asset.Textures.Should().ContainSingle().Which.Should().BeSameAs(texture);
         asset.Samplers.Should().ContainSingle().Which.Should().BeSameAs(sampler);
         asset.Primitives.Should().ContainSingle().Which.MaterialId.Should().Be(material.Id);
+        material.BaseColorTexture.Should().NotBeNull();
+        material.BaseColorTexture!.TextureId.Should().Be(texture.Id);
+        material.BaseColorTexture.SamplerId.Should().Be(sampler.Id);
+        material.BaseColorTexture.CoordinateSet.Should().Be(0);
+        material.BaseColorTexture.ColorSpace.Should().Be(TextureColorSpace.Srgb);
     }
 }

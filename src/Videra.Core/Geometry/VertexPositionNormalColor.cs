@@ -62,5 +62,6 @@ public class MeshData
 {
     public VertexPositionNormalColor[] Vertices { get; set; } = Array.Empty<VertexPositionNormalColor>();
     public uint[] Indices { get; set; } = Array.Empty<uint>();
+    public MeshTextureCoordinateSet[] TextureCoordinateSets { get; set; } = Array.Empty<MeshTextureCoordinateSet>();
     public MeshTopology Topology { get; set; } = MeshTopology.Triangles;
 }

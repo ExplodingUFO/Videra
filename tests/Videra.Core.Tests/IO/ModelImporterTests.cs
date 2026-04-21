@@ -1,5 +1,6 @@
 using FluentAssertions;
 using Moq;
+using System.Numerics;
 using System.Globalization;
 using Videra.Core.Exceptions;
 using Videra.Core.Geometry;
@@ -714,15 +715,18 @@ public sealed class ModelImporterTests : IDisposable
         var material = asset.Materials.Should().ContainSingle().Subject;
         var texture = asset.Textures.Should().ContainSingle().Subject;
         var sampler = asset.Samplers.Should().ContainSingle().Subject;
+        var mesh = asset.Primitives.Should().ContainSingle().Subject.MeshData;
 
         material.Name.Should().Be("Textured");
-        material.BaseColorTextureId.Should().Be(texture.Id);
-        material.BaseColorSamplerId.Should().Be(sampler.Id);
+        material.BaseColorTexture.Should().NotBeNull();
+        material.BaseColorTexture!.TextureId.Should().Be(texture.Id);
+        material.BaseColorTexture.SamplerId.Should().Be(sampler.Id);
+        material.BaseColorTexture.CoordinateSet.Should().Be(0);
+        material.BaseColorTexture.ColorSpace.Should().Be(TextureColorSpace.Srgb);
         texture.Name.Should().Be("BaseColorImage");
         texture.Width.Should().Be(1);
         texture.Height.Should().Be(1);
         texture.ContentFormat.Should().Be(TextureImageFormat.Png);
-        texture.IsSrgb.Should().BeTrue();
         texture.ContentBytes.Length.Should().BeGreaterThan(0);
         sampler.MinFilter.Should().Be(TextureFilter.Linear);
         sampler.MagFilter.Should().Be(TextureFilter.Nearest);
@@ -730,5 +734,107 @@ public sealed class ModelImporterTests : IDisposable
         sampler.WrapV.Should().Be(TextureWrapMode.ClampToEdge);
         asset.Primitives.Should().ContainSingle();
         asset.Primitives[0].MaterialId.Should().Be(material.Id);
+        mesh.TextureCoordinateSets.Should().ContainSingle();
+        mesh.TextureCoordinateSets[0].SetIndex.Should().Be(0);
+        mesh.TextureCoordinateSets[0].Coordinates.ToArray().Should().Equal(
+            new Vector2(0f, 0f),
+            new Vector2(1f, 0f),
+            new Vector2(0f, 1f));
+    }
+
+    [Fact]
+    public void Import_GltfBaseColorTexture_MapsRequestedTextureCoordinateSet()
+    {
+        var path = WriteGltf("material_texture_texcoord1.gltf", """
+            {
+              "asset": { "version": "2.0" },
+              "scene": 0,
+              "scenes": [
+                { "nodes": [0] }
+              ],
+              "nodes": [
+                { "name": "Root", "mesh": 0 }
+              ],
+              "meshes": [
+                {
+                  "name": "TexturedMesh",
+                  "primitives": [
+                    {
+                      "attributes": { "POSITION": 0, "TEXCOORD_1": 1 },
+                      "indices": 2,
+                      "material": 0
+                    }
+                  ]
+                }
+              ],
+              "materials": [
+                {
+                  "name": "Textured",
+                  "pbrMetallicRoughness": {
+                    "baseColorTexture": { "index": 0, "texCoord": 1 }
+                  }
+                }
+              ],
+              "textures": [
+                { "sampler": 0, "source": 0 }
+              ],
+              "samplers": [
+                {
+                  "minFilter": 9729,
+                  "magFilter": 9729,
+                  "wrapS": 10497,
+                  "wrapT": 10497
+                }
+              ],
+              "images": [
+                {
+                  "name": "BaseColorImage",
+                  "uri": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO7ZcE0AAAAASUVORK5CYII="
+                }
+              ],
+              "buffers": [
+                {
+                  "byteLength": 66,
+                  "uri": "data:application/octet-stream;base64,AAAAAAAAAAAAAAAAAACAPwAAAAAAAAAAAAAAAAAAgD8AAAAAAAAAAAAAAAAAAIA/AAAAAAAAAAAAAIA/AAABAAIA"
+                }
+              ],
+              "bufferViews": [
+                { "buffer": 0, "byteOffset": 0, "byteLength": 36, "target": 34962 },
+                { "buffer": 0, "byteOffset": 36, "byteLength": 24, "target": 34962 },
+                { "buffer": 0, "byteOffset": 60, "byteLength": 6, "target": 34963 }
+              ],
+              "accessors": [
+                {
+                  "bufferView": 0,
+                  "componentType": 5126,
+                  "count": 3,
+                  "type": "VEC3",
+                  "min": [0.0, 0.0, 0.0],
+                  "max": [1.0, 1.0, 0.0]
+                },
+                {
+                  "bufferView": 1,
+                  "componentType": 5126,
+                  "count": 3,
+                  "type": "VEC2"
+                },
+                {
+                  "bufferView": 2,
+                  "componentType": 5123,
+                  "count": 3,
+                  "type": "SCALAR"
+                }
+              ]
+            }
+            """);
+
+        var asset = GltfModelImporter.Import(path);
+        var material = asset.Materials.Should().ContainSingle().Subject;
+        var mesh = asset.Primitives.Should().ContainSingle().Subject.MeshData;
+
+        material.BaseColorTexture.Should().NotBeNull();
+        material.BaseColorTexture!.CoordinateSet.Should().Be(1);
+        mesh.TextureCoordinateSets.Should().ContainSingle();
+        mesh.TextureCoordinateSets[0].SetIndex.Should().Be(1);
     }
 }
