@@ -259,11 +259,11 @@ public class OrbitCamera
     {
         var xChange = deltaX * RotationSpeed;
         var yChange = deltaY * RotationSpeed;
-        
-        Yaw += InvertX ? -xChange : xChange;
 
-        if (InvertY) Pitch += yChange;
-        else Pitch -= yChange;
+        Yaw += InvertX ? xChange : -xChange;
+
+        if (InvertY) Pitch -= yChange;
+        else Pitch += yChange;
         
         Pitch = Math.Clamp(Pitch, MinimumPitch, MaximumPitch);
 

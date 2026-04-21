@@ -30,6 +30,10 @@ public sealed class VideraViewInteractionIntegrationTests
         try
         {
             view.InteractionMode = VideraInteractionMode.Navigate;
+            view.CameraInvertX.Should().BeFalse();
+            view.CameraInvertY.Should().BeFalse();
+            view.Engine.Camera.InvertX.Should().BeFalse();
+            view.Engine.Camera.InvertY.Should().BeFalse();
             var pointer = CreateMousePointer();
             var yawBefore = view.Engine.Camera.Yaw;
             var pitchBefore = view.Engine.Camera.Pitch;
@@ -42,8 +46,8 @@ public sealed class VideraViewInteractionIntegrationTests
             view.RoutePointerReleased(pointer, new Point(134, 116), RawInputModifiers.None, PointerUpdateKind.LeftButtonReleased, MouseButton.Left);
             view.RoutePointerWheel(pointer, new Point(134, 116), RawInputModifiers.None, new global::Avalonia.Vector(0, 1));
 
-            view.Engine.Camera.Yaw.Should().NotBeApproximately(yawBefore, 0.0001f);
-            view.Engine.Camera.Pitch.Should().NotBeApproximately(pitchBefore, 0.0001f);
+            view.Engine.Camera.Yaw.Should().BeLessThan(yawBefore);
+            view.Engine.Camera.Pitch.Should().BeGreaterThan(pitchBefore);
             view.Engine.Camera.Radius.Should().BeLessThan(radiusBefore);
             pointer.Captured.Should().BeNull();
         }

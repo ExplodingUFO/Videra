@@ -163,7 +163,7 @@ internal sealed class SurfaceChartInteractionController
         var deltaY = currentPosition.Y - previousPosition.Y;
         var nextCamera = new SurfaceCameraPose(
             currentCamera.Target,
-            NormalizeDegrees(currentCamera.YawDegrees + (deltaX * OrbitDegreesPerPixel)),
+            NormalizeDegrees(currentCamera.YawDegrees - (deltaX * OrbitDegreesPerPixel)),
             Math.Clamp(currentCamera.PitchDegrees + (deltaY * OrbitDegreesPerPixel), MinimumPitchDegrees, MaximumPitchDegrees),
             currentCamera.Distance,
             currentCamera.FieldOfViewDegrees);
@@ -187,11 +187,11 @@ internal sealed class SurfaceChartInteractionController
         var currentWindow = currentViewState.DataWindow;
         var deltaX = currentPosition.X - previousPosition.X;
         var deltaY = currentPosition.Y - previousPosition.Y;
-        var sampleDeltaX = (deltaX / viewSize.Width) * currentWindow.Width;
-        var sampleDeltaY = (deltaY / viewSize.Height) * currentWindow.Height;
+        var sampleDeltaX = (deltaX / viewSize.Width) * currentWindow.Height;
+        var sampleDeltaY = (deltaY / viewSize.Height) * currentWindow.Width;
         var nextWindow = new SurfaceDataWindow(
-                currentWindow.StartX - sampleDeltaX,
-                currentWindow.StartY - sampleDeltaY,
+                currentWindow.StartX + sampleDeltaY,
+                currentWindow.StartY - sampleDeltaX,
                 currentWindow.Width,
                 currentWindow.Height)
             .ClampTo(metadata);

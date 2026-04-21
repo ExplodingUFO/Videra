@@ -234,7 +234,7 @@ public class OrbitCameraTests
         camera2.Rotate(10f, 0f);
 
         // Assert
-        camera2.Yaw.Should().BeLessThan(camera1.Yaw);
+        camera2.Yaw.Should().BeGreaterThan(camera1.Yaw);
     }
 
     [Fact]
@@ -249,7 +249,7 @@ public class OrbitCameraTests
         camera2.Rotate(0f, 10f);
 
         // Assert
-        camera2.Pitch.Should().BeGreaterThan(camera1.Pitch);
+        camera2.Pitch.Should().BeLessThan(camera1.Pitch);
     }
 
     [Fact]

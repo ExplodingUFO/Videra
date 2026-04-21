@@ -97,6 +97,8 @@ public partial class VideraView : Decorator
         _nativeHostFactory = nativeHostFactory ?? new DefaultNativeHostFactory();
         _bitmapFactory = bitmapFactory;
         _runtime = new VideraViewRuntime(this, Engine, _logger, _bitmapFactory);
+        Engine.Camera.InvertX = CameraInvertX;
+        Engine.Camera.InvertY = CameraInvertY;
         Focusable = true;
         ClipToBounds = true;
     }
