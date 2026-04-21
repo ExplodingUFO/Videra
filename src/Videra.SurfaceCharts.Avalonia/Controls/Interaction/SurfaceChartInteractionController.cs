@@ -168,7 +168,11 @@ internal sealed class SurfaceChartInteractionController
             currentCamera.Distance,
             currentCamera.FieldOfViewDegrees);
 
-        runtime.UpdateViewState(new SurfaceViewState(currentViewState.DataWindow, nextCamera));
+        runtime.UpdateViewState(
+            new SurfaceViewState(
+                currentViewState.DataWindow,
+                nextCamera,
+                currentViewState.DisplaySpace));
         return true;
     }
 
@@ -193,7 +197,11 @@ internal sealed class SurfaceChartInteractionController
             .ClampTo(metadata);
         var nextCamera = RecenterCamera(metadata, nextWindow, currentViewState.Camera, distanceScale: 1d);
 
-        runtime.UpdateViewState(new SurfaceViewState(nextWindow, nextCamera));
+        runtime.UpdateViewState(
+            new SurfaceViewState(
+                nextWindow,
+                nextCamera,
+                currentViewState.DisplaySpace));
         return true;
     }
 
@@ -224,7 +232,11 @@ internal sealed class SurfaceChartInteractionController
         var heightScale = nextWindow.Height / currentWindow.Height;
         var nextCamera = RecenterCamera(metadata, nextWindow, currentViewState.Camera, (widthScale + heightScale) * 0.5d);
 
-        runtime.UpdateViewState(new SurfaceViewState(nextWindow, nextCamera));
+        runtime.UpdateViewState(
+            new SurfaceViewState(
+                nextWindow,
+                nextCamera,
+                currentViewState.DisplaySpace));
         return true;
     }
 
@@ -258,7 +270,11 @@ internal sealed class SurfaceChartInteractionController
         var heightScale = nextWindow.Height / currentWindow.Height;
         var nextCamera = RecenterCamera(metadata, nextWindow, currentViewState.Camera, (widthScale + heightScale) * 0.5d);
 
-        runtime.UpdateViewState(new SurfaceViewState(nextWindow, nextCamera));
+        runtime.UpdateViewState(
+            new SurfaceViewState(
+                nextWindow,
+                nextCamera,
+                currentViewState.DisplaySpace));
     }
 
     private static SurfaceDataWindow CreateFocusedWindow(Rect selectionRect, SurfaceDataWindow currentWindow, Size viewSize)

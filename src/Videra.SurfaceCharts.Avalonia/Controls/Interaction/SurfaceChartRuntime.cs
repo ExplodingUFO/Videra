@@ -153,7 +153,8 @@ internal sealed class SurfaceChartRuntime
         UpdateViewState(
             SurfaceViewState.CreateDefault(
                 metadata,
-                new SurfaceDataWindow(0d, 0d, metadata.Width, metadata.Height)));
+                new SurfaceDataWindow(0d, 0d, metadata.Width, metadata.Height),
+                ViewState.DisplaySpace));
     }
 
     public void ResetCamera()
@@ -168,7 +169,8 @@ internal sealed class SurfaceChartRuntime
         _cameraController.UpdateViewState(
             new SurfaceViewState(
                 ViewState.DataWindow,
-                SurfaceCameraPose.CreateDefault(metadata, ViewState.DataWindow)));
+                SurfaceCameraPose.CreateDefault(metadata, ViewState.DataWindow),
+                ViewState.DisplaySpace));
         _invalidateRenderScene();
         _invalidateOverlay();
     }

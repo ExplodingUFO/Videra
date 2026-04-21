@@ -29,7 +29,10 @@ internal sealed class SurfaceCameraController
 
     public void UpdateDataWindow(SurfaceDataWindow dataWindow)
     {
-        CurrentViewState = new SurfaceViewState(dataWindow, CurrentViewState.Camera);
+        CurrentViewState = new SurfaceViewState(
+            dataWindow,
+            CurrentViewState.Camera,
+            CurrentViewState.DisplaySpace);
     }
 
     public void UpdateViewport(SurfaceViewport viewport)
@@ -46,7 +49,10 @@ internal sealed class SurfaceCameraController
             projectionSettings.PitchDegrees,
             currentCamera.Distance,
             currentCamera.FieldOfViewDegrees);
-        CurrentViewState = new SurfaceViewState(CurrentViewState.DataWindow, nextCamera);
+        CurrentViewState = new SurfaceViewState(
+            CurrentViewState.DataWindow,
+            nextCamera,
+            CurrentViewState.DisplaySpace);
     }
 
     private static SurfaceViewState CreateInitialViewState(SurfaceViewport viewport)

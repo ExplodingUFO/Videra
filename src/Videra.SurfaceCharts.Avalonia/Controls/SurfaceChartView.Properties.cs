@@ -128,7 +128,10 @@ public partial class SurfaceChartView
             return;
         }
 
-        var nextViewState = new SurfaceViewState(viewport.ToDataWindow(), _runtime.ViewState.Camera);
+        var nextViewState = new SurfaceViewState(
+            viewport.ToDataWindow(),
+            _runtime.ViewState.Camera,
+            _runtime.ViewState.DisplaySpace);
         ApplyViewState(nextViewState);
     }
 

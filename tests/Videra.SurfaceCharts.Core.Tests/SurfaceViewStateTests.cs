@@ -72,6 +72,28 @@ public sealed class SurfaceViewStateTests
     }
 
     [Fact]
+    public void SurfaceViewState_CreateDefault_DefaultsToRawDisplaySpace()
+    {
+        var metadata = CreateMetadata();
+        var dataWindow = new SurfaceDataWindow(25.0, 10.0, 20.0, 16.0);
+
+        var state = SurfaceViewState.CreateDefault(metadata, dataWindow);
+
+        state.DisplaySpace.Should().Be(SurfaceDisplaySpace.Raw);
+    }
+
+    [Fact]
+    public void SurfaceViewState_CreateDefault_PreservesRequestedDisplaySpace()
+    {
+        var metadata = CreateMetadata();
+        var dataWindow = new SurfaceDataWindow(25.0, 10.0, 20.0, 16.0);
+
+        var state = SurfaceViewState.CreateDefault(metadata, dataWindow, SurfaceDisplaySpace.Presentation);
+
+        state.DisplaySpace.Should().Be(SurfaceDisplaySpace.Presentation);
+    }
+
+    [Fact]
     public void SurfaceCameraPose_CreateCameraFrame_UsesTargetAndFieldOfView()
     {
         var metadata = CreateMetadata();
