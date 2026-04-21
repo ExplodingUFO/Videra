@@ -2,20 +2,20 @@
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated 2026-04-20)
+See: `.planning/PROJECT.md` (updated 2026-04-21)
 
 **Core value:** 跨平台 3D 渲染引擎的可靠性
-**Current focus:** `v1.19` 正在定义中，目标是提升 `SurfaceCharts` 默认显示空间、value 轴表达和交互预设，而不是直接继续扩更深的 analytics 功能面
+**Current focus:** `v1.20` 正在定义中，目标是先把 viewer/runtime 的产品边界、包结构和 host seams 定清楚
 
 ## Current Position
 
-Milestone: `v1.19`
+Milestone: `v1.20`
 Phase: `Not started (defining requirements)`
 Plan: `—`
-Status: `Defining requirements and roadmap for SurfaceCharts presentation-space and interaction defaults`
-Last activity: `2026-04-21` — completed quick task `260421-gre`: 修复 `Videra.SurfaceCharts.Demo` 无法打开的问题
+Status: `Defining requirements and roadmap for viewer product boundary, core slimming, and package split`
+Last activity: `2026-04-21` — started `v1.20`, scoped the milestone around capability matrix, `Videra.Core` slimming, importer/logging split, and host/package seams
 
-Progress: `Requirements and roadmap are initialized for v1.19, and quick task 260421-gre restored the SurfaceCharts demo build on the current branch.`
+Progress: `Requirements and roadmap are being defined for v1.20.`
 
 ## Performance Metrics
 
@@ -23,7 +23,7 @@ Progress: `Requirements and roadmap are initialized for v1.19, and quick task 26
 - Archived milestone phases: `4`
 - Archived milestone requirements: `11`
 - Active milestone phases: `4`
-- Active milestone requirements: `10`
+- Active milestone requirements: `8`
 
 ## Accumulated Context
 
@@ -34,15 +34,17 @@ Progress: `Requirements and roadmap are initialized for v1.19, and quick task 26
 - `v1.18`: benchmark review for analytics hotspots remains label-gated evidence rather than a hard numeric blocker.
 - `v1.18` closeout: no milestone tag is retained because repository release tags remain version-aligned rather than milestone-aligned.
 - `v1.19`: the next highest-value gap is default chart readability and interaction semantics, so presentation-space separation and interaction presets outrank contour/probe expansion for this milestone.
+- `v1.20`: before chasing scene/material runtime breadth, Videra should first define a strict viewer/runtime `1.0` boundary and slim `Videra.Core` into a real runtime core.
 
 ### Pending Todos
 
-- Start Phase `99`: define and thread display-space transforms through `ViewState`, camera fit, projection, and render-state compatibility paths.
+- Start Phase `103`: freeze the viewer/runtime capability matrix and package-layer boundary for `v1.20`.
 
 ### Blockers/Concerns
 
 - Historical `.planning/phases/13-surfacechart-runtime-and-view-state-contract/13-VERIFICATION.md` and `.planning/phases/14-built-in-interaction-and-camera-workflow/14-VERIFICATION.md` still report `gaps_found`; they were acknowledged at `v1.18` closeout and do not block the archive.
 - Carry-forward engineering debt from `v1.18` lives in `.planning/PROJECT.md` Current Risks and `.planning/milestones/v1.18-MILESTONE-AUDIT.md`.
+- `Videra.Core` still directly references `SharpGLTF.Toolkit` and multiple `Serilog` packages, so the product/package boundary remains blurrier than the new milestone target.
 
 ### Quick Tasks Completed
 
@@ -66,5 +68,5 @@ Progress: `Requirements and roadmap are initialized for v1.19, and quick task 26
 ## Session Continuity
 
 Last session: `2026-04-20 +08:00`
-Stopped at: `v1.19 initialized; requirements and roadmap are ready for phase discussion/planning`
+Stopped at: `v1.20 initialized; requirements and roadmap are being defined`
 Resume file: `.planning/ROADMAP.md`
