@@ -4,7 +4,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <Description>Desktop viewer runtime core for Videra, including scene/runtime abstractions, inspection-oriented viewer services, current built-in model import, and software fallback rendering.</Description>
+    <Description>Desktop viewer runtime core for Videra, including scene/runtime abstractions, inspection-oriented viewer services, and software fallback rendering.</Description>
     <PackageTags>videra;desktop-viewer;inspection;viewer-runtime;graphics-backend;dotnet</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <!-- Suppress pre-existing analyzer warnings until fixed in dedicated cleanup plans.
@@ -61,11 +61,6 @@
   <ItemGroup>
     <None Include="..\..\eng\icon.png" Pack="true" PackagePath="\" Link="icon.png" />
     <None Include="README.md" Pack="true" PackagePath="\" />
-    <PackageReference Include="SharpGLTF.Toolkit" Version="1.0.6" />
-    <PackageReference Include="Serilog" Version="4.2.0" />
-    <PackageReference Include="Serilog.Extensions.Logging" Version="8.0.0" />
-    <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
-    <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.11" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.11" />
   </ItemGroup>

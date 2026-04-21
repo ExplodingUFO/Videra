@@ -83,10 +83,12 @@ jobs:
         with:
           dotnet-version: 8.0.x
 
-      - name: Pack neutral and Windows preview packages
+      - name: Pack neutral, import, and Windows preview packages
         shell: pwsh
         run: |
           dotnet pack src/Videra.Core/Videra.Core.csproj -c Release -o ./nupkgs /p:PackageVersion=${{ github.event.inputs.version }}
+          dotnet pack src/Videra.Import.Gltf/Videra.Import.Gltf.csproj -c Release -o ./nupkgs /p:PackageVersion=${{ github.event.inputs.version }}
+          dotnet pack src/Videra.Import.Obj/Videra.Import.Obj.csproj -c Release -o ./nupkgs /p:PackageVersion=${{ github.event.inputs.version }}
           dotnet pack src/Videra.Avalonia/Videra.Avalonia.csproj -c Release -o ./nupkgs /p:PackageVersion=${{ github.event.inputs.version }}
           dotnet pack src/Videra.Platform.Windows/Videra.Platform.Windows.csproj -c Release -o ./nupkgs /p:PackageVersion=${{ github.event.inputs.version }}
 

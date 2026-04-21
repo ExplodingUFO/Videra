@@ -14,7 +14,7 @@
 dotnet add package Videra.Core
 ```
 
-只在需要核心渲染抽象和导入管线时直接安装。桌面 UI 集成更推荐从 `Videra.Avalonia` 加匹配平台包开始。
+只在需要运行时内核和核心渲染抽象时直接安装。桌面 UI 集成更推荐从 `Videra.Avalonia` 加匹配平台包开始；如果还需要文件导入能力，再额外安装 `Videra.Import.Gltf` 或 `Videra.Import.Obj`。
 
 当前 `alpha` 的 `preview` 验证仍可使用 `GitHub Packages`，但那不是默认公开安装路径：
 

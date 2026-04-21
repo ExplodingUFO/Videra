@@ -56,7 +56,6 @@ Platform-agnostic rendering layer responsible for:
 - Scene object and engine lifecycle
 - `SceneDocument` scene ownership and backend-neutral imported assets
 - Camera, grid, axis, and wireframe logic
-- Current built-in model import for `.gltf`, `.glb`, and `.obj`
 - Render-style presets
 - Software fallback rendering
 - Frame-plan construction and pipeline execution via `VideraEngine`
@@ -85,6 +84,15 @@ UI integration layer responsible for:
 - Hosting scene-runtime services such as `SceneDocumentStore`, `SceneDeltaPlanner`, `SceneResidencyRegistry`, and `SceneUploadQueue`
 
 This layer lets host apps use the 3D view from XAML or code without coupling UI surface code to rendering internals.
+
+### Import packages
+
+Dedicated import packages own file-format parsing and CPU-side scene asset creation for viewer/runtime scenes:
+
+- `Videra.Import.Gltf`: `.gltf` and `.glb`
+- `Videra.Import.Obj`: `.obj`
+
+These packages compose with `Videra.Core` directly. `Videra.Avalonia` consumes them transitively so `LoadModelAsync(...)` stays on the default viewer path without moving import parsing back into `Videra.Core`.
 
 ### Native Backend Packages
 
@@ -124,6 +132,8 @@ The demo application shows:
 Videra/
 ├── src/
 │   ├── Videra.Core/
+│   ├── Videra.Import.Gltf/
+│   ├── Videra.Import.Obj/
 │   ├── Videra.Avalonia/
 │   ├── Videra.Platform.Windows/
 │   ├── Videra.Platform.Linux/
@@ -243,7 +253,7 @@ If the native backend is unavailable, or if `software` is selected explicitly, r
 
 ## Supported Capabilities
 
-- Model import: `.gltf`, `.glb`, `.obj`
+- Model import through `Videra.Import.Gltf` and `Videra.Import.Obj`: `.gltf`, `.glb`, `.obj`
 - Orbit camera and basic scene interaction
 - Viewer-first inspection workflows: mesh-accurate picking, measurement snap modes, snapshot export, and replayable inspection bundles
 - Render-style presets

@@ -5,7 +5,8 @@ using Videra.Core.Exceptions;
 using Videra.Core.Geometry;
 using Videra.Core.Graphics.Abstractions;
 using Videra.Core.Graphics.Software;
-using Videra.Core.IO;
+using Videra.Import.Gltf;
+using Videra.Import.Obj;
 using Xunit;
 
 namespace Videra.Core.Tests.IO;
@@ -77,7 +78,7 @@ public sealed class ModelImporterTests : IDisposable
     {
         var mockFactory = CreateMockFactory();
 
-        var act = () => ModelImporter.Load(null!, mockFactory.Object);
+        var act = () => GltfModelImporter.Load(null!, mockFactory.Object);
 
         act.Should().Throw<InvalidModelInputException>()
             .Which.Operation.Should().Be("LoadModel");
@@ -88,7 +89,7 @@ public sealed class ModelImporterTests : IDisposable
     {
         var mockFactory = CreateMockFactory();
 
-        var act = () => ModelImporter.Load(string.Empty, mockFactory.Object);
+        var act = () => GltfModelImporter.Load(string.Empty, mockFactory.Object);
 
         var exception = act.Should().Throw<InvalidModelInputException>().Which;
         exception.Operation.Should().Be("LoadModel");
@@ -100,7 +101,7 @@ public sealed class ModelImporterTests : IDisposable
     {
         var mockFactory = CreateMockFactory();
 
-        var act = () => ModelImporter.Load("   ", mockFactory.Object);
+        var act = () => GltfModelImporter.Load("   ", mockFactory.Object);
 
         act.Should().Throw<InvalidModelInputException>();
     }
@@ -109,7 +110,7 @@ public sealed class ModelImporterTests : IDisposable
     public void Load_CalledWithDirectoryPath_ThrowsInvalidModelInputException()
     {
         var mockFactory = CreateMockFactory();
-        var act = () => ModelImporter.Load(AppContext.BaseDirectory, mockFactory.Object);
+        var act = () => GltfModelImporter.Load(AppContext.BaseDirectory, mockFactory.Object);
 
         var exception = act.Should().Throw<InvalidModelInputException>().Which;
         exception.Context.Should().ContainKey("NormalizedPath");
@@ -120,7 +121,7 @@ public sealed class ModelImporterTests : IDisposable
     {
         var mockFactory = CreateMockFactory();
 
-        var act = () => ModelImporter.Load("nonexistent_file.gltf", mockFactory.Object);
+        var act = () => GltfModelImporter.Load("nonexistent_file.gltf", mockFactory.Object);
 
         var exception = act.Should().Throw<InvalidModelInputException>().Which;
         exception.Context.Should().ContainKey("NormalizedPath");
@@ -131,7 +132,7 @@ public sealed class ModelImporterTests : IDisposable
     {
         var mockFactory = CreateMockFactory();
 
-        var act = () => ModelImporter.Load("model.xyz", mockFactory.Object);
+        var act = () => ObjModelImporter.Load("model.xyz", mockFactory.Object);
 
         var exception = act.Should().Throw<InvalidModelInputException>().Which;
         exception.Message.Should().Contain("supported");
@@ -141,21 +142,21 @@ public sealed class ModelImporterTests : IDisposable
     [Fact]
     public void SupportedFormats_Contains_ExpectedExtensions()
     {
-        ModelImporter.SupportedFormats.Should().Contain("*.gltf");
-        ModelImporter.SupportedFormats.Should().Contain("*.glb");
-        ModelImporter.SupportedFormats.Should().Contain("*.obj");
+        GltfModelImporter.SupportedFormats.Should().Contain("*.gltf");
+        GltfModelImporter.SupportedFormats.Should().Contain("*.glb");
+        ObjModelImporter.SupportedFormats.Should().Contain("*.obj");
     }
 
     [Fact]
     public void SupportedFormats_HasThreeFormats()
     {
-        ModelImporter.SupportedFormats.Should().HaveCount(3);
+        GltfModelImporter.SupportedFormats.Concat(ObjModelImporter.SupportedFormats).Should().HaveCount(3);
     }
 
     [Fact]
     public void Load_NullFactory_ThrowsArgumentNullException()
     {
-        var act = () => ModelImporter.Load("test.gltf", null!);
+        var act = () => GltfModelImporter.Load("test.gltf", null!);
         act.Should().Throw<ArgumentNullException>();
     }
 
@@ -173,7 +174,7 @@ public sealed class ModelImporterTests : IDisposable
             f 1/1 2/2 3/3
             """);
 
-        var obj = ModelImporter.Load(path, factory);
+        var obj = ObjModelImporter.Load(path, factory);
 
         obj.Should().NotBeNull();
         obj.Name.Should().Contain("triangle.obj");
@@ -193,7 +194,7 @@ public sealed class ModelImporterTests : IDisposable
             f 2//1 4//1 3//1
             """);
 
-        var obj = ModelImporter.Load(path, factory);
+        var obj = ObjModelImporter.Load(path, factory);
 
         obj.Should().NotBeNull();
     }
@@ -235,7 +236,7 @@ public sealed class ModelImporterTests : IDisposable
             CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo("de-DE");
             CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo("de-DE");
 
-            var act = () => ModelImporter.Load(path, mockFactory.Object);
+            var act = () => ObjModelImporter.Load(path, mockFactory.Object);
 
             act.Should().NotThrow();
             uploadedVertices.Should().NotBeNull();
@@ -256,7 +257,7 @@ public sealed class ModelImporterTests : IDisposable
         var path = WriteObj("empty.obj", string.Empty);
 
         // An OBJ with no faces should still load (produces empty mesh)
-        var act = () => ModelImporter.Load(path, factory);
+        var act = () => ObjModelImporter.Load(path, factory);
         // Empty mesh with no vertices — Object3D.Initialize may throw or handle gracefully
         // Either way it should not hang or crash unexpectedly
         act.Should().NotThrow<IndexOutOfRangeException>();
@@ -274,7 +275,7 @@ public sealed class ModelImporterTests : IDisposable
             """);
 
         // Should not throw IndexOutOfRangeException from out-of-range vertex index
-        var act = () => ModelImporter.Load(path, factory);
+        var act = () => ObjModelImporter.Load(path, factory);
         act.Should().NotThrow<IndexOutOfRangeException>();
     }
 
@@ -363,7 +364,7 @@ public sealed class ModelImporterTests : IDisposable
             }
             """);
 
-        var act = () => ModelImporter.Load(path, factory);
+        var act = () => GltfModelImporter.Load(path, factory);
 
         act.Should().NotThrow();
     }

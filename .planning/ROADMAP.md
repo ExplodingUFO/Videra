@@ -3,7 +3,7 @@
 ## Active Milestone
 
 - `v1.20 Viewer Product Boundary and Core Slimming`
-- Status: `Phase 103 complete locally on 2026-04-21; Phase 104 is next`
+- Status: `Phase 103-104 complete locally on 2026-04-21; Phase 105 is next`
 - Focus: keep the viewer/runtime `1.0` boundary fixed while extracting concrete importer and logging dependencies out of `Videra.Core`
 
 ### Phase 103: Viewer Product Boundary and Capability Matrix
@@ -38,31 +38,37 @@ Notes:
 
 Plans:
 
-- [ ] 104-01: remove concrete importer package references from `Videra.Core` without breaking runtime composition
-- [ ] 104-02: remove concrete Serilog provider dependencies from `Videra.Core` and route them through explicit adapter packages
-- [ ] 104-03: prove the slimmed core still builds and composes through abstractions on the existing viewer path
+- [x] 104-01: remove concrete importer package references from `Videra.Core` without breaking runtime composition
+- [x] 104-02: remove concrete Serilog provider dependencies from `Videra.Core` and keep runtime composition on logging abstractions only
+- [x] 104-03: prove the slimmed core still builds and composes through abstractions on the existing viewer and package paths
 
 Success criteria:
 
 1. `Videra.Core.csproj` no longer directly references `SharpGLTF.Toolkit`.
 2. `Videra.Core.csproj` no longer directly references concrete `Serilog` provider packages.
-3. Existing viewer/runtime paths still compile and run through explicit abstraction-driven composition.
+3. Existing viewer/runtime and packaged consumer paths still compile and run through explicit abstraction-driven composition.
+
+Notes:
+
+- `Videra.Core` no longer directly references `SharpGLTF.Toolkit` or concrete `Serilog` provider packages.
+- glTF and OBJ parsing now live in `Videra.Import.Gltf` and `Videra.Import.Obj`, and `Videra.Avalonia` consumes them transitively for the default scene-loading APIs.
+- The public package/publish truth, consumer-smoke pack list, and package validation flow now include the dedicated import packages, so the extracted boundary is shippable instead of only source-local.
 
 ### Phase 105: Import Package and Hosting Abstractions
 
-**Goal:** turn import and host composition into explicit packages/contracts instead of implicit `Core` / Avalonia coupling.
+**Goal:** stabilize import-package composition and host seams so runtime core, backends, UI adapters, and charts remain independently explainable.
 **Depends on:** Phase 104
 **Plans:** 3 planned
 
 Plans:
 
-- [ ] 105-01: split glTF and OBJ import into dedicated import packages that compose with the slimmed core
+- [ ] 105-01: define the canonical import-package composition story now that glTF and OBJ import live outside `Videra.Core`
 - [ ] 105-02: define or tighten hosting abstractions so runtime core, backends, UI adapters, and charts can be described independently
 - [ ] 105-03: keep the Avalonia path thin while proving the new seams do not widen backend-specific public API
 
 Success criteria:
 
-1. glTF and OBJ import are delivered through explicit import packages instead of hidden `Videra.Core` baggage.
+1. glTF and OBJ import packages are part of the canonical viewer composition story instead of reading like hidden implementation baggage.
 2. Hosting seams are concrete enough that `Core`, `Import`, `Backend`, `UI adapter`, and `Charts` can each be explained as separate layers.
 3. The Avalonia shell remains thin and does not become the place where new product coupling leaks back in.
 

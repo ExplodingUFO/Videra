@@ -79,6 +79,8 @@ StyleCopReport.xml
 !samples/Videra.InteractionSample/Assets/reference-cube.obj
 !samples/Videra.MinimalSample/Assets/reference-cube.obj
 !smoke/Videra.ConsumerSmoke/Assets/reference-cube.obj
+!src/Videra.Import.Obj/
+!src/Videra.Import.Obj/**
 *.iobj
 *.pch
 *.pdb

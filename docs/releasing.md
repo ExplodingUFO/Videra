@@ -38,6 +38,8 @@ That workflow is manual (`workflow_dispatch`) and pushes preview artifacts to `G
 The public package set is limited to:
 
 - `Videra.Core`
+- `Videra.Import.Gltf`
+- `Videra.Import.Obj`
 - `Videra.Avalonia`
 - `Videra.Platform.Windows`
 - `Videra.Platform.Linux`

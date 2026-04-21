@@ -46,6 +46,8 @@ If no matching platform package is installed, the software fallback path can sti
 
 `PreferredBackend` and `VIDERA_BACKEND` only change backend preference. They do not install missing platform packages and do not replace matching-host native validation.
 
+`Videra.Avalonia` depends on `Videra.Import.Gltf` and `Videra.Import.Obj` transitively so `LoadModelAsync(...)` and `LoadModelsAsync(...)` stay available on the default install path without extra package commands.
+
 ## Happy Path
 
 ```csharp

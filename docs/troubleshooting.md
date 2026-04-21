@@ -39,7 +39,8 @@ For `area: surfacecharts`, start from `Videra.SurfaceCharts.Demo` and keep the r
 ## Package Selection vs Backend Preference
 
 - For Avalonia apps, install `Videra.Avalonia` together with the matching `Videra.Platform.Windows`, `Videra.Platform.Linux`, or `Videra.Platform.macOS` package.
-- Install `Videra.Core` directly only when you want the rendering abstractions and import pipeline without the Avalonia UI layer.
+- Install `Videra.Core` directly only when you want the runtime kernel without the Avalonia UI layer.
+- Add `Videra.Import.Gltf` and/or `Videra.Import.Obj` when you need `.gltf` / `.glb` / `.obj` ingestion on the core path.
 - Software fallback helps with diagnostics, but it does not install missing platform packages.
 - `VIDERA_BACKEND` and `PreferredBackend` only change backend preference. `VIDERA_BACKEND` does not install missing platform packages and does not replace matching-host native validation.
 

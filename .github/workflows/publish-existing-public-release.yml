@@ -65,6 +65,8 @@ jobs:
         shell: pwsh
         run: |
           dotnet pack src/Videra.Core/Videra.Core.csproj -c Release -o ./nupkgs /p:PackageVersion=${{ steps.version.outputs.version }}
+          dotnet pack src/Videra.Import.Gltf/Videra.Import.Gltf.csproj -c Release -o ./nupkgs /p:PackageVersion=${{ steps.version.outputs.version }}
+          dotnet pack src/Videra.Import.Obj/Videra.Import.Obj.csproj -c Release -o ./nupkgs /p:PackageVersion=${{ steps.version.outputs.version }}
           dotnet pack src/Videra.Avalonia/Videra.Avalonia.csproj -c Release -o ./nupkgs /p:PackageVersion=${{ steps.version.outputs.version }}
           dotnet pack src/Videra.Platform.Windows/Videra.Platform.Windows.csproj -c Release -o ./nupkgs /p:PackageVersion=${{ steps.version.outputs.version }}
           dotnet pack src/Videra.Platform.Linux/Videra.Platform.Linux.csproj -c Release -o ./nupkgs /p:PackageVersion=${{ steps.version.outputs.version }}
@@ -76,6 +78,8 @@ jobs:
           $expectedVersion = "${{ steps.version.outputs.version }}"
           $expectedPackages = @(
             "Videra.Core",
+            "Videra.Import.Gltf",
+            "Videra.Import.Obj",
             "Videra.Avalonia",
             "Videra.Platform.Windows",
             "Videra.Platform.Linux",

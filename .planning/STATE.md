@@ -5,17 +5,17 @@
 See: `.planning/PROJECT.md` (updated 2026-04-21)
 
 **Core value:** 跨平台 3D 渲染引擎的可靠性
-**Current focus:** `v1.20` 已完成 Phase `103`，下一步进入 Phase `104`，把 importer / logging 依赖从 `Videra.Core` 中拆出来
+**Current focus:** `v1.20` 已完成 Phase `104`，下一步进入 Phase `105`，把 import-package composition 与 host seams 讲清并收紧
 
 ## Current Position
 
 Milestone: `v1.20`
-Phase: `Phase 104 ready`
+Phase: `Phase 105 ready`
 Plan: `—`
-Status: `Phase 103 is complete locally; capability matrix and package-layer vocabulary are now fixed for the milestone`
-Last activity: `2026-04-21` — completed Phase `103` by publishing the `1.0` capability matrix, package-layer matrix, and aligned entry-doc truth
+Status: `Phase 104 is complete locally; Videra.Core is slimmed and the public package path now includes explicit import packages`
+Last activity: `2026-04-21` — completed Phase `104` by extracting importers out of `Videra.Core`, removing concrete logging-provider baggage, and closing the packaged-consumer/release truth around the new import packages
 
-Progress: `Phase 103 is complete locally; Phase 104 is the next executable step.`
+Progress: `Phase 103-104 are complete locally; Phase 105 is the next executable step.`
 
 ## Performance Metrics
 
@@ -38,13 +38,13 @@ Progress: `Phase 103 is complete locally; Phase 104 is the next executable step.
 
 ### Pending Todos
 
-- Start Phase `104`: remove concrete importer and logging provider dependencies from `Videra.Core`.
+- Start Phase `105`: stabilize import-package composition guidance and tighten host seams without widening backend-specific API.
 
 ### Blockers/Concerns
 
 - Historical `.planning/phases/13-surfacechart-runtime-and-view-state-contract/13-VERIFICATION.md` and `.planning/phases/14-built-in-interaction-and-camera-workflow/14-VERIFICATION.md` still report `gaps_found`; they were acknowledged at `v1.18` closeout and do not block the archive.
 - Carry-forward engineering debt from `v1.18` lives in `.planning/PROJECT.md` Current Risks and `.planning/milestones/v1.18-MILESTONE-AUDIT.md`.
-- `Videra.Core` still directly references `SharpGLTF.Toolkit` and multiple `Serilog` packages, so the product/package boundary remains blurrier than the new milestone target.
+- Import extraction now crosses the public package line, so future host-seam work has to preserve the explicit `Core` / `Import` / `Backend` / `UI adapter` split instead of hiding it back inside `Videra.Avalonia`.
 
 ### Quick Tasks Completed
 
@@ -68,5 +68,5 @@ Progress: `Phase 103 is complete locally; Phase 104 is the next executable step.
 ## Session Continuity
 
 Last session: `2026-04-20 +08:00`
-Stopped at: `Phase 103 complete locally; Phase 104 is ready to start`
+Stopped at: `Phase 104 complete locally; Phase 105 is ready to start`
 Resume file: `.planning/ROADMAP.md`

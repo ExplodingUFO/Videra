@@ -59,11 +59,20 @@ dotnet add package Videra.Platform.Linux
 dotnet add package Videra.Platform.macOS
 ```
 
-If you only need the rendering abstractions and import pipeline, install `Videra.Core` directly:
+If you only need the runtime kernel and scene/render abstractions without the Avalonia UI layer, install `Videra.Core` directly:
 
 ```bash
 dotnet add package Videra.Core
 ```
+
+If you also need file-format ingestion on the core path, add the dedicated import packages:
+
+```bash
+dotnet add package Videra.Import.Gltf
+dotnet add package Videra.Import.Obj
+```
+
+`Videra.Avalonia` already brings `Videra.Import.Gltf` and `Videra.Import.Obj` transitively for `LoadModelAsync(...)` and `LoadModelsAsync(...)`.
 
 `Videra.Avalonia` remains the UI/control entry package. `PreferredBackend` and `VIDERA_BACKEND` only change backend preference. They do not install missing platform packages, and they do not replace matching-host native validation.
 The public install flow does not install missing platform packages for you.
@@ -82,6 +91,8 @@ For alpha adoption feedback, use [Alpha Feedback](docs/alpha-feedback.md) before
 | Package | Audience | Official feed | Current support level |
 | --- | --- | --- | --- |
 | `Videra.Core` | Core-only consumers and backend integrators | `nuget.org` public tags | `alpha` |
+| `Videra.Import.Gltf` | Core-first consumers that need `.gltf` / `.glb` ingestion | `nuget.org` public tags | `alpha` |
+| `Videra.Import.Obj` | Core-first consumers that need `.obj` ingestion | `nuget.org` public tags | `alpha` |
 | `Videra.Avalonia` | Avalonia desktop applications | `nuget.org` public tags | `alpha` |
 | `Videra.Platform.Windows` | Windows Direct3D 11 hosts | `nuget.org` public tags | `alpha` |
 | `Videra.Platform.Linux` | Linux Vulkan hosts | `nuget.org` public tags | `alpha` |

@@ -18,7 +18,7 @@ Requirements committed for the `v1.20` milestone. Each requirement maps to exact
 - [ ] **CORE-01**: `Videra.Core` no longer depends on concrete importer packages.
 - [ ] **CORE-02**: `Videra.Core` no longer depends on concrete logging provider packages.
 - [ ] **PKG-01**: glTF and OBJ import functionality ship through dedicated import packages that compose with `Videra.Core`.
-- [ ] **PKG-02**: Serilog-based logging ships through a dedicated adapter package instead of being an implicit `Videra.Core` dependency.
+- [ ] **PKG-02**: Concrete logging providers are not implied by `Videra.Core`; runtime composition stays on logging abstractions only.
 
 ### Hosting and Validation
 
@@ -64,13 +64,13 @@ Explicitly excluded from `v1.20` to keep the milestone focused on product bounda
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| BNDR-01 | Phase 103 | Pending |
-| BNDR-02 | Phase 103 | Pending |
-| BNDR-03 | Phase 103 | Pending |
-| CORE-01 | Phase 104 | Pending |
-| CORE-02 | Phase 104 | Pending |
-| PKG-02 | Phase 104 | Pending |
-| PKG-01 | Phase 105 | Pending |
+| BNDR-01 | Phase 103 | Complete |
+| BNDR-02 | Phase 103 | Complete |
+| BNDR-03 | Phase 103 | Complete |
+| CORE-01 | Phase 104 | Complete |
+| CORE-02 | Phase 104 | Complete |
+| PKG-02 | Phase 104 | Complete |
+| PKG-01 | Phase 104 | Complete |
 | HOST-01 | Phase 105 | Pending |
 | VALD-01 | Phase 106 | Pending |
 
@@ -81,4 +81,4 @@ Explicitly excluded from `v1.20` to keep the milestone focused on product bounda
 
 ---
 *Requirements defined: 2026-04-21*
-*Last updated: 2026-04-21 after initializing the v1.20 milestone*
+*Last updated: 2026-04-21 after completing Phase 104*

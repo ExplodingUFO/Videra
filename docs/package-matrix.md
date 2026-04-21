@@ -9,7 +9,7 @@ For the explicit `1.0` product boundary and deferred capability split, use [Vide
 | Layer | Current mapping | Public status | Notes |
 | --- | --- | --- | --- |
 | `Core` | `Videra.Core` | Public package | Viewer/runtime kernel |
-| `Import` | Current built-in import helpers inside `Videra.Core` | Not yet a dedicated package | `v1.20` aims to pull this into explicit import packages |
+| `Import` | `Videra.Import.Gltf`, `Videra.Import.Obj` | Public packages | Dedicated file-format ingestion layered on top of `Videra.Core` |
 | `Backend` | `Videra.Platform.Windows`, `Videra.Platform.Linux`, `Videra.Platform.macOS` | Public packages | Native graphics implementations |
 | `UI adapter` | `Videra.Avalonia` | Public package | Public host-framework shell |
 | `Charts` | `Videra.SurfaceCharts.*` + `Videra.SurfaceCharts.Demo` | Source-first | Independent chart family, not current public package promise |
@@ -18,8 +18,10 @@ For the explicit `1.0` product boundary and deferred capability split, use [Vide
 
 | Package | Published | Official feed | Preview feed | Audience | Support level | Notes |
 | --- | --- | --- | --- | --- | --- | --- |
-| `Videra.Core` | Yes, on public release tags | `nuget.org` | `GitHub Packages` preview/internal only | Core-only consumers and backend integrators | `alpha` | Core scene/runtime abstractions, import pipeline, software fallback |
-| `Videra.Avalonia` | Yes, on public release tags | `nuget.org` | `GitHub Packages` preview/internal only | Avalonia desktop applications | `alpha` | Main public UI entry package |
+| `Videra.Core` | Yes, on public release tags | `nuget.org` | `GitHub Packages` preview/internal only | Core-only consumers and backend integrators | `alpha` | Core scene/runtime abstractions and software fallback |
+| `Videra.Import.Gltf` | Yes, on public release tags | `nuget.org` | `GitHub Packages` preview/internal only | Core-first consumers that need `.gltf` / `.glb` ingestion | `alpha` | Dedicated glTF / GLB import package layered on `Videra.Core` |
+| `Videra.Import.Obj` | Yes, on public release tags | `nuget.org` | `GitHub Packages` preview/internal only | Core-first consumers that need `.obj` ingestion | `alpha` | Dedicated OBJ import package layered on `Videra.Core` |
+| `Videra.Avalonia` | Yes, on public release tags | `nuget.org` | `GitHub Packages` preview/internal only | Avalonia desktop applications | `alpha` | Main public UI entry package; scene loading flows transitively depend on the import packages |
 | `Videra.Platform.Windows` | Yes, on public release tags | `nuget.org` | `GitHub Packages` preview/internal only | Windows hosts | `alpha` | Install with `Videra.Avalonia` on Windows |
 | `Videra.Platform.Linux` | Yes, on public release tags | `nuget.org` | `GitHub Packages` preview/internal only | Linux hosts | `alpha` | Current native path is X11 plus Vulkan; Wayland uses `XWayland` compatibility |
 | `Videra.Platform.macOS` | Yes, on public release tags | `nuget.org` | `GitHub Packages` preview/internal only | macOS hosts | `alpha` | Install with `Videra.Avalonia` on macOS |

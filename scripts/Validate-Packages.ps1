@@ -11,6 +11,8 @@ $ErrorActionPreference = "Stop"
 
 $expectedPackages = @(
     "Videra.Core",
+    "Videra.Import.Gltf",
+    "Videra.Import.Obj",
     "Videra.Avalonia",
     "Videra.Platform.Windows",
     "Videra.Platform.Linux",
@@ -176,11 +178,27 @@ if ($avaloniaMetadata.Dependencies -notcontains "Videra.Core")
     throw "Videra.Avalonia must depend on Videra.Core."
 }
 
+foreach ($importDependency in @("Videra.Import.Gltf", "Videra.Import.Obj"))
+{
+    if ($avaloniaMetadata.Dependencies -notcontains $importDependency)
+    {
+        throw "Videra.Avalonia must depend on $importDependency."
+    }
+}
+
 foreach ($platformDependency in @("Videra.Platform.Windows", "Videra.Platform.Linux", "Videra.Platform.macOS"))
 {
     if ($avaloniaMetadata.Dependencies -contains $platformDependency)
     {
         throw "Videra.Avalonia must not hard-depend on platform package '$platformDependency'."
+    }
+}
+
+foreach ($importPackage in @("Videra.Import.Gltf", "Videra.Import.Obj"))
+{
+    if ($metadataById[$importPackage].Dependencies -notcontains "Videra.Core")
+    {
+        throw "$importPackage must depend on Videra.Core."
     }
 }
 

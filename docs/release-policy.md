@@ -7,6 +7,8 @@ This document defines what Videra publishes, where those packages go, and what s
 The public package line is limited to:
 
 - `Videra.Core`
+- `Videra.Import.Gltf`
+- `Videra.Import.Obj`
 - `Videra.Avalonia`
 - `Videra.Platform.Windows`
 - `Videra.Platform.Linux`

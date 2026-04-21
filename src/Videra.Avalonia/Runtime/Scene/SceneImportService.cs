@@ -1,8 +1,10 @@
 using System.Diagnostics;
 using Videra.Avalonia.Controls;
+using Videra.Core.Exceptions;
 using Videra.Core.Graphics;
-using Videra.Core.IO;
 using Videra.Core.Scene;
+using Videra.Import.Gltf;
+using Videra.Import.Obj;
 
 namespace Videra.Avalonia.Runtime.Scene;
 
@@ -20,7 +22,7 @@ internal sealed class SceneImportService
         var startedAt = Stopwatch.StartNew();
         try
         {
-            var asset = await Task.Run(() => ModelImporter.Import(path), cancellationToken).ConfigureAwait(false);
+            var asset = await Task.Run(() => ImportAsset(path), cancellationToken).ConfigureAwait(false);
             var sceneObject = SceneObjectFactory.CreateDeferred(asset);
             var entry = _mutator.CreateImportedEntry(sceneObject, asset);
             return new ImportedSceneResult(entry, sceneObject, Failure: null, startedAt.Elapsed);
@@ -77,6 +79,19 @@ internal sealed class SceneImportService
         {
             gate.Release();
         }
+    }
+
+    private static ImportedSceneAsset ImportAsset(string path)
+    {
+        return Path.GetExtension(path).ToLowerInvariant() switch
+        {
+            ".gltf" or ".glb" => GltfModelImporter.Import(path),
+            ".obj" => ObjModelImporter.Import(path),
+            _ => throw new InvalidModelInputException(
+                $"File extension '{Path.GetExtension(path)}' is not supported. Supported formats: {string.Join(", ", GltfModelImporter.SupportedFormats.Concat(ObjModelImporter.SupportedFormats))}",
+                "LoadModel",
+                new Dictionary<string, string?> { ["Extension"] = Path.GetExtension(path) })
+        };
     }
 }
 

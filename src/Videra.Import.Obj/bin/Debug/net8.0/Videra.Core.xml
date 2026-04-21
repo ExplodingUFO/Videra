@@ -1,0 +1,1426 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Videra.Core</name>
+    </assembly>
+    <members>
+        <member name="T:Videra.Core.Cameras.OrbitCamera">
+            <summary>
+            An orbit camera that revolves around a target point in 3D space.
+            Supports rotation (yaw/pitch), zoom (radius), and panning (target offset)
+            with configurable speeds and axis inversion.
+            Generates a perspective projection matrix suitable for Metal/Veldrid
+            depth ranges [0, 1].
+            </summary>
+        </member>
+        <member name="F:Videra.Core.Cameras.OrbitCamera._radius">
+            <summary>
+            The distance from the camera to <see cref="P:Videra.Core.Cameras.OrbitCamera.Target"/>.
+            Clamped to the range [0.1, 200] during zoom operations.
+            </summary>
+        </member>
+        <member name="P:Videra.Core.Cameras.OrbitCamera.Yaw">
+            <summary>
+            Gets the current yaw angle in radians (horizontal rotation around the target).
+            </summary>
+        </member>
+        <member name="P:Videra.Core.Cameras.OrbitCamera.Pitch">
+            <summary>
+            Gets the current pitch angle in radians (vertical tilt).
+            Clamped to the range [-1.5, 1.5] to prevent gimbal lock.
+            </summary>
+        </member>
+        <member name="P:Videra.Core.Cameras.OrbitCamera.Position">
+            <summary>
+            Gets the current world-space position of the camera,
+            computed from <see cref="P:Videra.Core.Cameras.OrbitCamera.Target"/>, <see cref="P:Videra.Core.Cameras.OrbitCamera.Yaw"/>, <see cref="P:Videra.Core.Cameras.OrbitCamera.Pitch"/>, and radius.
+            </summary>
+        </member>
+        <member name="P:Videra.Core.Cameras.OrbitCamera.Target">
+            <summary>
+            Gets or sets the world-space point the camera orbits around.
+            Defaults to <see cref="P:System.Numerics.Vector3.Zero"/>.
+            </summary>
+        </member>
+        <member name="P:Videra.Core.Cameras.OrbitCamera.Up">
+            <summary>
+            Gets the up direction vector used to construct the view matrix.
+            Always <see cref="P:System.Numerics.Vector3.UnitY"/>.
+            </summary>
+        </member>
+        <member name="P:Videra.Core.Cameras.OrbitCamera.RotationSpeed">
+            <summary>
+            Gets or sets the sensitivity multiplier applied to rotation input.
+            Defaults to <c>0.01f</c>.
+            </summary>
+        </member>
+        <member name="P:Videra.Core.Cameras.OrbitCamera.ZoomSpeed">
+            <summary>
+            Gets or sets the sensitivity multiplier applied to zoom input.
+            Defaults to <c>1.0f</c>.
+            </summary>
+        </member>
+        <member name="P:Videra.Core.Cameras.OrbitCamera.PanSpeed">
+            <summary>
+            Gets or sets the sensitivity multiplier applied to pan input.
+            Defaults to <c>0.02f</c>.
+            </summary>
+        </member>
+        <member name="P:Videra.Core.Cameras.OrbitCamera.InvertX">
+            <summary>
+            Gets or sets whether horizontal (yaw) rotation is inverted.
+            Defaults to <c>false</c>.
+            </summary>
+        </member>
+        <member name="P:Videra.Core.Cameras.OrbitCamera.InvertY">
+            <summary>
+            Gets or sets whether vertical (pitch) rotation is inverted.
+            Defaults to <c>false</c>.
+            </summary>
+        </member>
+        <member name="P:Videra.Core.Cameras.OrbitCamera.FieldOfView">
+            <summary>
+            Gets or sets the vertical field of view in radians.
+            Defaults to 45 degrees (<c>PI / 4</c>).
+            </summary>
+        </member>
+        <member name="P:Videra.Core.Cameras.OrbitCamera.ViewMatrix">
+            <summary>
+            Gets the current view matrix (look-at), recomputed whenever the camera
+            position, target, or orientation changes.
+            </summary>
+        </member>
+        <member name="P:Videra.Core.Cameras.OrbitCamera.ProjectionMatrix">
+            <summary>
+            Gets the current perspective projection matrix, suitable for
+            Metal/Veldrid with a [0, 1] depth range.
+            Updated via <see cref="M:Videra.Core.Cameras.OrbitCamera.UpdateProjection(System.UInt32,System.UInt32)"/> or <see cref="M:Videra.Core.Cameras.OrbitCamera.UpdateAspectRatio(System.Single)"/>.
+            </summary>
+        </member>
+        <member name="M:Videra.Core.Cameras.OrbitCamera.#ctor">
+            <summary>
+            Creates a new <see cref="T:Videra.Core.Cameras.OrbitCamera"/> and computes the initial
+            camera position and view matrix from the default parameters.
+            </summary>
+        </member>
+        <member name="M:Videra.Core.Cameras.OrbitCamera.UpdateProjection(System.UInt32,System.UInt32)">
+            <summary>
+            Recomputes the perspective projection matrix from the given viewport dimensions.
+            The matrix uses a [0, 1] depth range compatible with Metal/Veldrid backends,
+            overriding the default System.Numerics [-1, 1] range.
+            </summary>
+            <param name="width">The viewport width in pixels. Treated as 1 if zero.</param>
+            <param name="height">The viewport height in pixels. Treated as 1 if zero.</param>
+        </member>
+        <member name="M:Videra.Core.Cameras.OrbitCamera.UpdateAspectRatio(System.Single)">
+            <summary>
+            Recomputes the perspective projection matrix from the given aspect ratio.
+            Useful when the raw aspect ratio is already known (e.g. during window resize).
+            Uses a [0, 1] depth range compatible with Metal/Veldrid backends.
+            </summary>
+            <param name="aspectRatio">The viewport aspect ratio (width / height).</param>
+        </member>
+        <member name="M:Videra.Core.Cameras.OrbitCamera.Rotate(System.Single,System.Single)">
+            <summary>
+            Applies a rotation delta to the camera's yaw and pitch angles,
+            respecting <see cref="P:Videra.Core.Cameras.OrbitCamera.RotationSpeed"/>, <see cref="P:Videra.Core.Cameras.OrbitCamera.InvertX"/>,
+            and <see cref="P:Videra.Core.Cameras.OrbitCamera.InvertY"/> settings.
+            Pitch is clamped to [-1.5, 1.5] radians to prevent gimbal lock.
+            Recomputes the camera position and view matrix.
+            </summary>
+            <param name="deltaX">Horizontal input delta (e.g. mouse movement along X).</param>
+            <param name="deltaY">Vertical input delta (e.g. mouse movement along Y).</param>
+        </member>
+        <member name="M:Videra.Core.Cameras.OrbitCamera.Zoom(System.Single)">
+            <summary>
+            Adjusts the orbit radius (distance from camera to target) by the given delta,
+            scaled by <see cref="P:Videra.Core.Cameras.OrbitCamera.ZoomSpeed"/>. The radius is clamped to [0.1, 200].
+            Recomputes the camera position and view matrix.
+            </summary>
+            <param name="delta">Zoom input delta. Positive values zoom out; negative values zoom in.</param>
+        </member>
+        <member name="M:Videra.Core.Cameras.OrbitCamera.Pan(System.Single,System.Single)">
+            <summary>
+            Pans the camera's <see cref="P:Videra.Core.Cameras.OrbitCamera.Target"/> point in screen-aligned directions,
+            scaled by <see cref="P:Videra.Core.Cameras.OrbitCamera.PanSpeed"/>. The camera position moves along with the target
+            so the viewing angle is preserved.
+            </summary>
+            <param name="x">Horizontal pan delta (right is positive).</param>
+            <param name="y">Vertical pan delta (up is positive).</param>
+        </member>
+        <member name="M:Videra.Core.Cameras.OrbitCamera.UpdatePosition">
+            <summary>
+            Recomputes <see cref="P:Videra.Core.Cameras.OrbitCamera.Position"/> from spherical coordinates (yaw, pitch, radius)
+            relative to <see cref="P:Videra.Core.Cameras.OrbitCamera.Target"/>, then updates <see cref="P:Videra.Core.Cameras.OrbitCamera.ViewMatrix"/>
+            using <see cref="M:System.Numerics.Matrix4x4.CreateLookAt(System.Numerics.Vector3,System.Numerics.Vector3,System.Numerics.Vector3)"/>.
+            </summary>
+        </member>
+        <member name="T:Videra.Core.Exceptions.GraphicsInitializationException">
+            <summary>
+            Thrown when a graphics initialization step fails (backend init, device creation, etc.).
+            </summary>
+        </member>
+        <member name="P:Videra.Core.Exceptions.GraphicsInitializationException.ErrorCode">
+            <summary>
+            Platform error code if available (e.g. HRESULT for Windows, VkResult for Linux).
+            </summary>
+        </member>
+        <member name="T:Videra.Core.Exceptions.InvalidModelInputException">
+            <summary>
+            Thrown when model file input is invalid (null/empty path, missing file,
+            unsupported format, directory passed as file, etc.).
+            </summary>
+        </member>
+        <member name="T:Videra.Core.Exceptions.PipelineCreationException">
+            <summary>
+            Thrown when a pipeline creation step fails.
+            </summary>
+        </member>
+        <member name="T:Videra.Core.Exceptions.PlatformDependencyException">
+            <summary>
+            Thrown when a platform dependency is missing or unavailable
+            (e.g. native library, driver, runtime).
+            </summary>
+        </member>
+        <member name="P:Videra.Core.Exceptions.PlatformDependencyException.Platform">
+            <summary>
+            The platform where the failure occurred (e.g. "Windows", "Linux", "macOS").
+            </summary>
+        </member>
+        <member name="P:Videra.Core.Exceptions.PlatformDependencyException.ErrorCode">
+            <summary>
+            Platform error code if available (e.g. HRESULT for Windows, VkResult for Linux).
+            </summary>
+        </member>
+        <member name="T:Videra.Core.Exceptions.ResourceCreationException">
+            <summary>
+            Thrown when a GPU resource creation fails (vertex buffer, index buffer, etc.).
+            </summary>
+        </member>
+        <member name="T:Videra.Core.Exceptions.UnsupportedOperationException">
+            <summary>
+            Thrown when an unsupported operation is attempted (replaces NotImplementedException
+            in public-facing paths). Carries platform and operation info for diagnostics.
+            Message is UI/Demo-consumable.
+            </summary>
+        </member>
+        <member name="P:Videra.Core.Exceptions.UnsupportedOperationException.Platform">
+            <summary>
+            The platform where this operation is unsupported (e.g. "Windows", "Linux", "macOS").
+            </summary>
+        </member>
+        <member name="T:Videra.Core.Exceptions.VideraException">
+            <summary>
+            Base exception for all Videra domain exceptions.
+            Provides structured diagnostic fields for programmatic consumption.
+            </summary>
+        </member>
+        <member name="P:Videra.Core.Exceptions.VideraException.Operation">
+            <summary>
+            The operation that failed (e.g. "LoadModel", "Initialize", "CreateBuffer").
+            </summary>
+        </member>
+        <member name="P:Videra.Core.Exceptions.VideraException.Context">
+            <summary>
+            Optional structured key-value pairs for diagnostic context.
+            </summary>
+        </member>
+        <member name="T:Videra.Core.Geometry.RgbaFloat">
+            <summary>
+            RGBA浮点颜色，与Veldrid的RgbaFloat兼容
+            </summary>
+        </member>
+        <member name="T:Videra.Core.Graphics.Abstractions.DepthBufferConfiguration">
+            <summary>
+            Configures depth buffer behavior across all rendering backends.
+            All backends should use consistent depth configuration to ensure
+            identical rendering results on Windows (D3D11), Linux (Vulkan), and macOS (Metal).
+            </summary>
+        </member>
+        <member name="P:Videra.Core.Graphics.Abstractions.DepthBufferConfiguration.DepthFormat">
+            <summary>
+            Logical depth buffer format selected by the backend.
+            </summary>
+        </member>
+        <member name="P:Videra.Core.Graphics.Abstractions.DepthBufferConfiguration.ClearDepthValue">
+            <summary>
+            Depth clear value. All backends clear to this value at the start of each frame.
+            Standard value: 1.0f (maximum depth, representing the far plane).
+            </summary>
+        </member>
+        <member name="P:Videra.Core.Graphics.Abstractions.DepthBufferConfiguration.ClearStencilValue">
+            <summary>
+            Stencil clear value. Standard: 0.
+            </summary>
+        </member>
+        <member name="P:Videra.Core.Graphics.Abstractions.DepthBufferConfiguration.DepthComparison">
+            <summary>
+            Depth comparison function used for depth testing.
+            Standard: LessEqual (fragment passes if its depth is less than or equal to the buffer).
+            </summary>
+        </member>
+        <member name="P:Videra.Core.Graphics.Abstractions.DepthBufferConfiguration.Default">
+            <summary>
+            Default shared depth configuration used across backends.
+            </summary>
+        </member>
+        <member name="T:Videra.Core.Graphics.Abstractions.DepthBufferFormat">
+            <summary>
+            Logical depth buffer formats used by Videra.
+            Individual backends map these to their nearest native format.
+            </summary>
+        </member>
+        <member name="T:Videra.Core.Graphics.Abstractions.DepthComparisonFunction">
+            <summary>
+            Depth comparison functions, mapping to native equivalents on each platform:
+            D3D11: COMPARISON_FUNC, Vulkan: VkCompareOp, Metal: MTLCompareFunction.
+            </summary>
+        </member>
+        <member name="T:Videra.Core.Graphics.Abstractions.IBuffer">
+            <summary>
+            GPU 缓冲区接口
+            </summary>
+        </member>
+        <member name="M:Videra.Core.Graphics.Abstractions.IBuffer.Update``1(``0)">
+            <summary>
+            更新缓冲区数据
+            </summary>
+        </member>
+        <member name="M:Videra.Core.Graphics.Abstractions.IBuffer.UpdateArray``1(``0[])">
+            <summary>
+            更新缓冲区数据（数组）
+            </summary>
+        </member>
+        <member name="M:Videra.Core.Graphics.Abstractions.IBuffer.SetData``1(``0,System.UInt32)">
+            <summary>
+            设置缓冲区数据（带偏移）
+            </summary>
+        </member>
+        <member name="M:Videra.Core.Graphics.Abstractions.IBuffer.SetData``1(``0[],System.UInt32)">
+            <summary>
+            设置缓冲区数据数组（带偏移）
+            </summary>
+        </member>
+        <member name="T:Videra.Core.Graphics.Abstractions.IBufferBindingCacheInvalidator">
+            <summary>
+            Optional advanced seam for executors that cache buffer-bound descriptor or binding state.
+            Callers can notify the executor when a buffer is being retired so stale cache entries do not accumulate.
+            </summary>
+        </member>
+        <member name="T:Videra.Core.Graphics.Abstractions.ICommandExecutor">
+            <summary>
+            命令执行器接口（封装 CommandList/CommandBuffer）。
+            Built-in D3D11/Vulkan/Metal backends share the portable path around direct buffer binding,
+            draw submission, viewport/scissor, clear, and best-effort depth-state toggles. Advanced
+            resource-set binding is not a common portability promise and may throw
+            <see cref="T:Videra.Core.Exceptions.UnsupportedOperationException"/>.
+            </summary>
+        </member>
+        <member name="M:Videra.Core.Graphics.Abstractions.ICommandExecutor.SetPipeline(Videra.Core.Graphics.Abstractions.IPipeline)">
+            <summary>
+            设置当前 Pipeline
+            </summary>
+        </member>
+        <member name="M:Videra.Core.Graphics.Abstractions.ICommandExecutor.SetVertexBuffer(Videra.Core.Graphics.Abstractions.IBuffer,System.UInt32)">
+            <summary>
+            设置顶点缓冲区
+            </summary>
+        </member>
+        <member name="M:Videra.Core.Graphics.Abstractions.ICommandExecutor.SetIndexBuffer(Videra.Core.Graphics.Abstractions.IBuffer)">
+            <summary>
+            设置索引缓冲区
+            </summary>
+        </member>
+        <member name="M:Videra.Core.Graphics.Abstractions.ICommandExecutor.SetResourceSet(System.UInt32,Videra.Core.Graphics.Abstractions.IResourceSet)">
+            <summary>
+            绑定 Resource Set。
+            Shipped native backends do not expose this as a common portable capability and may throw
+            <see cref="T:Videra.Core.Exceptions.UnsupportedOperationException"/>.
+            </summary>
+        </member>
+        <member name="M:Videra.Core.Graphics.Abstractions.ICommandExecutor.DrawIndexed(System.UInt32,System.UInt32,System.UInt32,System.Int32,System.UInt32)">
+            <summary>
+            绘制索引图元
+            </summary>
+        </member>
+        <member name="M:Videra.Core.Graphics.Abstractions.ICommandExecutor.DrawIndexed(System.UInt32,System.UInt32,System.UInt32,System.UInt32,System.Int32,System.UInt32)">
+            <summary>
+            绘制索引图元（指定图元类型）
+            </summary>
+        </member>
+        <member name="M:Videra.Core.Graphics.Abstractions.ICommandExecutor.Draw(System.UInt32,System.UInt32,System.UInt32,System.UInt32)">
+            <summary>
+            绘制非索引图元
+            </summary>
+        </member>
+        <member name="M:Videra.Core.Graphics.Abstractions.ICommandExecutor.SetViewport(System.Single,System.Single,System.Single,System.Single,System.Single,System.Single)">
+            <summary>
+            设置 Viewport
+            </summary>
+        </member>
+        <member name="M:Videra.Core.Graphics.Abstractions.ICommandExecutor.SetScissorRect(System.Int32,System.Int32,System.Int32,System.Int32)">
+            <summary>
+            设置 Scissor Rect
+            </summary>
+        </member>
+        <member name="M:Videra.Core.Graphics.Abstractions.ICommandExecutor.Clear(System.Single,System.Single,System.Single,System.Single)">
+            <summary>
+            清除颜色和深度缓冲
+            </summary>
+        </member>
+        <member name="M:Videra.Core.Graphics.Abstractions.ICommandExecutor.SetDepthState(System.Boolean,System.Boolean)">
+            <summary>
+            设置深度状态。
+            Backends that cannot mutate depth state dynamically may treat this as a best-effort hint
+            and rely on their default pipeline/frame depth configuration.
+            </summary>
+        </member>
+        <member name="M:Videra.Core.Graphics.Abstractions.ICommandExecutor.ResetDepthState">
+            <summary>
+            重置深度状态为默认。
+            The portable expectation is to return to the backend's standard frame depth behavior.
+            </summary>
+        </member>
+        <member name="T:Videra.Core.Graphics.Abstractions.IFrameContext">
+            <summary>
+            Represents one begun frame on a render surface.
+            Disposing the context ends and presents the frame.
+            </summary>
+        </member>
+        <member name="T:Videra.Core.Graphics.Abstractions.IGraphicsBackend">
+            <summary>
+            跨平台图形后端抽象接口
+            </summary>
+        </member>
+        <member name="M:Videra.Core.Graphics.Abstractions.IGraphicsBackend.Initialize(System.IntPtr,System.Int32,System.Int32)">
+            <summary>
+            初始化图形后端（D3D11/Metal/Vulkan）
+            </summary>
+        </member>
+        <member name="M:Videra.Core.Graphics.Abstractions.IGraphicsBackend.Resize(System.Int32,System.Int32)">
+            <summary>
+            调整 Swapchain 大小
+            </summary>
+        </member>
+        <member name="M:Videra.Core.Graphics.Abstractions.IGraphicsBackend.BeginFrame">
+            <summary>
+            开始渲染一帧
+            </summary>
+        </member>
+        <member name="M:Videra.Core.Graphics.Abstractions.IGraphicsBackend.EndFrame">
+            <summary>
+            结束渲染并呈现
+            </summary>
+        </member>
+        <member name="M:Videra.Core.Graphics.Abstractions.IGraphicsBackend.SetClearColor(System.Numerics.Vector4)">
+            <summary>
+            设置清屏颜色
+            </summary>
+        </member>
+        <member name="M:Videra.Core.Graphics.Abstractions.IGraphicsBackend.GetResourceFactory">
+            <summary>
+            创建资源工厂
+            </summary>
+        </member>
+        <member name="M:Videra.Core.Graphics.Abstractions.IGraphicsBackend.GetCommandExecutor">
+            <summary>
+            获取命令执行器
+            </summary>
+        </member>
+        <member name="T:Videra.Core.Graphics.Abstractions.GraphicsBackendResolverResult">
+            <summary>
+            Resolves a concrete graphics backend implementation for the current composition environment.
+            </summary>
+        </member>
+        <member name="M:Videra.Core.Graphics.Abstractions.GraphicsBackendResolverResult.#ctor(Videra.Core.Graphics.Abstractions.IGraphicsBackend,System.String)">
+            <summary>
+            Resolves a concrete graphics backend implementation for the current composition environment.
+            </summary>
+        </member>
+        <member name="M:Videra.Core.Graphics.Abstractions.IGraphicsBackendResolver.ResolveBackend(Videra.Core.Graphics.GraphicsBackendPreference,Microsoft.Extensions.Logging.ILoggerFactory)">
+            <summary>
+            Resolves a backend for the requested preference or returns an unavailable reason when the
+            current composition environment cannot satisfy the request.
+            </summary>
+        </member>
+        <member name="T:Videra.Core.Graphics.Abstractions.IGraphicsDevice">
+            <summary>
+            Internal graphics device abstraction that owns reusable rendering resources
+            and can create one or more render surfaces.
+            </summary>
+        </member>
+        <member name="T:Videra.Core.Graphics.Abstractions.IGraphicsDeviceIdleBarrier">
+            <summary>
+            Optional internal contract for devices that can quiesce GPU work before dependent resources are released.
+            </summary>
+        </member>
+        <member name="T:Videra.Core.Graphics.Abstractions.IPipeline">
+            <summary>
+            渲染管线接口
+            </summary>
+        </member>
+        <member name="T:Videra.Core.Graphics.Abstractions.IShader">
+            <summary>
+            Shader 接口
+            </summary>
+        </member>
+        <member name="T:Videra.Core.Graphics.Abstractions.IResourceLayout">
+            <summary>
+            Resource Layout 接口
+            </summary>
+        </member>
+        <member name="T:Videra.Core.Graphics.Abstractions.IResourceSet">
+            <summary>
+            Resource Set 接口
+            </summary>
+        </member>
+        <member name="T:Videra.Core.Graphics.Abstractions.IRenderSurface">
+            <summary>
+            Internal render-surface abstraction bound to one device and one presentation target.
+            </summary>
+        </member>
+        <member name="T:Videra.Core.Graphics.Abstractions.IResourceFactory">
+            <summary>
+            GPU 资源创建工厂接口。
+            Built-in D3D11/Vulkan/Metal backends guarantee the minimum contract around buffer creation
+            and pipeline creation. Advanced seams such as <c>CreateShader</c> and <c>CreateResourceSet</c>
+            are not a portability promise on the shipped native backends and may throw
+            <see cref="T:Videra.Core.Exceptions.UnsupportedOperationException"/>.
+            </summary>
+        </member>
+        <member name="M:Videra.Core.Graphics.Abstractions.IResourceFactory.CreateVertexBuffer(Videra.Core.Geometry.VertexPositionNormalColor[])">
+            <summary>
+            创建顶点缓冲区
+            </summary>
+        </member>
+        <member name="M:Videra.Core.Graphics.Abstractions.IResourceFactory.CreateVertexBuffer(System.UInt32)">
+            <summary>
+            创建顶点缓冲区（指定大小）
+            </summary>
+        </member>
+        <member name="M:Videra.Core.Graphics.Abstractions.IResourceFactory.CreateIndexBuffer(System.UInt32[])">
+            <summary>
+            创建索引缓冲区
+            </summary>
+        </member>
+        <member name="M:Videra.Core.Graphics.Abstractions.IResourceFactory.CreateIndexBuffer(System.UInt32)">
+            <summary>
+            创建索引缓冲区（指定大小）
+            </summary>
+        </member>
+        <member name="M:Videra.Core.Graphics.Abstractions.IResourceFactory.CreateUniformBuffer(System.UInt32)">
+            <summary>
+            创建 Uniform Buffer (常量缓冲区)
+            </summary>
+        </member>
+        <member name="M:Videra.Core.Graphics.Abstractions.IResourceFactory.CreatePipeline(Videra.Core.Graphics.Abstractions.PipelineDescription)">
+            <summary>
+            创建 Pipeline (渲染管线)。
+            Built-in native backends adapt this richer description to the current minimum contract
+            instead of promising full backend-specific shader/resource-layout parity.
+            </summary>
+        </member>
+        <member name="M:Videra.Core.Graphics.Abstractions.IResourceFactory.CreatePipeline(System.UInt32,System.Boolean,System.Boolean)">
+            <summary>
+            创建简化的 Pipeline（用于基础渲染）
+            </summary>
+        </member>
+        <member name="M:Videra.Core.Graphics.Abstractions.IResourceFactory.CreateShader(Videra.Core.Graphics.Abstractions.ShaderStage,System.Byte[],System.String)">
+            <summary>
+            创建 Shader (着色器)。
+            This remains an advanced seam; shipped native backends manage shaders internally and may
+            throw <see cref="T:Videra.Core.Exceptions.UnsupportedOperationException"/>.
+            </summary>
+        </member>
+        <member name="M:Videra.Core.Graphics.Abstractions.IResourceFactory.CreateResourceSet(Videra.Core.Graphics.Abstractions.ResourceSetDescription)">
+            <summary>
+            创建 Resource Set (资源绑定集)。
+            This remains an advanced seam; shipped native backends may bind resources through
+            backend-specific internal paths and throw
+            <see cref="T:Videra.Core.Exceptions.UnsupportedOperationException"/>.
+            </summary>
+        </member>
+        <member name="T:Videra.Core.Graphics.Abstractions.PipelineDescription">
+            <summary>
+            Pipeline 描述
+            </summary>
+        </member>
+        <member name="T:Videra.Core.Graphics.Abstractions.VertexLayoutDescription">
+            <summary>
+            顶点布局描述
+            </summary>
+        </member>
+        <member name="T:Videra.Core.Graphics.Abstractions.VertexElementDescription">
+            <summary>
+            顶点元素描述
+            </summary>
+        </member>
+        <member name="T:Videra.Core.Graphics.Abstractions.VertexElementFormat">
+            <summary>
+            顶点元素格式
+            </summary>
+        </member>
+        <member name="T:Videra.Core.Graphics.Abstractions.ResourceLayoutDescription">
+            <summary>
+            Resource Layout 描述
+            </summary>
+        </member>
+        <member name="T:Videra.Core.Graphics.Abstractions.ResourceLayoutElementDescription">
+            <summary>
+            Resource Layout 元素描述
+            </summary>
+        </member>
+        <member name="T:Videra.Core.Graphics.Abstractions.ResourceKind">
+            <summary>
+            资源类型
+            </summary>
+        </member>
+        <member name="T:Videra.Core.Graphics.Abstractions.ResourceSetDescription">
+            <summary>
+            Resource Set 描述
+            </summary>
+        </member>
+        <member name="T:Videra.Core.Graphics.Abstractions.ShaderStage">
+            <summary>
+            Shader 阶段
+            </summary>
+        </member>
+        <member name="T:Videra.Core.Graphics.Abstractions.PrimitiveTopology">
+            <summary>
+            图元拓扑
+            </summary>
+        </member>
+        <member name="T:Videra.Core.Graphics.Abstractions.MeshTopology">
+            <summary>
+            网格拓扑（用于兼容）
+            </summary>
+        </member>
+        <member name="T:Videra.Core.Graphics.Abstractions.ISoftwareBackend">
+            <summary>
+            Optional interface for software backends that render into a CPU framebuffer.
+            </summary>
+        </member>
+        <member name="M:Videra.Core.Graphics.Abstractions.ISoftwareBackend.CopyFrameTo(System.IntPtr,System.Int32)">
+            <summary>
+            Copies the current frame into the destination buffer with the given stride.
+            </summary>
+        </member>
+        <member name="T:Videra.Core.Graphics.Abstractions.LegacyGraphicsBackendAdapter">
+            <summary>
+            Bridges the v1 monolithic backend contract into the internal device/surface split.
+            This keeps platform backends unchanged while the orchestrator and engine migrate.
+            </summary>
+        </member>
+        <member name="T:Videra.Core.Graphics.GraphicsBackendFactory">
+            <summary>
+            平台后端工厂 - 根据运行时平台创建对应的图形后端
+            </summary>
+        </member>
+        <member name="M:Videra.Core.Graphics.GraphicsBackendFactory.ConfigureResolver(Videra.Core.Graphics.Abstractions.IGraphicsBackendResolver)">
+            <summary>
+            Configures the backend resolver used by the current composition layer.
+            Passing <c>null</c> clears the resolver and leaves only software fallback available.
+            </summary>
+        </member>
+        <member name="M:Videra.Core.Graphics.GraphicsBackendFactory.CreateBackend(Videra.Core.Graphics.GraphicsBackendPreference,Microsoft.Extensions.Logging.ILoggerFactory)">
+            <summary>
+            创建当前平台对应的图形后端
+            </summary>
+        </member>
+        <member name="M:Videra.Core.Graphics.GraphicsBackendFactory.ResolveBackend(Videra.Core.Graphics.GraphicsBackendRequest)">
+            <summary>
+            Resolves the requested backend preference into a concrete backend and availability snapshot.
+            </summary>
+            <param name="request">
+            The backend request, including environment override behavior and whether
+            <see cref="P:Videra.Core.Graphics.GraphicsBackendRequest.AllowSoftwareFallback" /> is permitted.
+            </param>
+            <returns>
+            A resolution containing the concrete backend plus availability metadata. When a native backend is
+            unavailable and <see cref="P:Videra.Core.Graphics.GraphicsBackendRequest.AllowSoftwareFallback" /> is <see langword="true" />,
+            the result falls back to software and surfaces the unavailable reason through
+            <see cref="P:Videra.Core.Graphics.GraphicsBackendResolution.IsUsingSoftwareFallback" /> and
+            <see cref="P:Videra.Core.Graphics.GraphicsBackendResolution.FallbackReason" />.
+            </returns>
+            <exception cref="T:System.InvalidOperationException">
+            Thrown when the requested native backend is unavailable and
+            <see cref="P:Videra.Core.Graphics.GraphicsBackendRequest.AllowSoftwareFallback" /> is <see langword="false" />. The exception
+            message is the same unavailable reason that would otherwise populate
+            <see cref="P:Videra.Core.Graphics.GraphicsBackendResolution.FallbackReason" />.
+            </exception>
+        </member>
+        <member name="M:Videra.Core.Graphics.GraphicsBackendFactory.GetPlatformName">
+            <summary>
+            获取当前平台名称
+            </summary>
+        </member>
+        <member name="T:Videra.Core.Graphics.GraphicsBackendPreference">
+            <summary>
+            Specifies the preferred graphics backend for rendering.
+            Used at startup to select which rendering API the application should use.
+            </summary>
+        </member>
+        <member name="F:Videra.Core.Graphics.GraphicsBackendPreference.Auto">
+            <summary>
+            Automatically select the best available backend for the current platform.
+            On Windows this prefers D3D11, on Linux Vulkan, and on macOS Metal.
+            </summary>
+        </member>
+        <member name="F:Videra.Core.Graphics.GraphicsBackendPreference.Software">
+            <summary>
+            Use a software-based rendering backend. Intended for testing and environments
+            without GPU access.
+            </summary>
+        </member>
+        <member name="F:Videra.Core.Graphics.GraphicsBackendPreference.D3D11">
+            <summary>
+            Use the Direct3D 11 backend. Available on Windows only.
+            </summary>
+        </member>
+        <member name="F:Videra.Core.Graphics.GraphicsBackendPreference.Vulkan">
+            <summary>
+            Use the Vulkan backend. Available on Windows and Linux.
+            </summary>
+        </member>
+        <member name="F:Videra.Core.Graphics.GraphicsBackendPreference.Metal">
+            <summary>
+            Use the Metal backend. Available on macOS only.
+            </summary>
+        </member>
+        <member name="T:Videra.Core.Graphics.GridRenderer">
+            <summary>
+            Renders an axis-aligned ground grid using line primitives.
+            The grid is drawn at a configurable height and can be toggled on or off.
+            </summary>
+        </member>
+        <member name="P:Videra.Core.Graphics.GridRenderer.IsVisible">
+            <summary>
+            Gets or sets whether the grid is visible during rendering.
+            When <c>false</c>, <see cref="M:Videra.Core.Graphics.GridRenderer.Draw(Videra.Core.Graphics.Abstractions.ICommandExecutor,Videra.Core.Graphics.Abstractions.IPipeline,Videra.Core.Cameras.OrbitCamera,System.UInt32,System.UInt32)"/> skips all rendering work.
+            Default value is <c>true</c>.
+            </summary>
+        </member>
+        <member name="P:Videra.Core.Graphics.GridRenderer.Height">
+            <summary>
+            Gets or sets the Y-coordinate (height) at which the grid plane is drawn.
+            Default value is 0.0f.
+            </summary>
+        </member>
+        <member name="P:Videra.Core.Graphics.GridRenderer.GridColor">
+            <summary>
+            Gets or sets the color used for all grid lines.
+            Default is a semi-transparent gray <c>(0.4, 0.4, 0.4, 0.5)</c>.
+            </summary>
+        </member>
+        <member name="P:Videra.Core.Graphics.GridRenderer.EnableDiagnostics">
+            <summary>
+            Gets or sets whether diagnostic logging is enabled for draw calls.
+            When <c>true</c>, index count is logged every 60 frames.
+            Default value is <c>false</c>.
+            </summary>
+        </member>
+        <member name="M:Videra.Core.Graphics.GridRenderer.Initialize(Videra.Core.Graphics.Abstractions.IResourceFactory)">
+            <summary>
+            Initializes the grid renderer with the specified resource factory.
+            Builds the grid geometry and creates GPU buffers immediately.
+            </summary>
+            <param name="factory">The resource factory used to create vertex, index, and uniform buffers.
+            May be <c>null</c>, in which case the renderer is initialized but no buffers are created
+            until <see cref="M:Videra.Core.Graphics.GridRenderer.Rebuild(Videra.Core.Graphics.Abstractions.IResourceFactory)"/> is called with a valid factory.</param>
+        </member>
+        <member name="M:Videra.Core.Graphics.GridRenderer.Rebuild(Videra.Core.Graphics.Abstractions.IResourceFactory)">
+            <summary>
+            Rebuilds the grid geometry and recreates GPU buffers.
+            Call this after changing <see cref="P:Videra.Core.Graphics.GridRenderer.Height"/>, <see cref="P:Videra.Core.Graphics.GridRenderer.GridColor"/>,
+            or when the resource factory changes.
+            </summary>
+            <param name="factory">An optional replacement resource factory.
+            If <c>null</c>, the previously set factory is reused.</param>
+        </member>
+        <member name="M:Videra.Core.Graphics.GridRenderer.Draw(Videra.Core.Graphics.Abstractions.ICommandExecutor,Videra.Core.Graphics.Abstractions.IPipeline,Videra.Core.Cameras.OrbitCamera,System.UInt32,System.UInt32)">
+            <summary>
+            Draws the grid using the specified command executor, pipeline, and camera.
+            Does nothing if <see cref="P:Videra.Core.Graphics.GridRenderer.IsVisible"/> is <c>false</c> or if any required
+            resource is <c>null</c>.
+            </summary>
+            <param name="executor">The command executor used to issue draw commands. May be <c>null</c>.</param>
+            <param name="pipeline">The rendering pipeline to bind. May be <c>null</c>.</param>
+            <param name="camera">The orbit camera used for view-projection transforms.</param>
+            <param name="width">The render target width in pixels.</param>
+            <param name="height">The render target height in pixels.</param>
+        </member>
+        <member name="M:Videra.Core.Graphics.GridRenderer.Dispose">
+            <summary>
+            Releases all GPU buffers held by this renderer.
+            </summary>
+        </member>
+        <member name="T:Videra.Core.Graphics.Object3D">
+            <summary>
+            Represents a 3D object with independent position, rotation, and scale transforms,
+            GPU-backed vertex and index buffers, and optional wireframe rendering support.
+            Implements <see cref="T:System.IDisposable"/> to release GPU resources.
+            </summary>
+        </member>
+        <member name="P:Videra.Core.Graphics.Object3D.Id">
+            <summary>
+            Gets the stable identity of this scene object.
+            </summary>
+        </member>
+        <member name="P:Videra.Core.Graphics.Object3D.Name">
+            <summary>
+            Gets or sets the display name of this object, used for logging and identification.
+            Defaults to <c>"Object"</c>.
+            </summary>
+        </member>
+        <member name="P:Videra.Core.Graphics.Object3D.Position">
+            <summary>
+            Gets or sets the world-space position of this object.
+            Defaults to <see cref="P:System.Numerics.Vector3.Zero"/>.
+            </summary>
+        </member>
+        <member name="P:Videra.Core.Graphics.Object3D.Rotation">
+            <summary>
+            Gets or sets the Euler rotation of this object in radians (X = pitch, Y = yaw, Z = roll).
+            Defaults to <see cref="P:System.Numerics.Vector3.Zero"/>.
+            </summary>
+        </member>
+        <member name="P:Videra.Core.Graphics.Object3D.Scale">
+            <summary>
+            Gets or sets the uniform scale applied to this object along each axis.
+            Defaults to <see cref="P:System.Numerics.Vector3.One"/>.
+            </summary>
+        </member>
+        <member name="P:Videra.Core.Graphics.Object3D.VertexBuffer">
+            <summary>
+            Gets the GPU vertex buffer containing <see cref="T:Videra.Core.Geometry.VertexPositionNormalColor"/> data,
+            or <c>null</c> if the object has not been initialized.
+            </summary>
+        </member>
+        <member name="P:Videra.Core.Graphics.Object3D.IndexBuffer">
+            <summary>
+            Gets the GPU index buffer containing triangle indices,
+            or <c>null</c> if the object has not been initialized.
+            </summary>
+        </member>
+        <member name="P:Videra.Core.Graphics.Object3D.WorldBuffer">
+            <summary>
+            Gets the GPU uniform buffer holding the current world matrix (64 bytes),
+            or <c>null</c> if the object has not been initialized.
+            </summary>
+        </member>
+        <member name="P:Videra.Core.Graphics.Object3D.IndexCount">
+            <summary>
+            Gets the number of indices stored in <see cref="P:Videra.Core.Graphics.Object3D.IndexBuffer"/>.
+            </summary>
+        </member>
+        <member name="P:Videra.Core.Graphics.Object3D.Topology">
+            <summary>
+            Gets the primitive topology (triangles, lines, or points) of the mesh data.
+            </summary>
+        </member>
+        <member name="P:Videra.Core.Graphics.Object3D.LineIndexBuffer">
+            <summary>
+            Gets the GPU index buffer containing extracted wireframe edge indices,
+            or <c>null</c> if wireframe has not been initialized.
+            </summary>
+        </member>
+        <member name="P:Videra.Core.Graphics.Object3D.LineVertexBuffer">
+            <summary>
+            Gets the GPU vertex buffer used exclusively for wireframe rendering
+            (with per-vertex custom colors), or <c>null</c> if wireframe has not been initialized.
+            </summary>
+        </member>
+        <member name="P:Videra.Core.Graphics.Object3D.LineIndexCount">
+            <summary>
+            Gets the number of indices stored in <see cref="P:Videra.Core.Graphics.Object3D.LineIndexBuffer"/>.
+            </summary>
+        </member>
+        <member name="P:Videra.Core.Graphics.Object3D.WorldMatrix">
+            <summary>
+            Gets the computed world (model) matrix derived from the current
+            <see cref="P:Videra.Core.Graphics.Object3D.Scale"/>, <see cref="P:Videra.Core.Graphics.Object3D.Rotation"/>, and <see cref="P:Videra.Core.Graphics.Object3D.Position"/> values.
+            The matrix is recomputed on every access using SRT (Scale-Rotate-Translate) order.
+            </summary>
+        </member>
+        <member name="M:Videra.Core.Graphics.Object3D.Dispose">
+            <summary>
+            Releases all GPU resources (vertex, index, world, and wireframe buffers) held by this object.
+            </summary>
+        </member>
+        <member name="M:Videra.Core.Graphics.Object3D.Initialize(Videra.Core.Graphics.Abstractions.IResourceFactory,Videra.Core.Geometry.MeshData,Microsoft.Extensions.Logging.ILogger)">
+            <summary>
+            Creates and populates GPU buffers from the supplied <paramref name="mesh"/> data.
+            Allocates vertex, index, and world-matrix uniform buffers on the GPU.
+            On failure, any partially created resources are disposed before the exception propagates.
+            </summary>
+            <param name="factory">The resource factory used to create GPU buffers.</param>
+            <param name="mesh">The mesh data containing vertices, indices, and topology.</param>
+            <param name="logger">
+            An optional logger for diagnostic output. When <c>null</c>, a no-op logger is used.
+            </param>
+            <exception cref="T:System.ArgumentException">
+            Thrown when <paramref name="mesh"/> has null or empty vertex/index data.
+            </exception>
+            <exception cref="T:System.InvalidOperationException">
+            Thrown when the vertex or index data exceeds the maximum GPU buffer size (<see cref="F:System.UInt32.MaxValue"/> bytes).
+            </exception>
+        </member>
+        <member name="M:Videra.Core.Graphics.Object3D.UpdateUniforms(Videra.Core.Graphics.Abstractions.ICommandExecutor)">
+            <summary>
+            Uploads the current <see cref="P:Videra.Core.Graphics.Object3D.WorldMatrix"/> to the GPU world-matrix uniform buffer,
+            ensuring the shader receives the latest transform before the next draw call.
+            </summary>
+            <param name="executor">The command executor owning the active GPU context (reserved for future use).</param>
+        </member>
+        <member name="M:Videra.Core.Graphics.Object3D.InitializeWireframe(Videra.Core.Graphics.Abstractions.IResourceFactory,Microsoft.Extensions.Logging.ILogger)">
+            <summary>
+            Initializes wireframe rendering resources by extracting unique edges from the
+            cached triangle indices. The extracted edges are uploaded to a dedicated GPU
+            index buffer, and a copy of the original vertices is placed in a separate
+            wireframe vertex buffer so that per-edge colors can be applied independently.
+            Does nothing if the mesh topology is not <see cref="F:Videra.Core.Graphics.Abstractions.MeshTopology.Triangles"/>
+            or if no edges could be extracted.
+            </summary>
+            <param name="factory">The resource factory used to create GPU buffers.</param>
+            <param name="logger">
+            An optional logger for diagnostic output. When <c>null</c>, a no-op logger is used.
+            </param>
+        </member>
+        <member name="M:Videra.Core.Graphics.Object3D.UpdateWireframeColor(Videra.Core.Geometry.RgbaFloat)">
+            <summary>
+            Updates the wireframe vertex buffer with the specified <paramref name="color"/>,
+            replacing the color component of every cached vertex while preserving position
+            and normal data. Does nothing if wireframe resources have not been initialized.
+            </summary>
+            <param name="color">The RGBA color to apply to all wireframe vertices.</param>
+        </member>
+        <member name="T:Videra.Core.Graphics.PrimitiveCommandKind">
+            <summary>
+            Stable primitive command identifiers used by the current cross-backend draw contract.
+            </summary>
+        </member>
+        <member name="T:Videra.Core.Graphics.RenderBindingSlots">
+            <summary>
+            Stable vertex-buffer binding slots shared by the engine and backend implementations.
+            </summary>
+        </member>
+        <member name="T:Videra.Core.Graphics.VideraEngine">
+            <summary>
+            Central rendering engine that orchestrates graphics back-end resources, scene objects,
+            cameras, and visual helpers (grid, axes, wireframe) to produce each frame.
+            Implements <see cref="T:System.IDisposable"/> so that all GPU resources are released deterministically.
+            </summary>
+        </member>
+        <member name="P:Videra.Core.Graphics.VideraEngine.Camera">
+            <summary>
+            Gets the orbit camera used to view the scene.
+            </summary>
+        </member>
+        <member name="P:Videra.Core.Graphics.VideraEngine.IsInitialized">
+            <summary>
+            Gets a value indicating whether the engine has been initialized and is ready to render.
+            </summary>
+        </member>
+        <member name="P:Videra.Core.Graphics.VideraEngine.BackgroundColor">
+            <summary>
+            Gets or sets the background color used to clear the render target each frame.
+            </summary>
+        </member>
+        <member name="P:Videra.Core.Graphics.VideraEngine.RenderScale">
+            <summary>
+            Gets or sets the render scale factor applied during axis rendering.
+            A value of 1.0 uses the default scale.
+            </summary>
+        </member>
+        <member name="P:Videra.Core.Graphics.VideraEngine.EnableFrameLogging">
+            <summary>
+            Gets or sets a value indicating whether periodic per-frame diagnostic logging is enabled.
+            When <see langword="true"/>, debug information is emitted every 60 frames.
+            </summary>
+        </member>
+        <member name="P:Videra.Core.Graphics.VideraEngine.StyleService">
+            <summary>
+            Gets the render style service that manages visual style parameters
+            and notifies listeners when styles change.
+            </summary>
+        </member>
+        <member name="P:Videra.Core.Graphics.VideraEngine.Grid">
+            <summary>
+            Gets the grid renderer responsible for drawing the reference grid in the 3D viewport.
+            </summary>
+        </member>
+        <member name="P:Videra.Core.Graphics.VideraEngine.Wireframe">
+            <summary>
+            Gets the wireframe renderer that overlays wireframe geometry on scene objects.
+            </summary>
+        </member>
+        <member name="P:Videra.Core.Graphics.VideraEngine.LastPipelineSnapshot">
+            <summary>
+            Gets the last pipeline snapshot observed during a rendered frame, if one is available.
+            </summary>
+        </member>
+        <member name="M:Videra.Core.Graphics.VideraEngine.RegisterPassContributor(Videra.Core.Graphics.RenderPipeline.Extensibility.RenderPassSlot,Videra.Core.Graphics.RenderPipeline.Extensibility.IRenderPassContributor)">
+            <summary>
+            Registers an additional contributor for a stable render pass slot.
+            </summary>
+            <param name="slot">The pass slot to extend.</param>
+            <param name="contributor">The contributor invoked after the built-in pass work for the slot.</param>
+            <remarks>
+            Null contributors are rejected before engine state is checked. Calls made after disposal are
+            ignored as a no-op and do not mutate the engine.
+            </remarks>
+            <exception cref="T:System.ArgumentNullException">
+            Thrown when <paramref name="contributor"/> is <see langword="null" />.
+            </exception>
+        </member>
+        <member name="M:Videra.Core.Graphics.VideraEngine.ReplacePassContributor(Videra.Core.Graphics.RenderPipeline.Extensibility.RenderPassSlot,Videra.Core.Graphics.RenderPipeline.Extensibility.IRenderPassContributor)">
+            <summary>
+            Replaces the built-in contributor for a stable render pass slot.
+            </summary>
+            <param name="slot">The pass slot whose default contributor should be replaced.</param>
+            <param name="contributor">The contributor that replaces the built-in pass implementation.</param>
+            <remarks>
+            Null contributors are rejected before engine state is checked. Calls made after disposal are
+            ignored as a no-op and leave the previous contributor mapping unchanged.
+            </remarks>
+            <exception cref="T:System.ArgumentNullException">
+            Thrown when <paramref name="contributor"/> is <see langword="null" />.
+            </exception>
+        </member>
+        <member name="M:Videra.Core.Graphics.VideraEngine.RegisterFrameHook(Videra.Core.Graphics.RenderPipeline.Extensibility.RenderFrameHookPoint,System.Action{Videra.Core.Graphics.RenderPipeline.Extensibility.RenderFrameHookContext})">
+            <summary>
+            Registers a frame hook at one of the public pipeline hook points.
+            </summary>
+            <param name="hookPoint">The hook point that will invoke the callback.</param>
+            <param name="hook">The callback to invoke for each frame at the selected hook point.</param>
+            <remarks>
+            Null hooks are rejected before engine state is checked. Calls made after disposal are ignored
+            as a no-op and do not add new hook registrations.
+            </remarks>
+            <exception cref="T:System.ArgumentNullException">
+            Thrown when <paramref name="hook"/> is <see langword="null" />.
+            </exception>
+        </member>
+        <member name="M:Videra.Core.Graphics.VideraEngine.GetRenderCapabilities">
+            <summary>
+            Gets the public render capability snapshot for the current engine lifecycle state.
+            </summary>
+            <remarks>
+            This query is safe before initialization and after disposal. In both states the returned snapshot
+            reports <c>IsInitialized = false</c> while still exposing the public capability booleans and any
+            last-known <see cref="T:Videra.Core.Graphics.RenderPipeline.RenderPipelineSnapshot" /> captured before disposal.
+            </remarks>
+        </member>
+        <member name="P:Videra.Core.Graphics.VideraEngine.ShowAxis">
+            <summary>
+            Gets or sets a value indicating whether the origin axis helper is visible.
+            </summary>
+        </member>
+        <member name="M:Videra.Core.Graphics.VideraEngine.#ctor(Videra.Core.Styles.Services.IRenderStyleService,Microsoft.Extensions.Logging.ILogger{Videra.Core.Graphics.VideraEngine})">
+            <summary>
+            Initializes a new instance of the <see cref="T:Videra.Core.Graphics.VideraEngine"/> class.
+            </summary>
+            <param name="styleService">
+            An optional <see cref="T:Videra.Core.Styles.Services.IRenderStyleService"/> implementation.
+            When <see langword="null"/>, a default <see cref="T:Videra.Core.Styles.Services.RenderStyleService"/> is used.
+            </param>
+            <param name="logger">
+            An optional <see cref="T:Microsoft.Extensions.Logging.ILogger`1"/> for diagnostic output.
+            When <see langword="null"/>, a no-op logger is used.
+            </param>
+        </member>
+        <member name="M:Videra.Core.Graphics.VideraEngine.AddObject(Videra.Core.Graphics.Object3D)">
+            <summary>
+            Adds a 3D object to the scene. If the engine has been initialized the object's
+            wireframe buffers are created immediately.
+            </summary>
+            <param name="obj">The <see cref="T:Videra.Core.Graphics.Object3D"/> to add to the scene.</param>
+        </member>
+        <member name="M:Videra.Core.Graphics.VideraEngine.RemoveObject(Videra.Core.Graphics.Object3D)">
+            <summary>
+            Removes a 3D object from the scene and disposes its GPU resources.
+            </summary>
+            <param name="obj">The <see cref="T:Videra.Core.Graphics.Object3D"/> to remove.</param>
+        </member>
+        <member name="M:Videra.Core.Graphics.VideraEngine.ClearObjects">
+            <summary>
+            Removes all objects from the scene and disposes their GPU resources.
+            </summary>
+        </member>
+        <member name="M:Videra.Core.Graphics.VideraEngine.UpdateMesh(Videra.Core.Geometry.MeshData)">
+            <summary>
+            This method is deprecated in the current architecture where each
+            <see cref="T:Videra.Core.Graphics.Object3D"/> manages its own mesh. Calling it logs a warning.
+            </summary>
+            <param name="mesh">Mesh data (ignored).</param>
+        </member>
+        <member name="M:Videra.Core.Graphics.VideraEngine.Draw">
+            <summary>
+            Renders a single frame: clears the back-end, updates camera and style uniforms,
+            draws the grid, solid scene objects, wireframe overlays, and axis helper,
+            then presents the result.
+            This method is thread-safe; calls are serialized via an internal lock.
+            </summary>
+        </member>
+        <member name="M:Videra.Core.Graphics.VideraEngine.Dispose">
+            <summary>
+            Releases all GPU resources held by the engine, including pipelines, buffers,
+            renderers, scene objects, and the graphics back-end.
+            Sets <see cref="P:Videra.Core.Graphics.VideraEngine.IsInitialized"/> to <see langword="false"/>.
+            </summary>
+        </member>
+        <member name="M:Videra.Core.Graphics.VideraEngine.Initialize(Videra.Core.Graphics.Abstractions.IGraphicsBackend)">
+            <summary>
+            Initializes the engine with the specified graphics back-end.
+            Creates GPU resources (camera buffer, style buffer, mesh pipeline) and
+            initializes all sub-renderers (grid, axis, wireframe).
+            If the engine is already initialized this method returns immediately.
+            </summary>
+            <param name="backend">The platform-specific graphics back-end to use for rendering.</param>
+        </member>
+        <member name="M:Videra.Core.Graphics.VideraEngine.Resize(System.UInt32,System.UInt32)">
+            <summary>
+            Resizes the internal render target and updates the camera projection matrix.
+            Ignored when the engine is not initialized, when dimensions are zero, or when
+            the size has not changed.
+            </summary>
+            <param name="width">The new render target width in pixels.</param>
+            <param name="height">The new render target height in pixels.</param>
+        </member>
+        <member name="T:Videra.Core.Graphics.Wireframe.EdgeExtractor">
+            <summary>
+            从三角形网格中提取边缘线
+            </summary>
+        </member>
+        <member name="T:Videra.Core.Graphics.Wireframe.EdgeExtractor.Edge">
+            <summary>
+            边缘结构（规范化存储，确保唯一性）
+            </summary>
+        </member>
+        <member name="M:Videra.Core.Graphics.Wireframe.EdgeExtractor.ExtractUniqueEdges(System.UInt32[])">
+            <summary>
+            从三角形索引数组中提取唯一边缘
+            </summary>
+            <param name="triangleIndices">三角形索引数组（每3个索引一个三角形）</param>
+            <returns>去重后的边缘线索引数组（每2个索引一条线）</returns>
+        </member>
+        <member name="M:Videra.Core.Graphics.Wireframe.EdgeExtractor.EstimateEdgeCount(System.Int32)">
+            <summary>
+            计算边缘数量（用于预估内存）
+            对于封闭流形网格：E = 3F/2（每条边被2个三角形共享）
+            </summary>
+        </member>
+        <member name="T:Videra.Core.Graphics.Wireframe.WireframeMode">
+            <summary>
+            线框显示模式
+            </summary>
+        </member>
+        <member name="F:Videra.Core.Graphics.Wireframe.WireframeMode.None">
+            <summary>不显示线框</summary>
+        </member>
+        <member name="F:Videra.Core.Graphics.Wireframe.WireframeMode.AllEdges">
+            <summary>显示所有边缘线（包括被遮挡的线，使用半透明或虚线）</summary>
+        </member>
+        <member name="F:Videra.Core.Graphics.Wireframe.WireframeMode.VisibleOnly">
+            <summary>只显示可见的边缘线（隐藏线移除）</summary>
+        </member>
+        <member name="F:Videra.Core.Graphics.Wireframe.WireframeMode.Overlay">
+            <summary>线框叠加在实体渲染之上</summary>
+        </member>
+        <member name="F:Videra.Core.Graphics.Wireframe.WireframeMode.WireframeOnly">
+            <summary>只显示线框，不显示实体</summary>
+        </member>
+        <member name="T:Videra.Core.Graphics.Wireframe.WireframeRenderer">
+            <summary>
+            线框渲染器 - 负责渲染物体的边缘线
+            </summary>
+        </member>
+        <member name="P:Videra.Core.Graphics.Wireframe.WireframeRenderer.Mode">
+            <summary>线框显示模式</summary>
+        </member>
+        <member name="P:Videra.Core.Graphics.Wireframe.WireframeRenderer.LineColor">
+            <summary>线框颜色</summary>
+        </member>
+        <member name="P:Videra.Core.Graphics.Wireframe.WireframeRenderer.HiddenLineColor">
+            <summary>隐藏线颜色（AllEdges模式下使用）</summary>
+        </member>
+        <member name="P:Videra.Core.Graphics.Wireframe.WireframeRenderer.ShowHiddenLines">
+            <summary>是否显示隐藏线（AllEdges模式专用）</summary>
+        </member>
+        <member name="M:Videra.Core.Graphics.Wireframe.WireframeRenderer.RenderWireframes(System.Collections.Generic.IEnumerable{Videra.Core.Graphics.Object3D},Videra.Core.Graphics.Abstractions.ICommandExecutor,Videra.Core.Graphics.Abstractions.IPipeline,Videra.Core.Cameras.OrbitCamera,System.UInt32,System.UInt32)">
+            <summary>
+            渲染场景中所有物体的线框
+            </summary>
+        </member>
+        <member name="M:Videra.Core.Graphics.Wireframe.WireframeRenderer.ShouldRenderSolid">
+            <summary>
+            判断是否应该渲染实体
+            </summary>
+        </member>
+        <member name="T:Videra.Core.Logging.LoggerExtensions">
+            <summary>
+            Logger extension methods for structured logging with consistent templates.
+            Provides helper methods that map component-tagged messages to structured log properties.
+            </summary>
+        </member>
+        <member name="M:Videra.Core.Logging.LoggerExtensions.LogComponentInfo(Microsoft.Extensions.Logging.ILogger,System.String,System.String)">
+            <summary>
+            Logs an informational message tagged with a component name.
+            </summary>
+        </member>
+        <member name="M:Videra.Core.Logging.LoggerExtensions.LogComponentDebug(Microsoft.Extensions.Logging.ILogger,System.String,System.String,System.String)">
+            <summary>
+            Logs a debug message with component, action, and details.
+            </summary>
+        </member>
+        <member name="M:Videra.Core.Logging.LoggerExtensions.LogComponentError(Microsoft.Extensions.Logging.ILogger,System.String,System.String,System.String,System.Exception)">
+            <summary>
+            Logs an error message with component, action, and optional exception.
+            </summary>
+        </member>
+        <member name="M:Videra.Core.Logging.LoggerExtensions.LogComponentWarning(Microsoft.Extensions.Logging.ILogger,System.String,System.String)">
+            <summary>
+            Logs a warning message tagged with a component name.
+            </summary>
+        </member>
+        <member name="T:Videra.Core.NativeLibrary.NativeLibraryHelper">
+            <summary>
+            Centralized helper for loading native libraries with fallback paths.
+            Uses .NET Runtime's NativeLibrary API for cross-platform resolution.
+            </summary>
+        </member>
+        <member name="M:Videra.Core.NativeLibrary.NativeLibraryHelper.TryLoadWithFallback(System.String[],System.IntPtr@)">
+            <summary>
+            Try loading a native library from multiple candidate names, in priority order.
+            Uses <see cref="M:System.Runtime.InteropServices.NativeLibrary.TryLoad(System.String,System.IntPtr@)"/>
+            which handles platform-specific suffix and extension conventions.
+            </summary>
+            <param name="candidateNames">Library names to try, in priority order (e.g., "libX11.so.6", "libX11.so", "libX11").</param>
+            <param name="handle">The loaded library handle, or <see cref="F:System.IntPtr.Zero"/> if all candidates fail.</param>
+            <returns><c>true</c> if a library was loaded successfully.</returns>
+        </member>
+        <member name="M:Videra.Core.NativeLibrary.NativeLibraryHelper.TryGetSymbol(System.IntPtr,System.String,System.IntPtr@)">
+            <summary>
+            Get an exported symbol (function pointer) from a loaded native library.
+            </summary>
+            <param name="library">Library handle from <see cref="M:Videra.Core.NativeLibrary.NativeLibraryHelper.TryLoadWithFallback(System.String[],System.IntPtr@)"/>.</param>
+            <param name="symbolName">The exported symbol name (e.g., "XOpenDisplay").</param>
+            <param name="symbol">The symbol pointer, or <see cref="F:System.IntPtr.Zero"/> if not found.</param>
+            <returns><c>true</c> if the symbol was found.</returns>
+        </member>
+        <member name="M:Videra.Core.NativeLibrary.NativeLibraryHelper.RegisterDllImportResolver(System.String,System.String[])">
+            <summary>
+            Register a <see cref="T:System.Runtime.InteropServices.DllImportResolver"/> for the calling assembly that provides
+            fallback library names when the primary name cannot be resolved.
+            </summary>
+            <param name="primaryName">
+            The DllImport library name to intercept (e.g., "libX11.so.6").
+            This must match exactly what appears in <c>[DllImport("...")]</c> attributes.
+            </param>
+            <param name="fallbackNames">
+            Additional names to try, in order, if the primary name fails.
+            The primary name is always tried first.
+            </param>
+        </member>
+        <member name="T:Videra.Core.Styles.Parameters.ColorParameters">
+            <summary>
+            色彩后处理参数
+            </summary>
+        </member>
+        <member name="P:Videra.Core.Styles.Parameters.ColorParameters.TintColor">
+            <summary>色调叠加 RGB [0-1]</summary>
+        </member>
+        <member name="P:Videra.Core.Styles.Parameters.ColorParameters.Saturation">
+            <summary>饱和度 [0-2], 1=原始</summary>
+        </member>
+        <member name="P:Videra.Core.Styles.Parameters.ColorParameters.Contrast">
+            <summary>对比度 [0-2], 1=原始</summary>
+        </member>
+        <member name="P:Videra.Core.Styles.Parameters.ColorParameters.Brightness">
+            <summary>亮度偏移 [-1, 1], 0=原始</summary>
+        </member>
+        <member name="T:Videra.Core.Styles.Parameters.LightingParameters">
+            <summary>
+            光照相关参数
+            </summary>
+        </member>
+        <member name="P:Videra.Core.Styles.Parameters.LightingParameters.AmbientIntensity">
+            <summary>环境光强度 [0-1]</summary>
+        </member>
+        <member name="P:Videra.Core.Styles.Parameters.LightingParameters.DiffuseIntensity">
+            <summary>漫反射强度 [0-1]</summary>
+        </member>
+        <member name="P:Videra.Core.Styles.Parameters.LightingParameters.SpecularIntensity">
+            <summary>高光强度 [0-1]</summary>
+        </member>
+        <member name="P:Videra.Core.Styles.Parameters.LightingParameters.SpecularPower">
+            <summary>高光锐度 [1-256]</summary>
+        </member>
+        <member name="P:Videra.Core.Styles.Parameters.LightingParameters.LightDirection">
+            <summary>主光源方向 (归一化向量)</summary>
+        </member>
+        <member name="T:Videra.Core.Styles.Parameters.MaterialParameters">
+            <summary>
+            材质表现参数
+            </summary>
+        </member>
+        <member name="P:Videra.Core.Styles.Parameters.MaterialParameters.Opacity">
+            <summary>整体透明度 [0-1]</summary>
+        </member>
+        <member name="P:Videra.Core.Styles.Parameters.MaterialParameters.UseVertexColor">
+            <summary>是否使用顶点色 (false时使用OverrideColor)</summary>
+        </member>
+        <member name="P:Videra.Core.Styles.Parameters.MaterialParameters.OverrideColor">
+            <summary>覆盖颜色 (当UseVertexColor=false时生效)</summary>
+        </member>
+        <member name="P:Videra.Core.Styles.Parameters.MaterialParameters.WireframeMode">
+            <summary>线框渲染模式</summary>
+        </member>
+        <member name="T:Videra.Core.Styles.Parameters.OutlineParameters">
+            <summary>
+            描边/轮廓线参数
+            </summary>
+        </member>
+        <member name="P:Videra.Core.Styles.Parameters.OutlineParameters.Enabled">
+            <summary>是否启用描边</summary>
+        </member>
+        <member name="P:Videra.Core.Styles.Parameters.OutlineParameters.Color">
+            <summary>描边颜色</summary>
+        </member>
+        <member name="P:Videra.Core.Styles.Parameters.OutlineParameters.Width">
+            <summary>描边宽度 (像素) [0.5-5]</summary>
+        </member>
+        <member name="T:Videra.Core.Styles.Parameters.RenderStyleParameters">
+            <summary>
+            渲染风格参数 - 聚合所有子参数
+            </summary>
+        </member>
+        <member name="M:Videra.Core.Styles.Parameters.RenderStyleParameters.Clone">
+            <summary>深拷贝</summary>
+        </member>
+        <member name="M:Videra.Core.Styles.Parameters.RenderStyleParameters.ToUniformData">
+            <summary>转换为GPU Uniform结构 (128 bytes aligned)</summary>
+        </member>
+        <member name="T:Videra.Core.Styles.Parameters.StyleUniformData">
+            <summary>
+            GPU Uniform Buffer ��据结构
+            对齐到 128 bytes 以满足 GPU 常量缓冲区要求
+            </summary>
+        </member>
+        <member name="T:Videra.Core.Styles.Presets.RenderStylePreset">
+            <summary>
+            渲染风格预设枚举
+            </summary>
+        </member>
+        <member name="F:Videra.Core.Styles.Presets.RenderStylePreset.Realistic">
+            <summary>真实 - 接近物理真实的光照</summary>
+        </member>
+        <member name="F:Videra.Core.Styles.Presets.RenderStylePreset.Tech">
+            <summary>科技 - 蓝色调、科幻风格</summary>
+        </member>
+        <member name="F:Videra.Core.Styles.Presets.RenderStylePreset.Cartoon">
+            <summary>卡通 - 描边、色块分明</summary>
+        </member>
+        <member name="F:Videra.Core.Styles.Presets.RenderStylePreset.XRay">
+            <summary>X光 - 半透明透视效果</summary>
+        </member>
+        <member name="F:Videra.Core.Styles.Presets.RenderStylePreset.Clay">
+            <summary>黏土 - 单色哑光材质</summary>
+        </member>
+        <member name="F:Videra.Core.Styles.Presets.RenderStylePreset.Wireframe">
+            <summary>线框 - 纯线框显示</summary>
+        </member>
+        <member name="F:Videra.Core.Styles.Presets.RenderStylePreset.Custom">
+            <summary>自定义 - 用户调整后的参数</summary>
+        </member>
+        <member name="T:Videra.Core.Styles.Presets.RenderStylePresets">
+            <summary>
+            预设参数工厂 - 提供各风格的默认配置
+            </summary>
+        </member>
+        <member name="M:Videra.Core.Styles.Presets.RenderStylePresets.GetParameters(Videra.Core.Styles.Presets.RenderStylePreset)">
+            <summary>根据预设类型获取参数</summary>
+        </member>
+        <member name="M:Videra.Core.Styles.Presets.RenderStylePresets.CreateRealistic">
+            <summary>真实 - 物理真实的光照</summary>
+        </member>
+        <member name="M:Videra.Core.Styles.Presets.RenderStylePresets.CreateTech">
+            <summary>科技 - 蓝色调、科幻风</summary>
+        </member>
+        <member name="M:Videra.Core.Styles.Presets.RenderStylePresets.CreateCartoon">
+            <summary>卡通 - 描边、色块分明</summary>
+        </member>
+        <member name="M:Videra.Core.Styles.Presets.RenderStylePresets.CreateXRay">
+            <summary>X光 - 半透明透视</summary>
+        </member>
+        <member name="M:Videra.Core.Styles.Presets.RenderStylePresets.CreateClay">
+            <summary>黏土 - 单色哑光</summary>
+        </member>
+        <member name="M:Videra.Core.Styles.Presets.RenderStylePresets.CreateWireframe">
+            <summary>线框</summary>
+        </member>
+        <member name="T:Videra.Core.Styles.Serialization.StyleJsonConverter">
+            <summary>
+            风格参数 JSON 序列化转换器
+            </summary>
+        </member>
+        <member name="M:Videra.Core.Styles.Serialization.StyleJsonConverter.Serialize(Videra.Core.Styles.Parameters.RenderStyleParameters,Videra.Core.Styles.Presets.RenderStylePreset)">
+            <summary>序列化为JSON</summary>
+        </member>
+        <member name="M:Videra.Core.Styles.Serialization.StyleJsonConverter.Deserialize(System.String)">
+            <summary>从JSON反序列化</summary>
+        </member>
+        <member name="T:Videra.Core.Styles.Serialization.StyleJsonConverter.StyleExportWrapper">
+            <summary>导出包装类</summary>
+        </member>
+        <member name="T:Videra.Core.Styles.Serialization.Vector3JsonConverter">
+            <summary>Vector3 JSON 转换器</summary>
+        </member>
+        <member name="T:Videra.Core.Styles.Serialization.RgbaFloatJsonConverter">
+            <summary>RgbaFloat JSON 转换器</summary>
+        </member>
+        <member name="T:Videra.Core.Styles.Services.IRenderStyleService">
+            <summary>
+            渲染风格服务接口 - 定义风格管理的核心能力
+            </summary>
+        </member>
+        <member name="P:Videra.Core.Styles.Services.IRenderStyleService.CurrentParameters">
+            <summary>当前风格参数</summary>
+        </member>
+        <member name="P:Videra.Core.Styles.Services.IRenderStyleService.CurrentPreset">
+            <summary>当前预设类型</summary>
+        </member>
+        <member name="E:Videra.Core.Styles.Services.IRenderStyleService.StyleChanged">
+            <summary>风格参数变更事件</summary>
+        </member>
+        <member name="M:Videra.Core.Styles.Services.IRenderStyleService.ApplyPreset(Videra.Core.Styles.Presets.RenderStylePreset)">
+            <summary>应用预设</summary>
+        </member>
+        <member name="M:Videra.Core.Styles.Services.IRenderStyleService.UpdateParameters(Videra.Core.Styles.Parameters.RenderStyleParameters)">
+            <summary>更新参数 (触发StyleChanged事件)</summary>
+        </member>
+        <member name="M:Videra.Core.Styles.Services.IRenderStyleService.UpdateParameter``1(System.Linq.Expressions.Expression{System.Func{Videra.Core.Styles.Parameters.RenderStyleParameters,``0}},``0)">
+            <summary>更新单个参数值</summary>
+        </member>
+        <member name="M:Videra.Core.Styles.Services.IRenderStyleService.ExportToJson">
+            <summary>导出为JSON字符串</summary>
+        </member>
+        <member name="M:Videra.Core.Styles.Services.IRenderStyleService.ImportFromJson(System.String)">
+            <summary>从JSON字符串导入</summary>
+        </member>
+        <member name="M:Videra.Core.Styles.Services.IRenderStyleService.SaveToFileAsync(System.String)">
+            <summary>保存到文件</summary>
+        </member>
+        <member name="M:Videra.Core.Styles.Services.IRenderStyleService.LoadFromFileAsync(System.String)">
+            <summary>从文件加载</summary>
+        </member>
+        <member name="T:Videra.Core.Styles.Services.RenderStyleService">
+            <summary>
+            渲染风格服务实现
+            </summary>
+        </member>
+        <member name="T:Videra.Core.Styles.Services.StyleChangedEventArgs">
+            <summary>风格变更事件参数</summary>
+        </member>
+    </members>
+</doc>

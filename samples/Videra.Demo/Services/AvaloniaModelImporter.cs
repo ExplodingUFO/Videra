@@ -6,7 +6,8 @@ using Avalonia.Platform.Storage;
 using Microsoft.Extensions.Logging;
 using Videra.Avalonia.Controls;
 using Videra.Core.Graphics;
-using Videra.Core.IO;
+using Videra.Import.Gltf;
+using Videra.Import.Obj;
 
 namespace Videra.Demo.Services;
 
@@ -30,7 +31,7 @@ public partial class AvaloniaModelImporter : IModelImporter
             AllowMultiple = true,
             FileTypeFilter = new[]
             {
-                new FilePickerFileType("3D Models") { Patterns = ModelImporter.SupportedFormats }
+                new FilePickerFileType("3D Models") { Patterns = GltfModelImporter.SupportedFormats.Concat(ObjModelImporter.SupportedFormats).ToArray() }
             }
         });
 

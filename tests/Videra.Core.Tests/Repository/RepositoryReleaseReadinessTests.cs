@@ -24,6 +24,8 @@ public sealed class RepositoryReleaseReadinessTests
         readme.Should().Contain("GitHub Packages");
         readme.Should().Contain("preview");
         readme.Should().Contain("Videra.Avalonia");
+        readme.Should().Contain("Videra.Import.Gltf");
+        readme.Should().Contain("Videra.Import.Obj");
         readme.Should().Contain("Videra.Platform.Windows");
         readme.Should().Contain("Videra.SurfaceCharts.Core");
         readme.Should().Contain("Videra.SurfaceCharts.Avalonia");
@@ -90,6 +92,10 @@ public sealed class RepositoryReleaseReadinessTests
         capabilityMatrix.Should().Contain("UI adapter");
         capabilityMatrix.Should().Contain("Charts");
         capabilityMatrix.Should().Contain("OpenGL");
+        capabilityMatrix.Should().Contain("Videra.Import.Gltf");
+        capabilityMatrix.Should().Contain("Videra.Import.Obj");
+        packageMatrix.Should().Contain("Videra.Import.Gltf");
+        packageMatrix.Should().Contain("Videra.Import.Obj");
 
         rootReadme.Should().Contain("docs/capability-matrix.md");
         docsIndex.Should().Contain("capability-matrix.md");
@@ -197,6 +203,8 @@ public sealed class RepositoryReleaseReadinessTests
         var packageReadmes = new[]
         {
             Path.Combine(repositoryRoot, "src", "Videra.Core", "README.md"),
+            Path.Combine(repositoryRoot, "src", "Videra.Import.Gltf", "README.md"),
+            Path.Combine(repositoryRoot, "src", "Videra.Import.Obj", "README.md"),
             Path.Combine(repositoryRoot, "src", "Videra.Avalonia", "README.md"),
             Path.Combine(repositoryRoot, "src", "Videra.Platform.Windows", "README.md"),
             Path.Combine(repositoryRoot, "src", "Videra.Platform.Linux", "README.md"),
@@ -240,6 +248,8 @@ public sealed class RepositoryReleaseReadinessTests
         var repositoryRoot = GetRepositoryRoot();
         var directoryBuildProps = File.ReadAllText(Path.Combine(repositoryRoot, "Directory.Build.props"));
         var coreProject = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Core", "Videra.Core.csproj"));
+        var gltfProject = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Import.Gltf", "Videra.Import.Gltf.csproj"));
+        var objProject = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Import.Obj", "Videra.Import.Obj.csproj"));
         var avaloniaProject = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Avalonia", "Videra.Avalonia.csproj"));
         var windowsProject = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Platform.Windows", "Videra.Platform.Windows.csproj"));
         var linuxProject = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Platform.Linux", "Videra.Platform.Linux.csproj"));
@@ -257,7 +267,7 @@ public sealed class RepositoryReleaseReadinessTests
         directoryBuildProps.Should().Contain("EmbedUntrackedSources");
         directoryBuildProps.Should().Contain("Microsoft.SourceLink.GitHub");
 
-        foreach (var project in new[] { coreProject, avaloniaProject, windowsProject, linuxProject, macosProject })
+        foreach (var project in new[] { coreProject, gltfProject, objProject, avaloniaProject, windowsProject, linuxProject, macosProject })
         {
             project.Should().Contain("PackageReadmeFile");
             project.Should().Contain("PackagePath=\"\\\"");
@@ -309,6 +319,8 @@ public sealed class RepositoryReleaseReadinessTests
         ciWorkflow.Should().Contain("dotnet pack");
 
         packageValidationScript.Should().Contain("Videra.Core");
+        packageValidationScript.Should().Contain("Videra.Import.Gltf");
+        packageValidationScript.Should().Contain("Videra.Import.Obj");
         packageValidationScript.Should().Contain("Videra.Avalonia");
         packageValidationScript.Should().Contain("Videra.Platform.Windows");
         packageValidationScript.Should().Contain("Videra.Platform.Linux");

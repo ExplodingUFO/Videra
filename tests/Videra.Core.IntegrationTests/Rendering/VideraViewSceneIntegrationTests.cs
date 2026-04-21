@@ -13,10 +13,10 @@ using Videra.Core.Graphics;
 using Videra.Core.Graphics.Abstractions;
 using Videra.Core.Graphics.Wireframe;
 using Videra.Core.Graphics.Software;
-using Videra.Core.IO;
 using Videra.Core.Scene;
 using Videra.Core.Selection.Annotations;
 using Videra.Core.Styles.Presets;
+using Videra.Import.Obj;
 using Xunit;
 
 namespace Videra.Core.IntegrationTests.Rendering;
@@ -473,7 +473,7 @@ public sealed class VideraViewSceneIntegrationTests : IDisposable
             f 1//1 2//1 3//1
             """);
 
-        var asset = ModelImporter.Import(path);
+        var asset = ObjModelImporter.Import(path);
         var uploaded = SceneUploadCoordinator.Upload(asset, new SoftwareResourceFactory());
 
         asset.Name.Should().Be("asset-triangle.obj");
