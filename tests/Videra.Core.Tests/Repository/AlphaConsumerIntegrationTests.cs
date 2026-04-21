@@ -199,6 +199,8 @@ public sealed class AlphaConsumerIntegrationTests
         feedbackDoc.Should().Contain("diagnostics snapshot");
         feedbackDoc.Should().Contain("VideraDiagnosticsSnapshotFormatter");
         feedbackDoc.Should().Contain("VideraInspectionBundleService");
+        feedbackDoc.Should().Contain("CanReplayScene");
+        feedbackDoc.Should().Contain("ReplayLimitation");
         feedbackDoc.Should().Contain("ResolvedDisplayServer");
         feedbackDoc.Should().Contain("DisplayServerFallbackUsed");
         feedbackDoc.Should().Contain("DisplayServerFallbackReason");
@@ -245,6 +247,8 @@ public sealed class AlphaConsumerIntegrationTests
         troubleshooting.Should().Contain("diagnostics snapshot");
         troubleshooting.Should().Contain("VideraDiagnosticsSnapshotFormatter");
         troubleshooting.Should().Contain("VideraInspectionBundleService");
+        troubleshooting.Should().Contain("CanReplayScene");
+        troubleshooting.Should().Contain("ReplayLimitation");
         troubleshooting.Should().Contain("DisplayServerCompatibility");
         troubleshooting.Should().Contain("Videra.SurfaceCharts.Demo");
         troubleshooting.Should().Contain("Support summary");

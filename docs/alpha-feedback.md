@@ -20,7 +20,8 @@ Videra is still an early alpha embeddable viewer stack. Good feedback is not jus
 4. Export a diagnostics snapshot with `VideraDiagnosticsSnapshotFormatter.Format(View3D.BackendDiagnostics)` or attach the `consumer smoke` `diagnostics-snapshot.txt` artifact.
 5. If the issue is visual or inspection-related, attach either:
    - a snapshot exported through `ExportSnapshotAsync(...)`, or
-   - a replayable inspection bundle exported through `VideraInspectionBundleService.ExportAsync(...)`
+   - an inspection bundle exported through `VideraInspectionBundleService.ExportAsync(...)`
+     - check `CanReplayScene` and include `ReplayLimitation` whenever the bundle captured host-owned objects or other non-replayable scene state
 
 ## What to include in a bug report
 
@@ -31,6 +32,7 @@ Videra is still an early alpha embeddable viewer stack. Good feedback is not jus
 - diagnostics snapshot from `VideraDiagnosticsSnapshotFormatter`
 - exported inspection snapshot, when the issue affects clipping, measurements, labels, or camera state
 - inspection bundle directory when you need camera, clipping, measurements, annotations, and imported assets to replay together
+- `CanReplayScene` and `ReplayLimitation` from `VideraInspectionBundleService.ExportAsync(...)` whenever the bundle is exportable but not replayable
 - `SurfaceCharts support summary` copied from the `Videra.SurfaceCharts.Demo` `Support summary` panel when the issue is in `area: surfacecharts`
 - use `Copy support summary` after reproducing `Start here: In-memory first chart`; continue to `Explore next: Cache-backed streaming` only if needed
 - SurfaceCharts source-path choice when relevant:

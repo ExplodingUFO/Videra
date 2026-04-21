@@ -84,6 +84,7 @@ public sealed class InteractionSampleConfigurationTests
         codeBehind.Should().Contain("ExportSnapshotAsync");
         codeBehind.Should().Contain("VideraInspectionBundleService.ExportAsync");
         codeBehind.Should().Contain("VideraInspectionBundleService.ImportAsync");
+        codeBehind.Should().Contain("ReplayLimitation");
         codeBehind.Should().Contain("new VideraNodeAnnotation");
         codeBehind.Should().Contain("new VideraWorldPointAnnotation");
 
