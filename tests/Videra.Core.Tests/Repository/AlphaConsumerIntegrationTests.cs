@@ -324,12 +324,14 @@ public sealed class AlphaConsumerIntegrationTests
         releasing.Should().Contain("Videra.InteractionSample");
         readme.Should().Contain("sample-contract evidence");
         ciWorkflow.Should().Contain("quality-gate-evidence:");
-        ciWorkflow.Should().Contain("Build packaged consumer smoke with warnings as errors");
+        ciWorkflow.Should().Contain("Run packaged consumer smoke with warnings as errors");
         ciWorkflow.Should().Contain("Invoke-ConsumerSmoke.ps1 -Configuration Release");
-        ciWorkflow.Should().Contain("-BuildOnly");
+        ciWorkflow.Should().NotContain("-BuildOnly");
         ciWorkflow.Should().Contain("-TreatWarningsAsErrors");
-        releasing.Should().Contain("packaged consumer path");
-        readme.Should().Contain("packaged consumer path");
+        releasing.Should().Contain("package-size budgets");
+        releasing.Should().Contain("packaged consumer smoke");
+        readme.Should().Contain("package-size budgets");
+        readme.Should().Contain("packaged consumer smoke");
     }
 
     private static string GetRepositoryRoot()

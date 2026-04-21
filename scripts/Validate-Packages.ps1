@@ -8,6 +8,7 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+$root = Split-Path -Parent $PSScriptRoot
 
 $expectedPackages = @(
     "Videra.Core",
@@ -19,12 +20,90 @@ $expectedPackages = @(
     "Videra.Platform.macOS"
 )
 
+$packageSizeBudgetContractPath = Join-Path $root "eng/package-size-budgets.json"
 $expectedRepositoryUrl = "https://github.com/ExplodingUFO/Videra" # RepositoryUrl
 $expectedLicenseExpression = "MIT" # PackageLicenseExpression
 $expectedPackageIcon = "icon.png" # PackageIcon
 $expectedPackageRoot = (Resolve-Path $PackageRoot).Path
 $packageFiles = Get-ChildItem -Path $expectedPackageRoot -Recurse -Filter *.nupkg | Sort-Object Name
 $symbolPackageFiles = Get-ChildItem -Path $expectedPackageRoot -Recurse -Filter *.snupkg | Sort-Object Name
+
+function Read-JsonHashtable([string]$Path)
+{
+    if (-not (Test-Path -LiteralPath $Path))
+    {
+        throw "Required JSON file not found at '$Path'."
+    }
+
+    return Get-Content -LiteralPath $Path -Raw | ConvertFrom-Json -AsHashtable
+}
+
+function Format-ByteSize([long]$Bytes)
+{
+    if ($Bytes -ge 1MB)
+    {
+        return "{0:N2} MiB" -f ($Bytes / 1MB)
+    }
+
+    if ($Bytes -ge 1KB)
+    {
+        return "{0:N2} KiB" -f ($Bytes / 1KB)
+    }
+
+    return "$Bytes B"
+}
+
+function Get-PackageSizeBudgetMap([string]$Path, [string[]]$ExpectedPackageIds)
+{
+    $contract = Read-JsonHashtable $Path
+    if ($contract.schemaVersion -ne 1)
+    {
+        throw "Unsupported package-size budget contract schema version '$($contract.schemaVersion)'."
+    }
+
+    $budgetMap = @{}
+    foreach ($packageBudget in $contract.packages)
+    {
+        $packageId = [string]$packageBudget.id
+        if ([string]::IsNullOrWhiteSpace($packageId))
+        {
+            throw "Package-size budget contract contains an entry without an id."
+        }
+
+        if ($budgetMap.ContainsKey($packageId))
+        {
+            throw "Package-size budget contract contains a duplicate entry for '$packageId'."
+        }
+
+        $nupkgMaxBytes = [long]$packageBudget.nupkgMaxBytes
+        $snupkgMaxBytes = [long]$packageBudget.snupkgMaxBytes
+        if ($nupkgMaxBytes -le 0 -or $snupkgMaxBytes -le 0)
+        {
+            throw "Package-size budget contract must define positive `.nupkg` and `.snupkg` byte budgets for '$packageId'."
+        }
+
+        $budgetMap[$packageId] = [ordered]@{
+            nupkgMaxBytes = $nupkgMaxBytes
+            snupkgMaxBytes = $snupkgMaxBytes
+        }
+    }
+
+    $missingPackageIds = @($ExpectedPackageIds | Where-Object { -not $budgetMap.ContainsKey($_) })
+    if ($missingPackageIds.Count -gt 0)
+    {
+        throw "Package-size budget contract is missing canonical public package ids: $($missingPackageIds -join ', ')."
+    }
+
+    $unexpectedPackageIds = @($budgetMap.Keys | Where-Object { $ExpectedPackageIds -notcontains $_ })
+    if ($unexpectedPackageIds.Count -gt 0)
+    {
+        throw "Package-size budget contract contains unexpected package ids: $($unexpectedPackageIds -join ', ')."
+    }
+
+    return $budgetMap
+}
+
+$packageSizeBudgetById = Get-PackageSizeBudgetMap -Path $packageSizeBudgetContractPath -ExpectedPackageIds $expectedPackages
 
 if ($packageFiles.Count -ne $expectedPackages.Count)
 {
@@ -152,6 +231,7 @@ foreach ($package in $packageFiles)
     $metadataById[$packageId] = [pscustomobject]@{
         Path = $package.FullName
         BaseName = $package.BaseName
+        PackageSizeBytes = [long]$package.Length
         Description = [string]$metadata.description
         Tags = [string]$metadata.tags
         Dependencies = $dependencies
@@ -255,4 +335,85 @@ if ($metadataById["Videra.Platform.macOS"].Description -notmatch "macOS")
     throw "Videra.Platform.macOS description must mention macOS."
 }
 
-Write-Host "Validated packages in '$expectedPackageRoot' for version '$ExpectedVersion'."
+$sizeEvaluationPath = Join-Path $validationRoot "package-size-evaluation.json"
+$sizeSummaryPath = Join-Path $validationRoot "package-size-summary.txt"
+$sizeEvaluations = @()
+$sizeFailures = @()
+
+foreach ($expectedPackage in $expectedPackages)
+{
+    $packageMetadata = $metadataById[$expectedPackage]
+    $budget = $packageSizeBudgetById[$expectedPackage]
+    $symbolPackagePath = $symbolPackagesByBaseName[$packageMetadata.BaseName]
+    $symbolPackageSizeBytes = [long](Get-Item -LiteralPath $symbolPackagePath).Length
+
+    $packagePassed = $packageMetadata.PackageSizeBytes -le $budget.nupkgMaxBytes
+    $symbolPassed = $symbolPackageSizeBytes -le $budget.snupkgMaxBytes
+
+    $sizeEvaluations += [ordered]@{
+        id = $expectedPackage
+        nupkg = [ordered]@{
+            actualBytes = $packageMetadata.PackageSizeBytes
+            maxBytes = $budget.nupkgMaxBytes
+            deltaBytes = $packageMetadata.PackageSizeBytes - $budget.nupkgMaxBytes
+            passed = $packagePassed
+        }
+        snupkg = [ordered]@{
+            actualBytes = $symbolPackageSizeBytes
+            maxBytes = $budget.snupkgMaxBytes
+            deltaBytes = $symbolPackageSizeBytes - $budget.snupkgMaxBytes
+            passed = $symbolPassed
+        }
+    }
+
+    if (-not $packagePassed)
+    {
+        $sizeFailures += "[FAIL] $expectedPackage .nupkg actual $(Format-ByteSize $packageMetadata.PackageSizeBytes) exceeded max $(Format-ByteSize $budget.nupkgMaxBytes)."
+    }
+
+    if (-not $symbolPassed)
+    {
+        $sizeFailures += "[FAIL] $expectedPackage .snupkg actual $(Format-ByteSize $symbolPackageSizeBytes) exceeded max $(Format-ByteSize $budget.snupkgMaxBytes)."
+    }
+}
+
+$sizeSummaryLines = @(
+    "Package root: $expectedPackageRoot"
+    "Package-size budget contract: eng/package-size-budgets.json"
+    ""
+)
+
+foreach ($evaluation in $sizeEvaluations)
+{
+    foreach ($packageKind in @("nupkg", "snupkg"))
+    {
+        $kindEvaluation = $evaluation[$packageKind]
+        $verdict = if ($kindEvaluation.passed) { "PASS" } else { "FAIL" }
+        $sizeSummaryLines += "[{0}] {1} .{2} actual {3} vs max {4} (delta {5} bytes)" -f `
+            $verdict, `
+            $evaluation.id, `
+            $packageKind, `
+            (Format-ByteSize $kindEvaluation.actualBytes), `
+            (Format-ByteSize $kindEvaluation.maxBytes), `
+            $kindEvaluation.deltaBytes
+    }
+}
+
+$sizeEvaluationDocument = [ordered]@{
+    schemaVersion = 1
+    evaluatedAtUtc = [DateTime]::UtcNow.ToString("O")
+    packageRoot = $expectedPackageRoot
+    budgetContractPath = "eng/package-size-budgets.json"
+    packages = $sizeEvaluations
+}
+
+$sizeEvaluationDocument | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $sizeEvaluationPath
+$sizeSummaryLines | Set-Content -LiteralPath $sizeSummaryPath
+
+if ($sizeFailures.Count -gt 0)
+{
+    throw "Package size budgets failed:`n$($sizeFailures -join "`n")"
+}
+
+Write-Host "Validated packages in '$expectedPackageRoot' for version '$ExpectedVersion'." -ForegroundColor Green
+Write-Host "Package-size evaluation written to '$sizeEvaluationPath'." -ForegroundColor Green
