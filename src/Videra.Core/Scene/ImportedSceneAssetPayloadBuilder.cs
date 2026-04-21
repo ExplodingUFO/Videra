@@ -16,8 +16,10 @@ internal static class ImportedSceneAssetPayloadBuilder
         var nodeById = nodes.ToDictionary(static node => node.Id);
         var resolvedTransforms = new Dictionary<SceneNodeId, Matrix4x4>();
         var resolvingNodes = new HashSet<SceneNodeId>();
+        var includeTangents = primitives.Any(static primitive => primitive.MeshData.Tangents.Length > 0);
 
         var vertices = new List<VertexPositionNormalColor>();
+        var tangents = includeTangents ? new List<Vector4>() : null;
         var indices = new List<uint>();
         uint indexOffset = 0;
 
@@ -31,11 +33,11 @@ internal static class ImportedSceneAssetPayloadBuilder
                     throw new InvalidOperationException($"Scene node '{node.Name}' references unknown primitive '{primitiveId.Value}'.");
                 }
 
-                AppendPrimitive(primitive.Payload, worldTransform, vertices, indices, ref indexOffset);
+                AppendPrimitive(primitive.Payload, worldTransform, vertices, tangents, indices, ref indexOffset);
             }
         }
 
-        return new MeshPayload(vertices.ToArray(), indices.ToArray(), MeshTopology.Triangles);
+        return new MeshPayload(vertices.ToArray(), indices.ToArray(), MeshTopology.Triangles, tangents?.ToArray());
     }
 
     private static Matrix4x4 ResolveWorldTransform(
@@ -87,17 +89,31 @@ internal static class ImportedSceneAssetPayloadBuilder
         MeshPayload payload,
         Matrix4x4 transform,
         ICollection<VertexPositionNormalColor> vertices,
+        ICollection<Vector4>? tangents,
         ICollection<uint> indices,
         ref uint indexOffset)
     {
         Matrix4x4.Invert(transform, out var inverseTransform);
         var normalTransform = Matrix4x4.Transpose(inverseTransform);
-
-        foreach (var vertex in payload.Vertices)
+        if (payload.Tangents.Length != 0 && payload.Tangents.Length != payload.Vertices.Length)
         {
+            throw new InvalidOperationException("Mesh payload tangent count must match vertex count when tangent data is present.");
+        }
+
+        for (var i = 0; i < payload.Vertices.Length; i++)
+        {
+            var vertex = payload.Vertices[i];
             var position = Vector3.Transform(vertex.Position, transform);
             var normal = Vector3.Normalize(Vector3.TransformNormal(vertex.Normal, normalTransform));
             vertices.Add(new VertexPositionNormalColor(position, normal, vertex.Color));
+
+            if (tangents is not null)
+            {
+                tangents.Add(
+                    payload.Tangents.Length == 0
+                        ? Vector4.Zero
+                        : TransformTangent(payload.Tangents[i], transform));
+            }
         }
 
         foreach (var index in payload.Indices)
@@ -106,5 +122,16 @@ internal static class ImportedSceneAssetPayloadBuilder
         }
 
         indexOffset += (uint)payload.Vertices.Length;
+    }
+
+    private static Vector4 TransformTangent(Vector4 tangent, Matrix4x4 transform)
+    {
+        var direction = Vector3.TransformNormal(new Vector3(tangent.X, tangent.Y, tangent.Z), transform);
+        if (direction.LengthSquared() > float.Epsilon)
+        {
+            direction = Vector3.Normalize(direction);
+        }
+
+        return new Vector4(direction, tangent.W);
     }
 }

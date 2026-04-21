@@ -477,6 +477,7 @@ public static partial class GltfModelImporter
     {
         var positions = primitive.GetVertexAccessor("POSITION")?.AsVector3Array();
         var normals = primitive.GetVertexAccessor("NORMAL")?.AsVector3Array();
+        var tangents = primitive.GetVertexAccessor("TANGENT")?.AsVector4Array();
         var colors = primitive.GetVertexAccessor("COLOR_0")?.AsVector4Array();
 
         if (positions == null)
@@ -485,11 +486,20 @@ public static partial class GltfModelImporter
             return null;
         }
 
+        if (tangents is not null && tangents.Count != positions.Count)
+        {
+            throw new InvalidDataException(
+                $"Tangent accessor count ({tangents.Count}) does not match POSITION count ({positions.Count}).");
+        }
+
         var material = primitive.Material;
         var baseColor = material?.FindChannel("BaseColor")?.Parameter ?? Vector4.One;
         var defaultColor = new RgbaFloat(baseColor.X, baseColor.Y, baseColor.Z, baseColor.W);
         var vertices = new VertexPositionNormalColor[positions.Count];
         var textureCoordinateSets = CreateTextureCoordinateSets(primitive, positions.Count);
+        var tangentValues = tangents is null
+            ? Array.Empty<Vector4>()
+            : tangents.Select(static tangent => new Vector4(tangent.X, tangent.Y, tangent.Z, tangent.W)).ToArray();
 
         for (var i = 0; i < positions.Count; i++)
         {
@@ -509,6 +519,7 @@ public static partial class GltfModelImporter
         {
             Vertices = vertices,
             Indices = indices,
+            Tangents = tangentValues,
             TextureCoordinateSets = textureCoordinateSets,
             Topology = MeshTopology.Triangles
         };

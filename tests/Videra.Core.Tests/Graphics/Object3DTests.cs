@@ -536,4 +536,58 @@ public class Object3DTests
         material.NormalTexture.Texture.ColorSpace.Should().Be(TextureColorSpace.Linear);
         material.NormalTexture.Scale.Should().Be(0.5f);
     }
+
+    [Fact]
+    public void ImportedSceneAsset_FlattenedPayload_PreservesAndTransformsTangents()
+    {
+        var mesh = new MeshData
+        {
+            Vertices =
+            [
+                new VertexPositionNormalColor(new Vector3(0f, 0f, 0f), Vector3.UnitZ, RgbaFloat.White),
+                new VertexPositionNormalColor(new Vector3(1f, 0f, 0f), Vector3.UnitZ, RgbaFloat.White),
+                new VertexPositionNormalColor(new Vector3(0f, 1f, 0f), Vector3.UnitZ, RgbaFloat.White)
+            ],
+            Indices = [0u, 1u, 2u],
+            Tangents =
+            [
+                new Vector4(1f, 1f, 0f, 1f),
+                new Vector4(1f, 1f, 0f, 1f),
+                new Vector4(1f, 1f, 0f, 1f)
+            ],
+            Topology = MeshTopology.Triangles
+        };
+        var material = new MaterialInstance(MaterialInstanceId.New(), "TangentMaterial", RgbaFloat.White);
+        var primitive = new MeshPrimitive(MeshPrimitiveId.New(), "TangentTriangle", mesh, material.Id);
+        var node = new SceneNode(
+            SceneNodeId.New(),
+            "Scaled",
+            Matrix4x4.CreateScale(2f, 1f, 1f),
+            parentId: null,
+            [primitive.Id]);
+        var asset = new ImportedSceneAsset(
+            "tangent.gltf",
+            "tangent.gltf",
+            [node],
+            [primitive],
+            [material]);
+        var payloadProperty = typeof(ImportedSceneAsset).GetProperty("Payload", BindingFlags.Instance | BindingFlags.NonPublic);
+
+        payloadProperty.Should().NotBeNull();
+        var payload = payloadProperty!.GetValue(asset);
+        payload.Should().NotBeNull();
+
+        var tangentsProperty = payload!.GetType().GetProperty("Tangents", BindingFlags.Instance | BindingFlags.Public);
+        tangentsProperty.Should().NotBeNull();
+        var tangents = (Vector4[])tangentsProperty!.GetValue(payload)!;
+
+        tangents.Should().HaveCount(3);
+        foreach (var tangent in tangents)
+        {
+            tangent.X.Should().BeApproximately(0.8944272f, 0.0001f);
+            tangent.Y.Should().BeApproximately(0.4472136f, 0.0001f);
+            tangent.Z.Should().BeApproximately(0f, 0.0001f);
+            tangent.W.Should().Be(1f);
+        }
+    }
 }
