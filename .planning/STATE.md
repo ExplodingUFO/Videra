@@ -13,9 +13,9 @@ Milestone: `v1.19`
 Phase: `Not started (defining requirements)`
 Plan: `—`
 Status: `Defining requirements and roadmap for SurfaceCharts presentation-space and interaction defaults`
-Last activity: `2026-04-20` — started `v1.19`, scoped the milestone around display-space transforms, overlay/value-axis defaults, interaction presets, and demo truth`
+Last activity: `2026-04-21` — completed quick task `260421-gre`: 修复 `Videra.SurfaceCharts.Demo` 无法打开的问题
 
-Progress: `Requirements and roadmap initialized for the next SurfaceCharts milestone.`
+Progress: `Requirements and roadmap are initialized for v1.19, and quick task 260421-gre restored the SurfaceCharts demo build on the current branch.`
 
 ## Performance Metrics
 
@@ -43,6 +43,12 @@ Progress: `Requirements and roadmap initialized for the next SurfaceCharts miles
 
 - Historical `.planning/phases/13-surfacechart-runtime-and-view-state-contract/13-VERIFICATION.md` and `.planning/phases/14-built-in-interaction-and-camera-workflow/14-VERIFICATION.md` still report `gaps_found`; they were acknowledged at `v1.18` closeout and do not block the archive.
 - Carry-forward engineering debt from `v1.18` lives in `.planning/PROJECT.md` Current Risks and `.planning/milestones/v1.18-MILESTONE-AUDIT.md`.
+
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 260421-gre | 修复 `Videra.SurfaceCharts.Demo` 无法打开的问题 | 2026-04-21 | 998e0a5 | [260421-gre-videra-surfacecharts-demo](./quick/260421-gre-videra-surfacecharts-demo/) |
 
 ## Deferred Items
 
