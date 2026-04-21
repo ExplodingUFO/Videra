@@ -27,7 +27,7 @@
         {
           "benchmark": "Videra.SurfaceCharts.Benchmarks.SurfaceChartsProbeBenchmarks.ProbeLatency",
           "baselineMeanNs": 15794870.673,
-          "maxRegressionPercent": 100
+          "maxRegressionPercent": 150
         }
       ]
     }

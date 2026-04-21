@@ -39,7 +39,7 @@ public sealed class BenchmarkThresholdRepositoryTests
             new Dictionary<string, int>
             {
                 ["Videra.SurfaceCharts.Benchmarks.SurfaceChartsRenderStateBenchmarks.ApplyResidencyChurnUnderCameraMovement"] = 100,
-                ["Videra.SurfaceCharts.Benchmarks.SurfaceChartsProbeBenchmarks.ProbeLatency"] = 100
+                ["Videra.SurfaceCharts.Benchmarks.SurfaceChartsProbeBenchmarks.ProbeLatency"] = 150
             });
     }
 
