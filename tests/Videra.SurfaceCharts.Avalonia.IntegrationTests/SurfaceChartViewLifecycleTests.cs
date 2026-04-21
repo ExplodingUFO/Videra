@@ -6,6 +6,7 @@ using Avalonia.Threading;
 using FluentAssertions;
 using Videra.SurfaceCharts.Avalonia.Controls;
 using Videra.SurfaceCharts.Avalonia.Controls.Interaction;
+using Videra.SurfaceCharts.Avalonia.Controls.Overlay;
 using Videra.SurfaceCharts.Core;
 using Videra.SurfaceCharts.Core.Rendering;
 using Xunit;
@@ -22,11 +23,21 @@ public sealed class SurfaceChartViewLifecycleTests
             var runtimeField = typeof(SurfaceChartView).GetField("_runtime", BindingFlags.Instance | BindingFlags.NonPublic);
             runtimeField.Should().NotBeNull();
             runtimeField!.FieldType.Should().Be(typeof(SurfaceChartRuntime));
+            typeof(SurfaceChartView).GetField("_tileCache", BindingFlags.Instance | BindingFlags.NonPublic).Should().BeNull();
+
+            var overlayCoordinatorField = typeof(SurfaceChartView).GetField("_overlayCoordinator", BindingFlags.Instance | BindingFlags.NonPublic);
+            overlayCoordinatorField.Should().NotBeNull();
+            overlayCoordinatorField!.FieldType.Should().Be(typeof(SurfaceChartOverlayCoordinator));
 
             var view = new SurfaceChartView();
             var runtime = SurfaceChartTestHelpers.GetRuntime(view);
+            var overlayCoordinator = SurfaceChartTestHelpers.GetOverlayCoordinator(view);
 
             runtime.ViewState.DataWindow.Should().Be(view.Viewport.ToDataWindow());
+            runtime.GetLoadedTiles().Should().BeEmpty();
+            overlayCoordinator.AxisState.Should().BeSameAs(SurfaceAxisOverlayState.Empty);
+            overlayCoordinator.LegendState.Should().BeSameAs(SurfaceLegendOverlayState.Empty);
+            overlayCoordinator.ProbeState.Should().BeSameAs(SurfaceProbeOverlayState.Empty);
         });
     }
 
@@ -875,6 +886,13 @@ internal static class SurfaceChartTestHelpers
         return (SurfaceChartRuntime)runtimeField!.GetValue(view)!;
     }
 
+    public static SurfaceChartOverlayCoordinator GetOverlayCoordinator(SurfaceChartView view)
+    {
+        var coordinatorField = typeof(SurfaceChartView).GetField("_overlayCoordinator", BindingFlags.Instance | BindingFlags.NonPublic);
+        coordinatorField.Should().NotBeNull();
+        return (SurfaceChartOverlayCoordinator)coordinatorField!.GetValue(view)!;
+    }
+
     public static SurfaceTile CreateTile(SurfaceMetadata metadata, SurfaceTileKey key, float tileValue)
     {
         var tileCountX = 1 << key.LevelX;
@@ -893,16 +911,7 @@ internal static class SurfaceChartTestHelpers
 
     public static SurfaceTileKey[] GetLoadedTileKeys(SurfaceChartView view)
     {
-        var tileCacheField = typeof(SurfaceChartView).GetField("_tileCache", BindingFlags.Instance | BindingFlags.NonPublic);
-        tileCacheField.Should().NotBeNull();
-
-        var tileCache = tileCacheField!.GetValue(view);
-        tileCache.Should().NotBeNull();
-
-        var getLoadedTilesMethod = tileCache!.GetType().GetMethod("GetLoadedTiles", BindingFlags.Instance | BindingFlags.Public);
-        getLoadedTilesMethod.Should().NotBeNull();
-
-        var tiles = (IReadOnlyList<SurfaceTile>)getLoadedTilesMethod!.Invoke(tileCache, null)!;
+        var tiles = GetRuntime(view).GetLoadedTiles();
         return tiles.Select(static tile => tile.Key).ToArray();
     }
 
@@ -1035,16 +1044,7 @@ internal static class SurfaceChartTestHelpers
 
     private static float[] GetLoadedTileValues(SurfaceChartView view)
     {
-        var tileCacheField = typeof(SurfaceChartView).GetField("_tileCache", BindingFlags.Instance | BindingFlags.NonPublic);
-        tileCacheField.Should().NotBeNull();
-
-        var tileCache = tileCacheField!.GetValue(view);
-        tileCache.Should().NotBeNull();
-
-        var getLoadedTilesMethod = tileCache!.GetType().GetMethod("GetLoadedTiles", BindingFlags.Instance | BindingFlags.Public);
-        getLoadedTilesMethod.Should().NotBeNull();
-
-        var tiles = (IReadOnlyList<SurfaceTile>)getLoadedTilesMethod!.Invoke(tileCache, null)!;
+        var tiles = GetRuntime(view).GetLoadedTiles();
         return tiles.SelectMany(static tile => tile.Values.Span.ToArray()).Distinct().ToArray();
     }
 

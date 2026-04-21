@@ -564,12 +564,7 @@ public sealed class SurfaceChartProbeOverlayTests
 
     private static object GetOverlayState(SurfaceChartView view)
     {
-        var field = typeof(SurfaceChartView).GetField(
-            "_overlayState",
-            BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-
-        field.Should().NotBeNull("Task 9 requires SurfaceChartView to retain overlay state separately from scheduling.");
-        return field!.GetValue(view)!;
+        return SurfaceChartTestHelpers.GetOverlayCoordinator(view).ProbeState;
     }
 
     private static object GetHoveredProbe(object overlayState)

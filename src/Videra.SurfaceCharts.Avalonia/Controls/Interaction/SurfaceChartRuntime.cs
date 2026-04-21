@@ -9,6 +9,7 @@ namespace Videra.SurfaceCharts.Avalonia.Controls.Interaction;
 internal sealed class SurfaceChartRuntime
 {
     private static readonly TimeSpan InteractionSettleDelay = TimeSpan.FromMilliseconds(250);
+    private readonly SurfaceTileCache _tileCache = new();
     private readonly SurfaceCameraController _cameraController;
     private readonly SurfaceChartController _controller;
     private readonly Action _invalidateRenderScene;
@@ -20,7 +21,6 @@ internal sealed class SurfaceChartRuntime
 
     public SurfaceChartRuntime(
         SurfaceViewport initialViewport,
-        SurfaceTileCache tileCache,
         Action notifyTilesChanged,
         Action<SurfaceTileKey, Exception> onTileRequestFailed,
         Action clearFailureState,
@@ -28,7 +28,6 @@ internal sealed class SurfaceChartRuntime
         Action invalidateRenderScene,
         Action invalidateOverlay)
     {
-        ArgumentNullException.ThrowIfNull(tileCache);
         ArgumentNullException.ThrowIfNull(notifyTilesChanged);
         ArgumentNullException.ThrowIfNull(onTileRequestFailed);
         ArgumentNullException.ThrowIfNull(clearFailureState);
@@ -43,8 +42,8 @@ internal sealed class SurfaceChartRuntime
         _cameraController = new SurfaceCameraController(initialViewport);
         _controller = new SurfaceChartController(
             _cameraController,
-            tileCache,
-            new SurfaceTileScheduler(tileCache, notifyTilesChanged, onTileRequestFailed),
+            _tileCache,
+            new SurfaceTileScheduler(_tileCache, notifyTilesChanged, onTileRequestFailed),
             clearFailureState,
             invalidateRenderScene);
     }
@@ -64,6 +63,8 @@ internal sealed class SurfaceChartRuntime
     public SurfaceChartProjectionSettings ProjectionSettings => _cameraController.ProjectionSettings;
 
     public SurfaceChartInteractionQuality InteractionQuality { get; private set; } = SurfaceChartInteractionQuality.Refine;
+
+    internal IReadOnlyList<SurfaceTile> GetLoadedTiles() => _tileCache.GetLoadedTiles();
 
     public SurfaceCameraFrame? CreateCameraFrame(Size viewSize, float renderScale)
     {
