@@ -344,6 +344,7 @@ jobs:
       - linux-wayland-xwayland-native-validation
       - macos-native-validation
       - windows-native-validation
+      - windows-surfacecharts-consumer-smoke
       - windows-consumer-smoke
       - linux-x11-consumer-smoke
       - linux-xwayland-consumer-smoke
