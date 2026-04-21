@@ -1,3 +1,4 @@
+using System.Numerics;
 using System.Runtime.CompilerServices;
 using Videra.Core.Geometry;
 using Videra.Core.Graphics.Abstractions;
@@ -9,7 +10,8 @@ internal sealed class MeshPayload
     public MeshPayload(
         VertexPositionNormalColor[] vertices,
         uint[] indices,
-        MeshTopology topology)
+        MeshTopology topology,
+        Vector4[]? tangents = null)
     {
         ArgumentNullException.ThrowIfNull(vertices);
         ArgumentNullException.ThrowIfNull(indices);
@@ -24,8 +26,15 @@ internal sealed class MeshPayload
             throw new ArgumentException("Invalid index data", nameof(indices));
         }
 
+        tangents ??= Array.Empty<Vector4>();
+        if (tangents.Length != 0 && tangents.Length != vertices.Length)
+        {
+            throw new ArgumentException("Tangent count must match vertex count when tangent data is present.", nameof(tangents));
+        }
+
         Vertices = vertices;
         Indices = indices;
+        Tangents = tangents;
         Topology = topology;
         LocalBounds = BoundingBox3.FromVertices(vertices);
         ApproximateGpuBytes =
@@ -37,6 +46,8 @@ internal sealed class MeshPayload
     public VertexPositionNormalColor[] Vertices { get; }
 
     public uint[] Indices { get; }
+
+    public Vector4[] Tangents { get; }
 
     public MeshTopology Topology { get; }
 
@@ -50,6 +61,7 @@ internal sealed class MeshPayload
         {
             Vertices = Vertices,
             Indices = Indices,
+            Tangents = Tangents,
             Topology = Topology
         };
     }
@@ -59,6 +71,7 @@ internal sealed class MeshPayload
         ArgumentNullException.ThrowIfNull(mesh);
         ArgumentNullException.ThrowIfNull(mesh.Vertices);
         ArgumentNullException.ThrowIfNull(mesh.Indices);
+        ArgumentNullException.ThrowIfNull(mesh.Tangents);
 
         var vertices = cloneArrays
             ? (VertexPositionNormalColor[])mesh.Vertices.Clone()
@@ -66,7 +79,10 @@ internal sealed class MeshPayload
         var indices = cloneArrays
             ? (uint[])mesh.Indices.Clone()
             : mesh.Indices;
+        var tangents = cloneArrays
+            ? (Vector4[])mesh.Tangents.Clone()
+            : mesh.Tangents;
 
-        return new MeshPayload(vertices, indices, mesh.Topology);
+        return new MeshPayload(vertices, indices, mesh.Topology, tangents);
     }
 }

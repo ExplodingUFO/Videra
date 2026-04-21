@@ -1,7 +1,9 @@
 using System.Numerics;
+using System.Reflection;
 using FluentAssertions;
 using Videra.Avalonia.Runtime.Scene;
 using Videra.Core.Geometry;
+using Videra.Core.Graphics;
 using Videra.Core.Scene;
 using Xunit;
 
@@ -304,6 +306,24 @@ public sealed class SceneImportServiceTests : IDisposable
         material.NormalTexture.Scale.Should().Be(0.5f);
     }
 
+    [Fact]
+    public async Task Import_batch_reuses_same_imported_asset_for_duplicate_paths()
+    {
+        var path = WriteTriangleGltf("reused-batch.gltf");
+
+        var result = await _service.ImportBatchAsync([path, path], CancellationToken.None);
+
+        result.Failures.Should().BeEmpty();
+        result.Entries.Should().HaveCount(2);
+        result.SceneObjects.Should().HaveCount(2);
+        result.Entries[0].ImportedAsset.Should().BeSameAs(result.Entries[1].ImportedAsset);
+        result.SceneObjects[0].Should().NotBeSameAs(result.SceneObjects[1]);
+
+        var payloadProperty = typeof(Object3D).GetProperty("MeshPayload", BindingFlags.Instance | BindingFlags.NonPublic);
+        payloadProperty.Should().NotBeNull();
+        payloadProperty!.GetValue(result.SceneObjects[0]).Should().BeSameAs(payloadProperty.GetValue(result.SceneObjects[1]));
+    }
+
     private string WriteObj(string name)
     {
         var path = Path.Combine(_tempDir, name);
@@ -322,6 +342,59 @@ public sealed class SceneImportServiceTests : IDisposable
         var path = Path.Combine(_tempDir, name);
         File.WriteAllText(path, content);
         return path;
+    }
+
+    private string WriteTriangleGltf(string name)
+    {
+        return WriteGltf(name, """
+            {
+              "asset": { "version": "2.0" },
+              "scene": 0,
+              "scenes": [
+                { "nodes": [0] }
+              ],
+              "nodes": [
+                { "name": "Root", "mesh": 0 }
+              ],
+              "meshes": [
+                {
+                  "name": "Triangle",
+                  "primitives": [
+                    {
+                      "attributes": { "POSITION": 0 },
+                      "indices": 1
+                    }
+                  ]
+                }
+              ],
+              "buffers": [
+                {
+                  "byteLength": 66,
+                  "uri": "data:application/octet-stream;base64,AAAAAAAAAAAAAAAAAACAPwAAAAAAAAAAAAAAAAAAgD8AAAAAAAAAAAAAAAAAAIA/AAAAAAAAAAAAAIA/AAABAAIA"
+                }
+              ],
+              "bufferViews": [
+                { "buffer": 0, "byteOffset": 0, "byteLength": 36, "target": 34962 },
+                { "buffer": 0, "byteOffset": 60, "byteLength": 6, "target": 34963 }
+              ],
+              "accessors": [
+                {
+                  "bufferView": 0,
+                  "componentType": 5126,
+                  "count": 3,
+                  "type": "VEC3",
+                  "min": [0.0, 0.0, 0.0],
+                  "max": [1.0, 1.0, 0.0]
+                },
+                {
+                  "bufferView": 1,
+                  "componentType": 5123,
+                  "count": 3,
+                  "type": "SCALAR"
+                }
+              ]
+            }
+            """);
     }
 
     public void Dispose()

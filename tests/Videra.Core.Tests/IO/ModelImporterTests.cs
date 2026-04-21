@@ -986,4 +986,123 @@ public sealed class ModelImporterTests : IDisposable
         material.NormalTexture.Texture.ColorSpace.Should().Be(TextureColorSpace.Linear);
         material.NormalTexture.Scale.Should().Be(0.5f);
     }
+
+    [Fact]
+    public void Import_GltfTangents_RetainsTangentDataOnPrimitiveMesh()
+    {
+        var bufferBytes = BuildTriangleBufferWithTangents();
+        var path = WriteGltf("tangent.gltf", $$"""
+            {
+              "asset": { "version": "2.0" },
+              "scene": 0,
+              "scenes": [
+                { "nodes": [0] }
+              ],
+              "nodes": [
+                { "name": "Root", "mesh": 0 }
+              ],
+              "meshes": [
+                {
+                  "name": "TangentMesh",
+                  "primitives": [
+                    {
+                      "attributes": { "POSITION": 0, "NORMAL": 1, "TANGENT": 2 },
+                      "indices": 3
+                    }
+                  ]
+                }
+              ],
+              "buffers": [
+                {
+                  "byteLength": {{bufferBytes.Length}},
+                  "uri": "data:application/octet-stream;base64,{{Convert.ToBase64String(bufferBytes)}}"
+                }
+              ],
+              "bufferViews": [
+                { "buffer": 0, "byteOffset": 0, "byteLength": 36, "target": 34962 },
+                { "buffer": 0, "byteOffset": 36, "byteLength": 36, "target": 34962 },
+                { "buffer": 0, "byteOffset": 72, "byteLength": 48, "target": 34962 },
+                { "buffer": 0, "byteOffset": 120, "byteLength": 6, "target": 34963 }
+              ],
+              "accessors": [
+                {
+                  "bufferView": 0,
+                  "componentType": 5126,
+                  "count": 3,
+                  "type": "VEC3",
+                  "min": [0.0, 0.0, 0.0],
+                  "max": [1.0, 1.0, 0.0]
+                },
+                {
+                  "bufferView": 1,
+                  "componentType": 5126,
+                  "count": 3,
+                  "type": "VEC3"
+                },
+                {
+                  "bufferView": 2,
+                  "componentType": 5126,
+                  "count": 3,
+                  "type": "VEC4"
+                },
+                {
+                  "bufferView": 3,
+                  "componentType": 5123,
+                  "count": 3,
+                  "type": "SCALAR"
+                }
+              ]
+            }
+            """);
+
+        var asset = GltfModelImporter.Import(path);
+        var primitive = asset.Primitives.Should().ContainSingle().Subject;
+
+        primitive.MeshData.Tangents.Should().Equal(
+            new Vector4(1f, 0f, 0f, 1f),
+            new Vector4(1f, 0f, 0f, 1f),
+            new Vector4(1f, 0f, 0f, 1f));
+    }
+
+    private static byte[] BuildTriangleBufferWithTangents()
+    {
+        using var stream = new MemoryStream();
+        using var writer = new BinaryWriter(stream);
+
+        foreach (var value in new[]
+                 {
+                     0f, 0f, 0f,
+                     1f, 0f, 0f,
+                     0f, 1f, 0f
+                 })
+        {
+            writer.Write(value);
+        }
+
+        foreach (var value in new[]
+                 {
+                     0f, 0f, 1f,
+                     0f, 0f, 1f,
+                     0f, 0f, 1f
+                 })
+        {
+            writer.Write(value);
+        }
+
+        foreach (var value in new[]
+                 {
+                     1f, 0f, 0f, 1f,
+                     1f, 0f, 0f, 1f,
+                     1f, 0f, 0f, 1f
+                 })
+        {
+            writer.Write(value);
+        }
+
+        writer.Write((ushort)0);
+        writer.Write((ushort)1);
+        writer.Write((ushort)2);
+
+        return stream.ToArray();
+    }
 }

@@ -49,10 +49,24 @@ internal sealed class SceneImportService
         var startedAt = Stopwatch.StartNew();
         var maxConcurrency = Math.Clamp(Environment.ProcessorCount, 1, 4);
         using var gate = new SemaphoreSlim(maxConcurrency, maxConcurrency);
+        var indexedPaths = pathArray
+            .Select((path, index) => new IndexedImportPath(index, path, CreateReuseKey(path)))
+            .ToArray();
+        var importTasks = new Dictionary<ImportedSceneAssetReuseKey, Task<ImportedAssetBatchResult>>();
 
-        var imports = await Task.WhenAll(pathArray.Select(
-                (path, index) => ImportBatchEntryAsync(path, index, gate, cancellationToken)))
-            .ConfigureAwait(false);
+        foreach (var indexedPath in indexedPaths)
+        {
+            if (!importTasks.ContainsKey(indexedPath.Key))
+            {
+                importTasks.Add(indexedPath.Key, ImportBatchAssetAsync(indexedPath.Path, indexedPath.Key, gate, cancellationToken));
+            }
+        }
+
+        var importedAssets = await Task.WhenAll(importTasks.Values).ConfigureAwait(false);
+        var importedAssetByKey = importedAssets.ToDictionary(static result => result.Key);
+        var imports = indexedPaths
+            .Select(indexedPath => CreateBatchEntryResult(indexedPath.Index, importedAssetByKey[indexedPath.Key]))
+            .ToArray();
 
         Array.Sort(imports, static (left, right) => left.Index.CompareTo(right.Index));
 
@@ -63,21 +77,61 @@ internal sealed class SceneImportService
             startedAt.Elapsed);
     }
 
-    private async Task<ImportedSceneBatchEntryResult> ImportBatchEntryAsync(
+    private static async Task<ImportedAssetBatchResult> ImportBatchAssetAsync(
         string path,
-        int index,
+        ImportedSceneAssetReuseKey key,
         SemaphoreSlim gate,
         CancellationToken cancellationToken)
     {
         await gate.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
-            var result = await ImportSingleAsync(path, cancellationToken).ConfigureAwait(false);
-            return new ImportedSceneBatchEntryResult(index, result.Entry, result.SceneObject, result.Failure);
+            try
+            {
+                var asset = await Task.Run(() => ImportAsset(path), cancellationToken).ConfigureAwait(false);
+                return new ImportedAssetBatchResult(key, asset, Failure: null);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                return new ImportedAssetBatchResult(key, Asset: null, new ModelLoadFailure(path, ex));
+            }
         }
         finally
         {
             gate.Release();
+        }
+    }
+
+    private ImportedSceneBatchEntryResult CreateBatchEntryResult(int index, ImportedAssetBatchResult importedAsset)
+    {
+        if (importedAsset.Asset is null)
+        {
+            return new ImportedSceneBatchEntryResult(index, Entry: null, SceneObject: null, importedAsset.Failure);
+        }
+
+        var sceneObject = SceneObjectFactory.CreateDeferred(importedAsset.Asset);
+        var entry = _mutator.CreateImportedEntry(sceneObject, importedAsset.Asset);
+        return new ImportedSceneBatchEntryResult(index, entry, sceneObject, Failure: null);
+    }
+
+    private static ImportedSceneAssetReuseKey CreateReuseKey(string path)
+    {
+        try
+        {
+            var fullPath = Path.GetFullPath(path);
+            return new ImportedSceneAssetReuseKey(
+                fullPath,
+                File.Exists(fullPath)
+                    ? File.GetLastWriteTimeUtc(fullPath)
+                    : DateTime.MinValue);
+        }
+        catch
+        {
+            return new ImportedSceneAssetReuseKey(path, DateTime.MinValue);
         }
     }
 
@@ -112,3 +166,17 @@ internal sealed record ImportedSceneBatchEntryResult(
     SceneDocumentEntry? Entry,
     Object3D? SceneObject,
     ModelLoadFailure? Failure);
+
+internal readonly record struct IndexedImportPath(
+    int Index,
+    string Path,
+    ImportedSceneAssetReuseKey Key);
+
+internal sealed record ImportedAssetBatchResult(
+    ImportedSceneAssetReuseKey Key,
+    ImportedSceneAsset? Asset,
+    ModelLoadFailure? Failure);
+
+internal readonly record struct ImportedSceneAssetReuseKey(
+    string FullPath,
+    DateTime LastWriteTimeUtc);
