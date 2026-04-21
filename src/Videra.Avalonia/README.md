@@ -13,6 +13,7 @@ Current status: `alpha`. `Videra.Avalonia` is the entry package for Avalonia app
 - Connect Avalonia visual-tree lifecycle to backend initialization
 - Coordinate backend preference and render-session creation
 - Keep `SceneDocument` as the internal scene truth while `VideraView` stays the public shell
+- Retain backend-neutral `ImportedSceneAsset` catalogs built from `SceneNode`, `MeshPrimitive`, `MaterialInstance`, `Texture2D`, and `Sampler` until upload
 - Map pointer input to camera interaction
 - Manage native-host integration for Windows, Linux, and macOS
 
@@ -80,6 +81,8 @@ var diagnosticsSnapshot = VideraDiagnosticsSnapshotFormatter.Format(diagnostics)
 
 `VideraView.BackendDiagnostics` remains the backend/runtime diagnostics shell, and `VideraDiagnosticsSnapshotFormatter` turns it into the copy-pasteable alpha support artifact used by `Videra.MinimalSample` and `consumer smoke`. `VideraView.RenderCapabilities` and `VideraView.Engine` stay available, but they are not part of the default alpha happy path.
 
+The shared render-feature vocabulary for those diagnostics is `Opaque`, `Transparent`, `Overlay`, `Picking`, and `Screenshot`. Hosts read that truth through `RenderCapabilities.SupportedFeatureNames`, `BackendDiagnostics.LastFrameFeatureNames`, and `BackendDiagnostics.SupportedRenderFeatureNames`.
+
 For the copyable first-scene flow, see [samples/Videra.MinimalSample](../../samples/Videra.MinimalSample/README.md).
 
 ## Compatibility and Advanced Entry Points
@@ -101,6 +104,7 @@ Contract notes:
 - With `AllowSoftwareFallback = false`, the view stays not ready until the native backend issue is fixed; it does not silently recover through fallback.
 - Scene loading uses retained imported assets and `SceneDocument` truth so backend rebind can restore scene resources without a steady-state software staging path.
 - `SceneDocumentStore`, `SceneDeltaPlanner`, `SceneResidencyRegistry`, and `SceneUploadQueue` stay internal to `Videra.Avalonia`; they let `VideraViewRuntime` publish document deltas, queue uploads, and expose read-only scene residency counts through `BackendDiagnostics`.
+- The retained asset catalog behind that path is `SceneNode` + `MeshPrimitive` + `MaterialInstance` + `Texture2D` + `Sampler`, surfaced to hosts as viewer/runtime truth rather than backend-specific resources.
 - `package discovery` and `plugin loading` remain out of scope.
 
 ## Interaction Contract

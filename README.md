@@ -15,6 +15,8 @@ Videra is not a general-purpose game engine. It is shaped around desktop visuali
 
 The `1.0` line is specifically a native desktop viewer/runtime plus inspection workflows and the source-first `SurfaceCharts` family. The public product boundary does not promise general Three.js-style runtime breadth, `WebGL` / `OpenGL` pursuit, or engine-first feature expansion. See [Videra 1.0 Capability Matrix](docs/capability-matrix.md).
 
+On the viewer/runtime path, `SceneDocument` keeps backend-neutral imported scene truth in `ImportedSceneAsset` catalogs built from `SceneNode`, `MeshPrimitive`, `MaterialInstance`, `Texture2D`, and `Sampler`. Those runtime assets stay CPU-side until a ready resource factory uploads them.
+
 ## Who It Is For
 
 - .NET desktop teams that need an Avalonia-facing 3D viewer control
@@ -117,7 +119,7 @@ For alpha adoption feedback, use [Alpha Feedback](docs/alpha-feedback.md) before
 | `Videra.InteractionSample` | Public sample for the controlled interaction contract plus viewer-first inspection workflows such as measurement, clipping, state restore, snapshot export, and replayable inspection bundles |
 
 `Videra.MinimalSample` is the quickest end-to-end viewer reference. It stays on the alpha happy path: `Options -> LoadModelAsync -> FrameAll / ResetCamera -> BackendDiagnostics`, then uses `VideraDiagnosticsSnapshotFormatter` to export the same support artifact requested by alpha bug reports.
-`Videra.Demo` remains the broader diagnostics and import-feedback surface. It seeds a default demo cube on the ready path, summarizes import feedback in the status area, and includes a narrow `Scene Pipeline Lab` panel for `SceneDocument` versioning, pending/resident/dirty upload counts, atomic batch replacement, and backend-rebind truth.
+`Videra.Demo` remains the broader diagnostics and import-feedback surface. It seeds a default demo cube on the ready path, summarizes import feedback in the status area, and includes a narrow `Scene Pipeline Lab` panel for `SceneDocument` versioning, the retained `SceneNode` / `MeshPrimitive` / `MaterialInstance` / `Texture2D` / `Sampler` runtime model, pending/resident/dirty upload counts, render-feature diagnostics, atomic batch replacement, and backend-rebind truth.
 
 ## Videra 1.0 Boundary
 
@@ -139,6 +141,8 @@ That layer split is the guiding product boundary for `v1.20`. It keeps Videra fo
 Use [Videra.ExtensibilitySample](samples/Videra.ExtensibilitySample/README.md) as the narrow public reference and [docs/extensibility.md](docs/extensibility.md) as the long-lived behavior contract when you need custom pass contributors or frame hooks.
 
 The advanced extensibility flow is `VideraView.Engine` -> `RegisterPassContributor(...)` / `RegisterFrameHook(...)` -> `LoadModelAsync(...)` -> `FrameAll()` -> inspect `RenderCapabilities` and `BackendDiagnostics`.
+
+The shared feature vocabulary for those diagnostics is `RenderFeatureSet`: `Opaque`, `Transparent`, `Overlay`, `Picking`, and `Screenshot`. Host apps read that truth through `RenderCapabilities.SupportedFeatureNames`, `BackendDiagnostics.LastFrameFeatureNames`, and `BackendDiagnostics.SupportedRenderFeatureNames`.
 
 Contract highlights:
 

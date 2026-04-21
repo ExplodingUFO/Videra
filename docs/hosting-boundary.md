@@ -19,11 +19,21 @@ The normal viewer stack is:
 
 | Layer | Public role | Key types |
 | --- | --- | --- |
-| `Core` | Viewer/runtime kernel | `VideraEngine`, `IGraphicsBackend`, `IResourceFactory`, `ICommandExecutor` |
+| `Core` | Viewer/runtime kernel | `VideraEngine`, `SceneDocument`, `SceneNode`, `MeshPrimitive`, `MaterialInstance`, `Texture2D`, `Sampler`, `IGraphicsBackend`, `IResourceFactory`, `ICommandExecutor` |
 | `Import` | CPU-side scene asset ingestion | `GltfModelImporter`, `ObjModelImporter`, `ImportedSceneAsset` |
-| `UI adapter` | Avalonia host shell | `VideraView`, `VideraViewOptions`, `BackendDiagnostics` |
+| `UI adapter` | Avalonia host shell | `VideraView`, `VideraViewOptions`, `BackendDiagnostics`, `RenderCapabilities` |
 | `Backend` | Native graphics implementation | matching `Videra.Platform.Windows` / `Linux` / `macOS` backend package |
 | `Charts` | Source-first analytics sibling | `SurfaceChartView` and `Videra.SurfaceCharts.*` |
+
+## Scene and Material Runtime Model
+
+The shipped viewer path keeps one direct runtime model:
+
+- `Videra.Import.*` parses files into backend-neutral `ImportedSceneAsset` catalogs.
+- Those catalogs are composed from `SceneNode`, `MeshPrimitive`, `MaterialInstance`, `Texture2D`, and `Sampler`.
+- `Videra.Avalonia` retains them in `SceneDocument` while `SceneResidencyRegistry` and `SceneUploadQueue` decide when the active backend can realize them.
+- The shared render-feature vocabulary on that path is `Opaque`, `Transparent`, `Overlay`, `Picking`, and `Screenshot`.
+- Host apps observe the result through public diagnostics and capability surfaces rather than through importer-specific or backend-specific types.
 
 ## Internal Seam Owners
 
@@ -47,6 +57,7 @@ The product rule is simple: these types can evolve as internal composition seams
 - `Videra.Avalonia` does not expose native-host handles, `RenderSession`, `RenderSessionOrchestrator`, or `VideraViewRuntime` as public API.
 - Import packages stay layered on `Videra.Core`; they do not take dependencies on Avalonia, platform packages, or chart assemblies.
 - Backend-specific public API still stops at the existing viewer/runtime abstractions; this boundary does not introduce new raw backend handles or device types.
+- Render feature truth stays public through `RenderCapabilities.SupportedFeatureNames`, `BackendDiagnostics.LastFrameFeatureNames`, and `BackendDiagnostics.SupportedRenderFeatureNames` instead of exposing pass-local or backend-local switches.
 
 ## Why This Boundary Exists
 

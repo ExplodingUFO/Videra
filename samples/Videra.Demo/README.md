@@ -16,7 +16,7 @@
 - Grid visibility, color, and height controls
 - Basic object transform editing
 - Backend diagnostics via `BackendDiagnostics`, including readiness, native-host binding, and fallback details
-- A focused `Scene Pipeline Lab` panel that calls out `SceneDocument` versioning, deferred upload, residency counts, atomic scene replacement, and backend-rebind truth
+- A focused `Scene Pipeline Lab` panel that calls out `SceneDocument` versioning, retained `SceneNode` / `MeshPrimitive` / `MaterialInstance` / `Texture2D` / `Sampler` catalogs, deferred upload, render-feature diagnostics, residency counts, atomic scene replacement, and backend-rebind truth
 
 ## Runtime Behavior
 
@@ -52,7 +52,9 @@ The `Scene Pipeline Lab` copy in the side panel is deliberate. It projects three
 
 - `SceneDocument` is the runtime scene truth, not a mirror of `Engine.SceneObjects`
 - imported assets stay CPU-side until a ready resource factory uploads them through the scene upload queue
+- imported scene truth stays backend-neutral as `SceneNode`, `MeshPrimitive`, `MaterialInstance`, `Texture2D`, and `Sampler` catalogs
 - backend diagnostics surface `document version`, `pending`, `resident`, `dirty`, and `failed` scene-upload counts
+- backend diagnostics also surface `SupportedRenderFeatureNames` and `LastFrameFeatureNames` so the public viewer path shows `Opaque`, `Transparent`, `Overlay`, `Picking`, and `Screenshot` truth directly
 - backend diagnostics explain fallback/rebind behavior while the scene survives backend recreation
 
 ## Run

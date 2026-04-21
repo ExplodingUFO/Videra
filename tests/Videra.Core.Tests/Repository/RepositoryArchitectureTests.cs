@@ -54,6 +54,29 @@ public sealed class RepositoryArchitectureTests
         "SceneUploadQueue"
     };
 
+    private static readonly string[] SceneMaterialRuntimeSymbols =
+    {
+        "SceneDocument",
+        "ImportedSceneAsset",
+        "SceneNode",
+        "MeshPrimitive",
+        "MaterialInstance",
+        "Texture2D",
+        "Sampler"
+    };
+
+    private static readonly string[] RenderFeatureTruthSymbols =
+    {
+        "Opaque",
+        "Transparent",
+        "Overlay",
+        "Picking",
+        "Screenshot",
+        "SupportedFeatureNames",
+        "LastFrameFeatureNames",
+        "SupportedRenderFeatureNames"
+    };
+
     [Fact]
     public void Repository_ShouldIncludeViewerBenchmarkProjectForScenePipelineEvidence()
     {
@@ -287,6 +310,37 @@ public sealed class RepositoryArchitectureTests
         extensibilityDoc.Should().Contain("SceneUploadQueue");
         extensibilityDoc.Should().Contain("LoadModelsAsync(...)");
         extensibilityDoc.Should().Contain("active scene is replaced only when every requested file succeeds");
+    }
+
+    [Fact]
+    public void SceneMaterialRuntimeDocs_ShouldDescribeBackendNeutralAssetCatalog_AndFeatureTruth()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var readme = File.ReadAllText(Path.Combine(repositoryRoot, "README.md"));
+        var architecture = File.ReadAllText(Path.Combine(repositoryRoot, "ARCHITECTURE.md"));
+        var packageMatrix = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "package-matrix.md"));
+        var hostingBoundary = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "hosting-boundary.md"));
+        var coreReadme = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Core", "README.md"));
+        var avaloniaReadme = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Avalonia", "README.md"));
+
+        foreach (var symbol in SceneMaterialRuntimeSymbols)
+        {
+            readme.Should().Contain(symbol);
+            architecture.Should().Contain(symbol);
+            packageMatrix.Should().Contain(symbol);
+            hostingBoundary.Should().Contain(symbol);
+            coreReadme.Should().Contain(symbol);
+            avaloniaReadme.Should().Contain(symbol);
+        }
+
+        foreach (var symbol in RenderFeatureTruthSymbols)
+        {
+            readme.Should().Contain(symbol);
+            architecture.Should().Contain(symbol);
+            hostingBoundary.Should().Contain(symbol);
+            coreReadme.Should().Contain(symbol);
+            avaloniaReadme.Should().Contain(symbol);
+        }
     }
 
     [Fact]
