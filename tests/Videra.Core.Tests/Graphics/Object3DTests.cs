@@ -457,6 +457,27 @@ public class Object3DTests
             1,
             TextureImageFormat.Png,
             [255, 255, 255, 255]);
+        var dataTexture = new Texture2D(
+            Texture2DId.New(),
+            "DataTexture",
+            1,
+            1,
+            TextureImageFormat.Png,
+            [255, 255, 255, 255]);
+        var emissiveTexture = new Texture2D(
+            Texture2DId.New(),
+            "EmissiveTexture",
+            1,
+            1,
+            TextureImageFormat.Png,
+            [255, 255, 255, 255]);
+        var normalTextureAsset = new Texture2D(
+            Texture2DId.New(),
+            "NormalTexture",
+            1,
+            1,
+            TextureImageFormat.Png,
+            [255, 255, 255, 255]);
         var sampler = new Sampler(
             SamplerId.New(),
             "LinearClamp",
@@ -468,7 +489,18 @@ public class Object3DTests
             MaterialInstanceId.New(),
             "TexturedMaterial",
             RgbaFloat.White,
-            new MaterialTextureBinding(texture.Id, sampler.Id, 0, TextureColorSpace.Srgb));
+            new MaterialTextureBinding(texture.Id, sampler.Id, 0, TextureColorSpace.Srgb),
+            new MaterialMetallicRoughness(
+                0.25f,
+                0.75f,
+                new MaterialTextureBinding(dataTexture.Id, sampler.Id, 0, TextureColorSpace.Linear)),
+            new MaterialAlphaSettings(MaterialAlphaMode.Mask, 0.42f, true),
+            new MaterialEmissive(
+                new Vector3(0.1f, 0.2f, 0.3f),
+                new MaterialTextureBinding(emissiveTexture.Id, sampler.Id, 0, TextureColorSpace.Srgb)),
+            new MaterialNormalTextureBinding(
+                new MaterialTextureBinding(normalTextureAsset.Id, sampler.Id, 0, TextureColorSpace.Linear),
+                0.5f));
         var primitive = new MeshPrimitive(MeshPrimitiveId.New(), "triangle.obj#primitive0", CreateTestMesh(), material.Id);
         var rootNode = new SceneNode(SceneNodeId.New(), "triangle.obj", Matrix4x4.Identity, parentId: null, [primitive.Id]);
         var asset = new ImportedSceneAsset(
@@ -477,11 +509,11 @@ public class Object3DTests
             [rootNode],
             [primitive],
             [material],
-            [texture],
+            [texture, dataTexture, emissiveTexture, normalTextureAsset],
             [sampler]);
 
         asset.Materials.Should().ContainSingle().Which.Should().BeSameAs(material);
-        asset.Textures.Should().ContainSingle().Which.Should().BeSameAs(texture);
+        asset.Textures.Should().Equal(texture, dataTexture, emissiveTexture, normalTextureAsset);
         asset.Samplers.Should().ContainSingle().Which.Should().BeSameAs(sampler);
         asset.Primitives.Should().ContainSingle().Which.MaterialId.Should().Be(material.Id);
         material.BaseColorTexture.Should().NotBeNull();
@@ -489,5 +521,19 @@ public class Object3DTests
         material.BaseColorTexture.SamplerId.Should().Be(sampler.Id);
         material.BaseColorTexture.CoordinateSet.Should().Be(0);
         material.BaseColorTexture.ColorSpace.Should().Be(TextureColorSpace.Srgb);
+        material.MetallicRoughness.MetallicFactor.Should().Be(0.25f);
+        material.MetallicRoughness.RoughnessFactor.Should().Be(0.75f);
+        material.MetallicRoughness.Texture.Should().NotBeNull();
+        material.MetallicRoughness.Texture!.TextureId.Should().Be(dataTexture.Id);
+        material.MetallicRoughness.Texture.ColorSpace.Should().Be(TextureColorSpace.Linear);
+        material.Alpha.Should().Be(new MaterialAlphaSettings(MaterialAlphaMode.Mask, 0.42f, true));
+        material.Emissive.Factor.Should().Be(new Vector3(0.1f, 0.2f, 0.3f));
+        material.Emissive.Texture.Should().NotBeNull();
+        material.Emissive.Texture!.TextureId.Should().Be(emissiveTexture.Id);
+        material.Emissive.Texture.ColorSpace.Should().Be(TextureColorSpace.Srgb);
+        material.NormalTexture.Should().NotBeNull();
+        material.NormalTexture!.Texture.TextureId.Should().Be(normalTextureAsset.Id);
+        material.NormalTexture.Texture.ColorSpace.Should().Be(TextureColorSpace.Linear);
+        material.NormalTexture.Scale.Should().Be(0.5f);
     }
 }
