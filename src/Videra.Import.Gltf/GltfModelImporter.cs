@@ -7,6 +7,7 @@ using Videra.Core.Geometry;
 using Videra.Core.Graphics;
 using Videra.Core.Graphics.Abstractions;
 using Videra.Core.Scene;
+using SceneMeshPrimitive = Videra.Core.Scene.MeshPrimitive;
 
 namespace Videra.Import.Gltf;
 
@@ -29,18 +30,12 @@ public static partial class GltfModelImporter
 
             Log.Loading(log, filePath);
 
-            var meshData = LoadWithSharpGltf(filePath, log);
+            var asset = LoadWithSharpGltf(filePath, log);
 
-            Log.Loaded(log, meshData.Vertices.Length, meshData.Indices.Length);
+            Log.Loaded(log, asset.Metrics.VertexCount, asset.Metrics.IndexCount);
             Log.LoadSucceeded(log, filePath);
 
-            return new ImportedSceneAsset(
-                filePath,
-                Path.GetFileName(filePath),
-                meshData)
-            {
-                Metrics = SceneAssetMetrics.FromMesh(meshData)
-            };
+            return asset;
         }
         catch (VideraException)
         {
@@ -113,38 +108,47 @@ public static partial class GltfModelImporter
         }
     }
 
-    private static MeshData LoadWithSharpGltf(string filePath, ILogger logger)
+    private static ImportedSceneAsset LoadWithSharpGltf(string filePath, ILogger logger)
     {
         var model = LoadModelRootWithFallback(filePath, logger);
-
-        var allVertices = new List<VertexPositionNormalColor>();
-        var allIndices = new List<uint>();
-        uint indexOffset = 0;
+        var nodes = new List<SceneNode>();
+        var primitives = new Dictionary<SharpGLTF.Schema2.MeshPrimitive, SceneMeshPrimitive>();
 
         var defaultScene = model.DefaultScene ?? model.LogicalScenes.FirstOrDefault();
         if (defaultScene != null)
         {
             foreach (var node in defaultScene.VisualChildren)
             {
-                ProcessNodeRecursive(node, Matrix4x4.Identity, allVertices, allIndices, ref indexOffset, logger);
+                ProcessNodeRecursive(node, parentId: null, nodes, primitives, logger);
             }
         }
         else
         {
-            foreach (var mesh in model.LogicalMeshes)
+            foreach (var mesh in model.LogicalMeshes.Select((mesh, index) => (mesh, index)))
             {
-                ProcessMesh(mesh, Matrix4x4.Identity, allVertices, allIndices, ref indexOffset, logger);
+                var primitiveIds = mesh.mesh.Primitives
+                    .Select(primitive => CreateOrGetPrimitive(primitive, mesh.mesh.Name ?? $"Mesh {mesh.index}", primitives, logger).Id)
+                    .ToArray();
+
+                nodes.Add(new SceneNode(
+                    SceneNodeId.New(),
+                    mesh.mesh.Name ?? $"Mesh {mesh.index}",
+                    Matrix4x4.Identity,
+                    parentId: null,
+                    primitiveIds));
             }
         }
 
-        Log.SharpGltfTotals(logger, allVertices.Count, allIndices.Count);
+        Log.SharpGltfTotals(
+            logger,
+            primitives.Values.Sum(static primitive => primitive.MeshData.Vertices.Length),
+            primitives.Values.Sum(static primitive => primitive.MeshData.Indices.Length));
 
-        return new MeshData
-        {
-            Vertices = allVertices.ToArray(),
-            Indices = allIndices.ToArray(),
-            Topology = MeshTopology.Triangles
-        };
+        return new ImportedSceneAsset(
+            filePath,
+            Path.GetFileName(filePath),
+            nodes,
+            primitives.Values.ToArray());
     }
 
     private static ModelRoot LoadModelRootWithFallback(string filePath, ILogger logger)
@@ -162,82 +166,94 @@ public static partial class GltfModelImporter
 
     private static void ProcessNodeRecursive(
         Node node,
-        Matrix4x4 parentTransform,
-        List<VertexPositionNormalColor> allVertices,
-        List<uint> allIndices,
-        ref uint indexOffset,
+        SceneNodeId? parentId,
+        List<SceneNode> nodes,
+        Dictionary<SharpGLTF.Schema2.MeshPrimitive, SceneMeshPrimitive> primitives,
         ILogger logger)
     {
-        var localTransform = node.LocalMatrix;
-        var worldTransform = localTransform * parentTransform;
+        var currentNodeId = SceneNodeId.New();
+        var primitiveIds = node.Mesh?.Primitives
+            .Select(primitive => CreateOrGetPrimitive(primitive, node.Mesh.Name ?? node.Name ?? "Mesh", primitives, logger).Id)
+            .ToArray() ?? Array.Empty<MeshPrimitiveId>();
 
         if (node.Mesh != null)
         {
             Log.ProcessingNode(logger, node.Name, node.Mesh.Name);
-            ProcessMesh(node.Mesh, worldTransform, allVertices, allIndices, ref indexOffset, logger);
         }
+
+        nodes.Add(new SceneNode(
+            currentNodeId,
+            node.Name ?? $"Node {nodes.Count}",
+            node.LocalMatrix,
+            parentId,
+            primitiveIds));
 
         foreach (var child in node.VisualChildren)
         {
-            ProcessNodeRecursive(child, worldTransform, allVertices, allIndices, ref indexOffset, logger);
+            ProcessNodeRecursive(child, currentNodeId, nodes, primitives, logger);
         }
     }
 
-    private static void ProcessMesh(
-        SharpGLTF.Schema2.Mesh mesh,
-        Matrix4x4 transform,
-        List<VertexPositionNormalColor> allVertices,
-        List<uint> allIndices,
-        ref uint indexOffset,
+    private static SceneMeshPrimitive CreateOrGetPrimitive(
+        SharpGLTF.Schema2.MeshPrimitive primitive,
+        string meshName,
+        Dictionary<SharpGLTF.Schema2.MeshPrimitive, SceneMeshPrimitive> primitives,
         ILogger logger)
     {
-        Matrix4x4.Invert(transform, out var inverseTransform);
-        var normalTransform = Matrix4x4.Transpose(inverseTransform);
-
-        foreach (var primitive in mesh.Primitives)
+        if (primitives.TryGetValue(primitive, out var existing))
         {
-            var positions = primitive.GetVertexAccessor("POSITION")?.AsVector3Array();
-            var normals = primitive.GetVertexAccessor("NORMAL")?.AsVector3Array();
-            var colors = primitive.GetVertexAccessor("COLOR_0")?.AsVector4Array();
-
-            if (positions == null)
-            {
-                Log.SkippingPrimitiveWithoutPositions(logger);
-                continue;
-            }
-
-            var material = primitive.Material;
-            var baseColor = material?.FindChannel("BaseColor")?.Parameter ?? Vector4.One;
-            var defaultColor = new RgbaFloat(baseColor.X, baseColor.Y, baseColor.Z, baseColor.W);
-
-            for (int i = 0; i < positions.Count; i++)
-            {
-                var pos = Vector3.Transform(positions[i], transform);
-                var normal = normals != null && i < normals.Count
-                    ? Vector3.Normalize(Vector3.TransformNormal(normals[i], normalTransform))
-                    : Vector3.UnitY;
-
-                var color = colors != null && i < colors.Count
-                    ? new RgbaFloat(colors[i].X, colors[i].Y, colors[i].Z, colors[i].W)
-                    : defaultColor;
-
-                allVertices.Add(new VertexPositionNormalColor(pos, normal, color));
-            }
-
-            foreach (var idx in primitive.GetIndices())
-            {
-                if (indexOffset + idx > uint.MaxValue)
-                {
-                    Log.IndexOverflow(logger);
-                    break;
-                }
-
-                allIndices.Add(indexOffset + idx);
-            }
-
-            indexOffset += (uint)positions.Count;
-            Log.ProcessedVertices(logger, positions.Count, indexOffset);
+            return existing;
         }
+
+        var meshData = CreatePrimitiveMeshData(primitive, logger);
+        var created = new SceneMeshPrimitive(
+            MeshPrimitiveId.New(),
+            $"{meshName}#primitive{primitives.Count}",
+            meshData);
+        primitives.Add(primitive, created);
+        Log.ProcessedVertices(logger, meshData.Vertices.Length, (uint)meshData.Indices.Length);
+        return created;
+    }
+
+    private static MeshData CreatePrimitiveMeshData(
+        SharpGLTF.Schema2.MeshPrimitive primitive,
+        ILogger logger)
+    {
+        var positions = primitive.GetVertexAccessor("POSITION")?.AsVector3Array();
+        var normals = primitive.GetVertexAccessor("NORMAL")?.AsVector3Array();
+        var colors = primitive.GetVertexAccessor("COLOR_0")?.AsVector4Array();
+
+        if (positions == null)
+        {
+            Log.SkippingPrimitiveWithoutPositions(logger);
+            throw new InvalidOperationException("glTF primitive does not contain POSITION data.");
+        }
+
+        var material = primitive.Material;
+        var baseColor = material?.FindChannel("BaseColor")?.Parameter ?? Vector4.One;
+        var defaultColor = new RgbaFloat(baseColor.X, baseColor.Y, baseColor.Z, baseColor.W);
+        var vertices = new VertexPositionNormalColor[positions.Count];
+
+        for (var i = 0; i < positions.Count; i++)
+        {
+            var normal = normals != null && i < normals.Count
+                ? Vector3.Normalize(normals[i])
+                : Vector3.UnitY;
+
+            var color = colors != null && i < colors.Count
+                ? new RgbaFloat(colors[i].X, colors[i].Y, colors[i].Z, colors[i].W)
+                : defaultColor;
+
+            vertices[i] = new VertexPositionNormalColor(positions[i], normal, color);
+        }
+
+        var indices = primitive.GetIndices().ToArray();
+        return new MeshData
+        {
+            Vertices = vertices,
+            Indices = indices,
+            Topology = MeshTopology.Triangles
+        };
     }
 
     private static partial class Log

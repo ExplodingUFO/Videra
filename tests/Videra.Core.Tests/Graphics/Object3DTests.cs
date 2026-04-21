@@ -376,7 +376,10 @@ public class Object3DTests
     [Fact]
     public void SceneObjectFactory_CreateDeferred_ReusesSharedPayloadAcrossObjects()
     {
-        var asset = new ImportedSceneAsset("triangle.obj", "triangle.obj", CreateTestMesh());
+        var mesh = CreateTestMesh();
+        var primitive = new MeshPrimitive(MeshPrimitiveId.New(), "triangle.obj#primitive0", mesh);
+        var rootNode = new SceneNode(SceneNodeId.New(), "triangle.obj", Matrix4x4.Identity, parentId: null, [primitive.Id]);
+        var asset = new ImportedSceneAsset("triangle.obj", "triangle.obj", [rootNode], [primitive]);
         var payloadProperty = typeof(ImportedSceneAsset).GetProperty("Payload", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
         var objectPayloadProperty = typeof(Object3D).GetProperty("MeshPayload", BindingFlags.Instance | BindingFlags.NonPublic);
         var retentionPolicyProperty = typeof(Object3D).GetProperty("CpuMeshRetentionPolicy", BindingFlags.Instance | BindingFlags.NonPublic);
