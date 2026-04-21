@@ -61,3 +61,11 @@ The canonical public SurfaceCharts stack is:
 - `nuget.org` is the default public consumer path.
 - `GitHub Packages` exists for `preview` / internal validation only.
 - Do not treat demos or samples as installable public packages.
+
+## Viewer runtime baseline
+
+The public viewer/runtime line still shares one backend-neutral asset catalog across `Videra.Core` and `Videra.Avalonia`: `SceneDocument`, `ImportedSceneAsset`, `SceneNode`, `MeshPrimitive`, `MaterialInstance`, `Texture2D`, and `Sampler`.
+
+That viewer baseline remains deliberately scoped to `static glTF/PBR`: `metallic-roughness`, `normal-map-ready`, and `tangent-aware` are in scope today, while `morph targets` stay outside the current product promise.
+
+The current import/runtime path is also expected to stay stable for `repeated unchanged imports` and `retained imported scene assets`, so package consumers can reason about asset reuse without treating the chart line or demos as part of the viewer kernel.

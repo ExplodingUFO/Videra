@@ -67,6 +67,7 @@ Videra is still an early alpha embeddable viewer stack. Good feedback is not jus
 - Linux native hosting is still `X11` plus `XWayland` compatibility, not compositor-native Wayland embedding.
 - `ResolvedDisplayServer = X11` means the direct supported X11 host path.
 - `ResolvedDisplayServer = XWayland` means a Wayland session is using the documented X11 compatibility bridge, not compositor-native Wayland embedding.
+- The `Videra.SurfaceCharts.*` package line is a separate public product family; include the exact package ids involved when the issue is chart-specific.
 - `Videra.SurfaceCharts.Avalonia` + `Videra.SurfaceCharts.Processing` is the default public first-chart install path.
 - `Videra.SurfaceCharts.Demo` remains repository-only and is the support-ready repro/reference app for that same chart flow.
 
