@@ -5,17 +5,17 @@
 See: `.planning/PROJECT.md` (updated 2026-04-21)
 
 **Core value:** 跨平台 3D 渲染引擎的可靠性
-**Current focus:** `v1.20` 已完成审计和归档，下一步是在明确候选方向后启动新 milestone
+**Current focus:** 定义 `v1.21 Scene and Material Runtime v1` 的 requirements 和 roadmap
 
 ## Current Position
 
-Milestone: `—`
-Phase: `Milestone closeout complete`
+Milestone: `v1.21`
+Phase: `Not started (defining requirements)`
 Plan: `—`
-Status: `v1.20` 已完成本地归档，viewer-first product boundary、package truth、support/release docs 和自动化验证现在可以作为已关闭 baseline 使用
-Last activity: `2026-04-21` — completed `v1.20` milestone audit, retroactive verification backfill for phases `103-106`, and local milestone archive/update work
+Status: `Defining requirements`
+Last activity: `2026-04-21` — started milestone `v1.21 Scene and Material Runtime v1`
 
-Progress: `v1.20` is archived locally. The next step is to define and start the next milestone.
+Progress: `v1.20` is archived locally. `v1.21` milestone initialization is in progress.
 
 ## Performance Metrics
 
@@ -39,7 +39,7 @@ Progress: `v1.20` is archived locally. The next step is to define and start the 
 
 ### Pending Todos
 
-- Start the next milestone when the `v1.21+` direction is selected.
+- Define `v1.21` requirements and roadmap, then start `Phase 107`.
 
 ### Blockers/Concerns
 
@@ -72,5 +72,5 @@ Items acknowledged and deferred at milestone close remain tracked here.
 ## Session Continuity
 
 Last session: `2026-04-21 +08:00`
-Stopped at: `v1.20` milestone archive complete locally; next step is selecting and starting the next milestone
-Resume file: `.planning/PROJECT.md`
+Stopped at: `v1.21` milestone start; next step is finalizing requirements and roadmap
+Resume file: `.planning/REQUIREMENTS.md`

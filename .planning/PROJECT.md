@@ -13,18 +13,27 @@ Videra 是一个基于 `.NET 8` 的跨平台 3D 渲染引擎，提供 Windows (`
 ## Current State
 
 - 最新完整归档 milestone：`v1.20 Viewer Product Boundary and Core Slimming`
-- 当前 active milestone：`—`
-- 当前 focus：从 `v1.20` 的 boundary/package closeout 转回下一阶段的 runtime/product depth，优先候选仍是 `v1.21 Scene and Material Runtime v1`
+- 当前 active milestone：`v1.21 Scene and Material Runtime v1`
+- 当前 focus：在已稳定的 viewer-first package line 上补齐 scene/material runtime 核心模型，并保持后端无关、不过度扩张到 PBR/动画
 
 ## Next Milestone Candidates
 
-- `v1.21 Scene and Material Runtime v1`：补齐 `SceneNode` / `MeshPrimitive` / `MaterialInstance` / `Texture2D` / `Sampler` 等 scene/material runtime 核心模型
 - `v1.22 Static glTF/PBR`：把静态 glTF 和 PBR 基线打穿到 UV、texture、metallic-roughness、normal/emissive/alpha、tangent、sRGB/linear
 - `v1.23 Inspection Productization`：把 load → inspect → measure → annotate → export/replay 主线收成更明确的产品流
 - `v1.24 Performance and Size Gates`：把 benchmark 和 package size 从证据提升到 threshold gate
 - `v1.25 SurfaceCharts Productization and Chart Kernel`：先把 `Videra.Charts.Surface` 产品化，再评估抽共享 chart kernel
 - `v1.26 Second UI Adapter Validation`：在 Avalonia 之外验证第二 UI 适配层和 host seams
 - `v2.0 Advanced Runtime Features`：灯光、阴影、环境贴图、透明排序、post-processing、动画等高级 runtime 能力
+
+## Current Milestone: v1.21 Scene and Material Runtime v1
+
+**Goal:** 在 viewer-first `1.0` product boundary 已经稳定的前提下，补齐 backend-neutral 的 scene/material runtime 核心模型，让后续静态 glTF/PBR、inspection productization 和第二 UI adapter 都能建立在同一套显式 runtime contract 上。
+
+**Target features:**
+- stable `SceneNode` / `MeshPrimitive` contracts that separate scene graph identity from shared geometry payloads
+- backend-neutral `MaterialInstance` / `Texture2D` / `Sampler` assets with explicit ownership and reuse semantics
+- a stable render feature vocabulary for `Opaque` / `Transparent` / `Overlay` / `Picking` / `Screenshot`
+- repository/docs/sample truth that teaches the new runtime model without widening public backend-specific APIs
 
 ## Latest Completed Milestone: v1.20 Viewer Product Boundary and Core Slimming
 
@@ -327,4 +336,4 @@ This document evolves at phase transitions and milestone boundaries.
 - Retrospective: `.planning/RETROSPECTIVE.md`
 
 ---
-*Last updated: 2026-04-21 after archiving the v1.20 Viewer Product Boundary and Core Slimming milestone*
+*Last updated: 2026-04-21 after starting the v1.21 Scene and Material Runtime v1 milestone*
