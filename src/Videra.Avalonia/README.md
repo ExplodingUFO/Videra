@@ -172,7 +172,8 @@ Contract notes:
 - `Measure` writes lightweight viewer-first probes to `VideraView.Measurements`.
 - `InteractionOptions.MeasurementSnapMode` keeps snap behavior viewer-first with `Free`, `Vertex`, `EdgeMidpoint`, `Face`, and `AxisLocked`.
 - `ClippingPlanes`, `CaptureInspectionState()`, `ApplyInspectionState(...)`, and `ExportSnapshotAsync(...)` stay on the public inspection surface.
-- `VideraInspectionBundleService` exports and restores replayable inspection bundles without widening `VideraView` into a larger project-format surface.
+- `CaptureInspectionState()` / `ApplyInspectionState(...)` now round-trip the typed inspection session, including host-owned annotations.
+- `VideraInspectionBundleService` exports and restores replayable inspection bundles on top of that same typed session contract without widening `VideraView` into a larger project-format surface.
 - Overlay responsibilities are split between `3D highlight/render state` and `2D label/feedback rendering`.
 
 For the end-to-end public flow, see [samples/Videra.InteractionSample](../../samples/Videra.InteractionSample/README.md).

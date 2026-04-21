@@ -165,7 +165,7 @@ Contract highlights:
 - Selection is object-level and changes only when the host applies `SelectionRequested`.
 - Annotation clicks surface `AnnotationRequested` for either object anchors or world-point anchors.
 - Hosts typically materialize those anchors through `VideraNodeAnnotation` and `VideraWorldPointAnnotation`.
-- Measurements stay on the public `Measurements` surface, `MeasurementSnapMode` stays on `InteractionOptions`, clipping stays on `ClippingPlanes`, saved inspection views flow through `CaptureInspectionState()` / `ApplyInspectionState(...)`, snapshots stay on `ExportSnapshotAsync(...)`, and replayable support artifacts flow through `VideraInspectionBundleService`.
+- Measurements stay on the public `Measurements` surface, `MeasurementSnapMode` stays on `InteractionOptions`, clipping stays on `ClippingPlanes`, saved inspection sessions flow through `CaptureInspectionState()` / `ApplyInspectionState(...)` including host-owned annotations, snapshots stay on `ExportSnapshotAsync(...)`, and replayable support artifacts flow through `VideraInspectionBundleService` on top of that same typed session truth.
 - Overlay responsibilities are split between `3D highlight/render state` and `2D label/feedback rendering`.
 
 ## Surface Charts Onboarding
