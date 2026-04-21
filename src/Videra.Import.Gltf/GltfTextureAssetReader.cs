@@ -24,8 +24,7 @@ internal static class GltfTextureAssetReader
             width,
             height,
             ReadContentFormat(sourceImage.Content),
-            imageBytes,
-            isSrgb: true);
+            imageBytes);
 
         textures.Add(sourceTexture, created);
         return created;

@@ -8,16 +8,14 @@ public sealed class MaterialInstance
         MaterialInstanceId id,
         string name,
         RgbaFloat baseColorFactor,
-        Texture2DId? baseColorTextureId = null,
-        SamplerId? baseColorSamplerId = null)
+        MaterialTextureBinding? baseColorTexture = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
 
         Id = id;
         Name = name;
         BaseColorFactor = baseColorFactor;
-        BaseColorTextureId = baseColorTextureId;
-        BaseColorSamplerId = baseColorSamplerId;
+        BaseColorTexture = baseColorTexture;
     }
 
     public MaterialInstanceId Id { get; }
@@ -26,7 +24,5 @@ public sealed class MaterialInstance
 
     public RgbaFloat BaseColorFactor { get; }
 
-    public Texture2DId? BaseColorTextureId { get; }
-
-    public SamplerId? BaseColorSamplerId { get; }
+    public MaterialTextureBinding? BaseColorTexture { get; }
 }

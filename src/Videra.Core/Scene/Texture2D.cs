@@ -10,8 +10,7 @@ public sealed class Texture2D
         int width,
         int height,
         TextureImageFormat contentFormat,
-        byte[] contentBytes,
-        bool isSrgb)
+        byte[] contentBytes)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(width);
@@ -24,7 +23,6 @@ public sealed class Texture2D
         Height = height;
         ContentFormat = contentFormat;
         _pixelBytes = (byte[])contentBytes.Clone();
-        IsSrgb = isSrgb;
     }
 
     public Texture2DId Id { get; }
@@ -38,8 +36,6 @@ public sealed class Texture2D
     public TextureImageFormat ContentFormat { get; }
 
     public ReadOnlyMemory<byte> ContentBytes => _pixelBytes;
-
-    public bool IsSrgb { get; }
 }
 
 public enum TextureImageFormat
