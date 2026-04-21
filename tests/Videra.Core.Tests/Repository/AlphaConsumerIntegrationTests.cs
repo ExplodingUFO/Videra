@@ -143,12 +143,14 @@ public sealed class AlphaConsumerIntegrationTests
         var repositoryRoot = GetRepositoryRoot();
         var workflowPath = Path.Combine(repositoryRoot, ".github", "workflows", "benchmark-gates.yml");
         var scriptPath = Path.Combine(repositoryRoot, "scripts", "Run-Benchmarks.ps1");
+        var contractPath = Path.Combine(repositoryRoot, "benchmarks", "benchmark-contract.json");
         var docsPath = Path.Combine(repositoryRoot, "docs", "benchmark-gates.md");
         var docsIndex = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "index.md"));
         var rootReadme = File.ReadAllText(Path.Combine(repositoryRoot, "README.md"));
 
         File.Exists(workflowPath).Should().BeTrue();
         File.Exists(scriptPath).Should().BeTrue();
+        File.Exists(contractPath).Should().BeTrue();
         File.Exists(docsPath).Should().BeTrue();
 
         var workflow = File.ReadAllText(workflowPath);
@@ -161,15 +163,22 @@ public sealed class AlphaConsumerIntegrationTests
         workflow.Should().Contain("benchmarks-surfacecharts");
 
         var script = File.ReadAllText(scriptPath);
-        script.Should().Contain("Videra.Viewer.Benchmarks");
-        script.Should().Contain("Videra.SurfaceCharts.Benchmarks");
-        script.Should().Contain("--exporters json csv markdown");
+        script.Should().Contain("benchmark-contract.json");
+        script.Should().Contain("$requestedExporters = @(\"json\", \"csv\", \"markdown\")");
+        script.Should().Contain("--exporters $requestedExporters");
+        script.Should().Contain("benchmark-manifest.json");
         script.Should().Contain("SUMMARY.txt");
+
+        var contract = File.ReadAllText(contractPath);
+        contract.Should().Contain("Videra.Viewer.Benchmarks");
+        contract.Should().Contain("Videra.SurfaceCharts.Benchmarks");
 
         var docs = File.ReadAllText(docsPath);
         docs.Should().Contain("Run workflow");
         docs.Should().Contain("run-benchmarks");
         docs.Should().Contain("Run-Benchmarks.ps1");
+        docs.Should().Contain("benchmark-contract.json");
+        docs.Should().Contain("benchmark-manifest.json");
         docs.Should().Contain("viewer");
         docs.Should().Contain("surfacecharts");
         docs.ToLowerInvariant().Should().Contain("compare runs over time");
