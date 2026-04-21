@@ -12,6 +12,8 @@ The canonical public viewer stack is:
 
 Viewer/runtime asset truth stays backend-neutral across those layers: the import packages build `ImportedSceneAsset` catalogs from `SceneNode`, `MeshPrimitive`, `MaterialInstance`, `Texture2D`, and `Sampler`, and `Videra.Avalonia` keeps that retained scene/material truth in `SceneDocument` until upload.
 
+That retained catalog is the current static glTF/PBR baseline on the shipped viewer path: UV-backed texture bindings, metallic-roughness and alpha semantics, emissive and normal-map-ready inputs, tangent-aware meshes, and repeated unchanged imports that can reuse retained imported scene assets while those retained assets stay available. It does not imply animation, skeletons, morph targets, or a broader advanced-runtime feature promise.
+
 ## Package-layer matrix
 
 | Layer | Current mapping | Public status | Notes |

@@ -32,8 +32,11 @@ The shipped viewer path keeps one direct runtime model:
 - `Videra.Import.*` parses files into backend-neutral `ImportedSceneAsset` catalogs.
 - Those catalogs are composed from `SceneNode`, `MeshPrimitive`, `MaterialInstance`, `Texture2D`, and `Sampler`.
 - `Videra.Avalonia` retains them in `SceneDocument` while `SceneResidencyRegistry` and `SceneUploadQueue` decide when the active backend can realize them.
+- The shipped viewer/runtime baseline on that path is static glTF/PBR: UV-backed texture bindings, metallic-roughness and alpha semantics, emissive and normal-map-ready inputs, tangent-aware mesh data, and repeated unchanged imports that can reuse retained imported scene assets while those retained assets stay available.
 - The shared render-feature vocabulary on that path is `Opaque`, `Transparent`, `Overlay`, `Picking`, and `Screenshot`.
 - Host apps observe the result through public diagnostics and capability surfaces rather than through importer-specific or backend-specific types.
+
+That boundary is intentionally narrower than a general 3D runtime. Animation, skeletons, morph targets, and broader advanced-runtime expansion stay out of scope here.
 
 ## Internal Seam Owners
 
