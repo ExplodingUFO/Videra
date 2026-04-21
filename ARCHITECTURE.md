@@ -4,7 +4,7 @@
 
 This document describes Videra's public architecture boundaries, module responsibilities, and runtime flow for contributors and evaluators. Use [docs/hosting-boundary.md](docs/hosting-boundary.md) when you need the focused public-vs-internal seam ownership view for the shipped viewer path.
 
-The `1.0` line is a native desktop viewer/runtime for Avalonia hosts, inspection workflows, and the source-first `SurfaceCharts` family. It is not a general engine/runtime parity effort. Use [docs/capability-matrix.md](docs/capability-matrix.md) for the explicit `1.0` boundary and deferred-feature matrix.
+The `1.0` line is a native desktop viewer/runtime for Avalonia hosts, inspection workflows, and the public `SurfaceCharts` package family. It is not a general engine/runtime parity effort. Use [docs/capability-matrix.md](docs/capability-matrix.md) for the explicit `1.0` boundary and deferred-feature matrix.
 
 ## Design Goals
 

@@ -35,6 +35,26 @@
       "id": "Videra.Platform.macOS",
       "nupkgMaxBytes": 33792,
       "snupkgMaxBytes": 23552
+    },
+    {
+      "id": "Videra.SurfaceCharts.Core",
+      "nupkgMaxBytes": 57344,
+      "snupkgMaxBytes": 24576
+    },
+    {
+      "id": "Videra.SurfaceCharts.Rendering",
+      "nupkgMaxBytes": 28672,
+      "snupkgMaxBytes": 18432
+    },
+    {
+      "id": "Videra.SurfaceCharts.Processing",
+      "nupkgMaxBytes": 36864,
+      "snupkgMaxBytes": 16384
+    },
+    {
+      "id": "Videra.SurfaceCharts.Avalonia",
+      "nupkgMaxBytes": 65536,
+      "snupkgMaxBytes": 28672
     }
   ]
 }

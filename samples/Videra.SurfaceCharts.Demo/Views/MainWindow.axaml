@@ -56,7 +56,7 @@
             </ComboBox>
             <TextBlock Foreground="#CBD5E1"
                        TextWrapping="Wrap"
-                       Text="Start here with the in-memory source-first first chart. Switch to cache-backed streaming only after the first chart renders and you want the broader exploration path." />
+                       Text="Start here with the in-memory baseline first chart. Switch to cache-backed streaming only after the first chart renders and you want the broader exploration path." />
           </StackPanel>
         </Border>
 

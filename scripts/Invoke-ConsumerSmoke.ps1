@@ -34,7 +34,11 @@ $publicPackageProjects = @(
     "src/Videra.Avalonia/Videra.Avalonia.csproj",
     "src/Videra.Platform.Windows/Videra.Platform.Windows.csproj",
     "src/Videra.Platform.Linux/Videra.Platform.Linux.csproj",
-    "src/Videra.Platform.macOS/Videra.Platform.macOS.csproj"
+    "src/Videra.Platform.macOS/Videra.Platform.macOS.csproj",
+    "src/Videra.SurfaceCharts.Core/Videra.SurfaceCharts.Core.csproj",
+    "src/Videra.SurfaceCharts.Rendering/Videra.SurfaceCharts.Rendering.csproj",
+    "src/Videra.SurfaceCharts.Processing/Videra.SurfaceCharts.Processing.csproj",
+    "src/Videra.SurfaceCharts.Avalonia/Videra.SurfaceCharts.Avalonia.csproj"
 )
 $sessionEnvironment = [ordered]@{
     DISPLAY = $env:DISPLAY

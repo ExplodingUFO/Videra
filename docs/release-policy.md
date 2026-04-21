@@ -4,7 +4,7 @@ This document defines what Videra publishes, where those packages go, and what s
 
 ## Public packages
 
-The public package line is limited to:
+The public package line is:
 
 - `Videra.Core`
 - `Videra.Import.Gltf`
@@ -13,10 +13,16 @@ The public package line is limited to:
 - `Videra.Platform.Windows`
 - `Videra.Platform.Linux`
 - `Videra.Platform.macOS`
+- `Videra.SurfaceCharts.Core`
+- `Videra.SurfaceCharts.Rendering`
+- `Videra.SurfaceCharts.Processing`
+- `Videra.SurfaceCharts.Avalonia`
 
 Public release tags publish these packages to `nuget.org`.
 
 The canonical public viewer stack is `Videra.Avalonia` plus exactly one matching `Videra.Platform.*` package. `Videra.Import.Gltf` and `Videra.Import.Obj` stay explicit ingestion packages on the core path; they are part of the public package line, but they are not a replacement for the Avalonia + matching-platform viewer stack.
+
+The canonical public chart stack is `Videra.SurfaceCharts.Avalonia` plus `Videra.SurfaceCharts.Processing` for the current first-chart path. `Videra.SurfaceCharts.Core` and `Videra.SurfaceCharts.Rendering` are part of the public package line because the current chart control/runtime split depends on them, but they are not the normal first install step for most chart consumers.
 
 Use [Package Matrix](package-matrix.md) for the published-package table and [Hosting Boundary](hosting-boundary.md) for the canonical composition story behind this release line.
 
@@ -26,13 +32,10 @@ Use [Package Matrix](package-matrix.md) for the published-package table and [Hos
 
 Do not document `GitHub Packages` as the primary install route for public consumers.
 
-## Source-only surfaces
+## Repository-only surfaces
 
-The following entries are repository-first and are not part of the public package promise:
+The following entries remain repository-only:
 
-- `Videra.SurfaceCharts.Core`
-- `Videra.SurfaceCharts.Avalonia`
-- `Videra.SurfaceCharts.Processing`
 - `Videra.Demo`
 - `Videra.SurfaceCharts.Demo`
 - `Videra.ExtensibilitySample`
@@ -40,13 +43,16 @@ The following entries are repository-first and are not part of the public packag
 
 They ship as source, documentation, and sample assets inside the repository.
 
-SurfaceCharts release truth stays on the source-first demo/docs/CI/support-summary path, not on a package asset line.
+SurfaceCharts release truth now has two explicit parts:
+
+- package assets publish `Videra.SurfaceCharts.Core`, `Videra.SurfaceCharts.Rendering`, `Videra.SurfaceCharts.Processing`, and `Videra.SurfaceCharts.Avalonia`
+- `Videra.SurfaceCharts.Demo` remains repository-only and keeps the support-summary repro path
 
 ## Versioning
 
 - Current public baseline remains `alpha`.
 - Tag format is `v<semver>`, for example `v0.2.0-alpha.1`.
-- Public tag releases are expected to create consumer-facing notes, attach package assets, and publish the public package set.
+- Public tag releases are expected to create consumer-facing notes, attach package assets, and publish the full public package set.
 
 ## Asset expectations
 
@@ -58,6 +64,6 @@ Public release runs are expected to produce:
 
 ## Support boundary
 
-- Public packages carry the documented viewer-stack support contract.
-- Source-only modules do not silently become public packages.
+- Public packages carry the documented viewer-stack or chart-stack support contract.
+- Repository-only demos and samples do not silently become installable packages.
 - The repository does not use a broad directory reorganization as part of the release policy.

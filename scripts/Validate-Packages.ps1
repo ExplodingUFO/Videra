@@ -17,7 +17,11 @@ $expectedPackages = @(
     "Videra.Avalonia",
     "Videra.Platform.Windows",
     "Videra.Platform.Linux",
-    "Videra.Platform.macOS"
+    "Videra.Platform.macOS",
+    "Videra.SurfaceCharts.Core",
+    "Videra.SurfaceCharts.Rendering",
+    "Videra.SurfaceCharts.Processing",
+    "Videra.SurfaceCharts.Avalonia"
 )
 
 $packageSizeBudgetContractPath = Join-Path $root "eng/package-size-budgets.json"
@@ -317,6 +321,56 @@ foreach ($platformPackage in @("Videra.Platform.Windows", "Videra.Platform.Linux
         {
             throw "$platformPackage must not depend on peer platform package '$otherPlatformPackage'."
         }
+    }
+}
+
+$surfaceChartsRenderingMetadata = $metadataById["Videra.SurfaceCharts.Rendering"]
+if ($surfaceChartsRenderingMetadata.Dependencies -notcontains "Videra.SurfaceCharts.Core")
+{
+    throw "Videra.SurfaceCharts.Rendering must depend on Videra.SurfaceCharts.Core."
+}
+
+foreach ($forbiddenDependency in @("Videra.Avalonia", "Videra.Import.Gltf", "Videra.Import.Obj"))
+{
+    if ($surfaceChartsRenderingMetadata.Dependencies -contains $forbiddenDependency)
+    {
+        throw "Videra.SurfaceCharts.Rendering must not depend on viewer package '$forbiddenDependency'."
+    }
+}
+
+$surfaceChartsProcessingMetadata = $metadataById["Videra.SurfaceCharts.Processing"]
+if ($surfaceChartsProcessingMetadata.Dependencies -notcontains "Videra.SurfaceCharts.Core")
+{
+    throw "Videra.SurfaceCharts.Processing must depend on Videra.SurfaceCharts.Core."
+}
+
+foreach ($forbiddenDependency in @("Videra.SurfaceCharts.Avalonia", "Videra.SurfaceCharts.Rendering", "Videra.Core", "Videra.Avalonia"))
+{
+    if ($surfaceChartsProcessingMetadata.Dependencies -contains $forbiddenDependency)
+    {
+        throw "Videra.SurfaceCharts.Processing must not depend on '$forbiddenDependency'."
+    }
+}
+
+$surfaceChartsAvaloniaMetadata = $metadataById["Videra.SurfaceCharts.Avalonia"]
+foreach ($requiredDependency in @("Videra.SurfaceCharts.Core", "Videra.SurfaceCharts.Rendering"))
+{
+    if ($surfaceChartsAvaloniaMetadata.Dependencies -notcontains $requiredDependency)
+    {
+        throw "Videra.SurfaceCharts.Avalonia must depend on $requiredDependency."
+    }
+}
+
+if ($surfaceChartsAvaloniaMetadata.Dependencies -contains "Videra.SurfaceCharts.Processing")
+{
+    throw "Videra.SurfaceCharts.Avalonia must not hard-depend on Videra.SurfaceCharts.Processing."
+}
+
+foreach ($forbiddenDependency in @("Videra.Core", "Videra.Avalonia", "Videra.Import.Gltf", "Videra.Import.Obj"))
+{
+    if ($surfaceChartsAvaloniaMetadata.Dependencies -contains $forbiddenDependency)
+    {
+        throw "Videra.SurfaceCharts.Avalonia must not depend on viewer package '$forbiddenDependency'."
     }
 }
 

@@ -2,13 +2,13 @@
 
 [English](index.md) | [中文](zh-CN/index.md)
 
-This page maps the long-lived public documentation for Videra. Start with the repository README when you need the public package boundary, source-only module truth, or the current alpha support contract.
+This page maps the long-lived public documentation for Videra. Start with the repository README when you need the public package boundary, chart-package truth, or the current alpha support contract.
 
 ## Start Here
 
 - [Project README](../README.md) for what Videra is, who it is for, and the source / public-package / contribution entry paths
 - [Videra 1.0 Capability Matrix](capability-matrix.md) for the shipped viewer/runtime boundary, deferred engine-style features, and the package-layer vocabulary
-- [Package Matrix](package-matrix.md) for published packages, source-only modules, samples, demos, and feed boundaries
+- [Package Matrix](package-matrix.md) for published packages, repository-only demos/samples, and feed boundaries
 - [Hosting Boundary](hosting-boundary.md) for the canonical viewer composition and the internal seam ownership behind the public shell
 - [Support Matrix](support-matrix.md) for platform, validation, and support-level truth
 - [Release Policy](release-policy.md) for public-vs-preview feed rules, versioning scope, and what is or is not published
@@ -31,11 +31,15 @@ This page maps the long-lived public documentation for Videra. Start with the re
 - [Videra.Platform.Linux](../src/Videra.Platform.Linux/README.md) for the Linux Vulkan platform package, with X11 native hosting and XWayland compatibility in Wayland sessions
 - [Videra.Platform.macOS](../src/Videra.Platform.macOS/README.md) for the macOS `NSView` / `CAMetalLayer` Metal platform package
 
-## Source-Only Modules and Samples
+## Chart Packages and Samples
 
 - [Videra.SurfaceCharts.Core](../src/Videra.SurfaceCharts.Core/README.md)
+- [Videra.SurfaceCharts.Rendering](../src/Videra.SurfaceCharts.Rendering/README.md)
 - [Videra.SurfaceCharts.Avalonia](../src/Videra.SurfaceCharts.Avalonia/README.md)
 - [Videra.SurfaceCharts.Processing](../src/Videra.SurfaceCharts.Processing/README.md)
+
+## Repository-Only Samples and Demos
+
 - [Videra.Demo](../samples/Videra.Demo/README.md)
 - [Videra.SurfaceCharts.Demo](../samples/Videra.SurfaceCharts.Demo/README.md)
 - [Videra.ExtensibilitySample](../samples/Videra.ExtensibilitySample/README.md)

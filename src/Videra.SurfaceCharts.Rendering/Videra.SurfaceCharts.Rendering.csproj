@@ -4,11 +4,22 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <PackageId>Videra.SurfaceCharts.Rendering</PackageId>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <Description>Chart rendering runtime helpers for Videra Surface Charts.</Description>
+    <PackageTags>videra;surface-charts;rendering;3d;chart;graphics</PackageTags>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Videra.Core\Videra.Core.csproj" />
     <ProjectReference Include="..\Videra.SurfaceCharts.Core\Videra.SurfaceCharts.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\eng\icon.png" Pack="true" PackagePath="\" Link="icon.png" />
+    <None Include="README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 
 </Project>

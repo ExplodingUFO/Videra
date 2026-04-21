@@ -28,9 +28,9 @@ pwsh -File ./scripts/verify.ps1 -Configuration Release -IncludeNativeMacOS
 
 If you need a matching-host runbook or the hosted GitHub Actions entrypoint, use [Native Validation](native-validation.md).
 
-## SurfaceCharts source-first triage
+## SurfaceCharts package and demo triage
 
-For `area: surfacecharts`, start from `Videra.SurfaceCharts.Demo` and keep the repro path source-first:
+For `area: surfacecharts`, start from `Videra.SurfaceCharts.Demo` and keep the repro path aligned with the packaged first-chart flow:
 
 - `Start here: In-memory first chart` is the default first repro path.
 - `Explore next: Cache-backed streaming` is only the follow-up path after the in-memory chart already renders.
@@ -104,7 +104,7 @@ Include:
 - Backend preference or `VIDERA_BACKEND` value
 - diagnostics snapshot from `VideraDiagnosticsSnapshotFormatter`
 - `Support summary` from `Videra.SurfaceCharts.Demo` when the issue is in `area: surfacecharts`
-- the exact SurfaceCharts source path you used:
+- the exact SurfaceCharts demo path you used:
   - `Start here: In-memory first chart`
   - `Explore next: Cache-backed streaming`
 - use `Copy support summary` after reproducing `Start here: In-memory first chart`; continue to `Explore next: Cache-backed streaming` only if needed

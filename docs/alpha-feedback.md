@@ -14,7 +14,7 @@ Videra is still an early alpha embeddable viewer stack. Good feedback is not jus
    - [Videra.ExtensibilitySample](../samples/Videra.ExtensibilitySample/README.md) for `VideraView.Engine`
    - [Videra.InteractionSample](../samples/Videra.InteractionSample/README.md) for controlled interaction
    - [Videra.Demo](../samples/Videra.Demo/README.md) for backend diagnostics and scene-pipeline visibility
-   - `Videra.SurfaceCharts.Demo` for the source-first chart path:
+   - `Videra.SurfaceCharts.Demo` for the packaged chart repro path:
      - `Start here: In-memory first chart` before any cache-backed investigation
      - `Explore next: Cache-backed streaming` only after the first-chart path renders
 4. Export a diagnostics snapshot with `VideraDiagnosticsSnapshotFormatter.Format(View3D.BackendDiagnostics)` or attach the `consumer smoke` `diagnostics-snapshot.txt` artifact.
@@ -35,7 +35,7 @@ Videra is still an early alpha embeddable viewer stack. Good feedback is not jus
 - `CanReplayScene` and `ReplayLimitation` from `VideraInspectionBundleService.ExportAsync(...)` whenever the bundle is exportable but not replayable
 - `SurfaceCharts support summary` copied from the `Videra.SurfaceCharts.Demo` `Support summary` panel when the issue is in `area: surfacecharts`
 - use `Copy support summary` after reproducing `Start here: In-memory first chart`; continue to `Explore next: Cache-backed streaming` only if needed
-- SurfaceCharts source-path choice when relevant:
+- SurfaceCharts demo-path choice when relevant:
   - `Start here: In-memory first chart`
   - `Explore next: Cache-backed streaming`
 - SurfaceCharts chart state when relevant:
@@ -67,7 +67,8 @@ Videra is still an early alpha embeddable viewer stack. Good feedback is not jus
 - Linux native hosting is still `X11` plus `XWayland` compatibility, not compositor-native Wayland embedding.
 - `ResolvedDisplayServer = X11` means the direct supported X11 host path.
 - `ResolvedDisplayServer = XWayland` means a Wayland session is using the documented X11 compatibility bridge, not compositor-native Wayland embedding.
-- `Videra.SurfaceCharts.*` remains source-first and is not part of the public package promise.
+- `Videra.SurfaceCharts.Avalonia` + `Videra.SurfaceCharts.Processing` is the default public first-chart install path.
+- `Videra.SurfaceCharts.Demo` remains repository-only and is the support-ready repro/reference app for that same chart flow.
 
 ## Where to send feedback
 

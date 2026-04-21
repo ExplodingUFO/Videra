@@ -13,7 +13,11 @@ public sealed class RepositoryReleaseReadinessTests
         "Videra.Avalonia",
         "Videra.Platform.Windows",
         "Videra.Platform.Linux",
-        "Videra.Platform.macOS"
+        "Videra.Platform.macOS",
+        "Videra.SurfaceCharts.Core",
+        "Videra.SurfaceCharts.Rendering",
+        "Videra.SurfaceCharts.Processing",
+        "Videra.SurfaceCharts.Avalonia"
     ];
 
     [Fact]
@@ -26,7 +30,7 @@ public sealed class RepositoryReleaseReadinessTests
         readme.Should().Contain("## Current Status");
         readme.Should().Contain("## Getting Started");
         readme.Should().Contain("## Published packages");
-        readme.Should().Contain("## Source-only modules");
+        readme.Should().Contain("## Repository-only entries");
         readme.Should().Contain("## Samples and demos");
         readme.Should().Contain("docs/package-matrix.md");
         readme.Should().Contain("docs/support-matrix.md");
@@ -39,6 +43,7 @@ public sealed class RepositoryReleaseReadinessTests
         readme.Should().Contain("Videra.Import.Obj");
         readme.Should().Contain("Videra.Platform.Windows");
         readme.Should().Contain("Videra.SurfaceCharts.Core");
+        readme.Should().Contain("Videra.SurfaceCharts.Rendering");
         readme.Should().Contain("Videra.SurfaceCharts.Avalonia");
         readme.Should().Contain("Videra.SurfaceCharts.Processing");
         readme.Should().Contain("Videra.MinimalSample");
@@ -47,7 +52,7 @@ public sealed class RepositoryReleaseReadinessTests
         readme.Should().Contain("Videra.ExtensibilitySample");
         readme.Should().Contain("Videra.InteractionSample");
         readme.Should().Contain("does not install missing platform packages");
-        readme.Should().Contain("Public tags do not publish `Videra.SurfaceCharts.*` package assets");
+        readme.Should().Contain("Public tags now publish the `Videra.SurfaceCharts.*` package assets");
         readme.Should().Contain("Copy support summary");
     }
 
@@ -107,18 +112,23 @@ public sealed class RepositoryReleaseReadinessTests
         releasePolicy.Should().Contain("exactly one matching `Videra.Platform.*` package");
         releasing.Should().Contain("exactly one matching `Videra.Platform.*` package");
 
-        packageMatrix.Should().Contain("Videra.SurfaceCharts.*");
-        packageMatrix.Should().Contain("Source-first");
-        packageMatrix.Should().Contain("Do not treat source-only modules or demos as installable public packages.");
+        packageMatrix.Should().Contain("Videra.SurfaceCharts.Rendering");
+        packageMatrix.Should().Contain("Videra.SurfaceCharts.Demo");
+        packageMatrix.Should().Contain("Do not treat demos or samples as installable public packages.");
         releasePolicy.Should().Contain("Videra.SurfaceCharts.Core");
+        releasePolicy.Should().Contain("Videra.SurfaceCharts.Rendering");
         releasePolicy.Should().Contain("Videra.SurfaceCharts.Avalonia");
         releasePolicy.Should().Contain("Videra.SurfaceCharts.Processing");
+        releasePolicy.Should().Contain("Videra.SurfaceCharts.Demo");
         releasePolicy.Should().Contain("repository-only");
-        releasing.Should().Contain("Videra.SurfaceCharts.*");
+        releasing.Should().Contain("Videra.SurfaceCharts.Rendering");
+        releasing.Should().Contain("Videra.SurfaceCharts.Demo");
         releasing.Should().Contain("repository-only");
 
         chineseReadme.Should().Contain("Videra.Import.Gltf");
         chineseReadme.Should().Contain("Videra.Import.Obj");
+        chineseReadme.Should().Contain("Videra.SurfaceCharts.Avalonia");
+        chineseReadme.Should().Contain("Videra.SurfaceCharts.Processing");
         chineseReadme.Should().Contain("传递依赖");
         chineseReadme.Should().Contain("LoadModelAsync");
         chineseReadme.Should().Contain("FrameAll()");
@@ -150,7 +160,7 @@ public sealed class RepositoryReleaseReadinessTests
         File.Exists(capabilityMatrixPath).Should().BeTrue();
 
         capabilityMatrix.Should().Contain("native desktop viewer/runtime");
-        capabilityMatrix.Should().Contain("source-first `SurfaceCharts` family");
+        capabilityMatrix.Should().Contain("public `SurfaceCharts` package family");
         capabilityMatrix.Should().Contain("not a Three.js-style general runtime");
         capabilityMatrix.Should().Contain("Core");
         capabilityMatrix.Should().Contain("Import");
@@ -207,6 +217,10 @@ public sealed class RepositoryReleaseReadinessTests
         consumerSmoke.Should().Contain("src/Videra.Platform.Windows/Videra.Platform.Windows.csproj");
         consumerSmoke.Should().Contain("src/Videra.Platform.Linux/Videra.Platform.Linux.csproj");
         consumerSmoke.Should().Contain("src/Videra.Platform.macOS/Videra.Platform.macOS.csproj");
+        consumerSmoke.Should().Contain("src/Videra.SurfaceCharts.Core/Videra.SurfaceCharts.Core.csproj");
+        consumerSmoke.Should().Contain("src/Videra.SurfaceCharts.Rendering/Videra.SurfaceCharts.Rendering.csproj");
+        consumerSmoke.Should().Contain("src/Videra.SurfaceCharts.Processing/Videra.SurfaceCharts.Processing.csproj");
+        consumerSmoke.Should().Contain("src/Videra.SurfaceCharts.Avalonia/Videra.SurfaceCharts.Avalonia.csproj");
         ciWorkflow.Should().Contain("Validate-Packages.ps1");
         ciWorkflow.Should().Contain("artifacts/consumer-smoke-quality/packages");
         existingReleaseWorkflow.Should().Contain("Invoke-ConsumerSmoke.ps1");
@@ -215,15 +229,6 @@ public sealed class RepositoryReleaseReadinessTests
         existingReleaseWorkflow.Should().Contain("only supports tags that already carry the current public package set and helper scripts");
         validatePackages.Should().Contain("Expected exactly");
         validatePackages.Should().Contain("Unexpected package");
-
-        foreach (var document in new[]
-                 { consumerSmoke, validatePackages, ciWorkflow, publicWorkflow, previewWorkflow, existingReleaseWorkflow })
-        {
-            document.Should().NotContain("Videra.SurfaceCharts.Core.csproj");
-            document.Should().NotContain("Videra.SurfaceCharts.Avalonia.csproj");
-            document.Should().NotContain("Videra.SurfaceCharts.Processing.csproj");
-            document.Should().NotContain("Videra.SurfaceCharts.Demo.csproj");
-        }
     }
 
     [Fact]
@@ -325,7 +330,11 @@ public sealed class RepositoryReleaseReadinessTests
             Path.Combine(repositoryRoot, "src", "Videra.Avalonia", "README.md"),
             Path.Combine(repositoryRoot, "src", "Videra.Platform.Windows", "README.md"),
             Path.Combine(repositoryRoot, "src", "Videra.Platform.Linux", "README.md"),
-            Path.Combine(repositoryRoot, "src", "Videra.Platform.macOS", "README.md")
+            Path.Combine(repositoryRoot, "src", "Videra.Platform.macOS", "README.md"),
+            Path.Combine(repositoryRoot, "src", "Videra.SurfaceCharts.Core", "README.md"),
+            Path.Combine(repositoryRoot, "src", "Videra.SurfaceCharts.Rendering", "README.md"),
+            Path.Combine(repositoryRoot, "src", "Videra.SurfaceCharts.Processing", "README.md"),
+            Path.Combine(repositoryRoot, "src", "Videra.SurfaceCharts.Avalonia", "README.md")
         };
 
         foreach (var readmePath in packageReadmes)
@@ -357,6 +366,15 @@ public sealed class RepositoryReleaseReadinessTests
         macosReadme.Should().Contain("matching-host validation");
         macosReadme.Should().Contain("NSView");
         macosReadme.Should().Contain("CAMetalLayer");
+
+        var surfaceChartsAvaloniaReadme = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.SurfaceCharts.Avalonia", "README.md"));
+        surfaceChartsAvaloniaReadme.Should().Contain("Videra.SurfaceCharts.Avalonia");
+        surfaceChartsAvaloniaReadme.Should().Contain("Videra.SurfaceCharts.Processing");
+        surfaceChartsAvaloniaReadme.Should().Contain("preview");
+
+        var surfaceChartsRenderingReadme = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.SurfaceCharts.Rendering", "README.md"));
+        surfaceChartsRenderingReadme.Should().Contain("Videra.SurfaceCharts.Avalonia");
+        surfaceChartsRenderingReadme.Should().Contain("transitively");
     }
 
     [Fact]
@@ -368,6 +386,10 @@ public sealed class RepositoryReleaseReadinessTests
         var gltfProject = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Import.Gltf", "Videra.Import.Gltf.csproj"));
         var objProject = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Import.Obj", "Videra.Import.Obj.csproj"));
         var avaloniaProject = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Avalonia", "Videra.Avalonia.csproj"));
+        var surfaceChartsCoreProject = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.SurfaceCharts.Core", "Videra.SurfaceCharts.Core.csproj"));
+        var surfaceChartsRenderingProject = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.SurfaceCharts.Rendering", "Videra.SurfaceCharts.Rendering.csproj"));
+        var surfaceChartsProcessingProject = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.SurfaceCharts.Processing", "Videra.SurfaceCharts.Processing.csproj"));
+        var surfaceChartsAvaloniaProject = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.SurfaceCharts.Avalonia", "Videra.SurfaceCharts.Avalonia.csproj"));
         var windowsProject = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Platform.Windows", "Videra.Platform.Windows.csproj"));
         var linuxProject = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Platform.Linux", "Videra.Platform.Linux.csproj"));
         var macosProject = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Platform.macOS", "Videra.Platform.macOS.csproj"));
@@ -384,7 +406,20 @@ public sealed class RepositoryReleaseReadinessTests
         directoryBuildProps.Should().Contain("EmbedUntrackedSources");
         directoryBuildProps.Should().Contain("Microsoft.SourceLink.GitHub");
 
-        foreach (var project in new[] { coreProject, gltfProject, objProject, avaloniaProject, windowsProject, linuxProject, macosProject })
+        foreach (var project in new[]
+                 {
+                     coreProject,
+                     gltfProject,
+                     objProject,
+                     avaloniaProject,
+                     surfaceChartsCoreProject,
+                     surfaceChartsRenderingProject,
+                     surfaceChartsProcessingProject,
+                     surfaceChartsAvaloniaProject,
+                     windowsProject,
+                     linuxProject,
+                     macosProject
+                 })
         {
             project.Should().Contain("PackageReadmeFile");
             project.Should().Contain("PackagePath=\"\\\"");
@@ -442,6 +477,10 @@ public sealed class RepositoryReleaseReadinessTests
         packageValidationScript.Should().Contain("Videra.Platform.Windows");
         packageValidationScript.Should().Contain("Videra.Platform.Linux");
         packageValidationScript.Should().Contain("Videra.Platform.macOS");
+        packageValidationScript.Should().Contain("Videra.SurfaceCharts.Core");
+        packageValidationScript.Should().Contain("Videra.SurfaceCharts.Rendering");
+        packageValidationScript.Should().Contain("Videra.SurfaceCharts.Processing");
+        packageValidationScript.Should().Contain("Videra.SurfaceCharts.Avalonia");
         packageValidationScript.Should().Contain("PackageIcon");
         packageValidationScript.Should().Contain(".snupkg");
     }
@@ -470,14 +509,15 @@ public sealed class RepositoryReleaseReadinessTests
         var releasePolicy = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "release-policy.md"));
         var releasing = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "releasing.md"));
 
-        readme.Should().Contain("Public tags do not publish `Videra.SurfaceCharts.*` package assets");
+        readme.Should().Contain("Public tags now publish the `Videra.SurfaceCharts.*` package assets");
         supportMatrix.Should().Contain("Start here: In-memory first chart");
         supportMatrix.Should().Contain("Copy support summary");
         supportMatrix.Should().Contain("sample-contract-evidence");
-        supportMatrix.Should().Contain("public tags do not publish `Videra.SurfaceCharts.*` package assets");
-        releasePolicy.Should().Contain("SurfaceCharts release truth stays on the source-first demo/docs/CI/support-summary path, not on a package asset line.");
+        supportMatrix.Should().Contain("repository-only reference app");
+        releasePolicy.Should().Contain("SurfaceCharts release truth now has two explicit parts");
+        releasePolicy.Should().Contain("Videra.SurfaceCharts.Rendering");
         releasing.Should().Contain("docs/support-matrix.md");
-        releasing.Should().Contain("public tags do not publish `Videra.SurfaceCharts.*` package assets");
+        releasing.Should().Contain("public tags publish the `Videra.SurfaceCharts.*` package assets");
         releasing.Should().Contain("Copy support summary");
         releasing.Should().Contain("Videra.SurfaceCharts.Demo");
     }

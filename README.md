@@ -13,7 +13,7 @@ Videra is a Cross-platform 3D viewer component stack for .NET desktop applicatio
 
 Videra is not a general-purpose game engine. It is shaped around desktop visualization, diagnostics, controlled interaction, and host-owned application state.
 
-The `1.0` line is specifically a native desktop viewer/runtime plus inspection workflows and the source-first `SurfaceCharts` family. The public product boundary does not promise general Three.js-style runtime breadth, `WebGL` / `OpenGL` pursuit, or engine-first feature expansion. See [Videra 1.0 Capability Matrix](docs/capability-matrix.md).
+The `1.0` line is specifically a native desktop viewer/runtime plus inspection workflows and the public `SurfaceCharts` package line on the Avalonia path. The public product boundary does not promise general Three.js-style runtime breadth, `WebGL` / `OpenGL` pursuit, or engine-first feature expansion. See [Videra 1.0 Capability Matrix](docs/capability-matrix.md).
 
 On the viewer/runtime path, `SceneDocument` keeps backend-neutral imported scene truth in `ImportedSceneAsset` catalogs built from `SceneNode`, `MeshPrimitive`, `MaterialInstance`, `Texture2D`, and `Sampler`. Those runtime assets stay CPU-side until a ready resource factory uploads them.
 
@@ -23,7 +23,7 @@ That shipped viewer path now carries one direct static glTF/PBR baseline: UV-bac
 
 - .NET desktop teams that need an Avalonia-facing 3D viewer control
 - Contributors extending rendering, platform integration, or diagnostics behavior
-- Teams evaluating the independent surface-chart module family from source before any public package commitment
+- Teams building or evaluating the independent `SurfaceCharts` package family on the Avalonia path
 
 ## Current Status
 
@@ -31,7 +31,7 @@ That shipped viewer path now carries one direct static glTF/PBR baseline: UV-bac
 - Current repository baseline: `0.1.0-alpha.7`
 - Public release tags are intended to publish the consumer packages on `nuget.org`
 - `GitHub Packages` remains the `preview` / internal feed for contributors and pre-release validation
-- `Videra.SurfaceCharts.*` is still a source-first module family, not a published public package line
+- `Videra.SurfaceCharts.*` now ships as a public `alpha` package line, while `Videra.SurfaceCharts.Demo` remains repository-only
 - Linux native rendering remains `X11`-hosted, and Wayland sessions stay on the documented `XWayland compatibility` path
 - GitHub Actions runs matching-host native validation, packaged consumer smoke, and explicit sample-contract evidence on pull requests, and the [Native Validation runbook](docs/native-validation.md) documents how to use `Run workflow` for targeted reruns
 - The current alpha-ready `green` line is repository verification + native validation + packaged consumer smoke + sample-contract evidence, with `quality-gate-evidence` running the Windows packaged consumer smoke path with warnings treated as errors, enforcing package-size budgets on the public package line, and keeping the curated Core test surfaces plus `Videra.MinimalSample` warning-clean while `Benchmark Gates` serves as the hard numeric runtime blocker
@@ -48,7 +48,7 @@ dotnet build Videra.slnx
 pwsh -File ./scripts/verify.ps1 -Configuration Release
 ```
 
-This is the recommended path when you want the full repository, demos, validation scripts, or the source-only surface-chart modules.
+This is the recommended path when you want the full repository, demos, validation scripts, or the full chart sources alongside the packaged install path.
 
 ### Public Package Install
 
@@ -78,6 +78,15 @@ dotnet add package Videra.Import.Obj
 
 `Videra.Avalonia` already brings `Videra.Import.Gltf` and `Videra.Import.Obj` transitively for `LoadModelAsync(...)` and `LoadModelsAsync(...)`.
 
+For surface charts, start with the dedicated Avalonia control package and add processing helpers when you want the current first-chart path:
+
+```bash
+dotnet add package Videra.SurfaceCharts.Avalonia
+dotnet add package Videra.SurfaceCharts.Processing
+```
+
+`Videra.SurfaceCharts.Avalonia` brings `Videra.SurfaceCharts.Core` and `Videra.SurfaceCharts.Rendering` transitively. Add `Videra.SurfaceCharts.Core` directly only when you are building chart-domain contracts or custom tile sources without the Avalonia shell. `Videra.SurfaceCharts.Demo` remains repository-only.
+
 `Videra.Avalonia` remains the UI/control entry package. `PreferredBackend` and `VIDERA_BACKEND` only change backend preference. They do not install missing platform packages, and they do not replace matching-host native validation.
 The public install flow does not install missing platform packages for you.
 
@@ -101,14 +110,19 @@ For alpha adoption feedback, use [Alpha Feedback](docs/alpha-feedback.md) before
 | `Videra.Platform.Windows` | Windows Direct3D 11 hosts | `nuget.org` public tags | `alpha` |
 | `Videra.Platform.Linux` | Linux Vulkan hosts | `nuget.org` public tags | `alpha` |
 | `Videra.Platform.macOS` | macOS Metal hosts | `nuget.org` public tags | `alpha` |
+| `Videra.SurfaceCharts.Core` | Chart-domain consumers and custom tile-source integrators | `nuget.org` public tags | `alpha` |
+| `Videra.SurfaceCharts.Rendering` | SurfaceCharts rendering-runtime consumers | `nuget.org` public tags | `alpha` |
+| `Videra.SurfaceCharts.Processing` | Surface preprocessing, cache, and pyramid helpers | `nuget.org` public tags | `alpha` |
+| `Videra.SurfaceCharts.Avalonia` | Avalonia desktop applications that host `SurfaceChartView` | `nuget.org` public tags | `alpha` |
 
-## Source-only modules
+## Repository-only entries
 
-| Module | Status | Notes |
+| Entry | Status | Notes |
 | --- | --- | --- |
-| `Videra.SurfaceCharts.Core` | Source-only | Chart-domain contracts, tile identities, probe contracts, and LOD selection |
-| `Videra.SurfaceCharts.Avalonia` | Source-only | Dedicated `SurfaceChartView` control, overlays, renderer-status surface, and built-in chart interaction |
-| `Videra.SurfaceCharts.Processing` | Source-only | Offline pyramid generation, cache IO, payload sessions, and batch tile reads |
+| `Videra.Demo` | Repository-only | Viewer diagnostics and scene-pipeline reference app |
+| `Videra.SurfaceCharts.Demo` | Repository-only | SurfaceCharts reference app and support-summary repro path |
+| `Videra.ExtensibilitySample` | Repository-only | Public extensibility reference sample |
+| `Videra.InteractionSample` | Repository-only | Public controlled-interaction and inspection workflow sample |
 
 ## Samples and demos
 
@@ -170,9 +184,9 @@ Contract highlights:
 
 ## Surface Charts Onboarding
 
-For the canonical first-chart story, use [Videra.SurfaceCharts.Demo](samples/Videra.SurfaceCharts.Demo/README.md) as the current public chart reference and `SurfaceChartView` in `Videra.SurfaceCharts.Avalonia` as the primary chart control entrypoint.
-Inside that demo, keep the default `Start here: In-memory first chart` path for the source-first happy path, then move to `Explore next: Cache-backed streaming` when you want to validate lazy tile reads and the broader chart diagnostics surface.
-Use `Copy support summary` when you need the chart support artifact that matches the docs and bug template. Public tags do not publish `Videra.SurfaceCharts.*` package assets; the chart release truth in `v1.16` stays on the source-first demo/docs/CI/support-summary path.
+For the canonical first-chart story, start from `Videra.SurfaceCharts.Avalonia` plus `Videra.SurfaceCharts.Processing`, and use [Videra.SurfaceCharts.Demo](samples/Videra.SurfaceCharts.Demo/README.md) as the repository reference app for the same path.
+Inside that demo, keep the default `Start here: In-memory first chart` path for the baseline repro, then move to `Explore next: Cache-backed streaming` when you want to validate lazy tile reads and the broader chart diagnostics surface.
+Use `Copy support summary` when you need the chart support artifact that matches the docs and bug template. Public tags now publish the `Videra.SurfaceCharts.*` package assets, while `Videra.SurfaceCharts.Demo` remains repository-only and keeps the support-summary repro workflow.
 
 Contract highlights:
 
@@ -180,6 +194,7 @@ Contract highlights:
 - The dedicated `SurfaceChartView` control remains the primary chart control entrypoint in `Videra.SurfaceCharts.Avalonia`.
 - `Videra.SurfaceCharts.Demo` is the independent demo application for the surface-chart module family.
 - `Videra.SurfaceCharts.Core` owns chart-domain models, tile identities, probe contracts, and LOD selection.
+- `Videra.SurfaceCharts.Rendering` owns chart render-state orchestration and the chart-local backend runtime.
 - `Videra.SurfaceCharts.Processing` owns cache and pyramid generation.
 - `Videra.SurfaceCharts.Avalonia` owns the UI shell, axis/legend overlays, hover/pinned probe behavior, and renderer-status surface.
 - The shipped chart surface is `GPU-first` with explicit `software fallback`, and hosts can inspect `RenderingStatus` / `RenderStatusChanged`.
@@ -192,12 +207,12 @@ Contract highlights:
 - The public overlay configuration seam is `SurfaceChartOverlayOptions` through `OverlayOptions`; overlay state types remain internal.
 - Hosts own `ISurfaceTileSource`, persisted `ViewState`, color-map selection, and chart-local product UI.
 - `SurfaceChartView` owns chart-local built-in gestures, tile scheduling/cache, overlay presentation, native-host/render-host orchestration, and `RenderingStatus` projection.
-- The `Videra.SurfaceCharts.*` family stays source-first and is not part of the current public package promise.
+- The `Videra.SurfaceCharts.*` family is part of the current public package promise, but `Videra.SurfaceCharts.Demo` remains repository-only.
 
 ## Current Boundaries
 
 - Videra is a component-oriented viewer stack, not a full content creation toolchain
-- The public package promise currently covers the viewer stack packages listed above, not the `Videra.SurfaceCharts.*` source-only modules
+- The public package promise covers the viewer stack and `Videra.SurfaceCharts.*` package lines listed above; demo/sample applications remain repository-only
 - Linux native rendering currently embeds through X11 handles; Wayland sessions rely on an `XWayland` compatibility path when available
 - Linux and macOS native-host validation is expected to pass on matching-host GitHub Actions pull requests; local matching-host runs remain the fallback for targeted debugging
 - The macOS backend currently relies on Objective-C runtime interop
@@ -219,6 +234,7 @@ Contract highlights:
 - [Contributing](CONTRIBUTING.md)
 - [Chinese Documentation Entry](docs/zh-CN/index.md)
 - [SurfaceCharts.Core](src/Videra.SurfaceCharts.Core/README.md)
+- [SurfaceCharts.Rendering](src/Videra.SurfaceCharts.Rendering/README.md)
 - [SurfaceCharts.Avalonia](src/Videra.SurfaceCharts.Avalonia/README.md)
 - [SurfaceCharts.Processing](src/Videra.SurfaceCharts.Processing/README.md)
 - [SurfaceCharts.Demo](samples/Videra.SurfaceCharts.Demo/README.md)
