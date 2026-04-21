@@ -1,6 +1,7 @@
 using FluentAssertions;
 using Videra.Core.Geometry;
 using Videra.Core.Graphics;
+using Videra.Core.Graphics.RenderPipeline;
 using Videra.Core.Graphics.RenderPipeline.Extensibility;
 using Videra.Core.Graphics.Software;
 using Videra.Core.Selection.Annotations;
@@ -21,14 +22,23 @@ public sealed class VideraEngineExtensibilityIntegrationTests
         engine.Resize(200, 200);
         engine.AddObject(DemoMeshFactory.CreateWhiteQuad(backend.GetResourceFactory()));
 
-        var observedSlots = new List<string>();
+        RenderPassSlot? observedSlot = null;
+        RenderFeatureSet observedActiveFeatures = RenderFeatureSet.None;
+        RenderFeatureSet observedSlotFeatures = RenderFeatureSet.None;
         engine.RegisterPassContributor(
             RenderPassSlot.SolidGeometry,
-            new RecordingContributor(context => observedSlots.Add(context.Slot.ToString())));
+            new RecordingContributor(context =>
+            {
+                observedSlot = context.Slot;
+                observedActiveFeatures = context.ActiveFeatures;
+                observedSlotFeatures = context.SlotFeatures;
+            }));
 
         engine.Draw();
 
-        observedSlots.Should().ContainSingle().Which.Should().Be("SolidGeometry");
+        observedSlot.Should().Be(RenderPassSlot.SolidGeometry);
+        observedActiveFeatures.Should().Be(RenderFeatureSet.Opaque | RenderFeatureSet.Overlay);
+        observedSlotFeatures.Should().Be(RenderFeatureSet.Opaque);
     }
 
     [Fact]
@@ -148,13 +158,27 @@ public sealed class VideraEngineExtensibilityIntegrationTests
         engine.AddObject(DemoMeshFactory.CreateWhiteQuad(backend.GetResourceFactory()));
 
         var hookOrder = new List<string>();
-        engine.RegisterFrameHook(RenderFrameHookPoint.FrameBegin, context => hookOrder.Add(context.HookPoint.ToString()));
-        engine.RegisterFrameHook(RenderFrameHookPoint.SceneSubmit, context => hookOrder.Add(context.HookPoint.ToString()));
-        engine.RegisterFrameHook(RenderFrameHookPoint.FrameEnd, context => hookOrder.Add(context.HookPoint.ToString()));
+        var hookFeatures = new List<RenderFeatureSet>();
+        engine.RegisterFrameHook(RenderFrameHookPoint.FrameBegin, context =>
+        {
+            hookOrder.Add(context.HookPoint.ToString());
+            hookFeatures.Add(context.ActiveFeatures);
+        });
+        engine.RegisterFrameHook(RenderFrameHookPoint.SceneSubmit, context =>
+        {
+            hookOrder.Add(context.HookPoint.ToString());
+            hookFeatures.Add(context.ActiveFeatures);
+        });
+        engine.RegisterFrameHook(RenderFrameHookPoint.FrameEnd, context =>
+        {
+            hookOrder.Add(context.HookPoint.ToString());
+            hookFeatures.Add(context.ActiveFeatures);
+        });
 
         engine.Draw();
 
         hookOrder.Should().Equal("FrameBegin", "SceneSubmit", "FrameEnd");
+        hookFeatures.Should().OnlyContain(static features => features == (RenderFeatureSet.Opaque | RenderFeatureSet.Overlay));
     }
 
     [Fact]
@@ -176,6 +200,8 @@ public sealed class VideraEngineExtensibilityIntegrationTests
         capabilities.SupportsPassReplacement.Should().BeTrue();
         capabilities.SupportsFrameHooks.Should().BeTrue();
         capabilities.SupportsPipelineSnapshots.Should().BeTrue();
+        capabilities.SupportedFeatures.Should().Be(RenderFeatureSet.Opaque | RenderFeatureSet.Overlay);
+        capabilities.SupportedFeatureNames.Should().Equal("Opaque", "Overlay");
         capabilities.LastPipelineSnapshot.Should().NotBeNull();
         capabilities.LastPipelineSnapshot!.StageNames.Should().Contain("PrepareFrame");
         capabilities.LastPipelineSnapshot.StageNames.Should().Contain("PresentFrame");
@@ -235,6 +261,7 @@ public sealed class VideraEngineExtensibilityIntegrationTests
         capabilities.SupportsPassReplacement.Should().BeTrue();
         capabilities.SupportsFrameHooks.Should().BeTrue();
         capabilities.SupportsPipelineSnapshots.Should().BeTrue();
+        capabilities.SupportedFeatures.Should().Be(RenderFeatureSet.Opaque | RenderFeatureSet.Overlay);
         capabilities.LastPipelineSnapshot.Should().BeNull();
     }
 
@@ -258,6 +285,7 @@ public sealed class VideraEngineExtensibilityIntegrationTests
         capabilities.SupportsPassReplacement.Should().BeTrue();
         capabilities.SupportsFrameHooks.Should().BeTrue();
         capabilities.SupportsPipelineSnapshots.Should().BeTrue();
+        capabilities.SupportedFeatures.Should().Be(RenderFeatureSet.Opaque | RenderFeatureSet.Overlay);
         capabilities.LastPipelineSnapshot.Should().NotBeNull();
         capabilities.LastPipelineSnapshot!.StageNames.Should().Contain("PrepareFrame");
         capabilities.LastPipelineSnapshot.StageNames.Should().Contain("PresentFrame");

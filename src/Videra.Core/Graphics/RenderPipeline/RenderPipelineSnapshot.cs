@@ -7,6 +7,7 @@ public sealed class RenderPipelineSnapshot
 {
     public RenderPipelineSnapshot(
         RenderPipelineProfile profile,
+        RenderFeatureSet activeFeatures,
         WireframeMode effectiveWireframeMode,
         bool renderGrid,
         bool renderSolidGeometry,
@@ -15,6 +16,7 @@ public sealed class RenderPipelineSnapshot
         IEnumerable<RenderPipelineStage> executedStages)
     {
         Profile = profile;
+        ActiveFeatures = activeFeatures;
         EffectiveWireframeMode = effectiveWireframeMode;
         RenderGrid = renderGrid;
         RenderSolidGeometry = renderSolidGeometry;
@@ -22,9 +24,12 @@ public sealed class RenderPipelineSnapshot
         RenderAxis = renderAxis;
         Stages = Array.AsReadOnly(executedStages.ToArray());
         StageNames = Array.AsReadOnly(Stages.Select(static stage => stage.ToString()).ToArray());
+        FeatureNames = Array.AsReadOnly(activeFeatures.ToFeatureNames().ToArray());
     }
 
     public RenderPipelineProfile Profile { get; }
+
+    public RenderFeatureSet ActiveFeatures { get; }
 
     public WireframeMode EffectiveWireframeMode { get; }
 
@@ -39,4 +44,6 @@ public sealed class RenderPipelineSnapshot
     public ReadOnlyCollection<RenderPipelineStage> Stages { get; }
 
     public ReadOnlyCollection<string> StageNames { get; }
+
+    public ReadOnlyCollection<string> FeatureNames { get; }
 }

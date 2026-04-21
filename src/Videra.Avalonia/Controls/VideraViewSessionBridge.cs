@@ -8,6 +8,7 @@ using Videra.Avalonia.Controls.Interaction;
 using Videra.Core.Cameras;
 using Videra.Core.Geometry;
 using Videra.Core.Graphics;
+using Videra.Core.Graphics.RenderPipeline;
 using Videra.Core.Inspection;
 using Videra.Core.Overlay;
 using Videra.Core.Selection;
@@ -18,6 +19,12 @@ namespace Videra.Avalonia.Controls;
 
 internal sealed class VideraViewSessionBridge
 {
+    private const RenderFeatureSet BridgeSupportedFeatures =
+        RenderFeatureSet.Opaque |
+        RenderFeatureSet.Overlay |
+        RenderFeatureSet.Picking |
+        RenderFeatureSet.Screenshot;
+
     private static readonly Color PrimarySelectionColor = Colors.Green;
     private static readonly Color SecondarySelectionColor = Colors.Black;
 
@@ -239,6 +246,8 @@ internal sealed class VideraViewSessionBridge
             DisplayServerFallbackReason = snapshot.DisplayServerFallbackReason,
             RenderPipelineProfile = pipelineSnapshot?.Profile.ToString(),
             LastFrameStageNames = pipelineSnapshot?.StageNames?.ToArray() ?? Array.Empty<string>(),
+            LastFrameFeatureNames = pipelineSnapshot?.FeatureNames?.ToArray() ?? Array.Empty<string>(),
+            SupportedRenderFeatureNames = MergeSupportedFeatures(capabilities.SupportedFeatures, BridgeSupportedFeatures).ToFeatureNames(),
             UsesSoftwarePresentationCopy = snapshot.UsesSoftwarePresentationCopy,
             SceneDocumentVersion = sceneDiagnostics.SceneDocumentVersion,
             PendingSceneUploads = sceneDiagnostics.PendingUploads,
@@ -294,5 +303,10 @@ internal sealed class VideraViewSessionBridge
         var bytes = measurementId.ToByteArray();
         bytes[15] ^= isStart ? (byte)0x41 : (byte)0x82;
         return new Guid(bytes);
+    }
+
+    private static RenderFeatureSet MergeSupportedFeatures(RenderFeatureSet engineFeatures, RenderFeatureSet bridgeFeatures)
+    {
+        return engineFeatures | bridgeFeatures;
     }
 }

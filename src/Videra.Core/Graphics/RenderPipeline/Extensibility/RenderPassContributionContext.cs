@@ -1,5 +1,6 @@
 using Videra.Core.Graphics;
 using Videra.Core.Graphics.Abstractions;
+using Videra.Core.Graphics.RenderPipeline;
 using Videra.Core.Selection.Rendering;
 
 namespace Videra.Core.Graphics.RenderPipeline.Extensibility;
@@ -9,6 +10,10 @@ public sealed class RenderPassContributionContext
     public required RenderPassSlot Slot { get; init; }
 
     public required RenderFramePlan FramePlan { get; init; }
+
+    public required RenderFeatureSet ActiveFeatures { get; init; }
+
+    public required RenderFeatureSet SlotFeatures { get; init; }
 
     public required ICommandExecutor CommandExecutor { get; init; }
 

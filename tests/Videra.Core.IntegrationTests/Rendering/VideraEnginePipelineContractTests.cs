@@ -24,6 +24,8 @@ public sealed class VideraEnginePipelineContractTests
 
         engine.LastPipelineSnapshot.Should().NotBeNull();
         engine.LastPipelineSnapshot!.Profile.Should().Be(RenderPipelineProfile.Standard);
+        engine.LastPipelineSnapshot.ActiveFeatures.Should().Be(RenderFeatureSet.Opaque | RenderFeatureSet.Overlay);
+        engine.LastPipelineSnapshot.FeatureNames.Should().Equal("Opaque", "Overlay");
         engine.LastPipelineSnapshot.Stages.Should().Equal(
             RenderPipelineStage.PrepareFrame,
             RenderPipelineStage.BindSharedFrameState,
@@ -49,6 +51,7 @@ public sealed class VideraEnginePipelineContractTests
 
         engine.LastPipelineSnapshot.Should().NotBeNull();
         engine.LastPipelineSnapshot!.Profile.Should().Be(RenderPipelineProfile.StandardWithWireframeOverlay);
+        engine.LastPipelineSnapshot.ActiveFeatures.Should().Be(RenderFeatureSet.Opaque | RenderFeatureSet.Overlay);
         engine.LastPipelineSnapshot.Stages.Should().ContainInOrder(
             RenderPipelineStage.SolidGeometryPass,
             RenderPipelineStage.WireframePass,
@@ -71,6 +74,8 @@ public sealed class VideraEnginePipelineContractTests
 
         engine.LastPipelineSnapshot.Should().NotBeNull();
         engine.LastPipelineSnapshot!.Profile.Should().Be(RenderPipelineProfile.WireframeOnly);
+        engine.LastPipelineSnapshot.ActiveFeatures.Should().Be(RenderFeatureSet.Overlay);
+        engine.LastPipelineSnapshot.FeatureNames.Should().Equal("Overlay");
         engine.LastPipelineSnapshot.EffectiveWireframeMode.Should().Be(WireframeMode.WireframeOnly);
         engine.LastPipelineSnapshot.Stages.Should().Contain(RenderPipelineStage.WireframePass);
         engine.LastPipelineSnapshot.Stages.Should().NotContain(RenderPipelineStage.SolidGeometryPass);

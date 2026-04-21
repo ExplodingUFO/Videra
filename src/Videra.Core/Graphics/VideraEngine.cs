@@ -19,6 +19,10 @@ namespace Videra.Core.Graphics;
 /// </summary>
 public partial class VideraEngine : IDisposable
 {
+    private const RenderFeatureSet EngineSupportedFeatures =
+        RenderFeatureSet.Opaque |
+        RenderFeatureSet.Overlay;
+
     private readonly object _lock = new();
     private readonly ILogger _logger;
     private readonly ResourceLifetimeRegistry _resources = new();
@@ -185,6 +189,8 @@ public partial class VideraEngine : IDisposable
                 SupportsPassReplacement = true,
                 SupportsFrameHooks = true,
                 SupportsPipelineSnapshots = true,
+                SupportedFeatures = EngineSupportedFeatures,
+                SupportedFeatureNames = EngineSupportedFeatures.ToFeatureNames(),
                 LastPipelineSnapshot = LastPipelineSnapshot
             };
         }

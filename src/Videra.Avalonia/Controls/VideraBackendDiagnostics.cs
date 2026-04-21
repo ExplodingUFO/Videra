@@ -17,6 +17,8 @@ public sealed class VideraBackendDiagnostics
             DisplayServerFallbackUsed = false,
             DisplayServerFallbackReason = null,
             LastFrameStageNames = Array.Empty<string>(),
+            LastFrameFeatureNames = Array.Empty<string>(),
+            SupportedRenderFeatureNames = Array.Empty<string>(),
             SceneDocumentVersion = 0,
             PendingSceneUploads = 0,
             PendingSceneUploadBytes = 0,
@@ -96,6 +98,10 @@ public sealed class VideraBackendDiagnostics
     public string? RenderPipelineProfile { get; init; }
 
     public IReadOnlyList<string>? LastFrameStageNames { get; init; }
+
+    public IReadOnlyList<string>? LastFrameFeatureNames { get; init; }
+
+    public IReadOnlyList<string>? SupportedRenderFeatureNames { get; init; }
 
     public bool UsesSoftwarePresentationCopy { get; init; }
 

@@ -90,6 +90,7 @@ public partial class VideraEngine
 
         return new RenderFramePlan(
             DetermineProfile(effectiveWireframeMode, renderOverlayWireframe),
+            DetermineActiveFeatures(renderGrid, renderSolidGeometry, renderWireframe, renderAxis),
             effectiveWireframeMode,
             renderGrid,
             renderSolidGeometry,
@@ -140,6 +141,7 @@ public partial class VideraEngine
 
         LastPipelineSnapshot = new RenderPipelineSnapshot(
             plan.Profile,
+            plan.ActiveFeatures,
             plan.EffectiveWireframeMode,
             plan.RenderGrid,
             plan.RenderSolidGeometry,
@@ -326,6 +328,8 @@ public partial class VideraEngine
         {
             Slot = slot,
             FramePlan = plan,
+            ActiveFeatures = plan.ActiveFeatures,
+            SlotFeatures = RenderPassSlotFeatureMap.Resolve(slot),
             CommandExecutor = sharedFrameState.CommandExecutor,
             ResourceFactory = sharedFrameState.ResourceFactory,
             MeshPipeline = sharedFrameState.MeshPipeline,
@@ -398,6 +402,7 @@ public partial class VideraEngine
         {
             HookPoint = hookPoint,
             FramePlan = plan,
+            ActiveFeatures = plan.ActiveFeatures,
             Width = _width,
             Height = _height,
             RenderScale = RenderScale,
@@ -425,5 +430,26 @@ public partial class VideraEngine
             RenderScale,
             GetActiveBackendPreferenceUnsafe(),
             LastPipelineSnapshot);
+    }
+
+    private static RenderFeatureSet DetermineActiveFeatures(
+        bool renderGrid,
+        bool renderSolidGeometry,
+        bool renderWireframe,
+        bool renderAxis)
+    {
+        var features = RenderFeatureSet.None;
+
+        if (renderSolidGeometry)
+        {
+            features |= RenderFeatureSet.Opaque;
+        }
+
+        if (renderGrid || renderWireframe || renderAxis)
+        {
+            features |= RenderFeatureSet.Overlay;
+        }
+
+        return features;
     }
 }

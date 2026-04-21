@@ -4,6 +4,7 @@ namespace Videra.Core.Graphics.RenderPipeline;
 
 public sealed record RenderFramePlan(
     RenderPipelineProfile Profile,
+    RenderFeatureSet ActiveFeatures,
     WireframeMode EffectiveWireframeMode,
     bool RenderGrid,
     bool RenderSolidGeometry,
