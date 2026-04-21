@@ -307,6 +307,27 @@ public sealed class SceneImportServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task Import_single_reuses_same_imported_asset_for_same_unchanged_path()
+    {
+        var path = WriteTriangleGltf("reused-single.gltf");
+
+        var first = await _service.ImportSingleAsync(path, CancellationToken.None);
+        var second = await _service.ImportSingleAsync(path, CancellationToken.None);
+
+        first.Entry.Should().NotBeNull();
+        second.Entry.Should().NotBeNull();
+        first.SceneObject.Should().NotBeNull();
+        second.SceneObject.Should().NotBeNull();
+
+        first.Entry!.ImportedAsset.Should().BeSameAs(second.Entry!.ImportedAsset);
+        first.SceneObject.Should().NotBeSameAs(second.SceneObject);
+
+        var payloadProperty = typeof(Object3D).GetProperty("MeshPayload", BindingFlags.Instance | BindingFlags.NonPublic);
+        payloadProperty.Should().NotBeNull();
+        payloadProperty!.GetValue(first.SceneObject!).Should().BeSameAs(payloadProperty.GetValue(second.SceneObject!));
+    }
+
+    [Fact]
     public async Task Import_batch_reuses_same_imported_asset_for_duplicate_paths()
     {
         var path = WriteTriangleGltf("reused-batch.gltf");
@@ -322,6 +343,20 @@ public sealed class SceneImportServiceTests : IDisposable
         var payloadProperty = typeof(Object3D).GetProperty("MeshPayload", BindingFlags.Instance | BindingFlags.NonPublic);
         payloadProperty.Should().NotBeNull();
         payloadProperty!.GetValue(result.SceneObjects[0]).Should().BeSameAs(payloadProperty.GetValue(result.SceneObjects[1]));
+    }
+
+    [Fact]
+    public async Task Import_single_does_not_reuse_imported_asset_after_file_timestamp_changes()
+    {
+        var path = WriteTriangleGltf("reused-single-refresh.gltf");
+
+        var first = await _service.ImportSingleAsync(path, CancellationToken.None);
+        File.SetLastWriteTimeUtc(path, File.GetLastWriteTimeUtc(path).AddMinutes(1));
+        var second = await _service.ImportSingleAsync(path, CancellationToken.None);
+
+        first.Entry.Should().NotBeNull();
+        second.Entry.Should().NotBeNull();
+        first.Entry!.ImportedAsset.Should().NotBeSameAs(second.Entry!.ImportedAsset);
     }
 
     private string WriteObj(string name)

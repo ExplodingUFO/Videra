@@ -10,6 +10,8 @@ namespace Videra.Avalonia.Runtime.Scene;
 
 internal sealed class SceneImportService
 {
+    private readonly object _importedAssetGate = new();
+    private readonly Dictionary<ImportedSceneAssetReuseKey, WeakReference<ImportedSceneAsset>> _importedAssetCache = [];
     private readonly SceneDocumentMutator _mutator;
 
     public SceneImportService(SceneDocumentMutator mutator)
@@ -22,7 +24,7 @@ internal sealed class SceneImportService
         var startedAt = Stopwatch.StartNew();
         try
         {
-            var asset = await Task.Run(() => ImportAsset(path), cancellationToken).ConfigureAwait(false);
+            var asset = await Task.Run(() => ResolveImportedAsset(path), cancellationToken).ConfigureAwait(false);
             var sceneObject = SceneObjectFactory.CreateDeferred(asset);
             var entry = _mutator.CreateImportedEntry(sceneObject, asset);
             return new ImportedSceneResult(entry, sceneObject, Failure: null, startedAt.Elapsed);
@@ -77,7 +79,7 @@ internal sealed class SceneImportService
             startedAt.Elapsed);
     }
 
-    private static async Task<ImportedAssetBatchResult> ImportBatchAssetAsync(
+    private async Task<ImportedAssetBatchResult> ImportBatchAssetAsync(
         string path,
         ImportedSceneAssetReuseKey key,
         SemaphoreSlim gate,
@@ -88,7 +90,7 @@ internal sealed class SceneImportService
         {
             try
             {
-                var asset = await Task.Run(() => ImportAsset(path), cancellationToken).ConfigureAwait(false);
+                var asset = await Task.Run(() => ResolveImportedAsset(path), cancellationToken).ConfigureAwait(false);
                 return new ImportedAssetBatchResult(key, asset, Failure: null);
             }
             catch (OperationCanceledException)
@@ -116,6 +118,58 @@ internal sealed class SceneImportService
         var sceneObject = SceneObjectFactory.CreateDeferred(importedAsset.Asset);
         var entry = _mutator.CreateImportedEntry(sceneObject, importedAsset.Asset);
         return new ImportedSceneBatchEntryResult(index, entry, sceneObject, Failure: null);
+    }
+
+    private ImportedSceneAsset ResolveImportedAsset(string path)
+    {
+        var key = CreateReuseKey(path);
+        if (TryGetImportedAsset(key, out var asset))
+        {
+            return asset;
+        }
+
+        asset = ImportAsset(path);
+        StoreImportedAsset(key, asset);
+        return asset;
+    }
+
+    private bool TryGetImportedAsset(ImportedSceneAssetReuseKey key, out ImportedSceneAsset asset)
+    {
+        lock (_importedAssetGate)
+        {
+            CleanupImportedAssetCache(key);
+            if (_importedAssetCache.TryGetValue(key, out var reference) &&
+                reference.TryGetTarget(out asset!))
+            {
+                return true;
+            }
+
+            _importedAssetCache.Remove(key);
+        }
+
+        asset = null!;
+        return false;
+    }
+
+    private void StoreImportedAsset(ImportedSceneAssetReuseKey key, ImportedSceneAsset asset)
+    {
+        lock (_importedAssetGate)
+        {
+            CleanupImportedAssetCache(key);
+            _importedAssetCache[key] = new WeakReference<ImportedSceneAsset>(asset);
+        }
+    }
+
+    private void CleanupImportedAssetCache(ImportedSceneAssetReuseKey currentKey)
+    {
+        foreach (var entry in _importedAssetCache.ToArray())
+        {
+            if (!entry.Value.TryGetTarget(out _) ||
+                (entry.Key.FullPath == currentKey.FullPath && entry.Key != currentKey))
+            {
+                _importedAssetCache.Remove(entry.Key);
+            }
+        }
     }
 
     private static ImportedSceneAssetReuseKey CreateReuseKey(string path)
