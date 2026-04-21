@@ -2,6 +2,18 @@
 
 This matrix is the public truth for what Videra publishes, what stays source-only, and what is sample/demo code.
 
+For the explicit `1.0` product boundary and deferred capability split, use [Videra 1.0 Capability Matrix](capability-matrix.md).
+
+## Package-layer matrix
+
+| Layer | Current mapping | Public status | Notes |
+| --- | --- | --- | --- |
+| `Core` | `Videra.Core` | Public package | Viewer/runtime kernel |
+| `Import` | Current built-in import helpers inside `Videra.Core` | Not yet a dedicated package | `v1.20` aims to pull this into explicit import packages |
+| `Backend` | `Videra.Platform.Windows`, `Videra.Platform.Linux`, `Videra.Platform.macOS` | Public packages | Native graphics implementations |
+| `UI adapter` | `Videra.Avalonia` | Public package | Public host-framework shell |
+| `Charts` | `Videra.SurfaceCharts.*` + `Videra.SurfaceCharts.Demo` | Source-first | Independent chart family, not current public package promise |
+
 ## Published packages
 
 | Package | Published | Official feed | Preview feed | Audience | Support level | Notes |

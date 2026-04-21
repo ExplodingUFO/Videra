@@ -65,6 +65,45 @@ public sealed class RepositoryReleaseReadinessTests
     }
 
     [Fact]
+    public void ProductBoundaryDocs_ShouldPublishCapabilityAndLayerMatrices()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var capabilityMatrixPath = Path.Combine(repositoryRoot, "docs", "capability-matrix.md");
+        var capabilityMatrix = File.ReadAllText(capabilityMatrixPath);
+        var rootReadme = File.ReadAllText(Path.Combine(repositoryRoot, "README.md"));
+        var docsIndex = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "index.md"));
+        var architecture = File.ReadAllText(Path.Combine(repositoryRoot, "ARCHITECTURE.md"));
+        var packageMatrix = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "package-matrix.md"));
+        var supportMatrix = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "support-matrix.md"));
+        var coreReadme = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Core", "README.md"));
+        var coreProject = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Core", "Videra.Core.csproj"));
+        var avaloniaProject = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Avalonia", "Videra.Avalonia.csproj"));
+
+        File.Exists(capabilityMatrixPath).Should().BeTrue();
+
+        capabilityMatrix.Should().Contain("native desktop viewer/runtime");
+        capabilityMatrix.Should().Contain("source-first `SurfaceCharts` family");
+        capabilityMatrix.Should().Contain("not a Three.js-style general runtime");
+        capabilityMatrix.Should().Contain("Core");
+        capabilityMatrix.Should().Contain("Import");
+        capabilityMatrix.Should().Contain("Backend");
+        capabilityMatrix.Should().Contain("UI adapter");
+        capabilityMatrix.Should().Contain("Charts");
+        capabilityMatrix.Should().Contain("OpenGL");
+
+        rootReadme.Should().Contain("docs/capability-matrix.md");
+        docsIndex.Should().Contain("capability-matrix.md");
+        architecture.Should().Contain("docs/capability-matrix.md");
+        packageMatrix.Should().Contain("capability-matrix.md");
+        supportMatrix.Should().Contain("capability-matrix.md");
+        coreReadme.Should().Contain("docs/capability-matrix.md");
+        coreProject.Should().Contain("Desktop viewer runtime core");
+        coreProject.Should().Contain("inspection");
+        avaloniaProject.Should().Contain("Native desktop viewer and inspection control package");
+        avaloniaProject.Should().Contain("desktop-viewer");
+    }
+
+    [Fact]
     public void AvaloniaReadme_ShouldPromoteHighLevelViewerApi()
     {
         var readme = File.ReadAllText(Path.Combine(GetRepositoryRoot(), "src", "Videra.Avalonia", "README.md"));

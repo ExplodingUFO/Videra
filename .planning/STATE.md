@@ -5,17 +5,17 @@
 See: `.planning/PROJECT.md` (updated 2026-04-21)
 
 **Core value:** 跨平台 3D 渲染引擎的可靠性
-**Current focus:** `v1.20` 已完成初始化，下一步是进入 Phase `103`，冻结 viewer/runtime 的产品边界、能力矩阵和分层词汇
+**Current focus:** `v1.20` 已完成 Phase `103`，下一步进入 Phase `104`，把 importer / logging 依赖从 `Videra.Core` 中拆出来
 
 ## Current Position
 
 Milestone: `v1.20`
-Phase: `Not started (ready for Phase 103)`
+Phase: `Phase 104 ready`
 Plan: `—`
-Status: `Milestone defined; requirements and roadmap are committed, waiting to start Phase 103`
-Last activity: `2026-04-21` — finished defining the `v1.20` roadmap around capability matrix, `Videra.Core` slimming, importer/logging split, and explicit host/package seams
+Status: `Phase 103 is complete locally; capability matrix and package-layer vocabulary are now fixed for the milestone`
+Last activity: `2026-04-21` — completed Phase `103` by publishing the `1.0` capability matrix, package-layer matrix, and aligned entry-doc truth
 
-Progress: `Requirements and roadmap are defined for v1.20; Phase 103 is the next executable step.`
+Progress: `Phase 103 is complete locally; Phase 104 is the next executable step.`
 
 ## Performance Metrics
 
@@ -38,7 +38,7 @@ Progress: `Requirements and roadmap are defined for v1.20; Phase 103 is the next
 
 ### Pending Todos
 
-- Start Phase `103`: freeze the viewer/runtime capability matrix and package-layer boundary for `v1.20`.
+- Start Phase `104`: remove concrete importer and logging provider dependencies from `Videra.Core`.
 
 ### Blockers/Concerns
 
@@ -68,5 +68,5 @@ Progress: `Requirements and roadmap are defined for v1.20; Phase 103 is the next
 ## Session Continuity
 
 Last session: `2026-04-20 +08:00`
-Stopped at: `v1.20 defined; Phase 103 is ready to start`
+Stopped at: `Phase 103 complete locally; Phase 104 is ready to start`
 Resume file: `.planning/ROADMAP.md`

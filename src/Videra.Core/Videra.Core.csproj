@@ -4,8 +4,8 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <Description>Platform-agnostic 3D rendering core for Videra, including backend abstractions, scene rendering, model import, style presets, and software fallback rendering.</Description>
-    <PackageTags>videra;3d;rendering;viewer;graphics;gltf;obj;dotnet</PackageTags>
+    <Description>Desktop viewer runtime core for Videra, including scene/runtime abstractions, inspection-oriented viewer services, current built-in model import, and software fallback rendering.</Description>
+    <PackageTags>videra;desktop-viewer;inspection;viewer-runtime;graphics-backend;dotnet</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <!-- Suppress pre-existing analyzer warnings until fixed in dedicated cleanup plans.
          S1104: public fields in structs/records (PipelineDescription, VertexPositionNormalColor)

@@ -3,8 +3,8 @@
 ## Active Milestone
 
 - `v1.20 Viewer Product Boundary and Core Slimming`
-- Status: `initialized locally on 2026-04-21`
-- Focus: define the `1.0` viewer/runtime product boundary, slim `Videra.Core`, and make importer/logging/hosting seams explicit before broader runtime feature expansion
+- Status: `Phase 103 complete locally on 2026-04-21; Phase 104 is next`
+- Focus: keep the viewer/runtime `1.0` boundary fixed while extracting concrete importer and logging dependencies out of `Videra.Core`
 
 ### Phase 103: Viewer Product Boundary and Capability Matrix
 
@@ -14,15 +14,21 @@
 
 Plans:
 
-- [ ] 103-01: rewrite product positioning and package guidance so `Videra 1.0` is clearly framed as a native desktop viewer/runtime rather than a generic engine
-- [ ] 103-02: publish a capability matrix that separates shipped viewer/runtime capabilities from explicitly deferred engine-`2.0` features
-- [ ] 103-03: define one package-layer matrix for `Core`, `Import`, `Backend`, `UI adapter`, and `Charts`
+- [x] 103-01: rewrite product positioning and package guidance so `Videra 1.0` is clearly framed as a native desktop viewer/runtime rather than a generic engine
+- [x] 103-02: publish a capability matrix that separates shipped viewer/runtime capabilities from explicitly deferred engine-`2.0` features
+- [x] 103-03: define one package-layer matrix for `Core`, `Import`, `Backend`, `UI adapter`, and `Charts`
 
 Success criteria:
 
 1. A new consumer can tell from docs/package guidance that Videra is not trying to be a Three.js-style general runtime in `1.0`.
 2. Shipped vs deferred capabilities are spelled out in one explicit matrix instead of being inferred from scattered docs.
 3. The layer vocabulary for `Core` / `Import` / `Backend` / `UI adapter` / `Charts` is consistent across docs and planning.
+
+Notes:
+
+- `docs/capability-matrix.md` is now the canonical `1.0` boundary document and is linked from the repository README, docs index, package matrix, architecture doc, and `Videra.Core` README.
+- The repository truth now explicitly states that the `1.0` line is a native desktop viewer/runtime plus inspection and source-first `SurfaceCharts`, not a general engine/runtime parity effort.
+- A focused repository-truth test now guards the capability/layer matrix and the corresponding entry-doc links.
 
 ### Phase 104: Core Dependency Extraction and Logging Split
 

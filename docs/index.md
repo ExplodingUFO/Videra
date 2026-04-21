@@ -7,6 +7,7 @@ This page maps the long-lived public documentation for Videra. Start with the re
 ## Start Here
 
 - [Project README](../README.md) for what Videra is, who it is for, and the source / public-package / contribution entry paths
+- [Videra 1.0 Capability Matrix](capability-matrix.md) for the shipped viewer/runtime boundary, deferred engine-style features, and the package-layer vocabulary
 - [Package Matrix](package-matrix.md) for published packages, source-only modules, samples, demos, and feed boundaries
 - [Support Matrix](support-matrix.md) for platform, validation, and support-level truth
 - [Release Policy](release-policy.md) for public-vs-preview feed rules, versioning scope, and what is or is not published

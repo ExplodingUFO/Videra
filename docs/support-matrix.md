@@ -2,6 +2,8 @@
 
 This matrix describes the current support boundary for the public viewer packages and the source-only chart modules.
 
+Use [Videra 1.0 Capability Matrix](capability-matrix.md) for the explicit shipped-vs-deferred product boundary and the `Core` / `Import` / `Backend` / `UI adapter` / `Charts` layer vocabulary.
+
 ## Viewer stack
 
 | Surface | Platform | Backend | Package path | Validation truth | Support level |
