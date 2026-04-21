@@ -1,8 +1,10 @@
 # Package Matrix
 
-This matrix is the public truth for what Videra publishes, what stays source-only, and what is sample/demo code.
+This matrix is the public truth for what Videra publishes, what stays repository-only, and how the current install stories split between the viewer stack and the SurfaceCharts stack.
 
 For the explicit `1.0` product boundary and deferred capability split, use [Videra 1.0 Capability Matrix](capability-matrix.md). For the canonical shipped viewer composition and internal seam ownership, use [Hosting Boundary](hosting-boundary.md).
+
+## Canonical install stories
 
 The canonical public viewer stack is:
 
@@ -10,9 +12,13 @@ The canonical public viewer stack is:
 2. exactly one matching `Videra.Platform.*` package
 3. optional `Videra.Import.Gltf` / `Videra.Import.Obj` when you need explicit core-path ingestion
 
-Viewer/runtime asset truth stays backend-neutral across those layers: the import packages build `ImportedSceneAsset` catalogs from `SceneNode`, `MeshPrimitive`, `MaterialInstance`, `Texture2D`, and `Sampler`, and `Videra.Avalonia` keeps that retained scene/material truth in `SceneDocument` until upload.
+The canonical public SurfaceCharts stack is:
 
-That retained catalog is the current static glTF/PBR baseline on the shipped viewer path: UV-backed texture bindings, metallic-roughness and alpha semantics, emissive and normal-map-ready inputs, tangent-aware meshes, and repeated unchanged imports that can reuse retained imported scene assets while those retained assets stay available. It does not imply animation, skeletons, morph targets, or a broader advanced-runtime feature promise.
+1. `Videra.SurfaceCharts.Avalonia`
+2. `Videra.SurfaceCharts.Processing` for the current first-chart path
+3. optional direct `Videra.SurfaceCharts.Core` consumption when you build chart contracts or custom tile sources without the Avalonia shell
+
+`Videra.SurfaceCharts.Avalonia` brings `Videra.SurfaceCharts.Core` and `Videra.SurfaceCharts.Rendering` transitively. `Videra.SurfaceCharts.Rendering` is a real public package because the current chart assembly split depends on it, but most consumers should not install it first.
 
 ## Package-layer matrix
 
@@ -22,7 +28,8 @@ That retained catalog is the current static glTF/PBR baseline on the shipped vie
 | `Import` | `Videra.Import.Gltf`, `Videra.Import.Obj` | Public packages | Dedicated file-format ingestion layered on top of `Videra.Core` |
 | `Backend` | `Videra.Platform.Windows`, `Videra.Platform.Linux`, `Videra.Platform.macOS` | Public packages | Native graphics implementations |
 | `UI adapter` | `Videra.Avalonia` | Public package | Public host-framework shell |
-| `Charts` | `Videra.SurfaceCharts.*` + `Videra.SurfaceCharts.Demo` | Source-first | Independent chart family, not current public package promise |
+| `Charts` | `Videra.SurfaceCharts.Core`, `Videra.SurfaceCharts.Rendering`, `Videra.SurfaceCharts.Processing`, `Videra.SurfaceCharts.Avalonia` | Public packages | Dedicated chart product line, independent from `VideraView` |
+| `Chart demo` | `Videra.SurfaceCharts.Demo` | Repository-only | Support-ready chart reference app, not an installable package |
 
 ## Published packages
 
@@ -35,26 +42,30 @@ That retained catalog is the current static glTF/PBR baseline on the shipped vie
 | `Videra.Platform.Windows` | Yes, on public release tags | `nuget.org` | `GitHub Packages` preview/internal only | Windows hosts | `alpha` | Install with `Videra.Avalonia` on Windows |
 | `Videra.Platform.Linux` | Yes, on public release tags | `nuget.org` | `GitHub Packages` preview/internal only | Linux hosts | `alpha` | Current native path is X11 plus Vulkan; Wayland uses `XWayland` compatibility |
 | `Videra.Platform.macOS` | Yes, on public release tags | `nuget.org` | `GitHub Packages` preview/internal only | macOS hosts | `alpha` | Install with `Videra.Avalonia` on macOS |
+| `Videra.SurfaceCharts.Core` | Yes, on public release tags | `nuget.org` | `GitHub Packages` preview/internal only | Chart-domain consumers and custom tile-source integrators | `alpha` | Chart-domain contracts, metadata, LOD, probe contracts |
+| `Videra.SurfaceCharts.Rendering` | Yes, on public release tags | `nuget.org` | `GitHub Packages` preview/internal only | Advanced chart-runtime consumers | `alpha` | Rendering-runtime layer used transitively by `Videra.SurfaceCharts.Avalonia` |
+| `Videra.SurfaceCharts.Processing` | Yes, on public release tags | `nuget.org` | `GitHub Packages` preview/internal only | Consumers that need pyramid/cache helpers | `alpha` | Add for the current first-chart path and cache-backed workflows |
+| `Videra.SurfaceCharts.Avalonia` | Yes, on public release tags | `nuget.org` | `GitHub Packages` preview/internal only | Avalonia desktop applications that host `SurfaceChartView` | `alpha` | Main public chart control entry package |
 
-## Source-only modules
-
-| Module | Published | Audience | Support level | Notes |
-| --- | --- | --- | --- | --- |
-| `Videra.SurfaceCharts.Core` | No | Source evaluators and contributors | Source-first `alpha` | Chart-domain contracts, LOD, picking, probe contracts |
-| `Videra.SurfaceCharts.Avalonia` | No | Source evaluators and contributors | Source-first `alpha` | `SurfaceChartView`, overlays, built-in chart interaction |
-| `Videra.SurfaceCharts.Processing` | No | Source evaluators and contributors | Source-first `alpha` | Cache/pyramid generation, payload sessions, ordered batch reads |
-
-## Samples and demos
+## Repository-only entries
 
 | Entry | Published | Audience | Notes |
 | --- | --- | --- | --- |
 | `Videra.Demo` | Repository only | Source evaluation | Viewer demo and diagnostics reference |
-| `Videra.SurfaceCharts.Demo` | Repository only | Source evaluation | Independent demo for the surface-chart module family |
+| `Videra.SurfaceCharts.Demo` | Repository only | Source evaluation and support repro | Reference app for `Start here: In-memory first chart`, `Explore next: Cache-backed streaming`, and `Copy support summary` |
 | `Videra.ExtensibilitySample` | Repository only | Contributors and integrators | Narrow public reference for extensibility flow |
-| `Videra.InteractionSample` | Repository only | Contributors and integrators | Public sample for controlled interaction and host-owned state |
+| `Videra.InteractionSample` | Repository only | Contributors and integrators | Public sample for controlled interaction and inspection workflows |
 
 ## Feed notes
 
 - `nuget.org` is the default public consumer path.
 - `GitHub Packages` exists for `preview` / internal validation only.
-- Do not treat source-only modules or demos as installable public packages.
+- Do not treat demos or samples as installable public packages.
+
+## Viewer runtime baseline
+
+The public viewer/runtime line still shares one backend-neutral asset catalog across `Videra.Core` and `Videra.Avalonia`: `SceneDocument`, `ImportedSceneAsset`, `SceneNode`, `MeshPrimitive`, `MaterialInstance`, `Texture2D`, and `Sampler`.
+
+That viewer baseline remains deliberately scoped to `static glTF/PBR`: `metallic-roughness`, `normal-map-ready`, and `tangent-aware` are in scope today, while `morph targets` stay outside the current product promise.
+
+The current import/runtime path is also expected to stay stable for `repeated unchanged imports` and `retained imported scene assets`, so package consumers can reason about asset reuse without treating the chart line or demos as part of the viewer kernel.

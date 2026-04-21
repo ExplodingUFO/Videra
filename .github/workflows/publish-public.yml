@@ -225,6 +225,10 @@ jobs:
           dotnet pack src/Videra.Import.Gltf/Videra.Import.Gltf.csproj -c Release -o ./nupkgs /p:PackageVersion=${{ needs.determine-version.outputs.version }}
           dotnet pack src/Videra.Import.Obj/Videra.Import.Obj.csproj -c Release -o ./nupkgs /p:PackageVersion=${{ needs.determine-version.outputs.version }}
           dotnet pack src/Videra.Avalonia/Videra.Avalonia.csproj -c Release -o ./nupkgs /p:PackageVersion=${{ needs.determine-version.outputs.version }}
+          dotnet pack src/Videra.SurfaceCharts.Core/Videra.SurfaceCharts.Core.csproj -c Release -o ./nupkgs /p:PackageVersion=${{ needs.determine-version.outputs.version }}
+          dotnet pack src/Videra.SurfaceCharts.Rendering/Videra.SurfaceCharts.Rendering.csproj -c Release -o ./nupkgs /p:PackageVersion=${{ needs.determine-version.outputs.version }}
+          dotnet pack src/Videra.SurfaceCharts.Processing/Videra.SurfaceCharts.Processing.csproj -c Release -o ./nupkgs /p:PackageVersion=${{ needs.determine-version.outputs.version }}
+          dotnet pack src/Videra.SurfaceCharts.Avalonia/Videra.SurfaceCharts.Avalonia.csproj -c Release -o ./nupkgs /p:PackageVersion=${{ needs.determine-version.outputs.version }}
 
       - name: Upload neutral package evidence
         uses: actions/upload-artifact@v4

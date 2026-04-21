@@ -29,7 +29,7 @@ public sealed class SurfaceChartsDemoViewportBehaviorTests
             window.FindControl<ComboBox>("ViewportSelector").Should().BeNull();
             chartView.ViewState.DataWindow.Should().Be(new SurfaceDataWindow(0d, 0d, chartView.Source!.Metadata.Width, chartView.Source.Metadata.Height));
             statusText.Text.Should().Contain("Start here: In-memory first chart");
-            statusText.Text.Should().Contain("source-first");
+            statusText.Text.Should().Contain("baseline");
             interactionQualityText.Text.Should().Contain("Refine");
 
             SelectItem(sourceSelector, GetComboBoxItemByContent(sourceSelector, "Explore next: Cache-backed streaming"));

@@ -29,7 +29,11 @@ public sealed class PackageSizeBudgetRepositoryTests
             "Videra.Avalonia",
             "Videra.Platform.Windows",
             "Videra.Platform.Linux",
-            "Videra.Platform.macOS");
+            "Videra.Platform.macOS",
+            "Videra.SurfaceCharts.Core",
+            "Videra.SurfaceCharts.Rendering",
+            "Videra.SurfaceCharts.Processing",
+            "Videra.SurfaceCharts.Avalonia");
 
         AssertBudget(packages["Videra.Core"], 166_912, 70_656);
         AssertBudget(packages["Videra.Import.Gltf"], 25_600, 20_480);
@@ -38,6 +42,10 @@ public sealed class PackageSizeBudgetRepositoryTests
         AssertBudget(packages["Videra.Platform.Windows"], 31_744, 20_480);
         AssertBudget(packages["Videra.Platform.Linux"], 46_080, 24_576);
         AssertBudget(packages["Videra.Platform.macOS"], 33_792, 23_552);
+        AssertBudget(packages["Videra.SurfaceCharts.Core"], 57_344, 24_576);
+        AssertBudget(packages["Videra.SurfaceCharts.Rendering"], 28_672, 18_432);
+        AssertBudget(packages["Videra.SurfaceCharts.Processing"], 36_864, 16_384);
+        AssertBudget(packages["Videra.SurfaceCharts.Avalonia"], 65_536, 28_672);
     }
 
     [Fact]

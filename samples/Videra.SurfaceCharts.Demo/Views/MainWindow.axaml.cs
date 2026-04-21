@@ -88,7 +88,7 @@ public partial class MainWindow : Window
         ApplySource(
             _inMemorySource,
             "Start here: In-memory first chart",
-            "Start here first. Generated at runtime from a dense matrix, built with SurfacePyramidBuilder, and kept source-first inside this demo.");
+            "Start here first. Generated at runtime from a dense matrix, built with SurfacePyramidBuilder, and kept as the baseline chart path inside this demo.");
 
         _chartView.RenderStatusChanged += OnRenderStatusChanged;
         _chartView.InteractionQualityChanged += OnInteractionQualityChanged;
@@ -123,7 +123,7 @@ public partial class MainWindow : Window
             ApplySource(
                 _inMemorySource,
                 "Start here: In-memory first chart",
-                "Start here first. Generated at runtime from a dense matrix, built with SurfacePyramidBuilder, and kept source-first inside this demo.");
+                "Start here first. Generated at runtime from a dense matrix, built with SurfacePyramidBuilder, and kept as the baseline chart path inside this demo.");
             return;
         }
 

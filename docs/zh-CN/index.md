@@ -7,9 +7,9 @@
 ## 安装与分发入口
 
 - [项目首页](README.md)：`nuget.org` 默认安装路径、`GitHub Packages` preview 说明、`Videra.Avalonia` + `Videra.Platform.*` 组合安装、`Videra.Core` 单独消费，以及默认 viewer 路径对 `Videra.Import.*` 的传递依赖说明
-- [包矩阵](../package-matrix.md)：published packages、source-only modules 与 demos/samples 的边界
+- [包矩阵](../package-matrix.md)：published packages、repository-only demos/samples 与公开安装边界
 - [支持矩阵](../support-matrix.md)：平台、验证方式与支持级别
-- [发布策略](../release-policy.md)：公开 feed、preview feed 和 source-only 边界
+- [发布策略](../release-policy.md)：公开 feed、preview feed 与 repository-only demo/sample 边界
 - [Benchmark Gates](../benchmark-gates.md)：viewer / surface charts benchmark 的自动 PR 阈值门禁与手动运行入口
 - [Alpha Feedback](../alpha-feedback.md)：alpha 集成反馈、诊断快照和支持边界
 - [故障排查](troubleshooting.md)：`VIDERA_BACKEND`、软件回退和 matching-host 原生验证的边界

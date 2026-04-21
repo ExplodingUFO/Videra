@@ -4,6 +4,8 @@
 
 The package will stay focused on data preparation and file-backed support, not UI composition.
 
+`nuget.org` is the default public feed for this package. `GitHub Packages` remains `preview` / internal validation only. The current support level is `alpha`. Add this package when you want the current first-chart path built on `SurfacePyramidBuilder` or the cache-backed chart workflow.
+
 Current responsibilities:
 
 - building in-memory pyramids from dense surface matrices

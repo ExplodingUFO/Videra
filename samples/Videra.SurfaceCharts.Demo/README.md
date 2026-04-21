@@ -2,7 +2,7 @@
 
 `Videra.SurfaceCharts.Demo` is the independent demo application for the surface-chart module family.
 
-For the canonical first-chart story, this demo is the current public chart reference and `SurfaceChartView` in `Videra.SurfaceCharts.Avalonia` remains the primary chart control entrypoint.
+For the canonical first-chart story, start from `Videra.SurfaceCharts.Avalonia` plus `Videra.SurfaceCharts.Processing`, and use this demo as the repository reference app for that same path. `SurfaceChartView` in `Videra.SurfaceCharts.Avalonia` remains the primary chart control entrypoint.
 
 The sample stays separate from `Videra.Demo` and `VideraView`. It exercises the chart-local renderer seam shipped in `SurfaceChartView`, not a `VideraView` mode. It provides switchable sources and built-in chart interaction:
 
@@ -17,14 +17,14 @@ The public overlay configuration seam is `SurfaceChartOverlayOptions` through `O
 Hosts own `ISurfaceTileSource`, persisted `ViewState`, color-map selection, and chart-local product UI.
 `SurfaceChartView` owns chart-local built-in gestures, tile scheduling/cache, overlay presentation, native-host/render-host orchestration, and `RenderingStatus` projection.
 The public rendering truth is `RenderingStatus` + `RenderStatusChanged` with `ActiveBackend`, `IsReady`, `IsFallback`, `FallbackReason`, `UsesNativeSurface`, and `ResidentTileCount`.
-The `Videra.SurfaceCharts.*` family stays source-first and is not part of the current public package promise.
+The `Videra.SurfaceCharts.*` family is part of the current public package promise. The public chart package line is `Videra.SurfaceCharts.Avalonia` plus `Videra.SurfaceCharts.Processing` for the current first-chart install story. `Videra.SurfaceCharts.Avalonia` brings `Videra.SurfaceCharts.Core` and `Videra.SurfaceCharts.Rendering` transitively. This demo remains repository-only.
 
 The committed cache sample uses a tiled manifest+sidecar layout so panning, dolly, and focus changes request different cache tiles instead of materializing every tile value into memory up front.
 
 ## Start Here
 
 1. Run the sample and keep the default `Start here: In-memory first chart` source.
-2. Confirm the source-first first chart renders, then try `FitToData()`, `ResetCamera()`, orbit, pan, dolly, and focus zoom.
+2. Confirm the baseline first chart renders, then try `FitToData()`, `ResetCamera()`, orbit, pan, dolly, and focus zoom.
 3. Move to `Explore next: Cache-backed streaming` only after the first chart path works and you want to validate lazy tile reads plus the broader demo surfaces.
 
 ## Run

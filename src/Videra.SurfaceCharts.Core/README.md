@@ -2,6 +2,8 @@
 
 `Videra.SurfaceCharts.Core` defines the chart-domain contracts for the surface-chart module family.
 
+`nuget.org` is the default public feed for this package. `GitHub Packages` remains `preview` / internal validation only. The current support level is `alpha`.
+
 This package is the place for:
 - surface metadata
 - viewport and LOD selection
@@ -10,6 +12,8 @@ This package is the place for:
 - dedicated render-input models for the chart pipeline
 
 The package is intentionally independent from `VideraView`.
+
+Most consumers should start with `Videra.SurfaceCharts.Avalonia` and add `Videra.SurfaceCharts.Processing` when they need the current first-chart path. Install `Videra.SurfaceCharts.Core` directly only when you are building custom tile sources or chart-domain contracts without the Avalonia control shell.
 
 ## What Belongs Here
 

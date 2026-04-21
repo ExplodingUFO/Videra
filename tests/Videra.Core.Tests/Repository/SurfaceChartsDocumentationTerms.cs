@@ -9,10 +9,10 @@ internal static class SurfaceChartsDocumentationTerms
         "The surface-chart module family is a sibling product area, independent from `VideraView`.";
 
     public const string SurfaceChartsFirstChartSentence =
-        "For the canonical first-chart story, use [Videra.SurfaceCharts.Demo](samples/Videra.SurfaceCharts.Demo/README.md) as the current public chart reference and `SurfaceChartView` in `Videra.SurfaceCharts.Avalonia` as the primary chart control entrypoint.";
+        "For the canonical first-chart story, start from `Videra.SurfaceCharts.Avalonia` plus `Videra.SurfaceCharts.Processing`, and use [Videra.SurfaceCharts.Demo](samples/Videra.SurfaceCharts.Demo/README.md) as the repository reference app for the same path.";
 
     public const string SurfaceChartsDemoFirstChartSentence =
-        "For the canonical first-chart story, this demo is the current public chart reference and `SurfaceChartView` in `Videra.SurfaceCharts.Avalonia` remains the primary chart control entrypoint.";
+        "For the canonical first-chart story, start from `Videra.SurfaceCharts.Avalonia` plus `Videra.SurfaceCharts.Processing`, and use this demo as the repository reference app for that same path. `SurfaceChartView` in `Videra.SurfaceCharts.Avalonia` remains the primary chart control entrypoint.";
 
     public const string SurfaceChartsDemoSentence =
         "`Videra.SurfaceCharts.Demo` is the independent demo application for the surface-chart module family.";
@@ -51,13 +51,13 @@ internal static class SurfaceChartsDocumentationTerms
         "The public rendering truth is `RenderingStatus` + `RenderStatusChanged` with `ActiveBackend`, `IsReady`, `IsFallback`, `FallbackReason`, `UsesNativeSurface`, and `ResidentTileCount`.";
 
     public const string SurfaceChartsSourceFirstSentence =
-        "The `Videra.SurfaceCharts.*` family stays source-first and is not part of the current public package promise.";
+        "The `Videra.SurfaceCharts.*` family is part of the current public package promise, while `Videra.SurfaceCharts.Demo` remains repository-only.";
 
     public const string ChineseSurfaceChartsFamilyBoundarySentence =
         "surface-chart 模块家族与 `VideraView` 相互独立。";
 
     public const string ChineseSurfaceChartsFirstChartSentence =
-        "默认 first-chart 入口请先把 [Videra.SurfaceCharts.Demo](../../samples/Videra.SurfaceCharts.Demo/README.md) 当作当前公开 chart reference，并把 `Videra.SurfaceCharts.Avalonia` 中的 `SurfaceChartView` 视为主 chart control entrypoint。";
+        "默认 first-chart 入口是 `Videra.SurfaceCharts.Avalonia` 加 `Videra.SurfaceCharts.Processing`，而 [Videra.SurfaceCharts.Demo](../../samples/Videra.SurfaceCharts.Demo/README.md) 则作为同一路径的 repository reference app。";
 
     public const string ChineseSurfaceChartsTruthSentence =
         "当前对外 truth 是：独立 Demo、built-in `left-drag orbit` / `right-drag pan` / `wheel dolly` / `Ctrl + left-drag` focus zoom、hover 与 `Shift + left-click` pinned probe、可见 `RenderingStatus`，以及显式 `Interactive` / `Refine` 质量切换。";
@@ -93,7 +93,7 @@ internal static class SurfaceChartsDocumentationTerms
         "提供 axis/legend overlays、hover readout 与 `Shift + left-click` pinned probe";
 
     public const string ChineseSurfaceChartsSourceFirstSentence =
-        "`Videra.SurfaceCharts.*` 仍保持 source-first，不在当前公开包承诺内。";
+        "`Videra.SurfaceCharts.*` 已经进入当前公开包承诺，`Videra.SurfaceCharts.Demo` 继续保持 repository-only。";
 
     public const string ChineseProcessingStatisticsSentence =
         "通过 `SurfaceTileStatistics` 保留 reduced tile 的 source-region truth";
@@ -113,6 +113,7 @@ internal static class SurfaceChartsDocumentationTerms
     public static readonly string[] ExpectedModuleReadmeTerms =
     [
         "Videra.SurfaceCharts.Core",
+        "Videra.SurfaceCharts.Rendering",
         "Videra.SurfaceCharts.Avalonia",
         "Videra.SurfaceCharts.Processing",
         "Videra.SurfaceCharts.Demo",
@@ -130,9 +131,9 @@ internal static class SurfaceChartsDocumentationTerms
     public static readonly string[] SurfaceChartsFirstChartTokens =
     [
         "canonical first-chart",
-        "current public chart reference",
-        "`SurfaceChartView`",
-        "primary chart control entrypoint"
+        "`Videra.SurfaceCharts.Avalonia`",
+        "`Videra.SurfaceCharts.Processing`",
+        "`Videra.SurfaceCharts.Demo`"
     ];
 
     public static readonly string[] SurfaceChartsFamilyBoundaryTokens =
@@ -160,7 +161,7 @@ internal static class SurfaceChartsDocumentationTerms
     [
         "`Start here: In-memory first chart`",
         "`Explore next: Cache-backed streaming`",
-        "source-first",
+        "baseline",
         "first chart"
     ];
 
@@ -223,10 +224,10 @@ internal static class SurfaceChartsDocumentationTerms
     public static readonly string[] SurfaceChartsDemoFirstChartTokens =
     [
         "canonical first-chart",
-        "this demo",
-        "current public chart reference",
-        "`SurfaceChartView`",
-        "primary chart control entrypoint"
+        "`Videra.SurfaceCharts.Avalonia`",
+        "`Videra.SurfaceCharts.Processing`",
+        "repository reference app",
+        "`SurfaceChartView`"
     ];
 
     public static readonly string[] SurfaceChartsInteractionDiagnosticsTokens =
@@ -286,8 +287,9 @@ internal static class SurfaceChartsDocumentationTerms
     public static readonly string[] SurfaceChartsSourceFirstTokens =
     [
         "`Videra.SurfaceCharts.*`",
-        "source-first",
-        "public package promise"
+        "public package promise",
+        "`Videra.SurfaceCharts.Demo`",
+        "repository-only"
     ];
 
     public static readonly string[] SurfaceChartsScalarCompatibilityTokens =
@@ -382,10 +384,9 @@ internal static class SurfaceChartsDocumentationTerms
     public static readonly string[] ChineseSurfaceChartsFirstChartTokens =
     [
         "first-chart",
-        "Videra.SurfaceCharts.Demo",
-        "当前公开 chart reference",
-        "SurfaceChartView",
-        "主 chart control entrypoint"
+        "Videra.SurfaceCharts.Avalonia",
+        "Videra.SurfaceCharts.Processing",
+        "Videra.SurfaceCharts.Demo"
     ];
 
     public static readonly string[] ChineseSurfaceChartsFamilyBoundaryTokens =
@@ -399,7 +400,6 @@ internal static class SurfaceChartsDocumentationTerms
     [
         "`Start here: In-memory first chart`",
         "`Explore next: Cache-backed streaming`",
-        "source-first",
         "first chart"
     ];
 
@@ -504,8 +504,9 @@ internal static class SurfaceChartsDocumentationTerms
     public static readonly string[] ChineseSurfaceChartsSourceFirstTokens =
     [
         "`Videra.SurfaceCharts.*`",
-        "source-first",
-        "公开包承诺"
+        "公开",
+        "`Videra.SurfaceCharts.Demo`",
+        "repository-only"
     ];
 
     public static readonly string[] ChineseSurfaceChartsScalarCompatibilityTokens =

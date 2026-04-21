@@ -1,10 +1,12 @@
 # Support Matrix
 
-This matrix describes the current support boundary for the public viewer/import packages and the source-only chart modules.
+This matrix describes the current support boundary for the public viewer stack, the public SurfaceCharts package line, and the repository-only demo/sample surfaces.
 
 Use [Videra 1.0 Capability Matrix](capability-matrix.md) for the explicit shipped-vs-deferred product boundary and the `Core` / `Import` / `Backend` / `UI adapter` / `Charts` layer vocabulary. Use [Hosting Boundary](hosting-boundary.md) for the canonical viewer composition rules behind these support entries.
 
 The public viewer install rule stays simple: start with `Videra.Avalonia`, add exactly one matching `Videra.Platform.*` package, and treat `Videra.Import.*` as explicit core-path ingestion packages rather than backend selection knobs.
+
+The public SurfaceCharts install rule is similarly narrow: start with `Videra.SurfaceCharts.Avalonia`, add `Videra.SurfaceCharts.Processing` for the current first-chart path, and treat `Videra.SurfaceCharts.Core` / `Videra.SurfaceCharts.Rendering` as lower-level package seams rather than the normal starting point.
 
 ## Viewer stack
 
@@ -18,14 +20,15 @@ The public viewer install rule stays simple: start with `Videra.Avalonia`, add e
 | `Videra.Import.Obj` | Any .NET 8 host | n/a | Public package | Repository verification plus importer-focused tests | `alpha` |
 | Software fallback | Any supported desktop host | Software | Runtime fallback | Covered by repository verification | Diagnostics/fallback only |
 
-## Source-only chart stack
+## SurfaceCharts stack
 
 | Surface | Distribution | Validation truth | Support level | Notes |
 | --- | --- | --- | --- | --- |
-| `Videra.SurfaceCharts.Core` | Repository source only | Core tests | Source-first `alpha` | No public package promise yet |
-| `Videra.SurfaceCharts.Avalonia` | Repository source only | Avalonia integration tests and demo validation | Source-first `alpha` | Independent from `VideraView` |
-| `Videra.SurfaceCharts.Processing` | Repository source only | Processing tests and benchmarks | Source-first `alpha` | Data-preparation layer for offline matrices |
-| `Videra.SurfaceCharts.Demo` | Repository source only | `sample-contract-evidence`, SurfaceCharts runtime evidence, and `Support summary` validation | Source-first `alpha` | `Start here: In-memory first chart` first, `Copy support summary` for support capture, and public tags do not publish `Videra.SurfaceCharts.*` package assets |
+| `Videra.SurfaceCharts.Core` | Public package | Core tests and package validation | `alpha` | Chart-domain contracts, tile identities, probe contracts, and LOD selection |
+| `Videra.SurfaceCharts.Rendering` | Public package | Rendering-focused tests and package validation | `alpha` | Rendering-runtime layer used transitively by `Videra.SurfaceCharts.Avalonia` |
+| `Videra.SurfaceCharts.Processing` | Public package | Processing tests, benchmarks, and package validation | `alpha` | Data-preparation layer for in-memory pyramids and cache-backed workflows |
+| `Videra.SurfaceCharts.Avalonia` | Public package | Avalonia integration tests, package validation, and demo alignment checks | `alpha` | Public `SurfaceChartView` entry package, independent from `VideraView` |
+| `Videra.SurfaceCharts.Demo` | Repository only | `sample-contract-evidence`, SurfaceCharts runtime evidence, and `Support summary` validation | `alpha` | `Start here: In-memory first chart` first, `Copy support summary` for support capture, repository-only reference app |
 
 ## Compatibility notes
 
