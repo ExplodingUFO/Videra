@@ -113,13 +113,15 @@ public static partial class GltfModelImporter
         var model = LoadModelRootWithFallback(filePath, logger);
         var nodes = new List<SceneNode>();
         var primitives = new Dictionary<SharpGLTF.Schema2.MeshPrimitive, SceneMeshPrimitive>();
+        var materials = new Dictionary<SharpGLTF.Schema2.Material, MaterialInstance>();
+        MaterialInstance? defaultMaterial = null;
 
         var defaultScene = model.DefaultScene ?? model.LogicalScenes.FirstOrDefault();
         if (defaultScene != null)
         {
             foreach (var node in defaultScene.VisualChildren)
             {
-                ProcessNodeRecursive(node, parentId: null, nodes, primitives, logger);
+                ProcessNodeRecursive(node, parentId: null, nodes, primitives, materials, ref defaultMaterial, logger);
             }
         }
         else
@@ -133,6 +135,8 @@ public static partial class GltfModelImporter
                         primitive,
                         mesh.mesh.Name ?? $"Mesh {mesh.index}",
                         primitives,
+                        materials,
+                        ref defaultMaterial,
                         logger);
 
                     if (resolvedPrimitive is not null)
@@ -155,11 +159,18 @@ public static partial class GltfModelImporter
             primitives.Values.Sum(static primitive => primitive.MeshData.Vertices.Length),
             primitives.Values.Sum(static primitive => primitive.MeshData.Indices.Length));
 
+        var materialCatalog = materials.Values.ToList();
+        if (defaultMaterial is not null)
+        {
+            materialCatalog.Add(defaultMaterial);
+        }
+
         return new ImportedSceneAsset(
             filePath,
             Path.GetFileName(filePath),
             nodes,
-            primitives.Values.ToArray());
+            primitives.Values.ToArray(),
+            materialCatalog);
     }
 
     private static ModelRoot LoadModelRootWithFallback(string filePath, ILogger logger)
@@ -180,6 +191,8 @@ public static partial class GltfModelImporter
         SceneNodeId? parentId,
         List<SceneNode> nodes,
         Dictionary<SharpGLTF.Schema2.MeshPrimitive, SceneMeshPrimitive> primitives,
+        Dictionary<SharpGLTF.Schema2.Material, MaterialInstance> materials,
+        ref MaterialInstance? defaultMaterial,
         ILogger logger)
     {
         var currentNodeId = SceneNodeId.New();
@@ -193,6 +206,8 @@ public static partial class GltfModelImporter
                     primitive,
                     node.Mesh.Name ?? node.Name ?? "Mesh",
                     primitives,
+                    materials,
+                    ref defaultMaterial,
                     logger);
 
                 if (resolvedPrimitive is not null)
@@ -216,7 +231,7 @@ public static partial class GltfModelImporter
 
         foreach (var child in node.VisualChildren)
         {
-            ProcessNodeRecursive(child, currentNodeId, nodes, primitives, logger);
+            ProcessNodeRecursive(child, currentNodeId, nodes, primitives, materials, ref defaultMaterial, logger);
         }
     }
 
@@ -224,6 +239,8 @@ public static partial class GltfModelImporter
         SharpGLTF.Schema2.MeshPrimitive primitive,
         string meshName,
         Dictionary<SharpGLTF.Schema2.MeshPrimitive, SceneMeshPrimitive> primitives,
+        Dictionary<SharpGLTF.Schema2.Material, MaterialInstance> materials,
+        ref MaterialInstance? defaultMaterial,
         ILogger logger)
     {
         if (primitives.TryGetValue(primitive, out var existing))
@@ -237,12 +254,47 @@ public static partial class GltfModelImporter
             return null;
         }
 
+        var material = CreateOrGetMaterial(
+            primitive.Material,
+            meshName,
+            materials,
+            ref defaultMaterial);
         var created = new SceneMeshPrimitive(
             MeshPrimitiveId.New(),
             $"{meshName}#primitive{primitives.Count}",
-            meshData);
+            meshData,
+            material.Id);
         primitives.Add(primitive, created);
         Log.ProcessedVertices(logger, meshData.Vertices.Length, (uint)meshData.Indices.Length);
+        return created;
+    }
+
+    private static MaterialInstance CreateOrGetMaterial(
+        SharpGLTF.Schema2.Material? sourceMaterial,
+        string meshName,
+        Dictionary<SharpGLTF.Schema2.Material, MaterialInstance> materials,
+        ref MaterialInstance? defaultMaterial)
+    {
+        if (sourceMaterial is null)
+        {
+            defaultMaterial ??= new MaterialInstance(
+                MaterialInstanceId.New(),
+                "DefaultMaterial",
+                RgbaFloat.White);
+            return defaultMaterial;
+        }
+
+        if (materials.TryGetValue(sourceMaterial, out var existing))
+        {
+            return existing;
+        }
+
+        var baseColor = sourceMaterial.FindChannel("BaseColor")?.Parameter ?? Vector4.One;
+        var created = new MaterialInstance(
+            MaterialInstanceId.New(),
+            sourceMaterial.Name ?? $"{meshName}#material{materials.Count}",
+            new RgbaFloat(baseColor.X, baseColor.Y, baseColor.Z, baseColor.W));
+        materials.Add(sourceMaterial, created);
         return created;
     }
 

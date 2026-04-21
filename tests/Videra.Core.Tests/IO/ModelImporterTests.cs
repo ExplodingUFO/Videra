@@ -196,7 +196,9 @@ public sealed class ModelImporterTests : IDisposable
         asset.RootNodes.Should().ContainSingle();
         asset.Nodes.Should().ContainSingle();
         asset.Primitives.Should().ContainSingle();
+        asset.Materials.Should().ContainSingle();
         asset.Nodes[0].PrimitiveIds.Should().ContainSingle().Which.Should().Be(asset.Primitives[0].Id);
+        asset.Primitives[0].MaterialId.Should().Be(asset.Materials[0].Id);
         asset.Metrics.VertexCount.Should().Be(3);
         asset.Metrics.IndexCount.Should().Be(3);
     }
@@ -460,10 +462,12 @@ public sealed class ModelImporterTests : IDisposable
         asset.RootNodes.Should().ContainSingle().Which.Should().Be(rootNode);
         asset.Nodes.Should().HaveCount(3);
         asset.Primitives.Should().ContainSingle();
+        asset.Materials.Should().ContainSingle();
         leftNode.ParentId.Should().Be(rootNode.Id);
         rightNode.ParentId.Should().Be(rootNode.Id);
         leftNode.PrimitiveIds.Should().ContainSingle().Which.Should().Be(asset.Primitives[0].Id);
         rightNode.PrimitiveIds.Should().ContainSingle().Which.Should().Be(asset.Primitives[0].Id);
+        asset.Primitives[0].MaterialId.Should().Be(asset.Materials[0].Id);
     }
 
     [Fact]
@@ -534,8 +538,88 @@ public sealed class ModelImporterTests : IDisposable
 
         asset.Nodes.Should().ContainSingle();
         asset.Primitives.Should().ContainSingle();
+        asset.Materials.Should().ContainSingle();
         asset.Nodes[0].PrimitiveIds.Should().ContainSingle().Which.Should().Be(asset.Primitives[0].Id);
+        asset.Primitives[0].MaterialId.Should().Be(asset.Materials[0].Id);
         asset.Metrics.VertexCount.Should().Be(3);
         asset.Metrics.IndexCount.Should().Be(3);
+    }
+
+    [Fact]
+    public void Import_GltfBaseColorFactor_MapsToMaterialInstance()
+    {
+        var path = WriteGltf("material_factor.gltf", """
+            {
+              "asset": { "version": "2.0" },
+              "scene": 0,
+              "scenes": [
+                { "nodes": [0] }
+              ],
+              "nodes": [
+                { "name": "Root", "mesh": 0 }
+              ],
+              "meshes": [
+                {
+                  "name": "ColoredMesh",
+                  "primitives": [
+                    {
+                      "attributes": { "POSITION": 0, "NORMAL": 1 },
+                      "indices": 2,
+                      "material": 0
+                    }
+                  ]
+                }
+              ],
+              "materials": [
+                {
+                  "name": "Tinted",
+                  "pbrMetallicRoughness": {
+                    "baseColorFactor": [0.2, 0.4, 0.6, 0.8]
+                  }
+                }
+              ],
+              "buffers": [
+                {
+                  "byteLength": 78,
+                  "uri": "data:application/octet-stream;base64,AAAAAAAAAAAAAAAAAACAPwAAAAAAAAAAAAAAAAAAgD8AAAAAAAAAQAAAAAAAAAAAAAAAAAAAQEAAAAAAAAAAAAAAAAAAAIBAAAABAAIA"
+                }
+              ],
+              "bufferViews": [
+                { "buffer": 0, "byteOffset": 0, "byteLength": 36, "target": 34962 },
+                { "buffer": 0, "byteOffset": 36, "byteLength": 36, "target": 34962 },
+                { "buffer": 0, "byteOffset": 72, "byteLength": 6, "target": 34963 }
+              ],
+              "accessors": [
+                {
+                  "bufferView": 0,
+                  "componentType": 5126,
+                  "count": 3,
+                  "type": "VEC3",
+                  "min": [0.0, 0.0, 0.0],
+                  "max": [1.0, 1.0, 0.0]
+                },
+                {
+                  "bufferView": 1,
+                  "componentType": 5126,
+                  "count": 3,
+                  "type": "VEC3"
+                },
+                {
+                  "bufferView": 2,
+                  "componentType": 5123,
+                  "count": 3,
+                  "type": "SCALAR"
+                }
+              ]
+            }
+            """);
+
+        var asset = GltfModelImporter.Import(path);
+
+        asset.Materials.Should().ContainSingle();
+        asset.Materials[0].Name.Should().Be("Tinted");
+        asset.Materials[0].BaseColorFactor.Should().Be(new RgbaFloat(0.2f, 0.4f, 0.6f, 0.8f));
+        asset.Primitives.Should().ContainSingle();
+        asset.Primitives[0].MaterialId.Should().Be(asset.Materials[0].Id);
     }
 }

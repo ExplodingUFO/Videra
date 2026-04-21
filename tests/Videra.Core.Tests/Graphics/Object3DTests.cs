@@ -377,9 +377,10 @@ public class Object3DTests
     public void SceneObjectFactory_CreateDeferred_ReusesSharedPayloadAcrossObjects()
     {
         var mesh = CreateTestMesh();
-        var primitive = new MeshPrimitive(MeshPrimitiveId.New(), "triangle.obj#primitive0", mesh);
+        var material = new MaterialInstance(MaterialInstanceId.New(), "triangle.obj#material0", RgbaFloat.White);
+        var primitive = new MeshPrimitive(MeshPrimitiveId.New(), "triangle.obj#primitive0", mesh, material.Id);
         var rootNode = new SceneNode(SceneNodeId.New(), "triangle.obj", Matrix4x4.Identity, parentId: null, [primitive.Id]);
-        var asset = new ImportedSceneAsset("triangle.obj", "triangle.obj", [rootNode], [primitive]);
+        var asset = new ImportedSceneAsset("triangle.obj", "triangle.obj", [rootNode], [primitive], [material]);
         var payloadProperty = typeof(ImportedSceneAsset).GetProperty("Payload", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
         var objectPayloadProperty = typeof(Object3D).GetProperty("MeshPayload", BindingFlags.Instance | BindingFlags.NonPublic);
         var retentionPolicyProperty = typeof(Object3D).GetProperty("CpuMeshRetentionPolicy", BindingFlags.Instance | BindingFlags.NonPublic);
@@ -401,7 +402,8 @@ public class Object3DTests
     [Fact]
     public void ImportedSceneAsset_FlattensSharedPrimitiveInstancesIntoTransformedPayload()
     {
-        var primitive = new MeshPrimitive(MeshPrimitiveId.New(), "SharedTriangle", CreateTestMesh());
+        var material = new MaterialInstance(MaterialInstanceId.New(), "SharedMaterial", RgbaFloat.White);
+        var primitive = new MeshPrimitive(MeshPrimitiveId.New(), "SharedTriangle", CreateTestMesh(), material.Id);
         var rootId = SceneNodeId.New();
         var leftId = SceneNodeId.New();
         var rightId = SceneNodeId.New();
@@ -413,7 +415,8 @@ public class Object3DTests
                 new SceneNode(leftId, "Left", Matrix4x4.Identity, rootId, [primitive.Id]),
                 new SceneNode(rightId, "Right", Matrix4x4.CreateTranslation(2f, 0f, 0f), rootId, [primitive.Id])
             ],
-            [primitive]);
+            [primitive],
+            [material]);
         var payloadProperty = typeof(ImportedSceneAsset).GetProperty("Payload", BindingFlags.Instance | BindingFlags.NonPublic);
 
         payloadProperty.Should().NotBeNull();
@@ -442,5 +445,46 @@ public class Object3DTests
             new Vector3(2f, 0f, 0f),
             new Vector3(3f, 0f, 0f),
             new Vector3(2f, 1f, 0f));
+    }
+
+    [Fact]
+    public void ImportedSceneAsset_RetainsMaterialTextureAndSamplerCatalogs()
+    {
+        var texture = new Texture2D(
+            Texture2DId.New(),
+            "BaseColorTexture",
+            1,
+            1,
+            Texture2DPixelFormat.Rgba8Srgb,
+            [255, 255, 255, 255],
+            isSrgb: true);
+        var sampler = new Sampler(
+            SamplerId.New(),
+            "LinearClamp",
+            TextureFilter.Linear,
+            TextureFilter.Linear,
+            TextureWrapMode.ClampToEdge,
+            TextureWrapMode.ClampToEdge);
+        var material = new MaterialInstance(
+            MaterialInstanceId.New(),
+            "TexturedMaterial",
+            RgbaFloat.White,
+            texture.Id,
+            sampler.Id);
+        var primitive = new MeshPrimitive(MeshPrimitiveId.New(), "triangle.obj#primitive0", CreateTestMesh(), material.Id);
+        var rootNode = new SceneNode(SceneNodeId.New(), "triangle.obj", Matrix4x4.Identity, parentId: null, [primitive.Id]);
+        var asset = new ImportedSceneAsset(
+            "triangle.obj",
+            "triangle.obj",
+            [rootNode],
+            [primitive],
+            [material],
+            [texture],
+            [sampler]);
+
+        asset.Materials.Should().ContainSingle().Which.Should().BeSameAs(material);
+        asset.Textures.Should().ContainSingle().Which.Should().BeSameAs(texture);
+        asset.Samplers.Should().ContainSingle().Which.Should().BeSameAs(sampler);
+        asset.Primitives.Should().ContainSingle().Which.MaterialId.Should().Be(material.Id);
     }
 }

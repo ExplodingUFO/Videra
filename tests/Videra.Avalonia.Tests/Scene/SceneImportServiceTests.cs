@@ -32,6 +32,20 @@ public sealed class SceneImportServiceTests : IDisposable
         result.Failures.Should().ContainSingle().Which.Path.Should().Be(missing);
     }
 
+    [Fact]
+    public async Task Import_single_preserves_material_catalog_on_imported_asset()
+    {
+        var path = WriteObj("material.obj");
+
+        var result = await _service.ImportSingleAsync(path, CancellationToken.None);
+
+        result.Entry.Should().NotBeNull();
+        result.Entry!.ImportedAsset.Should().NotBeNull();
+        result.Entry.ImportedAsset!.Materials.Should().ContainSingle();
+        result.Entry.ImportedAsset.Primitives.Should().ContainSingle();
+        result.Entry.ImportedAsset.Primitives[0].MaterialId.Should().Be(result.Entry.ImportedAsset.Materials[0].Id);
+    }
+
     private string WriteObj(string name)
     {
         var path = Path.Combine(_tempDir, name);
