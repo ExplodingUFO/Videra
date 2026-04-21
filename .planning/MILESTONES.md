@@ -1,5 +1,34 @@
 # Milestones
 
+## v1.20 Viewer Product Boundary and Core Slimming
+
+**Shipped:** 2026-04-21
+**Phases:** 4 (`103-106`)
+**Plans:** 12
+**Timeline:** 1 day (`2026-04-21` → `2026-04-21`)
+**Repo state:** local closeout recorded after retroactive phase verification backfill, milestone audit `passed`, and archive generation; no milestone tag was retained because release tags stay version-aligned
+
+### Key Accomplishments
+
+1. Defined one explicit `1.0` capability/layer boundary so Videra now reads as a native desktop viewer/runtime plus inspection and source-first charts instead of a blurry “engine-ish” runtime.
+2. Extracted concrete importer and logging-provider dependencies out of `Videra.Core`, leaving explicit `Videra.Import.*` package composition and a slimmer runtime kernel.
+3. Locked the host/package boundary with canonical docs plus reflection/project-graph/repository guards so `Core`, `Import`, `Backend`, `UI adapter`, and `Charts` remain independently explainable.
+4. Aligned package docs, support/release docs, Chinese onboarding docs, consumer smoke, package validation, CI, and publish workflows around the same canonical public viewer stack.
+
+### Archived Materials
+
+- `.planning/milestones/v1.20-ROADMAP.md`
+- `.planning/milestones/v1.20-REQUIREMENTS.md`
+- `.planning/milestones/v1.20-MILESTONE-AUDIT.md`
+
+### Notes
+
+- Fresh closeout verification reran the product-boundary repository slice (`3`), the core/import/consumer slice (`23`), importer integration (`6`), the hosting-boundary slice (`5`), the package/release readiness slice (`28`), and packaged consumer smoke plus `Validate-Packages.ps1`.
+- Phase `104` planning artifacts were reconstructed retroactively during closeout because the implementation commits had landed without the phase directory under `.planning/phases/`.
+- Known deferred items at close: `3` (see `.planning/STATE.md` Deferred Items).
+
+---
+
 ## v1.18 SurfaceCharts Analytics Core
 
 **Shipped:** 2026-04-20

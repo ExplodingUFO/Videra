@@ -12,9 +12,9 @@ Videra 是一个基于 `.NET 8` 的跨平台 3D 渲染引擎，提供 Windows (`
 
 ## Current State
 
-- 最新完整归档 milestone：`v1.18 SurfaceCharts Analytics Core`
-- 当前 active milestone：`v1.20 Viewer Product Boundary and Core Slimming`
-- 当前 focus：`v1.20` 的 `Phase 103-106` 已全部完成，下一步是 milestone audit / closeout，确认 package truth、support/release 文档和自动化验证能以同一套 canonical viewer stack 收口
+- 最新完整归档 milestone：`v1.20 Viewer Product Boundary and Core Slimming`
+- 当前 active milestone：`—`
+- 当前 focus：从 `v1.20` 的 boundary/package closeout 转回下一阶段的 runtime/product depth，优先候选仍是 `v1.21 Scene and Material Runtime v1`
 
 ## Next Milestone Candidates
 
@@ -26,7 +26,7 @@ Videra 是一个基于 `.NET 8` 的跨平台 3D 渲染引擎，提供 Windows (`
 - `v1.26 Second UI Adapter Validation`：在 Avalonia 之外验证第二 UI 适配层和 host seams
 - `v2.0 Advanced Runtime Features`：灯光、阴影、环境贴图、透明排序、post-processing、动画等高级 runtime 能力
 
-## Current Milestone: v1.20 Viewer Product Boundary and Core Slimming
+## Latest Completed Milestone: v1.20 Viewer Product Boundary and Core Slimming
 
 **Goal:** 先把 `Videra` 从“已有正确骨架的 native viewer/runtime”收成一个边界清楚的 `1.0` 产品：明确 viewer/runtime 能力矩阵，收紧 `Videra.Core`，把 importer / logging / hosting seams 从隐式依赖变成显式 package 和 contract。
 
@@ -36,7 +36,15 @@ Videra 是一个基于 `.NET 8` 的跨平台 3D 渲染引擎，提供 Windows (`
 - dedicated `Import` / `Logging` / `Hosting` package seams that keep Avalonia and backend integrations thin
 - docs, package matrix, consumer smoke, and repository guards that all describe the same viewer-first product boundary
 
-## Latest Completed Milestone: v1.18 SurfaceCharts Analytics Core
+**Status:** shipped locally on `2026-04-21`; audit `passed`; archived locally without a milestone tag because repository release tags stay version-aligned
+
+**Delivered outcomes:**
+- defined one explicit `1.0` boundary document and capability/package-layer matrix so Videra now reads as a native desktop viewer/runtime plus inspection and source-first charts instead of a blurry “engine-ish” runtime
+- extracted concrete importer and logging-provider dependencies out of `Videra.Core`, leaving a slimmer runtime kernel and explicit `Videra.Import.*` package composition
+- documented and guarded the host/package boundary so `Core`, `Import`, `Backend`, `UI adapter`, and `Charts` remain independently explainable without widening public abstractions
+- aligned package docs, support/release docs, Chinese onboarding docs, consumer smoke, package validation, and publish workflows around the same canonical public viewer stack
+
+## Previously Completed Milestone: v1.18 SurfaceCharts Analytics Core
 
 **Goal:** 把 `SurfaceCharts` 从 source-first surface control 推进成专业 surface analytics core：优先升级 geometry/axis/scalar contracts，再落 shader/LUT recolor、proper normals、以及 low-copy residency 这类高杠杆实现基础，并以 label-gated 热点证据替代硬性阈值作为 milestone 收口条件。
 
@@ -276,7 +284,7 @@ Videra 是一个基于 `.NET 8` 的跨平台 3D 渲染引擎，提供 Windows (`
 | Start `v1.17` as a repair milestone instead of opening another product-surface thread immediately | The latest CI evidence said the trust gap was benchmark compile drift, SurfaceCharts analyzer debt, and Linux `XWayland` smoke stability, so restoring the green line outranked another new feature push | merged on `master`; archive pending |
 | Start `v1.18` with data/coordinate/scalar contract depth instead of `OpenGL`, public package expansion, generic `Chart3D`, or immediate feature sprawl | The highest-value next step is turning `SurfaceCharts` into a professional analytics core; generalized contracts unlock contour, probe, slice, and future series work without premature scene abstraction | completed in `v1.18` |
 | Start `v1.19` with presentation-space and interaction-default work instead of jumping straight to contour/probe or second-series expansion | The current highest-value gap is not deeper analytics math but that the default chart does not yet present those semantics clearly; display-space separation also unlocks later log-axis and preset work | active in `v1.19` |
-| Start `v1.20` with viewer product boundary and core slimming instead of jumping straight to scene/material runtime, static PBR, or chart productization | The next highest-leverage move is to make Videra's `1.0` product boundary and package layering explicit before broadening runtime features; otherwise later milestones will keep landing on a blurry core | active in `v1.20` |
+| Start `v1.20` with viewer product boundary and core slimming instead of jumping straight to scene/material runtime, static PBR, or chart productization | The next highest-leverage move is to make Videra's `1.0` product boundary and package layering explicit before broadening runtime features; otherwise later milestones will keep landing on a blurry core | completed in `v1.20` |
 
 ## Evolution
 
@@ -319,4 +327,4 @@ This document evolves at phase transitions and milestone boundaries.
 - Retrospective: `.planning/RETROSPECTIVE.md`
 
 ---
-*Last updated: 2026-04-21 after completing Phase 106 of the v1.20 Viewer Product Boundary and Core Slimming milestone*
+*Last updated: 2026-04-21 after archiving the v1.20 Viewer Product Boundary and Core Slimming milestone*

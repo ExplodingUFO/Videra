@@ -1,3 +1,8 @@
+---
+requirements_completed:
+  - HOST-01
+---
+
 # Phase 105 Summary: Import Package and Hosting Abstractions
 
 ## Outcome
