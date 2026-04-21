@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "packages": [
+    {
+      "id": "Videra.Core",
+      "nupkgMaxBytes": 166912,
+      "snupkgMaxBytes": 70656
+    },
+    {
+      "id": "Videra.Import.Gltf",
+      "nupkgMaxBytes": 25600,
+      "snupkgMaxBytes": 20480
+    },
+    {
+      "id": "Videra.Import.Obj",
+      "nupkgMaxBytes": 18432,
+      "snupkgMaxBytes": 17408
+    },
+    {
+      "id": "Videra.Avalonia",
+      "nupkgMaxBytes": 164864,
+      "snupkgMaxBytes": 65536
+    },
+    {
+      "id": "Videra.Platform.Windows",
+      "nupkgMaxBytes": 31744,
+      "snupkgMaxBytes": 20480
+    },
+    {
+      "id": "Videra.Platform.Linux",
+      "nupkgMaxBytes": 46080,
+      "snupkgMaxBytes": 24576
+    },
+    {
+      "id": "Videra.Platform.macOS",
+      "nupkgMaxBytes": 33792,
+      "snupkgMaxBytes": 23552
+    }
+  ]
+}

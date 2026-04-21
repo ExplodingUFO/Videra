@@ -124,12 +124,11 @@ jobs:
 
           "package_version=$packageVersion" >> $env:GITHUB_OUTPUT
 
-      - name: Build packaged consumer smoke with warnings as errors
+      - name: Run packaged consumer smoke with warnings as errors
         shell: pwsh
         run: >
           pwsh -File ./scripts/Invoke-ConsumerSmoke.ps1 -Configuration Release
           -OutputRoot artifacts/consumer-smoke-quality
-          -BuildOnly
           -TreatWarningsAsErrors
 
       - name: Validate packaged consumer smoke artifacts

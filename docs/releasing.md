@@ -17,9 +17,9 @@ That workflow is expected to:
 
 1. Resolve the version from the tag.
 2. Run matching-host native validation for Linux X11, Linux Wayland-session `XWayland`, macOS, and Windows.
-3. Run `Consumer Smoke` on the packaged alpha happy path through `scripts/Invoke-ConsumerSmoke.ps1`, with the dedicated consumer-smoke workflow also serving as routine pull-request evidence.
+3. Run `Consumer Smoke` on the packaged alpha happy path through `scripts/Invoke-ConsumerSmoke.ps1`, with the dedicated consumer-smoke workflow and PR `quality-gate-evidence` job both serving as routine pull-request evidence.
 4. Pack the public package set.
-5. Validate package metadata and assets through `scripts/Validate-Packages.ps1`.
+5. Validate package metadata, package-size budgets, and assets through `scripts/Validate-Packages.ps1`.
 6. Push `.nupkg` and `.snupkg` assets to `nuget.org`.
 7. Create or update the GitHub Release with generated notes and attached package assets.
 
@@ -51,7 +51,7 @@ The public package set is limited to:
 
 The canonical public viewer stack is `Videra.Avalonia` plus exactly one matching `Videra.Platform.*` package. `Videra.Import.Gltf` and `Videra.Import.Obj` remain explicit ingestion packages on the core path.
 Every public publish path, including `publish-existing-public-release.yml`, is expected to run packaged consumer smoke and `Validate-Packages.ps1` before pushing assets. The existing-tag republish workflow is intentionally limited to tags that already carry the current public package set and helper scripts.
-Every public publish path, including `publish-existing-public-release.yml`, is expected to run packaged consumer smoke and `Validate-Packages.ps1` before pushing assets.
+`Validate-Packages.ps1` now also enforces the source-controlled byte budgets in `eng/package-size-budgets.json` and emits package-size evaluation artifacts under `PackageRoot/.validation`.
 
 ## Maintainer checklist
 
@@ -62,7 +62,7 @@ Every public publish path, including `publish-existing-public-release.yml`, is e
 - Confirm `README.md`, `docs/support-matrix.md`, and `docs/release-policy.md` still say SurfaceCharts stays source-first and that public tags do not publish `Videra.SurfaceCharts.*` package assets.
 - Confirm `docs/package-matrix.md` and `docs/hosting-boundary.md` still describe the same canonical viewer stack as the release assets: `Videra.Avalonia` + one matching `Videra.Platform.*` package, with `Videra.Import.*` remaining explicit ingestion packages.
 - Confirm pull-request `sample-contract-evidence` stayed green for `Videra.SurfaceCharts.Demo`, including `Start here: In-memory first chart`, the `Copy support summary` workflow, and the SurfaceCharts runtime evidence step.
-- Confirm pull-request `quality-gate-evidence` stayed green so the packaged consumer path, curated Core test surfaces, and `Videra.MinimalSample` still build with warnings treated as errors.
+- Confirm pull-request `quality-gate-evidence` stayed green so the Windows packaged consumer smoke path still runs with warnings treated as errors, package-size budgets still pass, and the curated Core test surfaces plus `Videra.MinimalSample` remain warning-clean.
 - Confirm public release notes and attached assets do not introduce `Videra.SurfaceCharts.*` package IDs or present `Videra.SurfaceCharts.Demo` as a public package install path.
 - Confirm pull-request `Benchmark Gates` stayed green and that the threshold evaluation artifacts did not report committed runtime-budget regressions.
 - Confirm release notes categories in `.github/release.yml` still match the current label taxonomy.

@@ -34,7 +34,7 @@ That shipped viewer path now carries one direct static glTF/PBR baseline: UV-bac
 - `Videra.SurfaceCharts.*` is still a source-first module family, not a published public package line
 - Linux native rendering remains `X11`-hosted, and Wayland sessions stay on the documented `XWayland compatibility` path
 - GitHub Actions runs matching-host native validation, packaged consumer smoke, and explicit sample-contract evidence on pull requests, and the [Native Validation runbook](docs/native-validation.md) documents how to use `Run workflow` for targeted reruns
-- The current alpha-ready `green` line is repository verification + native validation + packaged consumer smoke + sample-contract evidence, with `quality-gate-evidence` keeping the packaged consumer path, curated Core test surfaces, and `Videra.MinimalSample` warning-clean while `run-benchmarks` remains the explicit label-gated benchmark-review switch rather than a hard numeric blocker
+- The current alpha-ready `green` line is repository verification + native validation + packaged consumer smoke + sample-contract evidence, with `quality-gate-evidence` running the Windows packaged consumer smoke path with warnings treated as errors, enforcing package-size budgets on the public package line, and keeping the curated Core test surfaces plus `Videra.MinimalSample` warning-clean while `Benchmark Gates` serves as the hard numeric runtime blocker
 
 ## Getting Started
 
