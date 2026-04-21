@@ -105,12 +105,26 @@ jobs:
         shell: pwsh
         run: pwsh -File ./scripts/Invoke-ConsumerSmoke.ps1 -Configuration Release -OutputRoot artifacts/consumer-smoke/existing-release
 
+      - name: Run packaged SurfaceCharts consumer smoke
+        shell: pwsh
+        run: >
+          pwsh -File ./scripts/Invoke-ConsumerSmoke.ps1 -Configuration Release
+          -Scenario SurfaceCharts
+          -OutputRoot artifacts/consumer-smoke/existing-release-surfacecharts
+
       - name: Upload consumer smoke artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: consumer-smoke-existing-public-release
           path: artifacts/consumer-smoke/existing-release
+
+      - name: Upload SurfaceCharts consumer smoke artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: consumer-smoke-existing-public-release-surfacecharts
+          path: artifacts/consumer-smoke/existing-release-surfacecharts
 
       - name: Validate packed artifacts
         shell: pwsh

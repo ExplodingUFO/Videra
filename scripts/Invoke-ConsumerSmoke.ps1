@@ -3,7 +3,10 @@ param(
     [ValidateSet("Debug", "Release")]
     [string]$Configuration = "Release",
 
-    [string]$Project = "smoke/Videra.ConsumerSmoke/Videra.ConsumerSmoke.csproj",
+    [ValidateSet("Viewer", "SurfaceCharts")]
+    [string]$Scenario = "Viewer",
+
+    [string]$Project = "",
 
     [string]$OutputRoot = "artifacts/consumer-smoke",
 
@@ -14,12 +17,28 @@ param(
 
 $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent $PSScriptRoot
-$projectPath = Join-Path $root $Project
+$defaultViewerProject = "smoke/Videra.ConsumerSmoke/Videra.ConsumerSmoke.csproj"
+$defaultSurfaceChartsProject = "smoke/Videra.SurfaceCharts.ConsumerSmoke/Videra.SurfaceCharts.ConsumerSmoke.csproj"
+$resolvedProject =
+    if ([string]::IsNullOrWhiteSpace($Project))
+    {
+        switch ($Scenario)
+        {
+            "Viewer" { $defaultViewerProject }
+            "SurfaceCharts" { $defaultSurfaceChartsProject }
+        }
+    }
+    else
+    {
+        $Project
+    }
+$projectPath = Join-Path $root $resolvedProject
 $outputPath = Join-Path $root $OutputRoot
 $jsonPath = Join-Path $outputPath "consumer-smoke-result.json"
 $snapshotPath = Join-Path $outputPath "diagnostics-snapshot.txt"
 $inspectionSnapshotPath = Join-Path $outputPath "inspection-snapshot.png"
 $inspectionBundlePath = Join-Path $outputPath "inspection-bundle"
+$surfaceChartsSupportSummaryPath = Join-Path $outputPath "surfacecharts-support-summary.txt"
 $tracePath = Join-Path $outputPath "consumer-smoke-trace.log"
 $stdoutPath = Join-Path $outputPath "consumer-smoke-stdout.log"
 $stderrPath = Join-Path $outputPath "consumer-smoke-stderr.log"
@@ -112,15 +131,22 @@ function Write-FallbackConsumerSmokeArtifacts([string]$failure, [int]$processExi
     if (-not (Test-Path -LiteralPath $script:jsonPath))
     {
         $fallbackReport = [ordered]@{
+            Scenario = $Scenario
             Succeeded = $false
             FrameAllReturned = $false
+            FirstChartRendered = $false
             Failure = $failure
             RequestedBackend = "Unknown"
             ResolvedBackend = "Unknown"
+            ActiveBackend = "Unknown"
             IsReady = $false
             IsUsingSoftwareFallback = $false
+            IsFallback = $false
             FallbackReason = $null
             NativeHostBound = $false
+            UsesNativeSurface = $false
+            ResidentTileCount = 0
+            InteractionQuality = "Unavailable"
             ResolvedDisplayServer = $null
             DisplayServerFallbackUsed = $false
             DisplayServerFallbackReason = $null
@@ -129,6 +155,7 @@ function Write-FallbackConsumerSmokeArtifacts([string]$failure, [int]$processExi
             DiagnosticsSnapshotPath = $script:snapshotPath
             InspectionSnapshotPath = if (Test-Path -LiteralPath $script:inspectionSnapshotPath) { $script:inspectionSnapshotPath } else { $null }
             InspectionBundlePath = if (Test-Path -LiteralPath $script:inspectionBundlePath) { $script:inspectionBundlePath } else { $null }
+            SupportSummaryPath = if (Test-Path -LiteralPath $script:surfaceChartsSupportSummaryPath) { $script:surfaceChartsSupportSummaryPath } else { $null }
             ProcessExitCode = $processExitCode
             Display = Format-ConsumerSmokeEnvironmentValue $script:sessionEnvironment.DISPLAY
             WaylandDisplay = Format-ConsumerSmokeEnvironmentValue $script:sessionEnvironment.WAYLAND_DISPLAY
@@ -147,6 +174,7 @@ function Write-FallbackConsumerSmokeArtifacts([string]$failure, [int]$processExi
     {
         @(
             "Consumer smoke fallback diagnostics"
+            "Scenario: $Scenario"
             "Failure: $failure"
             "ProcessExitCode: $processExitCode"
             "DISPLAY: $(Format-ConsumerSmokeEnvironmentValue $script:sessionEnvironment.DISPLAY)"
@@ -163,7 +191,7 @@ function Write-FallbackConsumerSmokeArtifacts([string]$failure, [int]$processExi
 
 Write-ConsumerSmokeEnvironmentSnapshot
 
-Write-Host "=== Pack Public Consumer Packages ===" -ForegroundColor Cyan
+Write-Host "=== Pack Public Consumer Packages ($Scenario) ===" -ForegroundColor Cyan
 New-Item -ItemType Directory -Force -Path $packageOutputPath | Out-Null
 
 $versionProject = Join-Path $root "src/Videra.Avalonia/Videra.Avalonia.csproj"
@@ -323,25 +351,39 @@ elseif (-not (Test-Path -LiteralPath $snapshotPath))
 {
     $missingArtifactFailure = "Consumer smoke did not produce '$snapshotPath'."
 }
-elseif (-not (Test-Path -LiteralPath $inspectionSnapshotPath))
+elseif ($Scenario -eq "Viewer")
 {
-    $missingArtifactFailure = "Consumer smoke did not produce '$inspectionSnapshotPath'."
+    if (-not (Test-Path -LiteralPath $inspectionSnapshotPath))
+    {
+        $missingArtifactFailure = "Consumer smoke did not produce '$inspectionSnapshotPath'."
+    }
+    elseif ((Get-Item -LiteralPath $inspectionSnapshotPath).Length -le 0)
+    {
+        $missingArtifactFailure = "Consumer smoke produced '$inspectionSnapshotPath' but it was empty."
+    }
+    elseif (-not (Test-Path -LiteralPath $inspectionBundlePath))
+    {
+        $missingArtifactFailure = "Consumer smoke did not produce '$inspectionBundlePath'."
+    }
+    elseif (-not (Test-Path -LiteralPath (Join-Path $inspectionBundlePath "inspection-state.json")))
+    {
+        $missingArtifactFailure = "Consumer smoke bundle did not include 'inspection-state.json'."
+    }
+    elseif (-not (Test-Path -LiteralPath (Join-Path $inspectionBundlePath "asset-manifest.json")))
+    {
+        $missingArtifactFailure = "Consumer smoke bundle did not include 'asset-manifest.json'."
+    }
 }
-elseif ((Get-Item -LiteralPath $inspectionSnapshotPath).Length -le 0)
+elseif ($Scenario -eq "SurfaceCharts")
 {
-    $missingArtifactFailure = "Consumer smoke produced '$inspectionSnapshotPath' but it was empty."
-}
-elseif (-not (Test-Path -LiteralPath $inspectionBundlePath))
-{
-    $missingArtifactFailure = "Consumer smoke did not produce '$inspectionBundlePath'."
-}
-elseif (-not (Test-Path -LiteralPath (Join-Path $inspectionBundlePath "inspection-state.json")))
-{
-    $missingArtifactFailure = "Consumer smoke bundle did not include 'inspection-state.json'."
-}
-elseif (-not (Test-Path -LiteralPath (Join-Path $inspectionBundlePath "asset-manifest.json")))
-{
-    $missingArtifactFailure = "Consumer smoke bundle did not include 'asset-manifest.json'."
+    if (-not (Test-Path -LiteralPath $surfaceChartsSupportSummaryPath))
+    {
+        $missingArtifactFailure = "Consumer smoke did not produce '$surfaceChartsSupportSummaryPath'."
+    }
+    elseif ((Get-Item -LiteralPath $surfaceChartsSupportSummaryPath).Length -le 0)
+    {
+        $missingArtifactFailure = "Consumer smoke produced '$surfaceChartsSupportSummaryPath' but it was empty."
+    }
 }
 
 if ($null -ne $missingArtifactFailure)
@@ -362,17 +404,40 @@ if (-not $report.IsReady)
     throw "Consumer smoke completed without a ready backend diagnostics snapshot."
 }
 
-if (-not $report.FrameAllReturned)
+if ($Scenario -eq "Viewer" -and -not $report.FrameAllReturned)
 {
     throw "Consumer smoke completed without a successful FrameAll result."
 }
 
-Write-Host "Consumer smoke passed." -ForegroundColor Green
+if ($Scenario -eq "SurfaceCharts" -and -not $report.FirstChartRendered)
+{
+    throw "Consumer smoke completed without a successful packaged first-chart render."
+}
+
+Write-Host "Consumer smoke passed ($Scenario)." -ForegroundColor Green
 Write-Host "Resolved package version: $packageVersion"
-Write-Host "ResolvedBackend: $($report.ResolvedBackend)"
-Write-Host "ResolvedDisplayServer: $($report.ResolvedDisplayServer)"
-Write-Host "DisplayServerCompatibility: $($report.DisplayServerCompatibility)"
-Write-Host "IsUsingSoftwareFallback: $($report.IsUsingSoftwareFallback)"
+if ($Scenario -eq "Viewer")
+{
+    Write-Host "ResolvedBackend: $($report.ResolvedBackend)"
+    Write-Host "ResolvedDisplayServer: $($report.ResolvedDisplayServer)"
+    Write-Host "DisplayServerCompatibility: $($report.DisplayServerCompatibility)"
+    Write-Host "IsUsingSoftwareFallback: $($report.IsUsingSoftwareFallback)"
+}
+else
+{
+    Write-Host "ActiveBackend: $($report.ActiveBackend)"
+    Write-Host "IsFallback: $($report.IsFallback)"
+    Write-Host "UsesNativeSurface: $($report.UsesNativeSurface)"
+    Write-Host "ResidentTileCount: $($report.ResidentTileCount)"
+    Write-Host "InteractionQuality: $($report.InteractionQuality)"
+}
 Write-Host "DiagnosticsSnapshot: $snapshotPath"
-Write-Host "InspectionSnapshot: $inspectionSnapshotPath"
-Write-Host "InspectionBundle: $inspectionBundlePath"
+if ($Scenario -eq "Viewer")
+{
+    Write-Host "InspectionSnapshot: $inspectionSnapshotPath"
+    Write-Host "InspectionBundle: $inspectionBundlePath"
+}
+else
+{
+    Write-Host "SupportSummary: $surfaceChartsSupportSummaryPath"
+}

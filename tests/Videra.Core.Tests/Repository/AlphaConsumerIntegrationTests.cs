@@ -10,19 +10,25 @@ public sealed class AlphaConsumerIntegrationTests
     {
         var repositoryRoot = GetRepositoryRoot();
         var smokeProjectPath = Path.Combine(repositoryRoot, "smoke", "Videra.ConsumerSmoke", "Videra.ConsumerSmoke.csproj");
+        var surfaceChartsSmokeProjectPath = Path.Combine(repositoryRoot, "smoke", "Videra.SurfaceCharts.ConsumerSmoke", "Videra.SurfaceCharts.ConsumerSmoke.csproj");
         var smokeWorkflowPath = Path.Combine(repositoryRoot, ".github", "workflows", "consumer-smoke.yml");
         var smokeScriptPath = Path.Combine(repositoryRoot, "scripts", "Invoke-ConsumerSmoke.ps1");
 
         File.Exists(smokeProjectPath).Should().BeTrue();
+        File.Exists(surfaceChartsSmokeProjectPath).Should().BeTrue();
         File.Exists(smokeWorkflowPath).Should().BeTrue();
         File.Exists(smokeScriptPath).Should().BeTrue();
 
         var smokeProject = File.ReadAllText(smokeProjectPath);
+        var surfaceChartsSmokeProject = File.ReadAllText(surfaceChartsSmokeProjectPath);
         smokeProject.Should().Contain("<PackageReference Include=\"Videra.Avalonia\"");
         smokeProject.Should().Contain("<PackageReference Include=\"Videra.Platform.Windows\"");
         smokeProject.Should().Contain("<PackageReference Include=\"Videra.Platform.Linux\"");
         smokeProject.Should().Contain("<PackageReference Include=\"Videra.Platform.macOS\"");
         smokeProject.Should().NotContain("<ProjectReference");
+        surfaceChartsSmokeProject.Should().Contain("<PackageReference Include=\"Videra.SurfaceCharts.Avalonia\"");
+        surfaceChartsSmokeProject.Should().Contain("<PackageReference Include=\"Videra.SurfaceCharts.Processing\"");
+        surfaceChartsSmokeProject.Should().NotContain("<ProjectReference");
 
         var smokeWorkflow = File.ReadAllText(smokeWorkflowPath);
         smokeWorkflow.Should().Contain("pull_request:");
@@ -30,18 +36,23 @@ public sealed class AlphaConsumerIntegrationTests
         smokeWorkflow.Should().Contain("github.event_name != 'workflow_dispatch'");
         smokeWorkflow.Should().Contain("workflow_dispatch:");
         smokeWorkflow.Should().Contain("windows");
+        smokeWorkflow.Should().Contain("windows-surfacecharts");
         smokeWorkflow.Should().Contain("linux-x11");
         smokeWorkflow.Should().Contain("linux-xwayland");
         smokeWorkflow.Should().Contain("macos");
         smokeWorkflow.Should().Contain("Invoke-ConsumerSmoke.ps1");
+        smokeWorkflow.Should().Contain("-Scenario SurfaceCharts");
         smokeWorkflow.Should().Contain("actions/upload-artifact@v4");
         smokeWorkflow.Should().Contain("consumer-smoke-windows");
+        smokeWorkflow.Should().Contain("consumer-smoke-windows-surfacecharts");
         smokeWorkflow.Should().Contain("consumer-smoke-linux-x11");
         smokeWorkflow.Should().Contain("consumer-smoke-linux-xwayland");
         smokeWorkflow.Should().Contain("consumer-smoke-macos");
 
         var smokeScript = File.ReadAllText(smokeScriptPath);
         smokeScript.Should().Contain("Pack Public Consumer Packages");
+        smokeScript.Should().Contain("[ValidateSet(\"Viewer\", \"SurfaceCharts\")]");
+        smokeScript.Should().Contain("smoke/Videra.SurfaceCharts.ConsumerSmoke/Videra.SurfaceCharts.ConsumerSmoke.csproj");
         smokeScript.Should().Contain("src/Videra.Import.Gltf/Videra.Import.Gltf.csproj");
         smokeScript.Should().Contain("src/Videra.Import.Obj/Videra.Import.Obj.csproj");
         smokeScript.Should().Contain("dotnet pack");
@@ -56,11 +67,14 @@ public sealed class AlphaConsumerIntegrationTests
         smokeScript.Should().Contain("-FilePath \"dotnet\"");
         smokeScript.Should().Contain("\"run\",");
         smokeScript.Should().Contain("FrameAllReturned");
+        smokeScript.Should().Contain("FirstChartRendered");
         smokeScript.Should().Contain("ResolvedBackend");
+        smokeScript.Should().Contain("ActiveBackend");
         smokeScript.Should().Contain("ResolvedDisplayServer");
         smokeScript.Should().Contain("DisplayServerCompatibility");
         smokeScript.Should().Contain("diagnostics-snapshot.txt");
         smokeScript.Should().Contain("inspection-bundle");
+        smokeScript.Should().Contain("surfacecharts-support-summary.txt");
     }
 
     [Fact]
@@ -89,9 +103,11 @@ public sealed class AlphaConsumerIntegrationTests
 
         smokeScript.Should().Contain("consumer-smoke-environment.txt");
         smokeScript.Should().Contain("ProcessExitCode");
+        smokeScript.Should().Contain("Scenario");
         smokeScript.Should().Contain("WAYLAND_DISPLAY");
         smokeScript.Should().Contain("XDG_SESSION_TYPE");
         smokeScript.Should().Contain("Write-FallbackConsumerSmokeArtifacts");
+        smokeScript.Should().Contain("surfacecharts-support-summary.txt");
     }
 
     [Fact]
@@ -225,6 +241,7 @@ public sealed class AlphaConsumerIntegrationTests
         var feedbackDoc = File.ReadAllText(feedbackDocPath);
         feedbackDoc.Should().Contain("Videra.MinimalSample");
         feedbackDoc.Should().Contain("consumer smoke");
+        feedbackDoc.Should().Contain("smoke/Videra.SurfaceCharts.ConsumerSmoke");
         feedbackDoc.Should().Contain("diagnostics snapshot");
         feedbackDoc.Should().Contain("VideraDiagnosticsSnapshotFormatter");
         feedbackDoc.Should().Contain("VideraInspectionBundleService");
@@ -241,6 +258,7 @@ public sealed class AlphaConsumerIntegrationTests
         feedbackDoc.Should().Contain("Start here: In-memory first chart");
         feedbackDoc.Should().Contain("Explore next: Cache-backed streaming");
         feedbackDoc.Should().Contain("Support summary");
+        feedbackDoc.Should().Contain("surfacecharts-support-summary.txt");
         feedbackDoc.Should().Contain("Copy support summary");
         feedbackDoc.Should().Contain("InteractionQuality");
         feedbackDoc.Should().Contain("RenderingStatus");
@@ -255,6 +273,7 @@ public sealed class AlphaConsumerIntegrationTests
         bugForm.Should().Contain("VideraDiagnosticsSnapshotFormatter");
         bugForm.Should().Contain("Videra.MinimalSample");
         bugForm.Should().Contain("consumer smoke");
+        bugForm.Should().Contain("surfacecharts-support-summary.txt");
         bugForm.Should().Contain("surfacecharts_support_summary");
         bugForm.Should().Contain("SurfaceCharts support summary");
         bugForm.Should().Contain("Start here: In-memory first chart");
@@ -273,6 +292,7 @@ public sealed class AlphaConsumerIntegrationTests
         var troubleshooting = File.ReadAllText(troubleshootingPath);
         troubleshooting.Should().Contain("Videra.MinimalSample");
         troubleshooting.Should().Contain("consumer smoke");
+        troubleshooting.Should().Contain("smoke/Videra.SurfaceCharts.ConsumerSmoke");
         troubleshooting.Should().Contain("diagnostics snapshot");
         troubleshooting.Should().Contain("VideraDiagnosticsSnapshotFormatter");
         troubleshooting.Should().Contain("VideraInspectionBundleService");
@@ -325,13 +345,17 @@ public sealed class AlphaConsumerIntegrationTests
         readme.Should().Contain("sample-contract evidence");
         ciWorkflow.Should().Contain("quality-gate-evidence:");
         ciWorkflow.Should().Contain("Run packaged consumer smoke with warnings as errors");
+        ciWorkflow.Should().Contain("Run packaged SurfaceCharts consumer smoke with warnings as errors");
         ciWorkflow.Should().Contain("Invoke-ConsumerSmoke.ps1 -Configuration Release");
+        ciWorkflow.Should().Contain("-Scenario SurfaceCharts");
         ciWorkflow.Should().NotContain("-BuildOnly");
         ciWorkflow.Should().Contain("-TreatWarningsAsErrors");
         releasing.Should().Contain("package-size budgets");
-        releasing.Should().Contain("packaged consumer smoke");
+        releasing.Should().Contain("packaged viewer consumer smoke");
+        releasing.Should().Contain("packaged SurfaceCharts consumer smoke");
         readme.Should().Contain("package-size budgets");
-        readme.Should().Contain("packaged consumer smoke");
+        readme.Should().Contain("packaged viewer consumer smoke");
+        readme.Should().Contain("packaged SurfaceCharts");
     }
 
     private static string GetRepositoryRoot()
