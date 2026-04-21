@@ -7,15 +7,23 @@ This runbook turns the viewer and surface-chart benchmarks into repeatable evide
 - `Viewer` -> `benchmarks/Videra.Viewer.Benchmarks/ScenePipelineBenchmarks.cs` and `benchmarks/Videra.Viewer.Benchmarks/InspectionBenchmarks.cs`
 - `SurfaceCharts` -> `SurfaceChartsSelectionBenchmarks.cs`, `SurfaceChartsRenderStateBenchmarks.cs`, `SurfaceChartsCacheBenchmarks.cs`, `SurfaceChartsProbeBenchmarks.cs`, and `SurfaceChartsRenderHostContractBenchmarks.cs`
 
+The source-controlled suite contract lives in `benchmarks/benchmark-contract.json`. It is the canonical list of supported suites, benchmark families, and benchmark method names for the current benchmark gate.
+
 ## Workflow entrypoints
 
 - Manual: GitHub Actions -> `Benchmark Gates (Label-Gated Review)` -> `Run workflow`
 - Pull request: apply the `run-benchmarks` label to rerun the same workflow on the PR branch
 
-The workflow uploads raw BenchmarkDotNet artifacts for each suite as GitHub Actions artifacts:
+The workflow uploads suite artifact directories for each suite as GitHub Actions artifacts:
 
 - `benchmarks-viewer`
 - `benchmarks-surfacecharts`
+
+Each uploaded directory now includes:
+
+- raw BenchmarkDotNet exporter output
+- `SUMMARY.txt`
+- `benchmark-manifest.json` — the machine-readable evidence manifest for that suite run
 
 ## Local run
 
@@ -25,6 +33,12 @@ pwsh -File ./scripts/Run-Benchmarks.ps1 -Suite SurfaceCharts -Configuration Rele
 ```
 
 Artifacts are written under `artifacts/benchmarks/<suite>`.
+
+## Evidence contract
+
+- `benchmarks/benchmark-contract.json` defines the supported suites and benchmark names that make up the current evidence contract.
+- `scripts/Run-Benchmarks.ps1` reads that contract and emits `benchmark-manifest.json` beside the raw exporter output.
+- Review, CI artifacts, and support guidance should all refer to the manifest plus the raw BenchmarkDotNet files, not to ad hoc exporter filenames alone.
 
 ## Current contract
 

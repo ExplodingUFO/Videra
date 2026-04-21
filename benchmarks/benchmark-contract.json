@@ -1,0 +1,74 @@
+{
+  "schemaVersion": 1,
+  "suites": [
+    {
+      "name": "Viewer",
+      "artifactDirectory": "viewer",
+      "project": "benchmarks/Videra.Viewer.Benchmarks/Videra.Viewer.Benchmarks.csproj",
+      "families": [
+        {
+          "name": "ScenePipeline",
+          "benchmarks": [
+            "ScenePipelineBenchmarks.ModelImporter_Import",
+            "ScenePipelineBenchmarks.SceneImportService_ImportBatchAsync",
+            "ScenePipelineBenchmarks.SceneResidencyRegistry_ApplyDelta",
+            "ScenePipelineBenchmarks.SceneUploadQueue_Drain",
+            "ScenePipelineBenchmarks.ScenePipeline_RehydrateAfterBackendReady"
+          ]
+        },
+        {
+          "name": "Inspection",
+          "benchmarks": [
+            "InspectionBenchmarks.SceneHitTest_MeshAccurateDistance",
+            "InspectionBenchmarks.ClipPayload_CachedPlaneSignature",
+            "InspectionBenchmarks.SnapshotExport_LiveReadbackFastPath"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "SurfaceCharts",
+      "artifactDirectory": "surfacecharts",
+      "project": "benchmarks/Videra.SurfaceCharts.Benchmarks/Videra.SurfaceCharts.Benchmarks.csproj",
+      "families": [
+        {
+          "name": "Selection",
+          "benchmarks": [
+            "SurfaceChartsSelectionBenchmarks.SelectViewportTiles",
+            "SurfaceChartsSelectionBenchmarks.SelectCameraAwareViewportTiles",
+            "SurfaceChartsSelectionBenchmarks.BuildPyramidWithStatistics"
+          ]
+        },
+        {
+          "name": "RenderState",
+          "benchmarks": [
+            "SurfaceChartsRenderStateBenchmarks.BuildResidentRenderState",
+            "SurfaceChartsRenderStateBenchmarks.ApplyColorMapChangeToResidentRenderState",
+            "SurfaceChartsRenderStateBenchmarks.ApplyResidencyChurnUnderCameraMovement"
+          ]
+        },
+        {
+          "name": "Cache",
+          "benchmarks": [
+            "SurfaceChartsCacheBenchmarks.ReadBatchFromCache",
+            "SurfaceChartsCacheBenchmarks.LookupCacheMissBurst"
+          ]
+        },
+        {
+          "name": "Probe",
+          "benchmarks": [
+            "SurfaceChartsProbeBenchmarks.ProbeLatency"
+          ]
+        },
+        {
+          "name": "RenderHostContract",
+          "benchmarks": [
+            "SurfaceChartsRenderHostContractBenchmarks.RecolorResidentTilesGpuContractPath",
+            "SurfaceChartsRenderHostContractBenchmarks.OrbitInteractiveFrameGpuContractPath",
+            "SurfaceChartsRenderHostContractBenchmarks.ResizeAndRebindHandleGpuContractPath"
+          ]
+        }
+      ]
+    }
+  ]
+}
