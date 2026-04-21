@@ -341,27 +341,134 @@ public static partial class GltfModelImporter
 
         var baseColorChannel = sourceMaterial.FindChannel("BaseColor");
         var baseColor = baseColorChannel?.Parameter ?? Vector4.One;
-        MaterialTextureBinding? baseColorTextureBinding = null;
-        var baseColorTexture = baseColorChannel?.Texture;
-
-        if (baseColorTexture is not null)
-        {
-            var texture = GltfTextureAssetReader.CreateOrGetTexture(baseColorTexture, textures);
-            var sampler = GltfTextureAssetReader.CreateOrGetSampler(baseColorTexture.Sampler, samplers, ref defaultSampler);
-            baseColorTextureBinding = new MaterialTextureBinding(
-                texture.Id,
-                sampler.Id,
-                baseColorChannel?.TextureCoordinate ?? 0,
-                TextureColorSpace.Srgb);
-        }
+        var baseColorTextureBinding = CreateTextureBinding(
+            baseColorChannel,
+            TextureColorSpace.Srgb,
+            textures,
+            samplers,
+            ref defaultSampler);
+        var metallicRoughness = CreateMetallicRoughness(
+            sourceMaterial,
+            textures,
+            samplers,
+            ref defaultSampler);
+        var alpha = new MaterialAlphaSettings(
+            MapAlphaMode(sourceMaterial.Alpha),
+            sourceMaterial.AlphaCutoff,
+            sourceMaterial.DoubleSided);
+        var emissive = CreateEmissive(
+            sourceMaterial,
+            textures,
+            samplers,
+            ref defaultSampler);
+        var normalTexture = CreateNormalTexture(
+            sourceMaterial,
+            textures,
+            samplers,
+            ref defaultSampler);
 
         var created = new MaterialInstance(
             MaterialInstanceId.New(),
             sourceMaterial.Name ?? $"{meshName}#material{materials.Count}",
             new RgbaFloat(baseColor.X, baseColor.Y, baseColor.Z, baseColor.W),
-            baseColorTextureBinding);
+            baseColorTextureBinding,
+            metallicRoughness,
+            alpha,
+            emissive,
+            normalTexture);
         materials.Add(sourceMaterial, created);
         return created;
+    }
+
+    private static MaterialMetallicRoughness CreateMetallicRoughness(
+        SharpGLTF.Schema2.Material sourceMaterial,
+        Dictionary<SharpGLTF.Schema2.Texture, Texture2D> textures,
+        Dictionary<SharpGLTF.Schema2.TextureSampler, Sampler> samplers,
+        ref Sampler? defaultSampler)
+    {
+        var channel = sourceMaterial.FindChannel("MetallicRoughness");
+        var parameter = channel?.Parameter ?? new Vector4(1f, 1f, 0f, 0f);
+        var texture = CreateTextureBinding(
+            channel,
+            TextureColorSpace.Linear,
+            textures,
+            samplers,
+            ref defaultSampler);
+
+        return new MaterialMetallicRoughness(parameter.X, parameter.Y, texture);
+    }
+
+    private static MaterialEmissive CreateEmissive(
+        SharpGLTF.Schema2.Material sourceMaterial,
+        Dictionary<SharpGLTF.Schema2.Texture, Texture2D> textures,
+        Dictionary<SharpGLTF.Schema2.TextureSampler, Sampler> samplers,
+        ref Sampler? defaultSampler)
+    {
+        var channel = sourceMaterial.FindChannel("Emissive");
+        var parameter = channel?.Parameter ?? Vector4.Zero;
+        var texture = CreateTextureBinding(
+            channel,
+            TextureColorSpace.Srgb,
+            textures,
+            samplers,
+            ref defaultSampler);
+
+        return new MaterialEmissive(new Vector3(parameter.X, parameter.Y, parameter.Z), texture);
+    }
+
+    private static MaterialNormalTextureBinding? CreateNormalTexture(
+        SharpGLTF.Schema2.Material sourceMaterial,
+        Dictionary<SharpGLTF.Schema2.Texture, Texture2D> textures,
+        Dictionary<SharpGLTF.Schema2.TextureSampler, Sampler> samplers,
+        ref Sampler? defaultSampler)
+    {
+        var channel = sourceMaterial.FindChannel("Normal");
+        var texture = CreateTextureBinding(
+            channel,
+            TextureColorSpace.Linear,
+            textures,
+            samplers,
+            ref defaultSampler);
+
+        if (texture is null)
+        {
+            return null;
+        }
+
+        return new MaterialNormalTextureBinding(texture, channel?.Parameter.X ?? 1f);
+    }
+
+    private static MaterialTextureBinding? CreateTextureBinding(
+        MaterialChannel? channel,
+        TextureColorSpace colorSpace,
+        Dictionary<SharpGLTF.Schema2.Texture, Texture2D> textures,
+        Dictionary<SharpGLTF.Schema2.TextureSampler, Sampler> samplers,
+        ref Sampler? defaultSampler)
+    {
+        var sourceTexture = channel?.Texture;
+        if (sourceTexture is null)
+        {
+            return null;
+        }
+
+        var texture = GltfTextureAssetReader.CreateOrGetTexture(sourceTexture, textures);
+        var sampler = GltfTextureAssetReader.CreateOrGetSampler(sourceTexture.Sampler, samplers, ref defaultSampler);
+        return new MaterialTextureBinding(
+            texture.Id,
+            sampler.Id,
+            channel?.TextureCoordinate ?? 0,
+            colorSpace);
+    }
+
+    private static MaterialAlphaMode MapAlphaMode(SharpGLTF.Schema2.AlphaMode alphaMode)
+    {
+        return alphaMode switch
+        {
+            SharpGLTF.Schema2.AlphaMode.OPAQUE => MaterialAlphaMode.Opaque,
+            SharpGLTF.Schema2.AlphaMode.MASK => MaterialAlphaMode.Mask,
+            SharpGLTF.Schema2.AlphaMode.BLEND => MaterialAlphaMode.Blend,
+            _ => throw new InvalidDataException($"Unsupported glTF alpha mode '{alphaMode}'.")
+        };
     }
 
     private static MeshData? CreatePrimitiveMeshData(

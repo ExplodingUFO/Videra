@@ -8,7 +8,11 @@ public sealed class MaterialInstance
         MaterialInstanceId id,
         string name,
         RgbaFloat baseColorFactor,
-        MaterialTextureBinding? baseColorTexture = null)
+        MaterialTextureBinding? baseColorTexture = null,
+        MaterialMetallicRoughness? metallicRoughness = null,
+        MaterialAlphaSettings? alpha = null,
+        MaterialEmissive? emissive = null,
+        MaterialNormalTextureBinding? normalTexture = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
 
@@ -16,6 +20,10 @@ public sealed class MaterialInstance
         Name = name;
         BaseColorFactor = baseColorFactor;
         BaseColorTexture = baseColorTexture;
+        MetallicRoughness = metallicRoughness ?? MaterialMetallicRoughness.Default;
+        Alpha = alpha ?? MaterialAlphaSettings.Opaque;
+        Emissive = emissive ?? MaterialEmissive.Default;
+        NormalTexture = normalTexture;
     }
 
     public MaterialInstanceId Id { get; }
@@ -25,4 +33,12 @@ public sealed class MaterialInstance
     public RgbaFloat BaseColorFactor { get; }
 
     public MaterialTextureBinding? BaseColorTexture { get; }
+
+    public MaterialMetallicRoughness MetallicRoughness { get; }
+
+    public MaterialAlphaSettings Alpha { get; }
+
+    public MaterialEmissive Emissive { get; }
+
+    public MaterialNormalTextureBinding? NormalTexture { get; }
 }

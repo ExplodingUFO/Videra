@@ -1,5 +1,7 @@
+using System.Numerics;
 using FluentAssertions;
 using Videra.Avalonia.Runtime.Scene;
+using Videra.Core.Geometry;
 using Videra.Core.Scene;
 using Xunit;
 
@@ -153,6 +155,153 @@ public sealed class SceneImportServiceTests : IDisposable
         material.BaseColorTexture.ColorSpace.Should().Be(TextureColorSpace.Srgb);
         mesh.TextureCoordinateSets.Should().ContainSingle();
         mesh.TextureCoordinateSets[0].SetIndex.Should().Be(0);
+    }
+
+    [Fact]
+    public async Task Import_single_preserves_gltf_pbr_material_semantics_on_imported_asset()
+    {
+        var path = WriteGltf("pbr.gltf", """
+            {
+              "asset": { "version": "2.0" },
+              "scene": 0,
+              "scenes": [
+                { "nodes": [0] }
+              ],
+              "nodes": [
+                { "name": "Root", "mesh": 0 }
+              ],
+              "meshes": [
+                {
+                  "name": "PbrMesh",
+                  "primitives": [
+                    {
+                      "attributes": { "POSITION": 0, "TEXCOORD_0": 1 },
+                      "indices": 2,
+                      "material": 0
+                    }
+                  ]
+                }
+              ],
+              "materials": [
+                {
+                  "name": "PbrMaterial",
+                  "pbrMetallicRoughness": {
+                    "baseColorFactor": [0.9, 0.8, 0.7, 0.6],
+                    "baseColorTexture": { "index": 0 },
+                    "metallicFactor": 0.25,
+                    "roughnessFactor": 0.75,
+                    "metallicRoughnessTexture": { "index": 1 }
+                  },
+                  "normalTexture": { "index": 2, "scale": 0.5 },
+                  "emissiveFactor": [0.1, 0.2, 0.3],
+                  "emissiveTexture": { "index": 3 },
+                  "alphaMode": "MASK",
+                  "alphaCutoff": 0.42,
+                  "doubleSided": true
+                }
+              ],
+              "textures": [
+                { "sampler": 0, "source": 0 },
+                { "sampler": 0, "source": 1 },
+                { "sampler": 0, "source": 2 },
+                { "sampler": 0, "source": 3 }
+              ],
+              "samplers": [
+                {
+                  "minFilter": 9729,
+                  "magFilter": 9729,
+                  "wrapS": 10497,
+                  "wrapT": 10497
+                }
+              ],
+              "images": [
+                {
+                  "name": "BaseColorImage",
+                  "uri": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO7ZcE0AAAAASUVORK5CYII="
+                },
+                {
+                  "name": "MetallicRoughnessImage",
+                  "uri": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO7ZcE0AAAAASUVORK5CYII="
+                },
+                {
+                  "name": "NormalImage",
+                  "uri": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO7ZcE0AAAAASUVORK5CYII="
+                },
+                {
+                  "name": "EmissiveImage",
+                  "uri": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO7ZcE0AAAAASUVORK5CYII="
+                }
+              ],
+              "buffers": [
+                {
+                  "byteLength": 66,
+                  "uri": "data:application/octet-stream;base64,AAAAAAAAAAAAAAAAAACAPwAAAAAAAAAAAAAAAAAAgD8AAAAAAAAAAAAAAAAAAIA/AAAAAAAAAAAAAIA/AAABAAIA"
+                }
+              ],
+              "bufferViews": [
+                { "buffer": 0, "byteOffset": 0, "byteLength": 36, "target": 34962 },
+                { "buffer": 0, "byteOffset": 36, "byteLength": 24, "target": 34962 },
+                { "buffer": 0, "byteOffset": 60, "byteLength": 6, "target": 34963 }
+              ],
+              "accessors": [
+                {
+                  "bufferView": 0,
+                  "componentType": 5126,
+                  "count": 3,
+                  "type": "VEC3",
+                  "min": [0.0, 0.0, 0.0],
+                  "max": [1.0, 1.0, 0.0]
+                },
+                {
+                  "bufferView": 1,
+                  "componentType": 5126,
+                  "count": 3,
+                  "type": "VEC2"
+                },
+                {
+                  "bufferView": 2,
+                  "componentType": 5123,
+                  "count": 3,
+                  "type": "SCALAR"
+                }
+              ]
+            }
+            """);
+
+        var result = await _service.ImportSingleAsync(path, CancellationToken.None);
+
+        result.Entry.Should().NotBeNull();
+        result.Entry!.ImportedAsset.Should().NotBeNull();
+        result.Entry.ImportedAsset!.Textures.Should().HaveCount(4);
+        result.Entry.ImportedAsset.Samplers.Should().ContainSingle();
+        result.Entry.ImportedAsset.Materials.Should().ContainSingle();
+
+        var material = result.Entry.ImportedAsset.Materials[0];
+        var sampler = result.Entry.ImportedAsset.Samplers[0];
+        var baseColorTexture = result.Entry.ImportedAsset.Textures.Single(texture => texture.Name == "BaseColorImage");
+        var metallicRoughnessTexture = result.Entry.ImportedAsset.Textures.Single(texture => texture.Name == "MetallicRoughnessImage");
+        var normalTexture = result.Entry.ImportedAsset.Textures.Single(texture => texture.Name == "NormalImage");
+        var emissiveTexture = result.Entry.ImportedAsset.Textures.Single(texture => texture.Name == "EmissiveImage");
+
+        material.BaseColorFactor.Should().Be(new RgbaFloat(0.9f, 0.8f, 0.7f, 0.6f));
+        material.BaseColorTexture.Should().NotBeNull();
+        material.BaseColorTexture!.TextureId.Should().Be(baseColorTexture.Id);
+        material.BaseColorTexture.SamplerId.Should().Be(sampler.Id);
+        material.BaseColorTexture.ColorSpace.Should().Be(TextureColorSpace.Srgb);
+        material.MetallicRoughness.MetallicFactor.Should().Be(0.25f);
+        material.MetallicRoughness.RoughnessFactor.Should().Be(0.75f);
+        material.MetallicRoughness.Texture.Should().NotBeNull();
+        material.MetallicRoughness.Texture!.TextureId.Should().Be(metallicRoughnessTexture.Id);
+        material.MetallicRoughness.Texture.ColorSpace.Should().Be(TextureColorSpace.Linear);
+        material.Alpha.Should().Be(new MaterialAlphaSettings(MaterialAlphaMode.Mask, 0.42f, true));
+        material.Emissive.Factor.Should().Be(new Vector3(0.1f, 0.2f, 0.3f));
+        material.Emissive.Texture.Should().NotBeNull();
+        material.Emissive.Texture!.TextureId.Should().Be(emissiveTexture.Id);
+        material.Emissive.Texture.ColorSpace.Should().Be(TextureColorSpace.Srgb);
+        material.NormalTexture.Should().NotBeNull();
+        material.NormalTexture!.Texture.TextureId.Should().Be(normalTexture.Id);
+        material.NormalTexture.Texture.ColorSpace.Should().Be(TextureColorSpace.Linear);
+        material.NormalTexture.Scale.Should().Be(0.5f);
     }
 
     private string WriteObj(string name)
