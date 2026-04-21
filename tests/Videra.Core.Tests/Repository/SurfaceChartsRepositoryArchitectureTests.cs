@@ -272,6 +272,30 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
     }
 
     [Fact]
+    public void SurfaceChartView_ShouldDelegateTileResidencyAndOverlayStateToInternalSeams()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var viewApi = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.SurfaceCharts.Avalonia", "Controls", "SurfaceChartView.cs"));
+        var viewOverlay = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.SurfaceCharts.Avalonia", "Controls", "SurfaceChartView.Overlay.cs"));
+        var viewRendering = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.SurfaceCharts.Avalonia", "Controls", "SurfaceChartView.Rendering.cs"));
+        var runtime = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.SurfaceCharts.Avalonia", "Controls", "Interaction", "SurfaceChartRuntime.cs"));
+        var overlayCoordinator = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.SurfaceCharts.Avalonia", "Controls", "Overlay", "SurfaceChartOverlayCoordinator.cs"));
+
+        viewApi.Should().NotContain("private readonly SurfaceTileCache _tileCache");
+        viewOverlay.Should().Contain("_overlayCoordinator");
+        viewOverlay.Should().NotContain("_overlayState");
+        viewOverlay.Should().NotContain("_axisOverlayState");
+        viewOverlay.Should().NotContain("_legendOverlayState");
+        viewRendering.Should().Contain("_runtime.GetLoadedTiles()");
+        runtime.Should().Contain("private readonly SurfaceTileCache _tileCache = new();");
+        runtime.Should().Contain("internal IReadOnlyList<SurfaceTile> GetLoadedTiles()");
+        overlayCoordinator.Should().Contain("internal sealed class SurfaceChartOverlayCoordinator");
+        overlayCoordinator.Should().Contain("public SurfaceProbeOverlayState ProbeState");
+        overlayCoordinator.Should().Contain("public SurfaceAxisOverlayState AxisState");
+        overlayCoordinator.Should().Contain("public SurfaceLegendOverlayState LegendState");
+    }
+
+    [Fact]
     public void GuardedSurfaceChartDocs_ShouldFreezeFirstChartContractLanguage()
     {
         var repositoryRoot = GetRepositoryRoot();

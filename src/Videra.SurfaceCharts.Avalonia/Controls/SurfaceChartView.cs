@@ -16,7 +16,6 @@ namespace Videra.SurfaceCharts.Avalonia.Controls;
 /// </remarks>
 public partial class SurfaceChartView : Decorator
 {
-    private readonly SurfaceTileCache _tileCache;
     private readonly SurfaceChartRuntime _runtime;
     private readonly SurfaceChartRenderHost _renderHost;
     private readonly ISurfaceChartNativeHostFactory _nativeHostFactory;
@@ -65,10 +64,8 @@ public partial class SurfaceChartView : Decorator
         _renderHost = renderHost ?? new SurfaceChartRenderHost();
         _nativeHostFactory = nativeHostFactory ?? new DefaultSurfaceChartNativeHostFactory();
         RenderingStatus = _renderHost.RenderingStatus;
-        _tileCache = new SurfaceTileCache();
         _runtime = new SurfaceChartRuntime(
             Viewport,
-            _tileCache,
             NotifyTilesChanged,
             OnTileRequestFailed,
             ClearLastTileFailure,

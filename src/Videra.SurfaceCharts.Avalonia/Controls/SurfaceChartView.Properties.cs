@@ -115,8 +115,8 @@ public partial class SurfaceChartView
 
     private void OnSourceChanged(ISurfaceTileSource? source)
     {
-        _pinnedProbeRequests.Clear();
-        _probeScreenPosition = null;
+        _overlayCoordinator.ResetForSourceChange();
+        _chartProjection = null;
         LastTileFailure = null;
         _runtime.UpdateSource(source);
     }

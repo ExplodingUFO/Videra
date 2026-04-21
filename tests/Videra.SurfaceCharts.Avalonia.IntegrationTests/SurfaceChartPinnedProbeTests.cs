@@ -143,12 +143,7 @@ public sealed class SurfaceChartPinnedProbeTests
 
     private static object GetOverlayState(SurfaceChartView view)
     {
-        var field = typeof(SurfaceChartView).GetField(
-            "_overlayState",
-            BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-
-        field.Should().NotBeNull("Task 2 should keep probe overlay state on the control.");
-        return field!.GetValue(view)!;
+        return SurfaceChartTestHelpers.GetOverlayCoordinator(view).ProbeState;
     }
 
     private static object? GetPropertyValue(object instance, string propertyName)

@@ -76,8 +76,9 @@ public sealed class SurfaceChartViewGpuFallbackTests
             statusChangedCount.Should().BeGreaterThan(0);
             GetPrivateField(view, "_nativeHost").Should().BeNull();
 
-            GetCollectionCount(GetPrivateField(view, "_axisOverlayState"), "Axes").Should().BeGreaterThan(0);
-            GetCollectionCount(GetPrivateField(view, "_legendOverlayState"), "Swatches").Should().BeGreaterThan(0);
+            var overlayCoordinator = SurfaceChartTestHelpers.GetOverlayCoordinator(view);
+            GetCollectionCount(overlayCoordinator.AxisState, "Axes").Should().BeGreaterThan(0);
+            GetCollectionCount(overlayCoordinator.LegendState, "Swatches").Should().BeGreaterThan(0);
         });
     }
 

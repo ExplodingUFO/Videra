@@ -312,22 +312,12 @@ public sealed class SurfaceAxisOverlayTests
 
     private static object GetAxisOverlayState(SurfaceChartView view)
     {
-        var field = typeof(SurfaceChartView).GetField(
-            "_axisOverlayState",
-            BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-
-        field.Should().NotBeNull("Task 2 should keep a dedicated axis overlay state on the control.");
-        return field!.GetValue(view)!;
+        return SurfaceChartTestHelpers.GetOverlayCoordinator(view).AxisState;
     }
 
     private static object GetLegendOverlayState(SurfaceChartView view)
     {
-        var field = typeof(SurfaceChartView).GetField(
-            "_legendOverlayState",
-            BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-
-        field.Should().NotBeNull("Task 2 should keep a dedicated legend overlay state on the control.");
-        return field!.GetValue(view)!;
+        return SurfaceChartTestHelpers.GetOverlayCoordinator(view).LegendState;
     }
 
     private static string[] GetAxisTitles(object axisOverlayState)

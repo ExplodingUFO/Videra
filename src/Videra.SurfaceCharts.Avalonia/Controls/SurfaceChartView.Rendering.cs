@@ -46,7 +46,7 @@ public partial class SurfaceChartView
     private void SyncRenderHost()
     {
         var source = _runtime.Source;
-        var tiles = _tileCache.GetLoadedTiles();
+        var tiles = _runtime.GetLoadedTiles();
         var renderSize = _overlayViewSize.Width > 0d && _overlayViewSize.Height > 0d
             ? _overlayViewSize
             : Bounds.Size;
@@ -98,7 +98,7 @@ public partial class SurfaceChartView
             return null;
         }
 
-        var loadedTiles = _tileCache.GetLoadedTiles();
+        var loadedTiles = _runtime.GetLoadedTiles();
         if (loadedTiles.Count == 0)
         {
             return null;
