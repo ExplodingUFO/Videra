@@ -15,6 +15,7 @@ on:
         options:
           - all
           - windows
+          - windows-surfacecharts
           - linux-x11
           - linux-xwayland
           - macos
@@ -44,6 +45,31 @@ jobs:
         with:
           name: consumer-smoke-windows
           path: artifacts/consumer-smoke/windows
+
+  windows-surfacecharts-consumer-smoke:
+    if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.target == 'all' || github.event.inputs.target == 'windows-surfacecharts' }}
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Run Windows SurfaceCharts consumer smoke
+        shell: pwsh
+        run: >
+          pwsh -File ./scripts/Invoke-ConsumerSmoke.ps1 -Configuration Release
+          -Scenario SurfaceCharts
+          -OutputRoot artifacts/consumer-smoke/windows-surfacecharts
+
+      - name: Upload Windows SurfaceCharts consumer smoke artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: consumer-smoke-windows-surfacecharts
+          path: artifacts/consumer-smoke/windows-surfacecharts
 
   linux-x11-consumer-smoke:
     if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.target == 'all' || github.event.inputs.target == 'linux-x11' }}

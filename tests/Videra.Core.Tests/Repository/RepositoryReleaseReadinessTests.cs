@@ -54,6 +54,7 @@ public sealed class RepositoryReleaseReadinessTests
         readme.Should().Contain("does not install missing platform packages");
         readme.Should().Contain("Public tags now publish the `Videra.SurfaceCharts.*` package assets");
         readme.Should().Contain("Copy support summary");
+        readme.Should().Contain("surfacecharts-support-summary.txt");
     }
 
     [Fact]
@@ -221,9 +222,18 @@ public sealed class RepositoryReleaseReadinessTests
         consumerSmoke.Should().Contain("src/Videra.SurfaceCharts.Rendering/Videra.SurfaceCharts.Rendering.csproj");
         consumerSmoke.Should().Contain("src/Videra.SurfaceCharts.Processing/Videra.SurfaceCharts.Processing.csproj");
         consumerSmoke.Should().Contain("src/Videra.SurfaceCharts.Avalonia/Videra.SurfaceCharts.Avalonia.csproj");
+        consumerSmoke.Should().Contain("[ValidateSet(\"Viewer\", \"SurfaceCharts\")]");
+        consumerSmoke.Should().Contain("smoke/Videra.SurfaceCharts.ConsumerSmoke/Videra.SurfaceCharts.ConsumerSmoke.csproj");
+        consumerSmoke.Should().Contain("surfacecharts-support-summary.txt");
         ciWorkflow.Should().Contain("Validate-Packages.ps1");
         ciWorkflow.Should().Contain("artifacts/consumer-smoke-quality/packages");
+        ciWorkflow.Should().Contain("artifacts/surfacecharts-consumer-smoke-quality");
+        ciWorkflow.Should().Contain("-Scenario SurfaceCharts");
+        publicWorkflow.Should().Contain("consumer-smoke-windows-surfacecharts");
+        publicWorkflow.Should().Contain("-Scenario SurfaceCharts");
         existingReleaseWorkflow.Should().Contain("Invoke-ConsumerSmoke.ps1");
+        existingReleaseWorkflow.Should().Contain("consumer-smoke-existing-public-release-surfacecharts");
+        existingReleaseWorkflow.Should().Contain("-Scenario SurfaceCharts");
         existingReleaseWorkflow.Should().Contain("Validate-Packages.ps1");
         existingReleaseWorkflow.Should().Contain("consumer-smoke-existing-public-release");
         existingReleaseWorkflow.Should().Contain("only supports tags that already carry the current public package set and helper scripts");
@@ -493,8 +503,10 @@ public sealed class RepositoryReleaseReadinessTests
         var benchmarkGates = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "benchmark-gates.md"));
 
         releasing.Should().Contain("Consumer Smoke");
+        releasing.Should().Contain("SurfaceCharts");
         releasing.Should().Contain("Benchmark Gates");
         releasing.Should().Contain("Invoke-ConsumerSmoke.ps1");
+        releasing.Should().Contain("surfacecharts-support-summary.txt");
         benchmarkGates.ToLowerInvariant().Should().Contain("compare runs over time");
         benchmarkGates.Should().Contain("hard numeric blocker");
         benchmarkGates.Should().Contain("Pull requests run benchmark gates automatically");
@@ -512,13 +524,16 @@ public sealed class RepositoryReleaseReadinessTests
         readme.Should().Contain("Public tags now publish the `Videra.SurfaceCharts.*` package assets");
         supportMatrix.Should().Contain("Start here: In-memory first chart");
         supportMatrix.Should().Contain("Copy support summary");
+        supportMatrix.Should().Contain("Videra.SurfaceCharts.ConsumerSmoke");
         supportMatrix.Should().Contain("sample-contract-evidence");
         supportMatrix.Should().Contain("repository-only reference app");
-        releasePolicy.Should().Contain("SurfaceCharts release truth now has two explicit parts");
+        releasePolicy.Should().Contain("SurfaceCharts release truth now has three explicit parts");
         releasePolicy.Should().Contain("Videra.SurfaceCharts.Rendering");
+        releasePolicy.Should().Contain("surfacecharts-support-summary.txt");
         releasing.Should().Contain("docs/support-matrix.md");
         releasing.Should().Contain("public tags publish the `Videra.SurfaceCharts.*` package assets");
         releasing.Should().Contain("Copy support summary");
+        releasing.Should().Contain("smoke/Videra.SurfaceCharts.ConsumerSmoke");
         releasing.Should().Contain("Videra.SurfaceCharts.Demo");
     }
 

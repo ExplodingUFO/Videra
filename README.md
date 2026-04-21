@@ -33,8 +33,8 @@ That shipped viewer path now carries one direct static glTF/PBR baseline: UV-bac
 - `GitHub Packages` remains the `preview` / internal feed for contributors and pre-release validation
 - `Videra.SurfaceCharts.*` now ships as a public `alpha` package line, while `Videra.SurfaceCharts.Demo` remains repository-only
 - Linux native rendering remains `X11`-hosted, and Wayland sessions stay on the documented `XWayland compatibility` path
-- GitHub Actions runs matching-host native validation, packaged consumer smoke, and explicit sample-contract evidence on pull requests, and the [Native Validation runbook](docs/native-validation.md) documents how to use `Run workflow` for targeted reruns
-- The current alpha-ready `green` line is repository verification + native validation + packaged consumer smoke + sample-contract evidence, with `quality-gate-evidence` running the Windows packaged consumer smoke path with warnings treated as errors, enforcing package-size budgets on the public package line, and keeping the curated Core test surfaces plus `Videra.MinimalSample` warning-clean while `Benchmark Gates` serves as the hard numeric runtime blocker
+- GitHub Actions runs matching-host native validation, packaged viewer consumer smoke, packaged SurfaceCharts first-chart consumer smoke, and explicit sample-contract evidence on pull requests, and the [Native Validation runbook](docs/native-validation.md) documents how to use `Run workflow` for targeted reruns
+- The current alpha-ready `green` line is repository verification + native validation + packaged viewer consumer smoke + packaged SurfaceCharts first-chart consumer smoke + sample-contract evidence, with `quality-gate-evidence` running the Windows packaged viewer and SurfaceCharts consumer smoke paths with warnings treated as errors, enforcing package-size budgets on the public package line, and keeping the curated Core test surfaces plus `Videra.MinimalSample` warning-clean while `Benchmark Gates` serves as the hard numeric runtime blocker
 
 ## Getting Started
 
@@ -187,6 +187,7 @@ Contract highlights:
 For the canonical first-chart story, start from `Videra.SurfaceCharts.Avalonia` plus `Videra.SurfaceCharts.Processing`, and use [Videra.SurfaceCharts.Demo](samples/Videra.SurfaceCharts.Demo/README.md) as the repository reference app for the same path.
 Inside that demo, keep the default `Start here: In-memory first chart` path for the baseline repro, then move to `Explore next: Cache-backed streaming` when you want to validate lazy tile reads and the broader chart diagnostics surface.
 Use `Copy support summary` when you need the chart support artifact that matches the docs and bug template. Public tags now publish the `Videra.SurfaceCharts.*` package assets, while `Videra.SurfaceCharts.Demo` remains repository-only and keeps the support-summary repro workflow.
+The packaged first-chart proof lives separately in `smoke/Videra.SurfaceCharts.ConsumerSmoke`, which writes `surfacecharts-support-summary.txt` on the packaged install path without turning the broader demo into a public install story.
 
 Contract highlights:
 

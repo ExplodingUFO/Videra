@@ -30,8 +30,9 @@ If you need a matching-host runbook or the hosted GitHub Actions entrypoint, use
 
 ## SurfaceCharts package and demo triage
 
-For `area: surfacecharts`, start from `Videra.SurfaceCharts.Demo` and keep the repro path aligned with the packaged first-chart flow:
+For `area: surfacecharts`, start from `smoke/Videra.SurfaceCharts.ConsumerSmoke` for the packaged first-chart path on the supported host path, then move to `Videra.SurfaceCharts.Demo` only when you need the broader repository reference surface:
 
+- `smoke/Videra.SurfaceCharts.ConsumerSmoke` should produce `surfacecharts-support-summary.txt` for the packaged first-chart proof.
 - `Start here: In-memory first chart` is the default first repro path.
 - `Explore next: Cache-backed streaming` is only the follow-up path after the in-memory chart already renders.
 - Use `Copy support summary` to paste the demo `Support summary` block into the issue so support has the same `ViewState`, `InteractionQuality`, `RenderingStatus`, and `OverlayOptions` contract the sample exposes.
@@ -103,7 +104,7 @@ Include:
 - Package version or commit SHA
 - Backend preference or `VIDERA_BACKEND` value
 - diagnostics snapshot from `VideraDiagnosticsSnapshotFormatter`
-- `Support summary` from `Videra.SurfaceCharts.Demo` when the issue is in `area: surfacecharts`
+- `surfacecharts-support-summary.txt` from `smoke/Videra.SurfaceCharts.ConsumerSmoke` or the `Support summary` from `Videra.SurfaceCharts.Demo` when the issue is in `area: surfacecharts`
 - the exact SurfaceCharts demo path you used:
   - `Start here: In-memory first chart`
   - `Explore next: Cache-backed streaming`
@@ -114,7 +115,7 @@ Include:
 - `ResolvedDisplayServer`, `DisplayServerFallbackUsed`, `DisplayServerFallbackReason`, and `DisplayServerCompatibility` on Linux when relevant
 - Failing command and full error output
 - Whether the issue reproduces on the matching native host
-- Whether the issue reproduces in `Videra.MinimalSample` or `consumer smoke`
+- Whether the issue reproduces in `Videra.MinimalSample`, `consumer smoke`, or `smoke/Videra.SurfaceCharts.ConsumerSmoke`
 - Whether software rendering works
 
 ## Related Docs

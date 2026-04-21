@@ -28,6 +28,7 @@ The public SurfaceCharts install rule is similarly narrow: start with `Videra.Su
 | `Videra.SurfaceCharts.Rendering` | Public package | Rendering-focused tests and package validation | `alpha` | Rendering-runtime layer used transitively by `Videra.SurfaceCharts.Avalonia` |
 | `Videra.SurfaceCharts.Processing` | Public package | Processing tests, benchmarks, and package validation | `alpha` | Data-preparation layer for in-memory pyramids and cache-backed workflows |
 | `Videra.SurfaceCharts.Avalonia` | Public package | Avalonia integration tests, package validation, and demo alignment checks | `alpha` | Public `SurfaceChartView` entry package, independent from `VideraView` |
+| `Videra.SurfaceCharts.ConsumerSmoke` | Repository only | Windows packaged consumer smoke and `surfacecharts-support-summary.txt` artifact validation | `alpha` | Packaged first-chart proof for `Videra.SurfaceCharts.Avalonia` + `Videra.SurfaceCharts.Processing` on the supported host path |
 | `Videra.SurfaceCharts.Demo` | Repository only | `sample-contract-evidence`, SurfaceCharts runtime evidence, and `Support summary` validation | `alpha` | `Start here: In-memory first chart` first, `Copy support summary` for support capture, repository-only reference app |
 
 ## Compatibility notes
