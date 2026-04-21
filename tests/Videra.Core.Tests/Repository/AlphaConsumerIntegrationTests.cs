@@ -142,49 +142,69 @@ public sealed class AlphaConsumerIntegrationTests
     {
         var repositoryRoot = GetRepositoryRoot();
         var workflowPath = Path.Combine(repositoryRoot, ".github", "workflows", "benchmark-gates.yml");
-        var scriptPath = Path.Combine(repositoryRoot, "scripts", "Run-Benchmarks.ps1");
+        var runScriptPath = Path.Combine(repositoryRoot, "scripts", "Run-Benchmarks.ps1");
+        var thresholdScriptPath = Path.Combine(repositoryRoot, "scripts", "Test-BenchmarkThresholds.ps1");
         var contractPath = Path.Combine(repositoryRoot, "benchmarks", "benchmark-contract.json");
+        var thresholdPath = Path.Combine(repositoryRoot, "benchmarks", "benchmark-thresholds.json");
         var docsPath = Path.Combine(repositoryRoot, "docs", "benchmark-gates.md");
         var docsIndex = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "index.md"));
         var rootReadme = File.ReadAllText(Path.Combine(repositoryRoot, "README.md"));
 
         File.Exists(workflowPath).Should().BeTrue();
-        File.Exists(scriptPath).Should().BeTrue();
+        File.Exists(runScriptPath).Should().BeTrue();
+        File.Exists(thresholdScriptPath).Should().BeTrue();
         File.Exists(contractPath).Should().BeTrue();
+        File.Exists(thresholdPath).Should().BeTrue();
         File.Exists(docsPath).Should().BeTrue();
 
         var workflow = File.ReadAllText(workflowPath);
         workflow.Should().Contain("workflow_dispatch:");
         workflow.Should().Contain("pull_request:");
-        workflow.Should().Contain("run-benchmarks");
+        workflow.Should().Contain("opened");
         workflow.Should().Contain("Run-Benchmarks.ps1 -Suite Viewer");
         workflow.Should().Contain("Run-Benchmarks.ps1 -Suite SurfaceCharts");
+        workflow.Should().Contain("Test-BenchmarkThresholds.ps1 -Suite Viewer");
+        workflow.Should().Contain("Test-BenchmarkThresholds.ps1 -Suite SurfaceCharts");
+        workflow.Should().NotContain("run-benchmarks");
         workflow.Should().Contain("benchmarks-viewer");
         workflow.Should().Contain("benchmarks-surfacecharts");
 
-        var script = File.ReadAllText(scriptPath);
-        script.Should().Contain("benchmark-contract.json");
-        script.Should().Contain("$requestedExporters = @(\"json\", \"csv\", \"markdown\")");
-        script.Should().Contain("--exporters $requestedExporters");
-        script.Should().Contain("benchmark-manifest.json");
-        script.Should().Contain("SUMMARY.txt");
+        var runScript = File.ReadAllText(runScriptPath);
+        runScript.Should().Contain("benchmark-contract.json");
+        runScript.Should().Contain("$requestedExporters = @(\"json\", \"csv\", \"markdown\")");
+        runScript.Should().Contain("--exporters $requestedExporters");
+        runScript.Should().Contain("benchmark-manifest.json");
+        runScript.Should().Contain("SUMMARY.txt");
+
+        var thresholdScript = File.ReadAllText(thresholdScriptPath);
+        thresholdScript.Should().Contain("benchmark-thresholds.json");
+        thresholdScript.Should().Contain("benchmark-threshold-evaluation.json");
+        thresholdScript.Should().Contain("benchmark-threshold-summary.txt");
 
         var contract = File.ReadAllText(contractPath);
         contract.Should().Contain("Videra.Viewer.Benchmarks");
         contract.Should().Contain("Videra.SurfaceCharts.Benchmarks");
 
+        var thresholds = File.ReadAllText(thresholdPath);
+        thresholds.Should().Contain("ScenePipeline_RehydrateAfterBackendReady");
+        thresholds.Should().Contain("SceneHitTest_MeshAccurateDistance");
+        thresholds.Should().Contain("ApplyResidencyChurnUnderCameraMovement");
+        thresholds.Should().Contain("ProbeLatency");
+
         var docs = File.ReadAllText(docsPath);
         docs.Should().Contain("Run workflow");
-        docs.Should().Contain("run-benchmarks");
         docs.Should().Contain("Run-Benchmarks.ps1");
         docs.Should().Contain("benchmark-contract.json");
+        docs.Should().Contain("benchmark-thresholds.json");
         docs.Should().Contain("benchmark-manifest.json");
+        docs.Should().Contain("hard numeric blocker");
         docs.Should().Contain("viewer");
         docs.Should().Contain("surfacecharts");
         docs.ToLowerInvariant().Should().Contain("compare runs over time");
         docs.Should().Contain("trend");
 
         docsIndex.Should().Contain("benchmark-gates.md");
+        docsIndex.Should().Contain("automatic pull-request runtime thresholds");
         rootReadme.Should().Contain("docs/benchmark-gates.md");
     }
 

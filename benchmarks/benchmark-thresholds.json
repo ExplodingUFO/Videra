@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "suites": [
+    {
+      "name": "Viewer",
+      "thresholds": [
+        {
+          "benchmark": "Videra.Viewer.Benchmarks.ScenePipelineBenchmarks.ScenePipeline_RehydrateAfterBackendReady",
+          "baselineMeanNs": 328.305,
+          "maxRegressionPercent": 150
+        },
+        {
+          "benchmark": "Videra.Viewer.Benchmarks.InspectionBenchmarks.SceneHitTest_MeshAccurateDistance",
+          "baselineMeanNs": 300.915,
+          "maxRegressionPercent": 150
+        }
+      ]
+    },
+    {
+      "name": "SurfaceCharts",
+      "thresholds": [
+        {
+          "benchmark": "Videra.SurfaceCharts.Benchmarks.SurfaceChartsRenderStateBenchmarks.ApplyResidencyChurnUnderCameraMovement",
+          "baselineMeanNs": 79565673.019,
+          "maxRegressionPercent": 100
+        },
+        {
+          "benchmark": "Videra.SurfaceCharts.Benchmarks.SurfaceChartsProbeBenchmarks.ProbeLatency",
+          "baselineMeanNs": 15794870.673,
+          "maxRegressionPercent": 100
+        }
+      ]
+    }
+  ]
+}

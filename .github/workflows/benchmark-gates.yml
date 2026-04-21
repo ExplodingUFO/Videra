@@ -1,4 +1,4 @@
-name: Benchmark Gates (Label-Gated Review)
+name: Benchmark Gates
 
 on:
   workflow_dispatch:
@@ -14,7 +14,7 @@ on:
           - surfacecharts
   pull_request:
     types:
-      - labeled
+      - opened
       - synchronize
       - reopened
 
@@ -23,7 +23,7 @@ permissions:
 
 jobs:
   viewer-benchmarks:
-    if: ${{ github.event_name == 'workflow_dispatch' && (github.event.inputs.suite == 'all' || github.event.inputs.suite == 'viewer') || github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'run-benchmarks') }}
+    if: ${{ github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch' && (github.event.inputs.suite == 'all' || github.event.inputs.suite == 'viewer') }}
     runs-on: windows-latest
 
     steps:
@@ -37,14 +37,20 @@ jobs:
         shell: pwsh
         run: pwsh -File ./scripts/Run-Benchmarks.ps1 -Suite Viewer -Configuration Release -OutputRoot artifacts/benchmarks
 
+      - name: Evaluate viewer benchmark thresholds
+        shell: pwsh
+        run: pwsh -File ./scripts/Test-BenchmarkThresholds.ps1 -Suite Viewer -OutputRoot artifacts/benchmarks
+
       - name: Upload viewer benchmark evidence
+        if: ${{ always() }}
         uses: actions/upload-artifact@v4
         with:
           name: benchmarks-viewer
           path: artifacts/benchmarks/viewer
+          if-no-files-found: ignore
 
   surfacecharts-benchmarks:
-    if: ${{ github.event_name == 'workflow_dispatch' && (github.event.inputs.suite == 'all' || github.event.inputs.suite == 'surfacecharts') || github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'run-benchmarks') }}
+    if: ${{ github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch' && (github.event.inputs.suite == 'all' || github.event.inputs.suite == 'surfacecharts') }}
     runs-on: windows-latest
 
     steps:
@@ -58,8 +64,14 @@ jobs:
         shell: pwsh
         run: pwsh -File ./scripts/Run-Benchmarks.ps1 -Suite SurfaceCharts -Configuration Release -OutputRoot artifacts/benchmarks
 
+      - name: Evaluate surface charts benchmark thresholds
+        shell: pwsh
+        run: pwsh -File ./scripts/Test-BenchmarkThresholds.ps1 -Suite SurfaceCharts -OutputRoot artifacts/benchmarks
+
       - name: Upload surface charts benchmark evidence
+        if: ${{ always() }}
         uses: actions/upload-artifact@v4
         with:
           name: benchmarks-surfacecharts
           path: artifacts/benchmarks/surfacecharts
+          if-no-files-found: ignore
