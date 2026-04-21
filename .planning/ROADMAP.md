@@ -3,7 +3,7 @@
 ## Active Milestone
 
 - `v1.20 Viewer Product Boundary and Core Slimming`
-- Status: `Phase 103-104 complete locally on 2026-04-21; Phase 105 is next`
+- Status: `Phase 103-105 complete locally on 2026-04-21; Phase 106 is next`
 - Focus: keep the viewer/runtime `1.0` boundary fixed while extracting concrete importer and logging dependencies out of `Videra.Core`
 
 ### Phase 103: Viewer Product Boundary and Capability Matrix
@@ -62,15 +62,21 @@ Notes:
 
 Plans:
 
-- [ ] 105-01: define the canonical import-package composition story now that glTF and OBJ import live outside `Videra.Core`
-- [ ] 105-02: define or tighten hosting abstractions so runtime core, backends, UI adapters, and charts can be described independently
-- [ ] 105-03: keep the Avalonia path thin while proving the new seams do not widen backend-specific public API
+- [x] 105-01: define the canonical import-package composition story now that glTF and OBJ import live outside `Videra.Core`
+- [x] 105-02: tighten the hosting-boundary docs and public API guards so runtime core, backends, UI adapters, and charts can be described independently without new abstraction layers
+- [x] 105-03: keep the Avalonia path thin while proving the new seams do not widen backend-specific public API
 
 Success criteria:
 
 1. glTF and OBJ import packages are part of the canonical viewer composition story instead of reading like hidden implementation baggage.
 2. Hosting seams are concrete enough that `Core`, `Import`, `Backend`, `UI adapter`, and `Charts` can each be explained as separate layers.
 3. The Avalonia shell remains thin and does not become the place where new product coupling leaks back in.
+
+Notes:
+
+- `docs/hosting-boundary.md` is now the canonical seam-ownership document for the shipped viewer stack and is linked from the repository entry docs.
+- Reflection- and project-graph-based repository guards now prove that `Videra.Avalonia` stays a thin public shell and that `Videra.Import.*` packages remain `Core`-based.
+- The chart-shell guard now scans all public `VideraView` partials instead of only `VideraView.cs`, closing a real repository-test blind spot.
 
 ### Phase 106: Package Truth and Layering Validation
 

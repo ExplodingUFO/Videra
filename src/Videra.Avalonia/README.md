@@ -190,6 +190,7 @@ Linux and macOS native-host validation still require explicit opt-in switches an
 ## Related Docs
 
 - [Repository README](../../README.md)
+- [Hosting Boundary](../../docs/hosting-boundary.md)
 - [Extensibility Contract](../../docs/extensibility.md)
 - [Architecture](../../ARCHITECTURE.md)
 - [Chinese Module Doc](../../docs/zh-CN/modules/videra-avalonia.md)

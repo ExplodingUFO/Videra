@@ -27,6 +27,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\src\Videra.Avalonia\Videra.Avalonia.csproj" />
     <ProjectReference Include="..\..\src\Videra.Core\Videra.Core.csproj" />
     <ProjectReference Include="..\..\src\Videra.Import.Gltf\Videra.Import.Gltf.csproj" />
     <ProjectReference Include="..\..\src\Videra.Import.Obj\Videra.Import.Obj.csproj" />

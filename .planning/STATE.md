@@ -5,17 +5,17 @@
 See: `.planning/PROJECT.md` (updated 2026-04-21)
 
 **Core value:** 跨平台 3D 渲染引擎的可靠性
-**Current focus:** `v1.20` 已完成 Phase `104`，下一步进入 Phase `105`，把 import-package composition 与 host seams 讲清并收紧
+**Current focus:** `v1.20` 已完成 Phase `105`，下一步进入 Phase `106`，把 canonical package stack、consumer truth 和 layering validation 一起收口
 
 ## Current Position
 
 Milestone: `v1.20`
-Phase: `Phase 105 ready`
+Phase: `Phase 106 ready`
 Plan: `—`
-Status: `Phase 104 is complete locally; Videra.Core is slimmed and the public package path now includes explicit import packages`
-Last activity: `2026-04-21` — completed Phase `104` by extracting importers out of `Videra.Core`, removing concrete logging-provider baggage, and closing the packaged-consumer/release truth around the new import packages
+Status: `Phase 105 is complete locally; the canonical hosting boundary is now documented and guarded without widening the public API`
+Last activity: `2026-04-21` — completed Phase `105` by publishing the canonical hosting-boundary doc, adding reflection/project-graph guards for the viewer stack, and tightening the `VideraView` shell guard to cover all public partials
 
-Progress: `Phase 103-104 are complete locally; Phase 105 is the next executable step.`
+Progress: `Phase 103-105 are complete locally; Phase 106 is the next executable step.`
 
 ## Performance Metrics
 
@@ -38,13 +38,13 @@ Progress: `Phase 103-104 are complete locally; Phase 105 is the next executable 
 
 ### Pending Todos
 
-- Start Phase `105`: stabilize import-package composition guidance and tighten host seams without widening backend-specific API.
+- Start Phase `106`: lock the canonical package stack into consumer docs, smoke truth, and layering validation so the milestone can close cleanly.
 
 ### Blockers/Concerns
 
 - Historical `.planning/phases/13-surfacechart-runtime-and-view-state-contract/13-VERIFICATION.md` and `.planning/phases/14-built-in-interaction-and-camera-workflow/14-VERIFICATION.md` still report `gaps_found`; they were acknowledged at `v1.18` closeout and do not block the archive.
 - Carry-forward engineering debt from `v1.18` lives in `.planning/PROJECT.md` Current Risks and `.planning/milestones/v1.18-MILESTONE-AUDIT.md`.
-- Import extraction now crosses the public package line, so future host-seam work has to preserve the explicit `Core` / `Import` / `Backend` / `UI adapter` split instead of hiding it back inside `Videra.Avalonia`.
+- The new host-boundary truth now exists, so Phase `106` has to reuse that exact vocabulary instead of reintroducing alternate package-stack stories in README, smoke, or release guidance.
 
 ### Quick Tasks Completed
 
@@ -68,5 +68,5 @@ Progress: `Phase 103-104 are complete locally; Phase 105 is the next executable 
 ## Session Continuity
 
 Last session: `2026-04-20 +08:00`
-Stopped at: `Phase 104 complete locally; Phase 105 is ready to start`
+Stopped at: `Phase 105 complete locally; Phase 106 is ready to start`
 Resume file: `.planning/ROADMAP.md`

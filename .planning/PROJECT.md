@@ -14,7 +14,7 @@ Videra 是一个基于 `.NET 8` 的跨平台 3D 渲染引擎，提供 Windows (`
 
 - 最新完整归档 milestone：`v1.18 SurfaceCharts Analytics Core`
 - 当前 active milestone：`v1.20 Viewer Product Boundary and Core Slimming`
-- 当前 focus：先把 `Videra` 的产品边界和包结构定死：明确 viewer/runtime 1.0 能力矩阵，拆掉 `Videra.Core` 对 importer / Serilog 的具体依赖，并把 host/package seams 变成清晰 contract
+- 当前 focus：`Phase 103-105` 已完成，本里程碑下一步是 `Phase 106`，把 canonical package stack、consumer truth 和 layering validation 全部收口到同一套自动化证据
 
 ## Next Milestone Candidates
 
@@ -319,4 +319,4 @@ This document evolves at phase transitions and milestone boundaries.
 - Retrospective: `.planning/RETROSPECTIVE.md`
 
 ---
-*Last updated: 2026-04-21 after starting the v1.20 Viewer Product Boundary and Core Slimming milestone*
+*Last updated: 2026-04-21 after completing Phase 105 of the v1.20 Viewer Product Boundary and Core Slimming milestone*

@@ -144,6 +144,7 @@ dotnet test tests/Videra.Core.IntegrationTests/Videra.Core.IntegrationTests.cspr
 ## Related Docs
 
 - [Repository README](../../README.md)
+- [Hosting Boundary](../../docs/hosting-boundary.md)
 - [Videra 1.0 Capability Matrix](../../docs/capability-matrix.md)
 - [Extensibility Contract](../../docs/extensibility.md)
 - [Architecture](../../ARCHITECTURE.md)

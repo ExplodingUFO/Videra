@@ -122,6 +122,7 @@ For alpha adoption feedback, use [Alpha Feedback](docs/alpha-feedback.md) before
 ## Videra 1.0 Boundary
 
 Use [Videra 1.0 Capability Matrix](docs/capability-matrix.md) when you need the explicit answer to “what is in `1.0`?” versus “what is intentionally deferred?”.
+Use [Hosting Boundary](docs/hosting-boundary.md) when you need the canonical composition story for `Core` / `Import` / `UI adapter` / `Backend` and the internal seam owners behind `VideraView`.
 
 Current package-layer vocabulary:
 
