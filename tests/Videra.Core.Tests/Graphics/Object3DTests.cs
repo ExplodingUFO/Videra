@@ -455,7 +455,7 @@ public class Object3DTests
             "BaseColorTexture",
             1,
             1,
-            Texture2DPixelFormat.Rgba8Srgb,
+            TextureImageFormat.Png,
             [255, 255, 255, 255],
             isSrgb: true);
         var sampler = new Sampler(

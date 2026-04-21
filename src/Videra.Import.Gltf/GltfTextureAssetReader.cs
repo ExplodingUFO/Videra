@@ -23,7 +23,7 @@ internal static class GltfTextureAssetReader
             sourceImage.Name ?? sourceTexture.Name ?? $"Texture {sourceTexture.LogicalIndex}",
             width,
             height,
-            Texture2DPixelFormat.Rgba8Srgb,
+            ReadContentFormat(sourceImage.Content),
             imageBytes,
             isSrgb: true);
 
@@ -105,6 +105,21 @@ internal static class GltfTextureAssetReader
         if (TryReadJpegDimensions(imageBytes, out var jpegWidth, out var jpegHeight))
         {
             return (jpegWidth, jpegHeight);
+        }
+
+        throw new InvalidDataException("Only PNG and JPEG texture payloads are currently supported.");
+    }
+
+    private static TextureImageFormat ReadContentFormat(SharpGLTF.Memory.MemoryImage image)
+    {
+        if (image.IsPng)
+        {
+            return TextureImageFormat.Png;
+        }
+
+        if (image.IsJpg)
+        {
+            return TextureImageFormat.Jpeg;
         }
 
         throw new InvalidDataException("Only PNG and JPEG texture payloads are currently supported.");

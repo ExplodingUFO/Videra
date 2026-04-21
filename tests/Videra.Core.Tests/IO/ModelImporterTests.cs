@@ -721,9 +721,9 @@ public sealed class ModelImporterTests : IDisposable
         texture.Name.Should().Be("BaseColorImage");
         texture.Width.Should().Be(1);
         texture.Height.Should().Be(1);
-        texture.PixelFormat.Should().Be(Texture2DPixelFormat.Rgba8Srgb);
+        texture.ContentFormat.Should().Be(TextureImageFormat.Png);
         texture.IsSrgb.Should().BeTrue();
-        texture.PixelBytes.Length.Should().BeGreaterThan(0);
+        texture.ContentBytes.Length.Should().BeGreaterThan(0);
         sampler.MinFilter.Should().Be(TextureFilter.Linear);
         sampler.MagFilter.Should().Be(TextureFilter.Nearest);
         sampler.WrapU.Should().Be(TextureWrapMode.MirroredRepeat);

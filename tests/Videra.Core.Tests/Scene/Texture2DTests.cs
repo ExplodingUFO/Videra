@@ -7,7 +7,7 @@ namespace Videra.Core.Tests.Scene;
 public sealed class Texture2DTests
 {
     [Fact]
-    public void Constructor_ClonesPixelBytes()
+    public void Constructor_ClonesContentBytes()
     {
         var sourceBytes = new byte[] { 1, 2, 3, 4 };
 
@@ -16,12 +16,12 @@ public sealed class Texture2DTests
             "Texture",
             1,
             1,
-            Texture2DPixelFormat.Rgba8Unorm,
+            TextureImageFormat.Png,
             sourceBytes,
             isSrgb: false);
 
         sourceBytes[0] = 99;
 
-        texture.PixelBytes.ToArray().Should().Equal(1, 2, 3, 4);
+        texture.ContentBytes.ToArray().Should().Equal(1, 2, 3, 4);
     }
 }

@@ -9,21 +9,21 @@ public sealed class Texture2D
         string name,
         int width,
         int height,
-        Texture2DPixelFormat pixelFormat,
-        byte[] pixelBytes,
+        TextureImageFormat contentFormat,
+        byte[] contentBytes,
         bool isSrgb)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(width);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(height);
-        ArgumentNullException.ThrowIfNull(pixelBytes);
+        ArgumentNullException.ThrowIfNull(contentBytes);
 
         Id = id;
         Name = name;
         Width = width;
         Height = height;
-        PixelFormat = pixelFormat;
-        _pixelBytes = (byte[])pixelBytes.Clone();
+        ContentFormat = contentFormat;
+        _pixelBytes = (byte[])contentBytes.Clone();
         IsSrgb = isSrgb;
     }
 
@@ -35,15 +35,15 @@ public sealed class Texture2D
 
     public int Height { get; }
 
-    public Texture2DPixelFormat PixelFormat { get; }
+    public TextureImageFormat ContentFormat { get; }
 
-    public ReadOnlyMemory<byte> PixelBytes => _pixelBytes;
+    public ReadOnlyMemory<byte> ContentBytes => _pixelBytes;
 
     public bool IsSrgb { get; }
 }
 
-public enum Texture2DPixelFormat
+public enum TextureImageFormat
 {
-    Rgba8Unorm = 0,
-    Rgba8Srgb = 1
+    Png = 0,
+    Jpeg = 1
 }
