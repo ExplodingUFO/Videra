@@ -73,7 +73,7 @@ public class ScenePipelineBenchmarks
     [Benchmark]
     public int ModelImporter_Import()
     {
-        return ObjModelImporter.Import(_singleImportPath).MeshData.Vertices.Length;
+        return ObjModelImporter.Import(_singleImportPath).Metrics.VertexCount;
     }
 
     [Benchmark]

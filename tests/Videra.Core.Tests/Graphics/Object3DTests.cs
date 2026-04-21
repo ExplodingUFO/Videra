@@ -376,7 +376,10 @@ public class Object3DTests
     [Fact]
     public void SceneObjectFactory_CreateDeferred_ReusesSharedPayloadAcrossObjects()
     {
-        var asset = new ImportedSceneAsset("triangle.obj", "triangle.obj", CreateTestMesh());
+        var mesh = CreateTestMesh();
+        var primitive = new MeshPrimitive(MeshPrimitiveId.New(), "triangle.obj#primitive0", mesh);
+        var rootNode = new SceneNode(SceneNodeId.New(), "triangle.obj", Matrix4x4.Identity, parentId: null, [primitive.Id]);
+        var asset = new ImportedSceneAsset("triangle.obj", "triangle.obj", [rootNode], [primitive]);
         var payloadProperty = typeof(ImportedSceneAsset).GetProperty("Payload", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
         var objectPayloadProperty = typeof(Object3D).GetProperty("MeshPayload", BindingFlags.Instance | BindingFlags.NonPublic);
         var retentionPolicyProperty = typeof(Object3D).GetProperty("CpuMeshRetentionPolicy", BindingFlags.Instance | BindingFlags.NonPublic);
@@ -393,5 +396,51 @@ public class Object3DTests
         objectPayloadProperty!.GetValue(first).Should().BeSameAs(payload);
         objectPayloadProperty.GetValue(second).Should().BeSameAs(payload);
         retentionPolicyProperty!.GetValue(first).Should().Be(CpuMeshRetentionPolicy.KeepForReuploadAndPicking);
+    }
+
+    [Fact]
+    public void ImportedSceneAsset_FlattensSharedPrimitiveInstancesIntoTransformedPayload()
+    {
+        var primitive = new MeshPrimitive(MeshPrimitiveId.New(), "SharedTriangle", CreateTestMesh());
+        var rootId = SceneNodeId.New();
+        var leftId = SceneNodeId.New();
+        var rightId = SceneNodeId.New();
+        var asset = new ImportedSceneAsset(
+            "shared.gltf",
+            "shared.gltf",
+            [
+                new SceneNode(rootId, "Root", Matrix4x4.Identity, parentId: null, []),
+                new SceneNode(leftId, "Left", Matrix4x4.Identity, rootId, [primitive.Id]),
+                new SceneNode(rightId, "Right", Matrix4x4.CreateTranslation(2f, 0f, 0f), rootId, [primitive.Id])
+            ],
+            [primitive]);
+        var payloadProperty = typeof(ImportedSceneAsset).GetProperty("Payload", BindingFlags.Instance | BindingFlags.NonPublic);
+
+        payloadProperty.Should().NotBeNull();
+
+        var payload = payloadProperty!.GetValue(asset);
+        payload.Should().NotBeNull();
+
+        var verticesProperty = payload!.GetType().GetProperty("Vertices", BindingFlags.Instance | BindingFlags.Public);
+        var indicesProperty = payload.GetType().GetProperty("Indices", BindingFlags.Instance | BindingFlags.Public);
+
+        verticesProperty.Should().NotBeNull();
+        indicesProperty.Should().NotBeNull();
+
+        var vertices = (VertexPositionNormalColor[])verticesProperty!.GetValue(payload)!;
+        var indices = (uint[])indicesProperty!.GetValue(payload)!;
+
+        asset.Metrics.VertexCount.Should().Be(6);
+        asset.Metrics.IndexCount.Should().Be(6);
+        vertices.Should().HaveCount(6);
+        indices.Should().Equal(0u, 1u, 2u, 3u, 4u, 5u);
+        vertices.Take(3).Select(static vertex => vertex.Position).Should().Equal(
+            new Vector3(0f, 0f, 0f),
+            new Vector3(1f, 0f, 0f),
+            new Vector3(0f, 1f, 0f));
+        vertices.Skip(3).Take(3).Select(static vertex => vertex.Position).Should().Equal(
+            new Vector3(2f, 0f, 0f),
+            new Vector3(3f, 0f, 0f),
+            new Vector3(2f, 1f, 0f));
     }
 }

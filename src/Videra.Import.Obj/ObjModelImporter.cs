@@ -29,17 +29,26 @@ public static partial class ObjModelImporter
             Log.Loading(log, filePath);
 
             var meshData = LoadSimpleObj(filePath);
+            var primitive = new MeshPrimitive(
+                MeshPrimitiveId.New(),
+                $"{Path.GetFileName(filePath)}#primitive0",
+                meshData);
+            var rootNode = new SceneNode(
+                SceneNodeId.New(),
+                Path.GetFileName(filePath),
+                Matrix4x4.Identity,
+                parentId: null,
+                [primitive.Id]);
+            var asset = new ImportedSceneAsset(
+                filePath,
+                Path.GetFileName(filePath),
+                [rootNode],
+                [primitive]);
 
             Log.Loaded(log, meshData.Vertices.Length, meshData.Indices.Length);
             Log.LoadSucceeded(log, filePath);
 
-            return new ImportedSceneAsset(
-                filePath,
-                Path.GetFileName(filePath),
-                meshData)
-            {
-                Metrics = SceneAssetMetrics.FromMesh(meshData)
-            };
+            return asset;
         }
         catch (VideraException)
         {

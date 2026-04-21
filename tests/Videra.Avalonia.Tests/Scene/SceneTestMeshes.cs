@@ -26,10 +26,9 @@ internal static class SceneTestMeshes
     public static ImportedSceneAsset CreateImportedAsset(string name = "triangle.obj")
     {
         var mesh = CreateTriangleMesh();
-        return new ImportedSceneAsset(name, name, mesh)
-        {
-            Metrics = SceneAssetMetrics.FromMesh(mesh)
-        };
+        var primitive = new MeshPrimitive(MeshPrimitiveId.New(), $"{name}#primitive0", mesh);
+        var rootNode = new SceneNode(SceneNodeId.New(), name, Matrix4x4.Identity, parentId: null, [primitive.Id]);
+        return new ImportedSceneAsset(name, name, [rootNode], [primitive]);
     }
 
     public static Object3D CreateDeferredObject(string name = "Deferred")
