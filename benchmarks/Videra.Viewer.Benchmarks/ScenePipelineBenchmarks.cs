@@ -39,7 +39,7 @@ public class ScenePipelineBenchmarks
             WriteTriangleObj("batch-import-d.obj", 3f)
         ];
 
-        _importService = new SceneImportService(_mutator);
+        _importService = new SceneImportService();
 
         var previousAsset = ObjModelImporter.Import(WriteTriangleObj("delta-previous.obj", 4f));
         var nextAsset = ObjModelImporter.Import(WriteTriangleObj("delta-next.obj", 5f));
@@ -80,7 +80,7 @@ public class ScenePipelineBenchmarks
     public async Task<int> SceneImportService_ImportBatchAsync()
     {
         var result = await _importService.ImportBatchAsync(_batchImportPaths, CancellationToken.None).ConfigureAwait(false);
-        return result.Entries.Count;
+        return result.Assets.Count;
     }
 
     [Benchmark]
