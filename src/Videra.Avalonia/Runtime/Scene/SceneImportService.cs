@@ -87,8 +87,7 @@ internal sealed class SceneImportService
         {
             try
             {
-                var asset = await Task.Run(() => ImportAsset(path), cancellationToken).ConfigureAwait(false);
-                StoreImportedAsset(CreateReuseKey(path), asset);
+                var asset = await Task.Run(() => ResolveImportedAsset(path), cancellationToken).ConfigureAwait(false);
                 return new ImportedAssetBatchResult(path, asset, Failure: null);
             }
             catch (OperationCanceledException)
@@ -176,6 +175,7 @@ internal sealed class SceneImportService
         {
             var fullPath = Path.GetFullPath(path);
             return new ImportedSceneAssetReuseKey(
+                path,
                 fullPath,
                 File.Exists(fullPath)
                     ? File.GetLastWriteTimeUtc(fullPath)
@@ -183,7 +183,7 @@ internal sealed class SceneImportService
         }
         catch
         {
-            return new ImportedSceneAssetReuseKey(path, DateTime.MinValue);
+            return new ImportedSceneAssetReuseKey(path, path, DateTime.MinValue);
         }
     }
 
@@ -226,5 +226,6 @@ internal sealed record ImportedAssetBatchResult(
     ModelLoadFailure? Failure);
 
 internal readonly record struct ImportedSceneAssetReuseKey(
+    string RequestPath,
     string FullPath,
     DateTime LastWriteTimeUtc);

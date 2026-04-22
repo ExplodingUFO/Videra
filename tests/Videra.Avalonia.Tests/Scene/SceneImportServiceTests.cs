@@ -357,6 +357,21 @@ public sealed class SceneImportServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task Import_batch_reuses_same_imported_asset_across_unchanged_calls()
+    {
+        var path = WriteTriangleGltf("repeat-batch.gltf");
+
+        var first = await _service.ImportBatchAsync([path], CancellationToken.None);
+        var second = await _service.ImportBatchAsync([path], CancellationToken.None);
+
+        first.Failures.Should().BeEmpty();
+        second.Failures.Should().BeEmpty();
+        first.Entries.Should().ContainSingle();
+        second.Entries.Should().ContainSingle();
+        first.Entries[0].ImportedAsset.Should().BeSameAs(second.Entries[0].ImportedAsset);
+    }
+
+    [Fact]
     public async Task Import_single_does_not_reuse_imported_asset_after_file_timestamp_changes()
     {
         var path = WriteTriangleGltf("reused-single-refresh.gltf");
