@@ -37,6 +37,7 @@ public partial class MainWindow : Window
     private bool _sampleStarted;
     private bool _sectionPlaneEnabled;
     private int _annotationSequence = 1;
+    private int _loadedEntryCount;
     private string _loadSummary = "Waiting for backend readiness before loading the focused interaction scene.";
     private string _inspectionSummary = "Toggle a section plane, save the current view state, export a snapshot, or capture a replayable inspection bundle after the scene loads.";
     private string _lastRequestSummary = "Switch modes, click objects, or click empty space to drive the public interaction flow.";
@@ -152,7 +153,7 @@ public partial class MainWindow : Window
                     "Assets/reference-cube.obj"
                 ]).ConfigureAwait(true);
 
-            if (!result.Succeeded || result.LoadedObjects.Count < 2)
+            if (!result.Succeeded || result.Entries.Count < 2)
             {
                 var failureSummary = result.Failures.Count == 0
                     ? "Expected two cubes, but one or more scene objects did not load."
@@ -162,14 +163,15 @@ public partial class MainWindow : Window
                 return;
             }
 
-            ConfigureLoadedObjects(result.LoadedObjects);
+            ConfigureSceneObjects(Array.Empty<Object3D>());
+            _loadedEntryCount = result.Entries.Count;
             SeedHostOwnedState();
 
             var framed = View3D.FrameAll();
             View3D.InvalidateVisual();
 
             _loadSummary =
-                $"LoadModelsAsync(...) loaded {result.LoadedObjects.Count} cubes in {result.Duration.TotalMilliseconds:N0} ms. " +
+                $"LoadModelsAsync(...) loaded {result.Entries.Count} scene entries in {result.Duration.TotalMilliseconds:N0} ms. " +
                 $"FrameAll() returned {framed}. The host now owns SelectionState, Annotations, and annotation state for follow-up interaction.";
         }
         catch (Exception ex)
@@ -182,11 +184,11 @@ public partial class MainWindow : Window
         }
     }
 
-    private void ConfigureLoadedObjects(IReadOnlyList<Object3D> loadedObjects)
+    private void ConfigureSceneObjects(IReadOnlyList<Object3D> sceneObjects)
     {
         _objectNames.Clear();
         _sceneObjects.Clear();
-        _sceneObjects.AddRange(loadedObjects);
+        _sceneObjects.AddRange(sceneObjects);
 
         var layout = new[]
         {
@@ -194,9 +196,9 @@ public partial class MainWindow : Window
             ("Selection Cube B", new Vector3(1.35f, 0f, 0f))
         };
 
-        for (var index = 0; index < loadedObjects.Count; index++)
+        for (var index = 0; index < sceneObjects.Count; index++)
         {
-            var sceneObject = loadedObjects[index];
+            var sceneObject = sceneObjects[index];
             var target = layout[Math.Min(index, layout.Length - 1)];
             sceneObject.Name = target.Item1;
             sceneObject.Position = target.Item2;
@@ -604,7 +606,9 @@ public partial class MainWindow : Window
     {
         if (_objectNames.Count == 0)
         {
-            return "No interaction scene is loaded yet.";
+            return _loadedEntryCount == 0
+                ? "No interaction scene is loaded yet."
+                : $"Loaded entries: {_loadedEntryCount}. Public entry metadata is available, but scene objects stay internal to the runtime.";
         }
 
         var builder = new StringBuilder();

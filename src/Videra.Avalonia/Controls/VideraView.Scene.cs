@@ -11,7 +11,7 @@ public partial class VideraView
     /// <param name="path">Absolute or relative path to a supported model file.</param>
     /// <param name="cancellationToken">Cancellation token for the import work.</param>
     /// <returns>
-    /// A result describing the loaded object, failure information when import fails, and total elapsed time.
+    /// A result describing the loaded scene entry, failure information when import fails, and total elapsed time.
     /// </returns>
     public Task<ModelLoadResult> LoadModelAsync(string path, CancellationToken cancellationToken = default) =>
         _runtime.LoadModelAsync(path, cancellationToken);
@@ -22,7 +22,7 @@ public partial class VideraView
     /// <param name="paths">The model file paths to import.</param>
     /// <param name="cancellationToken">Cancellation token for the batch import work.</param>
     /// <returns>
-    /// A batch result containing every successfully imported object, any failures, and the total batch duration.
+    /// A batch result containing every successfully imported scene entry, any failures, and the total batch duration.
     /// </returns>
     public Task<ModelLoadBatchResult> LoadModelsAsync(IEnumerable<string> paths, CancellationToken cancellationToken = default) =>
         _runtime.LoadModelsAsync(paths, cancellationToken);

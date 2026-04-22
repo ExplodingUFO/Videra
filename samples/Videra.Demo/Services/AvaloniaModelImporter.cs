@@ -6,6 +6,7 @@ using Avalonia.Platform.Storage;
 using Microsoft.Extensions.Logging;
 using Videra.Avalonia.Controls;
 using Videra.Core.Graphics;
+using Videra.Core.Scene;
 using Videra.Import.Gltf;
 using Videra.Import.Obj;
 
@@ -42,7 +43,7 @@ public partial class AvaloniaModelImporter : IModelImporter
 
         if (paths.Length == 0)
         {
-            return new ModelLoadBatchResult(Array.Empty<Object3D>(), Array.Empty<ModelLoadFailure>(), TimeSpan.Zero);
+            return new ModelLoadBatchResult(Array.Empty<SceneDocumentEntry>(), Array.Empty<ModelLoadFailure>(), TimeSpan.Zero);
         }
 
         var result = await _view.LoadModelsAsync(paths).ConfigureAwait(true);
@@ -52,7 +53,7 @@ public partial class AvaloniaModelImporter : IModelImporter
             Log.ImportFailed(_logger, failure.Path, failure.Exception);
         }
 
-        if (result.Succeeded && result.LoadedObjects.Count > 0)
+        if (result.Succeeded && result.Entries.Count > 0)
         {
             _view.FrameAll();
         }
