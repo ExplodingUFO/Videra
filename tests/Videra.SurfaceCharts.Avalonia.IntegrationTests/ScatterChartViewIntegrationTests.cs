@@ -55,7 +55,7 @@ public sealed class ScatterChartViewIntegrationTests
     }
 
     [Fact]
-    public void ScatterChartView_Render_ConnectsEnabledSeries_AndStillDrawsPoints()
+    public void ScatterChartView_Render_ConnectsEnabledSeries_InDepthOrder_AndUsesSeriesLineColor()
     {
         AvaloniaHeadlessTestSession.Run(() =>
         {
@@ -65,11 +65,11 @@ public sealed class ScatterChartViewIntegrationTests
                 [
                     new ScatterSeries(
                         [
-                            new ScatterPoint(1d, 2d, 3d, 0xFFAA5500),
-                            new ScatterPoint(4d, 5d, 6d, 0xFF336699),
-                            new ScatterPoint(7d, 6d, 5d, 0xFF114488),
+                            new ScatterPoint(1d, 2d, 9d, 0xFFAA5500),
+                            new ScatterPoint(4d, 5d, 4d, 0xFF11AA33),
+                            new ScatterPoint(7d, 6d, 1d, 0xFF114488),
                         ],
-                        0xFF336699,
+                        0xFF203040,
                         "Alpha",
                         connectPoints: true),
                 ]);
@@ -83,9 +83,24 @@ public sealed class ScatterChartViewIntegrationTests
 
             view.Render(drawingContext.Context);
 
-            drawingContext.GeometryDrawCallCount.Should().Be(5);
-            drawingContext.FilledGeometryDrawCallCount.Should().Be(3);
-            drawingContext.StrokeOnlyGeometryDrawCallCount.Should().Be(2);
+            var geometryDrawings = drawingContext.GeometryDrawings;
+            geometryDrawings.Should().HaveCount(5);
+            geometryDrawings.Select(drawing => drawing.Brush is not null).Should().Equal(
+                true,
+                false,
+                true,
+                false,
+                true);
+            geometryDrawings.Select(drawing => drawing.Brush is global::Avalonia.Media.ISolidColorBrush solidBrush ? solidBrush.Color.ToUInt32() : 0u).Should().Equal(
+                0xFFAA5500u,
+                0u,
+                0xFF11AA33u,
+                0u,
+                0xFF114488u);
+            geometryDrawings[1].Pen.Should().NotBeNull();
+            geometryDrawings[1].Pen!.Brush.Should().NotBeNull();
+            ((global::Avalonia.Media.ISolidColorBrush)geometryDrawings[1].Pen!.Brush!).Color.ToUInt32().Should().Be(0xFF203040u);
+            ((global::Avalonia.Media.ISolidColorBrush)geometryDrawings[3].Pen!.Brush!).Color.ToUInt32().Should().Be(0xFF203040u);
         });
     }
 
@@ -360,9 +375,7 @@ public sealed class ScatterChartViewIntegrationTests
         private readonly DrawingGroup _drawingGroup = new();
         private readonly DrawingContext _drawingContext;
         private bool _completed;
-        private int? _geometryDrawCallCount;
-        private int? _filledGeometryDrawCallCount;
-        private int? _strokeOnlyGeometryDrawCallCount;
+        private IReadOnlyList<GeometryDrawing>? _geometryDrawings;
 
         public RecordingDrawingContext()
         {
@@ -371,30 +384,12 @@ public sealed class ScatterChartViewIntegrationTests
 
         public DrawingContext Context => _drawingContext;
 
-        public int GeometryDrawCallCount
+        public IReadOnlyList<GeometryDrawing> GeometryDrawings
         {
             get
             {
                 CompleteRecording();
-                return _geometryDrawCallCount!.Value;
-            }
-        }
-
-        public int FilledGeometryDrawCallCount
-        {
-            get
-            {
-                CompleteRecording();
-                return _filledGeometryDrawCallCount!.Value;
-            }
-        }
-
-        public int StrokeOnlyGeometryDrawCallCount
-        {
-            get
-            {
-                CompleteRecording();
-                return _strokeOnlyGeometryDrawCallCount!.Value;
+                return _geometryDrawings!;
             }
         }
 
@@ -411,31 +406,31 @@ public sealed class ScatterChartViewIntegrationTests
             }
 
             _drawingContext.Dispose();
-            _geometryDrawCallCount = CountGeometryDrawings(_drawingGroup);
-            _filledGeometryDrawCallCount = CountGeometryDrawings(_drawingGroup, static drawing => drawing.Brush is not null);
-            _strokeOnlyGeometryDrawCallCount = CountGeometryDrawings(_drawingGroup, static drawing => drawing.Brush is null);
+            _geometryDrawings = CollectGeometryDrawings(_drawingGroup);
             _completed = true;
         }
 
-        private static int CountGeometryDrawings(Drawing drawing)
+        private static IReadOnlyList<GeometryDrawing> CollectGeometryDrawings(Drawing drawing)
         {
-            return drawing switch
-            {
-                GeometryDrawing => 1,
-                DrawingGroup group => group.Children.Sum(CountGeometryDrawings),
-                _ => 0,
-            };
+            List<GeometryDrawing> drawings = [];
+            CollectGeometryDrawings(drawing, drawings);
+            return drawings;
         }
 
-        private static int CountGeometryDrawings(Drawing drawing, Func<GeometryDrawing, bool> predicate)
+        private static void CollectGeometryDrawings(Drawing drawing, List<GeometryDrawing> drawings)
         {
-            return drawing switch
+            switch (drawing)
             {
-                GeometryDrawing geometryDrawing when predicate(geometryDrawing) => 1,
-                GeometryDrawing => 0,
-                DrawingGroup group => group.Children.Sum(child => CountGeometryDrawings(child, predicate)),
-                _ => 0,
-            };
+                case GeometryDrawing geometryDrawing:
+                    drawings.Add(geometryDrawing);
+                    break;
+                case DrawingGroup group:
+                    foreach (var child in group.Children)
+                    {
+                        CollectGeometryDrawings(child, drawings);
+                    }
+                    break;
+            }
         }
     }
 }

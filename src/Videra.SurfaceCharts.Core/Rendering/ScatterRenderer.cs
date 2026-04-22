@@ -41,7 +41,7 @@ public static class ScatterRenderer
                 point.Color ?? series.Color);
         }
 
-        return new ScatterRenderSeries(renderPoints, series.Label, series.ConnectPoints);
+        return new ScatterRenderSeries(renderPoints, series.Color, series.Label, series.ConnectPoints);
     }
 
     private static float ToRenderComponent(double value, string paramName)
