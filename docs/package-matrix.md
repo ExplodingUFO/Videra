@@ -15,7 +15,7 @@ The canonical public viewer stack is:
 The canonical public SurfaceCharts stack is:
 
 1. `Videra.SurfaceCharts.Avalonia`
-2. `Videra.SurfaceCharts.Processing` for the current first-chart path
+2. `Videra.SurfaceCharts.Processing` for the surface/cache-backed path
 3. optional direct `Videra.SurfaceCharts.Core` consumption when you build chart contracts or custom tile sources without the Avalonia shell
 
 `Videra.SurfaceCharts.Avalonia` brings `Videra.SurfaceCharts.Core` and `Videra.SurfaceCharts.Rendering` transitively. `Videra.SurfaceCharts.Rendering` is a real public package because the current chart assembly split depends on it, but most consumers should not install it first.
@@ -29,7 +29,7 @@ The canonical public SurfaceCharts stack is:
 | `Backend` | `Videra.Platform.Windows`, `Videra.Platform.Linux`, `Videra.Platform.macOS` | Public packages | Native graphics implementations |
 | `UI adapter` | `Videra.Avalonia` | Public package | Public host-framework shell |
 | `Charts` | `Videra.SurfaceCharts.Core`, `Videra.SurfaceCharts.Rendering`, `Videra.SurfaceCharts.Processing`, `Videra.SurfaceCharts.Avalonia` | Public packages | Dedicated chart product line, independent from `VideraView` |
-| `Chart demo` | `Videra.SurfaceCharts.Demo` | Repository-only | Support-ready chart reference app, not an installable package |
+| `Chart demo` | `Videra.SurfaceCharts.Demo` | Repository-only | Support-ready chart reference app with `Start here`, `Explore next`, and `Try next` paths, not an installable package |
 
 ## Published packages
 
@@ -44,15 +44,15 @@ The canonical public SurfaceCharts stack is:
 | `Videra.Platform.macOS` | Yes, on public release tags | `nuget.org` | `GitHub Packages` preview/internal only | macOS hosts | `alpha` | Install with `Videra.Avalonia` on macOS |
 | `Videra.SurfaceCharts.Core` | Yes, on public release tags | `nuget.org` | `GitHub Packages` preview/internal only | Chart-domain consumers and custom tile-source integrators | `alpha` | Chart-domain contracts, metadata, LOD, probe contracts |
 | `Videra.SurfaceCharts.Rendering` | Yes, on public release tags | `nuget.org` | `GitHub Packages` preview/internal only | Advanced chart-runtime consumers | `alpha` | Rendering-runtime layer used transitively by `Videra.SurfaceCharts.Avalonia` |
-| `Videra.SurfaceCharts.Processing` | Yes, on public release tags | `nuget.org` | `GitHub Packages` preview/internal only | Consumers that need pyramid/cache helpers | `alpha` | Add for the current first-chart path and cache-backed workflows |
-| `Videra.SurfaceCharts.Avalonia` | Yes, on public release tags | `nuget.org` | `GitHub Packages` preview/internal only | Avalonia desktop applications that host `SurfaceChartView` | `alpha` | Main public chart control entry package |
+| `Videra.SurfaceCharts.Processing` | Yes, on public release tags | `nuget.org` | `GitHub Packages` preview/internal only | Consumers that need pyramid/cache helpers | `alpha` | Add for the surface/cache-backed path |
+| `Videra.SurfaceCharts.Avalonia` | Yes, on public release tags | `nuget.org` | `GitHub Packages` preview/internal only | Avalonia desktop applications that host `SurfaceChartView` or `WaterfallChartView` | `alpha` | Main public chart control entry package |
 
 ## Repository-only entries
 
 | Entry | Published | Audience | Notes |
 | --- | --- | --- | --- |
 | `Videra.Demo` | Repository only | Source evaluation | Viewer demo and diagnostics reference |
-| `Videra.SurfaceCharts.Demo` | Repository only | Source evaluation and support repro | Reference app for `Start here: In-memory first chart`, `Explore next: Cache-backed streaming`, and `Copy support summary` |
+| `Videra.SurfaceCharts.Demo` | Repository only | Source evaluation and support repro | Reference app for `Start here: In-memory first chart`, `Explore next: Cache-backed streaming`, `Try next: Waterfall proof`, and `Copy support summary` |
 | `Videra.ExtensibilitySample` | Repository only | Contributors and integrators | Narrow public reference for extensibility flow |
 | `Videra.InteractionSample` | Repository only | Contributors and integrators | Public sample for controlled interaction and inspection workflows |
 

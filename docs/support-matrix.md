@@ -6,7 +6,7 @@ Use [Videra 1.0 Capability Matrix](capability-matrix.md) for the explicit shippe
 
 The public viewer install rule stays simple: start with `Videra.Avalonia`, add exactly one matching `Videra.Platform.*` package, and treat `Videra.Import.*` as explicit core-path ingestion packages rather than backend selection knobs. `smoke/Videra.WpfSmoke` is repository-only Windows WPF smoke evidence for that viewer path; it is not a second public UI package or release path.
 
-The public SurfaceCharts install rule is similarly narrow: start with `Videra.SurfaceCharts.Avalonia`, add `Videra.SurfaceCharts.Processing` for the current first-chart path, and treat `Videra.SurfaceCharts.Core` / `Videra.SurfaceCharts.Rendering` as lower-level package seams rather than the normal starting point.
+The public SurfaceCharts install rule is similarly narrow: start with `Videra.SurfaceCharts.Avalonia`, add `Videra.SurfaceCharts.Processing` only for the surface/cache-backed path, and treat `Videra.SurfaceCharts.Core` / `Videra.SurfaceCharts.Rendering` as lower-level package seams rather than the normal starting point.
 
 ## Viewer stack
 
@@ -32,10 +32,10 @@ The public SurfaceCharts install rule is similarly narrow: start with `Videra.Su
 | --- | --- | --- | --- | --- |
 | `Videra.SurfaceCharts.Core` | Public package | Core tests and package validation | `alpha` | Chart-domain contracts, tile identities, probe contracts, and LOD selection |
 | `Videra.SurfaceCharts.Rendering` | Public package | Rendering-focused tests and package validation | `alpha` | Rendering-runtime layer used transitively by `Videra.SurfaceCharts.Avalonia` |
-| `Videra.SurfaceCharts.Processing` | Public package | Processing tests, benchmarks, and package validation | `alpha` | Data-preparation layer for in-memory pyramids and cache-backed workflows |
-| `Videra.SurfaceCharts.Avalonia` | Public package | Avalonia integration tests, package validation, and demo alignment checks | `alpha` | Public `SurfaceChartView` entry package, independent from `VideraView` |
-| `Videra.SurfaceCharts.ConsumerSmoke` | Repository only | Windows packaged consumer smoke and `surfacecharts-support-summary.txt` artifact validation | `alpha` | Packaged first-chart proof for `Videra.SurfaceCharts.Avalonia` + `Videra.SurfaceCharts.Processing` on the supported host path |
-| `Videra.SurfaceCharts.Demo` | Repository only | `sample-contract-evidence`, SurfaceCharts runtime evidence, and `Support summary` validation | `alpha` | `Start here: In-memory first chart` first, `Copy support summary` for support capture, repository-only reference app |
+| `Videra.SurfaceCharts.Processing` | Public package | Processing tests, benchmarks, and package validation | `alpha` | Data-preparation layer for the surface/cache-backed path |
+| `Videra.SurfaceCharts.Avalonia` | Public package | Avalonia integration tests, package validation, and demo alignment checks | `alpha` | Public `SurfaceChartView` and `WaterfallChartView` entry package, independent from `VideraView` |
+| `Videra.SurfaceCharts.ConsumerSmoke` | Repository only | Windows packaged consumer smoke and `surfacecharts-support-summary.txt` artifact validation | `alpha` | Packaged surface/cache-backed proof for `Videra.SurfaceCharts.Avalonia` + `Videra.SurfaceCharts.Processing` on the supported host path |
+| `Videra.SurfaceCharts.Demo` | Repository only | `sample-contract-evidence`, SurfaceCharts runtime evidence, and `Support summary` validation | `alpha` | `Start here: In-memory first chart` first, `Explore next: Cache-backed streaming`, `Try next: Waterfall proof`, `Copy support summary`, repository-only reference app |
 
 ## Compatibility notes
 

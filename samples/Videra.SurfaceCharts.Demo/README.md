@@ -2,12 +2,13 @@
 
 `Videra.SurfaceCharts.Demo` is the independent demo application for the surface-chart module family.
 
-For the canonical first-chart story, start from `Videra.SurfaceCharts.Avalonia` plus `Videra.SurfaceCharts.Processing`, and use this demo as the repository reference app for that same path. `SurfaceChartView` in `Videra.SurfaceCharts.Avalonia` remains the primary chart control entrypoint.
+For the canonical surface/cache-backed chart story, start from `Videra.SurfaceCharts.Avalonia` plus `Videra.SurfaceCharts.Processing`, and use this demo as the repository reference app for that same path. `SurfaceChartView` and `WaterfallChartView` in `Videra.SurfaceCharts.Avalonia` are the current chart control entrypoints.
 
 The sample stays separate from `Videra.Demo` and `VideraView`. It exercises the chart-local renderer seam shipped in `SurfaceChartView`, not a `VideraView` mode. It provides switchable sources and built-in chart interaction:
 
-- `Start here: in-memory first chart`: builds a sample surface matrix at startup and feeds it through `SurfacePyramidBuilder`.
-- `Explore next: cache-backed streaming`: loads manifest metadata from `Assets/sample-surface-cache/sample.surfacecache.json`, then uses lazy tile streaming from `Assets/sample-surface-cache/sample.surfacecache.json.bin` through `SurfaceCacheReader` and `SurfaceCacheTileSource`.
+- `Start here: In-memory first chart`: builds a sample surface matrix at startup and feeds it through `SurfacePyramidBuilder`.
+- `Explore next: Cache-backed streaming`: loads manifest metadata from `Assets/sample-surface-cache/sample.surfacecache.json`, then uses lazy tile streaming from `Assets/sample-surface-cache/sample.surfacecache.json.bin` through `SurfaceCacheReader` and `SurfaceCacheTileSource`.
+- `Try next: Waterfall proof`: exercises the thin `WaterfallChartView` proof on the same Avalonia shell.
 
 SurfaceChartView now exposes `ViewState` as the primary chart-view contract while `Viewport` remains a compatibility bridge for existing hosts.
 SurfaceChartView now ships built-in `left-drag orbit`, `right-drag pan`, `wheel dolly`, `Ctrl + left-drag` focus zoom, and `Shift + left-click` pinned probe on top of the `ViewState` runtime contract.
@@ -17,7 +18,7 @@ The public overlay configuration seam is `SurfaceChartOverlayOptions` through `O
 Hosts own `ISurfaceTileSource`, persisted `ViewState`, color-map selection, and chart-local product UI.
 `SurfaceChartView` owns chart-local built-in gestures, tile scheduling/cache, overlay presentation, native-host/render-host orchestration, and `RenderingStatus` projection.
 The public rendering truth is `RenderingStatus` + `RenderStatusChanged` with `ActiveBackend`, `IsReady`, `IsFallback`, `FallbackReason`, `UsesNativeSurface`, and `ResidentTileCount`.
-The `Videra.SurfaceCharts.*` family is part of the current public package promise. The public chart package line is `Videra.SurfaceCharts.Avalonia` plus `Videra.SurfaceCharts.Processing` for the current first-chart install story. `Videra.SurfaceCharts.Avalonia` brings `Videra.SurfaceCharts.Core` and `Videra.SurfaceCharts.Rendering` transitively. This demo remains repository-only.
+The `Videra.SurfaceCharts.*` family is part of the current public package promise. The public chart package line is `Videra.SurfaceCharts.Avalonia` plus `Videra.SurfaceCharts.Processing` for the surface/cache-backed path. `Videra.SurfaceCharts.Avalonia` brings `Videra.SurfaceCharts.Core` and `Videra.SurfaceCharts.Rendering` transitively. This demo remains repository-only.
 
 The committed cache sample uses a tiled manifest+sidecar layout so panning, dolly, and focus changes request different cache tiles instead of materializing every tile value into memory up front.
 
@@ -26,6 +27,7 @@ The committed cache sample uses a tiled manifest+sidecar layout so panning, doll
 1. Run the sample and keep the default `Start here: In-memory first chart` source.
 2. Confirm the baseline first chart renders, then try `FitToData()`, `ResetCamera()`, orbit, pan, dolly, and focus zoom.
 3. Move to `Explore next: Cache-backed streaming` only after the first chart path works and you want to validate lazy tile reads plus the broader demo surfaces.
+4. Use `Try next: Waterfall proof` when you want the second control proof on the same Avalonia shell.
 
 ## Run
 
@@ -38,6 +40,7 @@ dotnet run --project samples/Videra.SurfaceCharts.Demo/Videra.SurfaceCharts.Demo
 - an independent chart application boundary
 - a `Start here` in-memory first chart path
 - an `Explore next` cache-backed streaming path
+- a `Try next` waterfall proof path
 - built-in `left-drag orbit`, `right-drag pan`, `wheel dolly`, and `Ctrl + left-drag` focus zoom
 - a `View-state contract` panel that projects `ViewState`, `FitToData()`, `ResetCamera()`, and `ZoomTo(...)`
 - an `Interaction quality` panel that projects `Interactive` and `Refine`

@@ -22,7 +22,7 @@ Public release tags publish these packages to `nuget.org`.
 
 The canonical public viewer stack is `Videra.Avalonia` plus exactly one matching `Videra.Platform.*` package. `Videra.Import.Gltf` and `Videra.Import.Obj` stay explicit ingestion packages on the core path; they are part of the public package line, but they are not a replacement for the Avalonia + matching-platform viewer stack.
 
-The canonical public chart stack is `Videra.SurfaceCharts.Avalonia` plus `Videra.SurfaceCharts.Processing` for the current first-chart path. `Videra.SurfaceCharts.Core` and `Videra.SurfaceCharts.Rendering` are part of the public package line because the current chart control/runtime split depends on them, but they are not the normal first install step for most chart consumers.
+The canonical public chart stack is `Videra.SurfaceCharts.Avalonia` plus `Videra.SurfaceCharts.Processing` for the surface/cache-backed path. `Videra.SurfaceCharts.Core` and `Videra.SurfaceCharts.Rendering` are part of the public package line because the current chart control/runtime split depends on them, but they are not the normal first install step for most chart consumers.
 The packaged proof for that chart stack is `smoke/Videra.SurfaceCharts.ConsumerSmoke` on the supported host path, and its support artifact is `surfacecharts-support-summary.txt`.
 
 Use [Package Matrix](package-matrix.md) for the published-package table and [Hosting Boundary](hosting-boundary.md) for the canonical composition story behind this release line.
@@ -48,8 +48,8 @@ They ship as source, documentation, and sample assets inside the repository.
 SurfaceCharts release truth now has three explicit parts:
 
 - package assets publish `Videra.SurfaceCharts.Core`, `Videra.SurfaceCharts.Rendering`, `Videra.SurfaceCharts.Processing`, and `Videra.SurfaceCharts.Avalonia`
-- `smoke/Videra.SurfaceCharts.ConsumerSmoke` proves the packaged first-chart path and emits the packaged support-summary artifact
-- `Videra.SurfaceCharts.Demo` remains repository-only and keeps the support-summary repro path
+- `smoke/Videra.SurfaceCharts.ConsumerSmoke` proves the packaged surface/cache-backed path and emits the packaged support-summary artifact
+- `Videra.SurfaceCharts.Demo` remains repository-only and keeps the `Start here`, `Explore next`, and `Try next` support-summary repro paths
 
 ## Versioning
 

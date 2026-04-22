@@ -18,6 +18,7 @@ Videra is still an early alpha embeddable viewer stack. Good feedback is not jus
    - `Videra.SurfaceCharts.Demo` for the packaged chart repro path:
      - `Start here: In-memory first chart` before any cache-backed investigation
      - `Explore next: Cache-backed streaming` only after the first-chart path renders
+      - `Try next: Waterfall proof` when you need the second control proof on the same chart shell
 4. Export a diagnostics snapshot with `VideraDiagnosticsSnapshotFormatter.Format(View3D.BackendDiagnostics)` or attach the `consumer smoke` `diagnostics-snapshot.txt` artifact.
 5. If the issue is visual or inspection-related, attach either:
    - a snapshot exported through `ExportSnapshotAsync(...)`, or
@@ -35,10 +36,11 @@ Videra is still an early alpha embeddable viewer stack. Good feedback is not jus
 - inspection bundle directory when you need camera, clipping, measurements, annotations, and imported assets to replay together
 - `CanReplayScene` and `ReplayLimitation` from `VideraInspectionBundleService.ExportAsync(...)` whenever the bundle is exportable but not replayable
 - `SurfaceCharts support summary` from either the packaged `smoke/Videra.SurfaceCharts.ConsumerSmoke` `surfacecharts-support-summary.txt` artifact or the `Videra.SurfaceCharts.Demo` `Support summary` panel when the issue is in `area: surfacecharts`
-- use `Copy support summary` after reproducing `Start here: In-memory first chart`; continue to `Explore next: Cache-backed streaming` only if needed
+- use `Copy support summary` after reproducing `Start here: In-memory first chart`; continue to `Explore next: Cache-backed streaming` only if needed, and use `Try next: Waterfall proof` when the issue involves the second chart control
 - SurfaceCharts demo-path choice when relevant:
   - `Start here: In-memory first chart`
   - `Explore next: Cache-backed streaming`
+  - `Try next: Waterfall proof`
 - SurfaceCharts chart state when relevant:
   - `ViewState`
   - `InteractionQuality`
@@ -70,9 +72,9 @@ Videra is still an early alpha embeddable viewer stack. Good feedback is not jus
 - `ResolvedDisplayServer = X11` means the direct supported X11 host path.
 - `ResolvedDisplayServer = XWayland` means a Wayland session is using the documented X11 compatibility bridge, not compositor-native Wayland embedding.
 - The `Videra.SurfaceCharts.*` package line is a separate public product family; include the exact package ids involved when the issue is chart-specific.
-- `Videra.SurfaceCharts.Avalonia` + `Videra.SurfaceCharts.Processing` is the default public first-chart install path.
-- `smoke/Videra.SurfaceCharts.ConsumerSmoke` is the packaged first-chart proof on the supported host path and emits `surfacecharts-support-summary.txt` for support capture.
-- `Videra.SurfaceCharts.Demo` remains repository-only and is the support-ready repro/reference app for that same chart flow.
+- `Videra.SurfaceCharts.Avalonia` + `Videra.SurfaceCharts.Processing` is the default public surface/cache-backed install path, not a requirement for every chart path.
+- `smoke/Videra.SurfaceCharts.ConsumerSmoke` is the packaged surface/cache-backed proof on the supported host path and emits `surfacecharts-support-summary.txt` for support capture.
+- `Videra.SurfaceCharts.Demo` remains repository-only and is the support-ready repro/reference app for the `Start here`, `Explore next`, and `Try next` paths.
 
 ## Where to send feedback
 
