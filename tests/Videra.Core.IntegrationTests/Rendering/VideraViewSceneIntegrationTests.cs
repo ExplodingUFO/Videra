@@ -794,7 +794,7 @@ public sealed class VideraViewSceneIntegrationTests : IDisposable
             view.BackendDiagnostics.SupportedRenderFeatureNames.Should().NotContain("Transparent");
             view.BackendDiagnostics.SupportedRenderFeatureNames.Should().Contain("Picking");
             view.BackendDiagnostics.SupportedRenderFeatureNames.Should().Contain("Screenshot");
-            view.BackendDiagnostics.TransparentFeatureStatus.Should().Be("Imported alpha semantics are preserved, but dedicated alpha mask and alpha blend rendering baselines are deferred.");
+            view.BackendDiagnostics.TransparentFeatureStatus.Should().Be("Alpha mask rendering is shipped for per-object carried alpha sources on the current runtime path; alpha blend ordering remains deferred.");
             view.BackendDiagnostics.UsesSoftwarePresentationCopy.Should().BeTrue();
         }
         finally

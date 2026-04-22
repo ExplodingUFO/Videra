@@ -246,7 +246,7 @@ internal sealed class VideraViewSessionBridge
             LastFrameStageNames = pipelineSnapshot?.StageNames?.ToArray() ?? Array.Empty<string>(),
             LastFrameFeatureNames = pipelineSnapshot?.FeatureNames?.ToArray() ?? Array.Empty<string>(),
             SupportedRenderFeatureNames = MergeSupportedFeatures(capabilities.SupportedFeatures, BridgeAdditionalFeatures).ToFeatureNames(),
-            TransparentFeatureStatus = VideraBackendDiagnostics.DeferredTransparentFeatureStatus,
+            TransparentFeatureStatus = VideraBackendDiagnostics.CurrentTransparentFeatureStatus,
             UsesSoftwarePresentationCopy = snapshot.UsesSoftwarePresentationCopy,
             SceneDocumentVersion = sceneDiagnostics.SceneDocumentVersion,
             PendingSceneUploads = sceneDiagnostics.PendingUploads,

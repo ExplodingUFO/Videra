@@ -376,6 +376,13 @@ cbuffer WorldBuffer : register(b2)
     row_major float4x4 worldMatrix;
 };
 
+cbuffer AlphaMaskBuffer : register(b6)
+{
+    float maskEnabled;
+    float alphaCutoff;
+    float2 _alphaMaskPad;
+};
+
 cbuffer StyleBuffer : register(b3)
 {
     // 光照 (offset 0-28, padded to 32)
@@ -421,6 +428,8 @@ struct VSOutput
     float3 worldNormal : NORMAL;
     float4 color : COLOR;
     float3 worldPos : TEXCOORD0;
+    float maskEnabled : TEXCOORD1;
+    float alphaCutoff : TEXCOORD2;
 };
 
 VSOutput main_vs(VSInput input)
@@ -432,11 +441,19 @@ VSOutput main_vs(VSInput input)
     output.worldNormal = normalize(mul(input.normal, (float3x3)worldMatrix));
     output.color = useVertexColor ? input.color : overrideColor;
     output.worldPos = worldPos.xyz;
+    output.maskEnabled = maskEnabled;
+    output.alphaCutoff = alphaCutoff;
     return output;
 }
 
 float4 main_ps(VSOutput input) : SV_TARGET
 {
+    float sourceAlpha = input.color.a;
+    if (input.maskEnabled > 0.5f)
+    {
+        clip(sourceAlpha - input.alphaCutoff);
+    }
+
     float3 normal = normalize(input.worldNormal);
     float3 lightDir = normalize(lightDirection);
 
@@ -467,7 +484,8 @@ float4 main_ps(VSOutput input) : SV_TARGET
     // 亮度调整
     color += brightness;
 
-    return float4(saturate(color), input.color.a * opacity);
+    float finalAlpha = input.maskEnabled > 0.5f ? opacity : sourceAlpha * opacity;
+    return float4(saturate(color), finalAlpha);
 }
 ";
     }

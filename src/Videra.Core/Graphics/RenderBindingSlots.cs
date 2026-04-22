@@ -11,5 +11,6 @@ public static class RenderBindingSlots
     public const uint Style = 3;
     public const uint SurfaceColorMap = 4;
     public const uint SurfaceTileScalars = 5;
+    public const uint AlphaMask = 6;
 }
 
