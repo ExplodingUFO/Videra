@@ -100,6 +100,9 @@ public sealed class InteractionSampleConfigurationTests
         var project = File.ReadAllText(Path.Combine(GetRepositoryRoot(), "samples", "Videra.InteractionSample", "Videra.InteractionSample.csproj"));
 
         project.Should().Contain(@"..\..\src\Videra.Avalonia\Videra.Avalonia.csproj");
+        project.Should().Contain(@"..\..\src\Videra.Platform.Windows\Videra.Platform.Windows.csproj");
+        project.Should().Contain(@"..\..\src\Videra.Platform.Linux\Videra.Platform.Linux.csproj");
+        project.Should().Contain(@"..\..\src\Videra.Platform.macOS\Videra.Platform.macOS.csproj");
         project.Should().NotContain(@"..\..\samples\Videra.Demo\");
         project.Should().NotContain("Videra.Demo");
     }

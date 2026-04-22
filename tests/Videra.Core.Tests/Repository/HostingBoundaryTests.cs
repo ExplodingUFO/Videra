@@ -38,6 +38,8 @@ public sealed class HostingBoundaryTests
         hostingBoundary.Should().Contain("LoadModelsAsync");
         hostingBoundary.Should().Contain("`Videra.Import.*`");
         hostingBoundary.Should().Contain("public surface");
+        hostingBoundary.Should().Contain("ModelLoadResult.Entry");
+        hostingBoundary.Should().NotContain("ModelLoadResult.Entries");
 
         docsIndex.Should().Contain("hosting-boundary.md");
         readme.Should().Contain("docs/hosting-boundary.md");

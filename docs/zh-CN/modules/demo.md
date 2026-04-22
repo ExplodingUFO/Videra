@@ -41,7 +41,7 @@ Demo 启动后会等待 `VideraView` 完成后端初始化，然后：
 
 ```csharp
 var result = await View3D.LoadModelsAsync(paths);
-if (result.Entries.Count > 0)
+if (result.Succeeded && result.Entries.Count > 0)
 {
     View3D.FrameAll();
 }

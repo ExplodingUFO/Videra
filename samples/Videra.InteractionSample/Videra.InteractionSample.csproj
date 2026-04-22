@@ -30,6 +30,14 @@
     <ProjectReference Include="..\..\src\Videra.Platform.Windows\Videra.Platform.Windows.csproj" />
   </ItemGroup>
 
+  <ItemGroup Condition="$([MSBuild]::IsOSPlatform('Linux'))">
+    <ProjectReference Include="..\..\src\Videra.Platform.Linux\Videra.Platform.Linux.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Condition="$([MSBuild]::IsOSPlatform('OSX'))">
+    <ProjectReference Include="..\..\src\Videra.Platform.macOS\Videra.Platform.macOS.csproj" />
+  </ItemGroup>
+
   <ItemGroup>
     <None Include="Assets\reference-cube.obj" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
