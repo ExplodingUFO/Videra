@@ -242,6 +242,27 @@ public sealed class RepositoryReleaseReadinessTests
     }
 
     [Fact]
+    public void WpfSmoke_ShouldRemainRepositoryOnlyAndExcludedFromPublicReleaseAutomation()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var packageMatrix = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "package-matrix.md"));
+        var releasePolicy = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "release-policy.md"));
+        var releasing = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "releasing.md"));
+        var publicWorkflow = File.ReadAllText(Path.Combine(repositoryRoot, ".github", "workflows", "publish-public.yml"));
+        var previewWorkflow = File.ReadAllText(Path.Combine(repositoryRoot, ".github", "workflows", "publish-github-packages.yml"));
+        var existingReleaseWorkflow = File.ReadAllText(Path.Combine(repositoryRoot, ".github", "workflows", "publish-existing-public-release.yml"));
+        var validatePackages = File.ReadAllText(Path.Combine(repositoryRoot, "scripts", "Validate-Packages.ps1"));
+
+        packageMatrix.Should().NotContain("Videra.WpfSmoke");
+        releasePolicy.Should().NotContain("Videra.WpfSmoke");
+        releasing.Should().NotContain("Videra.WpfSmoke");
+        publicWorkflow.Should().NotContain("Videra.WpfSmoke");
+        previewWorkflow.Should().NotContain("Videra.WpfSmoke");
+        existingReleaseWorkflow.Should().NotContain("Videra.WpfSmoke");
+        validatePackages.Should().NotContain("Videra.WpfSmoke");
+    }
+
+    [Fact]
     public void AvaloniaReadme_ShouldPromoteHighLevelViewerApi()
     {
         var readme = File.ReadAllText(Path.Combine(GetRepositoryRoot(), "src", "Videra.Avalonia", "README.md"));

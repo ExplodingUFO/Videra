@@ -2,7 +2,7 @@
 
 [English](native-validation.md) | [中文](zh-CN/native-validation.md)
 
-This runbook covers the matching-host validation path for Videra's Linux, macOS, and Windows native backends. GitHub Actions pull requests now use this path as the primary native-validation gate. Use this guide when you need to inspect that CI behavior, rerun it manually with `workflow_dispatch`, or reproduce host-specific backend issues locally.
+This runbook covers the matching-host validation path for Videra's Linux, macOS, and Windows native backends. GitHub Actions pull requests now use this path as the primary native-validation gate. The public viewer path stays Avalonia-first, and `smoke/Videra.WpfSmoke` remains repository-only Windows WPF smoke proof used for validation and support evidence. Use this guide when you need to inspect that CI behavior, rerun it manually with `workflow_dispatch`, or reproduce host-specific backend issues locally.
 
 ## What This Covers
 

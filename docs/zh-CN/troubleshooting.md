@@ -30,6 +30,7 @@ pwsh -File ./scripts/verify.ps1 -Configuration Release -IncludeNativeMacOS
 ## 安装与后端偏好边界
 
 - Avalonia 应用请安装 `Videra.Avalonia` 加匹配平台包：`Videra.Platform.Windows`、`Videra.Platform.Linux` 或 `Videra.Platform.macOS`
+- `smoke/Videra.WpfSmoke` 是 repository-only 的 Windows WPF smoke 证明，只用于验证和 support evidence，不是第二条公开 UI 包线或发布路径
 - 只需要核心渲染抽象时再单独安装 `Videra.Core`
 - 软件回退适合诊断，但不会安装缺失的平台包
 - `VIDERA_BACKEND` 只影响后端选择偏好，不会安装缺失的平台包，也不会替代 matching-host 原生验证
