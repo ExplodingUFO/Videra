@@ -18,7 +18,7 @@ internal static class SurfaceChartsDocumentationTerms
         "`Videra.SurfaceCharts.Demo` is the independent demo application for the surface-chart module family.";
 
     public const string SurfaceChartViewSentence =
-        "The dedicated `SurfaceChartView` control remains the primary chart control entrypoint in `Videra.SurfaceCharts.Avalonia`.";
+        "The dedicated `SurfaceChartView`, `WaterfallChartView`, and `ScatterChartView` controls remain the public chart entrypoints in `Videra.SurfaceCharts.Avalonia`.";
 
     public const string SurfaceChartsRendererStatusSentence =
         "The shipped chart surface is `GPU-first` with explicit `software fallback`, and hosts can inspect `RenderingStatus` / `RenderStatusChanged`.";
@@ -153,7 +153,9 @@ internal static class SurfaceChartsDocumentationTerms
     public static readonly string[] SurfaceChartViewEntryTokens =
     [
         "`SurfaceChartView`",
-        "primary chart control entrypoint",
+        "`WaterfallChartView`",
+        "`ScatterChartView`",
+        "public chart entrypoints",
         "`Videra.SurfaceCharts.Avalonia`"
     ];
 
