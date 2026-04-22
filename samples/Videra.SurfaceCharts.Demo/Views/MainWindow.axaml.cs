@@ -1,9 +1,8 @@
+using System.Globalization;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
-using Avalonia.Media;
-using System.Globalization;
 using Videra.SurfaceCharts.Avalonia.Controls;
 using Videra.SurfaceCharts.Core;
 using Videra.SurfaceCharts.Processing;
@@ -15,8 +14,10 @@ public partial class MainWindow : Window
 {
     private const string CacheManifestFileName = "sample.surfacecache.json";
     private const string CachePayloadSuffix = ".bin";
+    private const int WaterfallSourceIndex = 2;
 
-    private readonly SurfaceChartView _chartView;
+    private readonly SurfaceChartView _surfaceChartView;
+    private readonly WaterfallChartView _waterfallChartView;
     private readonly ComboBox _sourceSelector;
     private readonly Button _fitToDataButton;
     private readonly Button _resetCameraButton;
@@ -31,19 +32,23 @@ public partial class MainWindow : Window
     private readonly TextBlock _supportSummaryStatusText;
     private readonly TextBlock _supportSummaryText;
     private readonly ISurfaceTileSource _inMemorySource;
-    private readonly SurfaceColorMap _colorMap;
+    private readonly ISurfaceTileSource _waterfallSource;
     private readonly string _cachePath;
     private readonly string _cachePayloadPath;
     private Task<ISurfaceTileSource>? _cacheSourceTask;
     private string _activeSourceHeading = string.Empty;
     private string _activeSourceDetails = string.Empty;
+    private string _activeDatasetSummary = string.Empty;
+    private string _activeAssetSummary = "No additional assets are used on this path.";
 
     public MainWindow()
     {
         InitializeComponent();
 
-        _chartView = this.FindControl<SurfaceChartView>("ChartView")
+        _surfaceChartView = this.FindControl<SurfaceChartView>("ChartView")
             ?? throw new InvalidOperationException("Surface chart view is missing.");
+        _waterfallChartView = this.FindControl<WaterfallChartView>("WaterfallChartView")
+            ?? throw new InvalidOperationException("Waterfall chart view is missing.");
         _sourceSelector = this.FindControl<ComboBox>("SourceSelector")
             ?? throw new InvalidOperationException("Source selector is missing.");
         _fitToDataButton = this.FindControl<Button>("FitToDataButton")
@@ -79,113 +84,179 @@ public partial class MainWindow : Window
         _cachePayloadPath = _cachePath + CachePayloadSuffix;
 
         _inMemorySource = CreateInMemorySource();
-        _colorMap = CreateColorMap(_inMemorySource.Metadata.ValueRange);
-        _chartView.OverlayOptions = CreateOverlayOptions();
+        _waterfallSource = CreateWaterfallSource();
+
+        ConfigureChartView(_surfaceChartView);
+        ConfigureChartView(_waterfallChartView);
 
         _sourceSelector.SelectedIndex = 0;
-        _chartView.ColorMap = _colorMap;
-
         ApplySource(
+            _surfaceChartView,
             _inMemorySource,
             "Start here: In-memory first chart",
-            "Start here first. Generated at runtime from a dense matrix, built with SurfacePyramidBuilder, and kept as the baseline chart path inside this demo.");
+            "Start here first. Generated at runtime from a dense matrix, built with SurfacePyramidBuilder, and kept as the baseline chart path inside this demo.",
+            "The start-here in-memory path uses a generated 64x48 matrix with an overview-first pyramid.",
+            "No additional assets are used on this path.");
 
-        _chartView.RenderStatusChanged += OnRenderStatusChanged;
-        _chartView.InteractionQualityChanged += OnInteractionQualityChanged;
-        _chartView.PropertyChanged += OnChartViewPropertyChanged;
         _sourceSelector.SelectionChanged += OnSourceSelectionChanged;
         _fitToDataButton.Click += OnFitToDataClicked;
         _resetCameraButton.Click += OnResetCameraClicked;
         _copySupportSummaryButton.Click += OnCopySupportSummaryClicked;
 
-        UpdateRenderingPathText(_chartView.RenderingStatus);
-        UpdateInteractionQualityText(_chartView.InteractionQuality);
-        UpdateOverlayOptionsText(_chartView.OverlayOptions);
         _cachePathText.Text = $"Manifest: {_cachePath}\nPayload sidecar: {_cachePayloadPath}";
-        _datasetText.Text = CreateDatasetSummary();
         UpdateStatusText();
         UpdateViewStateText();
         UpdateSupportSummaryText();
     }
+
+    private SurfaceChartView ActiveChartView => _waterfallChartView.IsVisible ? _waterfallChartView : _surfaceChartView;
 
     private void InitializeComponent()
     {
         AvaloniaXamlLoader.Load(this);
     }
 
+    private void ConfigureChartView(SurfaceChartView chartView)
+    {
+        chartView.OverlayOptions = CreateOverlayOptions();
+        chartView.RenderStatusChanged += OnRenderStatusChanged;
+        chartView.InteractionQualityChanged += OnInteractionQualityChanged;
+        chartView.PropertyChanged += OnChartViewPropertyChanged;
+    }
+
     private async void OnSourceSelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
         _ = sender;
         _ = e;
+        var requestedIndex = _sourceSelector.SelectedIndex;
 
-        if (_sourceSelector.SelectedIndex == 0)
+        if (requestedIndex == 0)
         {
             ApplySource(
+                _surfaceChartView,
                 _inMemorySource,
                 "Start here: In-memory first chart",
-                "Start here first. Generated at runtime from a dense matrix, built with SurfacePyramidBuilder, and kept as the baseline chart path inside this demo.");
+                "Start here first. Generated at runtime from a dense matrix, built with SurfacePyramidBuilder, and kept as the baseline chart path inside this demo.",
+                "The start-here in-memory path uses a generated 64x48 matrix with an overview-first pyramid.",
+                "No additional assets are used on this path.");
+            return;
+        }
+
+        if (requestedIndex == WaterfallSourceIndex)
+        {
+            ApplySource(
+                _waterfallChartView,
+                _waterfallSource,
+                "Try next: Waterfall proof",
+                "Thin proof on the same Avalonia chart shell. Uses a Waterfall-specific renderer plus the inherited ViewState, interaction, overlay, and rendering-status workflow.",
+                "The waterfall proof expands each logical strip into baseline-data-baseline rows and renders them through the Waterfall chart path.",
+                "No additional assets are used on this path.");
             return;
         }
 
         try
         {
             var cacheSource = await GetOrCreateCacheSourceAsync().ConfigureAwait(true);
+            if (_sourceSelector.SelectedIndex != requestedIndex)
+            {
+                return;
+            }
+
             ApplySource(
+                _surfaceChartView,
                 cacheSource,
                 "Explore next: Cache-backed streaming",
-                $"Advanced follow-up after the first chart renders. Loads manifest metadata from {_cachePath} and uses lazy viewport tile streaming from {_cachePayloadPath}.");
+                $"Advanced follow-up after the first chart renders. Loads manifest metadata from {_cachePath} and uses lazy viewport tile streaming from {_cachePayloadPath}.",
+                "The cache-backed path reads a committed manifest plus binary sidecar and only requests the tiles needed for the current view.",
+                $"Manifest {_cachePath}; Payload sidecar {_cachePayloadPath}");
         }
         catch (Exception exception)
         {
+            if (_sourceSelector.SelectedIndex != requestedIndex)
+            {
+                return;
+            }
+
             ApplySource(
+                _surfaceChartView,
                 _inMemorySource,
                 "Start here: In-memory first chart",
-                $"Start here fallback. Cache-backed streaming failed to load: {exception.Message}");
+                $"Start here fallback. Cache-backed streaming failed to load: {exception.Message}",
+                "The start-here in-memory path uses a generated 64x48 matrix with an overview-first pyramid.",
+                "No additional assets are used on this path.");
             _sourceSelector.SelectedIndex = 0;
         }
     }
 
-    private void ApplySource(ISurfaceTileSource source, string heading, string details)
+    private void ApplySource(
+        SurfaceChartView chartView,
+        ISurfaceTileSource source,
+        string heading,
+        string details,
+        string datasetSummary,
+        string assetSummary)
     {
-        _chartView.Source = source;
-        _chartView.FitToData();
+        SetActiveChartView(chartView);
+        chartView.ColorMap = CreateColorMap(source.Metadata.ValueRange);
+        chartView.Source = source;
+        chartView.FitToData();
         _activeSourceHeading = heading;
         _activeSourceDetails = details;
+        _activeDatasetSummary = datasetSummary;
+        _activeAssetSummary = assetSummary;
+        _datasetText.Text = datasetSummary;
+        UpdateRenderingPathText(chartView.RenderingStatus);
+        UpdateInteractionQualityText(chartView.InteractionQuality);
+        UpdateOverlayOptionsText(chartView.OverlayOptions);
         UpdateStatusText();
         UpdateViewStateText();
         UpdateSupportSummaryText();
     }
 
+    private void SetActiveChartView(SurfaceChartView chartView)
+    {
+        _surfaceChartView.IsVisible = ReferenceEquals(chartView, _surfaceChartView);
+        _waterfallChartView.IsVisible = ReferenceEquals(chartView, _waterfallChartView);
+    }
+
     private void OnRenderStatusChanged(object? sender, EventArgs e)
     {
-        _ = sender;
         _ = e;
-        UpdateRenderingPathText(_chartView.RenderingStatus);
+        if (!ReferenceEquals(sender, ActiveChartView))
+        {
+            return;
+        }
+
+        UpdateRenderingPathText(ActiveChartView.RenderingStatus);
     }
 
     private void OnInteractionQualityChanged(object? sender, EventArgs e)
     {
-        _ = sender;
         _ = e;
-        UpdateInteractionQualityText(_chartView.InteractionQuality);
+        if (!ReferenceEquals(sender, ActiveChartView))
+        {
+            return;
+        }
+
+        UpdateInteractionQualityText(ActiveChartView.InteractionQuality);
     }
 
     private void OnChartViewPropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
     {
-        _ = sender;
-
-        if (e.Property == SurfaceChartView.ViewStateProperty)
+        if (!ReferenceEquals(sender, ActiveChartView) || e.Property != SurfaceChartView.ViewStateProperty)
         {
-            UpdateStatusText();
-            UpdateViewStateText();
+            return;
         }
+
+        UpdateStatusText();
+        UpdateViewStateText();
     }
 
     private void OnFitToDataClicked(object? sender, RoutedEventArgs e)
     {
         _ = sender;
         _ = e;
-        _chartView.FitToData();
+        ActiveChartView.FitToData();
         UpdateStatusText();
         UpdateViewStateText();
         UpdateSupportSummaryText();
@@ -195,7 +266,7 @@ public partial class MainWindow : Window
     {
         _ = sender;
         _ = e;
-        _chartView.ResetCamera();
+        ActiveChartView.ResetCamera();
         UpdateStatusText();
         UpdateViewStateText();
         UpdateSupportSummaryText();
@@ -234,7 +305,7 @@ public partial class MainWindow : Window
 
     private void UpdateStatusText()
     {
-        var dataWindow = _chartView.ViewState.DataWindow;
+        var dataWindow = ActiveChartView.ViewState.DataWindow;
         _statusText.Text =
             $"{_activeSourceHeading}\n" +
             $"{_activeSourceDetails}\n" +
@@ -265,6 +336,12 @@ public partial class MainWindow : Window
     private static ISurfaceTileSource CreateInMemorySource()
     {
         var matrix = CreateSampleMatrix();
+        return new SurfacePyramidBuilder(32, 32).Build(matrix);
+    }
+
+    private static ISurfaceTileSource CreateWaterfallSource()
+    {
+        var matrix = CreateWaterfallMatrix();
         return new SurfacePyramidBuilder(32, 32).Build(matrix);
     }
 
@@ -319,6 +396,49 @@ public partial class MainWindow : Window
         return new SurfaceMatrix(metadata, values);
     }
 
+    private static SurfaceMatrix CreateWaterfallMatrix()
+    {
+        const int width = 72;
+        const int stripCount = 12;
+        const int rowsPerStrip = 3;
+        var height = stripCount * rowsPerStrip;
+        var values = new float[width * height];
+        var maximum = 0d;
+
+        for (var strip = 0; strip < stripCount; strip++)
+        {
+            var baselineTop = strip * rowsPerStrip;
+            var signalRow = baselineTop + 1;
+            var baselineBottom = baselineTop + 2;
+            var stripWeight = 1d + (strip * 0.045d);
+            var hotspot = 0.12d + (strip * 0.055d);
+
+            for (var x = 0; x < width; x++)
+            {
+                var normalizedX = (double)x / (width - 1);
+                var wave = Math.Sin((normalizedX * Math.PI * (2.4d + (strip * 0.08d))) + (strip * 0.35d));
+                var harmonic = Math.Cos((normalizedX * Math.PI * 5.6d) - (strip * 0.18d)) * 0.18d;
+                var spike = Math.Exp(-44d * Math.Pow(normalizedX - hotspot, 2d));
+                var envelope = 0.92d - (normalizedX * 0.25d);
+                var value = Math.Max(0d, ((wave * 0.48d) + harmonic + (spike * 1.15d)) * stripWeight * envelope);
+
+                values[(baselineTop * width) + x] = 0f;
+                values[(signalRow * width) + x] = (float)value;
+                values[(baselineBottom * width) + x] = 0f;
+                maximum = Math.Max(maximum, value);
+            }
+        }
+
+        var metadata = new SurfaceMetadata(
+            width,
+            height,
+            new SurfaceAxisDescriptor("Time", "s", 0d, 180d),
+            new SurfaceAxisDescriptor("Sweep", unit: null, minimum: 0d, maximum: stripCount - 1d),
+            new SurfaceValueRange(0d, maximum));
+
+        return new SurfaceMatrix(metadata, values);
+    }
+
     private static SurfaceColorMap CreateColorMap(SurfaceValueRange range)
     {
         return new SurfaceColorMap(
@@ -343,30 +463,24 @@ public partial class MainWindow : Window
         };
     }
 
-    private static string CreateDatasetSummary()
-    {
-        return "The start-here in-memory path uses a generated 64x48 matrix with an overview-first pyramid. " +
-               "The explore-next cache-backed path loads a committed manifest plus binary sidecar and lazily reads only the tiles needed for the current built-in interaction view.";
-    }
-
     private void UpdateSupportSummaryText()
     {
-        var status = _chartView.RenderingStatus;
+        var status = ActiveChartView.RenderingStatus;
         _supportSummaryText.Text =
             "SurfaceCharts support summary\n" +
             $"Source path: {_activeSourceHeading}\n" +
             $"Source details: {_activeSourceDetails}\n" +
             $"ViewState: {CreateViewStateSummary()}\n" +
-            $"InteractionQuality: {_chartView.InteractionQuality}\n" +
+            $"InteractionQuality: {ActiveChartView.InteractionQuality}\n" +
             $"RenderingStatus: ActiveBackend {status.ActiveBackend}; IsReady {status.IsReady}; IsFallback {status.IsFallback}; FallbackReason {status.FallbackReason ?? "none"}; UsesNativeSurface {status.UsesNativeSurface}; ResidentTileCount {status.ResidentTileCount}\n" +
-            $"OverlayOptions: {CreateOverlayOptionsSummary(_chartView.OverlayOptions)}\n" +
-            $"Cache asset: Manifest {_cachePath}; Payload sidecar {_cachePayloadPath}\n" +
-            $"Dataset: {CreateDatasetSummary()}";
+            $"OverlayOptions: {CreateOverlayOptionsSummary(ActiveChartView.OverlayOptions)}\n" +
+            $"Cache asset: {_activeAssetSummary}\n" +
+            $"Dataset: {_activeDatasetSummary}";
     }
 
     private string CreateViewStateSummary()
     {
-        var viewState = _chartView.ViewState;
+        var viewState = ActiveChartView.ViewState;
         var dataWindow = viewState.DataWindow;
         var camera = viewState.Camera;
         return
