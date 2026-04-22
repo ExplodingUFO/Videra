@@ -8,8 +8,8 @@ public sealed class SceneDocument
 
     public static SceneDocument Empty { get; } = new(version: 0, Array.Empty<SceneDocumentEntry>());
 
-    public SceneDocument(IEnumerable<Object3D> sceneObjects)
-        : this(version: 1, CreateEntries(sceneObjects))
+    internal SceneDocument(IEnumerable<SceneDocumentEntry> entries)
+        : this(version: 1, entries)
     {
     }
 
@@ -23,9 +23,9 @@ public sealed class SceneDocument
 
     public int Version { get; }
 
-    public IReadOnlyList<Object3D> SceneObjects { get; }
+    public IReadOnlyList<SceneDocumentEntry> Entries => _entries;
 
-    internal IReadOnlyList<SceneDocumentEntry> Entries => _entries;
+    internal IReadOnlyList<Object3D> SceneObjects { get; }
 
     internal bool TryGetEntry(Object3D sceneObject, out SceneDocumentEntry entry)
     {
@@ -62,15 +62,5 @@ public sealed class SceneDocument
     internal SceneDocument WithEntries(IEnumerable<SceneDocumentEntry> entries, int version)
     {
         return new SceneDocument(version, entries);
-    }
-
-    private static IEnumerable<SceneDocumentEntry> CreateEntries(IEnumerable<Object3D> sceneObjects)
-    {
-        ArgumentNullException.ThrowIfNull(sceneObjects);
-        return sceneObjects.Select(static sceneObject => new SceneDocumentEntry(
-            SceneEntryId.New(),
-            sceneObject,
-            ImportedAsset: null,
-            SceneOwnership.ExternalObject));
     }
 }

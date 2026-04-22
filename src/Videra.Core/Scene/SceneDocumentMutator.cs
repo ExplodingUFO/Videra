@@ -106,8 +106,9 @@ internal sealed class SceneDocumentMutator
 
         return new SceneDocumentEntry(
             SceneEntryId.New(),
+            sceneObject.Name,
             sceneObject,
-            ImportedAsset: null,
+            importedAsset: null,
             SceneOwnership.ExternalObject);
     }
 
@@ -118,6 +119,7 @@ internal sealed class SceneDocumentMutator
 
         return new SceneDocumentEntry(
             SceneEntryId.New(),
+            importedAsset.Name,
             sceneObject,
             importedAsset,
             SceneOwnership.RuntimeOwnedImported);

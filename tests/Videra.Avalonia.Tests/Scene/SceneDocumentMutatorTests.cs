@@ -23,6 +23,7 @@ public sealed class SceneDocumentMutatorTests
 
         document.Version.Should().Be(1);
         document.Entries.Should().ContainSingle();
+        document.Entries[0].Name.Should().Be(asset.Name);
         document.Entries[0].Ownership.Should().Be(SceneOwnership.RuntimeOwnedImported);
         document.Entries[0].ImportedAsset.Should().BeSameAs(asset);
         document.Entries[0].Id.Value.Should().NotBe(Guid.Empty);
@@ -41,6 +42,6 @@ public sealed class SceneDocumentMutatorTests
 
         rebuilt.Version.Should().Be(initial.Version + 1);
         rebuilt.Entries.Select(static entry => entry.Id).Should().BeEquivalentTo(initial.Entries.Select(static entry => entry.Id));
-        rebuilt.SceneObjects.Should().ContainInOrder(second, first);
+        rebuilt.Entries.Select(static entry => entry.Name).Should().ContainInOrder("second", "first");
     }
 }
