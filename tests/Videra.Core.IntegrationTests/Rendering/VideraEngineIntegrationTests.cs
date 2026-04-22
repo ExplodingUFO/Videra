@@ -7,6 +7,7 @@ using Videra.Core.Graphics;
 using Videra.Core.Graphics.Abstractions;
 using Videra.Core.Graphics.Software;
 using Videra.Core.Graphics.Wireframe;
+using Videra.Core.Scene;
 using Videra.Core.Styles.Presets;
 using Xunit;
 
@@ -190,6 +191,54 @@ public class VideraEngineIntegrationTests
     }
 
     [Fact]
+    public void VideraEngine_MaskedObject_BelowCutoff_DoesNotRenderOnSoftwareBackend()
+    {
+        using var backend = new SoftwareBackend();
+        backend.Initialize(IntPtr.Zero, 200, 200);
+        using var engine = new VideraEngine
+        {
+            BackgroundColor = RgbaFloat.Blue
+        };
+        engine.Initialize(backend);
+        engine.Resize(200, 200);
+        engine.Grid.IsVisible = false;
+        engine.ShowAxis = false;
+
+        var maskedQuad = DemoMeshFactory.CreateMaskedQuad(alpha: 0.25f, cutoff: 0.5f);
+        engine.AddObject(maskedQuad);
+
+        engine.Draw();
+
+        var frame = DemoMeshFactory.CaptureFrame(backend);
+        DemoMeshFactory.CountPixels(frame, DemoMeshFactory.PixelColor.White).Should().Be(0);
+        DemoMeshFactory.CountPixels(frame, DemoMeshFactory.PixelColor.Blue).Should().BeGreaterThan(0);
+    }
+
+    [Fact]
+    public void VideraEngine_MaskedObject_AboveCutoff_RendersAsOpaqueOnSoftwareBackend()
+    {
+        using var backend = new SoftwareBackend();
+        backend.Initialize(IntPtr.Zero, 200, 200);
+        using var engine = new VideraEngine
+        {
+            BackgroundColor = RgbaFloat.Blue
+        };
+        engine.Initialize(backend);
+        engine.Resize(200, 200);
+        engine.Grid.IsVisible = false;
+        engine.ShowAxis = false;
+
+        var maskedQuad = DemoMeshFactory.CreateMaskedQuad(alpha: 0.75f, cutoff: 0.5f);
+        engine.AddObject(maskedQuad);
+
+        engine.Draw();
+
+        var frame = DemoMeshFactory.CaptureFrame(backend);
+        DemoMeshFactory.CountPixels(frame, DemoMeshFactory.PixelColor.White).Should().BeGreaterThan(0);
+        DemoMeshFactory.CountPixels(frame, DemoMeshFactory.PixelColor.Blue).Should().BeGreaterThan(0);
+    }
+
+    [Fact]
     public void VideraEngine_ShowAxis_RendersAxisOverlay()
     {
         using var backend = new SoftwareBackend();
@@ -326,6 +375,34 @@ internal static class DemoMeshFactory
         var quad = new Object3D { Name = "WhiteQuad" };
         quad.Initialize(factory, mesh);
         return quad;
+    }
+
+    public static Object3D CreateMaskedQuad(float alpha, float cutoff, float halfExtent = 0.8f)
+    {
+        var color = new RgbaFloat(1f, 1f, 1f, alpha);
+        var vertices = new[]
+        {
+            new VertexPositionNormalColor(new Vector3(-halfExtent, -halfExtent, 0f), Vector3.UnitZ, color),
+            new VertexPositionNormalColor(new Vector3(halfExtent, -halfExtent, 0f), Vector3.UnitZ, color),
+            new VertexPositionNormalColor(new Vector3(halfExtent, halfExtent, 0f), Vector3.UnitZ, color),
+            new VertexPositionNormalColor(new Vector3(-halfExtent, halfExtent, 0f), Vector3.UnitZ, color),
+        };
+        var indices = new uint[] { 0, 1, 2, 0, 2, 3 };
+        var mesh = new MeshData
+        {
+            Vertices = vertices,
+            Indices = indices,
+            Topology = MeshTopology.Triangles
+        };
+        var material = new MaterialInstance(
+            MaterialInstanceId.New(),
+            "MaskedQuad",
+            RgbaFloat.White,
+            alpha: new MaterialAlphaSettings(MaterialAlphaMode.Mask, cutoff, true));
+        var primitive = new MeshPrimitive(MeshPrimitiveId.New(), "MaskedQuadPrimitive", mesh, material.Id);
+        var node = new SceneNode(SceneNodeId.New(), "MaskedQuadNode", Matrix4x4.Identity, parentId: null, [primitive.Id]);
+        var asset = new ImportedSceneAsset("masked-quad.gltf", "masked-quad.gltf", [node], [primitive], [material]);
+        return SceneObjectFactory.CreateDeferred(asset);
     }
 
     public static byte[] CaptureFrame(SoftwareBackend backend)

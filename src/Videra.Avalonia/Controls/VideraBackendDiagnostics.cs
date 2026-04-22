@@ -7,8 +7,8 @@ namespace Videra.Avalonia.Controls;
 /// </summary>
 public sealed class VideraBackendDiagnostics
 {
-    internal const string DeferredTransparentFeatureStatus =
-        "Imported alpha semantics are preserved, but dedicated alpha mask and alpha blend rendering baselines are deferred.";
+    internal const string CurrentTransparentFeatureStatus =
+        "Alpha mask rendering is shipped for per-object carried alpha sources on the current runtime path; alpha blend ordering remains deferred.";
 
     public static VideraBackendDiagnostics CreateDefault(GraphicsBackendPreference requestedBackend = GraphicsBackendPreference.Auto)
     {
@@ -27,7 +27,7 @@ public sealed class VideraBackendDiagnostics
                 RenderFeatureSet.Overlay |
                 RenderFeatureSet.Picking |
                 RenderFeatureSet.Screenshot).ToFeatureNames(),
-            TransparentFeatureStatus = DeferredTransparentFeatureStatus,
+            TransparentFeatureStatus = CurrentTransparentFeatureStatus,
             SceneDocumentVersion = 0,
             PendingSceneUploads = 0,
             PendingSceneUploadBytes = 0,

@@ -245,7 +245,7 @@ internal sealed unsafe class VulkanResourceFactory : IResourceFactory
             PDynamicStates = dynamicStates
         };
 
-        var bindingCount = usesSurfaceChartScalarBindings ? 4u : 2u;
+        var bindingCount = usesSurfaceChartScalarBindings ? 4u : 3u;
         var bindings = stackalloc DescriptorSetLayoutBinding[(int)bindingCount];
         bindings[0] = new DescriptorSetLayoutBinding
         {
@@ -257,6 +257,13 @@ internal sealed unsafe class VulkanResourceFactory : IResourceFactory
         bindings[1] = new DescriptorSetLayoutBinding
         {
             Binding = 1,
+            DescriptorType = DescriptorType.UniformBuffer,
+            DescriptorCount = 1,
+            StageFlags = ShaderStageFlags.VertexBit
+        };
+        bindings[2] = new DescriptorSetLayoutBinding
+        {
+            Binding = 2,
             DescriptorType = DescriptorType.UniformBuffer,
             DescriptorCount = 1,
             StageFlags = ShaderStageFlags.VertexBit
@@ -580,7 +587,16 @@ layout(set = 0, binding = 1) uniform WorldBuffer
     mat4 worldMatrix;
 } world;
 
+layout(set = 0, binding = 2) uniform AlphaMaskBuffer
+{
+    float maskEnabled;
+    float alphaCutoff;
+    vec2 _alphaMaskPad;
+} alphaMask;
+
 layout(location = 0) out vec4 fragColor;
+layout(location = 1) flat out float fragMaskEnabled;
+layout(location = 2) flat out float fragAlphaCutoff;
 
 void main()
 {
@@ -588,6 +604,8 @@ void main()
     vec4 viewPos = camera.viewMatrix * worldPos;
     gl_Position = camera.projectionMatrix * viewPos;
     fragColor = inColor;
+    fragMaskEnabled = alphaMask.maskEnabled;
+    fragAlphaCutoff = alphaMask.alphaCutoff;
 }
 ";
     }
@@ -622,6 +640,8 @@ layout(set = 0, binding = 3) uniform SurfaceTileScalarBuffer
 } tileScalars;
 
 layout(location = 0) out vec4 fragColor;
+layout(location = 1) flat out float fragMaskEnabled;
+layout(location = 2) flat out float fragAlphaCutoff;
 
 float LoadTileScalar(uint vertexId)
 {
@@ -689,6 +709,8 @@ void main()
     float ambient = 0.35;
     float diffuse = max(dot(normal, lightDir), 0.0) * 0.65;
     fragColor = vec4(clamp(surfaceColor.rgb * (ambient + diffuse), 0.0, 1.0), surfaceColor.a);
+    fragMaskEnabled = 0.0;
+    fragAlphaCutoff = 0.0;
 }
 ";
     }
@@ -697,11 +719,20 @@ void main()
     {
         return @"#version 450
 layout(location = 0) in vec4 fragColor;
+layout(location = 1) flat in float fragMaskEnabled;
+layout(location = 2) flat in float fragAlphaCutoff;
 layout(location = 0) out vec4 outColor;
 
 void main()
 {
-    outColor = fragColor;
+    if (fragMaskEnabled > 0.5 && fragColor.a < fragAlphaCutoff)
+    {
+        discard;
+    }
+
+    outColor = fragMaskEnabled > 0.5
+        ? vec4(fragColor.rgb, 1.0)
+        : fragColor;
 }
 ";
     }

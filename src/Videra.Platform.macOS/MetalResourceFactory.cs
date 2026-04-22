@@ -211,6 +211,8 @@ struct VertexOut {
     float4 position [[position]];
     float3 normal;
     float4 color;
+    float maskEnabled;
+    float alphaCutoff;
 };
 
 struct CameraUniforms {
@@ -222,10 +224,17 @@ struct WorldUniforms {
     float4x4 worldMatrix;
 };
 
+struct AlphaMaskUniforms {
+    float maskEnabled;
+    float alphaCutoff;
+    float2 padding;
+};
+
 vertex VertexOut vertex_main(
     VertexIn in [[stage_in]],
     constant CameraUniforms& camera [[buffer(1)]],
     constant WorldUniforms& world [[buffer(2)]],
+    constant AlphaMaskUniforms& alphaMask [[buffer(6)]],
     uint vid [[vertex_id]])
 {
     VertexOut out;
@@ -245,13 +254,21 @@ vertex VertexOut vertex_main(
     }
 
     out.normal = in.normal;
+    out.maskEnabled = alphaMask.maskEnabled;
+    out.alphaCutoff = alphaMask.alphaCutoff;
     return out;
 }
 
 fragment float4 fragment_main(VertexOut in [[stage_in]])
 {
+    if (in.maskEnabled > 0.5 && in.color.a < in.alphaCutoff) {
+        discard_fragment();
+    }
+
     // DIRECT COLOR OUTPUT - No lighting, no complex math
-    return in.color;
+    return in.maskEnabled > 0.5
+        ? float4(in.color.rgb, 1.0)
+        : in.color;
 }
 ";
     }

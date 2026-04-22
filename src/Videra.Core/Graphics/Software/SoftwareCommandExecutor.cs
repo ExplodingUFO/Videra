@@ -70,6 +70,7 @@ internal sealed class SoftwareCommandExecutor : ICommandExecutor
         var world = ReadMatrixFromSlot(2);
         var (view, projection) = ReadCameraMatrices();
         var mvp = world * view * projection;
+        var alphaMask = ReadAlphaMaskState();
 
         if (primitive == PrimitiveMode.LineList)
         {
@@ -80,7 +81,7 @@ internal sealed class SoftwareCommandExecutor : ICommandExecutor
                 if (!TryGetVertex(indices, firstIndex + i + 1, vertexOffset, vertices, mvp, out var v1))
                     continue;
 
-                DrawLine(v0, v1, _depthTestEnabled, _depthWriteEnabled);
+                DrawLine(v0, v1, _depthTestEnabled, _depthWriteEnabled, alphaMask);
             }
 
             return;
@@ -92,7 +93,7 @@ internal sealed class SoftwareCommandExecutor : ICommandExecutor
             {
                 if (!TryGetVertex(indices, firstIndex + i, vertexOffset, vertices, mvp, out var v0))
                     continue;
-                DrawPoint(v0, _depthTestEnabled, _depthWriteEnabled);
+                DrawPoint(v0, _depthTestEnabled, _depthWriteEnabled, alphaMask);
             }
 
             return;
@@ -107,7 +108,7 @@ internal sealed class SoftwareCommandExecutor : ICommandExecutor
             if (!TryGetVertex(indices, firstIndex + i + 2, vertexOffset, vertices, mvp, out var v2))
                 continue;
 
-            DrawTriangle(v0, v1, v2, _depthTestEnabled, _depthWriteEnabled);
+            DrawTriangle(v0, v1, v2, _depthTestEnabled, _depthWriteEnabled, alphaMask);
         }
     }
 
@@ -161,6 +162,16 @@ internal sealed class SoftwareCommandExecutor : ICommandExecutor
         return (Matrix4x4.Identity, Matrix4x4.Identity);
     }
 
+    private ObjectAlphaMaskUniformData ReadAlphaMaskState()
+    {
+        if (_vertexBuffers.TryGetValue(RenderBindingSlots.AlphaMask, out var buffer) && buffer.SizeInBytes >= 16)
+        {
+            return buffer.Read<ObjectAlphaMaskUniformData>(0);
+        }
+
+        return ObjectAlphaMaskUniformData.From(Scene.MaterialAlphaSettings.Opaque);
+    }
+
     private bool TryGetVertex(
         ReadOnlySpan<uint> indices,
         uint indexPosition,
@@ -205,12 +216,17 @@ internal sealed class SoftwareCommandExecutor : ICommandExecutor
         return true;
     }
 
-    private void DrawPoint(VertexOut v0, bool depthTest, bool depthWrite)
+    private void DrawPoint(VertexOut v0, bool depthTest, bool depthWrite, ObjectAlphaMaskUniformData alphaMask)
     {
-        DrawPixel((int)MathF.Round(v0.X), (int)MathF.Round(v0.Y), v0.Z, v0.Color, depthWrite, depthTest);
+        if (!TryResolveAlphaMaskedColor(v0.Color, alphaMask, out var maskedColor))
+        {
+            return;
+        }
+
+        DrawPixel((int)MathF.Round(v0.X), (int)MathF.Round(v0.Y), v0.Z, maskedColor, depthWrite, depthTest);
     }
 
-    private void DrawLine(VertexOut v0, VertexOut v1, bool depthTest, bool depthWrite)
+    private void DrawLine(VertexOut v0, VertexOut v1, bool depthTest, bool depthWrite, ObjectAlphaMaskUniformData alphaMask)
     {
         var dx = v1.X - v0.X;
         var dy = v1.Y - v0.Y;
@@ -218,7 +234,7 @@ internal sealed class SoftwareCommandExecutor : ICommandExecutor
 
         if (steps <= 0)
         {
-            DrawPoint(v0, depthTest, depthWrite);
+            DrawPoint(v0, depthTest, depthWrite, alphaMask);
             return;
         }
 
@@ -230,11 +246,16 @@ internal sealed class SoftwareCommandExecutor : ICommandExecutor
             var z = Lerp(v0.Z, v1.Z, t);
             var color = Vector4.Lerp(v0.Color, v1.Color, t);
 
-            DrawPixel((int)MathF.Round(x), (int)MathF.Round(y), z, color, depthWrite, depthTest);
+            if (!TryResolveAlphaMaskedColor(color, alphaMask, out var maskedColor))
+            {
+                continue;
+            }
+
+            DrawPixel((int)MathF.Round(x), (int)MathF.Round(y), z, maskedColor, depthWrite, depthTest);
         }
     }
 
-    private void DrawTriangle(VertexOut v0, VertexOut v1, VertexOut v2, bool depthTest, bool depthWrite)
+    private void DrawTriangle(VertexOut v0, VertexOut v1, VertexOut v2, bool depthTest, bool depthWrite, ObjectAlphaMaskUniformData alphaMask)
     {
         var minX = (int)MathF.Floor(MathF.Min(v0.X, MathF.Min(v1.X, v2.X)));
         var maxX = (int)MathF.Ceiling(MathF.Max(v0.X, MathF.Max(v1.X, v2.X)));
@@ -270,9 +291,40 @@ internal sealed class SoftwareCommandExecutor : ICommandExecutor
                 var depth = v0.Z * b0 + v1.Z * b1 + v2.Z * b2;
                 var color = v0.Color * b0 + v1.Color * b1 + v2.Color * b2;
 
-                DrawPixel(x, y, depth, color, depthWrite, depthTest);
+                if (!TryResolveAlphaMaskedColor(color, alphaMask, out var maskedColor))
+                {
+                    continue;
+                }
+
+                DrawPixel(x, y, depth, maskedColor, depthWrite, depthTest);
             }
         }
+    }
+
+    private static bool TryResolveAlphaMaskedColor(Vector4 color, ObjectAlphaMaskUniformData alphaMask, out Vector4 resolvedColor)
+    {
+        if (alphaMask.MaskEnabled <= 0.5f)
+        {
+            resolvedColor = color;
+            return true;
+        }
+
+        if (color.W < alphaMask.Cutoff)
+        {
+            resolvedColor = default;
+            return false;
+        }
+
+        if (color.W <= 0f)
+        {
+            resolvedColor = default;
+            return false;
+        }
+
+        // Software projection stores premultiplied vertex color, but the native shader paths
+        // keep masked fragments in straight color space once they survive the cutoff.
+        resolvedColor = new Vector4(color.X / color.W, color.Y / color.W, color.Z / color.W, 1f);
+        return true;
     }
 
     private void DrawPixel(int x, int y, float depth, Vector4 color, bool writeDepth, bool depthTest)

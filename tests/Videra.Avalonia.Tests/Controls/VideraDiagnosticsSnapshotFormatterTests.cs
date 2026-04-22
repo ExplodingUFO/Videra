@@ -26,7 +26,7 @@ public sealed class VideraDiagnosticsSnapshotFormatterTests
             LastFrameStageNames = ["PrepareFrame", "PresentFrame"],
             LastFrameFeatureNames = ["Opaque", "Overlay"],
             SupportedRenderFeatureNames = ["Opaque", "Overlay", "Picking", "Screenshot"],
-            TransparentFeatureStatus = "Imported alpha semantics are preserved, but dedicated alpha mask and alpha blend rendering baselines are deferred.",
+            TransparentFeatureStatus = "Alpha mask rendering is shipped for per-object carried alpha sources on the current runtime path; alpha blend ordering remains deferred.",
             SceneDocumentVersion = 3,
             PendingSceneUploads = 1,
             PendingSceneUploadBytes = 4096,
@@ -61,7 +61,7 @@ public sealed class VideraDiagnosticsSnapshotFormatterTests
         snapshot.Should().Contain("LastFrameStageNames: PrepareFrame, PresentFrame");
         snapshot.Should().Contain("LastFrameFeatureNames: Opaque, Overlay");
         snapshot.Should().Contain("SupportedRenderFeatureNames: Opaque, Overlay, Picking, Screenshot");
-        snapshot.Should().Contain("TransparentFeatureStatus: Imported alpha semantics are preserved, but dedicated alpha mask and alpha blend rendering baselines are deferred.");
+        snapshot.Should().Contain("TransparentFeatureStatus: Alpha mask rendering is shipped for per-object carried alpha sources on the current runtime path; alpha blend ordering remains deferred.");
         snapshot.Should().Contain("PendingSceneUploadBytes: 4096");
         snapshot.Should().Contain("ResolvedUploadBudgetBytes: 16384");
         snapshot.Should().Contain("IsClippingActive: True");

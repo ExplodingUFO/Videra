@@ -193,6 +193,8 @@ public partial class VideraEngine
         {
             _resources.CommandExecutor.SetVertexBuffer(_resources.StyleUniformBuffer, RenderBindingSlots.Style);
         }
+
+        BindDefaultAlphaMaskState();
     }
 
     private void RenderGridPass(bool shouldLog)
@@ -241,6 +243,10 @@ public partial class VideraEngine
         obj.UpdateUniforms(_resources.CommandExecutor!);
         _resources.CommandExecutor!.SetVertexBuffer(obj.VertexBuffer, RenderBindingSlots.Vertex);
         _resources.CommandExecutor.SetVertexBuffer(obj.WorldBuffer, RenderBindingSlots.World);
+        if (obj.AlphaMaskBuffer != null)
+        {
+            _resources.CommandExecutor.SetVertexBuffer(obj.AlphaMaskBuffer, RenderBindingSlots.AlphaMask);
+        }
         _resources.CommandExecutor.SetIndexBuffer(obj.IndexBuffer);
 
         if (shouldLog)
@@ -323,6 +329,8 @@ public partial class VideraEngine
 
     private void ExecutePassSlot(RenderPassSlot slot, RenderFramePlan plan, bool shouldLog)
     {
+        BindDefaultAlphaMaskState();
+
         var sharedFrameState = CreateSharedFrameStateUnsafe();
         var context = new RenderPassContributionContext
         {
@@ -360,6 +368,8 @@ public partial class VideraEngine
                 _annotationOverlayContributor.Contribute(context);
             }
         }
+
+        BindDefaultAlphaMaskState();
 
         foreach (var contributor in _passRegistry.GetRegistrations(slot))
         {
@@ -451,5 +461,13 @@ public partial class VideraEngine
         }
 
         return features;
+    }
+
+    private void BindDefaultAlphaMaskState()
+    {
+        if (_resources.DefaultAlphaMaskBuffer != null)
+        {
+            _resources.CommandExecutor!.SetVertexBuffer(_resources.DefaultAlphaMaskBuffer, RenderBindingSlots.AlphaMask);
+        }
     }
 }

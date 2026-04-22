@@ -22,6 +22,8 @@ internal sealed class ResourceLifetimeRegistry
 
     public IBuffer? StyleUniformBuffer { get; private set; }
 
+    public IBuffer? DefaultAlphaMaskBuffer { get; private set; }
+
     public void Attach(IGraphicsDevice device, IRenderSurface renderSurface)
     {
         Device = device;
@@ -40,6 +42,8 @@ internal sealed class ResourceLifetimeRegistry
         CameraBuffer = ResourceFactory.CreateUniformBuffer(128);
         StyleUniformBuffer = ResourceFactory.CreateUniformBuffer(128);
         StyleUniformBuffer.Update(styleService.CurrentParameters.ToUniformData());
+        DefaultAlphaMaskBuffer = ResourceFactory.CreateUniformBuffer(16);
+        DefaultAlphaMaskBuffer.Update(ObjectAlphaMaskUniformData.From(Scene.MaterialAlphaSettings.Opaque));
         MeshPipeline = ResourceFactory.CreatePipeline(
             vertexSize: (uint)Unsafe.SizeOf<VertexPositionNormalColor>(),
             hasNormals: true,
@@ -89,6 +93,9 @@ internal sealed class ResourceLifetimeRegistry
 
         StyleUniformBuffer?.Dispose();
         StyleUniformBuffer = null;
+
+        DefaultAlphaMaskBuffer?.Dispose();
+        DefaultAlphaMaskBuffer = null;
 
         renderWorld.ReleaseGraphicsResources(preserveSceneObjects);
 

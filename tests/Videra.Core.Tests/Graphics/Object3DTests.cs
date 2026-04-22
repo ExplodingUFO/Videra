@@ -400,6 +400,53 @@ public class Object3DTests
     }
 
     [Fact]
+    public void SceneObjectFactory_CreateDeferred_AppliesSharedMaterialAlphaToObject()
+    {
+        var mesh = CreateTestMesh();
+        var material = new MaterialInstance(
+            MaterialInstanceId.New(),
+            "triangle.obj#material0",
+            new RgbaFloat(0.9f, 0.8f, 0.7f, 0.2f),
+            alpha: new MaterialAlphaSettings(MaterialAlphaMode.Mask, 0.42f, true));
+        var primitive = new MeshPrimitive(MeshPrimitiveId.New(), "triangle.obj#primitive0", mesh, material.Id);
+        var rootNode = new SceneNode(SceneNodeId.New(), "triangle.obj", Matrix4x4.Identity, parentId: null, [primitive.Id]);
+        var asset = new ImportedSceneAsset("triangle.obj", "triangle.obj", [rootNode], [primitive], [material]);
+        var materialAlphaProperty = typeof(Object3D).GetProperty("MaterialAlpha", BindingFlags.Instance | BindingFlags.NonPublic);
+
+        materialAlphaProperty.Should().NotBeNull();
+
+        var sceneObject = SceneObjectFactory.CreateDeferred(asset);
+
+        materialAlphaProperty!.GetValue(sceneObject).Should().Be(new MaterialAlphaSettings(MaterialAlphaMode.Mask, 0.42f, true));
+    }
+
+    [Fact]
+    public void SceneObjectFactory_CreateDeferred_WithConflictingMaterialAlpha_Throws()
+    {
+        var mesh = CreateTestMesh();
+        var maskedMaterial = new MaterialInstance(
+            MaterialInstanceId.New(),
+            "masked",
+            RgbaFloat.White,
+            alpha: new MaterialAlphaSettings(MaterialAlphaMode.Mask, 0.42f, true));
+        var opaqueMaterial = new MaterialInstance(MaterialInstanceId.New(), "opaque", RgbaFloat.White);
+        var firstPrimitive = new MeshPrimitive(MeshPrimitiveId.New(), "triangle.obj#primitive0", mesh, maskedMaterial.Id);
+        var secondPrimitive = new MeshPrimitive(MeshPrimitiveId.New(), "triangle.obj#primitive1", mesh, opaqueMaterial.Id);
+        var rootNode = new SceneNode(SceneNodeId.New(), "triangle.obj", Matrix4x4.Identity, parentId: null, [firstPrimitive.Id, secondPrimitive.Id]);
+        var asset = new ImportedSceneAsset(
+            "triangle.obj",
+            "triangle.obj",
+            [rootNode],
+            [firstPrimitive, secondPrimitive],
+            [maskedMaterial, opaqueMaterial]);
+
+        var act = () => SceneObjectFactory.CreateDeferred(asset);
+
+        act.Should().Throw<InvalidOperationException>()
+            .WithMessage("*conflicting alpha semantics*");
+    }
+
+    [Fact]
     public void ImportedSceneAsset_FlattensSharedPrimitiveInstancesIntoTransformedPayload()
     {
         var material = new MaterialInstance(MaterialInstanceId.New(), "SharedMaterial", RgbaFloat.White);

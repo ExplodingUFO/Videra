@@ -626,6 +626,82 @@ public sealed class ModelImporterTests : IDisposable
     }
 
     [Fact]
+    public void Import_GltfVertexColors_AreMultipliedByBaseColorFactor()
+    {
+        var path = WriteGltf("vertex_color_factor.gltf", """
+            {
+              "asset": { "version": "2.0" },
+              "scene": 0,
+              "scenes": [
+                { "nodes": [0] }
+              ],
+              "nodes": [
+                { "name": "Root", "mesh": 0 }
+              ],
+              "meshes": [
+                {
+                  "name": "ColoredMesh",
+                  "primitives": [
+                    {
+                      "attributes": { "POSITION": 0, "COLOR_0": 1 },
+                      "indices": 2,
+                      "material": 0
+                    }
+                  ]
+                }
+              ],
+              "materials": [
+                {
+                  "name": "Tinted",
+                  "pbrMetallicRoughness": {
+                    "baseColorFactor": [0.5, 0.5, 0.5, 0.4]
+                  }
+                }
+              ],
+              "buffers": [
+                {
+                  "byteLength": 90,
+                  "uri": "data:application/octet-stream;base64,AAAAAAAAAAAAAAAAAACAPwAAAAAAAAAAAAAAAAAAgD8AAAAAAACAPwAAgD8AAIA/AACAPgAAgD8AAIA/AACAPwAAgD4AAIA/AACAPwAAgD8AAIA+AAABAAIA"
+                }
+              ],
+              "bufferViews": [
+                { "buffer": 0, "byteOffset": 0, "byteLength": 36, "target": 34962 },
+                { "buffer": 0, "byteOffset": 36, "byteLength": 48, "target": 34962 },
+                { "buffer": 0, "byteOffset": 84, "byteLength": 6, "target": 34963 }
+              ],
+              "accessors": [
+                {
+                  "bufferView": 0,
+                  "componentType": 5126,
+                  "count": 3,
+                  "type": "VEC3",
+                  "min": [0.0, 0.0, 0.0],
+                  "max": [1.0, 1.0, 0.0]
+                },
+                {
+                  "bufferView": 1,
+                  "componentType": 5126,
+                  "count": 3,
+                  "type": "VEC4"
+                },
+                {
+                  "bufferView": 2,
+                  "componentType": 5123,
+                  "count": 3,
+                  "type": "SCALAR"
+                }
+              ]
+            }
+            """);
+
+        var asset = GltfModelImporter.Import(path);
+
+        asset.Primitives.Should().ContainSingle();
+        asset.Primitives[0].MeshData.Vertices.Should().OnlyContain(
+            vertex => vertex.Color == new RgbaFloat(0.5f, 0.5f, 0.5f, 0.1f));
+    }
+
+    [Fact]
     public void Import_GltfBaseColorTexture_MapsTextureAndSamplerCatalogs()
     {
         var path = WriteGltf("material_texture.gltf", """

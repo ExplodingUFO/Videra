@@ -507,9 +507,10 @@ public static partial class GltfModelImporter
                 ? Vector3.Normalize(normals[i])
                 : Vector3.UnitY;
 
-            var color = colors != null && i < colors.Count
+            var vertexColor = colors != null && i < colors.Count
                 ? new RgbaFloat(colors[i].X, colors[i].Y, colors[i].Z, colors[i].W)
-                : defaultColor;
+                : RgbaFloat.White;
+            var color = Multiply(vertexColor, defaultColor);
 
             vertices[i] = new VertexPositionNormalColor(positions[i], normal, color);
         }
@@ -561,6 +562,15 @@ public static partial class GltfModelImporter
         }
 
         sets.Add(new MeshTextureCoordinateSet(setIndex, values));
+    }
+
+    private static RgbaFloat Multiply(RgbaFloat left, RgbaFloat right)
+    {
+        return new RgbaFloat(
+            left.R * right.R,
+            left.G * right.G,
+            left.B * right.B,
+            left.A * right.A);
     }
 
     private static partial class Log

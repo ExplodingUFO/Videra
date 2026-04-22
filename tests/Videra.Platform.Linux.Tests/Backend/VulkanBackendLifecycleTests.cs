@@ -151,11 +151,13 @@ public sealed class VulkanBackendLifecycleTests
         using var ib = factory.CreateIndexBuffer(indices);
         using var cameraBuffer = factory.CreateUniformBuffer(128);
         using var worldBuffer = factory.CreateUniformBuffer(64);
+        using var alphaMaskBuffer = factory.CreateUniformBuffer(16);
         using var pipeline = factory.CreatePipeline(VertexPositionNormalColor.SizeInBytes, hasNormals: true, hasColors: true);
 
         cameraBuffer.SetData(Matrix4x4.Identity, 0);
         cameraBuffer.SetData(Matrix4x4.Identity, 64);
         worldBuffer.SetData(Matrix4x4.Identity, 0);
+        alphaMaskBuffer.SetData(new float[] { 0f, 0f, 0f, 0f }, 0);
 
         var act = () =>
         {
@@ -164,6 +166,7 @@ public sealed class VulkanBackendLifecycleTests
             executor.SetVertexBuffer(vb, RenderBindingSlots.Vertex);
             executor.SetVertexBuffer(cameraBuffer, RenderBindingSlots.Camera);
             executor.SetVertexBuffer(worldBuffer, RenderBindingSlots.World);
+            executor.SetVertexBuffer(alphaMaskBuffer, RenderBindingSlots.AlphaMask);
             executor.SetIndexBuffer(ib);
             executor.DrawIndexed(3);
             backend.EndFrame();

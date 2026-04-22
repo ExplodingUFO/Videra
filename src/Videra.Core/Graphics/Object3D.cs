@@ -3,6 +3,7 @@ using System.Runtime.CompilerServices;
 using Microsoft.Extensions.Logging;
 using Videra.Core.Geometry;
 using Videra.Core.Graphics.Abstractions;
+using Videra.Core.Scene;
 using Videra.Core.Graphics.Wireframe;
 using Videra.Core.Inspection;
 
@@ -72,6 +73,8 @@ public partial class Object3D : IDisposable
     /// </summary>
     internal IBuffer? WorldBuffer { get; private set; }
 
+    internal IBuffer? AlphaMaskBuffer { get; private set; }
+
     /// <summary>
     /// Gets the number of indices stored in <see cref="IndexBuffer"/>.
     /// </summary>
@@ -121,6 +124,8 @@ public partial class Object3D : IDisposable
 
     internal MeshPayload? SourceMeshPayload => _sourceMeshPayload;
 
+    internal MaterialAlphaSettings MaterialAlpha { get; private set; } = MaterialAlphaSettings.Opaque;
+
     internal CpuMeshRetentionPolicy CpuMeshRetentionPolicy { get; private set; } = CpuMeshRetentionPolicy.KeepForReuploadAndPicking;
 
     internal bool HasPreparedMesh => _meshPayload is not null;
@@ -152,12 +157,14 @@ public partial class Object3D : IDisposable
         VertexBuffer?.Dispose();
         IndexBuffer?.Dispose();
         WorldBuffer?.Dispose();
+        AlphaMaskBuffer?.Dispose();
         LineIndexBuffer?.Dispose();
         LineVertexBuffer?.Dispose();
 
         VertexBuffer = null;
         IndexBuffer = null;
         WorldBuffer = null;
+        AlphaMaskBuffer = null;
         LineIndexBuffer = null;
         LineVertexBuffer = null;
         IndexCount = 0;
@@ -263,6 +270,8 @@ public partial class Object3D : IDisposable
 
             // World Uniform Buffer
             WorldBuffer = factory.CreateUniformBuffer(64);
+            AlphaMaskBuffer = factory.CreateUniformBuffer(16);
+            AlphaMaskBuffer.Update(ObjectAlphaMaskUniformData.From(MaterialAlpha));
 
             Log.Initialized(log, Name);
         }
@@ -295,6 +304,21 @@ public partial class Object3D : IDisposable
         if (WorldBuffer != null)
         {
             WorldBuffer.SetData(WorldMatrix, 0);
+        }
+
+        if (AlphaMaskBuffer != null)
+        {
+            AlphaMaskBuffer.SetData(ObjectAlphaMaskUniformData.From(MaterialAlpha), 0);
+        }
+    }
+
+    internal void ApplyMaterialAlpha(MaterialAlphaSettings alpha)
+    {
+        MaterialAlpha = alpha;
+
+        if (AlphaMaskBuffer != null)
+        {
+            AlphaMaskBuffer.SetData(ObjectAlphaMaskUniformData.From(MaterialAlpha), 0);
         }
     }
 
