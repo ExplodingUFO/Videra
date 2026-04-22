@@ -12,7 +12,7 @@ internal static class SurfaceChartsDocumentationTerms
         "For the canonical SurfaceCharts story, start from `Videra.SurfaceCharts.Avalonia`, add `Videra.SurfaceCharts.Processing` only for the surface/cache-backed path, and use [Videra.SurfaceCharts.Demo](samples/Videra.SurfaceCharts.Demo/README.md) as the repository reference app for the same path.";
 
     public const string SurfaceChartsDemoFirstChartSentence =
-        "For the canonical surface/cache-backed chart story, start from `Videra.SurfaceCharts.Avalonia` plus `Videra.SurfaceCharts.Processing`, and use this demo as the repository reference app for that same path. `SurfaceChartView`, `WaterfallChartView`, and `ScatterChartView` in `Videra.SurfaceCharts.Avalonia` are the current chart control entrypoints, and this demo includes a repo-owned `Try next: Scatter proof` path.";
+        "For the canonical surface/cache-backed chart story, start from `Videra.SurfaceCharts.Avalonia` plus `Videra.SurfaceCharts.Processing`, and use this demo as the repository reference app for that same path. `SurfaceChartView`, `WaterfallChartView`, and `ScatterChartView` in `Videra.SurfaceCharts.Avalonia` are the current chart control entrypoints, and this demo includes repo-owned `Try next: Analytics proof` and `Try next: Scatter proof` paths.";
 
     public const string SurfaceChartsDemoSentence =
         "`Videra.SurfaceCharts.Demo` is the independent demo application for the surface-chart module family.";
@@ -60,7 +60,7 @@ internal static class SurfaceChartsDocumentationTerms
         "当前公开 chart 入口是 `Videra.SurfaceCharts.Avalonia`，而 `Videra.SurfaceCharts.Processing` 只在 surface/cache-backed 路径需要；[Videra.SurfaceCharts.Demo](../../samples/Videra.SurfaceCharts.Demo/README.md) 则作为同一路径的 repository reference app。";
 
     public const string ChineseSurfaceChartsTruthSentence =
-        "当前对外 truth 是：独立 Demo、built-in `left-drag orbit` / `right-drag pan` / `wheel dolly` / `Ctrl + left-drag` focus zoom、hover 与 `Shift + left-click` pinned probe、可见 `RenderingStatus`，以及显式 `Interactive` / `Refine` 质量切换；scatter 路径通过 repo-owned `Try next: Scatter proof` 暴露。";
+        "当前对外 truth 是：独立 Demo、built-in `left-drag orbit` / `right-drag pan` / `wheel dolly` / `Ctrl + left-drag` focus zoom、hover 与 `Shift + left-click` pinned probe、可见 `RenderingStatus`，以及显式 `Interactive` / `Refine` 质量切换；`Try next: Analytics proof` 通过独立 `ColorField` 与 pinned-probe 分析级路径暴露，`Try next: Scatter proof` 覆盖 scatter 路径。";
 
     public const string ChineseSurfaceChartsViewStateSentence =
         "SurfaceChartView 现在以 `ViewState` 作为主 chart-view 契约，而 `Viewport` 只保留为兼容桥接。";
@@ -232,6 +232,7 @@ internal static class SurfaceChartsDocumentationTerms
         "`SurfaceChartView`",
         "`WaterfallChartView`",
         "`ScatterChartView`",
+        "`Try next: Analytics proof`",
         "`Try next: Scatter proof`"
     ];
 
@@ -309,6 +310,13 @@ internal static class SurfaceChartsDocumentationTerms
         "`Try next: Scatter proof`",
         "repo-owned scatter proof path",
         "`ScatterChartView`"
+    ];
+
+    public static readonly string[] SurfaceChartsAnalyticsProofTokens =
+    [
+        "`Try next: Analytics proof`",
+        "`ColorField`",
+        "pinned-probe"
     ];
 
     public static readonly string[] SurfaceChartsScalarCompatibilityTokens =
@@ -433,7 +441,15 @@ internal static class SurfaceChartsDocumentationTerms
         "`RenderingStatus`",
         "`Interactive`",
         "`Refine`",
+        "`Try next: Analytics proof`",
         "`Try next: Scatter proof`"
+    ];
+
+    public static readonly string[] ChineseSurfaceChartsAnalyticsProofTokens =
+    [
+        "`Try next: Analytics proof`",
+        "独立 `ColorField`",
+        "分析级 `pinned-probe`"
     ];
 
     public static readonly string[] ChineseSurfaceChartsScatterProofTokens =

@@ -49,7 +49,7 @@ SurfaceCharts release truth now has three explicit parts:
 
 - package assets publish `Videra.SurfaceCharts.Core`, `Videra.SurfaceCharts.Rendering`, `Videra.SurfaceCharts.Processing`, and `Videra.SurfaceCharts.Avalonia`
 - `smoke/Videra.SurfaceCharts.ConsumerSmoke` proves the packaged surface/cache-backed path and emits the packaged support-summary artifact
-- `Videra.SurfaceCharts.Demo` remains repository-only and keeps the `Start here`, `Explore next`, `Try next: Waterfall proof`, and `Try next: Scatter proof` support-summary repro paths
+- `Videra.SurfaceCharts.Demo` remains repository-only and keeps the `Start here`, `Explore next`, `Try next: Analytics proof`, `Try next: Waterfall proof`, and `Try next: Scatter proof` support-summary repro paths
 
 ## Versioning
 

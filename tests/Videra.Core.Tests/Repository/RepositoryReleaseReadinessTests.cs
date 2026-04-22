@@ -122,6 +122,7 @@ public sealed class RepositoryReleaseReadinessTests
         packageMatrix.Should().Contain("Videra.SurfaceCharts.Demo");
         packageMatrix.Should().Contain("Do not treat demos or samples as installable public packages.");
         packageMatrix.Should().Contain("Try next: Scatter proof");
+        packageMatrix.Should().Contain("Try next: Analytics proof");
         releasePolicy.Should().Contain("Videra.SurfaceCharts.Core");
         releasePolicy.Should().Contain("Videra.SurfaceCharts.Rendering");
         releasePolicy.Should().Contain("Videra.SurfaceCharts.Avalonia");
@@ -129,10 +130,12 @@ public sealed class RepositoryReleaseReadinessTests
         releasePolicy.Should().Contain("Videra.SurfaceCharts.Demo");
         releasePolicy.Should().Contain("repository-only");
         releasePolicy.Should().Contain("Try next: Scatter proof");
+        releasePolicy.Should().Contain("Try next: Analytics proof");
         releasing.Should().Contain("Videra.SurfaceCharts.Rendering");
         releasing.Should().Contain("Videra.SurfaceCharts.Demo");
         releasing.Should().Contain("repository-only");
         releasing.Should().Contain("Try next: Scatter proof");
+        releasing.Should().Contain("Try next: Analytics proof");
 
         chineseReadme.Should().Contain("Videra.Import.Gltf");
         chineseReadme.Should().Contain("Videra.Import.Obj");
@@ -573,6 +576,7 @@ public sealed class RepositoryReleaseReadinessTests
         supportMatrix.Should().Contain("Start here: In-memory first chart");
         supportMatrix.Should().Contain("Copy support summary");
         supportMatrix.Should().Contain("Try next: Scatter proof");
+        supportMatrix.Should().Contain("Try next: Analytics proof");
         supportMatrix.Should().Contain("Videra.SurfaceCharts.ConsumerSmoke");
         supportMatrix.Should().Contain("sample-contract-evidence");
         supportMatrix.Should().Contain("repository-only reference app");
@@ -580,10 +584,12 @@ public sealed class RepositoryReleaseReadinessTests
         releasePolicy.Should().Contain("Videra.SurfaceCharts.Rendering");
         releasePolicy.Should().Contain("surfacecharts-support-summary.txt");
         releasePolicy.Should().Contain("Try next: Scatter proof");
+        releasePolicy.Should().Contain("Try next: Analytics proof");
         releasing.Should().Contain("docs/support-matrix.md");
         releasing.Should().Contain("public tags publish the `Videra.SurfaceCharts.*` package assets");
         releasing.Should().Contain("Copy support summary");
         releasing.Should().Contain("Try next: Scatter proof");
+        releasing.Should().Contain("Try next: Analytics proof");
         releasing.Should().Contain("smoke/Videra.SurfaceCharts.ConsumerSmoke");
         releasing.Should().Contain("Videra.SurfaceCharts.Demo");
     }

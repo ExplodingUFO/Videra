@@ -50,6 +50,75 @@ public sealed class SurfaceChartsDemoViewportBehaviorTests
     }
 
     [Fact]
+    public Task DemoWindow_AnalyticsProof_SwitchesToExplicitColorFieldSurfacePath()
+    {
+        return AvaloniaHeadlessTestSession.RunAsync(async () =>
+        {
+            var window = new MainWindow();
+            var chartView = window.FindControl<SurfaceChartView>("ChartView")
+                ?? throw new InvalidOperationException("ChartView is missing.");
+            var sourceSelector = window.FindControl<ComboBox>("SourceSelector")
+                ?? throw new InvalidOperationException("SourceSelector is missing.");
+            var statusText = window.FindControl<TextBlock>("StatusText")
+                ?? throw new InvalidOperationException("StatusText is missing.");
+            var datasetText = window.FindControl<TextBlock>("DatasetText")
+                ?? throw new InvalidOperationException("DatasetText is missing.");
+
+            SelectItem(sourceSelector, GetComboBoxItemByContent(sourceSelector, "Try next: Analytics proof"));
+
+            await WaitForConditionAsync(
+                () => chartView.Source is not null &&
+                      statusText.Text?.Contains("Try next: Analytics proof", StringComparison.Ordinal) == true &&
+                      chartView.Source!.Metadata.HorizontalAxis.ScaleKind == SurfaceAxisScaleKind.ExplicitCoordinates,
+                "the analytics proof should switch to an explicit-coordinate source and update the onboarding status.")
+                .ConfigureAwait(true);
+
+            chartView.Source.Should().BeOfType<InMemorySurfaceTileSource>();
+            var surfaceSource = (InMemorySurfaceTileSource)chartView.Source!;
+            surfaceSource.Metadata.Geometry.Should().BeOfType<SurfaceExplicitGrid>();
+            surfaceSource.Metadata.HorizontalAxis.ScaleKind.Should().Be(SurfaceAxisScaleKind.ExplicitCoordinates);
+            surfaceSource.Metadata.VerticalAxis.ScaleKind.Should().Be(SurfaceAxisScaleKind.ExplicitCoordinates);
+
+            surfaceSource.Levels.Should().NotBeEmpty();
+            var matrix = surfaceSource.Levels[0].Matrix;
+            matrix.ColorField.Should().NotBeNull();
+            matrix.ColorField!.Values.ToArray().Should().NotEqual(matrix.HeightField.Values.ToArray());
+
+            statusText.Text.Should().Contain("explicit");
+            statusText.Text.Should().Contain("ColorField");
+            datasetText.Text.Should().Contain("explicit");
+            datasetText.Text.Should().Contain("color");
+        });
+    }
+
+    [Fact]
+    public Task DemoWindow_AnalyticsProof_TextProjectsProbeAndColorTruth()
+    {
+        return AvaloniaHeadlessTestSession.RunAsync(async () =>
+        {
+            var window = new MainWindow();
+            var sourceSelector = window.FindControl<ComboBox>("SourceSelector")
+                ?? throw new InvalidOperationException("SourceSelector is missing.");
+            var supportSummaryText = window.FindControl<TextBlock>("SupportSummaryText")
+                ?? throw new InvalidOperationException("SupportSummaryText is missing.");
+
+            SelectItem(sourceSelector, GetComboBoxItemByContent(sourceSelector, "Try next: Analytics proof"));
+
+            await WaitForConditionAsync(
+                () => supportSummaryText.Text?.Contains("Try next: Analytics proof", StringComparison.Ordinal) == true &&
+                      supportSummaryText.Text?.Contains("Shift + LeftClick", StringComparison.Ordinal) == true &&
+                      supportSummaryText.Text?.Contains("ColorField", StringComparison.Ordinal) == true,
+                "switching to the analytics proof should project explicit-coordinate and independent color scalar truth into the summary text.")
+                .ConfigureAwait(true);
+
+            supportSummaryText.Text.Should().Contain("Source path:");
+            supportSummaryText.Text.Should().Contain("Source details:");
+            supportSummaryText.Text.Should().Contain("Dataset:");
+            supportSummaryText.Text.Should().Contain("Shift + LeftClick");
+        });
+    }
+
+    [Fact]
     public Task DemoWindow_ViewStateContractButtonsDrivePublicApi()
     {
         return AvaloniaHeadlessTestSession.RunAsync(async () =>

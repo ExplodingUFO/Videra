@@ -39,6 +39,7 @@ public sealed class SurfaceChartsReleaseTruthRepositoryTests
         readme.Should().Contain("作为 repository-only 的 support-ready chart 参考应用");
         readme.Should().Contain("Copy support summary");
         readme.Should().Contain("Videra.SurfaceCharts.Demo");
+        readme.Should().Contain("Try next: Analytics proof");
         readme.Should().NotContain("单独发布为 `Videra.SurfaceCharts.Demo`");
 
         hostingBoundary.Should().Contain("shipped public chart package family", Exactly.Once());

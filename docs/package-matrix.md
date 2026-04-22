@@ -54,7 +54,7 @@ The canonical public SurfaceCharts stack is:
 | `Videra.Demo` | Repository only | Source evaluation | Viewer demo and diagnostics reference |
 | `smoke/Videra.WpfSmoke` | Repository only | Validation and support evidence | Windows WPF smoke proof for the public viewer path |
 | `smoke/Videra.SurfaceCharts.ConsumerSmoke` | Repository only | Validation and support evidence | Packaged SurfaceCharts smoke proof with `surfacecharts-support-summary.txt` |
-| `Videra.SurfaceCharts.Demo` | Repository only | Source evaluation and support repro | Reference app for `Start here: In-memory first chart`, `Explore next: Cache-backed streaming`, `Try next: Waterfall proof`, `Try next: Scatter proof`, and `Copy support summary`; it remains repository-only |
+| `Videra.SurfaceCharts.Demo` | Repository only | Source evaluation and support repro | Reference app for `Start here: In-memory first chart`, `Explore next: Cache-backed streaming`, `Try next: Analytics proof`, `Try next: Waterfall proof`, `Try next: Scatter proof`, and `Copy support summary`; it remains repository-only |
 | `Videra.ExtensibilitySample` | Repository only | Contributors and integrators | Narrow public reference for extensibility flow |
 | `Videra.InteractionSample` | Repository only | Contributors and integrators | Public sample for controlled interaction and inspection workflows |
 

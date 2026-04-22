@@ -45,6 +45,7 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
         AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.SurfaceChartsTriFamilyControlTokens);
         AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.SurfaceChartsSourceFirstTokens);
         AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.SurfaceChartsScatterProofTokens);
+        AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.SurfaceChartsAnalyticsProofTokens);
         readme.Should().Contain("axis/legend overlays");
         readme.Should().Contain("src/Videra.SurfaceCharts.Core/README.md");
         readme.Should().Contain("src/Videra.SurfaceCharts.Avalonia/README.md");
@@ -156,6 +157,7 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
         AssertContainsAllTokens(demoReadme, SurfaceChartsDocumentationTerms.SurfaceChartControlOwnershipTokens);
         AssertContainsAllTokens(demoReadme, SurfaceChartsDocumentationTerms.SurfaceChartsRenderingStatusFieldTokens);
         AssertContainsAllTokens(demoReadme, SurfaceChartsDocumentationTerms.SurfaceChartsSourceFirstTokens);
+        AssertContainsAllTokens(demoReadme, SurfaceChartsDocumentationTerms.SurfaceChartsAnalyticsProofTokens);
         demoReadme.Should().Contain("FitToData()");
         demoReadme.Should().Contain("ResetCamera()");
         demoReadme.Should().Contain("ZoomTo(...)");
@@ -324,6 +326,7 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
         AssertContainsAllTokens(chineseReadme, SurfaceChartsDocumentationTerms.ChineseSurfaceChartControlOwnershipTokens);
         AssertContainsAllTokens(chineseReadme, SurfaceChartsDocumentationTerms.ChineseSurfaceChartsSourceFirstTokens);
         AssertContainsAllTokens(chineseReadme, SurfaceChartsDocumentationTerms.ChineseSurfaceChartsScatterProofTokens);
+        AssertContainsAllTokens(chineseReadme, SurfaceChartsDocumentationTerms.ChineseSurfaceChartsAnalyticsProofTokens);
 
         AssertContainsAllTokens(chineseAvaloniaPage, SurfaceChartsDocumentationTerms.ChineseSurfaceChartsOwnershipTokens);
         AssertContainsAllTokens(chineseAvaloniaPage, SurfaceChartsDocumentationTerms.ChineseSurfaceChartControlOwnershipTokens);
