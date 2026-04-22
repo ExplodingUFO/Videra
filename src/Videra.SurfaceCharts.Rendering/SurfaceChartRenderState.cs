@@ -49,6 +49,8 @@ public sealed class SurfaceChartRenderState
 
     public SurfaceMetadata? Metadata => _metadata;
 
+    internal SurfaceRenderer Renderer => _renderer;
+
     public int ResidentTileCount => _residentTiles.Count;
 
     public IReadOnlyList<SurfaceChartResidentTile> ResidentTiles
