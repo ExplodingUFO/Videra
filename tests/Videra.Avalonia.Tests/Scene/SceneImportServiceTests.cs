@@ -342,6 +342,21 @@ public sealed class SceneImportServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task Import_batch_preserves_request_path_truth_for_equivalent_spellings()
+    {
+        var path = WriteTriangleGltf("truth-batch.gltf");
+        var dotSegmentPath = Path.Combine(_tempDir, ".", "truth-batch.gltf");
+
+        var result = await _service.ImportBatchAsync([path, dotSegmentPath], CancellationToken.None);
+
+        result.Failures.Should().BeEmpty();
+        result.Entries.Should().HaveCount(2);
+        result.Entries[0].ImportedAsset!.FilePath.Should().Be(path);
+        result.Entries[1].ImportedAsset!.FilePath.Should().Be(dotSegmentPath);
+        result.Entries[0].ImportedAsset.Should().NotBeSameAs(result.Entries[1].ImportedAsset);
+    }
+
+    [Fact]
     public async Task Import_single_does_not_reuse_imported_asset_after_file_timestamp_changes()
     {
         var path = WriteTriangleGltf("reused-single-refresh.gltf");

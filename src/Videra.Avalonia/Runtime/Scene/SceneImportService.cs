@@ -51,22 +51,22 @@ internal sealed class SceneImportService
         var maxConcurrency = Math.Clamp(Environment.ProcessorCount, 1, 4);
         using var gate = new SemaphoreSlim(maxConcurrency, maxConcurrency);
         var indexedPaths = pathArray
-            .Select((path, index) => new IndexedImportPath(index, path, CreateReuseKey(path)))
+            .Select((path, index) => new IndexedImportPath(index, path))
             .ToArray();
-        var importTasks = new Dictionary<ImportedSceneAssetReuseKey, Task<ImportedAssetBatchResult>>();
+        var importTasks = new Dictionary<string, Task<ImportedAssetBatchResult>>(StringComparer.Ordinal);
 
         foreach (var indexedPath in indexedPaths)
         {
-            if (!importTasks.ContainsKey(indexedPath.Key))
+            if (!importTasks.ContainsKey(indexedPath.Path))
             {
-                importTasks.Add(indexedPath.Key, ImportBatchAssetAsync(indexedPath.Path, indexedPath.Key, gate, cancellationToken));
+                importTasks.Add(indexedPath.Path, ImportBatchAssetAsync(indexedPath.Path, gate, cancellationToken));
             }
         }
 
         var importedAssets = await Task.WhenAll(importTasks.Values).ConfigureAwait(false);
-        var importedAssetByKey = importedAssets.ToDictionary(static result => result.Key);
+        var importedAssetByPath = importedAssets.ToDictionary(static result => result.Path, StringComparer.Ordinal);
         var imports = indexedPaths
-            .Select(indexedPath => CreateBatchEntryResult(indexedPath.Index, importedAssetByKey[indexedPath.Key]))
+            .Select(indexedPath => CreateBatchEntryResult(indexedPath.Index, importedAssetByPath[indexedPath.Path]))
             .ToArray();
 
         Array.Sort(imports, static (left, right) => left.Index.CompareTo(right.Index));
@@ -79,7 +79,6 @@ internal sealed class SceneImportService
 
     private async Task<ImportedAssetBatchResult> ImportBatchAssetAsync(
         string path,
-        ImportedSceneAssetReuseKey key,
         SemaphoreSlim gate,
         CancellationToken cancellationToken)
     {
@@ -88,8 +87,9 @@ internal sealed class SceneImportService
         {
             try
             {
-                var asset = await Task.Run(() => ResolveImportedAsset(path), cancellationToken).ConfigureAwait(false);
-                return new ImportedAssetBatchResult(key, asset, Failure: null);
+                var asset = await Task.Run(() => ImportAsset(path), cancellationToken).ConfigureAwait(false);
+                StoreImportedAsset(CreateReuseKey(path), asset);
+                return new ImportedAssetBatchResult(path, asset, Failure: null);
             }
             catch (OperationCanceledException)
             {
@@ -97,7 +97,7 @@ internal sealed class SceneImportService
             }
             catch (Exception ex)
             {
-                return new ImportedAssetBatchResult(key, Asset: null, new ModelLoadFailure(path, ex));
+                return new ImportedAssetBatchResult(path, Asset: null, new ModelLoadFailure(path, ex));
             }
         }
         finally
@@ -218,11 +218,10 @@ internal sealed record ImportedSceneBatchEntryResult(
 
 internal readonly record struct IndexedImportPath(
     int Index,
-    string Path,
-    ImportedSceneAssetReuseKey Key);
+    string Path);
 
 internal sealed record ImportedAssetBatchResult(
-    ImportedSceneAssetReuseKey Key,
+    string Path,
     ImportedSceneAsset? Asset,
     ModelLoadFailure? Failure);
 
