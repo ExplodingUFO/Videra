@@ -44,4 +44,22 @@ public sealed class SceneDocumentMutatorTests
         rebuilt.Entries.Select(static entry => entry.Id).Should().BeEquivalentTo(initial.Entries.Select(static entry => entry.Id));
         rebuilt.Entries.Select(static entry => entry.Name).Should().ContainInOrder("second", "first");
     }
+
+    [Fact]
+    public void Rebuild_refreshes_entry_name_when_object_name_changes()
+    {
+        var sceneObject = new Object3D { Name = "original" };
+
+        var initial = _mutator.Add(SceneDocument.Empty, sceneObject);
+        sceneObject.Name = "renamed";
+
+        var rebuilt = _mutator.RebuildPreservingEntries(initial, [sceneObject]);
+
+        rebuilt.Version.Should().Be(initial.Version + 1);
+        rebuilt.Entries.Should().ContainSingle();
+        rebuilt.Entries[0].Id.Should().Be(initial.Entries[0].Id);
+        rebuilt.Entries[0].Name.Should().Be("renamed");
+        rebuilt.Entries[0].ImportedAsset.Should().BeNull();
+        rebuilt.Entries[0].Ownership.Should().Be(SceneOwnership.ExternalObject);
+    }
 }

@@ -90,7 +90,12 @@ internal sealed class SceneDocumentMutator
         {
             if (knownEntries.TryGetValue(sceneObject, out var existing))
             {
-                entries.Add(existing);
+                entries.Add(new SceneDocumentEntry(
+                    existing.Id,
+                    sceneObject.Name,
+                    sceneObject,
+                    existing.ImportedAsset,
+                    existing.Ownership));
                 continue;
             }
 
