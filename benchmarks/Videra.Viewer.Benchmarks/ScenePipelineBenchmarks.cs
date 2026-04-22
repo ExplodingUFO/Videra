@@ -80,7 +80,7 @@ public class ScenePipelineBenchmarks
     public async Task<int> SceneImportService_ImportBatchAsync()
     {
         var result = await _importService.ImportBatchAsync(_batchImportPaths, CancellationToken.None).ConfigureAwait(false);
-        return result.SceneObjects.Count;
+        return result.Entries.Count;
     }
 
     [Benchmark]
