@@ -7,7 +7,7 @@ This runbook covers the matching-host validation path for Videra's Linux, macOS,
 ## What This Covers
 
 - Linux X11 native validation: real X11-hosted Vulkan lifecycle and draw-path tests
-- Linux Wayland-session validation: `XWayland` compatibility fallback with real Vulkan lifecycle and draw-path coverage
+- Linux Wayland-session validation: `XWayland` bridge coverage with real Vulkan lifecycle and draw-path coverage
 - macOS native validation: real `NSView`-hosted Metal lifecycle and draw-path tests
 - Windows native validation: real HWND-hosted D3D11 lifecycle and draw-path tests
 - An automatic GitHub Actions gate for pull requests and pushes to `master`
@@ -46,7 +46,7 @@ From the GitHub Actions tab, use `Run workflow` when you want a targeted rerun:
 Notes:
 
 - The Linux X11 job installs `xvfb`, `libX11`, `libshaderc1`, and Vulkan runtime packages, then runs the native validation under `xvfb-run`
-- The Linux Wayland-session job installs `xwayland-run`, starts a headless Wayland compositor with `XWayland` via `xwfb-run`, and validates the compatibility path with both `DISPLAY` and `WAYLAND_DISPLAY` available
+- The Linux Wayland-session job installs `xwayland-run`, starts a headless Wayland compositor with `XWayland` via `xwfb-run`, and validates the bridge path with both `DISPLAY` and `WAYLAND_DISPLAY` available
 - The macOS job runs the hosted Metal/`NSView` validation path directly
 - The Windows job runs the hosted HWND/D3D11 validation path directly through the PowerShell wrapper
 - If hosted runners turn out to be insufficient for a specific native issue, use the local matching-host path below

@@ -55,6 +55,6 @@ pwsh -File ./scripts/verify.ps1 -Configuration Release -IncludeNativeMacOS
 ## Linux 说明
 
 - 当前 Linux 渲染路径仍然基于 X11 句柄
-- 在 Wayland 会话中，`Auto` 会在可用时走 `XWayland` 兼容路径
+- 在 Wayland 会话中，`Auto` 会在可用时走 `XWayland` bridge 路径
 - 缺少 `libX11.so.6` 时，即使是 Wayland 会话也无法完成当前这条原生渲染链路
 

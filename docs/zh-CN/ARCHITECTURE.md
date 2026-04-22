@@ -23,8 +23,8 @@
 - `VideraViewRuntime` 负责 view-local 协调、native-host 生命周期、overlay 同步与 session forwarding。
 - inspection fidelity 相关逻辑继续收敛在 `VideraViewRuntime` 与 Core helper 中；`VideraInspectionBundleService` 负责把 inspection truth 导出成可重放支持工件，而不是继续扩大 `VideraView` 本身。
 - `RenderSessionOrchestrator` 负责跨平台无关的会话编排（会话创建、绑定、驱动渲染时序）。
-- `SceneDocument` 是 viewer scene 的 authoritative contract；imported asset 在 resource factory ready 前保持 backend-neutral。
-- 原生 backend 现在直接满足内部 `IGraphicsDevice` / `IRenderSurface` 分层；`LegacyGraphicsBackendAdapter` 只保留给旧 monolithic backend 的兼容路径。
+- `SceneDocument` 是 viewer scene 的 authoritative contract；imported asset 在 resource factory ready 前保持 backend-neutral，当前路径也保持 static-scene-only，动画、骨骼、morph targets、灯光和阴影不在这条边界内。
+- 原生 backend 现在直接满足内部 `IGraphicsDevice` / `IRenderSurface` 分层；`LegacyGraphicsBackendAdapter` 只保留给旧 monolithic backend 的 legacy path。
 - `RenderSession` 承载 Avalonia 专用的运行时/呈现适配器生命周期。
 - `VideraViewSessionBridge` 将同步后的 Avalonia 视图输入、事件与配置翻译为会话侧状态更新。
 - `VideraView` 仍然是 UI 壳和原生宿主/输入表面，不直接承担核心渲染调度。

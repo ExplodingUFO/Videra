@@ -9,15 +9,15 @@
 
 ## What It Is
 
-Videra is a Cross-platform 3D viewer component stack for .NET desktop applications. The public viewer path is Avalonia-first, with a shared rendering core and native backends for Windows, Linux, and macOS.
+Videra is a Cross-platform 3D viewer component stack for .NET desktop applications. The public viewer path is Avalonia-first, and the core runtime truth is carried by `SceneDocument` and imported-asset catalogs.
 
 Videra is not a general-purpose game engine. It is shaped around desktop visualization, diagnostics, controlled interaction, and host-owned application state.
 
-The `1.0` line is specifically a native desktop viewer/runtime plus inspection workflows and the public `SurfaceCharts` package line on the Avalonia path. The public product boundary does not promise general Three.js-style runtime breadth, `WebGL` / `OpenGL` pursuit, or engine-first feature expansion. See [Videra 1.0 Capability Matrix](docs/capability-matrix.md).
+The `1.0` line is the native desktop viewer/runtime plus the public `SurfaceCharts` package line on the Avalonia path. The public product boundary stays on `SceneDocument`, imported assets, and the static-scene viewer/runtime baseline; animation, skeletons, morph targets, lights, shadows, and broader engine-style breadth remain deferred. See [Videra 1.0 Capability Matrix](docs/capability-matrix.md).
 
 On the viewer/runtime path, `SceneDocument` keeps backend-neutral imported scene truth in `ImportedSceneAsset` catalogs built from `SceneNode`, `MeshPrimitive`, `MaterialInstance`, `Texture2D`, and `Sampler`. Those runtime assets stay CPU-side until a ready resource factory uploads them.
 
-That shipped viewer path now carries one direct static glTF/PBR baseline: UV-backed `Texture2D` / `Sampler` bindings, `MaterialInstance` metallic-roughness and alpha semantics, emissive and normal-map-ready inputs, tangent-aware mesh data, and repeated unchanged imports that can reuse retained imported scene assets while those retained assets stay available. It is intentionally static-scene-only; animation, skeletons, morph targets, and broader advanced-runtime expansion remain deferred.
+That shipped viewer path now carries one direct static-scene glTF/PBR baseline: UV-backed `Texture2D` / `Sampler` bindings, `MaterialInstance` metallic-roughness and alpha semantics, emissive and normal-map-ready inputs, tangent-aware mesh data, and repeated unchanged imports that can reuse retained imported scene assets while those retained assets stay available. It is intentionally static-scene-only; animation, skeletons, morph targets, lights, shadows, and broader advanced-runtime expansion remain deferred.
 
 ## Who It Is For
 
@@ -33,7 +33,7 @@ That shipped viewer path now carries one direct static glTF/PBR baseline: UV-bac
 - `GitHub Packages` remains the `preview` / internal feed for contributors and pre-release validation
 - `Videra.SurfaceCharts.*` now ships as a public `alpha` package line, `SurfaceChartView`, `WaterfallChartView`, and `ScatterChartView` are the current Avalonia controls, `Videra.SurfaceCharts.Processing` is needed for the surface/cache-backed path, and `Videra.SurfaceCharts.Demo` remains repository-only
 - `smoke/Videra.WpfSmoke` remains a repository-only Windows WPF smoke proof for validation and support evidence on the Avalonia-first viewer path; it is not a second public UI package or release path
-- Linux native rendering remains `X11`-hosted, and Wayland sessions stay on the documented `XWayland compatibility` path
+- Linux native rendering remains `X11`-hosted, and Wayland sessions stay on the documented `XWayland` bridge
 - GitHub Actions runs matching-host native validation, packaged viewer consumer smoke, packaged SurfaceCharts first-chart consumer smoke, and explicit sample-contract evidence on pull requests, and the [Native Validation runbook](docs/native-validation.md) documents how to use `Run workflow` for targeted reruns
 - The current alpha-ready `green` line is repository verification + native validation + packaged viewer consumer smoke + packaged SurfaceCharts first-chart consumer smoke + sample-contract evidence, with `quality-gate-evidence` running the Windows packaged viewer and SurfaceCharts consumer smoke paths with warnings treated as errors, enforcing package-size budgets on the public package line, and keeping the curated Core test surfaces plus `Videra.MinimalSample` warning-clean while `Benchmark Gates` serves as the hard numeric runtime blocker
 
@@ -217,7 +217,7 @@ Contract highlights:
 
 - Videra is a component-oriented viewer stack, not a full content creation toolchain
 - The public package promise covers the viewer stack and `Videra.SurfaceCharts.*` package lines listed above; demo/sample applications remain repository-only
-- Linux native rendering currently embeds through X11 handles; Wayland sessions rely on an `XWayland` compatibility path when available
+- Linux native rendering currently embeds through X11 handles; Wayland sessions use the documented `XWayland` bridge when available
 - Linux and macOS native-host validation is expected to pass on matching-host GitHub Actions pull requests; local matching-host runs remain the fallback for targeted debugging
 - The macOS backend currently relies on Objective-C runtime interop
 

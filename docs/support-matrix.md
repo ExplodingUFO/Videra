@@ -37,13 +37,14 @@ The public SurfaceCharts install rule is similarly narrow: start with `Videra.Su
 | `Videra.SurfaceCharts.ConsumerSmoke` | Repository only | Windows packaged consumer smoke and `surfacecharts-support-summary.txt` artifact validation | `alpha` | Packaged surface/cache-backed proof for `Videra.SurfaceCharts.Avalonia` + `Videra.SurfaceCharts.Processing` on the supported host path |
 | `Videra.SurfaceCharts.Demo` | Repository only | `sample-contract-evidence`, SurfaceCharts runtime evidence, and `Support summary` validation | `alpha` | `Start here: In-memory first chart` first, `Explore next: Cache-backed streaming`, `Try next: Analytics proof`, `Try next: Waterfall proof`, `Try next: Scatter proof`, `Copy support summary`, repository-only reference app |
 
-## Compatibility notes
+## Boundary notes
 
 - `VIDERA_BACKEND` and `PreferredBackend` change backend preference only.
 - They do not install missing platform packages.
 - They do not replace matching-host native validation.
 - The built-in backend minimum contract is buffer creation, current-viewer pipeline creation, direct buffer binding, draw calls, viewport/scissor, clear, and standard frame depth behavior with best-effort depth-state toggles.
 - `CreateShader(...)`, `CreateResourceSet(...)`, and `SetResourceSet(...)` are not a cross-backend portability promise for the shipped native backends.
-- Linux Wayland remains an `XWayland compatibility` story, not compositor-native embedding.
-- This matrix does not imply an `OpenGL` product promise.
+- This matrix does not imply an `OpenGL` product promise; the current native support promise remains `D3D11`, `Vulkan`, and `Metal`.
+- Linux Wayland uses the documented `XWayland` bridge, not compositor-native embedding.
+- This matrix stays scoped to the shipped native backends listed above.
 - Use [Alpha Feedback](alpha-feedback.md) when reporting integration issues so the report carries package path, diagnostics, and display-server truth.

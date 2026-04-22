@@ -2,7 +2,7 @@
 
 [English](README.md) | [中文](../../docs/zh-CN/modules/videra-core.md)
 
-`Videra.Core` is the platform-agnostic viewer/runtime kernel of Videra. It provides the shared abstractions, scene engine, and software fallback path used by the higher-level packages.
+`Videra.Core` is the platform-agnostic viewer/runtime kernel of Videra. It provides the shared abstractions, `SceneDocument`-backed imported-asset truth, scene engine, and software fallback path used by the higher-level packages.
 
 Current status: `alpha`. This package is the right starting point only for core-only consumption. Most desktop applications should start with `Videra.Avalonia` plus a matching `Videra.Platform.*` package.
 
@@ -14,9 +14,9 @@ Current status: `alpha`. This package is the right starting point only for core-
 - Camera, grid, axis, and wireframe helpers
 - Render-style presets and software fallback rendering
 
-The current shipped viewer/runtime baseline is static glTF/PBR: imported assets can carry UV-backed texture bindings, metallic-roughness and alpha semantics, emissive and normal-map-ready inputs, and tangent-aware mesh data through explicit runtime contracts. Animation, skeletons, and morph targets remain outside this baseline.
+The current shipped viewer/runtime baseline is static glTF/PBR: imported assets can carry UV-backed texture bindings, metallic-roughness and alpha semantics, emissive and normal-map-ready inputs, and tangent-aware mesh data through explicit runtime contracts. This does not imply an `OpenGL` product promise. Animation, skeletons, morph targets, lights, and shadows remain outside this baseline.
 
-The `v1.20` product boundary treats `Core`, `Import`, `Backend`, `UI adapter`, and `Charts` as separate layers. `Videra.Core` is the runtime kernel in that split; use [docs/capability-matrix.md](../../docs/capability-matrix.md) for the explicit layer matrix.
+Use [docs/capability-matrix.md](../../docs/capability-matrix.md) for the explicit layer matrix.
 
 ## Key Types
 
@@ -85,7 +85,7 @@ Non-portable advanced seams:
 - `CreateResourceSet(...)`
 - `SetResourceSet(...)`
 
-Those advanced seams remain on the abstractions for compatibility and test doubles, but the shipped native backends manage shader compilation and resource binding internally and may throw `UnsupportedOperationException` there. This minimum-contract documentation does not imply an `OpenGL` product promise.
+Those advanced seams remain on the abstractions for test doubles, but the shipped native backends manage shader compilation and resource binding internally and may throw `UnsupportedOperationException` there.
 
 ## Public Extensibility Contract
 

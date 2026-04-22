@@ -75,9 +75,9 @@ pwsh -File ./scripts/verify.ps1 -Configuration Release
 ### Linux
 
 - The official Linux render path is still Vulkan with X11 handles
-- In Wayland sessions, `Auto` currently resolves to an `XWayland` compatibility path when that bridge is available
+- In Wayland sessions, `Auto` currently resolves to the documented `XWayland` bridge when that bridge is available
 - `ResolvedDisplayServer = X11` means the direct supported native-host path is active
-- `ResolvedDisplayServer = XWayland` means the session is running through the documented X11 compatibility bridge, not compositor-native Wayland embedding
+- `ResolvedDisplayServer = XWayland` means the session is running through the documented X11 bridge, not compositor-native Wayland embedding
 - `DisplayServerCompatibility` in the diagnostics snapshot summarizes that boundary in one line for bug reports and support artifacts
 - Missing `libX11.so.6` can still be diagnosed with the repository fallback loader, but a usable X11 or `XWayland` runtime is still required
 

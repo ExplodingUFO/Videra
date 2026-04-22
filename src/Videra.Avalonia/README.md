@@ -2,7 +2,7 @@
 
 [English](README.md) | [中文](../../docs/zh-CN/modules/videra-avalonia.md)
 
-`Videra.Avalonia` is the Avalonia integration layer for Videra. It exposes the `VideraView` control, coordinates backend selection, and bridges Avalonia with native host handles on each platform.
+`Videra.Avalonia` is the Avalonia integration layer for Videra. It exposes the `VideraView` control, coordinates backend selection, and manages native-host integration on each platform.
 
 Current status: `alpha`. `Videra.Avalonia` is the entry package for Avalonia apps, but it no longer implicitly brings every native backend with it.
 
@@ -17,7 +17,7 @@ Current status: `alpha`. `Videra.Avalonia` is the entry package for Avalonia app
 - Map pointer input to camera interaction
 - Manage native-host integration for Windows, Linux, and macOS
 
-On that shipped viewer path, the current material/runtime baseline is static glTF/PBR: retained imported assets carry UV-backed texture bindings, metallic-roughness and alpha semantics, emissive and normal-map-ready inputs, tangent-aware mesh data, and repeated unchanged imports that can reuse retained imported scene assets while those retained assets stay available. Animation, skeletons, and morph targets remain out of scope for this line.
+On that shipped viewer path, the current material/runtime baseline is static glTF/PBR: retained imported assets carry UV-backed texture bindings, metallic-roughness and alpha semantics, emissive and normal-map-ready inputs, tangent-aware mesh data, and repeated unchanged imports that can reuse retained imported scene assets while those retained assets stay available. Animation, skeletons, morph targets, lights, and shadows remain out of scope for this line.
 
 ## Install
 
@@ -181,7 +181,7 @@ For the end-to-end public flow, see [samples/Videra.InteractionSample](../../sam
 ## Native Host Coverage
 
 - Windows: child `HWND` for Direct3D 11
-- Linux: X11 window for Vulkan, or XWayland compatibility inside Wayland sessions
+- Linux: X11 window for Vulkan, or the documented XWayland bridge inside Wayland sessions
 - macOS: `NSView` for Metal
 
 ## Validation
