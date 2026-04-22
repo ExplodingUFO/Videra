@@ -1045,7 +1045,7 @@ public sealed class VideraViewSceneIntegrationTests : IDisposable
     {
         var sceneDocument = VideraViewRuntimeTestAccess.ReadRuntimeField<object>(view, "_sceneDocument");
         sceneDocument.Should().BeAssignableTo<SceneDocument>();
-        return ((SceneDocument)sceneDocument).SceneObjects;
+        return ((SceneDocument)sceneDocument).Entries.Select(static entry => entry.SceneObject).ToArray();
     }
 
     private static IReadOnlyList<ImportedSceneAsset> ReadSceneDocumentImportedAssets(VideraView view)
@@ -1053,17 +1053,8 @@ public sealed class VideraViewSceneIntegrationTests : IDisposable
         var sceneDocument = VideraViewRuntimeTestAccess.ReadRuntimeField<object>(view, "_sceneDocument");
         sceneDocument.Should().BeAssignableTo<SceneDocument>();
 
-        var entriesProperty = sceneDocument.GetType().GetProperty("Entries", BindingFlags.Instance | BindingFlags.NonPublic);
-        entriesProperty.Should().NotBeNull("scene document should expose internal entries for imported-asset truth");
-        var entries = ((IEnumerable?)entriesProperty!.GetValue(sceneDocument))?.Cast<object>().ToArray() ?? Array.Empty<object>();
-
-        return entries
-            .Select(entry =>
-            {
-                var importedAssetProperty = entry.GetType().GetProperty("ImportedAsset", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-                importedAssetProperty.Should().NotBeNull();
-                return importedAssetProperty!.GetValue(entry) as ImportedSceneAsset;
-            })
+        return ((SceneDocument)sceneDocument).Entries
+            .Select(entry => entry.ImportedAsset)
             .Where(asset => asset is not null)
             .Cast<ImportedSceneAsset>()
             .ToArray();

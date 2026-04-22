@@ -291,6 +291,6 @@ public sealed class VideraInspectionBundleIntegrationTests : IDisposable
     {
         var sceneDocument = VideraViewRuntimeTestAccess.ReadRuntimeField<object>(view, "_sceneDocument");
         sceneDocument.Should().BeAssignableTo<Videra.Core.Scene.SceneDocument>();
-        return ((Videra.Core.Scene.SceneDocument)sceneDocument).SceneObjects;
+        return ((Videra.Core.Scene.SceneDocument)sceneDocument).Entries.Select(static entry => entry.SceneObject).ToArray();
     }
 }

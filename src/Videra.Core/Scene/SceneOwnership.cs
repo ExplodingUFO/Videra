@@ -1,6 +1,6 @@
 namespace Videra.Core.Scene;
 
-internal enum SceneOwnership
+public enum SceneOwnership
 {
     ExternalObject = 0,
     RuntimeOwnedImported = 1
