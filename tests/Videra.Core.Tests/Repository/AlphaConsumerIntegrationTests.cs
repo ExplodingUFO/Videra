@@ -340,6 +340,8 @@ public sealed class AlphaConsumerIntegrationTests
         ciWorkflow.Should().Contain("SurfaceChartViewViewStateTests");
         ciWorkflow.Should().Contain("SurfaceChartInteractionTests");
         ciWorkflow.Should().Contain("SurfaceChartViewGpuFallbackTests");
+        ciWorkflow.Should().Contain("WaterfallChartViewIntegrationTests");
+        ciWorkflow.Should().Contain("ScatterChartViewIntegrationTests");
 
         releasing.Should().Contain("sample-contract-evidence");
         releasing.Should().Contain("Videra.ExtensibilitySample");

@@ -231,6 +231,13 @@ internal static class SurfaceChartsDocumentationTerms
         "`WaterfallChartView`"
     ];
 
+    public static readonly string[] SurfaceChartsTriFamilyControlTokens =
+    [
+        "`SurfaceChartView`",
+        "`ScatterChartView`",
+        "`WaterfallChartView`"
+    ];
+
     public static readonly string[] SurfaceChartsInteractionDiagnosticsTokens =
     [
         "`InteractionQuality`",

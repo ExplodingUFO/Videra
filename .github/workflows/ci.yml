@@ -93,7 +93,7 @@ jobs:
         shell: pwsh
         run: >
           dotnet test tests/Videra.SurfaceCharts.Avalonia.IntegrationTests/Videra.SurfaceCharts.Avalonia.IntegrationTests.csproj -c Release
-          --filter "FullyQualifiedName~SurfaceChartViewViewStateTests|FullyQualifiedName~SurfaceChartInteractionTests|FullyQualifiedName~SurfaceChartViewGpuFallbackTests"
+          --filter "FullyQualifiedName~SurfaceChartViewViewStateTests|FullyQualifiedName~SurfaceChartInteractionTests|FullyQualifiedName~SurfaceChartViewGpuFallbackTests|FullyQualifiedName~WaterfallChartViewIntegrationTests|FullyQualifiedName~ScatterChartViewIntegrationTests"
 
   quality-gate-evidence:
     runs-on: windows-latest
