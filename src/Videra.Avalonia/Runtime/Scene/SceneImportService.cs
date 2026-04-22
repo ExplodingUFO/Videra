@@ -55,12 +55,9 @@ internal sealed class SceneImportService
             .ToArray();
         var importTasks = new Dictionary<string, Task<ImportedAssetBatchResult>>(StringComparer.Ordinal);
 
-        foreach (var indexedPath in indexedPaths)
+        foreach (var path in indexedPaths.Select(static indexedPath => indexedPath.Path).Distinct(StringComparer.Ordinal))
         {
-            if (!importTasks.ContainsKey(indexedPath.Path))
-            {
-                importTasks.Add(indexedPath.Path, ImportBatchAssetAsync(indexedPath.Path, gate, cancellationToken));
-            }
+            importTasks.Add(path, ImportBatchAssetAsync(path, gate, cancellationToken));
         }
 
         var importedAssets = await Task.WhenAll(importTasks.Values).ConfigureAwait(false);
