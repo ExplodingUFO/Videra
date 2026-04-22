@@ -2,7 +2,7 @@
 
 `Videra.SurfaceCharts.Demo` is the independent demo application for the surface-chart module family.
 
-For the canonical surface/cache-backed chart story, start from `Videra.SurfaceCharts.Avalonia` plus `Videra.SurfaceCharts.Processing`, and use this demo as the repository reference app for the paths it actually exposes. `SurfaceChartView`, `WaterfallChartView`, and `ScatterChartView` ship in `Videra.SurfaceCharts.Avalonia`, and this sample exercises a repo-owned proof path for all three controls.
+For the canonical surface/cache-backed chart story, start from `Videra.SurfaceCharts.Avalonia` plus `Videra.SurfaceCharts.Processing`, and use this demo as the repository reference app for the paths it actually exposes. `SurfaceChartView`, `WaterfallChartView`, and `ScatterChartView` ship in `Videra.SurfaceCharts.Avalonia`, and this sample exercises a repo-owned scatter proof path for all three controls.
 
 The sample stays separate from `Videra.Demo` and `VideraView`. It exercises the chart-local renderer seam shipped in `SurfaceChartView`, not a `VideraView` mode. It provides switchable sources and built-in chart interaction:
 
