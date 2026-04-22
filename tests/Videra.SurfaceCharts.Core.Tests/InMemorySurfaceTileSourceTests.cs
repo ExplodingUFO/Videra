@@ -97,6 +97,19 @@ public class InMemorySurfaceTileSourceTests
     }
 
     [Fact]
+    public async Task GetTileAsync_PreservesReducedColorFieldOnGeneratedTiles()
+    {
+        var source = CreateExplicitMatrixWithColorField();
+        var builder = new SurfacePyramidBuilder(maxTileWidth: 2, maxTileHeight: 2);
+        ISurfaceTileSource tileSource = builder.Build(source);
+
+        var overviewTile = await tileSource.GetRequiredTileAsync(new SurfaceTileKey(0, 0, 0, 0));
+
+        overviewTile.ColorField.Should().NotBeNull();
+        overviewTile.ColorField!.Values.ToArray().Should().Equal(102.5f, 104.5f, 110.5f, 112.5f);
+    }
+
+    [Fact]
     public async Task GetTileAsync_IgnoresNonFiniteSamplesWhenComputingDetailValueRangeAndMask()
     {
         var source = CreateMatrix(2, 2, new float[]
@@ -163,6 +176,42 @@ public class InMemorySurfaceTileSourceTests
             new SurfaceAxisDescriptor("Time", "s", 0.0, 12.0),
             new SurfaceAxisDescriptor("Frequency", "Hz", 10.0, 20_000.0),
             new SurfaceValueRange(0.0, 100.0));
+    }
+
+    private static SurfaceMatrix CreateExplicitMatrixWithColorField()
+    {
+        var metadata = new SurfaceMetadata(
+            new SurfaceExplicitGrid(
+                horizontalCoordinates: new double[] { 10d, 20d, 40d, 80d },
+                verticalCoordinates: new double[] { 100d, 130d, 190d, 310d }),
+            new SurfaceAxisDescriptor("Time", "s", 10d, 80d, SurfaceAxisScaleKind.ExplicitCoordinates),
+            new SurfaceAxisDescriptor("Frequency", "Hz", 100d, 310d, SurfaceAxisScaleKind.ExplicitCoordinates),
+            new SurfaceValueRange(1d, 16d));
+
+        return new SurfaceMatrix(
+            metadata,
+            new SurfaceScalarField(
+                width: 4,
+                height: 4,
+                values: new float[]
+                {
+                    1, 2, 3, 4,
+                    5, 6, 7, 8,
+                    9, 10, 11, 12,
+                    13, 14, 15, 16
+                },
+                range: metadata.ValueRange),
+            new SurfaceScalarField(
+                width: 4,
+                height: 4,
+                values: new float[]
+                {
+                    100, 101, 102, 103,
+                    104, 105, 106, 107,
+                    108, 109, 110, 111,
+                    112, 113, 114, 115
+                },
+                range: new SurfaceValueRange(100d, 115d)));
     }
 
     private static float[] CreateSequentialValues(int width, int height)
