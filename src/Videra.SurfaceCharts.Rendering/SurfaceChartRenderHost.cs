@@ -12,14 +12,15 @@ public sealed class SurfaceChartRenderHost
     private readonly SurfaceChartRenderState _renderState;
 
     public SurfaceChartRenderHost(
+        SurfaceChartRenderState renderState,
         ISurfaceChartRenderBackend? softwareBackend = null,
         ISurfaceChartRenderBackend? gpuBackend = null,
         bool allowSoftwareFallback = true)
     {
-        _softwareBackend = softwareBackend ?? new SurfaceChartSoftwareRenderBackend();
+        _renderState = renderState ?? throw new ArgumentNullException(nameof(renderState));
+        _softwareBackend = softwareBackend ?? new SurfaceChartSoftwareRenderBackend(_renderState.Renderer);
         _gpuBackend = gpuBackend ?? CreateDefaultGpuBackend();
         _allowSoftwareFallback = allowSoftwareFallback;
-        _renderState = new SurfaceChartRenderState();
         Inputs = new SurfaceChartRenderInputs();
         LastChangeSet = new SurfaceChartRenderChangeSet();
         Snapshot = new SurfaceChartRenderSnapshot
@@ -32,6 +33,18 @@ public sealed class SurfaceChartRenderHost
             ResidentTileCount = 0,
         };
         RenderingStatus = SurfaceChartRenderingStatus.FromSnapshot(Snapshot);
+    }
+
+    public SurfaceChartRenderHost(
+        ISurfaceChartRenderBackend? softwareBackend = null,
+        ISurfaceChartRenderBackend? gpuBackend = null,
+        bool allowSoftwareFallback = true)
+        : this(
+            new SurfaceChartRenderState(),
+            softwareBackend,
+            gpuBackend,
+            allowSoftwareFallback)
+    {
     }
 
     public SurfaceChartRenderInputs Inputs { get; private set; }

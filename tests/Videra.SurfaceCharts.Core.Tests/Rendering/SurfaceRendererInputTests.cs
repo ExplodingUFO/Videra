@@ -162,6 +162,29 @@ public class SurfaceRendererInputTests
     }
 
     [Fact]
+    public void BuildScene_UsesOverriddenBuildTileTranslation()
+    {
+        var renderer = new OffsetSurfaceRenderer();
+        var metadata = CreateMetadata(width: 2, height: 2);
+        var tile = new SurfaceTile(
+            new SurfaceTileKey(0, 0, 0, 0),
+            width: 2,
+            height: 2,
+            new SurfaceTileBounds(0, 0, 2, 2),
+            new float[] { 10f, 20f, 30f, 40f },
+            new SurfaceValueRange(10.0, 40.0));
+
+        var scene = renderer.BuildScene(metadata, [tile], CreateColorMap());
+
+        scene.Tiles.Should().ContainSingle();
+        scene.Tiles[0].Vertices.Should().Equal(
+            new SurfaceRenderVertex(new Vector3(100f, 15f, 7f), 0xFF112233u),
+            new SurfaceRenderVertex(new Vector3(130f, 25f, 7f), 0xFF112233u),
+            new SurfaceRenderVertex(new Vector3(100f, 35f, 27f), 0xFF112233u),
+            new SurfaceRenderVertex(new Vector3(130f, 45f, 27f), 0xFF112233u));
+    }
+
+    [Fact]
     public void SurfaceRenderTileCtor_RejectsBoundsThatAreSmallerThanGeometryShape()
     {
         var geometry = new SurfacePatchGeometryBuilder().Build(2, 2);
@@ -198,5 +221,20 @@ public class SurfaceRendererInputTests
         return new SurfaceColorMap(
             new SurfaceValueRange(10.0, 40.0),
             new SurfaceColorMapPalette(0xFF000000u, 0xFFFFFFFFu));
+    }
+
+    private sealed class OffsetSurfaceRenderer : SurfaceRenderer
+    {
+        public override SurfaceRenderTile BuildTile(SurfaceMetadata metadata, SurfaceTile tile, SurfaceColorMap colorMap)
+        {
+            var baseTile = base.BuildTile(metadata, tile, colorMap);
+            var shiftedVertices = baseTile.Vertices
+                .Select(static vertex => new SurfaceRenderVertex(
+                    vertex.Position + new Vector3(100f, 5f, 7f),
+                    0xFF112233u))
+                .ToArray();
+
+            return new SurfaceRenderTile(baseTile.Key, baseTile.Bounds, baseTile.Geometry, shiftedVertices);
+        }
     }
 }

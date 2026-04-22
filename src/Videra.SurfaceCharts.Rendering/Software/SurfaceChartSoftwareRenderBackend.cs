@@ -4,7 +4,12 @@ namespace Videra.SurfaceCharts.Rendering.Software;
 
 public sealed class SurfaceChartSoftwareRenderBackend : ISurfaceChartRenderBackend
 {
-    private readonly SurfaceRenderer _renderer = new();
+    private readonly SurfaceRenderer _renderer;
+
+    public SurfaceChartSoftwareRenderBackend(SurfaceRenderer? renderer = null)
+    {
+        _renderer = renderer ?? new SurfaceRenderer();
+    }
 
     public SurfaceChartRenderBackendKind Kind => SurfaceChartRenderBackendKind.Software;
 

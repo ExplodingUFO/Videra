@@ -5,7 +5,7 @@ namespace Videra.SurfaceCharts.Core;
 /// <summary>
 /// Builds chart-specific render input from surface tiles.
 /// </summary>
-public sealed class SurfaceRenderer
+public class SurfaceRenderer
 {
     private readonly SurfacePatchGeometryBuilder geometryBuilder;
 
@@ -25,7 +25,7 @@ public sealed class SurfaceRenderer
     /// <param name="tile">The source tile.</param>
     /// <param name="colorMap">The value color map.</param>
     /// <returns>The dedicated render input for the tile.</returns>
-    public SurfaceRenderTile BuildTile(SurfaceMetadata metadata, SurfaceTile tile, SurfaceColorMap colorMap)
+    public virtual SurfaceRenderTile BuildTile(SurfaceMetadata metadata, SurfaceTile tile, SurfaceColorMap colorMap)
     {
         ArgumentNullException.ThrowIfNull(metadata);
         ArgumentNullException.ThrowIfNull(tile);

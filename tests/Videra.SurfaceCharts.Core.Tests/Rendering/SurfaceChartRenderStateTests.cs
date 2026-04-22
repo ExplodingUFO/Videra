@@ -1,3 +1,4 @@
+using System.Numerics;
 using FluentAssertions;
 using Videra.SurfaceCharts.Core;
 using Videra.SurfaceCharts.Core.Rendering;
@@ -177,6 +178,21 @@ public sealed class SurfaceChartRenderStateTests
         state.TryGetResidentTile(replacementTile.Key, out _).Should().BeTrue();
     }
 
+    [Fact]
+    public void InjectedRenderer_BuildsResidentTilesWithCustomTranslation()
+    {
+        var metadata = CreateMetadata(width: 4, height: 4);
+        var tile = CreateTile(metadata, new SurfaceTileKey(0, 0, 0, 0), tileValue: 12f);
+        var colorMap = CreateColorMap(metadata, startColor: 0xFF203040u, endColor: 0xFFE0F0FFu);
+        var state = new SurfaceChartRenderState(new OffsetSurfaceRenderer());
+
+        state.Update(CreateInputs(metadata, [tile], colorMap, new SurfaceViewport(0, 0, 4, 4)));
+
+        state.TryGetResidentTile(tile.Key, out var residentTile).Should().BeTrue();
+        residentTile.SoftwareRenderTile.Vertices[0].Should().Be(new SurfaceRenderVertex(new(100f, 17f, 7f), 0xFF112233u));
+        residentTile.SoftwareRenderTile.Vertices[3].Should().Be(new SurfaceRenderVertex(new(103f, 17f, 7f), 0xFF112233u));
+    }
+
     private static SurfaceChartRenderInputs CreateInputs(
         SurfaceMetadata metadata,
         IReadOnlyList<SurfaceTile> tiles,
@@ -232,5 +248,20 @@ public sealed class SurfaceChartRenderStateTests
     private static SurfaceColorMap CreateColorMap(SurfaceMetadata metadata, uint startColor, uint endColor)
     {
         return new SurfaceColorMap(metadata.ValueRange, new SurfaceColorMapPalette(startColor, endColor));
+    }
+
+    private sealed class OffsetSurfaceRenderer : SurfaceRenderer
+    {
+        public override SurfaceRenderTile BuildTile(SurfaceMetadata metadata, SurfaceTile tile, SurfaceColorMap colorMap)
+        {
+            var baseTile = base.BuildTile(metadata, tile, colorMap);
+            var shiftedVertices = baseTile.Vertices
+                .Select(static vertex => new SurfaceRenderVertex(
+                    vertex.Position + new Vector3(100f, 5f, 7f),
+                    0xFF112233u))
+                .ToArray();
+
+            return new SurfaceRenderTile(baseTile.Key, baseTile.Bounds, baseTile.Geometry, shiftedVertices);
+        }
     }
 }

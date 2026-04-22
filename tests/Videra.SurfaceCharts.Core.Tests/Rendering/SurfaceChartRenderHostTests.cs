@@ -1,3 +1,4 @@
+using System.Numerics;
 using FluentAssertions;
 using Videra.SurfaceCharts.Core;
 using Videra.SurfaceCharts.Core.Rendering;
@@ -86,6 +87,37 @@ public sealed class SurfaceChartRenderHostTests
         host.Snapshot.IsReady.Should().BeTrue();
     }
 
+    [Fact]
+    public void UpdateInputs_WithCustomRenderer_UsesInjectedTranslationForSoftwareScene()
+    {
+        var renderState = new SurfaceChartRenderState(new OffsetSurfaceRenderer());
+        var host = new SurfaceChartRenderHost(renderState);
+        var metadata = CreateMetadata(width: 2, height: 2);
+        var tile = CreateTile(metadata, new SurfaceTileKey(0, 0, 0, 0), tileValue: 12f);
+        var inputs = new SurfaceChartRenderInputs
+        {
+            Metadata = metadata,
+            LoadedTiles = [tile],
+            ColorMap = CreateColorMap(metadata),
+            ViewState = SurfaceViewState.CreateDefault(metadata, new SurfaceDataWindow(0d, 0d, metadata.Width, metadata.Height)),
+            ViewWidth = 320d,
+            ViewHeight = 180d,
+            NativeHandle = IntPtr.Zero,
+            HandleBound = false,
+            RenderScale = 1f,
+        };
+
+        host.UpdateInputs(inputs);
+
+        host.RenderState.Should().BeSameAs(renderState);
+        host.Snapshot.IsReady.Should().BeTrue();
+        host.SoftwareScene.Should().NotBeNull();
+        host.SoftwareScene!.Tiles.Should().ContainSingle();
+        host.SoftwareScene.Tiles[0].Vertices[0].Should().Be(new SurfaceRenderVertex(new(100f, 17f, 7f), 0xFF112233u));
+        host.RenderState.TryGetResidentTile(tile.Key, out var residentTile).Should().BeTrue();
+        residentTile.SoftwareRenderTile.Vertices[0].Should().Be(new SurfaceRenderVertex(new(100f, 17f, 7f), 0xFF112233u));
+    }
+
     private static SurfaceMetadata CreateMetadata(int width, int height)
     {
         return new SurfaceMetadata(
@@ -115,5 +147,20 @@ public sealed class SurfaceChartRenderHostTests
     private static SurfaceColorMap CreateColorMap(SurfaceMetadata metadata)
     {
         return new SurfaceColorMap(metadata.ValueRange, new SurfaceColorMapPalette(0xFF203040u, 0xFFE0F0FFu));
+    }
+
+    private sealed class OffsetSurfaceRenderer : SurfaceRenderer
+    {
+        public override SurfaceRenderTile BuildTile(SurfaceMetadata metadata, SurfaceTile tile, SurfaceColorMap colorMap)
+        {
+            var baseTile = base.BuildTile(metadata, tile, colorMap);
+            var shiftedVertices = baseTile.Vertices
+                .Select(static vertex => new SurfaceRenderVertex(
+                    vertex.Position + new Vector3(100f, 5f, 7f),
+                    0xFF112233u))
+                .ToArray();
+
+            return new SurfaceRenderTile(baseTile.Key, baseTile.Bounds, baseTile.Geometry, shiftedVertices);
+        }
     }
 }
