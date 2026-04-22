@@ -1,3 +1,4 @@
+using System.Reflection;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using FluentAssertions;
@@ -168,6 +169,107 @@ public sealed class SurfaceChartsDemoViewportBehaviorTests
             renderingPathText.Text.Should().Contain("Active backend");
             renderingPathText.Text.Should().Contain(chartView.RenderingStatus.ActiveBackend.ToString());
             renderingPathText.Text.Should().Contain("Resident tiles");
+        });
+    }
+
+    [Fact]
+    public Task DemoWindow_WaterfallProof_SwitchesToWaterfallChartPath_AndPreservesViewStateButtons()
+    {
+        return AvaloniaHeadlessTestSession.RunAsync(async () =>
+        {
+            var window = new MainWindow();
+            var surfaceChartView = window.FindControl<SurfaceChartView>("ChartView")
+                ?? throw new InvalidOperationException("ChartView is missing.");
+            var waterfallChartView = window.FindControl<WaterfallChartView>("WaterfallChartView")
+                ?? throw new InvalidOperationException("WaterfallChartView is missing.");
+            var sourceSelector = window.FindControl<ComboBox>("SourceSelector")
+                ?? throw new InvalidOperationException("SourceSelector is missing.");
+            var fitToDataButton = window.FindControl<Button>("FitToDataButton")
+                ?? throw new InvalidOperationException("FitToDataButton is missing.");
+            var resetCameraButton = window.FindControl<Button>("ResetCameraButton")
+                ?? throw new InvalidOperationException("ResetCameraButton is missing.");
+            var statusText = window.FindControl<TextBlock>("StatusText")
+                ?? throw new InvalidOperationException("StatusText is missing.");
+
+            SelectItem(sourceSelector, GetComboBoxItemByContent(sourceSelector, "Try next: Waterfall proof"));
+
+            await WaitForConditionAsync(
+                () => waterfallChartView.IsVisible &&
+                      waterfallChartView.Source is not null &&
+                      statusText.Text?.Contains("Try next: Waterfall proof", StringComparison.Ordinal) == true,
+                "switching sources should activate the thin Waterfall proof path.")
+                .ConfigureAwait(true);
+
+            surfaceChartView.IsVisible.Should().BeFalse();
+            waterfallChartView.ViewState.DataWindow.Should().Be(new SurfaceDataWindow(0d, 0d, waterfallChartView.Source!.Metadata.Width, waterfallChartView.Source.Metadata.Height));
+
+            var requestedWindow = new SurfaceDataWindow(-12d, -6d, 120d, 60d);
+            var expectedWindow = requestedWindow.ClampTo(waterfallChartView.Source!.Metadata);
+            waterfallChartView.ZoomTo(requestedWindow);
+            waterfallChartView.ViewState.DataWindow.Should().Be(expectedWindow);
+
+            var camera = new SurfaceCameraPose(new System.Numerics.Vector3(2f, 3f, 4f), 180d, 22d, 16d, 40d);
+            waterfallChartView.ViewState = new SurfaceViewState(
+                expectedWindow,
+                camera);
+
+            ClickButton(resetCameraButton);
+
+            await WaitForConditionAsync(
+                () => waterfallChartView.ViewState.Camera == SurfaceCameraPose.CreateDefault(waterfallChartView.Source!.Metadata, waterfallChartView.ViewState.DataWindow),
+                "reset camera should keep working on the Waterfall proof path.")
+                .ConfigureAwait(true);
+
+            ClickButton(fitToDataButton);
+
+            await WaitForConditionAsync(
+                () => waterfallChartView.ViewState.DataWindow == new SurfaceDataWindow(0d, 0d, waterfallChartView.Source!.Metadata.Width, waterfallChartView.Source.Metadata.Height),
+                "fit to data should still use the inherited ViewState workflow on the Waterfall proof path.")
+                .ConfigureAwait(true);
+        });
+    }
+
+    [Fact]
+    public Task DemoWindow_CompletedCacheLoad_DoesNotOverrideNewerWaterfallSelection()
+    {
+        return AvaloniaHeadlessTestSession.RunAsync(async () =>
+        {
+            var window = new MainWindow();
+            var surfaceChartView = window.FindControl<SurfaceChartView>("ChartView")
+                ?? throw new InvalidOperationException("ChartView is missing.");
+            var waterfallChartView = window.FindControl<WaterfallChartView>("WaterfallChartView")
+                ?? throw new InvalidOperationException("WaterfallChartView is missing.");
+            var sourceSelector = window.FindControl<ComboBox>("SourceSelector")
+                ?? throw new InvalidOperationException("SourceSelector is missing.");
+            var statusText = window.FindControl<TextBlock>("StatusText")
+                ?? throw new InvalidOperationException("StatusText is missing.");
+
+            var cacheSourceTaskField = typeof(MainWindow).GetField("_cacheSourceTask", BindingFlags.Instance | BindingFlags.NonPublic);
+            var inMemorySourceField = typeof(MainWindow).GetField("_inMemorySource", BindingFlags.Instance | BindingFlags.NonPublic);
+            cacheSourceTaskField.Should().NotBeNull();
+            inMemorySourceField.Should().NotBeNull();
+
+            var cacheSourceCompletion = new TaskCompletionSource<ISurfaceTileSource>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var inMemorySource = (ISurfaceTileSource)inMemorySourceField!.GetValue(window)!;
+            cacheSourceTaskField!.SetValue(window, cacheSourceCompletion.Task);
+
+            SelectItem(sourceSelector, GetComboBoxItemByContent(sourceSelector, "Explore next: Cache-backed streaming"));
+            SelectItem(sourceSelector, GetComboBoxItemByContent(sourceSelector, "Try next: Waterfall proof"));
+
+            await WaitForConditionAsync(
+                () => waterfallChartView.IsVisible &&
+                      waterfallChartView.Source is not null &&
+                      statusText.Text?.Contains("Try next: Waterfall proof", StringComparison.Ordinal) == true,
+                "the newer waterfall selection should become active before the pending cache load completes.")
+                .ConfigureAwait(true);
+
+            cacheSourceCompletion.SetResult(inMemorySource);
+            await Task.Yield();
+            await Task.Yield();
+
+            waterfallChartView.IsVisible.Should().BeTrue();
+            surfaceChartView.IsVisible.Should().BeFalse();
+            statusText.Text.Should().Contain("Try next: Waterfall proof");
         });
     }
 

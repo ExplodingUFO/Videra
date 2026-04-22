@@ -32,7 +32,11 @@
             BorderThickness="1"
             CornerRadius="20"
             ClipToBounds="True">
-      <charts:SurfaceChartView x:Name="ChartView" />
+      <Grid>
+        <charts:SurfaceChartView x:Name="ChartView" />
+        <charts:WaterfallChartView x:Name="WaterfallChartView"
+                                   IsVisible="False" />
+      </Grid>
     </Border>
 
     <ScrollViewer Grid.Row="1"
@@ -53,10 +57,11 @@
             <ComboBox x:Name="SourceSelector">
               <ComboBoxItem Content="Start here: In-memory first chart" />
               <ComboBoxItem Content="Explore next: Cache-backed streaming" />
+              <ComboBoxItem Content="Try next: Waterfall proof" />
             </ComboBox>
             <TextBlock Foreground="#CBD5E1"
                        TextWrapping="Wrap"
-                       Text="Start here with the in-memory baseline first chart. Switch to cache-backed streaming only after the first chart renders and you want the broader exploration path." />
+                       Text="Start here with the in-memory baseline first chart. Move to cache-backed streaming after that path renders. The waterfall option is a thin proof on the same Avalonia chart shell, not a separate viewer stack." />
           </StackPanel>
         </Border>
 

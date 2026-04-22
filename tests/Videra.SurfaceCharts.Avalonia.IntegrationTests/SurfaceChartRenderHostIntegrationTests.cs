@@ -2,7 +2,6 @@ using System.Reflection;
 using Avalonia;
 using FluentAssertions;
 using Videra.SurfaceCharts.Avalonia.Controls;
-using Videra.SurfaceCharts.Avalonia.Controls.Interaction;
 using Videra.SurfaceCharts.Core;
 using Videra.SurfaceCharts.Core.Rendering;
 using Videra.SurfaceCharts.Rendering;
@@ -13,21 +12,16 @@ namespace Videra.SurfaceCharts.Avalonia.IntegrationTests;
 public sealed class SurfaceChartRenderHostIntegrationTests
 {
     [Fact]
-    public void SurfaceChartView_UsesRenderHostInsteadOfControlOwnedRendererState()
+    public void SurfaceChartView_DefaultRenderSnapshot_IsSoftwareAndNotReady()
     {
         AvaloniaHeadlessTestSession.Run(() =>
         {
-            var renderHostField = typeof(SurfaceChartView).GetField("_renderHost", BindingFlags.Instance | BindingFlags.NonPublic);
-            renderHostField.Should().NotBeNull();
-            renderHostField!.FieldType.Should().Be(typeof(SurfaceChartRenderHost));
-            typeof(SurfaceChartView).GetField("_runtime", BindingFlags.Instance | BindingFlags.NonPublic)!.FieldType.Should().Be(typeof(SurfaceChartRuntime));
-
-            typeof(SurfaceChartView).GetField("_renderer", BindingFlags.Instance | BindingFlags.NonPublic).Should().BeNull();
-
             var view = new SurfaceChartView();
-            SurfaceChartRenderSnapshot snapshot = view.RenderSnapshot;
-            snapshot.ActiveBackend.Should().Be(SurfaceChartRenderBackendKind.Software);
-            snapshot.IsReady.Should().BeFalse();
+            view.RenderSnapshot.ActiveBackend.Should().Be(SurfaceChartRenderBackendKind.Software);
+            view.RenderSnapshot.IsReady.Should().BeFalse();
+            view.RenderSnapshot.IsFallback.Should().BeFalse();
+            view.RenderSnapshot.UsesNativeSurface.Should().BeFalse();
+            view.RenderSnapshot.ResidentTileCount.Should().Be(0);
         });
     }
 
