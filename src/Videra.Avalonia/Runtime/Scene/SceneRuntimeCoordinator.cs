@@ -114,7 +114,6 @@ internal sealed class SceneRuntimeCoordinator
     {
         ResourceEpoch++;
         _sceneUploadQueue.Enqueue(_sceneResidencyRegistry.MarkDirtyForResourceEpoch(ResourceEpoch));
-        SceneEngineApplicator.ApplyReadyAdds(_engine, _sceneResidencyRegistry.GetReadyAdds(CurrentDocument.Entries), _sceneResidencyRegistry);
         _refreshSceneDiagnostics();
         _refreshBackendDiagnostics();
         _invalidateRender(RenderInvalidationKinds.Scene);
