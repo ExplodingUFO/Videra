@@ -106,7 +106,7 @@ internal static class SurfaceProbeOverlayPresenter
         {
             DrawReadoutBubble(
                 context,
-                CreateHoveredReadoutText(hoveredProbe),
+                CreateHoveredReadoutText(hoveredProbe, overlayState.PinnedProbes),
                 hoveredProbeScreenPosition,
                 viewSize,
                 bubbleIndex: 0,
@@ -220,11 +220,24 @@ internal static class SurfaceProbeOverlayPresenter
             Math.Clamp(candidate.Y, BubbleMargin, maxY));
     }
 
-    private static string CreateHoveredReadoutText(SurfaceProbeInfo probe)
+    private static string CreateHoveredReadoutText(SurfaceProbeInfo probe, IReadOnlyList<SurfaceProbeInfo> pinnedProbes)
     {
-        return string.Create(
+        var readout = string.Create(
             CultureInfo.InvariantCulture,
             $"X {probe.AxisX:0.###} (sample {probe.SampleX:0.###})\nY {probe.AxisY:0.###} (sample {probe.SampleY:0.###})\nValue {probe.Value:0.###} {(probe.IsApproximate ? "Approx" : "Exact")}");
+
+        if (pinnedProbes.Count == 0)
+        {
+            return readout;
+        }
+
+        var referenceProbe = pinnedProbes[0];
+        var deltaX = probe.AxisX - referenceProbe.AxisX;
+        var deltaY = probe.AxisY - referenceProbe.AxisY;
+        var deltaValue = probe.Value - referenceProbe.Value;
+        return string.Create(
+            CultureInfo.InvariantCulture,
+            $"{readout}\nDelta vs Pin 1\nX {deltaX:+0.###;-0.###;0}\nY {deltaY:+0.###;-0.###;0}\nValue {deltaValue:+0.###;-0.###;0}");
     }
 
     private static string CreatePinnedReadoutText(int pinnedIndex, SurfaceProbeInfo probe)

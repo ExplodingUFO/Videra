@@ -145,35 +145,39 @@ public sealed class SurfaceChartProbeOverlayTests
     }
 
     [Fact]
-    public void ProbeOverlay_ConvertsSampleCoordinatesToAxisValues()
+    public void ExactTileProbe_InterpolatesBetweenNeighboringSamples()
     {
         var metadata = new SurfaceMetadata(
-            width: 5,
-            height: 5,
+            width: 2,
+            height: 2,
             new SurfaceAxisDescriptor("Time", "s", 10d, 20d),
             new SurfaceAxisDescriptor("Frequency", "Hz", 100d, 200d),
             new SurfaceValueRange(-1d, 1d));
         var tile = new SurfaceTile(
             new SurfaceTileKey(0, 0, 0, 0),
-            width: 5,
-            height: 5,
-            new SurfaceTileBounds(0, 0, 5, 5),
-            Enumerable.Repeat(3f, 25).ToArray(),
+            width: 2,
+            height: 2,
+            new SurfaceTileBounds(0, 0, 2, 2),
+            new float[]
+            {
+                10f, 20f,
+                30f, 40f
+            },
             metadata.ValueRange);
 
         var state = SurfaceProbeOverlayPresenter.CreateState(
             new StaticTileSource(metadata),
-            new SurfaceViewport(0, 0, 4, 4),
-            new Size(200, 200),
+            new SurfaceViewport(0, 0, 1, 1),
+            new Size(2, 2),
             [tile],
-            new Point(100, 100));
+            new Point(1, 1));
 
         var hoveredProbe = GetHoveredProbe(state);
-        GetDoubleProperty(hoveredProbe, "SampleX").Should().BeApproximately(2d, 0.0001d);
-        GetDoubleProperty(hoveredProbe, "SampleY").Should().BeApproximately(2d, 0.0001d);
+        GetDoubleProperty(hoveredProbe, "SampleX").Should().BeApproximately(0.5d, 0.0001d);
+        GetDoubleProperty(hoveredProbe, "SampleY").Should().BeApproximately(0.5d, 0.0001d);
         GetDoubleProperty(hoveredProbe, "AxisX").Should().BeApproximately(15d, 0.0001d);
         GetDoubleProperty(hoveredProbe, "AxisY").Should().BeApproximately(150d, 0.0001d);
-        GetDoubleProperty(hoveredProbe, "Value").Should().Be(3d);
+        GetDoubleProperty(hoveredProbe, "Value").Should().BeApproximately(25d, 0.0001d);
         GetBooleanProperty(hoveredProbe, "IsApproximate").Should().BeFalse();
     }
 
@@ -208,6 +212,42 @@ public sealed class SurfaceChartProbeOverlayTests
         GetDoubleProperty(hoveredProbe, "AxisY").Should().BeApproximately(162.5d, 0.0001d);
         GetDoubleProperty(hoveredProbe, "Value").Should().Be(3d);
         GetBooleanProperty(hoveredProbe, "IsApproximate").Should().BeFalse();
+    }
+
+    [Fact]
+    public void HoveredReadout_IncludesDeltaAgainstFirstPinnedProbe()
+    {
+        var metadata = new SurfaceMetadata(
+            width: 2,
+            height: 2,
+            new SurfaceAxisDescriptor("Time", "s", 10d, 20d),
+            new SurfaceAxisDescriptor("Frequency", "Hz", 100d, 200d),
+            new SurfaceValueRange(-1d, 1d));
+        var tile = new SurfaceTile(
+            new SurfaceTileKey(0, 0, 0, 0),
+            width: 2,
+            height: 2,
+            new SurfaceTileBounds(0, 0, 2, 2),
+            new float[]
+            {
+                10f, 20f,
+                30f, 40f
+            },
+            metadata.ValueRange);
+
+        var state = SurfaceProbeOverlayPresenter.CreateState(
+            new StaticTileSource(metadata),
+            new SurfaceViewport(0, 0, 1, 1),
+            new Size(2, 2),
+            [tile],
+            new Point(1, 1),
+            [new SurfaceProbeRequest(0d, 0d)]);
+
+        state.PinnedProbes.Should().ContainSingle();
+        state.ReadoutText.Should().Contain("Delta vs Pin 1");
+        state.ReadoutText.Should().Contain("X +5");
+        state.ReadoutText.Should().Contain("Y +50");
+        state.ReadoutText.Should().Contain("Value +15");
     }
 
     [Fact]

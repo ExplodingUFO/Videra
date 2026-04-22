@@ -88,24 +88,93 @@ internal static class SurfaceProbeService
                 continue;
             }
 
-            var tileX = MapSampleToTileIndex(probeRequest.SampleX, tile.Bounds.StartX, tile.Bounds.Width, tile.Width);
-            var tileY = MapSampleToTileIndex(probeRequest.SampleY, tile.Bounds.StartY, tile.Bounds.Height, tile.Height);
-            var valueIndex = (tileY * tile.Width) + tileX;
-            if (tile.Mask is not null && !tile.Mask.Values.Span[valueIndex])
+            if (TryResolveInterpolatedValue(tile, probeRequest.SampleX, probeRequest.SampleY, out var interpolatedValue))
+            {
+                return SurfaceProbeInfo.FromResolvedSample(metadata, tile, probeRequest, interpolatedValue);
+            }
+
+            if (!TryResolveDiscreteValue(tile, probeRequest.SampleX, probeRequest.SampleY, out var discreteValue))
             {
                 return null;
             }
 
-            var value = tile.Values.Span[valueIndex];
-            if (!float.IsFinite(value))
-            {
-                return null;
-            }
-
-            return SurfaceProbeInfo.FromResolvedSample(metadata, tile, probeRequest, value);
+            return SurfaceProbeInfo.FromResolvedSample(metadata, tile, probeRequest, discreteValue);
         }
 
         return null;
+    }
+
+    private static bool TryResolveDiscreteValue(
+        SurfaceTile tile,
+        double sampleX,
+        double sampleY,
+        out float value)
+    {
+        var tileX = MapSampleToTileIndex(sampleX, tile.Bounds.StartX, tile.Bounds.Width, tile.Width);
+        var tileY = MapSampleToTileIndex(sampleY, tile.Bounds.StartY, tile.Bounds.Height, tile.Height);
+        var valueIndex = (tileY * tile.Width) + tileX;
+        if (tile.Mask is not null && !tile.Mask.Values.Span[valueIndex])
+        {
+            value = default;
+            return false;
+        }
+
+        value = tile.Values.Span[valueIndex];
+        return float.IsFinite(value);
+    }
+
+    private static bool TryResolveInterpolatedValue(
+        SurfaceTile tile,
+        double sampleX,
+        double sampleY,
+        out float value)
+    {
+        value = default;
+
+        if (tile.Bounds.Width != tile.Width || tile.Bounds.Height != tile.Height || tile.Width < 2 || tile.Height < 2)
+        {
+            return false;
+        }
+
+        var localX = sampleX - tile.Bounds.StartX;
+        var localY = sampleY - tile.Bounds.StartY;
+        var leftColumn = (int)Math.Floor(localX);
+        var topRow = (int)Math.Floor(localY);
+        if (leftColumn < 0 || topRow < 0 || leftColumn >= tile.Width - 1 || topRow >= tile.Height - 1)
+        {
+            return false;
+        }
+
+        var tx = localX - leftColumn;
+        var ty = localY - topRow;
+        var topLeftIndex = (topRow * tile.Width) + leftColumn;
+        var topRightIndex = topLeftIndex + 1;
+        var bottomLeftIndex = topLeftIndex + tile.Width;
+        var bottomRightIndex = bottomLeftIndex + 1;
+
+        var values = tile.Values.Span;
+        var topLeft = values[topLeftIndex];
+        var topRight = values[topRightIndex];
+        var bottomLeft = values[bottomLeftIndex];
+        var bottomRight = values[bottomRightIndex];
+        if (!float.IsFinite(topLeft) || !float.IsFinite(topRight) || !float.IsFinite(bottomLeft) || !float.IsFinite(bottomRight))
+        {
+            return false;
+        }
+
+        if (tile.Mask is not null)
+        {
+            var mask = tile.Mask.Values.Span;
+            if (!mask[topLeftIndex] || !mask[topRightIndex] || !mask[bottomLeftIndex] || !mask[bottomRightIndex])
+            {
+                return false;
+            }
+        }
+
+        var top = (topLeft * (1f - (float)tx)) + (topRight * (float)tx);
+        var bottom = (bottomLeft * (1f - (float)tx)) + (bottomRight * (float)tx);
+        value = (top * (1f - (float)ty)) + (bottom * (float)ty);
+        return float.IsFinite(value);
     }
 
     private static int MapSampleToTileIndex(double sampleCoordinate, int start, int span, int gridSize)
