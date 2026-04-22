@@ -18,7 +18,7 @@
 
 The sample keeps the interaction flow on public APIs only:
 
-1. It loads a narrow two-object scene through `LoadModelsAsync(...)`.
+1. It imports `Assets/reference-cube.obj` twice with `ObjModelImporter.Import(...)`, creates two deferred scene objects with `SceneUploadCoordinator.CreateDeferredObject(...)`, and replaces the active scene through `View3D.ReplaceScene(...)`.
 2. The window sets `View3D.SelectionState = _selectionState;` and `View3D.Annotations = _annotations;`.
 3. The window switches `View3D.InteractionMode` between `Navigate`, `Select`, `Annotate`, and `Measure`.
 4. `SelectionRequested` updates host-owned `SelectionState`.
