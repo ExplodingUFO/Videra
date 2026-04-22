@@ -23,7 +23,7 @@ internal sealed partial class VideraViewRuntime
         }
 
         AppendSceneEntry(importResult.Entry!);
-        return ModelLoadResult.Success(path, importResult.SceneObject!, startedAt.Elapsed);
+        return ModelLoadResult.Success(path, importResult.Entry!, startedAt.Elapsed);
     }
 
     public async Task<ModelLoadBatchResult> LoadModelsAsync(IEnumerable<string> paths, CancellationToken cancellationToken = default)
@@ -38,7 +38,7 @@ internal sealed partial class VideraViewRuntime
             ReplaceSceneEntries(importResult.Entries);
         }
 
-        return new ModelLoadBatchResult(importResult.SceneObjects, importResult.Failures, startedAt.Elapsed);
+        return new ModelLoadBatchResult(importResult.Entries, importResult.Failures, startedAt.Elapsed);
     }
 
     public void AddObject(Object3D obj)

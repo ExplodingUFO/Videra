@@ -105,7 +105,7 @@ public static class VideraInspectionBundleService
                     .Select(entry => ResolveBundledAssetPath(directoryPath, entry.FilePath))
                     .ToArray();
                 var loadResult = await view.LoadModelsAsync(filePaths, cancellationToken).ConfigureAwait(true);
-                if (!loadResult.Succeeded || loadResult.LoadedObjects.Count != assetManifest.Entries.Count)
+                if (!loadResult.Succeeded || loadResult.Entries.Count != assetManifest.Entries.Count)
                 {
                     var failure = loadResult.Failures.Count == 0
                         ? "LoadModelsAsync did not recreate the bundle scene."
@@ -116,7 +116,8 @@ public static class VideraInspectionBundleService
                 for (var i = 0; i < assetManifest.Entries.Count; i++)
                 {
                     var manifestEntry = assetManifest.Entries[i];
-                    var loadedObject = loadResult.LoadedObjects[i];
+                    var loadedEntry = loadResult.Entries[i];
+                    var loadedObject = loadedEntry.SceneObject;
                     objectIdMap[manifestEntry.OriginalObjectId] = loadedObject.Id;
                     loadedObject.Name = manifestEntry.Name;
                     loadedObject.Position = manifestEntry.Position.ToVector3();
