@@ -15,15 +15,18 @@ public partial class MainWindow : Window
     private const string CacheManifestFileName = "sample.surfacecache.json";
     private const string CachePayloadSuffix = ".bin";
     private const int WaterfallSourceIndex = 2;
+    private const int ScatterSourceIndex = 3;
 
     private readonly SurfaceChartView _surfaceChartView;
     private readonly WaterfallChartView _waterfallChartView;
+    private readonly ScatterChartView _scatterChartView;
     private readonly ComboBox _sourceSelector;
     private readonly Button _fitToDataButton;
     private readonly Button _resetCameraButton;
     private readonly TextBlock _statusText;
     private readonly TextBlock _viewStateText;
     private readonly TextBlock _interactionQualityText;
+    private readonly TextBlock _builtInInteractionText;
     private readonly TextBlock _renderingPathText;
     private readonly TextBlock _overlayOptionsText;
     private readonly TextBlock _cachePathText;
@@ -33,6 +36,7 @@ public partial class MainWindow : Window
     private readonly TextBlock _supportSummaryText;
     private readonly ISurfaceTileSource _inMemorySource;
     private readonly ISurfaceTileSource _waterfallSource;
+    private readonly ScatterChartData _scatterSource;
     private readonly string _cachePath;
     private readonly string _cachePayloadPath;
     private Task<ISurfaceTileSource>? _cacheSourceTask;
@@ -49,6 +53,8 @@ public partial class MainWindow : Window
             ?? throw new InvalidOperationException("Surface chart view is missing.");
         _waterfallChartView = this.FindControl<WaterfallChartView>("WaterfallChartView")
             ?? throw new InvalidOperationException("Waterfall chart view is missing.");
+        _scatterChartView = this.FindControl<ScatterChartView>("ScatterChartView")
+            ?? throw new InvalidOperationException("ScatterChartView is missing.");
         _sourceSelector = this.FindControl<ComboBox>("SourceSelector")
             ?? throw new InvalidOperationException("Source selector is missing.");
         _fitToDataButton = this.FindControl<Button>("FitToDataButton")
@@ -61,6 +67,8 @@ public partial class MainWindow : Window
             ?? throw new InvalidOperationException("ViewStateText is missing.");
         _interactionQualityText = this.FindControl<TextBlock>("InteractionQualityText")
             ?? throw new InvalidOperationException("InteractionQualityText is missing.");
+        _builtInInteractionText = this.FindControl<TextBlock>("BuiltInInteractionText")
+            ?? throw new InvalidOperationException("BuiltInInteractionText is missing.");
         _renderingPathText = this.FindControl<TextBlock>("RenderingPathText")
             ?? throw new InvalidOperationException("Rendering path text control is missing.");
         _overlayOptionsText = this.FindControl<TextBlock>("OverlayOptionsText")
@@ -85,9 +93,11 @@ public partial class MainWindow : Window
 
         _inMemorySource = CreateInMemorySource();
         _waterfallSource = CreateWaterfallSource();
+        _scatterSource = CreateScatterSource();
 
-        ConfigureChartView(_surfaceChartView);
-        ConfigureChartView(_waterfallChartView);
+        ConfigureSurfaceChartView(_surfaceChartView);
+        ConfigureSurfaceChartView(_waterfallChartView);
+        ConfigureScatterChartView(_scatterChartView);
 
         _sourceSelector.SelectedIndex = 0;
         ApplySource(
@@ -104,24 +114,29 @@ public partial class MainWindow : Window
         _copySupportSummaryButton.Click += OnCopySupportSummaryClicked;
 
         _cachePathText.Text = $"Manifest: {_cachePath}\nPayload sidecar: {_cachePayloadPath}";
-        UpdateStatusText();
-        UpdateViewStateText();
-        UpdateSupportSummaryText();
+        RefreshActiveProofTexts();
     }
 
-    private SurfaceChartView ActiveChartView => _waterfallChartView.IsVisible ? _waterfallChartView : _surfaceChartView;
+    private SurfaceChartView ActiveSurfaceChartView => _waterfallChartView.IsVisible ? _waterfallChartView : _surfaceChartView;
+
+    private bool IsScatterProofActive => _scatterChartView.IsVisible;
 
     private void InitializeComponent()
     {
         AvaloniaXamlLoader.Load(this);
     }
 
-    private void ConfigureChartView(SurfaceChartView chartView)
+    private void ConfigureSurfaceChartView(SurfaceChartView chartView)
     {
         chartView.OverlayOptions = CreateOverlayOptions();
         chartView.RenderStatusChanged += OnRenderStatusChanged;
         chartView.InteractionQualityChanged += OnInteractionQualityChanged;
         chartView.PropertyChanged += OnChartViewPropertyChanged;
+    }
+
+    private void ConfigureScatterChartView(ScatterChartView chartView)
+    {
+        chartView.RenderStatusChanged += OnRenderStatusChanged;
     }
 
     private async void OnSourceSelectionChanged(object? sender, SelectionChangedEventArgs e)
@@ -150,6 +165,17 @@ public partial class MainWindow : Window
                 "Try next: Waterfall proof",
                 "Thin proof on the same Avalonia chart shell. Uses explicit strip spacing while keeping the inherited ViewState, interaction, overlay, and rendering-status workflow aligned to the rendered geometry.",
                 "The waterfall proof expands each logical strip into baseline-data-baseline rows and assigns explicit sweep coordinates so camera, picking, and overlays stay on the same geometry truth.",
+                "No additional assets are used on this path.");
+            return;
+        }
+
+        if (requestedIndex == ScatterSourceIndex)
+        {
+            ApplyScatterSource(
+                _scatterSource,
+                "Try next: Scatter proof",
+                "Repo-owned scatter proof on the same Avalonia chart line. Uses discrete point clouds with direct camera pose truth and no `ViewState` or `OverlayOptions` seam on this path.",
+                "The scatter proof builds two small series at startup so the view can report series count, point count, camera target, and camera distance without a cache or surface pyramid.",
                 "No additional assets are used on this path.");
             return;
         }
@@ -205,71 +231,103 @@ public partial class MainWindow : Window
         _activeDatasetSummary = datasetSummary;
         _activeAssetSummary = assetSummary;
         _datasetText.Text = datasetSummary;
-        UpdateRenderingPathText(chartView.RenderingStatus);
-        UpdateInteractionQualityText(chartView.InteractionQuality);
-        UpdateOverlayOptionsText(chartView.OverlayOptions);
-        UpdateStatusText();
-        UpdateViewStateText();
-        UpdateSupportSummaryText();
+        RefreshActiveProofTexts();
+    }
+
+    private void ApplyScatterSource(
+        ScatterChartData source,
+        string heading,
+        string details,
+        string datasetSummary,
+        string assetSummary)
+    {
+        SetActiveChartView(_scatterChartView);
+        _scatterChartView.Source = source;
+        _scatterChartView.FitToData();
+        _activeSourceHeading = heading;
+        _activeSourceDetails = details;
+        _activeDatasetSummary = datasetSummary;
+        _activeAssetSummary = assetSummary;
+        _datasetText.Text = datasetSummary;
+        RefreshActiveProofTexts();
     }
 
     private void SetActiveChartView(SurfaceChartView chartView)
     {
         _surfaceChartView.IsVisible = ReferenceEquals(chartView, _surfaceChartView);
         _waterfallChartView.IsVisible = ReferenceEquals(chartView, _waterfallChartView);
+        _scatterChartView.IsVisible = false;
+    }
+
+    private void SetActiveChartView(ScatterChartView chartView)
+    {
+        _surfaceChartView.IsVisible = false;
+        _waterfallChartView.IsVisible = false;
+        _scatterChartView.IsVisible = ReferenceEquals(chartView, _scatterChartView);
     }
 
     private void OnRenderStatusChanged(object? sender, EventArgs e)
     {
         _ = e;
-        if (!ReferenceEquals(sender, ActiveChartView))
+        if (!ReferenceEquals(sender, ActiveSurfaceChartView) && !ReferenceEquals(sender, _scatterChartView))
         {
             return;
         }
 
-        UpdateRenderingPathText(ActiveChartView.RenderingStatus);
+        RefreshActiveProofTexts();
     }
 
     private void OnInteractionQualityChanged(object? sender, EventArgs e)
     {
         _ = e;
-        if (!ReferenceEquals(sender, ActiveChartView))
+        if (!ReferenceEquals(sender, ActiveSurfaceChartView))
         {
             return;
         }
 
-        UpdateInteractionQualityText(ActiveChartView.InteractionQuality);
+        UpdateInteractionQualityText();
     }
 
     private void OnChartViewPropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
     {
-        if (!ReferenceEquals(sender, ActiveChartView) || e.Property != SurfaceChartView.ViewStateProperty)
+        if (!ReferenceEquals(sender, ActiveSurfaceChartView) || e.Property != SurfaceChartView.ViewStateProperty)
         {
             return;
         }
 
-        UpdateStatusText();
-        UpdateViewStateText();
+        RefreshActiveProofTexts();
     }
 
     private void OnFitToDataClicked(object? sender, RoutedEventArgs e)
     {
         _ = sender;
         _ = e;
-        ActiveChartView.FitToData();
-        UpdateStatusText();
-        UpdateViewStateText();
-        UpdateSupportSummaryText();
+        if (IsScatterProofActive)
+        {
+            _scatterChartView.FitToData();
+        }
+        else
+        {
+            ActiveSurfaceChartView.FitToData();
+        }
+
+        RefreshActiveProofTexts();
     }
 
     private void OnResetCameraClicked(object? sender, RoutedEventArgs e)
     {
         _ = sender;
         _ = e;
-        ActiveChartView.ResetCamera();
-        UpdateStatusText();
-        UpdateViewStateText();
-        UpdateSupportSummaryText();
+        if (IsScatterProofActive)
+        {
+            _scatterChartView.ResetCamera();
+        }
+        else
+        {
+            ActiveSurfaceChartView.ResetCamera();
+        }
+
+        RefreshActiveProofTexts();
     }
 
     private async void OnCopySupportSummaryClicked(object? sender, RoutedEventArgs e)
@@ -292,20 +350,40 @@ public partial class MainWindow : Window
 
     private void UpdateViewStateText()
     {
-        _viewStateText.Text = $"ViewState\n{CreateViewStateSummary()}";
+        _viewStateText.Text = $"ViewState / camera state\n{CreateViewStateSummary()}";
     }
 
-    private void UpdateInteractionQualityText(SurfaceChartInteractionQuality interactionQuality)
+    private void UpdateInteractionQualityText()
     {
+        if (IsScatterProofActive)
+        {
+            _interactionQualityText.Text =
+                "ScatterChartView does not expose `InteractionQuality`.\n" +
+                "Use the render-status panel plus camera pose updates to track the proof path while the pointer is active.";
+            return;
+        }
+
         _interactionQualityText.Text =
-            $"Current mode: {interactionQuality}\n" +
+            $"Current mode: {ActiveSurfaceChartView.InteractionQuality}\n" +
             "Interactive: lighter requests while orbit, pan, dolly, or focus input is in flight.\n" +
             "Refine: full settled requests for the current view.";
     }
 
     private void UpdateStatusText()
     {
-        var dataWindow = ActiveChartView.ViewState.DataWindow;
+        if (IsScatterProofActive)
+        {
+            var status = _scatterChartView.RenderingStatus;
+            _statusText.Text =
+                $"{_activeSourceHeading}\n" +
+                $"{_activeSourceDetails}\n" +
+                "Scatter proof navigation: Left drag orbit, Wheel dolly.\n" +
+                $"Current scene: {status.SeriesCount} series, {status.PointCount} points.\n" +
+                $"Camera target ({status.CameraTarget.X:0.###}, {status.CameraTarget.Y:0.###}, {status.CameraTarget.Z:0.###}), distance {status.CameraDistance:0.###}";
+            return;
+        }
+
+        var dataWindow = ActiveSurfaceChartView.ViewState.DataWindow;
         _statusText.Text =
             $"{_activeSourceHeading}\n" +
             $"{_activeSourceDetails}\n" +
@@ -313,24 +391,65 @@ public partial class MainWindow : Window
             $"Current window: StartX {dataWindow.StartX:0.###}, StartY {dataWindow.StartY:0.###}, Width {dataWindow.Width:0.###}, Height {dataWindow.Height:0.###}";
     }
 
-    private void UpdateRenderingPathText(SurfaceChartRenderingStatus status)
+    private void UpdateRenderingPathText()
     {
+        if (IsScatterProofActive)
+        {
+            var status = _scatterChartView.RenderingStatus;
+            _renderingPathText.Text =
+                $"Backend kind: {status.BackendKind}\n" +
+                $"Ready: {status.IsReady}\n" +
+                $"Interaction active: {status.IsInteracting}\n" +
+                $"View size: {status.ViewSize.Width:0.#} x {status.ViewSize.Height:0.#}\n" +
+                $"Series: {status.SeriesCount}; Points: {status.PointCount}\n" +
+                $"Camera target: ({status.CameraTarget.X:0.###}, {status.CameraTarget.Y:0.###}, {status.CameraTarget.Z:0.###}); Distance: {status.CameraDistance:0.###}";
+            return;
+        }
+
+        var surfaceStatus = ActiveSurfaceChartView.RenderingStatus;
         _renderingPathText.Text =
-            $"Active backend: {status.ActiveBackend}\n" +
-            $"Ready: {status.IsReady}\n" +
-            $"Fallback: {CreateFallbackText(status)}\n" +
-            $"Host path: {CreateHostText(status)}\n" +
-            $"Resident tiles: {status.ResidentTileCount}";
+            $"Active backend: {surfaceStatus.ActiveBackend}\n" +
+            $"Ready: {surfaceStatus.IsReady}\n" +
+            $"Fallback: {CreateFallbackText(surfaceStatus)}\n" +
+            $"Host path: {CreateHostText(surfaceStatus)}\n" +
+            $"Resident tiles: {surfaceStatus.ResidentTileCount}";
     }
 
-    private void UpdateOverlayOptionsText(SurfaceChartOverlayOptions overlayOptions)
+    private void UpdateOverlayOptionsText()
     {
+        if (IsScatterProofActive)
+        {
+            _overlayOptionsText.Text =
+                "ScatterChartView does not expose `OverlayOptions`.\n" +
+                "This proof path stays direct-scatter only and keeps chart-local overlay configuration out of the scatter host.";
+            return;
+        }
+
+        var overlayOptions = ActiveSurfaceChartView.OverlayOptions;
         _overlayOptionsText.Text =
             "Chart-local `OverlayOptions` keep formatter, minor ticks, grid plane, and axis-side behavior inside `SurfaceChartView` instead of pushing chart semantics into `VideraView`.\n" +
             $"Minor ticks: {(overlayOptions.ShowMinorTicks ? "enabled" : "disabled")} (divisions {overlayOptions.MinorTickDivisions})\n" +
             $"Grid plane: {overlayOptions.GridPlane}\n" +
             $"Axis side: {overlayOptions.AxisSideMode}\n" +
             "Formatter: legend and axis labels share the same chart-local numeric formatting contract.";
+    }
+
+    private void RefreshActiveProofTexts()
+    {
+        UpdateBuiltInInteractionText();
+        UpdateViewStateText();
+        UpdateInteractionQualityText();
+        UpdateRenderingPathText();
+        UpdateOverlayOptionsText();
+        UpdateStatusText();
+        UpdateSupportSummaryText();
+    }
+
+    private void UpdateBuiltInInteractionText()
+    {
+        _builtInInteractionText.Text = IsScatterProofActive
+            ? "Left drag orbit. Wheel dolly. Scatter proof does not expose right-drag pan or Ctrl + Left drag focus zoom."
+            : "Left drag orbit. Right drag pan. Wheel dolly. Ctrl + Left drag focus zoom.";
     }
 
     private static ISurfaceTileSource CreateInMemorySource()
@@ -351,6 +470,40 @@ public partial class MainWindow : Window
             detailLevelX: 0,
             detailLevelY: 0,
             reductionKernel: new ManagedSurfaceTileReductionKernel());
+    }
+
+    private static ScatterChartData CreateScatterSource()
+    {
+        var metadata = new ScatterChartMetadata(
+            new SurfaceAxisDescriptor("Horizontal", "u", 0d, 12d),
+            new SurfaceAxisDescriptor("Depth", "u", 0d, 12d),
+            new SurfaceValueRange(0d, 14d));
+
+        var series = new[]
+        {
+            new ScatterSeries(
+                new[]
+                {
+                    new ScatterPoint(1.2d, 2.1d, 1.0d, 0xFF5EEAD4u),
+                    new ScatterPoint(2.7d, 3.8d, 2.2d),
+                    new ScatterPoint(4.4d, 4.6d, 3.1d),
+                    new ScatterPoint(5.8d, 5.0d, 4.0d),
+                },
+                0xFF38BDF8u,
+                "Signal"),
+            new ScatterSeries(
+                new[]
+                {
+                    new ScatterPoint(7.1d, 7.8d, 5.6d, 0xFFF59E0Bu),
+                    new ScatterPoint(8.4d, 8.6d, 6.8d),
+                    new ScatterPoint(9.6d, 9.2d, 8.1d),
+                    new ScatterPoint(10.8d, 11.0d, 9.3d),
+                },
+                0xFFF97316u,
+                "Cluster"),
+        };
+
+        return new ScatterChartData(metadata, series);
     }
 
     private Task<ISurfaceTileSource> GetOrCreateCacheSourceAsync()
@@ -485,27 +638,55 @@ public partial class MainWindow : Window
 
     private void UpdateSupportSummaryText()
     {
-        var status = ActiveChartView.RenderingStatus;
+        if (IsScatterProofActive)
+        {
+            var status = _scatterChartView.RenderingStatus;
+            _supportSummaryText.Text =
+                "SurfaceCharts support summary\n" +
+                $"Source path: {_activeSourceHeading}\n" +
+                $"Source details: {_activeSourceDetails}\n" +
+                $"Chart contract: ScatterChartView exposes direct point data, camera pose truth, Fit to data, and Reset camera on this proof path.\n" +
+                $"Camera: {CreateScatterCameraSummary(status)}\n" +
+                $"RenderingStatus: BackendKind {status.BackendKind}; IsReady {status.IsReady}; IsInteracting {status.IsInteracting}; SeriesCount {status.SeriesCount}; PointCount {status.PointCount}; ViewSize {status.ViewSize.Width:0.#}x{status.ViewSize.Height:0.#}\n" +
+                "InteractionQuality: not exposed on ScatterChartView\n" +
+                "OverlayOptions: not exposed on ScatterChartView\n" +
+                $"Cache asset: {_activeAssetSummary}\n" +
+                $"Dataset: {_activeDatasetSummary}";
+            return;
+        }
+
+        var surfaceStatus = ActiveSurfaceChartView.RenderingStatus;
         _supportSummaryText.Text =
             "SurfaceCharts support summary\n" +
             $"Source path: {_activeSourceHeading}\n" +
             $"Source details: {_activeSourceDetails}\n" +
             $"ViewState: {CreateViewStateSummary()}\n" +
-            $"InteractionQuality: {ActiveChartView.InteractionQuality}\n" +
-            $"RenderingStatus: ActiveBackend {status.ActiveBackend}; IsReady {status.IsReady}; IsFallback {status.IsFallback}; FallbackReason {status.FallbackReason ?? "none"}; UsesNativeSurface {status.UsesNativeSurface}; ResidentTileCount {status.ResidentTileCount}\n" +
-            $"OverlayOptions: {CreateOverlayOptionsSummary(ActiveChartView.OverlayOptions)}\n" +
+            $"InteractionQuality: {ActiveSurfaceChartView.InteractionQuality}\n" +
+            $"RenderingStatus: ActiveBackend {surfaceStatus.ActiveBackend}; IsReady {surfaceStatus.IsReady}; IsFallback {surfaceStatus.IsFallback}; FallbackReason {surfaceStatus.FallbackReason ?? "none"}; UsesNativeSurface {surfaceStatus.UsesNativeSurface}; ResidentTileCount {surfaceStatus.ResidentTileCount}\n" +
+            $"OverlayOptions: {CreateOverlayOptionsSummary(ActiveSurfaceChartView.OverlayOptions)}\n" +
             $"Cache asset: {_activeAssetSummary}\n" +
             $"Dataset: {_activeDatasetSummary}";
     }
 
     private string CreateViewStateSummary()
     {
-        var viewState = ActiveChartView.ViewState;
+        if (IsScatterProofActive)
+        {
+            return CreateScatterCameraSummary(_scatterChartView.RenderingStatus);
+        }
+
+        var viewState = ActiveSurfaceChartView.ViewState;
         var dataWindow = viewState.DataWindow;
         var camera = viewState.Camera;
         return
             $"Data window StartX {dataWindow.StartX:0.###}, StartY {dataWindow.StartY:0.###}, Width {dataWindow.Width:0.###}, Height {dataWindow.Height:0.###}; " +
             $"Camera target ({camera.Target.X:0.###}, {camera.Target.Y:0.###}, {camera.Target.Z:0.###}), Yaw {camera.YawDegrees:0.###}, Pitch {camera.PitchDegrees:0.###}, Distance {camera.Distance:0.###}";
+    }
+
+    private static string CreateScatterCameraSummary(ScatterChartRenderingStatus status)
+    {
+        return
+            $"Camera target ({status.CameraTarget.X:0.###}, {status.CameraTarget.Y:0.###}, {status.CameraTarget.Z:0.###}), Distance {status.CameraDistance:0.###}, SeriesCount {status.SeriesCount}, PointCount {status.PointCount}";
     }
 
     private static string CreateOverlayOptionsSummary(SurfaceChartOverlayOptions overlayOptions)
