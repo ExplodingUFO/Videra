@@ -40,6 +40,7 @@ For `area: surfacecharts`, start from `smoke/Videra.SurfaceCharts.ConsumerSmoke`
 ## Package Selection vs Backend Preference
 
 - For Avalonia apps, install `Videra.Avalonia` together with the matching `Videra.Platform.Windows`, `Videra.Platform.Linux`, or `Videra.Platform.macOS` package.
+- `smoke/Videra.WpfSmoke` is repository-only Windows WPF smoke evidence for the public viewer path; use it as validation/support evidence, not as a second public UI package or release path.
 - Install `Videra.Core` directly only when you want the runtime kernel without the Avalonia UI layer.
 - Add `Videra.Import.Gltf` and/or `Videra.Import.Obj` when you need `.gltf` / `.glb` / `.obj` ingestion on the core path.
 - Software fallback helps with diagnostics, but it does not install missing platform packages.
@@ -115,7 +116,7 @@ Include:
 - `ResolvedDisplayServer`, `DisplayServerFallbackUsed`, `DisplayServerFallbackReason`, and `DisplayServerCompatibility` on Linux when relevant
 - Failing command and full error output
 - Whether the issue reproduces on the matching native host
-- Whether the issue reproduces in `Videra.MinimalSample`, `consumer smoke`, or `smoke/Videra.SurfaceCharts.ConsumerSmoke`
+- Whether the issue reproduces in `Videra.MinimalSample`, `smoke/Videra.WpfSmoke`, `consumer smoke`, or `smoke/Videra.SurfaceCharts.ConsumerSmoke`
 - Whether software rendering works
 
 ## Related Docs

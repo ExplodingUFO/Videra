@@ -9,7 +9,7 @@
 
 ## What It Is
 
-Videra is a Cross-platform 3D viewer component stack for .NET desktop applications. It is built for embeddable viewing workflows in Avalonia apps, with a shared rendering core and native backends for Windows, Linux, and macOS.
+Videra is a Cross-platform 3D viewer component stack for .NET desktop applications. The public viewer path is Avalonia-first, with a shared rendering core and native backends for Windows, Linux, and macOS.
 
 Videra is not a general-purpose game engine. It is shaped around desktop visualization, diagnostics, controlled interaction, and host-owned application state.
 
@@ -32,6 +32,7 @@ That shipped viewer path now carries one direct static glTF/PBR baseline: UV-bac
 - Public release tags are intended to publish the consumer packages on `nuget.org`
 - `GitHub Packages` remains the `preview` / internal feed for contributors and pre-release validation
 - `Videra.SurfaceCharts.*` now ships as a public `alpha` package line, while `Videra.SurfaceCharts.Demo` remains repository-only
+- `smoke/Videra.WpfSmoke` remains a repository-only Windows WPF smoke proof for validation and support evidence on the Avalonia-first viewer path; it is not a second public UI package or release path
 - Linux native rendering remains `X11`-hosted, and Wayland sessions stay on the documented `XWayland compatibility` path
 - GitHub Actions runs matching-host native validation, packaged viewer consumer smoke, packaged SurfaceCharts first-chart consumer smoke, and explicit sample-contract evidence on pull requests, and the [Native Validation runbook](docs/native-validation.md) documents how to use `Run workflow` for targeted reruns
 - The current alpha-ready `green` line is repository verification + native validation + packaged viewer consumer smoke + packaged SurfaceCharts first-chart consumer smoke + sample-contract evidence, with `quality-gate-evidence` running the Windows packaged viewer and SurfaceCharts consumer smoke paths with warnings treated as errors, enforcing package-size budgets on the public package line, and keeping the curated Core test surfaces plus `Videra.MinimalSample` warning-clean while `Benchmark Gates` serves as the hard numeric runtime blocker
@@ -120,6 +121,7 @@ For alpha adoption feedback, use [Alpha Feedback](docs/alpha-feedback.md) before
 | Entry | Status | Notes |
 | --- | --- | --- |
 | `Videra.Demo` | Repository-only | Viewer diagnostics and scene-pipeline reference app |
+| `smoke/Videra.WpfSmoke` | Repository-only | Windows WPF smoke proof for validation and support evidence on the Avalonia-first viewer path |
 | `Videra.SurfaceCharts.Demo` | Repository-only | SurfaceCharts reference app and support-summary repro path |
 | `Videra.ExtensibilitySample` | Repository-only | Public extensibility reference sample |
 | `Videra.InteractionSample` | Repository-only | Public controlled-interaction and inspection workflow sample |

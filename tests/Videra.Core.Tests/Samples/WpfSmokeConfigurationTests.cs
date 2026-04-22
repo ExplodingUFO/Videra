@@ -11,6 +11,12 @@ public sealed class WpfSmokeConfigurationTests
         var repositoryRoot = GetRepositoryRoot();
         var smokeRoot = Path.Combine(repositoryRoot, "smoke", "Videra.WpfSmoke");
         var solution = File.ReadAllText(Path.Combine(repositoryRoot, "Videra.slnx"));
+        var packageMatrix = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "package-matrix.md"));
+        var releasePolicy = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "release-policy.md"));
+        var consumerSmokeWorkflow = File.ReadAllText(Path.Combine(repositoryRoot, ".github", "workflows", "consumer-smoke.yml"));
+        var publicWorkflow = File.ReadAllText(Path.Combine(repositoryRoot, ".github", "workflows", "publish-public.yml"));
+        var previewWorkflow = File.ReadAllText(Path.Combine(repositoryRoot, ".github", "workflows", "publish-github-packages.yml"));
+        var existingReleaseWorkflow = File.ReadAllText(Path.Combine(repositoryRoot, ".github", "workflows", "publish-existing-public-release.yml"));
         var project = File.ReadAllText(Path.Combine(smokeRoot, "Videra.WpfSmoke.csproj"));
         var mainWindowCodeBehind = File.ReadAllText(Path.Combine(smokeRoot, "MainWindow.xaml.cs"));
         var hostCode = File.ReadAllText(Path.Combine(smokeRoot, "ViewerHwndHost.cs"));
@@ -29,6 +35,12 @@ public sealed class WpfSmokeConfigurationTests
         project.Should().Contain(@"..\..\src\Videra.Core\Videra.Core.csproj");
         project.Should().Contain(@"..\..\src\Videra.Platform.Windows\Videra.Platform.Windows.csproj");
         project.Should().NotContain("Avalonia");
+        packageMatrix.Should().NotContain("Videra.WpfSmoke");
+        releasePolicy.Should().NotContain("Videra.WpfSmoke");
+        consumerSmokeWorkflow.Should().NotContain("Videra.WpfSmoke");
+        publicWorkflow.Should().NotContain("Videra.WpfSmoke");
+        previewWorkflow.Should().NotContain("Videra.WpfSmoke");
+        existingReleaseWorkflow.Should().NotContain("Videra.WpfSmoke");
 
         mainWindowCodeBehind.Should().Contain("RenderSessionOrchestrator");
         mainWindowCodeBehind.Should().Contain("D3D11Backend");

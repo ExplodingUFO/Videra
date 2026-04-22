@@ -48,6 +48,7 @@ public sealed class AlphaConsumerIntegrationTests
         smokeWorkflow.Should().Contain("consumer-smoke-linux-x11");
         smokeWorkflow.Should().Contain("consumer-smoke-linux-xwayland");
         smokeWorkflow.Should().Contain("consumer-smoke-macos");
+        smokeWorkflow.Should().NotContain("Videra.WpfSmoke");
 
         var smokeScript = File.ReadAllText(smokeScriptPath);
         smokeScript.Should().Contain("Pack Public Consumer Packages");
@@ -75,6 +76,7 @@ public sealed class AlphaConsumerIntegrationTests
         smokeScript.Should().Contain("diagnostics-snapshot.txt");
         smokeScript.Should().Contain("inspection-bundle");
         smokeScript.Should().Contain("surfacecharts-support-summary.txt");
+        smokeScript.Should().NotContain("Videra.WpfSmoke");
     }
 
     [Fact]
