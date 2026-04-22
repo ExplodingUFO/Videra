@@ -19,9 +19,7 @@ namespace Videra.Avalonia.Controls;
 
 internal sealed class VideraViewSessionBridge
 {
-    private const RenderFeatureSet BridgeSupportedFeatures =
-        RenderFeatureSet.Opaque |
-        RenderFeatureSet.Overlay |
+    private const RenderFeatureSet BridgeAdditionalFeatures =
         RenderFeatureSet.Picking |
         RenderFeatureSet.Screenshot;
 
@@ -247,7 +245,8 @@ internal sealed class VideraViewSessionBridge
             RenderPipelineProfile = pipelineSnapshot?.Profile.ToString(),
             LastFrameStageNames = pipelineSnapshot?.StageNames?.ToArray() ?? Array.Empty<string>(),
             LastFrameFeatureNames = pipelineSnapshot?.FeatureNames?.ToArray() ?? Array.Empty<string>(),
-            SupportedRenderFeatureNames = MergeSupportedFeatures(capabilities.SupportedFeatures, BridgeSupportedFeatures).ToFeatureNames(),
+            SupportedRenderFeatureNames = MergeSupportedFeatures(capabilities.SupportedFeatures, BridgeAdditionalFeatures).ToFeatureNames(),
+            TransparentFeatureStatus = VideraBackendDiagnostics.DeferredTransparentFeatureStatus,
             UsesSoftwarePresentationCopy = snapshot.UsesSoftwarePresentationCopy,
             SceneDocumentVersion = sceneDiagnostics.SceneDocumentVersion,
             PendingSceneUploads = sceneDiagnostics.PendingUploads,
