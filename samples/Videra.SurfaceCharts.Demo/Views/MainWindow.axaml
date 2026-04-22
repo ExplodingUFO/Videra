@@ -32,11 +32,13 @@
             BorderThickness="1"
             CornerRadius="20"
             ClipToBounds="True">
-      <Grid>
+        <Grid>
         <charts:SurfaceChartView x:Name="ChartView" />
         <charts:WaterfallChartView x:Name="WaterfallChartView"
                                    IsVisible="False" />
-      </Grid>
+        <charts:ScatterChartView x:Name="ScatterChartView"
+                                 IsVisible="False" />
+        </Grid>
     </Border>
 
     <ScrollViewer Grid.Row="1"
@@ -58,10 +60,11 @@
               <ComboBoxItem Content="Start here: In-memory first chart" />
               <ComboBoxItem Content="Explore next: Cache-backed streaming" />
               <ComboBoxItem Content="Try next: Waterfall proof" />
+              <ComboBoxItem Content="Try next: Scatter proof" />
             </ComboBox>
             <TextBlock Foreground="#CBD5E1"
                        TextWrapping="Wrap"
-                       Text="Start here with the in-memory baseline first chart. Move to cache-backed streaming after that path renders. The waterfall option is a thin proof on the same Avalonia chart shell, not a separate viewer stack." />
+                       Text="Start here with the in-memory baseline first chart. Move to cache-backed streaming after that path renders. The waterfall and scatter options are thin proofs on the same Avalonia chart shell, not separate viewer stacks." />
           </StackPanel>
         </Border>
 
@@ -87,7 +90,7 @@
                        TextWrapping="Wrap" />
             <TextBlock Foreground="#CBD5E1"
                        TextWrapping="Wrap"
-                       Text="`ViewState` is the primary chart-view contract. `Fit to data` and `Reset camera` stay as deterministic host commands on top of the same built-in interaction runtime." />
+                       Text="`ViewState` remains the primary contract for `SurfaceChartView` and `WaterfallChartView`. `ScatterChartView` uses camera pose truth instead, but `Fit to data` and `Reset camera` stay as deterministic host commands on the same proof surface." />
           </StackPanel>
         </Border>
 
@@ -117,9 +120,9 @@
                        FontWeight="SemiBold"
                        Foreground="#E2E8F0"
                        Text="Built-in interaction" />
-            <TextBlock Foreground="#CBD5E1"
-                       TextWrapping="Wrap"
-                       Text="Left drag orbit. Right drag pan. Wheel dolly. Ctrl + Left drag focus zoom." />
+            <TextBlock x:Name="BuiltInInteractionText"
+                       Foreground="#CBD5E1"
+                       TextWrapping="Wrap" />
           </StackPanel>
         </Border>
 

@@ -4,6 +4,7 @@ using Avalonia.Interactivity;
 using FluentAssertions;
 using Videra.SurfaceCharts.Avalonia.Controls;
 using Videra.SurfaceCharts.Core;
+using Videra.SurfaceCharts.Core.Rendering;
 using Videra.SurfaceCharts.Demo.Views;
 using Xunit;
 
@@ -230,6 +231,99 @@ public sealed class SurfaceChartsDemoViewportBehaviorTests
     }
 
     [Fact]
+    public Task DemoWindow_ScatterProof_SwitchesToScatterChartPath_AndProjectsScatterTruth()
+    {
+        return AvaloniaHeadlessTestSession.RunAsync(async () =>
+        {
+            var window = new MainWindow();
+            var surfaceChartView = window.FindControl<SurfaceChartView>("ChartView")
+                ?? throw new InvalidOperationException("ChartView is missing.");
+            var waterfallChartView = window.FindControl<WaterfallChartView>("WaterfallChartView")
+                ?? throw new InvalidOperationException("WaterfallChartView is missing.");
+            var scatterChartView = window.FindControl<ScatterChartView>("ScatterChartView")
+                ?? throw new InvalidOperationException("ScatterChartView is missing.");
+            var sourceSelector = window.FindControl<ComboBox>("SourceSelector")
+                ?? throw new InvalidOperationException("SourceSelector is missing.");
+            var fitToDataButton = window.FindControl<Button>("FitToDataButton")
+                ?? throw new InvalidOperationException("FitToDataButton is missing.");
+            var resetCameraButton = window.FindControl<Button>("ResetCameraButton")
+                ?? throw new InvalidOperationException("ResetCameraButton is missing.");
+            var statusText = window.FindControl<TextBlock>("StatusText")
+                ?? throw new InvalidOperationException("StatusText is missing.");
+            var renderingPathText = window.FindControl<TextBlock>("RenderingPathText")
+                ?? throw new InvalidOperationException("RenderingPathText is missing.");
+            var builtInInteractionText = window.FindControl<TextBlock>("BuiltInInteractionText")
+                ?? throw new InvalidOperationException("BuiltInInteractionText is missing.");
+            var interactionQualityText = window.FindControl<TextBlock>("InteractionQualityText")
+                ?? throw new InvalidOperationException("InteractionQualityText is missing.");
+            var overlayOptionsText = window.FindControl<TextBlock>("OverlayOptionsText")
+                ?? throw new InvalidOperationException("OverlayOptionsText is missing.");
+            var supportSummaryText = window.FindControl<TextBlock>("SupportSummaryText")
+                ?? throw new InvalidOperationException("SupportSummaryText is missing.");
+
+            SelectItem(sourceSelector, GetComboBoxItemByContent(sourceSelector, "Try next: Scatter proof"));
+
+            await WaitForConditionAsync(
+                () => scatterChartView.IsVisible &&
+                      scatterChartView.Source is not null &&
+                      statusText.Text?.Contains("Try next: Scatter proof", StringComparison.Ordinal) == true,
+                "switching sources should activate the direct scatter proof path.")
+                .ConfigureAwait(true);
+
+            surfaceChartView.IsVisible.Should().BeFalse();
+            waterfallChartView.IsVisible.Should().BeFalse();
+            scatterChartView.IsVisible.Should().BeTrue();
+
+            builtInInteractionText.Text.Should().Contain("Left drag orbit");
+            builtInInteractionText.Text.Should().Contain("Wheel dolly");
+            builtInInteractionText.Text.Should().Contain("does not expose right-drag pan");
+
+            interactionQualityText.Text.Should().Contain("does not expose");
+            overlayOptionsText.Text.Should().Contain("does not expose");
+            statusText.Text.Should().Contain("Scatter proof navigation");
+            statusText.Text.Should().Contain("Current scene:");
+            renderingPathText.Text.Should().Contain("Backend kind");
+            renderingPathText.Text.Should().Contain("Series:");
+            renderingPathText.Text.Should().Contain("Points:");
+
+            var source = scatterChartView.Source!;
+            var bounds = GetScatterBounds(source);
+            var customCamera = new SurfaceCameraPose(
+                new System.Numerics.Vector3(99f, 88f, 77f),
+                73d,
+                -17d,
+                42d,
+                60d);
+
+            SetCamera(scatterChartView, customCamera);
+
+            ClickButton(fitToDataButton);
+
+            var fitCamera = GetCamera(scatterChartView);
+            fitCamera.Target.Should().Be(bounds.Center);
+            fitCamera.YawDegrees.Should().Be(customCamera.YawDegrees);
+            fitCamera.PitchDegrees.Should().Be(customCamera.PitchDegrees);
+            fitCamera.Distance.Should().BeApproximately(GetFitDistance(bounds.Size, customCamera.FieldOfViewDegrees), 0.0001d);
+
+            ClickButton(resetCameraButton);
+
+            var resetCamera = GetCamera(scatterChartView);
+            resetCamera.Target.Should().Be(bounds.Center);
+            resetCamera.YawDegrees.Should().Be(SurfaceCameraPose.DefaultYawDegrees);
+            resetCamera.PitchDegrees.Should().Be(SurfaceCameraPose.DefaultPitchDegrees);
+            resetCamera.Distance.Should().BeApproximately(GetFitDistance(bounds.Size, SurfaceCameraPose.DefaultFieldOfViewDegrees), 0.0001d);
+
+            supportSummaryText.Text.Should().Contain("ScatterChartView");
+            supportSummaryText.Text.Should().Contain("RenderingStatus: BackendKind");
+            supportSummaryText.Text.Should().Contain("SeriesCount");
+            supportSummaryText.Text.Should().Contain("PointCount");
+            supportSummaryText.Text.Should().Contain("InteractionQuality: not exposed");
+            supportSummaryText.Text.Should().Contain("OverlayOptions: not exposed");
+            supportSummaryText.Text.Should().NotContain("ViewState:");
+        });
+    }
+
+    [Fact]
     public Task DemoWindow_CompletedCacheLoad_DoesNotOverrideNewerWaterfallSelection()
     {
         return AvaloniaHeadlessTestSession.RunAsync(async () =>
@@ -373,6 +467,75 @@ public sealed class SurfaceChartsDemoViewportBehaviorTests
     private static void ClickButton(Button button)
     {
         button.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+    }
+
+    private static SurfacePlotBounds GetScatterBounds(ScatterChartData source)
+    {
+        var hasPoint = false;
+        double minX = 0d;
+        double maxX = 0d;
+        double minY = 0d;
+        double maxY = 0d;
+        double minZ = 0d;
+        double maxZ = 0d;
+
+        foreach (var series in source.Series)
+        {
+            foreach (var point in series.Points)
+            {
+                if (!hasPoint)
+                {
+                    minX = maxX = point.Horizontal;
+                    minY = maxY = point.Value;
+                    minZ = maxZ = point.Depth;
+                    hasPoint = true;
+                    continue;
+                }
+
+                minX = Math.Min(minX, point.Horizontal);
+                maxX = Math.Max(maxX, point.Horizontal);
+                minY = Math.Min(minY, point.Value);
+                maxY = Math.Max(maxY, point.Value);
+                minZ = Math.Min(minZ, point.Depth);
+                maxZ = Math.Max(maxZ, point.Depth);
+            }
+        }
+
+        if (!hasPoint)
+        {
+            throw new InvalidOperationException("Scatter source should contain at least one point.");
+        }
+
+        return new SurfacePlotBounds(
+            new System.Numerics.Vector3((float)minX, (float)minY, (float)minZ),
+            new System.Numerics.Vector3((float)maxX, (float)maxY, (float)maxZ));
+    }
+
+    private static SurfaceCameraPose GetCamera(ScatterChartView view)
+    {
+        var field = typeof(ScatterChartView).GetField(
+            "_camera",
+            BindingFlags.Instance | BindingFlags.NonPublic);
+        field.Should().NotBeNull();
+
+        return (SurfaceCameraPose)field!.GetValue(view)!;
+    }
+
+    private static void SetCamera(ScatterChartView view, SurfaceCameraPose camera)
+    {
+        var field = typeof(ScatterChartView).GetField(
+            "_camera",
+            BindingFlags.Instance | BindingFlags.NonPublic);
+        field.Should().NotBeNull();
+
+        field!.SetValue(view, camera);
+    }
+
+    private static double GetFitDistance(System.Numerics.Vector3 size, double fieldOfViewDegrees)
+    {
+        var diagonal = Math.Sqrt((size.X * size.X) + (size.Y * size.Y) + (size.Z * size.Z));
+        var halfFieldOfViewRadians = (fieldOfViewDegrees * (Math.PI / 180d)) * 0.5d;
+        return Math.Max((Math.Max(diagonal, 1d) * 0.5d) / Math.Tan(halfFieldOfViewRadians), 1d);
     }
 
     private static async Task WaitForConditionAsync(Func<bool> condition, string because, TimeSpan? timeout = null)
