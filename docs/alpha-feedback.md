@@ -16,9 +16,10 @@ Videra is still an early alpha embeddable viewer stack. Good feedback is not jus
    - [Videra.Demo](../samples/Videra.Demo/README.md) for backend diagnostics and scene-pipeline visibility
    - `smoke/Videra.SurfaceCharts.ConsumerSmoke` for the packaged SurfaceCharts first-chart path on the supported host path
    - `Videra.SurfaceCharts.Demo` for the packaged chart repro path:
-     - `Start here: In-memory first chart` before any cache-backed investigation
-     - `Explore next: Cache-backed streaming` only after the first-chart path renders
-     - `Try next: Waterfall proof` when you need the second control proof on the same chart shell; `Try next: Scatter proof` when you need the repo-owned scatter proof path on the same chart shell
+   - `Start here: In-memory first chart` before any cache-backed investigation
+   - `Explore next: Cache-backed streaming` only after the first-chart path renders
+   - `Try next: Analytics proof` when you need explicit-coordinate, independent-`ColorField` probe behavior for analytic path checks
+   - `Try next: Waterfall proof` when you need the second control proof on the same chart shell; `Try next: Scatter proof` when you need the repo-owned scatter proof path on the same chart shell
 4. Export a diagnostics snapshot with `VideraDiagnosticsSnapshotFormatter.Format(View3D.BackendDiagnostics)` or attach the `consumer smoke` `diagnostics-snapshot.txt` artifact; if transparency is involved, include `TransparentFeatureStatus` from that snapshot so support can read the shipped transparency contract.
 5. If the issue is visual or inspection-related, attach either:
    - a snapshot exported through `ExportSnapshotAsync(...)`, or
@@ -36,11 +37,12 @@ Videra is still an early alpha embeddable viewer stack. Good feedback is not jus
 - inspection bundle directory when you need camera, clipping, measurements, annotations, and imported assets to replay together
 - `CanReplayScene` and `ReplayLimitation` from `VideraInspectionBundleService.ExportAsync(...)` whenever the bundle is exportable but not replayable
 - `SurfaceCharts support summary` from either the packaged `smoke/Videra.SurfaceCharts.ConsumerSmoke` `surfacecharts-support-summary.txt` artifact or the `Videra.SurfaceCharts.Demo` `Support summary` panel when the issue is in `area: surfacecharts`
-- use `Copy support summary` after reproducing `Start here: In-memory first chart`; continue to `Explore next: Cache-backed streaming` only if needed, and use `Try next: Waterfall proof` when the issue involves the second chart control, or `Try next: Scatter proof` when the issue involves the scatter control path; `ScatterChartView` is shipped in the Avalonia control line
+- use `Copy support summary` after reproducing `Start here: In-memory first chart`; continue to `Explore next: Cache-backed streaming` only if needed, and use `Try next: Analytics proof` for explicit-coordinate pinned-probe/analysis scenarios, `Try next: Waterfall proof` when the issue involves the second chart control, or `Try next: Scatter proof` when the issue involves the scatter control path; `ScatterChartView` is shipped in the Avalonia control line
 - SurfaceCharts demo-path choice when relevant:
   - `Start here: In-memory first chart`
   - `Explore next: Cache-backed streaming`
   - `Try next: Waterfall proof`
+  - `Try next: Analytics proof`
   - `Try next: Scatter proof`
 - `ScatterChartView` is shipped in `Videra.SurfaceCharts.Avalonia`; the repository-owned `Try next: Scatter proof` path is the demo path to cite
 - SurfaceCharts chart state when relevant:
