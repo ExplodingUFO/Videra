@@ -640,6 +640,8 @@ layout(set = 0, binding = 3) uniform SurfaceTileScalarBuffer
 } tileScalars;
 
 layout(location = 0) out vec4 fragColor;
+layout(location = 1) flat out float fragMaskEnabled;
+layout(location = 2) flat out float fragAlphaCutoff;
 
 float LoadTileScalar(uint vertexId)
 {
@@ -707,6 +709,8 @@ void main()
     float ambient = 0.35;
     float diffuse = max(dot(normal, lightDir), 0.0) * 0.65;
     fragColor = vec4(clamp(surfaceColor.rgb * (ambient + diffuse), 0.0, 1.0), surfaceColor.a);
+    fragMaskEnabled = 0.0;
+    fragAlphaCutoff = 0.0;
 }
 ";
     }
