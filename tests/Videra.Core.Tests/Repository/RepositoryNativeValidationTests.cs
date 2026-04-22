@@ -328,9 +328,10 @@ public sealed class RepositoryNativeValidationTests
         metalFactory.Should().Contain("constant SurfaceColorMapUniforms& colorMap [[buffer(4)]]");
         metalFactory.Should().Contain("constant float4* tileScalars [[buffer(5)]]");
 
-        vulkanFactory.Should().Contain("var bindingCount = usesSurfaceChartScalarBindings ? 4u : 2u;");
+        vulkanFactory.Should().Contain("var bindingCount = usesSurfaceChartScalarBindings ? 4u : 3u;");
         vulkanFactory.Should().Contain("bindings[2] = new DescriptorSetLayoutBinding");
         vulkanFactory.Should().Contain("bindings[3] = new DescriptorSetLayoutBinding");
+        vulkanFactory.Should().Contain("layout(set = 0, binding = 2) uniform AlphaMaskBuffer");
         vulkanFactory.Should().Contain("BindingCount = bindingCount");
         vulkanFactory.Should().Contain("SurfaceChartScalarDescriptorSetCapacity = 256;");
         vulkanFactory.Should().Contain("SurfaceChartScalarDescriptorPoolSetCount = SurfaceChartScalarDescriptorSetCapacity + 1u;");
@@ -343,6 +344,7 @@ public sealed class RepositoryNativeValidationTests
         vulkanFactory.Should().Contain("layout(set = 0, binding = 3) uniform SurfaceTileScalarBuffer");
         vulkanExecutor.Should().Contain("RenderBindingSlots.SurfaceColorMap");
         vulkanExecutor.Should().Contain("RenderBindingSlots.SurfaceTileScalars");
+        vulkanExecutor.Should().Contain("RenderBindingSlots.AlphaMask");
         vulkanExecutor.Should().Contain("_surfaceScalarDescriptorSets");
         vulkanExecutor.Should().Contain("GetOrCreateSurfaceScalarDescriptorSet");
         vulkanExecutor.Should().Contain("ReferenceEquals(_surfaceTileScalarBuffer, vkBuffer)");
