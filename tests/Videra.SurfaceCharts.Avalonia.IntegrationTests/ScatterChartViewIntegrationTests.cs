@@ -1,6 +1,7 @@
 using System.Reflection;
 using Avalonia;
 using Avalonia.Input;
+using Avalonia.Media;
 using FluentAssertions;
 using Videra.SurfaceCharts.Avalonia.Controls;
 using Videra.SurfaceCharts.Core;
@@ -50,6 +51,56 @@ public sealed class ScatterChartViewIntegrationTests
             series.Points.Should().HaveCount(2);
             series.Points[0].Should().Be(new ScatterRenderPoint(new System.Numerics.Vector3(1f, 2f, 3f), 0xFFAA5500u));
             series.Points[1].Should().Be(new ScatterRenderPoint(new System.Numerics.Vector3(4f, 5f, 6f), 0xFF336699u));
+        });
+    }
+
+    [Fact]
+    public void ScatterChartView_Render_ConnectsEnabledSeries_InDepthOrder_AndUsesSeriesLineColor()
+    {
+        AvaloniaHeadlessTestSession.Run(() =>
+        {
+            var metadata = CreateMetadata();
+            var source = new ScatterChartData(
+                metadata,
+                [
+                    new ScatterSeries(
+                        [
+                            new ScatterPoint(1d, 2d, 9d, 0xFFAA5500),
+                            new ScatterPoint(4d, 5d, 4d, 0xFF11AA33),
+                            new ScatterPoint(7d, 6d, 1d, 0xFF114488),
+                        ],
+                        0xFF203040,
+                        "Alpha",
+                        connectPoints: true),
+                ]);
+
+            var view = new ScatterChartView();
+            view.Measure(new Size(240, 160));
+            view.Arrange(new Rect(0, 0, 240, 160));
+            view.Source = source;
+
+            using var drawingContext = new RecordingDrawingContext();
+
+            view.Render(drawingContext.Context);
+
+            var geometryDrawings = drawingContext.GeometryDrawings;
+            geometryDrawings.Should().HaveCount(5);
+            geometryDrawings.Select(drawing => drawing.Brush is not null).Should().Equal(
+                true,
+                false,
+                true,
+                false,
+                true);
+            geometryDrawings.Select(drawing => drawing.Brush is global::Avalonia.Media.ISolidColorBrush solidBrush ? solidBrush.Color.ToUInt32() : 0u).Should().Equal(
+                0xFFAA5500u,
+                0u,
+                0xFF11AA33u,
+                0u,
+                0xFF114488u);
+            geometryDrawings[1].Pen.Should().NotBeNull();
+            geometryDrawings[1].Pen!.Brush.Should().NotBeNull();
+            ((global::Avalonia.Media.ISolidColorBrush)geometryDrawings[1].Pen!.Brush!).Color.ToUInt32().Should().Be(0xFF203040u);
+            ((global::Avalonia.Media.ISolidColorBrush)geometryDrawings[3].Pen!.Brush!).Color.ToUInt32().Should().Be(0xFF203040u);
         });
     }
 
@@ -316,6 +367,70 @@ public sealed class ScatterChartViewIntegrationTests
             var properties = new PointerPointProperties(rawModifiers, PointerUpdateKind.Other);
             var args = new PointerWheelEventArgs(_view, pointer, _view, position, timestamp: 0, properties, keyModifiers, delta);
             OnPointerWheelChangedMethod.Invoke(_view, [args]);
+        }
+    }
+
+    private sealed class RecordingDrawingContext : IDisposable
+    {
+        private readonly DrawingGroup _drawingGroup = new();
+        private readonly DrawingContext _drawingContext;
+        private bool _completed;
+        private IReadOnlyList<GeometryDrawing>? _geometryDrawings;
+
+        public RecordingDrawingContext()
+        {
+            _drawingContext = _drawingGroup.Open();
+        }
+
+        public DrawingContext Context => _drawingContext;
+
+        public IReadOnlyList<GeometryDrawing> GeometryDrawings
+        {
+            get
+            {
+                CompleteRecording();
+                return _geometryDrawings!;
+            }
+        }
+
+        public void Dispose()
+        {
+            CompleteRecording();
+        }
+
+        private void CompleteRecording()
+        {
+            if (_completed)
+            {
+                return;
+            }
+
+            _drawingContext.Dispose();
+            _geometryDrawings = CollectGeometryDrawings(_drawingGroup);
+            _completed = true;
+        }
+
+        private static IReadOnlyList<GeometryDrawing> CollectGeometryDrawings(Drawing drawing)
+        {
+            List<GeometryDrawing> drawings = [];
+            CollectGeometryDrawings(drawing, drawings);
+            return drawings;
+        }
+
+        private static void CollectGeometryDrawings(Drawing drawing, List<GeometryDrawing> drawings)
+        {
+            switch (drawing)
+            {
+                case GeometryDrawing geometryDrawing:
+                    drawings.Add(geometryDrawing);
+                    break;
+                case DrawingGroup group:
+                    foreach (var child in group.Children)
+                    {
+                        CollectGeometryDrawings(child, drawings);
+                    }
+                    break;
+            }
         }
     }
 }

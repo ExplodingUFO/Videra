@@ -56,45 +56,113 @@ public sealed partial class ScatterChartView
     private static void DrawScene(DrawingContext context, ScatterRenderScene scene, SurfaceCameraFrame frame)
     {
         Dictionary<uint, IBrush> brushCache = [];
-        List<ProjectedScatterPoint> projectedPoints = [];
+        Dictionary<uint, Pen> penCache = [];
+        List<ProjectedScatterDrawItem> drawItems = [];
 
         foreach (var series in scene.Series)
         {
+            Point? previousProjected = null;
+            double? previousSortKey = null;
+
             foreach (var point in series.Points)
             {
-                var projected = SurfaceProjectionMath.ProjectToScreen(
-                    point.Position,
-                    frame);
-
-                if (!float.IsFinite(projected.X) || !float.IsFinite(projected.Y) || !float.IsFinite(projected.Z))
+                if (TryProjectPoint(point, frame, out var projected))
                 {
-                    continue;
-                }
+                    var screenPosition = new Point(projected.X, projected.Y);
+                    drawItems.Add(
+                        new ProjectedScatterDrawItem(
+                            screenPosition,
+                            point.Color,
+                            projected.Z));
 
-                projectedPoints.Add(
-                    new ProjectedScatterPoint(
-                        new Point(projected.X, projected.Y),
-                        point.Color,
-                        projected.Z));
+                    if (series.ConnectPoints && previousProjected is not null)
+                    {
+                        drawItems.Add(
+                            new ProjectedScatterDrawItem(
+                                previousProjected.Value,
+                                screenPosition,
+                                series.Color,
+                                (previousSortKey!.Value + projected.Z) / 2d));
+                    }
+
+                    previousProjected = screenPosition;
+                    previousSortKey = projected.Z;
+                }
+                else if (series.ConnectPoints)
+                {
+                    previousProjected = null;
+                    previousSortKey = null;
+                }
             }
         }
 
-        projectedPoints.Sort(static (left, right) => right.SortKey.CompareTo(left.SortKey));
+        drawItems.Sort(static (left, right) => right.SortKey.CompareTo(left.SortKey));
 
-        foreach (var point in projectedPoints)
+        foreach (var item in drawItems)
         {
-            if (!brushCache.TryGetValue(point.Color, out var brush))
+            if (item.IsLine)
             {
-                brush = new SolidColorBrush(ToColor(point.Color));
-                brushCache.Add(point.Color, brush);
+                if (!penCache.TryGetValue(item.Color, out var pen))
+                {
+                    pen = new Pen(new SolidColorBrush(ToColor(item.Color)), 1d);
+                    penCache.Add(item.Color, pen);
+                }
+
+                context.DrawLine(pen, item.StartPosition!.Value, item.EndPosition!.Value);
+                continue;
             }
 
-            var radius = 2.5d + ((1d - Math.Clamp(point.SortKey, 0d, 1d)) * 2.5d);
-            context.DrawEllipse(brush, null, point.ScreenPosition, radius, radius);
+            if (!brushCache.TryGetValue(item.Color, out var brush))
+            {
+                brush = new SolidColorBrush(ToColor(item.Color));
+                brushCache.Add(item.Color, brush);
+            }
+
+            var radius = 2.5d + ((1d - Math.Clamp(item.SortKey, 0d, 1d)) * 2.5d);
+            context.DrawEllipse(brush, null, item.ScreenPosition!.Value, radius, radius);
         }
     }
 
-    private readonly record struct ProjectedScatterPoint(Point ScreenPosition, uint Color, double SortKey);
+    private static bool TryProjectPoint(ScatterRenderPoint point, SurfaceCameraFrame frame, out Vector3 projected)
+    {
+        projected = SurfaceProjectionMath.ProjectToScreen(point.Position, frame);
+        return float.IsFinite(projected.X) && float.IsFinite(projected.Y) && float.IsFinite(projected.Z);
+    }
+
+    private readonly record struct ProjectedScatterDrawItem
+    {
+        public ProjectedScatterDrawItem(Point screenPosition, uint color, double sortKey)
+        {
+            ScreenPosition = screenPosition;
+            Color = color;
+            SortKey = sortKey;
+            StartPosition = null;
+            EndPosition = null;
+            IsLine = false;
+        }
+
+        public ProjectedScatterDrawItem(Point startPosition, Point endPosition, uint color, double sortKey)
+        {
+            ScreenPosition = default;
+            Color = color;
+            SortKey = sortKey;
+            StartPosition = startPosition;
+            EndPosition = endPosition;
+            IsLine = true;
+        }
+
+        public Point? ScreenPosition { get; }
+
+        public uint Color { get; }
+
+        public double SortKey { get; }
+
+        public Point? StartPosition { get; }
+
+        public Point? EndPosition { get; }
+
+        public bool IsLine { get; }
+    }
 
     private static Color ToColor(uint argb)
     {

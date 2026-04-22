@@ -51,12 +51,52 @@ public class ScatterRendererTests
         scene.Metadata.Should().BeSameAs(data.Metadata);
         scene.Series.Should().HaveCount(2);
         scene.Series[0].Label.Should().Be("Series A");
+        scene.Series[0].Color.Should().Be(0xFF102030u);
+        scene.Series[0].ConnectPoints.Should().BeFalse();
         scene.Series[0].Points.Should().Equal(
             new ScatterRenderPoint(new Vector3(10f, 30f, 80f), 0xFF102030u),
             new ScatterRenderPoint(new Vector3(25f, 45f, 100f), 0xFFABCDEFu));
         scene.Series[1].Label.Should().Be("Series B");
+        scene.Series[1].Color.Should().Be(0xFF405060u);
+        scene.Series[1].ConnectPoints.Should().BeFalse();
         scene.Series[1].Points.Should().Equal(
             new ScatterRenderPoint(new Vector3(60f, 20f, 140f), 0xFF405060u));
+    }
+
+    [Fact]
+    public void ScatterSeriesCtor_DefaultsToPointOnlyPresentation()
+    {
+        var series = new ScatterSeries(
+            [new ScatterPoint(horizontal: 10d, value: 30d, depth: 80d)],
+            color: 0xFF102030u);
+
+        series.ConnectPoints.Should().BeFalse();
+    }
+
+    [Fact]
+    public void BuildScene_PropagatesConnectedPointPresentation()
+    {
+        var data = new ScatterChartData(
+            CreateMetadata(),
+            [
+                new ScatterSeries(
+                    [
+                        new ScatterPoint(horizontal: 10d, value: 30d, depth: 80d),
+                        new ScatterPoint(horizontal: 25d, value: 45d, depth: 100d, color: 0xFFABCDEFu)
+                    ],
+                    color: 0xFF102030u,
+                    label: "Series A",
+                    connectPoints: true)
+            ]);
+
+        var scene = ScatterRenderer.BuildScene(data);
+
+        scene.Series.Should().ContainSingle();
+        scene.Series[0].Color.Should().Be(0xFF102030u);
+        scene.Series[0].ConnectPoints.Should().BeTrue();
+        scene.Series[0].Points.Should().Equal(
+            new ScatterRenderPoint(new Vector3(10f, 30f, 80f), 0xFF102030u),
+            new ScatterRenderPoint(new Vector3(25f, 45f, 100f), 0xFFABCDEFu));
     }
 
     [Fact]
@@ -78,10 +118,12 @@ public class ScatterRendererTests
     {
         var firstSeries = new ScatterRenderSeries(
             [new ScatterRenderPoint(new Vector3(10f, 30f, 80f), 0xFF102030u)],
+            0xFF102030u,
             label: "Series A");
         var scene = new ScatterRenderScene(CreateMetadata(), [firstSeries]);
         var replacementSeries = new ScatterRenderSeries(
             [new ScatterRenderPoint(new Vector3(20f, 40f, 90f), 0xFF405060u)],
+            0xFF405060u,
             label: "Series B");
 
         var act = () => ((IList<ScatterRenderSeries>)scene.Series)[0] = replacementSeries;
