@@ -1,13 +1,12 @@
-using Videra.Avalonia.Controls;
 using Videra.Core.Graphics;
 
-namespace Videra.Avalonia.Rendering;
+namespace Videra.Core.Rendering;
 
 internal sealed record RenderSessionInputs
 {
     public GraphicsBackendPreference RequestedBackend { get; init; } = GraphicsBackendPreference.Auto;
 
-    public VideraBackendOptions? BackendOptions { get; init; }
+    public RenderSessionBackendOptions? BackendOptions { get; init; }
 
     public IntPtr Handle { get; init; }
 

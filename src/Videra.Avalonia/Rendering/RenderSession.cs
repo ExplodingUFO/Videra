@@ -8,6 +8,7 @@ using Videra.Core.Graphics;
 using Videra.Core.Graphics.Abstractions;
 using Videra.Core.Graphics.RenderPipeline;
 using Videra.Core.Graphics.RenderPipeline.Extensibility;
+using Videra.Core.Rendering;
 
 namespace Videra.Avalonia.Rendering;
 
@@ -119,13 +120,19 @@ internal sealed partial class RenderSession : IDisposable
 
     internal void Attach(GraphicsBackendPreference preference, VideraBackendOptions? backendOptions)
     {
+        RenderSessionBackendOptions? backendOptionsSnapshot = backendOptions is null
+            ? null
+            : new RenderSessionBackendOptions(
+                backendOptions.EnvironmentOverrideMode,
+                backendOptions.AllowSoftwareFallback);
+
         var shouldRaiseBackendReady = false;
 
         lock (_sync)
         {
             try
             {
-                shouldRaiseBackendReady = _orchestrator.Attach(preference, backendOptions);
+                shouldRaiseBackendReady = _orchestrator.Attach(preference, backendOptionsSnapshot);
             }
             finally
             {

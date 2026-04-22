@@ -1,9 +1,9 @@
 using FluentAssertions;
-using Videra.Avalonia.Rendering;
 using Videra.Core.Geometry;
 using Videra.Core.Graphics;
 using Videra.Core.Graphics.Abstractions;
 using Videra.Core.Graphics.RenderPipeline;
+using Videra.Core.Rendering;
 using Xunit;
 
 namespace Videra.Core.IntegrationTests.Rendering;

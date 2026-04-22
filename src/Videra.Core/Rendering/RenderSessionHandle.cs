@@ -1,4 +1,4 @@
-namespace Videra.Avalonia.Rendering;
+namespace Videra.Core.Rendering;
 
 internal readonly record struct RenderSessionHandle(IntPtr Handle, int Generation)
 {
