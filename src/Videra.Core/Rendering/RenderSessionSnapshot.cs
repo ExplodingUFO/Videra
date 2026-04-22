@@ -1,7 +1,7 @@
 using Videra.Core.Graphics;
 using Videra.Core.Graphics.RenderPipeline;
 
-namespace Videra.Avalonia.Rendering;
+namespace Videra.Core.Rendering;
 
 internal sealed record RenderSessionSnapshot
 {

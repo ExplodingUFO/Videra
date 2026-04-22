@@ -35,6 +35,7 @@
     <Project Path="samples/Videra.ExtensibilitySample/Videra.ExtensibilitySample.csproj" />
     <Project Path="samples/Videra.InteractionSample/Videra.InteractionSample.csproj" />
     <Project Path="samples/Videra.MinimalSample/Videra.MinimalSample.csproj" />
+    <Project Path="smoke/Videra.WpfSmoke/Videra.WpfSmoke.csproj" />
   </Folder>
   <Folder Name="/Tests/" />
   <Folder Name="/Tests/Core/">

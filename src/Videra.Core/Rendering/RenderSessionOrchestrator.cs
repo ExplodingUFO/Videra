@@ -1,11 +1,9 @@
-using Videra.Avalonia.Controls;
-using Videra.Avalonia.Runtime;
 using Videra.Core.Graphics;
 using Videra.Core.Graphics.Abstractions;
 using Videra.Core.Graphics.RenderPipeline;
 using Videra.Core.Graphics.RenderPipeline.Extensibility;
 
-namespace Videra.Avalonia.Rendering;
+namespace Videra.Core.Rendering;
 
 internal sealed class RenderSessionOrchestrator : IDisposable
 {
@@ -81,9 +79,8 @@ internal sealed class RenderSessionOrchestrator : IDisposable
         _ => null
     };
 
-    public bool Attach(GraphicsBackendPreference preference, VideraBackendOptions? backendOptions = null)
+    public bool Attach(GraphicsBackendPreference preference, RenderSessionBackendOptions? backendOptions = null)
     {
-        RuntimeTraceLog.Write($"RenderSessionOrchestrator.Attach preference={preference} state={_state} handleBound={_handleState.IsBound}");
         if (_state == RenderSessionState.Disposed)
         {
             return false;
@@ -105,7 +102,6 @@ internal sealed class RenderSessionOrchestrator : IDisposable
 
     public bool BindHandle(IntPtr handle)
     {
-        RuntimeTraceLog.Write($"RenderSessionOrchestrator.BindHandle handle=0x{handle.ToInt64():X} state={_state} currentlyBound={_handleState.IsBound}");
         if (_state == RenderSessionState.Disposed)
         {
             return false;
@@ -156,7 +152,6 @@ internal sealed class RenderSessionOrchestrator : IDisposable
 
     public bool Resize(uint width, uint height, float renderScale)
     {
-        RuntimeTraceLog.Write($"RenderSessionOrchestrator.Resize {width}x{height} scale={renderScale} state={_state} handleBound={_handleState.IsBound}");
         if (_state == RenderSessionState.Disposed || width == 0 || height == 0)
         {
             return false;
@@ -250,7 +245,6 @@ internal sealed class RenderSessionOrchestrator : IDisposable
 
     private bool TryInitialize()
     {
-        RuntimeTraceLog.Write($"RenderSessionOrchestrator.TryInitialize state={_state} width={_inputs.Width} height={_inputs.Height} handleBound={_handleState.IsBound}");
         if (_state == RenderSessionState.Disposed || IsReady)
         {
             return false;
@@ -298,12 +292,10 @@ internal sealed class RenderSessionOrchestrator : IDisposable
             _engine.Initialize(device, renderSurface);
             _engine.Resize(_inputs.Width, _inputs.Height);
             _state = RenderSessionState.Ready;
-            RuntimeTraceLog.Write($"RenderSessionOrchestrator.TryInitialize -> Ready backend={resolution.ResolvedPreference}");
             return true;
         }
         catch (Exception ex)
         {
-            RuntimeTraceLog.Write($"RenderSessionOrchestrator.TryInitialize faulted: {ex.Message}");
             LastInitializationError = ex;
             _state = RenderSessionState.Faulted;
 
@@ -325,7 +317,6 @@ internal sealed class RenderSessionOrchestrator : IDisposable
 
     private void Suspend()
     {
-        RuntimeTraceLog.Write($"RenderSessionOrchestrator.Suspend state={_state} handleBound={_handleState.IsBound}");
         if (_engine.IsInitialized)
         {
             _engine.Suspend();
@@ -349,8 +340,8 @@ internal sealed class RenderSessionOrchestrator : IDisposable
 
         return new GraphicsBackendRequest(
             _inputs.RequestedBackend,
-            _inputs.BackendOptions.EnvironmentOverrideMode,
-            _inputs.BackendOptions.AllowSoftwareFallback);
+            _inputs.BackendOptions.Value.EnvironmentOverrideMode,
+            _inputs.BackendOptions.Value.AllowSoftwareFallback);
     }
 
     private GraphicsBackendResolution CreateResolutionFromFactory(GraphicsBackendRequest request)

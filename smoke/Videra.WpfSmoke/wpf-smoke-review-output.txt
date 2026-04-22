@@ -1,0 +1,13 @@
+Videra WPF smoke diagnostics
+State: Ready
+HandleState: RenderSessionHandle { Handle = 51387976, Generation = 1, IsBound = True }
+RequestedBackend: D3D11
+ResolvedBackend: D3D11
+SoftwareFallback: False
+Width: 921
+Height: 550
+Handle: 0x3101E48
+Ready: True
+PipelineProfile: Standard
+PipelineStages: PrepareFrame, BindSharedFrameState, GridPass, SolidGeometryPass, AxisPass, PresentFrame
+LastInitializationError: <none>
