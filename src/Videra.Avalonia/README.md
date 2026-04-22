@@ -83,7 +83,7 @@ var diagnosticsSnapshot = VideraDiagnosticsSnapshotFormatter.Format(diagnostics)
 
 `VideraView.BackendDiagnostics` remains the backend/runtime diagnostics shell, and `VideraDiagnosticsSnapshotFormatter` turns it into the copy-pasteable alpha support artifact used by `Videra.MinimalSample` and `consumer smoke`. `VideraView.RenderCapabilities` and `VideraView.Engine` stay available, but they are not part of the default alpha happy path.
 
-The shared render-feature vocabulary for those diagnostics is `Opaque`, `Transparent`, `Overlay`, `Picking`, and `Screenshot`. Hosts read that truth through `RenderCapabilities.SupportedFeatureNames`, `BackendDiagnostics.LastFrameFeatureNames`, and `BackendDiagnostics.SupportedRenderFeatureNames`.
+The shared render-feature vocabulary for those diagnostics is `Opaque`, `Transparent`, `Overlay`, `Picking`, and `Screenshot`, where `Transparent` means alpha mask rendering plus deterministic alpha blend ordering for per-object carried alpha sources. Hosts read that truth through `RenderCapabilities.SupportedFeatureNames`, `BackendDiagnostics.LastFrameFeatureNames`, `BackendDiagnostics.SupportedRenderFeatureNames`, and `TransparentFeatureStatus`.
 
 For the copyable first-scene flow, see [samples/Videra.MinimalSample](../../samples/Videra.MinimalSample/README.md).
 

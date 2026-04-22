@@ -122,6 +122,7 @@ For alpha adoption feedback, use [Alpha Feedback](docs/alpha-feedback.md) before
 | --- | --- | --- |
 | `Videra.Demo` | Repository-only | Viewer diagnostics and scene-pipeline reference app |
 | `smoke/Videra.WpfSmoke` | Repository-only | Windows WPF smoke proof for validation and support evidence on the Avalonia-first viewer path |
+| `smoke/Videra.SurfaceCharts.ConsumerSmoke` | Repository-only | Packaged SurfaceCharts first-chart smoke proof and `surfacecharts-support-summary.txt` support artifact |
 | `Videra.SurfaceCharts.Demo` | Repository-only | SurfaceCharts reference app and support-summary repro path with `Start here`, `Explore next`, and `Try next` demo paths |
 | `Videra.ExtensibilitySample` | Repository-only | Public extensibility reference sample |
 | `Videra.InteractionSample` | Repository-only | Public controlled-interaction and inspection workflow sample |
@@ -160,7 +161,7 @@ Use [Videra.ExtensibilitySample](samples/Videra.ExtensibilitySample/README.md) a
 
 The advanced extensibility flow is `VideraView.Engine` -> `RegisterPassContributor(...)` / `RegisterFrameHook(...)` -> `LoadModelAsync(...)` -> `FrameAll()` -> inspect `RenderCapabilities` and `BackendDiagnostics`.
 
-The shared feature vocabulary for those diagnostics is `RenderFeatureSet`: `Opaque`, `Transparent`, `Overlay`, `Picking`, and `Screenshot`. Host apps read that truth through `RenderCapabilities.SupportedFeatureNames`, `BackendDiagnostics.LastFrameFeatureNames`, and `BackendDiagnostics.SupportedRenderFeatureNames`.
+The shared feature vocabulary for those diagnostics is `RenderFeatureSet`: `Opaque`, `Transparent`, `Overlay`, `Picking`, and `Screenshot`, where `Transparent` means alpha mask rendering plus deterministic alpha blend ordering for per-object carried alpha sources. Host apps read that truth through `RenderCapabilities.SupportedFeatureNames`, `BackendDiagnostics.LastFrameFeatureNames`, `BackendDiagnostics.SupportedRenderFeatureNames`, and `TransparentFeatureStatus`.
 
 Contract highlights:
 

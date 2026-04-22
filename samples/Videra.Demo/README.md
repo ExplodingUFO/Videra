@@ -56,7 +56,7 @@ The `Scene Pipeline Lab` copy in the side panel is deliberate. It projects three
 - the retained scene/material runtime baseline is static glTF/PBR: UV-backed texture bindings plus metallic-roughness and alpha semantics, emissive and normal-map-ready inputs, and tangent-aware retained mesh data
 - repeated unchanged imports can reuse retained imported scene assets while they remain retained instead of rebuilding ad hoc importer-shaped state
 - backend diagnostics surface `document version`, `pending`, `resident`, `dirty`, and `failed` scene-upload counts
-- backend diagnostics also surface `SupportedRenderFeatureNames` and `LastFrameFeatureNames` so the public viewer path shows `Opaque`, `Transparent`, `Overlay`, `Picking`, and `Screenshot` truth directly
+- backend diagnostics also surface `SupportedRenderFeatureNames`, `LastFrameFeatureNames`, and `TransparentFeatureStatus` so the public viewer path shows `Opaque`, `Transparent`, `Overlay`, `Picking`, and `Screenshot` truth directly, with `Transparent` meaning alpha mask rendering plus deterministic alpha blend ordering for per-object carried alpha sources
 - backend diagnostics explain fallback/rebind behavior while the scene survives backend recreation
 - animation, skeletons, and morph targets are deliberately outside this demo path
 

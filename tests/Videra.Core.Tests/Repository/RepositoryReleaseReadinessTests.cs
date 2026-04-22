@@ -48,6 +48,8 @@ public sealed class RepositoryReleaseReadinessTests
         readme.Should().Contain("Videra.SurfaceCharts.Processing");
         readme.Should().Contain("Videra.MinimalSample");
         readme.Should().Contain("Videra.Demo");
+        readme.Should().Contain("smoke/Videra.WpfSmoke");
+        readme.Should().Contain("smoke/Videra.SurfaceCharts.ConsumerSmoke");
         readme.Should().Contain("Videra.SurfaceCharts.Demo");
         readme.Should().Contain("Videra.ExtensibilitySample");
         readme.Should().Contain("Videra.InteractionSample");
@@ -102,6 +104,9 @@ public sealed class RepositoryReleaseReadinessTests
             releasePolicy.Should().Contain(packageId);
             releasing.Should().Contain(packageId);
         }
+
+        packageMatrix.Should().Contain("smoke/Videra.WpfSmoke");
+        packageMatrix.Should().Contain("smoke/Videra.SurfaceCharts.ConsumerSmoke");
 
         packageMatrix.Should().Contain("hosting-boundary.md");
         supportMatrix.Should().Contain("hosting-boundary.md");
@@ -169,6 +174,8 @@ public sealed class RepositoryReleaseReadinessTests
         capabilityMatrix.Should().Contain("UI adapter");
         capabilityMatrix.Should().Contain("Charts");
         capabilityMatrix.Should().Contain("OpenGL");
+        capabilityMatrix.Should().Contain("Transparency baseline");
+        capabilityMatrix.Should().Contain("Alpha mask rendering and deterministic alpha blend ordering are shipped for per-object carried alpha sources");
         capabilityMatrix.Should().Contain("Videra.Import.Gltf");
         capabilityMatrix.Should().Contain("Videra.Import.Obj");
         packageMatrix.Should().Contain("Videra.Import.Gltf");
@@ -253,7 +260,7 @@ public sealed class RepositoryReleaseReadinessTests
         var existingReleaseWorkflow = File.ReadAllText(Path.Combine(repositoryRoot, ".github", "workflows", "publish-existing-public-release.yml"));
         var validatePackages = File.ReadAllText(Path.Combine(repositoryRoot, "scripts", "Validate-Packages.ps1"));
 
-        packageMatrix.Should().NotContain("Videra.WpfSmoke");
+        packageMatrix.Should().Contain("smoke/Videra.WpfSmoke");
         releasePolicy.Should().NotContain("Videra.WpfSmoke");
         releasing.Should().NotContain("Videra.WpfSmoke");
         publicWorkflow.Should().NotContain("Videra.WpfSmoke");
@@ -347,6 +354,22 @@ public sealed class RepositoryReleaseReadinessTests
         troubleshooting.Should().Contain("does not install missing platform packages");
         troubleshooting.Should().Contain("does not replace matching-host native validation");
         troubleshooting.Should().Contain("matching-host");
+    }
+
+    [Fact]
+    public void SupportDocs_ShouldMentionTransparentFeatureStatusInDiagnosticsSnapshotGuidance()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var troubleshooting = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "troubleshooting.md"));
+        var alphaFeedback = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "alpha-feedback.md"));
+
+        troubleshooting.Should().Contain("VideraDiagnosticsSnapshotFormatter");
+        troubleshooting.Should().Contain("TransparentFeatureStatus");
+        troubleshooting.Should().Contain("transparency contract");
+
+        alphaFeedback.Should().Contain("VideraDiagnosticsSnapshotFormatter");
+        alphaFeedback.Should().Contain("TransparentFeatureStatus");
+        alphaFeedback.Should().Contain("transparency contract");
     }
 
     [Fact]
