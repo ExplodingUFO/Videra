@@ -163,7 +163,7 @@ public partial class MainWindow : Window
 
         if (requestedIndex == CacheSourceIndex)
         {
-            LoadAndApplyCacheSourceAsync(requestedIndex);
+            await LoadAndApplyCacheSourceAsync(requestedIndex).ConfigureAwait(false);
             return;
         }
 
@@ -202,10 +202,10 @@ public partial class MainWindow : Window
             return;
         }
 
-        LoadAndApplyCacheSourceAsync(requestedIndex);
+        await LoadAndApplyCacheSourceAsync(requestedIndex).ConfigureAwait(false);
     }
 
-    private async void LoadAndApplyCacheSourceAsync(int requestedIndex)
+    private async Task LoadAndApplyCacheSourceAsync(int requestedIndex)
     {
         try
         {
