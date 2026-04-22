@@ -21,21 +21,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="Videra.Avalonia">
-      <HintPath>..\..\src\Videra.Avalonia\bin\Debug\net8.0\Videra.Avalonia.dll</HintPath>
-      <Private>true</Private>
-    </Reference>
-    <Reference Include="Videra.Core">
-      <HintPath>..\..\src\Videra.Core\bin\Release\net8.0\Videra.Core.dll</HintPath>
-      <Private>true</Private>
-    </Reference>
+    <ProjectReference Include="..\..\src\Videra.Avalonia\Videra.Avalonia.csproj" />
+    <ProjectReference Include="..\..\src\Videra.Import.Obj\Videra.Import.Obj.csproj" />
+    <ProjectReference Include="..\..\src\Videra.Core\Videra.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup Condition="$([MSBuild]::IsOSPlatform('Windows'))">
-    <Reference Include="Videra.Platform.Windows">
-      <HintPath>..\..\src\Videra.Platform.Windows\bin\Release\net8.0\win-x64\Videra.Platform.Windows.dll</HintPath>
-      <Private>true</Private>
-    </Reference>
+    <ProjectReference Include="..\..\src\Videra.Platform.Windows\Videra.Platform.Windows.csproj" />
   </ItemGroup>
 
   <ItemGroup>

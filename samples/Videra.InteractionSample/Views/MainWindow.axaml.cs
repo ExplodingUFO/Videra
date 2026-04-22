@@ -7,10 +7,10 @@ using Videra.Avalonia.Controls;
 using Videra.Avalonia.Controls.Interaction;
 using Videra.Core.Geometry;
 using Videra.Core.Graphics;
-using Videra.Core.Graphics.Abstractions;
 using Videra.Core.Inspection;
 using Videra.Core.Scene;
 using Videra.Core.Selection.Annotations;
+using Videra.Import.Obj;
 
 namespace Videra.InteractionSample.Views;
 
@@ -160,7 +160,7 @@ public partial class MainWindow : Window
             View3D.InvalidateVisual();
 
             _loadSummary =
-                $"Imported {sceneObjects.Count} public scene objects through ObjModelImporter.Import(...) and SceneUploadCoordinator.CreateDeferredObject(...), then replaced the scene through View3D.ReplaceScene(...). " +
+                $"Imported {sceneObjects.Count} host-owned scene objects from Assets/reference-cube.obj through ObjModelImporter.Import(...) and SceneUploadCoordinator.CreateDeferredObject(...), then replaced the scene through View3D.ReplaceScene(...). " +
                 $"FrameAll() returned {framed}. The host now owns SelectionState, Annotations, and annotation state for follow-up interaction.";
         }
         catch (Exception ex)
@@ -182,18 +182,9 @@ public partial class MainWindow : Window
         _sceneObjects.AddRange(sceneObjects);
         _loadedObjectCount = sceneObjects.Count;
 
-        var layout = new[]
-        {
-            ("Selection Cube A", new Vector3(-1.35f, 0f, 0f)),
-            ("Selection Cube B", new Vector3(1.35f, 0f, 0f))
-        };
-
         for (var index = 0; index < sceneObjects.Count; index++)
         {
             var sceneObject = sceneObjects[index];
-            var target = layout[Math.Min(index, layout.Length - 1)];
-            sceneObject.Name = target.Item1;
-            sceneObject.Position = target.Item2;
             _objectNames[sceneObject.Id] = sceneObject.Name;
         }
     }
@@ -738,93 +729,14 @@ public partial class MainWindow : Window
 
     private static List<Object3D> CreateInteractionSceneObjects()
     {
-        var firstAsset = CreateReferenceCubeAsset("Selection Cube A");
-        var secondAsset = CreateReferenceCubeAsset("Selection Cube B");
+        var firstObject = SceneUploadCoordinator.CreateDeferredObject(ObjModelImporter.Import("Assets/reference-cube.obj"));
+        firstObject.Name = "Selection Cube A";
+        firstObject.Position = new Vector3(-1.35f, 0f, 0f);
 
-        return
-        [
-            SceneUploadCoordinator.CreateDeferredObject(firstAsset),
-            SceneUploadCoordinator.CreateDeferredObject(secondAsset)
-        ];
-    }
+        var secondObject = SceneUploadCoordinator.CreateDeferredObject(ObjModelImporter.Import("Assets/reference-cube.obj"));
+        secondObject.Name = "Selection Cube B";
+        secondObject.Position = new Vector3(1.35f, 0f, 0f);
 
-    private static ImportedSceneAsset CreateReferenceCubeAsset(string objectName)
-    {
-        var materialId = MaterialInstanceId.New();
-        var primitive = new MeshPrimitive(
-            MeshPrimitiveId.New(),
-            $"{objectName}#primitive0",
-            CreateReferenceCubeMesh(),
-            materialId);
-        var material = new MaterialInstance(
-            materialId,
-            $"{objectName}#material0",
-            RgbaFloat.LightGrey);
-        var rootNode = new SceneNode(
-            SceneNodeId.New(),
-            objectName,
-            Matrix4x4.Identity,
-            parentId: null,
-            [primitive.Id]);
-
-        return new ImportedSceneAsset(
-            "Assets/reference-cube.obj",
-            objectName,
-            [rootNode],
-            [primitive],
-            [material]);
-    }
-
-    private static MeshData CreateReferenceCubeMesh()
-    {
-        var halfSize = 0.5f;
-        var color = RgbaFloat.LightGrey;
-
-        return new MeshData
-        {
-            Vertices =
-            [
-                // Front
-                new VertexPositionNormalColor(new Vector3(-halfSize, -halfSize, halfSize), Vector3.UnitZ, color),
-                new VertexPositionNormalColor(new Vector3(halfSize, -halfSize, halfSize), Vector3.UnitZ, color),
-                new VertexPositionNormalColor(new Vector3(halfSize, halfSize, halfSize), Vector3.UnitZ, color),
-                new VertexPositionNormalColor(new Vector3(-halfSize, halfSize, halfSize), Vector3.UnitZ, color),
-                // Back
-                new VertexPositionNormalColor(new Vector3(halfSize, -halfSize, -halfSize), -Vector3.UnitZ, color),
-                new VertexPositionNormalColor(new Vector3(-halfSize, -halfSize, -halfSize), -Vector3.UnitZ, color),
-                new VertexPositionNormalColor(new Vector3(-halfSize, halfSize, -halfSize), -Vector3.UnitZ, color),
-                new VertexPositionNormalColor(new Vector3(halfSize, halfSize, -halfSize), -Vector3.UnitZ, color),
-                // Left
-                new VertexPositionNormalColor(new Vector3(-halfSize, -halfSize, -halfSize), -Vector3.UnitX, color),
-                new VertexPositionNormalColor(new Vector3(-halfSize, -halfSize, halfSize), -Vector3.UnitX, color),
-                new VertexPositionNormalColor(new Vector3(-halfSize, halfSize, halfSize), -Vector3.UnitX, color),
-                new VertexPositionNormalColor(new Vector3(-halfSize, halfSize, -halfSize), -Vector3.UnitX, color),
-                // Right
-                new VertexPositionNormalColor(new Vector3(halfSize, -halfSize, halfSize), Vector3.UnitX, color),
-                new VertexPositionNormalColor(new Vector3(halfSize, -halfSize, -halfSize), Vector3.UnitX, color),
-                new VertexPositionNormalColor(new Vector3(halfSize, halfSize, -halfSize), Vector3.UnitX, color),
-                new VertexPositionNormalColor(new Vector3(halfSize, halfSize, halfSize), Vector3.UnitX, color),
-                // Top
-                new VertexPositionNormalColor(new Vector3(-halfSize, halfSize, halfSize), Vector3.UnitY, color),
-                new VertexPositionNormalColor(new Vector3(halfSize, halfSize, halfSize), Vector3.UnitY, color),
-                new VertexPositionNormalColor(new Vector3(halfSize, halfSize, -halfSize), Vector3.UnitY, color),
-                new VertexPositionNormalColor(new Vector3(-halfSize, halfSize, -halfSize), Vector3.UnitY, color),
-                // Bottom
-                new VertexPositionNormalColor(new Vector3(-halfSize, -halfSize, -halfSize), -Vector3.UnitY, color),
-                new VertexPositionNormalColor(new Vector3(halfSize, -halfSize, -halfSize), -Vector3.UnitY, color),
-                new VertexPositionNormalColor(new Vector3(halfSize, -halfSize, halfSize), -Vector3.UnitY, color),
-                new VertexPositionNormalColor(new Vector3(-halfSize, -halfSize, halfSize), -Vector3.UnitY, color)
-            ],
-            Indices =
-            [
-                0, 1, 2, 0, 2, 3,
-                4, 5, 6, 4, 6, 7,
-                8, 9, 10, 8, 10, 11,
-                12, 13, 14, 12, 14, 15,
-                16, 17, 18, 16, 18, 19,
-                20, 21, 22, 20, 22, 23
-            ],
-            Topology = MeshTopology.Triangles
-        };
+        return [firstObject, secondObject];
     }
 }
