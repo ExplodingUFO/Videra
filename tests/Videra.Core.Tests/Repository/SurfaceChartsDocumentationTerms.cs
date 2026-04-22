@@ -9,10 +9,10 @@ internal static class SurfaceChartsDocumentationTerms
         "The surface-chart module family is a sibling product area, independent from `VideraView`.";
 
     public const string SurfaceChartsFirstChartSentence =
-        "For the canonical first-chart story, start from `Videra.SurfaceCharts.Avalonia` plus `Videra.SurfaceCharts.Processing`, and use [Videra.SurfaceCharts.Demo](samples/Videra.SurfaceCharts.Demo/README.md) as the repository reference app for the same path.";
+        "For the canonical SurfaceCharts story, start from `Videra.SurfaceCharts.Avalonia`, add `Videra.SurfaceCharts.Processing` only for the surface/cache-backed path, and use [Videra.SurfaceCharts.Demo](samples/Videra.SurfaceCharts.Demo/README.md) as the repository reference app for the same path.";
 
     public const string SurfaceChartsDemoFirstChartSentence =
-        "For the canonical first-chart story, start from `Videra.SurfaceCharts.Avalonia` plus `Videra.SurfaceCharts.Processing`, and use this demo as the repository reference app for that same path. `SurfaceChartView` in `Videra.SurfaceCharts.Avalonia` remains the primary chart control entrypoint.";
+        "For the canonical surface/cache-backed chart story, start from `Videra.SurfaceCharts.Avalonia` plus `Videra.SurfaceCharts.Processing`, and use this demo as the repository reference app for that same path. `SurfaceChartView` and `WaterfallChartView` in `Videra.SurfaceCharts.Avalonia` are the current chart control entrypoints.";
 
     public const string SurfaceChartsDemoSentence =
         "`Videra.SurfaceCharts.Demo` is the independent demo application for the surface-chart module family.";
@@ -57,7 +57,7 @@ internal static class SurfaceChartsDocumentationTerms
         "surface-chart 模块家族与 `VideraView` 相互独立。";
 
     public const string ChineseSurfaceChartsFirstChartSentence =
-        "默认 first-chart 入口是 `Videra.SurfaceCharts.Avalonia` 加 `Videra.SurfaceCharts.Processing`，而 [Videra.SurfaceCharts.Demo](../../samples/Videra.SurfaceCharts.Demo/README.md) 则作为同一路径的 repository reference app。";
+        "当前公开 chart 入口是 `Videra.SurfaceCharts.Avalonia`，而 `Videra.SurfaceCharts.Processing` 只在 surface/cache-backed 路径需要；[Videra.SurfaceCharts.Demo](../../samples/Videra.SurfaceCharts.Demo/README.md) 则作为同一路径的 repository reference app。";
 
     public const string ChineseSurfaceChartsTruthSentence =
         "当前对外 truth 是：独立 Demo、built-in `left-drag orbit` / `right-drag pan` / `wheel dolly` / `Ctrl + left-drag` focus zoom、hover 与 `Shift + left-click` pinned probe、可见 `RenderingStatus`，以及显式 `Interactive` / `Refine` 质量切换。";
@@ -130,7 +130,7 @@ internal static class SurfaceChartsDocumentationTerms
 
     public static readonly string[] SurfaceChartsFirstChartTokens =
     [
-        "canonical first-chart",
+        "canonical SurfaceCharts story",
         "`Videra.SurfaceCharts.Avalonia`",
         "`Videra.SurfaceCharts.Processing`",
         "`Videra.SurfaceCharts.Demo`"
@@ -223,11 +223,12 @@ internal static class SurfaceChartsDocumentationTerms
 
     public static readonly string[] SurfaceChartsDemoFirstChartTokens =
     [
-        "canonical first-chart",
+        "canonical surface/cache-backed chart story",
         "`Videra.SurfaceCharts.Avalonia`",
         "`Videra.SurfaceCharts.Processing`",
         "repository reference app",
-        "`SurfaceChartView`"
+        "`SurfaceChartView`",
+        "`WaterfallChartView`"
     ];
 
     public static readonly string[] SurfaceChartsInteractionDiagnosticsTokens =
@@ -383,7 +384,7 @@ internal static class SurfaceChartsDocumentationTerms
 
     public static readonly string[] ChineseSurfaceChartsFirstChartTokens =
     [
-        "first-chart",
+        "surface/cache-backed",
         "Videra.SurfaceCharts.Avalonia",
         "Videra.SurfaceCharts.Processing",
         "Videra.SurfaceCharts.Demo"

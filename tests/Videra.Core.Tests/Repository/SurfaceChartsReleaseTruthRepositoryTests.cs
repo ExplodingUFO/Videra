@@ -23,7 +23,7 @@ public sealed class SurfaceChartsReleaseTruthRepositoryTests
     }
 
     [Fact]
-    public void SurfaceChartsDocs_ShouldPreserveRepositoryOnlyAndPackagedFirstChartSplit()
+    public void SurfaceChartsDocs_ShouldPreserveRepositoryOnlyAndPackagedChartProofSplit()
     {
         var repositoryRoot = GetRepositoryRoot();
         var readme = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "zh-CN", "README.md"));
@@ -32,7 +32,7 @@ public sealed class SurfaceChartsReleaseTruthRepositoryTests
         readme.Should().Contain("Videra.SurfaceCharts.Avalonia");
         readme.Should().Contain("Videra.SurfaceCharts.Processing");
         readme.Should().Contain("smoke/Videra.SurfaceCharts.ConsumerSmoke");
-        readme.Should().Contain("打包后的 first-chart proof");
+        readme.Should().Contain("surface/cache-backed proof");
         readme.Should().Contain("Start here: In-memory first chart");
         readme.Should().Contain("Explore next: Cache-backed streaming");
         readme.Should().Contain("保持 repository-only，只用于参考和 support repro");
