@@ -17,7 +17,7 @@ Current status: `alpha`. `Videra.Avalonia` is the entry package for Avalonia app
 - Map pointer input to camera interaction
 - Manage native-host integration for Windows, Linux, and macOS
 
-On that shipped viewer path, the current material/runtime baseline is static-scene glTF/PBR: retained imported assets carry UV-backed texture bindings, metallic-roughness and alpha semantics, emissive and normal-map-ready inputs, tangent-aware mesh data, and repeated unchanged imports that can reuse retained imported scene assets while those retained assets stay available. Animation, skeletons, morph targets, lights, and shadows remain out of scope for this line.
+On that shipped viewer path, the current material/runtime baseline is static glTF/PBR: retained imported assets carry UV-backed texture bindings, metallic-roughness and alpha semantics, emissive and normal-map-ready inputs, tangent-aware mesh data, and repeated unchanged imports that can reuse retained imported scene assets while those retained assets stay available. Animation, skeletons, morph targets, lights, and shadows remain out of scope for this line.
 
 ## Install
 

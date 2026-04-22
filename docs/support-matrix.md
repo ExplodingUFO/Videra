@@ -44,6 +44,7 @@ The public SurfaceCharts install rule is similarly narrow: start with `Videra.Su
 - They do not replace matching-host native validation.
 - The built-in backend minimum contract is buffer creation, current-viewer pipeline creation, direct buffer binding, draw calls, viewport/scissor, clear, and standard frame depth behavior with best-effort depth-state toggles.
 - `CreateShader(...)`, `CreateResourceSet(...)`, and `SetResourceSet(...)` are not a cross-backend portability promise for the shipped native backends.
+- This matrix does not imply an `OpenGL` product promise; the current native support promise remains `D3D11`, `Vulkan`, and `Metal`.
 - Linux Wayland uses the documented `XWayland` bridge, not compositor-native embedding.
 - This matrix stays scoped to the shipped native backends listed above.
 - Use [Alpha Feedback](alpha-feedback.md) when reporting integration issues so the report carries package path, diagnostics, and display-server truth.

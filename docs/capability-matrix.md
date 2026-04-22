@@ -2,7 +2,7 @@
 
 This page is the product-boundary truth for `Videra 1.0`.
 
-The `1.0` line is a native desktop viewer/runtime for .NET applications, centered on `SceneDocument`-backed imported assets, embeddable viewing, inspection, diagnostics, and the public `SurfaceCharts` package family. It is not a general engine, and it does not expand into broader runtime, lighting, or API breadth.
+The `1.0` line is a native desktop viewer/runtime for .NET applications, centered on `SceneDocument`-backed imported assets, embeddable viewing, inspection, diagnostics, and the public `SurfaceCharts` package family. It is not a Three.js-style general runtime, and it does not expand into broader runtime, lighting, or API breadth.
 
 ## Shipped in the 1.0 Line
 

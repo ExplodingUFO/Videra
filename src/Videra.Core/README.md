@@ -14,7 +14,7 @@ Current status: `alpha`. This package is the right starting point only for core-
 - Camera, grid, axis, and wireframe helpers
 - Render-style presets and software fallback rendering
 
-The current shipped viewer/runtime baseline is static-scene glTF/PBR: imported assets can carry UV-backed texture bindings, metallic-roughness and alpha semantics, emissive and normal-map-ready inputs, and tangent-aware mesh data through explicit runtime contracts. Animation, skeletons, morph targets, lights, and shadows remain outside this baseline.
+The current shipped viewer/runtime baseline is static glTF/PBR: imported assets can carry UV-backed texture bindings, metallic-roughness and alpha semantics, emissive and normal-map-ready inputs, and tangent-aware mesh data through explicit runtime contracts. This does not imply an `OpenGL` product promise. Animation, skeletons, morph targets, lights, and shadows remain outside this baseline.
 
 Use [docs/capability-matrix.md](../../docs/capability-matrix.md) for the explicit layer matrix.
 

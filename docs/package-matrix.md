@@ -68,6 +68,6 @@ The canonical public SurfaceCharts stack is:
 
 The public viewer/runtime line still shares one backend-neutral asset catalog across `Videra.Core` and `Videra.Avalonia`: `SceneDocument`, `ImportedSceneAsset`, `SceneNode`, `MeshPrimitive`, `MaterialInstance`, `Texture2D`, and `Sampler`.
 
-That viewer baseline remains deliberately scoped to static-scene glTF/PBR: `metallic-roughness`, `normal-map-ready`, `tangent-aware`, and repeated unchanged imports that can reuse retained imported scene assets are in scope today, while `animation`, `skeletons`, `morph targets`, `lights`, and `shadows` stay outside the current product promise.
+That viewer baseline remains deliberately scoped to static glTF/PBR: `metallic-roughness`, `normal-map-ready`, `tangent-aware`, and repeated unchanged imports that can reuse retained imported scene assets are in scope today, while `animation`, `skeletons`, `morph targets`, `lights`, and `shadows` stay outside the current product promise.
 
 The current import/runtime path is also expected to stay stable for retained imported scene assets, so package consumers can reason about asset reuse without treating the chart line or demos as part of the viewer kernel.
