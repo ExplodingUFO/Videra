@@ -2,9 +2,9 @@
 
 [English](../../../src/Videra.SurfaceCharts.Avalonia/README.md) | [中文](videra-surfacecharts-avalonia.md)
 
-`Videra.SurfaceCharts.Avalonia` 提供专用的 `SurfaceChartView` 和 `WaterfallChartView` 控件层。它独立于 `VideraView`，不承载 viewer 模式，也不耦合到 `VideraView` 的选择、标注或相机链路。
+`Videra.SurfaceCharts.Avalonia` 提供专用的 `SurfaceChartView`、`WaterfallChartView` 和 `ScatterChartView` 控件层。它独立于 `VideraView`，不承载 viewer 模式，也不耦合到 `VideraView` 的选择、标注或相机链路。
 `Videra.SurfaceCharts.Processing` 只在 surface/cache-backed 路径需要，不是每条 chart 路径都必须安装。
-独立 Demo 会先把 `Start here: In-memory first chart` 作为默认入口，等基线 first chart 跑通后，再切到 `Explore next: Cache-backed streaming`，需要第二个控件证明时再看 `Try next: Waterfall proof`。
+独立 Demo 会先把 `Start here: In-memory first chart` 作为默认入口，等基线 first chart 跑通后，再切到 `Explore next: Cache-backed streaming`，需要第二个控件证明时再看 `Try next: Waterfall proof`。Scatter 路径属于已发布控件层，但不在当前 Demo UI 中。
 
 SurfaceChartView 现在以 `ViewState` 作为主 chart-view 契约，而 `Viewport` 只保留为兼容桥接。
 图表在交互过程中进入 `Interactive` 质量模式，并在输入停稳后回到 `Refine`。

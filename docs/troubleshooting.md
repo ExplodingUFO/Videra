@@ -35,7 +35,7 @@ For `area: surfacecharts`, start from `smoke/Videra.SurfaceCharts.ConsumerSmoke`
 - `smoke/Videra.SurfaceCharts.ConsumerSmoke` should produce `surfacecharts-support-summary.txt` for the packaged surface/cache-backed proof.
 - `Start here: In-memory first chart` is the default first repro path.
 - `Explore next: Cache-backed streaming` is only the follow-up path after the in-memory chart already renders.
-- `Try next: Waterfall proof` is the third demo path on the same Avalonia shell.
+- `Try next: Waterfall proof` is the third demo path on the same Avalonia shell; `ScatterChartView` ships in the Avalonia control line, but this demo path set does not include a scatter UI.
 - Use `Copy support summary` to paste the demo `Support summary` block into the issue so support has the same `ViewState`, `InteractionQuality`, `RenderingStatus`, `OverlayOptions`, and `TransparentFeatureStatus` contract the sample exposes.
 
 ## Package Selection vs Backend Preference
@@ -113,7 +113,7 @@ Include:
   - `Explore next: Cache-backed streaming`
   - `Try next: Waterfall proof`
 - use `Copy support summary` after reproducing `Start here: In-memory first chart`; continue to `Explore next: Cache-backed streaming` only if needed
-- use `Try next: Waterfall proof` when the issue is about the second chart control instead of the cache-backed path
+- use `Try next: Waterfall proof` when the issue is about the second chart control instead of the cache-backed path; the shipped control line also includes `ScatterChartView`, but the demo triage paths do not expose it
 - `ViewState`, `InteractionQuality`, `RenderingStatus`, and `OverlayOptions` from the SurfaceCharts support summary when relevant
 - `TransparentFeatureStatus` from `VideraDiagnosticsSnapshotFormatter` when the issue involves transparency behavior
 - inspection bundle from `VideraInspectionBundleService.ExportAsync(...)` when you need support to replay camera, clipping, measurements, and annotations together

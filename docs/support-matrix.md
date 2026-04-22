@@ -33,9 +33,9 @@ The public SurfaceCharts install rule is similarly narrow: start with `Videra.Su
 | `Videra.SurfaceCharts.Core` | Public package | Core tests and package validation | `alpha` | Chart-domain contracts, tile identities, probe contracts, and LOD selection |
 | `Videra.SurfaceCharts.Rendering` | Public package | Rendering-focused tests and package validation | `alpha` | Rendering-runtime layer used transitively by `Videra.SurfaceCharts.Avalonia` |
 | `Videra.SurfaceCharts.Processing` | Public package | Processing tests, benchmarks, and package validation | `alpha` | Data-preparation layer for the surface/cache-backed path |
-| `Videra.SurfaceCharts.Avalonia` | Public package | Avalonia integration tests, package validation, and demo alignment checks | `alpha` | Public `SurfaceChartView` and `WaterfallChartView` entry package, independent from `VideraView` |
+| `Videra.SurfaceCharts.Avalonia` | Public package | Avalonia integration tests, package validation, and demo alignment checks | `alpha` | Public `SurfaceChartView`, `WaterfallChartView`, and `ScatterChartView` entry package, independent from `VideraView` |
 | `Videra.SurfaceCharts.ConsumerSmoke` | Repository only | Windows packaged consumer smoke and `surfacecharts-support-summary.txt` artifact validation | `alpha` | Packaged surface/cache-backed proof for `Videra.SurfaceCharts.Avalonia` + `Videra.SurfaceCharts.Processing` on the supported host path |
-| `Videra.SurfaceCharts.Demo` | Repository only | `sample-contract-evidence`, SurfaceCharts runtime evidence, and `Support summary` validation | `alpha` | `Start here: In-memory first chart` first, `Explore next: Cache-backed streaming`, `Try next: Waterfall proof`, `Copy support summary`, repository-only reference app |
+| `Videra.SurfaceCharts.Demo` | Repository only | `sample-contract-evidence`, SurfaceCharts runtime evidence, and `Support summary` validation | `alpha` | `Start here: In-memory first chart` first, `Explore next: Cache-backed streaming`, `Try next: Waterfall proof`, `Copy support summary`, repository-only reference app; scatter is shipped in the Avalonia control line, not as a demo path |
 
 ## Compatibility notes
 

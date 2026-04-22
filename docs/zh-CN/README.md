@@ -5,9 +5,9 @@
 Videra 是一套面向 .NET 桌面应用的跨平台 3D 查看组件库。公开 viewer 路径以 Avalonia 为先，核心目标是在 Avalonia 应用中提供可复用、可嵌入、可扩展的 3D 查看能力。
 
 surface-chart 模块家族与 `VideraView` 相互独立。它面向离线大矩阵、曲面图和时频图一类可视化场景；`Videra.SurfaceCharts.Demo` 保持 repository-only，只用于参考和 support repro。
-当前公开控制层只有 `SurfaceChartView` 和 `WaterfallChartView` 两个 Avalonia 控件；`Videra.SurfaceCharts.Processing` 只在 surface/cache-backed 路径需要，不是每条 chart 路径都必须安装。
+当前公开控制层包括 `SurfaceChartView`、`WaterfallChartView` 和 `ScatterChartView` 三个 Avalonia 控件；`Videra.SurfaceCharts.Processing` 只在 surface/cache-backed 路径需要，不是每条 chart 路径都必须安装。独立 Demo 目前只覆盖前两个控件路径。
 
-默认的打包支持证明请先把 `smoke/Videra.SurfaceCharts.ConsumerSmoke` 当作 surface/cache-backed proof，`surfacecharts-support-summary.txt` 也从这里产出；再把 `Videra.SurfaceCharts.Avalonia` 中的 `SurfaceChartView` 和 `WaterfallChartView` 视为当前 chart control entrypoint。
+默认的打包支持证明请先把 `smoke/Videra.SurfaceCharts.ConsumerSmoke` 当作 surface/cache-backed proof，`surfacecharts-support-summary.txt` 也从这里产出；再把 `Videra.SurfaceCharts.Avalonia` 中的 `SurfaceChartView`、`WaterfallChartView` 和 `ScatterChartView` 视为当前 chart control entrypoint。
 先从 Demo 默认的 `Start here: In-memory first chart` 路径开始，确认基线 first chart 可以渲染后，再切到 `Explore next: Cache-backed streaming`，需要第二个控件证明时再看 `Try next: Waterfall proof`。
 
 当前 `alpha` 阶段需要明确说明：

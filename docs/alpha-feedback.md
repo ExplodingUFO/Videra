@@ -18,7 +18,7 @@ Videra is still an early alpha embeddable viewer stack. Good feedback is not jus
    - `Videra.SurfaceCharts.Demo` for the packaged chart repro path:
      - `Start here: In-memory first chart` before any cache-backed investigation
      - `Explore next: Cache-backed streaming` only after the first-chart path renders
-      - `Try next: Waterfall proof` when you need the second control proof on the same chart shell
+     - `Try next: Waterfall proof` when you need the second control proof on the same chart shell; `ScatterChartView` ships in the Avalonia control line, but this demo does not expose a scatter path
 4. Export a diagnostics snapshot with `VideraDiagnosticsSnapshotFormatter.Format(View3D.BackendDiagnostics)` or attach the `consumer smoke` `diagnostics-snapshot.txt` artifact; if transparency is involved, include `TransparentFeatureStatus` from that snapshot so support can read the shipped transparency contract.
 5. If the issue is visual or inspection-related, attach either:
    - a snapshot exported through `ExportSnapshotAsync(...)`, or
@@ -36,11 +36,12 @@ Videra is still an early alpha embeddable viewer stack. Good feedback is not jus
 - inspection bundle directory when you need camera, clipping, measurements, annotations, and imported assets to replay together
 - `CanReplayScene` and `ReplayLimitation` from `VideraInspectionBundleService.ExportAsync(...)` whenever the bundle is exportable but not replayable
 - `SurfaceCharts support summary` from either the packaged `smoke/Videra.SurfaceCharts.ConsumerSmoke` `surfacecharts-support-summary.txt` artifact or the `Videra.SurfaceCharts.Demo` `Support summary` panel when the issue is in `area: surfacecharts`
-- use `Copy support summary` after reproducing `Start here: In-memory first chart`; continue to `Explore next: Cache-backed streaming` only if needed, and use `Try next: Waterfall proof` when the issue involves the second chart control
+- use `Copy support summary` after reproducing `Start here: In-memory first chart`; continue to `Explore next: Cache-backed streaming` only if needed, and use `Try next: Waterfall proof` when the issue involves the second chart control; `ScatterChartView` is shipped in the Avalonia control line, but the demo evidence paths do not include a scatter UI
 - SurfaceCharts demo-path choice when relevant:
   - `Start here: In-memory first chart`
   - `Explore next: Cache-backed streaming`
   - `Try next: Waterfall proof`
+- `ScatterChartView` is shipped in `Videra.SurfaceCharts.Avalonia`; do not claim the demo exposes a scatter path unless you have a separate repository path to cite
 - SurfaceCharts chart state when relevant:
   - `ViewState`
   - `InteractionQuality`

@@ -31,7 +31,7 @@ That shipped viewer path now carries one direct static glTF/PBR baseline: UV-bac
 - Current repository baseline: `0.1.0-alpha.7`
 - Public release tags are intended to publish the consumer packages on `nuget.org`
 - `GitHub Packages` remains the `preview` / internal feed for contributors and pre-release validation
-- `Videra.SurfaceCharts.*` now ships as a public `alpha` package line, `SurfaceChartView` and `WaterfallChartView` are the current Avalonia controls, `Videra.SurfaceCharts.Processing` is needed for the surface/cache-backed path, and `Videra.SurfaceCharts.Demo` remains repository-only
+- `Videra.SurfaceCharts.*` now ships as a public `alpha` package line, `SurfaceChartView`, `WaterfallChartView`, and `ScatterChartView` are the current Avalonia controls, `Videra.SurfaceCharts.Processing` is needed for the surface/cache-backed path, and `Videra.SurfaceCharts.Demo` remains repository-only
 - `smoke/Videra.WpfSmoke` remains a repository-only Windows WPF smoke proof for validation and support evidence on the Avalonia-first viewer path; it is not a second public UI package or release path
 - Linux native rendering remains `X11`-hosted, and Wayland sessions stay on the documented `XWayland compatibility` path
 - GitHub Actions runs matching-host native validation, packaged viewer consumer smoke, packaged SurfaceCharts first-chart consumer smoke, and explicit sample-contract evidence on pull requests, and the [Native Validation runbook](docs/native-validation.md) documents how to use `Run workflow` for targeted reruns
@@ -114,7 +114,7 @@ For alpha adoption feedback, use [Alpha Feedback](docs/alpha-feedback.md) before
 | `Videra.SurfaceCharts.Core` | Chart-domain consumers and custom tile-source integrators | `nuget.org` public tags | `alpha` |
 | `Videra.SurfaceCharts.Rendering` | SurfaceCharts rendering-runtime consumers | `nuget.org` public tags | `alpha` |
 | `Videra.SurfaceCharts.Processing` | Surface preprocessing, cache, and pyramid helpers for the surface/cache-backed path | `nuget.org` public tags | `alpha` |
-| `Videra.SurfaceCharts.Avalonia` | Avalonia desktop applications that host `SurfaceChartView` or `WaterfallChartView` | `nuget.org` public tags | `alpha` |
+| `Videra.SurfaceCharts.Avalonia` | Avalonia desktop applications that host `SurfaceChartView`, `WaterfallChartView`, or `ScatterChartView` | `nuget.org` public tags | `alpha` |
 
 ## Repository-only entries
 
@@ -133,7 +133,7 @@ For alpha adoption feedback, use [Alpha Feedback](docs/alpha-feedback.md) before
 | --- | --- |
 | `Videra.MinimalSample` | Shortest first-scene reference for `VideraViewOptions`, `LoadModelAsync`, `FrameAll`, `ResetCamera`, `BackendDiagnostics`, and diagnostics snapshot export |
 | `Videra.Demo` | Viewer demo for backend diagnostics, import feedback, and baseline interaction |
-| `Videra.SurfaceCharts.Demo` | Independent surface-chart demo for `SurfaceChartView`, `WaterfallChartView`, chart-local overlays, and rendering-path truth |
+| `Videra.SurfaceCharts.Demo` | Independent surface-chart demo for the surface-chart module family, chart-local overlays, and rendering-path truth |
 | `Videra.ExtensibilitySample` | Narrow public reference for `VideraView.Engine`, `RegisterPassContributor(...)`, and `RegisterFrameHook(...)` |
 | `Videra.InteractionSample` | Public sample for the controlled interaction contract plus viewer-first inspection workflows such as measurement, clipping, state restore, snapshot export, and replayable inspection bundles |
 
@@ -151,7 +151,7 @@ Current package-layer vocabulary:
 - `Import`: asset-ingestion layer for viewer/runtime scenes
 - `Backend`: native graphics implementations
 - `UI adapter`: host-framework shell
-- `Charts`: analytics-oriented chart family
+- `Charts`: analytics-oriented chart control family
 
 That layer split is the guiding product boundary for `v1.20`. It keeps Videra focused on a native desktop viewer/runtime instead of letting the repository read like a general engine roadmap by implication.
 
@@ -187,15 +187,15 @@ Contract highlights:
 
 ## Surface Charts Onboarding
 
-For the canonical SurfaceCharts story, start from `Videra.SurfaceCharts.Avalonia`, add `Videra.SurfaceCharts.Processing` only for the surface/cache-backed path, and use [Videra.SurfaceCharts.Demo](samples/Videra.SurfaceCharts.Demo/README.md) as the repository reference app for the same path.
-Inside that demo, keep the default `Start here: In-memory first chart` path for the baseline repro, then move to `Explore next: Cache-backed streaming` when you want to validate lazy tile reads and the broader chart diagnostics surface, and use `Try next: Waterfall proof` for the thin second chart proof on the same Avalonia shell.
+For the canonical SurfaceCharts story, start from `Videra.SurfaceCharts.Avalonia`, add `Videra.SurfaceCharts.Processing` only for the surface/cache-backed path, and use [Videra.SurfaceCharts.Demo](samples/Videra.SurfaceCharts.Demo/README.md) as the repository reference app for the paths it actually exposes.
+Inside that demo, keep the default `Start here: In-memory first chart` path for the baseline repro, then move to `Explore next: Cache-backed streaming` when you want to validate lazy tile reads and the broader chart diagnostics surface, and use `Try next: Waterfall proof` for the thin second chart proof on the same Avalonia shell. `ScatterChartView` ships in the Avalonia control line, but this demo does not expose a scatter path.
 Use `Copy support summary` when you need the chart support artifact that matches the docs and bug template. Public tags now publish the `Videra.SurfaceCharts.*` package assets, while `Videra.SurfaceCharts.Demo` remains repository-only and keeps the support-summary repro workflow.
 The packaged SurfaceCharts proof lives separately in `smoke/Videra.SurfaceCharts.ConsumerSmoke`, which writes `surfacecharts-support-summary.txt` on the packaged install path without turning the broader demo into a public install story.
 
 Contract highlights:
 
 - The surface-chart module family is a sibling product area, independent from `VideraView`.
-- The dedicated `SurfaceChartView` control remains the primary chart control entrypoint in `Videra.SurfaceCharts.Avalonia`.
+- The dedicated `SurfaceChartView`, `WaterfallChartView`, and `ScatterChartView` controls remain the public chart entrypoints in `Videra.SurfaceCharts.Avalonia`.
 - `Videra.SurfaceCharts.Demo` is the independent demo application for the surface-chart module family.
 - `Videra.SurfaceCharts.Core` owns chart-domain models, tile identities, probe contracts, and LOD selection.
 - `Videra.SurfaceCharts.Rendering` owns chart render-state orchestration and the chart-local backend runtime.

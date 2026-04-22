@@ -32,7 +32,7 @@ The public overlay configuration seam is `SurfaceChartOverlayOptions` through `O
 - chart-local axis/legend overlays and hover/pinned probe readout, including `Shift + LeftClick` pinning
 - `SurfaceChartView` owns chart-local built-in gestures, tile scheduling/cache, overlay presentation, native-host/render-host orchestration, and `RenderingStatus` projection
 
-`WaterfallChartView` is the thin second control proof on top of the same chart shell.
+`WaterfallChartView` is the second shipped control on top of the same chart shell, and `ScatterChartView` ships in the same Avalonia control line.
 
 This module is intentionally a thin UI shell. Tile decoding, preprocessing, cache generation, and LOD policy remain outside the control layer.
 
