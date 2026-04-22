@@ -148,8 +148,8 @@ public partial class MainWindow : Window
                 _waterfallChartView,
                 _waterfallSource,
                 "Try next: Waterfall proof",
-                "Thin proof on the same Avalonia chart shell. Uses a Waterfall-specific renderer plus the inherited ViewState, interaction, overlay, and rendering-status workflow.",
-                "The waterfall proof expands each logical strip into baseline-data-baseline rows and renders them through the Waterfall chart path.",
+                "Thin proof on the same Avalonia chart shell. Uses explicit strip spacing while keeping the inherited ViewState, interaction, overlay, and rendering-status workflow aligned to the rendered geometry.",
+                "The waterfall proof expands each logical strip into baseline-data-baseline rows and assigns explicit sweep coordinates so camera, picking, and overlays stay on the same geometry truth.",
                 "No additional assets are used on this path.");
             return;
         }
@@ -342,7 +342,15 @@ public partial class MainWindow : Window
     private static ISurfaceTileSource CreateWaterfallSource()
     {
         var matrix = CreateWaterfallMatrix();
-        return new SurfacePyramidBuilder(32, 32).Build(matrix);
+        return new InMemorySurfaceTileSource(
+            matrix,
+            matrix.Metadata,
+            [new SurfacePyramidLevel(0, 0, matrix)],
+            maxTileWidth: 32,
+            maxTileHeight: 32,
+            detailLevelX: 0,
+            detailLevelY: 0,
+            reductionKernel: new ManagedSurfaceTileReductionKernel());
     }
 
     private Task<ISurfaceTileSource> GetOrCreateCacheSourceAsync()
@@ -401,15 +409,27 @@ public partial class MainWindow : Window
         const int width = 72;
         const int stripCount = 12;
         const int rowsPerStrip = 3;
+        const double signalRowOffset = 0.15d;
+        const double trailingBaselineOffset = 0.3d;
         var height = stripCount * rowsPerStrip;
         var values = new float[width * height];
+        var horizontalCoordinates = new double[width];
+        var verticalCoordinates = new double[height];
         var maximum = 0d;
+
+        for (var x = 0; x < width; x++)
+        {
+            horizontalCoordinates[x] = (180d * x) / (width - 1d);
+        }
 
         for (var strip = 0; strip < stripCount; strip++)
         {
             var baselineTop = strip * rowsPerStrip;
             var signalRow = baselineTop + 1;
             var baselineBottom = baselineTop + 2;
+            verticalCoordinates[baselineTop] = strip;
+            verticalCoordinates[signalRow] = strip + signalRowOffset;
+            verticalCoordinates[baselineBottom] = strip + trailingBaselineOffset;
             var stripWeight = 1d + (strip * 0.045d);
             var hotspot = 0.12d + (strip * 0.055d);
 
@@ -429,11 +449,11 @@ public partial class MainWindow : Window
             }
         }
 
+        var geometry = new SurfaceExplicitGrid(horizontalCoordinates, verticalCoordinates);
         var metadata = new SurfaceMetadata(
-            width,
-            height,
-            new SurfaceAxisDescriptor("Time", "s", 0d, 180d),
-            new SurfaceAxisDescriptor("Sweep", unit: null, minimum: 0d, maximum: stripCount - 1d),
+            geometry,
+            new SurfaceAxisDescriptor("Time", "s", horizontalCoordinates[0], horizontalCoordinates[^1], SurfaceAxisScaleKind.ExplicitCoordinates),
+            new SurfaceAxisDescriptor("Sweep", unit: null, minimum: verticalCoordinates[0], maximum: verticalCoordinates[^1], SurfaceAxisScaleKind.ExplicitCoordinates),
             new SurfaceValueRange(0d, maximum));
 
         return new SurfaceMatrix(metadata, values);

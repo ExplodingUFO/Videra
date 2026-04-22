@@ -12,11 +12,11 @@ namespace Videra.SurfaceCharts.Avalonia.IntegrationTests;
 public sealed class WaterfallChartViewIntegrationTests
 {
     [Fact]
-    public Task WaterfallChartView_PublishesReadySoftwareSnapshot_AndUsesWaterfallRenderer()
+    public Task WaterfallChartView_PublishesReadySoftwareSnapshot_AndUsesExplicitWaterfallSpacing()
     {
         return AvaloniaHeadlessTestSession.RunAsync(async () =>
         {
-            var source = new ScriptedSurfaceTileSource(SurfaceChartViewLifecycleTests.CreateMetadata(), defaultTileValue: 6f);
+            var source = new ScriptedSurfaceTileSource(CreateWaterfallMetadata(), defaultTileValue: 6f);
             var view = new WaterfallChartView();
 
             view.Measure(new Size(240, 160));
@@ -33,7 +33,8 @@ public sealed class WaterfallChartViewIntegrationTests
                 .GetField("_renderHost", BindingFlags.Instance | BindingFlags.NonPublic)!
                 .GetValue(view)!;
             var tile = renderHost.SoftwareScene!.Tiles.Should().ContainSingle().Subject;
-            tile.Vertices[tile.Geometry.SampleWidth].Position.Z.Should().BeApproximately(0.35f, 0.001f);
+            tile.Vertices[tile.Geometry.SampleWidth].Position.Z.Should().BeApproximately(0.15f, 0.001f);
+            tile.Vertices[tile.Geometry.SampleWidth * 3].Position.Z.Should().BeApproximately(1f, 0.001f);
         });
     }
 
@@ -42,7 +43,7 @@ public sealed class WaterfallChartViewIntegrationTests
     {
         AvaloniaHeadlessTestSession.Run(() =>
         {
-            var source = new RecordingSurfaceTileSource(SurfaceChartViewLifecycleTests.CreateMetadata());
+            var source = new RecordingSurfaceTileSource(CreateWaterfallMetadata());
             var dataWindow = new SurfaceDataWindow(128d, 64d, 256d, 128d);
             var view = new WaterfallChartView
             {
@@ -59,5 +60,36 @@ public sealed class WaterfallChartViewIntegrationTests
             view.FitToData();
             view.ViewState.DataWindow.Should().Be(new SurfaceDataWindow(0d, 0d, source.Metadata.Width, source.Metadata.Height));
         });
+    }
+
+    private static SurfaceMetadata CreateWaterfallMetadata()
+    {
+        const int width = 16;
+        const int stripCount = 4;
+        const int rowsPerStrip = 3;
+        const double signalRowOffset = 0.15d;
+        const double trailingBaselineOffset = 0.3d;
+        var height = stripCount * rowsPerStrip;
+        var horizontalCoordinates = new double[width];
+        var verticalCoordinates = new double[height];
+
+        for (var x = 0; x < width; x++)
+        {
+            horizontalCoordinates[x] = (10d * x) / (width - 1d);
+        }
+
+        for (var strip = 0; strip < stripCount; strip++)
+        {
+            var baselineTop = strip * rowsPerStrip;
+            verticalCoordinates[baselineTop] = strip;
+            verticalCoordinates[baselineTop + 1] = strip + signalRowOffset;
+            verticalCoordinates[baselineTop + 2] = strip + trailingBaselineOffset;
+        }
+
+        return new SurfaceMetadata(
+            new SurfaceExplicitGrid(horizontalCoordinates, verticalCoordinates),
+            new SurfaceAxisDescriptor("Time", "s", horizontalCoordinates[0], horizontalCoordinates[^1], SurfaceAxisScaleKind.ExplicitCoordinates),
+            new SurfaceAxisDescriptor("Sweep", unit: null, minimum: verticalCoordinates[0], maximum: verticalCoordinates[^1], SurfaceAxisScaleKind.ExplicitCoordinates),
+            new SurfaceValueRange(0d, 100d));
     }
 }

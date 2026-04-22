@@ -1,5 +1,3 @@
-using Videra.SurfaceCharts.Rendering;
-
 namespace Videra.SurfaceCharts.Avalonia.Controls;
 
 /// <summary>
@@ -11,19 +9,6 @@ public sealed class WaterfallChartView : SurfaceChartView
     /// Initializes a new instance of the <see cref="WaterfallChartView"/> class.
     /// </summary>
     public WaterfallChartView()
-        : this(nativeHostFactory: null)
     {
-    }
-
-    internal WaterfallChartView(ISurfaceChartNativeHostFactory? nativeHostFactory)
-        : base(CreateRenderHost(), nativeHostFactory)
-    {
-    }
-
-    private static SurfaceChartRenderHost CreateRenderHost()
-    {
-        return new SurfaceChartRenderHost(
-            new SurfaceChartRenderState(
-                new WaterfallSurfaceRenderer()));
     }
 }

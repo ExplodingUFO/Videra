@@ -264,7 +264,8 @@ public sealed class SurfaceChartsDemoViewportBehaviorTests
                 .ConfigureAwait(true);
 
             cacheSourceCompletion.SetResult(inMemorySource);
-            await Task.Delay(TimeSpan.FromMilliseconds(50)).ConfigureAwait(true);
+            await Task.Yield();
+            await Task.Yield();
 
             waterfallChartView.IsVisible.Should().BeTrue();
             surfaceChartView.IsVisible.Should().BeFalse();
