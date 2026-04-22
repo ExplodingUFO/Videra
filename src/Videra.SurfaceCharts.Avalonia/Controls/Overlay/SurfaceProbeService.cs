@@ -93,6 +93,11 @@ internal static class SurfaceProbeService
                 return SurfaceProbeInfo.FromResolvedSample(metadata, tile, probeRequest, interpolatedValue);
             }
 
+            if (tile.Bounds.Width == tile.Width && tile.Bounds.Height == tile.Height)
+            {
+                return null;
+            }
+
             if (!TryResolveDiscreteValue(tile, probeRequest.SampleX, probeRequest.SampleY, out var discreteValue))
             {
                 return null;

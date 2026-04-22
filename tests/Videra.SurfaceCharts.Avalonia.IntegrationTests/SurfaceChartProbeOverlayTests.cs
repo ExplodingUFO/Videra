@@ -145,6 +145,36 @@ public sealed class SurfaceChartProbeOverlayTests
     }
 
     [Fact]
+    public void CoarseTileProbe_FallsBackToDiscreteReadAndRemainsApproximate()
+    {
+        var metadata = SurfaceChartViewLifecycleTests.CreateMetadata();
+        var coarseTile = new SurfaceTile(
+            new SurfaceTileKey(0, 0, 0, 0),
+            width: 2,
+            height: 2,
+            new SurfaceTileBounds(0, 0, 1024, 1024),
+            new float[]
+            {
+                10f, 20f,
+                30f, 40f
+            },
+            metadata.ValueRange);
+
+        var state = SurfaceProbeOverlayPresenter.CreateState(
+            new StaticTileSource(metadata),
+            new SurfaceViewport(-50, -40, 200, 200),
+            new Size(100, 100),
+            [coarseTile],
+            new Point(50, 50));
+
+        var hoveredProbe = GetHoveredProbe(state);
+        GetBooleanProperty(hoveredProbe, "IsApproximate").Should().BeTrue();
+        state.ReadoutText.Should().Contain("Approx");
+        state.ProbeResult.Should().NotBeNull();
+        state.ProbeResult!.Value.Value.Should().Be(10d);
+    }
+
+    [Fact]
     public void ExactTileProbe_InterpolatesBetweenNeighboringSamples()
     {
         var metadata = new SurfaceMetadata(
