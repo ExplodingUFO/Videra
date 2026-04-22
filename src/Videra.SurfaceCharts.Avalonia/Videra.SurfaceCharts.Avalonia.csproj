@@ -7,7 +7,7 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PackageId>Videra.SurfaceCharts.Avalonia</PackageId>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <Description>Avalonia shell for the shipped Videra SurfaceCharts controls, including SurfaceChartView, WaterfallChartView, and ScatterChartView.</Description>
+    <Description>Avalonia shell for the shipped SurfaceCharts controls, including SurfaceChartView, WaterfallChartView, and ScatterChartView.</Description>
     <PackageTags>videra;surface-charts;avalonia;surface;waterfall;scatter;3d;chart;ui</PackageTags>
   </PropertyGroup>
 
