@@ -2,7 +2,7 @@
 
 `Videra.SurfaceCharts.Demo` is the independent demo application for the surface-chart module family.
 
-For the canonical surface/cache-backed chart story, start from `Videra.SurfaceCharts.Avalonia` plus `Videra.SurfaceCharts.Processing`, and use this demo as the repository reference app for that same path. `SurfaceChartView` and `WaterfallChartView` in `Videra.SurfaceCharts.Avalonia` are the current chart control entrypoints.
+For the canonical surface/cache-backed chart story, start from `Videra.SurfaceCharts.Avalonia` plus `Videra.SurfaceCharts.Processing`, and use this demo as the repository reference app for the paths it actually exposes. `SurfaceChartView`, `WaterfallChartView`, and `ScatterChartView` ship in `Videra.SurfaceCharts.Avalonia`, but this sample currently exercises the first two controls only.
 
 The sample stays separate from `Videra.Demo` and `VideraView`. It exercises the chart-local renderer seam shipped in `SurfaceChartView`, not a `VideraView` mode. It provides switchable sources and built-in chart interaction:
 
@@ -27,7 +27,7 @@ The committed cache sample uses a tiled manifest+sidecar layout so panning, doll
 1. Run the sample and keep the default `Start here: In-memory first chart` source.
 2. Confirm the baseline first chart renders, then try `FitToData()`, `ResetCamera()`, orbit, pan, dolly, and focus zoom.
 3. Move to `Explore next: Cache-backed streaming` only after the first chart path works and you want to validate lazy tile reads plus the broader demo surfaces.
-4. Use `Try next: Waterfall proof` when you want the second control proof on the same Avalonia shell.
+4. Use `Try next: Waterfall proof` when you want the second control proof on the same Avalonia shell. `ScatterChartView` is shipped in the Avalonia control line, but this demo does not currently expose a scatter path.
 
 ## Run
 

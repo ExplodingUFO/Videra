@@ -28,7 +28,7 @@ The canonical public SurfaceCharts stack is:
 | `Import` | `Videra.Import.Gltf`, `Videra.Import.Obj` | Public packages | Dedicated file-format ingestion layered on top of `Videra.Core` |
 | `Backend` | `Videra.Platform.Windows`, `Videra.Platform.Linux`, `Videra.Platform.macOS` | Public packages | Native graphics implementations |
 | `UI adapter` | `Videra.Avalonia` | Public package | Public host-framework shell |
-| `Charts` | `Videra.SurfaceCharts.Core`, `Videra.SurfaceCharts.Rendering`, `Videra.SurfaceCharts.Processing`, `Videra.SurfaceCharts.Avalonia` | Public packages | Dedicated chart product line, independent from `VideraView` |
+| `Charts` | `Videra.SurfaceCharts.Core`, `Videra.SurfaceCharts.Rendering`, `Videra.SurfaceCharts.Processing`, `Videra.SurfaceCharts.Avalonia` | Public packages | Dedicated chart product line with `SurfaceChartView`, `WaterfallChartView`, and `ScatterChartView`, independent from `VideraView` |
 | `Chart demo` | `Videra.SurfaceCharts.Demo` | Repository-only | Support-ready chart reference app with `Start here`, `Explore next`, and `Try next` paths, not an installable package |
 
 ## Published packages
@@ -45,7 +45,7 @@ The canonical public SurfaceCharts stack is:
 | `Videra.SurfaceCharts.Core` | Yes, on public release tags | `nuget.org` | `GitHub Packages` preview/internal only | Chart-domain consumers and custom tile-source integrators | `alpha` | Chart-domain contracts, metadata, LOD, probe contracts |
 | `Videra.SurfaceCharts.Rendering` | Yes, on public release tags | `nuget.org` | `GitHub Packages` preview/internal only | Advanced chart-runtime consumers | `alpha` | Rendering-runtime layer used transitively by `Videra.SurfaceCharts.Avalonia` |
 | `Videra.SurfaceCharts.Processing` | Yes, on public release tags | `nuget.org` | `GitHub Packages` preview/internal only | Consumers that need pyramid/cache helpers | `alpha` | Add for the surface/cache-backed path |
-| `Videra.SurfaceCharts.Avalonia` | Yes, on public release tags | `nuget.org` | `GitHub Packages` preview/internal only | Avalonia desktop applications that host `SurfaceChartView` or `WaterfallChartView` | `alpha` | Main public chart control entry package |
+| `Videra.SurfaceCharts.Avalonia` | Yes, on public release tags | `nuget.org` | `GitHub Packages` preview/internal only | Avalonia desktop applications that host `SurfaceChartView`, `WaterfallChartView`, or `ScatterChartView` | `alpha` | Main public chart control entry package |
 
 ## Repository-only entries
 
@@ -54,7 +54,7 @@ The canonical public SurfaceCharts stack is:
 | `Videra.Demo` | Repository only | Source evaluation | Viewer demo and diagnostics reference |
 | `smoke/Videra.WpfSmoke` | Repository only | Validation and support evidence | Windows WPF smoke proof for the public viewer path |
 | `smoke/Videra.SurfaceCharts.ConsumerSmoke` | Repository only | Validation and support evidence | Packaged SurfaceCharts smoke proof with `surfacecharts-support-summary.txt` |
-| `Videra.SurfaceCharts.Demo` | Repository only | Source evaluation and support repro | Reference app for `Start here: In-memory first chart`, `Explore next: Cache-backed streaming`, `Try next: Waterfall proof`, and `Copy support summary` |
+| `Videra.SurfaceCharts.Demo` | Repository only | Source evaluation and support repro | Reference app for `Start here: In-memory first chart`, `Explore next: Cache-backed streaming`, `Try next: Waterfall proof`, and `Copy support summary`; it does not expose the scatter path |
 | `Videra.ExtensibilitySample` | Repository only | Contributors and integrators | Narrow public reference for extensibility flow |
 | `Videra.InteractionSample` | Repository only | Contributors and integrators | Public sample for controlled interaction and inspection workflows |
 

@@ -15,7 +15,7 @@ The `1.0` line is a native desktop viewer/runtime for .NET applications, centere
 | Viewer-first inspection workflows | Yes | Picking, measurement, clipping, snapshot export, inspection-state capture/restore, and inspection bundles are part of the product surface |
 | Narrow public extensibility | Yes | Pass contributors, frame hooks, capability snapshots, and backend diagnostics are part of the shipped viewer contract |
 | Transparency baseline | Yes | Alpha mask rendering and deterministic alpha blend ordering are shipped for per-object carried alpha sources; broader transparency work remains deferred |
-| `SurfaceCharts` package family | Yes | `SurfaceChartView`, `WaterfallChartView`, chart overlays/interaction, and the `Videra.SurfaceCharts.*` package line are part of the shipped `1.0` story; `Videra.SurfaceCharts.Processing` is only needed for the surface/cache-backed path, and `Videra.SurfaceCharts.Demo` remains the repository reference app |
+| `SurfaceCharts` package family | Yes | `SurfaceChartView`, `WaterfallChartView`, `ScatterChartView`, chart overlays/interaction, and the `Videra.SurfaceCharts.*` package line are part of the shipped `1.0` story; `Videra.SurfaceCharts.Processing` is only needed for the surface/cache-backed path, and `Videra.SurfaceCharts.Demo` remains the repository reference app |
 
 ## Explicitly Deferred After 1.0
 

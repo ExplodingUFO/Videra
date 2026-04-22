@@ -46,7 +46,7 @@ graph TB
 | `Import` | Asset ingestion for viewer/runtime scenes |
 | `Backend` | Native graphics implementations for `D3D11`, `Vulkan`, and `Metal` |
 | `UI adapter` | Host-framework shell, orchestration, and input/presentation translation |
-| `Charts` | `SurfaceChartView`, `WaterfallChartView`, and the shipped `Videra.SurfaceCharts.*` package line, independent from `VideraView` |
+| `Charts` | `SurfaceChartView`, `WaterfallChartView`, `ScatterChartView`, and the shipped `Videra.SurfaceCharts.*` package line, independent from `VideraView` |
 
 ### `Videra.Core`
 
@@ -86,7 +86,7 @@ UI integration layer responsible for:
 
 This layer lets host apps use the 3D view from XAML or code without coupling UI surface code to rendering internals.
 
-The shipped chart line is concrete rather than future-facing: `Videra.SurfaceCharts.Avalonia` currently exposes `SurfaceChartView` and `WaterfallChartView`, while `Videra.SurfaceCharts.Processing` is only needed for the surface/cache-backed chart path.
+The shipped chart line is concrete rather than future-facing: `Videra.SurfaceCharts.Avalonia` currently exposes `SurfaceChartView`, `WaterfallChartView`, and `ScatterChartView`, while `Videra.SurfaceCharts.Processing` is only needed for the surface/cache-backed chart path.
 
 ### Import packages
 
