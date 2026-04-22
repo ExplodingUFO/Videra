@@ -41,7 +41,7 @@ internal sealed class SurfaceProbeOverlayState
 
     // Kept as a convenience projection for existing integration coverage.
     public string? ReadoutText => HoveredProbe is SurfaceProbeInfo hoveredProbe
-        ? CreateLegacyReadoutText(hoveredProbe)
+        ? CreateReadoutText(hoveredProbe, PinnedProbes)
         : null;
 
     // Kept as a convenience projection for existing integration coverage.
@@ -52,10 +52,23 @@ internal sealed class SurfaceProbeOverlayState
         ? new SurfaceProbeResult(hoveredProbe.SampleX, hoveredProbe.SampleY, hoveredProbe.Value)
         : null;
 
-    private static string CreateLegacyReadoutText(SurfaceProbeInfo probe)
+    private static string CreateReadoutText(SurfaceProbeInfo probe, IReadOnlyList<SurfaceProbeInfo> pinnedProbes)
     {
-        return string.Create(
+        var readout = string.Create(
             CultureInfo.InvariantCulture,
             $"X {probe.AxisX:0.###} (sample {probe.SampleX:0.###}), Y {probe.AxisY:0.###} (sample {probe.SampleY:0.###}), Value {probe.Value:0.###} {(probe.IsApproximate ? "Approx" : "Exact")}");
+
+        if (pinnedProbes.Count == 0)
+        {
+            return readout;
+        }
+
+        var referenceProbe = pinnedProbes[0];
+        var deltaX = probe.AxisX - referenceProbe.AxisX;
+        var deltaY = probe.AxisY - referenceProbe.AxisY;
+        var deltaValue = probe.Value - referenceProbe.Value;
+        return string.Create(
+            CultureInfo.InvariantCulture,
+            $"{readout}\nDelta vs Pin 1\nX {deltaX:+0.###;-0.###;0}\nY {deltaY:+0.###;-0.###;0}\nValue {deltaValue:+0.###;-0.###;0}");
     }
 }
