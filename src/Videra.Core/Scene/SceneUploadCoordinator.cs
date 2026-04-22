@@ -16,7 +16,7 @@ public static class SceneUploadCoordinator
         ArgumentNullException.ThrowIfNull(asset);
         ArgumentNullException.ThrowIfNull(factory);
 
-        var sceneObject = SceneObjectFactory.CreateDeferred(asset);
+        var sceneObject = CreateDeferredObject(asset);
         SceneObjectUploader.Upload(sceneObject, factory, logger);
         return sceneObject;
     }

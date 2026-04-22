@@ -147,6 +147,23 @@ public sealed class ModelImporterTests : IDisposable
     }
 
     [Fact]
+    public void CreateDeferredObject_ImportedObjAsset_ReturnsDeferredSceneObject()
+    {
+        var asset = ObjModelImporter.Import(WriteObj("deferred_triangle.obj", """
+            v 0.0 0.0 0.0
+            v 1.0 0.0 0.0
+            v 0.5 1.0 0.0
+            vn 0.0 0.0 1.0
+            f 1//1 2//1 3//1
+            """));
+
+        var obj = SceneUploadCoordinator.CreateDeferredObject(asset);
+
+        obj.Should().NotBeNull();
+        obj.Name.Should().Contain("deferred_triangle.obj");
+    }
+
+    [Fact]
     public void ImportAndUpload_ObjTriangle_ProducesCorrectObject()
     {
         var factory = new SoftwareResourceFactory();
