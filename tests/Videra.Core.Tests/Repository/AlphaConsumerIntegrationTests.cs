@@ -259,6 +259,7 @@ public sealed class AlphaConsumerIntegrationTests
         feedbackDoc.Should().Contain("Videra.SurfaceCharts.Demo");
         feedbackDoc.Should().Contain("Start here: In-memory first chart");
         feedbackDoc.Should().Contain("Explore next: Cache-backed streaming");
+        feedbackDoc.Should().Contain("Try next: Scatter proof");
         feedbackDoc.Should().Contain("Support summary");
         feedbackDoc.Should().Contain("surfacecharts-support-summary.txt");
         feedbackDoc.Should().Contain("Copy support summary");
@@ -280,6 +281,7 @@ public sealed class AlphaConsumerIntegrationTests
         bugForm.Should().Contain("SurfaceCharts support summary");
         bugForm.Should().Contain("Start here: In-memory first chart");
         bugForm.Should().Contain("continue to `Explore next: Cache-backed streaming` only if needed");
+        bugForm.Should().Contain("Try next: Scatter proof");
 
         var featureForm = File.ReadAllText(featureFormPath);
         featureForm.Should().Contain("consumer_path");
@@ -304,6 +306,7 @@ public sealed class AlphaConsumerIntegrationTests
         troubleshooting.Should().Contain("Videra.SurfaceCharts.Demo");
         troubleshooting.Should().Contain("Support summary");
         troubleshooting.Should().Contain("Copy support summary");
+        troubleshooting.Should().Contain("Try next: Scatter proof");
         troubleshooting.Should().Contain("RenderingStatus");
         troubleshooting.Should().Contain("InteractionQuality");
         troubleshooting.Should().Contain("ViewState");

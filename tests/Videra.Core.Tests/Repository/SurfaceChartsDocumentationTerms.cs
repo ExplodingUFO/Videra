@@ -12,7 +12,7 @@ internal static class SurfaceChartsDocumentationTerms
         "For the canonical SurfaceCharts story, start from `Videra.SurfaceCharts.Avalonia`, add `Videra.SurfaceCharts.Processing` only for the surface/cache-backed path, and use [Videra.SurfaceCharts.Demo](samples/Videra.SurfaceCharts.Demo/README.md) as the repository reference app for the same path.";
 
     public const string SurfaceChartsDemoFirstChartSentence =
-        "For the canonical surface/cache-backed chart story, start from `Videra.SurfaceCharts.Avalonia` plus `Videra.SurfaceCharts.Processing`, and use this demo as the repository reference app for that same path. `SurfaceChartView` and `WaterfallChartView` in `Videra.SurfaceCharts.Avalonia` are the current chart control entrypoints.";
+        "For the canonical surface/cache-backed chart story, start from `Videra.SurfaceCharts.Avalonia` plus `Videra.SurfaceCharts.Processing`, and use this demo as the repository reference app for that same path. `SurfaceChartView`, `WaterfallChartView`, and `ScatterChartView` in `Videra.SurfaceCharts.Avalonia` are the current chart control entrypoints, and this demo includes a repo-owned `Try next: Scatter proof` path.";
 
     public const string SurfaceChartsDemoSentence =
         "`Videra.SurfaceCharts.Demo` is the independent demo application for the surface-chart module family.";
@@ -60,7 +60,7 @@ internal static class SurfaceChartsDocumentationTerms
         "当前公开 chart 入口是 `Videra.SurfaceCharts.Avalonia`，而 `Videra.SurfaceCharts.Processing` 只在 surface/cache-backed 路径需要；[Videra.SurfaceCharts.Demo](../../samples/Videra.SurfaceCharts.Demo/README.md) 则作为同一路径的 repository reference app。";
 
     public const string ChineseSurfaceChartsTruthSentence =
-        "当前对外 truth 是：独立 Demo、built-in `left-drag orbit` / `right-drag pan` / `wheel dolly` / `Ctrl + left-drag` focus zoom、hover 与 `Shift + left-click` pinned probe、可见 `RenderingStatus`，以及显式 `Interactive` / `Refine` 质量切换。";
+        "当前对外 truth 是：独立 Demo、built-in `left-drag orbit` / `right-drag pan` / `wheel dolly` / `Ctrl + left-drag` focus zoom、hover 与 `Shift + left-click` pinned probe、可见 `RenderingStatus`，以及显式 `Interactive` / `Refine` 质量切换；scatter 路径通过 repo-owned `Try next: Scatter proof` 暴露。";
 
     public const string ChineseSurfaceChartsViewStateSentence =
         "SurfaceChartView 现在以 `ViewState` 作为主 chart-view 契约，而 `Viewport` 只保留为兼容桥接。";
@@ -230,7 +230,9 @@ internal static class SurfaceChartsDocumentationTerms
         "`Videra.SurfaceCharts.Processing`",
         "repository reference app",
         "`SurfaceChartView`",
-        "`WaterfallChartView`"
+        "`WaterfallChartView`",
+        "`ScatterChartView`",
+        "`Try next: Scatter proof`"
     ];
 
     public static readonly string[] SurfaceChartsTriFamilyControlTokens =
@@ -300,6 +302,13 @@ internal static class SurfaceChartsDocumentationTerms
         "public package promise",
         "`Videra.SurfaceCharts.Demo`",
         "repository-only"
+    ];
+
+    public static readonly string[] SurfaceChartsScatterProofTokens =
+    [
+        "`Try next: Scatter proof`",
+        "repo-owned scatter proof path",
+        "`ScatterChartView`"
     ];
 
     public static readonly string[] SurfaceChartsScalarCompatibilityTokens =
@@ -423,7 +432,15 @@ internal static class SurfaceChartsDocumentationTerms
         "`Shift + left-click`",
         "`RenderingStatus`",
         "`Interactive`",
-        "`Refine`"
+        "`Refine`",
+        "`Try next: Scatter proof`"
+    ];
+
+    public static readonly string[] ChineseSurfaceChartsScatterProofTokens =
+    [
+        "`Try next: Scatter proof`",
+        "repo-owned",
+        "scatter 路径"
     ];
 
     public static readonly string[] ChineseSurfaceChartsViewStateTokens =
@@ -559,8 +576,14 @@ internal static class SurfaceChartsDocumentationTerms
         "built-in mouse orbit / pan / zoom is not complete",
         "the demo still uses host-driven `overview/detail` presets",
         "host-driven `overview/detail` presets",
+        "this demo does not expose a scatter path",
+        "does not expose a scatter path",
+        "demo evidence paths do not include a scatter UI",
+        "demo path set does not include a scatter UI",
+        "do not claim the demo exposes a scatter path",
         "还没有完成坐标轴、刻度、标签与图例系统",
         "还没有交付完成态的 built-in orbit / pan / dolly 工作流",
-        "由宿主驱动的 overview/detail 视口切换"
+        "由宿主驱动的 overview/detail 视口切换",
+        "Scatter 路径属于已发布控件层，但不在当前 Demo UI 中"
     ];
 }
