@@ -73,7 +73,7 @@ public sealed class ModelLoadBatchResult
     }
 
     /// <summary>
-    /// Gets the scene entries imported successfully during the batch.
+    /// Gets the scene entries applied to the active scene when the batch succeeds.
     /// </summary>
     public IReadOnlyList<SceneDocumentEntry> Entries { get; }
 

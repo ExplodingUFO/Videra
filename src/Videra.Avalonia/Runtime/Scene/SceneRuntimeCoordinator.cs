@@ -39,7 +39,7 @@ internal sealed class SceneRuntimeCoordinator
         CurrentDocument = SceneDocument.Empty;
         _sceneDocumentStore = new SceneDocumentStore(CurrentDocument);
         _sceneItemsAdapter = new SceneItemsAdapter(_sceneDocumentMutator);
-        _sceneImportService = new SceneImportService(_sceneDocumentMutator);
+        _sceneImportService = new SceneImportService();
     }
 
     public SceneDocument CurrentDocument { get; private set; }
@@ -54,12 +54,12 @@ internal sealed class SceneRuntimeCoordinator
 
     public IReadOnlyList<VideraClipPlane> ClippingPlanes => _clippingPlanes;
 
-    public Task<ImportedSceneResult> ImportSingleAsync(string path, CancellationToken cancellationToken)
+    public Task<ImportedAssetLoadResult> ImportSingleAsync(string path, CancellationToken cancellationToken)
     {
         return _sceneImportService.ImportSingleAsync(path, cancellationToken);
     }
 
-    public Task<ImportedSceneBatchResult> ImportBatchAsync(IEnumerable<string> paths, CancellationToken cancellationToken)
+    public Task<ImportedAssetBatchLoadResult> ImportBatchAsync(IEnumerable<string> paths, CancellationToken cancellationToken)
     {
         return _sceneImportService.ImportBatchAsync(paths, cancellationToken);
     }
@@ -92,23 +92,28 @@ internal sealed class SceneRuntimeCoordinator
         PublishSceneDocument(_sceneItemsAdapter.ApplyChange(CurrentDocument, change, sender as IEnumerable));
     }
 
-    public void AppendSceneEntry(SceneDocumentEntry entry)
+    public SceneDocumentEntry AppendImportedAsset(ImportedSceneAsset asset)
     {
-        ArgumentNullException.ThrowIfNull(entry);
+        ArgumentNullException.ThrowIfNull(asset);
+
+        var entry = CreateImportedEntry(asset);
         PublishSceneDocument(_sceneDocumentMutator.ReplaceEntries(CurrentDocument, CurrentDocument.Entries.Append(entry)));
+        return entry;
     }
 
-    public void ReplaceSceneEntries(IEnumerable<SceneDocumentEntry> entries)
+    public IReadOnlyList<SceneDocumentEntry> ReplaceImportedAssets(IEnumerable<ImportedSceneAsset> assets)
     {
-        ArgumentNullException.ThrowIfNull(entries);
+        ArgumentNullException.ThrowIfNull(assets);
+
+        var entries = assets.Select(CreateImportedEntry).ToArray();
         PublishSceneDocument(_sceneDocumentMutator.ReplaceEntries(SceneDocument.Empty, entries));
+        return entries;
     }
 
     public void OnBackendReady()
     {
         ResourceEpoch++;
         _sceneUploadQueue.Enqueue(_sceneResidencyRegistry.MarkDirtyForResourceEpoch(ResourceEpoch));
-        SceneEngineApplicator.ApplyReadyAdds(_engine, _sceneResidencyRegistry.GetReadyAdds(CurrentDocument.Entries), _sceneResidencyRegistry);
         _refreshSceneDiagnostics();
         _refreshBackendDiagnostics();
         _invalidateRender(RenderInvalidationKinds.Scene);
@@ -167,5 +172,11 @@ internal sealed class SceneRuntimeCoordinator
         {
             entry.SceneObject.ApplyClippingPlanes(_clippingPlanes);
         }
+    }
+
+    private SceneDocumentEntry CreateImportedEntry(ImportedSceneAsset asset)
+    {
+        var sceneObject = SceneUploadCoordinator.CreateDeferredObject(asset);
+        return _sceneDocumentMutator.CreateImportedEntry(sceneObject, asset);
     }
 }

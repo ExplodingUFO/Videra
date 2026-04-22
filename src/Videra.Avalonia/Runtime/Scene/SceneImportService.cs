@@ -12,22 +12,14 @@ internal sealed class SceneImportService
 {
     private readonly object _importedAssetGate = new();
     private readonly Dictionary<ImportedSceneAssetReuseKey, WeakReference<ImportedSceneAsset>> _importedAssetCache = [];
-    private readonly SceneDocumentMutator _mutator;
 
-    public SceneImportService(SceneDocumentMutator mutator)
-    {
-        _mutator = mutator ?? throw new ArgumentNullException(nameof(mutator));
-    }
-
-    public async Task<ImportedSceneResult> ImportSingleAsync(string path, CancellationToken cancellationToken)
+    public async Task<ImportedAssetLoadResult> ImportSingleAsync(string path, CancellationToken cancellationToken)
     {
         var startedAt = Stopwatch.StartNew();
         try
         {
             var asset = await Task.Run(() => ResolveImportedAsset(path), cancellationToken).ConfigureAwait(false);
-            var sceneObject = SceneObjectFactory.CreateDeferred(asset);
-            var entry = _mutator.CreateImportedEntry(sceneObject, asset);
-            return new ImportedSceneResult(entry, null, startedAt.Elapsed);
+            return new ImportedAssetLoadResult(asset, null, startedAt.Elapsed);
         }
         catch (OperationCanceledException)
         {
@@ -35,14 +27,14 @@ internal sealed class SceneImportService
         }
         catch (Exception ex)
         {
-            return new ImportedSceneResult(
+            return new ImportedAssetLoadResult(
                 null,
                 new ModelLoadFailure(path, ex),
                 startedAt.Elapsed);
         }
     }
 
-    public async Task<ImportedSceneBatchResult> ImportBatchAsync(IEnumerable<string> paths, CancellationToken cancellationToken)
+    public async Task<ImportedAssetBatchLoadResult> ImportBatchAsync(IEnumerable<string> paths, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(paths);
 
@@ -63,13 +55,13 @@ internal sealed class SceneImportService
         var importedAssets = await Task.WhenAll(importTasks.Values).ConfigureAwait(false);
         var importedAssetByPath = importedAssets.ToDictionary(static result => result.Path, StringComparer.Ordinal);
         var imports = indexedPaths
-            .Select(indexedPath => CreateBatchEntryResult(indexedPath.Index, importedAssetByPath[indexedPath.Path]))
+            .Select(indexedPath => CreateBatchAssetResult(indexedPath.Index, importedAssetByPath[indexedPath.Path]))
             .ToArray();
 
         Array.Sort(imports, static (left, right) => left.Index.CompareTo(right.Index));
 
-        return new ImportedSceneBatchResult(
-            imports.Where(static result => result.Entry is not null).Select(static result => result.Entry!).ToArray(),
+        return new ImportedAssetBatchLoadResult(
+            imports.Where(static result => result.Asset is not null).Select(static result => result.Asset!).ToArray(),
             imports.Where(static result => result.Failure is not null).Select(static result => result.Failure!).ToArray(),
             startedAt.Elapsed);
     }
@@ -102,16 +94,14 @@ internal sealed class SceneImportService
         }
     }
 
-    private ImportedSceneBatchEntryResult CreateBatchEntryResult(int index, ImportedAssetBatchResult importedAsset)
+    private static ImportedAssetBatchIndexResult CreateBatchAssetResult(int index, ImportedAssetBatchResult importedAsset)
     {
         if (importedAsset.Asset is null)
         {
-            return new ImportedSceneBatchEntryResult(index, null, importedAsset.Failure);
+            return new ImportedAssetBatchIndexResult(index, null, importedAsset.Failure);
         }
 
-        var sceneObject = SceneObjectFactory.CreateDeferred(importedAsset.Asset);
-        var entry = _mutator.CreateImportedEntry(sceneObject, importedAsset.Asset);
-        return new ImportedSceneBatchEntryResult(index, entry, Failure: null);
+        return new ImportedAssetBatchIndexResult(index, importedAsset.Asset, Failure: null);
     }
 
     private ImportedSceneAsset ResolveImportedAsset(string path)
@@ -198,19 +188,19 @@ internal sealed class SceneImportService
     }
 }
 
-internal sealed record ImportedSceneResult(
-    SceneDocumentEntry? Entry,
+internal sealed record ImportedAssetLoadResult(
+    ImportedSceneAsset? Asset,
     ModelLoadFailure? Failure,
     TimeSpan Duration);
 
-internal sealed record ImportedSceneBatchResult(
-    IReadOnlyList<SceneDocumentEntry> Entries,
+internal sealed record ImportedAssetBatchLoadResult(
+    IReadOnlyList<ImportedSceneAsset> Assets,
     IReadOnlyList<ModelLoadFailure> Failures,
     TimeSpan Duration);
 
-internal sealed record ImportedSceneBatchEntryResult(
+internal sealed record ImportedAssetBatchIndexResult(
     int Index,
-    SceneDocumentEntry? Entry,
+    ImportedSceneAsset? Asset,
     ModelLoadFailure? Failure);
 
 internal readonly record struct IndexedImportPath(
