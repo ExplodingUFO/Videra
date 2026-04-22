@@ -43,6 +43,11 @@ public static class VideraDiagnosticsSnapshotFormatter
         builder.AppendLine($"DisplayServerFallbackReason: {FormatNullable(diagnostics.DisplayServerFallbackReason)}");
         builder.AppendLine($"DisplayServerCompatibility: {DescribeDisplayServerCompatibility(diagnostics)}");
         builder.AppendLine($"LastInitializationError: {FormatNullable(diagnostics.LastInitializationError)}");
+        builder.AppendLine($"RenderPipelineProfile: {FormatNullable(diagnostics.RenderPipelineProfile)}");
+        builder.AppendLine($"LastFrameStageNames: {FormatList(diagnostics.LastFrameStageNames)}");
+        builder.AppendLine($"LastFrameFeatureNames: {FormatList(diagnostics.LastFrameFeatureNames)}");
+        builder.AppendLine($"SupportedRenderFeatureNames: {FormatList(diagnostics.SupportedRenderFeatureNames)}");
+        builder.AppendLine($"TransparentFeatureStatus: {FormatNullable(diagnostics.TransparentFeatureStatus)}");
         builder.AppendLine($"SceneDocumentVersion: {diagnostics.SceneDocumentVersion}");
         builder.AppendLine($"PendingSceneUploads: {diagnostics.PendingSceneUploads}");
         builder.AppendLine($"PendingSceneUploadBytes: {diagnostics.PendingSceneUploadBytes}");
@@ -82,4 +87,7 @@ public static class VideraDiagnosticsSnapshotFormatter
 
     private static string FormatNullable(string? value) =>
         string.IsNullOrWhiteSpace(value) ? "Unavailable" : value;
+
+    private static string FormatList(IReadOnlyList<string>? values) =>
+        values is { Count: > 0 } ? string.Join(", ", values) : "Unavailable";
 }

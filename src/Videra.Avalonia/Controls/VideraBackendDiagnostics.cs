@@ -1,4 +1,5 @@
 using Videra.Core.Graphics;
+using Videra.Core.Graphics.RenderPipeline;
 namespace Videra.Avalonia.Controls;
 
 /// <summary>
@@ -6,6 +7,9 @@ namespace Videra.Avalonia.Controls;
 /// </summary>
 public sealed class VideraBackendDiagnostics
 {
+    internal const string DeferredTransparentFeatureStatus =
+        "Imported alpha semantics are preserved, but dedicated alpha mask and alpha blend rendering baselines are deferred.";
+
     public static VideraBackendDiagnostics CreateDefault(GraphicsBackendPreference requestedBackend = GraphicsBackendPreference.Auto)
     {
         return new VideraBackendDiagnostics
@@ -18,7 +22,12 @@ public sealed class VideraBackendDiagnostics
             DisplayServerFallbackReason = null,
             LastFrameStageNames = Array.Empty<string>(),
             LastFrameFeatureNames = Array.Empty<string>(),
-            SupportedRenderFeatureNames = Array.Empty<string>(),
+            SupportedRenderFeatureNames = (
+                RenderFeatureSet.Opaque |
+                RenderFeatureSet.Overlay |
+                RenderFeatureSet.Picking |
+                RenderFeatureSet.Screenshot).ToFeatureNames(),
+            TransparentFeatureStatus = DeferredTransparentFeatureStatus,
             SceneDocumentVersion = 0,
             PendingSceneUploads = 0,
             PendingSceneUploadBytes = 0,
@@ -95,13 +104,30 @@ public sealed class VideraBackendDiagnostics
     /// </summary>
     public string? DisplayServerFallbackReason { get; init; }
 
+    /// <summary>
+    /// Gets the pipeline profile captured for the last rendered frame, if one is available.
+    /// </summary>
     public string? RenderPipelineProfile { get; init; }
 
+    /// <summary>
+    /// Gets the stable stage names captured for the last rendered frame.
+    /// </summary>
     public IReadOnlyList<string>? LastFrameStageNames { get; init; }
 
+    /// <summary>
+    /// Gets the active render-feature names observed on the last rendered frame.
+    /// </summary>
     public IReadOnlyList<string>? LastFrameFeatureNames { get; init; }
 
+    /// <summary>
+    /// Gets the public render-feature contract names exposed through the viewer diagnostics surface.
+    /// </summary>
     public IReadOnlyList<string>? SupportedRenderFeatureNames { get; init; }
+
+    /// <summary>
+    /// Gets the current transparency-contract status for the shipped viewer/runtime path.
+    /// </summary>
+    public string? TransparentFeatureStatus { get; init; }
 
     public bool UsesSoftwarePresentationCopy { get; init; }
 

@@ -22,6 +22,11 @@ public sealed class VideraDiagnosticsSnapshotFormatterTests
             DisplayServerFallbackUsed = true,
             DisplayServerFallbackReason = "Wayland host unavailable.",
             LastInitializationError = "No hardware backend succeeded.",
+            RenderPipelineProfile = "Standard",
+            LastFrameStageNames = ["PrepareFrame", "PresentFrame"],
+            LastFrameFeatureNames = ["Opaque", "Overlay"],
+            SupportedRenderFeatureNames = ["Opaque", "Overlay", "Picking", "Screenshot"],
+            TransparentFeatureStatus = "Imported alpha semantics are preserved, but dedicated alpha mask and alpha blend rendering baselines are deferred.",
             SceneDocumentVersion = 3,
             PendingSceneUploads = 1,
             PendingSceneUploadBytes = 4096,
@@ -52,6 +57,11 @@ public sealed class VideraDiagnosticsSnapshotFormatterTests
         snapshot.Should().Contain("ResolvedDisplayServer: XWayland");
         snapshot.Should().Contain("DisplayServerFallbackUsed: True");
         snapshot.Should().Contain("DisplayServerCompatibility: Wayland session using XWayland compatibility fallback; compositor-native Wayland embedding is not active.");
+        snapshot.Should().Contain("RenderPipelineProfile: Standard");
+        snapshot.Should().Contain("LastFrameStageNames: PrepareFrame, PresentFrame");
+        snapshot.Should().Contain("LastFrameFeatureNames: Opaque, Overlay");
+        snapshot.Should().Contain("SupportedRenderFeatureNames: Opaque, Overlay, Picking, Screenshot");
+        snapshot.Should().Contain("TransparentFeatureStatus: Imported alpha semantics are preserved, but dedicated alpha mask and alpha blend rendering baselines are deferred.");
         snapshot.Should().Contain("PendingSceneUploadBytes: 4096");
         snapshot.Should().Contain("ResolvedUploadBudgetBytes: 16384");
         snapshot.Should().Contain("IsClippingActive: True");

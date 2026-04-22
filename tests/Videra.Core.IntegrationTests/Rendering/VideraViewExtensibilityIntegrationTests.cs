@@ -45,6 +45,7 @@ public sealed class VideraViewExtensibilityIntegrationTests
             view.RenderCapabilities.SupportsFrameHooks.Should().BeTrue();
             view.RenderCapabilities.SupportsPipelineSnapshots.Should().BeTrue();
             view.RenderCapabilities.ActiveBackendPreference.Should().Be(GraphicsBackendPreference.Software);
+            view.RenderCapabilities.SupportedFeatureNames.Should().NotContain("Transparent");
             view.RenderCapabilities.LastPipelineSnapshot.Should().NotBeNull();
         }
         finally
@@ -81,6 +82,7 @@ public sealed class VideraViewExtensibilityIntegrationTests
             view.RenderCapabilities.SupportsPassReplacement.Should().BeTrue();
             view.RenderCapabilities.SupportsFrameHooks.Should().BeTrue();
             view.RenderCapabilities.SupportsPipelineSnapshots.Should().BeTrue();
+            view.RenderCapabilities.SupportedFeatureNames.Should().NotContain("Transparent");
             view.RenderCapabilities.LastPipelineSnapshot.Should().BeNull();
 
             view.BackendDiagnostics.IsReady.Should().BeFalse();
@@ -90,6 +92,8 @@ public sealed class VideraViewExtensibilityIntegrationTests
             view.BackendDiagnostics.SupportsPassReplacement.Should().BeTrue();
             view.BackendDiagnostics.SupportsFrameHooks.Should().BeTrue();
             view.BackendDiagnostics.SupportsPipelineSnapshots.Should().BeTrue();
+            view.BackendDiagnostics.SupportedRenderFeatureNames.Should().NotContain("Transparent");
+            view.BackendDiagnostics.TransparentFeatureStatus.Should().Be("Imported alpha semantics are preserved, but dedicated alpha mask and alpha blend rendering baselines are deferred.");
         }
         finally
         {

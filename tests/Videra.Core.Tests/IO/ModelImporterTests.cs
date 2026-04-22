@@ -988,6 +988,77 @@ public sealed class ModelImporterTests : IDisposable
     }
 
     [Fact]
+    public void Import_GltfBlendMaterial_PreservesBlendAlphaMode()
+    {
+        var path = WriteGltf("blend_material.gltf", """
+            {
+              "asset": { "version": "2.0" },
+              "scene": 0,
+              "scenes": [
+                { "nodes": [0] }
+              ],
+              "nodes": [
+                { "mesh": 0 }
+              ],
+              "meshes": [
+                {
+                  "primitives": [
+                    {
+                      "attributes": { "POSITION": 0 },
+                      "indices": 1,
+                      "material": 0
+                    }
+                  ]
+                }
+              ],
+              "materials": [
+                {
+                  "name": "BlendMaterial",
+                  "alphaMode": "BLEND",
+                  "doubleSided": true,
+                  "pbrMetallicRoughness": {
+                    "baseColorFactor": [0.8, 0.7, 0.6, 0.5]
+                  }
+                }
+              ],
+              "buffers": [
+                {
+                  "byteLength": 42,
+                  "uri": "data:application/octet-stream;base64,AAAAAAAAAAAAAAAAAACAPwAAAAAAAAAAAAAAAAAAgD8AAAAAAAABAAIA"
+                }
+              ],
+              "bufferViews": [
+                { "buffer": 0, "byteOffset": 0, "byteLength": 36, "target": 34962 },
+                { "buffer": 0, "byteOffset": 36, "byteLength": 6, "target": 34963 }
+              ],
+              "accessors": [
+                {
+                  "bufferView": 0,
+                  "componentType": 5126,
+                  "count": 3,
+                  "type": "VEC3",
+                  "min": [0.0, 0.0, 0.0],
+                  "max": [1.0, 1.0, 0.0]
+                },
+                {
+                  "bufferView": 1,
+                  "componentType": 5123,
+                  "count": 3,
+                  "type": "SCALAR"
+                }
+              ]
+            }
+            """);
+
+        var asset = GltfModelImporter.Import(path);
+        var material = asset.Materials.Should().ContainSingle().Subject;
+
+        material.Name.Should().Be("BlendMaterial");
+        material.BaseColorFactor.Should().Be(new RgbaFloat(0.8f, 0.7f, 0.6f, 0.5f));
+        material.Alpha.Should().Be(new MaterialAlphaSettings(MaterialAlphaMode.Blend, 0.5f, true));
+    }
+
+    [Fact]
     public void Import_GltfTangents_RetainsTangentDataOnPrimitiveMesh()
     {
         var bufferBytes = BuildTriangleBufferWithTangents();

@@ -121,6 +121,8 @@ public sealed class VideraViewSessionBridgeIntegrationTests
         diagnostics.SupportedRenderFeatureNames.Should().Contain("Overlay");
         diagnostics.SupportedRenderFeatureNames.Should().Contain("Picking");
         diagnostics.SupportedRenderFeatureNames.Should().Contain("Screenshot");
+        diagnostics.SupportedRenderFeatureNames.Should().NotContain("Transparent");
+        diagnostics.TransparentFeatureStatus.Should().Be("Imported alpha semantics are preserved, but dedicated alpha mask and alpha blend rendering baselines are deferred.");
         diagnostics.SupportsPassContributors.Should().BeTrue();
         diagnostics.SupportsPassReplacement.Should().BeTrue();
         diagnostics.SupportsFrameHooks.Should().BeTrue();

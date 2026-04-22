@@ -791,8 +791,10 @@ public sealed class VideraViewSceneIntegrationTests : IDisposable
             view.BackendDiagnostics.LastFrameStageNames.Should().Contain("PresentFrame");
             view.BackendDiagnostics.LastFrameFeatureNames.Should().Contain("Opaque");
             view.BackendDiagnostics.LastFrameFeatureNames.Should().Contain("Overlay");
+            view.BackendDiagnostics.SupportedRenderFeatureNames.Should().NotContain("Transparent");
             view.BackendDiagnostics.SupportedRenderFeatureNames.Should().Contain("Picking");
             view.BackendDiagnostics.SupportedRenderFeatureNames.Should().Contain("Screenshot");
+            view.BackendDiagnostics.TransparentFeatureStatus.Should().Be("Imported alpha semantics are preserved, but dedicated alpha mask and alpha blend rendering baselines are deferred.");
             view.BackendDiagnostics.UsesSoftwarePresentationCopy.Should().BeTrue();
         }
         finally
