@@ -148,9 +148,23 @@ internal static class SurfaceProbeService
             return false;
         }
 
-        if (IsExactTile(tile) && TryResolveExactSample(tile, localX, localY, out value))
+        var isExactSample = Math.Abs(localX - Math.Round(localX)) < 1e-9d &&
+                            Math.Abs(localY - Math.Round(localY)) < 1e-9d;
+        if (tile.Bounds.Width == tile.Width &&
+            tile.Bounds.Height == tile.Height &&
+            isExactSample)
         {
-            return true;
+            var exactSampleX = (int)Math.Round(localX);
+            var exactSampleY = (int)Math.Round(localY);
+            if (exactSampleX >= 0 && exactSampleX < tile.Width && exactSampleY >= 0 && exactSampleY < tile.Height)
+            {
+                var valueIndex = (exactSampleY * tile.Width) + exactSampleX;
+                if (tile.Mask is null || tile.Mask.Values.Span[valueIndex])
+                {
+                    value = tile.Values.Span[valueIndex];
+                    return float.IsFinite(value);
+                }
+            }
         }
 
         var leftColumn = Math.Min((int)Math.Floor(localX), tile.Width - 2);
@@ -185,46 +199,6 @@ internal static class SurfaceProbeService
         var bottom = (bottomLeft * (1f - (float)tx)) + (bottomRight * (float)tx);
         value = (top * (1f - (float)ty)) + (bottom * (float)ty);
         return float.IsFinite(value);
-    }
-
-    private static bool TryResolveExactSample(
-        SurfaceTile tile,
-        double localX,
-        double localY,
-        out float value)
-    {
-        value = default;
-
-        if (!IsIntegerCoordinate(localX) || !IsIntegerCoordinate(localY))
-        {
-            return false;
-        }
-
-        var sampleX = (int)Math.Round(localX);
-        var sampleY = (int)Math.Round(localY);
-        if (sampleX < 0 || sampleX >= tile.Width || sampleY < 0 || sampleY >= tile.Height)
-        {
-            return false;
-        }
-
-        var valueIndex = (sampleY * tile.Width) + sampleX;
-        if (tile.Mask is not null && !tile.Mask.Values.Span[valueIndex])
-        {
-            return false;
-        }
-
-        value = tile.Values.Span[valueIndex];
-        return float.IsFinite(value);
-    }
-
-    private static bool IsExactTile(SurfaceTile tile)
-    {
-        return tile.Bounds.Width == tile.Width && tile.Bounds.Height == tile.Height;
-    }
-
-    private static bool IsIntegerCoordinate(double value)
-    {
-        return Math.Abs(value - Math.Round(value)) < 1e-9d;
     }
 
     private static int MapSampleToTileIndex(double sampleCoordinate, int start, int span, int gridSize)
