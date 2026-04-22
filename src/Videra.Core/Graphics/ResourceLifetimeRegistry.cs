@@ -18,6 +18,8 @@ internal sealed class ResourceLifetimeRegistry
 
     public IPipeline? MeshPipeline { get; private set; }
 
+    public IPipeline? TransparentMeshPipeline { get; private set; }
+
     public IBuffer? CameraBuffer { get; private set; }
 
     public IBuffer? StyleUniformBuffer { get; private set; }
@@ -44,10 +46,8 @@ internal sealed class ResourceLifetimeRegistry
         StyleUniformBuffer.Update(styleService.CurrentParameters.ToUniformData());
         DefaultAlphaMaskBuffer = ResourceFactory.CreateUniformBuffer(16);
         DefaultAlphaMaskBuffer.Update(ObjectAlphaMaskUniformData.From(Scene.MaterialAlphaSettings.Opaque));
-        MeshPipeline = ResourceFactory.CreatePipeline(
-            vertexSize: (uint)Unsafe.SizeOf<VertexPositionNormalColor>(),
-            hasNormals: true,
-            hasColors: true);
+        MeshPipeline = ResourceFactory.CreatePipeline(CreateMeshPipelineDescription(alphaBlendEnabled: false, depthWriteEnabled: true));
+        TransparentMeshPipeline = ResourceFactory.CreatePipeline(CreateMeshPipelineDescription(alphaBlendEnabled: true, depthWriteEnabled: false));
     }
 
     public void RestoreGraphicsResources(
@@ -88,6 +88,9 @@ internal sealed class ResourceLifetimeRegistry
         MeshPipeline?.Dispose();
         MeshPipeline = null;
 
+        TransparentMeshPipeline?.Dispose();
+        TransparentMeshPipeline = null;
+
         CameraBuffer?.Dispose();
         CameraBuffer = null;
 
@@ -109,5 +112,16 @@ internal sealed class ResourceLifetimeRegistry
         Device = null;
         ResourceFactory = null;
         CommandExecutor = null;
+    }
+
+    private static PipelineDescription CreateMeshPipelineDescription(bool alphaBlendEnabled, bool depthWriteEnabled)
+    {
+        return new PipelineDescription
+        {
+            Topology = PrimitiveTopology.TriangleList,
+            DepthTestEnabled = true,
+            DepthWriteEnabled = depthWriteEnabled,
+            AlphaBlendEnabled = alphaBlendEnabled
+        };
     }
 }

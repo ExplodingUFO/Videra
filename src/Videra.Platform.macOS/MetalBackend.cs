@@ -23,7 +23,9 @@ public unsafe partial class MetalBackend : IGraphicsBackend, IGraphicsDevice, IR
     private IntPtr _commandQueue;
     private IntPtr _metalLayer;
     private IntPtr _depthTexture;
-    private IntPtr _depthStencilState;
+    private IntPtr _depthTestWriteState;
+    private IntPtr _depthTestOnlyState;
+    private IntPtr _depthDisabledState;
     private IntPtr _nsView;
     private bool _ownsMetalLayer;
 
@@ -131,11 +133,12 @@ public unsafe partial class MetalBackend : IGraphicsBackend, IGraphicsDevice, IR
             Log.InitializedSurface(_logger, width, height, _scaleFactor);
 
             // Create depth stencil state
-            CreateDepthStencilState();
+            CreateDepthStencilStates();
 
             // Create factory and command executor
             _resourceFactory = new MetalResourceFactory(_device);
             _commandExecutor = new MetalCommandExecutor(_commandQueue);
+            _commandExecutor.InitializeDepthStates(_depthTestWriteState, _depthTestOnlyState, _depthDisabledState);
         }
         catch
         {
@@ -174,18 +177,47 @@ public unsafe partial class MetalBackend : IGraphicsBackend, IGraphicsDevice, IR
                ObjCRuntime.SendMessagePtrBoolReturn(layer, ObjCRuntime.SEL("isKindOfClass:"), cametalLayerClass);
     }
 
-    private void CreateDepthStencilState()
+    private void CreateDepthStencilStates()
+    {
+        _depthTestWriteState = CreateDepthStencilState(testEnabled: true, writeEnabled: true);
+        _depthTestOnlyState = CreateDepthStencilState(testEnabled: true, writeEnabled: false);
+        _depthDisabledState = CreateDepthStencilState(testEnabled: false, writeEnabled: false);
+    }
+
+    private IntPtr CreateDepthStencilState(bool testEnabled, bool writeEnabled)
     {
         var descriptor = ObjCRuntime.AllocInit("MTLDepthStencilDescriptor");
-        ObjCRuntime.SendMessageInt(descriptor, ObjCRuntime.SEL("setDepthCompareFunction:"), MapDepthComparison(DepthConfig.DepthComparison));
-        ObjCRuntime.SendMessageBool(descriptor, ObjCRuntime.SEL("setDepthWriteEnabled:"), true);
-        _depthStencilState = ObjCRuntime.SendMessagePtr(_device, ObjCRuntime.SEL("newDepthStencilStateWithDescriptor:"), descriptor);
-        ObjCRuntime.SendMessageVoid(descriptor, ObjCRuntime.SEL("release"));
-        if (_depthStencilState == IntPtr.Zero)
-            throw new GraphicsInitializationException(
-                "Failed to create Metal depth stencil state.",
-                "CreateDepthStencilState");
+
+        try
+        {
+            ObjCRuntime.SendMessageInt(
+                descriptor,
+                ObjCRuntime.SEL("setDepthCompareFunction:"),
+                MapDepthComparison(testEnabled ? DepthConfig.DepthComparison : DepthComparisonFunction.Always));
+            ObjCRuntime.SendMessageBool(descriptor, ObjCRuntime.SEL("setDepthWriteEnabled:"), writeEnabled);
+
+            var state = ObjCRuntime.SendMessagePtr(_device, ObjCRuntime.SEL("newDepthStencilStateWithDescriptor:"), descriptor);
+            if (state == IntPtr.Zero)
+            {
+                throw new GraphicsInitializationException(
+                    "Failed to create Metal depth stencil state.",
+                    "CreateDepthStencilState");
+            }
+
+            return state;
+        }
+        finally
+        {
+            ObjCRuntime.SendMessageVoid(descriptor, ObjCRuntime.SEL("release"));
+        }
     }
+
+    /// <summary>
+    /// Begins a new rendering frame by delegating to the command executor, which acquires
+    /// the next drawable from the Metal layer, creates a command buffer, begins an encode pass,
+    /// clears with the current clear color, and applies the depth-stencil state.
+    /// </summary>
+    public void BeginFrame() => _commandExecutor.BeginFrame(_metalLayer, _clearColor, _depthTestWriteState, _depthTexture);
 
     private void CreateDepthTexture()
     {
@@ -245,13 +277,6 @@ public unsafe partial class MetalBackend : IGraphicsBackend, IGraphicsDevice, IR
     }
 
     /// <summary>
-    /// Begins a new rendering frame by delegating to the command executor, which acquires
-    /// the next drawable from the Metal layer, creates a command buffer, begins an encode pass,
-    /// clears with the current clear color, and applies the depth-stencil state.
-    /// </summary>
-    public void BeginFrame() => _commandExecutor.BeginFrame(_metalLayer, _clearColor, _depthStencilState, _depthTexture);
-
-    /// <summary>
     /// Ends the current rendering frame by delegating to the command executor, which commits
     /// the command buffer and presents the drawable to the screen.
     /// </summary>
@@ -292,10 +317,22 @@ public unsafe partial class MetalBackend : IGraphicsBackend, IGraphicsDevice, IR
         _disposed = true;
         IsInitialized = false;
 
-        if (_depthStencilState != IntPtr.Zero)
+        if (_depthTestWriteState != IntPtr.Zero)
         {
-            ObjCRuntime.SendMessageVoid(_depthStencilState, ObjCRuntime.SEL("release"));
-            _depthStencilState = IntPtr.Zero;
+            ObjCRuntime.SendMessageVoid(_depthTestWriteState, ObjCRuntime.SEL("release"));
+            _depthTestWriteState = IntPtr.Zero;
+        }
+
+        if (_depthTestOnlyState != IntPtr.Zero)
+        {
+            ObjCRuntime.SendMessageVoid(_depthTestOnlyState, ObjCRuntime.SEL("release"));
+            _depthTestOnlyState = IntPtr.Zero;
+        }
+
+        if (_depthDisabledState != IntPtr.Zero)
+        {
+            ObjCRuntime.SendMessageVoid(_depthDisabledState, ObjCRuntime.SEL("release"));
+            _depthDisabledState = IntPtr.Zero;
         }
 
         ReleaseDepthTexture();

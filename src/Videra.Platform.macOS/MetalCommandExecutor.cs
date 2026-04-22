@@ -16,11 +16,21 @@ internal sealed partial class MetalCommandExecutor : ICommandExecutor
     private IntPtr _commandBuffer;
     private IntPtr _renderEncoder;
     private IntPtr _currentDrawable;
+    private IntPtr _depthTestWriteState;
+    private IntPtr _depthTestOnlyState;
+    private IntPtr _depthDisabledState;
 
     public MetalCommandExecutor(IntPtr commandQueue, ILogger<MetalCommandExecutor>? logger = null)
     {
         _commandQueue = commandQueue;
         _logger = logger ?? Microsoft.Extensions.Logging.Abstractions.NullLoggerFactory.Instance.CreateLogger<MetalCommandExecutor>();
+    }
+
+    public void InitializeDepthStates(IntPtr depthTestWriteState, IntPtr depthTestOnlyState, IntPtr depthDisabledState)
+    {
+        _depthTestWriteState = depthTestWriteState;
+        _depthTestOnlyState = depthTestOnlyState;
+        _depthDisabledState = depthDisabledState;
     }
 
     public void BeginFrame(IntPtr metalLayer, Vector4 clearColor, IntPtr depthStencilState, IntPtr depthTexture)
@@ -93,9 +103,10 @@ internal sealed partial class MetalCommandExecutor : ICommandExecutor
             ObjCRuntime.SendMessageInt(_renderEncoder, ObjCRuntime.SEL("setFrontFacingWinding:"), 1); // MTLWindingCounterClockwise = 1
         }
 
-        if (depthStencilState != IntPtr.Zero)
+        var activeDepthState = depthStencilState != IntPtr.Zero ? depthStencilState : _depthTestWriteState;
+        if (activeDepthState != IntPtr.Zero)
         {
-            ObjCRuntime.SendMessagePtrVoid(_renderEncoder, ObjCRuntime.SEL("setDepthStencilState:"), depthStencilState);
+            ObjCRuntime.SendMessagePtrVoid(_renderEncoder, ObjCRuntime.SEL("setDepthStencilState:"), activeDepthState);
         }
 
         // Release descriptor
@@ -246,13 +257,29 @@ internal sealed partial class MetalCommandExecutor : ICommandExecutor
 
     public void SetDepthState(bool testEnabled, bool writeEnabled)
     {
-        // Metal depth state is managed through MTLDepthStencilState in BeginFrame
-        // For now, this is a no-op as depth state changes require creating new state objects
+        if (_renderEncoder == IntPtr.Zero)
+        {
+            return;
+        }
+
+        var depthState = _depthDisabledState;
+        if (testEnabled)
+        {
+            depthState = writeEnabled ? _depthTestWriteState : _depthTestOnlyState;
+        }
+
+        if (depthState != IntPtr.Zero)
+        {
+            ObjCRuntime.SendMessagePtrVoid(_renderEncoder, ObjCRuntime.SEL("setDepthStencilState:"), depthState);
+        }
     }
 
     public void ResetDepthState()
     {
-        // No-op for Metal - depth state is managed through MTLDepthStencilState
+        if (_renderEncoder != IntPtr.Zero && _depthTestWriteState != IntPtr.Zero)
+        {
+            ObjCRuntime.SendMessagePtrVoid(_renderEncoder, ObjCRuntime.SEL("setDepthStencilState:"), _depthTestWriteState);
+        }
     }
 
     #region Objective-C Interop

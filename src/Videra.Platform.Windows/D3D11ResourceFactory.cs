@@ -166,18 +166,18 @@ internal unsafe class D3D11ResourceFactory : IResourceFactory
     {
         if (IsSurfaceChartScalarPipeline(description))
         {
-            return CreatePipelineFromSource(GetSurfaceChartShaderSource());
+            return CreatePipelineFromSource(GetSurfaceChartShaderSource(), alphaBlendEnabled: description.AlphaBlendEnabled);
         }
 
-        return CreatePipeline(VertexPositionNormalColor.SizeInBytes, true, true);
+        return CreatePipelineFromSource(GetShaderSource(), alphaBlendEnabled: description.AlphaBlendEnabled);
     }
 
     public IPipeline CreatePipeline(uint vertexSize, bool hasNormals, bool hasColors)
     {
-        return CreatePipelineFromSource(GetShaderSource());
+        return CreatePipelineFromSource(GetShaderSource(), alphaBlendEnabled: false);
     }
 
-    private IPipeline CreatePipelineFromSource(string hlsl)
+    private IPipeline CreatePipelineFromSource(string hlsl, bool alphaBlendEnabled)
     {
         var vertexShader = CompileShader(hlsl, "main_vs", "vs_5_0");
         var pixelShader = CompileShader(hlsl, "main_ps", "ps_5_0");
@@ -282,10 +282,38 @@ internal unsafe class D3D11ResourceFactory : IResourceFactory
                     "CreatePipeline");
         }
 
+        ComPtr<ID3D11BlendState> blendState = default;
+        var blendPtr = &blendState.Handle;
+        {
+            var blendDesc = new BlendDesc
+            {
+                AlphaToCoverageEnable = 0,
+                IndependentBlendEnable = 0
+            };
+
+            blendDesc.RenderTarget[0] = new RenderTargetBlendDesc
+            {
+                BlendEnable = alphaBlendEnabled ? 1u : 0u,
+                SrcBlend = Blend.SrcAlpha,
+                DestBlend = Blend.InvSrcAlpha,
+                BlendOp = BlendOp.Add,
+                SrcBlendAlpha = Blend.One,
+                DestBlendAlpha = Blend.InvSrcAlpha,
+                BlendOpAlpha = BlendOp.Add,
+                RenderTargetWriteMask = (byte)ColorWriteEnable.All
+            };
+
+            var result = _device.Handle->CreateBlendState(in blendDesc, blendPtr);
+            if (result != 0)
+                throw new PipelineCreationException(
+                    $"Failed to create blend state. HRESULT: 0x{result:X8}",
+                    "CreatePipeline");
+        }
+
         vertexShader.Dispose();
         pixelShader.Dispose();
 
-        return new D3D11Pipeline(vs, ps, inputLayout, rasterizer);
+        return new D3D11Pipeline(vs, ps, inputLayout, rasterizer, blendState);
     }
 
     private static bool IsSurfaceChartScalarPipeline(PipelineDescription description)

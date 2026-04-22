@@ -61,6 +61,8 @@ internal unsafe class D3D11CommandExecutor : ICommandExecutor
         _context.Handle->VSSetShader(d3dPipeline.VertexShader.Handle, null, 0);
         _context.Handle->PSSetShader(d3dPipeline.PixelShader.Handle, null, 0);
         _context.Handle->RSSetState(d3dPipeline.RasterizerState.Handle);
+        var blendFactor = stackalloc float[] { 1f, 1f, 1f, 1f };
+        _context.Handle->OMSetBlendState(d3dPipeline.BlendState.Handle, blendFactor, uint.MaxValue);
         _context.Handle->IASetPrimitiveTopology(TopologyTriangleList);
     }
 

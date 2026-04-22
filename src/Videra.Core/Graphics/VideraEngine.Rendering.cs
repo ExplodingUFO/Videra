@@ -42,7 +42,8 @@ public partial class VideraEngine
         return _state == EngineLifecycleState.Active
             && _resources.RenderSurface != null
             && _resources.CommandExecutor != null
-            && _resources.MeshPipeline != null;
+            && _resources.MeshPipeline != null
+            && _resources.TransparentMeshPipeline != null;
     }
 
     private void RenderFrame(bool shouldLog)
@@ -60,6 +61,7 @@ public partial class VideraEngine
         var renderSolidGeometry = effectiveWireframeMode != WireframeMode.WireframeOnly;
         var renderWireframe = effectiveWireframeMode != WireframeMode.None || renderOverlayWireframe;
         var renderAxis = ShowAxis;
+        var (renderOpaqueGeometry, renderTransparentGeometry) = DetermineSolidGeometryFeatures(renderSolidGeometry);
         var stages = new List<RenderPipelineStage>
         {
             RenderPipelineStage.PrepareFrame,
@@ -90,7 +92,7 @@ public partial class VideraEngine
 
         return new RenderFramePlan(
             DetermineProfile(effectiveWireframeMode, renderOverlayWireframe),
-            DetermineActiveFeatures(renderGrid, renderSolidGeometry, renderWireframe, renderAxis),
+            DetermineActiveFeatures(renderGrid, renderOpaqueGeometry, renderTransparentGeometry, renderWireframe, renderAxis),
             effectiveWireframeMode,
             renderGrid,
             renderSolidGeometry,
@@ -222,9 +224,45 @@ public partial class VideraEngine
             return;
         }
 
+        RenderOpaqueObjects(shouldLog);
+        RenderTransparentObjects(shouldLog);
+    }
+
+    private void RenderOpaqueObjects(bool shouldLog)
+    {
         foreach (var obj in _renderWorld.SceneObjects)
         {
+            if (IsTransparentObject(obj))
+            {
+                continue;
+            }
+
             RenderSolidObject(obj, shouldLog);
+        }
+    }
+
+    private void RenderTransparentObjects(bool shouldLog)
+    {
+        var transparentObjects = GetTransparentObjectsInRenderOrder();
+        if (transparentObjects.Count == 0)
+        {
+            return;
+        }
+
+        _resources.CommandExecutor!.SetPipeline(_resources.TransparentMeshPipeline!);
+        _resources.CommandExecutor.SetDepthState(testEnabled: true, writeEnabled: false);
+
+        try
+        {
+            foreach (var obj in transparentObjects)
+            {
+                RenderSolidObject(obj, shouldLog);
+            }
+        }
+        finally
+        {
+            _resources.CommandExecutor.ResetDepthState();
+            _resources.CommandExecutor.SetPipeline(_resources.MeshPipeline!);
         }
     }
 
@@ -444,15 +482,21 @@ public partial class VideraEngine
 
     private static RenderFeatureSet DetermineActiveFeatures(
         bool renderGrid,
-        bool renderSolidGeometry,
+        bool renderOpaqueGeometry,
+        bool renderTransparentGeometry,
         bool renderWireframe,
         bool renderAxis)
     {
         var features = RenderFeatureSet.None;
 
-        if (renderSolidGeometry)
+        if (renderOpaqueGeometry)
         {
             features |= RenderFeatureSet.Opaque;
+        }
+
+        if (renderTransparentGeometry)
+        {
+            features |= RenderFeatureSet.Transparent;
         }
 
         if (renderGrid || renderWireframe || renderAxis)
@@ -461,6 +505,74 @@ public partial class VideraEngine
         }
 
         return features;
+    }
+
+    private (bool hasOpaqueGeometry, bool hasTransparentGeometry) DetermineSolidGeometryFeatures(bool renderSolidGeometry)
+    {
+        if (!renderSolidGeometry)
+        {
+            return (false, false);
+        }
+
+        var hasOpaqueGeometry = false;
+        var hasTransparentGeometry = false;
+
+        foreach (var obj in _renderWorld.SceneObjects)
+        {
+            if (IsTransparentObject(obj))
+            {
+                hasTransparentGeometry = true;
+            }
+            else
+            {
+                hasOpaqueGeometry = true;
+            }
+
+            if (hasOpaqueGeometry && hasTransparentGeometry)
+            {
+                break;
+            }
+        }
+
+        return (hasOpaqueGeometry, hasTransparentGeometry);
+    }
+
+    private List<Object3D> GetTransparentObjectsInRenderOrder()
+    {
+        var ordered = new List<(Object3D Object, float DistanceSquared, int Index)>();
+
+        for (var index = 0; index < _renderWorld.SceneObjects.Count; index++)
+        {
+            var obj = _renderWorld.SceneObjects[index];
+            if (!IsTransparentObject(obj))
+            {
+                continue;
+            }
+
+            var sortOrigin = obj.WorldBounds?.Center ?? obj.Position;
+            ordered.Add((obj, Vector3.DistanceSquared(Camera.Position, sortOrigin), index));
+        }
+
+        ordered.Sort(static (left, right) =>
+        {
+            var distanceComparison = right.DistanceSquared.CompareTo(left.DistanceSquared);
+            return distanceComparison != 0
+                ? distanceComparison
+                : left.Index.CompareTo(right.Index);
+        });
+
+        var transparentObjects = new List<Object3D>(ordered.Count);
+        foreach (var entry in ordered)
+        {
+            transparentObjects.Add(entry.Object);
+        }
+
+        return transparentObjects;
+    }
+
+    private static bool IsTransparentObject(Object3D obj)
+    {
+        return obj.MaterialAlpha.Mode == Scene.MaterialAlphaMode.Blend;
     }
 
     private void BindDefaultAlphaMaskState()

@@ -38,12 +38,12 @@ internal sealed class SoftwareResourceFactory : IResourceFactory
 
     public IPipeline CreatePipeline(PipelineDescription description)
     {
-        return new SoftwarePipeline(description.Topology);
+        return new SoftwarePipeline(description.Topology, description.AlphaBlendEnabled);
     }
 
     public IPipeline CreatePipeline(uint vertexSize, bool hasNormals, bool hasColors)
     {
-        return new SoftwarePipeline(PrimitiveTopology.TriangleList);
+        return new SoftwarePipeline(PrimitiveTopology.TriangleList, alphaBlendEnabled: false);
     }
 
     public IShader CreateShader(ShaderStage stage, byte[] bytecode, string entryPoint)

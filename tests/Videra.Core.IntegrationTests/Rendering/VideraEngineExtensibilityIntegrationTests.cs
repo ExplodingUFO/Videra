@@ -200,8 +200,8 @@ public sealed class VideraEngineExtensibilityIntegrationTests
         capabilities.SupportsPassReplacement.Should().BeTrue();
         capabilities.SupportsFrameHooks.Should().BeTrue();
         capabilities.SupportsPipelineSnapshots.Should().BeTrue();
-        capabilities.SupportedFeatures.Should().Be(RenderFeatureSet.Opaque | RenderFeatureSet.Overlay);
-        capabilities.SupportedFeatureNames.Should().Equal("Opaque", "Overlay");
+        capabilities.SupportedFeatures.Should().Be(RenderFeatureSet.Opaque | RenderFeatureSet.Transparent | RenderFeatureSet.Overlay);
+        capabilities.SupportedFeatureNames.Should().Equal("Opaque", "Transparent", "Overlay");
         capabilities.LastPipelineSnapshot.Should().NotBeNull();
         capabilities.LastPipelineSnapshot!.StageNames.Should().Contain("PrepareFrame");
         capabilities.LastPipelineSnapshot.StageNames.Should().Contain("PresentFrame");
@@ -261,7 +261,7 @@ public sealed class VideraEngineExtensibilityIntegrationTests
         capabilities.SupportsPassReplacement.Should().BeTrue();
         capabilities.SupportsFrameHooks.Should().BeTrue();
         capabilities.SupportsPipelineSnapshots.Should().BeTrue();
-        capabilities.SupportedFeatures.Should().Be(RenderFeatureSet.Opaque | RenderFeatureSet.Overlay);
+        capabilities.SupportedFeatures.Should().Be(RenderFeatureSet.Opaque | RenderFeatureSet.Transparent | RenderFeatureSet.Overlay);
         capabilities.LastPipelineSnapshot.Should().BeNull();
     }
 
@@ -285,7 +285,7 @@ public sealed class VideraEngineExtensibilityIntegrationTests
         capabilities.SupportsPassReplacement.Should().BeTrue();
         capabilities.SupportsFrameHooks.Should().BeTrue();
         capabilities.SupportsPipelineSnapshots.Should().BeTrue();
-        capabilities.SupportedFeatures.Should().Be(RenderFeatureSet.Opaque | RenderFeatureSet.Overlay);
+        capabilities.SupportedFeatures.Should().Be(RenderFeatureSet.Opaque | RenderFeatureSet.Transparent | RenderFeatureSet.Overlay);
         capabilities.LastPipelineSnapshot.Should().NotBeNull();
         capabilities.LastPipelineSnapshot!.StageNames.Should().Contain("PrepareFrame");
         capabilities.LastPipelineSnapshot.StageNames.Should().Contain("PresentFrame");

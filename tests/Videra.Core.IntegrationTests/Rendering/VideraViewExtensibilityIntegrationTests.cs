@@ -45,7 +45,7 @@ public sealed class VideraViewExtensibilityIntegrationTests
             view.RenderCapabilities.SupportsFrameHooks.Should().BeTrue();
             view.RenderCapabilities.SupportsPipelineSnapshots.Should().BeTrue();
             view.RenderCapabilities.ActiveBackendPreference.Should().Be(GraphicsBackendPreference.Software);
-            view.RenderCapabilities.SupportedFeatureNames.Should().NotContain("Transparent");
+            view.RenderCapabilities.SupportedFeatureNames.Should().Contain("Transparent");
             view.RenderCapabilities.LastPipelineSnapshot.Should().NotBeNull();
         }
         finally
@@ -82,7 +82,7 @@ public sealed class VideraViewExtensibilityIntegrationTests
             view.RenderCapabilities.SupportsPassReplacement.Should().BeTrue();
             view.RenderCapabilities.SupportsFrameHooks.Should().BeTrue();
             view.RenderCapabilities.SupportsPipelineSnapshots.Should().BeTrue();
-            view.RenderCapabilities.SupportedFeatureNames.Should().NotContain("Transparent");
+            view.RenderCapabilities.SupportedFeatureNames.Should().Contain("Transparent");
             view.RenderCapabilities.LastPipelineSnapshot.Should().BeNull();
 
             view.BackendDiagnostics.IsReady.Should().BeFalse();
@@ -92,8 +92,8 @@ public sealed class VideraViewExtensibilityIntegrationTests
             view.BackendDiagnostics.SupportsPassReplacement.Should().BeTrue();
             view.BackendDiagnostics.SupportsFrameHooks.Should().BeTrue();
             view.BackendDiagnostics.SupportsPipelineSnapshots.Should().BeTrue();
-            view.BackendDiagnostics.SupportedRenderFeatureNames.Should().NotContain("Transparent");
-            view.BackendDiagnostics.TransparentFeatureStatus.Should().Be("Alpha mask rendering is shipped for per-object carried alpha sources on the current runtime path; alpha blend ordering remains deferred.");
+            view.BackendDiagnostics.SupportedRenderFeatureNames.Should().Contain("Transparent");
+            view.BackendDiagnostics.TransparentFeatureStatus.Should().Be(VideraBackendDiagnostics.CurrentTransparentFeatureStatus);
         }
         finally
         {

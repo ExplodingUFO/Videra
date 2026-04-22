@@ -6,9 +6,12 @@ internal sealed class SoftwarePipeline : IPipeline
 {
     public PrimitiveTopology Topology { get; }
 
-    public SoftwarePipeline(PrimitiveTopology topology)
+    public bool AlphaBlendEnabled { get; }
+
+    public SoftwarePipeline(PrimitiveTopology topology, bool alphaBlendEnabled)
     {
         Topology = topology;
+        AlphaBlendEnabled = alphaBlendEnabled;
     }
 
     public void Dispose()

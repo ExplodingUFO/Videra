@@ -789,12 +789,11 @@ public sealed class VideraViewSceneIntegrationTests : IDisposable
             view.BackendDiagnostics.LastFrameStageNames.Should().NotBeNull();
             view.BackendDiagnostics.LastFrameStageNames.Should().Contain("PrepareFrame");
             view.BackendDiagnostics.LastFrameStageNames.Should().Contain("PresentFrame");
-            view.BackendDiagnostics.LastFrameFeatureNames.Should().Contain("Opaque");
             view.BackendDiagnostics.LastFrameFeatureNames.Should().Contain("Overlay");
-            view.BackendDiagnostics.SupportedRenderFeatureNames.Should().NotContain("Transparent");
+            view.BackendDiagnostics.SupportedRenderFeatureNames.Should().Contain("Transparent");
             view.BackendDiagnostics.SupportedRenderFeatureNames.Should().Contain("Picking");
             view.BackendDiagnostics.SupportedRenderFeatureNames.Should().Contain("Screenshot");
-            view.BackendDiagnostics.TransparentFeatureStatus.Should().Be("Alpha mask rendering is shipped for per-object carried alpha sources on the current runtime path; alpha blend ordering remains deferred.");
+            view.BackendDiagnostics.TransparentFeatureStatus.Should().Be(VideraBackendDiagnostics.CurrentTransparentFeatureStatus);
             view.BackendDiagnostics.UsesSoftwarePresentationCopy.Should().BeTrue();
         }
         finally

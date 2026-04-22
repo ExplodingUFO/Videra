@@ -239,6 +239,36 @@ public class VideraEngineIntegrationTests
     }
 
     [Fact]
+    public void VideraEngine_BlendedObjects_RenderInDeterministicBackToFrontOrder_OnSoftwareBackend()
+    {
+        using var backend = new SoftwareBackend();
+        backend.Initialize(IntPtr.Zero, 200, 200);
+        using var engine = new VideraEngine
+        {
+            BackgroundColor = RgbaFloat.Black
+        };
+        engine.Initialize(backend);
+        engine.Resize(200, 200);
+        engine.Grid.IsVisible = false;
+        engine.ShowAxis = false;
+        engine.Camera.SetOrbit(Vector3.Zero, radius: 5f, yaw: 0f, pitch: 0f);
+        engine.Camera.UpdateProjection(200, 200);
+
+        var nearBlue = DemoMeshFactory.CreateBlendedQuad(new RgbaFloat(0f, 0f, 1f, 0.5f), new Vector3(0f, 0f, 0.5f));
+        var farRed = DemoMeshFactory.CreateBlendedQuad(new RgbaFloat(1f, 0f, 0f, 0.5f), new Vector3(0f, 0f, -0.5f));
+
+        engine.AddObject(nearBlue);
+        engine.AddObject(farRed);
+
+        engine.Draw();
+
+        var frame = DemoMeshFactory.CaptureFrame(backend);
+        var pixel = DemoMeshFactory.ReadPixel(frame, backend.Width, backend.Width / 2, backend.Height / 2);
+        pixel.B.Should().BeGreaterThan(pixel.R);
+        pixel.A.Should().BeGreaterThan((byte)0);
+    }
+
+    [Fact]
     public void VideraEngine_ShowAxis_RendersAxisOverlay()
     {
         using var backend = new SoftwareBackend();
@@ -405,6 +435,33 @@ internal static class DemoMeshFactory
         return SceneObjectFactory.CreateDeferred(asset);
     }
 
+    public static Object3D CreateBlendedQuad(RgbaFloat color, Vector3 position, float halfExtent = 0.8f)
+    {
+        var vertices = new[]
+        {
+            new VertexPositionNormalColor(new Vector3(-halfExtent, -halfExtent, 0f), Vector3.UnitZ, color),
+            new VertexPositionNormalColor(new Vector3(halfExtent, -halfExtent, 0f), Vector3.UnitZ, color),
+            new VertexPositionNormalColor(new Vector3(halfExtent, halfExtent, 0f), Vector3.UnitZ, color),
+            new VertexPositionNormalColor(new Vector3(-halfExtent, halfExtent, 0f), Vector3.UnitZ, color),
+        };
+        var indices = new uint[] { 0, 1, 2, 0, 2, 3 };
+        var mesh = new MeshData
+        {
+            Vertices = vertices,
+            Indices = indices,
+            Topology = MeshTopology.Triangles
+        };
+        var material = new MaterialInstance(
+            MaterialInstanceId.New(),
+            "BlendedQuad",
+            color,
+            alpha: new MaterialAlphaSettings(MaterialAlphaMode.Blend, 0.5f, true));
+        var primitive = new MeshPrimitive(MeshPrimitiveId.New(), "BlendedQuadPrimitive", mesh, material.Id);
+        var node = new SceneNode(SceneNodeId.New(), "BlendedQuadNode", Matrix4x4.CreateTranslation(position), parentId: null, [primitive.Id]);
+        var asset = new ImportedSceneAsset("blended-quad.gltf", "blended-quad.gltf", [node], [primitive], [material]);
+        return SceneObjectFactory.CreateDeferred(asset);
+    }
+
     public static byte[] CaptureFrame(SoftwareBackend backend)
     {
         var bytes = new byte[backend.Width * backend.Height * 4];
@@ -436,6 +493,12 @@ internal static class DemoMeshFactory
         }
 
         return count;
+    }
+
+    public static PixelColor ReadPixel(byte[] frame, int width, int x, int y)
+    {
+        var offset = ((y * width) + x) * 4;
+        return new PixelColor(frame[offset + 2], frame[offset + 1], frame[offset], frame[offset + 3]);
     }
 
     public readonly record struct PixelColor(byte R, byte G, byte B, byte A)

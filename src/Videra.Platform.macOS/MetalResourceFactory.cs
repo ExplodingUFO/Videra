@@ -86,20 +86,30 @@ internal sealed partial class MetalResourceFactory : IResourceFactory
 
     public IPipeline CreatePipeline(uint vertexSize, bool hasNormals, bool hasColors)
     {
-        return CreatePipelineCore(vertexSize, hasNormals, hasColors, GetMetalShaderSource());
+        return CreatePipelineCore(vertexSize, hasNormals, hasColors, GetMetalShaderSource(), alphaBlendEnabled: false);
     }
 
     public IPipeline CreatePipeline(PipelineDescription description)
     {
         if (IsSurfaceChartScalarPipeline(description))
         {
-            return CreatePipelineCore(VertexPositionNormalColor.SizeInBytes, hasNormals: true, hasColors: true, GetSurfaceChartShaderSource());
+            return CreatePipelineCore(
+                VertexPositionNormalColor.SizeInBytes,
+                hasNormals: true,
+                hasColors: true,
+                GetSurfaceChartShaderSource(),
+                alphaBlendEnabled: description.AlphaBlendEnabled);
         }
 
-        return CreatePipeline(VertexPositionNormalColor.SizeInBytes, hasNormals: true, hasColors: true);
+        return CreatePipelineCore(
+            VertexPositionNormalColor.SizeInBytes,
+            hasNormals: true,
+            hasColors: true,
+            GetMetalShaderSource(),
+            alphaBlendEnabled: description.AlphaBlendEnabled);
     }
 
-    private IPipeline CreatePipelineCore(uint vertexSize, bool hasNormals, bool hasColors, string shaderSource)
+    private IPipeline CreatePipelineCore(uint vertexSize, bool hasNormals, bool hasColors, string shaderSource, bool alphaBlendEnabled)
     {
         Log.CreatingPipeline(_logger, vertexSize, hasNormals, hasColors);
 
@@ -141,6 +151,16 @@ internal sealed partial class MetalResourceFactory : IResourceFactory
                 var colorAttachment = ObjCRuntime.GetObjectAtIndex(colorAttachments, 0);
                 ObjCRuntime.SendMessageInt(colorAttachment, ObjCRuntime.SEL("setPixelFormat:"), 80);
                 ObjCRuntime.SendMessageInt(pipelineDescriptor, ObjCRuntime.SEL("setDepthAttachmentPixelFormat:"), MetalBackend.MetalPixelFormatDepth32Float);
+                ObjCRuntime.SendMessageBool(colorAttachment, ObjCRuntime.SEL("setBlendingEnabled:"), alphaBlendEnabled);
+                if (alphaBlendEnabled)
+                {
+                    ObjCRuntime.SendMessageInt(colorAttachment, ObjCRuntime.SEL("setSourceRGBBlendFactor:"), 4); // MTLBlendFactorSourceAlpha
+                    ObjCRuntime.SendMessageInt(colorAttachment, ObjCRuntime.SEL("setDestinationRGBBlendFactor:"), 5); // MTLBlendFactorOneMinusSourceAlpha
+                    ObjCRuntime.SendMessageInt(colorAttachment, ObjCRuntime.SEL("setRgbBlendOperation:"), 0); // MTLBlendOperationAdd
+                    ObjCRuntime.SendMessageInt(colorAttachment, ObjCRuntime.SEL("setSourceAlphaBlendFactor:"), 1); // MTLBlendFactorOne
+                    ObjCRuntime.SendMessageInt(colorAttachment, ObjCRuntime.SEL("setDestinationAlphaBlendFactor:"), 5); // MTLBlendFactorOneMinusSourceAlpha
+                    ObjCRuntime.SendMessageInt(colorAttachment, ObjCRuntime.SEL("setAlphaBlendOperation:"), 0); // MTLBlendOperationAdd
+                }
 
                 // Create vertex descriptor
                 vertexDescriptor = CreateVertexDescriptor(vertexSize, hasNormals, hasColors);

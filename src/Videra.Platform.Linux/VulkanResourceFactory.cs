@@ -79,10 +79,18 @@ internal sealed unsafe class VulkanResourceFactory : IResourceFactory
                 VertexPositionNormalColor.SizeInBytes,
                 GetSurfaceChartVertexShaderSource(),
                 GetFragmentShaderSource(),
-                usesSurfaceChartScalarBindings: true);
+                usesSurfaceChartScalarBindings: true,
+                alphaBlendEnabled: description.AlphaBlendEnabled,
+                depthWriteEnabled: description.DepthWriteEnabled);
         }
 
-        return CreatePipeline(VertexPositionNormalColor.SizeInBytes, true, true);
+        return CreatePipelineCore(
+            VertexPositionNormalColor.SizeInBytes,
+            GetVertexShaderSource(),
+            GetFragmentShaderSource(),
+            usesSurfaceChartScalarBindings: false,
+            alphaBlendEnabled: description.AlphaBlendEnabled,
+            depthWriteEnabled: description.DepthWriteEnabled);
     }
 
     public IPipeline CreatePipeline(uint vertexSize, bool hasNormals, bool hasColors)
@@ -91,14 +99,18 @@ internal sealed unsafe class VulkanResourceFactory : IResourceFactory
             vertexSize,
             GetVertexShaderSource(),
             GetFragmentShaderSource(),
-            usesSurfaceChartScalarBindings: false);
+            usesSurfaceChartScalarBindings: false,
+            alphaBlendEnabled: false,
+            depthWriteEnabled: true);
     }
 
     private IPipeline CreatePipelineCore(
         uint vertexSize,
         string vertexShaderSource,
         string fragmentShaderSource,
-        bool usesSurfaceChartScalarBindings)
+        bool usesSurfaceChartScalarBindings,
+        bool alphaBlendEnabled,
+        bool depthWriteEnabled)
     {
         if (usesSurfaceChartScalarBindings)
         {
@@ -216,7 +228,13 @@ internal sealed unsafe class VulkanResourceFactory : IResourceFactory
         var colorBlendAttachment = new PipelineColorBlendAttachmentState
         {
             ColorWriteMask = ColorComponentFlags.RBit | ColorComponentFlags.GBit | ColorComponentFlags.BBit | ColorComponentFlags.ABit,
-            BlendEnable = false
+            BlendEnable = alphaBlendEnabled,
+            SrcColorBlendFactor = BlendFactor.SrcAlpha,
+            DstColorBlendFactor = BlendFactor.OneMinusSrcAlpha,
+            ColorBlendOp = Silk.NET.Vulkan.BlendOp.Add,
+            SrcAlphaBlendFactor = BlendFactor.One,
+            DstAlphaBlendFactor = BlendFactor.OneMinusSrcAlpha,
+            AlphaBlendOp = Silk.NET.Vulkan.BlendOp.Add
         };
 
         var colorBlending = new PipelineColorBlendStateCreateInfo
@@ -231,7 +249,7 @@ internal sealed unsafe class VulkanResourceFactory : IResourceFactory
         {
             SType = StructureType.PipelineDepthStencilStateCreateInfo,
             DepthTestEnable = true,
-            DepthWriteEnable = true,
+            DepthWriteEnable = depthWriteEnabled,
             DepthCompareOp = MapDepthComparison(DepthConfig.DepthComparison),
             DepthBoundsTestEnable = false,
             StencilTestEnable = false
