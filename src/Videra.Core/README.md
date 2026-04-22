@@ -66,7 +66,7 @@ Stable feature vocabulary:
 - `Picking`
 - `Screenshot`
 
-Public feature truth flows through `RenderCapabilitySnapshot.SupportedFeatureNames`, `RenderPipelineSnapshot.FeatureNames`, `BackendDiagnostics.LastFrameFeatureNames`, and `BackendDiagnostics.SupportedRenderFeatureNames`.
+`Transparent` means alpha mask rendering plus deterministic alpha blend ordering for per-object carried alpha sources; broader transparency work stays deferred. Public feature truth flows through `RenderCapabilitySnapshot.SupportedFeatureNames`, `RenderPipelineSnapshot.FeatureNames`, `BackendDiagnostics.LastFrameFeatureNames`, `BackendDiagnostics.SupportedRenderFeatureNames`, and `TransparentFeatureStatus`.
 
 ## Built-in Backend Minimum Contract
 

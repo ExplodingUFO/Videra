@@ -35,7 +35,7 @@ public sealed class WpfSmokeConfigurationTests
         project.Should().Contain(@"..\..\src\Videra.Core\Videra.Core.csproj");
         project.Should().Contain(@"..\..\src\Videra.Platform.Windows\Videra.Platform.Windows.csproj");
         project.Should().NotContain("Avalonia");
-        packageMatrix.Should().NotContain("Videra.WpfSmoke");
+        packageMatrix.Should().Contain("smoke/Videra.WpfSmoke");
         releasePolicy.Should().NotContain("Videra.WpfSmoke");
         consumerSmokeWorkflow.Should().NotContain("Videra.WpfSmoke");
         publicWorkflow.Should().NotContain("Videra.WpfSmoke");

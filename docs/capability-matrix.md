@@ -14,6 +14,7 @@ The `1.0` line is a native desktop viewer/runtime for .NET applications, centere
 | Dedicated scene import | Yes | `Videra.Import.Gltf` and `Videra.Import.Obj` deliver `.gltf`, `.glb`, and `.obj` ingestion on the viewer/runtime path |
 | Viewer-first inspection workflows | Yes | Picking, measurement, clipping, snapshot export, inspection-state capture/restore, and inspection bundles are part of the product surface |
 | Narrow public extensibility | Yes | Pass contributors, frame hooks, capability snapshots, and backend diagnostics are part of the shipped viewer contract |
+| Transparency baseline | Yes | Alpha mask rendering and deterministic alpha blend ordering are shipped for per-object carried alpha sources; broader transparency work remains deferred |
 | `SurfaceCharts` package family | Yes | `SurfaceChartView`, `WaterfallChartView`, chart overlays/interaction, and the `Videra.SurfaceCharts.*` package line are part of the shipped `1.0` story; `Videra.SurfaceCharts.Processing` is only needed for the surface/cache-backed path, and `Videra.SurfaceCharts.Demo` remains the repository reference app |
 
 ## Explicitly Deferred After 1.0
@@ -23,7 +24,7 @@ The `1.0` line is a native desktop viewer/runtime for .NET applications, centere
 | General engine/runtime parity | Deferred | The current target is an embeddable viewer/runtime, not a broad engine surface |
 | PBR material/runtime breadth | Deferred | Static material/texture runtime deepening belongs after the product/package boundary is stable |
 | Animation, skeleton, morph, and mixer APIs | Deferred | These are engine-style feature lines, not part of the current viewer-first scope |
-| Lights, shadows, environment maps, transparency sorting, and post-processing | Deferred | Advanced render breadth is intentionally out of the `1.0` promise |
+| Lights, shadows, environment maps, and post-processing | Deferred | Advanced render breadth is intentionally out of the `1.0` promise |
 | Extra UI adapters beyond Avalonia | Deferred | Avalonia remains the current public UI adapter while the runtime boundary is tightened |
 | Additional chart families beyond `SurfaceCharts` | Deferred | `SurfaceCharts` remains the concrete shipped chart product line for now |
 | `WebGL` / `OpenGL` backend pursuit | Deferred | The current native support promise remains `D3D11` / `Vulkan` / `Metal` |
