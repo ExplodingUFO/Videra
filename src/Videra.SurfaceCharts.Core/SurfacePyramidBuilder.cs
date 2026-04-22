@@ -112,25 +112,85 @@ public sealed class SurfacePyramidBuilder
         var blockHeight = 1L << (sourceLevelY - levelY);
         var outputWidth = DivideRoundUp(source.Metadata.Width, blockWidth);
         var outputHeight = DivideRoundUp(source.Metadata.Height, blockHeight);
-        var outputValues = new float[checked(outputWidth * outputHeight)];
-        var sourceValues = source.Values.Span;
-        var sourceWidth = source.Metadata.Width;
         var hasSourceMask = source.Mask is not null;
         var sourceMaskValues = hasSourceMask ? source.Mask!.Values.Span : default(ReadOnlySpan<bool>);
-        bool[]? outputMaskValues = hasSourceMask ? new bool[outputValues.Length] : null;
+        var heightField = CreateReducedField(
+            source.Values.Span,
+            source.Metadata.Width,
+            source.Metadata.Height,
+            outputWidth,
+            outputHeight,
+            blockWidth,
+            blockHeight,
+            sourceMaskValues,
+            reductionKernel);
+
+        SurfaceScalarField? colorField = null;
+        if (source.ColorField is not null)
+        {
+            var reducedColorField = CreateReducedField(
+                source.ColorField.Values.Span,
+                source.Metadata.Width,
+                source.Metadata.Height,
+                outputWidth,
+                outputHeight,
+                blockWidth,
+                blockHeight,
+                sourceMaskValues,
+                reductionKernel);
+
+            colorField = new SurfaceScalarField(
+                outputWidth,
+                outputHeight,
+                reducedColorField.Values,
+                SurfaceTileStatistics.FromValues(
+                    reducedColorField.Values,
+                    isExact: false,
+                    heightField.Mask).Range);
+        }
+
+        var metadata = source.Metadata.Geometry is SurfaceExplicitGrid explicitGrid
+            ? CreateReducedExplicitMetadata(source.Metadata, explicitGrid, blockWidth, blockHeight)
+            : new SurfaceMetadata(
+                outputWidth,
+                outputHeight,
+                source.Metadata.HorizontalAxis,
+                source.Metadata.VerticalAxis,
+                source.Metadata.ValueRange);
+
+        return new SurfaceMatrix(
+            metadata,
+            new SurfaceScalarField(outputWidth, outputHeight, heightField.Values, metadata.ValueRange),
+            colorField,
+            heightField.Mask);
+    }
+
+    private static (float[] Values, SurfaceMask? Mask) CreateReducedField(
+        ReadOnlySpan<float> sourceValues,
+        int sourceWidth,
+        int sourceHeight,
+        int outputWidth,
+        int outputHeight,
+        long blockWidth,
+        long blockHeight,
+        ReadOnlySpan<bool> sourceMaskValues,
+        ISurfaceTileReductionKernel reductionKernel)
+    {
+        var outputValues = new float[checked(outputWidth * outputHeight)];
+        bool[]? outputMaskValues = sourceMaskValues.Length != 0 ? new bool[outputValues.Length] : null;
         var hasMaskedOutputSamples = false;
         var destinationIndex = 0;
 
         for (var outputY = 0; outputY < outputHeight; outputY++)
         {
             var startY = (int)(outputY * blockHeight);
-            var endY = (int)Math.Min(source.Metadata.Height, startY + blockHeight);
+            var endY = (int)Math.Min(sourceHeight, startY + blockHeight);
 
             for (var outputX = 0; outputX < outputWidth; outputX++)
             {
                 var startX = (int)(outputX * blockWidth);
-                var endX = (int)Math.Min(source.Metadata.Width, startX + blockWidth);
-                var statistics = hasSourceMask
+                var endX = (int)Math.Min(sourceWidth, startX + blockWidth);
+                var statistics = sourceMaskValues.Length != 0
                     ? SurfaceMaskedReduction.ReduceRegion(
                         sourceValues,
                         sourceMaskValues,
@@ -165,20 +225,49 @@ public sealed class SurfacePyramidBuilder
             }
         }
 
-        var metadata = new SurfaceMetadata(
-            outputWidth,
-            outputHeight,
-            source.Metadata.HorizontalAxis,
-            source.Metadata.VerticalAxis,
-            source.Metadata.ValueRange);
+        return (outputValues, hasMaskedOutputSamples ? new SurfaceMask(outputWidth, outputHeight, outputMaskValues!) : null);
+    }
 
-        return new SurfaceMatrix(
-            metadata,
-            new SurfaceScalarField(outputWidth, outputHeight, outputValues, metadata.ValueRange),
-            colorField: null,
-            mask: hasMaskedOutputSamples
-                ? new SurfaceMask(outputWidth, outputHeight, outputMaskValues!)
-                : null);
+    private static SurfaceMetadata CreateReducedExplicitMetadata(
+        SurfaceMetadata sourceMetadata,
+        SurfaceExplicitGrid sourceGrid,
+        long blockWidth,
+        long blockHeight)
+    {
+        var horizontalCoordinates = ReduceExplicitCoordinates(sourceGrid.HorizontalCoordinates.Span, blockWidth);
+        var verticalCoordinates = ReduceExplicitCoordinates(sourceGrid.VerticalCoordinates.Span, blockHeight);
+        var geometry = new SurfaceExplicitGrid(horizontalCoordinates, verticalCoordinates);
+
+        return new SurfaceMetadata(
+            geometry,
+            new SurfaceAxisDescriptor(
+                sourceMetadata.HorizontalAxis.Label,
+                sourceMetadata.HorizontalAxis.Unit,
+                geometry.GetHorizontalMinimum(sourceMetadata.HorizontalAxis),
+                geometry.GetHorizontalMaximum(sourceMetadata.HorizontalAxis),
+                SurfaceAxisScaleKind.ExplicitCoordinates),
+            new SurfaceAxisDescriptor(
+                sourceMetadata.VerticalAxis.Label,
+                sourceMetadata.VerticalAxis.Unit,
+                geometry.GetVerticalMinimum(sourceMetadata.VerticalAxis),
+                geometry.GetVerticalMaximum(sourceMetadata.VerticalAxis),
+                SurfaceAxisScaleKind.ExplicitCoordinates),
+            sourceMetadata.ValueRange);
+    }
+
+    private static double[] ReduceExplicitCoordinates(ReadOnlySpan<double> coordinates, long blockSize)
+    {
+        var outputLength = DivideRoundUp(coordinates.Length, blockSize);
+        var reducedCoordinates = new double[outputLength];
+
+        for (var outputIndex = 0; outputIndex < outputLength; outputIndex++)
+        {
+            var startIndex = (int)(outputIndex * blockSize);
+            var endIndex = Math.Min(coordinates.Length - 1, (int)((outputIndex + 1L) * blockSize) - 1);
+            reducedCoordinates[outputIndex] = (coordinates[startIndex] + coordinates[endIndex]) * 0.5d;
+        }
+
+        return reducedCoordinates;
     }
 
     private static int DivideRoundUp(int value, long divisor)

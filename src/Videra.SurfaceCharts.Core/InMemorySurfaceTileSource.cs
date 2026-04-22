@@ -110,8 +110,10 @@ public sealed class InMemorySurfaceTileSource : ISurfaceTileSource
         }
 
         var tileValues = new float[tileWidth * tileHeight];
+        float[]? tileColorValues = matrix.ColorField is not null ? new float[tileWidth * tileHeight] : null;
         bool[]? tileMaskValues = matrix.Mask is not null ? new bool[tileWidth * tileHeight] : null;
         var sourceValues = matrix.Values.Span;
+        var sourceColorValues = matrix.ColorField is not null ? matrix.ColorField.Values.Span : default(ReadOnlySpan<float>);
         var sourceMaskValues = matrix.Mask is not null ? matrix.Mask.Values.Span : default(ReadOnlySpan<bool>);
         var matrixWidth = matrix.Metadata.Width;
         var destinationIndex = 0;
@@ -130,6 +132,10 @@ public sealed class InMemorySurfaceTileSource : ISurfaceTileSource
                 }
 
                 tileValues[destinationIndex++] = sourceValues[sourceIndex + offsetX];
+                if (tileColorValues is not null)
+                {
+                    tileColorValues[destinationIndex - 1] = sourceColorValues[sourceIndex + offsetX];
+                }
             }
         }
 
@@ -137,6 +143,16 @@ public sealed class InMemorySurfaceTileSource : ISurfaceTileSource
             ? new SurfaceMask(tileWidth, tileHeight, tileMaskValues!)
             : null;
         var valueRange = SurfaceTileStatistics.FromValues(tileValues, isExact: true, tileMask).Range;
+        SurfaceScalarField? colorField = null;
+        if (tileColorValues is not null)
+        {
+            colorField = new SurfaceScalarField(
+                tileWidth,
+                tileHeight,
+                tileColorValues,
+                SurfaceTileStatistics.FromValues(tileColorValues, isExact: true, tileMask).Range);
+        }
+
         var statistics = BuildStatistics(
             sourceStartX,
             sourceStartY,
@@ -148,7 +164,7 @@ public sealed class InMemorySurfaceTileSource : ISurfaceTileSource
             tileKey,
             new SurfaceTileBounds(sourceStartX, sourceStartY, sourceWidth, sourceHeight),
             new SurfaceScalarField(tileWidth, tileHeight, tileValues, valueRange),
-            colorField: null,
+            colorField,
             mask: tileMask,
             statistics);
 
