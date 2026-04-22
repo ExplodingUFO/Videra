@@ -40,7 +40,7 @@ The canonical public SurfaceCharts stack is:
 | `Videra.Import.Obj` | Yes, on public release tags | `nuget.org` | `GitHub Packages` preview/internal only | Core-first consumers that need `.obj` ingestion | `alpha` | Dedicated OBJ import package layered on `Videra.Core` |
 | `Videra.Avalonia` | Yes, on public release tags | `nuget.org` | `GitHub Packages` preview/internal only | Avalonia desktop applications | `alpha` | Main public UI entry package; scene loading flows transitively depend on the import packages |
 | `Videra.Platform.Windows` | Yes, on public release tags | `nuget.org` | `GitHub Packages` preview/internal only | Windows hosts | `alpha` | Install with `Videra.Avalonia` on Windows |
-| `Videra.Platform.Linux` | Yes, on public release tags | `nuget.org` | `GitHub Packages` preview/internal only | Linux hosts | `alpha` | Current native path is X11 plus Vulkan; Wayland uses `XWayland` compatibility |
+| `Videra.Platform.Linux` | Yes, on public release tags | `nuget.org` | `GitHub Packages` preview/internal only | Linux hosts | `alpha` | Current native path is X11 plus Vulkan; Wayland uses the `XWayland` bridge |
 | `Videra.Platform.macOS` | Yes, on public release tags | `nuget.org` | `GitHub Packages` preview/internal only | macOS hosts | `alpha` | Install with `Videra.Avalonia` on macOS |
 | `Videra.SurfaceCharts.Core` | Yes, on public release tags | `nuget.org` | `GitHub Packages` preview/internal only | Chart-domain consumers and custom tile-source integrators | `alpha` | Chart-domain contracts, metadata, LOD, probe contracts |
 | `Videra.SurfaceCharts.Rendering` | Yes, on public release tags | `nuget.org` | `GitHub Packages` preview/internal only | Advanced chart-runtime consumers | `alpha` | Rendering-runtime layer used transitively by `Videra.SurfaceCharts.Avalonia` |
@@ -68,6 +68,6 @@ The canonical public SurfaceCharts stack is:
 
 The public viewer/runtime line still shares one backend-neutral asset catalog across `Videra.Core` and `Videra.Avalonia`: `SceneDocument`, `ImportedSceneAsset`, `SceneNode`, `MeshPrimitive`, `MaterialInstance`, `Texture2D`, and `Sampler`.
 
-That viewer baseline remains deliberately scoped to `static glTF/PBR`: `metallic-roughness`, `normal-map-ready`, and `tangent-aware` are in scope today, while `morph targets` stay outside the current product promise.
+That viewer baseline remains deliberately scoped to static-scene glTF/PBR: `metallic-roughness`, `normal-map-ready`, `tangent-aware`, and repeated unchanged imports that can reuse retained imported scene assets are in scope today, while `animation`, `skeletons`, `morph targets`, `lights`, and `shadows` stay outside the current product promise.
 
-The current import/runtime path is also expected to stay stable for `repeated unchanged imports` and `retained imported scene assets`, so package consumers can reason about asset reuse without treating the chart line or demos as part of the viewer kernel.
+The current import/runtime path is also expected to stay stable for retained imported scene assets, so package consumers can reason about asset reuse without treating the chart line or demos as part of the viewer kernel.

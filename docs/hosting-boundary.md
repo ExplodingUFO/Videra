@@ -36,7 +36,7 @@ The shipped viewer path keeps one direct runtime model:
 - The shared render-feature vocabulary on that path is `Opaque`, `Transparent`, `Overlay`, `Picking`, and `Screenshot`, where `Transparent` means alpha mask rendering plus deterministic alpha blend ordering for per-object carried alpha sources.
 - Host apps observe the result through public diagnostics and capability surfaces rather than through importer-specific or backend-specific types.
 
-That boundary is intentionally narrower than a general 3D runtime. Animation, skeletons, morph targets, and broader advanced-runtime expansion stay out of scope here.
+That boundary is intentionally static-scene-only. Animation, skeletons, morph targets, lights, shadows, and other non-static scene systems stay out of scope here.
 
 ## Internal Seam Owners
 
@@ -68,7 +68,7 @@ This split keeps the public viewer path readable and maintainable:
 
 - `Core` stays reusable as the runtime kernel.
 - `Import` stays explicit instead of hiding inside `Videra.Core`.
-- `Videra.Avalonia` stays the thin host shell instead of becoming a general runtime framework.
+- `Videra.Avalonia` stays the thin host shell instead of becoming a broader runtime layer.
 - Native-host complexity stays behind internal seams where it belongs.
 - `SurfaceCharts` can deepen independently without coupling to `VideraView` hosting/runtime internals.
 

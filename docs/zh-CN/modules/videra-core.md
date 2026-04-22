@@ -172,7 +172,7 @@ Phase 11 新增的 public extensibility contract：
 - `VideraEngine` 是 public extensibility root。
 - 这套 API 是 C#-first、进程内的 contract，不包含 package discovery 或 plugin loading。
 - Avalonia 的 internal session/orchestration 类型不是对外扩展入口。
-- `SceneDocument` 保留 imported asset 的 backend-neutral 真相，backend 恢复会从这份 scene truth 重建资源，而不是长期依赖 software staging path。
+- `SceneDocument` 保留 imported asset 的 backend-neutral 真相，backend 恢复会从这份 scene truth 重建资源，而不是长期依赖 software staging path；当前 shipped runtime 仍是 static-scene-only，动画、骨骼、morph targets、灯光和阴影都不在这条 baseline 内。
 
 开发者入口请直接配合 [扩展合同](../extensibility.md) 阅读，并以 `samples/Videra.ExtensibilitySample` 作为最小参考流程：
 

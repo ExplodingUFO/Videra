@@ -2,7 +2,7 @@
 
 This page is the product-boundary truth for `Videra 1.0`.
 
-The `1.0` line is a native desktop viewer/runtime for .NET applications, centered on embeddable viewing, inspection, diagnostics, and the public `SurfaceCharts` package family. It is not a Three.js-style general runtime, not a game engine, and not a promise to chase `WebGL` / `OpenGL` style API breadth.
+The `1.0` line is a native desktop viewer/runtime for .NET applications, centered on `SceneDocument`-backed imported assets, embeddable viewing, inspection, diagnostics, and the public `SurfaceCharts` package family. It is not a general engine, and it does not expand into broader runtime, lighting, or API breadth.
 
 ## Shipped in the 1.0 Line
 
@@ -10,7 +10,7 @@ The `1.0` line is a native desktop viewer/runtime for .NET applications, centere
 | --- | --- | --- |
 | Native desktop viewer runtime | Yes | Cross-platform viewer stack for Avalonia hosts with Windows=`D3D11`, Linux=`Vulkan`, and macOS=`Metal` native backends |
 | Software fallback and diagnostics | Yes | Viewer path includes software fallback, backend diagnostics, and matching-host validation truth |
-| Scene truth and upload/runtime services | Yes | `SceneDocument`, delta planning, residency, upload queueing, and backend rebind/recovery are part of the shipped viewer runtime |
+| Scene truth and upload/runtime services | Yes | `SceneDocument`, imported-asset catalogs, delta planning, residency, upload queueing, and backend rebind/recovery are part of the shipped viewer runtime |
 | Dedicated scene import | Yes | `Videra.Import.Gltf` and `Videra.Import.Obj` deliver `.gltf`, `.glb`, and `.obj` ingestion on the viewer/runtime path |
 | Viewer-first inspection workflows | Yes | Picking, measurement, clipping, snapshot export, inspection-state capture/restore, and inspection bundles are part of the product surface |
 | Narrow public extensibility | Yes | Pass contributors, frame hooks, capability snapshots, and backend diagnostics are part of the shipped viewer contract |
@@ -22,9 +22,9 @@ The `1.0` line is a native desktop viewer/runtime for .NET applications, centere
 | Capability area | Deferred status | Reason it is not in `1.0` |
 | --- | --- | --- |
 | General engine/runtime parity | Deferred | The current target is an embeddable viewer/runtime, not a broad engine surface |
-| PBR material/runtime breadth | Deferred | Static material/texture runtime deepening belongs after the product/package boundary is stable |
+| Static-scene material/runtime breadth | Deferred | The shipped viewer/runtime stays on the current static glTF/PBR baseline |
 | Animation, skeleton, morph, and mixer APIs | Deferred | These are engine-style feature lines, not part of the current viewer-first scope |
-| Lights, shadows, environment maps, and post-processing | Deferred | Advanced render breadth is intentionally out of the `1.0` promise |
+| Lights, shadows, environment maps, and post-processing | Deferred | These are outside the current static-scene viewer/runtime baseline |
 | Extra UI adapters beyond Avalonia | Deferred | Avalonia remains the current public UI adapter while the runtime boundary is tightened |
 | Additional chart families beyond `SurfaceCharts` | Deferred | `SurfaceCharts` remains the concrete shipped chart product line for now |
 | `WebGL` / `OpenGL` backend pursuit | Deferred | The current native support promise remains `D3D11` / `Vulkan` / `Metal` |
