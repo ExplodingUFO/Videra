@@ -7,7 +7,7 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PackageId>Videra.SurfaceCharts.Core</PackageId>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <Description>Core surface-chart contracts for Videra Surface Charts, including metadata, viewport, LOD, and tile-source abstractions.</Description>
+    <Description>Core contracts for the shipped Videra SurfaceCharts package line, including metadata, viewport, LOD, and tile-source abstractions.</Description>
     <PackageTags>videra;surface-charts;3d;chart;viewer;graphics</PackageTags>
   </PropertyGroup>
 

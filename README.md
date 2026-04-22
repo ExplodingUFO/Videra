@@ -31,7 +31,7 @@ That shipped viewer path now carries one direct static glTF/PBR baseline: UV-bac
 - Current repository baseline: `0.1.0-alpha.7`
 - Public release tags are intended to publish the consumer packages on `nuget.org`
 - `GitHub Packages` remains the `preview` / internal feed for contributors and pre-release validation
-- `Videra.SurfaceCharts.*` now ships as a public `alpha` package line, while `Videra.SurfaceCharts.Demo` remains repository-only
+- `Videra.SurfaceCharts.*` now ships as a public `alpha` package line, `SurfaceChartView` and `WaterfallChartView` are the current Avalonia controls, `Videra.SurfaceCharts.Processing` is needed for the surface/cache-backed path, and `Videra.SurfaceCharts.Demo` remains repository-only
 - `smoke/Videra.WpfSmoke` remains a repository-only Windows WPF smoke proof for validation and support evidence on the Avalonia-first viewer path; it is not a second public UI package or release path
 - Linux native rendering remains `X11`-hosted, and Wayland sessions stay on the documented `XWayland compatibility` path
 - GitHub Actions runs matching-host native validation, packaged viewer consumer smoke, packaged SurfaceCharts first-chart consumer smoke, and explicit sample-contract evidence on pull requests, and the [Native Validation runbook](docs/native-validation.md) documents how to use `Run workflow` for targeted reruns
@@ -79,14 +79,14 @@ dotnet add package Videra.Import.Obj
 
 `Videra.Avalonia` already brings `Videra.Import.Gltf` and `Videra.Import.Obj` transitively for `LoadModelAsync(...)` and `LoadModelsAsync(...)`.
 
-For surface charts, start with the dedicated Avalonia control package and add processing helpers when you want the current first-chart path:
+For surface charts, start with the dedicated Avalonia control package and add processing helpers when you want the surface/cache-backed path:
 
 ```bash
 dotnet add package Videra.SurfaceCharts.Avalonia
 dotnet add package Videra.SurfaceCharts.Processing
 ```
 
-`Videra.SurfaceCharts.Avalonia` brings `Videra.SurfaceCharts.Core` and `Videra.SurfaceCharts.Rendering` transitively. Add `Videra.SurfaceCharts.Core` directly only when you are building chart-domain contracts or custom tile sources without the Avalonia shell. `Videra.SurfaceCharts.Demo` remains repository-only.
+`Videra.SurfaceCharts.Avalonia` brings `Videra.SurfaceCharts.Core` and `Videra.SurfaceCharts.Rendering` transitively. Add `Videra.SurfaceCharts.Core` directly only when you are building chart-domain contracts or custom tile sources without the Avalonia shell. `Videra.SurfaceCharts.Processing` is only required for the surface/cache-backed path. `Videra.SurfaceCharts.Demo` remains repository-only.
 
 `Videra.Avalonia` remains the UI/control entry package. `PreferredBackend` and `VIDERA_BACKEND` only change backend preference. They do not install missing platform packages, and they do not replace matching-host native validation.
 The public install flow does not install missing platform packages for you.
@@ -113,8 +113,8 @@ For alpha adoption feedback, use [Alpha Feedback](docs/alpha-feedback.md) before
 | `Videra.Platform.macOS` | macOS Metal hosts | `nuget.org` public tags | `alpha` |
 | `Videra.SurfaceCharts.Core` | Chart-domain consumers and custom tile-source integrators | `nuget.org` public tags | `alpha` |
 | `Videra.SurfaceCharts.Rendering` | SurfaceCharts rendering-runtime consumers | `nuget.org` public tags | `alpha` |
-| `Videra.SurfaceCharts.Processing` | Surface preprocessing, cache, and pyramid helpers | `nuget.org` public tags | `alpha` |
-| `Videra.SurfaceCharts.Avalonia` | Avalonia desktop applications that host `SurfaceChartView` | `nuget.org` public tags | `alpha` |
+| `Videra.SurfaceCharts.Processing` | Surface preprocessing, cache, and pyramid helpers for the surface/cache-backed path | `nuget.org` public tags | `alpha` |
+| `Videra.SurfaceCharts.Avalonia` | Avalonia desktop applications that host `SurfaceChartView` or `WaterfallChartView` | `nuget.org` public tags | `alpha` |
 
 ## Repository-only entries
 
@@ -122,7 +122,7 @@ For alpha adoption feedback, use [Alpha Feedback](docs/alpha-feedback.md) before
 | --- | --- | --- |
 | `Videra.Demo` | Repository-only | Viewer diagnostics and scene-pipeline reference app |
 | `smoke/Videra.WpfSmoke` | Repository-only | Windows WPF smoke proof for validation and support evidence on the Avalonia-first viewer path |
-| `Videra.SurfaceCharts.Demo` | Repository-only | SurfaceCharts reference app and support-summary repro path |
+| `Videra.SurfaceCharts.Demo` | Repository-only | SurfaceCharts reference app and support-summary repro path with `Start here`, `Explore next`, and `Try next` demo paths |
 | `Videra.ExtensibilitySample` | Repository-only | Public extensibility reference sample |
 | `Videra.InteractionSample` | Repository-only | Public controlled-interaction and inspection workflow sample |
 
@@ -132,7 +132,7 @@ For alpha adoption feedback, use [Alpha Feedback](docs/alpha-feedback.md) before
 | --- | --- |
 | `Videra.MinimalSample` | Shortest first-scene reference for `VideraViewOptions`, `LoadModelAsync`, `FrameAll`, `ResetCamera`, `BackendDiagnostics`, and diagnostics snapshot export |
 | `Videra.Demo` | Viewer demo for backend diagnostics, import feedback, and baseline interaction |
-| `Videra.SurfaceCharts.Demo` | Independent surface-chart demo for `SurfaceChartView`, chart-local overlays, and rendering-path truth |
+| `Videra.SurfaceCharts.Demo` | Independent surface-chart demo for `SurfaceChartView`, `WaterfallChartView`, chart-local overlays, and rendering-path truth |
 | `Videra.ExtensibilitySample` | Narrow public reference for `VideraView.Engine`, `RegisterPassContributor(...)`, and `RegisterFrameHook(...)` |
 | `Videra.InteractionSample` | Public sample for the controlled interaction contract plus viewer-first inspection workflows such as measurement, clipping, state restore, snapshot export, and replayable inspection bundles |
 
@@ -186,10 +186,10 @@ Contract highlights:
 
 ## Surface Charts Onboarding
 
-For the canonical first-chart story, start from `Videra.SurfaceCharts.Avalonia` plus `Videra.SurfaceCharts.Processing`, and use [Videra.SurfaceCharts.Demo](samples/Videra.SurfaceCharts.Demo/README.md) as the repository reference app for the same path.
-Inside that demo, keep the default `Start here: In-memory first chart` path for the baseline repro, then move to `Explore next: Cache-backed streaming` when you want to validate lazy tile reads and the broader chart diagnostics surface.
+For the canonical SurfaceCharts story, start from `Videra.SurfaceCharts.Avalonia`, add `Videra.SurfaceCharts.Processing` only for the surface/cache-backed path, and use [Videra.SurfaceCharts.Demo](samples/Videra.SurfaceCharts.Demo/README.md) as the repository reference app for the same path.
+Inside that demo, keep the default `Start here: In-memory first chart` path for the baseline repro, then move to `Explore next: Cache-backed streaming` when you want to validate lazy tile reads and the broader chart diagnostics surface, and use `Try next: Waterfall proof` for the thin second chart proof on the same Avalonia shell.
 Use `Copy support summary` when you need the chart support artifact that matches the docs and bug template. Public tags now publish the `Videra.SurfaceCharts.*` package assets, while `Videra.SurfaceCharts.Demo` remains repository-only and keeps the support-summary repro workflow.
-The packaged first-chart proof lives separately in `smoke/Videra.SurfaceCharts.ConsumerSmoke`, which writes `surfacecharts-support-summary.txt` on the packaged install path without turning the broader demo into a public install story.
+The packaged SurfaceCharts proof lives separately in `smoke/Videra.SurfaceCharts.ConsumerSmoke`, which writes `surfacecharts-support-summary.txt` on the packaged install path without turning the broader demo into a public install story.
 
 Contract highlights:
 

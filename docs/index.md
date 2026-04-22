@@ -2,7 +2,7 @@
 
 [English](index.md) | [中文](zh-CN/index.md)
 
-This page maps the long-lived public documentation for Videra. Start with the repository README when you need the public package boundary, chart-package truth, or the current alpha support contract.
+This page maps the long-lived public documentation for Videra. Start with the repository README when you need the public package boundary, chart-package truth, or the current alpha support contract for the shipped `SurfaceChartView` and `WaterfallChartView` controls.
 
 ## Start Here
 

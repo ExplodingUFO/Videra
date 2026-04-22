@@ -7,7 +7,7 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PackageId>Videra.SurfaceCharts.Rendering</PackageId>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <Description>Chart rendering runtime helpers for Videra Surface Charts.</Description>
+    <Description>Runtime rendering helpers for the shipped Videra SurfaceCharts package line.</Description>
     <PackageTags>videra;surface-charts;rendering;3d;chart;graphics</PackageTags>
     <NoWarn>$(NoWarn);CS1591</NoWarn>
   </PropertyGroup>

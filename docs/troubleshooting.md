@@ -30,11 +30,12 @@ If you need a matching-host runbook or the hosted GitHub Actions entrypoint, use
 
 ## SurfaceCharts package and demo triage
 
-For `area: surfacecharts`, start from `smoke/Videra.SurfaceCharts.ConsumerSmoke` for the packaged first-chart path on the supported host path, then move to `Videra.SurfaceCharts.Demo` only when you need the broader repository reference surface:
+For `area: surfacecharts`, start from `smoke/Videra.SurfaceCharts.ConsumerSmoke` for the packaged surface/cache-backed path on the supported host path, then move to `Videra.SurfaceCharts.Demo` only when you need the broader repository reference surface:
 
-- `smoke/Videra.SurfaceCharts.ConsumerSmoke` should produce `surfacecharts-support-summary.txt` for the packaged first-chart proof.
+- `smoke/Videra.SurfaceCharts.ConsumerSmoke` should produce `surfacecharts-support-summary.txt` for the packaged surface/cache-backed proof.
 - `Start here: In-memory first chart` is the default first repro path.
 - `Explore next: Cache-backed streaming` is only the follow-up path after the in-memory chart already renders.
+- `Try next: Waterfall proof` is the third demo path on the same Avalonia shell.
 - Use `Copy support summary` to paste the demo `Support summary` block into the issue so support has the same `ViewState`, `InteractionQuality`, `RenderingStatus`, and `OverlayOptions` contract the sample exposes.
 
 ## Package Selection vs Backend Preference
@@ -109,7 +110,9 @@ Include:
 - the exact SurfaceCharts demo path you used:
   - `Start here: In-memory first chart`
   - `Explore next: Cache-backed streaming`
+  - `Try next: Waterfall proof`
 - use `Copy support summary` after reproducing `Start here: In-memory first chart`; continue to `Explore next: Cache-backed streaming` only if needed
+- use `Try next: Waterfall proof` when the issue is about the second chart control instead of the cache-backed path
 - `ViewState`, `InteractionQuality`, `RenderingStatus`, and `OverlayOptions` from the SurfaceCharts support summary when relevant
 - inspection bundle from `VideraInspectionBundleService.ExportAsync(...)` when you need support to replay camera, clipping, measurements, and annotations together
 - `CanReplayScene` and `ReplayLimitation` from `VideraInspectionBundleService.ExportAsync(...)` when the bundle captures host-owned objects or any other scene state that cannot be replayed on import

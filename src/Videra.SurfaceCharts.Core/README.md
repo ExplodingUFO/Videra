@@ -13,7 +13,7 @@ This package is the place for:
 
 The package is intentionally independent from `VideraView`.
 
-Most consumers should start with `Videra.SurfaceCharts.Avalonia` and add `Videra.SurfaceCharts.Processing` when they need the current first-chart path. Install `Videra.SurfaceCharts.Core` directly only when you are building custom tile sources or chart-domain contracts without the Avalonia control shell.
+Most consumers should start with `Videra.SurfaceCharts.Avalonia` and add `Videra.SurfaceCharts.Processing` only when they need the surface/cache-backed path. Install `Videra.SurfaceCharts.Core` directly only when you are building custom tile sources or chart-domain contracts without the Avalonia control shell.
 
 ## What Belongs Here
 

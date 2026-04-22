@@ -7,8 +7,8 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PackageId>Videra.SurfaceCharts.Processing</PackageId>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <Description>Offline processing helpers for Videra Surface Charts, including pyramid and cache preparation.</Description>
-    <PackageTags>videra;surface-charts;processing;offline;chart;graphics</PackageTags>
+    <Description>Cache and pyramid preparation helpers for the surface/cache-backed Videra SurfaceCharts path.</Description>
+    <PackageTags>videra;surface-charts;processing;cache;offline;chart;graphics</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>

@@ -4,7 +4,7 @@
 
 The control layer remains separate from `VideraView` and only depends on the shared surface-chart contracts in `Videra.SurfaceCharts.Core`.
 
-`nuget.org` is the default public feed for this package. `GitHub Packages` remains `preview` / internal validation only. The current support level is `alpha`. For the current first-chart install story, add `Videra.SurfaceCharts.Processing` alongside this package.
+`nuget.org` is the default public feed for this package. `GitHub Packages` remains `preview` / internal validation only. The current support level is `alpha`. Add `Videra.SurfaceCharts.Processing` only for the surface/cache-backed path.
 
 SurfaceChartView now exposes `ViewState` as the primary chart-view contract while `Viewport` remains a compatibility bridge for existing hosts.
 SurfaceChartView now ships built-in `left-drag orbit`, `right-drag pan`, `wheel dolly`, and `Ctrl + Left drag` focus zoom on top of the `ViewState` runtime contract.
@@ -31,6 +31,8 @@ The public overlay configuration seam is `SurfaceChartOverlayOptions` through `O
 - color-map driven surface rendering
 - chart-local axis/legend overlays and hover/pinned probe readout, including `Shift + LeftClick` pinning
 - `SurfaceChartView` owns chart-local built-in gestures, tile scheduling/cache, overlay presentation, native-host/render-host orchestration, and `RenderingStatus` projection
+
+`WaterfallChartView` is the thin second control proof on top of the same chart shell.
 
 This module is intentionally a thin UI shell. Tile decoding, preprocessing, cache generation, and LOD policy remain outside the control layer.
 
