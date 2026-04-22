@@ -1,6 +1,7 @@
 using System.Numerics;
 using FluentAssertions;
 using Videra.Core.Graphics.Software;
+using Videra.Core.Scene;
 using Videra.Import.Obj;
 using Xunit;
 
@@ -42,7 +43,7 @@ public class ModelImporterIntegrationTests : IDisposable
     }
 
     [Fact]
-    public void Load_ObjTriangle_ProducesInitializedObject()
+    public void ImportAndUpload_ObjTriangle_ProducesInitializedObject()
     {
         var factory = new SoftwareResourceFactory();
         var path = WriteObj("triangle.obj", """
@@ -55,7 +56,7 @@ public class ModelImporterIntegrationTests : IDisposable
             f 1/1 2/2 3/3
             """);
 
-        var obj = ObjModelImporter.Load(path, factory);
+        var obj = SceneUploadCoordinator.Upload(ObjModelImporter.Import(path), factory);
 
         obj.Should().NotBeNull();
         obj.Name.Should().Contain("triangle.obj");
@@ -66,7 +67,7 @@ public class ModelImporterIntegrationTests : IDisposable
     }
 
     [Fact]
-    public void Load_ObjTwoTriangles_ProducesCorrectIndexCount()
+    public void ImportAndUpload_ObjTwoTriangles_ProducesCorrectIndexCount()
     {
         var factory = new SoftwareResourceFactory();
         var path = WriteObj("two_tri.obj", """
@@ -79,14 +80,14 @@ public class ModelImporterIntegrationTests : IDisposable
             f 2//1 4//1 3//1
             """);
 
-        var obj = ObjModelImporter.Load(path, factory);
+        var obj = SceneUploadCoordinator.Upload(ObjModelImporter.Import(path), factory);
 
         obj.Should().NotBeNull();
         obj.IndexCount.Should().Be(6);
     }
 
     [Fact]
-    public void Load_ObjWithBadIndices_SkipsInvalidFaces()
+    public void ImportAndUpload_ObjWithBadIndices_SkipsInvalidFaces()
     {
         var factory = new SoftwareResourceFactory();
         var path = WriteObj("bad.obj", """
@@ -96,12 +97,12 @@ public class ModelImporterIntegrationTests : IDisposable
             f 1//1 2//1 5//1
             """);
 
-        var act = () => ObjModelImporter.Load(path, factory);
+        var act = () => SceneUploadCoordinator.Upload(ObjModelImporter.Import(path), factory);
         act.Should().NotThrow<IndexOutOfRangeException>();
     }
 
     [Fact]
-    public void Load_ObjWithNormals_ProducesCorrectNormals()
+    public void ImportAndUpload_ObjWithNormals_ProducesCorrectNormals()
     {
         var factory = new SoftwareResourceFactory();
         var path = WriteObj("normals.obj", """
@@ -114,14 +115,14 @@ public class ModelImporterIntegrationTests : IDisposable
             f 1//1 2//2 3//3
             """);
 
-        var obj = ObjModelImporter.Load(path, factory);
+        var obj = SceneUploadCoordinator.Upload(ObjModelImporter.Import(path), factory);
 
         obj.Should().NotBeNull();
         obj.VertexBuffer.Should().NotBeNull();
     }
 
     [Fact]
-    public void Load_ObjObject_CanBeAddedToEngine()
+    public void ImportAndUpload_ObjObject_CanBeAddedToEngine()
     {
         var backend = new SoftwareBackend();
         backend.Initialize(IntPtr.Zero, 200, 200);
@@ -135,7 +136,7 @@ public class ModelImporterIntegrationTests : IDisposable
             f 1//1 2//1 3//1
             """);
 
-        var obj = ObjModelImporter.Load(path, factory);
+        var obj = SceneUploadCoordinator.Upload(ObjModelImporter.Import(path), factory);
         obj.InitializeWireframe(factory);
 
         using var engine = new Videra.Core.Graphics.VideraEngine();

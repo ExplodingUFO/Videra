@@ -30,11 +30,14 @@ dotnet add package Videra.Import.Gltf --version 0.1.0-alpha.7 --source github-Ex
 
 ```csharp
 using Videra.Import.Gltf;
+using Videra.Core.Graphics.Software;
+using Videra.Core.Scene;
 
 var asset = GltfModelImporter.Import("Models/reference-cube.glb");
+var sceneObject = SceneUploadCoordinator.Upload(asset, new SoftwareResourceFactory());
 ```
 
-Use `GltfModelImporter.Load(...)` when you want to upload directly through a ready `IResourceFactory`.
+Use `Import(...)` as the public importer contract. Route runtime upload through `SceneUploadCoordinator` on top of the imported asset when you need an `Object3D`.
 
 ## Validation
 

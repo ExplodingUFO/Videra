@@ -30,11 +30,14 @@ dotnet add package Videra.Import.Obj --version 0.1.0-alpha.7 --source github-Exp
 
 ```csharp
 using Videra.Import.Obj;
+using Videra.Core.Graphics.Software;
+using Videra.Core.Scene;
 
 var asset = ObjModelImporter.Import("Models/reference-cube.obj");
+var sceneObject = SceneUploadCoordinator.Upload(asset, new SoftwareResourceFactory());
 ```
 
-Use `ObjModelImporter.Load(...)` when you want to upload directly through a ready `IResourceFactory`.
+Use `Import(...)` as the public importer contract. Route runtime upload through `SceneUploadCoordinator` on top of the imported asset when you need an `Object3D`.
 
 ## Validation
 
