@@ -91,7 +91,7 @@ public sealed class VideraViewSceneIntegrationTests : IDisposable
     }
 
     [Fact]
-    public async Task LoadModelsAsync_MixedPaths_ReturnsLoadedObjectsAndFailuresWithoutReplacingScene()
+    public async Task LoadModelsAsync_MixedPaths_ReturnsNoSceneEntriesAndFailuresWithoutReplacingScene()
     {
         var validPath = WriteObj("triangle.obj", """
             v 0.0 0.0 0.0
@@ -107,7 +107,7 @@ public sealed class VideraViewSceneIntegrationTests : IDisposable
         {
             var result = await view.LoadModelsAsync(new[] { validPath, missingPath });
 
-            result.Entries.Should().HaveCount(1);
+            result.Entries.Should().BeEmpty();
             result.Failures.Should().HaveCount(1);
             result.Failures[0].Path.Should().Be(missingPath);
             GetSceneObjectCount(view).Should().Be(0);
@@ -185,7 +185,7 @@ public sealed class VideraViewSceneIntegrationTests : IDisposable
             var result = await view.LoadModelsAsync(new[] { validPath, missingPath });
 
             result.Succeeded.Should().BeFalse();
-            result.Entries.Should().HaveCount(1);
+            result.Entries.Should().BeEmpty();
             GetSceneObjects(view).Should().ContainSingle().Which.Should().BeSameAs(initial);
             ReadSceneDocumentObjects(view).Should().ContainSingle().Which.Should().BeSameAs(initial);
         }

@@ -22,8 +22,9 @@ internal sealed partial class VideraViewRuntime
             return ModelLoadResult.Failed(path, importResult.Failure.Exception, startedAt.Elapsed);
         }
 
-        AppendSceneEntry(importResult.Entry!);
-        return ModelLoadResult.Success(path, importResult.Entry!, startedAt.Elapsed);
+        var entry = _sceneCoordinator.AppendImportedAsset(importResult.Asset!);
+        RefreshSceneDiagnostics();
+        return ModelLoadResult.Success(path, entry, startedAt.Elapsed);
     }
 
     public async Task<ModelLoadBatchResult> LoadModelsAsync(IEnumerable<string> paths, CancellationToken cancellationToken = default)
@@ -32,13 +33,15 @@ internal sealed partial class VideraViewRuntime
 
         var startedAt = Stopwatch.StartNew();
         var importResult = await _sceneCoordinator.ImportBatchAsync(paths, cancellationToken).ConfigureAwait(true);
+        var entries = Array.Empty<SceneDocumentEntry>();
 
         if (importResult.Failures.Count == 0)
         {
-            ReplaceSceneEntries(importResult.Entries);
+            entries = _sceneCoordinator.ReplaceImportedAssets(importResult.Assets).ToArray();
+            RefreshSceneDiagnostics();
         }
 
-        return new ModelLoadBatchResult(importResult.Entries, importResult.Failures, startedAt.Elapsed);
+        return new ModelLoadBatchResult(entries, importResult.Failures, startedAt.Elapsed);
     }
 
     public void AddObject(Object3D obj)
@@ -107,20 +110,6 @@ internal sealed partial class VideraViewRuntime
     internal void OnCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
         _sceneCoordinator.ApplyCollectionChange(sender, e);
-        RefreshSceneDiagnostics();
-    }
-
-    private void AppendSceneEntry(SceneDocumentEntry entry)
-    {
-        ArgumentNullException.ThrowIfNull(entry);
-        _sceneCoordinator.AppendSceneEntry(entry);
-        RefreshSceneDiagnostics();
-    }
-
-    private void ReplaceSceneEntries(IEnumerable<SceneDocumentEntry> entries)
-    {
-        ArgumentNullException.ThrowIfNull(entries);
-        _sceneCoordinator.ReplaceSceneEntries(entries);
         RefreshSceneDiagnostics();
     }
 

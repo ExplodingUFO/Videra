@@ -1,5 +1,4 @@
 using System.Numerics;
-using System.Reflection;
 using FluentAssertions;
 using Videra.Avalonia.Runtime.Scene;
 using Videra.Core.Geometry;
@@ -12,7 +11,7 @@ namespace Videra.Avalonia.Tests.Scene;
 public sealed class SceneImportServiceTests : IDisposable
 {
     private readonly string _tempDir;
-    private readonly SceneImportService _service = new(new SceneDocumentMutator());
+    private readonly SceneImportService _service = new();
 
     public SceneImportServiceTests()
     {
@@ -29,9 +28,9 @@ public sealed class SceneImportServiceTests : IDisposable
 
         var result = await _service.ImportBatchAsync([first, missing, second], CancellationToken.None);
 
-        result.Entries.Should().HaveCount(2);
-        result.Entries[0].ImportedAsset!.FilePath.Should().Be(first);
-        result.Entries[1].ImportedAsset!.FilePath.Should().Be(second);
+        result.Assets.Should().HaveCount(2);
+        result.Assets[0].FilePath.Should().Be(first);
+        result.Assets[1].FilePath.Should().Be(second);
         result.Failures.Should().ContainSingle().Which.Path.Should().Be(missing);
     }
 
@@ -42,11 +41,10 @@ public sealed class SceneImportServiceTests : IDisposable
 
         var result = await _service.ImportSingleAsync(path, CancellationToken.None);
 
-        result.Entry.Should().NotBeNull();
-        result.Entry!.ImportedAsset.Should().NotBeNull();
-        result.Entry.ImportedAsset!.Materials.Should().ContainSingle();
-        result.Entry.ImportedAsset.Primitives.Should().ContainSingle();
-        result.Entry.ImportedAsset.Primitives[0].MaterialId.Should().Be(result.Entry.ImportedAsset.Materials[0].Id);
+        result.Asset.Should().NotBeNull();
+        result.Asset!.Materials.Should().ContainSingle();
+        result.Asset.Primitives.Should().ContainSingle();
+        result.Asset.Primitives[0].MaterialId.Should().Be(result.Asset.Materials[0].Id);
     }
 
     [Fact]
@@ -137,17 +135,16 @@ public sealed class SceneImportServiceTests : IDisposable
 
         var result = await _service.ImportSingleAsync(path, CancellationToken.None);
 
-        result.Entry.Should().NotBeNull();
-        result.Entry!.ImportedAsset.Should().NotBeNull();
-        result.Entry.ImportedAsset!.Textures.Should().ContainSingle();
-        result.Entry.ImportedAsset.Samplers.Should().ContainSingle();
-        result.Entry.ImportedAsset.Materials.Should().ContainSingle();
-        result.Entry.ImportedAsset.Primitives.Should().ContainSingle();
+        result.Asset.Should().NotBeNull();
+        result.Asset!.Textures.Should().ContainSingle();
+        result.Asset.Samplers.Should().ContainSingle();
+        result.Asset.Materials.Should().ContainSingle();
+        result.Asset.Primitives.Should().ContainSingle();
 
-        var material = result.Entry.ImportedAsset.Materials[0];
-        var texture = result.Entry.ImportedAsset.Textures[0];
-        var sampler = result.Entry.ImportedAsset.Samplers[0];
-        var mesh = result.Entry.ImportedAsset.Primitives[0].MeshData;
+        var material = result.Asset.Materials[0];
+        var texture = result.Asset.Textures[0];
+        var sampler = result.Asset.Samplers[0];
+        var mesh = result.Asset.Primitives[0].MeshData;
 
         material.BaseColorTexture.Should().NotBeNull();
         material.BaseColorTexture!.TextureId.Should().Be(texture.Id);
@@ -271,18 +268,17 @@ public sealed class SceneImportServiceTests : IDisposable
 
         var result = await _service.ImportSingleAsync(path, CancellationToken.None);
 
-        result.Entry.Should().NotBeNull();
-        result.Entry!.ImportedAsset.Should().NotBeNull();
-        result.Entry.ImportedAsset!.Textures.Should().HaveCount(4);
-        result.Entry.ImportedAsset.Samplers.Should().ContainSingle();
-        result.Entry.ImportedAsset.Materials.Should().ContainSingle();
+        result.Asset.Should().NotBeNull();
+        result.Asset!.Textures.Should().HaveCount(4);
+        result.Asset.Samplers.Should().ContainSingle();
+        result.Asset.Materials.Should().ContainSingle();
 
-        var material = result.Entry.ImportedAsset.Materials[0];
-        var sampler = result.Entry.ImportedAsset.Samplers[0];
-        var baseColorTexture = result.Entry.ImportedAsset.Textures.Single(texture => texture.Name == "BaseColorImage");
-        var metallicRoughnessTexture = result.Entry.ImportedAsset.Textures.Single(texture => texture.Name == "MetallicRoughnessImage");
-        var normalTexture = result.Entry.ImportedAsset.Textures.Single(texture => texture.Name == "NormalImage");
-        var emissiveTexture = result.Entry.ImportedAsset.Textures.Single(texture => texture.Name == "EmissiveImage");
+        var material = result.Asset.Materials[0];
+        var sampler = result.Asset.Samplers[0];
+        var baseColorTexture = result.Asset.Textures.Single(texture => texture.Name == "BaseColorImage");
+        var metallicRoughnessTexture = result.Asset.Textures.Single(texture => texture.Name == "MetallicRoughnessImage");
+        var normalTexture = result.Asset.Textures.Single(texture => texture.Name == "NormalImage");
+        var emissiveTexture = result.Asset.Textures.Single(texture => texture.Name == "EmissiveImage");
 
         material.BaseColorFactor.Should().Be(new RgbaFloat(0.9f, 0.8f, 0.7f, 0.6f));
         material.BaseColorTexture.Should().NotBeNull();
@@ -313,15 +309,9 @@ public sealed class SceneImportServiceTests : IDisposable
         var first = await _service.ImportSingleAsync(path, CancellationToken.None);
         var second = await _service.ImportSingleAsync(path, CancellationToken.None);
 
-        first.Entry.Should().NotBeNull();
-        second.Entry.Should().NotBeNull();
-
-        first.Entry!.ImportedAsset.Should().BeSameAs(second.Entry!.ImportedAsset);
-        first.Entry.SceneObject.Should().NotBeSameAs(second.Entry.SceneObject);
-
-        var payloadProperty = typeof(Object3D).GetProperty("MeshPayload", BindingFlags.Instance | BindingFlags.NonPublic);
-        payloadProperty.Should().NotBeNull();
-        payloadProperty!.GetValue(first.Entry.SceneObject).Should().BeSameAs(payloadProperty.GetValue(second.Entry.SceneObject));
+        first.Asset.Should().NotBeNull();
+        second.Asset.Should().NotBeNull();
+        first.Asset.Should().BeSameAs(second.Asset);
     }
 
     [Fact]
@@ -332,13 +322,8 @@ public sealed class SceneImportServiceTests : IDisposable
         var result = await _service.ImportBatchAsync([path, path], CancellationToken.None);
 
         result.Failures.Should().BeEmpty();
-        result.Entries.Should().HaveCount(2);
-        result.Entries[0].ImportedAsset.Should().BeSameAs(result.Entries[1].ImportedAsset);
-        result.Entries[0].SceneObject.Should().NotBeSameAs(result.Entries[1].SceneObject);
-
-        var payloadProperty = typeof(Object3D).GetProperty("MeshPayload", BindingFlags.Instance | BindingFlags.NonPublic);
-        payloadProperty.Should().NotBeNull();
-        payloadProperty!.GetValue(result.Entries[0].SceneObject).Should().BeSameAs(payloadProperty.GetValue(result.Entries[1].SceneObject));
+        result.Assets.Should().HaveCount(2);
+        result.Assets[0].Should().BeSameAs(result.Assets[1]);
     }
 
     [Fact]
@@ -350,10 +335,10 @@ public sealed class SceneImportServiceTests : IDisposable
         var result = await _service.ImportBatchAsync([path, dotSegmentPath], CancellationToken.None);
 
         result.Failures.Should().BeEmpty();
-        result.Entries.Should().HaveCount(2);
-        result.Entries[0].ImportedAsset!.FilePath.Should().Be(path);
-        result.Entries[1].ImportedAsset!.FilePath.Should().Be(dotSegmentPath);
-        result.Entries[0].ImportedAsset.Should().NotBeSameAs(result.Entries[1].ImportedAsset);
+        result.Assets.Should().HaveCount(2);
+        result.Assets[0].FilePath.Should().Be(path);
+        result.Assets[1].FilePath.Should().Be(dotSegmentPath);
+        result.Assets[0].Should().NotBeSameAs(result.Assets[1]);
     }
 
     [Fact]
@@ -366,9 +351,9 @@ public sealed class SceneImportServiceTests : IDisposable
 
         first.Failures.Should().BeEmpty();
         second.Failures.Should().BeEmpty();
-        first.Entries.Should().ContainSingle();
-        second.Entries.Should().ContainSingle();
-        first.Entries[0].ImportedAsset.Should().BeSameAs(second.Entries[0].ImportedAsset);
+        first.Assets.Should().ContainSingle();
+        second.Assets.Should().ContainSingle();
+        first.Assets[0].Should().BeSameAs(second.Assets[0]);
     }
 
     [Fact]
@@ -380,9 +365,9 @@ public sealed class SceneImportServiceTests : IDisposable
         File.SetLastWriteTimeUtc(path, File.GetLastWriteTimeUtc(path).AddMinutes(1));
         var second = await _service.ImportSingleAsync(path, CancellationToken.None);
 
-        first.Entry.Should().NotBeNull();
-        second.Entry.Should().NotBeNull();
-        first.Entry!.ImportedAsset.Should().NotBeSameAs(second.Entry!.ImportedAsset);
+        first.Asset.Should().NotBeNull();
+        second.Asset.Should().NotBeNull();
+        first.Asset.Should().NotBeSameAs(second.Asset);
     }
 
     private string WriteObj(string name)
