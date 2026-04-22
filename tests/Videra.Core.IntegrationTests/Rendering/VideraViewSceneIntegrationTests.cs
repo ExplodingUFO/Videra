@@ -49,10 +49,10 @@ public sealed class VideraViewSceneIntegrationTests : IDisposable
             var result = await view.LoadModelAsync(path);
 
             result.Succeeded.Should().BeTrue();
-            result.LoadedObject.Should().NotBeNull();
+            result.Entry.Should().NotBeNull();
             result.Failure.Should().BeNull();
             GetSceneObjectCount(view).Should().Be(0);
-            ReadSceneDocumentObjects(view).Should().ContainSingle().Which.Should().BeSameAs(result.LoadedObject);
+            ReadSceneDocumentObjects(view).Should().ContainSingle().Which.Should().BeSameAs(result.Entry!.SceneObject);
         }
         finally
         {
@@ -77,12 +77,12 @@ public sealed class VideraViewSceneIntegrationTests : IDisposable
             var result = await view.LoadModelAsync(path);
 
             result.Succeeded.Should().BeTrue();
-            result.LoadedObject.Should().NotBeNull();
+            result.Entry.Should().NotBeNull();
             GetSceneObjectCount(view).Should().Be(0);
-            ReadSceneDocumentObjects(view).Should().ContainSingle().Which.Should().BeSameAs(result.LoadedObject);
+            ReadSceneDocumentObjects(view).Should().ContainSingle().Which.Should().BeSameAs(result.Entry!.SceneObject);
             ReadSceneDocumentImportedAssets(view).Should().ContainSingle(asset => asset.FilePath == path);
-            ReadObjectVertexBuffer(result.LoadedObject!).Should().BeNull();
-            result.LoadedObject!.LocalBounds.Should().NotBeNull();
+            ReadObjectVertexBuffer(result.Entry!.SceneObject).Should().BeNull();
+            result.Entry.SceneObject.LocalBounds.Should().NotBeNull();
         }
         finally
         {
@@ -107,7 +107,7 @@ public sealed class VideraViewSceneIntegrationTests : IDisposable
         {
             var result = await view.LoadModelsAsync(new[] { validPath, missingPath });
 
-            result.LoadedObjects.Should().HaveCount(1);
+            result.Entries.Should().HaveCount(1);
             result.Failures.Should().HaveCount(1);
             result.Failures[0].Path.Should().Be(missingPath);
             GetSceneObjectCount(view).Should().Be(0);
@@ -185,7 +185,7 @@ public sealed class VideraViewSceneIntegrationTests : IDisposable
             var result = await view.LoadModelsAsync(new[] { validPath, missingPath });
 
             result.Succeeded.Should().BeFalse();
-            result.LoadedObjects.Should().HaveCount(1);
+            result.Entries.Should().HaveCount(1);
             GetSceneObjects(view).Should().ContainSingle().Which.Should().BeSameAs(initial);
             ReadSceneDocumentObjects(view).Should().ContainSingle().Which.Should().BeSameAs(initial);
         }
@@ -222,7 +222,7 @@ public sealed class VideraViewSceneIntegrationTests : IDisposable
             var result = await view.LoadModelsAsync(new[] { firstPath, secondPath });
 
             result.Succeeded.Should().BeTrue();
-            result.LoadedObjects.Should().HaveCount(2);
+            result.Entries.Should().HaveCount(2);
             GetSceneObjects(view).Should().BeEmpty();
             ReadSceneDocumentObjects(view).Should().HaveCount(2);
             ReadSceneDocumentObjects(view).Should().NotContain(initial);
@@ -306,7 +306,7 @@ public sealed class VideraViewSceneIntegrationTests : IDisposable
         try
         {
             var result = await view.LoadModelAsync(path);
-            var loadedObject = result.LoadedObject!;
+            var loadedObject = result.Entry!.SceneObject;
 
             loadedObject.Should().NotBeNull();
             ReadObjectVertexBuffer(loadedObject).Should().BeNull();
@@ -391,7 +391,7 @@ public sealed class VideraViewSceneIntegrationTests : IDisposable
         try
         {
             var result = await view.LoadModelAsync(path);
-            var loadedObject = result.LoadedObject!;
+            var loadedObject = result.Entry!.SceneObject;
 
             var session = VideraViewRuntimeTestAccess.ReadRenderSession(view);
             session.Attach(GraphicsBackendPreference.Software);
@@ -432,7 +432,7 @@ public sealed class VideraViewSceneIntegrationTests : IDisposable
         try
         {
             var result = await view.LoadModelAsync(path);
-            var loadedObject = result.LoadedObject!;
+            var loadedObject = result.Entry!.SceneObject;
 
             var session = VideraViewRuntimeTestAccess.ReadRenderSession(view);
             session.Attach(GraphicsBackendPreference.Software);
@@ -1045,7 +1045,7 @@ public sealed class VideraViewSceneIntegrationTests : IDisposable
     {
         var sceneDocument = VideraViewRuntimeTestAccess.ReadRuntimeField<object>(view, "_sceneDocument");
         sceneDocument.Should().BeAssignableTo<SceneDocument>();
-        return ((SceneDocument)sceneDocument).SceneObjects;
+        return ((SceneDocument)sceneDocument).Entries.Select(static entry => entry.SceneObject).ToArray();
     }
 
     private static IReadOnlyList<ImportedSceneAsset> ReadSceneDocumentImportedAssets(VideraView view)
@@ -1053,17 +1053,8 @@ public sealed class VideraViewSceneIntegrationTests : IDisposable
         var sceneDocument = VideraViewRuntimeTestAccess.ReadRuntimeField<object>(view, "_sceneDocument");
         sceneDocument.Should().BeAssignableTo<SceneDocument>();
 
-        var entriesProperty = sceneDocument.GetType().GetProperty("Entries", BindingFlags.Instance | BindingFlags.NonPublic);
-        entriesProperty.Should().NotBeNull("scene document should expose internal entries for imported-asset truth");
-        var entries = ((IEnumerable?)entriesProperty!.GetValue(sceneDocument))?.Cast<object>().ToArray() ?? Array.Empty<object>();
-
-        return entries
-            .Select(entry =>
-            {
-                var importedAssetProperty = entry.GetType().GetProperty("ImportedAsset", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-                importedAssetProperty.Should().NotBeNull();
-                return importedAssetProperty!.GetValue(entry) as ImportedSceneAsset;
-            })
+        return ((SceneDocument)sceneDocument).Entries
+            .Select(entry => entry.ImportedAsset)
             .Where(asset => asset is not null)
             .Cast<ImportedSceneAsset>()
             .ToArray();

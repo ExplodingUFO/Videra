@@ -2,8 +2,29 @@ using Videra.Core.Graphics;
 
 namespace Videra.Core.Scene;
 
-internal sealed record SceneDocumentEntry(
-    SceneEntryId Id,
-    Object3D SceneObject,
-    ImportedSceneAsset? ImportedAsset,
-    SceneOwnership Ownership);
+public sealed class SceneDocumentEntry
+{
+    internal SceneDocumentEntry(
+        SceneEntryId id,
+        string name,
+        Object3D sceneObject,
+        ImportedSceneAsset? importedAsset,
+        SceneOwnership ownership)
+    {
+        Id = id;
+        Name = name;
+        SceneObject = sceneObject;
+        ImportedAsset = importedAsset;
+        Ownership = ownership;
+    }
+
+    public SceneEntryId Id { get; }
+
+    public string Name { get; }
+
+    internal Object3D SceneObject { get; }
+
+    public ImportedSceneAsset? ImportedAsset { get; }
+
+    public SceneOwnership Ownership { get; }
+}

@@ -1,6 +1,6 @@
 namespace Videra.Core.Scene;
 
-internal readonly record struct SceneEntryId(Guid Value)
+public readonly record struct SceneEntryId(Guid Value)
 {
     public static SceneEntryId New() => new(Guid.NewGuid());
 

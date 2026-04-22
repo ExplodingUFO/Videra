@@ -171,8 +171,8 @@ public sealed class DemoConfigurationTests
         var importerPath = Path.Combine(GetRepositoryRoot(), "samples", "Videra.Demo", "Services", "AvaloniaModelImporter.cs");
         var importer = File.ReadAllText(importerPath);
 
-        importer.Should().Contain("result.Succeeded && result.LoadedObjects.Count > 0");
-        importer.Should().NotContain("if (result.LoadedObjects.Count > 0)");
+        importer.Should().Contain("result.Succeeded && result.Entries.Count > 0");
+        importer.Should().NotContain("if (result.Entries.Count > 0)");
     }
 
     [Fact]

@@ -5,9 +5,12 @@ using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using Videra.Avalonia.Controls;
 using Videra.Avalonia.Controls.Interaction;
+using Videra.Core.Geometry;
 using Videra.Core.Graphics;
 using Videra.Core.Inspection;
+using Videra.Core.Scene;
 using Videra.Core.Selection.Annotations;
+using Videra.Import.Obj;
 
 namespace Videra.InteractionSample.Views;
 
@@ -37,6 +40,7 @@ public partial class MainWindow : Window
     private bool _sampleStarted;
     private bool _sectionPlaneEnabled;
     private int _annotationSequence = 1;
+    private int _loadedObjectCount;
     private string _loadSummary = "Waiting for backend readiness before loading the focused interaction scene.";
     private string _inspectionSummary = "Toggle a section plane, save the current view state, export a snapshot, or capture a replayable inspection bundle after the scene loads.";
     private string _lastRequestSummary = "Switch modes, click objects, or click empty space to drive the public interaction flow.";
@@ -134,42 +138,29 @@ public partial class MainWindow : Window
         UpdateStatusPanel();
     }
 
-    private async Task TryRunSampleAsync()
+    private Task TryRunSampleAsync()
     {
         if (_sampleStarted || !View3D.BackendDiagnostics.IsReady)
         {
             UpdateStatusPanel();
-            return;
+            return Task.CompletedTask;
         }
 
         _sampleStarted = true;
 
         try
         {
-            var result = await View3D.LoadModelsAsync(
-                [
-                    "Assets/reference-cube.obj",
-                    "Assets/reference-cube.obj"
-                ]).ConfigureAwait(true);
-
-            if (!result.Succeeded || result.LoadedObjects.Count < 2)
-            {
-                var failureSummary = result.Failures.Count == 0
-                    ? "Expected two cubes, but one or more scene objects did not load."
-                    : string.Join(" | ", result.Failures.Select(failure => $"{failure.Path}: {failure.ErrorMessage}"));
-                _loadSummary = $"LoadModelsAsync(...) did not prepare the interaction scene: {failureSummary}";
-                UpdateStatusPanel();
-                return;
-            }
-
-            ConfigureLoadedObjects(result.LoadedObjects);
+            var sceneObjects = CreateInteractionSceneObjects();
+            ConfigureSceneObjects(sceneObjects);
+            View3D.ReplaceScene(sceneObjects);
             SeedHostOwnedState();
+            _loadedObjectCount = sceneObjects.Count;
 
             var framed = View3D.FrameAll();
             View3D.InvalidateVisual();
 
             _loadSummary =
-                $"LoadModelsAsync(...) loaded {result.LoadedObjects.Count} cubes in {result.Duration.TotalMilliseconds:N0} ms. " +
+                $"Imported {sceneObjects.Count} host-owned scene objects from Assets/reference-cube.obj through ObjModelImporter.Import(...) and SceneUploadCoordinator.CreateDeferredObject(...), then replaced the scene through View3D.ReplaceScene(...). " +
                 $"FrameAll() returned {framed}. The host now owns SelectionState, Annotations, and annotation state for follow-up interaction.";
         }
         catch (Exception ex)
@@ -180,26 +171,20 @@ public partial class MainWindow : Window
         {
             UpdateStatusPanel();
         }
+
+        return Task.CompletedTask;
     }
 
-    private void ConfigureLoadedObjects(IReadOnlyList<Object3D> loadedObjects)
+    private void ConfigureSceneObjects(IReadOnlyList<Object3D> sceneObjects)
     {
         _objectNames.Clear();
         _sceneObjects.Clear();
-        _sceneObjects.AddRange(loadedObjects);
+        _sceneObjects.AddRange(sceneObjects);
+        _loadedObjectCount = sceneObjects.Count;
 
-        var layout = new[]
+        for (var index = 0; index < sceneObjects.Count; index++)
         {
-            ("Selection Cube A", new Vector3(-1.35f, 0f, 0f)),
-            ("Selection Cube B", new Vector3(1.35f, 0f, 0f))
-        };
-
-        for (var index = 0; index < loadedObjects.Count; index++)
-        {
-            var sceneObject = loadedObjects[index];
-            var target = layout[Math.Min(index, layout.Length - 1)];
-            sceneObject.Name = target.Item1;
-            sceneObject.Position = target.Item2;
+            var sceneObject = sceneObjects[index];
             _objectNames[sceneObject.Id] = sceneObject.Name;
         }
     }
@@ -604,7 +589,9 @@ public partial class MainWindow : Window
     {
         if (_objectNames.Count == 0)
         {
-            return "No interaction scene is loaded yet.";
+            return _loadedObjectCount == 0
+                ? "No interaction scene is loaded yet."
+                : $"Loaded scene objects: {_loadedObjectCount}. Public object state is available for selection and annotation.";
         }
 
         var builder = new StringBuilder();
@@ -738,5 +725,18 @@ public partial class MainWindow : Window
         return string.IsNullOrWhiteSpace(result.ReplayLimitation)
             ? summary
             : $"{summary} Replay limitation: {result.ReplayLimitation}";
+    }
+
+    private static List<Object3D> CreateInteractionSceneObjects()
+    {
+        var firstObject = SceneUploadCoordinator.CreateDeferredObject(ObjModelImporter.Import("Assets/reference-cube.obj"));
+        firstObject.Name = "Selection Cube A";
+        firstObject.Position = new Vector3(-1.35f, 0f, 0f);
+
+        var secondObject = SceneUploadCoordinator.CreateDeferredObject(ObjModelImporter.Import("Assets/reference-cube.obj"));
+        secondObject.Name = "Selection Cube B";
+        secondObject.Position = new Vector3(1.35f, 0f, 0f);
+
+        return [firstObject, secondObject];
     }
 }

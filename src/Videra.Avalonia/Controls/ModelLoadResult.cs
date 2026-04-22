@@ -1,4 +1,4 @@
-using Videra.Core.Graphics;
+using Videra.Core.Scene;
 
 namespace Videra.Avalonia.Controls;
 
@@ -7,10 +7,10 @@ namespace Videra.Avalonia.Controls;
 /// </summary>
 public sealed class ModelLoadResult
 {
-    private ModelLoadResult(string path, Object3D? loadedObject, ModelLoadFailure? failure, TimeSpan duration)
+    private ModelLoadResult(string path, SceneDocumentEntry? entry, ModelLoadFailure? failure, TimeSpan duration)
     {
         Path = path;
-        LoadedObject = loadedObject;
+        Entry = entry;
         Failure = failure;
         Duration = duration;
     }
@@ -21,9 +21,9 @@ public sealed class ModelLoadResult
     public string Path { get; }
 
     /// <summary>
-    /// Gets the loaded scene object when import succeeded; otherwise <c>null</c>.
+    /// Gets the loaded scene entry when import succeeded; otherwise <c>null</c>.
     /// </summary>
-    public Object3D? LoadedObject { get; }
+    public SceneDocumentEntry? Entry { get; }
 
     /// <summary>
     /// Gets the failure details when import did not succeed; otherwise <c>null</c>.
@@ -38,14 +38,14 @@ public sealed class ModelLoadResult
     /// <summary>
     /// Gets a value indicating whether the requested file imported successfully.
     /// </summary>
-    public bool Succeeded => Failure is null && LoadedObject is not null;
+    public bool Succeeded => Failure is null && Entry is not null;
 
     /// <summary>
     /// Creates a successful single-file load result.
     /// </summary>
-    public static ModelLoadResult Success(string path, Object3D loadedObject, TimeSpan duration)
+    public static ModelLoadResult Success(string path, SceneDocumentEntry entry, TimeSpan duration)
     {
-        return new ModelLoadResult(path, loadedObject, failure: null, duration);
+        return new ModelLoadResult(path, entry, failure: null, duration);
     }
 
     /// <summary>
@@ -53,7 +53,7 @@ public sealed class ModelLoadResult
     /// </summary>
     public static ModelLoadResult Failed(string path, Exception exception, TimeSpan duration)
     {
-        return new ModelLoadResult(path, loadedObject: null, new ModelLoadFailure(path, exception), duration);
+        return new ModelLoadResult(path, entry: null, new ModelLoadFailure(path, exception), duration);
     }
 }
 
@@ -63,19 +63,19 @@ public sealed class ModelLoadResult
 public sealed class ModelLoadBatchResult
 {
     public ModelLoadBatchResult(
-        IReadOnlyList<Object3D> loadedObjects,
+        IReadOnlyList<SceneDocumentEntry> entries,
         IReadOnlyList<ModelLoadFailure> failures,
         TimeSpan duration)
     {
-        LoadedObjects = loadedObjects ?? throw new ArgumentNullException(nameof(loadedObjects));
+        Entries = entries ?? throw new ArgumentNullException(nameof(entries));
         Failures = failures ?? throw new ArgumentNullException(nameof(failures));
         Duration = duration;
     }
 
     /// <summary>
-    /// Gets the objects imported successfully during the batch.
+    /// Gets the scene entries imported successfully during the batch.
     /// </summary>
-    public IReadOnlyList<Object3D> LoadedObjects { get; }
+    public IReadOnlyList<SceneDocumentEntry> Entries { get; }
 
     /// <summary>
     /// Gets the file-level failures captured during the batch.

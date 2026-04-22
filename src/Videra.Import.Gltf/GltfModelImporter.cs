@@ -48,28 +48,6 @@ public static partial class GltfModelImporter
         }
     }
 
-    public static Object3D Load(string filePath, IResourceFactory factory, ILogger? logger = null)
-    {
-        ArgumentNullException.ThrowIfNull(factory);
-        var log = logger ?? Microsoft.Extensions.Logging.Abstractions.NullLoggerFactory.Instance.CreateLogger("GltfModelImporter");
-
-        try
-        {
-            var asset = Import(filePath, log);
-            Log.InitializingGpuResources(log);
-            return SceneUploadCoordinator.Upload(asset, factory, log);
-        }
-        catch (VideraException)
-        {
-            throw;
-        }
-        catch (Exception ex)
-        {
-            Log.LoadFailed(log, filePath, ex.Message, ex);
-            throw;
-        }
-    }
-
     private static void ValidateFilePath(string filePath)
     {
         if (string.IsNullOrWhiteSpace(filePath))

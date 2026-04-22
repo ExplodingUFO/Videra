@@ -278,15 +278,15 @@ public partial class MainWindowViewModel : ViewModelBase
         StatusMessage = "Importing models...";
         var loadResult = await _importer.ImportModelsAsync();
 
-        if (loadResult.LoadedObjects.Count == 0 && loadResult.Failures.Count == 0)
+        if (loadResult.Entries.Count == 0 && loadResult.Failures.Count == 0)
         {
             StatusMessage = "No models were selected.";
             return;
         }
 
-        if (loadResult.LoadedObjects.Count > 0)
+        if (loadResult.Entries.Count > 0)
         {
-            SelectedObject = loadResult.LoadedObjects[^1];
+            SelectedObject = SceneObjects.LastOrDefault();
         }
 
         StatusMessage = BuildImportStatus(loadResult);
@@ -299,7 +299,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private static string BuildImportStatus(ModelLoadBatchResult loadResult)
     {
-        if (loadResult.LoadedObjects.Count == 0)
+        if (loadResult.Entries.Count == 0)
         {
             var firstFailure = loadResult.Failures[0];
             return $"Import failed for {loadResult.Failures.Count} file(s). First error: {firstFailure.ErrorMessage}";
@@ -307,11 +307,11 @@ public partial class MainWindowViewModel : ViewModelBase
 
         if (loadResult.Failures.Count == 0)
         {
-            return $"Imported {loadResult.LoadedObjects.Count} model(s).";
+            return $"Imported {loadResult.Entries.Count} model(s).";
         }
 
         var lastFailure = loadResult.Failures[^1];
-        return $"Imported {loadResult.LoadedObjects.Count} model(s), but the active scene was not replaced because {loadResult.Failures.Count} import(s) failed. Last error: {lastFailure.ErrorMessage}";
+        return $"Imported {loadResult.Entries.Count} model(s), but the active scene was not replaced because {loadResult.Failures.Count} import(s) failed. Last error: {lastFailure.ErrorMessage}";
     }
 
     private void ApplyBackendStatus(bool isReady, string statusMessage)

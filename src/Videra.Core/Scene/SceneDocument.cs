@@ -9,7 +9,12 @@ public sealed class SceneDocument
     public static SceneDocument Empty { get; } = new(version: 0, Array.Empty<SceneDocumentEntry>());
 
     public SceneDocument(IEnumerable<Object3D> sceneObjects)
-        : this(version: 1, CreateEntries(sceneObjects))
+        : this(version: 1, CreateExternalEntries(sceneObjects))
+    {
+    }
+
+    internal SceneDocument(IEnumerable<SceneDocumentEntry> entries)
+        : this(version: 1, entries)
     {
     }
 
@@ -23,9 +28,9 @@ public sealed class SceneDocument
 
     public int Version { get; }
 
-    public IReadOnlyList<Object3D> SceneObjects { get; }
+    public IReadOnlyList<SceneDocumentEntry> Entries => _entries;
 
-    internal IReadOnlyList<SceneDocumentEntry> Entries => _entries;
+    internal IReadOnlyList<Object3D> SceneObjects { get; }
 
     internal bool TryGetEntry(Object3D sceneObject, out SceneDocumentEntry entry)
     {
@@ -64,13 +69,20 @@ public sealed class SceneDocument
         return new SceneDocument(version, entries);
     }
 
-    private static IEnumerable<SceneDocumentEntry> CreateEntries(IEnumerable<Object3D> sceneObjects)
+    private static IEnumerable<SceneDocumentEntry> CreateExternalEntries(IEnumerable<Object3D> sceneObjects)
     {
         ArgumentNullException.ThrowIfNull(sceneObjects);
-        return sceneObjects.Select(static sceneObject => new SceneDocumentEntry(
-            SceneEntryId.New(),
-            sceneObject,
-            ImportedAsset: null,
-            SceneOwnership.ExternalObject));
+
+        return sceneObjects.Select(static sceneObject =>
+        {
+            ArgumentNullException.ThrowIfNull(sceneObject);
+
+            return new SceneDocumentEntry(
+                SceneEntryId.New(),
+                sceneObject.Name,
+                sceneObject,
+                importedAsset: null,
+                SceneOwnership.ExternalObject);
+        });
     }
 }

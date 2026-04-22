@@ -171,6 +171,9 @@ public sealed class RepositoryArchitectureTests
         loadResultApi.Should().Contain("ModelLoadResult");
         loadResultApi.Should().Contain("ModelLoadBatchResult");
         loadResultApi.Should().Contain("ModelLoadFailure");
+        loadResultApi.Should().Contain("public SceneDocumentEntry? Entry { get; }");
+        loadResultApi.Should().Contain("Succeeded => Failure is null && Entry is not null");
+        loadResultApi.Should().NotContain("ModelLoadResult.Entries");
 
         readme.Should().Contain("LoadModelAsync");
         readme.Should().Contain("BackendDiagnostics");
@@ -178,9 +181,13 @@ public sealed class RepositoryArchitectureTests
         avaloniaReadme.Should().Contain("LoadModelsAsync(...)");
         avaloniaReadme.Should().Contain("BackendDiagnostics");
         avaloniaReadme.Should().Contain("Scene Pipeline Lab");
+        avaloniaReadme.Should().Contain("ModelLoadResult.Entry");
+        avaloniaReadme.Should().NotContain("ModelLoadResult.Entries");
         extensibilityDoc.Should().Contain("LoadModelAsync(...)");
         extensibilityDoc.Should().Contain("FrameAll()");
         extensibilityDoc.Should().Contain("BackendDiagnostics");
+        extensibilityDoc.Should().Contain("ModelLoadResult.Entry");
+        extensibilityDoc.Should().NotContain("ModelLoadResult.Entries");
     }
 
     [Fact]

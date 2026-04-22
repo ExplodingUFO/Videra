@@ -12,7 +12,7 @@ Current status: `alpha`. `Videra.Avalonia` is the entry package for Avalonia app
 - Host the internal `VideraViewRuntime` coordinator behind that public shell
 - Connect Avalonia visual-tree lifecycle to backend initialization
 - Coordinate backend preference and render-session creation
-- Keep `SceneDocument` as the internal scene truth while `VideraView` stays the public shell
+- Keep runtime coordination internal while `SceneDocument` carries public scene-entry truth through `SceneDocumentEntry`, `ModelLoadResult.Entry`, and `ModelLoadBatchResult.Entries`
 - Retain backend-neutral `ImportedSceneAsset` catalogs built from `SceneNode`, `MeshPrimitive`, `MaterialInstance`, `Texture2D`, and `Sampler` until upload
 - Map pointer input to camera interaction
 - Manage native-host integration for Windows, Linux, and macOS

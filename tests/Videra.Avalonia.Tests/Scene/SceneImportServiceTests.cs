@@ -29,7 +29,6 @@ public sealed class SceneImportServiceTests : IDisposable
 
         var result = await _service.ImportBatchAsync([first, missing, second], CancellationToken.None);
 
-        result.SceneObjects.Should().HaveCount(2);
         result.Entries.Should().HaveCount(2);
         result.Entries[0].ImportedAsset!.FilePath.Should().Be(first);
         result.Entries[1].ImportedAsset!.FilePath.Should().Be(second);
@@ -316,15 +315,13 @@ public sealed class SceneImportServiceTests : IDisposable
 
         first.Entry.Should().NotBeNull();
         second.Entry.Should().NotBeNull();
-        first.SceneObject.Should().NotBeNull();
-        second.SceneObject.Should().NotBeNull();
 
         first.Entry!.ImportedAsset.Should().BeSameAs(second.Entry!.ImportedAsset);
-        first.SceneObject.Should().NotBeSameAs(second.SceneObject);
+        first.Entry.SceneObject.Should().NotBeSameAs(second.Entry.SceneObject);
 
         var payloadProperty = typeof(Object3D).GetProperty("MeshPayload", BindingFlags.Instance | BindingFlags.NonPublic);
         payloadProperty.Should().NotBeNull();
-        payloadProperty!.GetValue(first.SceneObject!).Should().BeSameAs(payloadProperty.GetValue(second.SceneObject!));
+        payloadProperty!.GetValue(first.Entry.SceneObject).Should().BeSameAs(payloadProperty.GetValue(second.Entry.SceneObject));
     }
 
     [Fact]
@@ -336,13 +333,42 @@ public sealed class SceneImportServiceTests : IDisposable
 
         result.Failures.Should().BeEmpty();
         result.Entries.Should().HaveCount(2);
-        result.SceneObjects.Should().HaveCount(2);
         result.Entries[0].ImportedAsset.Should().BeSameAs(result.Entries[1].ImportedAsset);
-        result.SceneObjects[0].Should().NotBeSameAs(result.SceneObjects[1]);
+        result.Entries[0].SceneObject.Should().NotBeSameAs(result.Entries[1].SceneObject);
 
         var payloadProperty = typeof(Object3D).GetProperty("MeshPayload", BindingFlags.Instance | BindingFlags.NonPublic);
         payloadProperty.Should().NotBeNull();
-        payloadProperty!.GetValue(result.SceneObjects[0]).Should().BeSameAs(payloadProperty.GetValue(result.SceneObjects[1]));
+        payloadProperty!.GetValue(result.Entries[0].SceneObject).Should().BeSameAs(payloadProperty.GetValue(result.Entries[1].SceneObject));
+    }
+
+    [Fact]
+    public async Task Import_batch_preserves_request_path_truth_for_equivalent_spellings()
+    {
+        var path = WriteTriangleGltf("truth-batch.gltf");
+        var dotSegmentPath = Path.Combine(_tempDir, ".", "truth-batch.gltf");
+
+        var result = await _service.ImportBatchAsync([path, dotSegmentPath], CancellationToken.None);
+
+        result.Failures.Should().BeEmpty();
+        result.Entries.Should().HaveCount(2);
+        result.Entries[0].ImportedAsset!.FilePath.Should().Be(path);
+        result.Entries[1].ImportedAsset!.FilePath.Should().Be(dotSegmentPath);
+        result.Entries[0].ImportedAsset.Should().NotBeSameAs(result.Entries[1].ImportedAsset);
+    }
+
+    [Fact]
+    public async Task Import_batch_reuses_same_imported_asset_across_unchanged_calls()
+    {
+        var path = WriteTriangleGltf("repeat-batch.gltf");
+
+        var first = await _service.ImportBatchAsync([path], CancellationToken.None);
+        var second = await _service.ImportBatchAsync([path], CancellationToken.None);
+
+        first.Failures.Should().BeEmpty();
+        second.Failures.Should().BeEmpty();
+        first.Entries.Should().ContainSingle();
+        second.Entries.Should().ContainSingle();
+        first.Entries[0].ImportedAsset.Should().BeSameAs(second.Entries[0].ImportedAsset);
     }
 
     [Fact]

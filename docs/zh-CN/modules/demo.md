@@ -41,7 +41,7 @@ Demo 启动后会等待 `VideraView` 完成后端初始化，然后：
 
 ```csharp
 var result = await View3D.LoadModelsAsync(paths);
-if (result.LoadedObjects.Count > 0)
+if (result.Succeeded && result.Entries.Count > 0)
 {
     View3D.FrameAll();
 }
@@ -49,7 +49,7 @@ if (result.LoadedObjects.Count > 0)
 var diagnostics = View3D.BackendDiagnostics;
 ```
 
-如果导入中有失败项，Demo 不会替换当前 active scene，而是保留原场景，并把最后一个失败信息连同成功计数一起汇总到状态栏中。
+如果导入中有失败项，Demo 不会替换当前 active scene，而是保留原场景，并把最后一个失败信息连同成功计数一起汇总到状态栏中。`LoadModelsAsync` 现在以 `Entries` 作为公开结果成员，示例也按场景条目来描述导入结果。
 导入结果与默认场景失败信息都会进入状态区域，避免只写日志而用户不可见。
 
 右侧 `Scene Pipeline Lab` 文案会把三件事直接投到可见界面里：

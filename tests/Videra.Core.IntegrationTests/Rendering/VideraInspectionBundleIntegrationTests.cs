@@ -33,7 +33,7 @@ public sealed class VideraInspectionBundleIntegrationTests : IDisposable
             var loadResult = await view.LoadModelAsync(modelPath);
             loadResult.Succeeded.Should().BeTrue();
 
-            var sceneObject = loadResult.LoadedObject!;
+            var sceneObject = loadResult.Entry!.SceneObject;
             sceneObject.Name = "Bundle Export";
             sceneObject.Position = new Vector3(1.5f, 0f, 0f);
 
@@ -178,10 +178,10 @@ public sealed class VideraInspectionBundleIntegrationTests : IDisposable
         {
             var loadResult = await sourceView.LoadModelsAsync([modelPath, modelPath]);
             loadResult.Succeeded.Should().BeTrue();
-            loadResult.LoadedObjects.Should().HaveCount(2);
+            loadResult.Entries.Should().HaveCount(2);
 
-            var first = loadResult.LoadedObjects[0];
-            var second = loadResult.LoadedObjects[1];
+            var first = loadResult.Entries[0].SceneObject;
+            var second = loadResult.Entries[1].SceneObject;
             first.Name = "Replay A";
             first.Position = new Vector3(-1.25f, 0f, 0f);
             second.Name = "Replay B";
@@ -291,6 +291,6 @@ public sealed class VideraInspectionBundleIntegrationTests : IDisposable
     {
         var sceneDocument = VideraViewRuntimeTestAccess.ReadRuntimeField<object>(view, "_sceneDocument");
         sceneDocument.Should().BeAssignableTo<Videra.Core.Scene.SceneDocument>();
-        return ((Videra.Core.Scene.SceneDocument)sceneDocument).SceneObjects;
+        return ((Videra.Core.Scene.SceneDocument)sceneDocument).Entries.Select(static entry => entry.SceneObject).ToArray();
     }
 }
