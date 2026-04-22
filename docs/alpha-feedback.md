@@ -15,11 +15,11 @@ Videra is still an early alpha embeddable viewer stack. Good feedback is not jus
    - [Videra.InteractionSample](../samples/Videra.InteractionSample/README.md) for controlled interaction
    - [Videra.Demo](../samples/Videra.Demo/README.md) for backend diagnostics and scene-pipeline visibility
    - `smoke/Videra.SurfaceCharts.ConsumerSmoke` for the packaged SurfaceCharts first-chart path on the supported host path
-   - `Videra.SurfaceCharts.Demo` for the packaged chart repro path:
-   - `Start here: In-memory first chart` before any cache-backed investigation
-   - `Explore next: Cache-backed streaming` only after the first-chart path renders
-   - `Try next: Analytics proof` when you need explicit-coordinate, independent-`ColorField` probe behavior for analytic path checks
-   - `Try next: Waterfall proof` when you need the second control proof on the same chart shell; `Try next: Scatter proof` when you need the repo-owned scatter proof path on the same chart shell
+  - `Videra.SurfaceCharts.Demo` for the repository-only chart repro/reference path:
+  - `Start here: In-memory first chart` before any cache-backed investigation
+  - `Explore next: Cache-backed streaming` only after the first-chart path renders
+  - `Try next: Analytics proof` when you need explicit-coordinate, independent-`ColorField` probe behavior for analytic path checks
+  - `Try next: Waterfall proof` when you need the second control proof on the same chart shell; `Try next: Scatter proof` when you need the repo-owned scatter proof path on the same chart shell
 4. Export a diagnostics snapshot with `VideraDiagnosticsSnapshotFormatter.Format(View3D.BackendDiagnostics)` or attach the `consumer smoke` `diagnostics-snapshot.txt` artifact; if transparency is involved, include `TransparentFeatureStatus` from that snapshot so support can read the shipped transparency contract.
 5. If the issue is visual or inspection-related, attach either:
    - a snapshot exported through `ExportSnapshotAsync(...)`, or
@@ -41,8 +41,8 @@ Videra is still an early alpha embeddable viewer stack. Good feedback is not jus
 - SurfaceCharts demo-path choice when relevant:
   - `Start here: In-memory first chart`
   - `Explore next: Cache-backed streaming`
-  - `Try next: Waterfall proof`
   - `Try next: Analytics proof`
+  - `Try next: Waterfall proof`
   - `Try next: Scatter proof`
 - `ScatterChartView` is shipped in `Videra.SurfaceCharts.Avalonia`; the repository-owned `Try next: Scatter proof` path is the demo path to cite
 - SurfaceCharts chart state when relevant:
