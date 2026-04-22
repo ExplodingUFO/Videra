@@ -39,11 +39,14 @@ public sealed class SurfaceChartsDemoConfigurationTests
         readme.Should().Contain("lazy");
         readme.Should().Contain("sample.surfacecache.json.bin");
         readme.Should().Contain("ScatterChartView");
+        readme.Should().Contain("Try next: Analytics proof");
+        readme.Should().Contain("ColorField");
 
         var mainWindow = File.ReadAllText(mainWindowXamlPath);
         mainWindow.Should().Contain("Start here: In-memory first chart");
         mainWindow.Should().Contain("Explore next: Cache-backed streaming");
         mainWindow.Should().Contain("Try next: Waterfall proof");
+        mainWindow.Should().Contain("Try next: Analytics proof");
         mainWindow.Should().Contain("Try next: Scatter proof");
         mainWindow.Should().Contain("First-chart source");
         mainWindow.Should().Contain("Start here status");
@@ -99,6 +102,11 @@ public sealed class SurfaceChartsDemoConfigurationTests
         mainWindowCodeBehind.Should().Contain("ScatterPoint");
         mainWindowCodeBehind.Should().Contain("ScatterChartMetadata");
         mainWindowCodeBehind.Should().Contain("CreateScatterSource");
+        mainWindowCodeBehind.Should().Contain("CreateAnalyticsProofSource");
+        mainWindowCodeBehind.Should().Contain("CreateAnalyticsProofMatrix");
+        mainWindowCodeBehind.Should().Contain("SurfaceExplicitGrid");
+        mainWindowCodeBehind.Should().Contain("SurfaceScalarField");
+        mainWindowCodeBehind.Should().Contain("ColorField");
         mainWindowCodeBehind.Should().Contain("CreateScatterCameraSummary");
         mainWindowCodeBehind.Should().Contain("Scatter proof");
         mainWindowCodeBehind.Should().Contain("RenderStatusChanged");

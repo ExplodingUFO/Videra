@@ -14,8 +14,10 @@ public partial class MainWindow : Window
 {
     private const string CacheManifestFileName = "sample.surfacecache.json";
     private const string CachePayloadSuffix = ".bin";
-    private const int WaterfallSourceIndex = 2;
-    private const int ScatterSourceIndex = 3;
+    private const int CacheSourceIndex = 1;
+    private const int AnalyticsSourceIndex = 2;
+    private const int WaterfallSourceIndex = 3;
+    private const int ScatterSourceIndex = 4;
 
     private readonly SurfaceChartView _surfaceChartView;
     private readonly WaterfallChartView _waterfallChartView;
@@ -35,6 +37,7 @@ public partial class MainWindow : Window
     private readonly TextBlock _supportSummaryStatusText;
     private readonly TextBlock _supportSummaryText;
     private readonly ISurfaceTileSource _inMemorySource;
+    private readonly ISurfaceTileSource _analyticsProofSource;
     private readonly ISurfaceTileSource _waterfallSource;
     private readonly ScatterChartData _scatterSource;
     private readonly string _cachePath;
@@ -92,6 +95,7 @@ public partial class MainWindow : Window
         _cachePayloadPath = _cachePath + CachePayloadSuffix;
 
         _inMemorySource = CreateInMemorySource();
+        _analyticsProofSource = CreateAnalyticsProofSource();
         _waterfallSource = CreateWaterfallSource();
         _scatterSource = CreateScatterSource();
 
@@ -157,6 +161,24 @@ public partial class MainWindow : Window
             return;
         }
 
+        if (requestedIndex == CacheSourceIndex)
+        {
+            LoadAndApplyCacheSourceAsync(requestedIndex);
+            return;
+        }
+
+        if (requestedIndex == AnalyticsSourceIndex)
+        {
+            ApplySource(
+                _surfaceChartView,
+                _analyticsProofSource,
+                "Try next: Analytics proof",
+                "Repo-owned analytics proof on the same Avalonia shell. Uses explicit/non-uniform coordinates with an independent `ColorField`, keeps pinned-probe workflow (`Shift + LeftClick`), and keeps the built-in `ViewState` + `InteractionQuality` camera truth contract.",
+                "The analytics proof uses a 19x13 explicit grid with non-uniform axis spacing and separate height and color scalar fields, while preserving the same SurfaceChartView interaction contracts.",
+                "No additional assets are used on this path.");
+            return;
+        }
+
         if (requestedIndex == WaterfallSourceIndex)
         {
             ApplySource(
@@ -180,6 +202,11 @@ public partial class MainWindow : Window
             return;
         }
 
+        LoadAndApplyCacheSourceAsync(requestedIndex);
+    }
+
+    private async void LoadAndApplyCacheSourceAsync(int requestedIndex)
+    {
         try
         {
             var cacheSource = await GetOrCreateCacheSourceAsync().ConfigureAwait(true);
@@ -458,6 +485,20 @@ public partial class MainWindow : Window
         return new SurfacePyramidBuilder(32, 32).Build(matrix);
     }
 
+    private static ISurfaceTileSource CreateAnalyticsProofSource()
+    {
+        var matrix = CreateAnalyticsProofMatrix();
+        return new InMemorySurfaceTileSource(
+            matrix,
+            matrix.Metadata,
+            [new SurfacePyramidLevel(0, 0, matrix)],
+            maxTileWidth: 32,
+            maxTileHeight: 32,
+            detailLevelX: 0,
+            detailLevelY: 0,
+            reductionKernel: new ManagedSurfaceTileReductionKernel());
+    }
+
     private static ISurfaceTileSource CreateWaterfallSource()
     {
         var matrix = CreateWaterfallMatrix();
@@ -470,6 +511,87 @@ public partial class MainWindow : Window
             detailLevelX: 0,
             detailLevelY: 0,
             reductionKernel: new ManagedSurfaceTileReductionKernel());
+    }
+
+    private static SurfaceMatrix CreateAnalyticsProofMatrix()
+    {
+        const int width = 19;
+        const int height = 13;
+        var values = new float[width * height];
+        var colorValues = new float[width * height];
+        var horizontalCoordinates = new double[]
+        {
+            0.0d,
+            0.14d,
+            0.33d,
+            0.54d,
+            0.88d,
+            1.19d,
+            1.55d,
+            1.96d,
+            2.41d,
+            2.96d,
+            3.34d,
+            3.88d,
+            4.31d,
+            4.91d,
+            5.45d,
+            6.05d,
+            6.74d,
+            7.68d,
+            8.52d,
+        };
+
+        var verticalCoordinates = new double[]
+        {
+            -1.1d,
+            -0.68d,
+            -0.22d,
+            0.09d,
+            0.35d,
+            0.66d,
+            1.02d,
+            1.41d,
+            1.85d,
+            2.31d,
+            2.92d,
+            3.48d,
+            4.14d,
+        };
+
+        var valueIndex = 0;
+        for (var y = 0; y < height; y++)
+        {
+            var axisY = verticalCoordinates[y];
+            for (var x = 0; x < width; x++)
+            {
+                var axisX = horizontalCoordinates[x];
+                var heightValue = Math.Tanh(
+                    Math.Sin((axisX * 0.72d) + (axisY * 0.63d)) +
+                    (0.48d * Math.Cos((axisX * 0.51d) - (axisY * 0.78d))));
+                var colorValue = Math.Tanh(
+                    (0.72d * Math.Cos((axisX * 0.38d) + (axisY * 0.27d))) +
+                    (0.33d * Math.Sin((axisX * 0.14d) + (axisY * 1.08d))));
+
+                values[valueIndex] = (float)heightValue;
+                colorValues[valueIndex] = (float)colorValue;
+                valueIndex++;
+            }
+        }
+
+        var metadata = new SurfaceMetadata(
+            new SurfaceExplicitGrid(horizontalCoordinates, verticalCoordinates),
+            new SurfaceAxisDescriptor("Distance", "km", horizontalCoordinates[0], horizontalCoordinates[^1], SurfaceAxisScaleKind.ExplicitCoordinates),
+            new SurfaceAxisDescriptor("Depth", "m", verticalCoordinates[0], verticalCoordinates[^1], SurfaceAxisScaleKind.ExplicitCoordinates),
+            new SurfaceValueRange(-1d, 1d));
+
+        var heightField = new SurfaceScalarField(width, height, values, metadata.ValueRange);
+        var colorField = new SurfaceScalarField(width, height, colorValues, metadata.ValueRange);
+
+        return new SurfaceMatrix(
+            metadata,
+            heightField,
+            colorField);
     }
 
     private static ScatterChartData CreateScatterSource()

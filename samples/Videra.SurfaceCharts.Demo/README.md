@@ -8,6 +8,7 @@ The sample stays separate from `Videra.Demo` and `VideraView`. It exercises the 
 
 - `Start here: In-memory first chart`: builds a sample surface matrix at startup and feeds it through `SurfacePyramidBuilder`.
 - `Explore next: Cache-backed streaming`: loads manifest metadata from `Assets/sample-surface-cache/sample.surfacecache.json`, then uses lazy tile streaming from `Assets/sample-surface-cache/sample.surfacecache.json.bin` through `SurfaceCacheReader` and `SurfaceCacheTileSource`.
+- `Try next: Analytics proof`: exercises an explicit-coordinate `SurfaceChartView` path with independent scalar `ColorField` and pinned-probe workflow proof data.
 - `Try next: Waterfall proof`: exercises the thin `WaterfallChartView` proof on the same Avalonia shell.
 - `Try next: Scatter proof`: exercises the direct `ScatterChartView` proof path on the same Avalonia shell with repo-owned scatter data.
 
@@ -28,8 +29,9 @@ The committed cache sample uses a tiled manifest+sidecar layout so panning, doll
 1. Run the sample and keep the default `Start here: In-memory first chart` source.
 2. Confirm the baseline first chart renders, then try `FitToData()`, `ResetCamera()`, orbit, pan, dolly, and focus zoom.
 3. Move to `Explore next: Cache-backed streaming` only after the first chart path works and you want to validate lazy tile reads plus the broader demo surfaces.
-4. Use `Try next: Waterfall proof` when you want the second control proof on the same Avalonia shell.
-5. Use `Try next: Scatter proof` when you want the direct scatter proof on the same Avalonia shell.
+4. Use `Try next: Analytics proof` to validate explicit-coordinate sampling and independent color scalar flow while keeping `SurfaceChartView` as the proof host.
+5. Use `Try next: Waterfall proof` when you want the second control proof on the same Avalonia shell.
+6. Use `Try next: Scatter proof` when you want the direct scatter proof on the same Avalonia shell.
 
 ## Run
 
@@ -42,6 +44,7 @@ dotnet run --project samples/Videra.SurfaceCharts.Demo/Videra.SurfaceCharts.Demo
 - an independent chart application boundary
 - a `Start here` in-memory first chart path
 - an `Explore next` cache-backed streaming path
+- a `Try next` analytics proof with explicit/non-uniform coordinates and independent `ColorField` on `SurfaceChartView`
 - a `Try next` waterfall proof path
 - a `Try next` scatter proof path
 - built-in `left-drag orbit`, `right-drag pan`, `wheel dolly`, and `Ctrl + left-drag` focus zoom on the surface and waterfall proof paths; the scatter proof keeps left-drag orbit and wheel dolly only
