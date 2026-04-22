@@ -212,6 +212,43 @@ public sealed class SurfaceChartProbeOverlayTests
     }
 
     [Fact]
+    public void ExactTileProbe_ResolvesAtRightBottomEdge()
+    {
+        var metadata = new SurfaceMetadata(
+            width: 2,
+            height: 2,
+            new SurfaceAxisDescriptor("Time", "s", 10d, 20d),
+            new SurfaceAxisDescriptor("Frequency", "Hz", 100d, 200d),
+            new SurfaceValueRange(-1d, 1d));
+        var tile = new SurfaceTile(
+            new SurfaceTileKey(0, 0, 0, 0),
+            width: 2,
+            height: 2,
+            new SurfaceTileBounds(0, 0, 2, 2),
+            new float[]
+            {
+                10f, 20f,
+                30f, 40f
+            },
+            metadata.ValueRange);
+
+        var state = SurfaceProbeOverlayPresenter.CreateState(
+            new StaticTileSource(metadata),
+            new SurfaceViewport(0, 0, 1, 1),
+            new Size(2, 2),
+            [tile],
+            new Point(2, 2));
+
+        var hoveredProbe = GetHoveredProbe(state);
+        GetDoubleProperty(hoveredProbe, "SampleX").Should().BeApproximately(1d, 0.0001d);
+        GetDoubleProperty(hoveredProbe, "SampleY").Should().BeApproximately(1d, 0.0001d);
+        GetDoubleProperty(hoveredProbe, "AxisX").Should().BeApproximately(20d, 0.0001d);
+        GetDoubleProperty(hoveredProbe, "AxisY").Should().BeApproximately(200d, 0.0001d);
+        GetDoubleProperty(hoveredProbe, "Value").Should().BeApproximately(40d, 0.0001d);
+        GetBooleanProperty(hoveredProbe, "IsApproximate").Should().BeFalse();
+    }
+
+    [Fact]
     public void ProbeOverlay_ClampsViewportAndReportsAxisTruth()
     {
         var metadata = new SurfaceMetadata(

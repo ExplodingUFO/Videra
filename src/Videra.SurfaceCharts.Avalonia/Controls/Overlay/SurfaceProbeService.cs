@@ -143,13 +143,13 @@ internal static class SurfaceProbeService
 
         var localX = sampleX - tile.Bounds.StartX;
         var localY = sampleY - tile.Bounds.StartY;
-        var leftColumn = (int)Math.Floor(localX);
-        var topRow = (int)Math.Floor(localY);
-        if (leftColumn < 0 || topRow < 0 || leftColumn >= tile.Width - 1 || topRow >= tile.Height - 1)
+        if (localX < 0d || localY < 0d || localX > tile.Bounds.Width - 1 || localY > tile.Bounds.Height - 1)
         {
             return false;
         }
 
+        var leftColumn = Math.Min((int)Math.Floor(localX), tile.Width - 2);
+        var topRow = Math.Min((int)Math.Floor(localY), tile.Height - 2);
         var tx = localX - leftColumn;
         var ty = localY - topRow;
         var topLeftIndex = (topRow * tile.Width) + leftColumn;
