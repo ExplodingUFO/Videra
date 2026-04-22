@@ -439,5 +439,5 @@ if ($Scenario -eq "Viewer")
 }
 else
 {
-    Write-Host "SupportSummary: $surfaceChartsSupportSummaryPath"
+    Write-Host "Support summary: $surfaceChartsSupportSummaryPath"
 }
