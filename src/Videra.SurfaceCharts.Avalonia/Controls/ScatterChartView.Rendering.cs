@@ -56,26 +56,26 @@ public sealed partial class ScatterChartView
     private static void DrawScene(DrawingContext context, ScatterRenderScene scene, SurfaceCameraFrame frame)
     {
         Dictionary<uint, IBrush> brushCache = [];
+        Dictionary<uint, Pen> penCache = [];
         List<ProjectedScatterPoint> projectedPoints = [];
 
         foreach (var series in scene.Series)
         {
+            if (series.ConnectPoints)
+            {
+                DrawConnectedSegments(context, series, frame, penCache);
+            }
+
             foreach (var point in series.Points)
             {
-                var projected = SurfaceProjectionMath.ProjectToScreen(
-                    point.Position,
-                    frame);
-
-                if (!float.IsFinite(projected.X) || !float.IsFinite(projected.Y) || !float.IsFinite(projected.Z))
+                if (TryProjectPoint(point, frame, out var projected))
                 {
-                    continue;
+                    projectedPoints.Add(
+                        new ProjectedScatterPoint(
+                            new Point(projected.X, projected.Y),
+                            point.Color,
+                            projected.Z));
                 }
-
-                projectedPoints.Add(
-                    new ProjectedScatterPoint(
-                        new Point(projected.X, projected.Y),
-                        point.Color,
-                        projected.Z));
             }
         }
 
@@ -92,6 +92,44 @@ public sealed partial class ScatterChartView
             var radius = 2.5d + ((1d - Math.Clamp(point.SortKey, 0d, 1d)) * 2.5d);
             context.DrawEllipse(brush, null, point.ScreenPosition, radius, radius);
         }
+    }
+
+    private static void DrawConnectedSegments(
+        DrawingContext context,
+        ScatterRenderSeries series,
+        SurfaceCameraFrame frame,
+        Dictionary<uint, Pen> penCache)
+    {
+        Point? previousProjected = null;
+
+        foreach (var point in series.Points)
+        {
+            if (!TryProjectPoint(point, frame, out var projected))
+            {
+                previousProjected = null;
+                continue;
+            }
+
+            if (previousProjected is not null)
+            {
+                var color = point.Color;
+                if (!penCache.TryGetValue(color, out var pen))
+                {
+                    pen = new Pen(new SolidColorBrush(ToColor(color)), 1d);
+                    penCache.Add(color, pen);
+                }
+
+                context.DrawLine(pen, previousProjected.Value, new Point(projected.X, projected.Y));
+            }
+
+            previousProjected = new Point(projected.X, projected.Y);
+        }
+    }
+
+    private static bool TryProjectPoint(ScatterRenderPoint point, SurfaceCameraFrame frame, out Vector3 projected)
+    {
+        projected = SurfaceProjectionMath.ProjectToScreen(point.Position, frame);
+        return float.IsFinite(projected.X) && float.IsFinite(projected.Y) && float.IsFinite(projected.Z);
     }
 
     private readonly record struct ProjectedScatterPoint(Point ScreenPosition, uint Color, double SortKey);

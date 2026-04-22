@@ -14,11 +14,16 @@ public sealed class ScatterRenderSeries
     /// </summary>
     /// <param name="points">The render-ready points.</param>
     /// <param name="label">The optional series label.</param>
-    public ScatterRenderSeries(IReadOnlyList<ScatterRenderPoint> points, string? label = null)
+    /// <param name="connectPoints">Whether the render series should draw line segments between declared points.</param>
+    public ScatterRenderSeries(
+        IReadOnlyList<ScatterRenderPoint> points,
+        string? label = null,
+        bool connectPoints = false)
     {
         ArgumentNullException.ThrowIfNull(points);
 
         Label = label;
+        ConnectPoints = connectPoints;
         _pointsView = Array.AsReadOnly(points.ToArray());
     }
 
@@ -26,6 +31,11 @@ public sealed class ScatterRenderSeries
     /// Gets the optional series label.
     /// </summary>
     public string? Label { get; }
+
+    /// <summary>
+    /// Gets whether this render series should connect consecutive points with line segments.
+    /// </summary>
+    public bool ConnectPoints { get; }
 
     /// <summary>
     /// Gets the immutable render-ready points.

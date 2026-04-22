@@ -1,6 +1,7 @@
 using System.Reflection;
 using Avalonia;
 using Avalonia.Input;
+using Avalonia.Media;
 using FluentAssertions;
 using Videra.SurfaceCharts.Avalonia.Controls;
 using Videra.SurfaceCharts.Core;
@@ -50,6 +51,41 @@ public sealed class ScatterChartViewIntegrationTests
             series.Points.Should().HaveCount(2);
             series.Points[0].Should().Be(new ScatterRenderPoint(new System.Numerics.Vector3(1f, 2f, 3f), 0xFFAA5500u));
             series.Points[1].Should().Be(new ScatterRenderPoint(new System.Numerics.Vector3(4f, 5f, 6f), 0xFF336699u));
+        });
+    }
+
+    [Fact]
+    public void ScatterChartView_Render_ConnectsEnabledSeries_AndStillDrawsPoints()
+    {
+        AvaloniaHeadlessTestSession.Run(() =>
+        {
+            var metadata = CreateMetadata();
+            var source = new ScatterChartData(
+                metadata,
+                [
+                    new ScatterSeries(
+                        [
+                            new ScatterPoint(1d, 2d, 3d, 0xFFAA5500),
+                            new ScatterPoint(4d, 5d, 6d, 0xFF336699),
+                            new ScatterPoint(7d, 6d, 5d, 0xFF114488),
+                        ],
+                        0xFF336699,
+                        "Alpha",
+                        connectPoints: true),
+                ]);
+
+            var view = new ScatterChartView();
+            view.Measure(new Size(240, 160));
+            view.Arrange(new Rect(0, 0, 240, 160));
+            view.Source = source;
+
+            using var drawingContext = new RecordingDrawingContext();
+
+            view.Render(drawingContext.Context);
+
+            drawingContext.GeometryDrawCallCount.Should().Be(5);
+            drawingContext.FilledGeometryDrawCallCount.Should().Be(3);
+            drawingContext.StrokeOnlyGeometryDrawCallCount.Should().Be(2);
         });
     }
 
@@ -316,6 +352,90 @@ public sealed class ScatterChartViewIntegrationTests
             var properties = new PointerPointProperties(rawModifiers, PointerUpdateKind.Other);
             var args = new PointerWheelEventArgs(_view, pointer, _view, position, timestamp: 0, properties, keyModifiers, delta);
             OnPointerWheelChangedMethod.Invoke(_view, [args]);
+        }
+    }
+
+    private sealed class RecordingDrawingContext : IDisposable
+    {
+        private readonly DrawingGroup _drawingGroup = new();
+        private readonly DrawingContext _drawingContext;
+        private bool _completed;
+        private int? _geometryDrawCallCount;
+        private int? _filledGeometryDrawCallCount;
+        private int? _strokeOnlyGeometryDrawCallCount;
+
+        public RecordingDrawingContext()
+        {
+            _drawingContext = _drawingGroup.Open();
+        }
+
+        public DrawingContext Context => _drawingContext;
+
+        public int GeometryDrawCallCount
+        {
+            get
+            {
+                CompleteRecording();
+                return _geometryDrawCallCount!.Value;
+            }
+        }
+
+        public int FilledGeometryDrawCallCount
+        {
+            get
+            {
+                CompleteRecording();
+                return _filledGeometryDrawCallCount!.Value;
+            }
+        }
+
+        public int StrokeOnlyGeometryDrawCallCount
+        {
+            get
+            {
+                CompleteRecording();
+                return _strokeOnlyGeometryDrawCallCount!.Value;
+            }
+        }
+
+        public void Dispose()
+        {
+            CompleteRecording();
+        }
+
+        private void CompleteRecording()
+        {
+            if (_completed)
+            {
+                return;
+            }
+
+            _drawingContext.Dispose();
+            _geometryDrawCallCount = CountGeometryDrawings(_drawingGroup);
+            _filledGeometryDrawCallCount = CountGeometryDrawings(_drawingGroup, static drawing => drawing.Brush is not null);
+            _strokeOnlyGeometryDrawCallCount = CountGeometryDrawings(_drawingGroup, static drawing => drawing.Brush is null);
+            _completed = true;
+        }
+
+        private static int CountGeometryDrawings(Drawing drawing)
+        {
+            return drawing switch
+            {
+                GeometryDrawing => 1,
+                DrawingGroup group => group.Children.Sum(CountGeometryDrawings),
+                _ => 0,
+            };
+        }
+
+        private static int CountGeometryDrawings(Drawing drawing, Func<GeometryDrawing, bool> predicate)
+        {
+            return drawing switch
+            {
+                GeometryDrawing geometryDrawing when predicate(geometryDrawing) => 1,
+                GeometryDrawing => 0,
+                DrawingGroup group => group.Children.Sum(child => CountGeometryDrawings(child, predicate)),
+                _ => 0,
+            };
         }
     }
 }

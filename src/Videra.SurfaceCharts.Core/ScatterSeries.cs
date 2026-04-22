@@ -15,12 +15,18 @@ public sealed class ScatterSeries
     /// <param name="points">The series points.</param>
     /// <param name="color">The default series color.</param>
     /// <param name="label">The optional series label.</param>
-    public ScatterSeries(IReadOnlyList<ScatterPoint> points, uint color, string? label = null)
+    /// <param name="connectPoints">Whether the series should draw line segments between declared points.</param>
+    public ScatterSeries(
+        IReadOnlyList<ScatterPoint> points,
+        uint color,
+        string? label = null,
+        bool connectPoints = false)
     {
         ArgumentNullException.ThrowIfNull(points);
 
         Label = label;
         Color = color;
+        ConnectPoints = connectPoints;
         _pointsView = Array.AsReadOnly(points.ToArray());
     }
 
@@ -33,6 +39,11 @@ public sealed class ScatterSeries
     /// Gets the default ARGB series color.
     /// </summary>
     public uint Color { get; }
+
+    /// <summary>
+    /// Gets whether this series should connect consecutive points with line segments.
+    /// </summary>
+    public bool ConnectPoints { get; }
 
     /// <summary>
     /// Gets the immutable point set.
