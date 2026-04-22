@@ -11,6 +11,7 @@ namespace Videra.Core.Graphics.Wireframe;
 public partial class WireframeRenderer : IDisposable
 {
     private IResourceFactory? _factory;
+    private IPipeline? _alphaBlendPipeline;
     private bool _isInitialized;
     private RgbaFloat _lastLineColor;
     private readonly ILogger _logger = Microsoft.Extensions.Logging.Abstractions.NullLoggerFactory.Instance.CreateLogger<WireframeRenderer>();
@@ -32,7 +33,17 @@ public partial class WireframeRenderer : IDisposable
     public void Initialize(IResourceFactory factory)
     {
         ArgumentNullException.ThrowIfNull(factory);
+        var alphaBlendPipeline = factory.CreatePipeline(new PipelineDescription
+        {
+            Topology = PrimitiveTopology.LineList,
+            DepthTestEnabled = true,
+            DepthWriteEnabled = false,
+            AlphaBlendEnabled = true
+        });
+
         _factory = factory;
+        _alphaBlendPipeline?.Dispose();
+        _alphaBlendPipeline = alphaBlendPipeline;
         _isInitialized = true;
         Log.Initialized(_logger);
     }
@@ -111,7 +122,7 @@ public partial class WireframeRenderer : IDisposable
         RenderWireframePass(obj, executor, pipeline, LineColor, testEnabled: true, writeEnabled: false);
     }
 
-    private static void RenderWireframePass(
+    private void RenderWireframePass(
         Object3D obj,
         ICommandExecutor executor,
         IPipeline pipeline,
@@ -120,7 +131,22 @@ public partial class WireframeRenderer : IDisposable
         bool writeEnabled)
     {
         obj.UpdateWireframeColor(lineColor);
-        RenderLinesWithDepth(obj, executor, pipeline, testEnabled, writeEnabled);
+        RenderLinesWithDepth(
+            obj,
+            executor,
+            ResolvePipeline(pipeline, lineColor),
+            testEnabled,
+            writeEnabled);
+    }
+
+    private IPipeline ResolvePipeline(IPipeline defaultPipeline, RgbaFloat lineColor)
+    {
+        if (lineColor.A < 1f && _alphaBlendPipeline is not null)
+        {
+            return _alphaBlendPipeline;
+        }
+
+        return defaultPipeline;
     }
 
     private static void RenderLinesWithDepth(Object3D obj, ICommandExecutor executor, IPipeline pipeline, bool testEnabled, bool writeEnabled)
@@ -156,6 +182,8 @@ public partial class WireframeRenderer : IDisposable
 
     public void Dispose()
     {
+        _alphaBlendPipeline?.Dispose();
+        _alphaBlendPipeline = null;
         _isInitialized = false;
         GC.SuppressFinalize(this);
     }

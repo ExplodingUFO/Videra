@@ -21,6 +21,7 @@ public partial class VideraEngine : IDisposable
 {
     private const RenderFeatureSet EngineSupportedFeatures =
         RenderFeatureSet.Opaque |
+        RenderFeatureSet.Transparent |
         RenderFeatureSet.Overlay;
 
     private readonly object _lock = new();

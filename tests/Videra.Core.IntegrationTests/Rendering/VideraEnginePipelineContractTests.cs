@@ -1,4 +1,6 @@
 using FluentAssertions;
+using System.Numerics;
+using Videra.Core.Geometry;
 using Videra.Core.Graphics;
 using Videra.Core.Graphics.RenderPipeline;
 using Videra.Core.Graphics.Software;
@@ -79,5 +81,25 @@ public sealed class VideraEnginePipelineContractTests
         engine.LastPipelineSnapshot.EffectiveWireframeMode.Should().Be(WireframeMode.WireframeOnly);
         engine.LastPipelineSnapshot.Stages.Should().Contain(RenderPipelineStage.WireframePass);
         engine.LastPipelineSnapshot.Stages.Should().NotContain(RenderPipelineStage.SolidGeometryPass);
+    }
+
+    [Fact]
+    public void Draw_WithTransparentGeometry_CapturesTransparentFeature()
+    {
+        using var backend = new SoftwareBackend();
+        backend.Initialize(IntPtr.Zero, 200, 200);
+        using var engine = new VideraEngine();
+        engine.Initialize(backend);
+        engine.Resize(200, 200);
+        engine.Grid.IsVisible = false;
+        engine.ShowAxis = false;
+        engine.AddObject(DemoMeshFactory.CreateBlendedQuad(new RgbaFloat(1f, 0f, 0f, 0.5f), Vector3.Zero));
+
+        engine.Draw();
+
+        engine.LastPipelineSnapshot.Should().NotBeNull();
+        engine.LastPipelineSnapshot!.ActiveFeatures.Should().Be(RenderFeatureSet.Transparent);
+        engine.LastPipelineSnapshot.FeatureNames.Should().Equal("Transparent");
+        engine.LastPipelineSnapshot.Stages.Should().Contain(RenderPipelineStage.SolidGeometryPass);
     }
 }

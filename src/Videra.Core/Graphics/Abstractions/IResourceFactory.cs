@@ -77,6 +77,7 @@ public struct PipelineDescription
     public PrimitiveTopology Topology;
     public bool DepthTestEnabled;
     public bool DepthWriteEnabled;
+    public bool AlphaBlendEnabled;
 }
 
 /// <summary>

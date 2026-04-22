@@ -114,15 +114,14 @@ public sealed class VideraViewSessionBridgeIntegrationTests
         diagnostics.LastFrameStageNames.Should().Contain("PrepareFrame");
         diagnostics.LastFrameStageNames.Should().Contain("PresentFrame");
         diagnostics.LastFrameFeatureNames.Should().NotBeNull();
-        diagnostics.LastFrameFeatureNames.Should().Contain("Opaque");
         diagnostics.LastFrameFeatureNames.Should().Contain("Overlay");
         diagnostics.SupportedRenderFeatureNames.Should().NotBeNull();
         diagnostics.SupportedRenderFeatureNames.Should().Contain("Opaque");
+        diagnostics.SupportedRenderFeatureNames.Should().Contain("Transparent");
         diagnostics.SupportedRenderFeatureNames.Should().Contain("Overlay");
         diagnostics.SupportedRenderFeatureNames.Should().Contain("Picking");
         diagnostics.SupportedRenderFeatureNames.Should().Contain("Screenshot");
-        diagnostics.SupportedRenderFeatureNames.Should().NotContain("Transparent");
-        diagnostics.TransparentFeatureStatus.Should().Be("Alpha mask rendering is shipped for per-object carried alpha sources on the current runtime path; alpha blend ordering remains deferred.");
+        diagnostics.TransparentFeatureStatus.Should().Be(VideraBackendDiagnostics.CurrentTransparentFeatureStatus);
         diagnostics.SupportsPassContributors.Should().BeTrue();
         diagnostics.SupportsPassReplacement.Should().BeTrue();
         diagnostics.SupportsFrameHooks.Should().BeTrue();
