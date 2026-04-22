@@ -8,6 +8,11 @@ public sealed class SceneDocument
 
     public static SceneDocument Empty { get; } = new(version: 0, Array.Empty<SceneDocumentEntry>());
 
+    public SceneDocument(IEnumerable<Object3D> sceneObjects)
+        : this(version: 1, CreateExternalEntries(sceneObjects))
+    {
+    }
+
     internal SceneDocument(IEnumerable<SceneDocumentEntry> entries)
         : this(version: 1, entries)
     {
@@ -62,5 +67,22 @@ public sealed class SceneDocument
     internal SceneDocument WithEntries(IEnumerable<SceneDocumentEntry> entries, int version)
     {
         return new SceneDocument(version, entries);
+    }
+
+    private static IEnumerable<SceneDocumentEntry> CreateExternalEntries(IEnumerable<Object3D> sceneObjects)
+    {
+        ArgumentNullException.ThrowIfNull(sceneObjects);
+
+        return sceneObjects.Select(static sceneObject =>
+        {
+            ArgumentNullException.ThrowIfNull(sceneObject);
+
+            return new SceneDocumentEntry(
+                SceneEntryId.New(),
+                sceneObject.Name,
+                sceneObject,
+                importedAsset: null,
+                SceneOwnership.ExternalObject);
+        });
     }
 }

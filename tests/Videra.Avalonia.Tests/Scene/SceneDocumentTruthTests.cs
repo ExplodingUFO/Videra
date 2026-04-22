@@ -8,28 +8,20 @@ namespace Videra.Avalonia.Tests.Scene;
 
 public sealed class SceneDocumentTruthTests
 {
-    private readonly SceneDocumentMutator _mutator = new();
-
     [Fact]
     public void Public_scene_document_exposes_truth_entries_without_public_object_references()
     {
-        var asset = SceneTestMeshes.CreateImportedAsset("sample.obj");
-        var sceneObject = SceneObjectFactory.CreateDeferred(asset);
-
-        var document = _mutator.Add(
-            SceneDocument.Empty,
-            sceneObject,
-            asset,
-            SceneOwnership.RuntimeOwnedImported);
+        var sceneObject = new Object3D { Name = "host-owned" };
+        var document = new SceneDocument(new[] { sceneObject });
 
         document.Version.Should().Be(1);
         document.Entries.Should().ContainSingle();
 
         var entry = document.Entries[0];
         entry.Id.Value.Should().NotBe(Guid.Empty);
-        entry.Name.Should().Be(asset.Name);
-        entry.ImportedAsset.Should().BeSameAs(asset);
-        entry.Ownership.Should().Be(SceneOwnership.RuntimeOwnedImported);
+        entry.Name.Should().Be(sceneObject.Name);
+        entry.ImportedAsset.Should().BeNull();
+        entry.Ownership.Should().Be(SceneOwnership.ExternalObject);
 
         typeof(SceneDocument)
             .GetProperty("SceneObjects", BindingFlags.Instance | BindingFlags.Public)
