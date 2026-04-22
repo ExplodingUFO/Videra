@@ -484,7 +484,7 @@ float4 main_ps(VSOutput input) : SV_TARGET
     // 亮度调整
     color += brightness;
 
-    float finalAlpha = input.maskEnabled > 0.5f ? opacity : sourceAlpha * opacity;
+    float finalAlpha = input.maskEnabled > 0.5f ? 1.0f : sourceAlpha * opacity;
     return float4(saturate(color), finalAlpha);
 }
 ";

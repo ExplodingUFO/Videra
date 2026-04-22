@@ -321,6 +321,8 @@ internal sealed class SoftwareCommandExecutor : ICommandExecutor
             return false;
         }
 
+        // Software projection stores premultiplied vertex color, but the native shader paths
+        // keep masked fragments in straight color space once they survive the cutoff.
         resolvedColor = new Vector4(color.X / color.W, color.Y / color.W, color.Z / color.W, 1f);
         return true;
     }
