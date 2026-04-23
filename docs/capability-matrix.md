@@ -2,7 +2,7 @@
 
 This page is the product-boundary truth for `Videra 1.0`.
 
-The `1.0` line is a native desktop viewer/runtime for .NET applications, centered on `SceneDocument`-backed imported assets, embeddable viewing, inspection, diagnostics, and the public `SurfaceCharts` package family. It is not a Three.js-style general runtime, and it does not expand into broader runtime breadth beyond one bounded style-driven direct-lighting baseline on the native static-scene path.
+The `1.0` line is a native desktop viewer/runtime for .NET applications, centered on `SceneDocument`-backed imported assets, embeddable viewing, inspection, diagnostics, and the public `SurfaceCharts` package family. It is not a Three.js-style general runtime, and it does not expand into broader runtime breadth beyond one bounded style-driven broader-lighting baseline on the native static-scene path.
 
 ## Shipped in the 1.0 Line
 
@@ -15,7 +15,7 @@ The `1.0` line is a native desktop viewer/runtime for .NET applications, centere
 | Viewer-first inspection workflows | Yes | Picking, measurement, clipping, snapshot export, inspection-state capture/restore, and inspection bundles are part of the product surface |
 | Narrow public extensibility | Yes | Pass contributors, frame hooks, capability snapshots, and backend diagnostics are part of the shipped viewer contract |
 | Transparency baseline | Yes | Alpha mask rendering and deterministic alpha blend ordering are shipped for per-object carried alpha sources; broader transparency work remains deferred |
-| Static-scene material/runtime truth | Yes | Imported assets carry per-primitive non-Blend material participation, occlusion texture binding/strength, `KHR_texture_transform` offset/scale/rotation, and texture-coordinate override as retained runtime truth; the current renderer path consumes baseColor texture sampling plus occlusion texture binding/strength, including `KHR_texture_transform` and texture-coordinate override where those bindings request them, while emissive and normal-map-ready inputs remain retained runtime truth; the canonical runtime path may expand one imported entry into multiple internal runtime objects so mixed opaque/transparent primitive participation survives the bridge; one bounded style-driven direct-lighting baseline ships on the native static-scene path |
+| Static-scene material/runtime truth | Yes | Imported assets carry per-primitive non-Blend material participation, occlusion texture binding/strength, `KHR_texture_transform` offset/scale/rotation, and texture-coordinate override as retained runtime truth; the current renderer path consumes baseColor texture sampling plus occlusion texture binding/strength, including `KHR_texture_transform` and texture-coordinate override where those bindings request them, while emissive and normal-map-ready inputs remain retained runtime truth; the canonical runtime path may expand one imported entry into multiple internal runtime objects so mixed opaque/transparent primitive participation survives the bridge; one bounded style-driven broader-lighting baseline ships on the native static-scene path |
 | `SurfaceCharts` package family | Yes | `SurfaceChartView`, `WaterfallChartView`, `ScatterChartView`, chart overlays/interaction, and the `Videra.SurfaceCharts.*` package line are part of the shipped `1.0` story; `Videra.SurfaceCharts.Processing` is only needed for the surface/cache-backed path, and `Videra.SurfaceCharts.Demo` remains the repository reference app |
 | Release-candidate contract evidence | Yes | `Release Dry Run` packs the public API contract package set from `eng/public-api-contract.json`, reuses `scripts/Validate-Packages.ps1`, uploads `release-dry-run-evidence`, and does not publish to `nuget.org` or GitHub Packages |
 
@@ -24,9 +24,9 @@ The `1.0` line is a native desktop viewer/runtime for .NET applications, centere
 | Capability area | Deferred status | Reason it is not in `1.0` |
 | --- | --- | --- |
 | General engine/runtime parity | Deferred | The current target is an embeddable viewer/runtime, not a broad engine surface |
-| Static-scene material/runtime breadth | Deferred | Broader static-scene breadth beyond the shipped imported-asset/runtime truth remains out of scope until the viewer boundary expands; animation, skeleton, morph, and mixer APIs, broader lighting systems beyond the bounded direct-lighting baseline, shadows, environment maps, post-processing, extra UI adapters, and Wayland/OpenGL/WebGL/backend API expansion stay deferred |
+| Static-scene material/runtime breadth | Deferred | Broader static-scene breadth beyond the shipped imported-asset/runtime truth remains out of scope until the viewer boundary expands; animation, skeleton, morph, and mixer APIs, broader lighting systems beyond the bounded broader-lighting baseline, shadows, environment maps, post-processing, extra UI adapters, and Wayland/OpenGL/WebGL/backend API expansion stay deferred |
 | Animation, skeleton, morph, and mixer APIs | Deferred | These are engine-style feature lines, not part of the current viewer-first scope |
-| Broader lighting systems, shadows, environment maps, and post-processing | Deferred | These remain outside the bounded direct-lighting baseline and the current static-scene viewer/runtime boundary |
+| Broader lighting systems, shadows, environment maps, and post-processing | Deferred | These remain outside the bounded broader-lighting baseline and the current static-scene viewer/runtime boundary |
 | Extra UI adapters beyond Avalonia | Deferred | Avalonia remains the current public UI adapter while the runtime boundary is tightened |
 | Additional chart families beyond `SurfaceCharts` | Deferred | `SurfaceCharts` remains the concrete shipped chart product line for now |
 | `WebGL` / `OpenGL` backend pursuit | Deferred | The current native support promise remains `D3D11` / `Vulkan` / `Metal` |
