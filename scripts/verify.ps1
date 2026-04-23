@@ -158,6 +158,10 @@ if ($IncludeNativeWindows) {
     Invoke-Check "Windows Native Validation" {
         dotnet test "$root/tests/Videra.Platform.Windows.Tests/Videra.Platform.Windows.Tests.csproj" --configuration $Configuration -v m --logger "console;verbosity=detailed" 2>$null
     } "Windows native validation passed" "Windows native validation failed"
+
+    Invoke-Check "Windows WPF Smoke" {
+        pwsh -File (Join-Path $root "scripts/Invoke-WpfSmoke.ps1") -Configuration $Configuration -OutputRoot "artifacts/test-results/verify/wpf-smoke"
+    } "Windows WPF smoke passed" "Windows WPF smoke failed"
 }
 
 # Summary

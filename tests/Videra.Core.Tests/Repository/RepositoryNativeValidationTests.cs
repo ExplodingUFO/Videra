@@ -75,6 +75,22 @@ public sealed class RepositoryNativeValidationTests
     }
 
     [Fact]
+    public void WindowsNativeValidation_ShouldRunRepositoryOnlyWpfSmokeProof()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var powerShellVerify = File.ReadAllText(Path.Combine(repositoryRoot, "scripts", "verify.ps1"));
+        var invokeWpfSmoke = File.ReadAllText(Path.Combine(repositoryRoot, "scripts", "Invoke-WpfSmoke.ps1"));
+
+        powerShellVerify.Should().Contain("Windows WPF Smoke");
+        powerShellVerify.Should().Contain("Invoke-WpfSmoke.ps1");
+        powerShellVerify.Should().Contain("artifacts/test-results/verify/wpf-smoke");
+
+        invokeWpfSmoke.Should().Contain("VIDERA_WPF_SMOKE_OUTPUT");
+        invokeWpfSmoke.Should().Contain("wpf-smoke-diagnostics.txt");
+        invokeWpfSmoke.Should().Contain("NativeHostBound: True");
+    }
+
+    [Fact]
     public void NativeValidationVerifyScripts_ShouldPreserveDistinctTrxFilesForSolutionRuns()
     {
         var powerShellVerify = File.ReadAllText(Path.Combine(GetRepositoryRoot(), "scripts", "verify.ps1"));
