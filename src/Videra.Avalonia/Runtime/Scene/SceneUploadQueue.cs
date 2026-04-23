@@ -7,8 +7,8 @@ namespace Videra.Avalonia.Runtime.Scene;
 
 internal sealed class SceneUploadQueue
 {
-    private readonly Queue<SceneEntryId> _pendingIds = new();
-    private readonly HashSet<SceneEntryId> _enqueuedIds = [];
+    private readonly Dictionary<SceneEntryId, long> _pendingIds = [];
+    private long _nextSequence;
 
     public void Enqueue(IEnumerable<SceneDocumentEntry> entries)
     {
@@ -37,7 +37,8 @@ internal sealed class SceneUploadQueue
         SceneUploadBudget budget,
         ulong resourceEpoch,
         SceneResidencyRegistry registry,
-        ILogger logger)
+        ILogger logger,
+        bool preferAttachedEntries)
     {
         ArgumentNullException.ThrowIfNull(registry);
         ArgumentNullException.ThrowIfNull(logger);
@@ -63,14 +64,9 @@ internal sealed class SceneUploadQueue
                 break;
             }
 
-            var id = _pendingIds.Peek();
-            if (!registry.TryGet(id, out var record) ||
-                (record.State != SceneResidencyState.PendingUpload &&
-                 record.State != SceneResidencyState.Dirty))
+            if (!TrySelectNextCandidate(registry, preferAttachedEntries, out var id, out var record))
             {
-                _pendingIds.Dequeue();
-                _enqueuedIds.Remove(id);
-                continue;
+                break;
             }
 
             var uploadBytes = Math.Max(record.ApproximateUploadBytes, 1L);
@@ -79,8 +75,7 @@ internal sealed class SceneUploadQueue
                 break;
             }
 
-            _pendingIds.Dequeue();
-            _enqueuedIds.Remove(id);
+            _pendingIds.Remove(id);
             processedObjects++;
             uploadedBytes += uploadBytes;
 
@@ -111,10 +106,63 @@ internal sealed class SceneUploadQueue
 
     private void Enqueue(SceneEntryId id)
     {
-        if (_enqueuedIds.Add(id))
+        if (!_pendingIds.ContainsKey(id))
         {
-            _pendingIds.Enqueue(id);
+            _pendingIds[id] = _nextSequence++;
         }
+    }
+
+    private bool TrySelectNextCandidate(
+        SceneResidencyRegistry registry,
+        bool preferAttachedEntries,
+        out SceneEntryId id,
+        out SceneResidencyRecord record)
+    {
+        foreach (var candidate in _pendingIds
+                     .OrderByDescending(pair => ResolvePriority(pair.Key, registry, preferAttachedEntries))
+                     .ThenBy(pair => pair.Value)
+                     .Select(pair => pair.Key)
+                     .ToArray())
+        {
+            if (!registry.TryGet(candidate, out var resolved) ||
+                (resolved.State != SceneResidencyState.PendingUpload &&
+                 resolved.State != SceneResidencyState.Dirty))
+            {
+                _pendingIds.Remove(candidate);
+                continue;
+            }
+
+            id = candidate;
+            record = resolved;
+            return true;
+        }
+
+        id = default;
+        record = default!;
+        return false;
+    }
+
+    private static int ResolvePriority(
+        SceneEntryId id,
+        SceneResidencyRegistry registry,
+        bool preferAttachedEntries)
+    {
+        if (!registry.TryGet(id, out var record))
+        {
+            return int.MinValue;
+        }
+
+        if (preferAttachedEntries && record.IsAttachedToEngine && record.State == SceneResidencyState.Dirty)
+        {
+            return 2;
+        }
+
+        if (record.State == SceneResidencyState.Dirty)
+        {
+            return 1;
+        }
+
+        return 0;
     }
 }
 

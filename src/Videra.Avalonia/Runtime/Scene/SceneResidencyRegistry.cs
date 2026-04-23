@@ -36,19 +36,19 @@ internal sealed class SceneResidencyRegistry
             }
         }
 
-        foreach (var reupload in delta.ReuploadRequired)
+        foreach (var entry in delta.Changed.Select(static changed => changed.Entry))
         {
-            if (_records.TryGetValue(reupload.Id, out var existing))
+            if (_records.TryGetValue(entry.Id, out var existing))
             {
-                _records[reupload.Id] = existing with
+                _records[entry.Id] = existing with
                 {
-                    SceneObject = reupload.SceneObject,
-                    RuntimeObjects = reupload.RuntimeObjects,
-                    ImportedAsset = reupload.ImportedAsset,
-                    Ownership = reupload.Ownership,
-                    ApproximateUploadBytes = ResolveApproximateUploadBytes(reupload),
-                    State = CanUpload(reupload) ? SceneResidencyState.Dirty : existing.State,
-                    LastError = CanUpload(reupload)
+                    SceneObject = entry.SceneObject,
+                    RuntimeObjects = entry.RuntimeObjects,
+                    ImportedAsset = entry.ImportedAsset,
+                    Ownership = entry.Ownership,
+                    ApproximateUploadBytes = ResolveApproximateUploadBytes(entry),
+                    State = CanUpload(entry) ? SceneResidencyState.Dirty : existing.State,
+                    LastError = CanUpload(entry)
                         ? null
                         : existing.LastError,
                     ResourceEpoch = resourceEpoch

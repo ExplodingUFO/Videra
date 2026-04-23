@@ -48,7 +48,8 @@ internal sealed class RuntimeFramePrelude
             budget,
             _resourceEpochAccessor(),
             _residencyRegistry,
-            _logger);
+            _logger,
+            preferAttachedEntries: _isInteractiveAccessor());
 
         if (result.UploadedRecords.Count > 0)
         {

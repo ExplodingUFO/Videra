@@ -20,7 +20,7 @@ public sealed class SceneUploadQueueTests
         var sceneObject = SceneObjectFactory.CreateDeferred(asset);
         var entry = _mutator.CreateImportedEntry(sceneObject, asset);
         var registry = new SceneResidencyRegistry();
-        registry.Apply(new SceneDelta([entry], Array.Empty<SceneDocumentEntry>(), Array.Empty<SceneDocumentEntry>(), Array.Empty<SceneDocumentEntry>()), 1);
+        registry.Apply(new SceneDelta([entry], Array.Empty<SceneDocumentEntry>(), Array.Empty<SceneDocumentEntry>(), Array.Empty<SceneDeltaChange>()), 1);
 
         var queue = new SceneUploadQueue();
         queue.Enqueue([entry]);
@@ -30,7 +30,8 @@ public sealed class SceneUploadQueueTests
             SceneUploadBudget.Idle,
             resourceEpoch: 2,
             registry,
-            NullLogger.Instance);
+            NullLogger.Instance,
+            preferAttachedEntries: false);
 
         result.UploadedRecords.Should().ContainSingle();
         registry.TryGet(entry.Id, out var record).Should().BeTrue();
@@ -45,7 +46,7 @@ public sealed class SceneUploadQueueTests
         var entryA = _mutator.CreateImportedEntry(SceneObjectFactory.CreateDeferred(assetA), assetA);
         var entryB = _mutator.CreateImportedEntry(SceneObjectFactory.CreateDeferred(assetB), assetB);
         var registry = new SceneResidencyRegistry();
-        registry.Apply(new SceneDelta([entryA, entryB], Array.Empty<SceneDocumentEntry>(), Array.Empty<SceneDocumentEntry>(), Array.Empty<SceneDocumentEntry>()), 1);
+        registry.Apply(new SceneDelta([entryA, entryB], Array.Empty<SceneDocumentEntry>(), Array.Empty<SceneDocumentEntry>(), Array.Empty<SceneDeltaChange>()), 1);
 
         var queue = new SceneUploadQueue();
         queue.Enqueue([entryA, entryB]);
@@ -55,7 +56,8 @@ public sealed class SceneUploadQueueTests
             new SceneUploadBudget(MaxObjectsPerFrame: 1, MaxBytesPerFrame: long.MaxValue),
             resourceEpoch: 2,
             registry,
-            NullLogger.Instance);
+            NullLogger.Instance,
+            preferAttachedEntries: false);
 
         result.UploadedRecords.Should().ContainSingle();
         registry.TryGet(entryA.Id, out var recordA).Should().BeTrue();
@@ -70,7 +72,7 @@ public sealed class SceneUploadQueueTests
         var asset = SceneTestMeshes.CreateImportedAsset();
         var entry = _mutator.CreateImportedEntry(SceneObjectFactory.CreateDeferred(asset), asset);
         var registry = new SceneResidencyRegistry();
-        registry.Apply(new SceneDelta([entry], Array.Empty<SceneDocumentEntry>(), Array.Empty<SceneDocumentEntry>(), Array.Empty<SceneDocumentEntry>()), 1);
+        registry.Apply(new SceneDelta([entry], Array.Empty<SceneDocumentEntry>(), Array.Empty<SceneDocumentEntry>(), Array.Empty<SceneDeltaChange>()), 1);
 
         var queue = new SceneUploadQueue();
         queue.Enqueue([entry]);
@@ -80,7 +82,8 @@ public sealed class SceneUploadQueueTests
             new SceneUploadBudget(MaxObjectsPerFrame: 1, MaxBytesPerFrame: 1),
             resourceEpoch: 2,
             registry,
-            NullLogger.Instance);
+            NullLogger.Instance,
+            preferAttachedEntries: false);
 
         result.UploadedRecords.Should().ContainSingle();
         result.UploadedBytes.Should().BeGreaterThan(1);
@@ -95,7 +98,7 @@ public sealed class SceneUploadQueueTests
         var runtimeObjects = SceneObjectFactory.CreateDeferredRuntimeObjects(asset);
         var entry = _mutator.CreateImportedEntry(runtimeObjects, asset);
         var registry = new SceneResidencyRegistry();
-        registry.Apply(new SceneDelta([entry], Array.Empty<SceneDocumentEntry>(), Array.Empty<SceneDocumentEntry>(), Array.Empty<SceneDocumentEntry>()), 1);
+        registry.Apply(new SceneDelta([entry], Array.Empty<SceneDocumentEntry>(), Array.Empty<SceneDocumentEntry>(), Array.Empty<SceneDeltaChange>()), 1);
 
         var queue = new SceneUploadQueue();
         queue.Enqueue([entry]);
@@ -105,7 +108,8 @@ public sealed class SceneUploadQueueTests
             SceneUploadBudget.Idle,
             resourceEpoch: 2,
             registry,
-            NullLogger.Instance);
+            NullLogger.Instance,
+            preferAttachedEntries: false);
 
         result.UploadedRecords.Should().ContainSingle();
         runtimeObjects.Should().HaveCount(2);
@@ -113,6 +117,52 @@ public sealed class SceneUploadQueueTests
             runtimeObject.VertexBuffer != null &&
             runtimeObject.IndexBuffer != null &&
             runtimeObject.WorldBuffer != null);
+    }
+
+    [Fact]
+    public void Enqueue_coalesces_repeated_entry_ids()
+    {
+        var asset = SceneTestMeshes.CreateImportedAsset();
+        var entry = _mutator.CreateImportedEntry(SceneObjectFactory.CreateDeferred(asset), asset);
+        var queue = new SceneUploadQueue();
+
+        queue.Enqueue([entry]);
+        queue.Enqueue([entry]);
+
+        queue.PendingCount.Should().Be(1);
+    }
+
+    [Fact]
+    public void Drain_prioritizes_attached_dirty_entries_over_background_pending_entries_during_interaction()
+    {
+        var dirtyAsset = SceneTestMeshes.CreateImportedAsset("dirty.obj");
+        var pendingAsset = SceneTestMeshes.CreateImportedAsset("pending.obj");
+        var dirtyEntry = _mutator.CreateImportedEntry(SceneObjectFactory.CreateDeferred(dirtyAsset), dirtyAsset);
+        var pendingEntry = _mutator.CreateImportedEntry(SceneObjectFactory.CreateDeferred(pendingAsset), pendingAsset);
+        var registry = new SceneResidencyRegistry();
+        registry.Apply(new SceneDelta([dirtyEntry, pendingEntry], Array.Empty<SceneDocumentEntry>(), Array.Empty<SceneDocumentEntry>(), Array.Empty<SceneDeltaChange>()), 1);
+        registry.MarkResident(dirtyEntry.Id, resourceEpoch: 1);
+        registry.MarkAttached(dirtyEntry.Id);
+        var dirtyRecords = registry.MarkDirtyForResourceEpoch(2);
+
+        var queue = new SceneUploadQueue();
+        queue.Enqueue([pendingEntry]);
+        queue.Enqueue(dirtyRecords);
+
+        var result = queue.Drain(
+            new RecordingResourceFactory(),
+            new SceneUploadBudget(MaxObjectsPerFrame: 1, MaxBytesPerFrame: long.MaxValue),
+            resourceEpoch: 2,
+            registry,
+            NullLogger.Instance,
+            preferAttachedEntries: true);
+
+        result.UploadedRecords.Should().ContainSingle();
+        result.UploadedRecords[0].Id.Should().Be(dirtyEntry.Id);
+        registry.TryGet(dirtyEntry.Id, out var dirtyRecord).Should().BeTrue();
+        registry.TryGet(pendingEntry.Id, out var pendingRecord).Should().BeTrue();
+        dirtyRecord.State.Should().Be(SceneResidencyState.Resident);
+        pendingRecord.State.Should().Be(SceneResidencyState.PendingUpload);
     }
 
     private sealed class RecordingResourceFactory : IResourceFactory
