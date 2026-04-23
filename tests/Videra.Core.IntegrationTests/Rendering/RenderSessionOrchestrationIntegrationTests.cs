@@ -181,6 +181,32 @@ public sealed class RenderSessionOrchestrationIntegrationTests
         orchestrator.Snapshot.LastPipelineSnapshot.StageNames.Should().Contain("PresentFrame");
     }
 
+    [Fact]
+    public void SynchronizeHostSurface_applies_native_host_inputs_through_one_shared_path()
+    {
+        using var engine = new VideraEngine();
+        var factory = new TrackingBackendFactory();
+        using var orchestrator = new RenderSessionOrchestrator(
+            engine,
+            backendFactory: factory.CreateBackend);
+
+        orchestrator.SynchronizeHostSurface(
+            GraphicsBackendPreference.D3D11,
+            new IntPtr(0x5150),
+            144,
+            90,
+            1f);
+
+        orchestrator.IsReady.Should().BeTrue();
+        orchestrator.Snapshot.State.Should().Be(RenderSessionState.Ready);
+        orchestrator.Snapshot.Inputs.RequestedBackend.Should().Be(GraphicsBackendPreference.D3D11);
+        orchestrator.Snapshot.Inputs.Width.Should().Be(144u);
+        orchestrator.Snapshot.Inputs.Height.Should().Be(90u);
+        orchestrator.Snapshot.HandleState.IsBound.Should().BeTrue();
+        factory.CreatedBackends.Should().HaveCount(1);
+        factory.CreatedBackends[0].InitializeCalls.Should().Be(1);
+    }
+
     private sealed class TrackingBackendFactory
     {
         public List<ITrackingBackend> CreatedBackends { get; } = new();

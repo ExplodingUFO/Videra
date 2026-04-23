@@ -193,6 +193,49 @@ internal sealed partial class RenderSession : IDisposable
         }
     }
 
+    internal bool SynchronizeHostSurface(
+        GraphicsBackendPreference preference,
+        IntPtr handle,
+        uint width,
+        uint height,
+        float renderScale,
+        VideraBackendOptions? backendOptions)
+    {
+        RenderSessionBackendOptions? backendOptionsSnapshot = backendOptions is null
+            ? null
+            : new RenderSessionBackendOptions(
+                backendOptions.EnvironmentOverrideMode,
+                backendOptions.AllowSoftwareFallback);
+
+        var shouldRaiseBackendReady = false;
+
+        lock (_sync)
+        {
+            try
+            {
+                shouldRaiseBackendReady = _orchestrator.SynchronizeHostSurface(
+                    preference,
+                    handle,
+                    width,
+                    height,
+                    renderScale,
+                    backendOptionsSnapshot);
+            }
+            finally
+            {
+                _frameScheduler.Invalidate(RenderInvalidationKinds.Lifecycle);
+                SyncRuntimeShellUnsafe();
+            }
+        }
+
+        if (shouldRaiseBackendReady)
+        {
+            BackendReady?.Invoke(this, EventArgs.Empty);
+        }
+
+        return shouldRaiseBackendReady;
+    }
+
     public void RenderOnce()
     {
         lock (_sync)

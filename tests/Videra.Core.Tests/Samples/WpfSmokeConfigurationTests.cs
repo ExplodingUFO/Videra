@@ -47,6 +47,7 @@ public sealed class WpfSmokeConfigurationTests
         mainWindowCodeBehind.Should().Contain("VIDERA_WPF_SMOKE_OUTPUT");
         mainWindowCodeBehind.Should().Contain("VisualTreeHelper.GetDpi(ViewerHost)");
         mainWindowCodeBehind.Should().Contain("GetRenderMetrics()");
+        mainWindowCodeBehind.Should().Contain("SynchronizeHostSurface(");
         mainWindowCodeBehind.Should().Contain("RenderScale:");
         mainWindowCodeBehind.Should().NotContain("_orchestrator.Resize(width, height, 1f);");
 
