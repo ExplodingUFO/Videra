@@ -93,7 +93,7 @@ internal sealed class SceneDocumentMutator
                 entries.Add(new SceneDocumentEntry(
                     existing.Id,
                     sceneObject.Name,
-                    sceneObject,
+                    [sceneObject],
                     existing.ImportedAsset,
                     existing.Ownership));
                 continue;
@@ -112,20 +112,24 @@ internal sealed class SceneDocumentMutator
         return new SceneDocumentEntry(
             SceneEntryId.New(),
             sceneObject.Name,
-            sceneObject,
+            [sceneObject],
             importedAsset: null,
             SceneOwnership.ExternalObject);
     }
 
     internal SceneDocumentEntry CreateImportedEntry(Object3D sceneObject, ImportedSceneAsset? importedAsset)
     {
-        ArgumentNullException.ThrowIfNull(sceneObject);
+        return CreateImportedEntry([sceneObject], importedAsset);
+    }
+
+    internal SceneDocumentEntry CreateImportedEntry(IEnumerable<Object3D> sceneObjects, ImportedSceneAsset? importedAsset)
+    {
         ArgumentNullException.ThrowIfNull(importedAsset);
 
         return new SceneDocumentEntry(
             SceneEntryId.New(),
             importedAsset.Name,
-            sceneObject,
+            sceneObjects,
             importedAsset,
             SceneOwnership.RuntimeOwnedImported);
     }

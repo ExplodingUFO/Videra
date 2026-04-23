@@ -13,7 +13,11 @@ internal static class SceneEngineApplicator
 
         foreach (var entry in removed)
         {
-            engine.RemoveObject(entry.SceneObject, disposeObject: entry.Ownership == SceneOwnership.RuntimeOwnedImported);
+            foreach (var runtimeObject in entry.RuntimeObjects)
+            {
+                engine.RemoveObject(runtimeObject, disposeObject: entry.Ownership == SceneOwnership.RuntimeOwnedImported);
+            }
+
             registry.MarkDetached(entry.Id);
         }
     }
@@ -26,7 +30,11 @@ internal static class SceneEngineApplicator
 
         foreach (var record in readyRecords)
         {
-            engine.AddObject(record.SceneObject, uploadIfPossible: false);
+            foreach (var runtimeObject in record.RuntimeObjects)
+            {
+                engine.AddObject(runtimeObject, uploadIfPossible: false);
+            }
+
             registry.MarkAttached(record.Id);
         }
     }

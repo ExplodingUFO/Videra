@@ -28,6 +28,7 @@ internal sealed class SceneResidencyRegistry
                 _records[retained.Id] = existing with
                 {
                     SceneObject = retained.SceneObject,
+                    RuntimeObjects = retained.RuntimeObjects,
                     ImportedAsset = retained.ImportedAsset,
                     Ownership = retained.Ownership,
                     ApproximateUploadBytes = ResolveApproximateUploadBytes(retained)
@@ -42,6 +43,7 @@ internal sealed class SceneResidencyRegistry
                 _records[reupload.Id] = existing with
                 {
                     SceneObject = reupload.SceneObject,
+                    RuntimeObjects = reupload.RuntimeObjects,
                     ImportedAsset = reupload.ImportedAsset,
                     Ownership = reupload.Ownership,
                     ApproximateUploadBytes = ResolveApproximateUploadBytes(reupload),
@@ -166,6 +168,7 @@ internal sealed class SceneResidencyRegistry
             var dirty = record with
             {
                 SceneObject = entry.SceneObject,
+                RuntimeObjects = entry.RuntimeObjects,
                 ImportedAsset = entry.ImportedAsset,
                 Ownership = entry.Ownership,
                 ApproximateUploadBytes = ResolveApproximateUploadBytes(entry),
@@ -252,6 +255,7 @@ internal sealed class SceneResidencyRegistry
         return new SceneResidencyRecord(
             entry.Id,
             entry.SceneObject,
+            entry.RuntimeObjects,
             entry.ImportedAsset,
             entry.Ownership,
             state,
@@ -265,9 +269,10 @@ internal sealed class SceneResidencyRegistry
 
     private static SceneResidencyState ResolveInitialState(SceneDocumentEntry entry)
     {
-        if (entry.SceneObject.VertexBuffer != null &&
-            entry.SceneObject.IndexBuffer != null &&
-            entry.SceneObject.WorldBuffer != null)
+        if (entry.RuntimeObjects.All(static runtimeObject =>
+                runtimeObject.VertexBuffer != null &&
+                runtimeObject.IndexBuffer != null &&
+                runtimeObject.WorldBuffer != null))
         {
             return SceneResidencyState.Resident;
         }
@@ -279,21 +284,16 @@ internal sealed class SceneResidencyRegistry
 
     private static bool CanUpload(SceneDocumentEntry entry)
     {
-        return entry.ImportedAsset is not null || entry.SceneObject.CanRecreateGraphicsResources;
+        return entry.ImportedAsset is not null || entry.RuntimeObjects.Any(static runtimeObject => runtimeObject.CanRecreateGraphicsResources);
     }
 
     private static bool CanUpload(SceneResidencyRecord record)
     {
-        return record.ImportedAsset is not null || record.SceneObject.CanRecreateGraphicsResources;
+        return record.ImportedAsset is not null || record.RuntimeObjects.Any(static runtimeObject => runtimeObject.CanRecreateGraphicsResources);
     }
 
     private static long ResolveApproximateUploadBytes(SceneDocumentEntry entry)
     {
-        if (entry.ImportedAsset?.Metrics is { } metrics)
-        {
-            return metrics.ApproximateGpuBytes;
-        }
-
-        return entry.SceneObject.ApproximateGpuBytes;
+        return entry.RuntimeObjects.Sum(static runtimeObject => runtimeObject.ApproximateGpuBytes);
     }
 }

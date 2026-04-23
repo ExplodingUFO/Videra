@@ -170,13 +170,16 @@ internal sealed class SceneRuntimeCoordinator
     {
         foreach (var entry in entries)
         {
-            entry.SceneObject.ApplyClippingPlanes(_clippingPlanes);
+            foreach (var runtimeObject in entry.RuntimeObjects)
+            {
+                runtimeObject.ApplyClippingPlanes(_clippingPlanes);
+            }
         }
     }
 
     private SceneDocumentEntry CreateImportedEntry(ImportedSceneAsset asset)
     {
-        var sceneObject = SceneUploadCoordinator.CreateDeferredObject(asset);
-        return _sceneDocumentMutator.CreateImportedEntry(sceneObject, asset);
+        var runtimeObjects = SceneObjectFactory.CreateDeferredRuntimeObjects(asset);
+        return _sceneDocumentMutator.CreateImportedEntry(runtimeObjects, asset);
     }
 }

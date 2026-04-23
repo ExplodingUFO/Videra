@@ -6,6 +6,7 @@ namespace Videra.Avalonia.Runtime.Scene;
 internal sealed record SceneResidencyRecord(
     SceneEntryId Id,
     Object3D SceneObject,
+    IReadOnlyList<Object3D> RuntimeObjects,
     ImportedSceneAsset? ImportedAsset,
     SceneOwnership Ownership,
     SceneResidencyState State,

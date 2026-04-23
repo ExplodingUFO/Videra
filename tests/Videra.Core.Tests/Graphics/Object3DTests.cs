@@ -506,6 +506,38 @@ public class Object3DTests
     }
 
     [Fact]
+    public void SceneObjectFactory_CreateDeferredRuntimeObjects_SplitsMixedBlendAndNonBlendPrimitives()
+    {
+        var mesh = CreateTestMesh();
+        var opaqueMaterial = new MaterialInstance(
+            MaterialInstanceId.New(),
+            "opaque",
+            RgbaFloat.White,
+            alpha: new MaterialAlphaSettings(MaterialAlphaMode.Opaque, 0f, false));
+        var blendedMaterial = new MaterialInstance(
+            MaterialInstanceId.New(),
+            "blended",
+            new RgbaFloat(1f, 1f, 1f, 0.5f),
+            alpha: new MaterialAlphaSettings(MaterialAlphaMode.Blend, 0.5f, true));
+        var firstPrimitive = new MeshPrimitive(MeshPrimitiveId.New(), "triangle.obj#primitive0", mesh, opaqueMaterial.Id);
+        var secondPrimitive = new MeshPrimitive(MeshPrimitiveId.New(), "triangle.obj#primitive1", mesh, blendedMaterial.Id);
+        var rootNode = new SceneNode(SceneNodeId.New(), "triangle.obj", Matrix4x4.Identity, parentId: null, [firstPrimitive.Id, secondPrimitive.Id]);
+        var asset = new ImportedSceneAsset(
+            "triangle.obj",
+            "triangle.obj",
+            [rootNode],
+            [firstPrimitive, secondPrimitive],
+            [opaqueMaterial, blendedMaterial]);
+
+        var runtimeObjects = SceneObjectFactory.CreateDeferredRuntimeObjects(asset);
+
+        runtimeObjects.Should().HaveCount(2);
+        runtimeObjects.Should().ContainSingle(static runtimeObject => runtimeObject.MaterialAlpha.Mode == MaterialAlphaMode.Blend);
+        runtimeObjects.Should().ContainSingle(static runtimeObject => runtimeObject.MaterialAlpha.Mode != MaterialAlphaMode.Blend);
+        runtimeObjects.Should().OnlyContain(static runtimeObject => runtimeObject.HasPreparedMesh);
+    }
+
+    [Fact]
     public void ImportedSceneAsset_FlattensSharedPrimitiveInstancesIntoTransformedPayload()
     {
         var material = new MaterialInstance(MaterialInstanceId.New(), "SharedMaterial", RgbaFloat.White);

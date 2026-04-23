@@ -23,7 +23,7 @@ public sealed class SceneDocument
         ArgumentNullException.ThrowIfNull(entries);
         Version = version;
         _entries = entries.ToArray();
-        SceneObjects = _entries.Select(static entry => entry.SceneObject).ToArray();
+        SceneObjects = _entries.SelectMany(static entry => entry.RuntimeObjects).ToArray();
     }
 
     public int Version { get; }
@@ -38,7 +38,7 @@ public sealed class SceneDocument
 
         for (var i = 0; i < _entries.Length; i++)
         {
-            if (ReferenceEquals(_entries[i].SceneObject, sceneObject))
+            if (_entries[i].RuntimeObjects.Any(runtimeObject => ReferenceEquals(runtimeObject, sceneObject)))
             {
                 entry = _entries[i];
                 return true;
@@ -80,7 +80,7 @@ public sealed class SceneDocument
             return new SceneDocumentEntry(
                 SceneEntryId.New(),
                 sceneObject.Name,
-                sceneObject,
+                [sceneObject],
                 importedAsset: null,
                 SceneOwnership.ExternalObject);
         });
