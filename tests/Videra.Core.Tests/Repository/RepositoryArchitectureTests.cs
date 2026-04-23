@@ -409,17 +409,19 @@ public sealed class RepositoryArchitectureTests
         var coreReadme = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Core", "README.md"));
         var avaloniaReadme = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Avalonia", "README.md"));
         const string ReadmeNonGoalsSentence =
-            "Explicit exclusions remain: animation, skeletons, morph targets, mixers, lights, shadows, post-processing, extra UI adapters, and Wayland/OpenGL/WebGL/backend API expansion.";
+            "Explicit exclusions remain: animation, skeletons, morph targets, mixers, broader lighting systems beyond the bounded direct-lighting baseline, shadows, environment maps, post-processing, extra UI adapters, and Wayland/OpenGL/WebGL/backend API expansion.";
         const string ArchitectureNonGoalsSentence =
-            "Animation, skeletons, morph targets, lights, shadows, post-processing, extra UI adapters, Wayland/OpenGL/WebGL/backend API expansion, and broader advanced-runtime feature expansion stay deferred.";
+            "Animation, skeletons, morph targets, broader lighting systems, shadows, environment maps, post-processing, extra UI adapters, Wayland/OpenGL/WebGL/backend API expansion, and broader advanced-runtime feature expansion stay deferred.";
         const string PackageMatrixNonGoalsSentence =
-            "`animation`, `skeletons`, `morph targets`, `lights`, `shadows`, `post-processing`, `extra UI adapters`, and `Wayland/OpenGL/WebGL/backend API expansion` stay outside the current product promise.";
+            "`animation`, `skeletons`, `morph targets`, broader lighting systems beyond the bounded direct-lighting baseline, `shadows`, `environment maps`, `post-processing`, `extra UI adapters`, and `Wayland/OpenGL/WebGL/backend API expansion` stay outside the current product promise.";
         const string HostingBoundaryNonGoalsSentence =
-            "That boundary is intentionally static-scene-only. Animation, skeletons, morph targets, lights, shadows, post-processing, extra UI adapters, Wayland/OpenGL/WebGL/backend API expansion, and other non-static scene systems stay out of scope here.";
+            "That boundary is intentionally static-scene-only. Animation, skeletons, morph targets, broader lighting systems beyond the bounded direct-lighting baseline, shadows, environment maps, post-processing, extra UI adapters, Wayland/OpenGL/WebGL/backend API expansion, and other non-static scene systems stay out of scope here.";
         const string CoreReadmeNonGoalsSentence =
-            "This does not imply an `OpenGL` product promise. Animation, skeletons, morph targets, lights, shadows, post-processing, extra UI adapters, and Wayland/OpenGL/WebGL/backend API expansion remain outside this baseline.";
+            "This does not imply an `OpenGL` product promise. Animation, skeletons, morph targets, broader lighting systems beyond the bounded direct-lighting baseline, shadows, environment maps, post-processing, extra UI adapters, and Wayland/OpenGL/WebGL/backend API expansion remain outside this baseline.";
         const string AvaloniaReadmeNonGoalsSentence =
-            "Animation, skeletons, morph targets, lights, shadows, post-processing, extra UI adapters, and Wayland/OpenGL/WebGL/backend API expansion stay deferred.";
+            "Animation, skeletons, morph targets, broader lighting systems beyond the bounded direct-lighting baseline, shadows, environment maps, post-processing, extra UI adapters, and Wayland/OpenGL/WebGL/backend API expansion stay deferred.";
+        const string DirectLightingBaselineSentence =
+            "bounded style-driven direct-lighting baseline";
 
         readme.Should().Contain("static glTF/PBR");
         architecture.Should().Contain("static glTF/PBR");
@@ -430,6 +432,7 @@ public sealed class RepositoryArchitectureTests
 
         foreach (var document in new[] { readme, architecture, packageMatrix, hostingBoundary, coreReadme, avaloniaReadme })
         {
+            document.Should().Contain(DirectLightingBaselineSentence);
             foreach (var symbol in StaticGltfPbrPerDocumentSymbols)
             {
                 document.Should().Contain(symbol);
