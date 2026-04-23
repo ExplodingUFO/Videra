@@ -185,7 +185,7 @@ public sealed class RepositoryReleaseReadinessTests
         capabilityMatrix.Should().Contain("Static-scene material/runtime truth");
         capabilityMatrix.Should().Contain("| Static-scene material/runtime truth | Yes |");
         capabilityMatrix.Should().Contain("| Static-scene material/runtime breadth | Deferred |");
-        capabilityMatrix.Should().Contain("one bounded style-driven direct-lighting baseline on the native static-scene path");
+        capabilityMatrix.Should().Contain("one bounded style-driven broader-lighting baseline on the native static-scene path");
         capabilityMatrix.Should().Contain("Core");
         capabilityMatrix.Should().Contain("Import");
         capabilityMatrix.Should().Contain("Backend");
@@ -208,8 +208,10 @@ public sealed class RepositoryReleaseReadinessTests
         packageMatrix.Should().Contain("Videra.Import.Gltf");
         packageMatrix.Should().Contain("Videra.Import.Obj");
         supportMatrix.Should().Contain("Phase 194's proof-mode hold remains repository-owned and opt-in on the selected smoke hosts");
+        supportMatrix.Should().Contain("repo-owned desktop proof-host validation evidence");
         supportMatrix.Should().Contain("documented 10-second hold");
         nativeValidation.Should().Contain("Phase 194's proof-mode hold stays repository-owned and opt-in on the selected smoke hosts");
+        nativeValidation.Should().Contain("repo-owned desktop proof-host validation evidence");
         nativeValidation.Should().Contain("documented 10-second hold");
 
         rootReadme.Should().Contain("docs/capability-matrix.md");

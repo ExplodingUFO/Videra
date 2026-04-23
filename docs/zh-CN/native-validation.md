@@ -4,7 +4,7 @@
 
 本文档说明 Videra 在 Linux、macOS 与 Windows 上的原生宿主验证入口。GitHub Actions 现在会在 pull requests 中把这条路径作为主要的 native validation gate。公开 viewer 路径以 Avalonia 为先，`smoke/Videra.WpfSmoke` 是 repository-only 的 Windows WPF smoke 证明，只用于验证和 support evidence；它不是第二条公开 UI 包线或发布路径。你可以用它查看 CI 行为，也可以通过 `workflow_dispatch` 手动重跑，或在本地匹配宿主上复现平台特定后端问题。
 
-Phase 194 的 proof-mode hold 仍然是 repository-owned 且 opt-in 的：在选定的 smoke hosts 上设置 `VIDERA_LIGHTING_PROOF_HOLD_SECONDS` 时，smoke host 会在 shutdown 前把 direct-lighting proof 保持文档化的 10 秒 hold。这个 hold 只改变验证 evidence 的可见时间，不会扩大公开 package surface 或 shipped runtime 边界。
+Phase 194 的 proof-mode hold 仍然是 repository-owned 且 opt-in 的：在选定的 smoke hosts 上设置 `VIDERA_LIGHTING_PROOF_HOLD_SECONDS` 时，smoke host 会在 shutdown 前把 repo-owned desktop proof-host validation evidence 保持文档化的 10 秒 hold。这个 hold 只改变验证 evidence 的可见时间，不会扩大公开 package surface 或 shipped runtime 边界。
 
 ## 覆盖范围
 

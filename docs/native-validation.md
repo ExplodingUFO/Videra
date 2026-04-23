@@ -4,7 +4,7 @@
 
 This runbook covers the matching-host validation path for Videra's Linux, macOS, and Windows native backends. GitHub Actions pull requests now use this path as the primary native-validation gate. The public viewer path stays Avalonia-first, and `smoke/Videra.WpfSmoke` remains repository-only Windows WPF smoke proof used for validation and support evidence. Use this guide when you need to inspect that CI behavior, rerun it manually with `workflow_dispatch`, or reproduce host-specific backend issues locally.
 
-Phase 194's proof-mode hold stays repository-owned and opt-in on the selected smoke hosts: when `VIDERA_LIGHTING_PROOF_HOLD_SECONDS` is set, the smoke host keeps the direct-lighting proof visible for the documented 10-second hold before shutdown. That hold changes validation evidence timing only; it does not expand the public package surface or the shipped runtime boundary.
+Phase 194's proof-mode hold stays repository-owned and opt-in on the selected smoke hosts: when `VIDERA_LIGHTING_PROOF_HOLD_SECONDS` is set, the smoke host keeps the repo-owned desktop proof-host validation evidence visible for the documented 10-second hold before shutdown. That hold changes validation evidence timing only; it does not expand the public package surface or the shipped runtime boundary.
 
 ## What This Covers
 
