@@ -81,7 +81,7 @@ var diagnosticsSnapshot = VideraDiagnosticsSnapshotFormatter.Format(diagnostics)
 
 `LoadModelAsync(...)` is the shortest public first-scene path. `LoadModelsAsync(...)` remains available when a host wants bounded parallel import with atomic replace semantics across a batch, and it replaces the active scene only when every requested file succeeds.
 
-`VideraView.BackendDiagnostics` remains the backend/runtime diagnostics shell, and `VideraDiagnosticsSnapshotFormatter` turns it into the copy-pasteable alpha support artifact used by `Videra.MinimalSample` and `consumer smoke`. `VideraView.RenderCapabilities` and `VideraView.Engine` stay available, but they are not part of the default alpha happy path.
+`VideraView.BackendDiagnostics` remains the backend/runtime diagnostics shell, and `VideraDiagnosticsSnapshotFormatter` turns it into the copy-pasteable alpha support artifact used by `Videra.MinimalSample` and `consumer smoke`. When an inspection snapshot export is involved, that same support artifact also carries `LastSnapshotExportPath` and `LastSnapshotExportStatus`. `VideraView.RenderCapabilities` and `VideraView.Engine` stay available, but they are not part of the default alpha happy path.
 
 The shared render-feature vocabulary for those diagnostics is `Opaque`, `Transparent`, `Overlay`, `Picking`, and `Screenshot`, where `Transparent` means alpha mask rendering plus deterministic alpha blend ordering for per-object carried alpha sources. Hosts read that truth through `RenderCapabilities.SupportedFeatureNames`, `BackendDiagnostics.LastFrameFeatureNames`, `BackendDiagnostics.SupportedRenderFeatureNames`, `BackendDiagnostics.LastFrameObjectCount`, `BackendDiagnostics.LastFrameOpaqueObjectCount`, `BackendDiagnostics.LastFrameTransparentObjectCount`, and `TransparentFeatureStatus`. Those counts are backend-neutral scene diagnostics, not draw-call metrics.
 
@@ -173,7 +173,7 @@ Contract notes:
 - `InteractionOptions.MeasurementSnapMode` keeps snap behavior viewer-first with `Free`, `Vertex`, `EdgeMidpoint`, `Face`, and `AxisLocked`.
 - `ClippingPlanes`, `CaptureInspectionState()`, `ApplyInspectionState(...)`, and `ExportSnapshotAsync(...)` stay on the public inspection surface.
 - `CaptureInspectionState()` / `ApplyInspectionState(...)` now round-trip the typed inspection session, including host-owned annotations.
-- `VideraInspectionBundleService` exports and restores replayable inspection bundles on top of that same typed session contract without widening `VideraView` into a larger project-format surface.
+- `VideraInspectionBundleService` exports and restores inspection bundles on top of that same typed session contract without widening `VideraView` into a larger project-format surface. `CanReplayScene` and `ReplayLimitation` describe replayability semantics and should be included when you export a bundle for support.
 - Overlay responsibilities are split between `3D highlight/render state` and `2D label/feedback rendering`.
 
 For the end-to-end public flow, see [samples/Videra.InteractionSample](../../samples/Videra.InteractionSample/README.md).

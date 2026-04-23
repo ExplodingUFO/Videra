@@ -345,8 +345,16 @@ public sealed class RepositoryReleaseReadinessTests
         }
 
         rootReadme.Should().Contain("FallbackReason");
+        rootReadme.Should().Contain("LastSnapshotExportPath");
+        rootReadme.Should().Contain("LastSnapshotExportStatus");
+        rootReadme.Should().Contain("CanReplayScene");
+        rootReadme.Should().Contain("ReplayLimitation");
         coreReadme.Should().Contain("FallbackReason");
         avaloniaReadme.Should().Contain("FallbackReason");
+        avaloniaReadme.Should().Contain("LastSnapshotExportPath");
+        avaloniaReadme.Should().Contain("LastSnapshotExportStatus");
+        avaloniaReadme.Should().Contain("CanReplayScene");
+        avaloniaReadme.Should().Contain("ReplayLimitation");
     }
 
     [Fact]
@@ -379,6 +387,10 @@ public sealed class RepositoryReleaseReadinessTests
         troubleshooting.Should().Contain("LastFrameObjectCount");
         troubleshooting.Should().Contain("LastFrameOpaqueObjectCount");
         troubleshooting.Should().Contain("LastFrameTransparentObjectCount");
+        troubleshooting.Should().Contain("LastSnapshotExportPath");
+        troubleshooting.Should().Contain("LastSnapshotExportStatus");
+        troubleshooting.Should().Contain("CanReplayScene");
+        troubleshooting.Should().Contain("ReplayLimitation");
     }
 
     [Fact]
@@ -394,6 +406,10 @@ public sealed class RepositoryReleaseReadinessTests
         troubleshooting.Should().Contain("LastFrameObjectCount");
         troubleshooting.Should().Contain("LastFrameOpaqueObjectCount");
         troubleshooting.Should().Contain("LastFrameTransparentObjectCount");
+        troubleshooting.Should().Contain("LastSnapshotExportPath");
+        troubleshooting.Should().Contain("LastSnapshotExportStatus");
+        troubleshooting.Should().Contain("CanReplayScene");
+        troubleshooting.Should().Contain("ReplayLimitation");
 
         alphaFeedback.Should().Contain("VideraDiagnosticsSnapshotFormatter");
         alphaFeedback.Should().Contain("TransparentFeatureStatus");
@@ -401,6 +417,10 @@ public sealed class RepositoryReleaseReadinessTests
         alphaFeedback.Should().Contain("LastFrameObjectCount");
         alphaFeedback.Should().Contain("LastFrameOpaqueObjectCount");
         alphaFeedback.Should().Contain("LastFrameTransparentObjectCount");
+        alphaFeedback.Should().Contain("LastSnapshotExportPath");
+        alphaFeedback.Should().Contain("LastSnapshotExportStatus");
+        alphaFeedback.Should().Contain("CanReplayScene");
+        alphaFeedback.Should().Contain("ReplayLimitation");
     }
 
     [Fact]

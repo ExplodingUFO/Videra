@@ -62,7 +62,7 @@ body:
     id: surfacecharts_support_summary
     attributes:
       label: SurfaceCharts support summary
-      description: If Area is `area: surfacecharts`, paste `surfacecharts-support-summary.txt` from `smoke/Videra.SurfaceCharts.ConsumerSmoke` or the `Support summary` from `Videra.SurfaceCharts.Demo`. Use `Copy support summary` after reproducing `Start here: In-memory first chart`; continue to `Explore next: Cache-backed streaming` only if needed, and use `Try next: Waterfall proof` or `Try next: Scatter proof` when the issue involves the corresponding chart control.
+      description: If Area is `area: surfacecharts`, paste `surfacecharts-support-summary.txt` from `smoke/Videra.SurfaceCharts.ConsumerSmoke` or the `Support summary` from `Videra.SurfaceCharts.Demo`. Do not replace it with `VideraDiagnosticsSnapshotFormatter` output; use `Copy support summary` on the matching chart path.
       render: text
     validations:
       required: false

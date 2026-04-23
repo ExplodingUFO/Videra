@@ -249,6 +249,8 @@ public sealed class AlphaConsumerIntegrationTests
         feedbackDoc.Should().Contain("VideraInspectionBundleService");
         feedbackDoc.Should().Contain("CanReplayScene");
         feedbackDoc.Should().Contain("ReplayLimitation");
+        feedbackDoc.Should().Contain("LastSnapshotExportPath");
+        feedbackDoc.Should().Contain("LastSnapshotExportStatus");
         feedbackDoc.Should().Contain("ResolvedDisplayServer");
         feedbackDoc.Should().Contain("DisplayServerFallbackUsed");
         feedbackDoc.Should().Contain("DisplayServerFallbackReason");
@@ -279,9 +281,8 @@ public sealed class AlphaConsumerIntegrationTests
         bugForm.Should().Contain("surfacecharts-support-summary.txt");
         bugForm.Should().Contain("surfacecharts_support_summary");
         bugForm.Should().Contain("SurfaceCharts support summary");
-        bugForm.Should().Contain("Start here: In-memory first chart");
-        bugForm.Should().Contain("continue to `Explore next: Cache-backed streaming` only if needed");
-        bugForm.Should().Contain("Try next: Scatter proof");
+        bugForm.Should().Contain("VideraDiagnosticsSnapshotFormatter");
+        bugForm.Should().Contain("Copy support summary");
 
         var featureForm = File.ReadAllText(featureFormPath);
         featureForm.Should().Contain("consumer_path");
@@ -302,6 +303,8 @@ public sealed class AlphaConsumerIntegrationTests
         troubleshooting.Should().Contain("VideraInspectionBundleService");
         troubleshooting.Should().Contain("CanReplayScene");
         troubleshooting.Should().Contain("ReplayLimitation");
+        troubleshooting.Should().Contain("LastSnapshotExportPath");
+        troubleshooting.Should().Contain("LastSnapshotExportStatus");
         troubleshooting.Should().Contain("DisplayServerCompatibility");
         troubleshooting.Should().Contain("Videra.SurfaceCharts.Demo");
         troubleshooting.Should().Contain("Support summary");

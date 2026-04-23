@@ -196,6 +196,10 @@ public sealed class RepositoryLocalizationTests
         troubleshooting.Should().Contain("LastFrameObjectCount");
         troubleshooting.Should().Contain("LastFrameOpaqueObjectCount");
         troubleshooting.Should().Contain("LastFrameTransparentObjectCount");
+        troubleshooting.Should().Contain("LastSnapshotExportPath");
+        troubleshooting.Should().Contain("LastSnapshotExportStatus");
+        troubleshooting.Should().Contain("CanReplayScene");
+        troubleshooting.Should().Contain("ReplayLimitation");
 
         foreach (var module in new[] { avaloniaModule, coreModule, windowsModule, linuxModule, macosModule })
         {
@@ -212,6 +216,10 @@ public sealed class RepositoryLocalizationTests
         avaloniaModule.Should().Contain("LastFrameObjectCount");
         avaloniaModule.Should().Contain("LastFrameOpaqueObjectCount");
         avaloniaModule.Should().Contain("LastFrameTransparentObjectCount");
+        avaloniaModule.Should().Contain("LastSnapshotExportPath");
+        avaloniaModule.Should().Contain("LastSnapshotExportStatus");
+        avaloniaModule.Should().Contain("CanReplayScene");
+        avaloniaModule.Should().Contain("ReplayLimitation");
         linuxModule.Should().Contain("X11");
         linuxModule.Should().Contain("XWayland");
         macosModule.Should().Contain("CAMetalLayer");
@@ -359,6 +367,10 @@ public sealed class RepositoryLocalizationTests
 
         readme.Should().Contain(InteractionContractDocumentationTerms.ChineseOwnershipSentence);
         avaloniaModule.Should().Contain(InteractionContractDocumentationTerms.ChineseOwnershipSentence);
+        avaloniaModule.Should().Contain("LastSnapshotExportPath");
+        avaloniaModule.Should().Contain("LastSnapshotExportStatus");
+        avaloniaModule.Should().Contain("CanReplayScene");
+        avaloniaModule.Should().Contain("ReplayLimitation");
 
         foreach (var forbidden in InteractionContractDocumentationTerms.ForbiddenNodeAnchorPhrases)
         {
