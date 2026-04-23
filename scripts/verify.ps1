@@ -160,7 +160,7 @@ if ($IncludeNativeWindows) {
     } "Windows native validation passed" "Windows native validation failed"
 
     Invoke-Check "Windows WPF Smoke" {
-        pwsh -File (Join-Path $root "scripts/Invoke-WpfSmoke.ps1") -Configuration $Configuration -OutputRoot "artifacts/test-results/verify/wpf-smoke"
+        pwsh -File (Join-Path $root "scripts/Invoke-WpfSmoke.ps1") -Configuration $Configuration -LightingProofHoldSeconds 10 -OutputRoot "artifacts/test-results/verify/wpf-smoke"
     } "Windows WPF smoke passed" "Windows WPF smoke failed"
 }
 

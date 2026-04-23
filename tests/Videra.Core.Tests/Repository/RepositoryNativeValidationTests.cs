@@ -83,6 +83,7 @@ public sealed class RepositoryNativeValidationTests
 
         powerShellVerify.Should().Contain("Windows WPF Smoke");
         powerShellVerify.Should().Contain("Invoke-WpfSmoke.ps1");
+        powerShellVerify.Should().Contain("-LightingProofHoldSeconds 10");
         powerShellVerify.Should().Contain("artifacts/test-results/verify/wpf-smoke");
 
         invokeWpfSmoke.Should().Contain("VIDERA_WPF_SMOKE_OUTPUT");

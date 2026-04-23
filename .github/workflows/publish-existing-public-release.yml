@@ -103,12 +103,12 @@ jobs:
 
       - name: Run packaged consumer smoke
         shell: pwsh
-        run: pwsh -File ./scripts/Invoke-ConsumerSmoke.ps1 -Configuration Release -OutputRoot artifacts/consumer-smoke/existing-release
+        run: pwsh -File ./scripts/Invoke-ConsumerSmoke.ps1 -Configuration Release -LightingProofHoldSeconds 10 -OutputRoot artifacts/consumer-smoke/existing-release
 
       - name: Run packaged SurfaceCharts consumer smoke
         shell: pwsh
         run: >
-          pwsh -File ./scripts/Invoke-ConsumerSmoke.ps1 -Configuration Release
+          pwsh -File ./scripts/Invoke-ConsumerSmoke.ps1 -Configuration Release -LightingProofHoldSeconds 10
           -Scenario SurfaceCharts
           -OutputRoot artifacts/consumer-smoke/existing-release-surfacecharts
 

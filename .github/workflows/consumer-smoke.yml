@@ -37,7 +37,7 @@ jobs:
 
       - name: Run Windows consumer smoke
         shell: pwsh
-        run: pwsh -File ./scripts/Invoke-ConsumerSmoke.ps1 -Configuration Release -OutputRoot artifacts/consumer-smoke/windows
+        run: pwsh -File ./scripts/Invoke-ConsumerSmoke.ps1 -Configuration Release -LightingProofHoldSeconds 10 -OutputRoot artifacts/consumer-smoke/windows
 
       - name: Upload Windows consumer smoke artifacts
         if: always()
@@ -60,7 +60,7 @@ jobs:
       - name: Run Windows SurfaceCharts consumer smoke
         shell: pwsh
         run: >
-          pwsh -File ./scripts/Invoke-ConsumerSmoke.ps1 -Configuration Release
+          pwsh -File ./scripts/Invoke-ConsumerSmoke.ps1 -Configuration Release -LightingProofHoldSeconds 10
           -Scenario SurfaceCharts
           -OutputRoot artifacts/consumer-smoke/windows-surfacecharts
 
@@ -88,7 +88,7 @@ jobs:
           sudo apt-get install -y xvfb libx11-6 libvulkan1 libshaderc1 mesa-vulkan-drivers vulkan-tools powershell
 
       - name: Run Linux X11 consumer smoke
-        run: xvfb-run -a pwsh -File ./scripts/Invoke-ConsumerSmoke.ps1 -Configuration Release -OutputRoot artifacts/consumer-smoke/linux-x11
+        run: xvfb-run -a pwsh -File ./scripts/Invoke-ConsumerSmoke.ps1 -Configuration Release -LightingProofHoldSeconds 10 -OutputRoot artifacts/consumer-smoke/linux-x11
 
       - name: Upload Linux X11 consumer smoke artifacts
         if: always()
@@ -115,7 +115,7 @@ jobs:
 
       - name: Run Linux XWayland consumer smoke
         run: |
-          xwfb-run -- bash -lc 'env | sort | grep -E "^(DISPLAY|WAYLAND_DISPLAY|XDG_RUNTIME_DIR|XDG_SESSION_TYPE)=" || true; if [[ -z "${DISPLAY:-}" ]]; then echo "DISPLAY is not set. Start an XWayland session or run this command under xwfb-run." >&2; exit 2; fi; if [[ -z "${WAYLAND_DISPLAY:-}" ]]; then echo "WAYLAND_DISPLAY is not set. Start a Wayland session with XWayland available before running this target." >&2; exit 2; fi; export XDG_SESSION_TYPE="${XDG_SESSION_TYPE:-wayland}"; pwsh -File ./scripts/Invoke-ConsumerSmoke.ps1 -Configuration Release -OutputRoot artifacts/consumer-smoke/linux-xwayland'
+          xwfb-run -- bash -lc 'env | sort | grep -E "^(DISPLAY|WAYLAND_DISPLAY|XDG_RUNTIME_DIR|XDG_SESSION_TYPE)=" || true; if [[ -z "${DISPLAY:-}" ]]; then echo "DISPLAY is not set. Start an XWayland session or run this command under xwfb-run." >&2; exit 2; fi; if [[ -z "${WAYLAND_DISPLAY:-}" ]]; then echo "WAYLAND_DISPLAY is not set. Start a Wayland session with XWayland available before running this target." >&2; exit 2; fi; export XDG_SESSION_TYPE="${XDG_SESSION_TYPE:-wayland}"; pwsh -File ./scripts/Invoke-ConsumerSmoke.ps1 -Configuration Release -LightingProofHoldSeconds 10 -OutputRoot artifacts/consumer-smoke/linux-xwayland'
 
       - name: Upload Linux XWayland consumer smoke artifacts
         if: always()
@@ -137,7 +137,7 @@ jobs:
 
       - name: Run macOS consumer smoke
         shell: pwsh
-        run: pwsh -File ./scripts/Invoke-ConsumerSmoke.ps1 -Configuration Release -OutputRoot artifacts/consumer-smoke/macos
+        run: pwsh -File ./scripts/Invoke-ConsumerSmoke.ps1 -Configuration Release -LightingProofHoldSeconds 10 -OutputRoot artifacts/consumer-smoke/macos
 
       - name: Upload macOS consumer smoke artifacts
         if: always()

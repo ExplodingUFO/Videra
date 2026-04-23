@@ -17,6 +17,7 @@ public sealed class WpfSmokeConfigurationTests
         var publicWorkflow = File.ReadAllText(Path.Combine(repositoryRoot, ".github", "workflows", "publish-public.yml"));
         var previewWorkflow = File.ReadAllText(Path.Combine(repositoryRoot, ".github", "workflows", "publish-github-packages.yml"));
         var existingReleaseWorkflow = File.ReadAllText(Path.Combine(repositoryRoot, ".github", "workflows", "publish-existing-public-release.yml"));
+        var verifyScript = File.ReadAllText(Path.Combine(repositoryRoot, "scripts", "verify.ps1"));
         var project = File.ReadAllText(Path.Combine(smokeRoot, "Videra.WpfSmoke.csproj"));
         var mainWindowCodeBehind = File.ReadAllText(Path.Combine(smokeRoot, "MainWindow.xaml.cs"));
         var hostCode = File.ReadAllText(Path.Combine(smokeRoot, "ViewerHwndHost.cs"));
@@ -73,6 +74,7 @@ public sealed class WpfSmokeConfigurationTests
         sceneFactoryCode.Should().Contain("WpfSmokeQuad");
         invokeScript.Should().Contain("VIDERA_WPF_SMOKE_OUTPUT");
         invokeScript.Should().Contain("VIDERA_LIGHTING_PROOF_HOLD_SECONDS");
+        verifyScript.Should().Contain("-LightingProofHoldSeconds 10");
         invokeScript.Should().Contain("RenderPipelineProfile:");
         invokeScript.Should().Contain("NativeHostBound: True");
     }
