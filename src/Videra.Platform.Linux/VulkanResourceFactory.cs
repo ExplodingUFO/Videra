@@ -626,7 +626,7 @@ layout(set = 0, binding = 3) uniform StyleBuffer
     float specularIntensity;
     float specularPower;
     vec3 lightDirection;
-    float _pad0;
+    float fillIntensity;
 
     vec3 tintColor;
     float saturation;
@@ -821,7 +821,8 @@ void main()
     vec3 normal = normalize(fragNormal);
     vec3 lightDir = normalize(style.lightDirection);
     float ambient = style.ambientIntensity;
-    float diffuse = max(dot(normal, lightDir), 0.0) * style.diffuseIntensity;
+    float fill = clamp(style.fillIntensity, 0.0, 1.0);
+    float diffuse = max((dot(normal, lightDir) + fill) / (1.0 + fill), 0.0) * style.diffuseIntensity;
     vec3 viewDir = normalize(-fragWorldPos);
     vec3 halfDir = normalize(lightDir + viewDir);
     float specular = pow(max(dot(normal, halfDir), 0.0), style.specularPower) * style.specularIntensity;

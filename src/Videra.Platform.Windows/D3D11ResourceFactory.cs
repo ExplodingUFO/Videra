@@ -413,13 +413,13 @@ cbuffer AlphaMaskBuffer : register(b6)
 
 cbuffer StyleBuffer : register(b3)
 {
-    // 光照 (offset 0-28, padded to 32)
+    // 光照 (offset 0-31, padded to 32)
     float ambientIntensity;
     float diffuseIntensity;
     float specularIntensity;
     float specularPower;
     float3 lightDirection;
-    float _pad0;
+    float fillIntensity;
 
     // 色彩 (offset 32-56, padded to 64)
     float3 tintColor;
@@ -487,7 +487,8 @@ float4 main_ps(VSOutput input) : SV_TARGET
 
     // 基础光照
     float ambient = ambientIntensity;
-    float diffuse = max(dot(normal, lightDir), 0.0f) * diffuseIntensity;
+    float fill = saturate(fillIntensity);
+    float diffuse = max((dot(normal, lightDir) + fill) / (1.0f + fill), 0.0f) * diffuseIntensity;
 
     // 高光 (Blinn-Phong)
     float3 viewDir = normalize(-input.worldPos);

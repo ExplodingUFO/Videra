@@ -22,6 +22,9 @@ public sealed class LightingParameters : IEquatable<LightingParameters>
     /// <summary>主光源方向 (归一化向量)</summary>
     public Vector3 LightDirection { get; set; } = Vector3.Normalize(new(0.5f, 1.0f, 0.3f));
 
+    /// <summary>填充/包裹光强度 [0-1]</summary>
+    public float FillIntensity { get; set; } = 0f;
+
     public LightingParameters Clone() => (LightingParameters)MemberwiseClone();
 
     public bool Equals(LightingParameters? other) => other is not null
@@ -29,10 +32,11 @@ public sealed class LightingParameters : IEquatable<LightingParameters>
         && DiffuseIntensity == other.DiffuseIntensity
         && SpecularIntensity == other.SpecularIntensity
         && SpecularPower == other.SpecularPower
-        && LightDirection == other.LightDirection;
+        && LightDirection == other.LightDirection
+        && FillIntensity == other.FillIntensity;
 
     public override bool Equals(object? obj) => obj is LightingParameters other && Equals(other);
 
     public override int GetHashCode() => HashCode.Combine(
-        AmbientIntensity, DiffuseIntensity, SpecularIntensity, SpecularPower, LightDirection);
+        AmbientIntensity, DiffuseIntensity, SpecularIntensity, SpecularPower, LightDirection, FillIntensity);
 }

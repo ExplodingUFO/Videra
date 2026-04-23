@@ -29,13 +29,13 @@ struct WorldUniforms {
 
 // Style Uniform Buffer 结构 (128 bytes, matching C# StyleUniformData)
 struct StyleParams {
-    // 光照 (offset 0-28, padded to 32)
+    // 光照 (offset 0-31, padded to 32)
     float ambientIntensity;
     float diffuseIntensity;
     float specularIntensity;
     float specularPower;
     float3 lightDirection;
-    float _pad0;
+    float fillIntensity;
 
     // 色彩 (offset 32-56, padded to 64)
     float3 tintColor;
@@ -92,7 +92,8 @@ fragment float4 fragment_main(
 
     // 基础光照
     float ambient = style.ambientIntensity;
-    float diffuse = max(dot(normal, lightDir), 0.0) * style.diffuseIntensity;
+    float fill = clamp(style.fillIntensity, 0.0f, 1.0f);
+    float diffuse = max((dot(normal, lightDir) + fill) / (1.0f + fill), 0.0) * style.diffuseIntensity;
 
     // 高光 (Blinn-Phong)
     float3 viewDir = normalize(-in.worldPos);

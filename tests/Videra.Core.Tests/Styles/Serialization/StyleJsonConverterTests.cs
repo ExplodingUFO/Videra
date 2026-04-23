@@ -15,7 +15,7 @@ public sealed class StyleJsonConverterTests
     {
         var params_ = new RenderStyleParameters
         {
-            Lighting = { AmbientIntensity = 0.3f, DiffuseIntensity = 0.9f, LightDirection = new System.Numerics.Vector3(1, 2, 3) },
+            Lighting = { AmbientIntensity = 0.3f, DiffuseIntensity = 0.9f, LightDirection = new System.Numerics.Vector3(1, 2, 3), FillIntensity = 0.25f },
             Color = { Saturation = 1.2f, TintColor = new System.Numerics.Vector3(0.5f, 0.6f, 0.7f) },
             Outline = { Enabled = true, Width = 3.5f },
             Material = { Opacity = 0.75f, UseVertexColor = true }
@@ -28,6 +28,7 @@ public sealed class StyleJsonConverterTests
         deserializedParams.Lighting.AmbientIntensity.Should().Be(0.3f);
         deserializedParams.Lighting.DiffuseIntensity.Should().Be(0.9f);
         deserializedParams.Lighting.LightDirection.Should().Be(new System.Numerics.Vector3(1, 2, 3));
+        deserializedParams.Lighting.FillIntensity.Should().Be(0.25f);
         deserializedParams.Color.Saturation.Should().Be(1.2f);
         deserializedParams.Color.TintColor.X.Should().BeApproximately(0.5f, 0.001f);
         deserializedParams.Outline.Enabled.Should().BeTrue();

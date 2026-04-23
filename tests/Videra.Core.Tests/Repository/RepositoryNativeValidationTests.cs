@@ -252,10 +252,24 @@ public sealed class RepositoryNativeValidationTests
     public void LinuxVulkanStaticSceneLightingContract_ShouldBindStyleUniform()
     {
         var repositoryRoot = GetRepositoryRoot();
+        var lightingSource = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Core", "Styles", "Parameters", "LightingParameters.cs"));
+        var uniformSource = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Core", "Styles", "Parameters", "StyleUniformData.cs"));
+        var renderStyleSource = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Core", "Styles", "Parameters", "RenderStyleParameters.cs"));
         var factorySource = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Platform.Linux", "VulkanResourceFactory.cs"));
         var executorSource = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Platform.Linux", "VulkanCommandExecutor.cs"));
+        var d3d11FactorySource = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Platform.Windows", "D3D11ResourceFactory.cs"));
+        var metalSource = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Platform.macOS", "Shaders.metal"));
 
+        lightingSource.Should().Contain("public float FillIntensity { get; set; } = 0f;");
+        uniformSource.Should().Contain("[FieldOffset(28)] public float FillIntensity;");
+        renderStyleSource.Should().Contain("FillIntensity = Lighting.FillIntensity");
+        d3d11FactorySource.Should().Contain("float fillIntensity;");
+        d3d11FactorySource.Should().Contain("float diffuse = max((dot(normal, lightDir) + fill) / (1.0f + fill), 0.0f) * diffuseIntensity;");
         factorySource.Should().Contain("layout(set = 0, binding = 3) uniform StyleBuffer");
+        factorySource.Should().Contain("float fillIntensity;");
+        factorySource.Should().Contain("float diffuse = max((dot(normal, lightDir) + fill) / (1.0 + fill), 0.0) * style.diffuseIntensity;");
+        metalSource.Should().Contain("float fillIntensity;");
+        metalSource.Should().Contain("float diffuse = max((dot(normal, lightDir) + fill) / (1.0f + fill), 0.0) * style.diffuseIntensity;");
         factorySource.Should().Contain("fragColor = style.useVertexColor != 0 ? inColor : style.overrideColor;");
         factorySource.Should().Contain("layout(location = 3) out vec3 fragWorldPos;");
         factorySource.Should().Contain("layout(location = 4) out vec3 fragNormal;");
