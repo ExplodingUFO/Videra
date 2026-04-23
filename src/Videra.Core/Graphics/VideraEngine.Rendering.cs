@@ -578,14 +578,8 @@ public partial class VideraEngine
 
         foreach (var obj in _renderWorld.SceneObjects)
         {
-            if (IsTransparentObject(obj))
-            {
-                hasTransparentGeometry = true;
-            }
-            else
-            {
-                hasOpaqueGeometry = true;
-            }
+            hasOpaqueGeometry |= obj.HasOpaqueGeometry;
+            hasTransparentGeometry |= obj.HasTransparentGeometry;
 
             if (hasOpaqueGeometry && hasTransparentGeometry)
             {
