@@ -123,14 +123,26 @@ internal static class ImportedSceneRuntimeObjectBuilder
                 material,
                 textureById,
                 samplerById);
+            var transformedNormal = Vector3.TransformNormal(vertex.Normal, normalTransform);
+            var transformedTangent = meshData.Tangents.Length == 0
+                ? default
+                : TransformTangent(meshData.Tangents[i], transform);
             vertices[i] = new VertexPositionNormalColor(
                 Vector3.Transform(vertex.Position, transform),
-                Vector3.Normalize(Vector3.TransformNormal(vertex.Normal, normalTransform)),
+                MaterialTextureNormalBaker.ResolveVertexNormal(
+                    transformedNormal,
+                    transformedTangent,
+                    meshData.Tangents.Length != 0,
+                    i,
+                    meshData,
+                    material,
+                    textureById,
+                    samplerById),
                 color);
 
             if (tangents.Length != 0)
             {
-                tangents[i] = TransformTangent(meshData.Tangents[i], transform);
+                tangents[i] = transformedTangent;
             }
         }
 
