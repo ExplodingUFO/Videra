@@ -83,7 +83,7 @@ Videra is still an early alpha embeddable viewer stack. Good feedback is not jus
 - `smoke/Videra.SurfaceCharts.ConsumerSmoke` is the packaged surface/cache-backed proof on the supported host path and emits `surfacecharts-support-summary.txt` for support capture.
 - `TransparentFeatureStatus` in diagnostics snapshots captures the shipped transparency contract: alpha mask rendering plus deterministic alpha blend ordering for per-object carried alpha sources.
 - `LastFrameObjectCount`, `LastFrameOpaqueObjectCount`, and `LastFrameTransparentObjectCount` are backend-neutral scene diagnostics, not draw-call metrics.
-- Imported-material fidelity now reaches the shipped static-scene renderer path for baseColor texture sampling, occlusion texture binding/strength, and `KHR_texture_transform` / texture-coordinate override. Emissive and normal-map-ready inputs remain retained runtime truth rather than broader shading claims.
+- Imported-material fidelity now reaches the shipped static-scene renderer path for baseColor texture sampling, occlusion texture binding/strength, emissive inputs, normal-map-ready inputs, and `KHR_texture_transform` / texture-coordinate override. Treat those details as shipped on-screen output concerns on the bounded static-scene seam, not as a broader lighting/shader/backend promise.
 - `Videra.SurfaceCharts.Demo` remains repository-only and is the support-ready repro/reference app for the `Start here`, `Explore next`, and `Try next` paths.
 
 ## Where to send feedback

@@ -242,6 +242,9 @@ public sealed class RepositoryLocalizationTests
             document.Should().Contain("baseColor");
             document.Should().Contain("occlusion texture binding/strength");
             document.Should().Contain("KHR_texture_transform");
+            document.Should().Contain("emissive");
+            document.Should().Contain("normal-map-ready");
+            document.Should().Contain("renderer-consumption seam");
             document.Should().NotContain("不宣称 renderer/shader/backend 消费这些 metadata");
             document.Should().NotContain("并不宣称 renderer/shader/backend 会消费这些 metadata");
         }

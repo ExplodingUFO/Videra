@@ -96,10 +96,10 @@ public sealed class RepositoryArchitectureTests
     };
 
     private const string RendererConsumptionSentence =
-        "The current renderer path consumes baseColor texture sampling plus occlusion texture binding/strength, including `KHR_texture_transform` offset/scale/rotation and texture-coordinate override where those bindings request them.";
+        "The current renderer path consumes baseColor texture sampling, occlusion texture binding/strength, emissive inputs, and normal-map-ready inputs on the bounded static-scene seam, including `KHR_texture_transform` offset/scale/rotation and texture-coordinate override where those bindings request them.";
 
     private const string RetainedShadingBoundarySentence =
-        "Emissive and normal-map-ready inputs remain retained runtime truth rather than broader renderer/shader/backend shading claims";
+        "This remains a bounded renderer-consumption seam rather than a broader lighting/shader/backend promise";
 
     private const string StaleRendererConsumptionSentence =
         "renderer/shader/backend consumption of occlusion or texture-transform metadata is not being claimed here";
