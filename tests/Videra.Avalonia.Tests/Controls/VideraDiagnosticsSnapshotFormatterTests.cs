@@ -49,6 +49,8 @@ public sealed class VideraDiagnosticsSnapshotFormatterTests
             LastSnapshotExportStatus = "Succeeded"
         };
 
+        diagnostics.LastFrameObjectCount.Should().Be(diagnostics.LastFrameOpaqueObjectCount + diagnostics.LastFrameTransparentObjectCount);
+
         var snapshot = VideraDiagnosticsSnapshotFormatter.Format(diagnostics);
 
         snapshot.Should().Contain("Videra diagnostics snapshot");
