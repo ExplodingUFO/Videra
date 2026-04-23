@@ -134,6 +134,8 @@ public partial class MainWindow : Window
             }
 
             Trace("LoadModelAsync succeeded.");
+            _view3D.AddObject(SmokeSceneFactory.CreateEmissiveNormalProofObject());
+            Trace($"Added emissive/normal proof object: {SmokeSceneFactory.EmissiveNormalProofObjectName}.");
             var framed = _view3D.FrameAll();
             Trace($"FrameAll returned {framed}.");
             _view3D.ResetCamera();
@@ -239,6 +241,7 @@ public partial class MainWindow : Window
             _diagnosticsSnapshotPath,
             _inspectionSnapshotPath,
             _inspectionBundlePath,
+            SmokeSceneFactory.EmissiveNormalProofObjectName,
             _lightingProofHoldSeconds);
 
         if (!string.IsNullOrWhiteSpace(_outputPath))
@@ -319,5 +322,6 @@ public partial class MainWindow : Window
         string? DiagnosticsSnapshotPath,
         string? InspectionSnapshotPath,
         string? InspectionBundlePath,
+        string EmissiveNormalProofObjectName,
         int LightingProofHoldSeconds);
 }

@@ -70,13 +70,18 @@ public sealed class WpfSmokeConfigurationTests
         hostCode.Should().Contain("HwndHost");
         hostCode.Should().Contain("CreateWindowExW");
         hostCode.Should().Contain("VisualTreeHelper.GetDpi(this)");
-        sceneFactoryCode.Should().Contain("CreateWhiteQuad");
-        sceneFactoryCode.Should().Contain("WpfSmokeQuad");
+        sceneFactoryCode.Should().Contain("CreateEmissiveNormalProofObject");
+        sceneFactoryCode.Should().Contain("WpfSmokeEmissiveNormalProofQuad");
+        sceneFactoryCode.Should().Contain("MaterialEmissive");
+        sceneFactoryCode.Should().Contain("MaterialNormalTextureBinding");
+        sceneFactoryCode.Should().Contain("SceneObjectFactory.CreateDeferred");
         invokeScript.Should().Contain("VIDERA_WPF_SMOKE_OUTPUT");
         invokeScript.Should().Contain("VIDERA_LIGHTING_PROOF_HOLD_SECONDS");
         verifyScript.Should().Contain("-LightingProofHoldSeconds 10");
         invokeScript.Should().Contain("RenderPipelineProfile:");
         invokeScript.Should().Contain("NativeHostBound: True");
+        mainWindowCodeBehind.Should().Contain("EmissiveNormalProofObjectName:");
+        mainWindowCodeBehind.Should().Contain("CreateEmissiveNormalProofObject()");
     }
 
     private static string GetRepositoryRoot()
