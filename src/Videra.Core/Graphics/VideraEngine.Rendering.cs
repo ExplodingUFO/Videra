@@ -274,10 +274,7 @@ public partial class VideraEngine
         {
             foreach (var obj in transparentObjects)
             {
-                if (RenderSolidObject(obj, shouldLog, transparentPass: true))
-                {
-                    transparentObjectCount++;
-                }
+                transparentObjectCount += RenderSolidObject(obj, shouldLog, transparentPass: true) ? 1 : 0;
             }
         }
         finally
