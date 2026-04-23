@@ -14,10 +14,15 @@ public partial class SurfaceChartView
     private SurfaceChartProjection? _chartProjection;
     private Size _overlayViewSize;
 
-    internal void UpdateProbeScreenPosition(Point probeScreenPosition)
+    internal bool UpdateProbeScreenPosition(Point probeScreenPosition)
     {
-        _overlayCoordinator.UpdateProbeScreenPosition(probeScreenPosition);
+        if (!_overlayCoordinator.UpdateProbeScreenPosition(probeScreenPosition))
+        {
+            return false;
+        }
+
         InvalidateOverlay();
+        return true;
     }
 
     internal SurfaceProbeInfo? GetHoveredProbe()
