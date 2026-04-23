@@ -143,7 +143,11 @@ internal sealed class SurfaceChartController
         }
 
         var requestGeneration = SupersedeOutstandingRequests();
-        _tileCache.PruneToKeys(plan.RetainedKeys);
+        if (_interactionQuality != SurfaceChartInteractionQuality.Interactive)
+        {
+            _tileCache.PruneToKeys(plan.RetainedKeys);
+        }
+
         _invalidateScene();
         _currentPlan = plan;
         StartRequestPipeline(plan, requestGeneration);
