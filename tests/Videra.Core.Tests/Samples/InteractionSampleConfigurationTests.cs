@@ -82,6 +82,8 @@ public sealed class InteractionSampleConfigurationTests
         codeBehind.Should().Contain("CaptureInspectionState()");
         codeBehind.Should().Contain("ApplyInspectionState");
         codeBehind.Should().Contain("ExportSnapshotAsync");
+        codeBehind.Should().Contain("diagnostics.LastSnapshotExportStatus");
+        codeBehind.Should().Contain("diagnostics.LastSnapshotExportPath");
         codeBehind.Should().Contain("VideraInspectionBundleService.ExportAsync");
         codeBehind.Should().Contain("VideraInspectionBundleService.ImportAsync");
         codeBehind.Should().Contain("ReplayLimitation");

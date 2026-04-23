@@ -265,6 +265,8 @@ public class VideraEngineIntegrationTests
 
         var frame = DemoMeshFactory.CaptureFrame(backend);
         var pixel = DemoMeshFactory.ReadPixel(frame, backend.Width, backend.Width / 2, backend.Height / 2);
+        engine.LastPipelineSnapshot.Should().NotBeNull();
+        engine.LastPipelineSnapshot!.TransparentObjectCount.Should().Be(2);
         pixel.B.Should().BeGreaterThan(pixel.R);
         pixel.A.Should().BeGreaterThan((byte)0);
     }

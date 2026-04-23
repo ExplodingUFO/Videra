@@ -1,3 +1,4 @@
+using System.Numerics;
 using FluentAssertions;
 using Videra.Avalonia.Controls;
 using Videra.Avalonia.Rendering;
@@ -120,16 +121,40 @@ public sealed class VideraViewSessionBridgeIntegrationTests
         diagnostics.LastFrameOpaqueObjectCount.Should().Be(1);
         diagnostics.LastFrameTransparentObjectCount.Should().Be(0);
         diagnostics.SupportedRenderFeatureNames.Should().NotBeNull();
-        diagnostics.SupportedRenderFeatureNames.Should().Contain("Opaque");
-        diagnostics.SupportedRenderFeatureNames.Should().Contain("Transparent");
-        diagnostics.SupportedRenderFeatureNames.Should().Contain("Overlay");
-        diagnostics.SupportedRenderFeatureNames.Should().Contain("Picking");
-        diagnostics.SupportedRenderFeatureNames.Should().Contain("Screenshot");
+        diagnostics.SupportedRenderFeatureNames.Should().Equal("Opaque", "Transparent", "Overlay", "Picking", "Screenshot");
         diagnostics.TransparentFeatureStatus.Should().Be(VideraBackendDiagnostics.CurrentTransparentFeatureStatus);
         diagnostics.SupportsPassContributors.Should().BeTrue();
         diagnostics.SupportsPassReplacement.Should().BeTrue();
         diagnostics.SupportsFrameHooks.Should().BeTrue();
         diagnostics.SupportsPipelineSnapshots.Should().BeTrue();
+    }
+
+    [Fact]
+    public void TransparentGeometry_ProjectsTransparentEvidenceIntoDiagnosticsSnapshot()
+    {
+        using var engine = new VideraEngine();
+        using var session = new RenderSession(
+            engine,
+            backendFactory: static _ => new TrackingSoftwareBackend(),
+            bitmapFactory: static (_, _) => null);
+        var backendOptions = new VideraBackendOptions
+        {
+            PreferredBackend = GraphicsBackendPreference.Software
+        };
+        var bridge = CreateBridge(session, backendOptions, new VideraDiagnosticsOptions());
+
+        bridge.OnSizeChanged(128, 96, 1f);
+        engine.AddObject(DemoMeshFactory.CreateBlendedQuad(new RgbaFloat(1f, 0f, 0f, 0.5f), Vector3.Zero));
+        session.RenderOnce();
+
+        var diagnostics = bridge.CreateDiagnosticsSnapshot(lastInitializationError: null, DefaultSceneDiagnostics);
+
+        diagnostics.LastFrameFeatureNames.Should().Equal("Transparent", "Overlay");
+        diagnostics.LastFrameObjectCount.Should().Be(1);
+        diagnostics.LastFrameOpaqueObjectCount.Should().Be(0);
+        diagnostics.LastFrameTransparentObjectCount.Should().Be(1);
+        diagnostics.TransparentFeatureStatus.Should().Be(VideraBackendDiagnostics.CurrentTransparentFeatureStatus);
+        diagnostics.SupportedRenderFeatureNames.Should().Equal("Opaque", "Transparent", "Overlay", "Picking", "Screenshot");
     }
 
     private static VideraViewSessionBridge CreateBridge(

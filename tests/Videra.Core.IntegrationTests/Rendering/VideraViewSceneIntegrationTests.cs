@@ -789,10 +789,8 @@ public sealed class VideraViewSceneIntegrationTests : IDisposable
             view.BackendDiagnostics.LastFrameStageNames.Should().NotBeNull();
             view.BackendDiagnostics.LastFrameStageNames.Should().Contain("PrepareFrame");
             view.BackendDiagnostics.LastFrameStageNames.Should().Contain("PresentFrame");
-            view.BackendDiagnostics.LastFrameFeatureNames.Should().Contain("Overlay");
-            view.BackendDiagnostics.SupportedRenderFeatureNames.Should().Contain("Transparent");
-            view.BackendDiagnostics.SupportedRenderFeatureNames.Should().Contain("Picking");
-            view.BackendDiagnostics.SupportedRenderFeatureNames.Should().Contain("Screenshot");
+            view.BackendDiagnostics.LastFrameFeatureNames.Should().Equal("Overlay");
+            view.BackendDiagnostics.SupportedRenderFeatureNames.Should().Equal("Opaque", "Transparent", "Overlay", "Picking", "Screenshot");
             view.BackendDiagnostics.TransparentFeatureStatus.Should().Be(VideraBackendDiagnostics.CurrentTransparentFeatureStatus);
             view.BackendDiagnostics.UsesSoftwarePresentationCopy.Should().BeTrue();
         }
