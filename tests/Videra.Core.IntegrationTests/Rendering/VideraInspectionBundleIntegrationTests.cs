@@ -142,6 +142,26 @@ public sealed class VideraInspectionBundleIntegrationTests : IDisposable
                     WorldPoint = new Vector3(0f, 2f, 0f)
                 }
             ];
+            replayView.Measurements =
+            [
+                new VideraMeasurement
+                {
+                    Label = "Existing replay measurement",
+                    Start = VideraMeasurementAnchor.ForWorldPoint(new Vector3(0f, 0f, 0f)),
+                    End = VideraMeasurementAnchor.ForWorldPoint(new Vector3(0f, 1f, 0f))
+                }
+            ];
+            replayView.ClippingPlanes =
+            [
+                VideraClipPlane.FromPointNormal(new Vector3(0f, 0f, 0.5f), Vector3.UnitZ)
+            ];
+            replayView.InteractionOptions = new VideraInteractionOptions
+            {
+                MeasurementSnapMode = VideraMeasurementSnapMode.AxisLocked
+            };
+            replayView.Engine.Camera.SetOrbit(new Vector3(4f, 5f, 6f), 9f, 1.1f, 0.3f);
+
+            var beforeImport = replayView.CaptureInspectionState();
 
             var export = await VideraInspectionBundleService.ExportAsync(sourceView, bundlePath);
 
@@ -155,10 +175,24 @@ public sealed class VideraInspectionBundleIntegrationTests : IDisposable
 
             import.Succeeded.Should().BeFalse();
             import.FailureMessage.Should().Contain("host-owned objects");
+            var afterImport = replayView.CaptureInspectionState();
+            afterImport.CameraTarget.Should().Be(beforeImport.CameraTarget);
+            afterImport.CameraRadius.Should().BeApproximately(beforeImport.CameraRadius, 0.0001f);
+            afterImport.CameraYaw.Should().BeApproximately(beforeImport.CameraYaw, 0.0001f);
+            afterImport.CameraPitch.Should().BeApproximately(beforeImport.CameraPitch, 0.0001f);
+            afterImport.MeasurementSnapMode.Should().Be(beforeImport.MeasurementSnapMode);
+            afterImport.ClippingPlanes.Should().BeEquivalentTo(beforeImport.ClippingPlanes);
+            afterImport.Measurements.Should().BeEquivalentTo(beforeImport.Measurements);
+            afterImport.Annotations.Should().BeEquivalentTo(beforeImport.Annotations);
+            afterImport.SelectedObjectIds.Should().BeEquivalentTo(beforeImport.SelectedObjectIds);
+            afterImport.PrimarySelectedObjectId.Should().Be(beforeImport.PrimarySelectedObjectId);
             replayView.SelectionState.PrimaryObjectId.Should().Be(replaySelectionId);
             replayView.SelectionState.ObjectIds.Should().ContainSingle().Which.Should().Be(replaySelectionId);
             replayView.Annotations.Should().ContainSingle();
             replayView.Annotations.OfType<VideraWorldPointAnnotation>().Single().Id.Should().Be(replayAnnotationId);
+            replayView.Measurements.Should().ContainSingle();
+            replayView.Measurements[0].Label.Should().Be("Existing replay measurement");
+            replayView.ClippingPlanes.Should().ContainSingle();
         }
         finally
         {

@@ -42,7 +42,7 @@ public partial class MainWindow : Window
     private int _annotationSequence = 1;
     private int _loadedObjectCount;
     private string _loadSummary = "Waiting for backend readiness before loading the focused interaction scene.";
-    private string _inspectionSummary = "Toggle a section plane, save the current view state, export a snapshot, or capture a replayable inspection bundle after the scene loads.";
+    private string _inspectionSummary = "Toggle a section plane, save the current view state, export a snapshot, or export an inspection bundle after the scene loads. ExportAsync can succeed while CanReplayScene is false; ReplayLimitation explains why, and ImportAsync rejection leaves the current view unchanged.";
     private string _lastRequestSummary = "Switch modes, click objects, or click empty space to drive the public interaction flow.";
 
     public MainWindow()
@@ -545,7 +545,7 @@ public partial class MainWindow : Window
         }
         else
         {
-            _inspectionSummary = $"VideraInspectionBundleService.ImportAsync failed: {result.FailureMessage ?? "Unknown error."}";
+            _inspectionSummary = $"VideraInspectionBundleService.ImportAsync rejected the bundle from {_lastInspectionBundleDirectory}. The current view stayed unchanged: {result.FailureMessage ?? "Unknown error."}";
         }
 
         UpdateStatusPanel();
@@ -721,7 +721,7 @@ public partial class MainWindow : Window
     private static string FormatInspectionBundleExportSummary(VideraInspectionBundleExportResult result)
     {
         var summary =
-            $"VideraInspectionBundleService.ExportAsync wrote a bundle at {result.DirectoryPath}. Replayable scene: {result.CanReplayScene}.";
+            $"VideraInspectionBundleService.ExportAsync wrote a bundle at {result.DirectoryPath}. CanReplayScene: {result.CanReplayScene}. ExportAsync can still succeed when replay is false.";
         return string.IsNullOrWhiteSpace(result.ReplayLimitation)
             ? summary
             : $"{summary} Replay limitation: {result.ReplayLimitation}";

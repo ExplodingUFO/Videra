@@ -54,10 +54,24 @@ public sealed class InteractionSampleConfigurationTests
             readme.Should().Contain(marker);
         }
 
+        readme.Should().Contain("ExportAsync can succeed while CanReplayScene is false");
+        readme.Should().Contain("ReplayLimitation explains why");
+        readme.Should().Contain("ImportAsync rejects those bundles without changing the current view");
+
         foreach (var forbidden in InteractionContractDocumentationTerms.ForbiddenNodeAnchorPhrases)
         {
             readme.Should().NotContain(forbidden);
         }
+    }
+
+    [Fact]
+    public void SampleMarkup_ShouldDescribeExportabilityAndReplayabilitySeparately()
+    {
+        var markup = File.ReadAllText(Path.Combine(GetRepositoryRoot(), "samples", "Videra.InteractionSample", "Views", "MainWindow.axaml"));
+
+        markup.Should().Contain("inspection bundles stay exportable even when CanReplayScene is false");
+        markup.Should().Contain("ReplayLimitation explains why");
+        markup.Should().Contain("ImportAsync rejects those bundles without changing the current view");
     }
 
     [Fact]
@@ -87,6 +101,9 @@ public sealed class InteractionSampleConfigurationTests
         codeBehind.Should().Contain("VideraInspectionBundleService.ExportAsync");
         codeBehind.Should().Contain("VideraInspectionBundleService.ImportAsync");
         codeBehind.Should().Contain("ReplayLimitation");
+        codeBehind.Should().Contain("CanReplayScene: {result.CanReplayScene}");
+        codeBehind.Should().Contain("ExportAsync can still succeed when replay is false.");
+        codeBehind.Should().Contain("The current view stayed unchanged");
         codeBehind.Should().Contain("new VideraNodeAnnotation");
         codeBehind.Should().Contain("new VideraWorldPointAnnotation");
 

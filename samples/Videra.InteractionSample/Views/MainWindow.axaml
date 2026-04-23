@@ -21,7 +21,7 @@
                    Text="Focused public interaction sample" />
         <TextBlock Foreground="#6B4B2D"
                    TextWrapping="Wrap"
-                   Text="The host owns SelectionState, Annotations, and annotation state, switches between Navigate, Select, Annotate, and Measure, and exercises clipping, view-state capture, and snapshot export through the public inspection workflow." />
+                   Text="The host owns SelectionState, Annotations, and annotation state, switches between Navigate, Select, Annotate, and Measure, and exercises clipping, view-state capture, snapshot export, and inspection bundle replayability through the public inspection workflow." />
       </StackPanel>
     </Border>
 
@@ -151,7 +151,7 @@
             </WrapPanel>
             <TextBlock Foreground="#6B4B2D"
                        TextWrapping="Wrap"
-                       Text="The inspection surface stays viewer-first: clipping uses public ClippingPlanes, state persistence uses CaptureInspectionState/ApplyInspectionState, snapshot export stays on ExportSnapshotAsync, and replayable support artifacts flow through VideraInspectionBundleService." />
+                       Text="The inspection surface stays viewer-first: clipping uses public ClippingPlanes, state persistence uses CaptureInspectionState/ApplyInspectionState, snapshot export stays on ExportSnapshotAsync, and inspection bundles stay exportable even when CanReplayScene is false. ReplayLimitation explains why, and ImportAsync rejects those bundles without changing the current view." />
             <TextBlock x:Name="InspectionStatusText"
                        Foreground="#6B4B2D"
                        TextWrapping="Wrap" />
