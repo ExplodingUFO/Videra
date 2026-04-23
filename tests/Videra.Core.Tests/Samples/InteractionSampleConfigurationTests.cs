@@ -54,9 +54,10 @@ public sealed class InteractionSampleConfigurationTests
             readme.Should().Contain(marker);
         }
 
-        readme.Should().Contain("ExportAsync can succeed while CanReplayScene is false");
-        readme.Should().Contain("ReplayLimitation explains why");
-        readme.Should().Contain("ImportAsync rejects those bundles without changing the current view");
+        readme.Should().Contain("Bundle export and scene replay are separate");
+        readme.Should().Contain("CanReplayScene");
+        readme.Should().Contain("ReplayLimitation");
+        readme.Should().Contain("rejected before applying state");
 
         foreach (var forbidden in InteractionContractDocumentationTerms.ForbiddenNodeAnchorPhrases)
         {
@@ -69,9 +70,7 @@ public sealed class InteractionSampleConfigurationTests
     {
         var markup = File.ReadAllText(Path.Combine(GetRepositoryRoot(), "samples", "Videra.InteractionSample", "Views", "MainWindow.axaml"));
 
-        markup.Should().Contain("inspection bundles stay exportable even when CanReplayScene is false");
-        markup.Should().Contain("ReplayLimitation explains why");
-        markup.Should().Contain("ImportAsync rejects those bundles without changing the current view");
+        markup.Should().Contain("inspection bundle replay depends on CanReplayScene plus ReplayLimitation before import");
     }
 
     [Fact]
@@ -102,8 +101,8 @@ public sealed class InteractionSampleConfigurationTests
         codeBehind.Should().Contain("VideraInspectionBundleService.ImportAsync");
         codeBehind.Should().Contain("ReplayLimitation");
         codeBehind.Should().Contain("CanReplayScene: {result.CanReplayScene}");
-        codeBehind.Should().Contain("ExportAsync can still succeed when replay is false.");
-        codeBehind.Should().Contain("The current view stayed unchanged");
+        codeBehind.Should().Contain("Check replay status before import.");
+        codeBehind.Should().Contain("current view state was not applied");
         codeBehind.Should().Contain("new VideraNodeAnnotation");
         codeBehind.Should().Contain("new VideraWorldPointAnnotation");
 
