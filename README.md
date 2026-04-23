@@ -122,7 +122,7 @@ For alpha adoption feedback, use [Alpha Feedback](docs/alpha-feedback.md) before
 
 | Entry | Status | Notes |
 | --- | --- | --- |
-| `Videra.Demo` | Repository-only | Viewer diagnostics and scene-pipeline reference app |
+| `Videra.Demo` | Repository-only | Viewer diagnostics, `LastFrameObjectCount` / `LastFrameOpaqueObjectCount` / `LastFrameTransparentObjectCount`, and scene-pipeline reference app |
 | `smoke/Videra.WpfSmoke` | Repository-only | Windows WPF smoke proof for validation and support evidence on the Avalonia-first viewer path |
 | `smoke/Videra.SurfaceCharts.ConsumerSmoke` | Repository-only | Packaged SurfaceCharts first-chart smoke proof and `surfacecharts-support-summary.txt` support artifact |
 | `Videra.SurfaceCharts.Demo` | Repository-only | SurfaceCharts reference app and support-summary repro path with `Start here`, `Explore next`, and `Try next` demo paths |
@@ -140,7 +140,7 @@ For alpha adoption feedback, use [Alpha Feedback](docs/alpha-feedback.md) before
 | `Videra.InteractionSample` | Public sample for the controlled interaction contract plus viewer-first inspection workflows such as measurement, clipping, state restore, snapshot export, and replayable inspection bundles |
 
 `Videra.MinimalSample` is the quickest end-to-end viewer reference. It stays on the alpha happy path: `Options -> LoadModelAsync -> FrameAll / ResetCamera -> BackendDiagnostics`, then uses `VideraDiagnosticsSnapshotFormatter` to export the same support artifact requested by alpha bug reports.
-`Videra.Demo` remains the broader diagnostics and import-feedback surface. It seeds a default demo cube on the ready path, summarizes import feedback in the status area, and includes a narrow `Scene Pipeline Lab` panel for `SceneDocument` versioning, the retained `SceneNode` / `MeshPrimitive` / `MaterialInstance` / `Texture2D` / `Sampler` runtime model, the shipped static glTF/PBR baseline, tangent-aware retained assets, repeated unchanged imports that can reuse retained imported scene assets while they remain retained, pending/resident/dirty upload counts, render-feature diagnostics, atomic batch replacement, and backend-rebind truth. That retained scene/material truth includes per-primitive non-Blend material participation, occlusion texture binding/strength, and `KHR_texture_transform` offset/scale/rotation plus texture-coordinate override as imported-asset/runtime truth only.
+`Videra.Demo` remains the broader diagnostics and import-feedback surface. It seeds a default demo cube on the ready path, summarizes import feedback in the status area, and includes a narrow `Scene Pipeline Lab` panel for `SceneDocument` versioning, the retained `SceneNode` / `MeshPrimitive` / `MaterialInstance` / `Texture2D` / `Sampler` runtime model, the shipped static glTF/PBR baseline, tangent-aware retained assets, repeated unchanged imports that can reuse retained imported scene assets while they remain retained, pending/resident/dirty upload counts, render-feature diagnostics, `LastFrameObjectCount` / `LastFrameOpaqueObjectCount` / `LastFrameTransparentObjectCount`, atomic batch replacement, and backend-rebind truth. That retained scene/material truth includes per-primitive non-Blend material participation, occlusion texture binding/strength, and `KHR_texture_transform` offset/scale/rotation plus texture-coordinate override as imported-asset/runtime truth only.
 
 ## Videra 1.0 Boundary
 
@@ -163,7 +163,7 @@ Use [Videra.ExtensibilitySample](samples/Videra.ExtensibilitySample/README.md) a
 
 The advanced extensibility flow is `VideraView.Engine` -> `RegisterPassContributor(...)` / `RegisterFrameHook(...)` -> `LoadModelAsync(...)` -> `FrameAll()` -> inspect `RenderCapabilities` and `BackendDiagnostics`.
 
-The shared feature vocabulary for those diagnostics is `RenderFeatureSet`: `Opaque`, `Transparent`, `Overlay`, `Picking`, and `Screenshot`, where `Transparent` means alpha mask rendering plus deterministic alpha blend ordering for per-object carried alpha sources. Host apps read that truth through `RenderCapabilities.SupportedFeatureNames`, `BackendDiagnostics.LastFrameFeatureNames`, `BackendDiagnostics.SupportedRenderFeatureNames`, and `TransparentFeatureStatus`.
+The shared feature vocabulary for those diagnostics is `RenderFeatureSet`: `Opaque`, `Transparent`, `Overlay`, `Picking`, and `Screenshot`, where `Transparent` means alpha mask rendering plus deterministic alpha blend ordering for per-object carried alpha sources. Host apps read that truth through `RenderCapabilities.SupportedFeatureNames`, `BackendDiagnostics.LastFrameFeatureNames`, `BackendDiagnostics.SupportedRenderFeatureNames`, `BackendDiagnostics.LastFrameObjectCount`, `BackendDiagnostics.LastFrameOpaqueObjectCount`, `BackendDiagnostics.LastFrameTransparentObjectCount`, and `TransparentFeatureStatus`. Those counts are backend-neutral scene diagnostics, not draw-call metrics or a broader renderer promise.
 
 Contract highlights:
 

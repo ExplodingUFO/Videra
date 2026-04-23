@@ -339,6 +339,9 @@ public sealed class RepositoryReleaseReadinessTests
             readme.Should().Contain("AllowSoftwareFallback");
             readme.Should().Contain("package discovery");
             readme.Should().Contain("plugin loading");
+            readme.Should().Contain("LastFrameObjectCount");
+            readme.Should().Contain("LastFrameOpaqueObjectCount");
+            readme.Should().Contain("LastFrameTransparentObjectCount");
         }
 
         rootReadme.Should().Contain("FallbackReason");
@@ -359,6 +362,9 @@ public sealed class RepositoryReleaseReadinessTests
         contract.Should().Contain("FallbackReason");
         contract.Should().Contain("LoadModelAsync");
         contract.Should().Contain("FrameAll()");
+        contract.Should().Contain("LastFrameObjectCount");
+        contract.Should().Contain("LastFrameOpaqueObjectCount");
+        contract.Should().Contain("LastFrameTransparentObjectCount");
     }
 
     [Fact]
@@ -370,6 +376,9 @@ public sealed class RepositoryReleaseReadinessTests
         troubleshooting.Should().Contain("does not install missing platform packages");
         troubleshooting.Should().Contain("does not replace matching-host native validation");
         troubleshooting.Should().Contain("matching-host");
+        troubleshooting.Should().Contain("LastFrameObjectCount");
+        troubleshooting.Should().Contain("LastFrameOpaqueObjectCount");
+        troubleshooting.Should().Contain("LastFrameTransparentObjectCount");
     }
 
     [Fact]
@@ -382,10 +391,16 @@ public sealed class RepositoryReleaseReadinessTests
         troubleshooting.Should().Contain("VideraDiagnosticsSnapshotFormatter");
         troubleshooting.Should().Contain("TransparentFeatureStatus");
         troubleshooting.Should().Contain("transparency contract");
+        troubleshooting.Should().Contain("LastFrameObjectCount");
+        troubleshooting.Should().Contain("LastFrameOpaqueObjectCount");
+        troubleshooting.Should().Contain("LastFrameTransparentObjectCount");
 
         alphaFeedback.Should().Contain("VideraDiagnosticsSnapshotFormatter");
         alphaFeedback.Should().Contain("TransparentFeatureStatus");
         alphaFeedback.Should().Contain("transparency contract");
+        alphaFeedback.Should().Contain("LastFrameObjectCount");
+        alphaFeedback.Should().Contain("LastFrameOpaqueObjectCount");
+        alphaFeedback.Should().Contain("LastFrameTransparentObjectCount");
     }
 
     [Fact]

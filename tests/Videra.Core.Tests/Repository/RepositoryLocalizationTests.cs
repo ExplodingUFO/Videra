@@ -193,6 +193,9 @@ public sealed class RepositoryLocalizationTests
         troubleshooting.Should().Contain("不会安装缺失的平台包");
         troubleshooting.Should().Contain("matching-host");
         troubleshooting.Should().Contain("XWayland");
+        troubleshooting.Should().Contain("LastFrameObjectCount");
+        troubleshooting.Should().Contain("LastFrameOpaqueObjectCount");
+        troubleshooting.Should().Contain("LastFrameTransparentObjectCount");
 
         foreach (var module in new[] { avaloniaModule, coreModule, windowsModule, linuxModule, macosModule })
         {
@@ -206,6 +209,9 @@ public sealed class RepositoryLocalizationTests
         avaloniaModule.Should().Contain("Videra.Platform.Windows");
         avaloniaModule.Should().Contain("Videra.Platform.Linux");
         avaloniaModule.Should().Contain("Videra.Platform.macOS");
+        avaloniaModule.Should().Contain("LastFrameObjectCount");
+        avaloniaModule.Should().Contain("LastFrameOpaqueObjectCount");
+        avaloniaModule.Should().Contain("LastFrameTransparentObjectCount");
         linuxModule.Should().Contain("X11");
         linuxModule.Should().Contain("XWayland");
         macosModule.Should().Contain("CAMetalLayer");
@@ -223,6 +229,9 @@ public sealed class RepositoryLocalizationTests
 
         coreModule.Should().Contain("RenderPipelineProfile");
         coreModule.Should().Contain("LastFrameStageNames");
+        coreModule.Should().Contain("LastFrameObjectCount");
+        coreModule.Should().Contain("LastFrameOpaqueObjectCount");
+        coreModule.Should().Contain("LastFrameTransparentObjectCount");
         coreModule.Should().Contain("UsesSoftwarePresentationCopy");
     }
 
@@ -241,8 +250,14 @@ public sealed class RepositoryLocalizationTests
 
         avaloniaModule.Should().Contain("VideraView.Engine");
         avaloniaModule.Should().Contain("VideraView.RenderCapabilities");
+        avaloniaModule.Should().Contain("LastFrameObjectCount");
+        avaloniaModule.Should().Contain("LastFrameOpaqueObjectCount");
+        avaloniaModule.Should().Contain("LastFrameTransparentObjectCount");
         architecture.Should().Contain("public extensibility root");
         architecture.Should().Contain("package discovery");
+        architecture.Should().Contain("LastFrameObjectCount");
+        architecture.Should().Contain("LastFrameOpaqueObjectCount");
+        architecture.Should().Contain("LastFrameTransparentObjectCount");
     }
 
     [Fact]

@@ -15,7 +15,7 @@
 - Render-style and wireframe switching
 - Grid visibility, color, and height controls
 - Basic object transform editing
-- Backend diagnostics via `BackendDiagnostics`, including readiness, native-host binding, and fallback details
+- Backend diagnostics via `BackendDiagnostics`, including readiness, native-host binding, fallback details, and `LastFrameObjectCount` / `LastFrameOpaqueObjectCount` / `LastFrameTransparentObjectCount`
 - A focused `Scene Pipeline Lab` panel that calls out `SceneDocument` versioning, retained `SceneNode` / `MeshPrimitive` / `MaterialInstance` / `Texture2D` / `Sampler` catalogs, the shipped static glTF/PBR baseline, tangent-aware retained assets, repeated unchanged imports that can reuse retained imported scene assets while they remain retained, deferred upload, render-feature diagnostics, residency counts, atomic scene replacement, and backend-rebind truth
 
 ## Runtime Behavior
@@ -58,7 +58,7 @@ The `Scene Pipeline Lab` copy in the side panel is deliberate. It projects three
 - mixed Blend/non-Blend imports remain guarded until transparent primitives are independently sortable
 - repeated unchanged imports can reuse retained imported scene assets while they remain retained instead of rebuilding ad hoc importer-shaped state
 - backend diagnostics surface `document version`, `pending`, `resident`, `dirty`, and `failed` scene-upload counts
-- backend diagnostics also surface `SupportedRenderFeatureNames`, `LastFrameFeatureNames`, and `TransparentFeatureStatus` so the public viewer path shows `Opaque`, `Transparent`, `Overlay`, `Picking`, and `Screenshot` truth directly, with `Transparent` meaning alpha mask rendering plus deterministic alpha blend ordering for per-object carried alpha sources
+- backend diagnostics also surface `SupportedRenderFeatureNames`, `LastFrameFeatureNames`, `LastFrameObjectCount`, `LastFrameOpaqueObjectCount`, `LastFrameTransparentObjectCount`, and `TransparentFeatureStatus` so the public viewer path shows `Opaque`, `Transparent`, `Overlay`, `Picking`, and `Screenshot` truth directly, with `Transparent` meaning alpha mask rendering plus deterministic alpha blend ordering for per-object carried alpha sources; those counts are backend-neutral scene diagnostics, not draw-call metrics
 - backend diagnostics explain fallback/rebind behavior while the scene survives backend recreation
 - animation, skeletons, morph targets, lights, shadows, post-processing, extra UI adapters, and Wayland/OpenGL/WebGL/backend API expansion are deliberately outside this demo path
 

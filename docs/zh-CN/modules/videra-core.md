@@ -156,6 +156,7 @@ sequenceDiagram
 
 - `RenderPipelineProfile` 表示当前帧的 profile，当前值为 `Standard`、`StandardWithWireframeOverlay`、`WireframeOnly`。
 - `LastFrameStageNames` 镜像最近一帧真正执行过的 stage 名称。
+- `LastFrameObjectCount`、`LastFrameOpaqueObjectCount`、`LastFrameTransparentObjectCount` 镜像最近一帧的 backend-neutral 场景对象计数，不是 draw-call 指标。
 - `UsesSoftwarePresentationCopy` 用来区分当前是否经过软件位图拷贝呈现。
 
 Phase 11 新增的 public extensibility contract：
@@ -172,7 +173,7 @@ Phase 11 新增的 public extensibility contract：
 - `VideraEngine` 是 public extensibility root。
 - 这套 API 是 C#-first、进程内的 contract，不包含 package discovery 或 plugin loading。
 - Avalonia 的 internal session/orchestration 类型不是对外扩展入口。
-- `SceneDocument` 保留 imported asset 的 backend-neutral 真相，backend 恢复会从这份 scene truth 重建资源，而不是长期依赖 software staging path；当前 shipped runtime 仍是 static-scene-only，但其 material/runtime truth 还包括 per-primitive non-Blend material participation、occlusion texture binding/strength，以及 `KHR_texture_transform` 的 offset/scale/rotation 和 texture-coordinate override。这里描述的是 imported-asset/runtime truth，不宣称 renderer/shader/backend 消费这些 metadata；mixed Blend/non-Blend imports 仍会被 guard，直到 transparent primitives 可独立排序。动画、骨骼、morph targets、灯光、阴影、post-processing、额外 UI adapter、Wayland/OpenGL/WebGL/backend API 扩展都不在这条 baseline 内。
+- `SceneDocument` 保留 imported asset 的 backend-neutral 真相，backend 恢复会从这份 scene truth 重建资源，而不是长期依赖 software staging path；当前 shipped runtime 仍是 static-scene-only，但其 material/runtime truth 还包括 per-primitive non-Blend material participation、occlusion texture binding/strength，以及 `KHR_texture_transform` 的 offset/scale/rotation 和 texture-coordinate override。这里描述的是 imported-asset/runtime truth，不宣称 renderer/shader/backend 消费这些 metadata；mixed Blend/non-Blend imports 仍会被 guard，直到 transparent primitives 可独立排序。动画、骨骼、morph targets、灯光、阴影、post-processing、额外 UI adapter、Wayland/OpenGL/WebGL/backend API 扩展都在这条 baseline 外。
 
 开发者入口请直接配合 [扩展合同](../extensibility.md) 阅读，并以 `samples/Videra.ExtensibilitySample` 作为最小参考流程：
 

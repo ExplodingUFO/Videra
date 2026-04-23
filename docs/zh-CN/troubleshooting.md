@@ -34,6 +34,7 @@ pwsh -File ./scripts/verify.ps1 -Configuration Release -IncludeNativeMacOS
 - 只需要核心渲染抽象时再单独安装 `Videra.Core`
 - 软件回退适合诊断，但不会安装缺失的平台包
 - `VIDERA_BACKEND` 只影响后端选择偏好，不会安装缺失的平台包，也不会替代 matching-host 原生验证
+- 如果问题与场景构成有关，请把 `LastFrameObjectCount`、`LastFrameOpaqueObjectCount`、`LastFrameTransparentObjectCount` 一并提供；这些是 backend-neutral 场景诊断，不是 draw-call 指标
 - 如果问题涉及 imported-material fidelity，请同时提供最小复现资产，以及 occlusion texture binding/strength 和 `KHR_texture_transform` 的细节；这些属于 imported-asset/runtime 合同，不是 renderer/shader/backend 消费承诺
 
 ## 常见问题

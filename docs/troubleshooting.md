@@ -36,7 +36,7 @@ For `area: surfacecharts`, start from `smoke/Videra.SurfaceCharts.ConsumerSmoke`
 - `Start here: In-memory first chart` is the default first repro path.
 - `Explore next: Cache-backed streaming` is only the follow-up path after the in-memory chart already renders.
 - `Try next: Analytics proof` covers the explicit-coordinate, independent-`ColorField` and pinned-probe analytic workflow on the same shell, `Try next: Waterfall proof` is the fourth demo path, and `Try next: Scatter proof` covers the repo-owned scatter path on that same shell.
-- Use `Copy support summary` to paste the demo `Support summary` block into the issue so support has the same `ViewState`, `InteractionQuality`, `RenderingStatus`, `OverlayOptions`, and `TransparentFeatureStatus` contract the sample exposes.
+- Use `Copy support summary` to paste the demo `Support summary` block into the issue so support has the same `ViewState`, `InteractionQuality`, `RenderingStatus`, `OverlayOptions`, `TransparentFeatureStatus`, and `LastFrameObjectCount` / `LastFrameOpaqueObjectCount` / `LastFrameTransparentObjectCount` contract the sample exposes. Those counts are backend-neutral scene diagnostics, not draw-call metrics.
 
 ## Package Selection vs Backend Preference
 
@@ -47,6 +47,7 @@ For `area: surfacecharts`, start from `smoke/Videra.SurfaceCharts.ConsumerSmoke`
 - Software fallback helps with diagnostics, but it does not install missing platform packages.
 - `VIDERA_BACKEND` and `PreferredBackend` only change backend preference. `VIDERA_BACKEND` does not install missing platform packages and does not replace matching-host native validation.
 - `TransparentFeatureStatus` in diagnostics snapshots captures the shipped transparency contract: alpha mask rendering plus deterministic alpha blend ordering for per-object carried alpha sources.
+- `LastFrameObjectCount`, `LastFrameOpaqueObjectCount`, and `LastFrameTransparentObjectCount` are backend-neutral scene diagnostics, not draw-call metrics or broader renderer promises.
 
 ## Common Problems
 
@@ -114,7 +115,7 @@ Include:
   - `Try next: Analytics proof`
   - `Try next: Waterfall proof`
   - `Try next: Scatter proof`
-- use `Copy support summary` after reproducing `Start here: In-memory first chart`; continue to `Explore next: Cache-backed streaming` only if needed
+- use `Copy support summary` after reproducing `Start here: In-memory first chart`; continue to `Explore next: Cache-backed streaming` only if needed. The copied support summary also carries backend-neutral last-frame object counts for viewer-stack issues.
 - use `Try next: Analytics proof` when the issue is about explicit-coordinate/analysis workflow checks, `Try next: Waterfall proof` when the issue is about the second chart control instead of the cache-backed path, and `Try next: Scatter proof` when the issue is about the direct scatter control path; the shipped control line also includes `ScatterChartView`
 - if the issue is about imported-material fidelity, include the smallest asset plus the relevant occlusion texture binding/strength and `KHR_texture_transform` details; those are imported-asset/runtime contracts, not renderer/shader/backend consumption claims
 - `ViewState`, `InteractionQuality`, `RenderingStatus`, and `OverlayOptions` from the SurfaceCharts support summary when relevant
