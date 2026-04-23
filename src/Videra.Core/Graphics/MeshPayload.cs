@@ -2,8 +2,14 @@ using System.Numerics;
 using System.Runtime.CompilerServices;
 using Videra.Core.Geometry;
 using Videra.Core.Graphics.Abstractions;
+using Videra.Core.Scene;
 
 namespace Videra.Core.Graphics;
+
+internal readonly record struct MeshPayloadSegment(
+    uint StartIndex,
+    uint IndexCount,
+    MaterialAlphaSettings Alpha);
 
 internal sealed class MeshPayload
 {
@@ -11,7 +17,8 @@ internal sealed class MeshPayload
         VertexPositionNormalColor[] vertices,
         uint[] indices,
         MeshTopology topology,
-        Vector4[]? tangents = null)
+        Vector4[]? tangents = null,
+        MeshPayloadSegment[]? segments = null)
     {
         ArgumentNullException.ThrowIfNull(vertices);
         ArgumentNullException.ThrowIfNull(indices);
@@ -32,10 +39,14 @@ internal sealed class MeshPayload
             throw new ArgumentException("Tangent count must match vertex count when tangent data is present.", nameof(tangents));
         }
 
+        segments ??= Array.Empty<MeshPayloadSegment>();
+        ValidateSegments(segments, indices.Length);
+
         Vertices = vertices;
         Indices = indices;
         Tangents = tangents;
         Topology = topology;
+        Segments = segments;
         LocalBounds = BoundingBox3.FromVertices(vertices);
         ApproximateGpuBytes =
             (long)vertices.Length * Unsafe.SizeOf<VertexPositionNormalColor>() +
@@ -50,6 +61,8 @@ internal sealed class MeshPayload
     public Vector4[] Tangents { get; }
 
     public MeshTopology Topology { get; }
+
+    public MeshPayloadSegment[] Segments { get; }
 
     public BoundingBox3 LocalBounds { get; }
 
@@ -84,5 +97,26 @@ internal sealed class MeshPayload
             : mesh.Tangents;
 
         return new MeshPayload(vertices, indices, mesh.Topology, tangents);
+    }
+
+    private static void ValidateSegments(MeshPayloadSegment[] segments, int indexCount)
+    {
+        var totalIndexCount = (uint)indexCount;
+        for (var i = 0; i < segments.Length; i++)
+        {
+            var segment = segments[i];
+            if (segment.IndexCount == 0)
+            {
+                continue;
+            }
+
+            if (segment.StartIndex > totalIndexCount ||
+                segment.IndexCount > totalIndexCount - segment.StartIndex)
+            {
+                throw new ArgumentException(
+                    $"Segment {i} references indices outside the payload bounds.",
+                    nameof(segments));
+            }
+        }
     }
 }

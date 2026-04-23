@@ -6,6 +6,7 @@ using Videra.Core.Geometry;
 using Videra.Core.Graphics;
 using Videra.Core.Graphics.Abstractions;
 using Videra.Core.Graphics.Software;
+using Videra.Core.Graphics.RenderPipeline;
 using Videra.Core.Graphics.Wireframe;
 using Videra.Core.Scene;
 using Videra.Core.Styles.Presets;
@@ -266,6 +267,71 @@ public class VideraEngineIntegrationTests
         var pixel = DemoMeshFactory.ReadPixel(frame, backend.Width, backend.Width / 2, backend.Height / 2);
         pixel.B.Should().BeGreaterThan(pixel.R);
         pixel.A.Should().BeGreaterThan((byte)0);
+    }
+
+    [Fact]
+    public void VideraEngine_MixedOpaqueAndMaskSegments_RenderThroughOpaquePass_OnSoftwareBackend()
+    {
+        using var backend = new SoftwareBackend();
+        backend.Initialize(IntPtr.Zero, 200, 200);
+        using var engine = new VideraEngine
+        {
+            BackgroundColor = RgbaFloat.Black
+        };
+        engine.Initialize(backend);
+        engine.Resize(200, 200);
+        engine.Grid.IsVisible = false;
+        engine.ShowAxis = false;
+        engine.Camera.SetOrbit(Vector3.Zero, radius: 5f, yaw: 0f, pitch: 0f);
+        engine.Camera.UpdateProjection(200, 200);
+
+        var opaqueMaterial = new MaterialInstance(
+            MaterialInstanceId.New(),
+            "opaque",
+            new RgbaFloat(1f, 0f, 0f, 1f),
+            alpha: new MaterialAlphaSettings(MaterialAlphaMode.Opaque, 0f, false));
+        var maskedMaterial = new MaterialInstance(
+            MaterialInstanceId.New(),
+            "mask",
+            new RgbaFloat(0f, 0f, 1f, 0.5f),
+            alpha: new MaterialAlphaSettings(MaterialAlphaMode.Mask, 0.5f, true));
+        var opaqueMesh = new MeshData
+        {
+            Vertices =
+            [
+                new VertexPositionNormalColor(new Vector3(-0.5f, -0.5f, 0f), Vector3.UnitZ, new RgbaFloat(1f, 0f, 0f, 1f)),
+                new VertexPositionNormalColor(new Vector3(0.5f, -0.5f, 0f), Vector3.UnitZ, new RgbaFloat(1f, 0f, 0f, 1f)),
+                new VertexPositionNormalColor(new Vector3(0f, 0.5f, 0f), Vector3.UnitZ, new RgbaFloat(1f, 0f, 0f, 1f))
+            ],
+            Indices = [0u, 1u, 2u],
+            Topology = MeshTopology.Triangles
+        };
+        var maskedMesh = new MeshData
+        {
+            Vertices =
+            [
+                new VertexPositionNormalColor(new Vector3(-0.5f, -0.5f, 0.1f), Vector3.UnitZ, new RgbaFloat(0f, 0f, 1f, 0.5f)),
+                new VertexPositionNormalColor(new Vector3(0.5f, -0.5f, 0.1f), Vector3.UnitZ, new RgbaFloat(0f, 0f, 1f, 0.5f)),
+                new VertexPositionNormalColor(new Vector3(0f, 0.5f, 0.1f), Vector3.UnitZ, new RgbaFloat(0f, 0f, 1f, 0.5f))
+            ],
+            Indices = [0u, 1u, 2u],
+            Topology = MeshTopology.Triangles
+        };
+        var opaquePrimitive = new MeshPrimitive(MeshPrimitiveId.New(), "mixed#primitive0", opaqueMesh, opaqueMaterial.Id);
+        var maskPrimitive = new MeshPrimitive(MeshPrimitiveId.New(), "mixed#primitive1", maskedMesh, maskedMaterial.Id);
+        var rootNode = new SceneNode(SceneNodeId.New(), "mixed", Matrix4x4.Identity, parentId: null, [opaquePrimitive.Id, maskPrimitive.Id]);
+        var asset = new ImportedSceneAsset(
+            "mixed.gltf",
+            "mixed.gltf",
+            [rootNode],
+            [opaquePrimitive, maskPrimitive],
+            [opaqueMaterial, maskedMaterial]);
+
+        engine.AddObject(SceneObjectFactory.CreateDeferred(asset));
+        engine.Draw();
+
+        engine.LastPipelineSnapshot.Should().NotBeNull();
+        engine.LastPipelineSnapshot!.ActiveFeatures.Should().Be(RenderFeatureSet.Opaque);
     }
 
     [Fact]

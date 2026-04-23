@@ -4,6 +4,7 @@ using System.Text;
 using Videra.Core.Geometry;
 using Videra.Core.Graphics;
 using Videra.Core.Graphics.Abstractions;
+using Videra.Core.Scene;
 
 namespace Videra.Core.Inspection;
 
@@ -35,8 +36,71 @@ internal sealed class VideraClipPayloadService
 
         var outputVertices = new List<VertexPositionNormalColor>();
         var outputIndices = new List<uint>();
+        var outputTangents = sourcePayload.Tangents.Length == 0 ? null : new List<Vector4>();
+        var outputSegments = sourcePayload.Segments.Length == 0
+            ? null
+            : new List<MeshPayloadSegment>(sourcePayload.Segments.Length);
 
-        for (var i = 0; i + 2 < sourcePayload.Indices.Length; i += 3)
+        if (sourcePayload.Segments.Length == 0)
+        {
+            ClipTriangleRange(
+                sourcePayload,
+                0,
+                (uint)sourcePayload.Indices.Length,
+                activePlanes,
+                outputVertices,
+                outputTangents,
+                outputIndices,
+                outputSegments);
+        }
+        else
+        {
+            foreach (var segment in sourcePayload.Segments)
+            {
+                ClipTriangleRange(
+                    sourcePayload,
+                    segment.StartIndex,
+                    segment.IndexCount,
+                    activePlanes,
+                    outputVertices,
+                    outputTangents,
+                    outputIndices,
+                    outputSegments,
+                    segment.Alpha);
+            }
+        }
+
+        if (outputVertices.Count == 0 || outputIndices.Count == 0)
+        {
+            cachedPayloads.Set(signature, payload: null);
+            return null;
+        }
+
+        var clippedPayload = new MeshPayload(
+            outputVertices.ToArray(),
+            outputIndices.ToArray(),
+            MeshTopology.Triangles,
+            outputTangents?.ToArray(),
+            segments: outputSegments?.ToArray());
+        cachedPayloads.Set(signature, clippedPayload);
+        return clippedPayload;
+    }
+
+    private static void ClipTriangleRange(
+        MeshPayload sourcePayload,
+        uint startIndex,
+        uint indexCount,
+        IReadOnlyList<NormalizedClipPlane> activePlanes,
+        ICollection<VertexPositionNormalColor> outputVertices,
+        ICollection<Vector4>? outputTangents,
+        ICollection<uint> outputIndices,
+        ICollection<MeshPayloadSegment>? outputSegments,
+        MaterialAlphaSettings? alpha = null)
+    {
+        var segmentStart = (uint)outputIndices.Count;
+        var segmentOutputIndexCount = 0u;
+
+        for (var i = startIndex; i + 2 < startIndex + indexCount; i += 3)
         {
             var polygon = new List<VertexPositionNormalColor>
             {
@@ -44,10 +108,18 @@ internal sealed class VideraClipPayloadService
                 sourcePayload.Vertices[sourcePayload.Indices[i + 1]],
                 sourcePayload.Vertices[sourcePayload.Indices[i + 2]]
             };
+            var tangents = outputTangents is null
+                ? null
+                : new List<Vector4>
+                {
+                    sourcePayload.Tangents[sourcePayload.Indices[i]],
+                    sourcePayload.Tangents[sourcePayload.Indices[i + 1]],
+                    sourcePayload.Tangents[sourcePayload.Indices[i + 2]]
+                };
 
             foreach (var plane in activePlanes)
             {
-                polygon = ClipPolygonAgainstPlane(polygon, plane);
+                polygon = ClipPolygonAgainstPlane(polygon, tangents, plane, out tangents);
                 if (polygon.Count == 0)
                 {
                     break;
@@ -60,24 +132,30 @@ internal sealed class VideraClipPayloadService
             }
 
             var baseIndex = (uint)outputVertices.Count;
-            outputVertices.AddRange(polygon);
+            foreach (var vertex in polygon)
+            {
+                outputVertices.Add(vertex);
+            }
+            if (outputTangents is not null && tangents is not null)
+            {
+                foreach (var tangent in tangents)
+                {
+                    outputTangents.Add(tangent);
+                }
+            }
             for (var vertexIndex = 1; vertexIndex < polygon.Count - 1; vertexIndex++)
             {
                 outputIndices.Add(baseIndex);
                 outputIndices.Add(baseIndex + (uint)vertexIndex);
                 outputIndices.Add(baseIndex + (uint)vertexIndex + 1u);
+                segmentOutputIndexCount += 3u;
             }
         }
 
-        if (outputVertices.Count == 0 || outputIndices.Count == 0)
+        if (outputSegments is not null && segmentOutputIndexCount > 0)
         {
-            cachedPayloads.Set(signature, payload: null);
-            return null;
+            outputSegments.Add(new MeshPayloadSegment(segmentStart, segmentOutputIndexCount, alpha ?? MaterialAlphaSettings.Opaque));
         }
-
-        var clippedPayload = new MeshPayload(outputVertices.ToArray(), outputIndices.ToArray(), MeshTopology.Triangles);
-        cachedPayloads.Set(signature, clippedPayload);
-        return clippedPayload;
     }
 
     private static NormalizedClipPlane[] NormalizePlanes(IReadOnlyList<VideraClipPlane>? clippingPlanes)
@@ -120,9 +198,12 @@ internal sealed class VideraClipPayloadService
 
     private static List<VertexPositionNormalColor> ClipPolygonAgainstPlane(
         IReadOnlyList<VertexPositionNormalColor> polygon,
-        NormalizedClipPlane plane)
+        IReadOnlyList<Vector4>? tangents,
+        NormalizedClipPlane plane,
+        out List<Vector4>? clippedTangents)
     {
         var clipped = new List<VertexPositionNormalColor>();
+        clippedTangents = tangents is null ? null : new List<Vector4>();
         for (var i = 0; i < polygon.Count; i++)
         {
             var current = polygon[i];
@@ -134,12 +215,20 @@ internal sealed class VideraClipPayloadService
 
             if (currentInside != previousInside)
             {
-                clipped.Add(Intersect(previous, current, previousDistance, currentDistance));
+                var intersected = Intersect(previous, current, previousDistance, currentDistance,
+                    tangents is null ? default : tangents[(i + polygon.Count - 1) % polygon.Count],
+                    tangents is null ? default : tangents[i]);
+                clipped.Add(intersected.Vertex);
+                clippedTangents?.Add(intersected.Tangent);
             }
 
             if (currentInside)
             {
                 clipped.Add(current);
+                if (tangents is not null)
+                {
+                    clippedTangents!.Add(tangents[i]);
+                }
             }
         }
 
@@ -151,11 +240,13 @@ internal sealed class VideraClipPayloadService
         return Vector3.Dot(point - planePoint, planeNormal);
     }
 
-    private static VertexPositionNormalColor Intersect(
+    private static (VertexPositionNormalColor Vertex, Vector4 Tangent) Intersect(
         VertexPositionNormalColor previous,
         VertexPositionNormalColor current,
         float previousDistance,
-        float currentDistance)
+        float currentDistance,
+        Vector4 previousTangent,
+        Vector4 currentTangent)
     {
         var denominator = previousDistance - currentDistance;
         var t = Math.Abs(denominator) <= float.Epsilon ? 0f : previousDistance / denominator;
@@ -174,7 +265,8 @@ internal sealed class VideraClipPayloadService
             Lerp(previous.Color.B, current.Color.B, t),
             Lerp(previous.Color.A, current.Color.A, t));
 
-        return new VertexPositionNormalColor(position, normal, color);
+        var tangent = Vector4.Lerp(previousTangent, currentTangent, t);
+        return (new VertexPositionNormalColor(position, normal, color), tangent);
     }
 
     private static float Lerp(float start, float end, float amount) => start + ((end - start) * amount);

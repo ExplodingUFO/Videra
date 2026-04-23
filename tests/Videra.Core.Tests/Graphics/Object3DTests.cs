@@ -421,29 +421,88 @@ public class Object3DTests
     }
 
     [Fact]
-    public void SceneObjectFactory_CreateDeferred_WithConflictingMaterialAlpha_Throws()
+    public void SceneObjectFactory_CreateDeferred_PreservesOpaqueAndMaskSegments()
     {
         var mesh = CreateTestMesh();
+        var opaqueMaterial = new MaterialInstance(
+            MaterialInstanceId.New(),
+            "opaque",
+            RgbaFloat.White,
+            alpha: new MaterialAlphaSettings(MaterialAlphaMode.Opaque, 0f, false));
         var maskedMaterial = new MaterialInstance(
             MaterialInstanceId.New(),
             "masked",
-            RgbaFloat.White,
-            alpha: new MaterialAlphaSettings(MaterialAlphaMode.Mask, 0.42f, true));
-        var opaqueMaterial = new MaterialInstance(MaterialInstanceId.New(), "opaque", RgbaFloat.White);
-        var firstPrimitive = new MeshPrimitive(MeshPrimitiveId.New(), "triangle.obj#primitive0", mesh, maskedMaterial.Id);
-        var secondPrimitive = new MeshPrimitive(MeshPrimitiveId.New(), "triangle.obj#primitive1", mesh, opaqueMaterial.Id);
+            new RgbaFloat(1f, 1f, 1f, 0.5f),
+            alpha: new MaterialAlphaSettings(MaterialAlphaMode.Mask, 0.5f, true));
+        var firstPrimitive = new MeshPrimitive(MeshPrimitiveId.New(), "triangle.obj#primitive0", mesh, opaqueMaterial.Id);
+        var secondPrimitive = new MeshPrimitive(MeshPrimitiveId.New(), "triangle.obj#primitive1", mesh, maskedMaterial.Id);
         var rootNode = new SceneNode(SceneNodeId.New(), "triangle.obj", Matrix4x4.Identity, parentId: null, [firstPrimitive.Id, secondPrimitive.Id]);
         var asset = new ImportedSceneAsset(
             "triangle.obj",
             "triangle.obj",
             [rootNode],
             [firstPrimitive, secondPrimitive],
-            [maskedMaterial, opaqueMaterial]);
+            [opaqueMaterial, maskedMaterial]);
+        var sceneObject = SceneObjectFactory.CreateDeferred(asset);
+        var meshPayloadProperty = typeof(Object3D).GetProperty("MeshPayload", BindingFlags.Instance | BindingFlags.NonPublic);
+
+        meshPayloadProperty.Should().NotBeNull();
+
+        var payload = meshPayloadProperty!.GetValue(sceneObject);
+        payload.Should().NotBeNull();
+
+        var segmentsProperty = payload!.GetType().GetProperty("Segments", BindingFlags.Instance | BindingFlags.Public);
+        segmentsProperty.Should().NotBeNull();
+
+        var segments = (Array)segmentsProperty!.GetValue(payload)!;
+        segments.Length.Should().Be(2);
+
+        var firstSegment = segments.GetValue(0)!;
+        var secondSegment = segments.GetValue(1)!;
+        var alphaProperty = firstSegment.GetType().GetProperty("Alpha", BindingFlags.Instance | BindingFlags.Public);
+        var startIndexProperty = firstSegment.GetType().GetProperty("StartIndex", BindingFlags.Instance | BindingFlags.Public);
+        var indexCountProperty = firstSegment.GetType().GetProperty("IndexCount", BindingFlags.Instance | BindingFlags.Public);
+
+        alphaProperty.Should().NotBeNull();
+        startIndexProperty.Should().NotBeNull();
+        indexCountProperty.Should().NotBeNull();
+
+        startIndexProperty!.GetValue(firstSegment).Should().Be((uint)0);
+        indexCountProperty!.GetValue(firstSegment).Should().Be((uint)3);
+        alphaProperty!.GetValue(firstSegment).Should().Be(opaqueMaterial.Alpha);
+        startIndexProperty.GetValue(secondSegment).Should().Be((uint)3);
+        indexCountProperty.GetValue(secondSegment).Should().Be((uint)3);
+        alphaProperty.GetValue(secondSegment).Should().Be(maskedMaterial.Alpha);
+    }
+
+    [Fact]
+    public void SceneObjectFactory_CreateDeferred_RejectsMixedBlendAndNonBlendSegments()
+    {
+        var mesh = CreateTestMesh();
+        var opaqueMaterial = new MaterialInstance(
+            MaterialInstanceId.New(),
+            "opaque",
+            RgbaFloat.White,
+            alpha: new MaterialAlphaSettings(MaterialAlphaMode.Opaque, 0f, false));
+        var blendedMaterial = new MaterialInstance(
+            MaterialInstanceId.New(),
+            "blended",
+            new RgbaFloat(1f, 1f, 1f, 0.5f),
+            alpha: new MaterialAlphaSettings(MaterialAlphaMode.Blend, 0.5f, true));
+        var firstPrimitive = new MeshPrimitive(MeshPrimitiveId.New(), "triangle.obj#primitive0", mesh, opaqueMaterial.Id);
+        var secondPrimitive = new MeshPrimitive(MeshPrimitiveId.New(), "triangle.obj#primitive1", mesh, blendedMaterial.Id);
+        var rootNode = new SceneNode(SceneNodeId.New(), "triangle.obj", Matrix4x4.Identity, parentId: null, [firstPrimitive.Id, secondPrimitive.Id]);
+        var asset = new ImportedSceneAsset(
+            "triangle.obj",
+            "triangle.obj",
+            [rootNode],
+            [firstPrimitive, secondPrimitive],
+            [opaqueMaterial, blendedMaterial]);
 
         var act = () => SceneObjectFactory.CreateDeferred(asset);
 
         act.Should().Throw<InvalidOperationException>()
-            .WithMessage("*conflicting alpha semantics*");
+            .WithMessage("*Blend and non-Blend material segments*");
     }
 
     [Fact]

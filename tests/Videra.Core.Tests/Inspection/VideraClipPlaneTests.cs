@@ -85,4 +85,52 @@ public sealed class VideraClipPlaneTests
 
         secondPayload.Should().BeSameAs(firstPayload);
     }
+
+    [Fact]
+    public void ApplyClippingPlanes_ShouldPreserveTangents_WhenPresent()
+    {
+        var mesh = new MeshData
+        {
+            Vertices =
+            [
+                new VertexPositionNormalColor(new Vector3(0f, 0f, 0f), Vector3.UnitZ, RgbaFloat.White),
+                new VertexPositionNormalColor(new Vector3(1f, 0f, 0f), Vector3.UnitZ, RgbaFloat.White),
+                new VertexPositionNormalColor(new Vector3(0f, 1f, 0f), Vector3.UnitZ, RgbaFloat.White)
+            ],
+            Indices = [0u, 1u, 2u],
+            Tangents =
+            [
+                new Vector4(1f, 0f, 0f, 1f),
+                new Vector4(1f, 0f, 0f, 1f),
+                new Vector4(1f, 0f, 0f, 1f)
+            ],
+            Topology = MeshTopology.Triangles
+        };
+
+        var sceneObject = new Object3D { Name = "TangentClip" };
+        sceneObject.PrepareDeferredMesh(mesh);
+
+        var applyMethod = typeof(Object3D).GetMethod("ApplyClippingPlanes", BindingFlags.Instance | BindingFlags.NonPublic);
+        var activePayloadProperty = typeof(Object3D).GetProperty("MeshPayload", BindingFlags.Instance | BindingFlags.NonPublic);
+        applyMethod.Should().NotBeNull();
+        activePayloadProperty.Should().NotBeNull();
+
+        applyMethod!.Invoke(
+            sceneObject,
+            [new[] { VideraClipPlane.FromPointNormal(new Vector3(0.5f, 0f, 0f), Vector3.UnitX) }]);
+
+        var payload = activePayloadProperty!.GetValue(sceneObject);
+        payload.Should().NotBeNull();
+
+        var verticesProperty = payload!.GetType().GetProperty("Vertices", BindingFlags.Instance | BindingFlags.Public);
+        var tangentsProperty = payload.GetType().GetProperty("Tangents", BindingFlags.Instance | BindingFlags.Public);
+        verticesProperty.Should().NotBeNull();
+        tangentsProperty.Should().NotBeNull();
+
+        var vertices = (VertexPositionNormalColor[])verticesProperty!.GetValue(payload)!;
+        var tangents = (Vector4[])tangentsProperty!.GetValue(payload)!;
+
+        tangents.Should().HaveCount(vertices.Length);
+        tangents.Should().OnlyContain(static tangent => tangent == new Vector4(1f, 0f, 0f, 1f));
+    }
 }

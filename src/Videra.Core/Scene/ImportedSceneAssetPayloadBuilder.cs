@@ -7,12 +7,17 @@ namespace Videra.Core.Scene;
 
 internal static class ImportedSceneAssetPayloadBuilder
 {
-    public static MeshPayload Build(IReadOnlyList<SceneNode> nodes, IReadOnlyList<MeshPrimitive> primitives)
+    public static MeshPayload Build(
+        IReadOnlyList<SceneNode> nodes,
+        IReadOnlyList<MeshPrimitive> primitives,
+        IReadOnlyList<MaterialInstance> materials)
     {
         ArgumentNullException.ThrowIfNull(nodes);
         ArgumentNullException.ThrowIfNull(primitives);
+        ArgumentNullException.ThrowIfNull(materials);
 
         var primitiveById = primitives.ToDictionary(static primitive => primitive.Id);
+        var materialById = materials.ToDictionary(static material => material.Id);
         var nodeById = nodes.ToDictionary(static node => node.Id);
         var resolvedTransforms = new Dictionary<SceneNodeId, Matrix4x4>();
         var resolvingNodes = new HashSet<SceneNodeId>();
@@ -21,6 +26,7 @@ internal static class ImportedSceneAssetPayloadBuilder
         var vertices = new List<VertexPositionNormalColor>();
         var tangents = includeTangents ? new List<Vector4>() : null;
         var indices = new List<uint>();
+        var segments = new List<MeshPayloadSegment>();
         uint indexOffset = 0;
 
         foreach (var node in nodes)
@@ -33,11 +39,21 @@ internal static class ImportedSceneAssetPayloadBuilder
                     throw new InvalidOperationException($"Scene node '{node.Name}' references unknown primitive '{primitiveId.Value}'.");
                 }
 
+                var startIndex = (uint)indices.Count;
                 AppendPrimitive(primitive.Payload, worldTransform, vertices, tangents, indices, ref indexOffset);
+                segments.Add(new MeshPayloadSegment(
+                    startIndex,
+                    (uint)primitive.Payload.Indices.Length,
+                    ResolveMaterialAlpha(primitive.MaterialId, materialById)));
             }
         }
 
-        return new MeshPayload(vertices.ToArray(), indices.ToArray(), MeshTopology.Triangles, tangents?.ToArray());
+        return new MeshPayload(
+            vertices.ToArray(),
+            indices.ToArray(),
+            MeshTopology.Triangles,
+            tangents?.ToArray(),
+            segments.ToArray());
     }
 
     private static Matrix4x4 ResolveWorldTransform(
@@ -122,6 +138,18 @@ internal static class ImportedSceneAssetPayloadBuilder
         }
 
         indexOffset += (uint)payload.Vertices.Length;
+    }
+
+    private static MaterialAlphaSettings ResolveMaterialAlpha(
+        MaterialInstanceId? materialId,
+        IReadOnlyDictionary<MaterialInstanceId, MaterialInstance> materialById)
+    {
+        if (materialId is null || !materialById.TryGetValue(materialId.Value, out var material))
+        {
+            return MaterialAlphaSettings.Opaque;
+        }
+
+        return material.Alpha;
     }
 
     private static Vector4 TransformTangent(Vector4 tangent, Matrix4x4 transform)

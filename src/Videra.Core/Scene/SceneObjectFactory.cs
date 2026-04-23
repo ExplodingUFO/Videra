@@ -1,4 +1,3 @@
-using System.Linq;
 using Videra.Core.Graphics;
 
 namespace Videra.Core.Scene;
@@ -13,40 +12,50 @@ public static class SceneObjectFactory
         {
             Name = asset.Name
         };
-        sceneObject.ApplyMaterialAlpha(ResolveMaterialAlpha(asset));
         sceneObject.PrepareDeferredMesh(asset.Payload);
+        sceneObject.ApplyMaterialAlpha(ResolveMaterialAlpha(asset.Payload));
         return sceneObject;
     }
 
-    private static MaterialAlphaSettings ResolveMaterialAlpha(ImportedSceneAsset asset)
+    private static MaterialAlphaSettings ResolveMaterialAlpha(MeshPayload payload)
     {
-        if (asset.Primitives.Count == 0 || asset.Materials.Count == 0)
+        var segments = payload.Segments;
+        if (segments.Length == 0)
         {
             return MaterialAlphaSettings.Opaque;
         }
 
-        var materialById = asset.Materials.ToDictionary(static material => material.Id);
-        MaterialAlphaSettings? resolved = null;
-
-        foreach (var primitive in asset.Primitives)
+        var hasBlend = false;
+        var hasNonBlend = false;
+        var resolved = segments[0].Alpha;
+        for (var i = 1; i < segments.Length; i++)
         {
-            var alpha = primitive.MaterialId is { } materialId && materialById.TryGetValue(materialId, out var material)
-                ? material.Alpha
-                : MaterialAlphaSettings.Opaque;
-
-            if (resolved is null)
+            var segmentAlpha = segments[i].Alpha;
+            if (segmentAlpha.Mode == MaterialAlphaMode.Blend)
             {
-                resolved = alpha;
-                continue;
+                hasBlend = true;
             }
-
-            if (resolved.Value != alpha)
+            else
             {
-                throw new InvalidOperationException(
-                    $"Imported scene asset '{asset.Name}' flattens primitives with conflicting alpha semantics into one render object.");
+                hasNonBlend = true;
             }
         }
 
-        return resolved ?? MaterialAlphaSettings.Opaque;
+        if (resolved.Mode == MaterialAlphaMode.Blend)
+        {
+            hasBlend = true;
+        }
+        else
+        {
+            hasNonBlend = true;
+        }
+
+        if (hasBlend && hasNonBlend)
+        {
+            throw new InvalidOperationException(
+                "Imported scene asset mixes Blend and non-Blend material segments, which the current object-level transparent ordering cannot safely preserve.");
+        }
+
+        return resolved;
     }
 }
