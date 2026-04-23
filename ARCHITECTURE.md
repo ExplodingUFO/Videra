@@ -225,7 +225,7 @@ Contract notes:
 
 - `WireframePass` is conditional. Standard frames omit it, wireframe-overlay frames include it after `SolidGeometryPass`, and `WireframeOnly` frames skip `SolidGeometryPass`.
 - `LastPipelineSnapshot` records the executed stages plus the effective pipeline profile for the last completed frame.
-- `VideraView.BackendDiagnostics` mirrors the same read-only truth through `RenderPipelineProfile`, `LastFrameStageNames`, and `UsesSoftwarePresentationCopy`.
+- `VideraView.BackendDiagnostics` mirrors the same read-only truth through `RenderPipelineProfile`, `LastFrameStageNames`, `LastFrameObjectCount`, `LastFrameOpaqueObjectCount`, `LastFrameTransparentObjectCount`, and `UsesSoftwarePresentationCopy`.
 - `VideraView.RenderCapabilities` exposes the same Core-side capability snapshot to host apps.
 
 Stable feature vocabulary for runtime, contributors, and host diagnostics:
@@ -242,6 +242,7 @@ Feature truth surfaces:
 - `LastPipelineSnapshot.FeatureNames`
 - `VideraView.BackendDiagnostics.LastFrameFeatureNames`
 - `VideraView.BackendDiagnostics.SupportedRenderFeatureNames`
+- `VideraView.BackendDiagnostics.LastFrameObjectCount`, `LastFrameOpaqueObjectCount`, and `LastFrameTransparentObjectCount` are backend-neutral scene counts, not draw-call metrics or advanced rendering promises.
 
 ## Public Extensibility
 

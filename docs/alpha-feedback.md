@@ -20,7 +20,7 @@ Videra is still an early alpha embeddable viewer stack. Good feedback is not jus
   - `Explore next: Cache-backed streaming` only after the first-chart path renders
   - `Try next: Analytics proof` when you need explicit-coordinate, independent-`ColorField` probe behavior for analytic path checks
   - `Try next: Waterfall proof` when you need the second control proof on the same chart shell; `Try next: Scatter proof` when you need the repo-owned scatter proof path on the same chart shell
-4. Export a diagnostics snapshot with `VideraDiagnosticsSnapshotFormatter.Format(View3D.BackendDiagnostics)` or attach the `consumer smoke` `diagnostics-snapshot.txt` artifact; if transparency is involved, include `TransparentFeatureStatus` from that snapshot so support can read the shipped transparency contract.
+4. Export a diagnostics snapshot with `VideraDiagnosticsSnapshotFormatter.Format(View3D.BackendDiagnostics)` or attach the `consumer smoke` `diagnostics-snapshot.txt` artifact; if transparency is involved, include `TransparentFeatureStatus` from that snapshot so support can read the shipped transparency contract. If scene composition matters, include `LastFrameObjectCount`, `LastFrameOpaqueObjectCount`, and `LastFrameTransparentObjectCount`; those are backend-neutral scene counts, not draw-call metrics.
 5. If the issue is about imported-material fidelity, include the smallest reproducer plus the relevant imported-asset/runtime details: per-primitive material participation, occlusion texture binding/strength, `KHR_texture_transform` offset/scale/rotation, and texture-coordinate override. Those fields describe imported truth, not renderer/shader/backend consumption.
 6. If the issue is visual or inspection-related, attach either:
    - a snapshot exported through `ExportSnapshotAsync(...)`, or
@@ -34,6 +34,7 @@ Videra is still an early alpha embeddable viewer stack. Good feedback is not jus
 - Package install path and package version
 - `PreferredBackend` or `VIDERA_BACKEND` value, if you overrode backend preference
 - diagnostics snapshot from `VideraDiagnosticsSnapshotFormatter`
+- `LastFrameObjectCount`, `LastFrameOpaqueObjectCount`, and `LastFrameTransparentObjectCount` when the issue depends on scene composition
 - exported inspection snapshot, when the issue affects clipping, measurements, labels, or camera state
 - inspection bundle directory when you need camera, clipping, measurements, annotations, and imported assets to replay together
 - `CanReplayScene` and `ReplayLimitation` from `VideraInspectionBundleService.ExportAsync(...)` whenever the bundle is exportable but not replayable
@@ -80,6 +81,7 @@ Videra is still an early alpha embeddable viewer stack. Good feedback is not jus
 - `Videra.SurfaceCharts.Avalonia` + `Videra.SurfaceCharts.Processing` is the default public surface/cache-backed install path, not a requirement for every chart path.
 - `smoke/Videra.SurfaceCharts.ConsumerSmoke` is the packaged surface/cache-backed proof on the supported host path and emits `surfacecharts-support-summary.txt` for support capture.
 - `TransparentFeatureStatus` in diagnostics snapshots captures the shipped transparency contract: alpha mask rendering plus deterministic alpha blend ordering for per-object carried alpha sources.
+- `LastFrameObjectCount`, `LastFrameOpaqueObjectCount`, and `LastFrameTransparentObjectCount` are backend-neutral scene diagnostics, not draw-call metrics.
 - Imported-material fidelity stays on the scene/import path: occlusion texture binding/strength and `KHR_texture_transform` metadata are part of the shipped viewer truth, but they are not a renderer/shader/backend consumption promise.
 - `Videra.SurfaceCharts.Demo` remains repository-only and is the support-ready repro/reference app for the `Start here`, `Explore next`, and `Try next` paths.
 

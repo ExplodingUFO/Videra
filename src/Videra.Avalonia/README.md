@@ -17,7 +17,7 @@ Current status: `alpha`. `Videra.Avalonia` is the entry package for Avalonia app
 - Map pointer input to camera interaction
 - Manage native-host integration for Windows, Linux, and macOS
 
-On that shipped viewer path, the current material/runtime baseline is static glTF/PBR: retained imported assets carry UV-backed texture bindings, per-primitive non-Blend material participation, metallic-roughness and alpha semantics, emissive and normal-map-ready inputs, occlusion texture binding/strength, `KHR_texture_transform` offset/scale/rotation plus texture-coordinate override, tangent-aware mesh data, and repeated unchanged imports that can reuse retained imported scene assets while those retained assets stay available. This is imported-asset/runtime truth only; renderer/shader/backend consumption of occlusion or texture-transform metadata is not being claimed here. Mixed Blend/non-Blend imports remain guarded until transparent primitives are independently sortable. Animation, skeletons, morph targets, lights, shadows, post-processing, extra UI adapters, and Wayland/OpenGL/WebGL/backend API expansion remain out of scope for this line.
+On that shipped viewer path, the current material/runtime baseline is static glTF/PBR: retained imported assets carry UV-backed texture bindings, per-primitive non-Blend material participation, metallic-roughness and alpha semantics, emissive and normal-map-ready inputs, occlusion texture binding/strength, `KHR_texture_transform` offset/scale/rotation plus texture-coordinate override, tangent-aware mesh data, and repeated unchanged imports that can reuse retained imported scene assets while those retained assets stay available. This is imported-asset/runtime truth only; renderer/shader/backend consumption of occlusion or texture-transform metadata is not being claimed here. Mixed Blend/non-Blend imports remain guarded until transparent primitives are independently sortable. Animation, skeletons, morph targets, lights, shadows, post-processing, extra UI adapters, and Wayland/OpenGL/WebGL/backend API expansion stay deferred.
 
 ## Install
 
@@ -83,7 +83,7 @@ var diagnosticsSnapshot = VideraDiagnosticsSnapshotFormatter.Format(diagnostics)
 
 `VideraView.BackendDiagnostics` remains the backend/runtime diagnostics shell, and `VideraDiagnosticsSnapshotFormatter` turns it into the copy-pasteable alpha support artifact used by `Videra.MinimalSample` and `consumer smoke`. `VideraView.RenderCapabilities` and `VideraView.Engine` stay available, but they are not part of the default alpha happy path.
 
-The shared render-feature vocabulary for those diagnostics is `Opaque`, `Transparent`, `Overlay`, `Picking`, and `Screenshot`, where `Transparent` means alpha mask rendering plus deterministic alpha blend ordering for per-object carried alpha sources. Hosts read that truth through `RenderCapabilities.SupportedFeatureNames`, `BackendDiagnostics.LastFrameFeatureNames`, `BackendDiagnostics.SupportedRenderFeatureNames`, and `TransparentFeatureStatus`.
+The shared render-feature vocabulary for those diagnostics is `Opaque`, `Transparent`, `Overlay`, `Picking`, and `Screenshot`, where `Transparent` means alpha mask rendering plus deterministic alpha blend ordering for per-object carried alpha sources. Hosts read that truth through `RenderCapabilities.SupportedFeatureNames`, `BackendDiagnostics.LastFrameFeatureNames`, `BackendDiagnostics.SupportedRenderFeatureNames`, `BackendDiagnostics.LastFrameObjectCount`, `BackendDiagnostics.LastFrameOpaqueObjectCount`, `BackendDiagnostics.LastFrameTransparentObjectCount`, and `TransparentFeatureStatus`. Those counts are backend-neutral scene diagnostics, not draw-call metrics.
 
 For the copyable first-scene flow, see [samples/Videra.MinimalSample](../../samples/Videra.MinimalSample/README.md).
 
@@ -96,7 +96,7 @@ Compatibility properties such as `PreferredBackend`, `RenderStyle`, `WireframeMo
 `VideraView.Engine` is the public extensibility root for custom contributors and frame hooks.
 
 For the complete advanced flow, see [docs/extensibility.md](../../docs/extensibility.md) and [samples/Videra.ExtensibilitySample](../../samples/Videra.ExtensibilitySample/README.md). The narrow extensibility sample uses `VideraView.Engine`, `RegisterPassContributor(...)`, `RegisterFrameHook(...)`, `LoadModelAsync(...)`, `FrameAll()`, `RenderCapabilities`, and `BackendDiagnostics` together.
-For scene-runtime diagnostics, [Videra.Demo](../../samples/Videra.Demo/README.md) includes the narrow `Scene Pipeline Lab` surface for document version, pending/resident upload counts, and backend rebind recovery.
+For scene-runtime diagnostics, [Videra.Demo](../../samples/Videra.Demo/README.md) includes the narrow `Scene Pipeline Lab` surface for document version, pending/resident upload counts, `LastFrameObjectCount` / `LastFrameOpaqueObjectCount` / `LastFrameTransparentObjectCount`, and backend rebind recovery.
 
 Contract notes:
 
@@ -107,7 +107,7 @@ Contract notes:
 - Scene loading uses retained imported assets and `SceneDocument` truth so backend rebind can restore scene resources without a steady-state software staging path.
 - `SceneDocumentStore`, `SceneDeltaPlanner`, `SceneResidencyRegistry`, and `SceneUploadQueue` stay internal to `Videra.Avalonia`; they let `VideraViewRuntime` publish document deltas, queue uploads, and expose read-only scene residency counts through `BackendDiagnostics`.
 - The retained asset catalog behind that path is `SceneNode` + `MeshPrimitive` + `MaterialInstance` + `Texture2D` + `Sampler`, surfaced to hosts as viewer/runtime truth rather than backend-specific resources.
-- The shipped static glTF/PBR baseline on that path stays viewer-first rather than backend-first: repeated unchanged imports can reuse retained imported scene assets while they remain retained, while animation, skeletons, morph targets, and other excluded runtime breadth stay deferred.
+- The shipped static glTF/PBR baseline on that path stays viewer-first rather than backend-first: repeated unchanged imports can reuse retained imported scene assets while they remain retained, while animation, skeletons, morph targets, lights, shadows, post-processing, extra UI adapters, and Wayland/OpenGL/WebGL/backend API expansion stay deferred.
 - `package discovery` and `plugin loading` remain out of scope.
 
 ## Interaction Contract

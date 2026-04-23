@@ -217,6 +217,7 @@ public partial class MainWindow : Window
         builder.AppendLine($"RenderPipelineProfile: {diagnostics.RenderPipelineProfile ?? "Unavailable"}");
         builder.AppendLine($"LastFrameStageNames: {stages}");
         builder.AppendLine($"LastFrameFeatureNames: {lastFrameFeatures}");
+        builder.AppendLine($"LastFrameObjectCount: {diagnostics.LastFrameObjectCount} | LastFrameOpaqueObjectCount: {diagnostics.LastFrameOpaqueObjectCount} | LastFrameTransparentObjectCount: {diagnostics.LastFrameTransparentObjectCount}");
         builder.AppendLine($"SupportedRenderFeatureNames: {supportedFeatures}");
         builder.AppendLine($"UsesSoftwarePresentationCopy: {diagnostics.UsesSoftwarePresentationCopy}");
         builder.Append($"LastInitializationError: {diagnostics.LastInitializationError ?? "None"}");

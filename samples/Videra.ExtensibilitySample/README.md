@@ -11,13 +11,16 @@
 - `RenderCapabilities.SupportedFeatureNames`
 - `BackendDiagnostics`
 - `BackendDiagnostics.LastFrameFeatureNames`
+- `BackendDiagnostics.LastFrameObjectCount`
+- `BackendDiagnostics.LastFrameOpaqueObjectCount`
+- `BackendDiagnostics.LastFrameTransparentObjectCount`
 - `BackendDiagnostics.SupportedRenderFeatureNames`
 - `LoadModelAsync("Assets/reference-cube.obj")`
 - `FrameAll()`
 
-The sample registers exactly one `IRenderPassContributor` for `RenderPassSlot.SolidGeometry`, exactly one `FrameEnd` hook, loads the bundled cube asset, frames the scene, and shows the contributor observation plus capability and diagnostics summaries in the side panel.
+The sample registers exactly one `IRenderPassContributor` for `RenderPassSlot.SolidGeometry`, exactly one `FrameEnd` hook, loads the bundled cube asset, frames the scene, and shows the contributor observation plus capability and diagnostics summaries in the side panel. The diagnostics summary includes backend-neutral `LastFrameObjectCount`, `LastFrameOpaqueObjectCount`, and `LastFrameTransparentObjectCount` fields.
 
-Those summaries intentionally surface the public render-feature vocabulary too: `Opaque`, `Transparent`, `Overlay`, `Picking`, and `Screenshot`, where `Transparent` means alpha mask rendering plus deterministic alpha blend ordering for per-object carried alpha sources.
+Those summaries intentionally surface the public render-feature vocabulary too: `Opaque`, `Transparent`, `Overlay`, `Picking`, and `Screenshot`, where `Transparent` means alpha mask rendering plus deterministic alpha blend ordering for per-object carried alpha sources. The last-frame counts are backend-neutral scene diagnostics, not draw-call metrics.
 
 ## Run
 

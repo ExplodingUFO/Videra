@@ -15,6 +15,9 @@ public sealed class ExtensibilitySampleConfigurationTests
         "BackendDiagnostics",
         "BackendDiagnostics.LastFrameFeatureNames",
         "BackendDiagnostics.SupportedRenderFeatureNames",
+        "BackendDiagnostics.LastFrameObjectCount",
+        "BackendDiagnostics.LastFrameOpaqueObjectCount",
+        "BackendDiagnostics.LastFrameTransparentObjectCount",
         "LoadModelAsync(\"Assets/reference-cube.obj\")",
         "FrameAll()",
         "Opaque",
@@ -73,6 +76,9 @@ public sealed class ExtensibilitySampleConfigurationTests
         codeBehind.Should().Contain("snapshot?.FeatureNames");
         codeBehind.Should().Contain("diagnostics.LastFrameFeatureNames");
         codeBehind.Should().Contain("diagnostics.SupportedRenderFeatureNames");
+        codeBehind.Should().Contain("diagnostics.LastFrameObjectCount");
+        codeBehind.Should().Contain("diagnostics.LastFrameOpaqueObjectCount");
+        codeBehind.Should().Contain("diagnostics.LastFrameTransparentObjectCount");
 
         foreach (var forbidden in ForbiddenLibraryAndDemoSeams)
         {

@@ -56,7 +56,7 @@ Current profiles:
 - `StandardWithWireframeOverlay`
 - `WireframeOnly`
 
-When consumed through `Videra.Avalonia`, the control diagnostics mirror the same information through `RenderPipelineProfile`, `LastFrameStageNames`, and `UsesSoftwarePresentationCopy`.
+When consumed through `Videra.Avalonia`, the control diagnostics mirror the same information through `RenderPipelineProfile`, `LastFrameStageNames`, `LastFrameObjectCount`, `LastFrameOpaqueObjectCount`, `LastFrameTransparentObjectCount`, and `UsesSoftwarePresentationCopy`. Those last-frame counts are backend-neutral scene diagnostics, not draw-call metrics.
 
 Stable feature vocabulary:
 
@@ -66,7 +66,7 @@ Stable feature vocabulary:
 - `Picking`
 - `Screenshot`
 
-`Transparent` means alpha mask rendering plus deterministic alpha blend ordering for per-object carried alpha sources; broader transparency work stays deferred. Public feature truth flows through `RenderCapabilitySnapshot.SupportedFeatureNames`, `RenderPipelineSnapshot.FeatureNames`, `BackendDiagnostics.LastFrameFeatureNames`, `BackendDiagnostics.SupportedRenderFeatureNames`, and `TransparentFeatureStatus`.
+`Transparent` means alpha mask rendering plus deterministic alpha blend ordering for per-object carried alpha sources; broader transparency work stays deferred. Public feature truth flows through `RenderCapabilitySnapshot.SupportedFeatureNames`, `RenderPipelineSnapshot.FeatureNames`, `BackendDiagnostics.LastFrameFeatureNames`, `BackendDiagnostics.SupportedRenderFeatureNames`, `BackendDiagnostics.LastFrameObjectCount`, `BackendDiagnostics.LastFrameOpaqueObjectCount`, `BackendDiagnostics.LastFrameTransparentObjectCount`, and `TransparentFeatureStatus`.
 
 ## Built-in Backend Minimum Contract
 

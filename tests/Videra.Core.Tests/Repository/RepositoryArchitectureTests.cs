@@ -181,14 +181,23 @@ public sealed class RepositoryArchitectureTests
         readme.Should().Contain("LoadModelAsync");
         readme.Should().Contain("BackendDiagnostics");
         readme.Should().Contain("FrameAll()");
+        readme.Should().Contain("LastFrameObjectCount");
+        readme.Should().Contain("LastFrameOpaqueObjectCount");
+        readme.Should().Contain("LastFrameTransparentObjectCount");
         avaloniaReadme.Should().Contain("LoadModelsAsync(...)");
         avaloniaReadme.Should().Contain("BackendDiagnostics");
         avaloniaReadme.Should().Contain("Scene Pipeline Lab");
+        avaloniaReadme.Should().Contain("LastFrameObjectCount");
+        avaloniaReadme.Should().Contain("LastFrameOpaqueObjectCount");
+        avaloniaReadme.Should().Contain("LastFrameTransparentObjectCount");
         avaloniaReadme.Should().Contain("ModelLoadResult.Entry");
         avaloniaReadme.Should().NotContain("ModelLoadResult.Entries");
         extensibilityDoc.Should().Contain("LoadModelAsync(...)");
         extensibilityDoc.Should().Contain("FrameAll()");
         extensibilityDoc.Should().Contain("BackendDiagnostics");
+        extensibilityDoc.Should().Contain("LastFrameObjectCount");
+        extensibilityDoc.Should().Contain("LastFrameOpaqueObjectCount");
+        extensibilityDoc.Should().Contain("LastFrameTransparentObjectCount");
         extensibilityDoc.Should().Contain("ModelLoadResult.Entry");
         extensibilityDoc.Should().NotContain("ModelLoadResult.Entries");
     }
@@ -243,9 +252,15 @@ public sealed class RepositoryArchitectureTests
         architecture.Should().Contain("LastPipelineSnapshot");
         architecture.Should().Contain("RenderPipelineProfile");
         architecture.Should().Contain("LastFrameStageNames");
+        architecture.Should().Contain("LastFrameObjectCount");
+        architecture.Should().Contain("LastFrameOpaqueObjectCount");
+        architecture.Should().Contain("LastFrameTransparentObjectCount");
 
         coreReadme.Should().Contain("RenderPipelineProfile");
         coreReadme.Should().Contain("LastFrameStageNames");
+        coreReadme.Should().Contain("LastFrameObjectCount");
+        coreReadme.Should().Contain("LastFrameOpaqueObjectCount");
+        coreReadme.Should().Contain("LastFrameTransparentObjectCount");
         coreReadme.Should().Contain("UsesSoftwarePresentationCopy");
     }
 
@@ -389,7 +404,7 @@ public sealed class RepositoryArchitectureTests
         const string CoreReadmeNonGoalsSentence =
             "This does not imply an `OpenGL` product promise. Animation, skeletons, morph targets, lights, shadows, post-processing, extra UI adapters, and Wayland/OpenGL/WebGL/backend API expansion remain outside this baseline.";
         const string AvaloniaReadmeNonGoalsSentence =
-            "Animation, skeletons, morph targets, lights, shadows, post-processing, extra UI adapters, and Wayland/OpenGL/WebGL/backend API expansion remain out of scope for this line.";
+            "Animation, skeletons, morph targets, lights, shadows, post-processing, extra UI adapters, and Wayland/OpenGL/WebGL/backend API expansion stay deferred.";
 
         readme.Should().Contain("static glTF/PBR");
         architecture.Should().Contain("static glTF/PBR");
@@ -451,8 +466,9 @@ public sealed class RepositoryArchitectureTests
 
         contractDoc.Should().Contain("disposed");
         contractDoc.Should().Contain("no-op");
-        contractDoc.Should().Contain("AllowSoftwareFallback");
-        contractDoc.Should().Contain("FallbackReason");
+        contractDoc.Should().Contain("Backend unavailable");
+        contractDoc.Should().Contain("Backend availability remains a separate backend-resolution diagnostic");
+        contractDoc.Should().Contain("render-pipeline contract stays limited");
         contractDoc.Should().Contain("package discovery");
         contractDoc.Should().Contain("plugin loading");
     }

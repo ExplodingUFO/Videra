@@ -139,6 +139,9 @@ public sealed class DemoConfigurationTests
         demoReadme.Should().Contain("post-processing");
         demoReadme.Should().Contain("SupportedRenderFeatureNames");
         demoReadme.Should().Contain("LastFrameFeatureNames");
+        demoReadme.Should().Contain("LastFrameObjectCount");
+        demoReadme.Should().Contain("LastFrameOpaqueObjectCount");
+        demoReadme.Should().Contain("LastFrameTransparentObjectCount");
     }
 
     [Fact]
@@ -169,6 +172,9 @@ public sealed class DemoConfigurationTests
         xaml.Should().Contain("post-processing");
         xaml.Should().Contain("supported render features");
         xaml.Should().Contain("last-frame features");
+        xaml.Should().Contain("LastFrameObjectCount");
+        xaml.Should().Contain("LastFrameOpaqueObjectCount");
+        xaml.Should().Contain("LastFrameTransparentObjectCount");
     }
 
     [Fact]
@@ -252,6 +258,9 @@ public sealed class DemoConfigurationTests
 
         viewModel.Should().Contain("diagnostics.LastFrameFeatureNames");
         viewModel.Should().Contain("diagnostics.SupportedRenderFeatureNames");
+        viewModel.Should().Contain("diagnostics.LastFrameObjectCount");
+        viewModel.Should().Contain("diagnostics.LastFrameOpaqueObjectCount");
+        viewModel.Should().Contain("diagnostics.LastFrameTransparentObjectCount");
         viewModel.Should().Contain("Last frame features:");
         viewModel.Should().Contain("Supported features:");
     }

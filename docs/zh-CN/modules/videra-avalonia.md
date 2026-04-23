@@ -87,7 +87,7 @@ graph TB
 
 - `VideraView.Engine`：public extensibility root，可调用 `RegisterPassContributor(...)`、`ReplacePassContributor(...)`、`RegisterFrameHook(...)`
 - `VideraView.RenderCapabilities`：公开的 Core capability snapshot
-- `VideraView.BackendDiagnostics`：公开的 backend/runtime diagnostics shell
+- `VideraView.BackendDiagnostics`：公开的 backend/runtime diagnostics shell，镜像 `RenderPipelineProfile`、`LastFrameStageNames`、`LastFrameObjectCount`、`LastFrameOpaqueObjectCount`、`LastFrameTransparentObjectCount` 与 `TransparentFeatureStatus`；这些 count 是 backend-neutral 场景诊断，不是 draw-call 指标
 
 扩展入口的完整中文镜像见 [扩展合同](../extensibility.md)。建议直接对照 `samples/Videra.ExtensibilitySample`，按以下公开流程接入：
 
