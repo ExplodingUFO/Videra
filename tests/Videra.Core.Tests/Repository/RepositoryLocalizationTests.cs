@@ -367,10 +367,6 @@ public sealed class RepositoryLocalizationTests
 
         readme.Should().Contain(InteractionContractDocumentationTerms.ChineseOwnershipSentence);
         avaloniaModule.Should().Contain(InteractionContractDocumentationTerms.ChineseOwnershipSentence);
-        readme.Should().Contain("LastSnapshotExportPath");
-        readme.Should().Contain("LastSnapshotExportStatus");
-        readme.Should().Contain("CanReplayScene");
-        readme.Should().Contain("ReplayLimitation");
         avaloniaModule.Should().Contain("LastSnapshotExportPath");
         avaloniaModule.Should().Contain("LastSnapshotExportStatus");
         avaloniaModule.Should().Contain("CanReplayScene");

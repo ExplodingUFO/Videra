@@ -39,7 +39,7 @@ Videra is still an early alpha embeddable viewer stack. Good feedback is not jus
 - exported inspection snapshot, when the issue affects clipping, measurements, labels, or camera state
 - inspection bundle directory when you need camera, clipping, measurements, annotations, and imported assets to replay together
 - `CanReplayScene` and `ReplayLimitation` from `VideraInspectionBundleService.ExportAsync(...)` whenever the bundle is exportable but not replayable
-- `SurfaceCharts support summary` from either the packaged `smoke/Videra.SurfaceCharts.ConsumerSmoke` `surfacecharts-support-summary.txt` artifact or the `Videra.SurfaceCharts.Demo` `Support summary` panel when the issue is in `area: surfacecharts`; keep that chart-scoped support summary separate from the viewer diagnostics snapshot
+- `SurfaceCharts support summary` from either the packaged `smoke/Videra.SurfaceCharts.ConsumerSmoke` `surfacecharts-support-summary.txt` artifact or the `Videra.SurfaceCharts.Demo` `Support summary` panel when the issue is in `area: surfacecharts`; keep it separate from `VideraDiagnosticsSnapshotFormatter` output
 - use `Copy support summary` after reproducing `Start here: In-memory first chart`; continue to `Explore next: Cache-backed streaming` only if needed, and use `Try next: Analytics proof` for explicit-coordinate pinned-probe/analysis scenarios, `Try next: Waterfall proof` when the issue involves the second chart control, or `Try next: Scatter proof` when the issue involves the scatter control path; `ScatterChartView` is shipped in the Avalonia control line
 - SurfaceCharts demo-path choice when relevant:
   - `Start here: In-memory first chart`

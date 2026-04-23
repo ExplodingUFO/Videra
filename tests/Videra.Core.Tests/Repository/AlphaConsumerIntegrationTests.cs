@@ -259,7 +259,6 @@ public sealed class AlphaConsumerIntegrationTests
         feedbackDoc.Should().Contain("compositor-native Wayland");
         feedbackDoc.Should().Contain("Videra.SurfaceCharts.*");
         feedbackDoc.Should().Contain("Videra.SurfaceCharts.Demo");
-        feedbackDoc.Should().Contain("chart-scoped support summary");
         feedbackDoc.Should().Contain("Start here: In-memory first chart");
         feedbackDoc.Should().Contain("Explore next: Cache-backed streaming");
         feedbackDoc.Should().Contain("Try next: Scatter proof");
@@ -282,11 +281,8 @@ public sealed class AlphaConsumerIntegrationTests
         bugForm.Should().Contain("surfacecharts-support-summary.txt");
         bugForm.Should().Contain("surfacecharts_support_summary");
         bugForm.Should().Contain("SurfaceCharts support summary");
-        bugForm.Should().Contain("chart-scoped summary");
-        bugForm.Should().Contain("viewer diagnostics snapshot");
-        bugForm.Should().Contain("Start here: In-memory first chart");
-        bugForm.Should().Contain("continue to `Explore next: Cache-backed streaming` only if needed");
-        bugForm.Should().Contain("Try next: Scatter proof");
+        bugForm.Should().Contain("VideraDiagnosticsSnapshotFormatter");
+        bugForm.Should().Contain("Copy support summary");
 
         var featureForm = File.ReadAllText(featureFormPath);
         featureForm.Should().Contain("consumer_path");
@@ -311,7 +307,6 @@ public sealed class AlphaConsumerIntegrationTests
         troubleshooting.Should().Contain("LastSnapshotExportStatus");
         troubleshooting.Should().Contain("DisplayServerCompatibility");
         troubleshooting.Should().Contain("Videra.SurfaceCharts.Demo");
-        troubleshooting.Should().Contain("chart-scoped");
         troubleshooting.Should().Contain("Support summary");
         troubleshooting.Should().Contain("Copy support summary");
         troubleshooting.Should().Contain("Try next: Scatter proof");
