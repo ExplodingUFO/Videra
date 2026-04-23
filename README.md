@@ -34,7 +34,7 @@ Explicit exclusions remain: animation, skeletons, morph targets, mixers, lights,
 - Public release tags are intended to publish the consumer packages on `nuget.org`
 - `GitHub Packages` remains the `preview` / internal feed for contributors and pre-release validation
 - `Videra.SurfaceCharts.*` now ships as a public `alpha` package line, `SurfaceChartView`, `WaterfallChartView`, and `ScatterChartView` are the current Avalonia controls, `Videra.SurfaceCharts.Processing` is needed for the surface/cache-backed path, and `Videra.SurfaceCharts.Demo` remains repository-only
-- `smoke/Videra.WpfSmoke` remains a repository-only Windows WPF smoke proof for validation and support evidence on the Avalonia-first viewer path; it is not a second public UI package or release path
+- `smoke/Videra.WpfSmoke` remains a repository-only Windows WPF smoke proof for validation and support evidence on the Avalonia-first public viewer path; it is not a second public UI package or release path
 - Linux native rendering remains `X11`-hosted, and Wayland sessions stay on the documented `XWayland` bridge
 - GitHub Actions runs matching-host native validation, packaged viewer consumer smoke, packaged SurfaceCharts first-chart consumer smoke, and explicit sample-contract evidence on pull requests, and the [Native Validation runbook](docs/native-validation.md) documents how to use `Run workflow` for targeted reruns
 - The current alpha-ready `green` line is repository verification + native validation + packaged viewer consumer smoke + packaged SurfaceCharts first-chart consumer smoke + sample-contract evidence, with `quality-gate-evidence` running the Windows packaged viewer and SurfaceCharts consumer smoke paths with warnings treated as errors, enforcing package-size budgets on the public package line, and keeping the curated Core test surfaces plus `Videra.MinimalSample` warning-clean while `Benchmark Gates` serves as the hard numeric runtime blocker
@@ -126,7 +126,7 @@ For alpha adoption feedback, use [Alpha Feedback](docs/alpha-feedback.md) before
 | Entry | Status | Notes |
 | --- | --- | --- |
 | `Videra.Demo` | Repository-only | Viewer diagnostics, `LastFrameObjectCount` / `LastFrameOpaqueObjectCount` / `LastFrameTransparentObjectCount`, and scene-pipeline reference app |
-| `smoke/Videra.WpfSmoke` | Repository-only | Windows WPF smoke proof for validation and support evidence on the Avalonia-first viewer path |
+| `smoke/Videra.WpfSmoke` | Repository-only | Windows WPF smoke proof for validation and support evidence on the Avalonia-first public viewer path; not a second public UI package or release path |
 | `smoke/Videra.SurfaceCharts.ConsumerSmoke` | Repository-only | Packaged SurfaceCharts first-chart smoke proof and `surfacecharts-support-summary.txt` support artifact |
 | `Videra.SurfaceCharts.Demo` | Repository-only | SurfaceCharts reference app and support-summary repro path with `Start here`, `Explore next`, and `Try next` demo paths |
 | `Videra.ExtensibilitySample` | Repository-only | Public extensibility reference sample |

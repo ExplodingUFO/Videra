@@ -2,7 +2,7 @@
 
 [English](../native-validation.md) | [中文](native-validation.md)
 
-本文档说明 Videra 在 Linux、macOS 与 Windows 上的原生宿主验证入口。GitHub Actions 现在会在 pull requests 中把这条路径作为主要的 native validation gate。公开 viewer 路径以 Avalonia 为先，`smoke/Videra.WpfSmoke` 是 repository-only 的 Windows WPF smoke 证明，只用于验证和 support evidence。你可以用它查看 CI 行为，也可以通过 `workflow_dispatch` 手动重跑，或在本地匹配宿主上复现平台特定后端问题。
+本文档说明 Videra 在 Linux、macOS 与 Windows 上的原生宿主验证入口。GitHub Actions 现在会在 pull requests 中把这条路径作为主要的 native validation gate。公开 viewer 路径以 Avalonia 为先，`smoke/Videra.WpfSmoke` 是 repository-only 的 Windows WPF smoke 证明，只用于验证和 support evidence；它不是第二条公开 UI 包线或发布路径。你可以用它查看 CI 行为，也可以通过 `workflow_dispatch` 手动重跑，或在本地匹配宿主上复现平台特定后端问题。
 
 ## 覆盖范围
 
@@ -153,12 +153,14 @@ PowerShell：
 pwsh -File ./scripts/run-native-validation.ps1 -Platform Windows -Configuration Release
 ```
 
+托管 Windows 路径会运行 `pwsh -File ./scripts/verify.ps1 -Configuration Release -IncludeNativeWindows`，该命令会调用 `scripts/Invoke-WpfSmoke.ps1` 并写出 `wpf-smoke-diagnostics.txt`，作为 repository-only 的验证/support evidence，而不是公开包或发布产物。
+
 ## 脚本实际执行内容
 
 - Linux X11：`./scripts/verify.sh --configuration Release --include-native-linux`
 - Linux Wayland 会话 `XWayland`：`./scripts/verify.sh --configuration Release --include-native-linux-xwayland`
 - macOS：`./scripts/verify.sh --configuration Release --include-native-macos`
-- Windows：`pwsh -File ./scripts/verify.ps1 -Configuration Release -IncludeNativeWindows`
+- Windows：`pwsh -File ./scripts/verify.ps1 -Configuration Release -IncludeNativeWindows` -> `scripts/Invoke-WpfSmoke.ps1` -> `wpf-smoke-diagnostics.txt`
 
 PowerShell 包装脚本会调用等价的 `scripts/verify.ps1` 入口。
 

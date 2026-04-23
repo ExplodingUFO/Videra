@@ -129,6 +129,11 @@ public sealed class RepositoryNativeValidationTests
         englishRunbook.Should().Contain("workflow_dispatch");
         englishRunbook.Should().Contain("local matching-host path");
         englishRunbook.Should().Contain("windows");
+        englishRunbook.Should().Contain("pwsh -File ./scripts/verify.ps1 -Configuration Release -IncludeNativeWindows");
+        englishRunbook.Should().Contain("Invoke-WpfSmoke.ps1");
+        englishRunbook.Should().Contain("wpf-smoke-diagnostics.txt");
+        englishRunbook.Should().Contain("repository-only validation/support evidence");
+        englishRunbook.Should().Contain("not a public package or release artifact");
         readme.Should().Contain("GitHub Actions");
         readme.Should().Contain("XWayland");
         readme.Should().Contain("pull requests");
@@ -136,6 +141,11 @@ public sealed class RepositoryNativeValidationTests
         chineseRunbook.Should().Contain("Windows 原生验证");
         chineseRunbook.Should().Contain("XWayland");
         chineseRunbook.Should().Contain("windows");
+        chineseRunbook.Should().Contain("pwsh -File ./scripts/verify.ps1 -Configuration Release -IncludeNativeWindows");
+        chineseRunbook.Should().Contain("Invoke-WpfSmoke.ps1");
+        chineseRunbook.Should().Contain("wpf-smoke-diagnostics.txt");
+        chineseRunbook.Should().Contain("repository-only");
+        chineseRunbook.Should().Contain("公开包或发布产物");
     }
 
     [Fact]
