@@ -15,7 +15,7 @@ public sealed class MaterialTextureBinding
         SamplerId = samplerId;
         CoordinateSet = coordinateSet;
         ColorSpace = colorSpace;
-        Transform = transform == default ? MaterialTextureTransform.Identity : transform;
+        Transform = transform;
     }
 
     public Texture2DId TextureId { get; }

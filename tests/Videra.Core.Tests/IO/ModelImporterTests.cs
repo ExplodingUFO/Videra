@@ -1033,6 +1033,7 @@ public sealed class ModelImporterTests : IDisposable
         var path = WriteGltf("material_occlusion.gltf", """
             {
               "asset": { "version": "2.0" },
+              "extensionsUsed": ["KHR_texture_transform"],
               "scene": 0,
               "scenes": [
                 { "nodes": [0] }
@@ -1058,7 +1059,15 @@ public sealed class ModelImporterTests : IDisposable
                   "occlusionTexture": {
                     "index": 0,
                     "strength": 0.35,
-                    "texCoord": 1
+                    "texCoord": 0,
+                    "extensions": {
+                      "KHR_texture_transform": {
+                        "offset": [0.5, 0.25],
+                        "scale": [0.75, 0.5],
+                        "rotation": 0.25,
+                        "texCoord": 1
+                      }
+                    }
                   }
                 }
               ],
@@ -1126,6 +1135,10 @@ public sealed class ModelImporterTests : IDisposable
         material.OcclusionTexture.Texture.SamplerId.Should().Be(sampler.Id);
         material.OcclusionTexture.Texture.CoordinateSet.Should().Be(1);
         material.OcclusionTexture.Texture.ColorSpace.Should().Be(TextureColorSpace.Linear);
+        material.OcclusionTexture.Texture.Transform.Should().Be(new MaterialTextureTransform(
+            new Vector2(0.5f, 0.25f),
+            new Vector2(0.75f, 0.5f),
+            0.25f));
         sampler.MinFilter.Should().Be(TextureFilter.Linear);
         sampler.MagFilter.Should().Be(TextureFilter.Nearest);
         sampler.WrapU.Should().Be(TextureWrapMode.MirroredRepeat);

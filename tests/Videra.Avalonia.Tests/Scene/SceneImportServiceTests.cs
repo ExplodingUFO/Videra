@@ -347,7 +347,15 @@ public sealed class SceneImportServiceTests : IDisposable
                   "occlusionTexture": {
                     "index": 1,
                     "strength": 0.6,
-                    "texCoord": 1
+                    "texCoord": 0,
+                    "extensions": {
+                      "KHR_texture_transform": {
+                        "offset": [0.125, 0.375],
+                        "scale": [0.5, 0.25],
+                        "rotation": 0.5,
+                        "texCoord": 1
+                      }
+                    }
                   }
                 }
               ],
@@ -431,8 +439,14 @@ public sealed class SceneImportServiceTests : IDisposable
             0.7853982f));
         material.OcclusionTexture.Should().NotBeNull();
         material.OcclusionTexture!.Strength.Should().Be(0.6f);
+        material.OcclusionTexture.Texture.TextureId.Should().Be(result.Asset.Textures[1].Id);
+        material.OcclusionTexture.Texture.SamplerId.Should().Be(result.Asset.Samplers[0].Id);
         material.OcclusionTexture.Texture.CoordinateSet.Should().Be(1);
         material.OcclusionTexture.Texture.ColorSpace.Should().Be(TextureColorSpace.Linear);
+        material.OcclusionTexture.Texture.Transform.Should().Be(new MaterialTextureTransform(
+            new Vector2(0.125f, 0.375f),
+            new Vector2(0.5f, 0.25f),
+            0.5f));
     }
 
     [Fact]
