@@ -34,7 +34,7 @@ dotnet add package Videra.Platform.Windows --version 0.1.0-alpha.7 --source gith
 
 `PreferredBackend` 和 `VIDERA_BACKEND` 只影响后端偏好，不会安装缺失的平台包，也不会替代 matching-host 原生验证。
 
-`Videra.Avalonia` 默认安装路径会传递依赖 `Videra.Import.Gltf` 与 `Videra.Import.Obj`，因此常规 `LoadModelAsync(...)` / `LoadModelsAsync(...)` 场景不需要再单独添加导入包；只有 `Videra.Core` 单独消费路径才需要显式引入这些包。
+如果要在 Avalonia 路径上使用 importer-backed 的 `LoadModelAsync(...)` / `LoadModelsAsync(...)`，还需要显式安装 `Videra.Import.Gltf` 和/或 `Videra.Import.Obj`，并通过 `VideraViewOptions.ModelImporter` 接入对应导入器；`Videra.Avalonia` 默认安装路径不再隐式携带这些包。
 
 ## 模块架构
 

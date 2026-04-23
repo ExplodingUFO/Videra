@@ -80,7 +80,7 @@ dotnet add package Videra.Import.Gltf
 dotnet add package Videra.Import.Obj
 ```
 
-`Videra.Avalonia` already brings `Videra.Import.Gltf` and `Videra.Import.Obj` transitively for `LoadModelAsync(...)` and `LoadModelsAsync(...)`.
+When you need file-format ingestion on the core path or importer-backed `LoadModelAsync(...)` / `LoadModelsAsync(...)` on the Avalonia path, add `Videra.Import.Gltf` and/or `Videra.Import.Obj` explicitly and wire the importer through `VideraViewOptions.ModelImporter`.
 
 For surface charts, start with the dedicated Avalonia control package and add processing helpers when you want the surface/cache-backed path:
 

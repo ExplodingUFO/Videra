@@ -10,7 +10,7 @@ The canonical public viewer stack is:
 
 1. `Videra.Avalonia`
 2. exactly one matching `Videra.Platform.*` package
-3. optional `Videra.Import.Gltf` / `Videra.Import.Obj` when you need explicit core-path ingestion
+3. optional `Videra.Import.Gltf` / `Videra.Import.Obj` plus `VideraViewOptions.ModelImporter` when you need importer-backed file loading
 
 The canonical public SurfaceCharts stack is:
 
@@ -38,7 +38,7 @@ The canonical public SurfaceCharts stack is:
 | `Videra.Core` | Yes, on public release tags | `nuget.org` | `GitHub Packages` preview/internal only | Core-only consumers and backend integrators | `alpha` | Core scene/runtime abstractions and software fallback |
 | `Videra.Import.Gltf` | Yes, on public release tags | `nuget.org` | `GitHub Packages` preview/internal only | Core-first consumers that need `.gltf` / `.glb` ingestion | `alpha` | Dedicated glTF / GLB import package layered on `Videra.Core` |
 | `Videra.Import.Obj` | Yes, on public release tags | `nuget.org` | `GitHub Packages` preview/internal only | Core-first consumers that need `.obj` ingestion | `alpha` | Dedicated OBJ import package layered on `Videra.Core` |
-| `Videra.Avalonia` | Yes, on public release tags | `nuget.org` | `GitHub Packages` preview/internal only | Avalonia desktop applications | `alpha` | Main public UI entry package; scene loading flows transitively depend on the import packages |
+| `Videra.Avalonia` | Yes, on public release tags | `nuget.org` | `GitHub Packages` preview/internal only | Avalonia desktop applications | `alpha` | Main public UI entry package; importer-backed file loading requires explicit `Videra.Import.*` installation plus `VideraViewOptions.ModelImporter` |
 | `Videra.Platform.Windows` | Yes, on public release tags | `nuget.org` | `GitHub Packages` preview/internal only | Windows hosts | `alpha` | Install with `Videra.Avalonia` on Windows |
 | `Videra.Platform.Linux` | Yes, on public release tags | `nuget.org` | `GitHub Packages` preview/internal only | Linux hosts | `alpha` | Current native path is X11 plus Vulkan; Wayland uses the `XWayland` bridge |
 | `Videra.Platform.macOS` | Yes, on public release tags | `nuget.org` | `GitHub Packages` preview/internal only | macOS hosts | `alpha` | Install with `Videra.Avalonia` on macOS |

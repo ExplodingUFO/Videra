@@ -272,9 +272,9 @@ if ($avaloniaMetadata.Dependencies -notcontains "Videra.Core")
 
 foreach ($importDependency in @("Videra.Import.Gltf", "Videra.Import.Obj"))
 {
-    if ($avaloniaMetadata.Dependencies -notcontains $importDependency)
+    if ($avaloniaMetadata.Dependencies -contains $importDependency)
     {
-        throw "Videra.Avalonia must depend on $importDependency."
+        throw "Videra.Avalonia must not depend on $importDependency."
     }
 }
 

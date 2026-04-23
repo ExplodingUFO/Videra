@@ -38,7 +38,7 @@ public sealed class PackageSizeBudgetRepositoryTests
         AssertBudget(packages["Videra.Core"], 166_912, 70_656);
         AssertBudget(packages["Videra.Import.Gltf"], 25_600, 20_480);
         AssertBudget(packages["Videra.Import.Obj"], 18_432, 17_408);
-        AssertBudget(packages["Videra.Avalonia"], 164_864, 65_536);
+        AssertBudget(packages["Videra.Avalonia"], 126_976, 47_104);
         AssertBudget(packages["Videra.Platform.Windows"], 31_744, 20_480);
         AssertBudget(packages["Videra.Platform.Linux"], 46_080, 24_576);
         AssertBudget(packages["Videra.Platform.macOS"], 33_792, 23_552);

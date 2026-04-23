@@ -18,8 +18,8 @@
     },
     {
       "id": "Videra.Avalonia",
-      "nupkgMaxBytes": 164864,
-      "snupkgMaxBytes": 65536
+      "nupkgMaxBytes": 126976,
+      "snupkgMaxBytes": 47104
     },
     {
       "id": "Videra.Platform.Windows",
