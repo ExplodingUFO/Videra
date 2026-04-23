@@ -72,7 +72,9 @@ public sealed class VideraInspectionBundleIntegrationTests : IDisposable
             var export = await VideraInspectionBundleService.ExportAsync(view, bundlePath);
 
             export.Succeeded.Should().BeTrue(export.FailureMessage);
+            export.DirectoryPath.Should().Be(bundlePath);
             export.CanReplayScene.Should().BeTrue();
+            export.ReplayLimitation.Should().BeNull();
             export.AssetCount.Should().Be(1);
             export.AnnotationCount.Should().Be(1);
             File.Exists(Path.Combine(bundlePath, VideraInspectionBundleService.InspectionStateFileName)).Should().BeTrue();
