@@ -17,6 +17,11 @@ public static class SceneObjectFactory
         return sceneObject;
     }
 
+    internal static IReadOnlyList<Object3D> CreateDeferredRuntimeObjects(ImportedSceneAsset asset)
+    {
+        return ImportedSceneRuntimeObjectBuilder.CreateDeferredObjects(asset);
+    }
+
     private static MaterialAlphaSettings ResolveMaterialAlpha(MeshPayload payload)
     {
         var segments = payload.Segments;

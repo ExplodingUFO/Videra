@@ -88,6 +88,33 @@ public sealed class SceneUploadQueueTests
         record.State.Should().Be(SceneResidencyState.Resident);
     }
 
+    [Fact]
+    public void Drain_uploads_all_runtime_objects_owned_by_one_imported_entry()
+    {
+        var asset = SceneTestMeshes.CreateMixedAlphaImportedAsset();
+        var runtimeObjects = SceneObjectFactory.CreateDeferredRuntimeObjects(asset);
+        var entry = _mutator.CreateImportedEntry(runtimeObjects, asset);
+        var registry = new SceneResidencyRegistry();
+        registry.Apply(new SceneDelta([entry], Array.Empty<SceneDocumentEntry>(), Array.Empty<SceneDocumentEntry>(), Array.Empty<SceneDocumentEntry>()), 1);
+
+        var queue = new SceneUploadQueue();
+        queue.Enqueue([entry]);
+
+        var result = queue.Drain(
+            new RecordingResourceFactory(),
+            SceneUploadBudget.Idle,
+            resourceEpoch: 2,
+            registry,
+            NullLogger.Instance);
+
+        result.UploadedRecords.Should().ContainSingle();
+        runtimeObjects.Should().HaveCount(2);
+        runtimeObjects.Should().OnlyContain(static runtimeObject =>
+            runtimeObject.VertexBuffer != null &&
+            runtimeObject.IndexBuffer != null &&
+            runtimeObject.WorldBuffer != null);
+    }
+
     private sealed class RecordingResourceFactory : IResourceFactory
     {
         public IBuffer CreateVertexBuffer(VertexPositionNormalColor[] vertices) => new RecordingBuffer((uint)(vertices.Length * sizeof(float) * 10));

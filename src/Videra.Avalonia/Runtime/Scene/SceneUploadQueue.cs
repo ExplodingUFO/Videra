@@ -87,7 +87,11 @@ internal sealed class SceneUploadQueue
             try
             {
                 registry.MarkUploading(id);
-                SceneObjectUploader.Upload(record.SceneObject, factory, logger);
+                foreach (var runtimeObject in record.RuntimeObjects)
+                {
+                    SceneObjectUploader.Upload(runtimeObject, factory, logger);
+                }
+
                 registry.MarkResident(id, resourceEpoch);
                 if (registry.TryGet(id, out var resident))
                 {

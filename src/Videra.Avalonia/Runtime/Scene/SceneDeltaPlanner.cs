@@ -30,7 +30,7 @@ internal static class SceneDeltaPlanner
             }
 
             retained.Add(entry);
-            if (!ReferenceEquals(previousEntry.SceneObject, entry.SceneObject) ||
+            if (!HaveSameRuntimeObjects(previousEntry, entry) ||
                 !ReferenceEquals(previousEntry.ImportedAsset, entry.ImportedAsset))
             {
                 reuploadRequired.Add(entry);
@@ -42,5 +42,23 @@ internal static class SceneDeltaPlanner
             .ToArray();
 
         return new SceneDelta(added, removed, retained, reuploadRequired);
+    }
+
+    private static bool HaveSameRuntimeObjects(SceneDocumentEntry previous, SceneDocumentEntry next)
+    {
+        if (previous.RuntimeObjects.Count != next.RuntimeObjects.Count)
+        {
+            return false;
+        }
+
+        for (var i = 0; i < previous.RuntimeObjects.Count; i++)
+        {
+            if (!ReferenceEquals(previous.RuntimeObjects[i], next.RuntimeObjects[i]))
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 }
