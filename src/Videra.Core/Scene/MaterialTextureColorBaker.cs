@@ -17,29 +17,58 @@ internal static class MaterialTextureColorBaker
         ArgumentNullException.ThrowIfNull(textureById);
         ArgumentNullException.ThrowIfNull(samplerById);
 
-        if (material?.BaseColorTexture is not { } binding)
+        if (material is null)
         {
             return vertex.Color;
         }
 
+        var color = material.BaseColorTexture is { } baseColorBinding
+            ? Multiply(
+                vertex.Color,
+                material.BaseColorFactor,
+                ResolveTextureSample(baseColorBinding, material.Name, vertexIndex, meshData, textureById, samplerById))
+            : vertex.Color;
+
+        if (material.OcclusionTexture is not { } occlusionBinding)
+        {
+            return color;
+        }
+
+        var occlusionSample = ResolveTextureSample(
+            occlusionBinding.Texture,
+            material.Name,
+            vertexIndex,
+            meshData,
+            textureById,
+            samplerById);
+        return ApplyOcclusion(color, occlusionSample.R, occlusionBinding.Strength);
+    }
+
+    private static RgbaFloat ResolveTextureSample(
+        MaterialTextureBinding binding,
+        string materialName,
+        int vertexIndex,
+        MeshData meshData,
+        IReadOnlyDictionary<Texture2DId, Texture2D> textureById,
+        IReadOnlyDictionary<SamplerId, Sampler> samplerById)
+    {
         if (!textureById.TryGetValue(binding.TextureId, out var texture))
         {
-            throw new InvalidOperationException($"Scene material '{material.Name}' references unknown base color texture '{binding.TextureId.Value}'.");
+            throw new InvalidOperationException($"Scene material '{materialName}' references unknown texture '{binding.TextureId.Value}'.");
         }
 
         if (!samplerById.TryGetValue(binding.SamplerId, out var sampler))
         {
-            throw new InvalidOperationException($"Scene material '{material.Name}' references unknown sampler '{binding.SamplerId.Value}'.");
+            throw new InvalidOperationException($"Scene material '{materialName}' references unknown sampler '{binding.SamplerId.Value}'.");
         }
 
         if (!TryGetCoordinates(meshData.TextureCoordinateSets, binding.CoordinateSet, vertexIndex, out var coordinates))
         {
             throw new InvalidOperationException(
-                $"Scene material '{material.Name}' requires texture coordinate set {binding.CoordinateSet} but the mesh does not provide it.");
+                $"Scene material '{materialName}' requires texture coordinate set {binding.CoordinateSet} but the mesh does not provide it.");
         }
 
-        var sampled = Sample(texture, sampler, binding.Transform, binding.ColorSpace, coordinates);
-        return Multiply(vertex.Color, material.BaseColorFactor, sampled);
+        return Sample(texture, sampler, binding.Transform, binding.ColorSpace, coordinates);
     }
 
     private static bool TryGetCoordinates(
@@ -211,5 +240,15 @@ internal static class MaterialTextureColorBaker
             left.G * middle.G * right.G,
             left.B * middle.B * right.B,
             left.A * middle.A * right.A);
+    }
+
+    private static RgbaFloat ApplyOcclusion(RgbaFloat color, float occlusion, float strength)
+    {
+        var factor = 1f + ((occlusion - 1f) * strength);
+        return new RgbaFloat(
+            color.R * factor,
+            color.G * factor,
+            color.B * factor,
+            color.A);
     }
 }
