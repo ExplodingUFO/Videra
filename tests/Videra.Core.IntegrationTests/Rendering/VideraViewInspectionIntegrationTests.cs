@@ -207,4 +207,31 @@ public sealed class VideraViewInspectionIntegrationTests
             view.Engine.Dispose();
         }
     }
+
+    [Fact]
+    public async Task ExportSnapshotAsync_CanceledRequest_RecordsCancelledStatus_WithoutWritingArtifact()
+    {
+        var outputPath = Path.Combine(Path.GetTempPath(), $"videra-inspection-{Guid.NewGuid():N}.png");
+        var view = new VideraView(nativeHostFactory: null, bitmapFactory: static (_, _) => null);
+        try
+        {
+            using var cancellation = new System.Threading.CancellationTokenSource();
+            await cancellation.CancelAsync();
+
+            await Assert.ThrowsAsync<OperationCanceledException>(() => view.ExportSnapshotAsync(outputPath, cancellation.Token));
+
+            view.BackendDiagnostics.LastSnapshotExportPath.Should().Be(outputPath);
+            view.BackendDiagnostics.LastSnapshotExportStatus.Should().Be("Cancelled");
+            File.Exists(outputPath).Should().BeFalse();
+        }
+        finally
+        {
+            if (File.Exists(outputPath))
+            {
+                File.Delete(outputPath);
+            }
+
+            view.Engine.Dispose();
+        }
+    }
 }
