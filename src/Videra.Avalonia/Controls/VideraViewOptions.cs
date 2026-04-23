@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using Videra.Core.Graphics;
+using Videra.Core.Scene;
 
 namespace Videra.Avalonia.Controls;
 
@@ -8,6 +9,7 @@ public sealed class VideraViewOptions : INotifyPropertyChanged
 {
     private VideraBackendOptions _backend = new();
     private VideraDiagnosticsOptions _diagnostics = new();
+    private Func<string, ImportedSceneAsset>? _modelImporter;
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -21,6 +23,12 @@ public sealed class VideraViewOptions : INotifyPropertyChanged
     {
         get => _diagnostics;
         set => SetField(ref _diagnostics, value);
+    }
+
+    public Func<string, ImportedSceneAsset>? ModelImporter
+    {
+        get => _modelImporter;
+        set => SetField(ref _modelImporter, value);
     }
 
     private void SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)

@@ -42,8 +42,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Videra.Core\Videra.Core.csproj" />
-    <ProjectReference Include="..\Videra.Import.Gltf\Videra.Import.Gltf.csproj" />
-    <ProjectReference Include="..\Videra.Import.Obj\Videra.Import.Obj.csproj" />
   </ItemGroup>
 
 </Project>

@@ -6,6 +6,7 @@ using Videra.Avalonia.Controls;
 using Videra.Core.Graphics.RenderPipeline;
 using Videra.Core.Graphics.RenderPipeline.Extensibility;
 using Videra.ExtensibilitySample.Extensibility;
+using Videra.Import.Obj;
 
 namespace Videra.ExtensibilitySample.Views;
 
@@ -37,6 +38,11 @@ public partial class MainWindow : Window
             ?? throw new InvalidOperationException("Capabilities status control is missing.");
         _diagnosticsStatusText = this.FindControl<TextBlock>("DiagnosticsStatusText")
             ?? throw new InvalidOperationException("Diagnostics status control is missing.");
+
+        View3D.Options = new VideraViewOptions
+        {
+            ModelImporter = static path => ObjModelImporter.Import(path)
+        };
 
         _recordingContributor.ObservationRecorded += OnContributorObservationRecorded;
 

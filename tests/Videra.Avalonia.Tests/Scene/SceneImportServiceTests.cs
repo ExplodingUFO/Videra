@@ -4,6 +4,8 @@ using Videra.Avalonia.Runtime.Scene;
 using Videra.Core.Geometry;
 using Videra.Core.Graphics;
 using Videra.Core.Scene;
+using Videra.Import.Gltf;
+using Videra.Import.Obj;
 using Xunit;
 
 namespace Videra.Avalonia.Tests.Scene;
@@ -11,12 +13,28 @@ namespace Videra.Avalonia.Tests.Scene;
 public sealed class SceneImportServiceTests : IDisposable
 {
     private readonly string _tempDir;
-    private readonly SceneImportService _service = new();
+    private readonly Func<string, ImportedSceneAsset> _modelImporter;
+    private readonly SceneImportService _service;
 
     public SceneImportServiceTests()
     {
         _tempDir = Path.Combine(Path.GetTempPath(), $"VideraSceneImport_{Guid.NewGuid():N}");
         Directory.CreateDirectory(_tempDir);
+        _modelImporter = ImportModel;
+        _service = new SceneImportService(_modelImporter);
+    }
+
+    [Fact]
+    public async Task Import_single_without_configured_importer_reports_failure()
+    {
+        var path = WriteObj("missing-importer.obj");
+        var service = new SceneImportService();
+
+        var result = await service.ImportSingleAsync(path, CancellationToken.None);
+
+        result.Asset.Should().BeNull();
+        result.Failure.Should().NotBeNull();
+        result.Failure!.ErrorMessage.Should().Contain("No model importer is configured");
     }
 
     [Fact]
@@ -589,6 +607,16 @@ public sealed class SceneImportServiceTests : IDisposable
               ]
             }
             """);
+    }
+
+    private static ImportedSceneAsset ImportModel(string path)
+    {
+        return Path.GetExtension(path).ToLowerInvariant() switch
+        {
+            ".gltf" or ".glb" => GltfModelImporter.Import(path),
+            ".obj" => ObjModelImporter.Import(path),
+            _ => throw new InvalidOperationException($"Unsupported model extension: {Path.GetExtension(path)}")
+        };
     }
 
     public void Dispose()

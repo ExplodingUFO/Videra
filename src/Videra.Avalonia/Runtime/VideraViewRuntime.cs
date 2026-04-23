@@ -56,7 +56,8 @@ internal sealed partial class VideraViewRuntime : IDisposable
             refreshOverlay: SynchronizeOverlayPresentation,
             refreshSceneDiagnostics: RefreshSceneDiagnostics,
             refreshBackendDiagnostics: RefreshSceneBackendDiagnosticsFromCoordinator,
-            invalidateRender: InvalidateSceneRenderFromCoordinator);
+            invalidateRender: InvalidateSceneRenderFromCoordinator,
+            modelImporter: _options.ModelImporter);
         _interactionController = new VideraInteractionController(_owner, _logger);
         _interactionRouter = new VideraInteractionRouter(_owner, _interactionController);
         _renderSession = CreateRenderSession();
@@ -79,6 +80,7 @@ internal sealed partial class VideraViewRuntime : IDisposable
         {
             UnsubscribeFromOptions(_options);
             _options = value ?? new VideraViewOptions();
+            _sceneCoordinator.UpdateModelImporter(_options.ModelImporter);
             SubscribeToOptions(_options);
             RefreshBackendDiagnostics(_backendDiagnostics.LastInitializationError);
             SynchronizeSessionFromCurrentBounds(retryCount: 0, useBackendChangePath: true);
@@ -443,6 +445,12 @@ internal sealed partial class VideraViewRuntime : IDisposable
     {
         if (sender is not VideraViewOptions options)
         {
+            return;
+        }
+
+        if (e.PropertyName == nameof(VideraViewOptions.ModelImporter))
+        {
+            _sceneCoordinator.UpdateModelImporter(options.ModelImporter);
             return;
         }
 
