@@ -116,7 +116,7 @@ The current shipped material/runtime baseline on that path is static glTF/PBR:
 - `MaterialTextureBinding` carries `KHR_texture_transform` offset/scale/rotation plus texture-coordinate override as imported-asset/runtime truth.
 - Imported assets retain tangent-aware mesh data as runtime truth instead of importer-only side channels.
 - For repeated unchanged imports, retained imported scene assets can be reused before upload while those retained assets stay available, instead of rebuilding ad hoc importer-shaped state.
-- Mixed Blend/non-Blend imports remain guarded until transparent primitives are independently sortable.
+- The canonical runtime bridge may expand one imported entry into multiple internal runtime objects, so mixed opaque and transparent primitive participation can survive upload and residency without redefining the public scene-entry contract as a broader transparency system.
 
 This baseline is imported-asset/runtime truth only. Renderer/shader/backend consumption of occlusion or texture-transform metadata is not being claimed here, and the baseline remains narrower than a general runtime surface. Animation, skeletons, morph targets, lights, shadows, post-processing, extra UI adapters, Wayland/OpenGL/WebGL/backend API expansion, and broader advanced-runtime feature expansion stay deferred.
 
@@ -272,8 +272,8 @@ Boundary summary:
 - `VideraViewRuntime` owns view-local coordination, native-host lifecycle, overlay sync, and session forwarding.
 - Inspection fidelity stays split across `VideraViewRuntime`, Core helpers, and a narrow `VideraInspectionBundleService` support surface instead of turning `VideraView` into a broader project-format API.
 - `SceneDocument` is the authoritative viewer-scene contract; imported assets remain backend-neutral until a ready resource factory uploads them.
-- `SceneDocumentStore` owns the current desired scene truth, while `SceneDeltaPlanner` and `SceneEngineApplicator` turn document changes into engine add/remove work.
-- `SceneResidencyRegistry` and `SceneUploadQueue` own upload state and frame-budgeted GPU realization; scene mutations do not synchronously allocate GPU resources on the public API path.
+- `SceneDocumentStore` owns the current desired scene truth, while `SceneDeltaPlanner` and `SceneEngineApplicator` turn document changes plus typed retained-entry deltas into engine add/remove and residency work.
+- `SceneResidencyRegistry` and `SceneUploadQueue` own per-entry upload state and frame-budgeted GPU realization; `SceneUploadQueue` coalesces repeated entry work, prefers attached dirty entries during interactive draining, and keeps backend rebind on the same queue path instead of synchronously allocating GPU resources on the public API path.
 - `RenderSessionOrchestrator` owns host-agnostic session orchestration and rendering cadence.
 - Built-in backends now satisfy the internal `IGraphicsDevice` / `IRenderSurface` split directly; `LegacyGraphicsBackendAdapter` is a compatibility seam, not the preferred steady-state path.
 - `RenderSession` owns Avalonia-specific runtime/presentation adapter setup.
