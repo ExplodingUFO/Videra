@@ -10,6 +10,8 @@ param(
 
     [string]$OutputRoot = "artifacts/consumer-smoke",
 
+    [int]$LightingProofHoldSeconds = 0,
+
     [switch]$BuildOnly,
 
     [switch]$TreatWarningsAsErrors
@@ -290,11 +292,21 @@ $previousOutput = $env:VIDERA_CONSUMER_SMOKE_OUTPUT
 $hadPreviousOutput = Test-Path Env:VIDERA_CONSUMER_SMOKE_OUTPUT
 $previousTrace = $env:VIDERA_CONSUMER_SMOKE_TRACE
 $hadPreviousTrace = Test-Path Env:VIDERA_CONSUMER_SMOKE_TRACE
+$previousLightingProofHoldSeconds = $env:VIDERA_LIGHTING_PROOF_HOLD_SECONDS
+$hadPreviousLightingProofHoldSeconds = Test-Path Env:VIDERA_LIGHTING_PROOF_HOLD_SECONDS
 
 try
 {
     $env:VIDERA_CONSUMER_SMOKE_OUTPUT = $jsonPath
     $env:VIDERA_CONSUMER_SMOKE_TRACE = $tracePath
+    if ($LightingProofHoldSeconds -gt 0)
+    {
+        $env:VIDERA_LIGHTING_PROOF_HOLD_SECONDS = $LightingProofHoldSeconds
+    }
+    else
+    {
+        Remove-Item Env:VIDERA_LIGHTING_PROOF_HOLD_SECONDS -ErrorAction SilentlyContinue
+    }
     $consumerSmokeProcess = Start-Process `
         -FilePath "dotnet" `
         -ArgumentList @(
@@ -339,6 +351,15 @@ finally
     else
     {
         Remove-Item Env:VIDERA_CONSUMER_SMOKE_TRACE -ErrorAction SilentlyContinue
+    }
+
+    if ($hadPreviousLightingProofHoldSeconds)
+    {
+        $env:VIDERA_LIGHTING_PROOF_HOLD_SECONDS = $previousLightingProofHoldSeconds
+    }
+    else
+    {
+        Remove-Item Env:VIDERA_LIGHTING_PROOF_HOLD_SECONDS -ErrorAction SilentlyContinue
     }
 }
 

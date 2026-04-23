@@ -5,7 +5,9 @@ param(
 
     [string]$Project = "smoke/Videra.WpfSmoke/Videra.WpfSmoke.csproj",
 
-    [string]$OutputRoot = "artifacts/test-results/verify/wpf-smoke"
+    [string]$OutputRoot = "artifacts/test-results/verify/wpf-smoke",
+
+    [int]$LightingProofHoldSeconds = 0
 )
 
 $ErrorActionPreference = "Stop"
@@ -41,10 +43,20 @@ if ($LASTEXITCODE -ne 0)
 
 $previousOutput = $env:VIDERA_WPF_SMOKE_OUTPUT
 $hadPreviousOutput = Test-Path Env:VIDERA_WPF_SMOKE_OUTPUT
+$previousLightingProofHoldSeconds = $env:VIDERA_LIGHTING_PROOF_HOLD_SECONDS
+$hadPreviousLightingProofHoldSeconds = Test-Path Env:VIDERA_LIGHTING_PROOF_HOLD_SECONDS
 
 try
 {
     $env:VIDERA_WPF_SMOKE_OUTPUT = $diagnosticsPath
+    if ($LightingProofHoldSeconds -gt 0)
+    {
+        $env:VIDERA_LIGHTING_PROOF_HOLD_SECONDS = $LightingProofHoldSeconds
+    }
+    else
+    {
+        Remove-Item Env:VIDERA_LIGHTING_PROOF_HOLD_SECONDS -ErrorAction SilentlyContinue
+    }
     $process = Start-Process `
         -FilePath "dotnet" `
         -ArgumentList @(
@@ -74,6 +86,15 @@ finally
     else
     {
         Remove-Item Env:VIDERA_WPF_SMOKE_OUTPUT -ErrorAction SilentlyContinue
+    }
+
+    if ($hadPreviousLightingProofHoldSeconds)
+    {
+        $env:VIDERA_LIGHTING_PROOF_HOLD_SECONDS = $previousLightingProofHoldSeconds
+    }
+    else
+    {
+        Remove-Item Env:VIDERA_LIGHTING_PROOF_HOLD_SECONDS -ErrorAction SilentlyContinue
     }
 }
 

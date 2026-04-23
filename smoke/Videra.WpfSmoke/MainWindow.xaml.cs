@@ -18,6 +18,7 @@ public partial class MainWindow : Window
     private readonly RenderSessionOrchestrator _orchestrator;
     private readonly string _diagnosticsPath;
     private readonly DispatcherTimer _timeoutTimer;
+    private readonly int _lightingProofHoldSeconds;
     private bool _sceneSeeded;
     private bool _completed;
 
@@ -32,6 +33,7 @@ public partial class MainWindow : Window
                 : throw new NotSupportedException($"Unsupported backend preference {preference} for the WPF smoke host."));
 
         _diagnosticsPath = ResolveDiagnosticsPath();
+        _lightingProofHoldSeconds = ResolveLightingProofHoldSeconds();
         _timeoutTimer = new DispatcherTimer
         {
             Interval = TimeSpan.FromSeconds(30)
@@ -209,7 +211,19 @@ public partial class MainWindow : Window
             ? $"WPF smoke passed. Diagnostics: {_diagnosticsPath}"
             : $"WPF smoke failed: {failure}";
 
-        _ = Dispatcher.InvokeAsync(
+        _ = ShutdownAsync(succeeded);
+    }
+
+    private async Task ShutdownAsync(bool succeeded)
+    {
+        if (succeeded && _lightingProofHoldSeconds > 0)
+        {
+            System.Diagnostics.Trace.TraceInformation($"Lighting proof hold active for {_lightingProofHoldSeconds} seconds before shutdown.");
+            StatusText.Text = $"WPF smoke passed. Proof hold active for {_lightingProofHoldSeconds} seconds.";
+            await Task.Delay(TimeSpan.FromSeconds(_lightingProofHoldSeconds)).ConfigureAwait(true);
+        }
+
+        await Dispatcher.InvokeAsync(
             () => Application.Current?.Shutdown(succeeded ? 0 : 1),
             DispatcherPriority.Background);
     }
@@ -265,6 +279,22 @@ public partial class MainWindow : Window
         }
 
         return Path.Combine(AppContext.BaseDirectory, "wpf-smoke-diagnostics.txt");
+    }
+
+    private static int ResolveLightingProofHoldSeconds()
+    {
+        var value = Environment.GetEnvironmentVariable("VIDERA_LIGHTING_PROOF_HOLD_SECONDS");
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return 0;
+        }
+
+        if (!int.TryParse(value, out var seconds) || seconds < 0)
+        {
+            throw new InvalidOperationException("VIDERA_LIGHTING_PROOF_HOLD_SECONDS must be a non-negative whole number.");
+        }
+
+        return seconds;
     }
 
     private static string DescribeDisplayServerCompatibility(RenderSessionSnapshot snapshot)
