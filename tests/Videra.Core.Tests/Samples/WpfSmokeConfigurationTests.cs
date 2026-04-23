@@ -49,6 +49,11 @@ public sealed class WpfSmokeConfigurationTests
         mainWindowCodeBehind.Should().Contain("RenderSessionOrchestrator");
         mainWindowCodeBehind.Should().Contain("D3D11Backend");
         mainWindowCodeBehind.Should().Contain("VIDERA_WPF_SMOKE_OUTPUT");
+        mainWindowCodeBehind.Should().Contain("ResolveLightingProofHoldSeconds()");
+        mainWindowCodeBehind.Should().Contain("VIDERA_LIGHTING_PROOF_HOLD_SECONDS");
+        mainWindowCodeBehind.Should().Contain("Lighting proof hold active for");
+        mainWindowCodeBehind.Should().Contain("await Task.Delay(TimeSpan.FromSeconds(_lightingProofHoldSeconds)).ConfigureAwait(true);");
+        mainWindowCodeBehind.Should().Contain("_lightingProofHoldSeconds");
         mainWindowCodeBehind.Should().Contain("VisualTreeHelper.GetDpi(ViewerHost)");
         mainWindowCodeBehind.Should().Contain("GetRenderMetrics()");
         mainWindowCodeBehind.Should().Contain("SynchronizeHostSurface(");
@@ -67,6 +72,7 @@ public sealed class WpfSmokeConfigurationTests
         sceneFactoryCode.Should().Contain("CreateWhiteQuad");
         sceneFactoryCode.Should().Contain("WpfSmokeQuad");
         invokeScript.Should().Contain("VIDERA_WPF_SMOKE_OUTPUT");
+        invokeScript.Should().Contain("VIDERA_LIGHTING_PROOF_HOLD_SECONDS");
         invokeScript.Should().Contain("RenderPipelineProfile:");
         invokeScript.Should().Contain("NativeHostBound: True");
     }

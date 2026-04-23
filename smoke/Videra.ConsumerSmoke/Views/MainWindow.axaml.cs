@@ -3,7 +3,6 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
-using Avalonia.Threading;
 using Videra.Avalonia.Controls;
 using Videra.Core.Graphics;
 using Videra.Import.Obj;
@@ -19,6 +18,7 @@ public partial class MainWindow : Window
     private readonly string? _inspectionSnapshotPath;
     private readonly string? _inspectionBundlePath;
     private readonly string? _tracePath;
+    private readonly int _lightingProofHoldSeconds;
     private bool _completed;
     private bool _executionStarted;
     private EventHandler? _backendReadyHandler;
@@ -43,6 +43,7 @@ public partial class MainWindow : Window
             ? null
             : Path.Combine(Path.GetDirectoryName(_outputPath!)!, "inspection-bundle");
         _tracePath = Environment.GetEnvironmentVariable("VIDERA_CONSUMER_SMOKE_TRACE");
+        _lightingProofHoldSeconds = ResolveLightingProofHoldSeconds();
         Trace("MainWindow constructed.");
 
         _view3D.Options = new VideraViewOptions
@@ -86,6 +87,22 @@ public partial class MainWindow : Window
         };
 
         Opened += _openedHandler;
+    }
+
+    private static int ResolveLightingProofHoldSeconds()
+    {
+        var value = Environment.GetEnvironmentVariable("VIDERA_LIGHTING_PROOF_HOLD_SECONDS");
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return 0;
+        }
+
+        if (!int.TryParse(value, out var seconds) || seconds < 0)
+        {
+            throw new InvalidOperationException("VIDERA_LIGHTING_PROOF_HOLD_SECONDS must be a non-negative whole number.");
+        }
+
+        return seconds;
     }
 
     private void InitializeComponent()
@@ -221,7 +238,8 @@ public partial class MainWindow : Window
             diagnostics.LastInitializationError,
             _diagnosticsSnapshotPath,
             _inspectionSnapshotPath,
-            _inspectionBundlePath);
+            _inspectionBundlePath,
+            _lightingProofHoldSeconds);
 
         if (!string.IsNullOrWhiteSpace(_outputPath))
         {
@@ -240,16 +258,27 @@ public partial class MainWindow : Window
             Trace($"Wrote diagnostics snapshot: {_diagnosticsSnapshotPath}");
         }
 
-        Dispatcher.UIThread.Post(() =>
-        {
-            Trace($"Posting shutdown with exit code {(succeeded ? 0 : 1)}.");
-            if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
-            {
-                desktop.Shutdown(succeeded ? 0 : 1);
-            }
-        }, DispatcherPriority.Background);
+        _ = ShutdownAsync(succeeded);
 
         return Task.CompletedTask;
+    }
+
+    private async Task ShutdownAsync(bool succeeded)
+    {
+        if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
+        {
+            return;
+        }
+
+        if (succeeded && _lightingProofHoldSeconds > 0)
+        {
+            Trace($"Lighting proof hold active for {_lightingProofHoldSeconds} seconds before shutdown.");
+            _statusText.Text = $"Consumer smoke passed. Proof hold active for {_lightingProofHoldSeconds} seconds.";
+            await Task.Delay(TimeSpan.FromSeconds(_lightingProofHoldSeconds)).ConfigureAwait(true);
+        }
+
+        Trace($"Posting shutdown with exit code {(succeeded ? 0 : 1)}.");
+        desktop.Shutdown(succeeded ? 0 : 1);
     }
 
     private void Trace(string message)
@@ -289,5 +318,6 @@ public partial class MainWindow : Window
         string? LastInitializationError,
         string? DiagnosticsSnapshotPath,
         string? InspectionSnapshotPath,
-        string? InspectionBundlePath);
+        string? InspectionBundlePath,
+        int LightingProofHoldSeconds);
 }
