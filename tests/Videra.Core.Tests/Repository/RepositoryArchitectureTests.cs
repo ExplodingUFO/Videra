@@ -95,6 +95,15 @@ public sealed class RepositoryArchitectureTests
         "retained imported scene assets"
     };
 
+    private const string RendererConsumptionSentence =
+        "The current renderer path consumes baseColor texture sampling plus occlusion texture binding/strength, including `KHR_texture_transform` offset/scale/rotation and texture-coordinate override where those bindings request them.";
+
+    private const string RetainedShadingBoundarySentence =
+        "Emissive and normal-map-ready inputs remain retained runtime truth rather than broader renderer/shader/backend shading claims";
+
+    private const string StaleRendererConsumptionSentence =
+        "renderer/shader/backend consumption of occlusion or texture-transform metadata is not being claimed here";
+
     [Fact]
     public void Repository_ShouldIncludeViewerBenchmarkProjectForScenePipelineEvidence()
     {
@@ -430,6 +439,10 @@ public sealed class RepositoryArchitectureTests
         foreach (var document in new[] { readme, architecture, packageMatrix, hostingBoundary, coreReadme, avaloniaReadme })
         {
             document.Should().Contain("multiple internal runtime objects");
+            document.Should().Contain("baseColor");
+            document.Should().Contain(RendererConsumptionSentence);
+            document.Should().Contain(RetainedShadingBoundarySentence);
+            document.Should().NotContain(StaleRendererConsumptionSentence);
         }
 
         readme.Should().Contain(ReadmeNonGoalsSentence);

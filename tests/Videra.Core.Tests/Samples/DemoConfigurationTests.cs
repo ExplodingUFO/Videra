@@ -130,8 +130,10 @@ public sealed class DemoConfigurationTests
         demoReadme.Should().Contain("Texture2D");
         demoReadme.Should().Contain("Sampler");
         demoReadme.Should().Contain("static glTF/PBR");
+        demoReadme.Should().Contain("baseColor");
         demoReadme.Should().Contain("occlusion texture binding/strength");
         demoReadme.Should().Contain("KHR_texture_transform");
+        demoReadme.Should().Contain("consumes baseColor texture sampling");
         demoReadme.Should().Contain("tangent-aware");
         demoReadme.Should().Contain("retained imported scene assets");
         demoReadme.Should().Contain("skeletons");
@@ -163,8 +165,10 @@ public sealed class DemoConfigurationTests
         xaml.Should().Contain("Texture2D");
         xaml.Should().Contain("Sampler");
         xaml.Should().Contain("static glTF/PBR");
+        xaml.Should().Contain("baseColor");
         xaml.Should().Contain("occlusion texture binding/strength");
         xaml.Should().Contain("KHR_texture_transform");
+        xaml.Should().Contain("consumes baseColor texture sampling");
         xaml.Should().Contain("tangent-aware");
         xaml.Should().Contain("retained imported scene assets");
         xaml.Should().Contain("skeletons");

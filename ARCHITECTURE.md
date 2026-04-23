@@ -118,7 +118,7 @@ The current shipped material/runtime baseline on that path is static glTF/PBR:
 - For repeated unchanged imports, retained imported scene assets can be reused before upload while those retained assets stay available, instead of rebuilding ad hoc importer-shaped state.
 - The canonical runtime bridge may expand one imported entry into multiple internal runtime objects, so mixed opaque and transparent primitive participation can survive upload and residency without redefining the public scene-entry contract as a broader transparency system.
 
-This baseline is imported-asset/runtime truth only. Renderer/shader/backend consumption of occlusion or texture-transform metadata is not being claimed here, and the baseline remains narrower than a general runtime surface. Animation, skeletons, morph targets, lights, shadows, post-processing, extra UI adapters, Wayland/OpenGL/WebGL/backend API expansion, and broader advanced-runtime feature expansion stay deferred.
+The current renderer path consumes baseColor texture sampling plus occlusion texture binding/strength, including `KHR_texture_transform` offset/scale/rotation and texture-coordinate override where those bindings request them. Emissive and normal-map-ready inputs remain retained runtime truth rather than broader renderer/shader/backend shading claims, and the baseline remains narrower than a general runtime surface. Animation, skeletons, morph targets, lights, shadows, post-processing, extra UI adapters, Wayland/OpenGL/WebGL/backend API expansion, and broader advanced-runtime feature expansion stay deferred.
 
 That split is what lets backend rebind/recovery rebuild scene resources from retained scene truth instead of depending on a long-lived staging mirror in the public API.
 

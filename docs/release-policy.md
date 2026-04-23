@@ -51,7 +51,7 @@ SurfaceCharts release truth now has three explicit parts:
 - `smoke/Videra.SurfaceCharts.ConsumerSmoke` proves the packaged surface/cache-backed path and emits the packaged support-summary artifact
 - `Videra.SurfaceCharts.Demo` remains repository-only and keeps the `Start here`, `Explore next`, `Try next: Analytics proof`, `Try next: Waterfall proof`, and `Try next: Scatter proof` support-summary repro paths
 
-The viewer release truth remains imported-asset/runtime only: per-primitive non-Blend material participation, occlusion texture binding/strength, `KHR_texture_transform` offset/scale/rotation plus texture-coordinate override, and the canonical runtime bridge that can expand one imported entry into multiple internal runtime objects are part of the shipped viewer path, but renderer/shader/backend consumption of that metadata is not a release promise.
+The viewer release truth includes renderer-consumed static-scene material metadata on the current shipped path: baseColor texture sampling plus occlusion texture binding/strength are consumed end-to-end, including `KHR_texture_transform` offset/scale/rotation and texture-coordinate override where those bindings request them, while the canonical runtime bridge can still expand one imported entry into multiple internal runtime objects. Emissive and normal-map-ready inputs remain retained runtime truth rather than broader shading promises.
 
 ## Versioning
 
