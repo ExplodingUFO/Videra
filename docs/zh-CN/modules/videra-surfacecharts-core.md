@@ -4,6 +4,8 @@
 
 `Videra.SurfaceCharts.Core` 定义 surface-chart 模块家族的领域契约，包括 `SurfaceChartView` 之外的共享数据结构、viewport / LOD 选择、tile 标识和 probe contract。
 
+这条拆分也把现有 chart-local 的效率故事保持得更窄：交互驻留更紧、probe 路径抖动更低，仍然留在 chart-local 这边。
+
 > 中文镜像用于快速查阅，英文版为准。
 
 ## 模块边界

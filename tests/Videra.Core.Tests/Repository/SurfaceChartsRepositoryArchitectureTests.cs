@@ -46,6 +46,8 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
         AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.SurfaceChartsSourceFirstTokens);
         AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.SurfaceChartsScatterProofTokens);
         AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.SurfaceChartsAnalyticsProofTokens);
+        readme.Should().Contain("tighter interactive residency");
+        readme.Should().Contain("lower probe-path churn");
         readme.Should().Contain("axis/legend overlays");
         readme.Should().Contain("src/Videra.SurfaceCharts.Core/README.md");
         readme.Should().Contain("src/Videra.SurfaceCharts.Avalonia/README.md");
@@ -65,6 +67,8 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
         readme.Should().Contain("SurfaceChartView");
         readme.Should().Contain("Videra.SurfaceCharts.Demo");
         AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.ChineseSurfaceChartsFamilyBoundaryTokens);
+        readme.Should().Contain("交互驻留更紧");
+        readme.Should().Contain("probe 路径抖动更低");
         readme.Should().Contain("RenderStatusChanged");
         AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.ChineseSurfaceChartsFirstChartTokens);
         AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.ChineseSurfaceChartsStartHereTokens);
@@ -121,6 +125,7 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
     {
         var repositoryRoot = GetRepositoryRoot();
         var coreReadme = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.SurfaceCharts.Core", "README.md"));
+        var renderingReadme = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.SurfaceCharts.Rendering", "README.md"));
         var avaloniaReadme = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.SurfaceCharts.Avalonia", "README.md"));
         var demoReadme = File.ReadAllText(Path.Combine(repositoryRoot, "samples", "Videra.SurfaceCharts.Demo", "README.md"));
 
@@ -129,6 +134,11 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
         coreReadme.Should().Contain("Advanced callers can keep the same chart shell");
         coreReadme.Should().Contain("independent `ColorField`");
         coreReadme.Should().Contain("first-class `SurfaceMask`");
+        coreReadme.Should().Contain("tighter interactive residency");
+        coreReadme.Should().Contain("lower probe-path churn");
+
+        renderingReadme.Should().Contain("tighter interactive residency");
+        renderingReadme.Should().Contain("lower probe-path churn");
 
         AssertContainsAllTokens(avaloniaReadme, SurfaceChartsDocumentationTerms.SurfaceChartsRendererBoundaryTokens);
         AssertContainsAllTokens(avaloniaReadme, SurfaceChartsDocumentationTerms.SurfaceChartsGpuFallbackTokens);
@@ -142,6 +152,8 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
         avaloniaReadme.Should().Contain("ResetCamera()");
         avaloniaReadme.Should().Contain("ZoomTo(...)");
         avaloniaReadme.Should().Contain("without widening `SurfaceChartView` itself");
+        avaloniaReadme.Should().Contain("tighter under camera movement");
+        avaloniaReadme.Should().Contain("probe work");
         AssertContainsAllTokens(avaloniaReadme, SurfaceChartsDocumentationTerms.SurfaceChartsAvaloniaReadmeContractTokens);
         AssertContainsAllTokens(avaloniaReadme, SurfaceChartsDocumentationTerms.SurfaceChartsTriFamilyControlTokens);
 
@@ -162,6 +174,8 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
         demoReadme.Should().Contain("ResetCamera()");
         demoReadme.Should().Contain("ZoomTo(...)");
         demoReadme.Should().Contain("SurfaceChartOverlayOptions");
+        demoReadme.Should().Contain("tighter interactive residency");
+        demoReadme.Should().Contain("lower probe-path churn");
         demoReadme.Should().Contain("`XWayland compatibility` only, not compositor-native Wayland surface embedding");
         AssertMarkdownFileDoesNotContainSelfReferentialFileLinks(Path.Combine(repositoryRoot, "samples", "Videra.SurfaceCharts.Demo", "README.md"));
     }
@@ -196,6 +210,9 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
 
         readme.Should().Contain("BenchmarkDotNet");
         readme.Should().Contain("optional native seam");
+        readme.Should().Contain("SurfaceChartsRenderStateBenchmarks.ApplyResidencyChurnUnderCameraMovement");
+        readme.Should().Contain("SurfaceChartsProbeBenchmarks.ProbeLatency");
+        readme.Should().Contain("future escalation guidance");
         readme.Should().Contain("The live scheduler now consumes those ordered batch reads whenever a source implements `ISurfaceTileBatchSource`");
         readme.Should().Contain("per-tile fallback path");
     }
@@ -212,6 +229,8 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
         corePage.Should().Contain("默认的 source-first regular-grid 入口");
         corePage.Should().Contain("独立的 `ColorField`");
         corePage.Should().Contain("一等 `SurfaceMask`");
+        corePage.Should().Contain("交互驻留更紧");
+        corePage.Should().Contain("probe 路径抖动更低");
 
         AssertContainsAllTokens(avaloniaPage, SurfaceChartsDocumentationTerms.ChineseAvaloniaRenderStatusTokens);
         AssertContainsAllTokens(avaloniaPage, SurfaceChartsDocumentationTerms.ChineseAvaloniaProbeTokens);
@@ -224,6 +243,8 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
         AssertContainsAllTokens(avaloniaPage, SurfaceChartsDocumentationTerms.ChineseSurfaceChartsOwnershipTokens);
         AssertContainsAllTokens(avaloniaPage, SurfaceChartsDocumentationTerms.ChineseSurfaceChartControlOwnershipTokens);
         AssertContainsAllTokens(avaloniaPage, SurfaceChartsDocumentationTerms.ChineseSurfaceChartsRenderingStatusFieldTokens);
+        avaloniaPage.Should().Contain("交互驻留更紧");
+        avaloniaPage.Should().Contain("probe 路径抖动更低");
         avaloniaPage.Should().Contain("FitToData()");
         avaloniaPage.Should().Contain("ResetCamera()");
         avaloniaPage.Should().Contain("ZoomTo(...)");
@@ -231,6 +252,9 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
         avaloniaPage.Should().Contain("XWayland compatibility");
 
         processingPage.Should().Contain(SurfaceChartsDocumentationTerms.ChineseProcessingStatisticsSentence);
+        processingPage.Should().Contain("SurfaceChartsRenderStateBenchmarks.ApplyResidencyChurnUnderCameraMovement");
+        processingPage.Should().Contain("SurfaceChartsProbeBenchmarks.ProbeLatency");
+        processingPage.Should().Contain("future escalation guidance");
         processingPage.Should().Contain("optional native seam");
         processingPage.Should().Contain("XWayland");
     }

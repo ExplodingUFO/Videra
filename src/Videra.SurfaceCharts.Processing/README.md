@@ -38,6 +38,8 @@ Per-tile `statistics` are serialized additively in the manifest. Reduced tiles s
 
 `benchmarks/Videra.SurfaceCharts.Benchmarks/Videra.SurfaceCharts.Benchmarks.csproj` uses `BenchmarkDotNet` to measure viewport selection, cache batch reads, and pyramid/statistics work on the same managed paths used in production.
 
+The committed SurfaceCharts hard-gate slice stays on `SurfaceChartsRenderStateBenchmarks.ApplyResidencyChurnUnderCameraMovement` and `SurfaceChartsProbeBenchmarks.ProbeLatency`; those names now describe the tighter interactive residency under camera movement and lower probe-path churn on the chart-local path, while allocation thresholds remain future escalation guidance rather than a current blocker.
+
 Any native work remains an `optional native seam`: it is measurement-gated, limited to coarse reduction or cache-processing hotspots, and it must not pull control orchestration across the boundary.
 
 `Videra.SurfaceCharts.Avalonia/Controls/Interaction` and `Videra.SurfaceCharts.Rendering` must remain free of native interop helpers even if a lower-level hotspot eventually earns a native implementation.

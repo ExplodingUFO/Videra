@@ -6,6 +6,8 @@
 
 Most consumers should start with `Videra.SurfaceCharts.Avalonia`, which depends on this package transitively. This package exists so the public chart package line can stay truthful about the current assembly/runtime split without pretending `SurfaceChartView` or `WaterfallChartView` owns the entire rendering pipeline by itself.
 
+That chart-local runtime split is also where the current efficiency story lives: tighter interactive residency under camera movement and lower probe-path churn stay on the existing chart-local path.
+
 ## Responsibilities
 
 - chart-local render-state orchestration

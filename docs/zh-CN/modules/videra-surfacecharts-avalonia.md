@@ -6,6 +6,8 @@
 `Videra.SurfaceCharts.Processing` 只在 surface/cache-backed 路径需要，不是每条 chart 路径都必须安装。
 独立 Demo 会先把 `Start here: In-memory first chart` 作为默认入口，等基线 first chart 跑通后，再切到 `Explore next: Cache-backed streaming`，需要 explicit/non-uniform 坐标、独立 `ColorField` 与 pinned-probe 分析级路径时再看 `Try next: Analytics proof`，需要第二个控件证明时再看 `Try next: Waterfall proof`，需要 scatter 路径证明时再看 repo-owned `Try next: Scatter proof`。
 
+Phases 181-182 之后，这条已交付的 surface 路径在交互驻留更紧，probe 路径抖动更低，而且没有把边界扩大出现有 chart-local 路径。
+
 SurfaceChartView 现在以 `ViewState` 作为主 chart-view 契约，而 `Viewport` 只保留为兼容桥接。
 图表在交互过程中进入 `Interactive` 质量模式，并在输入停稳后回到 `Refine`。
 对外交互诊断是 `InteractionQuality` + `InteractionQualityChanged`，状态为 `Interactive` / `Refine`。

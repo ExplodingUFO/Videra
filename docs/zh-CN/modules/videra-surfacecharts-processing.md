@@ -32,6 +32,7 @@
 ## 性能与可选 native seam
 
 - `BenchmarkDotNet` 基准当前覆盖 viewport selection、cache batch reads 与 pyramid/statistics 路径
+- SurfaceCharts 当前的硬门槛仍只落在 `SurfaceChartsRenderStateBenchmarks.ApplyResidencyChurnUnderCameraMovement` 和 `SurfaceChartsProbeBenchmarks.ProbeLatency`，它们对应的是更紧的交互驻留和更低的 probe 路径抖动；allocation thresholds 仍然只是后续升级的指导，也就是 `future escalation guidance`，不是这一阶段的阻塞项
 - optional native seam 只允许停留在粗粒度 reduction / cache-processing hotspot，不把交互或 renderer orchestration 拉过边界
 
 ## 相关入口
