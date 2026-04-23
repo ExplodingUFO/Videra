@@ -1,0 +1,55 @@
+name: Release Dry Run
+
+on:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Package version to validate without publishing
+        required: true
+        default: 0.1.0-alpha.7
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  release-dry-run:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Determine dry-run version
+        id: dry-run-version
+        shell: pwsh
+        run: |
+          $version = "0.0.0-ci-dryrun"
+          if ("${{ github.event_name }}" -eq "workflow_dispatch") {
+            $version = "${{ github.event.inputs.version }}"
+          }
+
+          if ([string]::IsNullOrWhiteSpace($version)) {
+            throw "Dry-run version is required."
+          }
+
+          "version=$version" >> $env:GITHUB_OUTPUT
+
+      - name: Run release dry run
+        shell: pwsh
+        run: >
+          pwsh -File ./scripts/Invoke-ReleaseDryRun.ps1
+          -ExpectedVersion ${{ steps.dry-run-version.outputs.version }}
+          -Configuration Release
+          -OutputRoot ./artifacts/release-dry-run
+
+      - name: Upload release dry-run evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-dry-run-evidence
+          path: ./artifacts/release-dry-run
