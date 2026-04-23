@@ -6,7 +6,8 @@ public sealed class MaterialTextureBinding
         Texture2DId textureId,
         SamplerId samplerId,
         int coordinateSet,
-        TextureColorSpace colorSpace)
+        TextureColorSpace colorSpace,
+        MaterialTextureTransform transform = default)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(coordinateSet);
 
@@ -14,6 +15,7 @@ public sealed class MaterialTextureBinding
         SamplerId = samplerId;
         CoordinateSet = coordinateSet;
         ColorSpace = colorSpace;
+        Transform = transform == default ? MaterialTextureTransform.Identity : transform;
     }
 
     public Texture2DId TextureId { get; }
@@ -23,6 +25,8 @@ public sealed class MaterialTextureBinding
     public int CoordinateSet { get; }
 
     public TextureColorSpace ColorSpace { get; }
+
+    public MaterialTextureTransform Transform { get; }
 }
 
 public enum TextureColorSpace
