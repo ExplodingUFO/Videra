@@ -187,7 +187,7 @@ public sealed class RepositoryReleaseReadinessTests
         capabilityMatrix.Should().Contain("Alpha mask rendering and deterministic alpha blend ordering are shipped for per-object carried alpha sources");
         capabilityMatrix.Should().Contain("occlusion texture binding/strength");
         capabilityMatrix.Should().Contain("KHR_texture_transform");
-        capabilityMatrix.Should().Contain("mixed Blend/non-Blend imports remain guarded");
+        capabilityMatrix.Should().Contain("multiple internal runtime objects");
         capabilityMatrix.Should().Contain("Animation, skeleton, morph, and mixer APIs");
         capabilityMatrix.Should().Contain("Lights, shadows, environment maps, and post-processing");
         capabilityMatrix.Should().Contain("Extra UI adapters beyond Avalonia");

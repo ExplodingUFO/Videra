@@ -330,6 +330,8 @@ public sealed class RepositoryArchitectureTests
         architecture.Should().Contain("IRenderSurface");
         architecture.Should().Contain("LegacyGraphicsBackendAdapter");
         architecture.Should().Contain("compatibility");
+        architecture.Should().Contain("typed retained-entry deltas");
+        architecture.Should().Contain("prefers attached dirty entries during interactive draining");
         foreach (var symbol in ScenePipelineInternalSymbols)
         {
             architecture.Should().Contain(symbol);
@@ -342,12 +344,16 @@ public sealed class RepositoryArchitectureTests
         avaloniaReadme.Should().Contain("SceneDocument");
         avaloniaReadme.Should().Contain("SceneUploadQueue");
         avaloniaReadme.Should().Contain("SceneResidencyRegistry");
+        avaloniaReadme.Should().Contain("typed retained-entry changes");
+        avaloniaReadme.Should().Contain("prefer attached dirty entries during interactive draining");
         avaloniaReadme.Should().Contain("LoadModelsAsync(...)");
         avaloniaReadme.Should().Contain("active scene only when every requested file succeeds");
         extensibilityDoc.Should().Contain("SceneDocument");
         extensibilityDoc.Should().Contain("SceneDeltaPlanner");
         extensibilityDoc.Should().Contain("SceneResidencyRegistry");
         extensibilityDoc.Should().Contain("SceneUploadQueue");
+        extensibilityDoc.Should().Contain("typed retained-entry changes");
+        extensibilityDoc.Should().Contain("prefers attached dirty entries during interactive draining");
         extensibilityDoc.Should().Contain("LoadModelsAsync(...)");
         extensibilityDoc.Should().Contain("active scene is replaced only when every requested file succeeds");
     }
@@ -419,6 +425,11 @@ public sealed class RepositoryArchitectureTests
             {
                 document.Should().Contain(symbol);
             }
+        }
+
+        foreach (var document in new[] { readme, architecture, packageMatrix, hostingBoundary, coreReadme, avaloniaReadme })
+        {
+            document.Should().Contain("multiple internal runtime objects");
         }
 
         readme.Should().Contain(ReadmeNonGoalsSentence);

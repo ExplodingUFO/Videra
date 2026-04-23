@@ -75,8 +75,8 @@ The concrete sample lives at `samples/Videra.ExtensibilitySample`, and its main 
 - `SceneDocument` is the viewer-scene contract behind the public loading helpers, and public scene-entry truth is surfaced through `SceneDocumentEntry`, `ModelLoadResult.Entry`, and `ModelLoadBatchResult.Entries`.
 - `LoadModelAsync(...)` imports a backend-neutral asset first, then uploads it only when a ready resource factory is available.
 - `LoadModelsAsync(...)` uses bounded parallel import and replaces the active scene only when every requested import succeeds.
-- `SceneDocumentStore` publishes desired-scene versions, `SceneDeltaPlanner` computes add/remove/reupload work, and `SceneResidencyRegistry` keeps pending/resident/dirty upload state internal to the runtime.
-- `SceneUploadQueue` drains GPU upload work during the render/session cadence instead of synchronously allocating GPU resources on the public API path.
+- `SceneDocumentStore` publishes desired-scene versions, `SceneDeltaPlanner` computes add/remove work plus typed retained-entry changes, and `SceneResidencyRegistry` keeps pending/resident/dirty upload state internal to the runtime.
+- `SceneUploadQueue` coalesces upload work by entry id, prefers attached dirty entries during interactive draining, and still drains GPU upload work during the render/session cadence instead of synchronously allocating GPU resources on the public API path.
 - Backend rebind restores the scene from retained imported assets and scene objects; it does not rely on a steady-state software staging path.
 
 ## Scope Boundaries
