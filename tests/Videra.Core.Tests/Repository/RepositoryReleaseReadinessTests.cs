@@ -172,6 +172,7 @@ public sealed class RepositoryReleaseReadinessTests
         var architecture = File.ReadAllText(Path.Combine(repositoryRoot, "ARCHITECTURE.md"));
         var packageMatrix = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "package-matrix.md"));
         var supportMatrix = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "support-matrix.md"));
+        var nativeValidation = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "native-validation.md"));
         var coreReadme = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Core", "README.md"));
         var coreProject = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Core", "Videra.Core.csproj"));
         var avaloniaProject = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Avalonia", "Videra.Avalonia.csproj"));
@@ -184,6 +185,7 @@ public sealed class RepositoryReleaseReadinessTests
         capabilityMatrix.Should().Contain("Static-scene material/runtime truth");
         capabilityMatrix.Should().Contain("| Static-scene material/runtime truth | Yes |");
         capabilityMatrix.Should().Contain("| Static-scene material/runtime breadth | Deferred |");
+        capabilityMatrix.Should().Contain("one bounded style-driven direct-lighting baseline on the native static-scene path");
         capabilityMatrix.Should().Contain("Core");
         capabilityMatrix.Should().Contain("Import");
         capabilityMatrix.Should().Contain("Backend");
@@ -198,13 +200,17 @@ public sealed class RepositoryReleaseReadinessTests
         capabilityMatrix.Should().Contain("emissive and normal-map-ready inputs remain retained runtime truth");
         capabilityMatrix.Should().Contain("multiple internal runtime objects");
         capabilityMatrix.Should().Contain("Animation, skeleton, morph, and mixer APIs");
-        capabilityMatrix.Should().Contain("Lights, shadows, environment maps, and post-processing");
+        capabilityMatrix.Should().Contain("Broader lighting systems, shadows, environment maps, and post-processing");
         capabilityMatrix.Should().Contain("Extra UI adapters beyond Avalonia");
         capabilityMatrix.Should().Contain("WebGL` / `OpenGL` backend pursuit");
         capabilityMatrix.Should().Contain("Videra.Import.Gltf");
         capabilityMatrix.Should().Contain("Videra.Import.Obj");
         packageMatrix.Should().Contain("Videra.Import.Gltf");
         packageMatrix.Should().Contain("Videra.Import.Obj");
+        supportMatrix.Should().Contain("Phase 194's proof-mode hold remains repository-owned and opt-in on the selected smoke hosts");
+        supportMatrix.Should().Contain("documented 10-second hold");
+        nativeValidation.Should().Contain("Phase 194's proof-mode hold stays repository-owned and opt-in on the selected smoke hosts");
+        nativeValidation.Should().Contain("documented 10-second hold");
 
         rootReadme.Should().Contain("docs/capability-matrix.md");
         docsIndex.Should().Contain("capability-matrix.md");
