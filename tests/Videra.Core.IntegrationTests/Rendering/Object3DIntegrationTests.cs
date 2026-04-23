@@ -141,6 +141,30 @@ public class Object3DIntegrationTests
         runtimeObject.MeshPayload!.Vertices.Should().OnlyContain(vertex => vertex.Color == RgbaFloat.Blue);
     }
 
+    [Fact]
+    public void SceneObjectFactory_CreateDeferredRuntimeObjects_AppliesOcclusionTextureStrength()
+    {
+        using var backend = CreateSoftwareBackend();
+        using var engine = CreateEngine(backend, new RgbaFloat(1f, 0f, 0f, 1f));
+        var asset = CreateOccludedQuadAsset(
+            "Occlusion",
+            coordinateSet: 0,
+            transform: new MaterialTextureTransform(new Vector2(0.5f, 0f), Vector2.One, 0f),
+            strength: 1f,
+            [
+                new MeshTextureCoordinateSet(0, [new Vector2(0.25f, 0.5f), new Vector2(0.25f, 0.5f), new Vector2(0.25f, 0.5f), new Vector2(0.25f, 0.5f)])
+            ]);
+
+        var runtimeObject = SceneObjectFactory.CreateDeferredRuntimeObjects(asset).Should().ContainSingle().Subject;
+
+        engine.AddObject(runtimeObject);
+        engine.Draw();
+
+        ReadCenterPixel(backend).Should().Be(new PixelColor(0, 0, 0, 255));
+        runtimeObject.MeshPayload.Should().NotBeNull();
+        runtimeObject.MeshPayload!.Vertices.Should().OnlyContain(vertex => vertex.Color == RgbaFloat.Black);
+    }
+
     private static SoftwareBackend CreateSoftwareBackend()
     {
         var backend = new SoftwareBackend();
@@ -148,11 +172,11 @@ public class Object3DIntegrationTests
         return backend;
     }
 
-    private static VideraEngine CreateEngine(SoftwareBackend backend)
+    private static VideraEngine CreateEngine(SoftwareBackend backend, RgbaFloat? backgroundColor = null)
     {
         var engine = new VideraEngine
         {
-            BackgroundColor = RgbaFloat.Black
+            BackgroundColor = backgroundColor ?? RgbaFloat.Black
         };
 
         engine.Initialize(backend);
@@ -209,6 +233,53 @@ public class Object3DIntegrationTests
             [sampler]);
     }
 
+    private static ImportedSceneAsset CreateOccludedQuadAsset(
+        string name,
+        int coordinateSet,
+        MaterialTextureTransform transform,
+        float strength,
+        MeshTextureCoordinateSet[] textureCoordinateSets)
+    {
+        var texture = CreateOcclusionTexture();
+        var sampler = CreateClampNearestSampler();
+        var material = new MaterialInstance(
+            MaterialInstanceId.New(),
+            $"{name}#material0",
+            RgbaFloat.White,
+            occlusionTexture: new MaterialOcclusionTextureBinding(
+                new MaterialTextureBinding(
+                    texture.Id,
+                    sampler.Id,
+                    coordinateSet,
+                    TextureColorSpace.Linear,
+                    transform),
+                strength));
+        var mesh = new MeshData
+        {
+            Vertices =
+            [
+                new VertexPositionNormalColor(new Vector3(-0.8f, -0.8f, 0f), Vector3.UnitZ, RgbaFloat.White),
+                new VertexPositionNormalColor(new Vector3(0.8f, -0.8f, 0f), Vector3.UnitZ, RgbaFloat.White),
+                new VertexPositionNormalColor(new Vector3(0.8f, 0.8f, 0f), Vector3.UnitZ, RgbaFloat.White),
+                new VertexPositionNormalColor(new Vector3(-0.8f, 0.8f, 0f), Vector3.UnitZ, RgbaFloat.White)
+            ],
+            Indices = [0u, 1u, 2u, 0u, 2u, 3u],
+            TextureCoordinateSets = textureCoordinateSets,
+            Topology = MeshTopology.Triangles
+        };
+        var primitive = new MeshPrimitive(MeshPrimitiveId.New(), $"{name}#primitive0", mesh, material.Id);
+        var node = new SceneNode(SceneNodeId.New(), name, Matrix4x4.Identity, parentId: null, [primitive.Id]);
+
+        return new ImportedSceneAsset(
+            $"{name}.gltf",
+            name,
+            [node],
+            [primitive],
+            [material],
+            [texture],
+            [sampler]);
+    }
+
     private static Texture2D CreateColorTexture()
     {
         var contentBytes = Convert.FromBase64String("iVBORw0KGgoAAAANSUhEUgAAAAIAAAABCAYAAAD0In+KAAAADklEQVR4nGP4z8AAQv8BD/kD/YURmXYAAAAASUVORK5CYII=");
@@ -222,6 +293,21 @@ public class Object3DIntegrationTests
             [
                 255, 0, 0, 255,
                 0, 0, 255, 255
+            ]);
+    }
+
+    private static Texture2D CreateOcclusionTexture()
+    {
+        return new Texture2D(
+            Texture2DId.New(),
+            "OcclusionTexture",
+            2,
+            1,
+            TextureImageFormat.Png,
+            [7, 8, 9],
+            [
+                255, 255, 255, 255,
+                0, 0, 0, 255
             ]);
     }
 
