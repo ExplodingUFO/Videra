@@ -196,8 +196,8 @@ public sealed class RepositoryReleaseReadinessTests
         capabilityMatrix.Should().Contain("Alpha mask rendering and deterministic alpha blend ordering are shipped for per-object carried alpha sources");
         capabilityMatrix.Should().Contain("occlusion texture binding/strength");
         capabilityMatrix.Should().Contain("KHR_texture_transform");
-        capabilityMatrix.Should().Contain("baseColor texture sampling plus occlusion texture binding/strength");
-        capabilityMatrix.Should().Contain("emissive and normal-map-ready inputs remain retained runtime truth");
+        capabilityMatrix.Should().Contain("baseColor texture sampling, occlusion texture binding/strength, emissive inputs, and normal-map-ready inputs on the bounded static-scene seam");
+        capabilityMatrix.Should().Contain("bounded renderer-consumption seam rather than a broader lighting/shader/backend promise");
         capabilityMatrix.Should().Contain("multiple internal runtime objects");
         capabilityMatrix.Should().Contain("Animation, skeleton, morph, and mixer APIs");
         capabilityMatrix.Should().Contain("Broader lighting systems, shadows, environment maps, and post-processing");

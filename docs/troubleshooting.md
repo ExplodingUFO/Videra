@@ -120,7 +120,7 @@ Include:
   - `Try next: Scatter proof`
 - use `Copy support summary` after reproducing `Start here: In-memory first chart`; continue to `Explore next: Cache-backed streaming` only if needed. The copied SurfaceCharts summary is chart-scoped and carries `ViewState`, `InteractionQuality`, `RenderingStatus`, and `OverlayOptions` details.
 - use `Try next: Analytics proof` when the issue is about explicit-coordinate/analysis workflow checks, `Try next: Waterfall proof` when the issue is about the second chart control instead of the cache-backed path, and `Try next: Scatter proof` when the issue is about the direct scatter control path; the shipped control line also includes `ScatterChartView`
-- if the issue is about imported-material fidelity, include the smallest asset plus the relevant baseColor texture usage, occlusion texture binding/strength, and `KHR_texture_transform` details; those values now affect shipped renderer output on the static-scene path
+- if the issue is about imported-material fidelity, include the smallest asset plus the relevant baseColor texture usage, occlusion texture binding/strength, emissive factor/texture details, normal-texture details, and `KHR_texture_transform` details; those values now affect shipped renderer output on the bounded static-scene path
 - `ViewState`, `InteractionQuality`, `RenderingStatus`, and `OverlayOptions` from the SurfaceCharts support summary when relevant
 - `TransparentFeatureStatus` from `VideraDiagnosticsSnapshotFormatter` when the issue involves transparency behavior
 - inspection bundle from `VideraInspectionBundleService.ExportAsync(...)` when you need support to replay camera, clipping, measurements, and annotations together

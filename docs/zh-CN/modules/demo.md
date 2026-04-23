@@ -57,7 +57,7 @@ var diagnostics = View3D.BackendDiagnostics;
 - `SceneDocument` 才是运行时场景真相
 - imported asset 会先保持 CPU / backend-neutral 状态，等 resource factory ready 后再上传
 - retained scene/material runtime truth 还包括 per-primitive non-Blend material participation、occlusion texture binding/strength，以及 `KHR_texture_transform` 的 offset/scale/rotation 和 texture-coordinate override
-- 当前 renderer path 已经消费 baseColor 纹理采样和 occlusion texture binding/strength，其中也会应用 `KHR_texture_transform` 与 texture-coordinate override；emissive 和 normal-map-ready 仍只是 retained runtime truth
+- 当前 renderer path 已经在有界的 static-scene seam 上消费 baseColor 纹理采样、occlusion texture binding/strength、emissive 输入和 normal-map-ready 输入，其中也会在相关绑定请求时应用 `KHR_texture_transform` 与 texture-coordinate override；这仍然只是一个有界的 renderer-consumption seam，而不是更宽的 lighting/shader/backend 承诺
 - canonical runtime path 可以把一个 imported entry 扩成多个 internal runtime objects，因此 mixed opaque/transparent primitive participation 可以穿过 runtime bridge
 - backend fallback / rebind 发生时，scene truth 会被保留，而不是依赖 steady-state software staging path
 

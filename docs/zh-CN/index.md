@@ -2,7 +2,7 @@
 
 [English](../index.md) | [中文](index.md)
 
-本页汇总 Videra 的中文文档入口，便于手动切换后继续阅读。中文导航页与英文首页保持一致：viewer/runtime 核心真相围绕 `SceneDocument` 与 imported asset catalog，当前边界保持 static-scene-only，但 material/runtime truth 还包括 per-primitive non-Blend material participation、occlusion texture binding/strength，以及 `KHR_texture_transform` 的 offset/scale/rotation 和 texture-coordinate override；当前 native static-scene 路径还带有一个 bounded、style-driven 的 broader-lighting baseline。当前 renderer path 已经消费 baseColor 纹理采样与 occlusion / texture-transform 相关真相，而 emissive 和 normal-map-ready 仍保持为 retained runtime truth。
+本页汇总 Videra 的中文文档入口，便于手动切换后继续阅读。中文导航页与英文首页保持一致：viewer/runtime 核心真相围绕 `SceneDocument` 与 imported asset catalog，当前边界保持 static-scene-only，但 material/runtime truth 还包括 per-primitive non-Blend material participation、occlusion texture binding/strength，以及 `KHR_texture_transform` 的 offset/scale/rotation 和 texture-coordinate override；当前 native static-scene 路径还带有一个 bounded、style-driven 的 broader-lighting baseline。当前 renderer path 已经在有界的 static-scene seam 上消费 baseColor 纹理采样、occlusion texture binding/strength、emissive 输入和 normal-map-ready 输入，其中也会在相关绑定请求时应用 `KHR_texture_transform` 与 texture-coordinate override；这仍然只是一个有界的 renderer-consumption seam，而不是更宽的 lighting/shader/backend 承诺。
 
 ## 安装与分发入口
 
