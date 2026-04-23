@@ -54,10 +54,23 @@ public sealed class InteractionSampleConfigurationTests
             readme.Should().Contain(marker);
         }
 
+        readme.Should().Contain("Bundle export and scene replay are separate");
+        readme.Should().Contain("CanReplayScene");
+        readme.Should().Contain("ReplayLimitation");
+        readme.Should().Contain("rejected before applying state");
+
         foreach (var forbidden in InteractionContractDocumentationTerms.ForbiddenNodeAnchorPhrases)
         {
             readme.Should().NotContain(forbidden);
         }
+    }
+
+    [Fact]
+    public void SampleMarkup_ShouldDescribeExportabilityAndReplayabilitySeparately()
+    {
+        var markup = File.ReadAllText(Path.Combine(GetRepositoryRoot(), "samples", "Videra.InteractionSample", "Views", "MainWindow.axaml"));
+
+        markup.Should().Contain("inspection bundle replay depends on CanReplayScene plus ReplayLimitation before import");
     }
 
     [Fact]
@@ -87,6 +100,9 @@ public sealed class InteractionSampleConfigurationTests
         codeBehind.Should().Contain("VideraInspectionBundleService.ExportAsync");
         codeBehind.Should().Contain("VideraInspectionBundleService.ImportAsync");
         codeBehind.Should().Contain("ReplayLimitation");
+        codeBehind.Should().Contain("CanReplayScene: {result.CanReplayScene}");
+        codeBehind.Should().Contain("Check replay status before import.");
+        codeBehind.Should().Contain("current view state was not applied");
         codeBehind.Should().Contain("new VideraNodeAnnotation");
         codeBehind.Should().Contain("new VideraWorldPointAnnotation");
 

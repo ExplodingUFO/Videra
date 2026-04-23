@@ -1,6 +1,6 @@
 # Videra.InteractionSample
 
-`Videra.InteractionSample` is the focused public interaction and inspection reference for controlled selection, annotations, measurements, clipping, snapshot export, and replayable inspection bundles in Avalonia.
+`Videra.InteractionSample` is the focused public interaction and inspection reference for controlled selection, annotations, measurements, clipping, snapshot export, and inspection bundles in Avalonia. Bundle export and scene replay are separate: check `CanReplayScene` and `ReplayLimitation` before importing.
 
 ## Public contract exercised
 
@@ -24,9 +24,9 @@ The sample keeps the interaction flow on public APIs only:
 4. `SelectionRequested` updates host-owned `SelectionState`.
 5. `AnnotationRequested` appends either a `VideraNodeAnnotation` for an object anchor or a `VideraWorldPointAnnotation` for a world-point anchor.
 6. `Measure` writes lightweight distance probes to `View3D.Measurements`.
-7. The inspection panel toggles `ClippingPlanes`, saves/restores one typed inspection session through `CaptureInspectionState()` / `ApplyInspectionState(...)`, calls `ExportSnapshotAsync(...)`, and round-trips replayable bundles through `VideraInspectionBundleService` on top of that same session truth.
+7. The inspection panel toggles `ClippingPlanes`, saves/restores one typed inspection session through `CaptureInspectionState()` / `ApplyInspectionState(...)`, calls `ExportSnapshotAsync(...)`, and exports inspection bundles through `VideraInspectionBundleService` while treating `CanReplayScene` and `ReplayLimitation` as the replay decision.
 
-`host owns` is still the key rule for selection and annotations: the control reports intent, while the sample window decides how `SelectionState` and `Annotations` change. Saved inspection state now includes those host-owned annotations alongside camera, measurements, clipping, and snap mode, while replayable bundle export/import stays on the same public inspection surface without reaching into internal runtime seams.
+`host owns` is still the key rule for selection and annotations: the control reports intent, while the sample window decides how `SelectionState` and `Annotations` change. Saved inspection state now includes those host-owned annotations alongside camera, measurements, clipping, and snap mode. Replayable bundle import uses the same public inspection surface; non-replayable bundles are rejected before applying state.
 
 ## Run
 
