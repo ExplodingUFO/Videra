@@ -46,6 +46,7 @@ public sealed class AlphaConsumerIntegrationTests
         smokeWorkflow.Should().Contain("linux-xwayland");
         smokeWorkflow.Should().Contain("macos");
         smokeWorkflow.Should().Contain("Invoke-ConsumerSmoke.ps1");
+        smokeWorkflow.Should().Contain("-LightingProofHoldSeconds 10");
         smokeWorkflow.Should().Contain("-Scenario SurfaceCharts");
         smokeWorkflow.Should().Contain("actions/upload-artifact@v4");
         smokeWorkflow.Should().Contain("consumer-smoke-windows");
@@ -98,7 +99,8 @@ public sealed class AlphaConsumerIntegrationTests
             workflow.Should().Contain("env | sort | grep -E \"^(DISPLAY|WAYLAND_DISPLAY|XDG_RUNTIME_DIR|XDG_SESSION_TYPE)=\" || true");
             workflow.Should().Contain("WAYLAND_DISPLAY");
             workflow.Should().Contain("XDG_SESSION_TYPE=\"${XDG_SESSION_TYPE:-wayland}\"");
-            workflow.Should().Contain("Invoke-ConsumerSmoke.ps1 -Configuration Release -OutputRoot artifacts/consumer-smoke/linux-xwayland");
+            workflow.Should().Contain("-LightingProofHoldSeconds 10");
+            workflow.Should().Contain("Invoke-ConsumerSmoke.ps1 -Configuration Release -LightingProofHoldSeconds 10 -OutputRoot artifacts/consumer-smoke/linux-xwayland");
         }
     }
 

@@ -6,12 +6,15 @@ namespace Videra.Core.Tests.Samples;
 public sealed class ConsumerSmokeConfigurationTests
 {
     [Fact]
-    public void ConsumerSmoke_ShouldKeepProofHoldOptInOnly()
+    public void ConsumerSmoke_ShouldExposeProofHoldAndValidationWiring()
     {
         var repositoryRoot = GetRepositoryRoot();
         var smokeRoot = Path.Combine(repositoryRoot, "smoke", "Videra.ConsumerSmoke");
         var mainWindowCodeBehind = File.ReadAllText(Path.Combine(smokeRoot, "Views", "MainWindow.axaml.cs"));
         var invokeScript = File.ReadAllText(Path.Combine(repositoryRoot, "scripts", "Invoke-ConsumerSmoke.ps1"));
+        var consumerSmokeWorkflow = File.ReadAllText(Path.Combine(repositoryRoot, ".github", "workflows", "consumer-smoke.yml"));
+        var publicWorkflow = File.ReadAllText(Path.Combine(repositoryRoot, ".github", "workflows", "publish-public.yml"));
+        var existingReleaseWorkflow = File.ReadAllText(Path.Combine(repositoryRoot, ".github", "workflows", "publish-existing-public-release.yml"));
 
         File.Exists(Path.Combine(smokeRoot, "Views", "MainWindow.axaml.cs")).Should().BeTrue();
         File.Exists(Path.Combine(repositoryRoot, "scripts", "Invoke-ConsumerSmoke.ps1")).Should().BeTrue();
@@ -19,6 +22,9 @@ public sealed class ConsumerSmokeConfigurationTests
         invokeScript.Should().Contain("LightingProofHoldSeconds");
         invokeScript.Should().Contain("VIDERA_LIGHTING_PROOF_HOLD_SECONDS");
         invokeScript.Should().Contain("Remove-Item Env:VIDERA_LIGHTING_PROOF_HOLD_SECONDS");
+        consumerSmokeWorkflow.Should().Contain("-LightingProofHoldSeconds 10");
+        publicWorkflow.Should().Contain("-LightingProofHoldSeconds 10");
+        existingReleaseWorkflow.Should().Contain("-LightingProofHoldSeconds 10");
 
         mainWindowCodeBehind.Should().Contain("ResolveLightingProofHoldSeconds()");
         mainWindowCodeBehind.Should().Contain("VIDERA_LIGHTING_PROOF_HOLD_SECONDS");

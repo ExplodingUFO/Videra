@@ -26,6 +26,7 @@ public partial class MainWindow : Window
     private readonly SurfaceChartOverlayOptions _overlayOptions;
     private readonly SurfaceColorMap _colorMap;
     private readonly DispatcherTimer _readinessPollTimer;
+    private readonly int _lightingProofHoldSeconds;
     private bool _completed;
     private bool _completionQueued;
 
@@ -45,6 +46,7 @@ public partial class MainWindow : Window
             ? null
             : Path.Combine(Path.GetDirectoryName(_outputPath!)!, "surfacecharts-support-summary.txt");
         _tracePath = Environment.GetEnvironmentVariable("VIDERA_CONSUMER_SMOKE_TRACE");
+        _lightingProofHoldSeconds = ResolveLightingProofHoldSeconds();
 
         var matrix = CreateSampleMatrix();
         _metadata = matrix.Metadata;
@@ -171,6 +173,22 @@ public partial class MainWindow : Window
         return status.IsReady && status.ResidentTileCount > 0;
     }
 
+    private static int ResolveLightingProofHoldSeconds()
+    {
+        var value = Environment.GetEnvironmentVariable("VIDERA_LIGHTING_PROOF_HOLD_SECONDS");
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return 0;
+        }
+
+        if (!int.TryParse(value, out var seconds) || seconds < 0)
+        {
+            throw new InvalidOperationException("VIDERA_LIGHTING_PROOF_HOLD_SECONDS must be a non-negative whole number.");
+        }
+
+        return seconds;
+    }
+
     private async Task RunTimeoutGuardAsync()
     {
         await Task.Delay(TimeSpan.FromSeconds(75)).ConfigureAwait(true);
@@ -268,6 +286,18 @@ public partial class MainWindow : Window
         _statusText.Text = succeeded
             ? "Packaged SurfaceCharts first-chart consumer smoke passed."
             : $"Packaged SurfaceCharts first-chart consumer smoke failed: {failure}";
+
+        _ = ShutdownAsync(succeeded);
+    }
+
+    private async Task ShutdownAsync(bool succeeded)
+    {
+        if (succeeded && _lightingProofHoldSeconds > 0)
+        {
+            Trace($"Lighting proof hold active for {_lightingProofHoldSeconds} seconds before shutdown.");
+            _statusText.Text = $"SurfaceCharts consumer smoke passed. Proof hold active for {_lightingProofHoldSeconds} seconds.";
+            await Task.Delay(TimeSpan.FromSeconds(_lightingProofHoldSeconds)).ConfigureAwait(true);
+        }
 
         Dispatcher.UIThread.Post(() =>
         {

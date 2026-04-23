@@ -45,6 +45,10 @@ public sealed class SurfaceChartsConsumerSmokeConfigurationTests
         mainWindowCodeBehind.Should().Contain("FirstChartRendered");
         mainWindowCodeBehind.Should().Contain("ViewState");
         mainWindowCodeBehind.Should().Contain("ResidentTileCount");
+        mainWindowCodeBehind.Should().Contain("ResolveLightingProofHoldSeconds()");
+        mainWindowCodeBehind.Should().Contain("VIDERA_LIGHTING_PROOF_HOLD_SECONDS");
+        mainWindowCodeBehind.Should().Contain("Lighting proof hold active for");
+        mainWindowCodeBehind.Should().Contain("await Task.Delay(TimeSpan.FromSeconds(_lightingProofHoldSeconds)).ConfigureAwait(true);");
         mainWindowCodeBehind.Should().NotContain("FrameAll");
         mainWindowCodeBehind.Should().NotContain("VideraView");
     }

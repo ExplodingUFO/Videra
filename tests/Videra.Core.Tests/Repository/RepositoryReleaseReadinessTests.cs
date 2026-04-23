@@ -266,11 +266,14 @@ public sealed class RepositoryReleaseReadinessTests
         ciWorkflow.Should().Contain("Validate-Packages.ps1");
         ciWorkflow.Should().Contain("artifacts/consumer-smoke-quality/packages");
         ciWorkflow.Should().Contain("artifacts/surfacecharts-consumer-smoke-quality");
+        ciWorkflow.Should().Contain("-LightingProofHoldSeconds 10");
         ciWorkflow.Should().Contain("-Scenario SurfaceCharts");
         publicWorkflow.Should().Contain("consumer-smoke-windows-surfacecharts");
+        publicWorkflow.Should().Contain("-LightingProofHoldSeconds 10");
         publicWorkflow.Should().Contain("-Scenario SurfaceCharts");
         existingReleaseWorkflow.Should().Contain("Invoke-ConsumerSmoke.ps1");
         existingReleaseWorkflow.Should().Contain("consumer-smoke-existing-public-release-surfacecharts");
+        existingReleaseWorkflow.Should().Contain("-LightingProofHoldSeconds 10");
         existingReleaseWorkflow.Should().Contain("-Scenario SurfaceCharts");
         existingReleaseWorkflow.Should().Contain("Validate-Packages.ps1");
         existingReleaseWorkflow.Should().Contain("consumer-smoke-existing-public-release");
