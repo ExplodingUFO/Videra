@@ -36,11 +36,13 @@ Release-candidate review uses the `Release Dry Run` workflow at `.github/workflo
 That workflow is expected to:
 
 1. Run `scripts/Invoke-ReleaseDryRun.ps1`.
-2. Resolve the dry-run package set from `eng/public-api-contract.json`.
-3. Pack each public package with the requested dry-run version.
-4. Reuse `scripts/Validate-Packages.ps1` for package set, symbols, README/license/icon/repository metadata, dependency boundaries, and package-size budgets.
-5. Upload `release-dry-run-evidence`.
-6. Avoid `dotnet nuget push`, `NUGET_API_KEY`, GitHub Packages tokens, and GitHub Release creation.
+2. Run `scripts/Test-ReleaseCandidateVersion.ps1` to simulate the corresponding `v*` release tag and validate it against repository package metadata.
+3. Resolve the dry-run package set from `eng/public-api-contract.json`.
+4. Pack each public package with the requested dry-run version.
+5. Reuse `scripts/Validate-Packages.ps1` for package set, symbols, README/license/icon/repository metadata, dependency boundaries, and package-size budgets.
+6. Validate `release-dry-run-summary.json` against the simulated tag version and public API contract.
+7. Upload `release-dry-run-evidence`.
+8. Avoid `dotnet nuget push`, `NUGET_API_KEY`, GitHub Packages tokens, and GitHub Release creation.
 
 ## Release notes
 

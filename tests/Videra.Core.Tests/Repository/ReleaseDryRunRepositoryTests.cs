@@ -26,6 +26,37 @@ public sealed class ReleaseDryRunRepositoryTests
     }
 
     [Fact]
+    public void ReleaseCandidateVersionScript_ShouldValidateSimulatedTagAndDryRunSummaryTruth()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var scriptPath = Path.Combine(repositoryRoot, "scripts", "Test-ReleaseCandidateVersion.ps1");
+
+        File.Exists(scriptPath).Should().BeTrue();
+
+        var script = File.ReadAllText(scriptPath);
+        script.Should().Contain("CandidateTag");
+        script.Should().Contain("Directory.Build.props");
+        script.Should().Contain("eng/public-api-contract.json");
+        script.Should().Contain("ReleaseDryRunSummaryPath");
+        script.Should().Contain("expectedVersion");
+        script.Should().Contain("packageContractPath");
+        script.Should().NotContain("dotnet nuget push");
+        script.Should().NotContain("git tag");
+        script.Should().NotContain("NUGET_API_KEY");
+        script.Should().NotContain("GITHUB_TOKEN");
+    }
+
+    [Fact]
+    public void ReleaseDryRunScript_ShouldRunCandidateVersionSimulationBeforeAndAfterSummary()
+    {
+        var script = File.ReadAllText(Path.Combine(GetRepositoryRoot(), "scripts", "Invoke-ReleaseDryRun.ps1"));
+
+        script.Should().Contain("scripts/Test-ReleaseCandidateVersion.ps1");
+        script.Should().Contain("-CandidateTag \"v$ExpectedVersion\"");
+        script.Should().Contain("-ReleaseDryRunSummaryPath $summaryPath");
+    }
+
+    [Fact]
     public void ReleaseDryRunWorkflow_ShouldBeReadOnlyAndNonPublishing()
     {
         var workflow = File.ReadAllText(Path.Combine(GetRepositoryRoot(), ".github", "workflows", "release-dry-run.yml"));
