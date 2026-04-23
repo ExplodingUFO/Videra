@@ -63,6 +63,7 @@ The canonical public SurfaceCharts stack is:
 - `nuget.org` is the default public consumer path.
 - `GitHub Packages` exists for `preview` / internal validation only.
 - Do not treat demos or samples as installable public packages.
+- Release-candidate review uses the read-only `Release Dry Run` workflow to pack the package set from `eng/public-api-contract.json`, reuse `scripts/Validate-Packages.ps1`, and upload `release-dry-run-evidence` without pushing assets to either feed.
 
 ## Viewer runtime baseline
 

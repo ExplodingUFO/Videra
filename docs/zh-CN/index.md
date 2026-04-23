@@ -10,6 +10,7 @@
 - [包矩阵](../package-matrix.md)：published packages、repository-only demos/samples 与公开安装边界
 - [支持矩阵](../support-matrix.md)：平台、验证方式与支持级别
 - [发布策略](../release-policy.md)：公开 feed、preview feed 与 repository-only demo/sample 边界
+- [发布运行手册](../releasing.md)：tag 发布、release notes、package assets，以及只读 `Release Dry Run` / `release-dry-run-evidence` 验证路径
 - [Benchmark Gates](../benchmark-gates.md)：viewer / surface charts benchmark 的自动 PR 阈值门禁与手动运行入口
 - [Alpha Feedback](../alpha-feedback.md)：alpha 集成反馈、诊断快照和支持边界
 - [故障排查](troubleshooting.md)：`VIDERA_BACKEND`、软件回退和 matching-host 原生验证的边界

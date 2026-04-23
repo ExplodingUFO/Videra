@@ -6,6 +6,10 @@ The format is based on Keep a Changelog, and this repository is currently in an 
 
 ## [Unreleased]
 
+### Added
+
+- Documented the release-candidate `Release Dry Run` / `release-dry-run-evidence` path across the public docs, localized entry docs, and repository truth tests.
+
 ## [0.1.0-alpha.7] - 2026-04-19
 
 ### Fixed
