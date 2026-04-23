@@ -81,6 +81,7 @@ public sealed class RenderStyleParametersTests
         data.SpecularIntensity.Should().Be(0.3f);
         data.SpecularPower.Should().Be(32f);
         data.LightDirection.Should().Be(new Vector3(1, 2, 3));
+        data.FillIntensity.Should().Be(0f);
         data.Saturation.Should().Be(1.2f);
         data.Contrast.Should().Be(0.9f);
         data.Brightness.Should().Be(0.1f);

@@ -1,4 +1,5 @@
 using System.Numerics;
+using System.Runtime.InteropServices;
 using FluentAssertions;
 using Videra.Core.Styles.Parameters;
 using Xunit;
@@ -18,6 +19,7 @@ public sealed class StyleParameterTests
         p.SpecularIntensity.Should().Be(0.5f);
         p.SpecularPower.Should().Be(32f);
         p.LightDirection.Should().Be(Vector3.Normalize(new Vector3(0.5f, 1.0f, 0.3f)));
+        p.FillIntensity.Should().Be(0f);
     }
 
     [Fact]
@@ -37,7 +39,7 @@ public sealed class StyleParameterTests
     public void LightingParameters_Equals_DifferentValues_ReturnsFalse()
     {
         var a = new LightingParameters();
-        var b = new LightingParameters { AmbientIntensity = 0.9f };
+        var b = new LightingParameters { FillIntensity = 0.9f };
         a.Should().NotBe(b);
     }
 
@@ -47,6 +49,13 @@ public sealed class StyleParameterTests
         var a = new LightingParameters();
         var b = new LightingParameters();
         a.GetHashCode().Should().Be(b.GetHashCode());
+    }
+
+    [Fact]
+    public void StyleUniformData_StaysPackedToExpectedOffsetAndSize()
+    {
+        Marshal.SizeOf<StyleUniformData>().Should().Be(128);
+        Marshal.OffsetOf<StyleUniformData>(nameof(StyleUniformData.FillIntensity)).Should().Be((IntPtr)28);
     }
 
     [Fact]

@@ -10,12 +10,13 @@ namespace Videra.Core.Styles.Parameters;
 [StructLayout(LayoutKind.Explicit, Size = 128)]
 public struct StyleUniformData
 {
-    // 光照 (offset 0-28)
+    // 光照 (offset 0-31)
     [FieldOffset(0)] public float AmbientIntensity;
     [FieldOffset(4)] public float DiffuseIntensity;
     [FieldOffset(8)] public float SpecularIntensity;
     [FieldOffset(12)] public float SpecularPower;
     [FieldOffset(16)] public Vector3 LightDirection;
+    [FieldOffset(28)] public float FillIntensity;
 
     // 色彩 (offset 32-60)
     [FieldOffset(32)] public Vector3 TintColor;

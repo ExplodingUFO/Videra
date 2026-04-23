@@ -40,6 +40,7 @@ public sealed class RenderStyleParameters : IEquatable<RenderStyleParameters>
         SpecularIntensity = Lighting.SpecularIntensity,
         SpecularPower = Lighting.SpecularPower,
         LightDirection = Lighting.LightDirection,
+        FillIntensity = Lighting.FillIntensity,
         TintColor = Color.TintColor,
         Saturation = Color.Saturation,
         Contrast = Color.Contrast,
