@@ -1,8 +1,11 @@
 using System.IO;
+using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Threading;
+using Videra.Core.Graphics.RenderPipeline;
 using Videra.Core.Graphics;
 using Videra.Core.Rendering;
 using Videra.Platform.Windows;
@@ -15,6 +18,7 @@ public partial class MainWindow : Window
     private readonly RenderSessionOrchestrator _orchestrator;
     private readonly string _diagnosticsPath;
     private readonly DispatcherTimer _timeoutTimer;
+    private bool _sceneSeeded;
     private bool _completed;
 
     public MainWindow()
@@ -85,6 +89,7 @@ public partial class MainWindow : Window
                 return;
             }
 
+            EnsureSmokeSceneSeeded();
             StatusText.Text = "Backend ready. Rendering the first frame.";
             var result = _orchestrator.RenderOnce();
             if (result.Faulted)
@@ -116,23 +121,47 @@ public partial class MainWindow : Window
     private void WriteDiagnosticsSnapshot(uint width, uint height, float renderScale, IntPtr handle, string? failure = null)
     {
         var snapshot = _orchestrator.Snapshot;
-        var pipelineStages = snapshot.LastPipelineSnapshot is { StageNames: var stageNames }
-            ? string.Join(", ", stageNames)
-            : string.Empty;
+        var pipelineStages = FormatList(snapshot.LastPipelineSnapshot?.StageNames);
+        var pipelineFeatures = FormatList(snapshot.LastPipelineSnapshot?.FeatureNames);
+        var supportedFeatures = FormatList(_orchestrator.RenderCapabilities.SupportedFeatures.ToFeatureNames());
+        var assembly = typeof(MainWindow).Assembly;
+        var packageVersion =
+            assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion
+            ?? assembly.GetName().Version?.ToString()
+            ?? "unknown";
         var diagnostics = new StringBuilder()
             .AppendLine("Videra WPF smoke diagnostics")
+            .AppendLine($"GeneratedUtc: {DateTimeOffset.UtcNow:O}")
+            .AppendLine($"PackageVersion: {packageVersion}")
+            .AppendLine($"FrameworkDescription: {RuntimeInformation.FrameworkDescription}")
+            .AppendLine($"OperatingSystem: {RuntimeInformation.OSDescription}")
+            .AppendLine($"ProcessArchitecture: {RuntimeInformation.ProcessArchitecture}")
+            .AppendLine($"AppBaseDirectory: {AppContext.BaseDirectory}")
             .AppendLine($"State: {snapshot.State}")
             .AppendLine($"HandleState: {snapshot.HandleState}")
             .AppendLine($"RequestedBackend: {snapshot.Inputs.RequestedBackend}")
             .AppendLine($"ResolvedBackend: {snapshot.LastBackendResolution?.ResolvedPreference}")
-            .AppendLine($"SoftwareFallback: {snapshot.LastBackendResolution?.IsUsingSoftwareFallback}")
+            .AppendLine($"IsReady: {snapshot.State == RenderSessionState.Ready}")
+            .AppendLine($"IsUsingSoftwareFallback: {snapshot.LastBackendResolution?.IsUsingSoftwareFallback ?? false}")
+            .AppendLine($"NativeHostBound: {snapshot.HandleState.IsBound}")
+            .AppendLine($"ResolvedDisplayServer: {FormatNullable(snapshot.ResolvedDisplayServer)}")
+            .AppendLine($"DisplayServerFallbackUsed: {snapshot.DisplayServerFallbackUsed}")
+            .AppendLine($"DisplayServerFallbackReason: {FormatNullable(snapshot.DisplayServerFallbackReason)}")
+            .AppendLine($"DisplayServerCompatibility: {DescribeDisplayServerCompatibility(snapshot)}")
+            .AppendLine($"EnvironmentOverrideApplied: {snapshot.LastBackendResolution?.EnvironmentOverrideApplied ?? false}")
             .AppendLine($"Width: {width}")
             .AppendLine($"Height: {height}")
             .AppendLine($"RenderScale: {renderScale:0.###}")
             .AppendLine($"Handle: 0x{handle.ToInt64():X}")
-            .AppendLine($"Ready: {snapshot.State == RenderSessionState.Ready}")
-            .AppendLine($"PipelineProfile: {snapshot.LastPipelineSnapshot?.Profile}")
-            .AppendLine($"PipelineStages: {pipelineStages}")
+            .AppendLine($"RenderPipelineProfile: {FormatNullable(snapshot.LastPipelineSnapshot?.Profile.ToString())}")
+            .AppendLine($"LastFrameStageNames: {pipelineStages}")
+            .AppendLine($"LastFrameFeatureNames: {pipelineFeatures}")
+            .AppendLine($"LastFrameObjectCount: {snapshot.LastPipelineSnapshot?.FrameObjectCount ?? 0}")
+            .AppendLine($"LastFrameOpaqueObjectCount: {snapshot.LastPipelineSnapshot?.OpaqueObjectCount ?? 0}")
+            .AppendLine($"LastFrameTransparentObjectCount: {snapshot.LastPipelineSnapshot?.TransparentObjectCount ?? 0}")
+            .AppendLine($"SupportedRenderFeatureNames: {supportedFeatures}")
+            .AppendLine($"TransparentFeatureStatus: {CurrentTransparentFeatureStatus}")
+            .AppendLine($"UsesSoftwarePresentationCopy: {snapshot.UsesSoftwarePresentationCopy}")
             .AppendLine($"LastInitializationError: {snapshot.LastInitializationError?.Message ?? "<none>"}");
 
         if (!string.IsNullOrWhiteSpace(snapshot.LastBackendResolution?.FallbackReason))
@@ -152,6 +181,19 @@ public partial class MainWindow : Window
         }
 
         File.WriteAllText(_diagnosticsPath, diagnostics.ToString());
+    }
+
+    private void EnsureSmokeSceneSeeded()
+    {
+        if (_sceneSeeded)
+        {
+            return;
+        }
+
+        var factory = _orchestrator.ResourceFactory
+            ?? throw new InvalidOperationException("WPF smoke reached ready state without a resource factory.");
+        _engine.AddObject(SmokeSceneFactory.CreateWhiteQuad(factory));
+        _sceneSeeded = true;
     }
 
     private void Complete(bool succeeded, string? failure)
@@ -224,4 +266,23 @@ public partial class MainWindow : Window
 
         return Path.Combine(AppContext.BaseDirectory, "wpf-smoke-diagnostics.txt");
     }
+
+    private static string DescribeDisplayServerCompatibility(RenderSessionSnapshot snapshot)
+    {
+        if (OperatingSystem.IsWindows())
+        {
+            return "Direct HWND host path.";
+        }
+
+        return FormatNullable(snapshot.ResolvedDisplayServer);
+    }
+
+    private static string FormatList(IReadOnlyList<string>? values) =>
+        values is { Count: > 0 } ? string.Join(", ", values) : "Unavailable";
+
+    private static string FormatNullable(string? value) =>
+        string.IsNullOrWhiteSpace(value) ? "Unavailable" : value;
+
+    private const string CurrentTransparentFeatureStatus =
+        "Alpha mask rendering and deterministic alpha blend ordering are shipped for per-object carried alpha sources on the current runtime path using stable far-to-near object-center distance ordering.";
 }

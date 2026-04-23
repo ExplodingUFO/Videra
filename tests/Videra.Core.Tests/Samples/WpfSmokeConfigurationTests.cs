@@ -20,6 +20,8 @@ public sealed class WpfSmokeConfigurationTests
         var project = File.ReadAllText(Path.Combine(smokeRoot, "Videra.WpfSmoke.csproj"));
         var mainWindowCodeBehind = File.ReadAllText(Path.Combine(smokeRoot, "MainWindow.xaml.cs"));
         var hostCode = File.ReadAllText(Path.Combine(smokeRoot, "ViewerHwndHost.cs"));
+        var sceneFactoryCode = File.ReadAllText(Path.Combine(smokeRoot, "SmokeSceneFactory.cs"));
+        var invokeScript = File.ReadAllText(Path.Combine(repositoryRoot, "scripts", "Invoke-WpfSmoke.ps1"));
 
         Directory.Exists(smokeRoot).Should().BeTrue();
         File.Exists(Path.Combine(smokeRoot, "App.xaml")).Should().BeTrue();
@@ -27,6 +29,8 @@ public sealed class WpfSmokeConfigurationTests
         File.Exists(Path.Combine(smokeRoot, "MainWindow.xaml")).Should().BeTrue();
         File.Exists(Path.Combine(smokeRoot, "MainWindow.xaml.cs")).Should().BeTrue();
         File.Exists(Path.Combine(smokeRoot, "ViewerHwndHost.cs")).Should().BeTrue();
+        File.Exists(Path.Combine(smokeRoot, "SmokeSceneFactory.cs")).Should().BeTrue();
+        File.Exists(Path.Combine(repositoryRoot, "scripts", "Invoke-WpfSmoke.ps1")).Should().BeTrue();
 
         solution.Should().Contain("smoke/Videra.WpfSmoke/Videra.WpfSmoke.csproj");
 
@@ -48,12 +52,23 @@ public sealed class WpfSmokeConfigurationTests
         mainWindowCodeBehind.Should().Contain("VisualTreeHelper.GetDpi(ViewerHost)");
         mainWindowCodeBehind.Should().Contain("GetRenderMetrics()");
         mainWindowCodeBehind.Should().Contain("SynchronizeHostSurface(");
+        mainWindowCodeBehind.Should().Contain("EnsureSmokeSceneSeeded()");
+        mainWindowCodeBehind.Should().Contain("GeneratedUtc:");
+        mainWindowCodeBehind.Should().Contain("NativeHostBound:");
+        mainWindowCodeBehind.Should().Contain("RenderPipelineProfile:");
+        mainWindowCodeBehind.Should().Contain("LastFrameObjectCount:");
+        mainWindowCodeBehind.Should().Contain("SupportedRenderFeatureNames:");
         mainWindowCodeBehind.Should().Contain("RenderScale:");
         mainWindowCodeBehind.Should().NotContain("_orchestrator.Resize(width, height, 1f);");
 
         hostCode.Should().Contain("HwndHost");
         hostCode.Should().Contain("CreateWindowExW");
         hostCode.Should().Contain("VisualTreeHelper.GetDpi(this)");
+        sceneFactoryCode.Should().Contain("CreateWhiteQuad");
+        sceneFactoryCode.Should().Contain("WpfSmokeQuad");
+        invokeScript.Should().Contain("VIDERA_WPF_SMOKE_OUTPUT");
+        invokeScript.Should().Contain("RenderPipelineProfile:");
+        invokeScript.Should().Contain("NativeHostBound: True");
     }
 
     private static string GetRepositoryRoot()
