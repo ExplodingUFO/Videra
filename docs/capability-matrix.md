@@ -17,6 +17,7 @@ The `1.0` line is a native desktop viewer/runtime for .NET applications, centere
 | Transparency baseline | Yes | Alpha mask rendering and deterministic alpha blend ordering are shipped for per-object carried alpha sources; broader transparency work remains deferred |
 | Static-scene material/runtime truth | Yes | Imported assets carry per-primitive non-Blend material participation, occlusion texture binding/strength, `KHR_texture_transform` offset/scale/rotation, and texture-coordinate override as imported-asset/runtime truth; mixed Blend/non-Blend imports remain guarded until transparent primitives are independently sortable |
 | `SurfaceCharts` package family | Yes | `SurfaceChartView`, `WaterfallChartView`, `ScatterChartView`, chart overlays/interaction, and the `Videra.SurfaceCharts.*` package line are part of the shipped `1.0` story; `Videra.SurfaceCharts.Processing` is only needed for the surface/cache-backed path, and `Videra.SurfaceCharts.Demo` remains the repository reference app |
+| Release-candidate contract evidence | Yes | `Release Dry Run` packs the public API contract package set from `eng/public-api-contract.json`, reuses `scripts/Validate-Packages.ps1`, uploads `release-dry-run-evidence`, and does not publish to `nuget.org` or GitHub Packages |
 
 ## Explicitly Deferred After 1.0
 

@@ -12,7 +12,7 @@ This page maps the long-lived public documentation for Videra. Start with the re
 - [Hosting Boundary](hosting-boundary.md) for the canonical viewer composition and the internal seam ownership behind the public shell
 - [Support Matrix](support-matrix.md) for platform, validation, and support-level truth
 - [Release Policy](release-policy.md) for public-vs-preview feed rules, versioning scope, and what is or is not published
-- [Releasing Runbook](releasing.md) for tag, asset, and release-page workflow
+- [Releasing Runbook](releasing.md) for tag, asset, release-page workflow, and read-only release-candidate dry-run evidence
 - [Benchmark Gates](benchmark-gates.md) for automatic pull-request runtime thresholds and manual benchmark evidence runs
 - [Alpha Feedback](alpha-feedback.md) for bug-report diagnostics, consumer-path evidence, and support-boundary expectations
 - [Extensibility Contract](extensibility.md) for the `VideraView.Engine` flow, `samples/Videra.ExtensibilitySample`, the ready / disposed / fallback behavior matrix, and the boundary that keeps `package discovery` and `plugin loading` out of scope

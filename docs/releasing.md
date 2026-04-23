@@ -29,11 +29,25 @@ Preview and internal validation runs through `.github/workflows/publish-github-p
 
 That workflow is manual (`workflow_dispatch`) and pushes preview artifacts to `GitHub Packages`.
 
+## Release Dry Run
+
+Release-candidate review uses the `Release Dry Run` workflow at `.github/workflows/release-dry-run.yml` before public tags are cut or feed credentials are involved.
+
+That workflow is expected to:
+
+1. Run `scripts/Invoke-ReleaseDryRun.ps1`.
+2. Resolve the dry-run package set from `eng/public-api-contract.json`.
+3. Pack each public package with the requested dry-run version.
+4. Reuse `scripts/Validate-Packages.ps1` for package set, symbols, README/license/icon/repository metadata, dependency boundaries, and package-size budgets.
+5. Upload `release-dry-run-evidence`.
+6. Avoid `dotnet nuget push`, `NUGET_API_KEY`, GitHub Packages tokens, and GitHub Release creation.
+
 ## Release notes
 
 - Release-page categories come from `.github/release.yml`.
 - The release surface should communicate breaking changes, features, fixes, docs, and CI/build work.
 - Public release assets should make it obvious which package IDs are part of the release.
+- Dry-run evidence should be linked from release-candidate review notes, but it is not a substitute for the tag-triggered public publish workflow.
 
 ## Package set
 
@@ -69,6 +83,7 @@ Every public publish path, including `publish-existing-public-release.yml`, is e
 - Confirm `docs/package-matrix.md` and `docs/hosting-boundary.md` still describe the same canonical viewer stack as the release assets: `Videra.Avalonia` + one matching `Videra.Platform.*` package, with `Videra.Import.*` remaining explicit ingestion packages.
 - Confirm pull-request `sample-contract-evidence` stayed green for `Videra.SurfaceCharts.Demo`, including `Start here: In-memory first chart`, `Explore next: Cache-backed streaming`, `Try next: Analytics proof`, `Try next: Waterfall proof`, `Try next: Scatter proof`, the `Copy support summary` workflow, and the SurfaceCharts runtime evidence step.
 - Confirm pull-request `quality-gate-evidence` stayed green so the Windows packaged viewer consumer smoke path and the Windows packaged SurfaceCharts first-chart consumer smoke path both run with warnings treated as errors, package-size budgets still pass, and the curated Core test surfaces plus `Videra.MinimalSample` remain warning-clean.
+- Confirm pull-request `release-dry-run` stayed green and uploaded `release-dry-run-evidence` from the public API contract package set without publishing packages.
 - Confirm public release notes and attached assets include the chart package IDs when they are part of the release and do not present `Videra.SurfaceCharts.Demo` as a public package install path.
 - Confirm pull-request `Benchmark Gates` stayed green and that the threshold evaluation artifacts did not report committed runtime-budget regressions.
 - Confirm release notes categories in `.github/release.yml` still match the current label taxonomy.

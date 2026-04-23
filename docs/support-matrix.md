@@ -49,3 +49,4 @@ The public SurfaceCharts install rule is similarly narrow: start with `Videra.Su
 - Imported-material truth is supported at the imported asset/runtime level only: per-primitive non-Blend material participation, occlusion texture binding/strength, and `KHR_texture_transform` offset/scale/rotation plus texture-coordinate override are part of the shipped viewer path, but renderer/shader/backend consumption of that metadata is not being claimed here.
 - This matrix stays scoped to the shipped native backends listed above.
 - Use [Alpha Feedback](alpha-feedback.md) when reporting integration issues so the report carries package path, diagnostics, and display-server truth.
+- Release-candidate validation includes the read-only `Release Dry Run` workflow. It produces `release-dry-run-evidence` for the public package set and does not change public or preview feed behavior.
