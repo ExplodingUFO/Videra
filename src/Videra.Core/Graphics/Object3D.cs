@@ -124,6 +124,8 @@ public partial class Object3D : IDisposable
 
     internal MeshPayload? SourceMeshPayload => _sourceMeshPayload;
 
+    internal MeshPayloadSegment[] Segments => _meshPayload?.Segments ?? Array.Empty<MeshPayloadSegment>();
+
     internal MaterialAlphaSettings MaterialAlpha { get; private set; } = MaterialAlphaSettings.Opaque;
 
     internal CpuMeshRetentionPolicy CpuMeshRetentionPolicy { get; private set; } = CpuMeshRetentionPolicy.KeepForReuploadAndPicking;
@@ -131,6 +133,10 @@ public partial class Object3D : IDisposable
     internal bool HasPreparedMesh => _meshPayload is not null;
 
     internal bool CanRecreateGraphicsResources => _sourceMeshPayload is not null;
+
+    internal bool HasOpaqueGeometry => HasGeometryForPass(transparentPass: false);
+
+    internal bool HasTransparentGeometry => HasGeometryForPass(transparentPass: true);
 
     internal long ApproximateGpuBytes
     {
@@ -320,6 +326,28 @@ public partial class Object3D : IDisposable
         {
             AlphaMaskBuffer.SetData(ObjectAlphaMaskUniformData.From(MaterialAlpha), 0);
         }
+    }
+
+    private bool HasGeometryForPass(bool transparentPass)
+    {
+        var segments = Segments;
+        if (segments.Length == 0)
+        {
+            return transparentPass
+                ? MaterialAlpha.Mode == MaterialAlphaMode.Blend
+                : MaterialAlpha.Mode != MaterialAlphaMode.Blend;
+        }
+
+        for (var i = 0; i < segments.Length; i++)
+        {
+            var isTransparent = segments[i].Alpha.Mode == MaterialAlphaMode.Blend;
+            if (isTransparent == transparentPass)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /// <summary>

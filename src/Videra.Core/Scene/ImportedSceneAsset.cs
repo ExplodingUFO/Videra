@@ -33,7 +33,7 @@ public sealed class ImportedSceneAsset
         _textures = textures?.ToArray() ?? Array.Empty<Texture2D>();
         _samplers = samplers?.ToArray() ?? Array.Empty<Sampler>();
         _rootNodes = _nodes.Where(static node => node.ParentId is null).ToArray();
-        Payload = ImportedSceneAssetPayloadBuilder.Build(_nodes, _primitives);
+        Payload = ImportedSceneAssetPayloadBuilder.Build(_nodes, _primitives, _materials);
         Metrics = SceneAssetMetrics.FromPayload(Payload);
     }
 

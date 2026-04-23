@@ -3,6 +3,7 @@ using Videra.Core.Graphics.Abstractions;
 using Videra.Core.Graphics.RenderPipeline;
 using Videra.Core.Graphics.RenderPipeline.Extensibility;
 using Videra.Core.Graphics.Wireframe;
+using Videra.Core.Scene;
 
 namespace Videra.Core.Graphics;
 
@@ -232,12 +233,12 @@ public partial class VideraEngine
     {
         foreach (var obj in _renderWorld.SceneObjects)
         {
-            if (IsTransparentObject(obj))
+            if (!obj.HasOpaqueGeometry)
             {
                 continue;
             }
 
-            RenderSolidObject(obj, shouldLog);
+            RenderSolidObject(obj, shouldLog, transparentPass: false);
         }
     }
 
@@ -256,7 +257,7 @@ public partial class VideraEngine
         {
             foreach (var obj in transparentObjects)
             {
-                RenderSolidObject(obj, shouldLog);
+                RenderSolidObject(obj, shouldLog, transparentPass: true);
             }
         }
         finally
@@ -266,7 +267,7 @@ public partial class VideraEngine
         }
     }
 
-    private void RenderSolidObject(Object3D obj, bool shouldLog)
+    private void RenderSolidObject(Object3D obj, bool shouldLog, bool transparentPass)
     {
         if (obj.VertexBuffer == null || obj.IndexBuffer == null || obj.WorldBuffer == null)
         {
@@ -292,16 +293,55 @@ public partial class VideraEngine
             Log.DrawingObject(_logger, obj.Name, obj.IndexCount);
         }
 
+        var segments = obj.Segments;
+        if (segments.Length == 0)
+        {
+            DrawSegment(obj, obj.MaterialAlpha, transparentPass, firstIndex: 0, indexCount: obj.IndexCount);
+            return;
+        }
+
+        for (var i = 0; i < segments.Length; i++)
+        {
+            var segment = segments[i];
+            var isTransparent = segment.Alpha.Mode == Scene.MaterialAlphaMode.Blend;
+            if (isTransparent != transparentPass)
+            {
+                continue;
+            }
+
+            DrawSegment(obj, segment.Alpha, transparentPass, segment.StartIndex, segment.IndexCount);
+        }
+    }
+
+    private void DrawSegment(
+        Object3D obj,
+        MaterialAlphaSettings alpha,
+        bool transparentPass,
+        uint firstIndex,
+        uint indexCount)
+    {
+        if (transparentPass && alpha.Mode != Scene.MaterialAlphaMode.Blend)
+        {
+            return;
+        }
+
+        if (!transparentPass && alpha.Mode == Scene.MaterialAlphaMode.Blend)
+        {
+            return;
+        }
+
+        obj.ApplyMaterialAlpha(alpha);
+
         switch (obj.Topology)
         {
             case MeshTopology.Lines:
-                _resources.CommandExecutor.DrawIndexed(PrimitiveCommandKind.LineList, obj.IndexCount, 1, 0, 0, 0);
+                _resources.CommandExecutor!.DrawIndexed(PrimitiveCommandKind.LineList, indexCount, 1, firstIndex, 0, 0);
                 break;
             case MeshTopology.Points:
-                _resources.CommandExecutor.DrawIndexed(PrimitiveCommandKind.PointList, obj.IndexCount, 1, 0, 0, 0);
+                _resources.CommandExecutor!.DrawIndexed(PrimitiveCommandKind.PointList, indexCount, 1, firstIndex, 0, 0);
                 break;
             default:
-                _resources.CommandExecutor.DrawIndexed(obj.IndexCount, 1, 0, 0, 0);
+                _resources.CommandExecutor!.DrawIndexed(indexCount, 1, firstIndex, 0, 0);
                 break;
         }
     }
@@ -519,14 +559,8 @@ public partial class VideraEngine
 
         foreach (var obj in _renderWorld.SceneObjects)
         {
-            if (IsTransparentObject(obj))
-            {
-                hasTransparentGeometry = true;
-            }
-            else
-            {
-                hasOpaqueGeometry = true;
-            }
+            hasOpaqueGeometry |= obj.HasOpaqueGeometry;
+            hasTransparentGeometry |= obj.HasTransparentGeometry;
 
             if (hasOpaqueGeometry && hasTransparentGeometry)
             {
@@ -572,7 +606,7 @@ public partial class VideraEngine
 
     private static bool IsTransparentObject(Object3D obj)
     {
-        return obj.MaterialAlpha.Mode == Scene.MaterialAlphaMode.Blend;
+        return obj.HasTransparentGeometry;
     }
 
     private void BindDefaultAlphaMaskState()
