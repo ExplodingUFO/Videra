@@ -82,6 +82,9 @@ public sealed class VideraEnginePipelineContractTests
         engine.LastPipelineSnapshot.ActiveFeatures.Should().Be(RenderFeatureSet.Overlay);
         engine.LastPipelineSnapshot.FeatureNames.Should().Equal("Overlay");
         engine.LastPipelineSnapshot.EffectiveWireframeMode.Should().Be(WireframeMode.WireframeOnly);
+        engine.LastPipelineSnapshot.FrameObjectCount.Should().Be(1);
+        engine.LastPipelineSnapshot.OpaqueObjectCount.Should().Be(0);
+        engine.LastPipelineSnapshot.TransparentObjectCount.Should().Be(0);
         engine.LastPipelineSnapshot.Stages.Should().Contain(RenderPipelineStage.WireframePass);
         engine.LastPipelineSnapshot.Stages.Should().NotContain(RenderPipelineStage.SolidGeometryPass);
     }

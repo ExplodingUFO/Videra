@@ -62,7 +62,7 @@ public partial class VideraEngine
         var renderSolidGeometry = effectiveWireframeMode != WireframeMode.WireframeOnly;
         var renderWireframe = effectiveWireframeMode != WireframeMode.None || renderOverlayWireframe;
         var renderAxis = ShowAxis;
-        var (frameObjectCount, opaqueObjectCount, transparentObjectCount) = CountFrameObjectMetrics();
+        var (frameObjectCount, opaqueObjectCount, transparentObjectCount) = CountFrameObjectMetrics(renderSolidGeometry);
         var renderOpaqueGeometry = renderSolidGeometry && opaqueObjectCount > 0;
         var renderTransparentGeometry = renderSolidGeometry && transparentObjectCount > 0;
         var stages = new List<RenderPipelineStage>
@@ -555,15 +555,20 @@ public partial class VideraEngine
         return features;
     }
 
-    private (int frameObjectCount, int opaqueObjectCount, int transparentObjectCount) CountFrameObjectMetrics()
+    private (int frameObjectCount, int opaqueObjectCount, int transparentObjectCount) CountFrameObjectMetrics(bool renderSolidGeometry)
     {
-        var frameObjectCount = 0;
+        var frameObjectCount = _renderWorld.SceneObjects.Count;
+
+        if (!renderSolidGeometry)
+        {
+            return (frameObjectCount, 0, 0);
+        }
+
         var opaqueObjectCount = 0;
         var transparentObjectCount = 0;
 
         foreach (var obj in _renderWorld.SceneObjects)
         {
-            frameObjectCount++;
             if (obj.HasOpaqueGeometry)
             {
                 opaqueObjectCount++;
