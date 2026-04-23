@@ -249,8 +249,10 @@ public partial class VideraEngine
                 continue;
             }
 
-            RenderSolidObject(obj, shouldLog, transparentPass: false);
-            opaqueObjectCount++;
+            if (RenderSolidObject(obj, shouldLog, transparentPass: false))
+            {
+                opaqueObjectCount++;
+            }
         }
 
         return opaqueObjectCount;
@@ -266,12 +268,16 @@ public partial class VideraEngine
 
         _resources.CommandExecutor!.SetPipeline(_resources.TransparentMeshPipeline!);
         _resources.CommandExecutor.SetDepthState(testEnabled: true, writeEnabled: false);
+        var transparentObjectCount = 0;
 
         try
         {
             foreach (var obj in transparentObjects)
             {
-                RenderSolidObject(obj, shouldLog, transparentPass: true);
+                if (RenderSolidObject(obj, shouldLog, transparentPass: true))
+                {
+                    transparentObjectCount++;
+                }
             }
         }
         finally
@@ -280,10 +286,10 @@ public partial class VideraEngine
             _resources.CommandExecutor.SetPipeline(_resources.MeshPipeline!);
         }
 
-        return transparentObjects.Count;
+        return transparentObjectCount;
     }
 
-    private void RenderSolidObject(Object3D obj, bool shouldLog, bool transparentPass)
+    private bool RenderSolidObject(Object3D obj, bool shouldLog, bool transparentPass)
     {
         if (obj.VertexBuffer == null || obj.IndexBuffer == null || obj.WorldBuffer == null)
         {
@@ -292,7 +298,7 @@ public partial class VideraEngine
                 Log.SkippingObjectMissingBuffers(_logger, obj.Name);
             }
 
-            return;
+            return false;
         }
 
         obj.UpdateUniforms(_resources.CommandExecutor!);
@@ -313,7 +319,7 @@ public partial class VideraEngine
         if (segments.Length == 0)
         {
             DrawSegment(obj, obj.MaterialAlpha, transparentPass, firstIndex: 0, indexCount: obj.IndexCount);
-            return;
+            return true;
         }
 
         for (var i = 0; i < segments.Length; i++)
@@ -327,6 +333,8 @@ public partial class VideraEngine
 
             DrawSegment(obj, segment.Alpha, transparentPass, segment.StartIndex, segment.IndexCount);
         }
+
+        return true;
     }
 
     private void DrawSegment(
