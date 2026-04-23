@@ -6,6 +6,7 @@ using Videra.Avalonia.Runtime.Scene;
 using Videra.Core.Geometry;
 using Videra.Core.Graphics;
 using Videra.Core.Graphics.Abstractions;
+using Videra.Core.Rendering;
 using Xunit;
 
 namespace Videra.Core.IntegrationTests.Rendering;
@@ -87,6 +88,29 @@ public sealed class VideraViewSessionBridgeIntegrationTests
         bridge.OnSizeChanged(256, 128, 1f);
         session.OrchestrationSnapshot.Inputs.Width.Should().Be(256u);
         session.OrchestrationSnapshot.Inputs.Height.Should().Be(128u);
+    }
+
+    [Fact]
+    public void NativeHandleCreate_SynchronizesHostSurfaceThroughSharedSessionPath()
+    {
+        using var engine = new VideraEngine();
+        using var session = new RenderSession(
+            engine,
+            backendFactory: static _ => new TrackingNativeBackend());
+        var backendOptions = new VideraBackendOptions
+        {
+            PreferredBackend = GraphicsBackendPreference.D3D11,
+            AllowSoftwareFallback = true
+        };
+        var bridge = CreateBridge(session, backendOptions, new VideraDiagnosticsOptions());
+
+        bridge.OnNativeHandleCreated(new IntPtr(0x44), "XWayland", true, "compat fallback", 320, 180, 1f);
+
+        session.OrchestrationSnapshot.State.Should().Be(RenderSessionState.Ready);
+        session.OrchestrationSnapshot.Inputs.RequestedBackend.Should().Be(GraphicsBackendPreference.D3D11);
+        session.OrchestrationSnapshot.Inputs.Width.Should().Be(320u);
+        session.OrchestrationSnapshot.Inputs.Height.Should().Be(180u);
+        session.HandleState.IsBound.Should().BeTrue();
     }
 
     [Fact]

@@ -86,17 +86,7 @@ internal sealed class RenderSessionOrchestrator : IDisposable
             return false;
         }
 
-        if (_inputs.RequestedBackend != preference && IsReady)
-        {
-            Suspend();
-        }
-
-        _inputs = _inputs with
-        {
-            RequestedBackend = preference,
-            BackendOptions = backendOptions
-        };
-
+        ApplyBackendRequest(preference, backendOptions);
         return TryInitialize();
     }
 
@@ -107,45 +97,10 @@ internal sealed class RenderSessionOrchestrator : IDisposable
             return false;
         }
 
-        if (handle == IntPtr.Zero)
+        if (!ApplyHandleBinding(handle))
         {
-            if (_handleState.IsBound)
-            {
-                _handleState = _handleState.Clear();
-                _inputs = _inputs with
-                {
-                    Handle = IntPtr.Zero,
-                    HandleBound = false
-                };
-
-                if (IsReady && !IsSoftwareBackend)
-                {
-                    Suspend();
-                }
-            }
-
-            TransitionToWaitingState();
             return false;
         }
-
-        if (_handleState.Generation == 0)
-        {
-            _handleState = RenderSessionHandle.Create(handle);
-        }
-        else if (_handleState.Handle != handle)
-        {
-            _handleState = _handleState.Rebind(handle);
-            if (IsReady && !IsSoftwareBackend)
-            {
-                Suspend();
-            }
-        }
-
-        _inputs = _inputs with
-        {
-            Handle = handle,
-            HandleBound = true
-        };
 
         return TryInitialize();
     }
@@ -157,20 +112,39 @@ internal sealed class RenderSessionOrchestrator : IDisposable
             return false;
         }
 
-        _inputs = _inputs with
-        {
-            Width = width,
-            Height = height,
-            RenderScale = renderScale
-        };
-        _engine.RenderScale = renderScale;
+        ApplyRenderMetrics(width, height, renderScale);
 
         if (!IsReady)
         {
             return TryInitialize();
         }
 
-        _engine.Resize(width, height);
+        return false;
+    }
+
+    internal bool SynchronizeHostSurface(
+        GraphicsBackendPreference preference,
+        IntPtr handle,
+        uint width,
+        uint height,
+        float renderScale,
+        RenderSessionBackendOptions? backendOptions = null)
+    {
+        if (_state == RenderSessionState.Disposed || width == 0 || height == 0)
+        {
+            return false;
+        }
+
+        _engine.RenderScale = renderScale;
+        ApplyHandleBinding(handle);
+        ApplyBackendRequest(preference, backendOptions);
+        ApplyRenderMetrics(width, height, renderScale);
+
+        if (!IsReady)
+        {
+            return TryInitialize();
+        }
+
         return false;
     }
 
@@ -388,6 +362,81 @@ internal sealed class RenderSessionOrchestrator : IDisposable
         _state = requiresNativeHandle && !_handleState.IsBound
             ? RenderSessionState.WaitingForHandle
             : RenderSessionState.Detached;
+    }
+
+    private void ApplyBackendRequest(GraphicsBackendPreference preference, RenderSessionBackendOptions? backendOptions)
+    {
+        if (_inputs.RequestedBackend != preference && IsReady)
+        {
+            Suspend();
+        }
+
+        _inputs = _inputs with
+        {
+            RequestedBackend = preference,
+            BackendOptions = backendOptions
+        };
+    }
+
+    private bool ApplyHandleBinding(IntPtr handle)
+    {
+        if (handle == IntPtr.Zero)
+        {
+            if (_handleState.IsBound)
+            {
+                _handleState = _handleState.Clear();
+                _inputs = _inputs with
+                {
+                    Handle = IntPtr.Zero,
+                    HandleBound = false
+                };
+
+                if (IsReady && !IsSoftwareBackend)
+                {
+                    Suspend();
+                }
+            }
+
+            TransitionToWaitingState();
+            return false;
+        }
+
+        if (_handleState.Generation == 0)
+        {
+            _handleState = RenderSessionHandle.Create(handle);
+        }
+        else if (_handleState.Handle != handle)
+        {
+            _handleState = _handleState.Rebind(handle);
+            if (IsReady && !IsSoftwareBackend)
+            {
+                Suspend();
+            }
+        }
+
+        _inputs = _inputs with
+        {
+            Handle = handle,
+            HandleBound = true
+        };
+
+        return true;
+    }
+
+    private void ApplyRenderMetrics(uint width, uint height, float renderScale)
+    {
+        _inputs = _inputs with
+        {
+            Width = width,
+            Height = height,
+            RenderScale = renderScale
+        };
+        _engine.RenderScale = renderScale;
+
+        if (IsReady)
+        {
+            _engine.Resize(width, height);
+        }
     }
 
     private static bool RequiresNativeHandleWithOverrides(GraphicsBackendRequest request)

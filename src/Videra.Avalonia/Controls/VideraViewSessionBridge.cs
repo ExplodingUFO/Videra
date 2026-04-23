@@ -105,11 +105,15 @@ internal sealed class VideraViewSessionBridge
         RuntimeTraceLog.Write($"VideraViewSessionBridge.OnNativeHandleCreated handle=0x{handle.ToInt64():X}");
         var wasReady = _session.IsReady;
         _session.SetDisplayServerDiagnostics(resolvedDisplayServer, fallbackUsed, fallbackReason);
-        _session.BindHandle(handle);
 
         var backendOptions = CreateBackendOptionsSnapshot();
-        _session.Attach(backendOptions.PreferredBackend, backendOptions);
-        _session.Resize(widthPx, heightPx, renderScale);
+        _session.SynchronizeHostSurface(
+            backendOptions.PreferredBackend,
+            handle,
+            widthPx,
+            heightPx,
+            renderScale,
+            backendOptions);
 
         return !wasReady && _session.IsReady;
     }
@@ -284,8 +288,13 @@ internal sealed class VideraViewSessionBridge
     {
         var wasReady = _session.IsReady;
         var backendOptions = CreateBackendOptionsSnapshot();
-        _session.Attach(backendOptions.PreferredBackend, backendOptions);
-        _session.Resize(widthPx, heightPx, renderScale);
+        _session.SynchronizeHostSurface(
+            backendOptions.PreferredBackend,
+            _session.HandleState.IsBound ? _session.HandleState.Handle : IntPtr.Zero,
+            widthPx,
+            heightPx,
+            renderScale,
+            backendOptions);
         return !wasReady && _session.IsReady;
     }
 

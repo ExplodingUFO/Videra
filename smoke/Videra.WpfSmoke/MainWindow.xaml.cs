@@ -71,9 +71,12 @@ public partial class MainWindow : Window
 
             var renderMetrics = GetRenderMetrics();
 
-            _orchestrator.Attach(GraphicsBackendPreference.D3D11);
-            _orchestrator.BindHandle(handle);
-            _orchestrator.Resize(renderMetrics.Width, renderMetrics.Height, renderMetrics.RenderScale);
+            _orchestrator.SynchronizeHostSurface(
+                GraphicsBackendPreference.D3D11,
+                handle,
+                renderMetrics.Width,
+                renderMetrics.Height,
+                renderMetrics.RenderScale);
 
             if (!_orchestrator.IsReady)
             {
