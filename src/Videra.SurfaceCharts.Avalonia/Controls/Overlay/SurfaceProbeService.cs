@@ -73,10 +73,8 @@ internal static class SurfaceProbeService
         var sampleIndexX = Math.Clamp((int)Math.Floor(probeRequest.SampleX), 0, metadata.Width - 1);
         var sampleIndexY = Math.Clamp((int)Math.Floor(probeRequest.SampleY), 0, metadata.Height - 1);
 
-        foreach (var tile in loadedTiles
-                     .OrderByDescending(static tile => tile.Key.LevelX + tile.Key.LevelY)
-                     .ThenByDescending(static tile => tile.Key.LevelX)
-                     .ThenByDescending(static tile => tile.Key.LevelY))
+        SurfaceTile? bestTile = null;
+        foreach (var tile in loadedTiles)
         {
             if (sampleIndexX < tile.Bounds.StartX || sampleIndexX >= tile.Bounds.EndXExclusive)
             {
@@ -88,25 +86,50 @@ internal static class SurfaceProbeService
                 continue;
             }
 
-            if (TryResolveInterpolatedValue(tile, probeRequest.SampleX, probeRequest.SampleY, out var interpolatedValue))
+            if (bestTile is null || HasHigherProbePriority(tile, bestTile))
             {
-                return SurfaceProbeInfo.FromResolvedSample(metadata, tile, probeRequest, interpolatedValue);
+                bestTile = tile;
             }
-
-            if (tile.Bounds.Width == tile.Width && tile.Bounds.Height == tile.Height)
-            {
-                return null;
-            }
-
-            if (!TryResolveDiscreteValue(tile, probeRequest.SampleX, probeRequest.SampleY, out var discreteValue))
-            {
-                return null;
-            }
-
-            return SurfaceProbeInfo.FromResolvedSample(metadata, tile, probeRequest, discreteValue);
         }
 
-        return null;
+        if (bestTile is null)
+        {
+            return null;
+        }
+
+        if (TryResolveInterpolatedValue(bestTile, probeRequest.SampleX, probeRequest.SampleY, out var interpolatedValue))
+        {
+            return SurfaceProbeInfo.FromResolvedSample(metadata, bestTile, probeRequest, interpolatedValue);
+        }
+
+        if (bestTile.Bounds.Width == bestTile.Width && bestTile.Bounds.Height == bestTile.Height)
+        {
+            return null;
+        }
+
+        if (!TryResolveDiscreteValue(bestTile, probeRequest.SampleX, probeRequest.SampleY, out var discreteValue))
+        {
+            return null;
+        }
+
+        return SurfaceProbeInfo.FromResolvedSample(metadata, bestTile, probeRequest, discreteValue);
+    }
+
+    private static bool HasHigherProbePriority(SurfaceTile candidate, SurfaceTile currentBest)
+    {
+        var candidateLevelPriority = candidate.Key.LevelX + candidate.Key.LevelY;
+        var currentBestLevelPriority = currentBest.Key.LevelX + currentBest.Key.LevelY;
+        if (candidateLevelPriority != currentBestLevelPriority)
+        {
+            return candidateLevelPriority > currentBestLevelPriority;
+        }
+
+        if (candidate.Key.LevelX != currentBest.Key.LevelX)
+        {
+            return candidate.Key.LevelX > currentBest.Key.LevelX;
+        }
+
+        return candidate.Key.LevelY > currentBest.Key.LevelY;
     }
 
     private static bool TryResolveDiscreteValue(

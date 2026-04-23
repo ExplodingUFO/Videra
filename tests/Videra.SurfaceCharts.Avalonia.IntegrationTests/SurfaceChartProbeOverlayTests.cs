@@ -45,6 +45,31 @@ public sealed class SurfaceChartProbeOverlayTests
     }
 
     [Fact]
+    public Task ProbeUpdate_RepeatedSameScreenPosition_DoesNotReplaceOverlayState()
+    {
+        return AvaloniaHeadlessTestSession.RunAsync(async () =>
+        {
+            var source = new ScriptedSurfaceTileSource(SurfaceChartViewLifecycleTests.CreateMetadata(), defaultTileValue: 7f);
+            var view = new SurfaceChartView();
+
+            view.Measure(new Size(256, 128));
+            view.Arrange(new Rect(0, 0, 256, 128));
+            view.Viewport = new SurfaceViewport(128, 64, 256, 128);
+            view.Source = source;
+
+            await SurfaceChartTestHelpers.WaitForLoadedTileValuesAsync(view, [7f]);
+
+            UpdateProbeScreenPosition(view, new Point(64, 32));
+
+            var initialState = GetOverlayState(view);
+            UpdateProbeScreenPosition(view, new Point(64, 32)).Should().BeFalse();
+
+            var repeatedState = GetOverlayState(view);
+            repeatedState.Should().BeSameAs(initialState);
+        });
+    }
+
+    [Fact]
     public Task SourceWithoutCommittedTiles_PresentsNoDataOverlayState()
     {
         return AvaloniaHeadlessTestSession.RunAsync(async () =>
@@ -704,14 +729,14 @@ public sealed class SurfaceChartProbeOverlayTests
         GetPropertyValue(state, "HoveredProbeScreenPosition").Should().BeNull();
     }
 
-    private static void UpdateProbeScreenPosition(SurfaceChartView view, Point probeScreenPosition)
+    private static bool UpdateProbeScreenPosition(SurfaceChartView view, Point probeScreenPosition)
     {
         var method = typeof(SurfaceChartView).GetMethod(
             "UpdateProbeScreenPosition",
             BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
 
         method.Should().NotBeNull("Task 9 requires a narrow control-side probe update path.");
-        method!.Invoke(view, [probeScreenPosition]);
+        return (bool)method!.Invoke(view, [probeScreenPosition])!;
     }
 
     private static object GetOverlayState(SurfaceChartView view)

@@ -31,9 +31,15 @@ internal sealed class SurfaceChartOverlayCoordinator
         _viewSize = viewSize;
     }
 
-    public void UpdateProbeScreenPosition(Point probeScreenPosition)
+    public bool UpdateProbeScreenPosition(Point probeScreenPosition)
     {
+        if (_probeScreenPosition.HasValue && _probeScreenPosition.Value == probeScreenPosition)
+        {
+            return false;
+        }
+
         _probeScreenPosition = probeScreenPosition;
+        return true;
     }
 
     public SurfaceProbeInfo? GetHoveredProbe() => ProbeState.HoveredProbe;
