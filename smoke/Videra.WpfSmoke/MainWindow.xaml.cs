@@ -161,6 +161,7 @@ public partial class MainWindow : Window
             .AppendLine($"LastFrameObjectCount: {snapshot.LastPipelineSnapshot?.FrameObjectCount ?? 0}")
             .AppendLine($"LastFrameOpaqueObjectCount: {snapshot.LastPipelineSnapshot?.OpaqueObjectCount ?? 0}")
             .AppendLine($"LastFrameTransparentObjectCount: {snapshot.LastPipelineSnapshot?.TransparentObjectCount ?? 0}")
+            .AppendLine($"EmissiveNormalProofObjectName: {SmokeSceneFactory.EmissiveNormalProofObjectName}")
             .AppendLine($"SupportedRenderFeatureNames: {supportedFeatures}")
             .AppendLine($"TransparentFeatureStatus: {CurrentTransparentFeatureStatus}")
             .AppendLine($"UsesSoftwarePresentationCopy: {snapshot.UsesSoftwarePresentationCopy}")
@@ -192,9 +193,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        var factory = _orchestrator.ResourceFactory
-            ?? throw new InvalidOperationException("WPF smoke reached ready state without a resource factory.");
-        _engine.AddObject(SmokeSceneFactory.CreateWhiteQuad(factory));
+        _engine.AddObject(SmokeSceneFactory.CreateEmissiveNormalProofObject());
         _sceneSeeded = true;
     }
 
