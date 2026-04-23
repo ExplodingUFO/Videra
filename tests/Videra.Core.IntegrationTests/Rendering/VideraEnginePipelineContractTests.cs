@@ -28,6 +28,9 @@ public sealed class VideraEnginePipelineContractTests
         engine.LastPipelineSnapshot!.Profile.Should().Be(RenderPipelineProfile.Standard);
         engine.LastPipelineSnapshot.ActiveFeatures.Should().Be(RenderFeatureSet.Opaque | RenderFeatureSet.Overlay);
         engine.LastPipelineSnapshot.FeatureNames.Should().Equal("Opaque", "Overlay");
+        engine.LastPipelineSnapshot.FrameObjectCount.Should().Be(1);
+        engine.LastPipelineSnapshot.OpaqueObjectCount.Should().Be(1);
+        engine.LastPipelineSnapshot.TransparentObjectCount.Should().Be(0);
         engine.LastPipelineSnapshot.Stages.Should().Equal(
             RenderPipelineStage.PrepareFrame,
             RenderPipelineStage.BindSharedFrameState,
@@ -79,6 +82,9 @@ public sealed class VideraEnginePipelineContractTests
         engine.LastPipelineSnapshot.ActiveFeatures.Should().Be(RenderFeatureSet.Overlay);
         engine.LastPipelineSnapshot.FeatureNames.Should().Equal("Overlay");
         engine.LastPipelineSnapshot.EffectiveWireframeMode.Should().Be(WireframeMode.WireframeOnly);
+        engine.LastPipelineSnapshot.FrameObjectCount.Should().Be(1);
+        engine.LastPipelineSnapshot.OpaqueObjectCount.Should().Be(0);
+        engine.LastPipelineSnapshot.TransparentObjectCount.Should().Be(0);
         engine.LastPipelineSnapshot.Stages.Should().Contain(RenderPipelineStage.WireframePass);
         engine.LastPipelineSnapshot.Stages.Should().NotContain(RenderPipelineStage.SolidGeometryPass);
     }
@@ -100,6 +106,30 @@ public sealed class VideraEnginePipelineContractTests
         engine.LastPipelineSnapshot.Should().NotBeNull();
         engine.LastPipelineSnapshot!.ActiveFeatures.Should().Be(RenderFeatureSet.Transparent);
         engine.LastPipelineSnapshot.FeatureNames.Should().Equal("Transparent");
+        engine.LastPipelineSnapshot.FrameObjectCount.Should().Be(1);
+        engine.LastPipelineSnapshot.OpaqueObjectCount.Should().Be(0);
+        engine.LastPipelineSnapshot.TransparentObjectCount.Should().Be(1);
         engine.LastPipelineSnapshot.Stages.Should().Contain(RenderPipelineStage.SolidGeometryPass);
+    }
+
+    [Fact]
+    public void Draw_WithDeferredTransparentGeometry_DoesNotCountSkippedObjects()
+    {
+        using var backend = new SoftwareBackend();
+        backend.Initialize(IntPtr.Zero, 200, 200);
+        using var engine = new VideraEngine();
+        engine.Initialize(backend);
+        engine.Resize(200, 200);
+        engine.Grid.IsVisible = false;
+        engine.ShowAxis = false;
+        engine.AddObject(DemoMeshFactory.CreateBlendedQuad(new RgbaFloat(1f, 0f, 0f, 0.5f), Vector3.Zero), uploadIfPossible: false);
+
+        engine.Draw();
+
+        engine.LastPipelineSnapshot.Should().NotBeNull();
+        engine.LastPipelineSnapshot!.ActiveFeatures.Should().Be(RenderFeatureSet.Transparent);
+        engine.LastPipelineSnapshot.FrameObjectCount.Should().Be(1);
+        engine.LastPipelineSnapshot.OpaqueObjectCount.Should().Be(0);
+        engine.LastPipelineSnapshot.TransparentObjectCount.Should().Be(0);
     }
 }

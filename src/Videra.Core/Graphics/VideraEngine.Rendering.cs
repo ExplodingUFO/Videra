@@ -105,6 +105,8 @@ public partial class VideraEngine
     private void ExecuteFramePlan(RenderFramePlan plan, bool shouldLog)
     {
         var executedStages = new List<RenderPipelineStage>(plan.PlannedStages.Count);
+        var opaqueObjectCount = 0;
+        var transparentObjectCount = 0;
         InvokeFrameHooks(RenderFrameHookPoint.FrameBegin, plan, lastPipelineSnapshot: null);
 
         using (BeginFrame())
@@ -123,7 +125,9 @@ public partial class VideraEngine
 
             if (plan.RenderSolidGeometry)
             {
-                ExecutePassSlot(RenderPassSlot.SolidGeometry, plan, shouldLog);
+                var solidObjectCounts = ExecutePassSlot(RenderPassSlot.SolidGeometry, plan, shouldLog);
+                opaqueObjectCount = solidObjectCounts.opaqueObjectCount;
+                transparentObjectCount = solidObjectCounts.transparentObjectCount;
                 executedStages.Add(RenderPipelineStage.SolidGeometryPass);
             }
 
@@ -142,6 +146,7 @@ public partial class VideraEngine
 
         executedStages.Add(RenderPipelineStage.PresentFrame);
 
+        var frameObjectCount = _renderWorld.SceneObjects.Count;
         LastPipelineSnapshot = new RenderPipelineSnapshot(
             plan.Profile,
             plan.ActiveFeatures,
@@ -150,6 +155,9 @@ public partial class VideraEngine
             plan.RenderSolidGeometry,
             plan.RenderWireframe,
             plan.RenderAxis,
+            frameObjectCount,
+            opaqueObjectCount,
+            transparentObjectCount,
             executedStages);
         InvokeFrameHooks(RenderFrameHookPoint.FrameEnd, plan, LastPipelineSnapshot);
     }
@@ -211,7 +219,7 @@ public partial class VideraEngine
         _resources.CommandExecutor!.SetPipeline(_resources.MeshPipeline!);
     }
 
-    private void RenderSolidObjects(bool shouldLog, WireframeMode effectiveWireframeMode)
+    private (int opaqueObjectCount, int transparentObjectCount) RenderSolidObjects(bool shouldLog, WireframeMode effectiveWireframeMode)
     {
         bool shouldRenderSolid = effectiveWireframeMode != WireframeMode.WireframeOnly;
 
@@ -222,15 +230,18 @@ public partial class VideraEngine
 
         if (!shouldRenderSolid)
         {
-            return;
+            return (0, 0);
         }
 
-        RenderOpaqueObjects(shouldLog);
-        RenderTransparentObjects(shouldLog);
+        var opaqueObjectCount = RenderOpaqueObjects(shouldLog);
+        var transparentObjectCount = RenderTransparentObjects(shouldLog);
+        return (opaqueObjectCount, transparentObjectCount);
     }
 
-    private void RenderOpaqueObjects(bool shouldLog)
+    private int RenderOpaqueObjects(bool shouldLog)
     {
+        var opaqueObjectCount = 0;
+
         foreach (var obj in _renderWorld.SceneObjects)
         {
             if (!obj.HasOpaqueGeometry)
@@ -238,26 +249,32 @@ public partial class VideraEngine
                 continue;
             }
 
-            RenderSolidObject(obj, shouldLog, transparentPass: false);
+            if (RenderSolidObject(obj, shouldLog, transparentPass: false))
+            {
+                opaqueObjectCount++;
+            }
         }
+
+        return opaqueObjectCount;
     }
 
-    private void RenderTransparentObjects(bool shouldLog)
+    private int RenderTransparentObjects(bool shouldLog)
     {
         var transparentObjects = GetTransparentObjectsInRenderOrder();
         if (transparentObjects.Count == 0)
         {
-            return;
+            return 0;
         }
 
         _resources.CommandExecutor!.SetPipeline(_resources.TransparentMeshPipeline!);
         _resources.CommandExecutor.SetDepthState(testEnabled: true, writeEnabled: false);
+        var transparentObjectCount = 0;
 
         try
         {
             foreach (var obj in transparentObjects)
             {
-                RenderSolidObject(obj, shouldLog, transparentPass: true);
+                transparentObjectCount += RenderSolidObject(obj, shouldLog, transparentPass: true) ? 1 : 0;
             }
         }
         finally
@@ -265,9 +282,11 @@ public partial class VideraEngine
             _resources.CommandExecutor.ResetDepthState();
             _resources.CommandExecutor.SetPipeline(_resources.MeshPipeline!);
         }
+
+        return transparentObjectCount;
     }
 
-    private void RenderSolidObject(Object3D obj, bool shouldLog, bool transparentPass)
+    private bool RenderSolidObject(Object3D obj, bool shouldLog, bool transparentPass)
     {
         if (obj.VertexBuffer == null || obj.IndexBuffer == null || obj.WorldBuffer == null)
         {
@@ -276,7 +295,7 @@ public partial class VideraEngine
                 Log.SkippingObjectMissingBuffers(_logger, obj.Name);
             }
 
-            return;
+            return false;
         }
 
         obj.UpdateUniforms(_resources.CommandExecutor!);
@@ -297,7 +316,7 @@ public partial class VideraEngine
         if (segments.Length == 0)
         {
             DrawSegment(obj, obj.MaterialAlpha, transparentPass, firstIndex: 0, indexCount: obj.IndexCount);
-            return;
+            return true;
         }
 
         for (var i = 0; i < segments.Length; i++)
@@ -311,6 +330,8 @@ public partial class VideraEngine
 
             DrawSegment(obj, segment.Alpha, transparentPass, segment.StartIndex, segment.IndexCount);
         }
+
+        return true;
     }
 
     private void DrawSegment(
@@ -405,7 +426,7 @@ public partial class VideraEngine
         }
     }
 
-    private void ExecutePassSlot(RenderPassSlot slot, RenderFramePlan plan, bool shouldLog)
+    private (int opaqueObjectCount, int transparentObjectCount) ExecutePassSlot(RenderPassSlot slot, RenderFramePlan plan, bool shouldLog)
     {
         BindDefaultAlphaMaskState();
 
@@ -432,13 +453,15 @@ public partial class VideraEngine
         };
 
         var hasReplacement = _passRegistry.TryGetReplacement(slot, out var replacement);
+        var opaqueObjectCount = 0;
+        var transparentObjectCount = 0;
         if (hasReplacement)
         {
             replacement!.Contribute(context);
         }
         else
         {
-            ExecuteBuiltInPassSlot(slot, context);
+            (opaqueObjectCount, transparentObjectCount) = ExecuteBuiltInPassSlot(slot, context);
 
             if (slot == RenderPassSlot.Wireframe)
             {
@@ -453,24 +476,25 @@ public partial class VideraEngine
         {
             contributor.Contribute(context);
         }
+
+        return (opaqueObjectCount, transparentObjectCount);
     }
 
-    private void ExecuteBuiltInPassSlot(RenderPassSlot slot, RenderPassContributionContext context)
+    private (int opaqueObjectCount, int transparentObjectCount) ExecuteBuiltInPassSlot(RenderPassSlot slot, RenderPassContributionContext context)
     {
         switch (slot)
         {
             case RenderPassSlot.Grid:
                 RenderGridPass(context.ShouldLog);
-                break;
+                return (0, 0);
             case RenderPassSlot.SolidGeometry:
-                RenderSolidObjects(context.ShouldLog, context.FramePlan.EffectiveWireframeMode);
-                break;
+                return RenderSolidObjects(context.ShouldLog, context.FramePlan.EffectiveWireframeMode);
             case RenderPassSlot.Wireframe:
                 RenderWireframes(context.FramePlan.EffectiveWireframeMode);
-                break;
+                return (0, 0);
             case RenderPassSlot.Axis:
                 _axisRenderer.Draw(_resources.CommandExecutor!, _resources.MeshPipeline!, Camera, _width, _height, RenderScale);
-                break;
+                return (0, 0);
             default:
                 throw new ArgumentOutOfRangeException(nameof(slot), slot, "Unknown render pass slot.");
         }

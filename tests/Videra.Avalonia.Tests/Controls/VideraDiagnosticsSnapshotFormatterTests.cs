@@ -25,6 +25,9 @@ public sealed class VideraDiagnosticsSnapshotFormatterTests
             RenderPipelineProfile = "Standard",
             LastFrameStageNames = ["PrepareFrame", "PresentFrame"],
             LastFrameFeatureNames = ["Opaque", "Overlay"],
+            LastFrameObjectCount = 2,
+            LastFrameOpaqueObjectCount = 1,
+            LastFrameTransparentObjectCount = 1,
             SupportedRenderFeatureNames = ["Opaque", "Transparent", "Overlay", "Picking", "Screenshot"],
             TransparentFeatureStatus = VideraBackendDiagnostics.CurrentTransparentFeatureStatus,
             SceneDocumentVersion = 3,
@@ -60,6 +63,9 @@ public sealed class VideraDiagnosticsSnapshotFormatterTests
         snapshot.Should().Contain("RenderPipelineProfile: Standard");
         snapshot.Should().Contain("LastFrameStageNames: PrepareFrame, PresentFrame");
         snapshot.Should().Contain("LastFrameFeatureNames: Opaque, Overlay");
+        snapshot.Should().Contain("LastFrameObjectCount: 2");
+        snapshot.Should().Contain("LastFrameOpaqueObjectCount: 1");
+        snapshot.Should().Contain("LastFrameTransparentObjectCount: 1");
         snapshot.Should().Contain("SupportedRenderFeatureNames: Opaque, Transparent, Overlay, Picking, Screenshot");
         snapshot.Should().Contain($"TransparentFeatureStatus: {VideraBackendDiagnostics.CurrentTransparentFeatureStatus}");
         snapshot.Should().Contain("PendingSceneUploadBytes: 4096");

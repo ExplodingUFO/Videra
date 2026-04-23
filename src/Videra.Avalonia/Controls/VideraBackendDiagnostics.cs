@@ -22,6 +22,9 @@ public sealed class VideraBackendDiagnostics
             DisplayServerFallbackReason = null,
             LastFrameStageNames = Array.Empty<string>(),
             LastFrameFeatureNames = Array.Empty<string>(),
+            LastFrameObjectCount = 0,
+            LastFrameOpaqueObjectCount = 0,
+            LastFrameTransparentObjectCount = 0,
             SupportedRenderFeatureNames = (
                 RenderFeatureSet.Opaque |
                 RenderFeatureSet.Transparent |
@@ -119,6 +122,21 @@ public sealed class VideraBackendDiagnostics
     /// Gets the active render-feature names observed on the last rendered frame.
     /// </summary>
     public IReadOnlyList<string>? LastFrameFeatureNames { get; init; }
+
+    /// <summary>
+    /// Gets the total number of scene objects owned by the runtime when the last frame snapshot was captured.
+    /// </summary>
+    public int LastFrameObjectCount { get; init; }
+
+    /// <summary>
+    /// Gets the number of opaque scene objects owned by the runtime when the last frame snapshot was captured.
+    /// </summary>
+    public int LastFrameOpaqueObjectCount { get; init; }
+
+    /// <summary>
+    /// Gets the number of transparent scene objects owned by the runtime when the last frame snapshot was captured.
+    /// </summary>
+    public int LastFrameTransparentObjectCount { get; init; }
 
     /// <summary>
     /// Gets the public render-feature contract names exposed through the viewer diagnostics surface.

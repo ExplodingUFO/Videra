@@ -103,6 +103,7 @@ public sealed class VideraViewSessionBridgeIntegrationTests
         var bridge = CreateBridge(session, backendOptions, new VideraDiagnosticsOptions());
 
         bridge.OnSizeChanged(128, 96, 1f);
+        session.Engine.AddObject(DemoMeshFactory.CreateWhiteQuad(session.ResourceFactory!));
         session.RenderOnce();
 
         var snapshot = session.OrchestrationSnapshot.LastPipelineSnapshot;
@@ -115,6 +116,9 @@ public sealed class VideraViewSessionBridgeIntegrationTests
         diagnostics.LastFrameStageNames.Should().Contain("PresentFrame");
         diagnostics.LastFrameFeatureNames.Should().NotBeNull();
         diagnostics.LastFrameFeatureNames.Should().Contain("Overlay");
+        diagnostics.LastFrameObjectCount.Should().Be(1);
+        diagnostics.LastFrameOpaqueObjectCount.Should().Be(1);
+        diagnostics.LastFrameTransparentObjectCount.Should().Be(0);
         diagnostics.SupportedRenderFeatureNames.Should().NotBeNull();
         diagnostics.SupportedRenderFeatureNames.Should().Contain("Opaque");
         diagnostics.SupportedRenderFeatureNames.Should().Contain("Transparent");

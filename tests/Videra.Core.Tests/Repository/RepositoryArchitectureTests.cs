@@ -222,7 +222,7 @@ public sealed class RepositoryArchitectureTests
         renderingSource.Should().Contain("public void Draw()");
         renderingSource.Should().Contain("private RenderFramePlan CreateFramePlan");
         renderingSource.Should().Contain("private void ExecuteFramePlan");
-        renderingSource.Should().Contain("private void RenderSolidObjects");
+        renderingSource.Should().Contain("RenderSolidObjects");
         renderPipelineStageSource.Should().Contain("PrepareFrame");
         renderPipelineStageSource.Should().Contain("PresentFrame");
     }

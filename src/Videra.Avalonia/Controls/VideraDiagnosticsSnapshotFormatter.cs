@@ -46,6 +46,9 @@ public static class VideraDiagnosticsSnapshotFormatter
         builder.AppendLine($"RenderPipelineProfile: {FormatNullable(diagnostics.RenderPipelineProfile)}");
         builder.AppendLine($"LastFrameStageNames: {FormatList(diagnostics.LastFrameStageNames)}");
         builder.AppendLine($"LastFrameFeatureNames: {FormatList(diagnostics.LastFrameFeatureNames)}");
+        builder.AppendLine($"LastFrameObjectCount: {diagnostics.LastFrameObjectCount}");
+        builder.AppendLine($"LastFrameOpaqueObjectCount: {diagnostics.LastFrameOpaqueObjectCount}");
+        builder.AppendLine($"LastFrameTransparentObjectCount: {diagnostics.LastFrameTransparentObjectCount}");
         builder.AppendLine($"SupportedRenderFeatureNames: {FormatList(diagnostics.SupportedRenderFeatureNames)}");
         builder.AppendLine($"TransparentFeatureStatus: {FormatNullable(diagnostics.TransparentFeatureStatus)}");
         builder.AppendLine($"SceneDocumentVersion: {diagnostics.SceneDocumentVersion}");

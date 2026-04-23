@@ -13,6 +13,9 @@ public sealed class RenderPipelineSnapshot
         bool renderSolidGeometry,
         bool renderWireframe,
         bool renderAxis,
+        int frameObjectCount,
+        int opaqueObjectCount,
+        int transparentObjectCount,
         IEnumerable<RenderPipelineStage> executedStages)
     {
         Profile = profile;
@@ -22,6 +25,9 @@ public sealed class RenderPipelineSnapshot
         RenderSolidGeometry = renderSolidGeometry;
         RenderWireframe = renderWireframe;
         RenderAxis = renderAxis;
+        FrameObjectCount = frameObjectCount;
+        OpaqueObjectCount = opaqueObjectCount;
+        TransparentObjectCount = transparentObjectCount;
         Stages = Array.AsReadOnly(executedStages.ToArray());
         StageNames = Array.AsReadOnly(Stages.Select(static stage => stage.ToString()).ToArray());
         FeatureNames = Array.AsReadOnly(activeFeatures.ToFeatureNames().ToArray());
@@ -40,6 +46,12 @@ public sealed class RenderPipelineSnapshot
     public bool RenderWireframe { get; }
 
     public bool RenderAxis { get; }
+
+    public int FrameObjectCount { get; }
+
+    public int OpaqueObjectCount { get; }
+
+    public int TransparentObjectCount { get; }
 
     public ReadOnlyCollection<RenderPipelineStage> Stages { get; }
 
