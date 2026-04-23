@@ -53,12 +53,14 @@ The `Scene Pipeline Lab` copy in the side panel is deliberate. It projects three
 - `SceneDocument` is the runtime scene truth, not a mirror of `Engine.SceneObjects`
 - imported assets stay CPU-side until a ready resource factory uploads them through the scene upload queue
 - imported scene truth stays backend-neutral as `SceneNode`, `MeshPrimitive`, `MaterialInstance`, `Texture2D`, and `Sampler` catalogs
-- the retained scene/material runtime baseline is static glTF/PBR: UV-backed texture bindings plus metallic-roughness and alpha semantics, emissive and normal-map-ready inputs, and tangent-aware retained mesh data
+- the retained scene/material runtime baseline is static glTF/PBR: UV-backed texture bindings plus per-primitive non-Blend material participation, metallic-roughness and alpha semantics, emissive and normal-map-ready inputs, occlusion texture binding/strength, `KHR_texture_transform` offset/scale/rotation plus texture-coordinate override, and tangent-aware retained mesh data
+- this is imported-asset/runtime truth only; renderer/shader/backend consumption of occlusion or texture-transform metadata is not being claimed here
+- mixed Blend/non-Blend imports remain guarded until transparent primitives are independently sortable
 - repeated unchanged imports can reuse retained imported scene assets while they remain retained instead of rebuilding ad hoc importer-shaped state
 - backend diagnostics surface `document version`, `pending`, `resident`, `dirty`, and `failed` scene-upload counts
 - backend diagnostics also surface `SupportedRenderFeatureNames`, `LastFrameFeatureNames`, and `TransparentFeatureStatus` so the public viewer path shows `Opaque`, `Transparent`, `Overlay`, `Picking`, and `Screenshot` truth directly, with `Transparent` meaning alpha mask rendering plus deterministic alpha blend ordering for per-object carried alpha sources
 - backend diagnostics explain fallback/rebind behavior while the scene survives backend recreation
-- animation, skeletons, and morph targets are deliberately outside this demo path
+- animation, skeletons, morph targets, lights, shadows, post-processing, extra UI adapters, and Wayland/OpenGL/WebGL/backend API expansion are deliberately outside this demo path
 
 ## Run
 

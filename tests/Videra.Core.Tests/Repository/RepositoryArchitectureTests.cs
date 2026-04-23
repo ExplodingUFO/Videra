@@ -83,7 +83,10 @@ public sealed class RepositoryArchitectureTests
         "metallic-roughness",
         "normal-map-ready",
         "tangent-aware",
-        "morph targets"
+        "occlusion texture binding/strength",
+        "KHR_texture_transform",
+        "texture-coordinate override",
+        "non-Blend"
     };
 
     private static readonly string[] StaticGltfPbrReuseSymbols =
@@ -375,6 +378,18 @@ public sealed class RepositoryArchitectureTests
         var hostingBoundary = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "hosting-boundary.md"));
         var coreReadme = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Core", "README.md"));
         var avaloniaReadme = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Avalonia", "README.md"));
+        const string ReadmeNonGoalsSentence =
+            "Explicit exclusions remain: animation, skeletons, morph targets, mixers, lights, shadows, post-processing, extra UI adapters, and Wayland/OpenGL/WebGL/backend API expansion.";
+        const string ArchitectureNonGoalsSentence =
+            "Animation, skeletons, morph targets, lights, shadows, post-processing, extra UI adapters, Wayland/OpenGL/WebGL/backend API expansion, and broader advanced-runtime feature expansion stay deferred.";
+        const string PackageMatrixNonGoalsSentence =
+            "`animation`, `skeletons`, `morph targets`, `lights`, `shadows`, `post-processing`, `extra UI adapters`, and `Wayland/OpenGL/WebGL/backend API expansion` stay outside the current product promise.";
+        const string HostingBoundaryNonGoalsSentence =
+            "That boundary is intentionally static-scene-only. Animation, skeletons, morph targets, lights, shadows, post-processing, extra UI adapters, Wayland/OpenGL/WebGL/backend API expansion, and other non-static scene systems stay out of scope here.";
+        const string CoreReadmeNonGoalsSentence =
+            "This does not imply an `OpenGL` product promise. Animation, skeletons, morph targets, lights, shadows, post-processing, extra UI adapters, and Wayland/OpenGL/WebGL/backend API expansion remain outside this baseline.";
+        const string AvaloniaReadmeNonGoalsSentence =
+            "Animation, skeletons, morph targets, lights, shadows, post-processing, extra UI adapters, and Wayland/OpenGL/WebGL/backend API expansion remain out of scope for this line.";
 
         readme.Should().Contain("static glTF/PBR");
         architecture.Should().Contain("static glTF/PBR");
@@ -390,6 +405,13 @@ public sealed class RepositoryArchitectureTests
                 document.Should().Contain(symbol);
             }
         }
+
+        readme.Should().Contain(ReadmeNonGoalsSentence);
+        architecture.Should().Contain(ArchitectureNonGoalsSentence);
+        packageMatrix.Should().Contain(PackageMatrixNonGoalsSentence);
+        hostingBoundary.Should().Contain(HostingBoundaryNonGoalsSentence);
+        coreReadme.Should().Contain(CoreReadmeNonGoalsSentence);
+        avaloniaReadme.Should().Contain(AvaloniaReadmeNonGoalsSentence);
 
         foreach (var document in new[] { readme, architecture, packageMatrix, hostingBoundary, avaloniaReadme })
         {

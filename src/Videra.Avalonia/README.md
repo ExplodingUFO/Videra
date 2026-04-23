@@ -17,7 +17,7 @@ Current status: `alpha`. `Videra.Avalonia` is the entry package for Avalonia app
 - Map pointer input to camera interaction
 - Manage native-host integration for Windows, Linux, and macOS
 
-On that shipped viewer path, the current material/runtime baseline is static glTF/PBR: retained imported assets carry UV-backed texture bindings, metallic-roughness and alpha semantics, emissive and normal-map-ready inputs, tangent-aware mesh data, and repeated unchanged imports that can reuse retained imported scene assets while those retained assets stay available. Animation, skeletons, morph targets, lights, and shadows remain out of scope for this line.
+On that shipped viewer path, the current material/runtime baseline is static glTF/PBR: retained imported assets carry UV-backed texture bindings, per-primitive non-Blend material participation, metallic-roughness and alpha semantics, emissive and normal-map-ready inputs, occlusion texture binding/strength, `KHR_texture_transform` offset/scale/rotation plus texture-coordinate override, tangent-aware mesh data, and repeated unchanged imports that can reuse retained imported scene assets while those retained assets stay available. This is imported-asset/runtime truth only; renderer/shader/backend consumption of occlusion or texture-transform metadata is not being claimed here. Mixed Blend/non-Blend imports remain guarded until transparent primitives are independently sortable. Animation, skeletons, morph targets, lights, shadows, post-processing, extra UI adapters, and Wayland/OpenGL/WebGL/backend API expansion remain out of scope for this line.
 
 ## Install
 
@@ -107,7 +107,7 @@ Contract notes:
 - Scene loading uses retained imported assets and `SceneDocument` truth so backend rebind can restore scene resources without a steady-state software staging path.
 - `SceneDocumentStore`, `SceneDeltaPlanner`, `SceneResidencyRegistry`, and `SceneUploadQueue` stay internal to `Videra.Avalonia`; they let `VideraViewRuntime` publish document deltas, queue uploads, and expose read-only scene residency counts through `BackendDiagnostics`.
 - The retained asset catalog behind that path is `SceneNode` + `MeshPrimitive` + `MaterialInstance` + `Texture2D` + `Sampler`, surfaced to hosts as viewer/runtime truth rather than backend-specific resources.
-- The shipped static glTF/PBR baseline on that path stays viewer-first rather than backend-first: repeated unchanged imports can reuse retained imported scene assets while they remain retained, while animation, skeletons, and morph targets stay deferred.
+- The shipped static glTF/PBR baseline on that path stays viewer-first rather than backend-first: repeated unchanged imports can reuse retained imported scene assets while they remain retained, while animation, skeletons, morph targets, and other excluded runtime breadth stay deferred.
 - `package discovery` and `plugin loading` remain out of scope.
 
 ## Interaction Contract

@@ -4,7 +4,7 @@
 
 Videra 是一套面向 .NET 桌面应用的跨平台 3D 查看组件库。公开 viewer 路径以 Avalonia 为先，核心运行时真相由 `SceneDocument` 和 imported asset catalog 承载。
 
-当前 shipped viewer 路径保持 static-scene-only：`SceneDocument` 保留 backend-neutral 的 imported scene truth，进入运行时的资产仍以 `SceneNode`、`MeshPrimitive`、`MaterialInstance`、`Texture2D` 和 `Sampler` 为中心；动画、骨骼、morph targets、灯光和阴影仍在当前边界之外。
+当前 shipped viewer 路径保持 static-scene-only：`SceneDocument` 保留 backend-neutral 的 imported scene truth，进入运行时的资产仍以 `SceneNode`、`MeshPrimitive`、`MaterialInstance`、`Texture2D` 和 `Sampler` 为中心；其中还包括 per-primitive non-Blend material participation、occlusion texture binding/strength，以及 `KHR_texture_transform` 的 offset/scale/rotation 和 texture-coordinate override。这里描述的是 imported-asset/runtime truth，并不宣称 renderer/shader/backend 会消费这些 metadata；mixed Blend/non-Blend imports 仍会被 guard，直到 transparent primitives 可以独立排序。动画、骨骼、morph targets、灯光、阴影、post-processing、额外 UI adapter，以及 Wayland/OpenGL/WebGL/backend API 扩展仍在当前边界之外。
 
 surface-chart 模块家族与 `VideraView` 相互独立。它面向离线大矩阵、曲面图和时频图一类可视化场景；`Videra.SurfaceCharts.Demo` 保持 repository-only，只用于参考和 support repro。
 当前公开控制层包括 `SurfaceChartView`、`WaterfallChartView` 和 `ScatterChartView` 三个 Avalonia 控件；`Videra.SurfaceCharts.Processing` 只在 surface/cache-backed 路径需要，不是每条 chart 路径都必须安装。独立 Demo 现在通过 repo-owned `Try next: Analytics proof` 和 `Try next: Scatter proof` 也覆盖分析与 scatter 路径。

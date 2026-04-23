@@ -32,11 +32,13 @@ The shipped viewer path keeps one direct runtime model:
 - `Videra.Import.*` parses files into backend-neutral `ImportedSceneAsset` catalogs.
 - Those catalogs are composed from `SceneNode`, `MeshPrimitive`, `MaterialInstance`, `Texture2D`, and `Sampler`.
 - `Videra.Avalonia` retains them in `SceneDocument`; public scene-entry truth is surfaced through `SceneDocumentEntry`, `ModelLoadResult.Entry`, and `ModelLoadBatchResult.Entries`, while `SceneResidencyRegistry` and `SceneUploadQueue` decide when the active backend can realize them.
-- The shipped viewer/runtime baseline on that path is static glTF/PBR: UV-backed texture bindings, metallic-roughness and alpha semantics, emissive and normal-map-ready inputs, tangent-aware mesh data, and repeated unchanged imports that can reuse retained imported scene assets while those retained assets stay available.
+- The shipped viewer/runtime baseline on that path is static glTF/PBR: UV-backed texture bindings, per-primitive non-Blend material participation, metallic-roughness and alpha semantics, emissive and normal-map-ready inputs, occlusion texture binding/strength, `KHR_texture_transform` offset/scale/rotation plus texture-coordinate override, tangent-aware mesh data, and repeated unchanged imports that can reuse retained imported scene assets while those retained assets stay available.
+- This is imported-asset/runtime truth only; renderer/shader/backend consumption of occlusion or texture-transform metadata is not being claimed here.
+- Mixed Blend/non-Blend imports remain guarded until transparent primitives are independently sortable.
 - The shared render-feature vocabulary on that path is `Opaque`, `Transparent`, `Overlay`, `Picking`, and `Screenshot`, where `Transparent` means alpha mask rendering plus deterministic alpha blend ordering for per-object carried alpha sources.
 - Host apps observe the result through public diagnostics and capability surfaces rather than through importer-specific or backend-specific types.
 
-That boundary is intentionally static-scene-only. Animation, skeletons, morph targets, lights, shadows, and other non-static scene systems stay out of scope here.
+That boundary is intentionally static-scene-only. Animation, skeletons, morph targets, lights, shadows, post-processing, extra UI adapters, Wayland/OpenGL/WebGL/backend API expansion, and other non-static scene systems stay out of scope here.
 
 ## Internal Seam Owners
 

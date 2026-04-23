@@ -14,7 +14,7 @@ Current status: `alpha`. This package is the right starting point only for core-
 - Camera, grid, axis, and wireframe helpers
 - Render-style presets and software fallback rendering
 
-The current shipped viewer/runtime baseline is static glTF/PBR: imported assets can carry UV-backed texture bindings, metallic-roughness and alpha semantics, emissive and normal-map-ready inputs, and tangent-aware mesh data through explicit runtime contracts. This does not imply an `OpenGL` product promise. Animation, skeletons, morph targets, lights, and shadows remain outside this baseline.
+The current shipped viewer/runtime baseline is static glTF/PBR: imported assets can carry UV-backed texture bindings, per-primitive non-Blend material participation, metallic-roughness and alpha semantics, emissive and normal-map-ready inputs, occlusion texture binding/strength, `KHR_texture_transform` offset/scale/rotation plus texture-coordinate override, and tangent-aware mesh data through explicit runtime contracts. This is imported-asset/runtime truth only; renderer/shader/backend consumption of occlusion or texture-transform metadata is not being claimed here. Mixed Blend/non-Blend imports remain guarded until transparent primitives are independently sortable. This does not imply an `OpenGL` product promise. Animation, skeletons, morph targets, lights, shadows, post-processing, extra UI adapters, and Wayland/OpenGL/WebGL/backend API expansion remain outside this baseline.
 
 Use [docs/capability-matrix.md](../../docs/capability-matrix.md) for the explicit layer matrix.
 

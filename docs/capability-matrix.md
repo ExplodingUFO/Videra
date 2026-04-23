@@ -15,6 +15,7 @@ The `1.0` line is a native desktop viewer/runtime for .NET applications, centere
 | Viewer-first inspection workflows | Yes | Picking, measurement, clipping, snapshot export, inspection-state capture/restore, and inspection bundles are part of the product surface |
 | Narrow public extensibility | Yes | Pass contributors, frame hooks, capability snapshots, and backend diagnostics are part of the shipped viewer contract |
 | Transparency baseline | Yes | Alpha mask rendering and deterministic alpha blend ordering are shipped for per-object carried alpha sources; broader transparency work remains deferred |
+| Static-scene material/runtime truth | Yes | Imported assets carry per-primitive non-Blend material participation, occlusion texture binding/strength, `KHR_texture_transform` offset/scale/rotation, and texture-coordinate override as imported-asset/runtime truth; mixed Blend/non-Blend imports remain guarded until transparent primitives are independently sortable |
 | `SurfaceCharts` package family | Yes | `SurfaceChartView`, `WaterfallChartView`, `ScatterChartView`, chart overlays/interaction, and the `Videra.SurfaceCharts.*` package line are part of the shipped `1.0` story; `Videra.SurfaceCharts.Processing` is only needed for the surface/cache-backed path, and `Videra.SurfaceCharts.Demo` remains the repository reference app |
 
 ## Explicitly Deferred After 1.0
@@ -22,7 +23,7 @@ The `1.0` line is a native desktop viewer/runtime for .NET applications, centere
 | Capability area | Deferred status | Reason it is not in `1.0` |
 | --- | --- | --- |
 | General engine/runtime parity | Deferred | The current target is an embeddable viewer/runtime, not a broad engine surface |
-| Static-scene material/runtime breadth | Deferred | The shipped viewer/runtime stays on the current static glTF/PBR baseline |
+| Static-scene material/runtime breadth | Deferred | Broader static-scene breadth beyond the shipped imported-asset/runtime truth remains out of scope until the viewer boundary expands; animation, skeleton, morph, and mixer APIs, lights, shadows, post-processing, extra UI adapters, and Wayland/OpenGL/WebGL/backend API expansion stay deferred |
 | Animation, skeleton, morph, and mixer APIs | Deferred | These are engine-style feature lines, not part of the current viewer-first scope |
 | Lights, shadows, environment maps, and post-processing | Deferred | These are outside the current static-scene viewer/runtime baseline |
 | Extra UI adapters beyond Avalonia | Deferred | Avalonia remains the current public UI adapter while the runtime boundary is tightened |
