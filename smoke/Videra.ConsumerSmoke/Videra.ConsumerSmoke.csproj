@@ -20,6 +20,7 @@
       <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Videra.Avalonia" Version="$(VideraConsumerPackageVersion)" />
+    <PackageReference Include="Videra.Import.Obj" Version="$(VideraConsumerPackageVersion)" />
   </ItemGroup>
 
   <ItemGroup Condition="$([MSBuild]::IsOSPlatform('Windows'))">

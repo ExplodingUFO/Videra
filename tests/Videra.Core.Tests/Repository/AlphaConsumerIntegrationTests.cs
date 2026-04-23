@@ -22,6 +22,7 @@ public sealed class AlphaConsumerIntegrationTests
         var smokeProject = File.ReadAllText(smokeProjectPath);
         var surfaceChartsSmokeProject = File.ReadAllText(surfaceChartsSmokeProjectPath);
         smokeProject.Should().Contain("<PackageReference Include=\"Videra.Avalonia\"");
+        smokeProject.Should().Contain("<PackageReference Include=\"Videra.Import.Obj\"");
         smokeProject.Should().Contain("<PackageReference Include=\"Videra.Platform.Windows\"");
         smokeProject.Should().Contain("<PackageReference Include=\"Videra.Platform.Linux\"");
         smokeProject.Should().Contain("<PackageReference Include=\"Videra.Platform.macOS\"");
@@ -29,6 +30,10 @@ public sealed class AlphaConsumerIntegrationTests
         surfaceChartsSmokeProject.Should().Contain("<PackageReference Include=\"Videra.SurfaceCharts.Avalonia\"");
         surfaceChartsSmokeProject.Should().Contain("<PackageReference Include=\"Videra.SurfaceCharts.Processing\"");
         surfaceChartsSmokeProject.Should().NotContain("<ProjectReference");
+
+        var smokeWindowCodeBehind = File.ReadAllText(Path.Combine(repositoryRoot, "smoke", "Videra.ConsumerSmoke", "Views", "MainWindow.axaml.cs"));
+        smokeWindowCodeBehind.Should().Contain("using Videra.Import.Obj;");
+        smokeWindowCodeBehind.Should().Contain("ModelImporter = static path => ObjModelImporter.Import(path)");
 
         var smokeWorkflow = File.ReadAllText(smokeWorkflowPath);
         smokeWorkflow.Should().Contain("pull_request:");
