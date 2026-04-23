@@ -36,7 +36,7 @@ pwsh -File ./scripts/verify.ps1 -Configuration Release -IncludeNativeMacOS
 - `VIDERA_BACKEND` 只影响后端选择偏好，不会安装缺失的平台包，也不会替代 matching-host 原生验证
 - 如果问题与场景构成有关，请把 `LastFrameObjectCount`、`LastFrameOpaqueObjectCount`、`LastFrameTransparentObjectCount` 一并提供；这些是 backend-neutral 场景诊断，不是 draw-call 指标
 - 如果问题里包含一次快照导出，还要附上 `LastSnapshotExportPath` 和 `LastSnapshotExportStatus`，这样 support 可以知道最后一次导出写到了哪里，以及是否成功
-- 如果问题涉及 imported-material fidelity，请同时提供最小复现资产，以及 occlusion texture binding/strength 和 `KHR_texture_transform` 的细节；这些属于 imported-asset/runtime 合同，不是 renderer/shader/backend 消费承诺
+- 如果问题涉及 imported-material fidelity，请同时提供最小复现资产，以及 baseColor 纹理使用、occlusion texture binding/strength 和 `KHR_texture_transform` 的细节；这些值现在会直接影响 shipped static-scene renderer path 的输出
 
 ## 常见问题
 

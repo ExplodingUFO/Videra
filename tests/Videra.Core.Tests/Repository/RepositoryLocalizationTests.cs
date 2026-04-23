@@ -226,6 +226,28 @@ public sealed class RepositoryLocalizationTests
     }
 
     [Fact]
+    public void ChineseStaticGltfPbrDocs_ShouldDescribeRendererConsumptionBoundary()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var readme = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "zh-CN", "README.md"));
+        var index = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "zh-CN", "index.md"));
+        var architecture = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "zh-CN", "ARCHITECTURE.md"));
+        var troubleshooting = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "zh-CN", "troubleshooting.md"));
+        var coreModule = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "zh-CN", "modules", "videra-core.md"));
+        var avaloniaModule = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "zh-CN", "modules", "videra-avalonia.md"));
+        var demoModule = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "zh-CN", "modules", "demo.md"));
+
+        foreach (var document in new[] { readme, index, architecture, troubleshooting, coreModule, avaloniaModule, demoModule })
+        {
+            document.Should().Contain("baseColor");
+            document.Should().Contain("occlusion texture binding/strength");
+            document.Should().Contain("KHR_texture_transform");
+            document.Should().NotContain("不宣称 renderer/shader/backend 消费这些 metadata");
+            document.Should().NotContain("并不宣称 renderer/shader/backend 会消费这些 metadata");
+        }
+    }
+
+    [Fact]
     public void ChineseCoreModule_ShouldMirrorPipelineVocabulary_AndDiagnosticsTruth()
     {
         var coreModule = File.ReadAllText(Path.Combine(GetRepositoryRoot(), "docs", "zh-CN", "modules", "videra-core.md"));
