@@ -26,8 +26,7 @@ internal static class MaterialTextureNormalBaker
 
         if (!hasTangents)
         {
-            throw new InvalidOperationException(
-                $"Scene material '{material.Name}' requires tangent data for normal texture sampling but the mesh does not provide it.");
+            return Vector3.Normalize(transformedNormal);
         }
 
         var normalSample = MaterialTextureColorBaker.ResolveTextureSample(
@@ -45,7 +44,15 @@ internal static class MaterialTextureNormalBaker
 
         var normal = Vector3.Normalize(transformedNormal);
         var tangent = Vector3.Normalize(new Vector3(transformedTangent.X, transformedTangent.Y, transformedTangent.Z));
+        if (float.IsNaN(tangent.X) || float.IsNaN(tangent.Y) || float.IsNaN(tangent.Z))
+        {
+            return normal;
+        }
         var bitangent = Vector3.Normalize(Vector3.Cross(normal, tangent) * transformedTangent.W);
+        if (float.IsNaN(bitangent.X) || float.IsNaN(bitangent.Y) || float.IsNaN(bitangent.Z))
+        {
+            return normal;
+        }
 
         var worldNormal =
             (tangent * tangentSpaceNormal.X) +

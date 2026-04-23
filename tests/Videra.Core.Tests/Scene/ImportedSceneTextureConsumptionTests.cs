@@ -137,6 +137,29 @@ public sealed class ImportedSceneTextureConsumptionTests
             .Should().Equal(sceneObject.MeshPayload!.Vertices.Select(static vertex => vertex.Normal));
     }
 
+    [Fact]
+    public void CreateDeferredRuntimeObjects_WithoutTangents_KeepsOriginalNormals()
+    {
+        var asset = CreateNormalMappedAsset(
+            coordinateSet: 0,
+            transform: MaterialTextureTransform.Identity,
+            textureCoordinateSets:
+            [
+                new MeshTextureCoordinateSet(0, [new Vector2(0.75f, 0f), new Vector2(0.75f, 0f), new Vector2(0.75f, 0f)])
+            ],
+            includeTangents: false);
+
+        var sceneObject = SceneObjectFactory.CreateDeferred(asset);
+        var runtimeObjects = SceneObjectFactory.CreateDeferredRuntimeObjects(asset);
+
+        sceneObject.MeshPayload.Should().NotBeNull();
+        runtimeObjects.Should().ContainSingle();
+        runtimeObjects[0].MeshPayload.Should().NotBeNull();
+
+        sceneObject.MeshPayload!.Vertices.Should().OnlyContain(vertex => IsApproximately(vertex.Normal, Vector3.UnitZ));
+        runtimeObjects[0].MeshPayload!.Vertices.Should().OnlyContain(vertex => IsApproximately(vertex.Normal, Vector3.UnitZ));
+    }
+
     private static ImportedSceneAsset CreateTexturedAsset(
         int coordinateSet,
         MaterialTextureTransform transform,
@@ -246,7 +269,8 @@ public sealed class ImportedSceneTextureConsumptionTests
     private static ImportedSceneAsset CreateNormalMappedAsset(
         int coordinateSet,
         MaterialTextureTransform transform,
-        MeshTextureCoordinateSet[] textureCoordinateSets)
+        MeshTextureCoordinateSet[] textureCoordinateSets,
+        bool includeTangents = true)
     {
         var normalTexture = new Texture2D(
             Texture2DId.New(),
@@ -282,12 +306,13 @@ public sealed class ImportedSceneTextureConsumptionTests
                 new VertexPositionNormalColor(new Vector3(0f, 0.5f, 0f), Vector3.UnitZ, RgbaFloat.White)
             ],
             Indices = [0u, 1u, 2u],
-            Tangents =
-            [
-                new Vector4(Vector3.UnitX, 1f),
-                new Vector4(Vector3.UnitX, 1f),
-                new Vector4(Vector3.UnitX, 1f)
-            ],
+            Tangents = includeTangents
+                ? [
+                    new Vector4(Vector3.UnitX, 1f),
+                    new Vector4(Vector3.UnitX, 1f),
+                    new Vector4(Vector3.UnitX, 1f)
+                ]
+                : Array.Empty<Vector4>(),
             TextureCoordinateSets = textureCoordinateSets,
             Topology = MeshTopology.Triangles
         };
