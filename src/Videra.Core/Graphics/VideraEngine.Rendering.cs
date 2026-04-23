@@ -62,7 +62,9 @@ public partial class VideraEngine
         var renderSolidGeometry = effectiveWireframeMode != WireframeMode.WireframeOnly;
         var renderWireframe = effectiveWireframeMode != WireframeMode.None || renderOverlayWireframe;
         var renderAxis = ShowAxis;
-        var (renderOpaqueGeometry, renderTransparentGeometry) = DetermineSolidGeometryFeatures(renderSolidGeometry);
+        var (frameObjectCount, opaqueObjectCount, transparentObjectCount) = CountFrameObjectMetrics();
+        var renderOpaqueGeometry = renderSolidGeometry && opaqueObjectCount > 0;
+        var renderTransparentGeometry = renderSolidGeometry && transparentObjectCount > 0;
         var stages = new List<RenderPipelineStage>
         {
             RenderPipelineStage.PrepareFrame,
@@ -99,6 +101,9 @@ public partial class VideraEngine
             renderSolidGeometry,
             renderWireframe,
             renderAxis,
+            frameObjectCount,
+            opaqueObjectCount,
+            transparentObjectCount,
             stages);
     }
 
@@ -150,6 +155,9 @@ public partial class VideraEngine
             plan.RenderSolidGeometry,
             plan.RenderWireframe,
             plan.RenderAxis,
+            plan.FrameObjectCount,
+            plan.OpaqueObjectCount,
+            plan.TransparentObjectCount,
             executedStages);
         InvokeFrameHooks(RenderFrameHookPoint.FrameEnd, plan, LastPipelineSnapshot);
     }
@@ -547,28 +555,27 @@ public partial class VideraEngine
         return features;
     }
 
-    private (bool hasOpaqueGeometry, bool hasTransparentGeometry) DetermineSolidGeometryFeatures(bool renderSolidGeometry)
+    private (int frameObjectCount, int opaqueObjectCount, int transparentObjectCount) CountFrameObjectMetrics()
     {
-        if (!renderSolidGeometry)
-        {
-            return (false, false);
-        }
-
-        var hasOpaqueGeometry = false;
-        var hasTransparentGeometry = false;
+        var frameObjectCount = 0;
+        var opaqueObjectCount = 0;
+        var transparentObjectCount = 0;
 
         foreach (var obj in _renderWorld.SceneObjects)
         {
-            hasOpaqueGeometry |= obj.HasOpaqueGeometry;
-            hasTransparentGeometry |= obj.HasTransparentGeometry;
-
-            if (hasOpaqueGeometry && hasTransparentGeometry)
+            frameObjectCount++;
+            if (obj.HasOpaqueGeometry)
             {
-                break;
+                opaqueObjectCount++;
+            }
+
+            if (obj.HasTransparentGeometry)
+            {
+                transparentObjectCount++;
             }
         }
 
-        return (hasOpaqueGeometry, hasTransparentGeometry);
+        return (frameObjectCount, opaqueObjectCount, transparentObjectCount);
     }
 
     private List<Object3D> GetTransparentObjectsInRenderOrder()

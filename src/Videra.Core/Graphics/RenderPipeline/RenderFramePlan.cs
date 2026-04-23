@@ -10,4 +10,7 @@ public sealed record RenderFramePlan(
     bool RenderSolidGeometry,
     bool RenderWireframe,
     bool RenderAxis,
+    int FrameObjectCount,
+    int OpaqueObjectCount,
+    int TransparentObjectCount,
     IReadOnlyList<RenderPipelineStage> PlannedStages);
