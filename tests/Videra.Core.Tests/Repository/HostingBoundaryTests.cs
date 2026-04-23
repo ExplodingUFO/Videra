@@ -96,10 +96,7 @@ public sealed class HostingBoundaryTests
 
         gltfReferences.Should().BeEquivalentTo("Videra.Core.csproj");
         objReferences.Should().BeEquivalentTo("Videra.Core.csproj");
-        avaloniaReferences.Should().BeEquivalentTo(
-            "Videra.Core.csproj",
-            "Videra.Import.Gltf.csproj",
-            "Videra.Import.Obj.csproj");
+        avaloniaReferences.Should().BeEquivalentTo("Videra.Core.csproj");
         windowsReferences.Should().BeEquivalentTo("Videra.Core.csproj");
         linuxReferences.Should().BeEquivalentTo("Videra.Core.csproj");
         macosReferences.Should().BeEquivalentTo("Videra.Core.csproj");

@@ -68,7 +68,7 @@ dotnet add package Videra.Import.Gltf
 dotnet add package Videra.Import.Obj
 ```
 
-`Videra.Avalonia` 默认安装路径已经传递依赖 `Videra.Import.Gltf` 与 `Videra.Import.Obj`，所以常规 viewer 使用 `LoadModelAsync(...)` / `LoadModelsAsync(...)` 时不需要额外再装这两个包；只有 `Videra.Core` 单独消费路径才需要显式添加。
+如果要在 Avalonia 路径上使用 importer-backed 的 `LoadModelAsync(...)` / `LoadModelsAsync(...)`，还需要显式安装 `Videra.Import.Gltf` 和/或 `Videra.Import.Obj`，并通过 `VideraViewOptions.ModelImporter` 接入对应导入器；`Videra.Avalonia` 默认安装路径不再隐式携带这些包。
 
 当前 surface-chart 的公开安装入口是：
 

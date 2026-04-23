@@ -114,6 +114,7 @@ public sealed class RepositoryReleaseReadinessTests
         releasing.Should().Contain("hosting-boundary.md");
 
         packageMatrix.Should().Contain("exactly one matching `Videra.Platform.*` package");
+        packageMatrix.Should().Contain("optional `Videra.Import.Gltf` / `Videra.Import.Obj` plus `VideraViewOptions.ModelImporter`");
         supportMatrix.Should().Contain("exactly one matching `Videra.Platform.*` package");
         releasePolicy.Should().Contain("exactly one matching `Videra.Platform.*` package");
         releasing.Should().Contain("exactly one matching `Videra.Platform.*` package");
@@ -141,13 +142,15 @@ public sealed class RepositoryReleaseReadinessTests
         chineseReadme.Should().Contain("Videra.Import.Obj");
         chineseReadme.Should().Contain("Videra.SurfaceCharts.Avalonia");
         chineseReadme.Should().Contain("Videra.SurfaceCharts.Processing");
-        chineseReadme.Should().Contain("传递依赖");
+        chineseReadme.Should().Contain("显式安装");
+        chineseReadme.Should().Contain("ModelImporter");
         chineseReadme.Should().Contain("LoadModelAsync");
         chineseReadme.Should().Contain("FrameAll()");
         chineseReadme.Should().Contain("ResetCamera()");
         chineseReadme.Should().Contain("BackendDiagnostics");
-        chineseIndex.Should().Contain("传递依赖");
-        chineseAvalonia.Should().Contain("传递依赖");
+        chineseIndex.Should().Contain("显式安装");
+        chineseAvalonia.Should().Contain("显式安装");
+        chineseAvalonia.Should().Contain("ModelImporter");
         chineseAvalonia.Should().Contain("LoadModelAsync");
         chineseAvalonia.Should().Contain("FrameAll()");
         chineseAvalonia.Should().Contain("ResetCamera()");
@@ -320,6 +323,7 @@ public sealed class RepositoryReleaseReadinessTests
         }
 
         avaloniaReadme.Should().Contain("VideraDiagnosticsSnapshotFormatter");
+        rootReadme.Should().Contain("ModelImporter");
         rootReadme.Should().Contain("Videra.ExtensibilitySample");
         avaloniaReadme.Should().Contain("Videra.ExtensibilitySample");
     }
@@ -461,6 +465,7 @@ public sealed class RepositoryReleaseReadinessTests
         avaloniaReadme.Should().Contain("Videra.Platform.macOS");
         avaloniaReadme.Should().Contain("PreferredBackend");
         avaloniaReadme.Should().Contain("VIDERA_BACKEND");
+        avaloniaReadme.Should().Contain("ModelImporter");
         avaloniaReadme.Should().Contain("does not install missing platform packages");
 
         var linuxReadme = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Platform.Linux", "README.md"));
