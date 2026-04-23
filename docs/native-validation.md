@@ -154,12 +154,14 @@ PowerShell:
 pwsh -File ./scripts/run-native-validation.ps1 -Platform Windows -Configuration Release
 ```
 
+The hosted Windows path runs `pwsh -File ./scripts/verify.ps1 -Configuration Release -IncludeNativeWindows`, which invokes `scripts/Invoke-WpfSmoke.ps1` and writes `wpf-smoke-diagnostics.txt` as repository-only validation/support evidence, not a public package or release artifact.
+
 ## What The Scripts Run
 
 - Linux X11: `./scripts/verify.sh --configuration Release --include-native-linux`
 - Linux Wayland-session `XWayland`: `./scripts/verify.sh --configuration Release --include-native-linux-xwayland`
 - macOS: `./scripts/verify.sh --configuration Release --include-native-macos`
-- Windows: `pwsh -File ./scripts/verify.ps1 -Configuration Release -IncludeNativeWindows`
+- Windows: `pwsh -File ./scripts/verify.ps1 -Configuration Release -IncludeNativeWindows` -> `scripts/Invoke-WpfSmoke.ps1` -> `wpf-smoke-diagnostics.txt`
 
 The PowerShell wrapper calls the equivalent `scripts/verify.ps1` entrypoint.
 

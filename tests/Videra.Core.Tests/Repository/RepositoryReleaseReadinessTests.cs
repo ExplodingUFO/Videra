@@ -106,6 +106,8 @@ public sealed class RepositoryReleaseReadinessTests
         }
 
         packageMatrix.Should().Contain("smoke/Videra.WpfSmoke");
+        packageMatrix.Should().Contain("Avalonia-first public viewer path");
+        packageMatrix.Should().Contain("not a second public UI package or release path");
         packageMatrix.Should().Contain("smoke/Videra.SurfaceCharts.ConsumerSmoke");
 
         packageMatrix.Should().Contain("hosting-boundary.md");
@@ -116,6 +118,8 @@ public sealed class RepositoryReleaseReadinessTests
         packageMatrix.Should().Contain("exactly one matching `Videra.Platform.*` package");
         packageMatrix.Should().Contain("optional `Videra.Import.Gltf` / `Videra.Import.Obj` plus `VideraViewOptions.ModelImporter`");
         supportMatrix.Should().Contain("exactly one matching `Videra.Platform.*` package");
+        supportMatrix.Should().Contain("Avalonia-first public viewer path");
+        supportMatrix.Should().Contain("not a second public UI package or release path");
         releasePolicy.Should().Contain("exactly one matching `Videra.Platform.*` package");
         releasing.Should().Contain("exactly one matching `Videra.Platform.*` package");
 
@@ -274,6 +278,7 @@ public sealed class RepositoryReleaseReadinessTests
     {
         var repositoryRoot = GetRepositoryRoot();
         var packageMatrix = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "package-matrix.md"));
+        var supportMatrix = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "support-matrix.md"));
         var releasePolicy = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "release-policy.md"));
         var releasing = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "releasing.md"));
         var publicWorkflow = File.ReadAllText(Path.Combine(repositoryRoot, ".github", "workflows", "publish-public.yml"));
@@ -282,6 +287,9 @@ public sealed class RepositoryReleaseReadinessTests
         var validatePackages = File.ReadAllText(Path.Combine(repositoryRoot, "scripts", "Validate-Packages.ps1"));
 
         packageMatrix.Should().Contain("smoke/Videra.WpfSmoke");
+        packageMatrix.Should().Contain("not a second public UI package or release path");
+        supportMatrix.Should().Contain("smoke/Videra.WpfSmoke");
+        supportMatrix.Should().Contain("Hosted and local Windows WPF smoke proof");
         releasePolicy.Should().NotContain("Videra.WpfSmoke");
         releasing.Should().NotContain("Videra.WpfSmoke");
         publicWorkflow.Should().NotContain("Videra.WpfSmoke");
