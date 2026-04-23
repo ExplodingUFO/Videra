@@ -9,10 +9,11 @@ internal sealed class SurfaceTileScheduler
 {
     private static readonly SurfaceTileKey OverviewKey = new(0, 0, 0, 0);
     private const float RefineCenterDistanceBucketPixels = 16f;
-    private const float InteractiveCenterDistanceBucketPixels = 32f;
+    private const float InteractiveCenterDistanceBucketPixels = 64f;
     private const float RefineScreenAreaBucketPixels = 512f;
-    private const float InteractiveScreenAreaBucketPixels = 2048f;
+    private const float InteractiveScreenAreaBucketPixels = 4096f;
     private const float DepthBucketStep = 0.05f;
+    private const float InteractiveDepthBucketStep = 0.1f;
 
     private readonly SurfaceTileCache _tileCache;
     private readonly SurfaceLodPolicy _lodPolicy;
@@ -282,11 +283,14 @@ internal sealed class SurfaceTileScheduler
         var screenAreaBucketSize = interactionQuality == SurfaceChartInteractionQuality.Interactive
             ? InteractiveScreenAreaBucketPixels
             : RefineScreenAreaBucketPixels;
+        var depthBucketStep = interactionQuality == SurfaceChartInteractionQuality.Interactive
+            ? InteractiveDepthBucketStep
+            : DepthBucketStep;
 
         return new SurfaceTileRequestPriority(
             footprint.IsVisible ? 0 : 1,
             QuantizeNonNegative(centerDistance, centerBucketSize),
-            QuantizeNonNegative(footprint.ViewDepth, DepthBucketStep),
+            QuantizeNonNegative(footprint.ViewDepth, depthBucketStep),
             -QuantizeNonNegative(footprint.ScreenAreaPixels, screenAreaBucketSize),
             key.LevelX + key.LevelY,
             sequence);

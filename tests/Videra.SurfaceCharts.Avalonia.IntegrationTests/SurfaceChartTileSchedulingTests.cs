@@ -241,6 +241,34 @@ public sealed class SurfaceChartTileSchedulingTests
     }
 
     [Fact]
+    public void InteractiveCameraNudge_StaysWithinStablePriorityBuckets()
+    {
+        var metadata = CreateLargeMetadata();
+        var dataWindow = new SurfaceDataWindow(0d, 0d, metadata.Width, metadata.Height);
+        var source = new RecordingSurfaceTileSource(metadata);
+        var tileCache = new SurfaceTileCache();
+        var scheduler = new SurfaceTileScheduler(tileCache, static () => { });
+        var baseCamera = SurfaceCameraPose.CreateDefault(metadata, dataWindow);
+        var nudgedCamera = new SurfaceCameraPose(
+            baseCamera.Target,
+            baseCamera.YawDegrees + 0.25d,
+            baseCamera.PitchDegrees,
+            baseCamera.Distance * 1.01d,
+            baseCamera.FieldOfViewDegrees);
+        var baseViewState = new SurfaceViewState(dataWindow, baseCamera);
+        var nudgedViewState = new SurfaceViewState(dataWindow, nudgedCamera);
+        var baseFrame = SurfaceProjectionMath.CreateCameraFrame(metadata, baseViewState, 256d, 256d, 1f);
+        var nudgedFrame = SurfaceProjectionMath.CreateCameraFrame(metadata, nudgedViewState, 256d, 256d, 1f);
+
+        scheduler.UpdateSource(source);
+
+        var basePlan = scheduler.CreateRequestPlan(baseViewState, baseFrame, new Size(256, 256), SurfaceChartInteractionQuality.Interactive);
+        var nudgedPlan = scheduler.CreateRequestPlan(nudgedViewState, nudgedFrame, new Size(256, 256), SurfaceChartInteractionQuality.Interactive);
+
+        nudgedPlan.Should().BeEquivalentTo(basePlan);
+    }
+
+    [Fact]
     public Task ViewportChange_PruneStaleDetailTiles_OnlyOverviewAndCurrentSelectionNeighborhoodRemain()
     {
         return AvaloniaHeadlessTestSession.RunAsync(async () =>
