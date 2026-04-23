@@ -22,7 +22,7 @@ The `1.0` line is a native desktop viewer/runtime for .NET applications, centere
 | Capability area | Deferred status | Reason it is not in `1.0` |
 | --- | --- | --- |
 | General engine/runtime parity | Deferred | The current target is an embeddable viewer/runtime, not a broad engine surface |
-| Static-scene material/runtime breadth | Deferred | The shipped viewer/runtime stays on the current static glTF/PBR baseline |
+| Static-scene material/runtime breadth | Yes | Imported assets carry per-primitive non-Blend material participation, occlusion texture binding/strength, `KHR_texture_transform` offset/scale/rotation, and texture-coordinate override as imported-asset/runtime truth; mixed Blend/non-Blend imports remain guarded until transparent primitives are independently sortable, and renderer/shader/backend consumption of that metadata is not being claimed here |
 | Animation, skeleton, morph, and mixer APIs | Deferred | These are engine-style feature lines, not part of the current viewer-first scope |
 | Lights, shadows, environment maps, and post-processing | Deferred | These are outside the current static-scene viewer/runtime baseline |
 | Extra UI adapters beyond Avalonia | Deferred | Avalonia remains the current public UI adapter while the runtime boundary is tightened |

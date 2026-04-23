@@ -51,6 +51,8 @@ SurfaceCharts release truth now has three explicit parts:
 - `smoke/Videra.SurfaceCharts.ConsumerSmoke` proves the packaged surface/cache-backed path and emits the packaged support-summary artifact
 - `Videra.SurfaceCharts.Demo` remains repository-only and keeps the `Start here`, `Explore next`, `Try next: Analytics proof`, `Try next: Waterfall proof`, and `Try next: Scatter proof` support-summary repro paths
 
+The viewer release truth remains imported-asset/runtime only: per-primitive non-Blend material participation, occlusion texture binding/strength, `KHR_texture_transform` offset/scale/rotation plus texture-coordinate override, and mixed Blend/non-Blend guardrails are part of the shipped viewer path, but renderer/shader/backend consumption of that metadata is not a release promise.
+
 ## Versioning
 
 - Current public baseline remains `alpha`.

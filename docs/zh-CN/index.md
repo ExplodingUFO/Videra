@@ -2,7 +2,7 @@
 
 [English](../index.md) | [中文](index.md)
 
-本页汇总 Videra 的中文文档入口，便于手动切换后继续阅读。中文导航页与英文首页保持一致：viewer/runtime 核心真相围绕 `SceneDocument` 与 imported asset catalog，当前边界保持 static-scene-only。
+本页汇总 Videra 的中文文档入口，便于手动切换后继续阅读。中文导航页与英文首页保持一致：viewer/runtime 核心真相围绕 `SceneDocument` 与 imported asset catalog，当前边界保持 static-scene-only，但 material/runtime truth 还包括 per-primitive non-Blend material participation、occlusion texture binding/strength，以及 `KHR_texture_transform` 的 offset/scale/rotation 和 texture-coordinate override；这些仍然只属于 imported-asset/runtime truth，不宣称 renderer/shader/backend 消费这些 metadata。
 
 ## 安装与分发入口
 

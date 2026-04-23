@@ -174,6 +174,7 @@ public sealed class RepositoryReleaseReadinessTests
         capabilityMatrix.Should().Contain("native desktop viewer/runtime");
         capabilityMatrix.Should().Contain("public `SurfaceCharts` package family");
         capabilityMatrix.Should().Contain("not a Three.js-style general runtime");
+        capabilityMatrix.Should().Contain("Static-scene material/runtime breadth");
         capabilityMatrix.Should().Contain("Core");
         capabilityMatrix.Should().Contain("Import");
         capabilityMatrix.Should().Contain("Backend");
@@ -182,6 +183,9 @@ public sealed class RepositoryReleaseReadinessTests
         capabilityMatrix.Should().Contain("OpenGL");
         capabilityMatrix.Should().Contain("Transparency baseline");
         capabilityMatrix.Should().Contain("Alpha mask rendering and deterministic alpha blend ordering are shipped for per-object carried alpha sources");
+        capabilityMatrix.Should().Contain("occlusion texture binding/strength");
+        capabilityMatrix.Should().Contain("KHR_texture_transform");
+        capabilityMatrix.Should().Contain("mixed Blend/non-Blend imports remain guarded");
         capabilityMatrix.Should().Contain("Videra.Import.Gltf");
         capabilityMatrix.Should().Contain("Videra.Import.Obj");
         packageMatrix.Should().Contain("Videra.Import.Gltf");

@@ -83,13 +83,28 @@ public sealed class RepositoryArchitectureTests
         "metallic-roughness",
         "normal-map-ready",
         "tangent-aware",
-        "morph targets"
+        "occlusion texture binding/strength",
+        "KHR_texture_transform",
+        "texture-coordinate override",
+        "non-Blend"
     };
 
     private static readonly string[] StaticGltfPbrReuseSymbols =
     {
         "repeated unchanged imports",
         "retained imported scene assets"
+    };
+
+    private static readonly string[] StaticGltfPbrExclusionSymbols =
+    {
+        "animation",
+        "skeletons",
+        "morph targets",
+        "lights",
+        "shadows",
+        "post-processing",
+        "extra UI adapters",
+        "Wayland/OpenGL/WebGL/backend API expansion"
     };
 
     [Fact]
@@ -396,6 +411,14 @@ public sealed class RepositoryArchitectureTests
             foreach (var symbol in StaticGltfPbrReuseSymbols)
             {
                 document.Should().Contain(symbol);
+            }
+        }
+
+        foreach (var document in new[] { readme, architecture, packageMatrix, hostingBoundary, coreReadme, avaloniaReadme })
+        {
+            foreach (var symbol in StaticGltfPbrExclusionSymbols)
+            {
+                document.Should().ContainEquivalentOf(symbol);
             }
         }
     }

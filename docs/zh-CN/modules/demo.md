@@ -56,6 +56,9 @@ var diagnostics = View3D.BackendDiagnostics;
 
 - `SceneDocument` 才是运行时场景真相
 - imported asset 会先保持 CPU / backend-neutral 状态，等 resource factory ready 后再上传
+- retained scene/material runtime truth 还包括 per-primitive non-Blend material participation、occlusion texture binding/strength，以及 `KHR_texture_transform` 的 offset/scale/rotation 和 texture-coordinate override
+- 这里描述的是 imported-asset/runtime truth，不宣称 renderer/shader/backend 消费这些 metadata
+- mixed Blend/non-Blend imports 会继续被 guard，直到 transparent primitives 可独立排序
 - backend fallback / rebind 发生时，scene truth 会被保留，而不是依赖 steady-state software staging path
 
 ## 界面说明

@@ -111,11 +111,14 @@ The viewer/runtime scene model is intentionally viewer-first instead of backend-
 The current shipped material/runtime baseline on that path is static glTF/PBR:
 
 - UV coordinates and texture references become explicit `Texture2D` and `Sampler` runtime assets.
-- `MaterialInstance` carries metallic-roughness and alpha semantics plus emissive and normal-map-ready inputs.
+- `MeshPrimitive` preserves per-primitive non-Blend material participation so imported assets can keep primitive-level material truth intact.
+- `MaterialInstance` carries metallic-roughness and alpha semantics plus emissive, occlusion texture binding/strength, and normal-map-ready inputs.
+- `MaterialTextureBinding` carries `KHR_texture_transform` offset/scale/rotation plus texture-coordinate override as imported-asset/runtime truth.
 - Imported assets retain tangent-aware mesh data as runtime truth instead of importer-only side channels.
 - For repeated unchanged imports, retained imported scene assets can be reused before upload while those retained assets stay available, instead of rebuilding ad hoc importer-shaped state.
+- Mixed Blend/non-Blend imports remain guarded until transparent primitives are independently sortable.
 
-This baseline is intentionally narrower than a general runtime surface. Animation, skeletons, morph targets, and broader advanced-runtime feature expansion stay deferred.
+This baseline is imported-asset/runtime truth only. Renderer/shader/backend consumption of occlusion or texture-transform metadata is not being claimed here, and the baseline remains narrower than a general runtime surface. Animation, skeletons, morph targets, lights, shadows, post-processing, extra UI adapters, Wayland/OpenGL/WebGL/backend API expansion, and broader advanced-runtime feature expansion stay deferred.
 
 That split is what lets backend rebind/recovery rebuild scene resources from retained scene truth instead of depending on a long-lived staging mirror in the public API.
 
