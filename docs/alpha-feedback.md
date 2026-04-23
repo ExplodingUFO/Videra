@@ -20,12 +20,12 @@ Videra is still an early alpha embeddable viewer stack. Good feedback is not jus
   - `Explore next: Cache-backed streaming` only after the first-chart path renders
   - `Try next: Analytics proof` when you need explicit-coordinate, independent-`ColorField` probe behavior for analytic path checks
   - `Try next: Waterfall proof` when you need the second control proof on the same chart shell; `Try next: Scatter proof` when you need the repo-owned scatter proof path on the same chart shell
-4. Export a diagnostics snapshot with `VideraDiagnosticsSnapshotFormatter.Format(View3D.BackendDiagnostics)` or attach the `consumer smoke` `diagnostics-snapshot.txt` artifact; if transparency is involved, include `TransparentFeatureStatus` from that snapshot so support can read the shipped transparency contract. If scene composition matters, include `LastFrameObjectCount`, `LastFrameOpaqueObjectCount`, and `LastFrameTransparentObjectCount`; those are backend-neutral scene counts, not draw-call metrics.
+4. Export a diagnostics snapshot with `VideraDiagnosticsSnapshotFormatter.Format(View3D.BackendDiagnostics)` or attach the `consumer smoke` `diagnostics-snapshot.txt` artifact; if transparency is involved, include `TransparentFeatureStatus` from that snapshot so support can read the shipped transparency contract. If scene composition matters, include `LastFrameObjectCount`, `LastFrameOpaqueObjectCount`, and `LastFrameTransparentObjectCount`; those are backend-neutral scene counts, not draw-call metrics. If a snapshot export was involved, include `LastSnapshotExportPath` and `LastSnapshotExportStatus` too.
 5. If the issue is about imported-material fidelity, include the smallest reproducer plus the relevant imported-asset/runtime details: per-primitive material participation, occlusion texture binding/strength, `KHR_texture_transform` offset/scale/rotation, and texture-coordinate override. Those fields describe imported truth, not renderer/shader/backend consumption.
 6. If the issue is visual or inspection-related, attach either:
    - a snapshot exported through `ExportSnapshotAsync(...)`, or
    - an inspection bundle exported through `VideraInspectionBundleService.ExportAsync(...)`
-     - check `CanReplayScene` and include `ReplayLimitation` whenever the bundle captured host-owned objects or other non-replayable scene state
+     - check `CanReplayScene` and include `ReplayLimitation`; they describe replayability semantics and should travel with the bundle whenever it captured host-owned objects or other non-replayable scene state
 
 ## What to include in a bug report
 
@@ -35,10 +35,11 @@ Videra is still an early alpha embeddable viewer stack. Good feedback is not jus
 - `PreferredBackend` or `VIDERA_BACKEND` value, if you overrode backend preference
 - diagnostics snapshot from `VideraDiagnosticsSnapshotFormatter`
 - `LastFrameObjectCount`, `LastFrameOpaqueObjectCount`, and `LastFrameTransparentObjectCount` when the issue depends on scene composition
+- `LastSnapshotExportPath` and `LastSnapshotExportStatus` when the report includes a snapshot export
 - exported inspection snapshot, when the issue affects clipping, measurements, labels, or camera state
 - inspection bundle directory when you need camera, clipping, measurements, annotations, and imported assets to replay together
 - `CanReplayScene` and `ReplayLimitation` from `VideraInspectionBundleService.ExportAsync(...)` whenever the bundle is exportable but not replayable
-- `SurfaceCharts support summary` from either the packaged `smoke/Videra.SurfaceCharts.ConsumerSmoke` `surfacecharts-support-summary.txt` artifact or the `Videra.SurfaceCharts.Demo` `Support summary` panel when the issue is in `area: surfacecharts`
+- `SurfaceCharts support summary` from either the packaged `smoke/Videra.SurfaceCharts.ConsumerSmoke` `surfacecharts-support-summary.txt` artifact or the `Videra.SurfaceCharts.Demo` `Support summary` panel when the issue is in `area: surfacecharts`; keep that chart-scoped support summary separate from the viewer diagnostics snapshot
 - use `Copy support summary` after reproducing `Start here: In-memory first chart`; continue to `Explore next: Cache-backed streaming` only if needed, and use `Try next: Analytics proof` for explicit-coordinate pinned-probe/analysis scenarios, `Try next: Waterfall proof` when the issue involves the second chart control, or `Try next: Scatter proof` when the issue involves the scatter control path; `ScatterChartView` is shipped in the Avalonia control line
 - SurfaceCharts demo-path choice when relevant:
   - `Start here: In-memory first chart`

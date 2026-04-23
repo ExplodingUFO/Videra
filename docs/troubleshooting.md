@@ -37,6 +37,7 @@ For `area: surfacecharts`, start from `smoke/Videra.SurfaceCharts.ConsumerSmoke`
 - `Explore next: Cache-backed streaming` is only the follow-up path after the in-memory chart already renders.
 - `Try next: Analytics proof` covers the explicit-coordinate, independent-`ColorField` and pinned-probe analytic workflow on the same shell, `Try next: Waterfall proof` is the fourth demo path, and `Try next: Scatter proof` covers the repo-owned scatter path on that same shell.
 - Use `Copy support summary` to paste the demo `Support summary` block into the issue so support has the same `ViewState`, `InteractionQuality`, `RenderingStatus`, and `OverlayOptions` contract the SurfaceCharts sample exposes.
+- Keep the SurfaceCharts `Support summary` separate from the viewer diagnostics snapshot. The chart summary is chart-scoped and does not replace `VideraDiagnosticsSnapshotFormatter` output.
 
 ## Package Selection vs Backend Preference
 
@@ -48,6 +49,7 @@ For `area: surfacecharts`, start from `smoke/Videra.SurfaceCharts.ConsumerSmoke`
 - `VIDERA_BACKEND` and `PreferredBackend` only change backend preference. `VIDERA_BACKEND` does not install missing platform packages and does not replace matching-host native validation.
 - `TransparentFeatureStatus` in diagnostics snapshots captures the shipped transparency contract: alpha mask rendering plus deterministic alpha blend ordering for per-object carried alpha sources.
 - `LastFrameObjectCount`, `LastFrameOpaqueObjectCount`, and `LastFrameTransparentObjectCount` are backend-neutral scene diagnostics, not draw-call metrics or broader renderer promises.
+- `LastSnapshotExportPath` and `LastSnapshotExportStatus` capture the most recent inspection snapshot export target and outcome when snapshot export is part of the report.
 
 ## Common Problems
 
@@ -109,6 +111,7 @@ Include:
 - Backend preference or `VIDERA_BACKEND` value
 - diagnostics snapshot from `VideraDiagnosticsSnapshotFormatter`
 - `surfacecharts-support-summary.txt` from `smoke/Videra.SurfaceCharts.ConsumerSmoke` or the `Support summary` from `Videra.SurfaceCharts.Demo` when the issue is in `area: surfacecharts`
+- `LastSnapshotExportPath` and `LastSnapshotExportStatus` when an inspection snapshot was exported
 - the exact SurfaceCharts demo path you used:
   - `Start here: In-memory first chart`
   - `Explore next: Cache-backed streaming`
@@ -121,7 +124,7 @@ Include:
 - `ViewState`, `InteractionQuality`, `RenderingStatus`, and `OverlayOptions` from the SurfaceCharts support summary when relevant
 - `TransparentFeatureStatus` from `VideraDiagnosticsSnapshotFormatter` when the issue involves transparency behavior
 - inspection bundle from `VideraInspectionBundleService.ExportAsync(...)` when you need support to replay camera, clipping, measurements, and annotations together
-- `CanReplayScene` and `ReplayLimitation` from `VideraInspectionBundleService.ExportAsync(...)` when the bundle captures host-owned objects or any other scene state that cannot be replayed on import
+- `CanReplayScene` and `ReplayLimitation` from `VideraInspectionBundleService.ExportAsync(...)` because they describe replayability semantics and should travel with any support bundle, especially when the bundle captures host-owned objects or any other scene state that cannot be replayed on import
 - `ResolvedDisplayServer`, `DisplayServerFallbackUsed`, `DisplayServerFallbackReason`, and `DisplayServerCompatibility` on Linux when relevant
 - Failing command and full error output
 - Whether the issue reproduces on the matching native host

@@ -87,7 +87,7 @@ graph TB
 
 - `VideraView.Engine`：public extensibility root，可调用 `RegisterPassContributor(...)`、`ReplacePassContributor(...)`、`RegisterFrameHook(...)`
 - `VideraView.RenderCapabilities`：公开的 Core capability snapshot
-- `VideraView.BackendDiagnostics`：公开的 backend/runtime diagnostics shell，镜像 `RenderPipelineProfile`、`LastFrameStageNames`、`LastFrameObjectCount`、`LastFrameOpaqueObjectCount`、`LastFrameTransparentObjectCount` 与 `TransparentFeatureStatus`；这些 count 是 backend-neutral 场景诊断，不是 draw-call 指标
+- `VideraView.BackendDiagnostics`：公开的 backend/runtime diagnostics shell，镜像 `RenderPipelineProfile`、`LastFrameStageNames`、`LastFrameObjectCount`、`LastFrameOpaqueObjectCount`、`LastFrameTransparentObjectCount`、`TransparentFeatureStatus`、`LastSnapshotExportPath` 与 `LastSnapshotExportStatus`；这些 count 是 backend-neutral 场景诊断，不是 draw-call 指标
 
 扩展入口的完整中文镜像见 [扩展合同](../extensibility.md)。建议直接对照 `samples/Videra.ExtensibilitySample`，按以下公开流程接入：
 
@@ -112,7 +112,7 @@ graph TB
 - `SelectionRequested` 只报告选择意图，host 决定如何更新 `SelectionState`
 - `AnnotationRequested` 可返回 object anchors 或 world-point anchors，然后由 host 创建 `VideraNodeAnnotation` 或 `VideraWorldPointAnnotation`
 - `Measure` 通过 `Measurements` 暴露轻量测量结果
-- `ClippingPlanes`、`CaptureInspectionState()`、`ApplyInspectionState(...)`、`ExportSnapshotAsync(...)` 与 `VideraInspectionBundleService` 组成 viewer-first inspection workflow
+- `ClippingPlanes`、`CaptureInspectionState()`、`ApplyInspectionState(...)`、`ExportSnapshotAsync(...)` 与 `VideraInspectionBundleService` 组成 viewer-first inspection workflow；`CanReplayScene` 和 `ReplayLimitation` 描述 bundle 的 replayability 语义
 - selection 保持 `object-level`
 - overlay responsibilities split between `3D highlight/render state` and `2D label/feedback rendering`
 
