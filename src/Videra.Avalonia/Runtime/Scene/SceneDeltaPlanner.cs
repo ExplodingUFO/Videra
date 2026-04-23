@@ -19,7 +19,7 @@ internal static class SceneDeltaPlanner
 
         var added = new List<SceneDocumentEntry>();
         var retained = new List<SceneDocumentEntry>();
-        var reuploadRequired = new List<SceneDocumentEntry>();
+        var changed = new List<SceneDeltaChange>();
 
         foreach (var entry in next.Entries)
         {
@@ -30,10 +30,15 @@ internal static class SceneDeltaPlanner
             }
 
             retained.Add(entry);
-            if (!HaveSameRuntimeObjects(previousEntry, entry) ||
-                !ReferenceEquals(previousEntry.ImportedAsset, entry.ImportedAsset))
+            if (!ReferenceEquals(previousEntry.ImportedAsset, entry.ImportedAsset))
             {
-                reuploadRequired.Add(entry);
+                changed.Add(new SceneDeltaChange(entry, SceneDeltaChangeKind.ImportedAssetChanged));
+                continue;
+            }
+
+            if (!HaveSameRuntimeObjects(previousEntry, entry))
+            {
+                changed.Add(new SceneDeltaChange(entry, SceneDeltaChangeKind.RuntimeObjectsChanged));
             }
         }
 
@@ -41,7 +46,7 @@ internal static class SceneDeltaPlanner
             .Where(entry => !nextById.ContainsKey(entry.Id))
             .ToArray();
 
-        return new SceneDelta(added, removed, retained, reuploadRequired);
+        return new SceneDelta(added, removed, retained, changed);
     }
 
     private static bool HaveSameRuntimeObjects(SceneDocumentEntry previous, SceneDocumentEntry next)

@@ -27,5 +27,36 @@ public sealed class SceneDeltaPlannerTests
         delta.Added.Should().ContainSingle().Which.SceneObject.Should().BeSameAs(third);
         delta.Removed.Should().ContainSingle().Which.SceneObject.Should().BeSameAs(first);
         delta.Retained.Should().ContainSingle().Which.SceneObject.Should().BeSameAs(second);
+        delta.Changed.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void Diff_classifies_runtime_object_and_imported_asset_changes()
+    {
+        var asset = SceneTestMeshes.CreateImportedAsset();
+        var original = _mutator.CreateImportedEntry(SceneObjectFactory.CreateDeferred(asset), asset);
+        var previous = new SceneDocument([original]);
+        var replacementObject = SceneTestMeshes.CreateDeferredObject("replacement");
+        var runtimeChangedEntry = new SceneDocumentEntry(
+            original.Id,
+            original.Name,
+            [replacementObject],
+            original.ImportedAsset,
+            original.Ownership);
+        var differentAsset = SceneTestMeshes.CreateImportedAsset("other.obj");
+        var assetChangedEntry = new SceneDocumentEntry(
+            original.Id,
+            original.Name,
+            original.RuntimeObjects,
+            differentAsset,
+            original.Ownership);
+
+        var runtimeChanged = SceneDeltaPlanner.Diff(previous, previous.WithEntries([runtimeChangedEntry], previous.Version + 1));
+        var assetChanged = SceneDeltaPlanner.Diff(previous, previous.WithEntries([assetChangedEntry], previous.Version + 1));
+
+        runtimeChanged.Changed.Should().ContainSingle();
+        runtimeChanged.Changed[0].Kind.Should().Be(SceneDeltaChangeKind.RuntimeObjectsChanged);
+        assetChanged.Changed.Should().ContainSingle();
+        assetChanged.Changed[0].Kind.Should().Be(SceneDeltaChangeKind.ImportedAssetChanged);
     }
 }

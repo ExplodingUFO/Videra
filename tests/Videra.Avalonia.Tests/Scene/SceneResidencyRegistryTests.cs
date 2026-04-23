@@ -15,7 +15,7 @@ public sealed class SceneResidencyRegistryTests
         var asset = SceneTestMeshes.CreateImportedAsset();
         var sceneObject = SceneObjectFactory.CreateDeferred(asset);
         var entry = _mutator.CreateImportedEntry(sceneObject, asset);
-        var delta = new SceneDelta([entry], Array.Empty<SceneDocumentEntry>(), Array.Empty<SceneDocumentEntry>(), Array.Empty<SceneDocumentEntry>());
+        var delta = new SceneDelta([entry], Array.Empty<SceneDocumentEntry>(), Array.Empty<SceneDocumentEntry>(), Array.Empty<SceneDeltaChange>());
         var registry = new SceneResidencyRegistry();
 
         registry.Apply(delta, resourceEpoch: 1);
@@ -31,7 +31,7 @@ public sealed class SceneResidencyRegistryTests
         var registry = new SceneResidencyRegistry();
         var sceneObject = SceneTestMeshes.CreateDeferredObject();
         var entry = _mutator.CreateExternalEntry(sceneObject);
-        registry.Apply(new SceneDelta([entry], Array.Empty<SceneDocumentEntry>(), Array.Empty<SceneDocumentEntry>(), Array.Empty<SceneDocumentEntry>()), 1);
+        registry.Apply(new SceneDelta([entry], Array.Empty<SceneDocumentEntry>(), Array.Empty<SceneDocumentEntry>(), Array.Empty<SceneDeltaChange>()), 1);
         registry.MarkResident(entry.Id, resourceEpoch: 1);
 
         var dirty = registry.MarkDirtyForResourceEpoch(2);

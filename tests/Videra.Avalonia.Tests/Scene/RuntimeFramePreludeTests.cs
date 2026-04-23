@@ -21,7 +21,7 @@ public sealed class RuntimeFramePreludeTests
         var entry = _mutator.CreateImportedEntry(sceneObject, asset);
         var registry = new SceneResidencyRegistry();
         registry.Apply(
-            new SceneDelta([entry], Array.Empty<SceneDocumentEntry>(), Array.Empty<SceneDocumentEntry>(), Array.Empty<SceneDocumentEntry>()),
+            new SceneDelta([entry], Array.Empty<SceneDocumentEntry>(), Array.Empty<SceneDocumentEntry>(), Array.Empty<SceneDeltaChange>()),
             resourceEpoch: 1);
         registry.MarkResident(entry.Id, resourceEpoch: 1);
 
@@ -51,7 +51,7 @@ public sealed class RuntimeFramePreludeTests
         var entry = _mutator.CreateImportedEntry(sceneObject, asset);
         var registry = new SceneResidencyRegistry();
         registry.Apply(
-            new SceneDelta([entry], Array.Empty<SceneDocumentEntry>(), Array.Empty<SceneDocumentEntry>(), Array.Empty<SceneDocumentEntry>()),
+            new SceneDelta([entry], Array.Empty<SceneDocumentEntry>(), Array.Empty<SceneDocumentEntry>(), Array.Empty<SceneDeltaChange>()),
             resourceEpoch: 1);
 
         using var engine = new VideraEngine();
