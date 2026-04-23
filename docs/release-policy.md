@@ -67,7 +67,7 @@ Public release runs are expected to produce:
 - `.snupkg` assets for symbols
 - generated release notes categorized through `.github/release.yml`
 
-Release-candidate review uses the `Release Dry Run` workflow at `.github/workflows/release-dry-run.yml` before any public tag publication. That workflow runs `scripts/Invoke-ReleaseDryRun.ps1`, packs the package set from `eng/public-api-contract.json`, reuses `scripts/Validate-Packages.ps1`, uploads `release-dry-run-evidence`, and does not push assets to `nuget.org` or GitHub Packages.
+Release-candidate review uses the `Release Dry Run` workflow at `.github/workflows/release-dry-run.yml` before any public tag publication. That workflow runs `scripts/Invoke-ReleaseDryRun.ps1`, performs candidate version/tag simulation through `scripts/Test-ReleaseCandidateVersion.ps1`, packs the package set from `eng/public-api-contract.json`, reuses `scripts/Validate-Packages.ps1`, uploads `release-dry-run-evidence`, and does not push assets to `nuget.org` or GitHub Packages.
 
 ## Support boundary
 

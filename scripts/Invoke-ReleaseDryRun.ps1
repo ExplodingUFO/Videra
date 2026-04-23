@@ -78,6 +78,12 @@ if ($packages.Count -eq 0)
     throw "Public API contract does not list any packages."
 }
 
+& (Join-Path $root "scripts/Test-ReleaseCandidateVersion.ps1") -ExpectedVersion $ExpectedVersion -CandidateTag "v$ExpectedVersion"
+if ($LASTEXITCODE -ne 0)
+{
+    throw "Release candidate version simulation failed with exit code $LASTEXITCODE."
+}
+
 Remove-Item -LiteralPath $packageRoot -Recurse -Force -ErrorAction SilentlyContinue
 New-Item -ItemType Directory -Path $packageRoot | Out-Null
 
@@ -138,6 +144,18 @@ $summary | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $summaryPath
     "Package contract: eng/public-api-contract.json"
     "Validator: scripts/Validate-Packages.ps1"
 ) | Set-Content -LiteralPath $textSummaryPath
+
+& (Join-Path $root "scripts/Test-ReleaseCandidateVersion.ps1") -ExpectedVersion $ExpectedVersion -CandidateTag "v$ExpectedVersion" -ReleaseDryRunSummaryPath $summaryPath
+if ($LASTEXITCODE -ne 0)
+{
+    throw "Release dry-run summary version simulation failed with exit code $LASTEXITCODE."
+}
+
+& (Join-Path $root "scripts/New-ReleaseCandidateEvidenceIndex.ps1") -ExpectedVersion $ExpectedVersion -ReleaseDryRunSummaryPath $summaryPath -OutputRoot $outputRootFull
+if ($LASTEXITCODE -ne 0)
+{
+    throw "Release candidate evidence index generation failed with exit code $LASTEXITCODE."
+}
 
 Write-Host "Release dry run passed for version '$ExpectedVersion'." -ForegroundColor Green
 Write-Host "Summary written to '$summaryPath'." -ForegroundColor Green
