@@ -12,6 +12,8 @@ internal static class ImportedSceneRuntimeObjectBuilder
 
         var primitiveById = asset.Primitives.ToDictionary(static primitive => primitive.Id);
         var materialById = asset.Materials.ToDictionary(static material => material.Id);
+        var textureById = asset.Textures.ToDictionary(static texture => texture.Id);
+        var samplerById = asset.Samplers.ToDictionary(static sampler => sampler.Id);
         var nodeById = asset.Nodes.ToDictionary(static node => node.Id);
         var resolvedTransforms = new Dictionary<SceneNodeId, Matrix4x4>();
         var resolvingNodes = new HashSet<SceneNodeId>();
@@ -32,8 +34,14 @@ internal static class ImportedSceneRuntimeObjectBuilder
                 {
                     Name = $"{asset.Name}::{node.Name}::{primitive.Name}"
                 };
-                runtimeObject.PrepareDeferredMesh(TransformPayload(primitive.Payload, worldTransform));
-                runtimeObject.ApplyMaterialAlpha(ResolveMaterialAlpha(primitive.MaterialId, materialById));
+                var material = ResolveMaterial(primitive.MaterialId, materialById);
+                runtimeObject.PrepareDeferredMesh(TransformMeshData(
+                    primitive.MeshData,
+                    worldTransform,
+                    material,
+                    textureById,
+                    samplerById));
+                runtimeObject.ApplyMaterialAlpha(material?.Alpha ?? MaterialAlphaSettings.Opaque);
                 runtimeObjects.Add(runtimeObject);
             }
         }
@@ -91,47 +99,61 @@ internal static class ImportedSceneRuntimeObjectBuilder
         return ResolveWorldTransform(parentNode, nodeById, resolvedTransforms, resolvingNodes);
     }
 
-    private static MeshPayload TransformPayload(MeshPayload payload, Matrix4x4 transform)
+    private static MeshData TransformMeshData(
+        MeshData meshData,
+        Matrix4x4 transform,
+        MaterialInstance? material,
+        IReadOnlyDictionary<Texture2DId, Texture2D> textureById,
+        IReadOnlyDictionary<SamplerId, Sampler> samplerById)
     {
         Matrix4x4.Invert(transform, out var inverseTransform);
         var normalTransform = Matrix4x4.Transpose(inverseTransform);
-        var vertices = new VertexPositionNormalColor[payload.Vertices.Length];
-        var tangents = payload.Tangents.Length == 0
+        var vertices = new VertexPositionNormalColor[meshData.Vertices.Length];
+        var tangents = meshData.Tangents.Length == 0
             ? Array.Empty<Vector4>()
-            : new Vector4[payload.Tangents.Length];
+            : new Vector4[meshData.Tangents.Length];
 
-        for (var i = 0; i < payload.Vertices.Length; i++)
+        for (var i = 0; i < meshData.Vertices.Length; i++)
         {
-            var vertex = payload.Vertices[i];
+            var vertex = meshData.Vertices[i];
+            var color = MaterialTextureColorBaker.ResolveVertexColor(
+                vertex,
+                i,
+                meshData,
+                material,
+                textureById,
+                samplerById);
             vertices[i] = new VertexPositionNormalColor(
                 Vector3.Transform(vertex.Position, transform),
                 Vector3.Normalize(Vector3.TransformNormal(vertex.Normal, normalTransform)),
-                vertex.Color);
+                color);
 
             if (tangents.Length != 0)
             {
-                tangents[i] = TransformTangent(payload.Tangents[i], transform);
+                tangents[i] = TransformTangent(meshData.Tangents[i], transform);
             }
         }
 
-        var indices = (uint[])payload.Indices.Clone();
-        var segments = payload.Segments.Length == 0
-            ? Array.Empty<MeshPayloadSegment>()
-            : (MeshPayloadSegment[])payload.Segments.Clone();
-
-        return new MeshPayload(vertices, indices, payload.Topology, tangents, segments);
+        return new MeshData
+        {
+            Vertices = vertices,
+            Indices = (uint[])meshData.Indices.Clone(),
+            Tangents = tangents,
+            TextureCoordinateSets = meshData.TextureCoordinateSets,
+            Topology = meshData.Topology
+        };
     }
 
-    private static MaterialAlphaSettings ResolveMaterialAlpha(
+    private static MaterialInstance? ResolveMaterial(
         MaterialInstanceId? materialId,
         IReadOnlyDictionary<MaterialInstanceId, MaterialInstance> materialById)
     {
         if (materialId is null || !materialById.TryGetValue(materialId.Value, out var material))
         {
-            return MaterialAlphaSettings.Opaque;
+            return null;
         }
 
-        return material.Alpha;
+        return material;
     }
 
     private static Vector4 TransformTangent(Vector4 tangent, Matrix4x4 transform)

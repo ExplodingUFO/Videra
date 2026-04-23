@@ -1,4 +1,5 @@
 using System.Numerics;
+using System.Runtime.InteropServices;
 using FluentAssertions;
 using Videra.Core.Cameras;
 using Videra.Core.Geometry;
@@ -6,6 +7,7 @@ using Videra.Core.Graphics;
 using Videra.Core.Graphics.Abstractions;
 using Videra.Core.Graphics.Software;
 using Videra.Core.Selection.Annotations;
+using Videra.Core.Scene;
 using Xunit;
 
 namespace Videra.Core.IntegrationTests.Rendering;
@@ -91,4 +93,169 @@ public class Object3DIntegrationTests
             .Should().BeTrue();
         result.ScreenPosition.Should().Be(expectedScreenPoint);
     }
+
+    [Fact]
+    public void SceneObjectFactory_CreateDeferredRuntimeObjects_UsesRequestedBaseColorTextureCoordinateSet()
+    {
+        using var backend = CreateSoftwareBackend();
+        using var engine = CreateEngine(backend);
+        var asset = CreateTexturedQuadAsset(
+            "TexCoordSet",
+            coordinateSet: 1,
+            transform: MaterialTextureTransform.Identity,
+            [
+                new MeshTextureCoordinateSet(0, [new Vector2(0.25f, 0.5f), new Vector2(0.25f, 0.5f), new Vector2(0.25f, 0.5f), new Vector2(0.25f, 0.5f)]),
+                new MeshTextureCoordinateSet(1, [new Vector2(0.75f, 0.5f), new Vector2(0.75f, 0.5f), new Vector2(0.75f, 0.5f), new Vector2(0.75f, 0.5f)])
+            ]);
+
+        var runtimeObject = SceneObjectFactory.CreateDeferredRuntimeObjects(asset).Should().ContainSingle().Subject;
+
+        engine.AddObject(runtimeObject);
+        engine.Draw();
+
+        ReadCenterPixel(backend).Should().Be(new PixelColor(0, 0, 255, 255));
+        runtimeObject.MeshPayload.Should().NotBeNull();
+        runtimeObject.MeshPayload!.Vertices.Should().OnlyContain(vertex => vertex.Color == RgbaFloat.Blue);
+    }
+
+    [Fact]
+    public void SceneObjectFactory_CreateDeferredRuntimeObjects_UsesBaseColorTextureTransform()
+    {
+        using var backend = CreateSoftwareBackend();
+        using var engine = CreateEngine(backend);
+        var asset = CreateTexturedQuadAsset(
+            "TextureTransform",
+            coordinateSet: 0,
+            transform: new MaterialTextureTransform(new Vector2(0.5f, 0f), Vector2.One, 0f),
+            [
+                new MeshTextureCoordinateSet(0, [new Vector2(0.25f, 0.5f), new Vector2(0.25f, 0.5f), new Vector2(0.25f, 0.5f), new Vector2(0.25f, 0.5f)])
+            ]);
+
+        var runtimeObject = SceneObjectFactory.CreateDeferredRuntimeObjects(asset).Should().ContainSingle().Subject;
+
+        engine.AddObject(runtimeObject);
+        engine.Draw();
+
+        ReadCenterPixel(backend).Should().Be(new PixelColor(0, 0, 255, 255));
+        runtimeObject.MeshPayload.Should().NotBeNull();
+        runtimeObject.MeshPayload!.Vertices.Should().OnlyContain(vertex => vertex.Color == RgbaFloat.Blue);
+    }
+
+    private static SoftwareBackend CreateSoftwareBackend()
+    {
+        var backend = new SoftwareBackend();
+        backend.Initialize(IntPtr.Zero, 200, 200);
+        return backend;
+    }
+
+    private static VideraEngine CreateEngine(SoftwareBackend backend)
+    {
+        var engine = new VideraEngine
+        {
+            BackgroundColor = RgbaFloat.Black
+        };
+
+        engine.Initialize(backend);
+        engine.Resize(200, 200);
+        engine.Grid.IsVisible = false;
+        engine.ShowAxis = false;
+        engine.Camera.SetOrbit(Vector3.Zero, radius: 5f, yaw: 0f, pitch: 0f);
+        engine.Camera.UpdateProjection(200, 200);
+        return engine;
+    }
+
+    private static ImportedSceneAsset CreateTexturedQuadAsset(
+        string name,
+        int coordinateSet,
+        MaterialTextureTransform transform,
+        MeshTextureCoordinateSet[] textureCoordinateSets)
+    {
+        var texture = CreateColorTexture();
+        var sampler = CreateClampNearestSampler();
+        var baseColorTexture = new MaterialTextureBinding(
+            texture.Id,
+            sampler.Id,
+            coordinateSet,
+            TextureColorSpace.Srgb,
+            transform);
+        var material = new MaterialInstance(
+            MaterialInstanceId.New(),
+            $"{name}#material0",
+            RgbaFloat.White,
+            baseColorTexture);
+        var mesh = new MeshData
+        {
+            Vertices =
+            [
+                new VertexPositionNormalColor(new Vector3(-0.8f, -0.8f, 0f), Vector3.UnitZ, RgbaFloat.White),
+                new VertexPositionNormalColor(new Vector3(0.8f, -0.8f, 0f), Vector3.UnitZ, RgbaFloat.White),
+                new VertexPositionNormalColor(new Vector3(0.8f, 0.8f, 0f), Vector3.UnitZ, RgbaFloat.White),
+                new VertexPositionNormalColor(new Vector3(-0.8f, 0.8f, 0f), Vector3.UnitZ, RgbaFloat.White)
+            ],
+            Indices = [0u, 1u, 2u, 0u, 2u, 3u],
+            TextureCoordinateSets = textureCoordinateSets,
+            Topology = MeshTopology.Triangles
+        };
+        var primitive = new MeshPrimitive(MeshPrimitiveId.New(), $"{name}#primitive0", mesh, material.Id);
+        var node = new SceneNode(SceneNodeId.New(), name, Matrix4x4.Identity, parentId: null, [primitive.Id]);
+
+        return new ImportedSceneAsset(
+            $"{name}.gltf",
+            name,
+            [node],
+            [primitive],
+            [material],
+            [texture],
+            [sampler]);
+    }
+
+    private static Texture2D CreateColorTexture()
+    {
+        var contentBytes = Convert.FromBase64String("iVBORw0KGgoAAAANSUhEUgAAAAIAAAABCAYAAAD0In+KAAAADklEQVR4nGP4z8AAQv8BD/kD/YURmXYAAAAASUVORK5CYII=");
+        return new Texture2D(
+            Texture2DId.New(),
+            "RedBlueTexture",
+            2,
+            1,
+            TextureImageFormat.Png,
+            contentBytes,
+            [
+                255, 0, 0, 255,
+                0, 0, 255, 255
+            ]);
+    }
+
+    private static Sampler CreateClampNearestSampler()
+    {
+        return new Sampler(
+            SamplerId.New(),
+            "ClampNearest",
+            TextureFilter.Nearest,
+            TextureFilter.Nearest,
+            TextureWrapMode.ClampToEdge,
+            TextureWrapMode.ClampToEdge);
+    }
+
+    private static PixelColor ReadCenterPixel(SoftwareBackend backend)
+    {
+        var frame = new byte[backend.Width * backend.Height * 4];
+        var handle = Marshal.AllocHGlobal(frame.Length);
+
+        try
+        {
+            backend.CopyFrameTo(handle, backend.Width * 4);
+            Marshal.Copy(handle, frame, 0, frame.Length);
+        }
+        finally
+        {
+            Marshal.FreeHGlobal(handle);
+        }
+
+        var x = backend.Width / 2;
+        var y = backend.Height / 2;
+        var offset = ((y * backend.Width) + x) * 4;
+        return new PixelColor(frame[offset + 2], frame[offset + 1], frame[offset + 0], frame[offset + 3]);
+    }
+
+    private readonly record struct PixelColor(byte R, byte G, byte B, byte A);
 }

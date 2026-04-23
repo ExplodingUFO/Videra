@@ -2,6 +2,9 @@ using System.Numerics;
 using System.Reflection;
 using FluentAssertions;
 using Moq;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats.Png;
+using SixLabors.ImageSharp.PixelFormats;
 using Videra.Core.Geometry;
 using Videra.Core.Graphics;
 using Videra.Core.Graphics.Abstractions;
@@ -44,6 +47,39 @@ public class Object3DTests
     private static Mock<IResourceFactory> CreateMockFactory()
     {
         return CreateMockFactory(out _);
+    }
+
+    private static Texture2D CreateTexture(string name, int width, int height, params Rgba32[] pixels)
+    {
+        using var image = Image.LoadPixelData<Rgba32>(pixels, width, height);
+        using var stream = new MemoryStream();
+        image.Save(stream, new PngEncoder());
+        var pixelBytes = pixels
+            .SelectMany(static pixel => new byte[] { pixel.R, pixel.G, pixel.B, pixel.A })
+            .ToArray();
+        return new Texture2D(
+            Texture2DId.New(),
+            name,
+            width,
+            height,
+            TextureImageFormat.Png,
+            stream.ToArray(),
+            pixelBytes);
+    }
+
+    private static RgbaFloat[] GetVertexColors(Object3D obj)
+    {
+        var meshPayloadProperty = typeof(Object3D).GetProperty("MeshPayload", BindingFlags.Instance | BindingFlags.NonPublic);
+        meshPayloadProperty.Should().NotBeNull();
+
+        var payload = meshPayloadProperty!.GetValue(obj);
+        payload.Should().NotBeNull();
+
+        var verticesProperty = payload!.GetType().GetProperty("Vertices", BindingFlags.Instance | BindingFlags.Public);
+        verticesProperty.Should().NotBeNull();
+
+        var vertices = (VertexPositionNormalColor[])verticesProperty!.GetValue(payload)!;
+        return vertices.Select(static vertex => vertex.Color).ToArray();
     }
 
     [Fact]
@@ -586,6 +622,250 @@ public class Object3DTests
     }
 
     [Fact]
+    public void SceneObjectFactory_CreateDeferredRuntimeObjects_LeavesVertexColorsUnchangedWithoutBaseColorTexture()
+    {
+        var mesh = new MeshData
+        {
+            Vertices =
+            [
+                new VertexPositionNormalColor(new Vector3(0f, 0f, 0f), Vector3.UnitZ, RgbaFloat.Red),
+                new VertexPositionNormalColor(new Vector3(1f, 0f, 0f), Vector3.UnitZ, RgbaFloat.Green),
+                new VertexPositionNormalColor(new Vector3(0f, 1f, 0f), Vector3.UnitZ, RgbaFloat.Blue)
+            ],
+            Indices = [0u, 1u, 2u],
+            Topology = MeshTopology.Triangles
+        };
+        var material = new MaterialInstance(MaterialInstanceId.New(), "PlainMaterial", RgbaFloat.White);
+        var primitive = new MeshPrimitive(MeshPrimitiveId.New(), "triangle.obj#primitive0", mesh, material.Id);
+        var rootNode = new SceneNode(SceneNodeId.New(), "triangle.obj", Matrix4x4.Identity, parentId: null, [primitive.Id]);
+        var asset = new ImportedSceneAsset(
+            "triangle.obj",
+            "triangle.obj",
+            [rootNode],
+            [primitive],
+            [material]);
+
+        var runtimeObjects = SceneObjectFactory.CreateDeferredRuntimeObjects(asset);
+
+        runtimeObjects.Should().ContainSingle();
+        GetVertexColors(runtimeObjects[0]).Should().Equal(RgbaFloat.Red, RgbaFloat.Green, RgbaFloat.Blue);
+    }
+
+    [Fact]
+    public void SceneObjectFactory_CreateDeferredRuntimeObjects_BakesBaseColorTexture_UsingRequestedCoordinateSet()
+    {
+        var texture = CreateTexture(
+            "BaseColor",
+            2,
+            1,
+            new Rgba32(255, 0, 0, 255),
+            new Rgba32(0, 255, 0, 255));
+        var sampler = new Sampler(
+            SamplerId.New(),
+            "LinearClamp",
+            TextureFilter.Linear,
+            TextureFilter.Linear,
+            TextureWrapMode.ClampToEdge,
+            TextureWrapMode.ClampToEdge);
+        var mesh = new MeshData
+        {
+            Vertices =
+            [
+                new VertexPositionNormalColor(new Vector3(0f, 0f, 0f), Vector3.UnitZ, RgbaFloat.White),
+                new VertexPositionNormalColor(new Vector3(1f, 0f, 0f), Vector3.UnitZ, RgbaFloat.White),
+                new VertexPositionNormalColor(new Vector3(0f, 1f, 0f), Vector3.UnitZ, RgbaFloat.White)
+            ],
+            Indices = [0u, 1u, 2u],
+            TextureCoordinateSets =
+            [
+                new MeshTextureCoordinateSet(0, [new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(0f, 0f)]),
+                new MeshTextureCoordinateSet(1, [new Vector2(1f, 0f), new Vector2(1f, 0f), new Vector2(1f, 0f)])
+            ],
+            Topology = MeshTopology.Triangles
+        };
+        var set0Material = new MaterialInstance(
+            MaterialInstanceId.New(),
+            "Set0",
+            RgbaFloat.White,
+            new MaterialTextureBinding(texture.Id, sampler.Id, 0, TextureColorSpace.Srgb));
+        var set1Material = new MaterialInstance(
+            MaterialInstanceId.New(),
+            "Set1",
+            RgbaFloat.White,
+            new MaterialTextureBinding(texture.Id, sampler.Id, 1, TextureColorSpace.Srgb));
+        var set0Primitive = new MeshPrimitive(MeshPrimitiveId.New(), "triangle.obj#primitive0", mesh, set0Material.Id);
+        var set1Primitive = new MeshPrimitive(MeshPrimitiveId.New(), "triangle.obj#primitive1", mesh, set1Material.Id);
+        var rootNode = new SceneNode(
+            SceneNodeId.New(),
+            "triangle.obj",
+            Matrix4x4.Identity,
+            parentId: null,
+            [set0Primitive.Id, set1Primitive.Id]);
+        var asset = new ImportedSceneAsset(
+            "triangle.obj",
+            "triangle.obj",
+            [rootNode],
+            [set0Primitive, set1Primitive],
+            [set0Material, set1Material],
+            [texture],
+            [sampler]);
+
+        var runtimeObjects = SceneObjectFactory.CreateDeferredRuntimeObjects(asset);
+
+        runtimeObjects.Should().HaveCount(2);
+        GetVertexColors(runtimeObjects[0])
+            .Should().OnlyContain(static color => color == RgbaFloat.Red);
+        GetVertexColors(runtimeObjects[1])
+            .Should().OnlyContain(static color => color == RgbaFloat.Green);
+    }
+
+    [Fact]
+    public void SceneObjectFactory_CreateDeferredRuntimeObjects_RespectsTextureTransform()
+    {
+        var texture = CreateTexture(
+            "BaseColor",
+            2,
+            1,
+            new Rgba32(255, 0, 0, 255),
+            new Rgba32(0, 255, 0, 255));
+        var linearClampSampler = new Sampler(
+            SamplerId.New(),
+            "LinearClamp",
+            TextureFilter.Linear,
+            TextureFilter.Linear,
+            TextureWrapMode.ClampToEdge,
+            TextureWrapMode.ClampToEdge);
+        var mesh = new MeshData
+        {
+            Vertices =
+            [
+                new VertexPositionNormalColor(new Vector3(0f, 0f, 0f), Vector3.UnitZ, RgbaFloat.White),
+                new VertexPositionNormalColor(new Vector3(1f, 0f, 0f), Vector3.UnitZ, RgbaFloat.White),
+                new VertexPositionNormalColor(new Vector3(0f, 1f, 0f), Vector3.UnitZ, RgbaFloat.White)
+            ],
+            Indices = [0u, 1u, 2u],
+            TextureCoordinateSets =
+            [
+                new MeshTextureCoordinateSet(0, [new Vector2(0.25f, 0f), new Vector2(0.25f, 0f), new Vector2(0.25f, 0f)])
+            ],
+            Topology = MeshTopology.Triangles
+        };
+        var identityMaterial = new MaterialInstance(
+            MaterialInstanceId.New(),
+            "Identity",
+            RgbaFloat.White,
+            new MaterialTextureBinding(texture.Id, linearClampSampler.Id, 0, TextureColorSpace.Srgb));
+        var transformedMaterial = new MaterialInstance(
+            MaterialInstanceId.New(),
+            "Offset",
+            RgbaFloat.White,
+            new MaterialTextureBinding(
+                texture.Id,
+                linearClampSampler.Id,
+                0,
+                TextureColorSpace.Srgb,
+                new MaterialTextureTransform(new Vector2(0.5f, 0f), Vector2.One, 0f)));
+        var identityPrimitive = new MeshPrimitive(MeshPrimitiveId.New(), "triangle.obj#primitive0", mesh, identityMaterial.Id);
+        var transformedPrimitive = new MeshPrimitive(MeshPrimitiveId.New(), "triangle.obj#primitive1", mesh, transformedMaterial.Id);
+        var rootNode = new SceneNode(
+            SceneNodeId.New(),
+            "triangle.obj",
+            Matrix4x4.Identity,
+            parentId: null,
+            [identityPrimitive.Id, transformedPrimitive.Id]);
+        var asset = new ImportedSceneAsset(
+            "triangle.obj",
+            "triangle.obj",
+            [rootNode],
+            [identityPrimitive, transformedPrimitive],
+            [identityMaterial, transformedMaterial],
+            [texture],
+            [linearClampSampler]);
+
+        var runtimeObjects = SceneObjectFactory.CreateDeferredRuntimeObjects(asset);
+
+        runtimeObjects.Should().HaveCount(2);
+        GetVertexColors(runtimeObjects[0])
+            .Should().OnlyContain(static color => color == RgbaFloat.Red);
+        GetVertexColors(runtimeObjects[1])
+            .Should().OnlyContain(static color => color == RgbaFloat.Green);
+    }
+
+    [Fact]
+    public void SceneObjectFactory_CreateDeferredRuntimeObjects_RespectsSamplerWrapAndFilter()
+    {
+        var texture = CreateTexture(
+            "BaseColor",
+            2,
+            1,
+            new Rgba32(255, 0, 0, 255),
+            new Rgba32(0, 255, 0, 255));
+        var nearestRepeatSampler = new Sampler(
+            SamplerId.New(),
+            "NearestRepeat",
+            TextureFilter.Nearest,
+            TextureFilter.Nearest,
+            TextureWrapMode.Repeat,
+            TextureWrapMode.Repeat);
+        var linearClampSampler = new Sampler(
+            SamplerId.New(),
+            "LinearClamp",
+            TextureFilter.Linear,
+            TextureFilter.Linear,
+            TextureWrapMode.ClampToEdge,
+            TextureWrapMode.ClampToEdge);
+        var mesh = new MeshData
+        {
+            Vertices =
+            [
+                new VertexPositionNormalColor(new Vector3(0f, 0f, 0f), Vector3.UnitZ, RgbaFloat.White),
+                new VertexPositionNormalColor(new Vector3(1f, 0f, 0f), Vector3.UnitZ, RgbaFloat.White),
+                new VertexPositionNormalColor(new Vector3(0f, 1f, 0f), Vector3.UnitZ, RgbaFloat.White)
+            ],
+            Indices = [0u, 1u, 2u],
+            TextureCoordinateSets =
+            [
+                new MeshTextureCoordinateSet(0, [new Vector2(1.25f, 0f), new Vector2(1.25f, 0f), new Vector2(1.25f, 0f)])
+            ],
+            Topology = MeshTopology.Triangles
+        };
+        var nearestMaterial = new MaterialInstance(
+            MaterialInstanceId.New(),
+            "NearestRepeat",
+            RgbaFloat.White,
+            new MaterialTextureBinding(texture.Id, nearestRepeatSampler.Id, 0, TextureColorSpace.Srgb));
+        var linearMaterial = new MaterialInstance(
+            MaterialInstanceId.New(),
+            "LinearClamp",
+            RgbaFloat.White,
+            new MaterialTextureBinding(texture.Id, linearClampSampler.Id, 0, TextureColorSpace.Srgb));
+        var nearestPrimitive = new MeshPrimitive(MeshPrimitiveId.New(), "triangle.obj#primitive0", mesh, nearestMaterial.Id);
+        var linearPrimitive = new MeshPrimitive(MeshPrimitiveId.New(), "triangle.obj#primitive1", mesh, linearMaterial.Id);
+        var rootNode = new SceneNode(
+            SceneNodeId.New(),
+            "triangle.obj",
+            Matrix4x4.Identity,
+            parentId: null,
+            [nearestPrimitive.Id, linearPrimitive.Id]);
+        var asset = new ImportedSceneAsset(
+            "triangle.obj",
+            "triangle.obj",
+            [rootNode],
+            [nearestPrimitive, linearPrimitive],
+            [nearestMaterial, linearMaterial],
+            [texture],
+            [nearestRepeatSampler, linearClampSampler]);
+
+        var runtimeObjects = SceneObjectFactory.CreateDeferredRuntimeObjects(asset);
+
+        runtimeObjects.Should().HaveCount(2);
+        GetVertexColors(runtimeObjects[0])
+            .Should().OnlyContain(static color => color == RgbaFloat.Red);
+        GetVertexColors(runtimeObjects[1])
+            .Should().OnlyContain(static color => color == RgbaFloat.Green);
+    }
+
+    [Fact]
     public void ImportedSceneAsset_RetainsMaterialTextureAndSamplerCatalogs()
     {
         var texture = new Texture2D(
@@ -594,6 +874,7 @@ public class Object3DTests
             1,
             1,
             TextureImageFormat.Png,
+            [255, 255, 255, 255],
             [255, 255, 255, 255]);
         var dataTexture = new Texture2D(
             Texture2DId.New(),
@@ -601,6 +882,7 @@ public class Object3DTests
             1,
             1,
             TextureImageFormat.Png,
+            [255, 255, 255, 255],
             [255, 255, 255, 255]);
         var emissiveTexture = new Texture2D(
             Texture2DId.New(),
@@ -608,6 +890,7 @@ public class Object3DTests
             1,
             1,
             TextureImageFormat.Png,
+            [255, 255, 255, 255],
             [255, 255, 255, 255]);
         var normalTextureAsset = new Texture2D(
             Texture2DId.New(),
@@ -615,6 +898,7 @@ public class Object3DTests
             1,
             1,
             TextureImageFormat.Png,
+            [255, 255, 255, 255],
             [255, 255, 255, 255]);
         var sampler = new Sampler(
             SamplerId.New(),
@@ -639,7 +923,12 @@ public class Object3DTests
             new MaterialNormalTextureBinding(
                 new MaterialTextureBinding(normalTextureAsset.Id, sampler.Id, 0, TextureColorSpace.Linear),
                 0.5f));
-        var primitive = new MeshPrimitive(MeshPrimitiveId.New(), "triangle.obj#primitive0", CreateTestMesh(), material.Id);
+        var mesh = CreateTestMesh();
+        mesh.TextureCoordinateSets =
+        [
+            new MeshTextureCoordinateSet(0, [new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f)])
+        ];
+        var primitive = new MeshPrimitive(MeshPrimitiveId.New(), "triangle.obj#primitive0", mesh, material.Id);
         var rootNode = new SceneNode(SceneNodeId.New(), "triangle.obj", Matrix4x4.Identity, parentId: null, [primitive.Id]);
         var asset = new ImportedSceneAsset(
             "triangle.obj",

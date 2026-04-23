@@ -2,6 +2,7 @@ namespace Videra.Core.Scene;
 
 public sealed class Texture2D
 {
+    private readonly byte[] _contentBytes;
     private readonly byte[] _pixelBytes;
 
     public Texture2D(
@@ -10,19 +11,29 @@ public sealed class Texture2D
         int width,
         int height,
         TextureImageFormat contentFormat,
-        byte[] contentBytes)
+        byte[] contentBytes,
+        byte[] pixelBytes)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(width);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(height);
         ArgumentNullException.ThrowIfNull(contentBytes);
+        ArgumentNullException.ThrowIfNull(pixelBytes);
+
+        if (pixelBytes.Length != width * height * 4)
+        {
+            throw new ArgumentException(
+                "Texture pixel payload must contain width*height RGBA32 bytes.",
+                nameof(pixelBytes));
+        }
 
         Id = id;
         Name = name;
         Width = width;
         Height = height;
         ContentFormat = contentFormat;
-        _pixelBytes = (byte[])contentBytes.Clone();
+        _contentBytes = (byte[])contentBytes.Clone();
+        _pixelBytes = (byte[])pixelBytes.Clone();
     }
 
     public Texture2DId Id { get; }
@@ -35,7 +46,9 @@ public sealed class Texture2D
 
     public TextureImageFormat ContentFormat { get; }
 
-    public ReadOnlyMemory<byte> ContentBytes => _pixelBytes;
+    public ReadOnlyMemory<byte> ContentBytes => _contentBytes;
+
+    public ReadOnlyMemory<byte> PixelBytes => _pixelBytes;
 }
 
 public enum TextureImageFormat
