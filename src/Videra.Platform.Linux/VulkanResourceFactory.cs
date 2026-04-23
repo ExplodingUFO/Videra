@@ -78,7 +78,7 @@ internal sealed unsafe class VulkanResourceFactory : IResourceFactory
             return CreatePipelineCore(
                 VertexPositionNormalColor.SizeInBytes,
                 GetSurfaceChartVertexShaderSource(),
-                GetFragmentShaderSource(),
+                GetSurfaceChartFragmentShaderSource(),
                 usesSurfaceChartScalarBindings: true,
                 alphaBlendEnabled: description.AlphaBlendEnabled,
                 depthWriteEnabled: description.DepthWriteEnabled);
@@ -263,7 +263,7 @@ internal sealed unsafe class VulkanResourceFactory : IResourceFactory
             PDynamicStates = dynamicStates
         };
 
-        var bindingCount = usesSurfaceChartScalarBindings ? 4u : 3u;
+        var bindingCount = 4u;
         var bindings = stackalloc DescriptorSetLayoutBinding[(int)bindingCount];
         bindings[0] = new DescriptorSetLayoutBinding
         {
@@ -285,6 +285,13 @@ internal sealed unsafe class VulkanResourceFactory : IResourceFactory
             DescriptorType = DescriptorType.UniformBuffer,
             DescriptorCount = 1,
             StageFlags = ShaderStageFlags.VertexBit
+        };
+        bindings[3] = new DescriptorSetLayoutBinding
+        {
+            Binding = 3,
+            DescriptorType = DescriptorType.UniformBuffer,
+            DescriptorCount = 1,
+            StageFlags = ShaderStageFlags.VertexBit | ShaderStageFlags.FragmentBit
         };
         if (usesSurfaceChartScalarBindings)
         {
@@ -612,18 +619,50 @@ layout(set = 0, binding = 2) uniform AlphaMaskBuffer
     vec2 _alphaMaskPad;
 } alphaMask;
 
+layout(set = 0, binding = 3) uniform StyleBuffer
+{
+    float ambientIntensity;
+    float diffuseIntensity;
+    float specularIntensity;
+    float specularPower;
+    vec3 lightDirection;
+    float _pad0;
+
+    vec3 tintColor;
+    float saturation;
+    float contrast;
+    float brightness;
+    vec2 _pad1;
+
+    vec4 outlineColor;
+    float outlineWidth;
+    int outlineEnabled;
+    vec2 _pad2;
+
+    float opacity;
+    int useVertexColor;
+    vec2 _pad3;
+    vec4 overrideColor;
+    int wireframeMode;
+    vec3 _pad4;
+} style;
+
 layout(location = 0) out vec4 fragColor;
 layout(location = 1) flat out float fragMaskEnabled;
 layout(location = 2) flat out float fragAlphaCutoff;
+layout(location = 3) out vec3 fragWorldPos;
+layout(location = 4) out vec3 fragNormal;
 
 void main()
 {
     vec4 worldPos = world.worldMatrix * vec4(inPosition, 1.0);
     vec4 viewPos = camera.viewMatrix * worldPos;
     gl_Position = camera.projectionMatrix * viewPos;
-    fragColor = inColor;
+    fragColor = style.useVertexColor != 0 ? inColor : style.overrideColor;
     fragMaskEnabled = alphaMask.maskEnabled;
     fragAlphaCutoff = alphaMask.alphaCutoff;
+    fragWorldPos = worldPos.xyz;
+    fragNormal = normalize((world.worldMatrix * vec4(inNormal, 0.0)).xyz);
 }
 ";
     }
@@ -734,6 +773,74 @@ void main()
     }
 
     private static string GetFragmentShaderSource()
+    {
+        return @"#version 450
+layout(location = 0) in vec4 fragColor;
+layout(location = 1) flat in float fragMaskEnabled;
+layout(location = 2) flat in float fragAlphaCutoff;
+layout(location = 3) in vec3 fragWorldPos;
+layout(location = 4) in vec3 fragNormal;
+
+layout(set = 0, binding = 3) uniform StyleBuffer
+{
+    float ambientIntensity;
+    float diffuseIntensity;
+    float specularIntensity;
+    float specularPower;
+    vec3 lightDirection;
+    float _pad0;
+
+    vec3 tintColor;
+    float saturation;
+    float contrast;
+    float brightness;
+    vec2 _pad1;
+
+    vec4 outlineColor;
+    float outlineWidth;
+    int outlineEnabled;
+    vec2 _pad2;
+
+    float opacity;
+    int useVertexColor;
+    vec2 _pad3;
+    vec4 overrideColor;
+    int wireframeMode;
+    vec3 _pad4;
+} style;
+
+layout(location = 0) out vec4 outColor;
+
+void main()
+{
+    if (fragMaskEnabled > 0.5 && fragColor.a < fragAlphaCutoff)
+    {
+        discard;
+    }
+
+    vec3 normal = normalize(fragNormal);
+    vec3 lightDir = normalize(style.lightDirection);
+    float ambient = style.ambientIntensity;
+    float diffuse = max(dot(normal, lightDir), 0.0) * style.diffuseIntensity;
+    vec3 viewDir = normalize(-fragWorldPos);
+    vec3 halfDir = normalize(lightDir + viewDir);
+    float specular = pow(max(dot(normal, halfDir), 0.0), style.specularPower) * style.specularIntensity;
+    float lighting = ambient + diffuse + specular;
+    vec3 color = fragColor.rgb * lighting;
+    color *= style.tintColor;
+    float grey = dot(color, vec3(0.299, 0.587, 0.114));
+    color = mix(vec3(grey), color, style.saturation);
+    color = (color - vec3(0.5)) * style.contrast + vec3(0.5);
+    color += vec3(style.brightness);
+
+    outColor = fragMaskEnabled > 0.5
+        ? vec4(clamp(color, 0.0, 1.0), 1.0)
+        : vec4(clamp(color, 0.0, 1.0), fragColor.a * style.opacity);
+}
+";
+    }
+
+    private static string GetSurfaceChartFragmentShaderSource()
     {
         return @"#version 450
 layout(location = 0) in vec4 fragColor;

@@ -6,6 +6,7 @@ using Videra.Core.Exceptions;
 using Videra.Core.Geometry;
 using Videra.Core.Graphics;
 using Videra.Core.Graphics.Abstractions;
+using Videra.Core.Styles.Presets;
 using Videra.Platform.Linux;
 using Xunit;
 
@@ -152,12 +153,14 @@ public sealed class VulkanBackendLifecycleTests
         using var cameraBuffer = factory.CreateUniformBuffer(128);
         using var worldBuffer = factory.CreateUniformBuffer(64);
         using var alphaMaskBuffer = factory.CreateUniformBuffer(16);
+        using var styleBuffer = factory.CreateUniformBuffer(128);
         using var pipeline = factory.CreatePipeline(VertexPositionNormalColor.SizeInBytes, hasNormals: true, hasColors: true);
 
         cameraBuffer.SetData(Matrix4x4.Identity, 0);
         cameraBuffer.SetData(Matrix4x4.Identity, 64);
         worldBuffer.SetData(Matrix4x4.Identity, 0);
         alphaMaskBuffer.SetData(new float[] { 0f, 0f, 0f, 0f }, 0);
+        styleBuffer.SetData(RenderStylePresets.GetParameters(RenderStylePreset.Realistic).ToUniformData(), 0);
 
         var act = () =>
         {
@@ -167,6 +170,7 @@ public sealed class VulkanBackendLifecycleTests
             executor.SetVertexBuffer(cameraBuffer, RenderBindingSlots.Camera);
             executor.SetVertexBuffer(worldBuffer, RenderBindingSlots.World);
             executor.SetVertexBuffer(alphaMaskBuffer, RenderBindingSlots.AlphaMask);
+            executor.SetVertexBuffer(styleBuffer, RenderBindingSlots.Style);
             executor.SetIndexBuffer(ib);
             executor.DrawIndexed(3);
             backend.EndFrame();
