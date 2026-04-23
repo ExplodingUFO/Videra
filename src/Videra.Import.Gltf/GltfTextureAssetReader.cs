@@ -1,4 +1,6 @@
 using System.Buffers.Binary;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
 using Videra.Core.Scene;
 
 namespace Videra.Import.Gltf;
@@ -18,13 +20,15 @@ internal static class GltfTextureAssetReader
             ?? throw new InvalidDataException("glTF texture is missing an image payload.");
         var imageBytes = sourceImage.Content.Content.ToArray();
         var (width, height) = ReadDimensions(imageBytes);
+        var pixelBytes = DecodePixels(imageBytes, width, height);
         var created = new Texture2D(
             Texture2DId.New(),
             sourceImage.Name ?? sourceTexture.Name ?? $"Texture {sourceTexture.LogicalIndex}",
             width,
             height,
             ReadContentFormat(sourceImage.Content),
-            imageBytes);
+            imageBytes,
+            pixelBytes);
 
         textures.Add(sourceTexture, created);
         return created;
@@ -122,6 +126,19 @@ internal static class GltfTextureAssetReader
         }
 
         throw new InvalidDataException("Only PNG and JPEG texture payloads are currently supported.");
+    }
+
+    private static byte[] DecodePixels(byte[] imageBytes, int width, int height)
+    {
+        using var image = Image.Load<Rgba32>(imageBytes);
+        if (image.Width != width || image.Height != height)
+        {
+            throw new InvalidDataException("Decoded texture dimensions do not match the header-reported dimensions.");
+        }
+
+        var pixelBytes = new byte[width * height * 4];
+        image.CopyPixelDataTo(pixelBytes);
+        return pixelBytes;
     }
 
     private static bool TryReadPngDimensions(ReadOnlySpan<byte> imageBytes, out int width, out int height)
