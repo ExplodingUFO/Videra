@@ -62,9 +62,7 @@ public partial class VideraEngine
         var renderSolidGeometry = effectiveWireframeMode != WireframeMode.WireframeOnly;
         var renderWireframe = effectiveWireframeMode != WireframeMode.None || renderOverlayWireframe;
         var renderAxis = ShowAxis;
-        var (frameObjectCount, opaqueObjectCount, transparentObjectCount) = CountFrameObjectMetrics(renderSolidGeometry);
-        var renderOpaqueGeometry = renderSolidGeometry && opaqueObjectCount > 0;
-        var renderTransparentGeometry = renderSolidGeometry && transparentObjectCount > 0;
+        var (renderOpaqueGeometry, renderTransparentGeometry) = DetermineSolidGeometryFeatures(renderSolidGeometry);
         var stages = new List<RenderPipelineStage>
         {
             RenderPipelineStage.PrepareFrame,
@@ -101,15 +99,14 @@ public partial class VideraEngine
             renderSolidGeometry,
             renderWireframe,
             renderAxis,
-            frameObjectCount,
-            opaqueObjectCount,
-            transparentObjectCount,
             stages);
     }
 
     private void ExecuteFramePlan(RenderFramePlan plan, bool shouldLog)
     {
         var executedStages = new List<RenderPipelineStage>(plan.PlannedStages.Count);
+        var opaqueObjectCount = 0;
+        var transparentObjectCount = 0;
         InvokeFrameHooks(RenderFrameHookPoint.FrameBegin, plan, lastPipelineSnapshot: null);
 
         using (BeginFrame())
@@ -128,7 +125,9 @@ public partial class VideraEngine
 
             if (plan.RenderSolidGeometry)
             {
-                ExecutePassSlot(RenderPassSlot.SolidGeometry, plan, shouldLog);
+                var solidObjectCounts = ExecutePassSlot(RenderPassSlot.SolidGeometry, plan, shouldLog);
+                opaqueObjectCount = solidObjectCounts.opaqueObjectCount;
+                transparentObjectCount = solidObjectCounts.transparentObjectCount;
                 executedStages.Add(RenderPipelineStage.SolidGeometryPass);
             }
 
@@ -147,6 +146,7 @@ public partial class VideraEngine
 
         executedStages.Add(RenderPipelineStage.PresentFrame);
 
+        var frameObjectCount = _renderWorld.SceneObjects.Count;
         LastPipelineSnapshot = new RenderPipelineSnapshot(
             plan.Profile,
             plan.ActiveFeatures,
@@ -155,9 +155,9 @@ public partial class VideraEngine
             plan.RenderSolidGeometry,
             plan.RenderWireframe,
             plan.RenderAxis,
-            plan.FrameObjectCount,
-            plan.OpaqueObjectCount,
-            plan.TransparentObjectCount,
+            frameObjectCount,
+            opaqueObjectCount,
+            transparentObjectCount,
             executedStages);
         InvokeFrameHooks(RenderFrameHookPoint.FrameEnd, plan, LastPipelineSnapshot);
     }
@@ -219,7 +219,7 @@ public partial class VideraEngine
         _resources.CommandExecutor!.SetPipeline(_resources.MeshPipeline!);
     }
 
-    private void RenderSolidObjects(bool shouldLog, WireframeMode effectiveWireframeMode)
+    private (int opaqueObjectCount, int transparentObjectCount) RenderSolidObjects(bool shouldLog, WireframeMode effectiveWireframeMode)
     {
         bool shouldRenderSolid = effectiveWireframeMode != WireframeMode.WireframeOnly;
 
@@ -230,15 +230,18 @@ public partial class VideraEngine
 
         if (!shouldRenderSolid)
         {
-            return;
+            return (0, 0);
         }
 
-        RenderOpaqueObjects(shouldLog);
-        RenderTransparentObjects(shouldLog);
+        var opaqueObjectCount = RenderOpaqueObjects(shouldLog);
+        var transparentObjectCount = RenderTransparentObjects(shouldLog);
+        return (opaqueObjectCount, transparentObjectCount);
     }
 
-    private void RenderOpaqueObjects(bool shouldLog)
+    private int RenderOpaqueObjects(bool shouldLog)
     {
+        var opaqueObjectCount = 0;
+
         foreach (var obj in _renderWorld.SceneObjects)
         {
             if (!obj.HasOpaqueGeometry)
@@ -247,15 +250,18 @@ public partial class VideraEngine
             }
 
             RenderSolidObject(obj, shouldLog, transparentPass: false);
+            opaqueObjectCount++;
         }
+
+        return opaqueObjectCount;
     }
 
-    private void RenderTransparentObjects(bool shouldLog)
+    private int RenderTransparentObjects(bool shouldLog)
     {
         var transparentObjects = GetTransparentObjectsInRenderOrder();
         if (transparentObjects.Count == 0)
         {
-            return;
+            return 0;
         }
 
         _resources.CommandExecutor!.SetPipeline(_resources.TransparentMeshPipeline!);
@@ -273,6 +279,8 @@ public partial class VideraEngine
             _resources.CommandExecutor.ResetDepthState();
             _resources.CommandExecutor.SetPipeline(_resources.MeshPipeline!);
         }
+
+        return transparentObjects.Count;
     }
 
     private void RenderSolidObject(Object3D obj, bool shouldLog, bool transparentPass)
@@ -413,7 +421,7 @@ public partial class VideraEngine
         }
     }
 
-    private void ExecutePassSlot(RenderPassSlot slot, RenderFramePlan plan, bool shouldLog)
+    private (int opaqueObjectCount, int transparentObjectCount) ExecutePassSlot(RenderPassSlot slot, RenderFramePlan plan, bool shouldLog)
     {
         BindDefaultAlphaMaskState();
 
@@ -440,13 +448,15 @@ public partial class VideraEngine
         };
 
         var hasReplacement = _passRegistry.TryGetReplacement(slot, out var replacement);
+        var opaqueObjectCount = 0;
+        var transparentObjectCount = 0;
         if (hasReplacement)
         {
             replacement!.Contribute(context);
         }
         else
         {
-            ExecuteBuiltInPassSlot(slot, context);
+            (opaqueObjectCount, transparentObjectCount) = ExecuteBuiltInPassSlot(slot, context);
 
             if (slot == RenderPassSlot.Wireframe)
             {
@@ -461,24 +471,25 @@ public partial class VideraEngine
         {
             contributor.Contribute(context);
         }
+
+        return (opaqueObjectCount, transparentObjectCount);
     }
 
-    private void ExecuteBuiltInPassSlot(RenderPassSlot slot, RenderPassContributionContext context)
+    private (int opaqueObjectCount, int transparentObjectCount) ExecuteBuiltInPassSlot(RenderPassSlot slot, RenderPassContributionContext context)
     {
         switch (slot)
         {
             case RenderPassSlot.Grid:
                 RenderGridPass(context.ShouldLog);
-                break;
+                return (0, 0);
             case RenderPassSlot.SolidGeometry:
-                RenderSolidObjects(context.ShouldLog, context.FramePlan.EffectiveWireframeMode);
-                break;
+                return RenderSolidObjects(context.ShouldLog, context.FramePlan.EffectiveWireframeMode);
             case RenderPassSlot.Wireframe:
                 RenderWireframes(context.FramePlan.EffectiveWireframeMode);
-                break;
+                return (0, 0);
             case RenderPassSlot.Axis:
                 _axisRenderer.Draw(_resources.CommandExecutor!, _resources.MeshPipeline!, Camera, _width, _height, RenderScale);
-                break;
+                return (0, 0);
             default:
                 throw new ArgumentOutOfRangeException(nameof(slot), slot, "Unknown render pass slot.");
         }
@@ -555,32 +566,34 @@ public partial class VideraEngine
         return features;
     }
 
-    private (int frameObjectCount, int opaqueObjectCount, int transparentObjectCount) CountFrameObjectMetrics(bool renderSolidGeometry)
+    private (bool hasOpaqueGeometry, bool hasTransparentGeometry) DetermineSolidGeometryFeatures(bool renderSolidGeometry)
     {
-        var frameObjectCount = _renderWorld.SceneObjects.Count;
-
         if (!renderSolidGeometry)
         {
-            return (frameObjectCount, 0, 0);
+            return (false, false);
         }
 
-        var opaqueObjectCount = 0;
-        var transparentObjectCount = 0;
+        var hasOpaqueGeometry = false;
+        var hasTransparentGeometry = false;
 
         foreach (var obj in _renderWorld.SceneObjects)
         {
-            if (obj.HasOpaqueGeometry)
+            if (IsTransparentObject(obj))
             {
-                opaqueObjectCount++;
+                hasTransparentGeometry = true;
+            }
+            else
+            {
+                hasOpaqueGeometry = true;
             }
 
-            if (obj.HasTransparentGeometry)
+            if (hasOpaqueGeometry && hasTransparentGeometry)
             {
-                transparentObjectCount++;
+                break;
             }
         }
 
-        return (frameObjectCount, opaqueObjectCount, transparentObjectCount);
+        return (hasOpaqueGeometry, hasTransparentGeometry);
     }
 
     private List<Object3D> GetTransparentObjectsInRenderOrder()
