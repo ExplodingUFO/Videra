@@ -1,10 +1,7 @@
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using Videra.Avalonia.Controls;
-using Videra.Core.Exceptions;
-using Videra.Core.Graphics;
 using Videra.Core.Scene;
-using Videra.Import.Gltf;
-using Videra.Import.Obj;
 
 namespace Videra.Avalonia.Runtime.Scene;
 
@@ -12,6 +9,26 @@ internal sealed class SceneImportService
 {
     private readonly object _importedAssetGate = new();
     private readonly Dictionary<ImportedSceneAssetReuseKey, WeakReference<ImportedSceneAsset>> _importedAssetCache = [];
+    private Func<string, ImportedSceneAsset>? _modelImporter;
+
+    public SceneImportService(Func<string, ImportedSceneAsset>? modelImporter = null)
+    {
+        _modelImporter = modelImporter;
+    }
+
+    public void SetModelImporter(Func<string, ImportedSceneAsset>? modelImporter)
+    {
+        if (ReferenceEquals(_modelImporter, modelImporter))
+        {
+            return;
+        }
+
+        _modelImporter = modelImporter;
+        lock (_importedAssetGate)
+        {
+            _importedAssetCache.Clear();
+        }
+    }
 
     public async Task<ImportedAssetLoadResult> ImportSingleAsync(string path, CancellationToken cancellationToken)
     {
@@ -106,13 +123,16 @@ internal sealed class SceneImportService
 
     private ImportedSceneAsset ResolveImportedAsset(string path)
     {
-        var key = CreateReuseKey(path);
+        var importer = _modelImporter
+            ?? throw new InvalidOperationException(
+                "No model importer is configured for this VideraView. Add the required Videra.Import.* package(s) and assign VideraViewOptions.ModelImporter before calling LoadModelAsync(...) or LoadModelsAsync(...).");
+        var key = CreateReuseKey(path, importer);
         if (TryGetImportedAsset(key, out var asset))
         {
             return asset;
         }
 
-        asset = ImportAsset(path);
+        asset = importer(path);
         StoreImportedAsset(key, asset);
         return asset;
     }
@@ -156,12 +176,13 @@ internal sealed class SceneImportService
         }
     }
 
-    private static ImportedSceneAssetReuseKey CreateReuseKey(string path)
+    private static ImportedSceneAssetReuseKey CreateReuseKey(string path, Func<string, ImportedSceneAsset> modelImporter)
     {
         try
         {
             var fullPath = Path.GetFullPath(path);
             return new ImportedSceneAssetReuseKey(
+                RuntimeHelpers.GetHashCode(modelImporter),
                 path,
                 fullPath,
                 File.Exists(fullPath)
@@ -170,21 +191,8 @@ internal sealed class SceneImportService
         }
         catch
         {
-            return new ImportedSceneAssetReuseKey(path, path, DateTime.MinValue);
+            return new ImportedSceneAssetReuseKey(RuntimeHelpers.GetHashCode(modelImporter), path, path, DateTime.MinValue);
         }
-    }
-
-    private static ImportedSceneAsset ImportAsset(string path)
-    {
-        return Path.GetExtension(path).ToLowerInvariant() switch
-        {
-            ".gltf" or ".glb" => GltfModelImporter.Import(path),
-            ".obj" => ObjModelImporter.Import(path),
-            _ => throw new InvalidModelInputException(
-                $"File extension '{Path.GetExtension(path)}' is not supported. Supported formats: {string.Join(", ", GltfModelImporter.SupportedFormats.Concat(ObjModelImporter.SupportedFormats))}",
-                "LoadModel",
-                new Dictionary<string, string?> { ["Extension"] = Path.GetExtension(path) })
-        };
     }
 }
 
@@ -213,6 +221,7 @@ internal sealed record ImportedAssetBatchResult(
     ModelLoadFailure? Failure);
 
 internal readonly record struct ImportedSceneAssetReuseKey(
+    int ImporterIdentity,
     string RequestPath,
     string FullPath,
     DateTime LastWriteTimeUtc);

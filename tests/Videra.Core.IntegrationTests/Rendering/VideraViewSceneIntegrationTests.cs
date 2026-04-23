@@ -33,6 +33,35 @@ public sealed class VideraViewSceneIntegrationTests : IDisposable
     }
 
     [Fact]
+    public async Task LoadModelAsync_WithoutConfiguredImporter_ReturnsFailureAndDoesNotMutateScene()
+    {
+        var path = WriteObj("missing-importer.obj", """
+            v 0.0 0.0 0.0
+            v 1.0 0.0 0.0
+            v 0.0 1.0 0.0
+            vn 0.0 0.0 1.0
+            f 1//1 2//1 3//1
+            """);
+
+        var view = new VideraView();
+        try
+        {
+            var result = await view.LoadModelAsync(path);
+
+            result.Succeeded.Should().BeFalse();
+            result.Entry.Should().BeNull();
+            result.Failure.Should().NotBeNull();
+            result.Failure!.ErrorMessage.Should().Contain("No model importer is configured");
+            GetSceneObjectCount(view).Should().Be(0);
+            ReadSceneDocumentObjects(view).Should().BeEmpty();
+        }
+        finally
+        {
+            view.Engine.Dispose();
+        }
+    }
+
+    [Fact]
     public async Task LoadModelAsync_ValidPath_ReturnsLoadedObjectAndAddsItToScene()
     {
         var path = WriteObj("triangle.obj", """
@@ -43,7 +72,7 @@ public sealed class VideraViewSceneIntegrationTests : IDisposable
             f 1//1 2//1 3//1
             """);
 
-        var view = new VideraView();
+        var view = ConfigureObjImporter(new VideraView());
         try
         {
             var result = await view.LoadModelAsync(path);
@@ -71,7 +100,7 @@ public sealed class VideraViewSceneIntegrationTests : IDisposable
             f 1//1 2//1 3//1
             """);
 
-        var view = new VideraView();
+        var view = ConfigureObjImporter(new VideraView());
         try
         {
             var result = await view.LoadModelAsync(path);
@@ -102,7 +131,7 @@ public sealed class VideraViewSceneIntegrationTests : IDisposable
             """);
         var missingPath = Path.Combine(_tempDir, "missing.obj");
 
-        var view = new VideraView();
+        var view = ConfigureObjImporter(new VideraView());
         try
         {
             var result = await view.LoadModelsAsync(new[] { validPath, missingPath });
@@ -121,7 +150,7 @@ public sealed class VideraViewSceneIntegrationTests : IDisposable
     [Fact]
     public void ReplaceScene_ReplacesEngineSceneObjects()
     {
-        var view = new VideraView();
+        var view = ConfigureObjImporter(new VideraView());
         try
         {
             var factory = new SoftwareResourceFactory();
@@ -145,7 +174,7 @@ public sealed class VideraViewSceneIntegrationTests : IDisposable
     [Fact]
     public void ClearScene_RemovesAllSceneObjects()
     {
-        var view = new VideraView();
+        var view = ConfigureObjImporter(new VideraView());
         try
         {
             var factory = new SoftwareResourceFactory();
@@ -176,7 +205,7 @@ public sealed class VideraViewSceneIntegrationTests : IDisposable
             """);
         var missingPath = Path.Combine(_tempDir, "atomic-missing.obj");
 
-        var view = new VideraView();
+        var view = ConfigureObjImporter(new VideraView());
         try
         {
             var initial = DemoMeshFactory.CreateTestCube(new SoftwareResourceFactory(), size: 1f);
@@ -213,7 +242,7 @@ public sealed class VideraViewSceneIntegrationTests : IDisposable
             f 1//1 2//1 3//1
             """);
 
-        var view = new VideraView();
+        var view = ConfigureObjImporter(new VideraView());
         try
         {
             var initial = DemoMeshFactory.CreateTestCube(new SoftwareResourceFactory(), size: 1f);
@@ -302,7 +331,7 @@ public sealed class VideraViewSceneIntegrationTests : IDisposable
             f 1//1 2//1 3//1
             """);
 
-        var view = new VideraView(nativeHostFactory: null, bitmapFactory: static (_, _) => null);
+        var view = ConfigureObjImporter(new VideraView(nativeHostFactory: null, bitmapFactory: static (_, _) => null));
         try
         {
             var result = await view.LoadModelAsync(path);
@@ -336,7 +365,7 @@ public sealed class VideraViewSceneIntegrationTests : IDisposable
             f 1//1 2//1 3//1
             """);
 
-        var view = new VideraView(nativeHostFactory: null, bitmapFactory: static (_, _) => null);
+        var view = ConfigureObjImporter(new VideraView(nativeHostFactory: null, bitmapFactory: static (_, _) => null));
         try
         {
             var result = await view.LoadModelAsync(path);
@@ -387,7 +416,7 @@ public sealed class VideraViewSceneIntegrationTests : IDisposable
             f 1//1 2//1 3//1
             """);
 
-        var view = new VideraView(nativeHostFactory: null, bitmapFactory: static (_, _) => null);
+        var view = ConfigureObjImporter(new VideraView(nativeHostFactory: null, bitmapFactory: static (_, _) => null));
         try
         {
             var result = await view.LoadModelAsync(path);
@@ -428,7 +457,7 @@ public sealed class VideraViewSceneIntegrationTests : IDisposable
             f 1//1 2//1 3//1
             """);
 
-        var view = new VideraView(nativeHostFactory: null, bitmapFactory: static (_, _) => null);
+        var view = ConfigureObjImporter(new VideraView(nativeHostFactory: null, bitmapFactory: static (_, _) => null));
         try
         {
             var result = await view.LoadModelAsync(path);
@@ -1019,6 +1048,15 @@ public sealed class VideraViewSceneIntegrationTests : IDisposable
         var path = Path.Combine(_tempDir, name);
         File.WriteAllText(path, content);
         return path;
+    }
+
+    private static VideraView ConfigureObjImporter(VideraView view)
+    {
+        view.Options = new VideraViewOptions
+        {
+            ModelImporter = static path => ObjModelImporter.Import(path)
+        };
+        return view;
     }
 
     private static int GetSceneObjectCount(VideraView view)

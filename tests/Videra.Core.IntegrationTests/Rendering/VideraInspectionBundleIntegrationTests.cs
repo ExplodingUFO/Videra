@@ -6,6 +6,7 @@ using Videra.Avalonia.Controls.Interaction;
 using Videra.Core.Graphics;
 using Videra.Core.Graphics.Software;
 using Videra.Core.Inspection;
+using Videra.Import.Obj;
 using Xunit;
 
 namespace Videra.Core.IntegrationTests.Rendering;
@@ -27,7 +28,7 @@ public sealed class VideraInspectionBundleIntegrationTests : IDisposable
     {
         var modelPath = WriteTriangleObj("bundle-export.obj");
         var bundlePath = Path.Combine(_tempDirectory, "bundle-export");
-        var view = new VideraView(nativeHostFactory: null, bitmapFactory: static (_, _) => null);
+        var view = ConfigureObjImporter(new VideraView(nativeHostFactory: null, bitmapFactory: static (_, _) => null));
         try
         {
             var loadResult = await view.LoadModelAsync(modelPath);
@@ -106,8 +107,8 @@ public sealed class VideraInspectionBundleIntegrationTests : IDisposable
     public async Task ImportAsync_ShouldRejectBundlesThatCannotReplayHostOwnedSceneState()
     {
         var bundlePath = Path.Combine(_tempDirectory, "bundle-host-owned");
-        var sourceView = new VideraView(nativeHostFactory: null, bitmapFactory: static (_, _) => null);
-        var replayView = new VideraView(nativeHostFactory: null, bitmapFactory: static (_, _) => null);
+        var sourceView = ConfigureObjImporter(new VideraView(nativeHostFactory: null, bitmapFactory: static (_, _) => null));
+        var replayView = ConfigureObjImporter(new VideraView(nativeHostFactory: null, bitmapFactory: static (_, _) => null));
         var replaySelectionId = Guid.NewGuid();
         var replayAnnotationId = Guid.NewGuid();
         try
@@ -208,8 +209,8 @@ public sealed class VideraInspectionBundleIntegrationTests : IDisposable
     {
         var modelPath = WriteTriangleObj("bundle-import.obj");
         var bundlePath = Path.Combine(_tempDirectory, "bundle-import");
-        var sourceView = new VideraView(nativeHostFactory: null, bitmapFactory: static (_, _) => null);
-        var replayView = new VideraView(nativeHostFactory: null, bitmapFactory: static (_, _) => null);
+        var sourceView = ConfigureObjImporter(new VideraView(nativeHostFactory: null, bitmapFactory: static (_, _) => null));
+        var replayView = ConfigureObjImporter(new VideraView(nativeHostFactory: null, bitmapFactory: static (_, _) => null));
         try
         {
             var loadResult = await sourceView.LoadModelsAsync([modelPath, modelPath]);
@@ -321,6 +322,15 @@ public sealed class VideraInspectionBundleIntegrationTests : IDisposable
             f 1//1 2//1 3//1
             """);
         return path;
+    }
+
+    private static VideraView ConfigureObjImporter(VideraView view)
+    {
+        view.Options = new VideraViewOptions
+        {
+            ModelImporter = static path => ObjModelImporter.Import(path)
+        };
+        return view;
     }
 
     private static IReadOnlyList<Object3D> ReadSceneDocumentObjects(VideraView view)
