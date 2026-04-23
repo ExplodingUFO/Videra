@@ -10,14 +10,20 @@ internal static class ImportedSceneAssetPayloadBuilder
     public static MeshPayload Build(
         IReadOnlyList<SceneNode> nodes,
         IReadOnlyList<MeshPrimitive> primitives,
-        IReadOnlyList<MaterialInstance> materials)
+        IReadOnlyList<MaterialInstance> materials,
+        IReadOnlyList<Texture2D> textures,
+        IReadOnlyList<Sampler> samplers)
     {
         ArgumentNullException.ThrowIfNull(nodes);
         ArgumentNullException.ThrowIfNull(primitives);
         ArgumentNullException.ThrowIfNull(materials);
+        ArgumentNullException.ThrowIfNull(textures);
+        ArgumentNullException.ThrowIfNull(samplers);
 
         var primitiveById = primitives.ToDictionary(static primitive => primitive.Id);
         var materialById = materials.ToDictionary(static material => material.Id);
+        var textureById = textures.ToDictionary(static texture => texture.Id);
+        var samplerById = samplers.ToDictionary(static sampler => sampler.Id);
         var nodeById = nodes.ToDictionary(static node => node.Id);
         var resolvedTransforms = new Dictionary<SceneNodeId, Matrix4x4>();
         var resolvingNodes = new HashSet<SceneNodeId>();
@@ -40,10 +46,19 @@ internal static class ImportedSceneAssetPayloadBuilder
                 }
 
                 var startIndex = (uint)indices.Count;
-                AppendPrimitive(primitive.Payload, worldTransform, vertices, tangents, indices, ref indexOffset);
+                AppendPrimitive(
+                    primitive.MeshData,
+                    worldTransform,
+                    primitive.MaterialId is { } materialId && materialById.TryGetValue(materialId, out var material) ? material : null,
+                    textureById,
+                    samplerById,
+                    vertices,
+                    tangents,
+                    indices,
+                    ref indexOffset);
                 segments.Add(new MeshPayloadSegment(
                     startIndex,
-                    (uint)primitive.Payload.Indices.Length,
+                    (uint)primitive.MeshData.Indices.Length,
                     ResolveMaterialAlpha(primitive.MaterialId, materialById)));
             }
         }
@@ -102,8 +117,11 @@ internal static class ImportedSceneAssetPayloadBuilder
     }
 
     private static void AppendPrimitive(
-        MeshPayload payload,
+        MeshData meshData,
         Matrix4x4 transform,
+        MaterialInstance? material,
+        IReadOnlyDictionary<Texture2DId, Texture2D> textureById,
+        IReadOnlyDictionary<SamplerId, Sampler> samplerById,
         ICollection<VertexPositionNormalColor> vertices,
         ICollection<Vector4>? tangents,
         ICollection<uint> indices,
@@ -111,33 +129,49 @@ internal static class ImportedSceneAssetPayloadBuilder
     {
         Matrix4x4.Invert(transform, out var inverseTransform);
         var normalTransform = Matrix4x4.Transpose(inverseTransform);
-        if (payload.Tangents.Length != 0 && payload.Tangents.Length != payload.Vertices.Length)
+        if (meshData.Tangents.Length != 0 && meshData.Tangents.Length != meshData.Vertices.Length)
         {
             throw new InvalidOperationException("Mesh payload tangent count must match vertex count when tangent data is present.");
         }
 
-        for (var i = 0; i < payload.Vertices.Length; i++)
+        for (var i = 0; i < meshData.Vertices.Length; i++)
         {
-            var vertex = payload.Vertices[i];
+            var vertex = meshData.Vertices[i];
             var position = Vector3.Transform(vertex.Position, transform);
-            var normal = Vector3.Normalize(Vector3.TransformNormal(vertex.Normal, normalTransform));
-            vertices.Add(new VertexPositionNormalColor(position, normal, vertex.Color));
+            var transformedNormal = Vector3.TransformNormal(vertex.Normal, normalTransform);
+            var transformedTangent = meshData.Tangents.Length == 0
+                ? default
+                : TransformTangent(meshData.Tangents[i], transform);
+            var normal = MaterialTextureNormalBaker.ResolveVertexNormal(
+                transformedNormal,
+                transformedTangent,
+                meshData.Tangents.Length != 0,
+                i,
+                meshData,
+                material,
+                textureById,
+                samplerById);
+            var color = MaterialTextureColorBaker.ResolveVertexColor(
+                vertex,
+                i,
+                meshData,
+                material,
+                textureById,
+                samplerById);
+            vertices.Add(new VertexPositionNormalColor(position, normal, color));
 
             if (tangents is not null)
             {
-                tangents.Add(
-                    payload.Tangents.Length == 0
-                        ? Vector4.Zero
-                        : TransformTangent(payload.Tangents[i], transform));
+                tangents.Add(transformedTangent);
             }
         }
 
-        foreach (var index in payload.Indices)
+        foreach (var index in meshData.Indices)
         {
             indices.Add(indexOffset + index);
         }
 
-        indexOffset += (uint)payload.Vertices.Length;
+        indexOffset += (uint)meshData.Vertices.Length;
     }
 
     private static MaterialAlphaSettings ResolveMaterialAlpha(

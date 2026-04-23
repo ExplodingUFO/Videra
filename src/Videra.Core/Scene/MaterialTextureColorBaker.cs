@@ -29,22 +29,22 @@ internal static class MaterialTextureColorBaker
                 ResolveTextureSample(baseColorBinding, material.Name, vertexIndex, meshData, textureById, samplerById))
             : vertex.Color;
 
-        if (material.OcclusionTexture is not { } occlusionBinding)
+        if (material.OcclusionTexture is { } occlusionBinding)
         {
-            return color;
+            var occlusionSample = ResolveTextureSample(
+                occlusionBinding.Texture,
+                material.Name,
+                vertexIndex,
+                meshData,
+                textureById,
+                samplerById);
+            color = ApplyOcclusion(color, occlusionSample.R, occlusionBinding.Strength);
         }
 
-        var occlusionSample = ResolveTextureSample(
-            occlusionBinding.Texture,
-            material.Name,
-            vertexIndex,
-            meshData,
-            textureById,
-            samplerById);
-        return ApplyOcclusion(color, occlusionSample.R, occlusionBinding.Strength);
+        return ApplyEmissive(color, material.Emissive, material.Name, vertexIndex, meshData, textureById, samplerById);
     }
 
-    private static RgbaFloat ResolveTextureSample(
+    internal static RgbaFloat ResolveTextureSample(
         MaterialTextureBinding binding,
         string materialName,
         int vertexIndex,
@@ -249,6 +249,26 @@ internal static class MaterialTextureColorBaker
             color.R * factor,
             color.G * factor,
             color.B * factor,
+            color.A);
+    }
+
+    private static RgbaFloat ApplyEmissive(
+        RgbaFloat color,
+        MaterialEmissive emissive,
+        string materialName,
+        int vertexIndex,
+        MeshData meshData,
+        IReadOnlyDictionary<Texture2DId, Texture2D> textureById,
+        IReadOnlyDictionary<SamplerId, Sampler> samplerById)
+    {
+        var emissiveSample = emissive.Texture is { } emissiveBinding
+            ? ResolveTextureSample(emissiveBinding, materialName, vertexIndex, meshData, textureById, samplerById)
+            : RgbaFloat.White;
+
+        return new RgbaFloat(
+            color.R + (emissive.Factor.X * emissiveSample.R),
+            color.G + (emissive.Factor.Y * emissiveSample.G),
+            color.B + (emissive.Factor.Z * emissiveSample.B),
             color.A);
     }
 }
