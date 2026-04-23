@@ -151,5 +151,11 @@ if ($LASTEXITCODE -ne 0)
     throw "Release dry-run summary version simulation failed with exit code $LASTEXITCODE."
 }
 
+& (Join-Path $root "scripts/New-ReleaseCandidateEvidenceIndex.ps1") -ExpectedVersion $ExpectedVersion -ReleaseDryRunSummaryPath $summaryPath -OutputRoot $outputRootFull
+if ($LASTEXITCODE -ne 0)
+{
+    throw "Release candidate evidence index generation failed with exit code $LASTEXITCODE."
+}
+
 Write-Host "Release dry run passed for version '$ExpectedVersion'." -ForegroundColor Green
 Write-Host "Summary written to '$summaryPath'." -ForegroundColor Green

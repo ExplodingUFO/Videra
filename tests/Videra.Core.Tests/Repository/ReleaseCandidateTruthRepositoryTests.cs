@@ -35,6 +35,8 @@ public sealed class ReleaseCandidateTruthRepositoryTests
 
         docs["docs/release-policy.md"].Should().Contain("does not push assets to `nuget.org` or GitHub Packages");
         docs["docs/release-policy.md"].Should().Contain("candidate version/tag simulation");
+        docs["docs/releasing.md"].Should().Contain("release-candidate-evidence-index.json");
+        docs["docs/releasing.md"].Should().Contain("release-candidate-evidence-index.txt");
         docs["docs/releasing.md"].Should().Contain("Avoid `dotnet nuget push`");
         docs["docs/releasing.md"].Should().Contain("NUGET_API_KEY");
         docs["docs/releasing.md"].Should().Contain("Dry-run evidence should be linked from release-candidate review notes");

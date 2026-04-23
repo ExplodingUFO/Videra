@@ -20,6 +20,7 @@ public sealed class ReleaseDryRunRepositoryTests
         script.Should().Contain("scripts/Validate-Packages.ps1");
         script.Should().Contain("release-dry-run-summary.json");
         script.Should().Contain("release-dry-run-summary.txt");
+        script.Should().Contain("New-ReleaseCandidateEvidenceIndex.ps1");
         script.Should().Contain("package-size-evaluation.json");
         script.Should().Contain("package-size-summary.txt");
         script.Should().NotContain("dotnet nuget push");
@@ -54,6 +55,45 @@ public sealed class ReleaseDryRunRepositoryTests
         script.Should().Contain("scripts/Test-ReleaseCandidateVersion.ps1");
         script.Should().Contain("-CandidateTag \"v$ExpectedVersion\"");
         script.Should().Contain("-ReleaseDryRunSummaryPath $summaryPath");
+    }
+
+    [Fact]
+    public void ReleaseCandidateEvidenceContract_ShouldNameRequiredReviewSignals()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var contractPath = Path.Combine(repositoryRoot, "eng", "release-candidate-evidence.json");
+
+        File.Exists(contractPath).Should().BeTrue();
+
+        var contract = File.ReadAllText(contractPath);
+        contract.Should().Contain("\"schemaVersion\": 1");
+        contract.Should().Contain("release-dry-run");
+        contract.Should().Contain("benchmark-gates");
+        contract.Should().Contain("native-validation");
+        contract.Should().Contain("consumer-smoke");
+        contract.Should().Contain("release-candidate-evidence-index.json");
+        contract.Should().Contain("release-candidate-evidence-index.txt");
+        contract.Should().Contain("docs/releasing.md");
+        contract.Should().NotContain("dotnet nuget push");
+        contract.Should().NotContain("NUGET_API_KEY");
+    }
+
+    [Fact]
+    public void ReleaseCandidateEvidenceIndexScript_ShouldReadDryRunSummaryAndContract()
+    {
+        var scriptPath = Path.Combine(GetRepositoryRoot(), "scripts", "New-ReleaseCandidateEvidenceIndex.ps1");
+
+        File.Exists(scriptPath).Should().BeTrue();
+
+        var script = File.ReadAllText(scriptPath);
+        script.Should().Contain("eng/release-candidate-evidence.json");
+        script.Should().Contain("ReleaseDryRunSummaryPath");
+        script.Should().Contain("release-candidate-evidence-index.json");
+        script.Should().Contain("release-candidate-evidence-index.txt");
+        script.Should().Contain("requiredChecks");
+        script.Should().Contain("requiredArtifacts");
+        script.Should().Contain("supportDocs");
+        script.Should().NotContain("dotnet nuget push");
     }
 
     [Fact]

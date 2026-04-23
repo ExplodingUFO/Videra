@@ -41,8 +41,9 @@ That workflow is expected to:
 4. Pack each public package with the requested dry-run version.
 5. Reuse `scripts/Validate-Packages.ps1` for package set, symbols, README/license/icon/repository metadata, dependency boundaries, and package-size budgets.
 6. Validate `release-dry-run-summary.json` against the simulated tag version and public API contract.
-7. Upload `release-dry-run-evidence`.
-8. Avoid `dotnet nuget push`, `NUGET_API_KEY`, GitHub Packages tokens, and GitHub Release creation.
+7. Generate `release-candidate-evidence-index.json` and `release-candidate-evidence-index.txt` from `eng/release-candidate-evidence.json`.
+8. Upload `release-dry-run-evidence`.
+9. Avoid `dotnet nuget push`, `NUGET_API_KEY`, GitHub Packages tokens, and GitHub Release creation.
 
 ## Release notes
 
@@ -50,6 +51,7 @@ That workflow is expected to:
 - The release surface should communicate breaking changes, features, fixes, docs, and CI/build work.
 - Public release assets should make it obvious which package IDs are part of the release.
 - Dry-run evidence should be linked from release-candidate review notes, but it is not a substitute for the tag-triggered public publish workflow.
+- Release-candidate review notes should start from `release-candidate-evidence-index.txt`; use the JSON form when automating checklist review.
 
 ## Package set
 

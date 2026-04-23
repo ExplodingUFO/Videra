@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "description": "Release-candidate evidence checklist for final pre-publish review. This file names the existing checks and artifacts reviewers must inspect; it does not publish packages or create release tags.",
+  "requiredChecks": [
+    {
+      "id": "verify",
+      "workflow": ".github/workflows/ci.yml",
+      "description": "Repository verification and curated sample evidence."
+    },
+    {
+      "id": "release-dry-run",
+      "workflow": ".github/workflows/release-dry-run.yml",
+      "description": "Read-only package contract, package validation, and evidence-index generation."
+    },
+    {
+      "id": "benchmark-gates",
+      "workflow": ".github/workflows/benchmark-gates.yml",
+      "description": "Viewer and SurfaceCharts hard-threshold benchmark evidence."
+    },
+    {
+      "id": "native-validation",
+      "workflow": ".github/workflows/native-validation.yml",
+      "description": "Windows, Linux X11, Linux XWayland, and macOS native validation."
+    },
+    {
+      "id": "consumer-smoke",
+      "workflow": ".github/workflows/consumer-smoke.yml",
+      "description": "Packaged viewer and SurfaceCharts consumer smoke artifacts."
+    }
+  ],
+  "requiredArtifacts": [
+    "release-dry-run-evidence",
+    "release-dry-run-summary.json",
+    "release-candidate-evidence-index.json",
+    "release-candidate-evidence-index.txt",
+    "package-size-evaluation.json",
+    "package-size-summary.txt",
+    "benchmarks-viewer",
+    "benchmarks-surfacecharts",
+    "consumer-smoke-windows",
+    "consumer-smoke-windows-surfacecharts",
+    "consumer-smoke-linux-x11",
+    "consumer-smoke-linux-xwayland",
+    "consumer-smoke-macos"
+  ],
+  "supportDocs": [
+    "docs/releasing.md",
+    "docs/release-policy.md",
+    "docs/support-matrix.md",
+    "docs/package-matrix.md",
+    "docs/capability-matrix.md",
+    "CHANGELOG.md"
+  ]
+}
