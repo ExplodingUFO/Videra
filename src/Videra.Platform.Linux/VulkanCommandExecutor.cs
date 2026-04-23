@@ -15,6 +15,7 @@ internal sealed unsafe class VulkanCommandExecutor : ICommandExecutor, IBufferBi
     private VulkanBuffer? _cameraBuffer;
     private VulkanBuffer? _worldBuffer;
     private VulkanBuffer? _alphaMaskBuffer;
+    private VulkanBuffer? _styleBuffer;
     private VulkanBuffer? _colorMapBuffer;
     private VulkanBuffer? _surfaceTileScalarBuffer;
     private DescriptorSet _currentDescriptorSet;
@@ -66,6 +67,8 @@ internal sealed unsafe class VulkanCommandExecutor : ICommandExecutor, IBufferBi
             _worldBuffer = vkBuffer;
         else if (index == RenderBindingSlots.AlphaMask)
             _alphaMaskBuffer = vkBuffer;
+        else if (index == RenderBindingSlots.Style)
+            _styleBuffer = vkBuffer;
         else if (index == RenderBindingSlots.SurfaceColorMap)
             _colorMapBuffer = vkBuffer;
         else if (index == RenderBindingSlots.SurfaceTileScalars)
@@ -157,6 +160,11 @@ internal sealed unsafe class VulkanCommandExecutor : ICommandExecutor, IBufferBi
             _surfaceTileScalarBuffer = null;
         }
 
+        if (ReferenceEquals(_styleBuffer, vkBuffer))
+        {
+            _styleBuffer = null;
+        }
+
         if (_pipeline is null)
         {
             return;
@@ -198,18 +206,17 @@ internal sealed unsafe class VulkanCommandExecutor : ICommandExecutor, IBufferBi
         if (_pipeline == null || _cameraBuffer == null || _worldBuffer == null)
             return;
 
-        var descriptorWriteCount = 3u;
+        var descriptorWriteCount = 4u;
         if (_pipeline.UsesSurfaceChartScalarBindings)
         {
             if (_colorMapBuffer == null || _surfaceTileScalarBuffer == null)
                 return;
 
-            descriptorWriteCount = 4u;
             _currentDescriptorSet = GetOrCreateSurfaceScalarDescriptorSet(_surfaceTileScalarBuffer);
         }
         else
         {
-            if (_alphaMaskBuffer == null)
+            if (_alphaMaskBuffer == null || _styleBuffer == null)
                 return;
 
             _currentDescriptorSet = _pipeline.DescriptorSet;
@@ -233,6 +240,12 @@ internal sealed unsafe class VulkanCommandExecutor : ICommandExecutor, IBufferBi
             Buffer = _alphaMaskBuffer?.NativeBuffer ?? default,
             Offset = 0,
             Range = _alphaMaskBuffer?.SizeInBytes ?? 0
+        };
+        var styleInfo = new DescriptorBufferInfo
+        {
+            Buffer = _styleBuffer?.NativeBuffer ?? default,
+            Offset = 0,
+            Range = _styleBuffer?.SizeInBytes ?? 0
         };
 
         var writes = stackalloc WriteDescriptorSet[(int)descriptorWriteCount];
@@ -264,6 +277,15 @@ internal sealed unsafe class VulkanCommandExecutor : ICommandExecutor, IBufferBi
                 DescriptorCount = 1,
                 DescriptorType = DescriptorType.UniformBuffer,
                 PBufferInfo = &alphaMaskInfo
+            };
+            writes[3] = new WriteDescriptorSet
+            {
+                SType = StructureType.WriteDescriptorSet,
+                DstSet = _currentDescriptorSet,
+                DstBinding = 3,
+                DescriptorCount = 1,
+                DescriptorType = DescriptorType.UniformBuffer,
+                PBufferInfo = &styleInfo
             };
         }
 

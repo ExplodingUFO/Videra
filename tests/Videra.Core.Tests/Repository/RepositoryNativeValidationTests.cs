@@ -249,6 +249,21 @@ public sealed class RepositoryNativeValidationTests
     }
 
     [Fact]
+    public void LinuxVulkanStaticSceneLightingContract_ShouldBindStyleUniform()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var factorySource = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Platform.Linux", "VulkanResourceFactory.cs"));
+        var executorSource = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Platform.Linux", "VulkanCommandExecutor.cs"));
+
+        factorySource.Should().Contain("layout(set = 0, binding = 3) uniform StyleBuffer");
+        factorySource.Should().Contain("fragColor = style.useVertexColor != 0 ? inColor : style.overrideColor;");
+        factorySource.Should().Contain("layout(location = 3) out vec3 fragWorldPos;");
+        factorySource.Should().Contain("layout(location = 4) out vec3 fragNormal;");
+        executorSource.Should().Contain("RenderBindingSlots.Style");
+        executorSource.Should().Contain("_styleBuffer");
+    }
+
+    [Fact]
     public void LinuxVulkanLifecycleDrawTest_ShouldExerciseSurfaceChartScalarBindings()
     {
         var repositoryRoot = GetRepositoryRoot();
@@ -354,7 +369,7 @@ public sealed class RepositoryNativeValidationTests
         metalFactory.Should().Contain("constant SurfaceColorMapUniforms& colorMap [[buffer(4)]]");
         metalFactory.Should().Contain("constant float4* tileScalars [[buffer(5)]]");
 
-        vulkanFactory.Should().Contain("var bindingCount = usesSurfaceChartScalarBindings ? 4u : 3u;");
+        vulkanFactory.Should().Contain("var bindingCount = 4u;");
         vulkanFactory.Should().Contain("bindings[2] = new DescriptorSetLayoutBinding");
         vulkanFactory.Should().Contain("bindings[3] = new DescriptorSetLayoutBinding");
         vulkanFactory.Should().Contain("layout(set = 0, binding = 2) uniform AlphaMaskBuffer");
