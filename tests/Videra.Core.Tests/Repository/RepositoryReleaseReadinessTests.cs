@@ -350,16 +350,16 @@ public sealed class RepositoryReleaseReadinessTests
     }
 
     [Fact]
-    public void ExtensibilityContract_ShouldDescribeReadyDisposedAndFallbackStates()
+    public void ExtensibilityContract_ShouldDescribeReadyDisposedAndBackendAvailabilityStates()
     {
         var contract = File.ReadAllText(Path.Combine(GetRepositoryRoot(), "docs", "extensibility.md"));
 
         contract.Should().Contain("Ready");
         contract.Should().Contain("Pre-initialization");
         contract.Should().Contain("disposed");
-        contract.Should().Contain("AllowSoftwareFallback = true");
-        contract.Should().Contain("AllowSoftwareFallback = false");
-        contract.Should().Contain("FallbackReason");
+        contract.Should().Contain("Backend unavailable");
+        contract.Should().Contain("Backend availability remains a separate backend-resolution diagnostic");
+        contract.Should().Contain("render-pipeline contract stays limited");
         contract.Should().Contain("LoadModelAsync");
         contract.Should().Contain("FrameAll()");
         contract.Should().Contain("LastFrameObjectCount");

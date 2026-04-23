@@ -466,8 +466,9 @@ public sealed class RepositoryArchitectureTests
 
         contractDoc.Should().Contain("disposed");
         contractDoc.Should().Contain("no-op");
-        contractDoc.Should().Contain("AllowSoftwareFallback");
-        contractDoc.Should().Contain("FallbackReason");
+        contractDoc.Should().Contain("Backend unavailable");
+        contractDoc.Should().Contain("Backend availability remains a separate backend-resolution diagnostic");
+        contractDoc.Should().Contain("render-pipeline contract stays limited");
         contractDoc.Should().Contain("package discovery");
         contractDoc.Should().Contain("plugin loading");
     }

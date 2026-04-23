@@ -36,7 +36,7 @@ For `area: surfacecharts`, start from `smoke/Videra.SurfaceCharts.ConsumerSmoke`
 - `Start here: In-memory first chart` is the default first repro path.
 - `Explore next: Cache-backed streaming` is only the follow-up path after the in-memory chart already renders.
 - `Try next: Analytics proof` covers the explicit-coordinate, independent-`ColorField` and pinned-probe analytic workflow on the same shell, `Try next: Waterfall proof` is the fourth demo path, and `Try next: Scatter proof` covers the repo-owned scatter path on that same shell.
-- Use `Copy support summary` to paste the demo `Support summary` block into the issue so support has the same `ViewState`, `InteractionQuality`, `RenderingStatus`, `OverlayOptions`, `TransparentFeatureStatus`, and `LastFrameObjectCount` / `LastFrameOpaqueObjectCount` / `LastFrameTransparentObjectCount` contract the sample exposes. Those counts are backend-neutral scene diagnostics, not draw-call metrics.
+- Use `Copy support summary` to paste the demo `Support summary` block into the issue so support has the same `ViewState`, `InteractionQuality`, `RenderingStatus`, and `OverlayOptions` contract the SurfaceCharts sample exposes.
 
 ## Package Selection vs Backend Preference
 
