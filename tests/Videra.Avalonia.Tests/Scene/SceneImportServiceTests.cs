@@ -302,6 +302,154 @@ public sealed class SceneImportServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task Import_single_preserves_occlusion_and_texture_transform_truth_on_imported_asset()
+    {
+        var path = WriteGltf("truth.gltf", """
+            {
+              "asset": { "version": "2.0" },
+              "extensionsUsed": ["KHR_texture_transform"],
+              "scene": 0,
+              "scenes": [
+                { "nodes": [0] }
+              ],
+              "nodes": [
+                { "name": "Root", "mesh": 0 }
+              ],
+              "meshes": [
+                {
+                  "name": "TruthMesh",
+                  "primitives": [
+                    {
+                      "attributes": { "POSITION": 0, "TEXCOORD_0": 1, "TEXCOORD_1": 2 },
+                      "indices": 3,
+                      "material": 0
+                    }
+                  ]
+                }
+              ],
+              "materials": [
+                {
+                  "name": "TruthMaterial",
+                  "pbrMetallicRoughness": {
+                    "baseColorTexture": {
+                      "index": 0,
+                      "texCoord": 0,
+                      "extensions": {
+                        "KHR_texture_transform": {
+                          "offset": [0.125, 0.25],
+                          "scale": [1.5, 0.75],
+                          "rotation": 0.7853982,
+                          "texCoord": 1
+                        }
+                      }
+                    }
+                  },
+                  "occlusionTexture": {
+                    "index": 1,
+                    "strength": 0.6,
+                    "texCoord": 0,
+                    "extensions": {
+                      "KHR_texture_transform": {
+                        "offset": [0.125, 0.375],
+                        "scale": [0.5, 0.25],
+                        "rotation": 0.5,
+                        "texCoord": 1
+                      }
+                    }
+                  }
+                }
+              ],
+              "textures": [
+                { "sampler": 0, "source": 0 },
+                { "sampler": 0, "source": 1 }
+              ],
+              "samplers": [
+                {
+                  "minFilter": 9729,
+                  "magFilter": 9728,
+                  "wrapS": 10497,
+                  "wrapT": 10497
+                }
+              ],
+              "images": [
+                {
+                  "name": "BaseColorImage",
+                  "uri": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO7ZcE0AAAAASUVORK5CYII="
+                },
+                {
+                  "name": "OcclusionImage",
+                  "uri": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO7ZcE0AAAAASUVORK5CYII="
+                }
+              ],
+              "buffers": [
+                {
+                  "byteLength": 90,
+                  "uri": "data:application/octet-stream;base64,AAAAAAAAAAAAAAAAAACAPwAAAAAAAAAAAAAAAAAAgD8AAAAAAACAPwAAgD8AAIA/AACAPgAAgD8AAIA/AACAPwAAgD4AAIA/AACAPwAAgD8AAIA+AAABAAIA"
+                }
+              ],
+              "bufferViews": [
+                { "buffer": 0, "byteOffset": 0, "byteLength": 36, "target": 34962 },
+                { "buffer": 0, "byteOffset": 36, "byteLength": 24, "target": 34962 },
+                { "buffer": 0, "byteOffset": 60, "byteLength": 24, "target": 34962 },
+                { "buffer": 0, "byteOffset": 84, "byteLength": 6, "target": 34963 }
+              ],
+              "accessors": [
+                {
+                  "bufferView": 0,
+                  "componentType": 5126,
+                  "count": 3,
+                  "type": "VEC3",
+                  "min": [0.0, 0.0, 0.0],
+                  "max": [1.0, 1.0, 0.0]
+                },
+                {
+                  "bufferView": 1,
+                  "componentType": 5126,
+                  "count": 3,
+                  "type": "VEC2"
+                },
+                {
+                  "bufferView": 2,
+                  "componentType": 5126,
+                  "count": 3,
+                  "type": "VEC2"
+                },
+                {
+                  "bufferView": 3,
+                  "componentType": 5123,
+                  "count": 3,
+                  "type": "SCALAR"
+                }
+              ]
+            }
+            """);
+
+        var result = await _service.ImportSingleAsync(path, CancellationToken.None);
+
+        result.Asset.Should().NotBeNull();
+        result.Asset!.Materials.Should().ContainSingle();
+
+        var material = result.Asset.Materials[0];
+
+        material.BaseColorTexture.Should().NotBeNull();
+        material.BaseColorTexture!.CoordinateSet.Should().Be(1);
+        material.BaseColorTexture.Transform.Should().Be(new MaterialTextureTransform(
+            new Vector2(0.125f, 0.25f),
+            new Vector2(1.5f, 0.75f),
+            0.7853982f));
+        material.OcclusionTexture.Should().NotBeNull();
+        material.OcclusionTexture!.Strength.Should().Be(0.6f);
+        material.OcclusionTexture.Texture.TextureId.Should().Be(result.Asset.Textures[1].Id);
+        material.OcclusionTexture.Texture.SamplerId.Should().Be(result.Asset.Samplers[0].Id);
+        material.OcclusionTexture.Texture.CoordinateSet.Should().Be(1);
+        material.OcclusionTexture.Texture.ColorSpace.Should().Be(TextureColorSpace.Linear);
+        material.OcclusionTexture.Texture.Transform.Should().Be(new MaterialTextureTransform(
+            new Vector2(0.125f, 0.375f),
+            new Vector2(0.5f, 0.25f),
+            0.5f));
+    }
+
+    [Fact]
     public async Task Import_single_reuses_same_imported_asset_for_same_unchanged_path()
     {
         var path = WriteTriangleGltf("reused-single.gltf");

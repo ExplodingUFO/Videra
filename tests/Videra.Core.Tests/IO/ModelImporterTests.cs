@@ -918,6 +918,234 @@ public sealed class ModelImporterTests : IDisposable
     }
 
     [Fact]
+    public void Import_GltfTextureTransform_MapsOffsetScaleRotationAndTexCoordOverride()
+    {
+        var path = WriteGltf("material_texture_transform.gltf", """
+            {
+              "asset": { "version": "2.0" },
+              "extensionsUsed": ["KHR_texture_transform"],
+              "scene": 0,
+              "scenes": [
+                { "nodes": [0] }
+              ],
+              "nodes": [
+                { "name": "Root", "mesh": 0 }
+              ],
+              "meshes": [
+                {
+                  "name": "TexturedMesh",
+                  "primitives": [
+                    {
+                      "attributes": { "POSITION": 0, "TEXCOORD_0": 1 },
+                      "indices": 2,
+                      "material": 0
+                    }
+                  ]
+                }
+              ],
+              "materials": [
+                {
+                  "name": "Transformed",
+                  "pbrMetallicRoughness": {
+                    "baseColorTexture": {
+                      "index": 0,
+                      "texCoord": 0,
+                      "extensions": {
+                        "KHR_texture_transform": {
+                          "offset": [0.25, 0.5],
+                          "scale": [2.0, 3.0],
+                          "rotation": 1.5707964,
+                          "texCoord": 1
+                        }
+                      }
+                    }
+                  }
+                }
+              ],
+              "textures": [
+                { "sampler": 0, "source": 0 }
+              ],
+              "samplers": [
+                {
+                  "minFilter": 9729,
+                  "magFilter": 9728,
+                  "wrapS": 10497,
+                  "wrapT": 10497
+                }
+              ],
+              "images": [
+                {
+                  "name": "BaseColorImage",
+                  "uri": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO7ZcE0AAAAASUVORK5CYII="
+                }
+              ],
+              "buffers": [
+                {
+                  "byteLength": 66,
+                  "uri": "data:application/octet-stream;base64,AAAAAAAAAAAAAAAAAACAPwAAAAAAAAAAAAAAAAAAgD8AAAAAAAAAAAAAAAAAAIA/AAAAAAAAAAAAAIA/AAABAAIA"
+                }
+              ],
+              "bufferViews": [
+                { "buffer": 0, "byteOffset": 0, "byteLength": 36, "target": 34962 },
+                { "buffer": 0, "byteOffset": 36, "byteLength": 24, "target": 34962 },
+                { "buffer": 0, "byteOffset": 60, "byteLength": 6, "target": 34963 }
+              ],
+              "accessors": [
+                {
+                  "bufferView": 0,
+                  "componentType": 5126,
+                  "count": 3,
+                  "type": "VEC3",
+                  "min": [0.0, 0.0, 0.0],
+                  "max": [1.0, 1.0, 0.0]
+                },
+                {
+                  "bufferView": 1,
+                  "componentType": 5126,
+                  "count": 3,
+                  "type": "VEC2"
+                },
+                {
+                  "bufferView": 2,
+                  "componentType": 5123,
+                  "count": 3,
+                  "type": "SCALAR"
+                }
+              ]
+            }
+            """);
+
+        var asset = GltfModelImporter.Import(path);
+        var material = asset.Materials.Should().ContainSingle().Subject;
+
+        material.BaseColorTexture.Should().NotBeNull();
+        material.BaseColorTexture!.ColorSpace.Should().Be(TextureColorSpace.Srgb);
+        material.BaseColorTexture.CoordinateSet.Should().Be(1);
+        material.BaseColorTexture.Transform.Should().Be(new MaterialTextureTransform(
+            new Vector2(0.25f, 0.5f),
+            new Vector2(2.0f, 3.0f),
+            1.5707964f));
+    }
+
+    [Fact]
+    public void Import_GltfOcclusionTexture_MapsStrengthSamplerCoordinateAndColorSpace()
+    {
+        var path = WriteGltf("material_occlusion.gltf", """
+            {
+              "asset": { "version": "2.0" },
+              "extensionsUsed": ["KHR_texture_transform"],
+              "scene": 0,
+              "scenes": [
+                { "nodes": [0] }
+              ],
+              "nodes": [
+                { "name": "Root", "mesh": 0 }
+              ],
+              "meshes": [
+                {
+                  "name": "OccludedMesh",
+                  "primitives": [
+                    {
+                      "attributes": { "POSITION": 0, "TEXCOORD_1": 1 },
+                      "indices": 2,
+                      "material": 0
+                    }
+                  ]
+                }
+              ],
+              "materials": [
+                {
+                  "name": "Occluded",
+                  "occlusionTexture": {
+                    "index": 0,
+                    "strength": 0.35,
+                    "texCoord": 0,
+                    "extensions": {
+                      "KHR_texture_transform": {
+                        "offset": [0.5, 0.25],
+                        "scale": [0.75, 0.5],
+                        "rotation": 0.25,
+                        "texCoord": 1
+                      }
+                    }
+                  }
+                }
+              ],
+              "textures": [
+                { "sampler": 0, "source": 0 }
+              ],
+              "samplers": [
+                {
+                  "minFilter": 9987,
+                  "magFilter": 9728,
+                  "wrapS": 33648,
+                  "wrapT": 33071
+                }
+              ],
+              "images": [
+                {
+                  "name": "OcclusionImage",
+                  "uri": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO7ZcE0AAAAASUVORK5CYII="
+                }
+              ],
+              "buffers": [
+                {
+                  "byteLength": 66,
+                  "uri": "data:application/octet-stream;base64,AAAAAAAAAAAAAAAAAACAPwAAAAAAAAAAAAAAAAAAgD8AAAAAAAAAAAAAAAAAAIA/AAAAAAAAAAAAAIA/AAABAAIA"
+                }
+              ],
+              "bufferViews": [
+                { "buffer": 0, "byteOffset": 0, "byteLength": 36, "target": 34962 },
+                { "buffer": 0, "byteOffset": 36, "byteLength": 24, "target": 34962 },
+                { "buffer": 0, "byteOffset": 60, "byteLength": 6, "target": 34963 }
+              ],
+              "accessors": [
+                {
+                  "bufferView": 0,
+                  "componentType": 5126,
+                  "count": 3,
+                  "type": "VEC3",
+                  "min": [0.0, 0.0, 0.0],
+                  "max": [1.0, 1.0, 0.0]
+                },
+                {
+                  "bufferView": 1,
+                  "componentType": 5126,
+                  "count": 3,
+                  "type": "VEC2"
+                },
+                {
+                  "bufferView": 2,
+                  "componentType": 5123,
+                  "count": 3,
+                  "type": "SCALAR"
+                }
+              ]
+            }
+            """);
+
+        var asset = GltfModelImporter.Import(path);
+        var material = asset.Materials.Should().ContainSingle().Subject;
+        var texture = asset.Textures.Should().ContainSingle().Subject;
+        var sampler = asset.Samplers.Should().ContainSingle().Subject;
+
+        material.OcclusionTexture.Should().NotBeNull();
+        material.OcclusionTexture!.Strength.Should().Be(0.35f);
+        material.OcclusionTexture.Texture.TextureId.Should().Be(texture.Id);
+        material.OcclusionTexture.Texture.SamplerId.Should().Be(sampler.Id);
+        material.OcclusionTexture.Texture.CoordinateSet.Should().Be(1);
+        material.OcclusionTexture.Texture.ColorSpace.Should().Be(TextureColorSpace.Linear);
+        material.OcclusionTexture.Texture.Transform.Should().Be(new MaterialTextureTransform(
+            new Vector2(0.5f, 0.25f),
+            new Vector2(0.75f, 0.5f),
+            0.25f));
+        sampler.MinFilter.Should().Be(TextureFilter.Linear);
+        sampler.MagFilter.Should().Be(TextureFilter.Nearest);
+        sampler.WrapU.Should().Be(TextureWrapMode.MirroredRepeat);
+        sampler.WrapV.Should().Be(TextureWrapMode.ClampToEdge);
+    }
+
+    [Fact]
     public void Import_GltfStaticPbrMaterial_MapsExtendedMaterialSemantics()
     {
         var path = WriteGltf("material_pbr_semantics.gltf", """

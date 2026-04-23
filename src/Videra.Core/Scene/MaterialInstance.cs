@@ -12,7 +12,8 @@ public sealed class MaterialInstance
         MaterialMetallicRoughness? metallicRoughness = null,
         MaterialAlphaSettings? alpha = null,
         MaterialEmissive? emissive = null,
-        MaterialNormalTextureBinding? normalTexture = null)
+        MaterialNormalTextureBinding? normalTexture = null,
+        MaterialOcclusionTextureBinding? occlusionTexture = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
 
@@ -24,6 +25,7 @@ public sealed class MaterialInstance
         Alpha = alpha ?? MaterialAlphaSettings.Opaque;
         Emissive = emissive ?? MaterialEmissive.Default;
         NormalTexture = normalTexture;
+        OcclusionTexture = occlusionTexture;
     }
 
     public MaterialInstanceId Id { get; }
@@ -41,4 +43,6 @@ public sealed class MaterialInstance
     public MaterialEmissive Emissive { get; }
 
     public MaterialNormalTextureBinding? NormalTexture { get; }
+
+    public MaterialOcclusionTextureBinding? OcclusionTexture { get; }
 }

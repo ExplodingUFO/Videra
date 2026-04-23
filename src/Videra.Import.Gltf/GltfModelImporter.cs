@@ -344,6 +344,11 @@ public static partial class GltfModelImporter
             textures,
             samplers,
             ref defaultSampler);
+        var occlusionTexture = CreateOcclusionTexture(
+            sourceMaterial,
+            textures,
+            samplers,
+            ref defaultSampler);
 
         var created = new MaterialInstance(
             MaterialInstanceId.New(),
@@ -353,7 +358,8 @@ public static partial class GltfModelImporter
             metallicRoughness,
             alpha,
             emissive,
-            normalTexture);
+            normalTexture,
+            occlusionTexture);
         materials.Add(sourceMaterial, created);
         return created;
     }
@@ -416,6 +422,28 @@ public static partial class GltfModelImporter
         return new MaterialNormalTextureBinding(texture, channel?.Parameter.X ?? 1f);
     }
 
+    private static MaterialOcclusionTextureBinding? CreateOcclusionTexture(
+        SharpGLTF.Schema2.Material sourceMaterial,
+        Dictionary<SharpGLTF.Schema2.Texture, Texture2D> textures,
+        Dictionary<SharpGLTF.Schema2.TextureSampler, Sampler> samplers,
+        ref Sampler? defaultSampler)
+    {
+        var channel = sourceMaterial.FindChannel("Occlusion");
+        var texture = CreateTextureBinding(
+            channel,
+            TextureColorSpace.Linear,
+            textures,
+            samplers,
+            ref defaultSampler);
+
+        if (texture is null)
+        {
+            return null;
+        }
+
+        return new MaterialOcclusionTextureBinding(texture, channel?.Parameter.X ?? 1f);
+    }
+
     private static MaterialTextureBinding? CreateTextureBinding(
         MaterialChannel? channel,
         TextureColorSpace colorSpace,
@@ -431,11 +459,20 @@ public static partial class GltfModelImporter
 
         var texture = GltfTextureAssetReader.CreateOrGetTexture(sourceTexture, textures);
         var sampler = GltfTextureAssetReader.CreateOrGetSampler(sourceTexture.Sampler, samplers, ref defaultSampler);
+        var textureTransform = channel?.TextureTransform;
+        var transform = textureTransform is null
+            ? MaterialTextureTransform.Identity
+            : new MaterialTextureTransform(
+                textureTransform.Offset,
+                textureTransform.Scale,
+                textureTransform.Rotation);
+        var coordinateSet = textureTransform?.TextureCoordinateOverride ?? channel?.TextureCoordinate ?? 0;
         return new MaterialTextureBinding(
             texture.Id,
             sampler.Id,
-            channel?.TextureCoordinate ?? 0,
-            colorSpace);
+            coordinateSet,
+            colorSpace,
+            transform);
     }
 
     private static MaterialAlphaMode MapAlphaMode(SharpGLTF.Schema2.AlphaMode alphaMode)
