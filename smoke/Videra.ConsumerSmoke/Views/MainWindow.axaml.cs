@@ -6,6 +6,7 @@ using Avalonia.Markup.Xaml;
 using Avalonia.Threading;
 using Videra.Avalonia.Controls;
 using Videra.Core.Graphics;
+using Videra.Import.Obj;
 
 namespace Videra.ConsumerSmoke.Views;
 
@@ -46,6 +47,7 @@ public partial class MainWindow : Window
 
         _view3D.Options = new VideraViewOptions
         {
+            ModelImporter = static path => ObjModelImporter.Import(path),
             Backend =
             {
                 PreferredBackend = GraphicsBackendPreference.Auto,
