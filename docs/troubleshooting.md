@@ -115,7 +115,7 @@ Include:
   - `Try next: Analytics proof`
   - `Try next: Waterfall proof`
   - `Try next: Scatter proof`
-- use `Copy support summary` after reproducing `Start here: In-memory first chart`; continue to `Explore next: Cache-backed streaming` only if needed. The copied support summary also carries backend-neutral last-frame object counts for viewer-stack issues.
+- use `Copy support summary` after reproducing `Start here: In-memory first chart`; continue to `Explore next: Cache-backed streaming` only if needed. The copied SurfaceCharts summary is chart-scoped and carries `ViewState`, `InteractionQuality`, `RenderingStatus`, and `OverlayOptions` details.
 - use `Try next: Analytics proof` when the issue is about explicit-coordinate/analysis workflow checks, `Try next: Waterfall proof` when the issue is about the second chart control instead of the cache-backed path, and `Try next: Scatter proof` when the issue is about the direct scatter control path; the shipped control line also includes `ScatterChartView`
 - if the issue is about imported-material fidelity, include the smallest asset plus the relevant occlusion texture binding/strength and `KHR_texture_transform` details; those are imported-asset/runtime contracts, not renderer/shader/backend consumption claims
 - `ViewState`, `InteractionQuality`, `RenderingStatus`, and `OverlayOptions` from the SurfaceCharts support summary when relevant
