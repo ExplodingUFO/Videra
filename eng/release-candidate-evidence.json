@@ -45,6 +45,7 @@
   ],
   "supportDocs": [
     "docs/releasing.md",
+    "docs/release-candidate-cutover.md",
     "docs/release-policy.md",
     "docs/support-matrix.md",
     "docs/package-matrix.md",

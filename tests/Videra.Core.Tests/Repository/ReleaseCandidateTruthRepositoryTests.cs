@@ -64,6 +64,34 @@ public sealed class ReleaseCandidateTruthRepositoryTests
         script.Should().NotContain("dotnet nuget push");
     }
 
+    [Fact]
+    public void CutoverRunbook_ShouldPreserveAbortCriteriaAndHumanApprovalBoundary()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var runbook = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "release-candidate-cutover.md"));
+        var releasing = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "releasing.md"));
+        var docsIndex = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "index.md"));
+        var evidenceContract = File.ReadAllText(Path.Combine(repositoryRoot, "eng", "release-candidate-evidence.json"));
+        var dryRunWorkflow = File.ReadAllText(Path.Combine(repositoryRoot, ".github", "workflows", "release-dry-run.yml"));
+
+        runbook.Should().Contain("Abort Criteria");
+        runbook.Should().Contain("Do not create a release tag");
+        runbook.Should().Contain("Do not publish packages");
+        runbook.Should().Contain("Human Cutover Preconditions");
+        runbook.Should().Contain("release-candidate-evidence-index.txt");
+        runbook.Should().Contain("v<package-version>");
+        runbook.Should().Contain("No fallback publishing path");
+
+        releasing.Should().Contain("release-candidate-cutover.md");
+        releasing.Should().Contain("Abort criteria");
+        docsIndex.Should().Contain("release-candidate-cutover.md");
+        evidenceContract.Should().Contain("docs/release-candidate-cutover.md");
+
+        dryRunWorkflow.Should().NotContain("dotnet nuget push");
+        dryRunWorkflow.Should().NotContain("softprops/action-gh-release");
+        dryRunWorkflow.Should().NotContain("NUGET_API_KEY");
+    }
+
     private static string GetRepositoryRoot()
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);

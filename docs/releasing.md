@@ -33,6 +33,8 @@ That workflow is manual (`workflow_dispatch`) and pushes preview artifacts to `G
 
 Release-candidate review uses the `Release Dry Run` workflow at `.github/workflows/release-dry-run.yml` before public tags are cut or feed credentials are involved.
 
+Abort criteria and the human release cutover boundary are defined in [Release Candidate Abort and Cutover Runbook](release-candidate-cutover.md).
+
 That workflow is expected to:
 
 1. Run `scripts/Invoke-ReleaseDryRun.ps1`.
@@ -52,6 +54,7 @@ That workflow is expected to:
 - Public release assets should make it obvious which package IDs are part of the release.
 - Dry-run evidence should be linked from release-candidate review notes, but it is not a substitute for the tag-triggered public publish workflow.
 - Release-candidate review notes should start from `release-candidate-evidence-index.txt`; use the JSON form when automating checklist review.
+- Failed candidates must follow the abort steps in [Release Candidate Abort and Cutover Runbook](release-candidate-cutover.md) before another cutover attempt.
 
 ## Package set
 
