@@ -36,7 +36,7 @@
       "thresholds": [
         {
           "benchmark": "Videra.SurfaceCharts.Benchmarks.SurfaceChartsRenderStateBenchmarks.ApplyResidencyChurnUnderCameraMovement",
-          "baselineMeanNs": 79565673.019,
+          "baselineMeanNs": 76211000.0,
           "maxRegressionPercent": 100
         },
         {
