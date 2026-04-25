@@ -95,7 +95,7 @@ public class ScenePipelineBenchmarks
     public int SceneUploadQueue_Drain()
     {
         var registry = new SceneResidencyRegistry();
-        registry.Apply(new SceneDelta([_rehydrateEntry], Array.Empty<SceneDocumentEntry>(), Array.Empty<SceneDocumentEntry>(), Array.Empty<SceneDocumentEntry>()), resourceEpoch: 1);
+        registry.Apply(new SceneDelta([_rehydrateEntry], Array.Empty<SceneDocumentEntry>(), Array.Empty<SceneDocumentEntry>(), Array.Empty<SceneDeltaChange>()), resourceEpoch: 1);
 
         var queue = new SceneUploadQueue();
         queue.Enqueue([_rehydrateEntry]);
@@ -105,14 +105,15 @@ public class ScenePipelineBenchmarks
             _idleBudget,
             resourceEpoch: 2,
             registry,
-            NullLogger.Instance).UploadedRecords.Count;
+            NullLogger.Instance,
+            preferAttachedEntries: true).UploadedRecords.Count;
     }
 
     [Benchmark]
     public int ScenePipeline_RehydrateAfterBackendReady()
     {
         var registry = new SceneResidencyRegistry();
-        registry.Apply(new SceneDelta([_rehydrateEntry], Array.Empty<SceneDocumentEntry>(), Array.Empty<SceneDocumentEntry>(), Array.Empty<SceneDocumentEntry>()), resourceEpoch: 1);
+        registry.Apply(new SceneDelta([_rehydrateEntry], Array.Empty<SceneDocumentEntry>(), Array.Empty<SceneDocumentEntry>(), Array.Empty<SceneDeltaChange>()), resourceEpoch: 1);
 
         var queue = new SceneUploadQueue();
         queue.Enqueue([_rehydrateEntry]);
@@ -121,7 +122,8 @@ public class ScenePipelineBenchmarks
             _idleBudget,
             resourceEpoch: 2,
             registry,
-            NullLogger.Instance);
+            NullLogger.Instance,
+            preferAttachedEntries: true);
 
         var dirtyRecords = registry.MarkDirtyForResourceEpoch(resourceEpoch: 3);
         queue.Enqueue(dirtyRecords);
@@ -131,7 +133,8 @@ public class ScenePipelineBenchmarks
             _idleBudget,
             resourceEpoch: 3,
             registry,
-            NullLogger.Instance).UploadedRecords.Count;
+            NullLogger.Instance,
+            preferAttachedEntries: true).UploadedRecords.Count;
     }
 
     private string WriteTriangleObj(string fileName, float offsetX)

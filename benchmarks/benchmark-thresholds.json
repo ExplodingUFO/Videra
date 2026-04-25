@@ -5,6 +5,16 @@
       "name": "Viewer",
       "thresholds": [
         {
+          "benchmark": "Videra.Viewer.Benchmarks.ScenePipelineBenchmarks.SceneResidencyRegistry_ApplyDelta",
+          "baselineMeanNs": 332.9,
+          "maxRegressionPercent": 150
+        },
+        {
+          "benchmark": "Videra.Viewer.Benchmarks.ScenePipelineBenchmarks.SceneUploadQueue_Drain",
+          "baselineMeanNs": 272.7,
+          "maxRegressionPercent": 150
+        },
+        {
           "benchmark": "Videra.Viewer.Benchmarks.ScenePipelineBenchmarks.ScenePipeline_RehydrateAfterBackendReady",
           "baselineMeanNs": 328.305,
           "maxRegressionPercent": 150
@@ -12,6 +22,11 @@
         {
           "benchmark": "Videra.Viewer.Benchmarks.InspectionBenchmarks.SceneHitTest_MeshAccurateDistance",
           "baselineMeanNs": 300.915,
+          "maxRegressionPercent": 150
+        },
+        {
+          "benchmark": "Videra.Viewer.Benchmarks.InspectionBenchmarks.SnapshotExport_LiveReadbackFastPath",
+          "baselineMeanNs": 2310000.0,
           "maxRegressionPercent": 150
         }
       ]
