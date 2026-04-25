@@ -136,6 +136,8 @@ public partial class MainWindow : Window
             Trace("LoadModelAsync succeeded.");
             _view3D.AddObject(SmokeSceneFactory.CreateEmissiveNormalProofObject());
             Trace($"Added emissive/normal proof object: {SmokeSceneFactory.EmissiveNormalProofObjectName}.");
+            _view3D.AddObject(SmokeSceneFactory.CreateMixedTransparencyProofObject());
+            Trace($"Added mixed-transparency proof object: {SmokeSceneFactory.MixedTransparencyProofObjectName}.");
             var framed = _view3D.FrameAll();
             Trace($"FrameAll returned {framed}.");
             _view3D.ResetCamera();

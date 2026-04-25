@@ -162,6 +162,7 @@ public partial class MainWindow : Window
             .AppendLine($"LastFrameOpaqueObjectCount: {snapshot.LastPipelineSnapshot?.OpaqueObjectCount ?? 0}")
             .AppendLine($"LastFrameTransparentObjectCount: {snapshot.LastPipelineSnapshot?.TransparentObjectCount ?? 0}")
             .AppendLine($"EmissiveNormalProofObjectName: {SmokeSceneFactory.EmissiveNormalProofObjectName}")
+            .AppendLine($"MixedTransparencyProofObjectName: {SmokeSceneFactory.MixedTransparencyProofObjectName}")
             .AppendLine($"SupportedRenderFeatureNames: {supportedFeatures}")
             .AppendLine($"TransparentFeatureStatus: {CurrentTransparentFeatureStatus}")
             .AppendLine($"UsesSoftwarePresentationCopy: {snapshot.UsesSoftwarePresentationCopy}")
@@ -194,6 +195,7 @@ public partial class MainWindow : Window
         }
 
         _engine.AddObject(SmokeSceneFactory.CreateEmissiveNormalProofObject());
+        _engine.AddObject(SmokeSceneFactory.CreateMixedTransparencyProofObject());
         _sceneSeeded = true;
     }
 
