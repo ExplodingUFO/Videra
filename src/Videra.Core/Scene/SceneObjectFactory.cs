@@ -57,8 +57,7 @@ public static class SceneObjectFactory
 
         if (hasBlend && hasNonBlend)
         {
-            throw new InvalidOperationException(
-                "Imported scene asset mixes Blend and non-Blend material segments, which the current object-level transparent ordering cannot safely preserve.");
+            return MaterialAlphaSettings.Opaque;
         }
 
         return resolved;

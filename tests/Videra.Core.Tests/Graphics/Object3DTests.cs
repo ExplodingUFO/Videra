@@ -512,7 +512,7 @@ public class Object3DTests
     }
 
     [Fact]
-    public void SceneObjectFactory_CreateDeferred_RejectsMixedBlendAndNonBlendSegments()
+    public void SceneObjectFactory_CreateDeferred_AcceptsMixedBlendAndNonBlendSegments()
     {
         var mesh = CreateTestMesh();
         var opaqueMaterial = new MaterialInstance(
@@ -535,10 +535,13 @@ public class Object3DTests
             [firstPrimitive, secondPrimitive],
             [opaqueMaterial, blendedMaterial]);
 
-        var act = () => SceneObjectFactory.CreateDeferred(asset);
+        var sceneObject = SceneObjectFactory.CreateDeferred(asset);
 
-        act.Should().Throw<InvalidOperationException>()
-            .WithMessage("*Blend and non-Blend material segments*");
+        sceneObject.Should().NotBeNull();
+        sceneObject.HasPreparedMesh.Should().BeTrue();
+        sceneObject.HasOpaqueGeometry.Should().BeTrue();
+        sceneObject.HasTransparentGeometry.Should().BeTrue();
+        sceneObject.Segments.Should().HaveCount(2);
     }
 
     [Fact]
