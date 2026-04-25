@@ -45,11 +45,14 @@ Artifacts are written under `artifacts/benchmarks/<suite>`.
 ## Current contract
 
 - Pull requests run benchmark gates automatically.
-- Each suite still uploads the full benchmark evidence set, but the hard gate currently enforces only four representative mean-runtime thresholds:
-  - `ScenePipelineBenchmarks.ScenePipeline_RehydrateAfterBackendReady`
-  - `InspectionBenchmarks.SceneHitTest_MeshAccurateDistance`
-  - `SurfaceChartsRenderStateBenchmarks.ApplyResidencyChurnUnderCameraMovement`
-  - `SurfaceChartsProbeBenchmarks.ProbeLatency`
+- Each suite still uploads the full benchmark evidence set, but the hard gate currently enforces seven representative mean-runtime thresholds covering allocation, scene upload drain, rehydrate, inspection snapshot, and chart residency churn:
+  - `ScenePipelineBenchmarks.SceneResidencyRegistry_ApplyDelta` (allocation)
+  - `ScenePipelineBenchmarks.SceneUploadQueue_Drain` (scene upload drain)
+  - `ScenePipelineBenchmarks.ScenePipeline_RehydrateAfterBackendReady` (rehydrate)
+  - `InspectionBenchmarks.SceneHitTest_MeshAccurateDistance` (hit test)
+  - `InspectionBenchmarks.SnapshotExport_LiveReadbackFastPath` (inspection snapshot)
+  - `SurfaceChartsRenderStateBenchmarks.ApplyResidencyChurnUnderCameraMovement` (chart residency churn)
+  - `SurfaceChartsProbeBenchmarks.ProbeLatency` (probe latency)
 - On the SurfaceCharts side, those committed names now describe the tightened interactive residency under camera movement and lower probe-path churn on the existing chart-local path.
 - If one of those committed thresholds regresses beyond the allowed budget, the PR benchmark job fails and the uploaded artifact directory still includes the threshold evaluation details.
 - This is now a hard numeric blocker for the thresholded slice set, not a label-gated review switch.
@@ -71,5 +74,5 @@ Treat threshold failures as blocking regressions. Treat the remaining non-thresh
 ## Future escalation
 
 - Tighten the committed thresholds after enough stable CI history exists.
-- Add allocation thresholds once the first mean-runtime gate proves stable in CI; they stay future escalation guidance in this phase, not a blocker.
+- Tighten the committed thresholds after enough stable CI history exists.
 - Expand the hard-threshold slice only when the additional benchmarks show low enough noise to avoid false red builds.

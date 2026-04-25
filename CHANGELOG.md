@@ -20,6 +20,9 @@ The format is based on Keep a Changelog, and this repository is currently in an 
 
 - The mixed-alpha exception guard (`ResolveMaterialAlpha` check) from `SceneObjectFactory.CreateDeferred`.
 
+- Benchmark hard-gate expansion from 4 to 7 thresholds: added `SceneResidencyRegistry_ApplyDelta` (allocation), `SceneUploadQueue_Drain` (scene upload drain), and `SnapshotExport_LiveReadbackFastPath` (inspection snapshot) to the committed threshold contract.
+- Fixed `ScenePipelineBenchmarks` API drift: updated `SceneDelta` constructor calls and `SceneUploadQueue.Drain` signatures to match the current runtime API.
+
 - Documented the release-candidate `Release Dry Run` / `release-dry-run-evidence` path across the public docs, localized entry docs, and repository truth tests.
 
 ## [0.1.0-alpha.7] - 2026-04-19
