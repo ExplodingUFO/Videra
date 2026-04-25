@@ -8,6 +8,18 @@ The format is based on Keep a Changelog, and this repository is currently in an 
 
 ### Added
 
+- Mixed transparent primitive ordering baseline: mixed `Blend` and non-`Blend` imported primitives now survive the shipped static-scene viewer/runtime path with deterministic per-primitive transparent ordering.
+- `SceneObjectFactory.CreateDeferred` no longer throws on mixed-alpha imported assets; all imported assets now route through the primitive-level runtime bridge (`CreateDeferredRuntimeObjects`).
+- Mixed-transparency proof objects (`CreateMixedTransparencyProofObject`) in both `ConsumerSmoke` and `WpfSmoke` to validate the new baseline on repository-owned desktop hosts.
+
+### Changed
+
+- `Object3DTests.SceneObjectFactory_CreateDeferred_AcceptsMixedBlendAndNonBlendSegments` now asserts success instead of expecting an exception.
+
+### Removed
+
+- The mixed-alpha exception guard (`ResolveMaterialAlpha` check) from `SceneObjectFactory.CreateDeferred`.
+
 - Documented the release-candidate `Release Dry Run` / `release-dry-run-evidence` path across the public docs, localized entry docs, and repository truth tests.
 
 ## [0.1.0-alpha.7] - 2026-04-19
