@@ -9,6 +9,7 @@ namespace Videra.ConsumerSmoke.Views;
 internal static class SmokeSceneFactory
 {
     public const string EmissiveNormalProofObjectName = "ConsumerSmokeEmissiveNormalProofQuad";
+    public const string MixedTransparencyProofObjectName = "ConsumerSmokeMixedTransparencyProof";
 
     public static Object3D CreateEmissiveNormalProofObject()
     {
@@ -96,6 +97,48 @@ internal static class SmokeSceneFactory
             [material],
             [emissiveTexture, normalTexture],
             [sampler]);
+
+        return SceneObjectFactory.CreateDeferred(asset);
+    }
+
+    public static Object3D CreateMixedTransparencyProofObject()
+    {
+        var opaqueMaterial = new MaterialInstance(
+            MaterialInstanceId.New(),
+            "ConsumerSmokeOpaque",
+            new RgbaFloat(0f, 0.8f, 0.2f, 1f),
+            alpha: new MaterialAlphaSettings(MaterialAlphaMode.Opaque, 0f, false));
+        var blendedMaterial = new MaterialInstance(
+            MaterialInstanceId.New(),
+            "ConsumerSmokeBlended",
+            new RgbaFloat(0.9f, 0.1f, 0.1f, 0.5f),
+            alpha: new MaterialAlphaSettings(MaterialAlphaMode.Blend, 0.5f, true));
+        var mesh = new MeshData
+        {
+            Vertices =
+            [
+                new VertexPositionNormalColor(new Vector3(-0.5f, -0.5f, 0f), Vector3.UnitZ, RgbaFloat.White),
+                new VertexPositionNormalColor(new Vector3(0.5f, -0.5f, 0f), Vector3.UnitZ, RgbaFloat.White),
+                new VertexPositionNormalColor(new Vector3(0.5f, 0.5f, 0f), Vector3.UnitZ, RgbaFloat.White),
+                new VertexPositionNormalColor(new Vector3(-0.5f, 0.5f, 0f), Vector3.UnitZ, RgbaFloat.White)
+            ],
+            Indices = [0u, 1u, 2u, 0u, 2u, 3u],
+            Topology = MeshTopology.Triangles
+        };
+        var opaquePrimitive = new MeshPrimitive(MeshPrimitiveId.New(), "opaque-quad", mesh, opaqueMaterial.Id);
+        var blendedPrimitive = new MeshPrimitive(MeshPrimitiveId.New(), "blended-quad", mesh, blendedMaterial.Id);
+        var node = new SceneNode(
+            SceneNodeId.New(),
+            MixedTransparencyProofObjectName,
+            Matrix4x4.CreateTranslation(-1.55f, -0.2f, 0.5f),
+            parentId: null,
+            [opaquePrimitive.Id, blendedPrimitive.Id]);
+        var asset = new ImportedSceneAsset(
+            "consumer-smoke-mixed-transparency-proof.gltf",
+            MixedTransparencyProofObjectName,
+            [node],
+            [opaquePrimitive, blendedPrimitive],
+            [opaqueMaterial, blendedMaterial]);
 
         return SceneObjectFactory.CreateDeferred(asset);
     }
