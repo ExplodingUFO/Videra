@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Media;
 using Videra.SurfaceCharts.Avalonia.Controls.Overlay;
 using Videra.SurfaceCharts.Core;
+using Videra.SurfaceCharts.Core.Rendering;
 using Videra.SurfaceCharts.Rendering;
 
 namespace Videra.SurfaceCharts.Avalonia.Controls;
@@ -13,6 +14,12 @@ public partial class SurfaceChartView
     private readonly SurfaceChartOverlayCoordinator _overlayCoordinator = new();
     private SurfaceChartProjection? _chartProjection;
     private Size _overlayViewSize;
+
+    // Cached projection inputs to avoid rebuilding projection on every probe move.
+    private SurfaceRenderScene? _cachedProjectionScene;
+    private Size _cachedProjectionViewSize;
+    private SurfaceCameraFrame? _cachedProjectionCameraFrame;
+    private ISurfaceTileSource? _cachedProjectionSource;
 
     internal bool UpdateProbeScreenPosition(Point probeScreenPosition)
     {
@@ -57,12 +64,27 @@ public partial class SurfaceChartView
             ? _runtime.CreateCameraFrame(_overlayViewSize, 1f)
             : null;
 
-        _chartProjection = source is not null && loadedTiles.Count > 0 && cameraFrame is not null
-            ? SurfaceChartProjection.Create(
-                _renderScene,
-                cameraFrame.Value,
-                SurfaceChartProjection.CreateChartBoundsPoints(source.Metadata, source.Metadata.ValueRange))
-            : null;
+        // Rebuild projection only when its dependencies change; probe moves alone skip this work.
+        var projectionChanged = _chartProjection is null
+            || _cachedProjectionScene != _renderScene
+            || _cachedProjectionViewSize != _overlayViewSize
+            || _cachedProjectionCameraFrame != cameraFrame
+            || _cachedProjectionSource != source;
+
+        if (projectionChanged)
+        {
+            _chartProjection = source is not null && loadedTiles.Count > 0 && cameraFrame is not null
+                ? SurfaceChartProjection.Create(
+                    _renderScene,
+                    cameraFrame.Value,
+                    SurfaceChartProjection.CreateChartBoundsPoints(source.Metadata, source.Metadata.ValueRange))
+                : null;
+            _cachedProjectionScene = _renderScene;
+            _cachedProjectionViewSize = _overlayViewSize;
+            _cachedProjectionCameraFrame = cameraFrame;
+            _cachedProjectionSource = source;
+        }
+
         _overlayCoordinator.Refresh(
             source,
             loadedTiles,

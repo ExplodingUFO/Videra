@@ -34,6 +34,7 @@ public sealed class SurfaceChartRenderState
 
     private readonly SurfaceRenderer _renderer;
     private readonly Dictionary<SurfaceTileKey, SurfaceChartResidentTile> _residentTiles = [];
+    private IReadOnlyList<SurfaceChartResidentTile>? _cachedResidentTiles;
     private SurfaceMetadata? _metadata;
     private SurfaceColorMap? _colorMap;
     private SurfaceViewState _viewState;
@@ -57,9 +58,15 @@ public sealed class SurfaceChartRenderState
     {
         get
         {
+            if (_cachedResidentTiles is not null)
+            {
+                return _cachedResidentTiles;
+            }
+
             var ordered = _residentTiles.Values.ToArray();
             Array.Sort(ordered, static (left, right) => TileKeyComparison(left.Key, right.Key));
-            return Array.AsReadOnly(ordered);
+            _cachedResidentTiles = Array.AsReadOnly(ordered);
+            return _cachedResidentTiles;
         }
     }
 
@@ -128,6 +135,7 @@ public sealed class SurfaceChartRenderState
     {
         var removedKeys = _residentTiles.Keys.OrderBy(static key => key, Comparer<SurfaceTileKey>.Create(TileKeyComparison)).ToArray();
         _residentTiles.Clear();
+        _cachedResidentTiles = null;
 
         if (!CanBuildResidents(inputs))
         {
@@ -147,6 +155,7 @@ public sealed class SurfaceChartRenderState
             addedKeys.Add(tile.Key);
         }
 
+        _cachedResidentTiles = null;
         addedKeys.Sort(TileKeyComparison);
         return new SurfaceChartRenderChangeSet
         {
@@ -162,6 +171,7 @@ public sealed class SurfaceChartRenderState
         {
             var clearedKeys = _residentTiles.Keys.OrderBy(static key => key, Comparer<SurfaceTileKey>.Create(TileKeyComparison)).ToArray();
             _residentTiles.Clear();
+            _cachedResidentTiles = null;
             return new SurfaceChartRenderChangeSet
             {
                 FullResetRequired = _metadata is not null || clearedKeys.Length > 0,
@@ -179,6 +189,7 @@ public sealed class SurfaceChartRenderState
             if (!incomingTiles.ContainsKey(existingKey))
             {
                 _residentTiles.Remove(existingKey);
+                _cachedResidentTiles = null;
                 removedKeys.Add(existingKey);
             }
         }
@@ -188,6 +199,7 @@ public sealed class SurfaceChartRenderState
             if (!_residentTiles.TryGetValue(tile.Key, out var residentTile))
             {
                 _residentTiles[tile.Key] = CreateResidentTile(inputs.Metadata!, tile, inputs.ColorMap!);
+                _cachedResidentTiles = null;
                 addedKeys.Add(tile.Key);
                 continue;
             }
@@ -195,6 +207,7 @@ public sealed class SurfaceChartRenderState
             if (!ReferenceEquals(residentTile.SourceTile, tile))
             {
                 _residentTiles[tile.Key] = CreateResidentTile(inputs.Metadata!, tile, inputs.ColorMap!);
+                _cachedResidentTiles = null;
                 addedKeys.Add(tile.Key);
                 continue;
             }

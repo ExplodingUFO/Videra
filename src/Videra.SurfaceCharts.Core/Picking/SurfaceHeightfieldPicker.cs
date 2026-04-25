@@ -47,11 +47,27 @@ public static class SurfaceHeightfieldPicker
         ArgumentNullException.ThrowIfNull(metadata);
         ArgumentNullException.ThrowIfNull(loadedTiles);
 
-        foreach (var tile in loadedTiles
-                     .OrderByDescending(static candidate => candidate.Key.LevelX + candidate.Key.LevelY)
-                     .ThenByDescending(static candidate => candidate.Key.LevelX)
-                     .ThenByDescending(static candidate => candidate.Key.LevelY))
+        // Find the highest-detail tile level among all loaded tiles.
+        var bestLevelSum = -1;
+        for (var i = 0; i < loadedTiles.Count; i++)
         {
+            var key = loadedTiles[i].Key;
+            var levelSum = key.LevelX + key.LevelY;
+            if (levelSum > bestLevelSum)
+            {
+                bestLevelSum = levelSum;
+            }
+        }
+
+        // Scan loaded tiles without allocation; prefer higher detail levels.
+        for (var i = 0; i < loadedTiles.Count; i++)
+        {
+            var tile = loadedTiles[i];
+            if (tile.Key.LevelX + tile.Key.LevelY != bestLevelSum)
+            {
+                continue;
+            }
+
             if (!IntersectsTileBounds(metadata, tile, pickRay))
             {
                 continue;
@@ -66,6 +82,35 @@ public static class SurfaceHeightfieldPicker
             if (pickOutcome == TilePickOutcome.BlockedByMask)
             {
                 return null;
+            }
+        }
+
+        // If no hit at the best detail level, fall back to lower levels.
+        for (var levelSum = bestLevelSum - 1; levelSum >= 0; levelSum--)
+        {
+            for (var i = 0; i < loadedTiles.Count; i++)
+            {
+                var tile = loadedTiles[i];
+                if (tile.Key.LevelX + tile.Key.LevelY != levelSum)
+                {
+                    continue;
+                }
+
+                if (!IntersectsTileBounds(metadata, tile, pickRay))
+                {
+                    continue;
+                }
+
+                var pickOutcome = TryPickTile(metadata, tile, pickRay, out var hit);
+                if (pickOutcome == TilePickOutcome.Hit)
+                {
+                    return hit;
+                }
+
+                if (pickOutcome == TilePickOutcome.BlockedByMask)
+                {
+                    return null;
+                }
             }
         }
 

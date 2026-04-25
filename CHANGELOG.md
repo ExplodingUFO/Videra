@@ -25,6 +25,12 @@ The format is based on Keep a Changelog, and this repository is currently in an 
 
 - Documented the release-candidate `Release Dry Run` / `release-dry-run-evidence` path across the public docs, localized entry docs, and repository truth tests.
 
+- SurfaceCharts residency and probe efficiency improvements:
+  - Eliminated per-pick LINQ allocations in `SurfaceHeightfieldPicker.Pick`; probe latency benchmark now reports zero managed allocation per call.
+  - Cached `SurfaceChartRenderState.ResidentTiles` to avoid repeated array allocation and sorting on every access.
+  - Cached `_chartProjection` in `SurfaceChartView.InvalidateOverlay` so probe movements no longer trigger expensive scene-point collection and projection rebuilds.
+  - `ApplyResidencyChurnUnderCameraMovement` benchmark improved from ~79.6 ms to ~76.2 ms baseline.
+
 ## [0.1.0-alpha.7] - 2026-04-19
 
 ### Fixed
