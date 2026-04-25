@@ -59,4 +59,33 @@ public sealed class SceneDeltaPlannerTests
         assetChanged.Changed.Should().ContainSingle();
         assetChanged.Changed[0].Kind.Should().Be(SceneDeltaChangeKind.ImportedAssetChanged);
     }
+
+    [Fact]
+    public void Diff_detects_runtime_object_changes_in_multi_primitive_entry()
+    {
+        var first = SceneTestMeshes.CreateDeferredObject("first");
+        var second = SceneTestMeshes.CreateDeferredObject("second");
+        var replacement = SceneTestMeshes.CreateDeferredObject("replacement");
+
+        var entry = new SceneDocumentEntry(
+            SceneEntryId.New(),
+            "multi",
+            [first, second],
+            importedAsset: null,
+            SceneOwnership.ExternalObject);
+
+        var previous = new SceneDocument([entry]);
+        var changedEntry = new SceneDocumentEntry(
+            entry.Id,
+            entry.Name,
+            [first, replacement],
+            entry.ImportedAsset,
+            entry.Ownership);
+        var next = previous.WithEntries([changedEntry], previous.Version + 1);
+
+        var delta = SceneDeltaPlanner.Diff(previous, next);
+
+        delta.Changed.Should().ContainSingle();
+        delta.Changed[0].Kind.Should().Be(SceneDeltaChangeKind.RuntimeObjectsChanged);
+    }
 }

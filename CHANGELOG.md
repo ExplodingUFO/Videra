@@ -31,6 +31,10 @@ The format is based on Keep a Changelog, and this repository is currently in an 
   - Cached `_chartProjection` in `SurfaceChartView.InvalidateOverlay` so probe movements no longer trigger expensive scene-point collection and projection rebuilds.
   - `ApplyResidencyChurnUnderCameraMovement` benchmark improved from ~79.6 ms to ~76.2 ms baseline.
 
+- Runtime-truth guardrail closure (primitive-first contracts):
+  - Added explicit XML documentation to `SceneDocumentEntry`, `SceneDeltaPlanner`, `SceneUploadQueue`, `SceneUploadBudget`, and `SceneResidencyRecord` clarifying that each entry may own multiple primitive-level runtime objects.
+  - Added `SceneDeltaPlannerTests.Diff_detects_runtime_object_changes_in_multi_primitive_entry` to guard against silent regression to single-object-per-entry assumptions.
+
 ## [0.1.0-alpha.7] - 2026-04-19
 
 ### Fixed

@@ -1,6 +1,11 @@
 namespace Videra.Avalonia.Runtime.Scene;
 
+/** Budget for one upload drain pass. <see cref="MaxObjectsPerFrame"/> counts
+ *  primitive-level objects (<see cref="Videra.Core.Graphics.Object3D"/>), not scene
+ *  entries, because a single entry may expand into multiple independently uploadable
+ *  primitives. */
 internal readonly record struct SceneUploadBudget(
+    // Maximum primitive-level objects to upload this frame.
     int MaxObjectsPerFrame,
     long MaxBytesPerFrame)
 {

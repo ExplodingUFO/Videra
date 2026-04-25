@@ -5,6 +5,9 @@ using System.Diagnostics;
 
 namespace Videra.Avalonia.Runtime.Scene;
 
+/** Uploads primitive-level runtime objects (<see cref="Videra.Core.Graphics.Object3D"/>)
+ *  to the GPU. Budgets are counted per-primitive, not per-entry, because one entry may
+ *  own multiple independently uploadable objects. */
 internal sealed class SceneUploadQueue
 {
     private readonly Dictionary<SceneEntryId, long> _pendingIds = [];

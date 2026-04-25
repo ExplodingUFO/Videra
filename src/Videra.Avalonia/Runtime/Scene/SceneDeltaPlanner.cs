@@ -2,6 +2,8 @@ using Videra.Core.Scene;
 
 namespace Videra.Avalonia.Runtime.Scene;
 
+/** Computes deltas between scene snapshots at the entry level while respecting
+ *  that each entry may own multiple primitive-level runtime objects. */
 internal static class SceneDeltaPlanner
 {
     public static SceneDelta Diff(SceneDocument previous, SceneDocument next)
