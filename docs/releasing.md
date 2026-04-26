@@ -93,9 +93,11 @@ That workflow is expected to:
 ## Release notes
 
 - Release-page categories come from `.github/release.yml`.
+- Generate public release notes from approved publish evidence with `scripts/New-PublicReleaseNotes.ps1`; the output is `public-release-notes.md`.
 - The release surface should communicate breaking changes, features, fixes, docs, and CI/build work.
 - Public release assets should make it obvious which package IDs are part of the release.
 - Alpha candidate notes should state whether Doctor, Release Dry Run, package validation, Benchmark Gates, native validation, and packaged consumer smoke passed, failed, or were not run.
+- Public release notes must link `docs/package-matrix.md`, include known alpha limitations, and reference `public-publish-after-summary.json`.
 - Known non-blockers should be listed under candidate validation notes, not under package features or fixes.
 - Dry-run evidence should be linked from release-candidate review notes, but it is not a substitute for the tag-triggered public publish workflow.
 - Release-candidate review notes should start from `release-candidate-evidence-index.txt`; use the JSON form when automating checklist review.

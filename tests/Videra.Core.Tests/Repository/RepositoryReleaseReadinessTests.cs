@@ -719,6 +719,44 @@ public sealed class RepositoryReleaseReadinessTests
     }
 
     [Fact]
+    public void ReleaseCutoverAndSupportDocs_ShouldDefineStatefulCloseoutAndPublicBoundary()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var cutover = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "release-candidate-cutover.md"));
+        var feedback = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "alpha-feedback.md"));
+        var releasing = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "releasing.md"));
+        var releaseNotesScript = File.ReadAllText(Path.Combine(repositoryRoot, "scripts", "New-PublicReleaseNotes.ps1"));
+
+        cutover.Should().Contain("## Before-publish state");
+        cutover.Should().Contain("## Partial-publish state");
+        cutover.Should().Contain("## After-publish state");
+        cutover.Should().Contain("tag");
+        cutover.Should().Contain("version");
+        cutover.Should().Contain("expected_commit");
+        cutover.Should().Contain("public-release-preflight-summary.json");
+        cutover.Should().Contain("public-publish-before-summary.json");
+        cutover.Should().Contain("public-publish-after-summary.json");
+
+        feedback.Should().Contain("Release issue");
+        feedback.Should().Contain("public-publish-after-summary.json");
+        feedback.Should().Contain("public-release-notes.md");
+        feedback.Should().Contain("Package matrix");
+        feedback.Should().Contain("Known alpha limitations");
+
+        releasing.Should().Contain("scripts/New-PublicReleaseNotes.ps1");
+        releasing.Should().Contain("public-release-notes.md");
+        releasing.Should().Contain("docs/package-matrix.md");
+        releasing.Should().Contain("known alpha limitations");
+
+        releaseNotesScript.Should().Contain("public-publish-after-summary.json");
+        releaseNotesScript.Should().Contain("dotnet add package");
+        releaseNotesScript.Should().Contain("Videra.Demo remains repository-only");
+        releaseNotesScript.Should().Contain("GitHub Packages is preview/internal");
+        releaseNotesScript.Should().NotContain("dotnet nuget push");
+        releaseNotesScript.Should().NotContain("NUGET_API_KEY");
+    }
+
+    [Fact]
     public void ReleaseDocs_ShouldTieAlphaPublishingToConsumerSmokeAndBenchmarkEvidence()
     {
         var repositoryRoot = GetRepositoryRoot();

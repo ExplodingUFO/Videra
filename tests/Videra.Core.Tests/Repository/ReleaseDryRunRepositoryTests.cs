@@ -249,6 +249,56 @@ public sealed class ReleaseDryRunRepositoryTests
         File.Exists(Path.Combine(outputRoot, "public-release-preflight-summary.txt")).Should().BeTrue();
     }
 
+    [Fact]
+    public void PublicReleaseNotesScript_ShouldGenerateNotesFromPublishEvidence()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var scriptPath = Path.Combine(repositoryRoot, "scripts", "New-PublicReleaseNotes.ps1");
+        var outputRoot = Path.Combine(Path.GetTempPath(), "VideraPublicReleaseNotesTests", Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(outputRoot);
+
+        var evidencePath = Path.Combine(outputRoot, "public-publish-after-summary.json");
+        var outputPath = Path.Combine(outputRoot, "public-release-notes.md");
+        var evidence = new
+        {
+            stage = "after-publish",
+            releaseTag = "v0.1.0-alpha.7",
+            expectedVersion = "0.1.0-alpha.7",
+            sourceCommit = "abc123",
+            publishTarget = "https://api.nuget.org/v3/index.json",
+            packages = new[]
+            {
+                new { id = "Videra.Avalonia", version = "0.1.0-alpha.7" },
+                new { id = "Videra.Platform.Windows", version = "0.1.0-alpha.7" },
+                new { id = "Videra.Import.Gltf", version = "0.1.0-alpha.7" },
+                new { id = "Videra.SurfaceCharts.Avalonia", version = "0.1.0-alpha.7" },
+                new { id = "Videra.SurfaceCharts.Processing", version = "0.1.0-alpha.7" }
+            }
+        };
+        File.WriteAllText(evidencePath, JsonSerializer.Serialize(evidence));
+
+        var result = RunPowerShell(
+            scriptPath,
+            repositoryRoot,
+            "-EvidenceSummaryPath",
+            evidencePath,
+            "-OutputPath",
+            outputPath);
+
+        result.ExitCode.Should().Be(0, result.Stderr);
+        var notes = File.ReadAllText(outputPath);
+        notes.Should().Contain("Videra 0.1.0-alpha.7");
+        notes.Should().Contain("dotnet add package Videra.Avalonia --version 0.1.0-alpha.7");
+        notes.Should().Contain("dotnet add package Videra.Platform.Windows --version 0.1.0-alpha.7");
+        notes.Should().Contain("dotnet add package Videra.SurfaceCharts.Avalonia --version 0.1.0-alpha.7");
+        notes.Should().Contain("Package matrix");
+        notes.Should().Contain("Known alpha limitations");
+        notes.Should().Contain("public-publish-after-summary.json");
+        notes.Should().Contain("nuget.org");
+        notes.Should().Contain("GitHub Packages is preview/internal");
+        notes.Should().Contain("Videra.Demo remains repository-only");
+    }
+
     private static string GetRepositoryRoot()
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);
