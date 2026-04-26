@@ -53,6 +53,8 @@ public sealed class SurfaceChartsDemoConfigurationTests
         mainWindow.Should().Contain("Built-in interaction");
         mainWindow.Should().Contain("BuiltInInteractionText");
         mainWindow.Should().Contain("Explore next: Rendering path");
+        mainWindow.Should().Contain("Diagnostics: RenderingStatus");
+        mainWindow.Should().Contain("RenderingDiagnosticsText");
         mainWindow.Should().Contain("Interaction quality");
         mainWindow.Should().Contain("Explore next: Probe workflow");
         mainWindow.Should().Contain("Shift + LeftClick");
@@ -79,6 +81,7 @@ public sealed class SurfaceChartsDemoConfigurationTests
         mainWindowCodeBehind.Should().Contain("InteractionQualityText");
         mainWindowCodeBehind.Should().Contain("InteractionQualityChanged");
         mainWindowCodeBehind.Should().Contain("OverlayOptionsText");
+        mainWindowCodeBehind.Should().Contain("RenderingDiagnosticsText");
         mainWindowCodeBehind.Should().Contain("SupportSummaryText");
         mainWindowCodeBehind.Should().Contain("CopySupportSummaryButton");
         mainWindowCodeBehind.Should().Contain("SupportSummaryStatusText");
@@ -111,6 +114,12 @@ public sealed class SurfaceChartsDemoConfigurationTests
         mainWindowCodeBehind.Should().Contain("Scatter proof");
         mainWindowCodeBehind.Should().Contain("RenderStatusChanged");
         mainWindowCodeBehind.Should().Contain("SurfaceChartRenderingStatus");
+        mainWindowCodeBehind.Should().Contain("UpdateRenderingDiagnosticsText");
+        mainWindowCodeBehind.Should().Contain("CreateSurfaceRenderingDiagnosticsSummary");
+        mainWindowCodeBehind.Should().Contain("CreateScatterRenderingDiagnosticsSummary");
+        mainWindowCodeBehind.Should().Contain("HasSource");
+        mainWindowCodeBehind.Should().Contain("UsesNativeSurface");
+        mainWindowCodeBehind.Should().Contain("FallbackReason");
         mainWindowCodeBehind.Should().Contain("ScatterChartView");
         mainWindowCodeBehind.Should().Contain(".FitToData(");
         mainWindowCodeBehind.Should().Contain(".ResetCamera(");

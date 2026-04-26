@@ -230,15 +230,26 @@ public sealed class SurfaceChartsDemoViewportBehaviorTests
                 ?? throw new InvalidOperationException("ChartView is missing.");
             var renderingPathText = window.FindControl<TextBlock>("RenderingPathText")
                 ?? throw new InvalidOperationException("RenderingPathText is missing.");
+            var renderingDiagnosticsText = window.FindControl<TextBlock>("RenderingDiagnosticsText")
+                ?? throw new InvalidOperationException("RenderingDiagnosticsText is missing.");
 
             await WaitForConditionAsync(
-                () => !string.IsNullOrWhiteSpace(renderingPathText.Text),
+                () => !string.IsNullOrWhiteSpace(renderingPathText.Text) &&
+                      !string.IsNullOrWhiteSpace(renderingDiagnosticsText.Text),
                 "the demo should project rendering status into visible onboarding text.")
                 .ConfigureAwait(true);
 
             renderingPathText.Text.Should().Contain("Active backend");
             renderingPathText.Text.Should().Contain(chartView.RenderingStatus.ActiveBackend.ToString());
             renderingPathText.Text.Should().Contain("Resident tiles");
+            renderingDiagnosticsText.Text.Should().Contain("ActiveBackend:");
+            renderingDiagnosticsText.Text.Should().Contain(chartView.RenderingStatus.ActiveBackend.ToString());
+            renderingDiagnosticsText.Text.Should().Contain("IsReady:");
+            renderingDiagnosticsText.Text.Should().Contain("IsFallback:");
+            renderingDiagnosticsText.Text.Should().Contain("FallbackReason:");
+            renderingDiagnosticsText.Text.Should().Contain("UsesNativeSurface:");
+            renderingDiagnosticsText.Text.Should().Contain("ResidentTileCount:");
+            renderingDiagnosticsText.Text.Should().Contain("Host path:");
         });
     }
 
@@ -321,6 +332,8 @@ public sealed class SurfaceChartsDemoViewportBehaviorTests
                 ?? throw new InvalidOperationException("StatusText is missing.");
             var renderingPathText = window.FindControl<TextBlock>("RenderingPathText")
                 ?? throw new InvalidOperationException("RenderingPathText is missing.");
+            var renderingDiagnosticsText = window.FindControl<TextBlock>("RenderingDiagnosticsText")
+                ?? throw new InvalidOperationException("RenderingDiagnosticsText is missing.");
             var builtInInteractionText = window.FindControl<TextBlock>("BuiltInInteractionText")
                 ?? throw new InvalidOperationException("BuiltInInteractionText is missing.");
             var interactionQualityText = window.FindControl<TextBlock>("InteractionQualityText")
@@ -354,6 +367,12 @@ public sealed class SurfaceChartsDemoViewportBehaviorTests
             renderingPathText.Text.Should().Contain("Backend kind");
             renderingPathText.Text.Should().Contain("Series:");
             renderingPathText.Text.Should().Contain("Points:");
+            renderingDiagnosticsText.Text.Should().Contain("HasSource:");
+            renderingDiagnosticsText.Text.Should().Contain("BackendKind:");
+            renderingDiagnosticsText.Text.Should().Contain("IsInteracting:");
+            renderingDiagnosticsText.Text.Should().Contain("SeriesCount:");
+            renderingDiagnosticsText.Text.Should().Contain("PointCount:");
+            renderingDiagnosticsText.Text.Should().Contain("CameraDistance:");
 
             var source = scatterChartView.Source!;
             var bounds = GetScatterBounds(source);
@@ -383,7 +402,8 @@ public sealed class SurfaceChartsDemoViewportBehaviorTests
             resetCamera.Distance.Should().BeApproximately(GetFitDistance(bounds.Size, SurfaceCameraPose.DefaultFieldOfViewDegrees), 0.0001d);
 
             supportSummaryText.Text.Should().Contain("ScatterChartView");
-            supportSummaryText.Text.Should().Contain("RenderingStatus: BackendKind");
+            supportSummaryText.Text.Should().Contain("RenderingStatus:");
+            supportSummaryText.Text.Should().Contain("BackendKind:");
             supportSummaryText.Text.Should().Contain("SeriesCount");
             supportSummaryText.Text.Should().Contain("PointCount");
             supportSummaryText.Text.Should().Contain("InteractionQuality: not exposed");
@@ -466,6 +486,11 @@ public sealed class SurfaceChartsDemoViewportBehaviorTests
             supportSummaryText.Text.Should().Contain("ViewState:");
             supportSummaryText.Text.Should().Contain("InteractionQuality:");
             supportSummaryText.Text.Should().Contain("RenderingStatus:");
+            supportSummaryText.Text.Should().Contain("ActiveBackend:");
+            supportSummaryText.Text.Should().Contain("IsFallback:");
+            supportSummaryText.Text.Should().Contain("FallbackReason:");
+            supportSummaryText.Text.Should().Contain("UsesNativeSurface:");
+            supportSummaryText.Text.Should().Contain("ResidentTileCount:");
             supportSummaryText.Text.Should().Contain("OverlayOptions:");
             supportSummaryText.Text.Should().Contain("Cache asset:");
             supportSummaryText.Text.Should().Contain("Dataset:");

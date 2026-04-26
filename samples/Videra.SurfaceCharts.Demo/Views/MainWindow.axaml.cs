@@ -30,6 +30,7 @@ public partial class MainWindow : Window
     private readonly TextBlock _interactionQualityText;
     private readonly TextBlock _builtInInteractionText;
     private readonly TextBlock _renderingPathText;
+    private readonly TextBlock _renderingDiagnosticsText;
     private readonly TextBlock _overlayOptionsText;
     private readonly TextBlock _cachePathText;
     private readonly TextBlock _datasetText;
@@ -74,6 +75,8 @@ public partial class MainWindow : Window
             ?? throw new InvalidOperationException("BuiltInInteractionText is missing.");
         _renderingPathText = this.FindControl<TextBlock>("RenderingPathText")
             ?? throw new InvalidOperationException("Rendering path text control is missing.");
+        _renderingDiagnosticsText = this.FindControl<TextBlock>("RenderingDiagnosticsText")
+            ?? throw new InvalidOperationException("Rendering diagnostics text control is missing.");
         _overlayOptionsText = this.FindControl<TextBlock>("OverlayOptionsText")
             ?? throw new InvalidOperationException("Overlay options text control is missing.");
         _cachePathText = this.FindControl<TextBlock>("CachePathText")
@@ -442,6 +445,13 @@ public partial class MainWindow : Window
             $"Resident tiles: {surfaceStatus.ResidentTileCount}";
     }
 
+    private void UpdateRenderingDiagnosticsText()
+    {
+        _renderingDiagnosticsText.Text = IsScatterProofActive
+            ? CreateScatterRenderingDiagnosticsSummary(_scatterChartView.RenderingStatus)
+            : CreateSurfaceRenderingDiagnosticsSummary(ActiveSurfaceChartView.RenderingStatus);
+    }
+
     private void UpdateOverlayOptionsText()
     {
         if (IsScatterProofActive)
@@ -467,6 +477,7 @@ public partial class MainWindow : Window
         UpdateViewStateText();
         UpdateInteractionQualityText();
         UpdateRenderingPathText();
+        UpdateRenderingDiagnosticsText();
         UpdateOverlayOptionsText();
         UpdateStatusText();
         UpdateSupportSummaryText();
@@ -769,7 +780,7 @@ public partial class MainWindow : Window
                 $"Source details: {_activeSourceDetails}\n" +
                 $"Chart contract: ScatterChartView exposes direct point data, camera pose truth, Fit to data, and Reset camera on this proof path.\n" +
                 $"Camera: {CreateScatterCameraSummary(status)}\n" +
-                $"RenderingStatus: BackendKind {status.BackendKind}; IsReady {status.IsReady}; IsInteracting {status.IsInteracting}; SeriesCount {status.SeriesCount}; PointCount {status.PointCount}; ViewSize {status.ViewSize.Width:0.#}x{status.ViewSize.Height:0.#}\n" +
+                $"RenderingStatus:\n{CreateScatterRenderingDiagnosticsSummary(status)}\n" +
                 "InteractionQuality: not exposed on ScatterChartView\n" +
                 "OverlayOptions: not exposed on ScatterChartView\n" +
                 $"Cache asset: {_activeAssetSummary}\n" +
@@ -784,7 +795,7 @@ public partial class MainWindow : Window
             $"Source details: {_activeSourceDetails}\n" +
             $"ViewState: {CreateViewStateSummary()}\n" +
             $"InteractionQuality: {ActiveSurfaceChartView.InteractionQuality}\n" +
-            $"RenderingStatus: ActiveBackend {surfaceStatus.ActiveBackend}; IsReady {surfaceStatus.IsReady}; IsFallback {surfaceStatus.IsFallback}; FallbackReason {surfaceStatus.FallbackReason ?? "none"}; UsesNativeSurface {surfaceStatus.UsesNativeSurface}; ResidentTileCount {surfaceStatus.ResidentTileCount}\n" +
+            $"RenderingStatus:\n{CreateSurfaceRenderingDiagnosticsSummary(surfaceStatus)}\n" +
             $"OverlayOptions: {CreateOverlayOptionsSummary(ActiveSurfaceChartView.OverlayOptions)}\n" +
             $"Cache asset: {_activeAssetSummary}\n" +
             $"Dataset: {_activeDatasetSummary}";
@@ -809,6 +820,33 @@ public partial class MainWindow : Window
     {
         return
             $"Camera target ({status.CameraTarget.X:0.###}, {status.CameraTarget.Y:0.###}, {status.CameraTarget.Z:0.###}), Distance {status.CameraDistance:0.###}, SeriesCount {status.SeriesCount}, PointCount {status.PointCount}";
+    }
+
+    private static string CreateSurfaceRenderingDiagnosticsSummary(SurfaceChartRenderingStatus status)
+    {
+        return
+            $"ActiveBackend: {status.ActiveBackend}\n" +
+            $"IsReady: {status.IsReady}\n" +
+            $"IsFallback: {status.IsFallback}\n" +
+            $"FallbackReason: {status.FallbackReason ?? "none"}\n" +
+            $"UsesNativeSurface: {status.UsesNativeSurface}\n" +
+            $"ResidentTileCount: {status.ResidentTileCount}\n" +
+            $"Fallback status: {CreateFallbackText(status)}\n" +
+            $"Host path: {CreateHostText(status)}";
+    }
+
+    private static string CreateScatterRenderingDiagnosticsSummary(ScatterChartRenderingStatus status)
+    {
+        return
+            $"HasSource: {status.HasSource}\n" +
+            $"IsReady: {status.IsReady}\n" +
+            $"BackendKind: {status.BackendKind}\n" +
+            $"IsInteracting: {status.IsInteracting}\n" +
+            $"SeriesCount: {status.SeriesCount}\n" +
+            $"PointCount: {status.PointCount}\n" +
+            $"ViewSize: {status.ViewSize.Width:0.#} x {status.ViewSize.Height:0.#}\n" +
+            $"CameraTarget: ({status.CameraTarget.X:0.###}, {status.CameraTarget.Y:0.###}, {status.CameraTarget.Z:0.###})\n" +
+            $"CameraDistance: {status.CameraDistance:0.###}";
     }
 
     private static string CreateOverlayOptionsSummary(SurfaceChartOverlayOptions overlayOptions)

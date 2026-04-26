@@ -59,12 +59,13 @@ dotnet run --project samples/Videra.SurfaceCharts.Demo/Videra.SurfaceCharts.Demo
 - hover readout and `Shift + left-click` pinned probes on the chart surface
 - the shipped `GPU-first` renderer path used by `SurfaceChartView`, with `software fallback` still available when native-host or GPU initialization is unavailable
 - a lightweight rendering-path panel driven by `RenderingStatus` / `RenderStatusChanged`
+- a dedicated `RenderingStatus` diagnostics panel that exposes the active backend, readiness, fallback status/reason, native-host state, and resident tile count for the active surface chart path
 
 ## What The Demo Does Not Show Yet
 
 The current sample is still a focused onboarding surface, not a finished end-user chart workstation:
 
-- no dedicated UI that walks every GPU host / fallback combination or surfaces every `RenderingStatus` field
+- no exhaustive UI that forces every GPU host / fallback combination; the diagnostics panel reports the active runtime path and current `RenderingStatus` fields
 - on Linux, native GPU hosting still depends on X11 handles; Wayland sessions are `XWayland compatibility` only, not compositor-native Wayland surface embedding
 
-That gap is intentional. The current demo primarily proves the control boundary, built-in interaction contract, renderer path, probe/overlay behavior, and cache/LOD story without trying to be a full workstation shell.
+That gap is intentional. The current demo primarily proves the control boundary, built-in interaction contract, renderer path, active fallback diagnostics, probe/overlay behavior, and cache/LOD story without trying to be a full workstation shell.
