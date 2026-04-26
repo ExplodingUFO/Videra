@@ -76,6 +76,7 @@ public sealed class VideraDoctorRepositoryTests
                      "scripts/Test-BenchmarkThresholds.ps1",
                      "scripts/Invoke-ConsumerSmoke.ps1",
                      "scripts/run-native-validation.ps1",
+                     "scripts/Invoke-PublicReleasePreflight.ps1",
                      "benchmarks/benchmark-contract.json",
                      "benchmarks/benchmark-thresholds.json",
                      "eng/public-api-contract.json"
@@ -183,7 +184,8 @@ public sealed class VideraDoctorRepositoryTests
             "scripts/Test-BenchmarkThresholds.ps1",
             "scripts/Invoke-ConsumerSmoke.ps1",
             "scripts/run-native-validation.ps1",
-            "scripts/Invoke-ReleaseDryRun.ps1"
+            "scripts/Invoke-ReleaseDryRun.ps1",
+            "scripts/Invoke-PublicReleasePreflight.ps1"
         ]);
 
         var artifactReferences = evidencePacket.GetProperty("artifactReferences")
@@ -196,6 +198,7 @@ public sealed class VideraDoctorRepositoryTests
             "benchmark",
             "consumer-smoke",
             "native-validation",
+            "public-release-preflight",
             "demo-support"
         ]);
 
@@ -213,6 +216,7 @@ public sealed class VideraDoctorRepositoryTests
             "artifacts/benchmarks/surfacecharts/benchmark-manifest.json",
             "artifacts/consumer-smoke/consumer-smoke-result.json",
             "artifacts/native-validation",
+            "artifacts/public-release-preflight/public-release-preflight-summary.json",
             "artifacts/consumer-smoke/surfacecharts-support-summary.txt"
         ]);
 

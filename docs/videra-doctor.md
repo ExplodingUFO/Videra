@@ -25,6 +25,7 @@ Contract and validation references reported by Doctor stay aligned with the repo
 - `scripts/Test-BenchmarkThresholds.ps1`
 - `scripts/Invoke-ConsumerSmoke.ps1`
 - `scripts/run-native-validation.ps1`
+- `scripts/Invoke-PublicReleasePreflight.ps1`
 
 ## Validation References
 
@@ -44,7 +45,7 @@ Opt-in validation switches:
 - `RunConsumerSmoke` invokes `scripts/Invoke-ConsumerSmoke.ps1`.
 - `RunNativeValidation` invokes `scripts/run-native-validation.ps1` on a matching host.
 
-Doctor complements `release-dry-run-evidence`; it does not replace `Release Dry Run`, package validation, benchmark gates, consumer smoke, or native validation.
+Doctor complements `release-dry-run-evidence` and `public-release-preflight` summaries; it does not replace `Release Dry Run`, package validation, benchmark gates, consumer smoke, native validation, or public release preflight.
 
 ## Evidence Packet
 
@@ -55,6 +56,7 @@ Doctor complements `release-dry-run-evidence`; it does not replace `Release Dry 
 - benchmark gates: viewer and SurfaceCharts `benchmark-manifest.json` files
 - consumer smoke: `consumer-smoke-result.json`, `diagnostics-snapshot.txt`, and `surfacecharts-support-summary.txt`
 - native validation: `artifacts/native-validation`
+- public release preflight: `public-release-preflight-summary.json` and `public-release-preflight-summary.txt`
 - demo support: diagnostics and SurfaceCharts support summaries copied from the demos
 
 Doctor only reports whether those paths are present or missing. The owning scripts still produce and validate the artifacts.

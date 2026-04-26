@@ -39,6 +39,7 @@ Use this checklist for each alpha candidate review. Keep the generated artifacts
 | Benchmark Gates | `.github/workflows/benchmark-gates.yml`, `scripts/Run-Benchmarks.ps1`, `scripts/Test-BenchmarkThresholds.ps1` | viewer and SurfaceCharts benchmark manifests plus threshold evaluation artifacts |
 | Native validation | `.github/workflows/native-validation.yml` or `scripts/run-native-validation.ps1` | Windows, Linux X11, Linux XWayland, and macOS native-validation artifacts |
 | Packaged consumer smoke | `.github/workflows/consumer-smoke.yml` or `scripts/Invoke-ConsumerSmoke.ps1` | `consumer-smoke-result.json`, `diagnostics-snapshot.txt`, `surfacecharts-support-summary.txt` |
+| Public release preflight | `scripts/Invoke-PublicReleasePreflight.ps1` | `public-release-preflight-summary.json`, `public-release-preflight-summary.txt` |
 
 Known non-blockers must be recorded in candidate review notes with evidence links. They should not be described as shipped package changes unless they affect the public package behavior.
 

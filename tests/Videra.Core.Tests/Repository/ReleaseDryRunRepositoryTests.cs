@@ -197,6 +197,58 @@ public sealed class ReleaseDryRunRepositoryTests
         dryRunWorkflow.Should().NotContain("dotnet nuget push");
     }
 
+    [Fact]
+    public void PublicReleasePreflightScript_ShouldValidateEvidenceAndRemainNonMutating()
+    {
+        var scriptPath = Path.Combine(GetRepositoryRoot(), "scripts", "Invoke-PublicReleasePreflight.ps1");
+
+        File.Exists(scriptPath).Should().BeTrue();
+
+        var script = File.ReadAllText(scriptPath);
+        script.Should().Contain("ExpectedVersion");
+        script.Should().Contain("ExpectedCommit");
+        script.Should().Contain("ReleaseDryRunRoot");
+        script.Should().Contain("release-dry-run-summary.json");
+        script.Should().Contain("release-candidate-evidence-index.json");
+        script.Should().Contain("package-size-evaluation.json");
+        script.Should().Contain("benchmark-threshold-evaluation.json");
+        script.Should().Contain("consumer-smoke-result.json");
+        script.Should().Contain("surfacecharts-support-summary.txt");
+        script.Should().Contain("native-validation");
+        script.Should().Contain("git status --porcelain");
+        script.Should().Contain("public-release-preflight-summary.json");
+        script.Should().Contain("public-release-preflight-summary.txt");
+        script.Should().NotContain("dotnet nuget push");
+        script.Should().NotContain("git tag");
+        script.Should().NotContain("NUGET_API_KEY");
+        script.Should().NotContain("GITHUB_TOKEN");
+    }
+
+    [Fact]
+    public void PublicReleasePreflightScript_ShouldFailClosedWhenEvidenceIsMissing()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var scriptPath = Path.Combine(repositoryRoot, "scripts", "Invoke-PublicReleasePreflight.ps1");
+        var outputRoot = Path.Combine(Path.GetTempPath(), "VideraPublicReleasePreflightTests", Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(outputRoot);
+
+        var result = RunPowerShell(
+            scriptPath,
+            repositoryRoot,
+            "-ExpectedVersion",
+            "0.1.0-alpha.7",
+            "-EvidenceRoot",
+            outputRoot,
+            "-OutputRoot",
+            outputRoot,
+            "-SkipRepositoryStateCheck");
+
+        result.ExitCode.Should().NotBe(0);
+        $"{result.Stdout}{result.Stderr}".Should().Contain("release-dry-run-summary.json");
+        File.Exists(Path.Combine(outputRoot, "public-release-preflight-summary.json")).Should().BeTrue();
+        File.Exists(Path.Combine(outputRoot, "public-release-preflight-summary.txt")).Should().BeTrue();
+    }
+
     private static string GetRepositoryRoot()
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);
