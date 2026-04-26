@@ -33,6 +33,16 @@ Abort the candidate before cutover if any of these are true:
 - Release docs, support docs, changelog, or package matrix contradict the candidate boundary.
 - The dry-run path attempts to use feed credentials, create a GitHub release, create a release tag, or push packages.
 
+## Finding Classification
+
+Classify every dry-run or candidate-review finding before changing code:
+
+| Classification | Meaning | Action |
+| --- | --- | --- |
+| Release blocker | Required evidence is failing, missing, stale, from the wrong commit, or contradicts the package/release boundary. | Stop the cutover, fix the blocker with a targeted change, rerun the affected validation, and link the evidence. |
+| Environment residual | The finding depends on local machine state, unavailable host capability, missing optional hosted evidence, or a known warning that does not affect the package candidate. | Record the residual and evidence link; do not change product code unless it becomes reproducible release evidence. |
+| Deferred enhancement | The finding is useful but outside the alpha candidate boundary, such as new renderer features, broader demos, extra adapters, or polish not required by the evidence contract. | Record it as deferred work; do not fold it into closeout. |
+
 ## Abort Steps
 
 1. Stop the cutover.

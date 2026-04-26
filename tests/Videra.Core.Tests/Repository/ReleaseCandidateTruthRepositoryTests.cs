@@ -75,6 +75,11 @@ public sealed class ReleaseCandidateTruthRepositoryTests
         var dryRunWorkflow = File.ReadAllText(Path.Combine(repositoryRoot, ".github", "workflows", "release-dry-run.yml"));
 
         runbook.Should().Contain("Abort Criteria");
+        runbook.Should().Contain("Finding Classification");
+        runbook.Should().Contain("Release blocker");
+        runbook.Should().Contain("Environment residual");
+        runbook.Should().Contain("Deferred enhancement");
+        runbook.Should().Contain("do not fold it into closeout");
         runbook.Should().Contain("Do not create a release tag");
         runbook.Should().Contain("Do not publish packages");
         runbook.Should().Contain("Human Cutover Preconditions");
