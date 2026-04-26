@@ -24,7 +24,7 @@ dotnet nuget add source "https://nuget.pkg.github.com/ExplodingUFO/index.json" \
 dotnet add package Videra.Import.Obj --version 0.1.0-alpha.7 --source github-ExplodingUFO
 ```
 
-`Videra.Avalonia` already brings this package transitively for `LoadModelAsync(...)` and `LoadModelsAsync(...)`, so Avalonia hosts do not need to add it manually on the default viewer path.
+Avalonia hosts must install `Videra.Import.Obj` explicitly when they need `.obj` importer-backed `LoadModelAsync(...)` or `LoadModelsAsync(...)` behavior, then opt in through `VideraViewOptions.ModelImporter`. `Videra.Avalonia` does not carry importer packages by default.
 
 ## Typical Use
 

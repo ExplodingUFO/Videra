@@ -58,6 +58,16 @@ This is the recommended path when you want the full repository, demos, validatio
 
 The official public package feed is `nuget.org`. For Avalonia apps, start with `Videra.Avalonia` and install exactly one matching platform package:
 
+#### Install by scenario
+
+| Scenario | Install packages | Notes |
+| --- | --- | --- |
+| Viewer only | `Videra.Avalonia` + one `Videra.Platform.*` package | Embeds `VideraView`; no importer packages are included by default. |
+| Viewer + OBJ | `Videra.Avalonia` + one `Videra.Platform.*` package + `Videra.Import.Obj` | Wire `ObjModelImporter` through `VideraViewOptions.ModelImporter` for importer-backed `LoadModelAsync(...)` / `LoadModelsAsync(...)`. |
+| Viewer + glTF | `Videra.Avalonia` + one `Videra.Platform.*` package + `Videra.Import.Gltf` | Wire `GltfModelImporter` through `VideraViewOptions.ModelImporter` for importer-backed `LoadModelAsync(...)` / `LoadModelsAsync(...)`. |
+| SurfaceCharts | `Videra.SurfaceCharts.Avalonia`; add `Videra.SurfaceCharts.Processing` for cache-backed surfaces | `Videra.SurfaceCharts.Avalonia` brings chart core/rendering transitively; the demo remains repository-only. |
+| Core-only | `Videra.Core`; add `Videra.Import.Gltf` and/or `Videra.Import.Obj` for file ingestion | Use this path for runtime abstractions or importer usage without the Avalonia UI layer. |
+
 ```bash
 dotnet add package Videra.Avalonia
 dotnet add package Videra.Platform.Windows

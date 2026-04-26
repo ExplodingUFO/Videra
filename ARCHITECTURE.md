@@ -95,7 +95,7 @@ Dedicated import packages own file-format parsing and CPU-side scene asset creat
 - `Videra.Import.Gltf`: `.gltf` and `.glb`
 - `Videra.Import.Obj`: `.obj`
 
-These packages compose with `Videra.Core` directly. `Videra.Avalonia` consumes them transitively so `LoadModelAsync(...)` stays on the default viewer path without moving import parsing back into `Videra.Core`.
+These packages compose with `Videra.Core` directly. `Videra.Avalonia` does not consume them transitively; Avalonia hosts install `Videra.Import.Gltf` and/or `Videra.Import.Obj` explicitly and wire `VideraViewOptions.ModelImporter` when they need importer-backed `LoadModelAsync(...)` / `LoadModelsAsync(...)`.
 
 ## Scene and Material Runtime Truth
 
