@@ -1,4 +1,13 @@
+using System.Numerics;
 using FluentAssertions;
+using Videra.Avalonia.Controls;
+using Videra.Core.Geometry;
+using Videra.Core.Graphics;
+using Videra.Core.Graphics.RenderPipeline.Extensibility;
+using Videra.Core.Graphics.Wireframe;
+using Videra.Core.Scene;
+using Videra.Core.Styles.Presets;
+using Videra.Demo.Services;
 using Xunit;
 
 namespace Videra.Core.Tests.Samples;
@@ -271,6 +280,111 @@ public sealed class DemoConfigurationTests
         viewModel.Should().Contain("diagnostics.LastFrameTransparentObjectCount");
         viewModel.Should().Contain("Last frame features:");
         viewModel.Should().Contain("Supported features:");
+    }
+
+    [Fact]
+    public void Demo_ShouldExposeCopyableSupportDiagnostics()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var mainWindowPath = Path.Combine(repositoryRoot, "samples", "Videra.Demo", "Views", "MainWindow.axaml");
+        var codeBehindPath = Path.Combine(repositoryRoot, "samples", "Videra.Demo", "Views", "MainWindow.axaml.cs");
+        var viewModelPath = Path.Combine(repositoryRoot, "samples", "Videra.Demo", "ViewModels", "MainWindowViewModel.cs");
+        var xaml = File.ReadAllText(mainWindowPath);
+        var codeBehind = File.ReadAllText(codeBehindPath);
+        var viewModel = File.ReadAllText(viewModelPath);
+
+        xaml.Should().Contain("SUPPORT");
+        xaml.Should().Contain("Content=\"Copy Diagnostics Bundle\"");
+        xaml.Should().Contain("Content=\"Copy Repro Metadata\"");
+        xaml.Should().Contain("Text=\"{Binding ImportReport}\"");
+        xaml.Should().Contain("Click=\"OnCopyDiagnosticsBundleClicked\"");
+        xaml.Should().Contain("Click=\"OnCopyMinimalReproClicked\"");
+        codeBehind.Should().Contain("Clipboard.SetTextAsync");
+        codeBehind.Should().Contain("UpdateRenderCapabilities");
+        viewModel.Should().Contain("DiagnosticsBundle");
+        viewModel.Should().Contain("MinimalReproduction");
+        viewModel.Should().Contain("DemoSupportReportBuilder.FormatImportReport");
+    }
+
+    [Fact]
+    public void DemoSupportReportBuilder_ShouldIncludeDiagnosticsBundleImportReportAndReproFields()
+    {
+        var loadResult = new ModelLoadBatchResult(
+            Array.Empty<SceneDocumentEntry>(),
+            new[] { new ModelLoadFailure("missing.obj", new InvalidOperationException("missing file")) },
+            TimeSpan.FromMilliseconds(7),
+            new[]
+            {
+                ModelLoadFileResult.Success(
+                    "ok.obj",
+                    entry: null,
+                    new[]
+                    {
+                        new ModelImportDiagnostic(ModelImportDiagnosticSeverity.Info, "parsed")
+                    },
+                    TimeSpan.FromMilliseconds(4),
+                    new SceneAssetMetrics(3, 3, 120, new BoundingBox3(Vector3.Zero, Vector3.One))),
+                ModelLoadFileResult.Failed(
+                    "missing.obj",
+                    new ModelLoadFailure("missing.obj", new InvalidOperationException("missing file")),
+                    new[]
+                    {
+                        new ModelImportDiagnostic(ModelImportDiagnosticSeverity.Error, "missing file", "OBJ404")
+                    },
+                    TimeSpan.FromMilliseconds(1))
+            });
+        var diagnostics = new VideraBackendDiagnostics
+        {
+            RequestedBackend = GraphicsBackendPreference.Auto,
+            ResolvedBackend = GraphicsBackendPreference.Software,
+            IsReady = true,
+            IsUsingSoftwareFallback = true,
+            FallbackReason = "native backend unavailable",
+            SceneDocumentVersion = 2,
+            LastFrameObjectCount = 3,
+            SupportedRenderFeatureNames = new[] { "Opaque" }
+        };
+        var capabilities = new RenderCapabilitySnapshot
+        {
+            IsInitialized = true,
+            ActiveBackendPreference = GraphicsBackendPreference.Software,
+            SupportedFeatureNames = new[] { "Opaque" }
+        };
+        var settings = new DemoSupportSettings(
+            RenderStylePreset.Tech,
+            WireframeMode.Overlay,
+            IsGridVisible: true,
+            GridHeight: 0m,
+            GridColor: "#556677",
+            BackgroundColor: "#101820",
+            CameraInvertX: false,
+            CameraInvertY: true,
+            SelectedObjectName: "demo cube");
+
+        var importReport = DemoSupportReportBuilder.FormatImportReport(loadResult);
+        var diagnosticsBundle = DemoSupportReportBuilder.BuildDiagnosticsBundle(
+            diagnostics,
+            capabilities,
+            loadedModelCount: 2,
+            loadResult,
+            settings);
+        var minimalRepro = DemoSupportReportBuilder.BuildMinimalReproduction(diagnostics, loadResult, settings);
+
+        importReport.Should().Contain("ImportedNotApplied");
+        importReport.Should().Contain("Failed");
+        importReport.Should().Contain("vertices=3");
+        importReport.Should().Contain("parsed");
+        importReport.Should().Contain("OBJ404");
+        diagnosticsBundle.Should().Contain("Videra demo diagnostics bundle");
+        diagnosticsBundle.Should().Contain("Packages:");
+        diagnosticsBundle.Should().Contain("LoadedModelCount: 2");
+        diagnosticsBundle.Should().Contain("RenderCapabilities:");
+        diagnosticsBundle.Should().Contain("Import report");
+        diagnosticsBundle.Should().Contain("native backend unavailable");
+        minimalRepro.Should().Contain("Videra minimal reproduction metadata");
+        minimalRepro.Should().Contain("- ok.obj");
+        minimalRepro.Should().Contain("- missing.obj");
+        minimalRepro.Should().Contain("DiagnosticsSnapshot:");
     }
 
     private static string GetRepositoryRoot()

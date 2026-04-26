@@ -41,6 +41,29 @@
                     <Separator Background="#3E3E42"/>
 
                     <StackPanel Spacing="8">
+                        <TextBlock Text="SUPPORT" FontWeight="Bold" Foreground="#007ACC" FontSize="12"/>
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+                            <Button Content="Copy Diagnostics Bundle"
+                                    Click="OnCopyDiagnosticsBundleClicked"
+                                    HorizontalAlignment="Stretch"/>
+                            <Button Grid.Column="1"
+                                    Content="Copy Repro Metadata"
+                                    Click="OnCopyMinimalReproClicked"
+                                    HorizontalAlignment="Stretch"/>
+                        </Grid>
+                        <TextBlock Text="IMPORT REPORT" FontWeight="Bold" Foreground="#8DD3FF" FontSize="11"/>
+                        <TextBox Text="{Binding ImportReport}"
+                                 IsReadOnly="True"
+                                 AcceptsReturn="True"
+                                 TextWrapping="Wrap"
+                                 MaxHeight="180"
+                                 Background="#1E1E1E"
+                                 Foreground="#CCCCCC"
+                                 BorderBrush="#3E3E42"/>
+                    </StackPanel>
+                    <Separator Background="#3E3E42"/>
+
+                    <StackPanel Spacing="8">
                         <TextBlock Text="SCENE PIPELINE LAB" FontWeight="Bold" Foreground="#007ACC" FontSize="12"/>
                         <TextBlock Text="{Binding ScenePipelineMetrics}" Foreground="#8DD3FF" FontWeight="SemiBold" TextWrapping="Wrap"/>
                         <TextBlock Text="Batch import uses bounded parallel import and replaces the active scene only when every file succeeds." Foreground="#CCCCCC" TextWrapping="Wrap"/>

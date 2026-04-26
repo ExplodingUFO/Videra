@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
@@ -37,6 +38,7 @@ public partial class MainWindow : Window
         View3D.InitializationFailed -= OnInitializationFailed;
         View3D.InitializationFailed += OnInitializationFailed;
         _viewModel.UpdateBackendDiagnostics(View3D.BackendDiagnostics);
+        _viewModel.UpdateRenderCapabilities(View3D.RenderCapabilities);
         TryInitializeScene();
     }
 
@@ -48,11 +50,13 @@ public partial class MainWindow : Window
     private void OnBackendStatusChanged(object? sender, VideraBackendStatusChangedEventArgs e)
     {
         _viewModel.UpdateBackendDiagnostics(e.Diagnostics);
+        _viewModel.UpdateRenderCapabilities(View3D.RenderCapabilities);
     }
 
     private void OnInitializationFailed(object? sender, VideraBackendFailureEventArgs e)
     {
         _viewModel.UpdateBackendDiagnostics(e.Diagnostics);
+        _viewModel.UpdateRenderCapabilities(View3D.RenderCapabilities);
         _viewModel.SetBackendInitializationFailed(e.Exception.Message);
     }
 
@@ -74,6 +78,36 @@ public partial class MainWindow : Window
         }
 
         _viewModelInitialized = true;
+        _viewModel.UpdateRenderCapabilities(View3D.RenderCapabilities);
         View3D.BackendReady -= OnBackendReady;
+    }
+
+    private async void OnCopyDiagnosticsBundleClicked(object? sender, RoutedEventArgs e)
+    {
+        _ = sender;
+        _ = e;
+        _viewModel.UpdateRenderCapabilities(View3D.RenderCapabilities);
+        await CopySupportTextAsync(_viewModel.DiagnosticsBundle, "Copied diagnostics bundle to the clipboard.").ConfigureAwait(true);
+    }
+
+    private async void OnCopyMinimalReproClicked(object? sender, RoutedEventArgs e)
+    {
+        _ = sender;
+        _ = e;
+        _viewModel.UpdateRenderCapabilities(View3D.RenderCapabilities);
+        await CopySupportTextAsync(_viewModel.MinimalReproduction, "Copied minimal reproduction metadata to the clipboard.").ConfigureAwait(true);
+    }
+
+    private async Task CopySupportTextAsync(string text, string successMessage)
+    {
+        var topLevel = TopLevel.GetTopLevel(this);
+        if (topLevel?.Clipboard is null)
+        {
+            _viewModel.SetStatusMessage("Clipboard is unavailable.");
+            return;
+        }
+
+        await topLevel.Clipboard.SetTextAsync(text).ConfigureAwait(true);
+        _viewModel.SetStatusMessage(successMessage);
     }
 }

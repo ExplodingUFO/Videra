@@ -9,6 +9,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Videra.Avalonia.Controls;
 using Videra.Core.Graphics;
+using Videra.Core.Graphics.RenderPipeline.Extensibility;
 using Videra.Core.Graphics.Wireframe;
 using Videra.Core.Styles.Presets;
 using Videra.Demo.Services;
@@ -36,6 +37,9 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private IModelImporter? _importer;
     private IDemoViewportActions? _viewportActions;
+    private VideraBackendDiagnostics? _lastBackendDiagnostics;
+    private RenderCapabilitySnapshot? _lastRenderCapabilities;
+    private ModelLoadBatchResult? _lastLoadResult;
     private const float DegToRad = (float)(Math.PI / 180.0);
     private const float RadToDeg = (float)(180.0 / Math.PI);
 
@@ -64,6 +68,9 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty] private string _backendDisplay = "Requested: Auto | Resolved: Auto";
     [ObservableProperty] private string _backendDetails = "Ready: false | Native host: false | Render loop: Dispatcher";
     [ObservableProperty] private string _scenePipelineMetrics = "Document v0 | Pending 0 | Resident 0 | Dirty 0 | Failed 0";
+    [ObservableProperty] private string _importReport = DemoSupportReportBuilder.FormatImportReport(null);
+    [ObservableProperty] private string _diagnosticsBundle = string.Empty;
+    [ObservableProperty] private string _minimalReproduction = string.Empty;
     [ObservableProperty] private Color _bgColor = Color.Parse("#1e1e1e");
 
     [ObservableProperty]
@@ -170,6 +177,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public void UpdateBackendDiagnostics(VideraBackendDiagnostics diagnostics)
     {
         ArgumentNullException.ThrowIfNull(diagnostics);
+        _lastBackendDiagnostics = diagnostics;
 
         BackendDisplay = $"Requested: {diagnostics.RequestedBackend} | Resolved: {diagnostics.ResolvedBackend}";
         var lastFrameFeatures = FormatFeatureList(diagnostics.LastFrameFeatureNames);
@@ -202,6 +210,13 @@ public partial class MainWindowViewModel : ViewModelBase
         BackendDetails = string.Join(" | ", details);
         ScenePipelineMetrics =
             $"Document v{diagnostics.SceneDocumentVersion} | Pending {diagnostics.PendingSceneUploads} ({diagnostics.PendingSceneUploadBytes / 1024d:N1} KB) | Resident {diagnostics.ResidentSceneObjects} | Dirty {diagnostics.DirtySceneObjects} | Failed {diagnostics.FailedSceneUploads} | Last upload {diagnostics.LastFrameUploadedObjects} obj / {diagnostics.LastFrameUploadedBytes / 1024d:N1} KB in {diagnostics.LastFrameUploadDuration.TotalMilliseconds:N1} ms | Budget {diagnostics.ResolvedUploadBudgetObjects} obj / {diagnostics.ResolvedUploadBudgetBytes / 1024d:N1} KB | LastFrameObjectCount: {diagnostics.LastFrameObjectCount} | LastFrameOpaqueObjectCount: {diagnostics.LastFrameOpaqueObjectCount} | LastFrameTransparentObjectCount: {diagnostics.LastFrameTransparentObjectCount}";
+        RefreshSupportReports();
+    }
+
+    public void UpdateRenderCapabilities(RenderCapabilitySnapshot renderCapabilities)
+    {
+        _lastRenderCapabilities = renderCapabilities ?? throw new ArgumentNullException(nameof(renderCapabilities));
+        RefreshSupportReports();
     }
 
     public void SetStatusMessage(string message)
@@ -277,9 +292,11 @@ public partial class MainWindowViewModel : ViewModelBase
 
         StatusMessage = "Importing models...";
         var loadResult = await _importer.ImportModelsAsync();
+        _lastLoadResult = loadResult;
 
         if (loadResult.Entries.Count == 0 && loadResult.Failures.Count == 0)
         {
+            RefreshSupportReports();
             StatusMessage = "No models were selected.";
             return;
         }
@@ -290,6 +307,7 @@ public partial class MainWindowViewModel : ViewModelBase
         }
 
         StatusMessage = BuildImportStatus(loadResult);
+        RefreshSupportReports();
     }
 
     private bool CanImportModels()
@@ -299,7 +317,8 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private static string BuildImportStatus(ModelLoadBatchResult loadResult)
     {
-        if (loadResult.Entries.Count == 0)
+        var importedCount = loadResult.Results.Count(static result => result.Imported);
+        if (loadResult.Entries.Count == 0 && importedCount == 0)
         {
             var firstFailure = loadResult.Failures[0];
             return $"Import failed for {loadResult.Failures.Count} file(s). First error: {firstFailure.ErrorMessage}";
@@ -311,7 +330,37 @@ public partial class MainWindowViewModel : ViewModelBase
         }
 
         var lastFailure = loadResult.Failures[^1];
-        return $"Imported {loadResult.Entries.Count} model(s), but the active scene was not replaced because {loadResult.Failures.Count} import(s) failed. Last error: {lastFailure.ErrorMessage}";
+        return $"{importedCount} file(s) imported, but the active scene was not replaced because {loadResult.Failures.Count} import(s) failed. Last error: {lastFailure.ErrorMessage}";
+    }
+
+    private void RefreshSupportReports()
+    {
+        var settings = CreateSupportSettings();
+        ImportReport = DemoSupportReportBuilder.FormatImportReport(_lastLoadResult);
+        DiagnosticsBundle = DemoSupportReportBuilder.BuildDiagnosticsBundle(
+            _lastBackendDiagnostics,
+            _lastRenderCapabilities,
+            SceneObjects.Count,
+            _lastLoadResult,
+            settings);
+        MinimalReproduction = DemoSupportReportBuilder.BuildMinimalReproduction(
+            _lastBackendDiagnostics,
+            _lastLoadResult,
+            settings);
+    }
+
+    private DemoSupportSettings CreateSupportSettings()
+    {
+        return new DemoSupportSettings(
+            RenderStyle,
+            WireframeMode,
+            IsGridVisible,
+            GridHeight,
+            GridColor.ToString(),
+            BgColor.ToString(),
+            Camera.InvertX,
+            Camera.InvertY,
+            SelectedObject?.Name);
     }
 
     private void ApplyBackendStatus(bool isReady, string statusMessage)

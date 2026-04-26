@@ -136,7 +136,8 @@ public sealed class ModelLoadBatchResult
                 entry.ImportedAsset?.FilePath ?? entry.Name,
                 entry,
                 Array.Empty<ModelImportDiagnostic>(),
-                importDuration: TimeSpan.Zero))
+                importDuration: TimeSpan.Zero,
+                entry.ImportedAsset?.Metrics))
             .Concat(failures.Select(static failure => ModelLoadFileResult.Failed(
                 failure.Path,
                 failure,
@@ -156,13 +157,15 @@ public sealed class ModelLoadFileResult
         SceneDocumentEntry? entry,
         ModelLoadFailure? failure,
         IReadOnlyList<ModelImportDiagnostic>? diagnostics,
-        TimeSpan importDuration)
+        TimeSpan importDuration,
+        SceneAssetMetrics? assetMetrics)
     {
         Path = path;
         Entry = entry;
         Failure = failure;
         Diagnostics = diagnostics ?? Array.Empty<ModelImportDiagnostic>();
         ImportDuration = importDuration;
+        AssetMetrics = assetMetrics;
     }
 
     public string Path { get; }
@@ -175,6 +178,8 @@ public sealed class ModelLoadFileResult
 
     public TimeSpan ImportDuration { get; }
 
+    public SceneAssetMetrics? AssetMetrics { get; }
+
     public bool Imported => Failure is null;
 
     public bool Applied => Entry is not null;
@@ -183,9 +188,10 @@ public sealed class ModelLoadFileResult
         string path,
         SceneDocumentEntry? entry,
         IReadOnlyList<ModelImportDiagnostic>? diagnostics,
-        TimeSpan importDuration)
+        TimeSpan importDuration,
+        SceneAssetMetrics? assetMetrics = null)
     {
-        return new ModelLoadFileResult(path, entry, failure: null, diagnostics, importDuration);
+        return new ModelLoadFileResult(path, entry, failure: null, diagnostics, importDuration, assetMetrics);
     }
 
     public static ModelLoadFileResult Failed(
@@ -195,7 +201,7 @@ public sealed class ModelLoadFileResult
         TimeSpan importDuration)
     {
         ArgumentNullException.ThrowIfNull(failure);
-        return new ModelLoadFileResult(path, entry: null, failure, diagnostics, importDuration);
+        return new ModelLoadFileResult(path, entry: null, failure, diagnostics, importDuration, assetMetrics: null);
     }
 }
 

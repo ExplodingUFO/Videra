@@ -64,7 +64,8 @@ internal sealed partial class VideraViewRuntime
                     result.Path,
                     i < entries.Length ? entries[i] : null,
                     result.Diagnostics,
-                    result.ImportDuration);
+                    result.ImportDuration,
+                    result.Asset?.Metrics);
         }
 
         return new ModelLoadBatchResult(entries, importResult.Failures, startedAt.Elapsed, fileResults);

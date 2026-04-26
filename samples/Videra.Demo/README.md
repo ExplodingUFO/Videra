@@ -16,6 +16,7 @@
 - Grid visibility, color, and height controls
 - Basic object transform editing
 - Backend diagnostics via `BackendDiagnostics`, including readiness, native-host binding, fallback details, and `LastFrameObjectCount` / `LastFrameOpaqueObjectCount` / `LastFrameTransparentObjectCount`
+- A copyable support panel with a diagnostics bundle, per-file import report, and minimal reproduction metadata
 - A focused `Scene Pipeline Lab` panel that calls out `SceneDocument` versioning, retained `SceneNode` / `MeshPrimitive` / `MaterialInstance` / `Texture2D` / `Sampler` catalogs, the shipped static glTF/PBR baseline, tangent-aware retained assets, repeated unchanged imports that can reuse retained imported scene assets while they remain retained, deferred upload, render-feature diagnostics, residency counts, atomic scene replacement, and backend-rebind truth
 
 ## Runtime Behavior
@@ -44,7 +45,9 @@ if (result.Succeeded)
 var diagnostics = View3D.BackendDiagnostics;
 ```
 
-Import results are summarized in the status area. Batch import uses bounded parallel import, and the active scene is replaced only when every requested file succeeds. If any file fails, the active scene stays unchanged and the status area carries the last failure message alongside the success count.
+Import results are summarized in the status area and expanded in the support panel. Batch import uses bounded parallel import, and the active scene is replaced only when every requested file succeeds. If any file fails, the active scene stays unchanged and the status area carries the last failure message alongside the success count. The support panel keeps the last per-file import report, including success/failure state, importer diagnostics, import duration, and asset metrics when available.
+
+`Copy Diagnostics Bundle` copies a support artifact with OS/runtime information, package versions, backend diagnostics, render capabilities, current demo settings, loaded model count, and the latest import report. `Copy Repro Metadata` copies a smaller reproduction snapshot with scene paths, current settings, and the backend diagnostics snapshot.
 
 `Import Model`, `Frame All`, and `Reset Camera` follow command/capability readiness rather than a raw `IsBackendReady` XAML assumption, so the visible controls stay aligned with the live importer and viewport wiring.
 
