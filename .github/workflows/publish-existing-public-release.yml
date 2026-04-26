@@ -7,6 +7,14 @@ on:
         description: Existing git tag to publish to nuget.org
         required: true
         type: string
+      version:
+        description: SemVer package version expected for the tag
+        required: true
+        type: string
+      expected_commit:
+        description: Source commit expected at the tag
+        required: true
+        type: string
 
 permissions:
   contents: write
@@ -14,6 +22,7 @@ permissions:
 jobs:
   publish-existing-release:
     runs-on: windows-latest
+    environment: public-release
 
     steps:
       - uses: actions/checkout@v6
@@ -39,8 +48,20 @@ jobs:
             throw "Could not determine package version from tag $tag."
           }
 
+          $expectedVersion = "${{ inputs.version }}".Trim()
+          if ([string]::IsNullOrWhiteSpace($expectedVersion) -or $expectedVersion -ne $version) {
+            throw "Version input '$expectedVersion' does not match tag '$tag'."
+          }
+
+          $expectedCommit = "${{ inputs.expected_commit }}".Trim()
+          $sourceCommit = (git rev-parse HEAD).Trim()
+          if ([string]::IsNullOrWhiteSpace($expectedCommit) -or -not $sourceCommit.StartsWith($expectedCommit, [System.StringComparison]::OrdinalIgnoreCase)) {
+            throw "Source commit '$sourceCommit' does not match expected commit '$expectedCommit'."
+          }
+
           "tag=$tag" >> $env:GITHUB_OUTPUT
           "version=$version" >> $env:GITHUB_OUTPUT
+          "source_commit=$sourceCommit" >> $env:GITHUB_OUTPUT
 
       - uses: actions/setup-dotnet@v5
         with:
@@ -53,6 +74,7 @@ jobs:
             "scripts/verify.ps1",
             "scripts/Invoke-ConsumerSmoke.ps1",
             "scripts/Validate-Packages.ps1",
+            "scripts/New-PublicPublishEvidence.ps1",
             "src/Videra.Core/Videra.Core.csproj",
             "src/Videra.Import.Gltf/Videra.Import.Gltf.csproj",
             "src/Videra.Import.Obj/Videra.Import.Obj.csproj",
@@ -130,6 +152,26 @@ jobs:
         shell: pwsh
         run: pwsh -File ./scripts/Validate-Packages.ps1 -PackageRoot ./nupkgs -ExpectedVersion ${{ steps.version.outputs.version }}
 
+      - name: Write pre-publish evidence
+        shell: pwsh
+        run: |
+          $validationArtifacts = @(
+            "scripts/verify.ps1",
+            "scripts/Invoke-ConsumerSmoke.ps1",
+            "scripts/Validate-Packages.ps1",
+            "consumer-smoke-existing-public-release",
+            "consumer-smoke-existing-public-release-surfacecharts"
+          )
+          pwsh -File ./scripts/New-PublicPublishEvidence.ps1 `
+            -PackageRoot ./nupkgs `
+            -ExpectedVersion ${{ steps.version.outputs.version }} `
+            -ReleaseTag ${{ steps.version.outputs.tag }} `
+            -SourceCommit ${{ steps.version.outputs.source_commit }} `
+            -PublishTarget https://api.nuget.org/v3/index.json `
+            -Stage before-publish `
+            -OutputRoot artifacts/public-publish `
+            -ValidationArtifacts $validationArtifacts
+
       - name: Push public packages to nuget.org
         shell: pwsh
         run: |
@@ -159,3 +201,36 @@ jobs:
             ./nupkgs/*.nupkg
             ./nupkgs/*.snupkg
           fail_on_unmatched_files: false
+
+      - name: Write post-publish evidence
+        shell: pwsh
+        run: |
+          $validationArtifacts = @(
+            "scripts/verify.ps1",
+            "scripts/Invoke-ConsumerSmoke.ps1",
+            "scripts/Validate-Packages.ps1",
+            "consumer-smoke-existing-public-release",
+            "consumer-smoke-existing-public-release-surfacecharts",
+            "nuget.org package push",
+            "GitHub release assets"
+          )
+          pwsh -File ./scripts/New-PublicPublishEvidence.ps1 `
+            -PackageRoot ./nupkgs `
+            -ExpectedVersion ${{ steps.version.outputs.version }} `
+            -ReleaseTag ${{ steps.version.outputs.tag }} `
+            -SourceCommit ${{ steps.version.outputs.source_commit }} `
+            -PublishTarget https://api.nuget.org/v3/index.json `
+            -Stage after-publish `
+            -OutputRoot artifacts/public-publish `
+            -ValidationArtifacts $validationArtifacts
+
+      - name: Upload public publish evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: public-publish-existing-release-evidence
+          path: |
+            artifacts/public-publish/public-publish-before-summary.json
+            artifacts/public-publish/public-publish-before-summary.txt
+            artifacts/public-publish/public-publish-after-summary.json
+            artifacts/public-publish/public-publish-after-summary.txt

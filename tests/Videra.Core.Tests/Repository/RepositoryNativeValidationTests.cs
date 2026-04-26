@@ -268,7 +268,9 @@ public sealed class RepositoryNativeValidationTests
         d3d11FactorySource.Should().Contain("float diffuse = max((dot(normal, lightDir) + fill) / (1.0f + fill), 0.0f) * diffuseIntensity;");
         factorySource.Should().Contain("layout(set = 0, binding = 3) uniform StyleBuffer");
         factorySource.Should().Contain("float fillIntensity;");
+        factorySource.Should().Contain("float fill = clamp(style.fillIntensity, 0.0, 1.0);");
         factorySource.Should().Contain("float diffuse = max((dot(normal, lightDir) + fill) / (1.0 + fill), 0.0) * style.diffuseIntensity;");
+        factorySource.Should().NotContain("float _pad0;");
         metalSource.Should().Contain("float fillIntensity;");
         metalSource.Should().Contain("float diffuse = max((dot(normal, lightDir) + fill) / (1.0f + fill), 0.0) * style.diffuseIntensity;");
         factorySource.Should().Contain("fragColor = style.useVertexColor != 0 ? inColor : style.overrideColor;");

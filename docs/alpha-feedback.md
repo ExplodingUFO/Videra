@@ -13,6 +13,7 @@ Attach the smallest artifact set that explains the failure path:
 | Import issue | Use `Videra.Demo` and attach the copied diagnostics bundle, import report, and smallest failing scene path. |
 | Backend issue | Attach `artifacts/doctor/doctor-report.json`, the diagnostics snapshot, and any backend fallback reason from `Videra.Demo`. |
 | Package issue | Attach `release-dry-run-summary.json`, `release-candidate-evidence-index.json`, `package-size-evaluation.json`, and `package-size-summary.txt` when the report concerns package metadata, package size budgets, or package contract drift. |
+| Release issue | Attach `public-release-preflight-summary.json`, `public-publish-before-summary.json`, `public-publish-after-summary.json`, and `public-release-notes.md`; include the Package matrix and Known alpha limitations section that shipped with the release. |
 | Native-host issue | Attach the matching `artifacts/native-validation` output plus `artifacts/doctor/doctor-report.json`; include `wpf-smoke-diagnostics.txt` when the Windows WPF smoke path was involved. |
 | Packaged viewer validation | Attach `artifacts/consumer-smoke/consumer-smoke-result.json` and `artifacts/consumer-smoke/diagnostics-snapshot.txt`. |
 | SurfaceCharts issue | Attach `surfacecharts-support-summary.txt` from `smoke/Videra.SurfaceCharts.ConsumerSmoke` or the copied `Videra.SurfaceCharts.Demo` support summary; keep it separate from `VideraDiagnosticsSnapshotFormatter` output. |
@@ -47,6 +48,7 @@ Attach the smallest artifact set that explains the failure path:
 - Operating system and version
 - GPU and driver details when native rendering is involved
 - Package install path and package version
+- Release issue evidence when the report concerns publication, GitHub Release assets, or public package availability: `public-release-preflight-summary.json`, `public-publish-after-summary.json`, `public-release-notes.md`, the Package matrix section, and the Known alpha limitations section
 - `PreferredBackend` or `VIDERA_BACKEND` value, if you overrode backend preference
 - diagnostics snapshot from `VideraDiagnosticsSnapshotFormatter`
 - `LastFrameObjectCount`, `LastFrameOpaqueObjectCount`, and `LastFrameTransparentObjectCount` when the issue depends on scene composition

@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Text.Json;
+using System.Xml.Linq;
 using FluentAssertions;
 using Xunit;
 
@@ -159,13 +160,16 @@ public sealed class ReleaseDryRunRepositoryTests
     public void ReleaseDryRunWorkflow_ShouldBeReadOnlyAndNonPublishing()
     {
         var workflow = File.ReadAllText(Path.Combine(GetRepositoryRoot(), ".github", "workflows", "release-dry-run.yml"));
+        var repositoryVersion = GetRepositoryVersion();
 
         workflow.Should().Contain("workflow_dispatch:");
         workflow.Should().Contain("pull_request:");
         workflow.Should().Contain("permissions:");
         workflow.Should().Contain("contents: read");
         workflow.Should().Contain("Invoke-ReleaseDryRun.ps1");
-        workflow.Should().Contain("0.0.0-ci-dryrun");
+        workflow.Should().Contain($"default: {repositoryVersion}");
+        workflow.Should().Contain($"$version = \"{repositoryVersion}\"");
+        workflow.Should().NotContain("0.0.0-ci-dryrun");
         workflow.Should().Contain("actions/upload-artifact@v4");
         workflow.Should().Contain("release-dry-run-evidence");
         workflow.Should().NotContain("packages: write");
@@ -197,6 +201,135 @@ public sealed class ReleaseDryRunRepositoryTests
         dryRunWorkflow.Should().NotContain("dotnet nuget push");
     }
 
+    [Fact]
+    public void PublicReleasePreflightScript_ShouldValidateEvidenceAndRemainNonMutating()
+    {
+        var scriptPath = Path.Combine(GetRepositoryRoot(), "scripts", "Invoke-PublicReleasePreflight.ps1");
+
+        File.Exists(scriptPath).Should().BeTrue();
+
+        var script = File.ReadAllText(scriptPath);
+        script.Should().Contain("ExpectedVersion");
+        script.Should().Contain("ExpectedCommit");
+        script.Should().Contain("ReleaseDryRunRoot");
+        script.Should().Contain("release-dry-run-summary.json");
+        script.Should().Contain("release-candidate-evidence-index.json");
+        script.Should().Contain("package-size-evaluation.json");
+        script.Should().Contain("benchmark-threshold-evaluation.json");
+        script.Should().Contain("consumer-smoke-result.json");
+        script.Should().Contain("surfacecharts-support-summary.txt");
+        script.Should().Contain("native-validation");
+        script.Should().Contain("git status --porcelain");
+        script.Should().Contain("public-release-preflight-summary.json");
+        script.Should().Contain("public-release-preflight-summary.txt");
+        script.Should().NotContain("dotnet nuget push");
+        script.Should().NotContain("git tag");
+        script.Should().NotContain("NUGET_API_KEY");
+        script.Should().NotContain("GITHUB_TOKEN");
+    }
+
+    [Fact]
+    public void PublicReleasePreflightScript_ShouldFailClosedWhenEvidenceIsMissing()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var scriptPath = Path.Combine(repositoryRoot, "scripts", "Invoke-PublicReleasePreflight.ps1");
+        var outputRoot = Path.Combine(Path.GetTempPath(), "VideraPublicReleasePreflightTests", Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(outputRoot);
+
+        var result = RunPowerShell(
+            scriptPath,
+            repositoryRoot,
+            "-ExpectedVersion",
+            "0.1.0-alpha.7",
+            "-EvidenceRoot",
+            outputRoot,
+            "-OutputRoot",
+            outputRoot,
+            "-SkipRepositoryStateCheck");
+
+        result.ExitCode.Should().NotBe(0);
+        $"{result.Stdout}{result.Stderr}".Should().Contain("release-dry-run-summary.json");
+        File.Exists(Path.Combine(outputRoot, "public-release-preflight-summary.json")).Should().BeTrue();
+        File.Exists(Path.Combine(outputRoot, "public-release-preflight-summary.txt")).Should().BeTrue();
+    }
+
+    [Fact]
+    public void PublicReleaseNotesScript_ShouldGenerateNotesFromPublishEvidence()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var scriptPath = Path.Combine(repositoryRoot, "scripts", "New-PublicReleaseNotes.ps1");
+        var outputRoot = Path.Combine(Path.GetTempPath(), "VideraPublicReleaseNotesTests", Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(outputRoot);
+
+        var evidencePath = Path.Combine(outputRoot, "public-publish-after-summary.json");
+        var outputPath = Path.Combine(outputRoot, "public-release-notes.md");
+        var evidence = new
+        {
+            stage = "after-publish",
+            releaseTag = "v0.1.0-alpha.7",
+            expectedVersion = "0.1.0-alpha.7",
+            sourceCommit = "abc123",
+            publishTarget = "https://api.nuget.org/v3/index.json",
+            packages = new[]
+            {
+                new { id = "Videra.Avalonia", version = "0.1.0-alpha.7" },
+                new { id = "Videra.Platform.Windows", version = "0.1.0-alpha.7" },
+                new { id = "Videra.Import.Gltf", version = "0.1.0-alpha.7" },
+                new { id = "Videra.SurfaceCharts.Avalonia", version = "0.1.0-alpha.7" },
+                new { id = "Videra.SurfaceCharts.Processing", version = "0.1.0-alpha.7" }
+            }
+        };
+        File.WriteAllText(evidencePath, JsonSerializer.Serialize(evidence));
+
+        var result = RunPowerShell(
+            scriptPath,
+            repositoryRoot,
+            "-EvidenceSummaryPath",
+            evidencePath,
+            "-OutputPath",
+            outputPath);
+
+        result.ExitCode.Should().Be(0, result.Stderr);
+        var notes = File.ReadAllText(outputPath);
+        notes.Should().Contain("Videra 0.1.0-alpha.7");
+        notes.Should().Contain("dotnet add package Videra.Avalonia --version 0.1.0-alpha.7");
+        notes.Should().Contain("dotnet add package Videra.Platform.Windows --version 0.1.0-alpha.7");
+        notes.Should().Contain("dotnet add package Videra.SurfaceCharts.Avalonia --version 0.1.0-alpha.7");
+        notes.Should().Contain("Package matrix");
+        notes.Should().Contain("Known alpha limitations");
+        notes.Should().Contain("public-publish-after-summary.json");
+        notes.Should().Contain("nuget.org");
+        notes.Should().Contain("GitHub Packages is preview/internal");
+        notes.Should().Contain("Videra.Demo remains repository-only");
+    }
+
+    [Fact]
+    public void FinalReleaseSimulationScript_ShouldFailClosedWhenEvidenceIsMissing()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var scriptPath = Path.Combine(repositoryRoot, "scripts", "Invoke-FinalReleaseSimulation.ps1");
+        var outputRoot = Path.Combine(Path.GetTempPath(), "VideraFinalReleaseSimulationTests", Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(outputRoot);
+
+        var result = RunPowerShell(
+            scriptPath,
+            repositoryRoot,
+            "-ExpectedVersion",
+            "0.1.0-alpha.7",
+            "-ExpectedCommit",
+            "abc123",
+            "-EvidenceRoot",
+            outputRoot,
+            "-OutputRoot",
+            outputRoot,
+            "-SkipRepositoryStateCheck");
+
+        result.ExitCode.Should().NotBe(0);
+        $"{result.Stdout}{result.Stderr}".Should().Contain("final release simulation failed");
+        File.Exists(Path.Combine(outputRoot, "final-release-simulation-summary.json")).Should().BeTrue();
+        File.Exists(Path.Combine(outputRoot, "final-release-simulation-summary.txt")).Should().BeTrue();
+    }
+
     private static string GetRepositoryRoot()
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);
@@ -212,6 +345,13 @@ public sealed class ReleaseDryRunRepositoryTests
         }
 
         throw new DirectoryNotFoundException("Could not locate repository root containing Videra.slnx.");
+    }
+
+    private static string GetRepositoryVersion()
+    {
+        var propsPath = Path.Combine(GetRepositoryRoot(), "Directory.Build.props");
+        var document = XDocument.Load(propsPath);
+        return document.Descendants("Version").Single().Value;
     }
 
     private static PowerShellResult RunPowerShell(string scriptPath, string workingDirectory, params string[] arguments)

@@ -254,7 +254,8 @@ $validationScripts = @(
     "Test-BenchmarkThresholds.ps1",
     "Invoke-ConsumerSmoke.ps1",
     "run-native-validation.ps1",
-    "Invoke-ReleaseDryRun.ps1"
+    "Invoke-ReleaseDryRun.ps1",
+    "Invoke-PublicReleasePreflight.ps1"
 )
 
 foreach ($script in $validationScripts)
@@ -428,6 +429,8 @@ $evidencePacket = [ordered]@{
         (New-EvidenceArtifact -Id "consumer-smoke-diagnostics" -Category "consumer-smoke" -Path "artifacts/consumer-smoke/diagnostics-snapshot.txt" -ProducedBy "scripts/Invoke-ConsumerSmoke.ps1"),
         (New-EvidenceArtifact -Id "consumer-smoke-surfacecharts-support" -Category "consumer-smoke" -Path "artifacts/consumer-smoke/surfacecharts-support-summary.txt" -ProducedBy "scripts/Invoke-ConsumerSmoke.ps1"),
         (New-EvidenceArtifact -Id "native-validation-root" -Category "native-validation" -Path "artifacts/native-validation" -ProducedBy "scripts/run-native-validation.ps1" -Kind "directory"),
+        (New-EvidenceArtifact -Id "public-release-preflight-summary-json" -Category "public-release-preflight" -Path "artifacts/public-release-preflight/public-release-preflight-summary.json" -ProducedBy "scripts/Invoke-PublicReleasePreflight.ps1"),
+        (New-EvidenceArtifact -Id "public-release-preflight-summary-text" -Category "public-release-preflight" -Path "artifacts/public-release-preflight/public-release-preflight-summary.txt" -ProducedBy "scripts/Invoke-PublicReleasePreflight.ps1"),
         (New-EvidenceArtifact -Id "demo-diagnostics-snapshot" -Category "demo-support" -Path "artifacts/consumer-smoke/diagnostics-snapshot.txt" -ProducedBy "Videra.Demo"),
         (New-EvidenceArtifact -Id "surfacecharts-support-summary" -Category "demo-support" -Path "artifacts/consumer-smoke/surfacecharts-support-summary.txt" -ProducedBy "Videra.SurfaceCharts.Demo")
     )

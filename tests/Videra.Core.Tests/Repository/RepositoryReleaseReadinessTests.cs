@@ -54,7 +54,7 @@ public sealed class RepositoryReleaseReadinessTests
         readme.Should().Contain("Videra.ExtensibilitySample");
         readme.Should().Contain("Videra.InteractionSample");
         readme.Should().Contain("does not install missing platform packages");
-        readme.Should().Contain("Public tags now publish the `Videra.SurfaceCharts.*` package assets");
+        readme.Should().Contain("Public release workflows publish the `Videra.SurfaceCharts.*` package assets after explicit approval");
         readme.Should().Contain("Copy support summary");
         readme.Should().Contain("surfacecharts-support-summary.txt");
     }
@@ -576,8 +576,11 @@ public sealed class RepositoryReleaseReadinessTests
         var publicWorkflow = File.ReadAllText(publicWorkflowPath);
         var previewWorkflow = File.ReadAllText(previewWorkflowPath);
 
-        publicWorkflow.Should().Contain("tags:");
-        publicWorkflow.Should().Contain("v*");
+        publicWorkflow.Should().Contain("workflow_dispatch:");
+        publicWorkflow.Should().Contain("tag:");
+        publicWorkflow.Should().Contain("version:");
+        publicWorkflow.Should().Contain("expected_commit:");
+        publicWorkflow.Should().Contain("Expected a version tag that starts with 'v'.");
         publicWorkflow.Should().Contain("linux-x11-native-validation:");
         publicWorkflow.Should().Contain("linux-wayland-xwayland-native-validation:");
         publicWorkflow.Should().Contain("macos-native-validation:");
@@ -615,6 +618,185 @@ public sealed class RepositoryReleaseReadinessTests
         packageValidationScript.Should().Contain("Videra.SurfaceCharts.Avalonia");
         packageValidationScript.Should().Contain("PackageIcon");
         packageValidationScript.Should().Contain(".snupkg");
+    }
+
+    [Fact]
+    public void ReleaseControlDocsAndWorkflows_ShouldRequireHumanApprovedFeedMutation()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var workflowRoot = Path.Combine(repositoryRoot, ".github", "workflows");
+        var releasePolicy = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "release-policy.md"));
+        var releasing = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "releasing.md"));
+        var publicWorkflow = File.ReadAllText(Path.Combine(workflowRoot, "publish-public.yml"));
+        var existingReleaseWorkflow = File.ReadAllText(Path.Combine(workflowRoot, "publish-existing-public-release.yml"));
+        var previewWorkflow = File.ReadAllText(Path.Combine(workflowRoot, "publish-github-packages.yml"));
+        var dryRunWorkflow = File.ReadAllText(Path.Combine(workflowRoot, "release-dry-run.yml"));
+
+        releasePolicy.Should().Contain("## Release control model");
+        releasePolicy.Should().Contain("Dry run");
+        releasePolicy.Should().Contain("Preview feed");
+        releasePolicy.Should().Contain("Public publish");
+        releasePolicy.Should().Contain("public-release");
+        releasePolicy.Should().Contain("preview-packages");
+        releasePolicy.Should().Contain("NUGET_API_KEY");
+        releasePolicy.Should().Contain("does not expose secret values");
+
+        releasing.Should().Contain("Release control model");
+        releasing.Should().Contain("public-release");
+        releasing.Should().Contain("preview-packages");
+
+        publicWorkflow.Should().Contain("workflow_dispatch:");
+        publicWorkflow.Should().Contain("tag:");
+        publicWorkflow.Should().Contain("version:");
+        publicWorkflow.Should().Contain("expected_commit:");
+        publicWorkflow.Should().Contain("Expected a version tag that starts with 'v'.");
+        publicWorkflow.Should().NotContain("branches:");
+        publicWorkflow.Should().Contain("environment:");
+        publicWorkflow.Should().Contain("public-release");
+
+        existingReleaseWorkflow.Should().Contain("workflow_dispatch:");
+        existingReleaseWorkflow.Should().Contain("tag:");
+        existingReleaseWorkflow.Should().Contain("environment:");
+        existingReleaseWorkflow.Should().Contain("public-release");
+
+        previewWorkflow.Should().Contain("workflow_dispatch:");
+        previewWorkflow.Should().Contain("version:");
+        previewWorkflow.Should().Contain("environment:");
+        previewWorkflow.Should().Contain("preview-packages");
+
+        dryRunWorkflow.Should().Contain("workflow_dispatch:");
+        dryRunWorkflow.Should().NotContain("dotnet nuget push");
+        dryRunWorkflow.Should().NotContain("environment:");
+    }
+
+    [Fact]
+    public void PublicPublishWorkflows_ShouldRequireExplicitVersionTagCommitAndPublishEvidence()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var workflowRoot = Path.Combine(repositoryRoot, ".github", "workflows");
+        var publicWorkflow = File.ReadAllText(Path.Combine(workflowRoot, "publish-public.yml"));
+        var existingReleaseWorkflow = File.ReadAllText(Path.Combine(workflowRoot, "publish-existing-public-release.yml"));
+        var releasePolicy = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "release-policy.md"));
+        var releasing = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "releasing.md"));
+        var evidenceScriptPath = Path.Combine(repositoryRoot, "scripts", "New-PublicPublishEvidence.ps1");
+
+        File.Exists(evidenceScriptPath).Should().BeTrue();
+
+        foreach (var workflow in new[] { publicWorkflow, existingReleaseWorkflow })
+        {
+            var normalizedWorkflow = workflow.Replace("\r\n", "\n", StringComparison.Ordinal);
+            normalizedWorkflow.Should().Contain("workflow_dispatch:");
+            normalizedWorkflow.Should().Contain("tag:");
+            normalizedWorkflow.Should().Contain("version:");
+            normalizedWorkflow.Should().Contain("expected_commit:");
+            normalizedWorkflow.Should().NotContain("\n  push:\n");
+            workflow.Should().Contain("environment: public-release");
+            workflow.Should().Contain("scripts/New-PublicPublishEvidence.ps1");
+            workflow.Should().Contain("public-publish-before-summary.json");
+            workflow.Should().Contain("public-publish-after-summary.json");
+            workflow.Should().Contain("scripts/Validate-Packages.ps1");
+            workflow.Should().Contain("NUGET_API_KEY");
+        }
+
+        publicWorkflow.Should().Contain("ref: ${{ needs.determine-version.outputs.tag }}");
+        existingReleaseWorkflow.Should().Contain("ref: ${{ inputs.tag }}");
+
+        var evidenceScript = File.ReadAllText(evidenceScriptPath);
+        evidenceScript.Should().Contain("eng/public-api-contract.json");
+        evidenceScript.Should().Contain("PublishTarget");
+        evidenceScript.Should().Contain("before-publish");
+        evidenceScript.Should().Contain("after-publish");
+        evidenceScript.Should().Contain("public-publish-before-summary.json");
+        evidenceScript.Should().Contain("public-publish-after-summary.json");
+        evidenceScript.Should().NotContain("dotnet nuget push");
+        evidenceScript.Should().NotContain("NUGET_API_KEY");
+
+        releasePolicy.Should().Contain("manual dispatch");
+        releasePolicy.Should().Contain("expected commit");
+        releasing.Should().Contain("expected_commit");
+        releasing.Should().Contain("public-publish-before-summary.json");
+        releasing.Should().Contain("public-publish-after-summary.json");
+    }
+
+    [Fact]
+    public void ReleaseCutoverAndSupportDocs_ShouldDefineStatefulCloseoutAndPublicBoundary()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var cutover = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "release-candidate-cutover.md"));
+        var feedback = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "alpha-feedback.md"));
+        var releasing = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "releasing.md"));
+        var releaseNotesScript = File.ReadAllText(Path.Combine(repositoryRoot, "scripts", "New-PublicReleaseNotes.ps1"));
+
+        cutover.Should().Contain("## Before-publish state");
+        cutover.Should().Contain("## Partial-publish state");
+        cutover.Should().Contain("## After-publish state");
+        cutover.Should().Contain("tag");
+        cutover.Should().Contain("version");
+        cutover.Should().Contain("expected_commit");
+        cutover.Should().Contain("public-release-preflight-summary.json");
+        cutover.Should().Contain("public-publish-before-summary.json");
+        cutover.Should().Contain("public-publish-after-summary.json");
+
+        feedback.Should().Contain("Release issue");
+        feedback.Should().Contain("public-publish-after-summary.json");
+        feedback.Should().Contain("public-release-notes.md");
+        feedback.Should().Contain("Package matrix");
+        feedback.Should().Contain("Known alpha limitations");
+
+        releasing.Should().Contain("scripts/New-PublicReleaseNotes.ps1");
+        releasing.Should().Contain("public-release-notes.md");
+        releasing.Should().Contain("docs/package-matrix.md");
+        releasing.Should().Contain("known alpha limitations");
+
+        releaseNotesScript.Should().Contain("public-publish-after-summary.json");
+        releaseNotesScript.Should().Contain("dotnet add package");
+        releaseNotesScript.Should().Contain("Videra.Demo remains repository-only");
+        releaseNotesScript.Should().Contain("GitHub Packages is preview/internal");
+        releaseNotesScript.Should().NotContain("dotnet nuget push");
+        releaseNotesScript.Should().NotContain("NUGET_API_KEY");
+    }
+
+    [Fact]
+    public void PreviewFeedAndFinalSimulation_ShouldStayInternalAndNonMutatingForPublicFeeds()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var workflowRoot = Path.Combine(repositoryRoot, ".github", "workflows");
+        var previewWorkflow = File.ReadAllText(Path.Combine(workflowRoot, "publish-github-packages.yml"));
+        var releasePolicy = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "release-policy.md"));
+        var releasing = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "releasing.md"));
+        var readme = File.ReadAllText(Path.Combine(repositoryRoot, "README.md"));
+        var simulationScriptPath = Path.Combine(repositoryRoot, "scripts", "Invoke-FinalReleaseSimulation.ps1");
+
+        File.Exists(simulationScriptPath).Should().BeTrue();
+
+        previewWorkflow.Should().Contain("workflow_dispatch:");
+        previewWorkflow.Should().Contain("preview-packages");
+        previewWorkflow.Should().Contain("Validate-Packages.ps1");
+        previewWorkflow.Should().Contain("https://nuget.pkg.github.com/ExplodingUFO/index.json");
+        previewWorkflow.Should().NotContain("https://api.nuget.org/v3/index.json");
+        previewWorkflow.Should().NotContain("NUGET_API_KEY");
+        previewWorkflow.Should().NotContain("git tag");
+        previewWorkflow.Should().NotContain("git push");
+
+        releasePolicy.Should().Contain("GitHub Packages");
+        releasePolicy.Should().Contain("preview/internal");
+        releasePolicy.Should().Contain("not the default public consumer path");
+        releasing.Should().Contain("final non-mutating public-release simulation");
+        releasing.Should().Contain("scripts/Invoke-FinalReleaseSimulation.ps1");
+        readme.Should().Contain("nuget.org");
+        readme.Should().Contain("GitHub Packages");
+        readme.Should().Contain("preview");
+
+        var simulationScript = File.ReadAllText(simulationScriptPath);
+        simulationScript.Should().Contain("Invoke-PublicReleasePreflight.ps1");
+        simulationScript.Should().Contain("publish-public.yml");
+        simulationScript.Should().Contain("publish-existing-public-release.yml");
+        simulationScript.Should().Contain("publish-github-packages.yml");
+        simulationScript.Should().Contain("final-release-simulation-summary.json");
+        simulationScript.Should().NotContain("dotnet nuget push");
+        simulationScript.Should().NotContain("git tag");
+        simulationScript.Should().NotContain("git push");
+        simulationScript.Should().NotContain("NUGET_API_KEY");
     }
 
     [Fact]
@@ -700,7 +882,7 @@ public sealed class RepositoryReleaseReadinessTests
         var releasePolicy = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "release-policy.md"));
         var releasing = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "releasing.md"));
 
-        readme.Should().Contain("Public tags now publish the `Videra.SurfaceCharts.*` package assets");
+        readme.Should().Contain("Public release workflows publish the `Videra.SurfaceCharts.*` package assets after explicit approval");
         supportMatrix.Should().Contain("Start here: In-memory first chart");
         supportMatrix.Should().Contain("Copy support summary");
         supportMatrix.Should().Contain("Try next: Scatter proof");

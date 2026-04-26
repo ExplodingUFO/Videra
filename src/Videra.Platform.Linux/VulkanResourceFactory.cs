@@ -792,7 +792,7 @@ layout(set = 0, binding = 3) uniform StyleBuffer
     float specularIntensity;
     float specularPower;
     vec3 lightDirection;
-    float _pad0;
+    float fillIntensity;
 
     vec3 tintColor;
     float saturation;

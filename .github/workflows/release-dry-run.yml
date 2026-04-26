@@ -28,7 +28,7 @@ jobs:
         id: dry-run-version
         shell: pwsh
         run: |
-          $version = "0.0.0-ci-dryrun"
+          $version = "0.1.0-alpha.7"
           if ("${{ github.event_name }}" -eq "workflow_dispatch") {
             $version = "${{ github.event.inputs.version }}"
           }
