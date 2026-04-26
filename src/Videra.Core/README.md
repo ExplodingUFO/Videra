@@ -87,6 +87,8 @@ Non-portable advanced seams:
 
 Those advanced seams remain on the abstractions for test doubles, but the shipped native backends manage shader compilation and resource binding internally and may throw `UnsupportedOperationException` there.
 
+Capability truth for those advanced seams is explicit. Query `GetRenderCapabilities()` and check `SupportsShaderCreation`, `SupportsResourceSetCreation`, and `SupportsResourceSetBinding` before calling `CreateShader(...)`, `CreateResourceSet(...)`, or `SetResourceSet(...)`. Backends that do not implement the optional capability-provider interfaces report these advanced flags as `false`.
+
 ## Public Extensibility Contract
 
 Phase 11 adds a narrow public extensibility surface in Core:

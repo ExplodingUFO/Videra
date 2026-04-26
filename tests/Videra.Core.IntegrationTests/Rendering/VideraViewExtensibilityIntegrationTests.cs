@@ -44,6 +44,9 @@ public sealed class VideraViewExtensibilityIntegrationTests
             view.RenderCapabilities.SupportsPassReplacement.Should().BeTrue();
             view.RenderCapabilities.SupportsFrameHooks.Should().BeTrue();
             view.RenderCapabilities.SupportsPipelineSnapshots.Should().BeTrue();
+            view.RenderCapabilities.SupportsShaderCreation.Should().BeTrue();
+            view.RenderCapabilities.SupportsResourceSetCreation.Should().BeTrue();
+            view.RenderCapabilities.SupportsResourceSetBinding.Should().BeTrue();
             view.RenderCapabilities.ActiveBackendPreference.Should().Be(GraphicsBackendPreference.Software);
             view.RenderCapabilities.SupportedFeatureNames.Should().Contain("Transparent");
             view.RenderCapabilities.LastPipelineSnapshot.Should().NotBeNull();
@@ -64,6 +67,9 @@ public sealed class VideraViewExtensibilityIntegrationTests
             view.BackendDiagnostics.SupportsPassReplacement.Should().BeTrue();
             view.BackendDiagnostics.SupportsFrameHooks.Should().BeTrue();
             view.BackendDiagnostics.SupportsPipelineSnapshots.Should().BeTrue();
+            view.BackendDiagnostics.SupportsShaderCreation.Should().BeFalse();
+            view.BackendDiagnostics.SupportsResourceSetCreation.Should().BeFalse();
+            view.BackendDiagnostics.SupportsResourceSetBinding.Should().BeFalse();
         }
         finally
         {
@@ -82,6 +88,9 @@ public sealed class VideraViewExtensibilityIntegrationTests
             view.RenderCapabilities.SupportsPassReplacement.Should().BeTrue();
             view.RenderCapabilities.SupportsFrameHooks.Should().BeTrue();
             view.RenderCapabilities.SupportsPipelineSnapshots.Should().BeTrue();
+            view.RenderCapabilities.SupportsShaderCreation.Should().BeFalse();
+            view.RenderCapabilities.SupportsResourceSetCreation.Should().BeFalse();
+            view.RenderCapabilities.SupportsResourceSetBinding.Should().BeFalse();
             view.RenderCapabilities.SupportedFeatureNames.Should().Equal("Opaque", "Transparent", "Overlay");
             view.RenderCapabilities.LastPipelineSnapshot.Should().BeNull();
 
@@ -92,6 +101,9 @@ public sealed class VideraViewExtensibilityIntegrationTests
             view.BackendDiagnostics.SupportsPassReplacement.Should().BeTrue();
             view.BackendDiagnostics.SupportsFrameHooks.Should().BeTrue();
             view.BackendDiagnostics.SupportsPipelineSnapshots.Should().BeTrue();
+            view.BackendDiagnostics.SupportsShaderCreation.Should().BeFalse();
+            view.BackendDiagnostics.SupportsResourceSetCreation.Should().BeFalse();
+            view.BackendDiagnostics.SupportsResourceSetBinding.Should().BeFalse();
             view.BackendDiagnostics.SupportedRenderFeatureNames.Should().Equal("Opaque", "Transparent", "Overlay", "Picking", "Screenshot");
             view.BackendDiagnostics.TransparentFeatureStatus.Should().Be(VideraBackendDiagnostics.CurrentTransparentFeatureStatus);
         }

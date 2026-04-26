@@ -67,6 +67,10 @@ public sealed class VulkanBackendSmokeTests
 
         var factory = backend.GetResourceFactory();
 
+        factory.Should().BeAssignableTo<IResourceFactoryCapabilities>()
+            .Which.SupportsShaderCreation.Should().BeFalse();
+        ((IResourceFactoryCapabilities)factory).SupportsResourceSetCreation.Should().BeFalse();
+
         var act = () => factory.CreateShader(ShaderStage.Vertex, Array.Empty<byte>(), "main");
 
         act.Should().Throw<UnsupportedOperationException>()

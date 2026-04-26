@@ -70,7 +70,17 @@ Key abstractions:
 - `IRenderSurface`
 - `IResourceFactory`
 - `ICommandExecutor`
+- `IResourceFactoryCapabilities`
+- `ICommandExecutorCapabilities`
 - `GraphicsBackendFactory`
+
+Built-in backend minimum contract:
+
+- Buffer creation through `CreateVertexBuffer(...)`, `CreateIndexBuffer(...)`, and `CreateUniformBuffer(...)`.
+- Current-viewer pipeline creation through `CreatePipeline(...)`.
+- Direct buffer binding through `SetVertexBuffer(...)` and `SetIndexBuffer(...)`.
+- Draw calls, viewport/scissor, clear, and standard frame depth behavior.
+- Advanced seams such as `CreateShader(...)`, `CreateResourceSet(...)`, and `SetResourceSet(...)` are capability-gated through `RenderCapabilities.SupportsShaderCreation`, `SupportsResourceSetCreation`, and `SupportsResourceSetBinding`; shipped native backends can report `false` and throw `UnsupportedOperationException` for those calls.
 
 ### `Videra.Avalonia`
 

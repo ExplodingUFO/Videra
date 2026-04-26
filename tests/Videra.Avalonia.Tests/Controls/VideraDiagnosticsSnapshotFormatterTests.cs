@@ -46,7 +46,10 @@ public sealed class VideraDiagnosticsSnapshotFormatterTests
             ActiveClippingPlaneCount = 1,
             MeasurementCount = 2,
             LastSnapshotExportPath = "artifacts/inspection/snapshot.png",
-            LastSnapshotExportStatus = "Succeeded"
+            LastSnapshotExportStatus = "Succeeded",
+            SupportsShaderCreation = false,
+            SupportsResourceSetCreation = false,
+            SupportsResourceSetBinding = false
         };
 
         diagnostics.LastFrameObjectCount.Should().Be(diagnostics.LastFrameOpaqueObjectCount + diagnostics.LastFrameTransparentObjectCount);
@@ -77,5 +80,8 @@ public sealed class VideraDiagnosticsSnapshotFormatterTests
         snapshot.Should().Contain("MeasurementCount: 2");
         snapshot.Should().Contain("LastSnapshotExportPath: artifacts/inspection/snapshot.png");
         snapshot.Should().Contain("LastSnapshotExportStatus: Succeeded");
+        snapshot.Should().Contain("SupportsShaderCreation: False");
+        snapshot.Should().Contain("SupportsResourceSetCreation: False");
+        snapshot.Should().Contain("SupportsResourceSetBinding: False");
     }
 }

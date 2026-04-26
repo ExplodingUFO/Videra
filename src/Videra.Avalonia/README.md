@@ -86,6 +86,8 @@ var diagnosticsSnapshot = VideraDiagnosticsSnapshotFormatter.Format(diagnostics)
 
 The shared render-feature vocabulary for those diagnostics is `Opaque`, `Transparent`, `Overlay`, `Picking`, and `Screenshot`, where `Transparent` means alpha mask rendering plus deterministic alpha blend ordering for per-object carried alpha sources. Hosts read that truth through `RenderCapabilities.SupportedFeatureNames`, `BackendDiagnostics.LastFrameFeatureNames`, `BackendDiagnostics.SupportedRenderFeatureNames`, `BackendDiagnostics.LastFrameObjectCount`, `BackendDiagnostics.LastFrameOpaqueObjectCount`, `BackendDiagnostics.LastFrameTransparentObjectCount`, and `TransparentFeatureStatus`. Those counts are backend-neutral scene diagnostics, not draw-call metrics.
 
+Advanced shader/resource-set seams are capability-gated. Check `RenderCapabilities.SupportsShaderCreation`, `SupportsResourceSetCreation`, and `SupportsResourceSetBinding` or the matching `BackendDiagnostics` fields before calling `CreateShader(...)`, `CreateResourceSet(...)`, or `SetResourceSet(...)`; shipped native backends can report `false` and throw `UnsupportedOperationException` for those APIs.
+
 For the copyable first-scene flow, see [samples/Videra.MinimalSample](../../samples/Videra.MinimalSample/README.md).
 
 ## Compatibility and Advanced Entry Points
@@ -104,6 +106,7 @@ Contract notes:
 - After the engine is `disposed`, additional contributor and hook registrations are ignored as a `no-op`.
 - `RenderCapabilities` remains queryable before initialization and after disposal.
 - With `AllowSoftwareFallback = true`, `BackendDiagnostics.IsUsingSoftwareFallback` and `BackendDiagnostics.FallbackReason` explain native backend fallback.
+- Advanced shader/resource-set APIs are guarded by `SupportsShaderCreation`, `SupportsResourceSetCreation`, and `SupportsResourceSetBinding`.
 - With `AllowSoftwareFallback = false`, the view stays not ready until the native backend issue is fixed; it does not silently recover through fallback.
 - Scene loading uses retained imported assets and `SceneDocument` truth so backend rebind can restore scene resources without a steady-state software staging path.
 - `SceneDocumentStore`, `SceneDeltaPlanner`, `SceneResidencyRegistry`, and `SceneUploadQueue` stay internal to `Videra.Avalonia`; they let `VideraViewRuntime` publish document deltas plus typed retained-entry changes, coalesce per-entry upload work, prefer attached dirty entries during interactive draining, and expose read-only scene residency counts through `BackendDiagnostics`.

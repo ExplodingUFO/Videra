@@ -200,6 +200,9 @@ public sealed class VideraEngineExtensibilityIntegrationTests
         capabilities.SupportsPassReplacement.Should().BeTrue();
         capabilities.SupportsFrameHooks.Should().BeTrue();
         capabilities.SupportsPipelineSnapshots.Should().BeTrue();
+        capabilities.SupportsShaderCreation.Should().BeTrue();
+        capabilities.SupportsResourceSetCreation.Should().BeTrue();
+        capabilities.SupportsResourceSetBinding.Should().BeTrue();
         capabilities.SupportedFeatures.Should().Be(RenderFeatureSet.Opaque | RenderFeatureSet.Transparent | RenderFeatureSet.Overlay);
         capabilities.SupportedFeatureNames.Should().Equal("Opaque", "Transparent", "Overlay");
         capabilities.LastPipelineSnapshot.Should().NotBeNull();
@@ -261,6 +264,9 @@ public sealed class VideraEngineExtensibilityIntegrationTests
         capabilities.SupportsPassReplacement.Should().BeTrue();
         capabilities.SupportsFrameHooks.Should().BeTrue();
         capabilities.SupportsPipelineSnapshots.Should().BeTrue();
+        capabilities.SupportsShaderCreation.Should().BeFalse();
+        capabilities.SupportsResourceSetCreation.Should().BeFalse();
+        capabilities.SupportsResourceSetBinding.Should().BeFalse();
         capabilities.SupportedFeatures.Should().Be(RenderFeatureSet.Opaque | RenderFeatureSet.Transparent | RenderFeatureSet.Overlay);
         capabilities.SupportedFeatureNames.Should().Equal("Opaque", "Transparent", "Overlay");
         capabilities.LastPipelineSnapshot.Should().BeNull();
@@ -286,6 +292,9 @@ public sealed class VideraEngineExtensibilityIntegrationTests
         capabilities.SupportsPassReplacement.Should().BeTrue();
         capabilities.SupportsFrameHooks.Should().BeTrue();
         capabilities.SupportsPipelineSnapshots.Should().BeTrue();
+        capabilities.SupportsShaderCreation.Should().BeFalse();
+        capabilities.SupportsResourceSetCreation.Should().BeFalse();
+        capabilities.SupportsResourceSetBinding.Should().BeFalse();
         capabilities.SupportedFeatures.Should().Be(RenderFeatureSet.Opaque | RenderFeatureSet.Transparent | RenderFeatureSet.Overlay);
         capabilities.SupportedFeatureNames.Should().Equal("Opaque", "Transparent", "Overlay");
         capabilities.LastPipelineSnapshot.Should().NotBeNull();

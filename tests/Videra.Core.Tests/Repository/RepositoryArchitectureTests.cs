@@ -285,6 +285,11 @@ public sealed class RepositoryArchitectureTests
         architecture.Should().Contain("CreateShader(...)");
         architecture.Should().Contain("CreateResourceSet(...)");
         architecture.Should().Contain("SetResourceSet(...)");
+        architecture.Should().Contain("IResourceFactoryCapabilities");
+        architecture.Should().Contain("ICommandExecutorCapabilities");
+        architecture.Should().Contain("SupportsShaderCreation");
+        architecture.Should().Contain("SupportsResourceSetCreation");
+        architecture.Should().Contain("SupportsResourceSetBinding");
         architecture.Should().Contain("current native support remains Windows=`D3D11`, Linux=`Vulkan`, and macOS=`Metal`");
         ShouldExplicitlyDenyOpenGlProductPromise(architecture);
 
@@ -292,6 +297,9 @@ public sealed class RepositoryArchitectureTests
         coreReadme.Should().Contain("CreateShader(...)");
         coreReadme.Should().Contain("CreateResourceSet(...)");
         coreReadme.Should().Contain("SetResourceSet(...)");
+        coreReadme.Should().Contain("SupportsShaderCreation");
+        coreReadme.Should().Contain("SupportsResourceSetCreation");
+        coreReadme.Should().Contain("SupportsResourceSetBinding");
         coreReadme.Should().Contain("The shipped native backends (`D3D11`, `Vulkan`, and `Metal`)");
         ShouldExplicitlyDenyOpenGlProductPromise(coreReadme);
 
@@ -299,6 +307,9 @@ public sealed class RepositoryArchitectureTests
         supportMatrix.Should().Contain("CreateShader(...)");
         supportMatrix.Should().Contain("CreateResourceSet(...)");
         supportMatrix.Should().Contain("SetResourceSet(...)");
+        supportMatrix.Should().Contain("SupportsShaderCreation");
+        supportMatrix.Should().Contain("SupportsResourceSetCreation");
+        supportMatrix.Should().Contain("SupportsResourceSetBinding");
         supportMatrix.Should().Contain("Direct3D 11");
         supportMatrix.Should().Contain("Vulkan");
         supportMatrix.Should().Contain("Metal");

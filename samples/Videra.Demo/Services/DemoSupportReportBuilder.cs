@@ -202,6 +202,9 @@ public static class DemoSupportReportBuilder
         builder.AppendLine($"  SupportsPassReplacement: {capabilities.SupportsPassReplacement}");
         builder.AppendLine($"  SupportsFrameHooks: {capabilities.SupportsFrameHooks}");
         builder.AppendLine($"  SupportsPipelineSnapshots: {capabilities.SupportsPipelineSnapshots}");
+        builder.AppendLine($"  SupportsShaderCreation: {capabilities.SupportsShaderCreation}");
+        builder.AppendLine($"  SupportsResourceSetCreation: {capabilities.SupportsResourceSetCreation}");
+        builder.AppendLine($"  SupportsResourceSetBinding: {capabilities.SupportsResourceSetBinding}");
         builder.AppendLine($"  SupportedFeatureNames: {FormatList(capabilities.SupportedFeatureNames)}");
         builder.AppendLine($"  LastPipelineProfile: {capabilities.LastPipelineSnapshot?.Profile.ToString() ?? "Unavailable"}");
     }

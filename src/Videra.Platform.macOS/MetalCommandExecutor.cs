@@ -5,7 +5,7 @@ using Videra.Core.Graphics.Abstractions;
 
 namespace Videra.Platform.macOS;
 
-internal sealed partial class MetalCommandExecutor : ICommandExecutor
+internal sealed partial class MetalCommandExecutor : ICommandExecutor, ICommandExecutorCapabilities
 {
     private const int LoadActionClear = 2;
     private const int StoreActionDontCare = 0;
@@ -19,6 +19,8 @@ internal sealed partial class MetalCommandExecutor : ICommandExecutor
     private IntPtr _depthTestWriteState;
     private IntPtr _depthTestOnlyState;
     private IntPtr _depthDisabledState;
+
+    public bool SupportsResourceSetBinding => false;
 
     public MetalCommandExecutor(IntPtr commandQueue, ILogger<MetalCommandExecutor>? logger = null)
     {

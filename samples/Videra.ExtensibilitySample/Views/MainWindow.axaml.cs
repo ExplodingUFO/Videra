@@ -191,6 +191,9 @@ public partial class MainWindow : Window
         builder.AppendLine($"SupportsPassReplacement: {capabilities.SupportsPassReplacement}");
         builder.AppendLine($"SupportsFrameHooks: {capabilities.SupportsFrameHooks}");
         builder.AppendLine($"SupportsPipelineSnapshots: {capabilities.SupportsPipelineSnapshots}");
+        builder.AppendLine($"SupportsShaderCreation: {capabilities.SupportsShaderCreation}");
+        builder.AppendLine($"SupportsResourceSetCreation: {capabilities.SupportsResourceSetCreation}");
+        builder.AppendLine($"SupportsResourceSetBinding: {capabilities.SupportsResourceSetBinding}");
         builder.AppendLine($"SupportedFeatureNames: {supportedFeatures}");
         builder.AppendLine($"LastPipelineProfile: {snapshot?.Profile.ToString() ?? "Unavailable"}");
         builder.AppendLine($"LastFrameFeatureNames: {lastFrameFeatures}");
@@ -223,6 +226,9 @@ public partial class MainWindow : Window
         builder.AppendLine($"LastFrameFeatureNames: {lastFrameFeatures}");
         builder.AppendLine($"LastFrameObjectCount: {diagnostics.LastFrameObjectCount} | LastFrameOpaqueObjectCount: {diagnostics.LastFrameOpaqueObjectCount} | LastFrameTransparentObjectCount: {diagnostics.LastFrameTransparentObjectCount}");
         builder.AppendLine($"SupportedRenderFeatureNames: {supportedFeatures}");
+        builder.AppendLine($"SupportsShaderCreation: {diagnostics.SupportsShaderCreation}");
+        builder.AppendLine($"SupportsResourceSetCreation: {diagnostics.SupportsResourceSetCreation}");
+        builder.AppendLine($"SupportsResourceSetBinding: {diagnostics.SupportsResourceSetBinding}");
         builder.AppendLine($"UsesSoftwarePresentationCopy: {diagnostics.UsesSoftwarePresentationCopy}");
         builder.Append($"LastInitializationError: {diagnostics.LastInitializationError ?? "None"}");
         return builder.ToString();

@@ -7,10 +7,14 @@ using Videra.Core.Graphics.Abstractions;
 
 namespace Videra.Platform.macOS;
 
-internal sealed partial class MetalResourceFactory : IResourceFactory
+internal sealed partial class MetalResourceFactory : IResourceFactory, IResourceFactoryCapabilities
 {
     private readonly IntPtr _device;
     private readonly ILogger _logger;
+
+    public bool SupportsShaderCreation => false;
+
+    public bool SupportsResourceSetCreation => false;
 
     public MetalResourceFactory(IntPtr device, ILogger<MetalResourceFactory>? logger = null)
     {

@@ -190,6 +190,12 @@ public partial class VideraEngine : IDisposable
                 SupportsPassReplacement = true,
                 SupportsFrameHooks = true,
                 SupportsPipelineSnapshots = true,
+                SupportsShaderCreation = _resources.ResourceFactory is IResourceFactoryCapabilities resourceFactoryCapabilities
+                    && resourceFactoryCapabilities.SupportsShaderCreation,
+                SupportsResourceSetCreation = _resources.ResourceFactory is IResourceFactoryCapabilities resourceSetFactoryCapabilities
+                    && resourceSetFactoryCapabilities.SupportsResourceSetCreation,
+                SupportsResourceSetBinding = _resources.CommandExecutor is ICommandExecutorCapabilities commandExecutorCapabilities
+                    && commandExecutorCapabilities.SupportsResourceSetBinding,
                 SupportedFeatures = EngineSupportedFeatures,
                 SupportedFeatureNames = EngineSupportedFeatures.ToFeatureNames(),
                 LastPipelineSnapshot = LastPipelineSnapshot

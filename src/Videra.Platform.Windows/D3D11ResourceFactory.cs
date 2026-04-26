@@ -10,12 +10,16 @@ using Videra.Core.Graphics.Abstractions;
 
 namespace Videra.Platform.Windows;
 
-internal unsafe class D3D11ResourceFactory : IResourceFactory
+internal unsafe class D3D11ResourceFactory : IResourceFactory, IResourceFactoryCapabilities
 {
     private readonly ComPtr<ID3D11Device> _device;
     private readonly ComPtr<ID3D11DeviceContext> _context;
     private readonly D3D11 _d3d11;
     private readonly D3DCompiler _compiler;
+
+    public bool SupportsShaderCreation => false;
+
+    public bool SupportsResourceSetCreation => false;
 
     public D3D11ResourceFactory(ComPtr<ID3D11Device> device, ComPtr<ID3D11DeviceContext> context, D3D11 d3d11)
     {

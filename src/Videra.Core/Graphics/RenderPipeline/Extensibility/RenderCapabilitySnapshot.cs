@@ -17,6 +17,12 @@ public sealed class RenderCapabilitySnapshot
 
     public bool SupportsPipelineSnapshots { get; init; }
 
+    public bool SupportsShaderCreation { get; init; }
+
+    public bool SupportsResourceSetCreation { get; init; }
+
+    public bool SupportsResourceSetBinding { get; init; }
+
     public RenderFeatureSet SupportedFeatures { get; init; }
 
     public IReadOnlyList<string> SupportedFeatureNames { get; init; } = Array.Empty<string>();

@@ -50,6 +50,10 @@ public sealed class MetalBackendSmokeTests
 
         var factory = backend.GetResourceFactory();
 
+        factory.Should().BeAssignableTo<IResourceFactoryCapabilities>()
+            .Which.SupportsShaderCreation.Should().BeFalse();
+        ((IResourceFactoryCapabilities)factory).SupportsResourceSetCreation.Should().BeFalse();
+
         var act = () => factory.CreatePipeline(new PipelineDescription());
 
         act.Should().NotThrow();
@@ -69,6 +73,9 @@ public sealed class MetalBackendSmokeTests
 
         var executor = backend.GetCommandExecutor();
         var mockResourceSet = new MockResourceSet();
+
+        executor.Should().BeAssignableTo<ICommandExecutorCapabilities>()
+            .Which.SupportsResourceSetBinding.Should().BeFalse();
 
         var act = () => executor.SetResourceSet(0, mockResourceSet);
 

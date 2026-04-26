@@ -43,7 +43,7 @@ The public SurfaceCharts install rule is similarly narrow: start with `Videra.Su
 - They do not install missing platform packages.
 - They do not replace matching-host native validation.
 - The built-in backend minimum contract is buffer creation, current-viewer pipeline creation, direct buffer binding, draw calls, viewport/scissor, clear, and standard frame depth behavior with best-effort depth-state toggles.
-- `CreateShader(...)`, `CreateResourceSet(...)`, and `SetResourceSet(...)` are not a cross-backend portability promise for the shipped native backends.
+- `CreateShader(...)`, `CreateResourceSet(...)`, and `SetResourceSet(...)` are not a cross-backend portability promise for the shipped native backends. Check `RenderCapabilities.SupportsShaderCreation`, `SupportsResourceSetCreation`, and `SupportsResourceSetBinding` or the matching `BackendDiagnostics` fields before calling those advanced seams.
 - This matrix does not imply an `OpenGL` product promise; the current native support promise remains `D3D11`, `Vulkan`, and `Metal`.
 - Linux Wayland uses the documented `XWayland` bridge, not compositor-native embedding.
 - Imported-material truth now closes more of the gap to on-screen truth on the shipped static-scene path: the current renderer path consumes baseColor texture sampling, occlusion texture binding/strength, emissive inputs, and normal-map-ready inputs on the bounded static-scene seam, including `KHR_texture_transform` offset/scale/rotation and texture-coordinate override where those bindings request them. This remains a bounded renderer-consumption seam rather than a broader lighting/shader/backend promise. One bounded style-driven broader-lighting baseline also ships on the native static-scene path.

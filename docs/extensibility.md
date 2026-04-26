@@ -10,6 +10,7 @@ This page is the English source of truth for Videra's public render extensibilit
 - `RenderCapabilities` exposes the Core-side capability snapshot and last pipeline snapshot.
 - `BackendDiagnostics` exposes readiness, resolved backend, fallback state, pipeline diagnostics, and backend-neutral `LastFrameObjectCount` / `LastFrameOpaqueObjectCount` / `LastFrameTransparentObjectCount`.
 - `LoadModelAsync(...)` and `FrameAll()` are the narrow sample's scene-loading and framing steps.
+- `SupportsShaderCreation`, `SupportsResourceSetCreation`, and `SupportsResourceSetBinding` expose whether the active backend supports the advanced shader/resource-set seams.
 
 ## Recommended Flow
 
@@ -56,6 +57,10 @@ if (view.BackendDiagnostics.IsReady)
 }
 
 var capabilities = view.RenderCapabilities;
+if (capabilities.SupportsShaderCreation)
+{
+    // Advanced shader/resource-set seams are backend capability-gated.
+}
 var diagnostics = view.BackendDiagnostics;
 ```
 
@@ -69,6 +74,8 @@ The concrete sample lives at `samples/Videra.ExtensibilitySample`, and its main 
 | Pre-initialization | Registrations are allowed before the first backend-ready frame and are retained until rendering starts. | `RenderCapabilities` is queryable but reports `IsInitialized = false`. `BackendDiagnostics.IsReady` is `false`, with no native fallback reason yet. | Wait for `BackendReady` or `BackendDiagnostics.IsReady` before calling `LoadModelAsync(...)` and `FrameAll()`. |
 | `disposed` engine | Additional `RegisterPassContributor(...)`, `ReplacePassContributor(...)`, and `RegisterFrameHook(...)` calls are ignored as a `no-op`. | `RenderCapabilities` remains queryable and reports `IsInitialized = false`. If a frame completed earlier, the last pipeline snapshot can still be retained after disposal. Treat `BackendDiagnostics` as last-known view/session state, not as a reactivation mechanism. | Do not expect new rendering work from the disposed engine or view. Create a new view/engine if you need a fresh session. |
 | Backend unavailable | No registration contract changes are added by the render-pipeline diagnostics surface. | Backend availability remains a separate backend-resolution diagnostic. The render-pipeline contract stays limited to contributor/hook support, feature names, frame stages, and last-frame object counts. | Do not call `LoadModelAsync(...)` or `FrameAll()` until the view is ready. |
+
+`CreateShader(...)`, `CreateResourceSet(...)`, and `SetResourceSet(...)` are not part of the built-in native backend minimum contract. Treat `SupportsShaderCreation`, `SupportsResourceSetCreation`, and `SupportsResourceSetBinding` as the guard before calling those APIs; a `false` value means the backend may throw `UnsupportedOperationException` rather than attempting a fallback path.
 
 ## Scene Loading Truth
 

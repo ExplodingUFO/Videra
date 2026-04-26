@@ -748,6 +748,9 @@ public sealed class VideraViewSceneIntegrationTests : IDisposable
         diagnosticsType.GetProperty("SupportsPassReplacement").Should().NotBeNull();
         diagnosticsType.GetProperty("SupportsFrameHooks").Should().NotBeNull();
         diagnosticsType.GetProperty("SupportsPipelineSnapshots").Should().NotBeNull();
+        diagnosticsType.GetProperty("SupportsShaderCreation").Should().NotBeNull();
+        diagnosticsType.GetProperty("SupportsResourceSetCreation").Should().NotBeNull();
+        diagnosticsType.GetProperty("SupportsResourceSetBinding").Should().NotBeNull();
 
         var view = new VideraView();
         try

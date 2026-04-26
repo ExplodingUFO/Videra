@@ -52,7 +52,10 @@ public sealed class VideraBackendDiagnostics
             SupportsPassContributors = true,
             SupportsPassReplacement = true,
             SupportsFrameHooks = true,
-            SupportsPipelineSnapshots = true
+            SupportsPipelineSnapshots = true,
+            SupportsShaderCreation = false,
+            SupportsResourceSetCreation = false,
+            SupportsResourceSetBinding = false
         };
     }
 
@@ -203,6 +206,21 @@ public sealed class VideraBackendDiagnostics
     /// Gets a value indicating whether pipeline snapshots are exposed on the public surface.
     /// </summary>
     public bool SupportsPipelineSnapshots { get; init; }
+
+    /// <summary>
+    /// Gets a value indicating whether the active backend exposes public shader creation through <c>CreateShader(...)</c>.
+    /// </summary>
+    public bool SupportsShaderCreation { get; init; }
+
+    /// <summary>
+    /// Gets a value indicating whether the active backend exposes public resource-set creation through <c>CreateResourceSet(...)</c>.
+    /// </summary>
+    public bool SupportsResourceSetCreation { get; init; }
+
+    /// <summary>
+    /// Gets a value indicating whether the active backend exposes public resource-set binding through <c>SetResourceSet(...)</c>.
+    /// </summary>
+    public bool SupportsResourceSetBinding { get; init; }
 }
 
 public sealed class VideraBackendStatusChangedEventArgs : EventArgs

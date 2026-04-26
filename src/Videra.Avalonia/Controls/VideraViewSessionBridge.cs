@@ -275,7 +275,10 @@ internal sealed class VideraViewSessionBridge
             SupportsPassContributors = capabilities.SupportsPassContributors,
             SupportsPassReplacement = capabilities.SupportsPassReplacement,
             SupportsFrameHooks = capabilities.SupportsFrameHooks,
-            SupportsPipelineSnapshots = capabilities.SupportsPipelineSnapshots
+            SupportsPipelineSnapshots = capabilities.SupportsPipelineSnapshots,
+            SupportsShaderCreation = capabilities.SupportsShaderCreation,
+            SupportsResourceSetCreation = capabilities.SupportsResourceSetCreation,
+            SupportsResourceSetBinding = capabilities.SupportsResourceSetBinding
         };
     }
 

@@ -7,7 +7,7 @@ using Videra.Core.Graphics.Abstractions;
 
 namespace Videra.Platform.Windows;
 
-internal unsafe class D3D11CommandExecutor : ICommandExecutor
+internal unsafe class D3D11CommandExecutor : ICommandExecutor, ICommandExecutorCapabilities
 {
     private static readonly DepthBufferConfiguration DepthConfig = new(
         DepthBufferFormat.Depth24UnormStencil8,
@@ -27,6 +27,8 @@ internal unsafe class D3D11CommandExecutor : ICommandExecutor
     private ComPtr<ID3D11DepthStencilState> _depthTestWriteState;    // 默认状态
     private ComPtr<ID3D11DepthStencilState> _depthTestOnlyState;     // 只测试不写入
     private ComPtr<ID3D11DepthStencilState> _depthDisabledState;     // 禁用深度
+
+    public bool SupportsResourceSetBinding => false;
 
     public D3D11CommandExecutor(ComPtr<ID3D11DeviceContext> context)
     {

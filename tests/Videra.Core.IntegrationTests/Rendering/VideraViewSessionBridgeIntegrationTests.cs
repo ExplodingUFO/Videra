@@ -151,6 +151,9 @@ public sealed class VideraViewSessionBridgeIntegrationTests
         diagnostics.SupportsPassReplacement.Should().BeTrue();
         diagnostics.SupportsFrameHooks.Should().BeTrue();
         diagnostics.SupportsPipelineSnapshots.Should().BeTrue();
+        diagnostics.SupportsShaderCreation.Should().BeFalse();
+        diagnostics.SupportsResourceSetCreation.Should().BeFalse();
+        diagnostics.SupportsResourceSetBinding.Should().BeFalse();
     }
 
     [Fact]

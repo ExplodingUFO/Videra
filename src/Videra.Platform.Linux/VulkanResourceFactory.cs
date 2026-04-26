@@ -12,7 +12,7 @@ using CorePrimitiveTopology = Videra.Core.Graphics.Abstractions.PrimitiveTopolog
 
 namespace Videra.Platform.Linux;
 
-internal sealed unsafe class VulkanResourceFactory : IResourceFactory
+internal sealed unsafe class VulkanResourceFactory : IResourceFactory, IResourceFactoryCapabilities
 {
     private static readonly DepthBufferConfiguration DepthConfig = DepthBufferConfiguration.Default;
     private const uint SurfaceChartScalarUniformBufferSize = 65536;
@@ -31,6 +31,10 @@ internal sealed unsafe class VulkanResourceFactory : IResourceFactory
     private readonly PhysicalDevice _physicalDevice;
     private readonly Vk _vk;
     private readonly RenderPass _renderPass;
+
+    public bool SupportsShaderCreation => false;
+
+    public bool SupportsResourceSetCreation => false;
 
     public VulkanResourceFactory(Device device, PhysicalDevice physicalDevice, Vk vk, RenderPass renderPass)
     {

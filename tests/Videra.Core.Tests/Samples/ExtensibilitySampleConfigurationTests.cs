@@ -12,12 +12,18 @@ public sealed class ExtensibilitySampleConfigurationTests
         "RegisterFrameHook(RenderFrameHookPoint.FrameEnd, ...)",
         "RenderCapabilities",
         "RenderCapabilities.SupportedFeatureNames",
+        "RenderCapabilities.SupportsShaderCreation",
+        "RenderCapabilities.SupportsResourceSetCreation",
+        "RenderCapabilities.SupportsResourceSetBinding",
         "BackendDiagnostics",
         "BackendDiagnostics.LastFrameFeatureNames",
         "BackendDiagnostics.SupportedRenderFeatureNames",
         "BackendDiagnostics.LastFrameObjectCount",
         "BackendDiagnostics.LastFrameOpaqueObjectCount",
         "BackendDiagnostics.LastFrameTransparentObjectCount",
+        "BackendDiagnostics.SupportsShaderCreation",
+        "BackendDiagnostics.SupportsResourceSetCreation",
+        "BackendDiagnostics.SupportsResourceSetBinding",
         "LoadModelAsync(\"Assets/reference-cube.obj\")",
         "FrameAll()",
         "Opaque",
@@ -79,6 +85,12 @@ public sealed class ExtensibilitySampleConfigurationTests
         codeBehind.Should().Contain("diagnostics.LastFrameObjectCount");
         codeBehind.Should().Contain("diagnostics.LastFrameOpaqueObjectCount");
         codeBehind.Should().Contain("diagnostics.LastFrameTransparentObjectCount");
+        codeBehind.Should().Contain("capabilities.SupportsShaderCreation");
+        codeBehind.Should().Contain("capabilities.SupportsResourceSetCreation");
+        codeBehind.Should().Contain("capabilities.SupportsResourceSetBinding");
+        codeBehind.Should().Contain("diagnostics.SupportsShaderCreation");
+        codeBehind.Should().Contain("diagnostics.SupportsResourceSetCreation");
+        codeBehind.Should().Contain("diagnostics.SupportsResourceSetBinding");
 
         foreach (var forbidden in ForbiddenLibraryAndDemoSeams)
         {

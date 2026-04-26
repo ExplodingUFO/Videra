@@ -180,6 +180,7 @@ Phase 11 新增的 public extensibility contract：
 - 先从 `VideraView.Engine` 或 Core 等效入口调用 `RegisterPassContributor(...)`
 - 再通过 `RegisterFrameHook(...)` 绑定 `FrameBegin` / `SceneSubmit` / `FrameEnd`
 - 用 `GetRenderCapabilities()` / `RenderCapabilities` 与 `BackendDiagnostics` 读取当前 capability 与后端状态
+- 调用 `CreateShader(...)`、`CreateResourceSet(...)`、`SetResourceSet(...)` 前，先检查 `SupportsShaderCreation`、`SupportsResourceSetCreation`、`SupportsResourceSetBinding`
 - 当前 `disposed` 后的追加注册继续是 `no-op`；`package discovery` 与 `plugin loading` 仍然不在这条公开 contract 内
 
 ## 抽象接口
@@ -220,6 +221,8 @@ public interface IResourceFactory
     IResourceSet CreateResourceSet(ResourceSetDescription description);
 }
 ```
+
+`CreateShader(...)`、`CreateResourceSet(...)` 与 `SetResourceSet(...)` 属于高级 seam，不是内置 native backend 的最小可移植合同。通过 `GetRenderCapabilities()` / `RenderCapabilities` 读取 `SupportsShaderCreation`、`SupportsResourceSetCreation`、`SupportsResourceSetBinding` 后再调用；报告为 `false` 的 backend 可能抛出 `UnsupportedOperationException`，而不是提供降级路径。
 
 ## 软件渲染
 

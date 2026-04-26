@@ -25,7 +25,10 @@ public sealed class RepositoryLocalizationTests
         "RegisterFrameHook",
         "RenderFrameHookPoint",
         "GetRenderCapabilities",
-        "RenderCapabilities"
+        "RenderCapabilities",
+        "SupportsShaderCreation",
+        "SupportsResourceSetCreation",
+        "SupportsResourceSetBinding"
     };
 
     private static readonly string[] ExtensibilityContractSymbols =

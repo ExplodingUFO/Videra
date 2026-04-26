@@ -3,8 +3,12 @@ using Videra.Core.Graphics.Abstractions;
 
 namespace Videra.Core.Graphics.Software;
 
-internal sealed class SoftwareResourceFactory : IResourceFactory
+internal sealed class SoftwareResourceFactory : IResourceFactory, IResourceFactoryCapabilities
 {
+    public bool SupportsShaderCreation => true;
+
+    public bool SupportsResourceSetCreation => true;
+
     public IBuffer CreateVertexBuffer(VertexPositionNormalColor[] vertices)
     {
         var sizeInBytes = (uint)(vertices.Length * VertexPositionNormalColor.SizeInBytes);

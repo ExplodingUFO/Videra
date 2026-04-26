@@ -5,7 +5,7 @@ using Videra.Core.Graphics.Abstractions;
 
 namespace Videra.Platform.Linux;
 
-internal sealed unsafe class VulkanCommandExecutor : ICommandExecutor, IBufferBindingCacheInvalidator
+internal sealed unsafe class VulkanCommandExecutor : ICommandExecutor, ICommandExecutorCapabilities, IBufferBindingCacheInvalidator
 {
     private readonly Device _device;
     private readonly CommandBuffer _commandBuffer;
@@ -19,6 +19,8 @@ internal sealed unsafe class VulkanCommandExecutor : ICommandExecutor, IBufferBi
     private VulkanBuffer? _colorMapBuffer;
     private VulkanBuffer? _surfaceTileScalarBuffer;
     private DescriptorSet _currentDescriptorSet;
+
+    public bool SupportsResourceSetBinding => false;
 
     public VulkanCommandExecutor(Device device, CommandBuffer commandBuffer, Vk vk)
     {

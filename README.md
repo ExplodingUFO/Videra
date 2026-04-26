@@ -178,10 +178,13 @@ The advanced extensibility flow is `VideraView.Engine` -> `RegisterPassContribut
 
 The shared feature vocabulary for those diagnostics is `RenderFeatureSet`: `Opaque`, `Transparent`, `Overlay`, `Picking`, and `Screenshot`, where `Transparent` means alpha mask rendering plus deterministic alpha blend ordering for per-primitive carried alpha sources. Host apps read that truth through `RenderCapabilities.SupportedFeatureNames`, `BackendDiagnostics.LastFrameFeatureNames`, `BackendDiagnostics.SupportedRenderFeatureNames`, `BackendDiagnostics.LastFrameObjectCount`, `BackendDiagnostics.LastFrameOpaqueObjectCount`, `BackendDiagnostics.LastFrameTransparentObjectCount`, and `TransparentFeatureStatus`. Those counts are backend-neutral scene diagnostics, not draw-call metrics or a broader renderer promise.
 
+Advanced shader/resource-set seams are explicitly capability-gated. Check `RenderCapabilities.SupportsShaderCreation`, `SupportsResourceSetCreation`, and `SupportsResourceSetBinding` or the matching `BackendDiagnostics` fields before calling `CreateShader(...)`, `CreateResourceSet(...)`, or `SetResourceSet(...)`.
+
 Contract highlights:
 
 - After the engine is `disposed`, additional contributor and hook registrations are ignored as a `no-op`.
 - `RenderCapabilities` remains queryable before initialization and after disposal, with `IsInitialized = false` until the engine is ready.
+- `SupportsShaderCreation`, `SupportsResourceSetCreation`, and `SupportsResourceSetBinding` are the guardrails for advanced backend seams; shipped native backends can report `false` and throw `UnsupportedOperationException` there.
 - When `AllowSoftwareFallback = true`, native backend failures resolve to software and `BackendDiagnostics.FallbackReason` explains why the native backend was unavailable.
 - When `AllowSoftwareFallback = false`, native backend resolution fails instead of silently falling back, so the view does not become ready until the package/runtime issue is fixed.
 - `package discovery` and `plugin loading` remain out of scope for the public extension model.

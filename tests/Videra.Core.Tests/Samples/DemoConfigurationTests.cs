@@ -379,6 +379,9 @@ public sealed class DemoConfigurationTests
         diagnosticsBundle.Should().Contain("Packages:");
         diagnosticsBundle.Should().Contain("LoadedModelCount: 2");
         diagnosticsBundle.Should().Contain("RenderCapabilities:");
+        diagnosticsBundle.Should().Contain("SupportsShaderCreation:");
+        diagnosticsBundle.Should().Contain("SupportsResourceSetCreation:");
+        diagnosticsBundle.Should().Contain("SupportsResourceSetBinding:");
         diagnosticsBundle.Should().Contain("Import report");
         diagnosticsBundle.Should().Contain("native backend unavailable");
         minimalRepro.Should().Contain("Videra minimal reproduction metadata");

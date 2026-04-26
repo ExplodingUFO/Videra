@@ -4,7 +4,7 @@ using Videra.Core.Graphics.Abstractions;
 
 namespace Videra.Core.Graphics.Software;
 
-internal sealed class SoftwareCommandExecutor : ICommandExecutor
+internal sealed class SoftwareCommandExecutor : ICommandExecutor, ICommandExecutorCapabilities
 {
     private const bool DefaultDepthTestEnabled = true;
     private const bool DefaultDepthWriteEnabled = true;
@@ -16,6 +16,8 @@ internal sealed class SoftwareCommandExecutor : ICommandExecutor
     private ViewportState _viewport;
     private bool _depthTestEnabled = DefaultDepthTestEnabled;
     private bool _depthWriteEnabled = DefaultDepthWriteEnabled;
+
+    public bool SupportsResourceSetBinding => true;
 
     public SoftwareCommandExecutor(SoftwareFrameBuffer frameBuffer)
     {

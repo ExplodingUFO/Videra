@@ -12,6 +12,7 @@
 - `RenderCapabilities` 暴露 Core 侧 capability snapshot 与最近一次 pipeline snapshot。
 - `BackendDiagnostics` 暴露 readiness、resolved backend、fallback 状态与 pipeline diagnostics。
 - `LoadModelAsync(...)` 与 `FrameAll()` 是窄 sample 的场景加载与 framing 步骤。
+- `SupportsShaderCreation`、`SupportsResourceSetCreation`、`SupportsResourceSetBinding` 表示当前 backend 是否支持高级 shader/resource-set seam。
 
 ## 推荐流程
 
@@ -58,6 +59,10 @@ if (view.BackendDiagnostics.IsReady)
 }
 
 var capabilities = view.RenderCapabilities;
+if (capabilities.SupportsShaderCreation)
+{
+    // 高级 shader/resource-set seam 由 backend capability gate 控制。
+}
 var diagnostics = view.BackendDiagnostics;
 ```
 
@@ -72,6 +77,8 @@ var diagnostics = view.BackendDiagnostics;
 | `disposed` engine | 后续的 `RegisterPassContributor(...)`、`ReplacePassContributor(...)` 与 `RegisterFrameHook(...)` 调用都会被忽略，保持 `no-op`。 | `RenderCapabilities` 仍可查询，并报告 `IsInitialized = false`。如果前面已经完成过一帧，最近一次 pipeline snapshot 仍可能在 disposal 后被保留。此时应把 `BackendDiagnostics` 视为 last-known view/session state，而不是重新激活机制。 | 不要期待 `disposed` 过的 engine 或 view 再产生新的渲染工作；如果需要新的 session，请创建新的 view/engine。 |
 | Native unavailable with software fallback | 注册接口不变；engine 会切到 software backend，而不是改掉 API 形状。 | 当 `AllowSoftwareFallback = true` 时，`BackendDiagnostics.IsUsingSoftwareFallback` 为 `true`，`ResolvedBackend` 会变成 `Software`，`FallbackReason` 会解释 native backend 为什么不可用。`RenderCapabilities` 继续暴露相同的 contributor/hook support 标志。 | 在 ready 之后，窄 sample 仍可调用 `LoadModelAsync(...)` 与 `FrameAll()`，但宿主应用应把 fallback 状态显式展示给用户。 |
 | Native unavailable without software fallback | 注册合同不变，但不会创建 ready session。同一份 unavailable 原因会以 failure 的形式暴露，而不是 fallback。 | 当 `AllowSoftwareFallback = false` 时，backend resolution 会失败，而不是走带 `FallbackReason` 的 software 路径。在 Core-first 流程中，`GraphicsBackendFactory.ResolveBackend(...)` 会抛出同一份 unavailable reason；在 Avalonia 流程中，view 会保持 not ready，并通过 `InitializationFailed` / `LastInitializationError` 暴露失败。 | 在缺失 package/runtime 问题修复并且 view 能正常初始化之前，不要调用 `LoadModelAsync(...)` 或 `FrameAll()`。 |
+
+`CreateShader(...)`、`CreateResourceSet(...)` 与 `SetResourceSet(...)` 不属于内置 native backend 的最小合同。调用这些高级 API 前，请把 `SupportsShaderCreation`、`SupportsResourceSetCreation`、`SupportsResourceSetBinding` 当作 guard；`false` 表示该 backend 可能直接抛出 `UnsupportedOperationException`。
 
 ## 场景加载真相
 

@@ -117,6 +117,10 @@ public sealed class D3D11BackendSmokeTests
 
         var factory = backend.GetResourceFactory();
 
+        factory.Should().BeAssignableTo<IResourceFactoryCapabilities>()
+            .Which.SupportsShaderCreation.Should().BeFalse();
+        ((IResourceFactoryCapabilities)factory).SupportsResourceSetCreation.Should().BeFalse();
+
         var act = () => factory.CreateShader(ShaderStage.Vertex, Array.Empty<byte>(), "main");
 
         act.Should().Throw<UnsupportedOperationException>()
@@ -138,6 +142,9 @@ public sealed class D3D11BackendSmokeTests
         var factory = backend.GetResourceFactory();
         var desc = new ResourceSetDescription();
 
+        factory.Should().BeAssignableTo<IResourceFactoryCapabilities>()
+            .Which.SupportsResourceSetCreation.Should().BeFalse();
+
         var act = () => factory.CreateResourceSet(desc);
 
         act.Should().Throw<UnsupportedOperationException>()
@@ -158,6 +165,9 @@ public sealed class D3D11BackendSmokeTests
 
         var executor = backend.GetCommandExecutor();
         var mockResourceSet = new MockResourceSet();
+
+        executor.Should().BeAssignableTo<ICommandExecutorCapabilities>()
+            .Which.SupportsResourceSetBinding.Should().BeFalse();
 
         var act = () => executor.SetResourceSet(0, mockResourceSet);
 
