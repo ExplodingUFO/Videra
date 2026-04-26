@@ -55,6 +55,7 @@ switch ($Platform)
             }
 
             pwsh -File (Join-Path $root "scripts/verify.ps1") -Configuration $Configuration -IncludeNativeLinux
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
             break
         }
 
@@ -74,6 +75,7 @@ switch ($Platform)
         }
 
         pwsh -File (Join-Path $root "scripts/verify.ps1") -Configuration $Configuration -IncludeNativeLinuxXWayland
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
         break
     }
 
@@ -85,6 +87,7 @@ switch ($Platform)
         }
 
         pwsh -File (Join-Path $root "scripts/verify.ps1") -Configuration $Configuration -IncludeNativeMacOS
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
         break
     }
 
@@ -96,6 +99,7 @@ switch ($Platform)
         }
 
         pwsh -File (Join-Path $root "scripts/verify.ps1") -Configuration $Configuration -IncludeNativeWindows
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
         break
     }
 }
