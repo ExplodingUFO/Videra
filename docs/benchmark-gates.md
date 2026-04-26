@@ -61,8 +61,8 @@ Artifacts are written under `artifacts/benchmarks/<suite>`.
 ## What to watch
 
 - `Mean` and `Allocated` are the primary quick signals.
-- Viewer benchmarks are expected to show scene import, residency apply, upload drain, backend rehydrate costs, and inspection pick/clip/snapshot costs.
-- Surface-chart benchmarks are expected to show LOD selection, resident render-state change sets, cache batch reads, cache lookup-miss filtering, probe latency, tile residency churn, and benchmark-local GPU contract-path recolor/orbit/resize-rebind behavior.
+- Viewer benchmarks are expected to show scene import, batch import/result creation, residency apply, upload drain, backend rehydrate costs, inspection pick/clip/snapshot costs, and demo diagnostics/import-report formatting costs.
+- Surface-chart benchmarks are expected to show LOD selection, resident render-state change sets, cache batch reads, cache lookup-miss filtering, probe latency, tile residency churn, benchmark-local GPU contract-path recolor/orbit/resize-rebind behavior, and rendering-status/support-summary formatting costs.
 - The render-host contract benchmarks intentionally use a benchmark-local fake backend. They validate chart-local host/update contract cost and must stay on the GPU contract path without fallback; they do not measure driver, swapchain, or compositor overhead.
 - Compare runs over time before reacting to a single noisy data point. This workflow is meant to build trend evidence across alpha iterations, not to reward one-off wins.
 

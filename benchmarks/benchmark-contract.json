@@ -23,6 +23,13 @@
             "InspectionBenchmarks.ClipPayload_CachedPlaneSignature",
             "InspectionBenchmarks.SnapshotExport_LiveReadbackFastPath"
           ]
+        },
+        {
+          "name": "Diagnostics",
+          "benchmarks": [
+            "DemoDiagnosticsBenchmarks.FormatImportReport",
+            "DemoDiagnosticsBenchmarks.BuildDiagnosticsBundle"
+          ]
         }
       ]
     },
@@ -66,6 +73,13 @@
             "SurfaceChartsRenderHostContractBenchmarks.RecolorResidentTilesGpuContractPath",
             "SurfaceChartsRenderHostContractBenchmarks.OrbitInteractiveFrameGpuContractPath",
             "SurfaceChartsRenderHostContractBenchmarks.ResizeAndRebindHandleGpuContractPath"
+          ]
+        },
+        {
+          "name": "Diagnostics",
+          "benchmarks": [
+            "SurfaceChartsDiagnosticsBenchmarks.RenderingStatus_FromSnapshot",
+            "SurfaceChartsDiagnosticsBenchmarks.SupportSummaryFormatting"
           ]
         }
       ]

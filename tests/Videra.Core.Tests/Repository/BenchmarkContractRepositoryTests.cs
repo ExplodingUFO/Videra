@@ -36,7 +36,9 @@ public sealed class BenchmarkContractRepositoryTests
                 "ScenePipelineBenchmarks.ScenePipeline_RehydrateAfterBackendReady",
                 "InspectionBenchmarks.SceneHitTest_MeshAccurateDistance",
                 "InspectionBenchmarks.ClipPayload_CachedPlaneSignature",
-                "InspectionBenchmarks.SnapshotExport_LiveReadbackFastPath"
+                "InspectionBenchmarks.SnapshotExport_LiveReadbackFastPath",
+                "DemoDiagnosticsBenchmarks.FormatImportReport",
+                "DemoDiagnosticsBenchmarks.BuildDiagnosticsBundle"
             ]);
 
         AssertSuite(
@@ -55,7 +57,9 @@ public sealed class BenchmarkContractRepositoryTests
                 "SurfaceChartsProbeBenchmarks.ProbeLatency",
                 "SurfaceChartsRenderHostContractBenchmarks.RecolorResidentTilesGpuContractPath",
                 "SurfaceChartsRenderHostContractBenchmarks.OrbitInteractiveFrameGpuContractPath",
-                "SurfaceChartsRenderHostContractBenchmarks.ResizeAndRebindHandleGpuContractPath"
+                "SurfaceChartsRenderHostContractBenchmarks.ResizeAndRebindHandleGpuContractPath",
+                "SurfaceChartsDiagnosticsBenchmarks.RenderingStatus_FromSnapshot",
+                "SurfaceChartsDiagnosticsBenchmarks.SupportSummaryFormatting"
             ]);
     }
 
