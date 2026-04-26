@@ -22,7 +22,13 @@ public sealed class AlphaConsumerIntegrationTests
         var smokeProject = File.ReadAllText(smokeProjectPath);
         var surfaceChartsSmokeProject = File.ReadAllText(surfaceChartsSmokeProjectPath);
         smokeProject.Should().Contain("<PackageReference Include=\"Videra.Avalonia\"");
+        smokeProject.Should().Contain("<VideraConsumerSmokeModelFormat Condition=\"'$(VideraConsumerSmokeModelFormat)' == ''\">Obj</VideraConsumerSmokeModelFormat>");
         smokeProject.Should().Contain("<PackageReference Include=\"Videra.Import.Obj\"");
+        smokeProject.Should().Contain("<PackageReference Include=\"Videra.Import.Gltf\"");
+        smokeProject.Should().Contain("VIDERA_CONSUMER_SMOKE_OBJ");
+        smokeProject.Should().Contain("VIDERA_CONSUMER_SMOKE_GLTF");
+        smokeProject.Should().Contain("'$(VideraConsumerSmokeModelFormat)' == 'Obj'");
+        smokeProject.Should().Contain("'$(VideraConsumerSmokeModelFormat)' == 'Gltf'");
         smokeProject.Should().Contain("<PackageReference Include=\"Videra.Platform.Windows\"");
         smokeProject.Should().Contain("<PackageReference Include=\"Videra.Platform.Linux\"");
         smokeProject.Should().Contain("<PackageReference Include=\"Videra.Platform.macOS\"");
@@ -33,7 +39,12 @@ public sealed class AlphaConsumerIntegrationTests
 
         var smokeWindowCodeBehind = File.ReadAllText(Path.Combine(repositoryRoot, "smoke", "Videra.ConsumerSmoke", "Views", "MainWindow.axaml.cs"));
         smokeWindowCodeBehind.Should().Contain("using Videra.Import.Obj;");
+        smokeWindowCodeBehind.Should().Contain("using Videra.Import.Gltf;");
         smokeWindowCodeBehind.Should().Contain("UseModelImporter(ObjModelImporter.Create())");
+        smokeWindowCodeBehind.Should().Contain("UseModelImporter(GltfModelImporter.Create())");
+        smokeWindowCodeBehind.Should().Contain("private const string ModelPath = \"Assets/reference-triangle.gltf\";");
+        smokeWindowCodeBehind.Should().Contain("Assets/reference-triangle.gltf");
+        smokeWindowCodeBehind.Should().Contain("Viewer-only smoke path selected");
 
         var smokeWorkflow = File.ReadAllText(smokeWorkflowPath);
         smokeWorkflow.Should().Contain("pull_request:");
@@ -58,7 +69,14 @@ public sealed class AlphaConsumerIntegrationTests
 
         var smokeScript = File.ReadAllText(smokeScriptPath);
         smokeScript.Should().Contain("Pack Public Consumer Packages");
-        smokeScript.Should().Contain("[ValidateSet(\"Viewer\", \"SurfaceCharts\")]");
+        smokeScript.Should().Contain("[ValidateSet(\"ViewerOnly\", \"ViewerObj\", \"ViewerGltf\", \"SurfaceCharts\")]");
+        smokeScript.Should().Contain("[string]$Scenario = \"ViewerObj\"");
+        smokeScript.Should().Contain("\"ViewerOnly\" { @(\"Videra.Avalonia\", (Get-CurrentPlatformPackageId)) }");
+        smokeScript.Should().Contain("\"ViewerObj\" { @(\"Videra.Avalonia\", \"Videra.Import.Obj\", (Get-CurrentPlatformPackageId)) }");
+        smokeScript.Should().Contain("\"ViewerGltf\" { @(\"Videra.Avalonia\", \"Videra.Import.Gltf\", (Get-CurrentPlatformPackageId)) }");
+        smokeScript.Should().Contain("-p:VideraConsumerSmokeModelFormat=$modelFormat");
+        smokeScript.Should().Contain("VIDERA_CONSUMER_SMOKE_SCENARIO");
+        smokeScript.Should().Contain("VIDERA_CONSUMER_SMOKE_PACKAGE_IDS");
         smokeScript.Should().Contain("smoke/Videra.SurfaceCharts.ConsumerSmoke/Videra.SurfaceCharts.ConsumerSmoke.csproj");
         smokeScript.Should().Contain("src/Videra.Import.Gltf/Videra.Import.Gltf.csproj");
         smokeScript.Should().Contain("src/Videra.Import.Obj/Videra.Import.Obj.csproj");
@@ -83,6 +101,36 @@ public sealed class AlphaConsumerIntegrationTests
         smokeScript.Should().Contain("inspection-bundle");
         smokeScript.Should().Contain("surfacecharts-support-summary.txt");
         smokeScript.Should().NotContain("Videra.WpfSmoke");
+    }
+
+    [Fact]
+    public void ConsumerSmokeScenarioMatrix_ShouldUseCleanPackageReferences()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var smokeProject = File.ReadAllText(Path.Combine(repositoryRoot, "smoke", "Videra.ConsumerSmoke", "Videra.ConsumerSmoke.csproj"));
+        var smokeScript = File.ReadAllText(Path.Combine(repositoryRoot, "scripts", "Invoke-ConsumerSmoke.ps1"));
+        var smokeCode = File.ReadAllText(Path.Combine(repositoryRoot, "smoke", "Videra.ConsumerSmoke", "Views", "MainWindow.axaml.cs"));
+
+        File.Exists(Path.Combine(repositoryRoot, "smoke", "Videra.ConsumerSmoke", "Assets", "reference-triangle.gltf")).Should().BeTrue();
+
+        smokeProject.Should().NotContain("<ProjectReference");
+        smokeProject.Should().Contain("<PackageReference Include=\"Videra.Avalonia\"");
+        smokeProject.Should().Contain("<ItemGroup Condition=\"'$(VideraConsumerSmokeModelFormat)' == 'Obj'\">");
+        smokeProject.Should().Contain("<ItemGroup Condition=\"'$(VideraConsumerSmokeModelFormat)' == 'Gltf'\">");
+        smokeProject.Should().Contain("<PackageReference Include=\"Videra.Import.Obj\"");
+        smokeProject.Should().Contain("<PackageReference Include=\"Videra.Import.Gltf\"");
+
+        smokeScript.Should().Contain("[ValidateSet(\"ViewerOnly\", \"ViewerObj\", \"ViewerGltf\", \"SurfaceCharts\")]");
+        smokeScript.Should().Contain("\"ViewerOnly\" { \"None\" }");
+        smokeScript.Should().Contain("\"ViewerObj\" { \"Obj\" }");
+        smokeScript.Should().Contain("\"ViewerGltf\" { \"Gltf\" }");
+        smokeScript.Should().Contain("\"SurfaceCharts\" { @(\"Videra.SurfaceCharts.Avalonia\", \"Videra.SurfaceCharts.Processing\") }");
+        smokeScript.Should().Contain("PackageIds = @($script:scenarioPackageIds)");
+        smokeScript.Should().Contain("ModelFormat = $script:modelFormat");
+
+        smokeCode.Should().Contain("string[] PackageIds");
+        smokeCode.Should().Contain("string ConsumerModelFormat");
+        smokeCode.Should().Contain("string? ImportedModelPath");
     }
 
     [Fact]
@@ -140,8 +188,11 @@ public sealed class AlphaConsumerIntegrationTests
         var repositoryRoot = GetRepositoryRoot();
         var relativeAssetPath = "smoke/Videra.ConsumerSmoke/Assets/reference-cube.obj";
         var assetPath = Path.Combine(repositoryRoot, "smoke", "Videra.ConsumerSmoke", "Assets", "reference-cube.obj");
+        var relativeGltfAssetPath = "smoke/Videra.ConsumerSmoke/Assets/reference-triangle.gltf";
+        var gltfAssetPath = Path.Combine(repositoryRoot, "smoke", "Videra.ConsumerSmoke", "Assets", "reference-triangle.gltf");
 
         File.Exists(assetPath).Should().BeTrue();
+        File.Exists(gltfAssetPath).Should().BeTrue();
 
         var startInfo = new System.Diagnostics.ProcessStartInfo("git", $"ls-files --error-unmatch -- \"{relativeAssetPath}\"")
         {
@@ -160,6 +211,17 @@ public sealed class AlphaConsumerIntegrationTests
 
         process.ExitCode.Should().Be(0, $"the consumer smoke asset must be committed so release checkouts can build.{Environment.NewLine}{standardOutput}{standardError}");
         standardOutput.Should().Contain(relativeAssetPath);
+
+        startInfo.Arguments = $"ls-files --error-unmatch -- \"{relativeGltfAssetPath}\"";
+        using var gltfProcess = System.Diagnostics.Process.Start(startInfo);
+        gltfProcess.Should().NotBeNull();
+        gltfProcess!.WaitForExit();
+
+        var gltfStandardOutput = gltfProcess.StandardOutput.ReadToEnd();
+        var gltfStandardError = gltfProcess.StandardError.ReadToEnd();
+
+        gltfProcess.ExitCode.Should().Be(0, $"the glTF consumer smoke asset must be committed so release checkouts can build.{Environment.NewLine}{gltfStandardOutput}{gltfStandardError}");
+        gltfStandardOutput.Should().Contain(relativeGltfAssetPath);
     }
 
     [Fact]

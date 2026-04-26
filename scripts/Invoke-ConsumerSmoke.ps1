@@ -3,8 +3,8 @@ param(
     [ValidateSet("Debug", "Release")]
     [string]$Configuration = "Release",
 
-    [ValidateSet("Viewer", "SurfaceCharts")]
-    [string]$Scenario = "Viewer",
+    [ValidateSet("ViewerOnly", "ViewerObj", "ViewerGltf", "SurfaceCharts")]
+    [string]$Scenario = "ViewerObj",
 
     [string]$Project = "",
 
@@ -26,7 +26,9 @@ $resolvedProject =
     {
         switch ($Scenario)
         {
-            "Viewer" { $defaultViewerProject }
+            "ViewerOnly" { $defaultViewerProject }
+            "ViewerObj" { $defaultViewerProject }
+            "ViewerGltf" { $defaultViewerProject }
             "SurfaceCharts" { $defaultSurfaceChartsProject }
         }
     }
@@ -35,6 +37,7 @@ $resolvedProject =
         $Project
     }
 $projectPath = Join-Path $root $resolvedProject
+$script:resolvedProject = $resolvedProject
 $outputPath = Join-Path $root $OutputRoot
 $jsonPath = Join-Path $outputPath "consumer-smoke-result.json"
 $snapshotPath = Join-Path $outputPath "diagnostics-snapshot.txt"
@@ -48,6 +51,13 @@ $environmentPath = Join-Path $outputPath "consumer-smoke-environment.txt"
 $packageOutputPath = Join-Path $outputPath "packages"
 $packagesCachePath = Join-Path $outputPath "global-packages"
 $nugetConfigPath = Join-Path $outputPath "NuGet.Config"
+$modelFormat = switch ($Scenario)
+{
+    "ViewerOnly" { "None" }
+    "ViewerObj" { "Obj" }
+    "ViewerGltf" { "Gltf" }
+    "SurfaceCharts" { "None" }
+}
 $publicPackageProjects = @(
     "src/Videra.Core/Videra.Core.csproj",
     "src/Videra.Import.Gltf/Videra.Import.Gltf.csproj",
@@ -67,6 +77,35 @@ $sessionEnvironment = [ordered]@{
     XDG_RUNTIME_DIR = $env:XDG_RUNTIME_DIR
     XDG_SESSION_TYPE = $env:XDG_SESSION_TYPE
 }
+
+function Get-CurrentPlatformPackageId
+{
+    if ($IsWindows)
+    {
+        return "Videra.Platform.Windows"
+    }
+
+    if ($IsLinux)
+    {
+        return "Videra.Platform.Linux"
+    }
+
+    if ($IsMacOS)
+    {
+        return "Videra.Platform.macOS"
+    }
+
+    return "Videra.Platform.Unknown"
+}
+
+$scenarioPackageIds = switch ($Scenario)
+{
+    "ViewerOnly" { @("Videra.Avalonia", (Get-CurrentPlatformPackageId)) }
+    "ViewerObj" { @("Videra.Avalonia", "Videra.Import.Obj", (Get-CurrentPlatformPackageId)) }
+    "ViewerGltf" { @("Videra.Avalonia", "Videra.Import.Gltf", (Get-CurrentPlatformPackageId)) }
+    "SurfaceCharts" { @("Videra.SurfaceCharts.Avalonia", "Videra.SurfaceCharts.Processing") }
+}
+$isViewerScenario = $Scenario -ne "SurfaceCharts"
 
 if (-not (Test-Path -LiteralPath $projectPath))
 {
@@ -167,6 +206,9 @@ function Write-FallbackConsumerSmokeArtifacts([string]$failure, [int]$processExi
             StdoutPath = if (Test-Path -LiteralPath $script:stdoutPath) { $script:stdoutPath } else { $null }
             StderrPath = if (Test-Path -LiteralPath $script:stderrPath) { $script:stderrPath } else { $null }
             EnvironmentPath = $script:environmentPath
+            PackageVersion = $script:packageVersion
+            PackageIds = @($script:scenarioPackageIds)
+            ModelFormat = $script:modelFormat
         }
 
         $fallbackReport | ConvertTo-Json -Depth 4 | Set-Content -Path $script:jsonPath
@@ -177,6 +219,7 @@ function Write-FallbackConsumerSmokeArtifacts([string]$failure, [int]$processExi
         @(
             "Consumer smoke fallback diagnostics"
             "Scenario: $Scenario"
+            "ModelFormat: $script:modelFormat"
             "Failure: $failure"
             "ProcessExitCode: $processExitCode"
             "DISPLAY: $(Format-ConsumerSmokeEnvironmentValue $script:sessionEnvironment.DISPLAY)"
@@ -189,6 +232,35 @@ function Write-FallbackConsumerSmokeArtifacts([string]$failure, [int]$processExi
             "EnvironmentPath: $script:environmentPath"
         ) | Set-Content -Path $script:snapshotPath
     }
+}
+
+function Set-ConsumerSmokeReportMetadata
+{
+    if (-not (Test-Path -LiteralPath $script:jsonPath))
+    {
+        return
+    }
+
+    $report = Get-Content -Raw $script:jsonPath | ConvertFrom-Json
+    $supportArtifactPaths = @(
+        $script:snapshotPath,
+        $script:inspectionSnapshotPath,
+        $script:inspectionBundlePath,
+        $script:surfaceChartsSupportSummaryPath,
+        $script:tracePath,
+        $script:stdoutPath,
+        $script:stderrPath,
+        $script:environmentPath
+    ) | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
+
+    $report | Add-Member -NotePropertyName Scenario -NotePropertyValue $Scenario -Force
+    $report | Add-Member -NotePropertyName PackageVersion -NotePropertyValue $script:packageVersion -Force
+    $report | Add-Member -NotePropertyName PackageIds -NotePropertyValue @($script:scenarioPackageIds) -Force
+    $report | Add-Member -NotePropertyName ModelFormat -NotePropertyValue $script:modelFormat -Force
+    $report | Add-Member -NotePropertyName ProjectPath -NotePropertyValue $script:resolvedProject -Force
+    $report | Add-Member -NotePropertyName SupportArtifactPaths -NotePropertyValue @($supportArtifactPaths) -Force
+
+    $report | ConvertTo-Json -Depth 8 | Set-Content -Path $script:jsonPath
 }
 
 Write-ConsumerSmokeEnvironmentSnapshot
@@ -212,6 +284,10 @@ $packageVersion =
     {
         "$resolvedVersion-consumer-smoke"
     }
+
+$script:packageVersion = $packageVersion
+$script:scenarioPackageIds = @($scenarioPackageIds)
+$script:modelFormat = $modelFormat
 
 foreach ($relativeProject in $publicPackageProjects)
 {
@@ -252,7 +328,8 @@ $restoreArgs = @(
     $projectPath,
     "--configfile", $nugetConfigPath,
     "--packages", $packagesCachePath,
-    "-p:VideraConsumerPackageVersion=$packageVersion"
+    "-p:VideraConsumerPackageVersion=$packageVersion",
+    "-p:VideraConsumerSmokeModelFormat=$modelFormat"
 )
 dotnet restore @restoreArgs
 if ($LASTEXITCODE -ne 0)
@@ -266,7 +343,8 @@ $buildArgs = @(
     "--configuration", $Configuration,
     "--no-restore",
     "--packages", $packagesCachePath,
-    "-p:VideraConsumerPackageVersion=$packageVersion"
+    "-p:VideraConsumerPackageVersion=$packageVersion",
+    "-p:VideraConsumerSmokeModelFormat=$modelFormat"
 )
 
 if ($TreatWarningsAsErrors)
@@ -294,11 +372,20 @@ $previousTrace = $env:VIDERA_CONSUMER_SMOKE_TRACE
 $hadPreviousTrace = Test-Path Env:VIDERA_CONSUMER_SMOKE_TRACE
 $previousLightingProofHoldSeconds = $env:VIDERA_LIGHTING_PROOF_HOLD_SECONDS
 $hadPreviousLightingProofHoldSeconds = Test-Path Env:VIDERA_LIGHTING_PROOF_HOLD_SECONDS
+$previousScenario = $env:VIDERA_CONSUMER_SMOKE_SCENARIO
+$hadPreviousScenario = Test-Path Env:VIDERA_CONSUMER_SMOKE_SCENARIO
+$previousPackageVersion = $env:VIDERA_CONSUMER_SMOKE_PACKAGE_VERSION
+$hadPreviousPackageVersion = Test-Path Env:VIDERA_CONSUMER_SMOKE_PACKAGE_VERSION
+$previousPackageIds = $env:VIDERA_CONSUMER_SMOKE_PACKAGE_IDS
+$hadPreviousPackageIds = Test-Path Env:VIDERA_CONSUMER_SMOKE_PACKAGE_IDS
 
 try
 {
     $env:VIDERA_CONSUMER_SMOKE_OUTPUT = $jsonPath
     $env:VIDERA_CONSUMER_SMOKE_TRACE = $tracePath
+    $env:VIDERA_CONSUMER_SMOKE_SCENARIO = $Scenario
+    $env:VIDERA_CONSUMER_SMOKE_PACKAGE_VERSION = $packageVersion
+    $env:VIDERA_CONSUMER_SMOKE_PACKAGE_IDS = ($scenarioPackageIds -join ",")
     if ($LightingProofHoldSeconds -gt 0)
     {
         $env:VIDERA_LIGHTING_PROOF_HOLD_SECONDS = $LightingProofHoldSeconds
@@ -318,7 +405,8 @@ try
             "--no-build",
             "--packages",
             $packagesCachePath,
-            "-p:VideraConsumerPackageVersion=$packageVersion") `
+            "-p:VideraConsumerPackageVersion=$packageVersion",
+            "-p:VideraConsumerSmokeModelFormat=$modelFormat") `
         -Wait `
         -PassThru `
         -NoNewWindow `
@@ -361,6 +449,33 @@ finally
     {
         Remove-Item Env:VIDERA_LIGHTING_PROOF_HOLD_SECONDS -ErrorAction SilentlyContinue
     }
+
+    if ($hadPreviousScenario)
+    {
+        $env:VIDERA_CONSUMER_SMOKE_SCENARIO = $previousScenario
+    }
+    else
+    {
+        Remove-Item Env:VIDERA_CONSUMER_SMOKE_SCENARIO -ErrorAction SilentlyContinue
+    }
+
+    if ($hadPreviousPackageVersion)
+    {
+        $env:VIDERA_CONSUMER_SMOKE_PACKAGE_VERSION = $previousPackageVersion
+    }
+    else
+    {
+        Remove-Item Env:VIDERA_CONSUMER_SMOKE_PACKAGE_VERSION -ErrorAction SilentlyContinue
+    }
+
+    if ($hadPreviousPackageIds)
+    {
+        $env:VIDERA_CONSUMER_SMOKE_PACKAGE_IDS = $previousPackageIds
+    }
+    else
+    {
+        Remove-Item Env:VIDERA_CONSUMER_SMOKE_PACKAGE_IDS -ErrorAction SilentlyContinue
+    }
 }
 
 $missingArtifactFailure = $null
@@ -372,7 +487,7 @@ elseif (-not (Test-Path -LiteralPath $snapshotPath))
 {
     $missingArtifactFailure = "Consumer smoke did not produce '$snapshotPath'."
 }
-elseif ($Scenario -eq "Viewer")
+elseif ($isViewerScenario)
 {
     if (-not (Test-Path -LiteralPath $inspectionSnapshotPath))
     {
@@ -414,6 +529,7 @@ if ($null -ne $missingArtifactFailure)
     throw $missingArtifactFailure
 }
 
+Set-ConsumerSmokeReportMetadata
 $report = Get-Content -Raw $jsonPath | ConvertFrom-Json
 if (-not $report.Succeeded)
 {
@@ -425,7 +541,7 @@ if (-not $report.IsReady)
     throw "Consumer smoke completed without a ready backend diagnostics snapshot."
 }
 
-if ($Scenario -eq "Viewer" -and -not $report.FrameAllReturned)
+if ($isViewerScenario -and -not $report.FrameAllReturned)
 {
     throw "Consumer smoke completed without a successful FrameAll result."
 }
@@ -437,7 +553,7 @@ if ($Scenario -eq "SurfaceCharts" -and -not $report.FirstChartRendered)
 
 Write-Host "Consumer smoke passed ($Scenario)." -ForegroundColor Green
 Write-Host "Resolved package version: $packageVersion"
-if ($Scenario -eq "Viewer")
+if ($isViewerScenario)
 {
     Write-Host "ResolvedBackend: $($report.ResolvedBackend)"
     Write-Host "ResolvedDisplayServer: $($report.ResolvedDisplayServer)"
@@ -453,7 +569,7 @@ else
     Write-Host "InteractionQuality: $($report.InteractionQuality)"
 }
 Write-Host "DiagnosticsSnapshot: $snapshotPath"
-if ($Scenario -eq "Viewer")
+if ($isViewerScenario)
 {
     Write-Host "InspectionSnapshot: $inspectionSnapshotPath"
     Write-Host "InspectionBundle: $inspectionBundlePath"

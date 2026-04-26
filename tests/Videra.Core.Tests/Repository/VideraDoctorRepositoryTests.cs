@@ -164,7 +164,7 @@ public sealed class VideraDoctorRepositoryTests
             "package-validation",
             "benchmark-thresholds:Viewer",
             "benchmark-thresholds:SurfaceCharts",
-            "consumer-smoke:Viewer",
+            "consumer-smoke:ViewerObj",
             "native-validation",
             "demo-diagnostics"
         ]);
@@ -172,7 +172,7 @@ public sealed class VideraDoctorRepositoryTests
         validations["package-validation"].GetProperty("status").GetString().Should().Be("skip");
         validations["package-validation"].GetProperty("script").GetString().Should().Be("scripts/Validate-Packages.ps1");
         validations["benchmark-thresholds:Viewer"].GetProperty("script").GetString().Should().Be("scripts/Test-BenchmarkThresholds.ps1");
-        validations["consumer-smoke:Viewer"].GetProperty("script").GetString().Should().Be("scripts/Invoke-ConsumerSmoke.ps1");
+        validations["consumer-smoke:ViewerObj"].GetProperty("script").GetString().Should().Be("scripts/Invoke-ConsumerSmoke.ps1");
         validations["native-validation"].GetProperty("script").GetString().Should().Be("scripts/run-native-validation.ps1");
         validations["demo-diagnostics"].GetProperty("artifacts").EnumerateArray().Select(static value => value.GetString())
             .Should().Contain("artifacts/doctor");

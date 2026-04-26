@@ -17,8 +17,8 @@ param(
 
     [switch]$RunConsumerSmoke,
 
-    [ValidateSet("Viewer", "SurfaceCharts")]
-    [string]$ConsumerSmokeScenario = "Viewer",
+    [ValidateSet("ViewerOnly", "ViewerObj", "ViewerGltf", "SurfaceCharts")]
+    [string]$ConsumerSmokeScenario = "ViewerObj",
 
     [switch]$RunNativeValidation,
 
@@ -297,7 +297,7 @@ if ($RunConsumerSmoke)
 }
 else
 {
-    Add-Validation -Id "consumer-smoke:Viewer" -Status "skip" -Message "Pass -RunConsumerSmoke to invoke consumer smoke validation." -Script "scripts/Invoke-ConsumerSmoke.ps1" -Prerequisites @("dotnet SDK") -Artifacts @("artifacts/consumer-smoke", "artifacts/consumer-smoke/consumer-smoke-result.json")
+    Add-Validation -Id "consumer-smoke:ViewerObj" -Status "skip" -Message "Pass -RunConsumerSmoke to invoke consumer smoke validation." -Script "scripts/Invoke-ConsumerSmoke.ps1" -Prerequisites @("dotnet SDK") -Artifacts @("artifacts/consumer-smoke", "artifacts/consumer-smoke/consumer-smoke-result.json")
 }
 
 if ($RunNativeValidation)

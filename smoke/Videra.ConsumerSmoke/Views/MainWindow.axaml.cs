@@ -5,12 +5,27 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Videra.Avalonia.Controls;
 using Videra.Core.Graphics;
+#if VIDERA_CONSUMER_SMOKE_GLTF
+using Videra.Import.Gltf;
+#endif
+#if VIDERA_CONSUMER_SMOKE_OBJ
 using Videra.Import.Obj;
+#endif
 
 namespace Videra.ConsumerSmoke.Views;
 
 public partial class MainWindow : Window
 {
+#if VIDERA_CONSUMER_SMOKE_GLTF
+    private const string ModelFormat = "Gltf";
+    private const string ModelPath = "Assets/reference-triangle.gltf";
+#elif VIDERA_CONSUMER_SMOKE_OBJ
+    private const string ModelFormat = "Obj";
+    private const string ModelPath = "Assets/reference-cube.obj";
+#else
+    private const string ModelFormat = "None";
+    private const string? ModelPath = null;
+#endif
     private readonly VideraView _view3D;
     private readonly TextBlock _statusText;
     private readonly string? _outputPath;
@@ -18,6 +33,9 @@ public partial class MainWindow : Window
     private readonly string? _inspectionSnapshotPath;
     private readonly string? _inspectionBundlePath;
     private readonly string? _tracePath;
+    private readonly string _scenario;
+    private readonly string _packageVersion;
+    private readonly string[] _packageIds;
     private readonly int _lightingProofHoldSeconds;
     private bool _completed;
     private bool _executionStarted;
@@ -43,17 +61,28 @@ public partial class MainWindow : Window
             ? null
             : Path.Combine(Path.GetDirectoryName(_outputPath!)!, "inspection-bundle");
         _tracePath = Environment.GetEnvironmentVariable("VIDERA_CONSUMER_SMOKE_TRACE");
+        _scenario = Environment.GetEnvironmentVariable("VIDERA_CONSUMER_SMOKE_SCENARIO") ?? ModelFormat;
+        _packageVersion = Environment.GetEnvironmentVariable("VIDERA_CONSUMER_SMOKE_PACKAGE_VERSION") ?? string.Empty;
+        _packageIds = (Environment.GetEnvironmentVariable("VIDERA_CONSUMER_SMOKE_PACKAGE_IDS") ?? string.Empty)
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
         _lightingProofHoldSeconds = ResolveLightingProofHoldSeconds();
         Trace("MainWindow constructed.");
 
-        _view3D.Options = new VideraViewOptions
+        var options = new VideraViewOptions
         {
             Backend =
             {
                 PreferredBackend = GraphicsBackendPreference.Auto,
                 AllowSoftwareFallback = true
             }
-        }.UseModelImporter(ObjModelImporter.Create());
+        };
+#if VIDERA_CONSUMER_SMOKE_GLTF
+        options.UseModelImporter(GltfModelImporter.Create());
+#endif
+#if VIDERA_CONSUMER_SMOKE_OBJ
+        options.UseModelImporter(ObjModelImporter.Create());
+#endif
+        _view3D.Options = options;
 
         _backendReadyHandler = (_, _) => _ = TryExecuteSmokeAsync();
         _openedHandler = (_, _) =>
@@ -120,8 +149,9 @@ public partial class MainWindow : Window
         _executionStarted = true;
         try
         {
-            Trace("LoadModelAsync starting.");
-            var result = await _view3D.LoadModelAsync("Assets/reference-cube.obj").ConfigureAwait(true);
+#if VIDERA_CONSUMER_SMOKE_GLTF || VIDERA_CONSUMER_SMOKE_OBJ
+            Trace($"LoadModelAsync starting: {ModelPath}");
+            var result = await _view3D.LoadModelAsync(ModelPath).ConfigureAwait(true);
             if (!result.Succeeded)
             {
                 Trace($"LoadModelAsync failed: {result.Failure?.ErrorMessage ?? "Unknown"}");
@@ -133,6 +163,10 @@ public partial class MainWindow : Window
             }
 
             Trace("LoadModelAsync succeeded.");
+#else
+            Trace("Viewer-only smoke path selected; skipping importer-backed LoadModelAsync.");
+#endif
+
             _view3D.AddObject(SmokeSceneFactory.CreateEmissiveNormalProofObject());
             Trace($"Added emissive/normal proof object: {SmokeSceneFactory.EmissiveNormalProofObjectName}.");
             _view3D.AddObject(SmokeSceneFactory.CreateMixedTransparencyProofObject());
@@ -242,6 +276,11 @@ public partial class MainWindow : Window
             _diagnosticsSnapshotPath,
             _inspectionSnapshotPath,
             _inspectionBundlePath,
+            _scenario,
+            _packageVersion,
+            _packageIds,
+            ModelFormat,
+            ModelPath,
             SmokeSceneFactory.EmissiveNormalProofObjectName,
             _lightingProofHoldSeconds);
 
@@ -323,6 +362,11 @@ public partial class MainWindow : Window
         string? DiagnosticsSnapshotPath,
         string? InspectionSnapshotPath,
         string? InspectionBundlePath,
+        string Scenario,
+        string PackageVersion,
+        string[] PackageIds,
+        string ConsumerModelFormat,
+        string? ImportedModelPath,
         string EmissiveNormalProofObjectName,
         int LightingProofHoldSeconds);
 }

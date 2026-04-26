@@ -8,6 +8,15 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>CS1591</NoWarn>
     <VideraConsumerPackageVersion Condition="'$(VideraConsumerPackageVersion)' == ''">$(Version)</VideraConsumerPackageVersion>
+    <VideraConsumerSmokeModelFormat Condition="'$(VideraConsumerSmokeModelFormat)' == ''">Obj</VideraConsumerSmokeModelFormat>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(VideraConsumerSmokeModelFormat)' == 'Obj'">
+    <DefineConstants>$(DefineConstants);VIDERA_CONSUMER_SMOKE_OBJ</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(VideraConsumerSmokeModelFormat)' == 'Gltf'">
+    <DefineConstants>$(DefineConstants);VIDERA_CONSUMER_SMOKE_GLTF</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
@@ -20,7 +29,14 @@
       <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Videra.Avalonia" Version="$(VideraConsumerPackageVersion)" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(VideraConsumerSmokeModelFormat)' == 'Obj'">
     <PackageReference Include="Videra.Import.Obj" Version="$(VideraConsumerPackageVersion)" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(VideraConsumerSmokeModelFormat)' == 'Gltf'">
+    <PackageReference Include="Videra.Import.Gltf" Version="$(VideraConsumerPackageVersion)" />
   </ItemGroup>
 
   <ItemGroup Condition="$([MSBuild]::IsOSPlatform('Windows'))">
@@ -37,5 +53,6 @@
 
   <ItemGroup>
     <None Include="Assets\reference-cube.obj" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Assets\reference-triangle.gltf" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>
