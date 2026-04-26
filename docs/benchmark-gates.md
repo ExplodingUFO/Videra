@@ -56,6 +56,7 @@ Artifacts are written under `artifacts/benchmarks/<suite>`.
 - On the SurfaceCharts side, those committed names now describe the tightened interactive residency under camera movement and lower probe-path churn on the existing chart-local path.
 - If one of those committed thresholds regresses beyond the allowed budget, the PR benchmark job fails and the uploaded artifact directory still includes the threshold evaluation details.
 - This is now a hard numeric blocker for the thresholded slice set, not a label-gated review switch.
+- Benchmark names listed in `benchmark-contract.json` but not in `benchmark-thresholds.json` remain evidence-only until promoted into the committed threshold slice.
 
 ## What to watch
 
@@ -73,6 +74,5 @@ Treat threshold failures as blocking regressions. Treat the remaining non-thresh
 
 ## Future escalation
 
-- Tighten the committed thresholds after enough stable CI history exists.
 - Tighten the committed thresholds after enough stable CI history exists.
 - Expand the hard-threshold slice only when the additional benchmarks show low enough noise to avoid false red builds.
