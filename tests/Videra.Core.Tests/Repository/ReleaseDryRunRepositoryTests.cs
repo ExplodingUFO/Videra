@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Text.Json;
+using System.Xml.Linq;
 using FluentAssertions;
 using Xunit;
 
@@ -159,13 +160,16 @@ public sealed class ReleaseDryRunRepositoryTests
     public void ReleaseDryRunWorkflow_ShouldBeReadOnlyAndNonPublishing()
     {
         var workflow = File.ReadAllText(Path.Combine(GetRepositoryRoot(), ".github", "workflows", "release-dry-run.yml"));
+        var repositoryVersion = GetRepositoryVersion();
 
         workflow.Should().Contain("workflow_dispatch:");
         workflow.Should().Contain("pull_request:");
         workflow.Should().Contain("permissions:");
         workflow.Should().Contain("contents: read");
         workflow.Should().Contain("Invoke-ReleaseDryRun.ps1");
-        workflow.Should().Contain("0.0.0-ci-dryrun");
+        workflow.Should().Contain($"default: {repositoryVersion}");
+        workflow.Should().Contain($"$version = \"{repositoryVersion}\"");
+        workflow.Should().NotContain("0.0.0-ci-dryrun");
         workflow.Should().Contain("actions/upload-artifact@v4");
         workflow.Should().Contain("release-dry-run-evidence");
         workflow.Should().NotContain("packages: write");
@@ -341,6 +345,13 @@ public sealed class ReleaseDryRunRepositoryTests
         }
 
         throw new DirectoryNotFoundException("Could not locate repository root containing Videra.slnx.");
+    }
+
+    private static string GetRepositoryVersion()
+    {
+        var propsPath = Path.Combine(GetRepositoryRoot(), "Directory.Build.props");
+        var document = XDocument.Load(propsPath);
+        return document.Descendants("Version").Single().Value;
     }
 
     private static PowerShellResult RunPowerShell(string scriptPath, string workingDirectory, params string[] arguments)
