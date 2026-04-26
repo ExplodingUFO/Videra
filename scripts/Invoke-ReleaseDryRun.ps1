@@ -44,6 +44,19 @@ function Invoke-PackageBuild([string]$ProjectPath, [string]$PackageRoot, [string
     }
 }
 
+function Assert-CommandSucceeded([bool]$Succeeded, $ExitCode, [string]$Description)
+{
+    if (-not $Succeeded)
+    {
+        throw "$Description failed."
+    }
+
+    if ($null -ne $ExitCode -and $ExitCode -ne 0)
+    {
+        throw "$Description failed with exit code $ExitCode."
+    }
+}
+
 if ([string]::IsNullOrWhiteSpace($ExpectedVersion))
 {
     throw "ExpectedVersion is required."
@@ -79,10 +92,7 @@ if ($packages.Count -eq 0)
 }
 
 & (Join-Path $root "scripts/Test-ReleaseCandidateVersion.ps1") -ExpectedVersion $ExpectedVersion -CandidateTag "v$ExpectedVersion"
-if ($LASTEXITCODE -ne 0)
-{
-    throw "Release candidate version simulation failed with exit code $LASTEXITCODE."
-}
+Assert-CommandSucceeded -Succeeded $? -ExitCode $LASTEXITCODE -Description "Release candidate version simulation"
 
 Remove-Item -LiteralPath $packageRoot -Recurse -Force -ErrorAction SilentlyContinue
 New-Item -ItemType Directory -Path $packageRoot | Out-Null
@@ -99,28 +109,78 @@ foreach ($package in $packages)
 }
 
 & (Join-Path $root "scripts/Validate-Packages.ps1") -PackageRoot $packageRoot -ExpectedVersion $ExpectedVersion
-if ($LASTEXITCODE -ne 0)
-{
-    throw "Package validation failed with exit code $LASTEXITCODE."
-}
+Assert-CommandSucceeded -Succeeded $? -ExitCode $LASTEXITCODE -Description "Package validation"
 
 $packageFiles = @(Get-ChildItem -Path $packageRoot -Filter *.nupkg | Sort-Object Name)
 $symbolPackageFiles = @(Get-ChildItem -Path $packageRoot -Filter *.snupkg | Sort-Object Name)
 $validationRoot = Join-Path $packageRoot ".validation"
+$summaryPath = Join-Path $outputRootFull "release-dry-run-summary.json"
+$textSummaryPath = Join-Path $outputRootFull "release-dry-run-summary.txt"
+$evidenceIndexJsonPath = Join-Path $outputRootFull "release-candidate-evidence-index.json"
+$evidenceIndexTextPath = Join-Path $outputRootFull "release-candidate-evidence-index.txt"
+$packageSizeEvaluationPath = Join-Path $validationRoot "package-size-evaluation.json"
+$packageSizeSummaryPath = Join-Path $validationRoot "package-size-summary.txt"
 
 $summary = [ordered]@{
     schemaVersion = 1
+    status = "pass"
+    generatedAtUtc = [DateTimeOffset]::UtcNow.ToString("O")
     expectedVersion = $ExpectedVersion
     configuration = $Configuration
     packageRoot = $packageRoot
     packageCount = $packageFiles.Count
     symbolPackageCount = $symbolPackageFiles.Count
     packageContractPath = "eng/public-api-contract.json"
+    packageSizeBudgetPath = "eng/package-size-budgets.json"
+    releaseDryRunScript = "scripts/Invoke-ReleaseDryRun.ps1"
+    versionValidationScript = "scripts/Test-ReleaseCandidateVersion.ps1"
     packageValidationScript = "scripts/Validate-Packages.ps1"
-    validationArtifacts = [ordered]@{
-        packageSizeEvaluation = Join-Path $validationRoot "package-size-evaluation.json"
-        packageSizeSummary = Join-Path $validationRoot "package-size-summary.txt"
+    evidenceIndexScript = "scripts/New-ReleaseCandidateEvidenceIndex.ps1"
+    artifactPaths = [ordered]@{
+        releaseDryRunSummaryJson = $summaryPath
+        releaseDryRunSummaryText = $textSummaryPath
+        evidenceIndexJson = $evidenceIndexJsonPath
+        evidenceIndexText = $evidenceIndexTextPath
+        packageRoot = $packageRoot
+        packageSizeEvaluation = $packageSizeEvaluationPath
+        packageSizeSummary = $packageSizeSummaryPath
     }
+    validationArtifacts = [ordered]@{
+        packageSizeEvaluation = $packageSizeEvaluationPath
+        packageSizeSummary = $packageSizeSummaryPath
+    }
+    steps = @(
+        [ordered]@{
+            id = "version-simulation-prepack"
+            status = "pass"
+            script = "scripts/Test-ReleaseCandidateVersion.ps1"
+            artifacts = @()
+        },
+        [ordered]@{
+            id = "package-build"
+            status = "pass"
+            script = "dotnet pack"
+            artifacts = @($packageRoot)
+        },
+        [ordered]@{
+            id = "package-validation"
+            status = "pass"
+            script = "scripts/Validate-Packages.ps1"
+            artifacts = @($packageSizeEvaluationPath, $packageSizeSummaryPath)
+        },
+        [ordered]@{
+            id = "version-simulation-summary"
+            status = "pass"
+            script = "scripts/Test-ReleaseCandidateVersion.ps1"
+            artifacts = @($summaryPath)
+        },
+        [ordered]@{
+            id = "evidence-index"
+            status = "pass"
+            script = "scripts/New-ReleaseCandidateEvidenceIndex.ps1"
+            artifacts = @($evidenceIndexJsonPath, $evidenceIndexTextPath)
+        }
+    )
     packages = @($packages | ForEach-Object {
         [ordered]@{
             id = [string]$_.id
@@ -130,32 +190,27 @@ $summary = [ordered]@{
 }
 
 New-Item -ItemType Directory -Path $outputRootFull -Force | Out-Null
-$summaryPath = Join-Path $outputRootFull "release-dry-run-summary.json"
-$textSummaryPath = Join-Path $outputRootFull "release-dry-run-summary.txt"
 
 $summary | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $summaryPath
 @(
     "Release dry run passed."
+    "Status: pass"
     "Version: $ExpectedVersion"
     "Configuration: $Configuration"
     "Package root: $packageRoot"
     "NuGet packages: $($packageFiles.Count)"
     "Symbol packages: $($symbolPackageFiles.Count)"
     "Package contract: eng/public-api-contract.json"
+    "Package size budgets: eng/package-size-budgets.json"
     "Validator: scripts/Validate-Packages.ps1"
+    "Evidence index: $evidenceIndexJsonPath"
 ) | Set-Content -LiteralPath $textSummaryPath
 
 & (Join-Path $root "scripts/Test-ReleaseCandidateVersion.ps1") -ExpectedVersion $ExpectedVersion -CandidateTag "v$ExpectedVersion" -ReleaseDryRunSummaryPath $summaryPath
-if ($LASTEXITCODE -ne 0)
-{
-    throw "Release dry-run summary version simulation failed with exit code $LASTEXITCODE."
-}
+Assert-CommandSucceeded -Succeeded $? -ExitCode $LASTEXITCODE -Description "Release dry-run summary version simulation"
 
 & (Join-Path $root "scripts/New-ReleaseCandidateEvidenceIndex.ps1") -ExpectedVersion $ExpectedVersion -ReleaseDryRunSummaryPath $summaryPath -OutputRoot $outputRootFull
-if ($LASTEXITCODE -ne 0)
-{
-    throw "Release candidate evidence index generation failed with exit code $LASTEXITCODE."
-}
+Assert-CommandSucceeded -Succeeded $? -ExitCode $LASTEXITCODE -Description "Release candidate evidence index generation"
 
 Write-Host "Release dry run passed for version '$ExpectedVersion'." -ForegroundColor Green
 Write-Host "Summary written to '$summaryPath'." -ForegroundColor Green

@@ -34,6 +34,28 @@ function Read-JsonFile([string]$Path)
     return Get-Content -LiteralPath $Path -Raw | ConvertFrom-Json
 }
 
+function Assert-StringProperty($Object, [string]$PropertyName, [string]$Description)
+{
+    $value = [string]$Object.$PropertyName
+    if ([string]::IsNullOrWhiteSpace($value))
+    {
+        throw "$Description is required in release dry-run summary."
+    }
+
+    return $value
+}
+
+function Assert-ExistingFile([string]$Path, [string]$Description)
+{
+    $fullPath = Resolve-RepositoryPath $Path
+    if (-not (Test-Path -LiteralPath $fullPath -PathType Leaf))
+    {
+        throw "$Description not found at '$fullPath'."
+    }
+
+    return $fullPath
+}
+
 if ([string]::IsNullOrWhiteSpace($ExpectedVersion))
 {
     throw "ExpectedVersion is required."
@@ -48,9 +70,56 @@ if ($contract.schemaVersion -ne 1)
 
 $summaryPath = Resolve-RepositoryPath $ReleaseDryRunSummaryPath
 $summary = Read-JsonFile -Path $summaryPath
+if ($summary.schemaVersion -ne 1)
+{
+    throw "Unsupported release dry-run summary schema version '$($summary.schemaVersion)'."
+}
+
 if ([string]$summary.expectedVersion -ne $ExpectedVersion)
 {
     throw "Release dry-run summary expectedVersion '$($summary.expectedVersion)' does not match '$ExpectedVersion'."
+}
+
+if ([string]$summary.status -ne "pass")
+{
+    throw "Release dry-run summary status must be 'pass'. Found '$($summary.status)'."
+}
+
+$packageContractPath = Assert-StringProperty -Object $summary -PropertyName "packageContractPath" -Description "packageContractPath"
+$packageValidationScript = Assert-StringProperty -Object $summary -PropertyName "packageValidationScript" -Description "packageValidationScript"
+Assert-ExistingFile -Path $packageContractPath -Description "Package contract" | Out-Null
+Assert-ExistingFile -Path $packageValidationScript -Description "Package validation script" | Out-Null
+
+if ($null -eq $summary.validationArtifacts)
+{
+    throw "validationArtifacts is required in release dry-run summary."
+}
+
+$packageSizeEvaluationPath = Assert-StringProperty -Object $summary.validationArtifacts -PropertyName "packageSizeEvaluation" -Description "validationArtifacts.packageSizeEvaluation"
+$packageSizeSummaryPath = Assert-StringProperty -Object $summary.validationArtifacts -PropertyName "packageSizeSummary" -Description "validationArtifacts.packageSizeSummary"
+Assert-ExistingFile -Path $packageSizeEvaluationPath -Description "Package size evaluation artifact" | Out-Null
+Assert-ExistingFile -Path $packageSizeSummaryPath -Description "Package size summary artifact" | Out-Null
+
+$requiredStepIds = @(
+    "version-simulation-prepack",
+    "package-build",
+    "package-validation",
+    "version-simulation-summary",
+    "evidence-index"
+)
+$summarySteps = @($summary.steps)
+foreach ($requiredStepId in $requiredStepIds)
+{
+    $step = $summarySteps | Where-Object { [string]$_.id -eq $requiredStepId } | Select-Object -First 1
+    if ($null -eq $step)
+    {
+        throw "Release dry-run summary is missing required step '$requiredStepId'."
+    }
+
+    if ([string]$step.status -ne "pass")
+    {
+        throw "Release dry-run summary step '$requiredStepId' must be 'pass'. Found '$($step.status)'."
+    }
 }
 
 $outputRootFull = Resolve-RepositoryPath $OutputRoot
@@ -59,11 +128,14 @@ New-Item -ItemType Directory -Path $outputRootFull -Force | Out-Null
 $index = [ordered]@{
     schemaVersion = 1
     expectedVersion = $ExpectedVersion
+    dryRunStatus = [string]$summary.status
     evidenceContractPath = $EvidenceContractPath
     releaseDryRunSummaryPath = $ReleaseDryRunSummaryPath
-    packageContractPath = [string]$summary.packageContractPath
-    packageValidationScript = [string]$summary.packageValidationScript
+    packageContractPath = $packageContractPath
+    packageValidationScript = $packageValidationScript
     validationArtifacts = $summary.validationArtifacts
+    dryRunArtifacts = $summary.artifactPaths
+    validationSteps = @($summary.steps)
     requiredChecks = @($contract.requiredChecks)
     requiredArtifacts = @($contract.requiredArtifacts)
     supportDocs = @($contract.supportDocs)

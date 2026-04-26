@@ -1,3 +1,5 @@
+using System.Diagnostics;
+using System.Text.Json;
 using FluentAssertions;
 using Xunit;
 
@@ -20,6 +22,9 @@ public sealed class ReleaseDryRunRepositoryTests
         script.Should().Contain("scripts/Validate-Packages.ps1");
         script.Should().Contain("release-dry-run-summary.json");
         script.Should().Contain("release-dry-run-summary.txt");
+        script.Should().Contain("status = \"pass\"");
+        script.Should().Contain("artifactPaths");
+        script.Should().Contain("steps");
         script.Should().Contain("New-ReleaseCandidateEvidenceIndex.ps1");
         script.Should().Contain("package-size-evaluation.json");
         script.Should().Contain("package-size-summary.txt");
@@ -93,7 +98,61 @@ public sealed class ReleaseDryRunRepositoryTests
         script.Should().Contain("requiredChecks");
         script.Should().Contain("requiredArtifacts");
         script.Should().Contain("supportDocs");
+        script.Should().Contain("dryRunStatus");
+        script.Should().Contain("dryRunArtifacts");
+        script.Should().Contain("validationSteps");
+        script.Should().Contain("Assert-ExistingFile");
+        script.Should().Contain("Package size evaluation artifact");
         script.Should().NotContain("dotnet nuget push");
+    }
+
+    [Fact]
+    public void ReleaseCandidateEvidenceIndexScript_ShouldFailClosedWhenValidationArtifactsAreMissing()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var scriptPath = Path.Combine(repositoryRoot, "scripts", "New-ReleaseCandidateEvidenceIndex.ps1");
+        var outputRoot = Path.Combine(Path.GetTempPath(), "VideraReleaseDryRunTests", Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(outputRoot);
+
+        var missingPackageSizeEvaluation = Path.Combine(outputRoot, "missing-package-size-evaluation.json");
+        var missingPackageSizeSummary = Path.Combine(outputRoot, "missing-package-size-summary.txt");
+        var summaryPath = Path.Combine(outputRoot, "release-dry-run-summary.json");
+        var summary = new
+        {
+            schemaVersion = 1,
+            status = "pass",
+            expectedVersion = "0.1.0-alpha.7",
+            packageContractPath = "eng/public-api-contract.json",
+            packageValidationScript = "scripts/Validate-Packages.ps1",
+            validationArtifacts = new
+            {
+                packageSizeEvaluation = missingPackageSizeEvaluation,
+                packageSizeSummary = missingPackageSizeSummary
+            },
+            steps = new[]
+            {
+                new { id = "version-simulation-prepack", status = "pass" },
+                new { id = "package-build", status = "pass" },
+                new { id = "package-validation", status = "pass" },
+                new { id = "version-simulation-summary", status = "pass" },
+                new { id = "evidence-index", status = "pass" }
+            }
+        };
+
+        File.WriteAllText(summaryPath, JsonSerializer.Serialize(summary, new JsonSerializerOptions { WriteIndented = true }));
+
+        var result = RunPowerShell(
+            scriptPath,
+            repositoryRoot,
+            "-ExpectedVersion",
+            "0.1.0-alpha.7",
+            "-ReleaseDryRunSummaryPath",
+            summaryPath,
+            "-OutputRoot",
+            outputRoot);
+
+        result.ExitCode.Should().NotBe(0);
+        $"{result.Stdout}{result.Stderr}".Should().Contain("Package size evaluation artifact");
     }
 
     [Fact]
@@ -154,4 +213,35 @@ public sealed class ReleaseDryRunRepositoryTests
 
         throw new DirectoryNotFoundException("Could not locate repository root containing Videra.slnx.");
     }
+
+    private static PowerShellResult RunPowerShell(string scriptPath, string workingDirectory, params string[] arguments)
+    {
+        using var process = new Process();
+        process.StartInfo = new ProcessStartInfo
+        {
+            FileName = "pwsh",
+            WorkingDirectory = workingDirectory,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            UseShellExecute = false
+        };
+        process.StartInfo.ArgumentList.Add("-NoProfile");
+        process.StartInfo.ArgumentList.Add("-ExecutionPolicy");
+        process.StartInfo.ArgumentList.Add("Bypass");
+        process.StartInfo.ArgumentList.Add("-File");
+        process.StartInfo.ArgumentList.Add(scriptPath);
+        foreach (var argument in arguments)
+        {
+            process.StartInfo.ArgumentList.Add(argument);
+        }
+
+        process.Start().Should().BeTrue();
+        var stdout = process.StandardOutput.ReadToEnd();
+        var stderr = process.StandardError.ReadToEnd();
+        process.WaitForExit(60_000).Should().BeTrue();
+
+        return new PowerShellResult(process.ExitCode, stdout, stderr);
+    }
+
+    private sealed record PowerShellResult(int ExitCode, string Stdout, string Stderr);
 }
