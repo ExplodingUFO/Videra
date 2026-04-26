@@ -24,7 +24,7 @@ dotnet nuget add source "https://nuget.pkg.github.com/ExplodingUFO/index.json" \
 dotnet add package Videra.Import.Gltf --version 0.1.0-alpha.7 --source github-ExplodingUFO
 ```
 
-Avalonia hosts must install `Videra.Import.Gltf` explicitly when they need `.gltf` / `.glb` importer-backed `LoadModelAsync(...)` or `LoadModelsAsync(...)` behavior, then opt in through `VideraViewOptions.ModelImporter`. `Videra.Avalonia` does not carry importer packages by default.
+Avalonia hosts must install `Videra.Import.Gltf` explicitly when they need `.gltf` / `.glb` importer-backed `LoadModelAsync(...)` or `LoadModelsAsync(...)` behavior, then opt in through `VideraViewOptions.UseModelImporter(GltfModelImporter.Create())`. `Videra.Avalonia` does not carry importer packages by default.
 
 ## Typical Use
 

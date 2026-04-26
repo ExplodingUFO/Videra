@@ -1,3 +1,5 @@
+using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using Videra.Core.Graphics;
@@ -10,6 +12,12 @@ public sealed class VideraViewOptions : INotifyPropertyChanged
     private VideraBackendOptions _backend = new();
     private VideraDiagnosticsOptions _diagnostics = new();
     private Func<string, ImportedSceneAsset>? _modelImporter;
+    private readonly ObservableCollection<IVideraModelImporter> _modelImporters = new();
+
+    public VideraViewOptions()
+    {
+        _modelImporters.CollectionChanged += OnModelImportersChanged;
+    }
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -29,6 +37,22 @@ public sealed class VideraViewOptions : INotifyPropertyChanged
     {
         get => _modelImporter;
         set => SetField(ref _modelImporter, value);
+    }
+
+    public ObservableCollection<IVideraModelImporter> ModelImporters => _modelImporters;
+
+    public VideraViewOptions UseModelImporter(IVideraModelImporter importer)
+    {
+        ArgumentNullException.ThrowIfNull(importer);
+        _modelImporters.Add(importer);
+        return this;
+    }
+
+    private void OnModelImportersChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        _ = sender;
+        _ = e;
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ModelImporters)));
     }
 
     private void SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)

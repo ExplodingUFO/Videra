@@ -10,10 +10,14 @@ internal sealed class SceneImportService
     private readonly object _importedAssetGate = new();
     private readonly Dictionary<ImportedSceneAssetReuseKey, WeakReference<ImportedSceneAsset>> _importedAssetCache = [];
     private Func<string, ImportedSceneAsset>? _modelImporter;
+    private IReadOnlyList<IVideraModelImporter> _modelImporters = Array.Empty<IVideraModelImporter>();
 
-    public SceneImportService(Func<string, ImportedSceneAsset>? modelImporter = null)
+    public SceneImportService(
+        Func<string, ImportedSceneAsset>? modelImporter = null,
+        IEnumerable<IVideraModelImporter>? modelImporters = null)
     {
         _modelImporter = modelImporter;
+        _modelImporters = modelImporters?.ToArray() ?? Array.Empty<IVideraModelImporter>();
     }
 
     public void SetModelImporter(Func<string, ImportedSceneAsset>? modelImporter)
@@ -24,10 +28,19 @@ internal sealed class SceneImportService
         }
 
         _modelImporter = modelImporter;
-        lock (_importedAssetGate)
+        ClearImportedAssetCache();
+    }
+
+    public void SetModelImporters(IEnumerable<IVideraModelImporter>? modelImporters)
+    {
+        var next = modelImporters?.ToArray() ?? Array.Empty<IVideraModelImporter>();
+        if (_modelImporters.SequenceEqual(next))
         {
-            _importedAssetCache.Clear();
+            return;
         }
+
+        _modelImporters = next;
+        ClearImportedAssetCache();
     }
 
     public async Task<ImportedAssetLoadResult> ImportSingleAsync(string path, CancellationToken cancellationToken)
@@ -35,8 +48,13 @@ internal sealed class SceneImportService
         var startedAt = Stopwatch.StartNew();
         try
         {
-            var asset = await Task.Run(() => ResolveImportedAsset(path), cancellationToken).ConfigureAwait(false);
-            return new ImportedAssetLoadResult(asset, null, startedAt.Elapsed);
+            var import = await ResolveImportedAssetAsync(path, cancellationToken).ConfigureAwait(false);
+            return new ImportedAssetLoadResult(
+                import.Asset,
+                import.Failure,
+                startedAt.Elapsed,
+                import.Diagnostics,
+                import.ImportDuration);
         }
         catch (OperationCanceledException)
         {
@@ -47,7 +65,9 @@ internal sealed class SceneImportService
             return new ImportedAssetLoadResult(
                 null,
                 new ModelLoadFailure(path, ex),
-                startedAt.Elapsed);
+                startedAt.Elapsed,
+                CreateErrorDiagnostics(ex),
+                ImportDuration: TimeSpan.Zero);
         }
     }
 
@@ -77,10 +97,7 @@ internal sealed class SceneImportService
 
         Array.Sort(imports, static (left, right) => left.Index.CompareTo(right.Index));
 
-        return new ImportedAssetBatchLoadResult(
-            imports.Where(static result => result.Asset is not null).Select(static result => result.Asset!).ToArray(),
-            imports.Where(static result => result.Failure is not null).Select(static result => result.Failure!).ToArray(),
-            startedAt.Elapsed);
+        return new ImportedAssetBatchLoadResult(imports, startedAt.Elapsed);
     }
 
     private async Task<ImportedAssetBatchResult> ImportBatchAssetAsync(
@@ -93,8 +110,13 @@ internal sealed class SceneImportService
         {
             try
             {
-                var asset = await Task.Run(() => ResolveImportedAsset(path), cancellationToken).ConfigureAwait(false);
-                return new ImportedAssetBatchResult(path, asset, Failure: null);
+                var import = await ResolveImportedAssetAsync(path, cancellationToken).ConfigureAwait(false);
+                return new ImportedAssetBatchResult(
+                    path,
+                    import.Asset,
+                    import.Failure,
+                    import.Diagnostics,
+                    import.ImportDuration);
             }
             catch (OperationCanceledException)
             {
@@ -102,7 +124,12 @@ internal sealed class SceneImportService
             }
             catch (Exception ex)
             {
-                return new ImportedAssetBatchResult(path, Asset: null, new ModelLoadFailure(path, ex));
+                return new ImportedAssetBatchResult(
+                    path,
+                    Asset: null,
+                    new ModelLoadFailure(path, ex),
+                    CreateErrorDiagnostics(ex),
+                    ImportDuration: TimeSpan.Zero);
             }
         }
         finally
@@ -113,28 +140,106 @@ internal sealed class SceneImportService
 
     private static ImportedAssetBatchIndexResult CreateBatchAssetResult(int index, ImportedAssetBatchResult importedAsset)
     {
-        if (importedAsset.Asset is null)
-        {
-            return new ImportedAssetBatchIndexResult(index, null, importedAsset.Failure);
-        }
-
-        return new ImportedAssetBatchIndexResult(index, importedAsset.Asset, Failure: null);
+        return new ImportedAssetBatchIndexResult(
+            index,
+            importedAsset.Path,
+            importedAsset.Asset,
+            importedAsset.Failure,
+            importedAsset.Diagnostics,
+            importedAsset.ImportDuration);
     }
 
-    private ImportedSceneAsset ResolveImportedAsset(string path)
+    private async Task<ImportedAssetResolveResult> ResolveImportedAssetAsync(
+        string path,
+        CancellationToken cancellationToken)
     {
-        var importer = _modelImporter
-            ?? throw new InvalidOperationException(
-                "No model importer is configured for this VideraView. Add the required Videra.Import.* package(s) and assign VideraViewOptions.ModelImporter before calling LoadModelAsync(...) or LoadModelsAsync(...).");
-        var key = CreateReuseKey(path, importer);
-        if (TryGetImportedAsset(key, out var asset))
+        var registeredImporter = _modelImporters.FirstOrDefault(importer => importer.CanImport(path));
+        if (registeredImporter is not null)
         {
-            return asset;
+            return await ResolveWithRegisteredImporterAsync(path, registeredImporter, cancellationToken).ConfigureAwait(false);
         }
 
-        asset = importer(path);
-        StoreImportedAsset(key, asset);
-        return asset;
+        if (_modelImporter is not null)
+        {
+            return await ResolveWithDelegateImporterAsync(path, _modelImporter, cancellationToken).ConfigureAwait(false);
+        }
+
+        var message = _modelImporters.Count > 0
+            ? $"No registered model importer can import '{path}'. Add a matching Videra.Import.* importer to VideraViewOptions.ModelImporters."
+            : "No model importer is configured for this VideraView. Add the required Videra.Import.* package(s) and assign VideraViewOptions.ModelImporter or register VideraViewOptions.ModelImporters before calling LoadModelAsync(...) or LoadModelsAsync(...).";
+        var exception = new InvalidOperationException(message);
+        return ImportedAssetResolveResult.Failed(path, exception, CreateErrorDiagnostics(exception), importDuration: TimeSpan.Zero);
+    }
+
+    private async Task<ImportedAssetResolveResult> ResolveWithDelegateImporterAsync(
+        string path,
+        Func<string, ImportedSceneAsset> importer,
+        CancellationToken cancellationToken)
+    {
+        var key = CreateReuseKey(path, RuntimeHelpers.GetHashCode(importer));
+        if (TryGetImportedAsset(key, out var cachedAsset))
+        {
+            return ImportedAssetResolveResult.Success(path, cachedAsset, Array.Empty<ModelImportDiagnostic>(), importDuration: TimeSpan.Zero);
+        }
+
+        var startedAt = Stopwatch.StartNew();
+        try
+        {
+            var asset = await Task.Run(() => importer(path), cancellationToken).ConfigureAwait(false);
+            StoreImportedAsset(key, asset);
+            return ImportedAssetResolveResult.Success(path, asset, Array.Empty<ModelImportDiagnostic>(), startedAt.Elapsed);
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            return ImportedAssetResolveResult.Failed(path, ex, CreateErrorDiagnostics(ex), startedAt.Elapsed);
+        }
+    }
+
+    private async Task<ImportedAssetResolveResult> ResolveWithRegisteredImporterAsync(
+        string path,
+        IVideraModelImporter importer,
+        CancellationToken cancellationToken)
+    {
+        var key = CreateReuseKey(path, RuntimeHelpers.GetHashCode(importer));
+        if (TryGetImportedAsset(key, out var cachedAsset))
+        {
+            return ImportedAssetResolveResult.Success(path, cachedAsset, Array.Empty<ModelImportDiagnostic>(), importDuration: TimeSpan.Zero);
+        }
+
+        var startedAt = Stopwatch.StartNew();
+        try
+        {
+            var result = await importer.ImportAsync(
+                new ModelImportRequest(path, Path.GetFileName(path)),
+                cancellationToken).ConfigureAwait(false);
+            var importDuration = result.ImportDuration == TimeSpan.Zero ? startedAt.Elapsed : result.ImportDuration;
+            if (result.Asset is null)
+            {
+                var exception = new InvalidOperationException(
+                    result.Diagnostics.LastOrDefault(static diagnostic => diagnostic.Severity == ModelImportDiagnosticSeverity.Error)?.Message
+                    ?? $"Model importer '{importer.GetType().Name}' did not return an asset for '{path}'.");
+                return ImportedAssetResolveResult.Failed(
+                    path,
+                    exception,
+                    EnsureErrorDiagnostic(result.Diagnostics, exception),
+                    importDuration);
+            }
+
+            StoreImportedAsset(key, result.Asset);
+            return ImportedAssetResolveResult.Success(path, result.Asset, result.Diagnostics, importDuration);
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            return ImportedAssetResolveResult.Failed(path, ex, CreateErrorDiagnostics(ex), startedAt.Elapsed);
+        }
     }
 
     private bool TryGetImportedAsset(ImportedSceneAssetReuseKey key, out ImportedSceneAsset asset)
@@ -164,6 +269,14 @@ internal sealed class SceneImportService
         }
     }
 
+    private void ClearImportedAssetCache()
+    {
+        lock (_importedAssetGate)
+        {
+            _importedAssetCache.Clear();
+        }
+    }
+
     private void CleanupImportedAssetCache(ImportedSceneAssetReuseKey currentKey)
     {
         foreach (var entry in _importedAssetCache.ToArray())
@@ -176,13 +289,13 @@ internal sealed class SceneImportService
         }
     }
 
-    private static ImportedSceneAssetReuseKey CreateReuseKey(string path, Func<string, ImportedSceneAsset> modelImporter)
+    private static ImportedSceneAssetReuseKey CreateReuseKey(string path, int importerIdentity)
     {
         try
         {
             var fullPath = Path.GetFullPath(path);
             return new ImportedSceneAssetReuseKey(
-                RuntimeHelpers.GetHashCode(modelImporter),
+                importerIdentity,
                 path,
                 fullPath,
                 File.Exists(fullPath)
@@ -191,25 +304,65 @@ internal sealed class SceneImportService
         }
         catch
         {
-            return new ImportedSceneAssetReuseKey(RuntimeHelpers.GetHashCode(modelImporter), path, path, DateTime.MinValue);
+            return new ImportedSceneAssetReuseKey(importerIdentity, path, path, DateTime.MinValue);
         }
+    }
+
+    private static IReadOnlyList<ModelImportDiagnostic> CreateErrorDiagnostics(Exception exception)
+    {
+        return [new ModelImportDiagnostic(ModelImportDiagnosticSeverity.Error, exception.Message)];
+    }
+
+    private static IReadOnlyList<ModelImportDiagnostic> EnsureErrorDiagnostic(
+        IReadOnlyList<ModelImportDiagnostic> diagnostics,
+        Exception exception)
+    {
+        if (diagnostics.Any(static diagnostic => diagnostic.Severity == ModelImportDiagnosticSeverity.Error))
+        {
+            return diagnostics;
+        }
+
+        return diagnostics
+            .Append(new ModelImportDiagnostic(ModelImportDiagnosticSeverity.Error, exception.Message))
+            .ToArray();
     }
 }
 
 internal sealed record ImportedAssetLoadResult(
     ImportedSceneAsset? Asset,
     ModelLoadFailure? Failure,
-    TimeSpan Duration);
+    TimeSpan Duration,
+    IReadOnlyList<ModelImportDiagnostic> Diagnostics,
+    TimeSpan ImportDuration);
 
-internal sealed record ImportedAssetBatchLoadResult(
-    IReadOnlyList<ImportedSceneAsset> Assets,
-    IReadOnlyList<ModelLoadFailure> Failures,
-    TimeSpan Duration);
+internal sealed class ImportedAssetBatchLoadResult
+{
+    public ImportedAssetBatchLoadResult(
+        IReadOnlyList<ImportedAssetBatchIndexResult> results,
+        TimeSpan duration)
+    {
+        Results = results ?? throw new ArgumentNullException(nameof(results));
+        Assets = Results.Where(static result => result.Asset is not null).Select(static result => result.Asset!).ToArray();
+        Failures = Results.Where(static result => result.Failure is not null).Select(static result => result.Failure!).ToArray();
+        Duration = duration;
+    }
+
+    public IReadOnlyList<ImportedAssetBatchIndexResult> Results { get; }
+
+    public IReadOnlyList<ImportedSceneAsset> Assets { get; }
+
+    public IReadOnlyList<ModelLoadFailure> Failures { get; }
+
+    public TimeSpan Duration { get; }
+}
 
 internal sealed record ImportedAssetBatchIndexResult(
     int Index,
+    string Path,
     ImportedSceneAsset? Asset,
-    ModelLoadFailure? Failure);
+    ModelLoadFailure? Failure,
+    IReadOnlyList<ModelImportDiagnostic> Diagnostics,
+    TimeSpan ImportDuration);
 
 internal readonly record struct IndexedImportPath(
     int Index,
@@ -218,7 +371,35 @@ internal readonly record struct IndexedImportPath(
 internal sealed record ImportedAssetBatchResult(
     string Path,
     ImportedSceneAsset? Asset,
-    ModelLoadFailure? Failure);
+    ModelLoadFailure? Failure,
+    IReadOnlyList<ModelImportDiagnostic> Diagnostics,
+    TimeSpan ImportDuration);
+
+internal sealed record ImportedAssetResolveResult(
+    string Path,
+    ImportedSceneAsset? Asset,
+    ModelLoadFailure? Failure,
+    IReadOnlyList<ModelImportDiagnostic> Diagnostics,
+    TimeSpan ImportDuration)
+{
+    public static ImportedAssetResolveResult Success(
+        string path,
+        ImportedSceneAsset asset,
+        IReadOnlyList<ModelImportDiagnostic> diagnostics,
+        TimeSpan importDuration)
+    {
+        return new ImportedAssetResolveResult(path, asset, Failure: null, diagnostics, importDuration);
+    }
+
+    public static ImportedAssetResolveResult Failed(
+        string path,
+        Exception exception,
+        IReadOnlyList<ModelImportDiagnostic> diagnostics,
+        TimeSpan importDuration)
+    {
+        return new ImportedAssetResolveResult(path, Asset: null, new ModelLoadFailure(path, exception), diagnostics, importDuration);
+    }
+}
 
 internal readonly record struct ImportedSceneAssetReuseKey(
     int ImporterIdentity,

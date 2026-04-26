@@ -33,7 +33,7 @@ public sealed class AlphaConsumerIntegrationTests
 
         var smokeWindowCodeBehind = File.ReadAllText(Path.Combine(repositoryRoot, "smoke", "Videra.ConsumerSmoke", "Views", "MainWindow.axaml.cs"));
         smokeWindowCodeBehind.Should().Contain("using Videra.Import.Obj;");
-        smokeWindowCodeBehind.Should().Contain("ModelImporter = static path => ObjModelImporter.Import(path)");
+        smokeWindowCodeBehind.Should().Contain("UseModelImporter(ObjModelImporter.Create())");
 
         var smokeWorkflow = File.ReadAllText(smokeWorkflowPath);
         smokeWorkflow.Should().Contain("pull_request:");

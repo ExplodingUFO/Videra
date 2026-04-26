@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Numerics;
 using System.Globalization;
 using Microsoft.Extensions.Logging;
@@ -17,6 +18,11 @@ public static partial class ObjModelImporter
     };
 
     public static string[] SupportedFormats => ["*.obj"];
+
+    public static IVideraModelImporter Create(ILogger? logger = null)
+    {
+        return new RegistryModelImporter(logger);
+    }
 
     public static ImportedSceneAsset Import(string filePath, ILogger? logger = null)
     {
@@ -183,6 +189,50 @@ public static partial class ObjModelImporter
             Indices = finalIndices.ToArray(),
             Topology = MeshTopology.Triangles
         };
+    }
+
+    private sealed class RegistryModelImporter : IVideraModelImporter
+    {
+        private readonly ILogger? _logger;
+
+        public RegistryModelImporter(ILogger? logger)
+        {
+            _logger = logger;
+        }
+
+        public bool CanImport(string path)
+        {
+            return !string.IsNullOrWhiteSpace(path) && AllowedExtensions.Contains(Path.GetExtension(path));
+        }
+
+        public ValueTask<ModelImportResult> ImportAsync(
+            ModelImportRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            ArgumentNullException.ThrowIfNull(request);
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var startedAt = Stopwatch.StartNew();
+            try
+            {
+                var asset = Import(request.Path, _logger);
+                cancellationToken.ThrowIfCancellationRequested();
+                var duration = startedAt.Elapsed == TimeSpan.Zero ? TimeSpan.FromTicks(1) : startedAt.Elapsed;
+                return ValueTask.FromResult(ModelImportResult.Success(
+                    asset,
+                    [new ModelImportDiagnostic(ModelImportDiagnosticSeverity.Info, $"Imported OBJ model '{request.Path}'.")],
+                    duration));
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                var duration = startedAt.Elapsed == TimeSpan.Zero ? TimeSpan.FromTicks(1) : startedAt.Elapsed;
+                return ValueTask.FromResult(ModelImportResult.Failed(ex, duration));
+            }
+        }
     }
 
     private static partial class Log

@@ -35,13 +35,12 @@ public partial class MainWindow : Window
 
         View3D.Options = new VideraViewOptions
         {
-            ModelImporter = static path => ObjModelImporter.Import(path),
             Backend =
             {
                 PreferredBackend = GraphicsBackendPreference.Auto,
                 AllowSoftwareFallback = true
             }
-        };
+        }.UseModelImporter(ObjModelImporter.Create());
 
         View3D.BackendReady += OnBackendReady;
         View3D.BackendStatusChanged += OnBackendStatusChanged;

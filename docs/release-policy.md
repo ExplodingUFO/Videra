@@ -20,7 +20,7 @@ The public package line is:
 
 Public release tags publish these packages to `nuget.org`.
 
-The canonical public viewer stack is `Videra.Avalonia` plus exactly one matching `Videra.Platform.*` package. `Videra.Import.Gltf` and `Videra.Import.Obj` stay explicit ingestion packages on the core path; on the Avalonia path they back file loading only when a host installs them explicitly and wires `VideraViewOptions.ModelImporter`.
+The canonical public viewer stack is `Videra.Avalonia` plus exactly one matching `Videra.Platform.*` package. `Videra.Import.Gltf` and `Videra.Import.Obj` stay explicit ingestion packages on the core path; on the Avalonia path they back file loading only when a host installs them explicitly and registers them through `VideraViewOptions.UseModelImporter(...)`.
 
 The canonical public chart stack is `Videra.SurfaceCharts.Avalonia` plus `Videra.SurfaceCharts.Processing` for the surface/cache-backed path. `Videra.SurfaceCharts.Core` and `Videra.SurfaceCharts.Rendering` are part of the public package line because the current chart control/runtime split depends on them, but they are not the normal first install step for most chart consumers.
 The packaged proof for that chart stack is `smoke/Videra.SurfaceCharts.ConsumerSmoke` on the supported host path, and its support artifact is `surfacecharts-support-summary.txt`.

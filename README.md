@@ -63,8 +63,8 @@ The official public package feed is `nuget.org`. For Avalonia apps, start with `
 | Scenario | Install packages | Notes |
 | --- | --- | --- |
 | Viewer only | `Videra.Avalonia` + one `Videra.Platform.*` package | Embeds `VideraView`; no importer packages are included by default. |
-| Viewer + OBJ | `Videra.Avalonia` + one `Videra.Platform.*` package + `Videra.Import.Obj` | Wire `ObjModelImporter` through `VideraViewOptions.ModelImporter` for importer-backed `LoadModelAsync(...)` / `LoadModelsAsync(...)`. |
-| Viewer + glTF | `Videra.Avalonia` + one `Videra.Platform.*` package + `Videra.Import.Gltf` | Wire `GltfModelImporter` through `VideraViewOptions.ModelImporter` for importer-backed `LoadModelAsync(...)` / `LoadModelsAsync(...)`. |
+| Viewer + OBJ | `Videra.Avalonia` + one `Videra.Platform.*` package + `Videra.Import.Obj` | Register `ObjModelImporter.Create()` through `VideraViewOptions.UseModelImporter(...)` for importer-backed `LoadModelAsync(...)` / `LoadModelsAsync(...)`. |
+| Viewer + glTF | `Videra.Avalonia` + one `Videra.Platform.*` package + `Videra.Import.Gltf` | Register `GltfModelImporter.Create()` through `VideraViewOptions.UseModelImporter(...)` for importer-backed `LoadModelAsync(...)` / `LoadModelsAsync(...)`. |
 | SurfaceCharts | `Videra.SurfaceCharts.Avalonia`; add `Videra.SurfaceCharts.Processing` for cache-backed surfaces | `Videra.SurfaceCharts.Avalonia` brings chart core/rendering transitively; the demo remains repository-only. |
 | Core-only | `Videra.Core`; add `Videra.Import.Gltf` and/or `Videra.Import.Obj` for file ingestion | Use this path for runtime abstractions or importer usage without the Avalonia UI layer. |
 
@@ -90,7 +90,7 @@ dotnet add package Videra.Import.Gltf
 dotnet add package Videra.Import.Obj
 ```
 
-When you need file-format ingestion on the core path or importer-backed `LoadModelAsync(...)` / `LoadModelsAsync(...)` on the Avalonia path, add `Videra.Import.Gltf` and/or `Videra.Import.Obj` explicitly and wire the importer through `VideraViewOptions.ModelImporter`.
+When you need file-format ingestion on the core path or importer-backed `LoadModelAsync(...)` / `LoadModelsAsync(...)` on the Avalonia path, add `Videra.Import.Gltf` and/or `Videra.Import.Obj` explicitly and register importers through `VideraViewOptions.UseModelImporter(...)`.
 
 For surface charts, start with the dedicated Avalonia control package and add processing helpers when you want the surface/cache-backed path:
 

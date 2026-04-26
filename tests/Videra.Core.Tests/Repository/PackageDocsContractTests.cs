@@ -16,7 +16,7 @@ public sealed class PackageDocsContractTests
         foreach (var readme in new[] { gltfReadme, objReadme })
         {
             readme.Should().Contain("explicitly");
-            readme.Should().Contain("VideraViewOptions.ModelImporter");
+            readme.Should().Contain("VideraViewOptions.UseModelImporter");
             readme.Should().Contain("LoadModelAsync(...)");
             readme.Should().Contain("LoadModelsAsync(...)");
             readme.Should().NotContain("already brings this package transitively");
@@ -63,7 +63,7 @@ public sealed class PackageDocsContractTests
             document.Should().Contain("Videra.Import.Gltf");
             document.Should().Contain("Videra.Import.Obj");
             document.Should().Contain("explicit");
-            document.Should().Contain("VideraViewOptions.ModelImporter");
+            document.Should().Contain("VideraViewOptions.UseModelImporter");
         }
     }
 

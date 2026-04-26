@@ -39,10 +39,8 @@ public partial class MainWindow : Window
         _diagnosticsStatusText = this.FindControl<TextBlock>("DiagnosticsStatusText")
             ?? throw new InvalidOperationException("Diagnostics status control is missing.");
 
-        View3D.Options = new VideraViewOptions
-        {
-            ModelImporter = static path => ObjModelImporter.Import(path)
-        };
+        View3D.Options = new VideraViewOptions()
+            .UseModelImporter(ObjModelImporter.Create());
 
         _recordingContributor.ObservationRecorded += OnContributorObservationRecorded;
 

@@ -48,13 +48,12 @@ public partial class MainWindow : Window
 
         _view3D.Options = new VideraViewOptions
         {
-            ModelImporter = static path => ObjModelImporter.Import(path),
             Backend =
             {
                 PreferredBackend = GraphicsBackendPreference.Auto,
                 AllowSoftwareFallback = true
             }
-        };
+        }.UseModelImporter(ObjModelImporter.Create());
 
         _backendReadyHandler = (_, _) => _ = TryExecuteSmokeAsync();
         _openedHandler = (_, _) =>

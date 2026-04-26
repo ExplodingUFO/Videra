@@ -116,7 +116,7 @@ public sealed class RepositoryReleaseReadinessTests
         releasing.Should().Contain("hosting-boundary.md");
 
         packageMatrix.Should().Contain("exactly one matching `Videra.Platform.*` package");
-        packageMatrix.Should().Contain("optional `Videra.Import.Gltf` / `Videra.Import.Obj` plus `VideraViewOptions.ModelImporter`");
+        packageMatrix.Should().Contain("optional `Videra.Import.Gltf` / `Videra.Import.Obj` plus `VideraViewOptions.UseModelImporter(...)`");
         supportMatrix.Should().Contain("exactly one matching `Videra.Platform.*` package");
         supportMatrix.Should().Contain("Avalonia-first public viewer path");
         supportMatrix.Should().Contain("not a second public UI package or release path");

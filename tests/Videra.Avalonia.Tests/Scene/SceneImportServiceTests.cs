@@ -53,6 +53,27 @@ public sealed class SceneImportServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task Import_batch_reports_indexed_file_results_for_partial_failure()
+    {
+        var first = WriteObj("indexed-a.obj");
+        var missing = Path.Combine(_tempDir, "indexed-missing.obj");
+        var second = WriteObj("indexed-b.obj");
+
+        var result = await _service.ImportBatchAsync([first, missing, second], CancellationToken.None);
+
+        result.Results.Should().HaveCount(3);
+        result.Results[0].Path.Should().Be(first);
+        result.Results[0].Asset.Should().NotBeNull();
+        result.Results[0].Failure.Should().BeNull();
+        result.Results[1].Path.Should().Be(missing);
+        result.Results[1].Asset.Should().BeNull();
+        result.Results[1].Failure.Should().NotBeNull();
+        result.Results[2].Path.Should().Be(second);
+        result.Results[2].Asset.Should().NotBeNull();
+        result.Results[2].Failure.Should().BeNull();
+    }
+
+    [Fact]
     public async Task Import_single_preserves_material_catalog_on_imported_asset()
     {
         var path = WriteObj("material.obj");

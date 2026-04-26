@@ -39,7 +39,7 @@ public class ScenePipelineBenchmarks
             WriteTriangleObj("batch-import-d.obj", 3f)
         ];
 
-        _importService = new SceneImportService();
+        _importService = new SceneImportService(modelImporters: [ObjModelImporter.Create()]);
 
         var previousAsset = ObjModelImporter.Import(WriteTriangleObj("delta-previous.obj", 4f));
         var nextAsset = ObjModelImporter.Import(WriteTriangleObj("delta-next.obj", 5f));

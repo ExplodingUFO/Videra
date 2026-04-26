@@ -49,7 +49,7 @@ If no matching platform package is installed, the software fallback path can sti
 
 `PreferredBackend` and `VIDERA_BACKEND` only change backend preference. They do not install missing platform packages and do not replace matching-host native validation.
 
-Install `Videra.Import.Gltf` and/or `Videra.Import.Obj` explicitly when you need importer-backed `LoadModelAsync(...)` / `LoadModelsAsync(...)`; `Videra.Avalonia` no longer carries those packages by default, and hosts opt in through `VideraViewOptions.ModelImporter`.
+Install `Videra.Import.Gltf` and/or `Videra.Import.Obj` explicitly when you need importer-backed `LoadModelAsync(...)` / `LoadModelsAsync(...)`; `Videra.Avalonia` no longer carries those packages by default, and hosts opt in through `VideraViewOptions.UseModelImporter(...)`.
 
 ## Happy Path
 
@@ -60,13 +60,12 @@ using Videra.Import.Obj;
 
 View3D.Options = new VideraViewOptions
 {
-    ModelImporter = static path => ObjModelImporter.Import(path),
     Backend =
     {
         PreferredBackend = GraphicsBackendPreference.Auto,
         AllowSoftwareFallback = true
     }
-};
+}.UseModelImporter(ObjModelImporter.Create());
 
 var result = await View3D.LoadModelAsync("Models/reference-cube.obj");
 if (!result.Succeeded && result.Failure is not null)
@@ -81,7 +80,7 @@ var diagnostics = View3D.BackendDiagnostics;
 var diagnosticsSnapshot = VideraDiagnosticsSnapshotFormatter.Format(diagnostics);
 ```
 
-`LoadModelAsync(...)` is the shortest public first-scene path once the host installs the needed `Videra.Import.*` package and sets `VideraViewOptions.ModelImporter`. `LoadModelsAsync(...)` remains available when a host wants bounded parallel import with atomic replace semantics across a batch, and it replaces the active scene only when every requested file succeeds.
+`LoadModelAsync(...)` is the shortest public first-scene path once the host installs the needed `Videra.Import.*` package and registers a matching importer through `VideraViewOptions.UseModelImporter(...)`. `LoadModelsAsync(...)` remains available when a host wants bounded parallel import with atomic replace semantics across a batch, and it replaces the active scene only when every requested file succeeds while still reporting per-file import results.
 
 `VideraView.BackendDiagnostics` remains the backend/runtime diagnostics shell, and `VideraDiagnosticsSnapshotFormatter` turns it into the copy-pasteable alpha support artifact used by `Videra.MinimalSample` and `consumer smoke`. When an inspection snapshot export is involved, that same support artifact also carries `LastSnapshotExportPath` and `LastSnapshotExportStatus`. `VideraView.RenderCapabilities` and `VideraView.Engine` stay available, but they are not part of the default alpha happy path.
 

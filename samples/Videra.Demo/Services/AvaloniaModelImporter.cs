@@ -1,14 +1,10 @@
-using System.Collections.Generic;
 using System;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Platform.Storage;
 using Microsoft.Extensions.Logging;
 using Videra.Avalonia.Controls;
-using Videra.Core.Exceptions;
-using Videra.Core.Graphics;
 using Videra.Core.Scene;
 using Videra.Import.Gltf;
 using Videra.Import.Obj;
@@ -25,7 +21,9 @@ public partial class AvaloniaModelImporter : IModelImporter
     {
         _topLevel = topLevel;
         _view = view;
-        _view.Options.ModelImporter ??= ImportModel;
+        _view.Options
+            .UseModelImporter(GltfModelImporter.Create(_logger))
+            .UseModelImporter(ObjModelImporter.Create(_logger));
     }
 
     public async Task<ModelLoadBatchResult> ImportModelsAsync()
@@ -63,19 +61,6 @@ public partial class AvaloniaModelImporter : IModelImporter
         }
 
         return result;
-    }
-
-    private static ImportedSceneAsset ImportModel(string path)
-    {
-        return Path.GetExtension(path).ToLowerInvariant() switch
-        {
-            ".gltf" or ".glb" => GltfModelImporter.Import(path),
-            ".obj" => ObjModelImporter.Import(path),
-            _ => throw new InvalidModelInputException(
-                $"File extension '{Path.GetExtension(path)}' is not supported.",
-                "LoadModel",
-                new Dictionary<string, string?> { ["Extension"] = Path.GetExtension(path) })
-        };
     }
 
     private static partial class Log

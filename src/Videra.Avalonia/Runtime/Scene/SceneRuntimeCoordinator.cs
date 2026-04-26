@@ -29,7 +29,8 @@ internal sealed class SceneRuntimeCoordinator
         Action refreshSceneDiagnostics,
         Action refreshBackendDiagnostics,
         Action<RenderInvalidationKinds> invalidateRender,
-        Func<string, ImportedSceneAsset>? modelImporter = null)
+        Func<string, ImportedSceneAsset>? modelImporter = null,
+        IEnumerable<IVideraModelImporter>? modelImporters = null)
     {
         _engine = engine ?? throw new ArgumentNullException(nameof(engine));
         _refreshOverlay = refreshOverlay ?? throw new ArgumentNullException(nameof(refreshOverlay));
@@ -40,7 +41,7 @@ internal sealed class SceneRuntimeCoordinator
         CurrentDocument = SceneDocument.Empty;
         _sceneDocumentStore = new SceneDocumentStore(CurrentDocument);
         _sceneItemsAdapter = new SceneItemsAdapter(_sceneDocumentMutator);
-        _sceneImportService = new SceneImportService(modelImporter);
+        _sceneImportService = new SceneImportService(modelImporter, modelImporters);
     }
 
     public SceneDocument CurrentDocument { get; private set; }
@@ -68,6 +69,11 @@ internal sealed class SceneRuntimeCoordinator
     public void UpdateModelImporter(Func<string, ImportedSceneAsset>? modelImporter)
     {
         _sceneImportService.SetModelImporter(modelImporter);
+    }
+
+    public void UpdateModelImporters(IEnumerable<IVideraModelImporter>? modelImporters)
+    {
+        _sceneImportService.SetModelImporters(modelImporters);
     }
 
     public void AddObject(Object3D sceneObject)

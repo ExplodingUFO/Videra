@@ -74,7 +74,7 @@ The public package set is:
 
 `Videra.SurfaceCharts.Demo` and the other sample/demo applications remain repository-only.
 
-The canonical public viewer stack is `Videra.Avalonia` plus exactly one matching `Videra.Platform.*` package. `Videra.Import.Gltf` and `Videra.Import.Obj` remain explicit ingestion packages on the core path; on the Avalonia path they only back file loading when consumers install them explicitly and wire `VideraViewOptions.ModelImporter`.
+The canonical public viewer stack is `Videra.Avalonia` plus exactly one matching `Videra.Platform.*` package. `Videra.Import.Gltf` and `Videra.Import.Obj` remain explicit ingestion packages on the core path; on the Avalonia path they only back file loading when consumers install them explicitly and register them through `VideraViewOptions.UseModelImporter(...)`.
 The canonical public chart stack is `Videra.SurfaceCharts.Avalonia` plus `Videra.SurfaceCharts.Processing` for the surface/cache-backed path, with `Videra.SurfaceCharts.Core` and `Videra.SurfaceCharts.Rendering` staying visible because they are real shipped package seams.
 Every public publish path, including `publish-existing-public-release.yml`, is expected to run packaged viewer consumer smoke, packaged SurfaceCharts consumer smoke, and `Validate-Packages.ps1` before pushing assets. The existing-tag republish workflow is intentionally limited to tags that already carry the current public package set and helper scripts.
 `Validate-Packages.ps1` now also enforces the source-controlled byte budgets in `eng/package-size-budgets.json` and emits package-size evaluation artifacts under `PackageRoot/.validation`.

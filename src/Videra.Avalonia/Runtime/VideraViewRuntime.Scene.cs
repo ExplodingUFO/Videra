@@ -19,12 +19,17 @@ internal sealed partial class VideraViewRuntime
         var importResult = await _sceneCoordinator.ImportSingleAsync(path, cancellationToken).ConfigureAwait(true);
         if (importResult.Failure is not null)
         {
-            return ModelLoadResult.Failed(path, importResult.Failure.Exception, startedAt.Elapsed);
+            return ModelLoadResult.Failed(
+                path,
+                importResult.Failure.Exception,
+                startedAt.Elapsed,
+                importResult.Diagnostics,
+                importResult.ImportDuration);
         }
 
         var entry = _sceneCoordinator.AppendImportedAsset(importResult.Asset!);
         RefreshSceneDiagnostics();
-        return ModelLoadResult.Success(path, entry, startedAt.Elapsed);
+        return ModelLoadResult.Success(path, entry, startedAt.Elapsed, importResult.Diagnostics, importResult.ImportDuration);
     }
 
     public async Task<ModelLoadBatchResult> LoadModelsAsync(IEnumerable<string> paths, CancellationToken cancellationToken = default)
@@ -41,7 +46,28 @@ internal sealed partial class VideraViewRuntime
             RefreshSceneDiagnostics();
         }
 
-        return new ModelLoadBatchResult(entries, importResult.Failures, startedAt.Elapsed);
+        var fileResults = new ModelLoadFileResult[importResult.Results.Count];
+        for (var i = 0; i < importResult.Results.Count; i++)
+        {
+            var result = importResult.Results[i];
+            if (result.Failure is not null)
+            {
+                fileResults[i] = ModelLoadFileResult.Failed(
+                    result.Path,
+                    result.Failure,
+                    result.Diagnostics,
+                    result.ImportDuration);
+                continue;
+            }
+
+            fileResults[i] = ModelLoadFileResult.Success(
+                    result.Path,
+                    i < entries.Length ? entries[i] : null,
+                    result.Diagnostics,
+                    result.ImportDuration);
+        }
+
+        return new ModelLoadBatchResult(entries, importResult.Failures, startedAt.Elapsed, fileResults);
     }
 
     public void AddObject(Object3D obj)
