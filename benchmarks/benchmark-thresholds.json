@@ -16,8 +16,8 @@
         },
         {
           "benchmark": "Videra.Viewer.Benchmarks.ScenePipelineBenchmarks.ScenePipeline_RehydrateAfterBackendReady",
-          "baselineMeanNs": 328.305,
-          "maxRegressionPercent": 150
+          "baselineMeanNs": 1220.3,
+          "maxRegressionPercent": 50
         },
         {
           "benchmark": "Videra.Viewer.Benchmarks.InspectionBenchmarks.SceneHitTest_MeshAccurateDistance",

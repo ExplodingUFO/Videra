@@ -34,7 +34,7 @@ public sealed class BenchmarkThresholdRepositoryTests
             {
                 ["Videra.Viewer.Benchmarks.ScenePipelineBenchmarks.SceneResidencyRegistry_ApplyDelta"] = 150,
                 ["Videra.Viewer.Benchmarks.ScenePipelineBenchmarks.SceneUploadQueue_Drain"] = 150,
-                ["Videra.Viewer.Benchmarks.ScenePipelineBenchmarks.ScenePipeline_RehydrateAfterBackendReady"] = 150,
+                ["Videra.Viewer.Benchmarks.ScenePipelineBenchmarks.ScenePipeline_RehydrateAfterBackendReady"] = 50,
                 ["Videra.Viewer.Benchmarks.InspectionBenchmarks.SceneHitTest_MeshAccurateDistance"] = 150,
                 ["Videra.Viewer.Benchmarks.InspectionBenchmarks.SnapshotExport_LiveReadbackFastPath"] = 150
             },
