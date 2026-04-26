@@ -13,7 +13,7 @@ The command writes:
 - `artifacts/doctor/doctor-report.json`
 - `artifacts/doctor/doctor-summary.txt`
 
-The report captures SDK/runtime, OS, git state, package and benchmark contract file presence, validation script presence, platform project presence, and known support artifact paths.
+The report captures SDK/runtime, OS, git state, package and benchmark contract file presence, validation script presence, platform project presence, known support artifact paths, and an `evidencePacket` section for release-candidate triage.
 
 Contract and validation references reported by Doctor stay aligned with the repository files that own them:
 
@@ -45,5 +45,18 @@ Opt-in validation switches:
 - `RunNativeValidation` invokes `scripts/run-native-validation.ps1` on a matching host.
 
 Doctor complements `release-dry-run-evidence`; it does not replace `Release Dry Run`, package validation, benchmark gates, consumer smoke, or native validation.
+
+## Evidence Packet
+
+`doctor-report.json` includes `evidencePacket` so maintainers can see which release-readiness inputs are present before deeper validation starts. It records repository state, machine state, package contracts, validation scripts, support artifact roots, the current Doctor output paths, and artifact references for:
+
+- release dry run: `release-dry-run-summary.json` and `release-candidate-evidence-index.json`
+- package validation: package-size evaluation and summary artifacts from `scripts/Validate-Packages.ps1`
+- benchmark gates: viewer and SurfaceCharts `benchmark-manifest.json` files
+- consumer smoke: `consumer-smoke-result.json`, `diagnostics-snapshot.txt`, and `surfacecharts-support-summary.txt`
+- native validation: `artifacts/native-validation`
+- demo support: diagnostics and SurfaceCharts support summaries copied from the demos
+
+Doctor only reports whether those paths are present or missing. The owning scripts still produce and validate the artifacts.
 
 Doctor does not publish packages, does not push packages or git remotes, does not create tags, alter package feeds, change git remotes, update machine configuration, or fix local setup. Use it to attach repository state to support reports before running deeper validation.

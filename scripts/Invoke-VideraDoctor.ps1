@@ -148,6 +148,57 @@ function Test-RelativeDirectory([string]$Id, [string]$RelativePath)
     return $false
 }
 
+function Get-CheckStatus([string]$Id)
+{
+    foreach ($check in $checks)
+    {
+        if ($check.id -eq $Id)
+        {
+            return $check.status
+        }
+    }
+
+    return "unavailable"
+}
+
+function Test-EvidencePath([string]$RelativePath, [string]$Kind)
+{
+    $path = Join-Path $repositoryRoot $RelativePath
+    if ($Kind -eq "directory")
+    {
+        if (Test-Path -LiteralPath $path -PathType Container)
+        {
+            return "present"
+        }
+
+        return "missing"
+    }
+
+    if (Test-Path -LiteralPath $path -PathType Leaf)
+    {
+        return "present"
+    }
+
+    return "missing"
+}
+
+function New-EvidenceArtifact(
+    [string]$Id,
+    [string]$Category,
+    [string]$Path,
+    [string]$ProducedBy,
+    [string]$Kind = "file")
+{
+    [ordered]@{
+        id = $Id
+        category = $Category
+        path = $Path
+        kind = $Kind
+        producedBy = $ProducedBy
+        status = Test-EvidencePath -RelativePath $Path -Kind $Kind
+    }
+}
+
 $dotnetVersion = $null
 $dotnetInfo = $null
 $dotnetCommand = Get-Command dotnet -ErrorAction SilentlyContinue
@@ -314,6 +365,74 @@ Add-Validation -Id "demo-diagnostics" -Status "skip" -Message "Reference-only: a
 $summaryPath = Join-Path $resolvedOutputRoot "doctor-summary.txt"
 $reportPath = Join-Path $resolvedOutputRoot "doctor-report.json"
 
+$evidencePacket = [ordered]@{
+    repository = [ordered]@{
+        root = $repositoryRoot
+        branch = $gitBranch
+        status = Get-CheckStatus -Id "git-repository"
+    }
+    machine = [ordered]@{
+        osDescription = [System.Runtime.InteropServices.RuntimeInformation]::OSDescription
+        processArchitecture = [System.Runtime.InteropServices.RuntimeInformation]::ProcessArchitecture.ToString()
+        frameworkDescription = [System.Runtime.InteropServices.RuntimeInformation]::FrameworkDescription
+        powerShellVersion = $PSVersionTable.PSVersion.ToString()
+        dotnetVersion = $dotnetVersion
+        dotnetStatus = Get-CheckStatus -Id "dotnet-sdk"
+    }
+    packageContracts = @($contractFiles | ForEach-Object {
+        [ordered]@{
+            id = [string]$_.Id
+            path = [string]$_.Path
+            status = Get-CheckStatus -Id ([string]$_.Id)
+        }
+    })
+    validationScripts = @($validationScripts | ForEach-Object {
+        [ordered]@{
+            id = [string]$_
+            path = "scripts/$_"
+            status = Get-CheckStatus -Id "script:$_"
+        }
+    })
+    supportArtifacts = @($supportArtifactPaths | ForEach-Object {
+        [ordered]@{
+            id = [string]$_
+            path = [string]$_
+            kind = "directory"
+            status = Get-CheckStatus -Id "artifact:$_"
+        }
+    })
+    outputArtifacts = @(
+        [ordered]@{
+            id = "doctor-summary"
+            path = $summaryPath
+            kind = "file"
+            producedBy = "scripts/Invoke-VideraDoctor.ps1"
+        },
+        [ordered]@{
+            id = "doctor-report"
+            path = $reportPath
+            kind = "file"
+            producedBy = "scripts/Invoke-VideraDoctor.ps1"
+        }
+    )
+    artifactReferences = @(
+        (New-EvidenceArtifact -Id "release-dry-run-summary-json" -Category "release-dry-run" -Path "artifacts/release-dry-run/release-dry-run-summary.json" -ProducedBy "scripts/Invoke-ReleaseDryRun.ps1"),
+        (New-EvidenceArtifact -Id "release-dry-run-summary-text" -Category "release-dry-run" -Path "artifacts/release-dry-run/release-dry-run-summary.txt" -ProducedBy "scripts/Invoke-ReleaseDryRun.ps1"),
+        (New-EvidenceArtifact -Id "release-candidate-evidence-index-json" -Category "release-dry-run" -Path "artifacts/release-dry-run/release-candidate-evidence-index.json" -ProducedBy "scripts/New-ReleaseCandidateEvidenceIndex.ps1"),
+        (New-EvidenceArtifact -Id "release-candidate-evidence-index-text" -Category "release-dry-run" -Path "artifacts/release-dry-run/release-candidate-evidence-index.txt" -ProducedBy "scripts/New-ReleaseCandidateEvidenceIndex.ps1"),
+        (New-EvidenceArtifact -Id "package-size-evaluation" -Category "package-validation" -Path "artifacts/release-dry-run/packages/.validation/package-size-evaluation.json" -ProducedBy "scripts/Validate-Packages.ps1"),
+        (New-EvidenceArtifact -Id "package-size-summary" -Category "package-validation" -Path "artifacts/release-dry-run/packages/.validation/package-size-summary.txt" -ProducedBy "scripts/Validate-Packages.ps1"),
+        (New-EvidenceArtifact -Id "viewer-benchmark-manifest" -Category "benchmark" -Path "artifacts/benchmarks/viewer/benchmark-manifest.json" -ProducedBy "scripts/Run-Benchmarks.ps1"),
+        (New-EvidenceArtifact -Id "surfacecharts-benchmark-manifest" -Category "benchmark" -Path "artifacts/benchmarks/surfacecharts/benchmark-manifest.json" -ProducedBy "scripts/Run-Benchmarks.ps1"),
+        (New-EvidenceArtifact -Id "consumer-smoke-result" -Category "consumer-smoke" -Path "artifacts/consumer-smoke/consumer-smoke-result.json" -ProducedBy "scripts/Invoke-ConsumerSmoke.ps1"),
+        (New-EvidenceArtifact -Id "consumer-smoke-diagnostics" -Category "consumer-smoke" -Path "artifacts/consumer-smoke/diagnostics-snapshot.txt" -ProducedBy "scripts/Invoke-ConsumerSmoke.ps1"),
+        (New-EvidenceArtifact -Id "consumer-smoke-surfacecharts-support" -Category "consumer-smoke" -Path "artifacts/consumer-smoke/surfacecharts-support-summary.txt" -ProducedBy "scripts/Invoke-ConsumerSmoke.ps1"),
+        (New-EvidenceArtifact -Id "native-validation-root" -Category "native-validation" -Path "artifacts/native-validation" -ProducedBy "scripts/run-native-validation.ps1" -Kind "directory"),
+        (New-EvidenceArtifact -Id "demo-diagnostics-snapshot" -Category "demo-support" -Path "artifacts/consumer-smoke/diagnostics-snapshot.txt" -ProducedBy "Videra.Demo"),
+        (New-EvidenceArtifact -Id "surfacecharts-support-summary" -Category "demo-support" -Path "artifacts/consumer-smoke/surfacecharts-support-summary.txt" -ProducedBy "Videra.SurfaceCharts.Demo")
+    )
+}
+
 $report = [ordered]@{
     schemaVersion = 1
     name = "Videra Doctor"
@@ -338,6 +457,7 @@ $report = [ordered]@{
     validationScripts = $validationScripts
     platformProjects = $platformProjects
     supportArtifactPaths = $supportArtifactPaths
+    evidencePacket = $evidencePacket
     checks = @($checks)
     validations = @($validations)
 }
@@ -359,6 +479,13 @@ $summaryLines.Add("Validations:") | Out-Null
 foreach ($validation in $validations)
 {
     $line = "- {0}: {1} - {2}" -f $validation.id, $validation.status, $validation.message
+    $summaryLines.Add($line) | Out-Null
+}
+$summaryLines.Add("") | Out-Null
+$summaryLines.Add("Evidence packet:") | Out-Null
+foreach ($artifact in $evidencePacket.artifactReferences)
+{
+    $line = "- {0}/{1}: {2} - {3}" -f $artifact.category, $artifact.id, $artifact.status, $artifact.path
     $summaryLines.Add($line) | Out-Null
 }
 $summaryLines.Add("") | Out-Null

@@ -114,6 +114,7 @@ public sealed class VideraDoctorRepositoryTests
         summary.Should().Contain("Videra Doctor");
         summary.Should().Contain("repo-only");
         summary.Should().Contain("non-mutating");
+        summary.Should().Contain("Evidence packet:");
 
         using var reportDocument = JsonDocument.Parse(File.ReadAllText(reportPath));
         var report = reportDocument.RootElement;
@@ -154,6 +155,67 @@ public sealed class VideraDoctorRepositoryTests
         supportArtifacts.Should().Contain("artifacts/benchmarks");
         supportArtifacts.Should().Contain("artifacts/release-dry-run");
 
+        var evidencePacket = report.GetProperty("evidencePacket");
+        evidencePacket.GetProperty("repository").GetProperty("root").GetString().Should().Be(repositoryRoot);
+        evidencePacket.GetProperty("repository").GetProperty("status").GetString().Should().NotBeNullOrWhiteSpace();
+        evidencePacket.GetProperty("machine").GetProperty("dotnetStatus").GetString().Should().NotBeNullOrWhiteSpace();
+
+        var packageContractPaths = evidencePacket.GetProperty("packageContracts")
+            .EnumerateArray()
+            .Select(static contract => contract.GetProperty("path").GetString())
+            .ToArray();
+
+        packageContractPaths.Should().Contain([
+            "eng/public-api-contract.json",
+            "eng/package-size-budgets.json",
+            "benchmarks/benchmark-contract.json",
+            "benchmarks/benchmark-thresholds.json"
+        ]);
+
+        var validationScriptPaths = evidencePacket.GetProperty("validationScripts")
+            .EnumerateArray()
+            .Select(static script => script.GetProperty("path").GetString())
+            .ToArray();
+
+        validationScriptPaths.Should().Contain([
+            "scripts/Validate-Packages.ps1",
+            "scripts/Run-Benchmarks.ps1",
+            "scripts/Test-BenchmarkThresholds.ps1",
+            "scripts/Invoke-ConsumerSmoke.ps1",
+            "scripts/run-native-validation.ps1",
+            "scripts/Invoke-ReleaseDryRun.ps1"
+        ]);
+
+        var artifactReferences = evidencePacket.GetProperty("artifactReferences")
+            .EnumerateArray()
+            .ToArray();
+
+        artifactReferences.Select(static artifact => artifact.GetProperty("category").GetString()).Should().Contain([
+            "release-dry-run",
+            "package-validation",
+            "benchmark",
+            "consumer-smoke",
+            "native-validation",
+            "demo-support"
+        ]);
+
+        artifactReferences.Should().OnlyContain(static artifact =>
+            !string.IsNullOrWhiteSpace(artifact.GetProperty("id").GetString()) &&
+            !string.IsNullOrWhiteSpace(artifact.GetProperty("path").GetString()) &&
+            !string.IsNullOrWhiteSpace(artifact.GetProperty("producedBy").GetString()) &&
+            new[] { "present", "missing" }.Contains(artifact.GetProperty("status").GetString()));
+
+        artifactReferences.Select(static artifact => artifact.GetProperty("path").GetString()).Should().Contain([
+            "artifacts/release-dry-run/release-dry-run-summary.json",
+            "artifacts/release-dry-run/release-candidate-evidence-index.json",
+            "artifacts/release-dry-run/packages/.validation/package-size-evaluation.json",
+            "artifacts/benchmarks/viewer/benchmark-manifest.json",
+            "artifacts/benchmarks/surfacecharts/benchmark-manifest.json",
+            "artifacts/consumer-smoke/consumer-smoke-result.json",
+            "artifacts/native-validation",
+            "artifacts/consumer-smoke/surfacecharts-support-summary.txt"
+        ]);
+
         var validations = report.GetProperty("validations")
             .EnumerateArray()
             .ToDictionary(
@@ -180,6 +242,18 @@ public sealed class VideraDoctorRepositoryTests
         var validValidationStatuses = new[] { "pass", "fail", "skip", "unavailable" };
         validations.Values.Should().OnlyContain(validation =>
             validValidationStatuses.Contains(validation.GetProperty("status").GetString()));
+
+        foreach (var validation in validations.Values)
+        {
+            validation.TryGetProperty("script", out _).Should().BeTrue();
+            validation.TryGetProperty("prerequisites", out var prerequisites).Should().BeTrue();
+            prerequisites.ValueKind.Should().Be(JsonValueKind.Array);
+            validation.TryGetProperty("artifacts", out var artifacts).Should().BeTrue();
+            artifacts.ValueKind.Should().Be(JsonValueKind.Array);
+            validation.TryGetProperty("invoked", out _).Should().BeTrue();
+            validation.TryGetProperty("exitCode", out _).Should().BeTrue();
+            validation.TryGetProperty("logPath", out _).Should().BeTrue();
+        }
     }
 
     [Fact]
@@ -210,6 +284,10 @@ public sealed class VideraDoctorRepositoryTests
         validations["benchmark-thresholds:Viewer"].GetProperty("status").GetString().Should().Be("unavailable");
         validations["benchmark-thresholds:Viewer"].GetProperty("message").GetString().Should().Contain("Run-Benchmarks.ps1");
         validations["benchmark-thresholds:SurfaceCharts"].GetProperty("status").GetString().Should().Be("unavailable");
+        validations["benchmark-thresholds:Viewer"].GetProperty("artifacts")
+            .EnumerateArray()
+            .Select(static artifact => artifact.GetString())
+            .Should().Contain($"{missingBenchmarkRoot.Replace('/', Path.DirectorySeparatorChar)}{Path.DirectorySeparatorChar}viewer{Path.DirectorySeparatorChar}benchmark-manifest.json");
     }
 
     private static DoctorRunResult RunPowerShell(string scriptPath, string outputRoot, string repositoryRoot, params string[] additionalArguments)
