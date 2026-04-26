@@ -15,6 +15,7 @@ This page maps the long-lived public documentation for Videra. Start with the re
 - [Releasing Runbook](releasing.md) for tag, asset, release-page workflow, and read-only release-candidate dry-run evidence
 - [Release Candidate Abort and Cutover Runbook](release-candidate-cutover.md) for final candidate abort criteria and human cutover boundaries
 - [Benchmark Gates](benchmark-gates.md) for automatic pull-request runtime thresholds and manual benchmark evidence runs
+- [Videra Doctor](videra-doctor.md) for repo-only, non-mutating local support snapshots under `artifacts/doctor`
 - [Alpha Feedback](alpha-feedback.md) for bug-report diagnostics, consumer-path evidence, and support-boundary expectations
 - [Extensibility Contract](extensibility.md) for the `VideraView.Engine` flow, `samples/Videra.ExtensibilitySample`, the ready / disposed / fallback behavior matrix, and the boundary that keeps `package discovery` and `plugin loading` out of scope
 - [Troubleshooting](troubleshooting.md) for the relationship between package installation, `VIDERA_BACKEND`, software fallback, and matching-host validation
