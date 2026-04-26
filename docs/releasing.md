@@ -17,6 +17,16 @@ Use this sequence for release-candidate review, support triage, and local valida
 
 This sequence does not publish packages, create release tags, push feeds, or replace the tag-triggered public release workflow.
 
+## Release control model
+
+Release control has three distinct paths:
+
+- Dry run: `.github/workflows/release-dry-run.yml` and `scripts/Invoke-ReleaseDryRun.ps1` validate package and candidate evidence without credentials, tags, GitHub Releases, or package-feed mutation.
+- Preview feed: `.github/workflows/publish-github-packages.yml` publishes internal preview packages through manual dispatch only; its feed mutation job is gated by the `preview-packages` environment.
+- Public publish: `.github/workflows/publish-public.yml` publishes from version-aligned `v*` tags, and `.github/workflows/publish-existing-public-release.yml` republishes an existing tag through manual dispatch. Public feed mutation jobs are gated by the `public-release` environment.
+
+Before relying on either publish path, inspect the workflow trigger, release environment, expected branch/tag state, required status checks, and secret names. This check must not expose secret values or mutate GitHub environment, branch, or feed configuration.
+
 ## Alpha candidate checklist
 
 Use this checklist for each alpha candidate review. Keep the generated artifacts with the candidate notes; do not treat this checklist as package publication approval.

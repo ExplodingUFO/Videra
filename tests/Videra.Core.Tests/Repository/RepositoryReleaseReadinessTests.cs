@@ -618,6 +618,52 @@ public sealed class RepositoryReleaseReadinessTests
     }
 
     [Fact]
+    public void ReleaseControlDocsAndWorkflows_ShouldRequireHumanApprovedFeedMutation()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var workflowRoot = Path.Combine(repositoryRoot, ".github", "workflows");
+        var releasePolicy = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "release-policy.md"));
+        var releasing = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "releasing.md"));
+        var publicWorkflow = File.ReadAllText(Path.Combine(workflowRoot, "publish-public.yml"));
+        var existingReleaseWorkflow = File.ReadAllText(Path.Combine(workflowRoot, "publish-existing-public-release.yml"));
+        var previewWorkflow = File.ReadAllText(Path.Combine(workflowRoot, "publish-github-packages.yml"));
+        var dryRunWorkflow = File.ReadAllText(Path.Combine(workflowRoot, "release-dry-run.yml"));
+
+        releasePolicy.Should().Contain("## Release control model");
+        releasePolicy.Should().Contain("Dry run");
+        releasePolicy.Should().Contain("Preview feed");
+        releasePolicy.Should().Contain("Public publish");
+        releasePolicy.Should().Contain("public-release");
+        releasePolicy.Should().Contain("preview-packages");
+        releasePolicy.Should().Contain("NUGET_API_KEY");
+        releasePolicy.Should().Contain("does not expose secret values");
+
+        releasing.Should().Contain("Release control model");
+        releasing.Should().Contain("public-release");
+        releasing.Should().Contain("preview-packages");
+
+        publicWorkflow.Should().Contain("tags:");
+        publicWorkflow.Should().Contain("v*");
+        publicWorkflow.Should().NotContain("branches:");
+        publicWorkflow.Should().Contain("environment:");
+        publicWorkflow.Should().Contain("public-release");
+
+        existingReleaseWorkflow.Should().Contain("workflow_dispatch:");
+        existingReleaseWorkflow.Should().Contain("tag:");
+        existingReleaseWorkflow.Should().Contain("environment:");
+        existingReleaseWorkflow.Should().Contain("public-release");
+
+        previewWorkflow.Should().Contain("workflow_dispatch:");
+        previewWorkflow.Should().Contain("version:");
+        previewWorkflow.Should().Contain("environment:");
+        previewWorkflow.Should().Contain("preview-packages");
+
+        dryRunWorkflow.Should().Contain("workflow_dispatch:");
+        dryRunWorkflow.Should().NotContain("dotnet nuget push");
+        dryRunWorkflow.Should().NotContain("environment:");
+    }
+
+    [Fact]
     public void ReleaseDocs_ShouldTieAlphaPublishingToConsumerSmokeAndBenchmarkEvidence()
     {
         var repositoryRoot = GetRepositoryRoot();

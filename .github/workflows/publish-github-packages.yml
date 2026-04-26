@@ -111,6 +111,7 @@ jobs:
       - macos-package-evidence
       - windows-and-neutral-package-evidence
     runs-on: windows-latest
+    environment: preview-packages
 
     steps:
       - uses: actions/checkout@v6

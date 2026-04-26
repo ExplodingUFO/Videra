@@ -354,6 +354,7 @@ jobs:
       - macos-package-evidence
       - windows-package-evidence
     runs-on: windows-latest
+    environment: public-release
 
     steps:
       - uses: actions/checkout@v6
