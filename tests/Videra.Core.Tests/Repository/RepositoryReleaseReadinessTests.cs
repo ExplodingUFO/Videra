@@ -193,7 +193,7 @@ public sealed class RepositoryReleaseReadinessTests
         capabilityMatrix.Should().Contain("Charts");
         capabilityMatrix.Should().Contain("OpenGL");
         capabilityMatrix.Should().Contain("Transparency baseline");
-        capabilityMatrix.Should().Contain("Alpha mask rendering and deterministic alpha blend ordering are shipped for per-object carried alpha sources");
+        capabilityMatrix.Should().Contain("Alpha mask rendering and deterministic alpha blend ordering are shipped for per-primitive carried alpha sources");
         capabilityMatrix.Should().Contain("occlusion texture binding/strength");
         capabilityMatrix.Should().Contain("KHR_texture_transform");
         capabilityMatrix.Should().Contain("baseColor texture sampling, occlusion texture binding/strength, emissive inputs, and normal-map-ready inputs on the bounded static-scene seam");
@@ -632,6 +632,46 @@ public sealed class RepositoryReleaseReadinessTests
         benchmarkGates.ToLowerInvariant().Should().Contain("compare runs over time");
         benchmarkGates.Should().Contain("hard numeric blocker");
         benchmarkGates.Should().Contain("Pull requests run benchmark gates automatically");
+    }
+
+    [Fact]
+    public void ReleaseReadinessDocs_ShouldDefineOneValidationSequenceAndSupportArtifactRouting()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var releasing = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "releasing.md"));
+        var alphaFeedback = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "alpha-feedback.md"));
+        var supportMatrix = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "support-matrix.md"));
+
+        releasing.Should().Contain("## Release readiness sequence");
+        releasing.Should().Contain("scripts/Invoke-VideraDoctor.ps1");
+        releasing.Should().Contain("artifacts/doctor/doctor-report.json");
+        releasing.Should().Contain("artifacts/doctor/doctor-summary.txt");
+        releasing.Should().Contain("scripts/Validate-Packages.ps1");
+        releasing.Should().Contain("Benchmark Gates");
+        releasing.Should().Contain("scripts/Run-Benchmarks.ps1");
+        releasing.Should().Contain("scripts/Test-BenchmarkThresholds.ps1");
+        releasing.Should().Contain("scripts/Invoke-ConsumerSmoke.ps1");
+        releasing.Should().Contain("diagnostics-snapshot.txt");
+        releasing.Should().Contain("surfacecharts-support-summary.txt");
+        releasing.Should().Contain("release-dry-run-evidence");
+        releasing.Should().Contain("docs/alpha-feedback.md");
+
+        alphaFeedback.Should().Contain("## Support artifact routing");
+        alphaFeedback.Should().Contain("Repository state or local setup");
+        alphaFeedback.Should().Contain("artifacts/doctor/doctor-report.json");
+        alphaFeedback.Should().Contain("Viewer happy path");
+        alphaFeedback.Should().Contain("Videra.MinimalSample");
+        alphaFeedback.Should().Contain("Import or backend diagnostics");
+        alphaFeedback.Should().Contain("Videra.Demo");
+        alphaFeedback.Should().Contain("Packaged viewer validation");
+        alphaFeedback.Should().Contain("artifacts/consumer-smoke/diagnostics-snapshot.txt");
+        alphaFeedback.Should().Contain("SurfaceCharts issue");
+        alphaFeedback.Should().Contain("surfacecharts-support-summary.txt");
+        alphaFeedback.Should().Contain("keep it separate from `VideraDiagnosticsSnapshotFormatter` output");
+
+        supportMatrix.Should().Contain("Videra Doctor");
+        supportMatrix.Should().Contain("artifacts/doctor");
+        supportMatrix.Should().Contain("Release readiness sequence");
     }
 
     [Fact]

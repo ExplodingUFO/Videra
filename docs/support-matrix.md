@@ -4,6 +4,8 @@ This matrix describes the current support boundary for the Avalonia-first public
 
 Use [Videra 1.0 Capability Matrix](capability-matrix.md) for the explicit shipped-vs-deferred product boundary and the `Core` / `Import` / `Backend` / `UI adapter` / `Charts` layer vocabulary. Use [Hosting Boundary](hosting-boundary.md) for the canonical viewer composition rules behind these support entries.
 
+Release readiness sequence lives in [Releasing Runbook](releasing.md). Start local support triage with `Videra Doctor` when repository or machine state matters; its repo-only artifacts are written under `artifacts/doctor` and complement package validation, benchmark gates, consumer smoke, and demo support artifacts.
+
 The public viewer install rule stays simple: start with `Videra.Avalonia`, add exactly one matching `Videra.Platform.*` package, and treat `Videra.Import.*` as explicit core-path ingestion packages rather than backend selection knobs. `smoke/Videra.WpfSmoke` is repository-only Windows WPF smoke evidence for the Avalonia-first public viewer path; it is not a second public UI package or release path. Phase 194's proof-mode hold remains repository-owned and opt-in on the selected smoke hosts, so support evidence can keep the repo-owned desktop proof-host validation evidence visible for the documented 10-second hold without widening the public package surface.
 
 The public SurfaceCharts install rule is similarly narrow: start with `Videra.SurfaceCharts.Avalonia`, add `Videra.SurfaceCharts.Processing` only for the surface/cache-backed path, and treat `Videra.SurfaceCharts.Core` / `Videra.SurfaceCharts.Rendering` as lower-level package seams rather than the normal starting point.

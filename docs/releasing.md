@@ -4,6 +4,19 @@ This runbook describes how public and preview package publication works.
 
 Use [Package Matrix](package-matrix.md) as the authoritative public package table and [Hosting Boundary](hosting-boundary.md) when you need to verify that release notes and package assets still describe the same canonical viewer stack.
 
+## Release readiness sequence
+
+Use this sequence for release-candidate review, support triage, and local validation before any publishing path is involved:
+
+1. Capture repository and machine context with `scripts/Invoke-VideraDoctor.ps1`. Attach `artifacts/doctor/doctor-report.json` and `artifacts/doctor/doctor-summary.txt` when the report is about local setup, missing validation inputs, package-feed drift, backend/platform availability, or repository state.
+2. Confirm the package contract from `eng/public-api-contract.json`, then run package validation through `scripts/Validate-Packages.ps1` or the read-only `Release Dry Run` workflow. Keep `release-dry-run-evidence` with the candidate review when package metadata, package-size budgets, or release assets are in scope.
+3. Run matching-host native validation through `scripts/run-native-validation.ps1` when the issue or release candidate depends on native backend availability.
+4. Run `Benchmark Gates` through GitHub Actions or run `scripts/Run-Benchmarks.ps1` locally for the affected suite, then use `scripts/Test-BenchmarkThresholds.ps1` against the emitted benchmark artifacts. Treat `benchmarks/benchmark-contract.json` as the source-controlled benchmark inventory and `benchmarks/benchmark-thresholds.json` as the hard-threshold slice.
+5. Run packaged viewer and SurfaceCharts validation through `scripts/Invoke-ConsumerSmoke.ps1`. Attach `artifacts/consumer-smoke/consumer-smoke-result.json`, `artifacts/consumer-smoke/diagnostics-snapshot.txt`, and `artifacts/consumer-smoke/surfacecharts-support-summary.txt` when packaged consumer behavior is relevant.
+6. Route issue-specific support artifacts through `docs/alpha-feedback.md`: use `Videra.MinimalSample` for the shortest viewer happy path, `Videra.Demo` for import/backend diagnostics, and `Videra.SurfaceCharts.Demo` or `smoke/Videra.SurfaceCharts.ConsumerSmoke` for chart-specific support summaries.
+
+This sequence does not publish packages, create release tags, push feeds, or replace the tag-triggered public release workflow.
+
 ## Tag format
 
 - Public releases start from a git tag named `v<semver>`.

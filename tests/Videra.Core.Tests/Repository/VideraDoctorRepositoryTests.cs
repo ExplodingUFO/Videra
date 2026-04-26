@@ -62,6 +62,39 @@ public sealed class VideraDoctorRepositoryTests
     }
 
     [Fact]
+    public void VideraDoctorDocs_ShouldReferenceActualValidationScriptsContractsAndArtifacts()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var docs = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "videra-doctor.md"));
+        var releasing = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "releasing.md"));
+
+        foreach (var relativePath in new[]
+                 {
+                     "scripts/Invoke-VideraDoctor.ps1",
+                     "scripts/Validate-Packages.ps1",
+                     "scripts/Run-Benchmarks.ps1",
+                     "scripts/Test-BenchmarkThresholds.ps1",
+                     "scripts/Invoke-ConsumerSmoke.ps1",
+                     "scripts/run-native-validation.ps1",
+                     "benchmarks/benchmark-contract.json",
+                     "benchmarks/benchmark-thresholds.json",
+                     "eng/public-api-contract.json"
+                 })
+        {
+            File.Exists(Path.Combine(repositoryRoot, relativePath)).Should().BeTrue();
+            docs.Should().Contain(relativePath);
+            releasing.Should().Contain(relativePath);
+        }
+
+        docs.Should().Contain("artifacts/doctor/doctor-report.json");
+        docs.Should().Contain("artifacts/doctor/doctor-summary.txt");
+        docs.Should().Contain("release-dry-run-evidence");
+        docs.Should().Contain("does not publish");
+        docs.Should().Contain("does not push");
+        docs.Should().Contain("does not create tags");
+    }
+
+    [Fact]
     public void VideraDoctor_ShouldEmitHumanAndStructuredReports()
     {
         var repositoryRoot = GetRepositoryRoot();

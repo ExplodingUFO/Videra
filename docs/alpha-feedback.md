@@ -2,6 +2,18 @@
 
 Videra is still an early alpha embeddable viewer stack. Good feedback is not just "it failed" — it needs enough integration context to reproduce the host, backend, and package path that produced the failure.
 
+## Support artifact routing
+
+Attach the smallest artifact set that explains the failure path:
+
+| Situation | Primary artifact |
+| --- | --- |
+| Repository state or local setup | Attach `artifacts/doctor/doctor-report.json` and `artifacts/doctor/doctor-summary.txt` from `Videra Doctor`. |
+| Viewer happy path | Reproduce with `Videra.MinimalSample` and attach the diagnostics snapshot from `VideraDiagnosticsSnapshotFormatter`. |
+| Import or backend diagnostics | Use `Videra.Demo` and attach the copied diagnostics bundle plus import report from the failing scene path. |
+| Packaged viewer validation | Attach `artifacts/consumer-smoke/consumer-smoke-result.json` and `artifacts/consumer-smoke/diagnostics-snapshot.txt`. |
+| SurfaceCharts issue | Attach `surfacecharts-support-summary.txt` from `smoke/Videra.SurfaceCharts.ConsumerSmoke` or the copied `Videra.SurfaceCharts.Demo` support summary; keep it separate from `VideraDiagnosticsSnapshotFormatter` output. |
+
 ## Before filing
 
 1. Confirm the install path:
@@ -81,7 +93,7 @@ Videra is still an early alpha embeddable viewer stack. Good feedback is not jus
 - The `Videra.SurfaceCharts.*` package line is a separate public product family; include the exact package ids involved when the issue is chart-specific.
 - `Videra.SurfaceCharts.Avalonia` + `Videra.SurfaceCharts.Processing` is the default public surface/cache-backed install path, not a requirement for every chart path.
 - `smoke/Videra.SurfaceCharts.ConsumerSmoke` is the packaged surface/cache-backed proof on the supported host path and emits `surfacecharts-support-summary.txt` for support capture.
-- `TransparentFeatureStatus` in diagnostics snapshots captures the shipped transparency contract: alpha mask rendering plus deterministic alpha blend ordering for per-object carried alpha sources.
+- `TransparentFeatureStatus` in diagnostics snapshots captures the shipped transparency contract: alpha mask rendering plus deterministic alpha blend ordering for per-primitive carried alpha sources.
 - `LastFrameObjectCount`, `LastFrameOpaqueObjectCount`, and `LastFrameTransparentObjectCount` are backend-neutral scene diagnostics, not draw-call metrics.
 - Imported-material fidelity now reaches the shipped static-scene renderer path for baseColor texture sampling, occlusion texture binding/strength, emissive inputs, normal-map-ready inputs, and `KHR_texture_transform` / texture-coordinate override. Treat those details as shipped on-screen output concerns on the bounded static-scene seam, not as a broader lighting/shader/backend promise.
 - `Videra.SurfaceCharts.Demo` remains repository-only and is the support-ready repro/reference app for the `Start here`, `Explore next`, and `Try next` paths.

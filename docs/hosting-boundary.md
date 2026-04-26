@@ -36,7 +36,7 @@ The shipped viewer path keeps one direct runtime model:
 - The current renderer path consumes baseColor texture sampling, occlusion texture binding/strength, emissive inputs, and normal-map-ready inputs on the bounded static-scene seam, including `KHR_texture_transform` offset/scale/rotation and texture-coordinate override where those bindings request them.
 - This remains a bounded renderer-consumption seam rather than a broader lighting/shader/backend promise.
 - The canonical runtime bridge may expand one imported entry into multiple internal runtime objects, so mixed opaque and transparent primitive participation can survive residency/upload without widening the public scene-entry contract into a broader transparency system.
-- The shared render-feature vocabulary on that path is `Opaque`, `Transparent`, `Overlay`, `Picking`, and `Screenshot`, where `Transparent` means alpha mask rendering plus deterministic alpha blend ordering for per-object carried alpha sources.
+- The shared render-feature vocabulary on that path is `Opaque`, `Transparent`, `Overlay`, `Picking`, and `Screenshot`, where `Transparent` means alpha mask rendering plus deterministic alpha blend ordering for per-primitive carried alpha sources.
 - Host apps observe the result through public diagnostics and capability surfaces rather than through importer-specific or backend-specific types.
 
 That boundary is intentionally static-scene-only. Animation, skeletons, morph targets, broader lighting systems beyond the bounded broader-lighting baseline, shadows, environment maps, post-processing, extra UI adapters, Wayland/OpenGL/WebGL/backend API expansion, and other non-static scene systems stay out of scope here.

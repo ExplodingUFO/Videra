@@ -8,7 +8,7 @@ namespace Videra.Avalonia.Controls;
 public sealed class VideraBackendDiagnostics
 {
     internal const string CurrentTransparentFeatureStatus =
-        "Alpha mask rendering and deterministic alpha blend ordering are shipped for per-object carried alpha sources on the current runtime path using stable far-to-near object-center distance ordering.";
+        "Alpha mask rendering and deterministic alpha blend ordering are shipped for per-primitive carried alpha sources on the current runtime path using stable far-to-near primitive-center distance ordering.";
 
     public static VideraBackendDiagnostics CreateDefault(GraphicsBackendPreference requestedBackend = GraphicsBackendPreference.Auto)
     {

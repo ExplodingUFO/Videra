@@ -10,10 +10,21 @@ pwsh -File ./scripts/Invoke-VideraDoctor.ps1
 
 The command writes:
 
-- `artifacts/doctor/doctor-summary.txt`
 - `artifacts/doctor/doctor-report.json`
+- `artifacts/doctor/doctor-summary.txt`
 
 The report captures SDK/runtime, OS, git state, package and benchmark contract file presence, validation script presence, platform project presence, and known support artifact paths.
+
+Contract and validation references reported by Doctor stay aligned with the repository files that own them:
+
+- `eng/public-api-contract.json`
+- `benchmarks/benchmark-contract.json`
+- `benchmarks/benchmark-thresholds.json`
+- `scripts/Validate-Packages.ps1`
+- `scripts/Run-Benchmarks.ps1`
+- `scripts/Test-BenchmarkThresholds.ps1`
+- `scripts/Invoke-ConsumerSmoke.ps1`
+- `scripts/run-native-validation.ps1`
 
 ## Validation References
 
@@ -33,4 +44,6 @@ Opt-in validation switches:
 - `RunConsumerSmoke` invokes `scripts/Invoke-ConsumerSmoke.ps1`.
 - `RunNativeValidation` invokes `scripts/run-native-validation.ps1` on a matching host.
 
-Doctor does not publish packages, alter package feeds, change git remotes, update machine configuration, or fix local setup. Use it to attach repository state to support reports before running deeper validation.
+Doctor complements `release-dry-run-evidence`; it does not replace `Release Dry Run`, package validation, benchmark gates, consumer smoke, or native validation.
+
+Doctor does not publish packages, does not push packages or git remotes, does not create tags, alter package feeds, change git remotes, update machine configuration, or fix local setup. Use it to attach repository state to support reports before running deeper validation.
