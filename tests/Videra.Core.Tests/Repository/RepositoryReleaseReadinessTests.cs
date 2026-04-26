@@ -262,7 +262,8 @@ public sealed class RepositoryReleaseReadinessTests
         consumerSmoke.Should().Contain("src/Videra.SurfaceCharts.Rendering/Videra.SurfaceCharts.Rendering.csproj");
         consumerSmoke.Should().Contain("src/Videra.SurfaceCharts.Processing/Videra.SurfaceCharts.Processing.csproj");
         consumerSmoke.Should().Contain("src/Videra.SurfaceCharts.Avalonia/Videra.SurfaceCharts.Avalonia.csproj");
-        consumerSmoke.Should().Contain("[ValidateSet(\"Viewer\", \"SurfaceCharts\")]");
+        consumerSmoke.Should().Contain("[ValidateSet(\"ViewerOnly\", \"ViewerObj\", \"ViewerGltf\", \"SurfaceCharts\")]");
+        consumerSmoke.Should().Contain("ModelFormat");
         consumerSmoke.Should().Contain("smoke/Videra.SurfaceCharts.ConsumerSmoke/Videra.SurfaceCharts.ConsumerSmoke.csproj");
         consumerSmoke.Should().Contain("surfacecharts-support-summary.txt");
         ciWorkflow.Should().Contain("Validate-Packages.ps1");
@@ -643,26 +644,42 @@ public sealed class RepositoryReleaseReadinessTests
         var supportMatrix = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "support-matrix.md"));
 
         releasing.Should().Contain("## Release readiness sequence");
+        releasing.Should().Contain("## Alpha candidate checklist");
         releasing.Should().Contain("scripts/Invoke-VideraDoctor.ps1");
         releasing.Should().Contain("artifacts/doctor/doctor-report.json");
         releasing.Should().Contain("artifacts/doctor/doctor-summary.txt");
+        releasing.Should().Contain("scripts/Invoke-ReleaseDryRun.ps1");
+        releasing.Should().Contain("release-dry-run-summary.json");
+        releasing.Should().Contain("release-candidate-evidence-index.json");
         releasing.Should().Contain("scripts/Validate-Packages.ps1");
+        releasing.Should().Contain("package-size-evaluation.json");
+        releasing.Should().Contain("package-size-summary.txt");
         releasing.Should().Contain("Benchmark Gates");
         releasing.Should().Contain("scripts/Run-Benchmarks.ps1");
         releasing.Should().Contain("scripts/Test-BenchmarkThresholds.ps1");
+        releasing.Should().Contain("scripts/run-native-validation.ps1");
         releasing.Should().Contain("scripts/Invoke-ConsumerSmoke.ps1");
+        releasing.Should().Contain("consumer-smoke-result.json");
         releasing.Should().Contain("diagnostics-snapshot.txt");
         releasing.Should().Contain("surfacecharts-support-summary.txt");
         releasing.Should().Contain("release-dry-run-evidence");
         releasing.Should().Contain("docs/alpha-feedback.md");
+        releasing.Should().Contain("Known non-blockers");
+        releasing.Should().Contain("does not publish packages, create release tags, push feeds");
 
         alphaFeedback.Should().Contain("## Support artifact routing");
         alphaFeedback.Should().Contain("Repository state or local setup");
         alphaFeedback.Should().Contain("artifacts/doctor/doctor-report.json");
-        alphaFeedback.Should().Contain("Viewer happy path");
+        alphaFeedback.Should().Contain("Viewer issue");
         alphaFeedback.Should().Contain("Videra.MinimalSample");
-        alphaFeedback.Should().Contain("Import or backend diagnostics");
+        alphaFeedback.Should().Contain("Import issue");
+        alphaFeedback.Should().Contain("Backend issue");
         alphaFeedback.Should().Contain("Videra.Demo");
+        alphaFeedback.Should().Contain("Package issue");
+        alphaFeedback.Should().Contain("release-candidate-evidence-index.json");
+        alphaFeedback.Should().Contain("Native-host issue");
+        alphaFeedback.Should().Contain("artifacts/native-validation");
+        alphaFeedback.Should().Contain("wpf-smoke-diagnostics.txt");
         alphaFeedback.Should().Contain("Packaged viewer validation");
         alphaFeedback.Should().Contain("artifacts/consumer-smoke/diagnostics-snapshot.txt");
         alphaFeedback.Should().Contain("SurfaceCharts issue");
@@ -801,6 +818,9 @@ public sealed class RepositoryReleaseReadinessTests
     {
         var changelog = File.ReadAllText(Path.Combine(GetRepositoryRoot(), "CHANGELOG.md"));
 
+        changelog.Should().Contain("Alpha candidate validation guidance");
+        changelog.Should().Contain("known non-blocker");
+        changelog.Should().Contain("without implying package publication");
         changelog.Should().Contain("## [0.1.0-alpha.5] - 2026-04-19");
         changelog.Should().Contain("## [0.1.0-alpha.2] - 2026-04-17");
         changelog.Should().Contain("## [0.1.0-alpha.1] - 2026-04-06");

@@ -9,8 +9,11 @@ Attach the smallest artifact set that explains the failure path:
 | Situation | Primary artifact |
 | --- | --- |
 | Repository state or local setup | Attach `artifacts/doctor/doctor-report.json` and `artifacts/doctor/doctor-summary.txt` from `Videra Doctor`. |
-| Viewer happy path | Reproduce with `Videra.MinimalSample` and attach the diagnostics snapshot from `VideraDiagnosticsSnapshotFormatter`. |
-| Import or backend diagnostics | Use `Videra.Demo` and attach the copied diagnostics bundle plus import report from the failing scene path. |
+| Viewer issue | Reproduce with `Videra.MinimalSample` and attach the diagnostics snapshot from `VideraDiagnosticsSnapshotFormatter`. |
+| Import issue | Use `Videra.Demo` and attach the copied diagnostics bundle, import report, and smallest failing scene path. |
+| Backend issue | Attach `artifacts/doctor/doctor-report.json`, the diagnostics snapshot, and any backend fallback reason from `Videra.Demo`. |
+| Package issue | Attach `release-dry-run-summary.json`, `release-candidate-evidence-index.json`, `package-size-evaluation.json`, and `package-size-summary.txt` when the report concerns package metadata, package size budgets, or package contract drift. |
+| Native-host issue | Attach the matching `artifacts/native-validation` output plus `artifacts/doctor/doctor-report.json`; include `wpf-smoke-diagnostics.txt` when the Windows WPF smoke path was involved. |
 | Packaged viewer validation | Attach `artifacts/consumer-smoke/consumer-smoke-result.json` and `artifacts/consumer-smoke/diagnostics-snapshot.txt`. |
 | SurfaceCharts issue | Attach `surfacecharts-support-summary.txt` from `smoke/Videra.SurfaceCharts.ConsumerSmoke` or the copied `Videra.SurfaceCharts.Demo` support summary; keep it separate from `VideraDiagnosticsSnapshotFormatter` output. |
 

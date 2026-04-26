@@ -8,6 +8,7 @@ The format is based on Keep a Changelog, and this repository is currently in an 
 
 ### Added
 
+- Alpha candidate validation guidance now aligns Doctor, Release Dry Run, package validation, Benchmark Gates, native validation, packaged consumer smoke, support artifact routing, and known non-blocker notes without implying package publication.
 - Mixed transparent primitive ordering baseline: mixed `Blend` and non-`Blend` imported primitives now survive the shipped static-scene viewer/runtime path with deterministic per-primitive transparent ordering.
 - `SceneObjectFactory.CreateDeferred` no longer throws on mixed-alpha imported assets; all imported assets now route through the primitive-level runtime bridge (`CreateDeferredRuntimeObjects`).
 - Mixed-transparency proof objects (`CreateMixedTransparencyProofObject`) in both `ConsumerSmoke` and `WpfSmoke` to validate the new baseline on repository-owned desktop hosts.

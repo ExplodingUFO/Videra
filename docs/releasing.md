@@ -17,6 +17,21 @@ Use this sequence for release-candidate review, support triage, and local valida
 
 This sequence does not publish packages, create release tags, push feeds, or replace the tag-triggered public release workflow.
 
+## Alpha candidate checklist
+
+Use this checklist for each alpha candidate review. Keep the generated artifacts with the candidate notes; do not treat this checklist as package publication approval.
+
+| Gate | Command or workflow | Required evidence |
+| --- | --- | --- |
+| Doctor snapshot | `scripts/Invoke-VideraDoctor.ps1` | `artifacts/doctor/doctor-report.json`, `artifacts/doctor/doctor-summary.txt` |
+| Release dry run | `.github/workflows/release-dry-run.yml` or `scripts/Invoke-ReleaseDryRun.ps1` | `release-dry-run-evidence`, `release-dry-run-summary.json`, `release-candidate-evidence-index.json`, `release-candidate-evidence-index.txt` |
+| Package validation | `scripts/Validate-Packages.ps1` | `package-size-evaluation.json`, `package-size-summary.txt` |
+| Benchmark Gates | `.github/workflows/benchmark-gates.yml`, `scripts/Run-Benchmarks.ps1`, `scripts/Test-BenchmarkThresholds.ps1` | viewer and SurfaceCharts benchmark manifests plus threshold evaluation artifacts |
+| Native validation | `.github/workflows/native-validation.yml` or `scripts/run-native-validation.ps1` | Windows, Linux X11, Linux XWayland, and macOS native-validation artifacts |
+| Packaged consumer smoke | `.github/workflows/consumer-smoke.yml` or `scripts/Invoke-ConsumerSmoke.ps1` | `consumer-smoke-result.json`, `diagnostics-snapshot.txt`, `surfacecharts-support-summary.txt` |
+
+Known non-blockers must be recorded in candidate review notes with evidence links. They should not be described as shipped package changes unless they affect the public package behavior.
+
 ## Tag format
 
 - Public releases start from a git tag named `v<semver>`.
@@ -65,6 +80,8 @@ That workflow is expected to:
 - Release-page categories come from `.github/release.yml`.
 - The release surface should communicate breaking changes, features, fixes, docs, and CI/build work.
 - Public release assets should make it obvious which package IDs are part of the release.
+- Alpha candidate notes should state whether Doctor, Release Dry Run, package validation, Benchmark Gates, native validation, and packaged consumer smoke passed, failed, or were not run.
+- Known non-blockers should be listed under candidate validation notes, not under package features or fixes.
 - Dry-run evidence should be linked from release-candidate review notes, but it is not a substitute for the tag-triggered public publish workflow.
 - Release-candidate review notes should start from `release-candidate-evidence-index.txt`; use the JSON form when automating checklist review.
 - Failed candidates must follow the abort steps in [Release Candidate Abort and Cutover Runbook](release-candidate-cutover.md) before another cutover attempt.
