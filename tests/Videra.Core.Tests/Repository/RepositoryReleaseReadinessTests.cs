@@ -54,7 +54,7 @@ public sealed class RepositoryReleaseReadinessTests
         readme.Should().Contain("Videra.ExtensibilitySample");
         readme.Should().Contain("Videra.InteractionSample");
         readme.Should().Contain("does not install missing platform packages");
-        readme.Should().Contain("Public tags now publish the `Videra.SurfaceCharts.*` package assets");
+        readme.Should().Contain("Public release workflows publish the `Videra.SurfaceCharts.*` package assets after explicit approval");
         readme.Should().Contain("Copy support summary");
         readme.Should().Contain("surfacecharts-support-summary.txt");
     }
@@ -576,8 +576,11 @@ public sealed class RepositoryReleaseReadinessTests
         var publicWorkflow = File.ReadAllText(publicWorkflowPath);
         var previewWorkflow = File.ReadAllText(previewWorkflowPath);
 
-        publicWorkflow.Should().Contain("tags:");
-        publicWorkflow.Should().Contain("v*");
+        publicWorkflow.Should().Contain("workflow_dispatch:");
+        publicWorkflow.Should().Contain("tag:");
+        publicWorkflow.Should().Contain("version:");
+        publicWorkflow.Should().Contain("expected_commit:");
+        publicWorkflow.Should().Contain("Expected a version tag that starts with 'v'.");
         publicWorkflow.Should().Contain("linux-x11-native-validation:");
         publicWorkflow.Should().Contain("linux-wayland-xwayland-native-validation:");
         publicWorkflow.Should().Contain("macos-native-validation:");
@@ -642,8 +645,11 @@ public sealed class RepositoryReleaseReadinessTests
         releasing.Should().Contain("public-release");
         releasing.Should().Contain("preview-packages");
 
-        publicWorkflow.Should().Contain("tags:");
-        publicWorkflow.Should().Contain("v*");
+        publicWorkflow.Should().Contain("workflow_dispatch:");
+        publicWorkflow.Should().Contain("tag:");
+        publicWorkflow.Should().Contain("version:");
+        publicWorkflow.Should().Contain("expected_commit:");
+        publicWorkflow.Should().Contain("Expected a version tag that starts with 'v'.");
         publicWorkflow.Should().NotContain("branches:");
         publicWorkflow.Should().Contain("environment:");
         publicWorkflow.Should().Contain("public-release");
@@ -661,6 +667,55 @@ public sealed class RepositoryReleaseReadinessTests
         dryRunWorkflow.Should().Contain("workflow_dispatch:");
         dryRunWorkflow.Should().NotContain("dotnet nuget push");
         dryRunWorkflow.Should().NotContain("environment:");
+    }
+
+    [Fact]
+    public void PublicPublishWorkflows_ShouldRequireExplicitVersionTagCommitAndPublishEvidence()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var workflowRoot = Path.Combine(repositoryRoot, ".github", "workflows");
+        var publicWorkflow = File.ReadAllText(Path.Combine(workflowRoot, "publish-public.yml"));
+        var existingReleaseWorkflow = File.ReadAllText(Path.Combine(workflowRoot, "publish-existing-public-release.yml"));
+        var releasePolicy = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "release-policy.md"));
+        var releasing = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "releasing.md"));
+        var evidenceScriptPath = Path.Combine(repositoryRoot, "scripts", "New-PublicPublishEvidence.ps1");
+
+        File.Exists(evidenceScriptPath).Should().BeTrue();
+
+        foreach (var workflow in new[] { publicWorkflow, existingReleaseWorkflow })
+        {
+            var normalizedWorkflow = workflow.Replace("\r\n", "\n", StringComparison.Ordinal);
+            normalizedWorkflow.Should().Contain("workflow_dispatch:");
+            normalizedWorkflow.Should().Contain("tag:");
+            normalizedWorkflow.Should().Contain("version:");
+            normalizedWorkflow.Should().Contain("expected_commit:");
+            normalizedWorkflow.Should().NotContain("\n  push:\n");
+            workflow.Should().Contain("environment: public-release");
+            workflow.Should().Contain("scripts/New-PublicPublishEvidence.ps1");
+            workflow.Should().Contain("public-publish-before-summary.json");
+            workflow.Should().Contain("public-publish-after-summary.json");
+            workflow.Should().Contain("scripts/Validate-Packages.ps1");
+            workflow.Should().Contain("NUGET_API_KEY");
+        }
+
+        publicWorkflow.Should().Contain("ref: ${{ needs.determine-version.outputs.tag }}");
+        existingReleaseWorkflow.Should().Contain("ref: ${{ inputs.tag }}");
+
+        var evidenceScript = File.ReadAllText(evidenceScriptPath);
+        evidenceScript.Should().Contain("eng/public-api-contract.json");
+        evidenceScript.Should().Contain("PublishTarget");
+        evidenceScript.Should().Contain("before-publish");
+        evidenceScript.Should().Contain("after-publish");
+        evidenceScript.Should().Contain("public-publish-before-summary.json");
+        evidenceScript.Should().Contain("public-publish-after-summary.json");
+        evidenceScript.Should().NotContain("dotnet nuget push");
+        evidenceScript.Should().NotContain("NUGET_API_KEY");
+
+        releasePolicy.Should().Contain("manual dispatch");
+        releasePolicy.Should().Contain("expected commit");
+        releasing.Should().Contain("expected_commit");
+        releasing.Should().Contain("public-publish-before-summary.json");
+        releasing.Should().Contain("public-publish-after-summary.json");
     }
 
     [Fact]
@@ -746,7 +801,7 @@ public sealed class RepositoryReleaseReadinessTests
         var releasePolicy = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "release-policy.md"));
         var releasing = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "releasing.md"));
 
-        readme.Should().Contain("Public tags now publish the `Videra.SurfaceCharts.*` package assets");
+        readme.Should().Contain("Public release workflows publish the `Videra.SurfaceCharts.*` package assets after explicit approval");
         supportMatrix.Should().Contain("Start here: In-memory first chart");
         supportMatrix.Should().Contain("Copy support summary");
         supportMatrix.Should().Contain("Try next: Scatter proof");

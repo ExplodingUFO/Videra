@@ -23,7 +23,7 @@ Release control has three distinct paths:
 
 - Dry run: `.github/workflows/release-dry-run.yml` and `scripts/Invoke-ReleaseDryRun.ps1` validate package and candidate evidence without credentials, tags, GitHub Releases, or package-feed mutation.
 - Preview feed: `.github/workflows/publish-github-packages.yml` publishes internal preview packages through manual dispatch only; its feed mutation job is gated by the `preview-packages` environment.
-- Public publish: `.github/workflows/publish-public.yml` publishes from version-aligned `v*` tags, and `.github/workflows/publish-existing-public-release.yml` republishes an existing tag through manual dispatch. Public feed mutation jobs are gated by the `public-release` environment.
+- Public publish: `.github/workflows/publish-public.yml` publishes from manual dispatch only, with explicit `tag`, `version`, and `expected_commit` inputs. `.github/workflows/publish-existing-public-release.yml` republishes an existing tag through the same explicit dispatch truth. Public feed mutation jobs are gated by the `public-release` environment.
 
 Before relying on either publish path, inspect the workflow trigger, release environment, expected branch/tag state, required status checks, and secret names. This check must not expose secret values or mutate GitHub environment, branch, or feed configuration.
 
@@ -52,15 +52,19 @@ Known non-blockers must be recorded in candidate review notes with evidence link
 
 Public package publishing runs through `.github/workflows/publish-public.yml`.
 
+The workflow is manual (`workflow_dispatch`) and requires explicit `tag`, `version`, and `expected_commit` inputs. The tag must start with `v`, the semver input must match the tag without the `v` prefix, and the checked-out tag commit must match `expected_commit` before any package validation or feed mutation runs.
+
 That workflow is expected to:
 
-1. Resolve the version from the tag.
+1. Resolve the version from the explicit tag/version/expected-commit inputs.
 2. Run matching-host native validation for Linux X11, Linux Wayland-session `XWayland`, macOS, and Windows.
 3. Run `Consumer Smoke` on the packaged viewer happy path and the packaged SurfaceCharts first-chart happy path through `scripts/Invoke-ConsumerSmoke.ps1`, with the dedicated consumer-smoke workflow and PR `quality-gate-evidence` job both serving as routine pull-request evidence.
 4. Pack the public package set.
 5. Validate package metadata, package-size budgets, and assets through `scripts/Validate-Packages.ps1`.
-6. Push `.nupkg` and `.snupkg` assets to `nuget.org`.
-7. Create or update the GitHub Release with generated notes and attached package assets.
+6. Write `public-publish-before-summary.json` and `public-publish-before-summary.txt` from the validated package set.
+7. Push `.nupkg` and `.snupkg` assets to `nuget.org`.
+8. Create or update the GitHub Release with generated notes and attached package assets.
+9. Write `public-publish-after-summary.json` and `public-publish-after-summary.txt` after the approved publish path completes.
 
 ## Preview flow
 
@@ -117,7 +121,7 @@ The public package set is:
 
 The canonical public viewer stack is `Videra.Avalonia` plus exactly one matching `Videra.Platform.*` package. `Videra.Import.Gltf` and `Videra.Import.Obj` remain explicit ingestion packages on the core path; on the Avalonia path they only back file loading when consumers install them explicitly and register them through `VideraViewOptions.UseModelImporter(...)`.
 The canonical public chart stack is `Videra.SurfaceCharts.Avalonia` plus `Videra.SurfaceCharts.Processing` for the surface/cache-backed path, with `Videra.SurfaceCharts.Core` and `Videra.SurfaceCharts.Rendering` staying visible because they are real shipped package seams.
-Every public publish path, including `publish-existing-public-release.yml`, is expected to run packaged viewer consumer smoke, packaged SurfaceCharts consumer smoke, and `Validate-Packages.ps1` before pushing assets. The existing-tag republish workflow is intentionally limited to tags that already carry the current public package set and helper scripts.
+Every public publish path, including `publish-existing-public-release.yml`, is expected to require explicit `tag`, `version`, and `expected_commit` inputs, run packaged viewer consumer smoke, run packaged SurfaceCharts consumer smoke, and run `Validate-Packages.ps1` before pushing assets. The existing-tag republish workflow is intentionally limited to tags that already carry the current public package set and helper scripts.
 `Validate-Packages.ps1` now also enforces the source-controlled byte budgets in `eng/package-size-budgets.json` and emits package-size evaluation artifacts under `PackageRoot/.validation`.
 
 ## Maintainer checklist

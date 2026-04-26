@@ -1,9 +1,20 @@
 name: Publish Public Packages
 
 on:
-  push:
-    tags:
-      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Version-aligned git tag to publish to nuget.org
+        required: true
+        type: string
+      version:
+        description: SemVer package version expected for the tag
+        required: true
+        type: string
+      expected_commit:
+        description: Source commit expected at the tag
+        required: true
+        type: string
 
 permissions:
   contents: write
@@ -12,27 +23,44 @@ jobs:
   determine-version:
     runs-on: ubuntu-latest
     outputs:
+      tag: ${{ steps.version.outputs.tag }}
       version: ${{ steps.version.outputs.version }}
+      source_commit: ${{ steps.version.outputs.source_commit }}
 
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.tag }}
+          fetch-depth: 0
 
-      - name: Determine version from tag
+      - name: Determine version from explicit release inputs
         id: version
         shell: bash
         run: |
-          if [[ "${GITHUB_REF_TYPE}" != "tag" ]]; then
-            echo "This workflow only publishes from tags." >&2
+          tag="${{ inputs.tag }}"
+          version="${{ inputs.version }}"
+          expected_commit="${{ inputs.expected_commit }}"
+
+          if [[ -z "${tag}" || "${tag}" != v* ]]; then
+            echo "Expected a version tag that starts with 'v'." >&2
             exit 1
           fi
 
-          version="${GITHUB_REF_NAME#v}"
-          if [[ -z "${version}" ]]; then
-            echo "Could not determine package version from tag." >&2
+          tag_version="${tag#v}"
+          if [[ -z "${version}" || "${version}" != "${tag_version}" ]]; then
+            echo "Version input '${version}' does not match tag '${tag}'." >&2
             exit 1
           fi
 
+          source_commit="$(git rev-parse HEAD)"
+          if [[ -z "${expected_commit}" || "${source_commit}" != "${expected_commit}"* ]]; then
+            echo "Source commit '${source_commit}' does not match expected commit '${expected_commit}'." >&2
+            exit 1
+          fi
+
+          echo "tag=${tag}" >> "${GITHUB_OUTPUT}"
           echo "version=${version}" >> "${GITHUB_OUTPUT}"
+          echo "source_commit=${source_commit}" >> "${GITHUB_OUTPUT}"
 
   linux-x11-native-validation:
     needs: determine-version
@@ -40,6 +68,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.determine-version.outputs.tag }}
 
       - uses: actions/setup-dotnet@v5
         with:
@@ -61,6 +91,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.determine-version.outputs.tag }}
 
       - uses: actions/setup-dotnet@v5
         with:
@@ -83,6 +115,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.determine-version.outputs.tag }}
 
       - uses: actions/setup-dotnet@v5
         with:
@@ -99,6 +133,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.determine-version.outputs.tag }}
 
       - uses: actions/setup-dotnet@v5
         with:
@@ -116,6 +152,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.determine-version.outputs.tag }}
 
       - uses: actions/setup-dotnet@v5
         with:
@@ -138,6 +176,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.determine-version.outputs.tag }}
 
       - uses: actions/setup-dotnet@v5
         with:
@@ -163,6 +203,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.determine-version.outputs.tag }}
 
       - uses: actions/setup-dotnet@v5
         with:
@@ -189,6 +231,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.determine-version.outputs.tag }}
 
       - uses: actions/setup-dotnet@v5
         with:
@@ -216,6 +260,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.determine-version.outputs.tag }}
 
       - uses: actions/setup-dotnet@v5
         with:
@@ -238,6 +284,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.determine-version.outputs.tag }}
 
       - uses: actions/setup-dotnet@v5
         with:
@@ -272,6 +320,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.determine-version.outputs.tag }}
 
       - uses: actions/setup-dotnet@v5
         with:
@@ -296,6 +346,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.determine-version.outputs.tag }}
 
       - uses: actions/setup-dotnet@v5
         with:
@@ -320,6 +372,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.determine-version.outputs.tag }}
 
       - uses: actions/setup-dotnet@v5
         with:
@@ -358,6 +412,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.determine-version.outputs.tag }}
 
       - uses: actions/setup-dotnet@v5
         with:
@@ -377,6 +433,26 @@ jobs:
       - name: Validate packed artifacts
         shell: pwsh
         run: pwsh -File ./scripts/Validate-Packages.ps1 -PackageRoot ./nupkgs -ExpectedVersion ${{ needs.determine-version.outputs.version }}
+
+      - name: Write pre-publish evidence
+        shell: pwsh
+        run: |
+          $validationArtifacts = @(
+            "scripts/verify.ps1",
+            "scripts/Validate-Packages.ps1",
+            "package-evidence-*",
+            "consumer-smoke-*",
+            "native-validation jobs"
+          )
+          pwsh -File ./scripts/New-PublicPublishEvidence.ps1 `
+            -PackageRoot ./nupkgs `
+            -ExpectedVersion ${{ needs.determine-version.outputs.version }} `
+            -ReleaseTag ${{ needs.determine-version.outputs.tag }} `
+            -SourceCommit ${{ needs.determine-version.outputs.source_commit }} `
+            -PublishTarget https://api.nuget.org/v3/index.json `
+            -Stage before-publish `
+            -OutputRoot artifacts/public-publish `
+            -ValidationArtifacts $validationArtifacts
 
       - name: Push public packages to nuget.org
         shell: pwsh
@@ -399,3 +475,36 @@ jobs:
           files: |
             ./nupkgs/*.nupkg
             ./nupkgs/*.snupkg
+
+      - name: Write post-publish evidence
+        shell: pwsh
+        run: |
+          $validationArtifacts = @(
+            "scripts/verify.ps1",
+            "scripts/Validate-Packages.ps1",
+            "package-evidence-*",
+            "consumer-smoke-*",
+            "native-validation jobs",
+            "nuget.org package push",
+            "GitHub release assets"
+          )
+          pwsh -File ./scripts/New-PublicPublishEvidence.ps1 `
+            -PackageRoot ./nupkgs `
+            -ExpectedVersion ${{ needs.determine-version.outputs.version }} `
+            -ReleaseTag ${{ needs.determine-version.outputs.tag }} `
+            -SourceCommit ${{ needs.determine-version.outputs.source_commit }} `
+            -PublishTarget https://api.nuget.org/v3/index.json `
+            -Stage after-publish `
+            -OutputRoot artifacts/public-publish `
+            -ValidationArtifacts $validationArtifacts
+
+      - name: Upload public publish evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: public-publish-evidence
+          path: |
+            artifacts/public-publish/public-publish-before-summary.json
+            artifacts/public-publish/public-publish-before-summary.txt
+            artifacts/public-publish/public-publish-after-summary.json
+            artifacts/public-publish/public-publish-after-summary.txt

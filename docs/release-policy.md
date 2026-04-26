@@ -39,11 +39,11 @@ Videra uses three release-control paths:
 
 - Dry run: `.github/workflows/release-dry-run.yml` and `scripts/Invoke-ReleaseDryRun.ps1` validate the package contract and candidate evidence without credentials, release tags, GitHub Releases, or package-feed mutation.
 - Preview feed: `.github/workflows/publish-github-packages.yml` is a manual `workflow_dispatch` path for internal validation on GitHub Packages. The feed mutation job is gated by the `preview-packages` environment and must keep GitHub Packages documented as preview/internal.
-- Public publish: `.github/workflows/publish-public.yml` publishes public packages to `nuget.org` only from `v*` release tags, and `.github/workflows/publish-existing-public-release.yml` can republish an existing tag through a manual `workflow_dispatch` input. Public feed mutation jobs are gated by the `public-release` environment.
+- Public publish: `.github/workflows/publish-public.yml` publishes public packages to `nuget.org` only through manual dispatch with explicit tag, version, and expected commit inputs. `.github/workflows/publish-existing-public-release.yml` can republish an existing tag through the same explicit manual dispatch truth. Public feed mutation jobs are gated by the `public-release` environment.
 
 The public release control surface is intentionally inspectable but non-secret-bearing: maintainers can verify workflow triggers, required environments, required status checks, and the `NUGET_API_KEY` secret name, but the repository does not expose secret values or mutate remote configuration as part of release readiness checks.
 
-Ordinary branch pushes do not publish public packages. Public publication requires a version-aligned tag or an explicit existing-tag dispatch, package evidence validation, and the human approval configured on the `public-release` environment.
+Ordinary branch pushes and tag pushes do not publish public packages. Public publication requires a manual dispatch for a version-aligned tag, matching semver input, matching expected commit, package evidence validation, and the human approval configured on the `public-release` environment.
 
 ## Repository-only surfaces
 
