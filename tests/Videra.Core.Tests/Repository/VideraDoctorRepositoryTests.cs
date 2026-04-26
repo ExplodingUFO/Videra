@@ -24,6 +24,10 @@ public sealed class VideraDoctorRepositoryTests
         script.Should().Contain("artifacts/doctor");
         script.Should().Contain("doctor-report.json");
         script.Should().Contain("doctor-summary.txt");
+        script.Should().Contain("RunPackageValidation");
+        script.Should().Contain("RunBenchmarkThresholds");
+        script.Should().Contain("RunConsumerSmoke");
+        script.Should().Contain("RunNativeValidation");
 
         script.Should().NotContain("dotnet nuget push");
         script.Should().NotContain("git push");
@@ -44,6 +48,14 @@ public sealed class VideraDoctorRepositoryTests
         docs.Should().Contain("scripts/Invoke-VideraDoctor.ps1");
         docs.Should().Contain("artifacts/doctor");
         docs.Should().Contain("not a public package");
+        docs.Should().Contain("RunPackageValidation");
+        docs.Should().Contain("RunBenchmarkThresholds");
+        docs.Should().Contain("RunConsumerSmoke");
+        docs.Should().Contain("RunNativeValidation");
+        docs.Should().Contain("pass");
+        docs.Should().Contain("fail");
+        docs.Should().Contain("skip");
+        docs.Should().Contain("unavailable");
 
         var docsIndex = File.ReadAllText(docsIndexPath);
         docsIndex.Should().Contain("videra-doctor.md");
@@ -108,9 +120,66 @@ public sealed class VideraDoctorRepositoryTests
         supportArtifacts.Should().Contain("artifacts/doctor");
         supportArtifacts.Should().Contain("artifacts/benchmarks");
         supportArtifacts.Should().Contain("artifacts/release-dry-run");
+
+        var validations = report.GetProperty("validations")
+            .EnumerateArray()
+            .ToDictionary(
+                static validation => validation.GetProperty("id").GetString()!,
+                static validation => validation);
+
+        validations.Keys.Should().Contain([
+            "package-validation",
+            "benchmark-thresholds:Viewer",
+            "benchmark-thresholds:SurfaceCharts",
+            "consumer-smoke:Viewer",
+            "native-validation",
+            "demo-diagnostics"
+        ]);
+
+        validations["package-validation"].GetProperty("status").GetString().Should().Be("skip");
+        validations["package-validation"].GetProperty("script").GetString().Should().Be("scripts/Validate-Packages.ps1");
+        validations["benchmark-thresholds:Viewer"].GetProperty("script").GetString().Should().Be("scripts/Test-BenchmarkThresholds.ps1");
+        validations["consumer-smoke:Viewer"].GetProperty("script").GetString().Should().Be("scripts/Invoke-ConsumerSmoke.ps1");
+        validations["native-validation"].GetProperty("script").GetString().Should().Be("scripts/run-native-validation.ps1");
+        validations["demo-diagnostics"].GetProperty("artifacts").EnumerateArray().Select(static value => value.GetString())
+            .Should().Contain("artifacts/doctor");
+
+        var validValidationStatuses = new[] { "pass", "fail", "skip", "unavailable" };
+        validations.Values.Should().OnlyContain(validation =>
+            validValidationStatuses.Contains(validation.GetProperty("status").GetString()));
     }
 
-    private static DoctorRunResult RunPowerShell(string scriptPath, string outputRoot, string repositoryRoot)
+    [Fact]
+    public void VideraDoctor_ShouldReportUnavailableValidationPrerequisites()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var scriptPath = Path.Combine(repositoryRoot, "scripts", "Invoke-VideraDoctor.ps1");
+        var outputRoot = Path.Combine(Path.GetTempPath(), "VideraDoctorTests", Guid.NewGuid().ToString("N"));
+        var missingBenchmarkRoot = $"artifacts/missing-benchmarks-{Guid.NewGuid():N}";
+
+        var result = RunPowerShell(
+            scriptPath,
+            outputRoot,
+            repositoryRoot,
+            "-RunBenchmarkThresholds",
+            "-BenchmarkOutputRoot",
+            missingBenchmarkRoot);
+
+        result.ExitCode.Should().Be(0, $"stdout: {result.Stdout}\nstderr: {result.Stderr}");
+
+        using var reportDocument = JsonDocument.Parse(File.ReadAllText(Path.Combine(outputRoot, "doctor-report.json")));
+        var validations = reportDocument.RootElement.GetProperty("validations")
+            .EnumerateArray()
+            .ToDictionary(
+                static validation => validation.GetProperty("id").GetString()!,
+                static validation => validation);
+
+        validations["benchmark-thresholds:Viewer"].GetProperty("status").GetString().Should().Be("unavailable");
+        validations["benchmark-thresholds:Viewer"].GetProperty("message").GetString().Should().Contain("Run-Benchmarks.ps1");
+        validations["benchmark-thresholds:SurfaceCharts"].GetProperty("status").GetString().Should().Be("unavailable");
+    }
+
+    private static DoctorRunResult RunPowerShell(string scriptPath, string outputRoot, string repositoryRoot, params string[] additionalArguments)
     {
         using var process = new Process();
         process.StartInfo = new ProcessStartInfo
@@ -128,6 +197,10 @@ public sealed class VideraDoctorRepositoryTests
         process.StartInfo.ArgumentList.Add(scriptPath);
         process.StartInfo.ArgumentList.Add("-OutputRoot");
         process.StartInfo.ArgumentList.Add(outputRoot);
+        foreach (var argument in additionalArguments)
+        {
+            process.StartInfo.ArgumentList.Add(argument);
+        }
 
         process.Start().Should().BeTrue();
         var stdout = process.StandardOutput.ReadToEnd();
