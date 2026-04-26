@@ -15,7 +15,7 @@ Use this sequence for release-candidate review, support triage, and local valida
 5. Run packaged viewer and SurfaceCharts validation through `scripts/Invoke-ConsumerSmoke.ps1`. Attach `artifacts/consumer-smoke/consumer-smoke-result.json`, `artifacts/consumer-smoke/diagnostics-snapshot.txt`, and `artifacts/consumer-smoke/surfacecharts-support-summary.txt` when packaged consumer behavior is relevant.
 6. Route issue-specific support artifacts through `docs/alpha-feedback.md`: use `Videra.MinimalSample` for the shortest viewer happy path, `Videra.Demo` for import/backend diagnostics, and `Videra.SurfaceCharts.Demo` or `smoke/Videra.SurfaceCharts.ConsumerSmoke` for chart-specific support summaries.
 
-This sequence does not publish packages, create release tags, push feeds, or replace the tag-triggered public release workflow.
+This sequence does not publish packages, create release tags, push feeds, or replace the human-approved public release workflow.
 
 ## Release control model
 
@@ -70,7 +70,17 @@ That workflow is expected to:
 
 Preview and internal validation runs through `.github/workflows/publish-github-packages.yml`.
 
-That workflow is manual (`workflow_dispatch`) and pushes preview artifacts to `GitHub Packages`.
+That workflow is manual (`workflow_dispatch`), uses the same canonical public package contract through `scripts/Validate-Packages.ps1`, and pushes preview artifacts to `GitHub Packages`. It is preview/internal evidence only; `nuget.org` remains the default public install path.
+
+## Final release simulation
+
+Before requesting approval for a real public publish, run the final non-mutating public-release simulation:
+
+```pwsh
+pwsh -File ./scripts/Invoke-FinalReleaseSimulation.ps1 -ExpectedVersion <version> -ExpectedCommit <commit>
+```
+
+The simulation runs public release preflight, checks public publish decision gates, checks preview-feed boundaries, verifies release docs, and writes `final-release-simulation-summary.json` plus `final-release-simulation-summary.txt`. It does not publish packages, create release tags, push remotes, or mutate public feeds.
 
 ## Release Dry Run
 
@@ -99,7 +109,7 @@ That workflow is expected to:
 - Alpha candidate notes should state whether Doctor, Release Dry Run, package validation, Benchmark Gates, native validation, and packaged consumer smoke passed, failed, or were not run.
 - Public release notes must link `docs/package-matrix.md`, include known alpha limitations, and reference `public-publish-after-summary.json`.
 - Known non-blockers should be listed under candidate validation notes, not under package features or fixes.
-- Dry-run evidence should be linked from release-candidate review notes, but it is not a substitute for the tag-triggered public publish workflow.
+- Dry-run evidence should be linked from release-candidate review notes, but it is not a substitute for the human-approved public publish workflow.
 - Release-candidate review notes should start from `release-candidate-evidence-index.txt`; use the JSON form when automating checklist review.
 - Failed candidates must follow the abort steps in [Release Candidate Abort and Cutover Runbook](release-candidate-cutover.md) before another cutover attempt.
 

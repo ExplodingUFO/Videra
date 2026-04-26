@@ -299,6 +299,33 @@ public sealed class ReleaseDryRunRepositoryTests
         notes.Should().Contain("Videra.Demo remains repository-only");
     }
 
+    [Fact]
+    public void FinalReleaseSimulationScript_ShouldFailClosedWhenEvidenceIsMissing()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var scriptPath = Path.Combine(repositoryRoot, "scripts", "Invoke-FinalReleaseSimulation.ps1");
+        var outputRoot = Path.Combine(Path.GetTempPath(), "VideraFinalReleaseSimulationTests", Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(outputRoot);
+
+        var result = RunPowerShell(
+            scriptPath,
+            repositoryRoot,
+            "-ExpectedVersion",
+            "0.1.0-alpha.7",
+            "-ExpectedCommit",
+            "abc123",
+            "-EvidenceRoot",
+            outputRoot,
+            "-OutputRoot",
+            outputRoot,
+            "-SkipRepositoryStateCheck");
+
+        result.ExitCode.Should().NotBe(0);
+        $"{result.Stdout}{result.Stderr}".Should().Contain("final release simulation failed");
+        File.Exists(Path.Combine(outputRoot, "final-release-simulation-summary.json")).Should().BeTrue();
+        File.Exists(Path.Combine(outputRoot, "final-release-simulation-summary.txt")).Should().BeTrue();
+    }
+
     private static string GetRepositoryRoot()
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);

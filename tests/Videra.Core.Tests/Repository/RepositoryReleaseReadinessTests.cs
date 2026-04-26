@@ -757,6 +757,49 @@ public sealed class RepositoryReleaseReadinessTests
     }
 
     [Fact]
+    public void PreviewFeedAndFinalSimulation_ShouldStayInternalAndNonMutatingForPublicFeeds()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var workflowRoot = Path.Combine(repositoryRoot, ".github", "workflows");
+        var previewWorkflow = File.ReadAllText(Path.Combine(workflowRoot, "publish-github-packages.yml"));
+        var releasePolicy = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "release-policy.md"));
+        var releasing = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "releasing.md"));
+        var readme = File.ReadAllText(Path.Combine(repositoryRoot, "README.md"));
+        var simulationScriptPath = Path.Combine(repositoryRoot, "scripts", "Invoke-FinalReleaseSimulation.ps1");
+
+        File.Exists(simulationScriptPath).Should().BeTrue();
+
+        previewWorkflow.Should().Contain("workflow_dispatch:");
+        previewWorkflow.Should().Contain("preview-packages");
+        previewWorkflow.Should().Contain("Validate-Packages.ps1");
+        previewWorkflow.Should().Contain("https://nuget.pkg.github.com/ExplodingUFO/index.json");
+        previewWorkflow.Should().NotContain("https://api.nuget.org/v3/index.json");
+        previewWorkflow.Should().NotContain("NUGET_API_KEY");
+        previewWorkflow.Should().NotContain("git tag");
+        previewWorkflow.Should().NotContain("git push");
+
+        releasePolicy.Should().Contain("GitHub Packages");
+        releasePolicy.Should().Contain("preview/internal");
+        releasePolicy.Should().Contain("not the default public consumer path");
+        releasing.Should().Contain("final non-mutating public-release simulation");
+        releasing.Should().Contain("scripts/Invoke-FinalReleaseSimulation.ps1");
+        readme.Should().Contain("nuget.org");
+        readme.Should().Contain("GitHub Packages");
+        readme.Should().Contain("preview");
+
+        var simulationScript = File.ReadAllText(simulationScriptPath);
+        simulationScript.Should().Contain("Invoke-PublicReleasePreflight.ps1");
+        simulationScript.Should().Contain("publish-public.yml");
+        simulationScript.Should().Contain("publish-existing-public-release.yml");
+        simulationScript.Should().Contain("publish-github-packages.yml");
+        simulationScript.Should().Contain("final-release-simulation-summary.json");
+        simulationScript.Should().NotContain("dotnet nuget push");
+        simulationScript.Should().NotContain("git tag");
+        simulationScript.Should().NotContain("git push");
+        simulationScript.Should().NotContain("NUGET_API_KEY");
+    }
+
+    [Fact]
     public void ReleaseDocs_ShouldTieAlphaPublishingToConsumerSmokeAndBenchmarkEvidence()
     {
         var repositoryRoot = GetRepositoryRoot();

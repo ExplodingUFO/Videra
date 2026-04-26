@@ -18,7 +18,7 @@ The public package line is:
 - `Videra.SurfaceCharts.Processing`
 - `Videra.SurfaceCharts.Avalonia`
 
-Public release tags publish these packages to `nuget.org`.
+Human-approved public release workflows publish these packages to `nuget.org` from explicit tag, version, and expected-commit inputs.
 
 The canonical public viewer stack is `Videra.Avalonia` plus exactly one matching `Videra.Platform.*` package. `Videra.Import.Gltf` and `Videra.Import.Obj` stay explicit ingestion packages on the core path; on the Avalonia path they back file loading only when a host installs them explicitly and registers them through `VideraViewOptions.UseModelImporter(...)`.
 
