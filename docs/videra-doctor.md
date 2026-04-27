@@ -80,4 +80,6 @@ pwsh -File ./scripts/Invoke-PerformanceLabVisualEvidence.ps1 -Configuration Rele
 
 Then rerun Doctor and attach both `artifacts/doctor/*` and `artifacts/performance-lab-visual-evidence/*`.
 
+`scripts/New-ReleaseCandidateEvidenceIndex.ps1` reads the existing Doctor report and Performance Lab visual evidence manifest when they are present. The generated release-candidate evidence index records their visual evidence status as optional evidence-only context; it does not run Doctor, capture screenshots, or make missing/unavailable visual evidence a publish blocker.
+
 Doctor does not publish packages, does not push packages or git remotes, does not create tags, alter package feeds, change git remotes, update machine configuration, or fix local setup. Use it to attach repository state to support reports before running deeper validation.
