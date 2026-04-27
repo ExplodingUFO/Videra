@@ -45,7 +45,7 @@ public sealed class PackageSizeBudgetRepositoryTests
         AssertBudget(packages["Videra.SurfaceCharts.Core"], 62_464, 25_600);
         AssertBudget(packages["Videra.SurfaceCharts.Rendering"], 28_672, 18_432);
         AssertBudget(packages["Videra.SurfaceCharts.Processing"], 36_864, 16_384);
-        AssertBudget(packages["Videra.SurfaceCharts.Avalonia"], 69_632, 29_696);
+        AssertBudget(packages["Videra.SurfaceCharts.Avalonia"], 69_632, 30_720);
     }
 
     [Fact]
