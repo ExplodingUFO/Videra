@@ -45,6 +45,8 @@ public sealed class SurfaceChartSoftwareRenderBackend : ISurfaceChartRenderBacke
                 FallbackReason = null,
                 UsesNativeSurface = UsesNativeSurface,
                 ResidentTileCount = 0,
+                VisibleTileCount = 0,
+                ResidentTileBytes = 0,
             };
         }
 
@@ -64,6 +66,8 @@ public sealed class SurfaceChartSoftwareRenderBackend : ISurfaceChartRenderBacke
                     FallbackReason = null,
                     UsesNativeSurface = UsesNativeSurface,
                     ResidentTileCount = 0,
+                    VisibleTileCount = 0,
+                    ResidentTileBytes = 0,
                 };
             }
 
@@ -80,6 +84,8 @@ public sealed class SurfaceChartSoftwareRenderBackend : ISurfaceChartRenderBacke
             FallbackReason = null,
             UsesNativeSurface = UsesNativeSurface,
             ResidentTileCount = state.ResidentTileCount,
+            VisibleTileCount = state.ResidentTileCount,
+            ResidentTileBytes = state.EstimatedResidentTileBytes,
         };
     }
 }

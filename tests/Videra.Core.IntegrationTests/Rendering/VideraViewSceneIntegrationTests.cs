@@ -194,6 +194,62 @@ public sealed class VideraViewSceneIntegrationTests : IDisposable
     }
 
     [Fact]
+    public void AddInstanceBatch_RetainsBatchForDiagnosticsWithoutCreatingRuntimeObjects()
+    {
+        var view = new VideraView(null, bitmapFactory: static (_, _) => null);
+        try
+        {
+            var material = CreateInstanceBatchMaterial();
+            var mesh = CreateInstanceBatchMesh(material.Id);
+            var descriptor = new InstanceBatchDescriptor(
+                "markers",
+                mesh,
+                material,
+                new[] { Matrix4x4.Identity, Matrix4x4.CreateTranslation(2f, 0f, 0f) });
+
+            view.AddInstanceBatch(descriptor);
+            RefreshBackendDiagnostics(view);
+
+            GetSceneObjects(view).Should().BeEmpty();
+            ReadSceneDocumentInstanceBatches(view).Should().ContainSingle()
+                .Which.InstanceCount.Should().Be(2);
+            view.BackendDiagnostics.InstanceBatchCount.Should().Be(1);
+            view.BackendDiagnostics.RetainedInstanceCount.Should().Be(2);
+            view.BackendDiagnostics.PickableObjectCount.Should().Be(2);
+        }
+        finally
+        {
+            view.Engine.Dispose();
+        }
+    }
+
+    [Fact]
+    public void FrameAll_IncludesRetainedInstanceBatchBounds()
+    {
+        var view = new VideraView(null, bitmapFactory: static (_, _) => null);
+        try
+        {
+            var material = CreateInstanceBatchMaterial();
+            var mesh = CreateInstanceBatchMesh(material.Id);
+            var descriptor = new InstanceBatchDescriptor(
+                "markers",
+                mesh,
+                material,
+                new[] { Matrix4x4.CreateTranslation(10f, 0f, 0f) });
+
+            view.AddInstanceBatch(descriptor);
+
+            view.FrameAll().Should().BeTrue();
+            view.Engine.Camera.Target.X.Should().BeApproximately(10.5f, 0.01f);
+            view.Engine.Camera.Target.Y.Should().BeApproximately(0.5f, 0.01f);
+        }
+        finally
+        {
+            view.Engine.Dispose();
+        }
+    }
+
+    [Fact]
     public async Task LoadModelsAsync_WithFailures_DoesNotReplaceActiveScene()
     {
         var validPath = WriteObj("atomic-valid.obj", """
@@ -1097,6 +1153,37 @@ public sealed class VideraViewSceneIntegrationTests : IDisposable
             .Where(asset => asset is not null)
             .Cast<ImportedSceneAsset>()
             .ToArray();
+    }
+
+    private static IReadOnlyList<InstanceBatchEntry> ReadSceneDocumentInstanceBatches(VideraView view)
+    {
+        var sceneDocument = VideraViewRuntimeTestAccess.ReadRuntimeField<object>(view, "_sceneDocument");
+        sceneDocument.Should().BeAssignableTo<SceneDocument>();
+        return ((SceneDocument)sceneDocument).InstanceBatches;
+    }
+
+    private static MaterialInstance CreateInstanceBatchMaterial()
+    {
+        return new MaterialInstance(MaterialInstanceId.New(), "material", RgbaFloat.White);
+    }
+
+    private static MeshPrimitive CreateInstanceBatchMesh(MaterialInstanceId materialId)
+    {
+        return new MeshPrimitive(
+            MeshPrimitiveId.New(),
+            "triangle",
+            new MeshData
+            {
+                Vertices =
+                [
+                    new VertexPositionNormalColor(new Vector3(0f, 0f, 0f), Vector3.UnitZ, RgbaFloat.White),
+                    new VertexPositionNormalColor(new Vector3(1f, 0f, 0f), Vector3.UnitZ, RgbaFloat.White),
+                    new VertexPositionNormalColor(new Vector3(0f, 1f, 0f), Vector3.UnitZ, RgbaFloat.White)
+                ],
+                Indices = [0u, 1u, 2u],
+                Topology = MeshTopology.Triangles
+            },
+            materialId);
     }
 
     private static object? ReadObjectVertexBuffer(Object3D sceneObject)

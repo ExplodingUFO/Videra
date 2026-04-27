@@ -5,6 +5,7 @@ internal readonly record struct SceneResidencyDiagnostics(
     int PendingUploads,
     long PendingUploadBytes,
     int ResidentObjects,
+    long ResidentObjectBytes,
     int DirtyObjects,
     int FailedUploads,
     int LastUploadedObjects,

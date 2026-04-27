@@ -107,7 +107,7 @@ internal sealed class VideraMeasurementSnapService
         c = default;
 
         if (hit.PrimitiveIndex is not int primitiveIndex ||
-            hit.Object.MeshPayload is not MeshPayload payload ||
+            hit.Object?.MeshPayload is not MeshPayload payload ||
             payload.Indices.Length < ((primitiveIndex + 1) * 3))
         {
             return false;

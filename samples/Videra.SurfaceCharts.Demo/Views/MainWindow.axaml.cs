@@ -199,8 +199,8 @@ public partial class MainWindow : Window
             ApplyScatterSource(
                 _scatterSource,
                 "Try next: Scatter proof",
-                "Repo-owned scatter proof on the same Avalonia chart line. Uses discrete point clouds with direct camera pose truth and no `ViewState` or `OverlayOptions` seam on this path.",
-                "The scatter proof builds two small series at startup so the view can report series count, point count, camera target, and camera distance without a cache or surface pyramid.",
+                "Repo-owned scatter proof on the same Avalonia chart line. Uses direct point clouds plus one columnar append/FIFO source with direct camera pose truth and no `ViewState` or `OverlayOptions` seam on this path.",
+                "The scatter proof builds two point-object series plus one columnar series at startup so the view can report series count, columnar count, pickable point count, camera target, and camera distance without a cache or surface pyramid.",
                 "No additional assets are used on this path.");
             return;
         }
@@ -409,6 +409,7 @@ public partial class MainWindow : Window
                 $"{_activeSourceDetails}\n" +
                 "Scatter proof navigation: Left drag orbit, Wheel dolly.\n" +
                 $"Current scene: {status.SeriesCount} series, {status.PointCount} points.\n" +
+                $"Columnar series: {status.ColumnarSeriesCount}; Pickable points: {status.PickablePointCount}.\n" +
                 $"Camera target ({status.CameraTarget.X:0.###}, {status.CameraTarget.Y:0.###}, {status.CameraTarget.Z:0.###}), distance {status.CameraDistance:0.###}";
             return;
         }
@@ -432,6 +433,7 @@ public partial class MainWindow : Window
                 $"Interaction active: {status.IsInteracting}\n" +
                 $"View size: {status.ViewSize.Width:0.#} x {status.ViewSize.Height:0.#}\n" +
                 $"Series: {status.SeriesCount}; Points: {status.PointCount}\n" +
+                $"Columnar series: {status.ColumnarSeriesCount}; Pickable points: {status.PickablePointCount}\n" +
                 $"Camera target: ({status.CameraTarget.X:0.###}, {status.CameraTarget.Y:0.###}, {status.CameraTarget.Z:0.###}); Distance: {status.CameraDistance:0.###}";
             return;
         }
@@ -636,7 +638,24 @@ public partial class MainWindow : Window
                 "Cluster"),
         };
 
-        return new ScatterChartData(metadata, series);
+        var columnarSeries = new ScatterColumnarSeries(
+            0xFF22C55Eu,
+            "Columnar stream",
+            isSortedX: true,
+            pickable: false,
+            fifoCapacity: 6);
+        columnarSeries.AppendRange(new ScatterColumnarData(
+            new float[] { 1.5f, 3.0f, 4.5f, 6.0f },
+            new float[] { 10.8f, 10.2f, 9.6f, 9.1f },
+            new float[] { 8.9f, 7.7f, 6.5f, 5.3f },
+            new float[] { 1.1f, 1.2f, 1.3f, 1.4f }));
+        columnarSeries.AppendRange(new ScatterColumnarData(
+            new float[] { 7.5f, 9.0f, 10.5f },
+            new float[] { 8.5f, 7.9f, 7.2f },
+            new float[] { 4.1f, 2.9f, 1.7f },
+            new float[] { 1.4f, 1.3f, 1.2f }));
+
+        return new ScatterChartData(metadata, series, [columnarSeries]);
     }
 
     private Task<ISurfaceTileSource> GetOrCreateCacheSourceAsync()
@@ -819,7 +838,7 @@ public partial class MainWindow : Window
     private static string CreateScatterCameraSummary(ScatterChartRenderingStatus status)
     {
         return
-            $"Camera target ({status.CameraTarget.X:0.###}, {status.CameraTarget.Y:0.###}, {status.CameraTarget.Z:0.###}), Distance {status.CameraDistance:0.###}, SeriesCount {status.SeriesCount}, PointCount {status.PointCount}";
+            $"Camera target ({status.CameraTarget.X:0.###}, {status.CameraTarget.Y:0.###}, {status.CameraTarget.Z:0.###}), Distance {status.CameraDistance:0.###}, SeriesCount {status.SeriesCount}, PointCount {status.PointCount}, ColumnarSeriesCount {status.ColumnarSeriesCount}, PickablePointCount {status.PickablePointCount}";
     }
 
     private static string CreateSurfaceRenderingDiagnosticsSummary(SurfaceChartRenderingStatus status)
@@ -831,6 +850,8 @@ public partial class MainWindow : Window
             $"FallbackReason: {status.FallbackReason ?? "none"}\n" +
             $"UsesNativeSurface: {status.UsesNativeSurface}\n" +
             $"ResidentTileCount: {status.ResidentTileCount}\n" +
+            $"VisibleTileCount: {status.VisibleTileCount}\n" +
+            $"ResidentTileBytes: {status.ResidentTileBytes} (measured by GPU resources or estimated from software tile geometry)\n" +
             $"Fallback status: {CreateFallbackText(status)}\n" +
             $"Host path: {CreateHostText(status)}";
     }
@@ -844,6 +865,8 @@ public partial class MainWindow : Window
             $"IsInteracting: {status.IsInteracting}\n" +
             $"SeriesCount: {status.SeriesCount}\n" +
             $"PointCount: {status.PointCount}\n" +
+            $"ColumnarSeriesCount: {status.ColumnarSeriesCount}\n" +
+            $"PickablePointCount: {status.PickablePointCount}\n" +
             $"ViewSize: {status.ViewSize.Width:0.#} x {status.ViewSize.Height:0.#}\n" +
             $"CameraTarget: ({status.CameraTarget.X:0.###}, {status.CameraTarget.Y:0.###}, {status.CameraTarget.Z:0.###})\n" +
             $"CameraDistance: {status.CameraDistance:0.###}";

@@ -173,6 +173,36 @@ public sealed class ScatterChartViewIntegrationTests
     }
 
     [Fact]
+    public void ScatterChartView_PublishesColumnarScatterDiagnostics_AndFitsColumnarBounds()
+    {
+        AvaloniaHeadlessTestSession.Run(() =>
+        {
+            var metadata = CreateMetadata();
+            var columnar = new ScatterColumnarSeries(0xFF22C55Eu, "Columnar", pickable: true);
+            columnar.ReplaceRange(new ScatterColumnarData(
+                new float[] { 1f, 9f },
+                new float[] { 2f, 8f },
+                new float[] { 3f, 7f }));
+            var source = new ScatterChartData(metadata, [], [columnar]);
+
+            var view = new ScatterChartView();
+            view.Measure(new Size(240, 160));
+            view.Arrange(new Rect(0, 0, 240, 160));
+            view.Source = source;
+
+            view.RenderingStatus.SeriesCount.Should().Be(1);
+            view.RenderingStatus.PointCount.Should().Be(2);
+            view.RenderingStatus.ColumnarSeriesCount.Should().Be(1);
+            view.RenderingStatus.PickablePointCount.Should().Be(2);
+
+            var expectedBounds = new SurfacePlotBounds(
+                new System.Numerics.Vector3(1f, 2f, 3f),
+                new System.Numerics.Vector3(9f, 8f, 7f));
+            view.RenderingStatus.CameraTarget.Should().Be(expectedBounds.Center);
+        });
+    }
+
+    [Fact]
     public void ScatterChartView_LeftDrag_Orbits_AndTracksInteractionState()
     {
         AvaloniaHeadlessTestSession.Run(() =>

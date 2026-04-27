@@ -20,6 +20,8 @@ public sealed class SurfaceChartRenderHostTests
         snapshot.ActiveBackend.Should().Be(SurfaceChartRenderBackendKind.Software);
         snapshot.IsReady.Should().BeFalse();
         snapshot.ResidentTileCount.Should().Be(0);
+        snapshot.VisibleTileCount.Should().Be(0);
+        snapshot.ResidentTileBytes.Should().Be(0);
         snapshot.UsesNativeSurface.Should().BeFalse();
         host.SoftwareScene.Should().BeNull();
     }
@@ -53,6 +55,8 @@ public sealed class SurfaceChartRenderHostTests
         snapshot.FallbackReason.Should().BeNull();
         snapshot.UsesNativeSurface.Should().BeFalse();
         snapshot.ResidentTileCount.Should().Be(1);
+        snapshot.VisibleTileCount.Should().Be(1);
+        snapshot.ResidentTileBytes.Should().BeGreaterThan(0);
         host.SoftwareScene.Should().NotBeNull();
         host.SoftwareScene!.Metadata.Should().BeSameAs(metadata);
         host.SoftwareScene.Tiles.Should().HaveCount(1);

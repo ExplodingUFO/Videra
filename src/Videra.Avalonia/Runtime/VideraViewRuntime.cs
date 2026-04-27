@@ -145,6 +145,8 @@ internal sealed partial class VideraViewRuntime : IDisposable
 
     internal IReadOnlyList<Object3D> SceneObjects => _sceneCoordinator.SceneObjects;
 
+    internal IReadOnlyList<InstanceBatchEntry> InstanceBatches => _sceneCoordinator.InstanceBatches;
+
     public void Dispose()
     {
         UnsubscribeFromOptions(_options);
@@ -378,7 +380,7 @@ internal sealed partial class VideraViewRuntime : IDisposable
     {
         RefreshSceneDiagnostics();
         RefreshInspectionDiagnostics();
-        var next = _sessionBridge.CreateDiagnosticsSnapshot(lastInitializationError, _sceneDiagnostics, _inspectionDiagnostics);
+        var next = _sessionBridge.CreateDiagnosticsSnapshot(lastInitializationError, _sceneDiagnostics, _inspectionDiagnostics, _sceneDocument.InstanceBatches);
         _backendDiagnostics = next;
         _owner.PublishBackendDiagnosticsFromRuntime(next);
     }

@@ -40,6 +40,16 @@ public sealed record ScatterChartRenderingStatus
     public int PointCount { get; init; }
 
     /// <summary>
+    /// Gets the number of columnar series in the current source.
+    /// </summary>
+    public int ColumnarSeriesCount { get; init; }
+
+    /// <summary>
+    /// Gets the number of columnar points marked pickable.
+    /// </summary>
+    public int PickablePointCount { get; init; }
+
+    /// <summary>
     /// Gets the last arranged view size.
     /// </summary>
     public Size ViewSize { get; init; }

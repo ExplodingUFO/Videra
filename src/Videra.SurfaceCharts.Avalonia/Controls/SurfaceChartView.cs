@@ -28,7 +28,8 @@ public partial class SurfaceChartView : Decorator
     /// <summary>
     /// Raised when the chart-local rendering backend, fallback state, or native-surface usage changes.
     /// Diagnostic fields include <c>ActiveBackend</c>, <c>IsReady</c>, <c>IsFallback</c>,
-    /// <c>FallbackReason</c>, <c>UsesNativeSurface</c>, and <c>ResidentTileCount</c>.
+    /// <c>FallbackReason</c>, <c>UsesNativeSurface</c>, <c>ResidentTileCount</c>,
+    /// <c>VisibleTileCount</c>, and <c>ResidentTileBytes</c>.
     /// </summary>
     public event EventHandler? RenderStatusChanged;
 
@@ -45,7 +46,8 @@ public partial class SurfaceChartView : Decorator
     /// <summary>
     /// Gets the latest chart-local rendering status projected from the render host.
     /// Hosts can inspect <c>ActiveBackend</c>, <c>IsReady</c>, <c>IsFallback</c>,
-    /// <c>FallbackReason</c>, <c>UsesNativeSurface</c>, and <c>ResidentTileCount</c>.
+    /// <c>FallbackReason</c>, <c>UsesNativeSurface</c>, <c>ResidentTileCount</c>,
+    /// <c>VisibleTileCount</c>, and <c>ResidentTileBytes</c>.
     /// </summary>
     public SurfaceChartRenderingStatus RenderingStatus { get; private set; }
 

@@ -66,6 +66,8 @@ public sealed class SurfaceChartGpuRenderBackend : ISurfaceChartRenderBackend, I
                 FallbackReason = null,
                 UsesNativeSurface = UsesNativeSurface,
                 ResidentTileCount = 0,
+                VisibleTileCount = 0,
+                ResidentTileBytes = 0,
             };
         }
 
@@ -84,6 +86,8 @@ public sealed class SurfaceChartGpuRenderBackend : ISurfaceChartRenderBackend, I
             FallbackReason = null,
             UsesNativeSurface = UsesNativeSurface,
             ResidentTileCount = state.ResidentTileCount,
+            VisibleTileCount = state.ResidentTileCount,
+            ResidentTileBytes = GetResidentTileBytes(),
         };
     }
 
@@ -125,6 +129,11 @@ public sealed class SurfaceChartGpuRenderBackend : ISurfaceChartRenderBackend, I
             _pixelWidth = widthPx;
             _pixelHeight = heightPx;
         }
+    }
+
+    private long GetResidentTileBytes()
+    {
+        return _tileResources.Values.Sum(static tile => (long)tile.ResidentBytes);
     }
 
     private void EnsureSharedResources()

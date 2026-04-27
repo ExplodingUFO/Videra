@@ -5,6 +5,7 @@ using Avalonia.Input;
 using Videra.Avalonia.Rendering;
 using Videra.Core.Graphics;
 using Videra.Core.Inspection;
+using Videra.Core.Scene;
 
 namespace Videra.Avalonia.Controls.Interaction;
 
@@ -17,6 +18,8 @@ internal interface IVideraInteractionHost
     VideraInteractionOptions InteractionOptions { get; }
 
     IReadOnlyList<Object3D> SceneObjects { get; }
+
+    IReadOnlyList<InstanceBatchEntry> InstanceBatches { get; }
 
     IReadOnlyList<VideraMeasurement> Measurements { get; set; }
 

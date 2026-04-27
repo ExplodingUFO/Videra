@@ -100,6 +100,126 @@ public class ScatterRendererTests
     }
 
     [Fact]
+    public void ScatterColumnarSeries_DefaultsToNonPickableHighVolumePath()
+    {
+        var series = new ScatterColumnarSeries(0xFF102030u);
+
+        series.Pickable.Should().BeFalse();
+        series.Count.Should().Be(0);
+    }
+
+    [Fact]
+    public void ScatterColumnarSeries_ReplaceRange_StoresColumnarData()
+    {
+        var series = new ScatterColumnarSeries(0xFF102030u, label: "Columnar");
+        var data = new ScatterColumnarData(
+            new float[] { 10f, 25f },
+            new float[] { 30f, 45f },
+            new float[] { 80f, 100f },
+            new float[] { 1f, 2f },
+            new uint[] { 0xFFABCDEFu, 0xFF405060u });
+
+        series.ReplaceRange(data);
+
+        series.Count.Should().Be(2);
+        series.X.ToArray().Should().Equal(10f, 25f);
+        series.Y.ToArray().Should().Equal(30f, 45f);
+        series.Z.ToArray().Should().Equal(80f, 100f);
+        series.Size.ToArray().Should().Equal(1f, 2f);
+        series.PointColor.ToArray().Should().Equal(0xFFABCDEFu, 0xFF405060u);
+    }
+
+    [Fact]
+    public void ScatterColumnarSeries_AppendRange_TrimsOldestPointsWhenFifoCapacityIsSet()
+    {
+        var series = new ScatterColumnarSeries(0xFF102030u, fifoCapacity: 3);
+        series.AppendRange(new ScatterColumnarData(
+            new float[] { 10f, 20f },
+            new float[] { 30f, 40f },
+            new float[] { 80f, 90f }));
+
+        series.AppendRange(new ScatterColumnarData(
+            new float[] { 50f, 60f },
+            new float[] { 70f, 80f },
+            new float[] { 100f, 110f }));
+
+        series.Count.Should().Be(3);
+        series.X.ToArray().Should().Equal(20f, 50f, 60f);
+        series.Y.ToArray().Should().Equal(40f, 70f, 80f);
+        series.Z.ToArray().Should().Equal(90f, 100f, 110f);
+    }
+
+    [Fact]
+    public void ScatterColumnarDataCtor_RejectsMismatchedColumnLengths()
+    {
+        var act = () => new ScatterColumnarData(
+            new float[] { 10f, 20f },
+            new float[] { 30f },
+            new float[] { 80f, 90f });
+
+        act.Should().Throw<ArgumentException>()
+            .Where(ex => ex.ParamName == "y");
+    }
+
+    [Fact]
+    public void ScatterColumnarSeries_RejectsNaNCoordinatesByDefault()
+    {
+        var series = new ScatterColumnarSeries(0xFF102030u);
+        var data = new ScatterColumnarData(
+            new float[] { 10f, float.NaN },
+            new float[] { 30f, 45f },
+            new float[] { 80f, 100f });
+
+        var act = () => series.ReplaceRange(data);
+
+        act.Should().Throw<ArgumentOutOfRangeException>()
+            .Where(ex => ex.ParamName == "X");
+    }
+
+    [Fact]
+    public void BuildScene_MapsColumnarSeriesIntoRenderReadySeries()
+    {
+        var columnar = new ScatterColumnarSeries(0xFF102030u, label: "Columnar", pickable: true);
+        columnar.ReplaceRange(new ScatterColumnarData(
+            new float[] { 10f, 25f },
+            new float[] { 30f, 45f },
+            new float[] { 80f, 100f },
+            new float[] { 1f, 2f },
+            new uint[] { 0xFFABCDEFu, 0xFF405060u }));
+        var data = new ScatterChartData(CreateMetadata(), [], [columnar]);
+
+        var scene = ScatterRenderer.BuildScene(data);
+
+        data.SeriesCount.Should().Be(1);
+        data.ColumnarSeriesCount.Should().Be(1);
+        data.PointCount.Should().Be(2);
+        data.PickablePointCount.Should().Be(2);
+        scene.Series.Should().ContainSingle();
+        scene.Series[0].Label.Should().Be("Columnar");
+        scene.Series[0].Points.Should().Equal(
+            new ScatterRenderPoint(new Vector3(10f, 30f, 80f), 0xFFABCDEFu, 1f),
+            new ScatterRenderPoint(new Vector3(25f, 45f, 100f), 0xFF405060u, 2f));
+    }
+
+    [Fact]
+    public void BuildScene_SkipsColumnarNaNGapsWhenSeriesAllowsThem()
+    {
+        var columnar = new ScatterColumnarSeries(0xFF102030u, containsNaN: true);
+        columnar.ReplaceRange(new ScatterColumnarData(
+            new float[] { 10f, float.NaN, 25f },
+            new float[] { 30f, 45f, 45f },
+            new float[] { 80f, 100f, 100f }));
+        var data = new ScatterChartData(CreateMetadata(), [], [columnar]);
+
+        var scene = ScatterRenderer.BuildScene(data);
+
+        data.PointCount.Should().Be(3);
+        scene.Series[0].Points.Should().Equal(
+            new ScatterRenderPoint(new Vector3(10f, 30f, 80f), 0xFF102030u),
+            new ScatterRenderPoint(new Vector3(25f, 45f, 100f), 0xFF102030u));
+    }
+
+    [Fact]
     public void ScatterSeriesCtor_DoesNotAllowMutatingExposedPoints()
     {
         var series = new ScatterSeries(

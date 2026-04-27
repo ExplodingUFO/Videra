@@ -181,6 +181,8 @@ public sealed class SurfaceChartIncrementalRenderingTests
                 FallbackReason = null,
                 UsesNativeSurface = UsesNativeSurface,
                 ResidentTileCount = state.ResidentTileCount,
+                VisibleTileCount = state.ResidentTileCount,
+                ResidentTileBytes = state.EstimatedResidentTileBytes,
             };
         }
     }

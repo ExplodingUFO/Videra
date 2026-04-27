@@ -54,6 +54,8 @@ public sealed class SurfaceChartRenderState
 
     public int ResidentTileCount => _residentTiles.Count;
 
+    public long EstimatedResidentTileBytes => _residentTiles.Values.Sum(EstimateResidentTileBytes);
+
     public IReadOnlyList<SurfaceChartResidentTile> ResidentTiles
     {
         get
@@ -256,5 +258,15 @@ public sealed class SurfaceChartRenderState
         return new SurfaceChartResidentTile(
             sourceTile,
             renderTile);
+    }
+
+    private static long EstimateResidentTileBytes(SurfaceChartResidentTile residentTile)
+    {
+        var geometry = residentTile.Geometry;
+        const int renderVertexBytes = (3 * sizeof(float)) + sizeof(uint);
+        return checked(
+            ((long)geometry.VertexCount * renderVertexBytes) +
+            ((long)residentTile.SampleValueMemory.Length * sizeof(float)) +
+            ((long)geometry.Indices.Count * sizeof(uint)));
     }
 }

@@ -85,6 +85,13 @@ internal sealed partial class VideraViewRuntime
         RefreshSceneDiagnostics();
     }
 
+    public void AddInstanceBatch(InstanceBatchDescriptor descriptor)
+    {
+        ArgumentNullException.ThrowIfNull(descriptor);
+        _sceneCoordinator.AddInstanceBatch(descriptor);
+        RefreshSceneDiagnostics();
+    }
+
     public void ReplaceScene(IEnumerable<Object3D> objects)
     {
         ArgumentNullException.ThrowIfNull(objects);
@@ -109,7 +116,6 @@ internal sealed partial class VideraViewRuntime
         if (TryGetMutableSceneCollection(out var boundCollection))
         {
             boundCollection.Clear();
-            return;
         }
 
         _sceneCoordinator.ClearScene();

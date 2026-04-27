@@ -330,6 +330,8 @@ public partial class MainWindow : Window
             renderingStatus.FallbackReason,
             renderingStatus.UsesNativeSurface,
             renderingStatus.ResidentTileCount,
+            renderingStatus.VisibleTileCount,
+            renderingStatus.ResidentTileBytes,
             _chartView.InteractionQuality.ToString(),
             _diagnosticsSnapshotPath,
             _supportSummaryPath);
@@ -372,7 +374,7 @@ public partial class MainWindow : Window
             "Public install stack: Videra.SurfaceCharts.Avalonia + Videra.SurfaceCharts.Processing\n" +
             $"Reason: {reason}\n" +
             $"InteractionQuality: {_chartView.InteractionQuality}\n" +
-            $"RenderingStatus: ActiveBackend {status.ActiveBackend}; IsReady {status.IsReady}; IsFallback {status.IsFallback}; ResidentTileCount {status.ResidentTileCount}";
+            $"RenderingStatus: ActiveBackend {status.ActiveBackend}; IsReady {status.IsReady}; IsFallback {status.IsFallback}; ResidentTileCount {status.ResidentTileCount}; VisibleTileCount {status.VisibleTileCount}; ResidentTileBytes {status.ResidentTileBytes}";
     }
 
     private string CreateDiagnosticsSnapshot()
@@ -387,6 +389,8 @@ public partial class MainWindow : Window
             $"FallbackReason: {status.FallbackReason ?? "none"}\n" +
             $"UsesNativeSurface: {status.UsesNativeSurface}\n" +
             $"ResidentTileCount: {status.ResidentTileCount}\n" +
+            $"VisibleTileCount: {status.VisibleTileCount}\n" +
+            $"ResidentTileBytes: {status.ResidentTileBytes}\n" +
             $"InteractionQuality: {_chartView.InteractionQuality}\n" +
             $"SupportSummaryPath: {_supportSummaryPath ?? "<unset>"}";
     }
@@ -400,7 +404,7 @@ public partial class MainWindow : Window
             "Source details: Generated at runtime from a dense 64x48 matrix, built with SurfacePyramidBuilder, and used as the packaged first-chart smoke baseline.\n" +
             $"ViewState: {CreateViewStateSummary()}\n" +
             $"InteractionQuality: {_chartView.InteractionQuality}\n" +
-            $"RenderingStatus: ActiveBackend {status.ActiveBackend}; IsReady {status.IsReady}; IsFallback {status.IsFallback}; FallbackReason {status.FallbackReason ?? "none"}; UsesNativeSurface {status.UsesNativeSurface}; ResidentTileCount {status.ResidentTileCount}\n" +
+            $"RenderingStatus: ActiveBackend {status.ActiveBackend}; IsReady {status.IsReady}; IsFallback {status.IsFallback}; FallbackReason {status.FallbackReason ?? "none"}; UsesNativeSurface {status.UsesNativeSurface}; ResidentTileCount {status.ResidentTileCount}; VisibleTileCount {status.VisibleTileCount}; ResidentTileBytes {status.ResidentTileBytes}\n" +
             $"OverlayOptions: {CreateOverlayOptionsSummary(_chartView.OverlayOptions)}\n" +
             "Dataset: Generated 64x48 in-memory matrix for the packaged first-chart consumer proof.";
     }
@@ -514,6 +518,8 @@ public partial class MainWindow : Window
         string? FallbackReason,
         bool UsesNativeSurface,
         int ResidentTileCount,
+        int VisibleTileCount,
+        long ResidentTileBytes,
         string InteractionQuality,
         string? DiagnosticsSnapshotPath,
         string? SupportSummaryPath);

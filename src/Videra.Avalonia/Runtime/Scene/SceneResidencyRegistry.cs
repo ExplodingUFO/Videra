@@ -239,6 +239,9 @@ internal sealed class SceneResidencyRegistry
             _records.Values.Count(static record => record.State == SceneResidencyState.PendingUpload || record.State == SceneResidencyState.Uploading),
             GetPendingUploadBytes(),
             _records.Values.Count(static record => record.State == SceneResidencyState.Resident),
+            _records.Values
+                .Where(static record => record.State == SceneResidencyState.Resident)
+                .Sum(static record => Math.Max(record.ApproximateUploadBytes, 1L)),
             _records.Values.Count(static record => record.State == SceneResidencyState.Dirty),
             _records.Values.Count(static record => record.State == SceneResidencyState.Failed),
             flush.UploadedRecords.Count,

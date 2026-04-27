@@ -28,6 +28,14 @@ public sealed class VideraDiagnosticsSnapshotFormatterTests
             LastFrameObjectCount = 2,
             LastFrameOpaqueObjectCount = 1,
             LastFrameTransparentObjectCount = 1,
+            LastFrameDrawCallCount = null,
+            LastFrameInstanceCount = null,
+            LastFrameVertexCount = null,
+            ResidentResourceCount = 2,
+            ResidentResourceBytes = 8192,
+            PickableObjectCount = null,
+            InstanceBatchCount = 1,
+            RetainedInstanceCount = 10,
             SupportedRenderFeatureNames = ["Opaque", "Transparent", "Overlay", "Picking", "Screenshot"],
             TransparentFeatureStatus = VideraBackendDiagnostics.CurrentTransparentFeatureStatus,
             SceneDocumentVersion = 3,
@@ -71,6 +79,17 @@ public sealed class VideraDiagnosticsSnapshotFormatterTests
         snapshot.Should().Contain("LastFrameObjectCount: 2");
         snapshot.Should().Contain("LastFrameOpaqueObjectCount: 1");
         snapshot.Should().Contain("LastFrameTransparentObjectCount: 1");
+        snapshot.Should().Contain("LastFrameObjectCountMetric: Measured scene count; not a draw-call metric.");
+        snapshot.Should().Contain("LastFrameDrawCallCount: Unavailable");
+        snapshot.Should().Contain("LastFrameInstanceCount: Unavailable");
+        snapshot.Should().Contain("LastFrameVertexCount: Unavailable");
+        snapshot.Should().Contain("LastFrameUploadBytes: 4096");
+        snapshot.Should().Contain("ResidentResourceCount: 2");
+        snapshot.Should().Contain("ResidentResourceBytes: 8192");
+        snapshot.Should().Contain("PickableObjectCount: Unavailable");
+        snapshot.Should().Contain("InstanceBatchCount: 1");
+        snapshot.Should().Contain("RetainedInstanceCount: 10");
+        snapshot.Should().Contain("PerformanceMetricSources:");
         snapshot.Should().Contain("SupportedRenderFeatureNames: Opaque, Transparent, Overlay, Picking, Screenshot");
         snapshot.Should().Contain($"TransparentFeatureStatus: {VideraBackendDiagnostics.CurrentTransparentFeatureStatus}");
         snapshot.Should().Contain("PendingSceneUploadBytes: 4096");

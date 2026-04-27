@@ -4,6 +4,7 @@ using Videra.Core.Cameras;
 using Videra.Core.Geometry;
 using Videra.Core.Graphics;
 using Videra.Core.Graphics.Abstractions;
+using Videra.Core.Scene;
 using Videra.Core.Selection;
 using Xunit;
 
@@ -92,6 +93,62 @@ public class SceneHitTestServiceTests
         result.PrimaryHit.PrimitiveIndex.Should().BeNull();
     }
 
+    [Fact]
+    public void HitTest_WhenInstanceBatchIsHit_ReturnsObjectIdAndInstanceIndex()
+    {
+        var material = CreateMaterial();
+        var mesh = CreateMesh(material.Id);
+        var firstId = Guid.NewGuid();
+        var secondId = Guid.NewGuid();
+        var descriptor = new InstanceBatchDescriptor(
+            "markers",
+            mesh,
+            material,
+            new[] { Matrix4x4.CreateTranslation(-4f, 0f, 0f), Matrix4x4.Identity },
+            objectIds: new[] { firstId, secondId });
+        var batch = SceneDocument.Empty.AddInstanceBatch(descriptor).InstanceBatches[0];
+        var camera = CreateCamera();
+        var request = new SceneHitTestRequest(
+            camera,
+            new Vector2(800f, 600f),
+            new Vector2(400f, 300f),
+            [],
+            [batch]);
+
+        var result = new SceneHitTestService().HitTest(request);
+
+        result.PrimaryHit.Should().NotBeNull();
+        result.PrimaryHit!.ObjectId.Should().Be(secondId);
+        result.PrimaryHit.InstanceIndex.Should().Be(1);
+        result.PrimaryHit.Object.Should().BeNull();
+    }
+
+    [Fact]
+    public void HitTest_WhenInstanceBatchIsNotPickable_IgnoresBatch()
+    {
+        var material = CreateMaterial();
+        var mesh = CreateMesh(material.Id);
+        var descriptor = new InstanceBatchDescriptor(
+            "markers",
+            mesh,
+            material,
+            new[] { Matrix4x4.Identity },
+            pickable: false);
+        var batch = SceneDocument.Empty.AddInstanceBatch(descriptor).InstanceBatches[0];
+        var camera = CreateCamera();
+        var request = new SceneHitTestRequest(
+            camera,
+            new Vector2(800f, 600f),
+            new Vector2(400f, 300f),
+            [],
+            [batch]);
+
+        var result = new SceneHitTestService().HitTest(request);
+
+        result.PrimaryHit.Should().BeNull();
+        result.Hits.Should().BeEmpty();
+    }
+
     private static OrbitCamera CreateCamera()
     {
         var camera = new OrbitCamera();
@@ -162,5 +219,19 @@ public class SceneHitTestServiceTests
             Indices = [0u, 1u, 99u],
             Topology = MeshTopology.Triangles
         };
+    }
+
+    private static MaterialInstance CreateMaterial()
+    {
+        return new MaterialInstance(MaterialInstanceId.New(), "material", RgbaFloat.White);
+    }
+
+    private static MeshPrimitive CreateMesh(MaterialInstanceId materialId)
+    {
+        return new MeshPrimitive(
+            MeshPrimitiveId.New(),
+            "triangle",
+            CreateSlantedTriangleMesh(),
+            materialId);
     }
 }

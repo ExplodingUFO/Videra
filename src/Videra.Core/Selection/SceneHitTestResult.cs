@@ -18,9 +18,10 @@ public sealed class SceneHitTestResult
 
     public sealed record SceneHit(
         Guid ObjectId,
-        Object3D Object,
+        Object3D? Object,
         float Distance,
         Vector3 WorldPoint,
         Vector3 WorldNormal,
-        int? PrimitiveIndex);
+        int? PrimitiveIndex,
+        int? InstanceIndex = null);
 }

@@ -12,7 +12,7 @@ The sample stays separate from `Videra.Demo` and `VideraView`. It exercises the 
 - `Explore next: Cache-backed streaming`: loads manifest metadata from `Assets/sample-surface-cache/sample.surfacecache.json`, then uses lazy tile streaming from `Assets/sample-surface-cache/sample.surfacecache.json.bin` through `SurfaceCacheReader` and `SurfaceCacheTileSource`.
 - `Try next: Analytics proof`: exercises an explicit-coordinate `SurfaceChartView` path with independent scalar `ColorField` and pinned-probe workflow proof data.
 - `Try next: Waterfall proof`: exercises the thin `WaterfallChartView` proof on the same Avalonia shell.
-- `Try next: Scatter proof`: exercises the direct `ScatterChartView` proof path on the same Avalonia shell with repo-owned scatter data.
+- `Try next: Scatter proof`: exercises the direct `ScatterChartView` proof path on the same Avalonia shell with repo-owned point-object data plus a columnar append/FIFO series.
 
 SurfaceChartView now exposes `ViewState` as the primary chart-view contract while `Viewport` remains a compatibility bridge for existing hosts.
 SurfaceChartView now ships built-in `left-drag orbit`, `right-drag pan`, `wheel dolly`, `Ctrl + left-drag` focus zoom, and `Shift + left-click` pinned probe on top of the `ViewState` runtime contract.
@@ -21,7 +21,7 @@ The public interaction diagnostics are `InteractionQuality` + `InteractionQualit
 The public overlay configuration seam is `SurfaceChartOverlayOptions` through `OverlayOptions`; overlay state types remain internal.
 Hosts own `ISurfaceTileSource`, persisted `ViewState`, color-map selection, and chart-local product UI.
 `SurfaceChartView` owns chart-local built-in gestures, tile scheduling/cache, overlay presentation, native-host/render-host orchestration, and `RenderingStatus` projection.
-The public rendering truth is `RenderingStatus` + `RenderStatusChanged` with `ActiveBackend`, `IsReady`, `IsFallback`, `FallbackReason`, `UsesNativeSurface`, and `ResidentTileCount`.
+The public rendering truth is `RenderingStatus` + `RenderStatusChanged` with `ActiveBackend`, `IsReady`, `IsFallback`, `FallbackReason`, `UsesNativeSurface`, `ResidentTileCount`, `VisibleTileCount`, and `ResidentTileBytes`.
 The `Videra.SurfaceCharts.*` family is part of the current public package promise. The public chart package line is `Videra.SurfaceCharts.Avalonia` plus `Videra.SurfaceCharts.Processing` for the surface/cache-backed path. `Videra.SurfaceCharts.Avalonia` brings `Videra.SurfaceCharts.Core` and `Videra.SurfaceCharts.Rendering` transitively. This demo remains repository-only.
 
 The committed cache sample uses a tiled manifest+sidecar layout so panning, dolly, and focus changes request different cache tiles instead of materializing every tile value into memory up front.
@@ -33,7 +33,7 @@ The committed cache sample uses a tiled manifest+sidecar layout so panning, doll
 3. Move to `Explore next: Cache-backed streaming` only after the first chart path works and you want to validate lazy tile reads plus the broader demo surfaces.
 4. Use `Try next: Analytics proof` to validate explicit-coordinate sampling and independent color scalar flow while keeping `SurfaceChartView` as the proof host.
 5. Use `Try next: Waterfall proof` when you want the second control proof on the same Avalonia shell.
-6. Use `Try next: Scatter proof` when you want the direct scatter proof on the same Avalonia shell.
+6. Use `Try next: Scatter proof` when you want the direct scatter proof and columnar data-path diagnostics on the same Avalonia shell.
 
 ## Run
 
@@ -48,7 +48,7 @@ dotnet run --project samples/Videra.SurfaceCharts.Demo/Videra.SurfaceCharts.Demo
 - an `Explore next` cache-backed streaming path
 - a `Try next` analytics proof with explicit/non-uniform coordinates and independent `ColorField` on `SurfaceChartView`
 - a `Try next` waterfall proof path
-- a `Try next` scatter proof path
+- a `Try next` scatter proof path with direct point-object data and a columnar append/FIFO series
 - built-in `left-drag orbit`, `right-drag pan`, `wheel dolly`, and `Ctrl + left-drag` focus zoom on the surface and waterfall proof paths; the scatter proof keeps left-drag orbit and wheel dolly only
 - a `View-state contract` panel that projects `ViewState`, `FitToData()`, `ResetCamera()`, and `ZoomTo(...)`
 - an `Interaction quality` panel that projects `Interactive` and `Refine`
@@ -59,7 +59,8 @@ dotnet run --project samples/Videra.SurfaceCharts.Demo/Videra.SurfaceCharts.Demo
 - hover readout and `Shift + left-click` pinned probes on the chart surface
 - the shipped `GPU-first` renderer path used by `SurfaceChartView`, with `software fallback` still available when native-host or GPU initialization is unavailable
 - a lightweight rendering-path panel driven by `RenderingStatus` / `RenderStatusChanged`
-- a dedicated `RenderingStatus` diagnostics panel that exposes the active backend, readiness, fallback status/reason, native-host state, and resident tile count for the active surface chart path
+- a dedicated `RenderingStatus` diagnostics panel that exposes the active backend, readiness, fallback status/reason, native-host state, resident tile count, visible tile count, and resident tile bytes for the active surface chart path
+- scatter diagnostics for series count, point count, columnar series count, and pickable point count; the columnar high-volume path defaults to `Pickable=false`
 
 ## What The Demo Does Not Show Yet
 

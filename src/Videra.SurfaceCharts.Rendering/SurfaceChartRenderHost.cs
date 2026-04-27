@@ -31,6 +31,8 @@ public sealed class SurfaceChartRenderHost
             FallbackReason = null,
             UsesNativeSurface = false,
             ResidentTileCount = 0,
+            VisibleTileCount = 0,
+            ResidentTileBytes = 0,
         };
         RenderingStatus = SurfaceChartRenderingStatus.FromSnapshot(Snapshot);
     }

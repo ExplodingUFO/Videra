@@ -35,6 +35,11 @@ public partial class MainWindowViewModel : ViewModelBase
     private readonly IEnumerable<WireframeMode> _availableWireframeModes =
         Enum.GetValues<WireframeMode>().ToArray();
 
+    private readonly IEnumerable<PerformanceLabMode> _availablePerformanceLabModes =
+        Enum.GetValues<PerformanceLabMode>().ToArray();
+
+    private readonly IReadOnlyList<int> _availablePerformanceLabObjectCounts = [1000, 5000, 10000];
+
     private IModelImporter? _importer;
     private IDemoViewportActions? _viewportActions;
     private VideraBackendDiagnostics? _lastBackendDiagnostics;
@@ -71,6 +76,11 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty] private string _importReport = DemoSupportReportBuilder.FormatImportReport(null);
     [ObservableProperty] private string _diagnosticsBundle = string.Empty;
     [ObservableProperty] private string _minimalReproduction = string.Empty;
+    [ObservableProperty] private int _performanceLabObjectCount = 5000;
+    [ObservableProperty] private PerformanceLabMode _performanceLabMode = PerformanceLabMode.InstanceBatch;
+    [ObservableProperty] private bool _performanceLabPickable = true;
+    [ObservableProperty] private string _performanceLabDiagnostics = "No performance lab dataset generated.";
+    [ObservableProperty] private string _performanceLabSnapshot = "No performance lab snapshot generated.";
     [ObservableProperty] private Color _bgColor = Color.Parse("#1e1e1e");
 
     [ObservableProperty]
@@ -86,6 +96,10 @@ public partial class MainWindowViewModel : ViewModelBase
     public IEnumerable<RenderStylePreset> AvailablePresets => _availablePresets;
 
     public IEnumerable<WireframeMode> AvailableWireframeModes => _availableWireframeModes;
+
+    public IEnumerable<PerformanceLabMode> AvailablePerformanceLabModes => _availablePerformanceLabModes;
+
+    public IReadOnlyList<int> AvailablePerformanceLabObjectCounts => _availablePerformanceLabObjectCounts;
 
     public bool IsWireframeEnabled => WireframeMode != WireframeMode.None;
 
@@ -222,6 +236,13 @@ public partial class MainWindowViewModel : ViewModelBase
     public void SetStatusMessage(string message)
     {
         StatusMessage = message;
+    }
+
+    public void UpdatePerformanceLabReport(string diagnostics, string snapshot, string statusMessage)
+    {
+        PerformanceLabDiagnostics = diagnostics;
+        PerformanceLabSnapshot = snapshot;
+        StatusMessage = statusMessage;
     }
 
     public bool HasImporter => _importer is not null;
@@ -382,4 +403,10 @@ public partial class MainWindowViewModel : ViewModelBase
             ? string.Join(", ", features)
             : "None";
     }
+}
+
+public enum PerformanceLabMode
+{
+    NormalObjects,
+    InstanceBatch
 }

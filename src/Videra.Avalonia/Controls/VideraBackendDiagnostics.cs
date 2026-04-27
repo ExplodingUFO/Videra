@@ -25,6 +25,15 @@ public sealed class VideraBackendDiagnostics
             LastFrameObjectCount = 0,
             LastFrameOpaqueObjectCount = 0,
             LastFrameTransparentObjectCount = 0,
+            LastFrameDrawCallCount = null,
+            LastFrameInstanceCount = null,
+            LastFrameVertexCount = null,
+            LastFrameUploadedBytes = 0,
+            ResidentResourceCount = 0,
+            ResidentResourceBytes = 0,
+            PickableObjectCount = null,
+            InstanceBatchCount = 0,
+            RetainedInstanceCount = 0,
             SupportedRenderFeatureNames = (
                 RenderFeatureSet.Opaque |
                 RenderFeatureSet.Transparent |
@@ -39,7 +48,6 @@ public sealed class VideraBackendDiagnostics
             DirtySceneObjects = 0,
             FailedSceneUploads = 0,
             LastFrameUploadedObjects = 0,
-            LastFrameUploadedBytes = 0,
             LastFrameUploadFailures = 0,
             LastFrameUploadDuration = TimeSpan.Zero,
             ResolvedUploadBudgetObjects = 0,
@@ -140,6 +148,55 @@ public sealed class VideraBackendDiagnostics
     /// Gets the number of transparent scene objects owned by the runtime when the last frame snapshot was captured.
     /// </summary>
     public int LastFrameTransparentObjectCount { get; init; }
+
+    /// <summary>
+    /// Gets the measured draw-call count for the last frame when the active backend reports it.
+    /// A <c>null</c> value means the current backend path does not expose this metric yet.
+    /// </summary>
+    public int? LastFrameDrawCallCount { get; init; }
+
+    /// <summary>
+    /// Gets the measured submitted instance count for the last frame when available.
+    /// A <c>null</c> value means the current backend path does not expose this metric yet.
+    /// </summary>
+    public int? LastFrameInstanceCount { get; init; }
+
+    /// <summary>
+    /// Gets the measured submitted vertex count for the last frame when available.
+    /// A <c>null</c> value means the current backend path does not expose this metric yet.
+    /// </summary>
+    public long? LastFrameVertexCount { get; init; }
+
+    /// <summary>
+    /// Gets the measured bytes uploaded by the scene residency pipeline during the last frame.
+    /// </summary>
+    public long LastFrameUploadBytes => LastFrameUploadedBytes;
+
+    /// <summary>
+    /// Gets the measured count of resident scene resources currently tracked by the residency pipeline.
+    /// </summary>
+    public int ResidentResourceCount { get; init; }
+
+    /// <summary>
+    /// Gets the estimated resident resource bytes currently tracked by the scene residency pipeline.
+    /// </summary>
+    public long ResidentResourceBytes { get; init; }
+
+    /// <summary>
+    /// Gets the measured pickable object count when the active picking path reports it.
+    /// A <c>null</c> value means the current backend path does not expose this metric yet.
+    /// </summary>
+    public int? PickableObjectCount { get; init; }
+
+    /// <summary>
+    /// Gets the retained instance-batch count in the active scene document.
+    /// </summary>
+    public int InstanceBatchCount { get; init; }
+
+    /// <summary>
+    /// Gets the retained instance count across all active instance batches.
+    /// </summary>
+    public int RetainedInstanceCount { get; init; }
 
     /// <summary>
     /// Gets the public render-feature contract names exposed through the viewer diagnostics surface.

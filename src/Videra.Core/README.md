@@ -26,6 +26,7 @@ Use [docs/capability-matrix.md](../../docs/capability-matrix.md) for the explici
 - `SceneNode`
 - `MeshPrimitive`
 - `MaterialInstance`
+- `InstanceBatchDescriptor` / `InstanceBatchEntry` for the first same-mesh/same-material instance-batch contract
 - `Texture2D`
 - `Sampler`
 - `Object3D`
@@ -56,7 +57,7 @@ Current profiles:
 - `StandardWithWireframeOverlay`
 - `WireframeOnly`
 
-When consumed through `Videra.Avalonia`, the control diagnostics mirror the same information through `RenderPipelineProfile`, `LastFrameStageNames`, `LastFrameObjectCount`, `LastFrameOpaqueObjectCount`, `LastFrameTransparentObjectCount`, and `UsesSoftwarePresentationCopy`. Those last-frame counts are backend-neutral scene diagnostics, not draw-call metrics.
+When consumed through `Videra.Avalonia`, the control diagnostics mirror the same information through `RenderPipelineProfile`, `LastFrameStageNames`, `LastFrameObjectCount`, `LastFrameOpaqueObjectCount`, `LastFrameTransparentObjectCount`, and `UsesSoftwarePresentationCopy`. Those last-frame counts are backend-neutral scene diagnostics, not draw-call metrics. Renderer-cost fields such as `LastFrameDrawCallCount`, `LastFrameInstanceCount`, `LastFrameVertexCount`, and `PickableObjectCount` are nullable so unsupported backend paths can report `Unavailable` instead of inventing measurements.
 
 Stable feature vocabulary:
 
@@ -67,6 +68,8 @@ Stable feature vocabulary:
 - `Screenshot`
 
 `Transparent` means alpha mask rendering plus deterministic alpha blend ordering for per-primitive carried alpha sources; broader transparency work stays deferred. Public feature truth flows through `RenderCapabilitySnapshot.SupportedFeatureNames`, `RenderPipelineSnapshot.FeatureNames`, `BackendDiagnostics.LastFrameFeatureNames`, `BackendDiagnostics.SupportedRenderFeatureNames`, `BackendDiagnostics.LastFrameObjectCount`, `BackendDiagnostics.LastFrameOpaqueObjectCount`, `BackendDiagnostics.LastFrameTransparentObjectCount`, and `TransparentFeatureStatus`.
+
+The first instance-batch contract is intentionally narrow: `InstanceBatchDescriptor` accepts one `MeshPrimitive`, one matching `MaterialInstance`, per-instance `Matrix4x4` transforms, optional per-instance `RgbaFloat` colors, optional per-instance `Guid` object ids, and a `Pickable` flag. `SceneDocument.AddInstanceBatch(...)` records an `InstanceBatchEntry` with batch-level bounds. Multi-geometry batching, per-instance material overrides, transparent `Blend` material sorting, GPU-driven culling, indirect draw, and ECS-style ownership are outside this contract.
 
 ## Built-in Backend Minimum Contract
 
