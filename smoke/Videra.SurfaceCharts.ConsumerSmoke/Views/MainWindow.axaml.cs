@@ -15,6 +15,11 @@ namespace Videra.SurfaceCharts.ConsumerSmoke.Views;
 
 public partial class MainWindow : Window
 {
+    private static readonly JsonSerializerOptions ReportJsonOptions = new()
+    {
+        WriteIndented = true
+    };
+
     private readonly SurfaceChartView _chartView;
     private readonly TextBlock _statusText;
     private readonly string? _outputPath;
@@ -340,12 +345,7 @@ public partial class MainWindow : Window
             Directory.CreateDirectory(Path.GetDirectoryName(_outputPath!)!);
             await File.WriteAllTextAsync(
                 _outputPath!,
-                JsonSerializer.Serialize(
-                    report,
-                    new JsonSerializerOptions
-                    {
-                        WriteIndented = true
-                    })).ConfigureAwait(true);
+                JsonSerializer.Serialize(report, ReportJsonOptions)).ConfigureAwait(true);
             Trace($"Wrote report: {_outputPath}");
         }
 
