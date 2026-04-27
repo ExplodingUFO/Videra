@@ -123,12 +123,9 @@ public sealed class ScatterChartData
             }
 
             totalCount += scatterSeries.Points.Count;
-            foreach (var point in scatterSeries.Points)
+            if (scatterSeries.Points.Any(point => !metadata.Contains(point)))
             {
-                if (!metadata.Contains(point))
-                {
-                    throw new ArgumentException("Scatter points must remain within the declared metadata bounds.", nameof(series));
-                }
+                throw new ArgumentException("Scatter points must remain within the declared metadata bounds.", nameof(series));
             }
         }
 

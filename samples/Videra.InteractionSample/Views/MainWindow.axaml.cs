@@ -280,24 +280,18 @@ public partial class MainWindow : Window
                 selected = e.ObjectIds.Distinct().ToList();
                 break;
             case VideraSelectionOperation.Add:
-                foreach (var objectId in e.ObjectIds)
-                {
-                    if (!selected.Contains(objectId))
-                    {
-                        selected.Add(objectId);
-                    }
-                }
-
+                selected.AddRange(e.ObjectIds.Where(objectId => !selected.Contains(objectId)));
                 break;
             case VideraSelectionOperation.Toggle:
-                foreach (var objectId in e.ObjectIds)
+                selected = e.ObjectIds.Aggregate(selected, (current, objectId) =>
                 {
-                    if (!selected.Remove(objectId))
+                    if (!current.Remove(objectId))
                     {
-                        selected.Add(objectId);
+                        current.Add(objectId);
                     }
-                }
 
+                    return current;
+                });
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(e), e.Operation, "Unknown selection operation.");

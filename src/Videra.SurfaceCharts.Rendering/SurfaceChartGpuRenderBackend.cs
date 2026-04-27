@@ -289,12 +289,9 @@ public sealed class SurfaceChartGpuRenderBackend : ISurfaceChartRenderBackend, I
 
     private void EnsureResidentTileResources(SurfaceChartRenderState state)
     {
-        foreach (var residentTile in state.ResidentTiles)
+        foreach (var residentTile in state.ResidentTiles.Where(residentTile => !_tileResources.ContainsKey(residentTile.Key)))
         {
-            if (!_tileResources.ContainsKey(residentTile.Key))
-            {
-                AddOrReplaceTileResources(residentTile, state);
-            }
+            AddOrReplaceTileResources(residentTile, state);
         }
     }
 
