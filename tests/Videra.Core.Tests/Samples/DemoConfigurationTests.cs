@@ -313,9 +313,11 @@ public sealed class DemoConfigurationTests
         var mainWindowPath = Path.Combine(repositoryRoot, "samples", "Videra.Demo", "Views", "MainWindow.axaml");
         var codeBehindPath = Path.Combine(repositoryRoot, "samples", "Videra.Demo", "Views", "MainWindow.axaml.cs");
         var viewModelPath = Path.Combine(repositoryRoot, "samples", "Videra.Demo", "ViewModels", "MainWindowViewModel.cs");
+        var snapshotBuilderPath = Path.Combine(repositoryRoot, "samples", "Videra.Demo", "Services", "PerformanceLabEvidenceSnapshotBuilder.cs");
         var xaml = File.ReadAllText(mainWindowPath);
         var codeBehind = File.ReadAllText(codeBehindPath);
         var viewModel = File.ReadAllText(viewModelPath);
+        var snapshotBuilder = File.ReadAllText(snapshotBuilderPath);
 
         xaml.Should().Contain("PERFORMANCE LAB");
         xaml.Should().Contain("AvailablePerformanceLabViewerScenarios");
@@ -328,8 +330,10 @@ public sealed class DemoConfigurationTests
         codeBehind.Should().Contain("SceneHitTestService");
         codeBehind.Should().Contain("PickLatencyMs");
         codeBehind.Should().Contain("RetainedInstanceCount");
-        codeBehind.Should().Contain("EvidenceKind: PerformanceLabDatasetProof");
-        codeBehind.Should().Contain("EvidenceOnly: true");
+        codeBehind.Should().Contain("PerformanceLabEvidenceSnapshotBuilder.Build");
+        snapshotBuilder.Should().Contain("EvidenceKind: PerformanceLabDatasetProof");
+        snapshotBuilder.Should().Contain("EvidenceOnly: true");
+        snapshotBuilder.Should().Contain("Backend diagnostics");
         codeBehind.Should().Contain("ScenarioId:");
         viewModel.Should().Contain("PerformanceLabSnapshot");
         viewModel.Should().Contain("PerformanceLabMode");

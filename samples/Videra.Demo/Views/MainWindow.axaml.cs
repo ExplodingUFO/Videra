@@ -221,13 +221,14 @@ public partial class MainWindow : Window
             pickStopwatch.Elapsed,
             hit,
             diagnostics);
-        var snapshot = BuildPerformanceLabSnapshot(
+        var snapshot = PerformanceLabEvidenceSnapshotBuilder.Build(
             scenario,
-            mode,
+            mode.ToString(),
             objectCount,
             pickable,
             diagnosticsText,
-            diagnostics);
+            diagnostics,
+            DateTimeOffset.UtcNow);
         return new PerformanceLabResult(mode, objectCount, diagnosticsText, snapshot);
     }
 
@@ -308,41 +309,6 @@ public partial class MainWindow : Window
         builder.AppendLine($"SubmittedInstances: {FormatNullable(diagnostics.LastFrameInstanceCount)}");
         builder.AppendLine($"RetainedInstanceCount: {diagnostics.RetainedInstanceCount}");
         builder.AppendLine($"PickableObjectCount: {FormatNullable(diagnostics.PickableObjectCount)}");
-        return builder.ToString().TrimEnd();
-    }
-
-    private static string BuildPerformanceLabSnapshot(
-        PerformanceLabViewerScenario scenario,
-        PerformanceLabMode mode,
-        int objectCount,
-        bool pickable,
-        string diagnosticsText,
-        VideraBackendDiagnostics diagnostics)
-    {
-        var builder = new StringBuilder();
-        builder.AppendLine("Videra Performance Lab snapshot");
-        builder.AppendLine($"GeneratedUtc: {DateTimeOffset.UtcNow:O}");
-        builder.AppendLine("EvidenceKind: PerformanceLabDatasetProof");
-        builder.AppendLine("EvidenceOnly: true - values are support evidence, not stable benchmark guarantees.");
-        builder.AppendLine();
-        builder.AppendLine("Scenario");
-        builder.AppendLine($"ScenarioId: {scenario.Id}");
-        builder.AppendLine($"ScenarioName: {scenario.DisplayName}");
-        builder.AppendLine($"ScenarioSize: {scenario.Size}");
-        builder.AppendLine($"Mode: {mode}");
-        builder.AppendLine($"ObjectCount: {objectCount}");
-        builder.AppendLine($"Pickable: {pickable}");
-        builder.AppendLine();
-        builder.AppendLine("Runtime status");
-        builder.AppendLine($"BackendReady: {diagnostics.IsReady}");
-        builder.AppendLine($"ResolvedBackend: {diagnostics.ResolvedBackend}");
-        builder.AppendLine($"SoftwareFallback: {diagnostics.IsUsingSoftwareFallback}");
-        builder.AppendLine();
-        builder.AppendLine("Scenario diagnostics");
-        builder.AppendLine(diagnosticsText);
-        builder.AppendLine();
-        builder.AppendLine("Backend diagnostics");
-        builder.AppendLine(VideraDiagnosticsSnapshotFormatter.Format(diagnostics));
         return builder.ToString().TrimEnd();
     }
 

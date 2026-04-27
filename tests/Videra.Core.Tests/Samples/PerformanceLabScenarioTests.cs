@@ -1,5 +1,8 @@
+using System.Globalization;
 using FluentAssertions;
+using Videra.Avalonia.Controls;
 using Videra.Demo.Services;
+using Videra.Demo.ViewModels;
 using Videra.SurfaceCharts.Demo.Services;
 using Xunit;
 
@@ -66,5 +69,43 @@ public class PerformanceLabScenarioTests
         fifo.FifoCapacity.Should().Be(100_000);
         fifo.TotalDroppedPointCount.Should().Be(50_000);
         fifo.LastDroppedPointCount.Should().Be(50_000);
+    }
+
+    [Fact]
+    public void ViewModel_SelectedViewerScenario_ShouldUpdateBoundedControlState()
+    {
+        var viewModel = new MainWindowViewModel();
+        var large = PerformanceLabViewerScenarios.Get("viewer-instance-large");
+
+        viewModel.SelectedPerformanceLabViewerScenario = large;
+
+        viewModel.PerformanceLabObjectCount.Should().Be(large.ObjectCount);
+        viewModel.PerformanceLabPickable.Should().BeFalse();
+    }
+
+    [Fact]
+    public void PerformanceLabEvidenceSnapshotBuilder_ShouldIncludeReproducibleEvidenceFields()
+    {
+        var scenario = PerformanceLabViewerScenarios.Get("viewer-instance-small");
+        var diagnostics = VideraBackendDiagnostics.CreateDefault();
+        var generatedUtc = DateTimeOffset.Parse("2026-04-27T08:00:00Z", CultureInfo.InvariantCulture);
+
+        var snapshot = PerformanceLabEvidenceSnapshotBuilder.Build(
+            scenario,
+            "InstanceBatch",
+            scenario.ObjectCount,
+            scenario.Pickable,
+            "PickLatencyMs: 0.125",
+            diagnostics,
+            generatedUtc);
+
+        snapshot.Should().Contain("GeneratedUtc: 2026-04-27T08:00:00.0000000+00:00");
+        snapshot.Should().Contain("EvidenceKind: PerformanceLabDatasetProof");
+        snapshot.Should().Contain("EvidenceOnly: true");
+        snapshot.Should().Contain($"ScenarioId: {scenario.Id}");
+        snapshot.Should().Contain($"ObjectCount: {scenario.ObjectCount}");
+        snapshot.Should().Contain("PickLatencyMs: 0.125");
+        snapshot.Should().Contain("Backend diagnostics");
+        snapshot.Should().Contain("RequestedBackend:");
     }
 }
