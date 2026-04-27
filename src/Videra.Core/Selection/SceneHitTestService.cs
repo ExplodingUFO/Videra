@@ -1,5 +1,7 @@
 using System.Numerics;
 using Videra.Core.Geometry;
+using Videra.Core.Graphics;
+using Videra.Core.Scene;
 
 namespace Videra.Core.Selection;
 
@@ -9,7 +11,7 @@ public sealed class SceneHitTestService
     {
         ArgumentNullException.ThrowIfNull(request);
 
-        if (request.Objects.Count == 0)
+        if (request.Objects.Count == 0 && request.InstanceBatches.Count == 0)
         {
             return SceneHitTestResult.Empty;
         }
@@ -21,6 +23,7 @@ public sealed class SceneHitTestService
 
         var hits = request.Objects
             .Select(obj => TryCreateHit(obj, rayOrigin, rayDirection))
+            .Concat(request.InstanceBatches.SelectMany(batch => CreateBatchHits(batch, rayOrigin, rayDirection)))
             .Where(hit => hit is not null)
             .Select(hit => hit!)
             .OrderBy(hit => hit.Distance)
@@ -29,8 +32,51 @@ public sealed class SceneHitTestService
         return hits.Length == 0 ? SceneHitTestResult.Empty : new SceneHitTestResult(hits);
     }
 
+    private static IReadOnlyList<SceneHitTestResult.SceneHit> CreateBatchHits(
+        InstanceBatchEntry batch,
+        Vector3 rayOrigin,
+        Vector3 rayDirection)
+    {
+        if (!batch.Pickable)
+        {
+            return Array.Empty<SceneHitTestResult.SceneHit>();
+        }
+
+        var transforms = batch.Transforms.Span;
+        var objectIds = batch.ObjectIds.Span;
+        var payload = batch.Mesh.Payload;
+        var localBounds = payload.LocalBounds;
+        var hits = new List<SceneHitTestResult.SceneHit>();
+
+        for (var i = 0; i < transforms.Length; i++)
+        {
+            var transform = transforms[i];
+            var objectId = objectIds.IsEmpty ? batch.EntryId.Value : objectIds[i];
+            if (TryCreateMeshHit(payload, transform, objectId, i, rayOrigin, rayDirection, out var meshHit))
+            {
+                hits.Add(meshHit!);
+                continue;
+            }
+
+            var bounds = localBounds.Transform(transform);
+            if (TryIntersectRay(bounds, rayOrigin, rayDirection, out var distance, out var normal))
+            {
+                hits.Add(new SceneHitTestResult.SceneHit(
+                    objectId,
+                    Object: null,
+                    distance,
+                    rayOrigin + (rayDirection * distance),
+                    normal,
+                    PrimitiveIndex: null,
+                    InstanceIndex: i));
+            }
+        }
+
+        return hits;
+    }
+
     private static SceneHitTestResult.SceneHit? TryCreateHit(
-        Graphics.Object3D obj,
+        Object3D obj,
         Vector3 rayOrigin,
         Vector3 rayDirection)
     {
@@ -56,7 +102,7 @@ public sealed class SceneHitTestService
     }
 
     private static bool TryCreateMeshHit(
-        Graphics.Object3D obj,
+        Object3D obj,
         Vector3 rayOrigin,
         Vector3 rayDirection,
         out SceneHitTestResult.SceneHit? hit)
@@ -98,6 +144,55 @@ public sealed class SceneHitTestService
             worldPoint,
             worldNormal,
             meshHit.PrimitiveIndex);
+        return true;
+    }
+
+    private static bool TryCreateMeshHit(
+        MeshPayload payload,
+        Matrix4x4 worldMatrix,
+        Guid objectId,
+        int instanceIndex,
+        Vector3 rayOrigin,
+        Vector3 rayDirection,
+        out SceneHitTestResult.SceneHit? hit)
+    {
+        hit = null;
+
+        if (payload.Topology != Graphics.Abstractions.MeshTopology.Triangles || payload.Indices.Length < 3)
+        {
+            return false;
+        }
+
+        if (!Matrix4x4.Invert(worldMatrix, out var inverseWorld))
+        {
+            return false;
+        }
+
+        var localOrigin = Vector3.Transform(rayOrigin, inverseWorld);
+        var localDirection = Vector3.TransformNormal(rayDirection, inverseWorld);
+        if (localDirection.LengthSquared() <= 1e-8f)
+        {
+            return false;
+        }
+
+        localDirection = Vector3.Normalize(localDirection);
+
+        var acceleration = MeshTriangleHitAccelerationCache.GetOrCreate(payload);
+        if (!acceleration.TryIntersect(localOrigin, localDirection, out var meshHit))
+        {
+            return false;
+        }
+
+        var worldPoint = Vector3.Transform(meshHit.LocalPoint, worldMatrix);
+        var worldNormal = TransformNormal(meshHit.LocalNormal, worldMatrix, inverseWorld);
+        hit = new SceneHitTestResult.SceneHit(
+            objectId,
+            Object: null,
+            Vector3.Distance(rayOrigin, worldPoint),
+            worldPoint,
+            worldNormal,
+            meshHit.PrimitiveIndex,
+            instanceIndex);
         return true;
     }
 

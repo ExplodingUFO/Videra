@@ -9,6 +9,7 @@ using Videra.Avalonia.Rendering;
 using Videra.Avalonia.Tests.Scene;
 using Videra.Core.Graphics;
 using Videra.Core.Inspection;
+using Videra.Core.Scene;
 using Xunit;
 
 namespace Videra.Avalonia.Tests.Interaction;
@@ -67,6 +68,8 @@ public sealed class VideraInteractionControllerTests
         public VideraInteractionOptions InteractionOptions { get; } = new();
 
         public IReadOnlyList<Object3D> SceneObjects => Engine.SceneObjects;
+
+        public IReadOnlyList<InstanceBatchEntry> InstanceBatches { get; init; } = Array.Empty<InstanceBatchEntry>();
 
         public IReadOnlyList<VideraMeasurement> Measurements
         {

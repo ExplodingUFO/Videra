@@ -54,6 +54,8 @@ internal sealed class SceneRuntimeCoordinator
 
     public IReadOnlyList<Object3D> SceneObjects => CurrentDocument.SceneObjects;
 
+    public IReadOnlyList<InstanceBatchEntry> InstanceBatches => CurrentDocument.InstanceBatches;
+
     public IReadOnlyList<VideraClipPlane> ClippingPlanes => _clippingPlanes;
 
     public Task<ImportedAssetLoadResult> ImportSingleAsync(string path, CancellationToken cancellationToken)
@@ -80,6 +82,12 @@ internal sealed class SceneRuntimeCoordinator
     {
         ArgumentNullException.ThrowIfNull(sceneObject);
         PublishSceneDocument(_sceneDocumentMutator.Add(CurrentDocument, sceneObject));
+    }
+
+    public void AddInstanceBatch(InstanceBatchDescriptor descriptor)
+    {
+        ArgumentNullException.ThrowIfNull(descriptor);
+        PublishSceneDocument(CurrentDocument.AddInstanceBatch(descriptor));
     }
 
     public void ReplaceScene(IEnumerable<Object3D> sceneObjects)

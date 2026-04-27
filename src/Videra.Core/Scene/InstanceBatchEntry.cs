@@ -5,7 +5,6 @@ namespace Videra.Core.Scene;
 
 /// <summary>
 /// Retained scene-document truth for one first-version instance batch.
-/// Runtime rendering and picking consumption are wired in a later phase.
 /// </summary>
 public sealed class InstanceBatchEntry
 {

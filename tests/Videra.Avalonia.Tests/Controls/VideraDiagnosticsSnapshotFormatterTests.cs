@@ -34,6 +34,8 @@ public sealed class VideraDiagnosticsSnapshotFormatterTests
             ResidentResourceCount = 2,
             ResidentResourceBytes = 8192,
             PickableObjectCount = null,
+            InstanceBatchCount = 1,
+            RetainedInstanceCount = 10,
             SupportedRenderFeatureNames = ["Opaque", "Transparent", "Overlay", "Picking", "Screenshot"],
             TransparentFeatureStatus = VideraBackendDiagnostics.CurrentTransparentFeatureStatus,
             SceneDocumentVersion = 3,
@@ -85,6 +87,8 @@ public sealed class VideraDiagnosticsSnapshotFormatterTests
         snapshot.Should().Contain("ResidentResourceCount: 2");
         snapshot.Should().Contain("ResidentResourceBytes: 8192");
         snapshot.Should().Contain("PickableObjectCount: Unavailable");
+        snapshot.Should().Contain("InstanceBatchCount: 1");
+        snapshot.Should().Contain("RetainedInstanceCount: 10");
         snapshot.Should().Contain("PerformanceMetricSources:");
         snapshot.Should().Contain("SupportedRenderFeatureNames: Opaque, Transparent, Overlay, Picking, Screenshot");
         snapshot.Should().Contain($"TransparentFeatureStatus: {VideraBackendDiagnostics.CurrentTransparentFeatureStatus}");

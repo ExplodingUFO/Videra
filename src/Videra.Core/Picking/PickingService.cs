@@ -2,6 +2,7 @@ using System.Numerics;
 using Videra.Core.Cameras;
 using Videra.Core.Graphics;
 using Videra.Core.Inspection;
+using Videra.Core.Scene;
 using Videra.Core.Selection;
 using Videra.Core.Selection.Annotations;
 
@@ -16,7 +17,8 @@ public sealed class PickingService
         OrbitCamera camera,
         Vector2 viewportSize,
         Vector2 screenPoint,
-        IReadOnlyList<Object3D> objects)
+        IReadOnlyList<Object3D> objects,
+        IReadOnlyList<InstanceBatchEntry>? instanceBatches = null)
     {
         ArgumentNullException.ThrowIfNull(camera);
         ArgumentNullException.ThrowIfNull(objects);
@@ -25,7 +27,8 @@ public sealed class PickingService
             camera,
             viewportSize,
             screenPoint,
-            objects));
+            objects,
+            instanceBatches));
     }
 
     public bool TryResolveAnnotationAnchor(
@@ -35,10 +38,21 @@ public sealed class PickingService
         IReadOnlyList<Object3D> objects,
         out AnnotationAnchorDescriptor anchor)
     {
+        return TryResolveAnnotationAnchor(camera, viewportSize, screenPoint, objects, null, out anchor);
+    }
+
+    public bool TryResolveAnnotationAnchor(
+        OrbitCamera camera,
+        Vector2 viewportSize,
+        Vector2 screenPoint,
+        IReadOnlyList<Object3D> objects,
+        IReadOnlyList<InstanceBatchEntry>? instanceBatches,
+        out AnnotationAnchorDescriptor anchor)
+    {
         ArgumentNullException.ThrowIfNull(camera);
         ArgumentNullException.ThrowIfNull(objects);
 
-        var hit = HitTest(camera, viewportSize, screenPoint, objects).PrimaryHit;
+        var hit = HitTest(camera, viewportSize, screenPoint, objects, instanceBatches).PrimaryHit;
         if (hit is not null)
         {
             anchor = AnnotationAnchorDescriptor.ForObject(hit.ObjectId);
@@ -79,6 +93,19 @@ public sealed class PickingService
         VideraMeasurementAnchor? pendingAnchor,
         out VideraMeasurementAnchor anchor)
     {
+        return TryResolveMeasurementAnchor(camera, viewportSize, screenPoint, objects, null, snapMode, pendingAnchor, out anchor);
+    }
+
+    public bool TryResolveMeasurementAnchor(
+        OrbitCamera camera,
+        Vector2 viewportSize,
+        Vector2 screenPoint,
+        IReadOnlyList<Object3D> objects,
+        IReadOnlyList<InstanceBatchEntry>? instanceBatches,
+        VideraMeasurementSnapMode snapMode,
+        VideraMeasurementAnchor? pendingAnchor,
+        out VideraMeasurementAnchor anchor)
+    {
         ArgumentNullException.ThrowIfNull(camera);
         ArgumentNullException.ThrowIfNull(objects);
 
@@ -88,7 +115,7 @@ public sealed class PickingService
             return false;
         }
 
-        var hit = HitTest(camera, viewportSize, screenPoint, objects).PrimaryHit;
+        var hit = HitTest(camera, viewportSize, screenPoint, objects, instanceBatches).PrimaryHit;
         if (hit is not null)
         {
             anchor = _measurementSnapService.ResolveAnchor(

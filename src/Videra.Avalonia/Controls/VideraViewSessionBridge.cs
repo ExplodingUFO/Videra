@@ -11,6 +11,7 @@ using Videra.Core.Graphics;
 using Videra.Core.Graphics.RenderPipeline;
 using Videra.Core.Inspection;
 using Videra.Core.Overlay;
+using Videra.Core.Scene;
 using Videra.Core.Selection;
 using Videra.Core.Selection.Annotations;
 using Videra.Core.Selection.Rendering;
@@ -223,7 +224,8 @@ internal sealed class VideraViewSessionBridge
     public VideraBackendDiagnostics CreateDiagnosticsSnapshot(
         string? lastInitializationError,
         SceneResidencyDiagnostics sceneDiagnostics,
-        InspectionWorkflowDiagnostics inspectionDiagnostics)
+        InspectionWorkflowDiagnostics inspectionDiagnostics,
+        IReadOnlyList<InstanceBatchEntry>? instanceBatches = null)
     {
         var backendOptions = CreateBackendOptionsSnapshot();
         var diagnosticsOptions = _diagnosticsOptionsAccessor() ?? new VideraDiagnosticsOptions();
@@ -231,6 +233,11 @@ internal sealed class VideraViewSessionBridge
         var capabilities = _session.RenderCapabilities;
         var resolution = snapshot.LastBackendResolution;
         var pipelineSnapshot = snapshot.LastPipelineSnapshot ?? capabilities.LastPipelineSnapshot;
+        var retainedInstanceBatches = instanceBatches ?? Array.Empty<InstanceBatchEntry>();
+        var retainedInstanceCount = retainedInstanceBatches.Sum(static batch => batch.InstanceCount);
+        var pickableInstanceCount = retainedInstanceBatches
+            .Where(static batch => batch.Pickable)
+            .Sum(static batch => batch.InstanceCount);
 
         return new VideraBackendDiagnostics
         {
@@ -257,7 +264,11 @@ internal sealed class VideraViewSessionBridge
             LastFrameVertexCount = null,
             ResidentResourceCount = sceneDiagnostics.ResidentObjects,
             ResidentResourceBytes = sceneDiagnostics.ResidentObjectBytes,
-            PickableObjectCount = null,
+            PickableObjectCount = pipelineSnapshot is null && pickableInstanceCount == 0
+                ? null
+                : (pipelineSnapshot?.FrameObjectCount ?? 0) + pickableInstanceCount,
+            InstanceBatchCount = retainedInstanceBatches.Count,
+            RetainedInstanceCount = retainedInstanceCount,
             SupportedRenderFeatureNames = MergeSupportedFeatures(capabilities.SupportedFeatures, BridgeAdditionalFeatures).ToFeatureNames(),
             TransparentFeatureStatus = VideraBackendDiagnostics.CurrentTransparentFeatureStatus,
             UsesSoftwarePresentationCopy = snapshot.UsesSoftwarePresentationCopy,

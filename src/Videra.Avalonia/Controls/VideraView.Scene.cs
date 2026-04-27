@@ -1,4 +1,5 @@
 using Videra.Core.Graphics;
+using Videra.Core.Scene;
 
 namespace Videra.Avalonia.Controls;
 
@@ -32,6 +33,12 @@ public partial class VideraView
     /// </summary>
     /// <param name="obj">The object to add to the active scene.</param>
     public void AddObject(Object3D obj) => _runtime.AddObject(obj);
+
+    /// <summary>
+    /// Adds a retained same-mesh/same-material instance batch to the active scene document.
+    /// </summary>
+    /// <param name="descriptor">The instance batch descriptor to retain for framing, picking, and diagnostics.</param>
+    public void AddInstanceBatch(InstanceBatchDescriptor descriptor) => _runtime.AddInstanceBatch(descriptor);
 
     /// <summary>
     /// Replaces the active scene with the supplied objects.

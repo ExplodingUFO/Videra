@@ -139,6 +139,7 @@ internal sealed partial class VideraInteractionController : IDisposable
                          _host.GetInteractionViewportSize(),
                          ToVector2(snapshot.Position),
                          _host.SceneObjects,
+                         _host.InstanceBatches,
                          out var anchor))
             {
                 _host.RaiseAnnotationRequested(new AnnotationRequestedEventArgs(anchor));
@@ -150,6 +151,7 @@ internal sealed partial class VideraInteractionController : IDisposable
                          _host.GetInteractionViewportSize(),
                          ToVector2(snapshot.Position),
                          _host.SceneObjects,
+                         _host.InstanceBatches,
                          _host.InteractionOptions.MeasurementSnapMode,
                          _pendingMeasurementAnchor,
                          out var measurementAnchor))
@@ -284,7 +286,8 @@ internal sealed partial class VideraInteractionController : IDisposable
             _host.Engine.Camera,
             _host.GetInteractionViewportSize(),
             ToVector2(position),
-            _host.SceneObjects).PrimaryHit;
+            _host.SceneObjects,
+            _host.InstanceBatches).PrimaryHit;
 
         if (hit is null)
         {

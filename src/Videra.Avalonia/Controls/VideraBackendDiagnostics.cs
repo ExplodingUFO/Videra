@@ -32,6 +32,8 @@ public sealed class VideraBackendDiagnostics
             ResidentResourceCount = 0,
             ResidentResourceBytes = 0,
             PickableObjectCount = null,
+            InstanceBatchCount = 0,
+            RetainedInstanceCount = 0,
             SupportedRenderFeatureNames = (
                 RenderFeatureSet.Opaque |
                 RenderFeatureSet.Transparent |
@@ -185,6 +187,16 @@ public sealed class VideraBackendDiagnostics
     /// A <c>null</c> value means the current backend path does not expose this metric yet.
     /// </summary>
     public int? PickableObjectCount { get; init; }
+
+    /// <summary>
+    /// Gets the retained instance-batch count in the active scene document.
+    /// </summary>
+    public int InstanceBatchCount { get; init; }
+
+    /// <summary>
+    /// Gets the retained instance count across all active instance batches.
+    /// </summary>
+    public int RetainedInstanceCount { get; init; }
 
     /// <summary>
     /// Gets the public render-feature contract names exposed through the viewer diagnostics surface.

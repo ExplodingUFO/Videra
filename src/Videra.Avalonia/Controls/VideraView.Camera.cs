@@ -86,6 +86,13 @@ public partial class VideraView
                 : objectBounds;
         }
 
+        foreach (var instanceBatchBounds in _runtime.InstanceBatches.Select(static instanceBatch => instanceBatch.Bounds))
+        {
+            aggregateBounds = aggregateBounds is BoundingBox3 current
+                ? current.Encapsulate(instanceBatchBounds)
+                : instanceBatchBounds;
+        }
+
         if (aggregateBounds is not BoundingBox3 bounds)
         {
             sceneBounds = default;

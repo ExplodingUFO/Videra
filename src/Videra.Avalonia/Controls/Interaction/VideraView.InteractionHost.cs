@@ -6,6 +6,7 @@ using Videra.Avalonia.Controls.Interaction;
 using Videra.Avalonia.Rendering;
 using Videra.Core.Graphics;
 using Videra.Core.Inspection;
+using Videra.Core.Scene;
 
 namespace Videra.Avalonia.Controls;
 
@@ -18,6 +19,8 @@ public partial class VideraView : IVideraInteractionHost
     VideraInteractionOptions IVideraInteractionHost.InteractionOptions => _runtime.InteractionOptions;
 
     IReadOnlyList<Object3D> IVideraInteractionHost.SceneObjects => Engine.SceneObjects;
+
+    IReadOnlyList<InstanceBatchEntry> IVideraInteractionHost.InstanceBatches => _runtime.InstanceBatches;
 
     IReadOnlyList<VideraMeasurement> IVideraInteractionHost.Measurements
     {
