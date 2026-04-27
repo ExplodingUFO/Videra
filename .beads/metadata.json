@@ -1,0 +1,10 @@
+{
+  "database": "dolt",
+  "backend": "dolt",
+  "dolt_mode": "server",
+  "dolt_server_host": "127.0.0.1",
+  "dolt_server_port": 3306,
+  "dolt_server_user": "root",
+  "dolt_database": "Videra",
+  "project_id": "cf27bb80-40f6-4ba7-95f7-bc455a484d7b"
+}

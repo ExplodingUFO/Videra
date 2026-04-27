@@ -120,6 +120,9 @@ $evidenceIndexJsonPath = Join-Path $outputRootFull "release-candidate-evidence-i
 $evidenceIndexTextPath = Join-Path $outputRootFull "release-candidate-evidence-index.txt"
 $packageSizeEvaluationPath = Join-Path $validationRoot "package-size-evaluation.json"
 $packageSizeSummaryPath = Join-Path $validationRoot "package-size-summary.txt"
+$doctorReportPath = "artifacts/doctor/doctor-report.json"
+$performanceLabVisualEvidenceManifestPath = "artifacts/performance-lab-visual-evidence/performance-lab-visual-evidence-manifest.json"
+$performanceLabVisualEvidenceSummaryPath = "artifacts/performance-lab-visual-evidence/performance-lab-visual-evidence-summary.txt"
 
 $summary = [ordered]@{
     schemaVersion = 1
@@ -148,6 +151,13 @@ $summary = [ordered]@{
     validationArtifacts = [ordered]@{
         packageSizeEvaluation = $packageSizeEvaluationPath
         packageSizeSummary = $packageSizeSummaryPath
+    }
+    optionalEvidence = [ordered]@{
+        evidenceOnly = $true
+        publishBlocker = $false
+        doctorReportPath = $doctorReportPath
+        performanceLabVisualEvidenceManifestPath = $performanceLabVisualEvidenceManifestPath
+        performanceLabVisualEvidenceSummaryPath = $performanceLabVisualEvidenceSummaryPath
     }
     steps = @(
         [ordered]@{
@@ -204,6 +214,9 @@ $summary | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $summaryPath
     "Package size budgets: eng/package-size-budgets.json"
     "Validator: scripts/Validate-Packages.ps1"
     "Evidence index: $evidenceIndexJsonPath"
+    "Optional visual evidence: evidence-only; publish blocker: false"
+    "Doctor visual evidence status path: $doctorReportPath"
+    "Performance Lab visual evidence manifest: $performanceLabVisualEvidenceManifestPath"
 ) | Set-Content -LiteralPath $textSummaryPath
 
 & (Join-Path $root "scripts/Test-ReleaseCandidateVersion.ps1") -ExpectedVersion $ExpectedVersion -CandidateTag "v$ExpectedVersion" -ReleaseDryRunSummaryPath $summaryPath
