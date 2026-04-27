@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Text;
 using System.Text.Json;
 using FluentAssertions;
 using Xunit;
@@ -28,12 +29,17 @@ public sealed class VideraDoctorRepositoryTests
         script.Should().Contain("RunBenchmarkThresholds");
         script.Should().Contain("RunConsumerSmoke");
         script.Should().Contain("RunNativeValidation");
+        script.Should().Contain("Get-PerformanceLabVisualEvidence");
+        script.Should().Contain("performanceLabVisualEvidence");
+        script.Should().Contain("artifacts/performance-lab-visual-evidence");
 
         script.Should().NotContain("dotnet nuget push");
         script.Should().NotContain("git push");
         script.Should().NotContain("git tag");
         script.Should().NotContain("Set-ExecutionPolicy");
         script.Should().NotContain("Remove-Item");
+        script.Should().NotContain("RunPerformanceLabVisualEvidence");
+        script.Should().NotContain("SimulateUnavailable:");
 
         var projectNames = Directory.EnumerateFiles(repositoryRoot, "*.csproj", SearchOption.AllDirectories)
             .Where(static path => !path.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}", StringComparison.Ordinal))
@@ -52,6 +58,8 @@ public sealed class VideraDoctorRepositoryTests
         docs.Should().Contain("RunBenchmarkThresholds");
         docs.Should().Contain("RunConsumerSmoke");
         docs.Should().Contain("RunNativeValidation");
+        docs.Should().Contain("performanceLabVisualEvidence");
+        docs.Should().Contain("Doctor does not generate screenshots by default");
         docs.Should().Contain("pass");
         docs.Should().Contain("fail");
         docs.Should().Contain("skip");
@@ -155,6 +163,7 @@ public sealed class VideraDoctorRepositoryTests
         supportArtifacts.Should().Contain("artifacts/doctor");
         supportArtifacts.Should().Contain("artifacts/benchmarks");
         supportArtifacts.Should().Contain("artifacts/release-dry-run");
+        supportArtifacts.Should().Contain("artifacts/performance-lab-visual-evidence");
 
         var evidencePacket = report.GetProperty("evidencePacket");
         evidencePacket.GetProperty("repository").GetProperty("root").GetString().Should().Be(repositoryRoot);
@@ -199,7 +208,8 @@ public sealed class VideraDoctorRepositoryTests
             "consumer-smoke",
             "native-validation",
             "public-release-preflight",
-            "demo-support"
+            "demo-support",
+            "performance-lab-visual-evidence"
         ]);
 
         artifactReferences.Should().OnlyContain(static artifact =>
@@ -217,8 +227,19 @@ public sealed class VideraDoctorRepositoryTests
             "artifacts/consumer-smoke/consumer-smoke-result.json",
             "artifacts/native-validation",
             "artifacts/public-release-preflight/public-release-preflight-summary.json",
-            "artifacts/consumer-smoke/surfacecharts-support-summary.txt"
+            "artifacts/consumer-smoke/surfacecharts-support-summary.txt",
+            "artifacts/performance-lab-visual-evidence/performance-lab-visual-evidence-manifest.json",
+            "artifacts/performance-lab-visual-evidence/performance-lab-visual-evidence-summary.txt"
         ]);
+
+        var visualEvidence = evidencePacket.GetProperty("performanceLabVisualEvidence");
+        visualEvidence.GetProperty("status").GetString().Should().BeOneOf("present", "missing", "unavailable");
+        visualEvidence.GetProperty("manifestPath").GetString()
+            .Should().Be("artifacts/performance-lab-visual-evidence/performance-lab-visual-evidence-manifest.json");
+        visualEvidence.GetProperty("evidenceKind").GetString().Should().Be("PerformanceLabVisualEvidence");
+        visualEvidence.GetProperty("screenshotPaths").ValueKind.Should().Be(JsonValueKind.Array);
+        visualEvidence.GetProperty("diagnosticsPaths").ValueKind.Should().Be(JsonValueKind.Array);
+        visualEvidence.GetProperty("entries").ValueKind.Should().Be(JsonValueKind.Array);
 
         var validations = report.GetProperty("validations")
             .EnumerateArray()
@@ -294,6 +315,129 @@ public sealed class VideraDoctorRepositoryTests
             .Should().Contain($"{missingBenchmarkRoot.Replace('/', Path.DirectorySeparatorChar)}{Path.DirectorySeparatorChar}viewer{Path.DirectorySeparatorChar}benchmark-manifest.json");
     }
 
+    [Fact]
+    public void VideraDoctor_ShouldReportMissingVisualEvidenceAsOptionalEvidence()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        using var visualEvidenceScope = DefaultVisualEvidenceDirectoryScope.Create(repositoryRoot);
+        var scriptPath = Path.Combine(repositoryRoot, "scripts", "Invoke-VideraDoctor.ps1");
+        var outputRoot = Path.Combine(Path.GetTempPath(), "VideraDoctorTests", Guid.NewGuid().ToString("N"));
+
+        var result = RunPowerShell(scriptPath, outputRoot, repositoryRoot);
+
+        result.ExitCode.Should().Be(0, $"stdout: {result.Stdout}\nstderr: {result.Stderr}");
+
+        using var reportDocument = JsonDocument.Parse(File.ReadAllText(Path.Combine(outputRoot, "doctor-report.json")));
+        var visualEvidence = reportDocument.RootElement.GetProperty("evidencePacket").GetProperty("performanceLabVisualEvidence");
+        visualEvidence.GetProperty("status").GetString().Should().Be("missing");
+        visualEvidence.GetProperty("summaryPath").GetString().Should().BeEmpty();
+        visualEvidence.GetProperty("screenshotPaths").EnumerateArray().Should().BeEmpty();
+        visualEvidence.GetProperty("diagnosticsPaths").EnumerateArray().Should().BeEmpty();
+
+        var summary = File.ReadAllText(Path.Combine(outputRoot, "doctor-summary.txt"));
+        summary.Should().Contain("Performance Lab visual evidence:");
+        summary.Should().Contain("status: missing");
+        summary.Should().Contain("artifacts/performance-lab-visual-evidence/performance-lab-visual-evidence-manifest.json");
+    }
+
+    [Fact]
+    public void VideraDoctor_ShouldReportPresentVisualEvidenceArtifacts()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        using var visualEvidenceScope = DefaultVisualEvidenceDirectoryScope.Create(repositoryRoot);
+        var captureScript = Path.Combine(repositoryRoot, "scripts", "Invoke-PerformanceLabVisualEvidence.ps1");
+        var doctorScript = Path.Combine(repositoryRoot, "scripts", "Invoke-VideraDoctor.ps1");
+        var outputRoot = Path.Combine(Path.GetTempPath(), "VideraDoctorTests", Guid.NewGuid().ToString("N"));
+
+        var captureResult = RunPowerShellScript(
+            captureScript,
+            repositoryRoot,
+            "-OutputRoot",
+            "artifacts/performance-lab-visual-evidence",
+            "-ViewerScenarios",
+            "viewer-instance-small",
+            "-ScatterScenarios",
+            "scatter-replace-100k",
+            "-Width",
+            "320",
+            "-Height",
+            "180");
+
+        captureResult.ExitCode.Should().Be(0, $"stdout: {captureResult.Stdout}\nstderr: {captureResult.Stderr}");
+
+        var doctorResult = RunPowerShell(doctorScript, outputRoot, repositoryRoot);
+
+        doctorResult.ExitCode.Should().Be(0, $"stdout: {doctorResult.Stdout}\nstderr: {doctorResult.Stderr}");
+
+        using var reportDocument = JsonDocument.Parse(File.ReadAllText(Path.Combine(outputRoot, "doctor-report.json")));
+        var visualEvidence = reportDocument.RootElement.GetProperty("evidencePacket").GetProperty("performanceLabVisualEvidence");
+        visualEvidence.GetProperty("status").GetString().Should().Be("present");
+        visualEvidence.GetProperty("captureStatus").GetString().Should().Be("produced");
+        visualEvidence.GetProperty("summaryPath").GetString().Should().Contain("performance-lab-visual-evidence-summary.txt");
+        visualEvidence.GetProperty("generatedAtUtc").GetString().Should().NotBeNullOrWhiteSpace();
+        visualEvidence.GetProperty("schemaVersion").GetInt32().Should().Be(1);
+
+        visualEvidence.GetProperty("screenshotPaths").EnumerateArray().Select(static path => path.GetString()).Should().Contain([
+            "artifacts/performance-lab-visual-evidence/viewer-instance-small.png",
+            "artifacts/performance-lab-visual-evidence/scatter-replace-100k.png"
+        ]);
+        visualEvidence.GetProperty("diagnosticsPaths").EnumerateArray().Select(static path => path.GetString()).Should().Contain([
+            "artifacts/performance-lab-visual-evidence/viewer-instance-small-diagnostics.txt",
+            "artifacts/performance-lab-visual-evidence/scatter-replace-100k-diagnostics.txt"
+        ]);
+        visualEvidence.GetProperty("entries").EnumerateArray().Should().HaveCount(2);
+
+        var summary = File.ReadAllText(Path.Combine(outputRoot, "doctor-summary.txt"));
+        summary.Should().Contain("status: present");
+        summary.Should().Contain("screenshot: artifacts/performance-lab-visual-evidence/viewer-instance-small.png");
+        summary.Should().Contain("diagnostics: artifacts/performance-lab-visual-evidence/scatter-replace-100k-diagnostics.txt");
+    }
+
+    [Fact]
+    public void VideraDoctor_ShouldReportUnavailableVisualEvidenceStateDistinctFromMissing()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        using var visualEvidenceScope = DefaultVisualEvidenceDirectoryScope.Create(repositoryRoot);
+        var captureScript = Path.Combine(repositoryRoot, "scripts", "Invoke-PerformanceLabVisualEvidence.ps1");
+        var doctorScript = Path.Combine(repositoryRoot, "scripts", "Invoke-VideraDoctor.ps1");
+        var outputRoot = Path.Combine(Path.GetTempPath(), "VideraDoctorTests", Guid.NewGuid().ToString("N"));
+
+        var captureResult = RunPowerShellScript(
+            captureScript,
+            repositoryRoot,
+            "-OutputRoot",
+            "artifacts/performance-lab-visual-evidence",
+            "-ViewerScenarios",
+            "viewer-instance-small",
+            "-ScatterScenarios",
+            "scatter-replace-100k",
+            "-Width",
+            "320",
+            "-Height",
+            "180",
+            "-SimulateUnavailable");
+
+        captureResult.ExitCode.Should().Be(0, $"stdout: {captureResult.Stdout}\nstderr: {captureResult.Stderr}");
+
+        var doctorResult = RunPowerShell(doctorScript, outputRoot, repositoryRoot);
+
+        doctorResult.ExitCode.Should().Be(0, $"stdout: {doctorResult.Stdout}\nstderr: {doctorResult.Stderr}");
+
+        using var reportDocument = JsonDocument.Parse(File.ReadAllText(Path.Combine(outputRoot, "doctor-report.json")));
+        var visualEvidence = reportDocument.RootElement.GetProperty("evidencePacket").GetProperty("performanceLabVisualEvidence");
+        visualEvidence.GetProperty("status").GetString().Should().Be("unavailable");
+        visualEvidence.GetProperty("captureStatus").GetString().Should().Be("unavailable");
+        visualEvidence.GetProperty("screenshotPaths").EnumerateArray().Should().BeEmpty();
+        visualEvidence.GetProperty("diagnosticsPaths").EnumerateArray().Select(static path => path.GetString()).Should().Contain([
+            "artifacts/performance-lab-visual-evidence/viewer-instance-small-diagnostics.txt",
+            "artifacts/performance-lab-visual-evidence/scatter-replace-100k-diagnostics.txt"
+        ]);
+
+        var summary = File.ReadAllText(Path.Combine(outputRoot, "doctor-summary.txt"));
+        summary.Should().Contain("status: unavailable");
+        summary.Should().Contain("records unavailable capture state");
+    }
+
     private static DoctorRunResult RunPowerShell(string scriptPath, string outputRoot, string repositoryRoot, params string[] additionalArguments)
     {
         using var process = new Process();
@@ -317,12 +461,87 @@ public sealed class VideraDoctorRepositoryTests
             process.StartInfo.ArgumentList.Add(argument);
         }
 
-        process.Start().Should().BeTrue();
-        var stdout = process.StandardOutput.ReadToEnd();
-        var stderr = process.StandardError.ReadToEnd();
-        process.WaitForExit(60_000).Should().BeTrue();
+        var stdout = new StringBuilder();
+        var stderr = new StringBuilder();
+        process.OutputDataReceived += (_, args) =>
+        {
+            if (args.Data is not null)
+            {
+                stdout.AppendLine(args.Data);
+            }
+        };
+        process.ErrorDataReceived += (_, args) =>
+        {
+            if (args.Data is not null)
+            {
+                stderr.AppendLine(args.Data);
+            }
+        };
 
-        return new DoctorRunResult(process.ExitCode, stdout, stderr);
+        process.Start().Should().BeTrue();
+        process.BeginOutputReadLine();
+        process.BeginErrorReadLine();
+        var exited = process.WaitForExit(60_000);
+        if (!exited)
+        {
+            process.Kill(entireProcessTree: true);
+        }
+
+        exited.Should().BeTrue();
+
+        return new DoctorRunResult(process.ExitCode, stdout.ToString(), stderr.ToString());
+    }
+
+    private static DoctorRunResult RunPowerShellScript(string scriptPath, string repositoryRoot, params string[] arguments)
+    {
+        using var process = new Process();
+        process.StartInfo = new ProcessStartInfo
+        {
+            FileName = "pwsh",
+            WorkingDirectory = repositoryRoot,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            UseShellExecute = false
+        };
+        process.StartInfo.ArgumentList.Add("-NoProfile");
+        process.StartInfo.ArgumentList.Add("-ExecutionPolicy");
+        process.StartInfo.ArgumentList.Add("Bypass");
+        process.StartInfo.ArgumentList.Add("-File");
+        process.StartInfo.ArgumentList.Add(scriptPath);
+        foreach (var argument in arguments)
+        {
+            process.StartInfo.ArgumentList.Add(argument);
+        }
+
+        var stdout = new StringBuilder();
+        var stderr = new StringBuilder();
+        process.OutputDataReceived += (_, args) =>
+        {
+            if (args.Data is not null)
+            {
+                stdout.AppendLine(args.Data);
+            }
+        };
+        process.ErrorDataReceived += (_, args) =>
+        {
+            if (args.Data is not null)
+            {
+                stderr.AppendLine(args.Data);
+            }
+        };
+
+        process.Start().Should().BeTrue();
+        process.BeginOutputReadLine();
+        process.BeginErrorReadLine();
+        var exited = process.WaitForExit(120_000);
+        if (!exited)
+        {
+            process.Kill(entireProcessTree: true);
+        }
+
+        exited.Should().BeTrue();
+
+        return new DoctorRunResult(process.ExitCode, stdout.ToString(), stderr.ToString());
     }
 
     private static string GetRepositoryRoot()
@@ -343,4 +562,43 @@ public sealed class VideraDoctorRepositoryTests
     }
 
     private sealed record DoctorRunResult(int ExitCode, string Stdout, string Stderr);
+
+    private sealed class DefaultVisualEvidenceDirectoryScope : IDisposable
+    {
+        private readonly string _directoryPath;
+        private readonly string _backupPath;
+        private readonly bool _hadExistingDirectory;
+
+        private DefaultVisualEvidenceDirectoryScope(string repositoryRoot)
+        {
+            _directoryPath = Path.Combine(repositoryRoot, "artifacts", "performance-lab-visual-evidence");
+            _backupPath = Path.Combine(Path.GetTempPath(), "VideraDoctorTests", $"visual-evidence-backup-{Guid.NewGuid():N}");
+            _hadExistingDirectory = Directory.Exists(_directoryPath);
+
+            if (_hadExistingDirectory)
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(_backupPath)!);
+                Directory.Move(_directoryPath, _backupPath);
+            }
+        }
+
+        public static DefaultVisualEvidenceDirectoryScope Create(string repositoryRoot)
+        {
+            return new DefaultVisualEvidenceDirectoryScope(repositoryRoot);
+        }
+
+        public void Dispose()
+        {
+            if (Directory.Exists(_directoryPath))
+            {
+                Directory.Delete(_directoryPath, recursive: true);
+            }
+
+            if (_hadExistingDirectory && Directory.Exists(_backupPath))
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(_directoryPath)!);
+                Directory.Move(_backupPath, _directoryPath);
+            }
+        }
+    }
 }
