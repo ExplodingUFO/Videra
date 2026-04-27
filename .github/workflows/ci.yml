@@ -95,6 +95,35 @@ jobs:
           dotnet test tests/Videra.SurfaceCharts.Avalonia.IntegrationTests/Videra.SurfaceCharts.Avalonia.IntegrationTests.csproj -c Release
           --filter "FullyQualifiedName~SurfaceChartViewViewStateTests|FullyQualifiedName~SurfaceChartInteractionTests|FullyQualifiedName~SurfaceChartViewGpuFallbackTests|FullyQualifiedName~WaterfallChartViewIntegrationTests|FullyQualifiedName~ScatterChartViewIntegrationTests"
 
+  performance-lab-visual-evidence:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Generate Performance Lab visual evidence
+        shell: pwsh
+        run: >
+          pwsh -File ./scripts/Invoke-PerformanceLabVisualEvidence.ps1 -Configuration Release
+          -OutputRoot artifacts/performance-lab-visual-evidence
+
+      - name: Validate Performance Lab visual evidence
+        shell: pwsh
+        run: >
+          dotnet test tests/Videra.Core.Tests/Videra.Core.Tests.csproj -c Release
+          --filter "FullyQualifiedName~PerformanceLabVisualEvidenceTests"
+
+      - name: Upload Performance Lab visual evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: performance-lab-visual-evidence
+          path: artifacts/performance-lab-visual-evidence
+
   quality-gate-evidence:
     runs-on: windows-latest
 

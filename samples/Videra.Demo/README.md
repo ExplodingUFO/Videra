@@ -52,6 +52,14 @@ Import results are summarized in the status area and expanded in the support pan
 
 The `Performance Lab` panel generates bounded deterministic scenarios from `PerformanceLabViewerScenarios`: small, medium, and large viewer instance-batch datasets with stable transforms, object ids, colors, count, and default pickability. `NormalObjects` creates regular `Object3D` entries with the current resource factory for comparison; `InstanceBatch` records one retained `InstanceBatchDescriptor` through `VideraView.AddInstanceBatch(...)`. The panel reports scenario id/name/size, build/frame-time proxy, pick latency, draw-call availability, upload bytes, resident bytes, retained instance count, pickable count, and per-instance pick identity where available. `Copy Snapshot` copies an evidence-only dataset proof with scenario settings, runtime status, diagnostics text, and the backend diagnostics snapshot for support and release-validation notes. These values are support evidence, not stable benchmark guarantees.
 
+For PR review or support reports, maintainers can generate a repo-owned Performance Lab visual evidence bundle:
+
+```powershell
+pwsh -File ./scripts/Invoke-PerformanceLabVisualEvidence.ps1 -Configuration Release -OutputRoot artifacts/performance-lab-visual-evidence
+```
+
+The bundle includes PNG visual evidence for the deterministic viewer scenarios, manifest JSON, summary text, and diagnostics text. It is not a pixel-perfect visual-regression gate and does not claim real GPU instancing, renderer parity, GPU-driven culling, or stable Performance Lab benchmark guarantees.
+
 `Import Model`, `Frame All`, and `Reset Camera` follow command/capability readiness rather than a raw `IsBackendReady` XAML assumption, so the visible controls stay aligned with the live importer and viewport wiring.
 
 The `Scene Pipeline Lab` copy in the side panel is deliberate. It projects three internal truths into a user-visible onboarding surface without turning `Videra.Demo` into another broad workstation shell:

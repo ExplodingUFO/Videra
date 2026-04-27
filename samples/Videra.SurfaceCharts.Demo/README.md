@@ -64,6 +64,14 @@ dotnet run --project samples/Videra.SurfaceCharts.Demo/Videra.SurfaceCharts.Demo
 - scatter diagnostics for series count, point count, columnar series count, retained columnar point count, append/replacement batch count, FIFO dropped points, configured FIFO capacity, pickable point count, and `InteractionQuality`; the columnar high-volume path defaults to `Pickable=false`
 - a copyable evidence-only support summary that includes selected scenario id/name/update mode, point counts, FIFO capacity, pickability, rendering status, and dataset/source details; these values are support evidence, not stable benchmark guarantees
 
+Maintainers can include the deterministic scatter streaming scenarios in the repo-owned visual evidence bundle:
+
+```powershell
+pwsh -File ./scripts/Invoke-PerformanceLabVisualEvidence.ps1 -Configuration Release -OutputRoot artifacts/performance-lab-visual-evidence
+```
+
+The bundle includes PNG visual evidence, manifest JSON, summary text, and per-scenario diagnostics text for PR review or support reports. It is evidence-only, not a pixel-perfect visual-regression gate, not a stable benchmark guarantee, and not a claim that SurfaceCharts has gained GPU-driven culling or a new chart family.
+
 ## What The Demo Does Not Show Yet
 
 The current sample is still a focused onboarding surface, not a finished end-user chart workstation:

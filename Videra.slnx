@@ -22,6 +22,9 @@
   <Folder Name="/Benchmarks/Videra/">
     <Project Path="benchmarks/Videra.Viewer.Benchmarks/Videra.Viewer.Benchmarks.csproj" />
   </Folder>
+  <Folder Name="/Tools/">
+    <Project Path="tools/Videra.PerformanceLabVisualEvidence/Videra.PerformanceLabVisualEvidence.csproj" />
+  </Folder>
   <Folder Name="/src/">
     <Project Path="src/Videra.Import.Gltf/Videra.Import.Gltf.csproj" />
     <Project Path="src/Videra.Import.Obj/Videra.Import.Obj.csproj" />
