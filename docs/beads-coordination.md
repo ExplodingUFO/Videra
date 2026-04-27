@@ -65,6 +65,16 @@ bd ready --json
 
 Branch/worktree ownership is still Git-local: each agent owns its assigned files and branch, avoids reverting unrelated edits, and coordinates task state through Beads. Beads does not merge branches, resolve conflicts, or decide release readiness.
 
+## Explicit Validation
+
+Run the coordination validation only when you are intentionally checking the local Beads service. Normal product builds, package validation, release dry runs, and CI workflows do not start or require the Beads Docker service.
+
+```powershell
+pwsh -File ./scripts/Test-BeadsCoordination.ps1
+```
+
+The script checks `bd context --json`, `bd doctor`, `bd worktree list`, and Docker-backed Dolt metadata for the configured `Videra` database. It does not build product code, publish packages, create tags, mutate feeds, merge branches, or replace GSD phase planning.
+
 ## Issue Lifecycle and Handoff
 
 Use one Beads issue per bounded task or phase. The normal lifecycle is:
