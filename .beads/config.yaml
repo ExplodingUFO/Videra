@@ -60,3 +60,5 @@ dolt.port: 3306
 dolt.database: "Videra"
 
 dolt.user: "root"
+
+sync.remote: "file:///var/dolt/remotes/Videra"
