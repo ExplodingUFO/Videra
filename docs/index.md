@@ -18,6 +18,7 @@ This page maps the long-lived public documentation for Videra. Start with the re
 - [Analyzer Policy](analyzer-policy.md) for .NET analyzer major-version triage, rule policy, and quality-gate boundaries
 - [Dependency Update Policy](dependency-update-policy.md) for Dependabot triage and shared test-tooling drift checks
 - [Maintenance Quality Gates](maintenance-quality-gates.md) for analyzer/dependency hygiene verification commands and residuals
+- [Beads Coordination](beads-coordination.md) for repo-local multi-agent issue coordination through the Docker-backed Dolt service
 - [Videra Doctor](videra-doctor.md) for repo-only, non-mutating local support snapshots under `artifacts/doctor`
 - [Alpha Feedback](alpha-feedback.md) for bug-report diagnostics, consumer-path evidence, and support-boundary expectations
 - [Extensibility Contract](extensibility.md) for the `VideraView.Engine` flow, `samples/Videra.ExtensibilitySample`, the ready / disposed / fallback behavior matrix, and the boundary that keeps `package discovery` and `plugin loading` out of scope

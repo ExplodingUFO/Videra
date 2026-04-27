@@ -7,6 +7,8 @@ This file provides instructions and context for AI coding agents working on this
 
 This project uses **bd (beads)** for issue tracking. Run `bd prime` to see full workflow context and commands.
 
+Videra Beads state is the Docker-backed Dolt database `Videra` at `127.0.0.1:3306` with project id `cf27bb80-40f6-4ba7-95f7-bc455a484d7b`. See `docs/beads-coordination.md` before assigning multi-agent work.
+
 ### Quick Reference
 
 ```bash
