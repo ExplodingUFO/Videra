@@ -409,7 +409,8 @@ public partial class MainWindow : Window
                 $"{_activeSourceDetails}\n" +
                 "Scatter proof navigation: Left drag orbit, Wheel dolly.\n" +
                 $"Current scene: {status.SeriesCount} series, {status.PointCount} points.\n" +
-                $"Columnar series: {status.ColumnarSeriesCount}; Pickable points: {status.PickablePointCount}.\n" +
+                $"Columnar series: {status.ColumnarSeriesCount}; Retained columnar points: {status.ColumnarPointCount}; Pickable points: {status.PickablePointCount}.\n" +
+                $"Streaming appends: {status.StreamingAppendBatchCount}; FIFO capacity: {FormatFifoCapacity(status.ConfiguredFifoCapacity)}; Dropped points: {status.StreamingDroppedPointCount}.\n" +
                 $"Camera target ({status.CameraTarget.X:0.###}, {status.CameraTarget.Y:0.###}, {status.CameraTarget.Z:0.###}), distance {status.CameraDistance:0.###}";
             return;
         }
@@ -433,7 +434,8 @@ public partial class MainWindow : Window
                 $"Interaction active: {status.IsInteracting}\n" +
                 $"View size: {status.ViewSize.Width:0.#} x {status.ViewSize.Height:0.#}\n" +
                 $"Series: {status.SeriesCount}; Points: {status.PointCount}\n" +
-                $"Columnar series: {status.ColumnarSeriesCount}; Pickable points: {status.PickablePointCount}\n" +
+                $"Columnar series: {status.ColumnarSeriesCount}; Retained columnar points: {status.ColumnarPointCount}; Pickable points: {status.PickablePointCount}\n" +
+                $"Streaming appends: {status.StreamingAppendBatchCount}; Replacements: {status.StreamingReplaceBatchCount}; FIFO capacity: {FormatFifoCapacity(status.ConfiguredFifoCapacity)}; Dropped points: {status.StreamingDroppedPointCount} (last {status.LastStreamingDroppedPointCount})\n" +
                 $"Camera target: ({status.CameraTarget.X:0.###}, {status.CameraTarget.Y:0.###}, {status.CameraTarget.Z:0.###}); Distance: {status.CameraDistance:0.###}";
             return;
         }
@@ -838,7 +840,7 @@ public partial class MainWindow : Window
     private static string CreateScatterCameraSummary(ScatterChartRenderingStatus status)
     {
         return
-            $"Camera target ({status.CameraTarget.X:0.###}, {status.CameraTarget.Y:0.###}, {status.CameraTarget.Z:0.###}), Distance {status.CameraDistance:0.###}, SeriesCount {status.SeriesCount}, PointCount {status.PointCount}, ColumnarSeriesCount {status.ColumnarSeriesCount}, PickablePointCount {status.PickablePointCount}";
+            $"Camera target ({status.CameraTarget.X:0.###}, {status.CameraTarget.Y:0.###}, {status.CameraTarget.Z:0.###}), Distance {status.CameraDistance:0.###}, SeriesCount {status.SeriesCount}, PointCount {status.PointCount}, ColumnarSeriesCount {status.ColumnarSeriesCount}, ColumnarPointCount {status.ColumnarPointCount}, PickablePointCount {status.PickablePointCount}, StreamingAppendBatchCount {status.StreamingAppendBatchCount}, ConfiguredFifoCapacity {FormatFifoCapacity(status.ConfiguredFifoCapacity)}";
     }
 
     private static string CreateSurfaceRenderingDiagnosticsSummary(SurfaceChartRenderingStatus status)
@@ -866,10 +868,21 @@ public partial class MainWindow : Window
             $"SeriesCount: {status.SeriesCount}\n" +
             $"PointCount: {status.PointCount}\n" +
             $"ColumnarSeriesCount: {status.ColumnarSeriesCount}\n" +
+            $"ColumnarPointCount: {status.ColumnarPointCount}\n" +
             $"PickablePointCount: {status.PickablePointCount}\n" +
+            $"StreamingAppendBatchCount: {status.StreamingAppendBatchCount}\n" +
+            $"StreamingReplaceBatchCount: {status.StreamingReplaceBatchCount}\n" +
+            $"StreamingDroppedPointCount: {status.StreamingDroppedPointCount}\n" +
+            $"LastStreamingDroppedPointCount: {status.LastStreamingDroppedPointCount}\n" +
+            $"ConfiguredFifoCapacity: {FormatFifoCapacity(status.ConfiguredFifoCapacity)}\n" +
             $"ViewSize: {status.ViewSize.Width:0.#} x {status.ViewSize.Height:0.#}\n" +
             $"CameraTarget: ({status.CameraTarget.X:0.###}, {status.CameraTarget.Y:0.###}, {status.CameraTarget.Z:0.###})\n" +
             $"CameraDistance: {status.CameraDistance:0.###}";
+    }
+
+    private static string FormatFifoCapacity(int configuredFifoCapacity)
+    {
+        return configuredFifoCapacity > 0 ? configuredFifoCapacity.ToString(CultureInfo.InvariantCulture) : "unbounded";
     }
 
     private static string CreateOverlayOptionsSummary(SurfaceChartOverlayOptions overlayOptions)

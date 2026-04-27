@@ -193,12 +193,45 @@ public sealed class ScatterChartViewIntegrationTests
             view.RenderingStatus.SeriesCount.Should().Be(1);
             view.RenderingStatus.PointCount.Should().Be(2);
             view.RenderingStatus.ColumnarSeriesCount.Should().Be(1);
+            view.RenderingStatus.ColumnarPointCount.Should().Be(2);
             view.RenderingStatus.PickablePointCount.Should().Be(2);
+            view.RenderingStatus.StreamingReplaceBatchCount.Should().Be(1);
+            view.RenderingStatus.ConfiguredFifoCapacity.Should().Be(0);
 
             var expectedBounds = new SurfacePlotBounds(
                 new System.Numerics.Vector3(1f, 2f, 3f),
                 new System.Numerics.Vector3(9f, 8f, 7f));
             view.RenderingStatus.CameraTarget.Should().Be(expectedBounds.Center);
+        });
+    }
+
+    [Fact]
+    public void ScatterChartView_PublishesColumnarStreamingCounters()
+    {
+        AvaloniaHeadlessTestSession.Run(() =>
+        {
+            var metadata = CreateMetadata();
+            var columnar = new ScatterColumnarSeries(0xFF22C55Eu, "Columnar", fifoCapacity: 3);
+            columnar.AppendRange(new ScatterColumnarData(
+                new float[] { 1f, 2f },
+                new float[] { 2f, 3f },
+                new float[] { 3f, 4f }));
+            columnar.AppendRange(new ScatterColumnarData(
+                new float[] { 3f, 4f },
+                new float[] { 4f, 5f },
+                new float[] { 5f, 6f }));
+            var source = new ScatterChartData(metadata, [], [columnar]);
+
+            var view = new ScatterChartView();
+            view.Measure(new Size(240, 160));
+            view.Arrange(new Rect(0, 0, 240, 160));
+            view.Source = source;
+
+            view.RenderingStatus.ColumnarPointCount.Should().Be(3);
+            view.RenderingStatus.StreamingAppendBatchCount.Should().Be(2);
+            view.RenderingStatus.StreamingDroppedPointCount.Should().Be(1);
+            view.RenderingStatus.LastStreamingDroppedPointCount.Should().Be(1);
+            view.RenderingStatus.ConfiguredFifoCapacity.Should().Be(3);
         });
     }
 

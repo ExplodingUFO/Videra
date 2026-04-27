@@ -9,6 +9,7 @@ public sealed class ScatterChartData
 {
     private readonly ReadOnlyCollection<ScatterSeries> _seriesView;
     private readonly ReadOnlyCollection<ScatterColumnarSeries> _columnarSeriesView;
+    private readonly int _pointSeriesPointCount;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ScatterChartData"/> class.
@@ -38,8 +39,7 @@ public sealed class ScatterChartData
         Metadata = metadata;
         _seriesView = Array.AsReadOnly(series.ToArray());
         _columnarSeriesView = Array.AsReadOnly(columnarSeries.ToArray());
-        PointCount = ValidateAndCountPoints(metadata, _seriesView, _columnarSeriesView);
-        PickablePointCount = CountPickablePoints(_columnarSeriesView);
+        _pointSeriesPointCount = ValidateAndCountPoints(metadata, _seriesView, _columnarSeriesView);
     }
 
     /// <summary>
@@ -70,12 +70,42 @@ public sealed class ScatterChartData
     /// <summary>
     /// Gets the total point count across every series.
     /// </summary>
-    public int PointCount { get; }
+    public int PointCount => _pointSeriesPointCount + ColumnarPointCount;
+
+    /// <summary>
+    /// Gets the retained point count across columnar series.
+    /// </summary>
+    public int ColumnarPointCount => CountColumnarPoints(_columnarSeriesView);
 
     /// <summary>
     /// Gets the number of points marked pickable by high-volume columnar series.
     /// </summary>
-    public int PickablePointCount { get; }
+    public int PickablePointCount => CountPickablePoints(_columnarSeriesView);
+
+    /// <summary>
+    /// Gets the total append batches applied to columnar series.
+    /// </summary>
+    public int StreamingAppendBatchCount => SumColumnarSeries(_columnarSeriesView, static series => series.AppendBatchCount);
+
+    /// <summary>
+    /// Gets the total replacement batches applied to columnar series.
+    /// </summary>
+    public int StreamingReplaceBatchCount => SumColumnarSeries(_columnarSeriesView, static series => series.ReplaceBatchCount);
+
+    /// <summary>
+    /// Gets the total points dropped by FIFO trimming across columnar series.
+    /// </summary>
+    public long StreamingDroppedPointCount => SumColumnarSeries(_columnarSeriesView, static series => series.TotalDroppedPointCount);
+
+    /// <summary>
+    /// Gets the points dropped by the most recent update across columnar series.
+    /// </summary>
+    public int LastStreamingDroppedPointCount => SumColumnarSeries(_columnarSeriesView, static series => series.LastDroppedPointCount);
+
+    /// <summary>
+    /// Gets the sum of configured FIFO capacities across bounded columnar series. Zero means no bounded series.
+    /// </summary>
+    public int ConfiguredFifoCapacity => SumColumnarSeries(_columnarSeriesView, static series => series.FifoCapacity ?? 0);
 
     private static int ValidateAndCountPoints(
         ScatterChartMetadata metadata,
@@ -110,7 +140,6 @@ public sealed class ScatterChartData
                 throw new ArgumentException("Columnar scatter series entries must not be null.", nameof(columnarSeries));
             }
 
-            totalCount += scatterSeries.Count;
             ValidateColumnarPoints(metadata, scatterSeries);
         }
 
@@ -154,5 +183,36 @@ public sealed class ScatterChartData
         }
 
         return totalCount;
+    }
+
+    private static int CountColumnarPoints(IReadOnlyList<ScatterColumnarSeries> columnarSeries)
+    {
+        return SumColumnarSeries(columnarSeries, static series => series.Count);
+    }
+
+    private static int SumColumnarSeries(
+        IReadOnlyList<ScatterColumnarSeries> columnarSeries,
+        Func<ScatterColumnarSeries, int> selector)
+    {
+        var total = 0;
+        foreach (var series in columnarSeries)
+        {
+            total += selector(series);
+        }
+
+        return total;
+    }
+
+    private static long SumColumnarSeries(
+        IReadOnlyList<ScatterColumnarSeries> columnarSeries,
+        Func<ScatterColumnarSeries, long> selector)
+    {
+        var total = 0L;
+        foreach (var series in columnarSeries)
+        {
+            total += selector(series);
+        }
+
+        return total;
     }
 }
