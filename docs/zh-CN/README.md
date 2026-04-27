@@ -25,6 +25,8 @@ pwsh -File ./scripts/Invoke-PerformanceLabVisualEvidence.ps1 -Configuration Rele
 
 该 bundle 包含 PNG visual evidence、`performance-lab-visual-evidence-manifest.json`、`performance-lab-visual-evidence-summary.txt` 和 per-scenario diagnostics text。它只是 evidence-only artifact，不是 pixel-perfect visual-regression gate、稳定 benchmark guarantee、real GPU instancing 证明、renderer parity 证明或新 chart family 承诺。
 
+`Videra Doctor` 会在 `doctor-report.json` 的 `evidencePacket.performanceLabVisualEvidence` 中报告该 bundle 是 `present`、`missing` 还是 `unavailable`。Doctor 不会默认生成截图；需要视觉证据时先显式运行上面的 visual evidence 脚本，再运行 `scripts/Invoke-VideraDoctor.ps1`，并一起附上 `artifacts/doctor/*` 与 `artifacts/performance-lab-visual-evidence/*`。
+
 当前 `alpha` 阶段需要明确说明：
 
 - 已完成独立模块边界、LOD、缓存读取、`GPU-first` 渲染主路径与 Demo 路径

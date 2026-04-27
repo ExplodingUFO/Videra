@@ -67,6 +67,14 @@ body:
     validations:
       required: false
   - type: textarea
+    id: visual_evidence
+    attributes:
+      label: Performance Lab visual evidence
+      description: If the issue depends on visual output, attach or link `artifacts/performance-lab-visual-evidence/performance-lab-visual-evidence-manifest.json`, `performance-lab-visual-evidence-summary.txt`, relevant PNG files, and per-scenario diagnostics text. These files are evidence-only, not pixel-perfect visual-regression gates or benchmark guarantees.
+      render: text
+    validations:
+      required: false
+  - type: textarea
     id: repro
     attributes:
       label: Reproduction

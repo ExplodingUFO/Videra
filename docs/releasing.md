@@ -13,7 +13,8 @@ Use this sequence for release-candidate review, support triage, and local valida
 3. Run matching-host native validation through `scripts/run-native-validation.ps1` when the issue or release candidate depends on native backend availability.
 4. Run `Benchmark Gates` through GitHub Actions or run `scripts/Run-Benchmarks.ps1` locally for the affected suite, then use `scripts/Test-BenchmarkThresholds.ps1` against the emitted benchmark artifacts. Treat `benchmarks/benchmark-contract.json` as the source-controlled benchmark inventory and `benchmarks/benchmark-thresholds.json` as the hard-threshold slice.
 5. Run packaged viewer and SurfaceCharts validation through `scripts/Invoke-ConsumerSmoke.ps1`. Attach `artifacts/consumer-smoke/consumer-smoke-result.json`, `artifacts/consumer-smoke/diagnostics-snapshot.txt`, and `artifacts/consumer-smoke/surfacecharts-support-summary.txt` when packaged consumer behavior is relevant.
-6. Route issue-specific support artifacts through `docs/alpha-feedback.md`: use `Videra.MinimalSample` for the shortest viewer happy path, `Videra.Demo` for import/backend diagnostics, and `Videra.SurfaceCharts.Demo` or `smoke/Videra.SurfaceCharts.ConsumerSmoke` for chart-specific support summaries.
+6. Generate Performance Lab visual evidence with `scripts/Invoke-PerformanceLabVisualEvidence.ps1` when candidate review or support triage needs screenshot-backed context. Attach `artifacts/performance-lab-visual-evidence/performance-lab-visual-evidence-manifest.json`, `performance-lab-visual-evidence-summary.txt`, relevant PNG files, and per-scenario diagnostics text.
+7. Route issue-specific support artifacts through `docs/alpha-feedback.md`: use `Videra.MinimalSample` for the shortest viewer happy path, `Videra.Demo` for import/backend diagnostics, and `Videra.SurfaceCharts.Demo` or `smoke/Videra.SurfaceCharts.ConsumerSmoke` for chart-specific support summaries.
 
 This sequence does not publish packages, create release tags, push feeds, or replace the human-approved public release workflow.
 
@@ -37,6 +38,7 @@ Use this checklist for each alpha candidate review. Keep the generated artifacts
 | Release dry run | `.github/workflows/release-dry-run.yml` or `scripts/Invoke-ReleaseDryRun.ps1` | `release-dry-run-evidence`, `release-dry-run-summary.json`, `release-candidate-evidence-index.json`, `release-candidate-evidence-index.txt` |
 | Package validation | `scripts/Validate-Packages.ps1` | `package-size-evaluation.json`, `package-size-summary.txt` |
 | Benchmark Gates | `.github/workflows/benchmark-gates.yml`, `scripts/Run-Benchmarks.ps1`, `scripts/Test-BenchmarkThresholds.ps1` | viewer and SurfaceCharts benchmark manifests plus threshold evaluation artifacts |
+| Performance Lab visual evidence | `.github/workflows/ci.yml` `performance-lab-visual-evidence` job or `scripts/Invoke-PerformanceLabVisualEvidence.ps1` | `performance-lab-visual-evidence-manifest.json`, `performance-lab-visual-evidence-summary.txt`, PNG visual evidence, per-scenario diagnostics text |
 | Native validation | `.github/workflows/native-validation.yml` or `scripts/run-native-validation.ps1` | Windows, Linux X11, Linux XWayland, and macOS native-validation artifacts |
 | Packaged consumer smoke | `.github/workflows/consumer-smoke.yml` or `scripts/Invoke-ConsumerSmoke.ps1` | `consumer-smoke-result.json`, `diagnostics-snapshot.txt`, `surfacecharts-support-summary.txt` |
 | Public release preflight | `scripts/Invoke-PublicReleasePreflight.ps1` | `public-release-preflight-summary.json`, `public-release-preflight-summary.txt` |
@@ -106,7 +108,7 @@ That workflow is expected to:
 - Generate public release notes from approved publish evidence with `scripts/New-PublicReleaseNotes.ps1`; the output is `public-release-notes.md`.
 - The release surface should communicate breaking changes, features, fixes, docs, and CI/build work.
 - Public release assets should make it obvious which package IDs are part of the release.
-- Alpha candidate notes should state whether Doctor, Release Dry Run, package validation, Benchmark Gates, native validation, and packaged consumer smoke passed, failed, or were not run.
+- Alpha candidate notes should state whether Doctor, Release Dry Run, package validation, Benchmark Gates, native validation, packaged consumer smoke, and optional Performance Lab visual evidence passed, failed, were unavailable, or were not run.
 - Public release notes must link `docs/package-matrix.md`, include known alpha limitations, and reference `public-publish-after-summary.json`.
 - Known non-blockers should be listed under candidate validation notes, not under package features or fixes.
 - Dry-run evidence should be linked from release-candidate review notes, but it is not a substitute for the human-approved public publish workflow.
@@ -150,6 +152,7 @@ Every public publish path, including `publish-existing-public-release.yml`, is e
 - Confirm pull-request `release-dry-run` stayed green and uploaded `release-dry-run-evidence` from the public API contract package set without publishing packages.
 - Confirm public release notes and attached assets include the chart package IDs when they are part of the release and do not present `Videra.SurfaceCharts.Demo` as a public package install path.
 - Confirm pull-request `Benchmark Gates` stayed green and that the threshold evaluation artifacts did not report committed runtime-budget regressions.
+- Confirm pull-request `performance-lab-visual-evidence` published evidence artifacts when visual context is relevant; treat them as review/support evidence, not a publish blocker, pixel-perfect gate, stable benchmark guarantee, real GPU instancing proof, renderer parity proof, or new chart-family promise.
 - Confirm release notes categories in `.github/release.yml` still match the current label taxonomy.
 - Confirm `NUGET_API_KEY` is configured for the public workflow.
 - Confirm preview/internal workflows do not override the public-feed truth.
