@@ -186,14 +186,11 @@ public sealed class SurfaceChartRenderState
         var addedKeys = new List<SurfaceTileKey>();
         var colorMapChanged = !ReferenceEquals(_colorMap, inputs.ColorMap);
 
-        foreach (var existingKey in _residentTiles.Keys.ToArray())
+        foreach (var existingKey in _residentTiles.Keys.Where(existingKey => !incomingTiles.ContainsKey(existingKey)).ToArray())
         {
-            if (!incomingTiles.ContainsKey(existingKey))
-            {
-                _residentTiles.Remove(existingKey);
-                _cachedResidentTiles = null;
-                removedKeys.Add(existingKey);
-            }
+            _residentTiles.Remove(existingKey);
+            _cachedResidentTiles = null;
+            removedKeys.Add(existingKey);
         }
 
         foreach (var tile in inputs.LoadedTiles)
