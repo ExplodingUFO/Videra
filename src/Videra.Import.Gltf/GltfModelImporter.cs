@@ -103,7 +103,7 @@ public static partial class GltfModelImporter
         MaterialInstance? defaultMaterial = null;
         Sampler? defaultSampler = null;
 
-        var defaultScene = model.DefaultScene ?? model.LogicalScenes.FirstOrDefault();
+        var defaultScene = model.DefaultScene ?? (model.LogicalScenes.Count > 0 ? model.LogicalScenes[0] : null);
         if (defaultScene != null)
         {
             foreach (var node in defaultScene.VisualChildren)

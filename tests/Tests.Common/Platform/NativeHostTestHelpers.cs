@@ -26,7 +26,7 @@ public static class NativeHostTestHelpers
 
         return ProbeX11DisplayWithRetry(
             openDisplay: () => XOpenDisplayProbe(IntPtr.Zero),
-            closeDisplay: display => XCloseDisplayProbe(display),
+            closeDisplay: display => _ = XCloseDisplayProbe(display),
             maxAttempts: X11DisplayOpenRetryAttempts,
             retryDelay: X11DisplayOpenRetryDelay);
     }
@@ -261,21 +261,21 @@ public static class NativeHostTestHelpers
             if (_window == IntPtr.Zero)
                 throw new InvalidOperationException("Failed to create X11 test window.");
 
-            XMapWindow(_display, _window);
-            XFlush(_display);
+            _ = XMapWindow(_display, _window);
+            _ = XFlush(_display);
         }
 
         public void Dispose()
         {
             if (_window != IntPtr.Zero && _display != IntPtr.Zero)
             {
-                XDestroyWindow(_display, _window);
+                _ = XDestroyWindow(_display, _window);
                 _window = IntPtr.Zero;
             }
 
             if (_display != IntPtr.Zero)
             {
-                XCloseDisplay(_display);
+                _ = XCloseDisplay(_display);
                 _display = IntPtr.Zero;
             }
         }
@@ -393,10 +393,10 @@ public static class NativeHostTestHelpers
             }
         }
 
-        [DllImport("/usr/lib/libobjc.A.dylib", EntryPoint = "objc_getClass")]
+        [DllImport("/usr/lib/libobjc.A.dylib", EntryPoint = "objc_getClass", CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true)]
         private static extern IntPtr objc_getClass(string name);
 
-        [DllImport("/usr/lib/libobjc.A.dylib", EntryPoint = "sel_registerName")]
+        [DllImport("/usr/lib/libobjc.A.dylib", EntryPoint = "sel_registerName", CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true)]
         private static extern IntPtr sel_registerName(string name);
 
         [DllImport("/usr/lib/libobjc.A.dylib", EntryPoint = "objc_msgSend")]

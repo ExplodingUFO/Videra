@@ -5,6 +5,21 @@ namespace Videra.Core.Tests.Repository;
 
 public sealed class AnalyzerPolicyRepositoryTests
 {
+    private static readonly string[] PolicyDisabledRuleIds =
+    [
+        "CA1051",
+        "CA1305",
+        "CA1707",
+        "CA1720",
+        "CA1822",
+        "CA1848",
+        "CA1859",
+        "CA1861",
+        "CA1873",
+        "CA2201",
+        "CA2263"
+    ];
+
     [Fact]
     public void AnalyzerPolicy_ShouldDocumentAnalyzer10RuleDecisions()
     {
@@ -16,11 +31,11 @@ public sealed class AnalyzerPolicyRepositoryTests
         var policy = File.ReadAllText(policyPath);
 
         policy.Should().Contain("Microsoft.CodeAnalysis.NetAnalyzers");
-        policy.Should().Contain("9.0.0");
+        policy.Should().Contain("10.0.203");
         policy.Should().Contain("analyzer 10");
         policy.Should().Contain("TreatWarningsAsErrors");
 
-        foreach (var ruleId in new[] { "CA1051", "CA1720", "CA1822", "CA1859" })
+        foreach (var ruleId in PolicyDisabledRuleIds)
         {
             policy.Should().Contain(ruleId);
         }
@@ -44,13 +59,19 @@ public sealed class AnalyzerPolicyRepositoryTests
     }
 
     [Fact]
-    public void AnalyzerPackage_ShouldRemainOnPreAdoptionVersionDuringPolicyPhase()
+    public void AnalyzerPackage_ShouldUseAnalyzer10WithDocumentedPolicySuppressions()
     {
         var repositoryRoot = GetRepositoryRoot();
         var props = File.ReadAllText(Path.Combine(repositoryRoot, "Directory.Build.props"));
+        var editorConfig = File.ReadAllText(Path.Combine(repositoryRoot, ".editorconfig"));
 
         props.Should().Contain("<EnableNETAnalyzers>true</EnableNETAnalyzers>");
-        props.Should().Contain("<PackageReference Include=\"Microsoft.CodeAnalysis.NetAnalyzers\" Version=\"9.0.0\" PrivateAssets=\"all\" />");
+        props.Should().Contain("<PackageReference Include=\"Microsoft.CodeAnalysis.NetAnalyzers\" Version=\"10.0.203\" PrivateAssets=\"all\" />");
+
+        foreach (var ruleId in PolicyDisabledRuleIds)
+        {
+            editorConfig.Should().Contain($"dotnet_diagnostic.{ruleId}.severity = none");
+        }
     }
 
     private static string GetRepositoryRoot()

@@ -30,15 +30,8 @@ public readonly record struct SurfaceLodSelection
         ArgumentOutOfRangeException.ThrowIfNegative(tileXStart);
         ArgumentOutOfRangeException.ThrowIfNegative(tileYStart);
 
-        if (tileXEnd < tileXStart)
-        {
-            throw new ArgumentOutOfRangeException(nameof(tileXEnd));
-        }
-
-        if (tileYEnd < tileYStart)
-        {
-            throw new ArgumentOutOfRangeException(nameof(tileYEnd));
-        }
+        ArgumentOutOfRangeException.ThrowIfLessThan(tileXEnd, tileXStart);
+        ArgumentOutOfRangeException.ThrowIfLessThan(tileYEnd, tileYStart);
 
         Request = request;
         LevelX = levelX;
