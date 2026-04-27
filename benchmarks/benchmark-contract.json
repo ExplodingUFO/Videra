@@ -91,6 +91,14 @@
             "SurfaceChartsDiagnosticsBenchmarks.RenderingStatus_FromSnapshot",
             "SurfaceChartsDiagnosticsBenchmarks.SupportSummaryFormatting"
           ]
+        },
+        {
+          "name": "Streaming",
+          "benchmarks": [
+            "SurfaceChartsStreamingBenchmarks.AppendColumnarBatch",
+            "SurfaceChartsStreamingBenchmarks.AppendColumnarBatch_WithFifoTrim",
+            "SurfaceChartsStreamingBenchmarks.StreamingDiagnosticsAggregation"
+          ]
         }
       ]
     }

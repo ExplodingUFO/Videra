@@ -21,11 +21,17 @@ public sealed partial class ScatterChartView : Control
     private SurfacePlotBounds _dataBounds = DefaultBounds;
     private SurfaceCameraPose _camera = DefaultCamera;
     private bool _isInteracting;
+    private SurfaceChartInteractionQuality _interactionQuality = SurfaceChartInteractionQuality.Refine;
 
     /// <summary>
     /// Raised when the chart-local readiness surface changes.
     /// </summary>
     public event EventHandler? RenderStatusChanged;
+
+    /// <summary>
+    /// Raised when the chart-local interaction-quality mode changes.
+    /// </summary>
+    public event EventHandler? InteractionQualityChanged;
 
     /// <summary>
     /// Identifies the <see cref="Source"/> property.
@@ -69,6 +75,12 @@ public sealed partial class ScatterChartView : Control
     public ScatterChartRenderingStatus RenderingStatus { get; private set; }
 
     /// <summary>
+    /// Gets the current diagnostic interaction-quality mode, exposing <c>Interactive</c>
+    /// while pointer navigation is active and <c>Refine</c> after it settles.
+    /// </summary>
+    public SurfaceChartInteractionQuality InteractionQuality => _interactionQuality;
+
+    /// <summary>
     /// Reframes the camera to the current data bounds while preserving the current orbit.
     /// </summary>
     public void FitToData()
@@ -110,13 +122,23 @@ public sealed partial class ScatterChartView : Control
 
     internal void SetInteracting(bool isInteracting)
     {
-        if (_isInteracting == isInteracting)
+        var interactionQuality = isInteracting
+            ? SurfaceChartInteractionQuality.Interactive
+            : SurfaceChartInteractionQuality.Refine;
+        var interactionQualityChanged = _interactionQuality != interactionQuality;
+
+        if (_isInteracting == isInteracting && !interactionQualityChanged)
         {
             return;
         }
 
         _isInteracting = isInteracting;
+        _interactionQuality = interactionQuality;
         UpdateRenderingStatus();
+        if (interactionQualityChanged)
+        {
+            InteractionQualityChanged?.Invoke(this, EventArgs.Empty);
+        }
     }
 
     private void InvalidateChart()
@@ -151,10 +173,17 @@ public sealed partial class ScatterChartView : Control
                 && viewSize.Width > 0d
                 && viewSize.Height > 0d,
             IsInteracting = _isInteracting,
+            InteractionQuality = _interactionQuality,
             SeriesCount = source?.SeriesCount ?? 0,
             PointCount = source?.PointCount ?? 0,
             ColumnarSeriesCount = source?.ColumnarSeriesCount ?? 0,
+            ColumnarPointCount = source?.ColumnarPointCount ?? 0,
             PickablePointCount = source?.PickablePointCount ?? 0,
+            StreamingAppendBatchCount = source?.StreamingAppendBatchCount ?? 0,
+            StreamingReplaceBatchCount = source?.StreamingReplaceBatchCount ?? 0,
+            StreamingDroppedPointCount = source?.StreamingDroppedPointCount ?? 0,
+            LastStreamingDroppedPointCount = source?.LastStreamingDroppedPointCount ?? 0,
+            ConfiguredFifoCapacity = source?.ConfiguredFifoCapacity ?? 0,
             ViewSize = viewSize,
             CameraTarget = _camera.Target,
             CameraDistance = _camera.Distance,

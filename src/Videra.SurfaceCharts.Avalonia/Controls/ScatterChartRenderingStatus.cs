@@ -30,6 +30,11 @@ public sealed record ScatterChartRenderingStatus
     public bool IsInteracting { get; init; }
 
     /// <summary>
+    /// Gets the current interaction-quality mode for chart-local render work.
+    /// </summary>
+    public SurfaceChartInteractionQuality InteractionQuality { get; init; } = SurfaceChartInteractionQuality.Refine;
+
+    /// <summary>
     /// Gets the number of series in the current source.
     /// </summary>
     public int SeriesCount { get; init; }
@@ -45,9 +50,39 @@ public sealed record ScatterChartRenderingStatus
     public int ColumnarSeriesCount { get; init; }
 
     /// <summary>
+    /// Gets the retained point count across columnar series.
+    /// </summary>
+    public int ColumnarPointCount { get; init; }
+
+    /// <summary>
     /// Gets the number of columnar points marked pickable.
     /// </summary>
     public int PickablePointCount { get; init; }
+
+    /// <summary>
+    /// Gets the total append batches applied to columnar series.
+    /// </summary>
+    public int StreamingAppendBatchCount { get; init; }
+
+    /// <summary>
+    /// Gets the total replacement batches applied to columnar series.
+    /// </summary>
+    public int StreamingReplaceBatchCount { get; init; }
+
+    /// <summary>
+    /// Gets the total points dropped by FIFO trimming across columnar series.
+    /// </summary>
+    public long StreamingDroppedPointCount { get; init; }
+
+    /// <summary>
+    /// Gets the points dropped by the most recent columnar update.
+    /// </summary>
+    public int LastStreamingDroppedPointCount { get; init; }
+
+    /// <summary>
+    /// Gets the sum of configured FIFO capacities across bounded columnar series.
+    /// </summary>
+    public int ConfiguredFifoCapacity { get; init; }
 
     /// <summary>
     /// Gets the last arranged view size.

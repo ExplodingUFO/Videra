@@ -5,6 +5,7 @@
 For the canonical surface/cache-backed chart story, start from `Videra.SurfaceCharts.Avalonia` plus `Videra.SurfaceCharts.Processing`, and use this demo as the repository reference app for the paths it actually exposes. `SurfaceChartView`, `WaterfallChartView`, and `ScatterChartView` ship in `Videra.SurfaceCharts.Avalonia`, and this sample exercises a repo-owned scatter proof path for all three controls.
 
 The shipped efficiency story is the same chart-local path used by the benchmark gate: tighter interactive residency under camera movement and lower probe-path churn.
+The scatter proof also exposes columnar streaming/FIFO truth from `ScatterColumnarSeries`: retained point count, append/replacement batch count, configured FIFO capacity, FIFO dropped point count, pickable point count, and direct scatter `InteractionQuality`. The demo source uses `ReplaceRange(...)` / `AppendRange(...)`, optional `fifoCapacity`, and the high-volume default `Pickable=false`.
 
 The sample stays separate from `Videra.Demo` and `VideraView`. It exercises the chart-local renderer seam shipped in `SurfaceChartView`, not a `VideraView` mode. It provides switchable sources and built-in chart interaction:
 
@@ -60,7 +61,7 @@ dotnet run --project samples/Videra.SurfaceCharts.Demo/Videra.SurfaceCharts.Demo
 - the shipped `GPU-first` renderer path used by `SurfaceChartView`, with `software fallback` still available when native-host or GPU initialization is unavailable
 - a lightweight rendering-path panel driven by `RenderingStatus` / `RenderStatusChanged`
 - a dedicated `RenderingStatus` diagnostics panel that exposes the active backend, readiness, fallback status/reason, native-host state, resident tile count, visible tile count, and resident tile bytes for the active surface chart path
-- scatter diagnostics for series count, point count, columnar series count, and pickable point count; the columnar high-volume path defaults to `Pickable=false`
+- scatter diagnostics for series count, point count, columnar series count, retained columnar point count, append/replacement batch count, FIFO dropped points, configured FIFO capacity, pickable point count, and `InteractionQuality`; the columnar high-volume path defaults to `Pickable=false`
 
 ## What The Demo Does Not Show Yet
 

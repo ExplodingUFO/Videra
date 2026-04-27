@@ -193,12 +193,45 @@ public sealed class ScatterChartViewIntegrationTests
             view.RenderingStatus.SeriesCount.Should().Be(1);
             view.RenderingStatus.PointCount.Should().Be(2);
             view.RenderingStatus.ColumnarSeriesCount.Should().Be(1);
+            view.RenderingStatus.ColumnarPointCount.Should().Be(2);
             view.RenderingStatus.PickablePointCount.Should().Be(2);
+            view.RenderingStatus.StreamingReplaceBatchCount.Should().Be(1);
+            view.RenderingStatus.ConfiguredFifoCapacity.Should().Be(0);
 
             var expectedBounds = new SurfacePlotBounds(
                 new System.Numerics.Vector3(1f, 2f, 3f),
                 new System.Numerics.Vector3(9f, 8f, 7f));
             view.RenderingStatus.CameraTarget.Should().Be(expectedBounds.Center);
+        });
+    }
+
+    [Fact]
+    public void ScatterChartView_PublishesColumnarStreamingCounters()
+    {
+        AvaloniaHeadlessTestSession.Run(() =>
+        {
+            var metadata = CreateMetadata();
+            var columnar = new ScatterColumnarSeries(0xFF22C55Eu, "Columnar", fifoCapacity: 3);
+            columnar.AppendRange(new ScatterColumnarData(
+                new float[] { 1f, 2f },
+                new float[] { 2f, 3f },
+                new float[] { 3f, 4f }));
+            columnar.AppendRange(new ScatterColumnarData(
+                new float[] { 3f, 4f },
+                new float[] { 4f, 5f },
+                new float[] { 5f, 6f }));
+            var source = new ScatterChartData(metadata, [], [columnar]);
+
+            var view = new ScatterChartView();
+            view.Measure(new Size(240, 160));
+            view.Arrange(new Rect(0, 0, 240, 160));
+            view.Source = source;
+
+            view.RenderingStatus.ColumnarPointCount.Should().Be(3);
+            view.RenderingStatus.StreamingAppendBatchCount.Should().Be(2);
+            view.RenderingStatus.StreamingDroppedPointCount.Should().Be(1);
+            view.RenderingStatus.LastStreamingDroppedPointCount.Should().Be(1);
+            view.RenderingStatus.ConfiguredFifoCapacity.Should().Be(3);
         });
     }
 
@@ -233,18 +266,63 @@ public sealed class ScatterChartViewIntegrationTests
 
             routedInput.RoutePointerPressed(pointer, start, RawInputModifiers.LeftMouseButton, PointerUpdateKind.LeftButtonPressed);
             view.RenderingStatus.IsInteracting.Should().BeTrue();
+            view.InteractionQuality.Should().Be(SurfaceChartInteractionQuality.Interactive);
+            view.RenderingStatus.InteractionQuality.Should().Be(SurfaceChartInteractionQuality.Interactive);
 
             routedInput.RoutePointerMoved(pointer, end, RawInputModifiers.LeftMouseButton);
             view.RenderingStatus.IsInteracting.Should().BeTrue();
+            view.RenderingStatus.InteractionQuality.Should().Be(SurfaceChartInteractionQuality.Interactive);
 
             routedInput.RoutePointerReleased(pointer, end, RawInputModifiers.None, PointerUpdateKind.LeftButtonReleased, MouseButton.Left);
 
             var nextCamera = GetCamera(view);
             view.RenderingStatus.IsInteracting.Should().BeFalse();
+            view.InteractionQuality.Should().Be(SurfaceChartInteractionQuality.Refine);
+            view.RenderingStatus.InteractionQuality.Should().Be(SurfaceChartInteractionQuality.Refine);
             view.RenderingStatus.CameraDistance.Should().BeApproximately(initialCamera.Distance, 0.0001d);
             view.RenderingStatus.CameraTarget.Should().Be(initialCamera.Target);
             nextCamera.YawDegrees.Should().NotBe(initialCamera.YawDegrees);
             nextCamera.PitchDegrees.Should().NotBe(initialCamera.PitchDegrees);
+        });
+    }
+
+    [Fact]
+    public void ScatterChartView_LeftDrag_RaisesInteractionQualityChanged_ForInteractiveAndRefine()
+    {
+        AvaloniaHeadlessTestSession.Run(() =>
+        {
+            var metadata = CreateMetadata();
+            var source = new ScatterChartData(
+                metadata,
+                [
+                    new ScatterSeries(
+                        [
+                            new ScatterPoint(1d, 2d, 3d),
+                            new ScatterPoint(4d, 5d, 6d),
+                        ],
+                        0xFF336699,
+                        "Alpha"),
+                ]);
+            var view = new ScatterChartView();
+            var routedInput = new RoutedInteractionTestScatterChartView(view);
+            var pointer = new Pointer(1, PointerType.Mouse, isPrimary: true);
+            var observedQualities = new List<SurfaceChartInteractionQuality>();
+
+            view.InteractionQualityChanged += (_, _) => observedQualities.Add(view.InteractionQuality);
+            view.Measure(new Size(240, 160));
+            view.Arrange(new Rect(0, 0, 240, 160));
+            view.Source = source;
+
+            view.InteractionQuality.Should().Be(SurfaceChartInteractionQuality.Refine);
+            view.RenderingStatus.InteractionQuality.Should().Be(SurfaceChartInteractionQuality.Refine);
+
+            var position = new Point(120d, 80d);
+            routedInput.RoutePointerPressed(pointer, position, RawInputModifiers.LeftMouseButton, PointerUpdateKind.LeftButtonPressed);
+            routedInput.RoutePointerReleased(pointer, position, RawInputModifiers.None, PointerUpdateKind.LeftButtonReleased, MouseButton.Left);
+
+            observedQualities.Should().Equal(
+                SurfaceChartInteractionQuality.Interactive,
+                SurfaceChartInteractionQuality.Refine);
         });
     }
 

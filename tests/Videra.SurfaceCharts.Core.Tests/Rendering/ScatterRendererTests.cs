@@ -127,6 +127,10 @@ public class ScatterRendererTests
         series.Z.ToArray().Should().Equal(80f, 100f);
         series.Size.ToArray().Should().Equal(1f, 2f);
         series.PointColor.ToArray().Should().Equal(0xFFABCDEFu, 0xFF405060u);
+        series.ReplaceBatchCount.Should().Be(1);
+        series.AppendBatchCount.Should().Be(0);
+        series.LastDroppedPointCount.Should().Be(0);
+        series.TotalDroppedPointCount.Should().Be(0);
     }
 
     [Fact]
@@ -147,6 +151,27 @@ public class ScatterRendererTests
         series.X.ToArray().Should().Equal(20f, 50f, 60f);
         series.Y.ToArray().Should().Equal(40f, 70f, 80f);
         series.Z.ToArray().Should().Equal(90f, 100f, 110f);
+        series.AppendBatchCount.Should().Be(2);
+        series.TotalAppendedPointCount.Should().Be(4);
+        series.LastDroppedPointCount.Should().Be(1);
+        series.TotalDroppedPointCount.Should().Be(1);
+    }
+
+    [Fact]
+    public void ScatterColumnarSeries_ReplaceRange_TrimsIncomingDataToFifoCapacity()
+    {
+        var series = new ScatterColumnarSeries(0xFF102030u, fifoCapacity: 2);
+
+        series.ReplaceRange(new ScatterColumnarData(
+            new float[] { 10f, 20f, 30f },
+            new float[] { 30f, 40f, 50f },
+            new float[] { 80f, 90f, 100f }));
+
+        series.Count.Should().Be(2);
+        series.X.ToArray().Should().Equal(20f, 30f);
+        series.LastDroppedPointCount.Should().Be(1);
+        series.TotalDroppedPointCount.Should().Be(1);
+        series.ReplaceBatchCount.Should().Be(1);
     }
 
     [Fact]
@@ -177,6 +202,43 @@ public class ScatterRendererTests
     }
 
     [Fact]
+    public void ScatterColumnarSeries_IsSortedX_RejectsOutOfOrderAppendBatches()
+    {
+        var series = new ScatterColumnarSeries(0xFF102030u, isSortedX: true);
+        series.AppendRange(new ScatterColumnarData(
+            new float[] { 10f, 20f },
+            new float[] { 30f, 35f },
+            new float[] { 80f, 90f }));
+
+        var act = () => series.AppendRange(new ScatterColumnarData(
+            new float[] { 19f, 30f },
+            new float[] { 40f, 45f },
+            new float[] { 100f, 110f }));
+
+        act.Should().Throw<ArgumentException>()
+            .WithMessage("*non-decreasing*");
+    }
+
+    [Fact]
+    public void ScatterColumnarSeries_IsSortedX_AllowsReplacementBelowPreviousRange()
+    {
+        var series = new ScatterColumnarSeries(0xFF102030u, isSortedX: true);
+        series.AppendRange(new ScatterColumnarData(
+            new float[] { 50f, 60f },
+            new float[] { 30f, 35f },
+            new float[] { 80f, 90f }));
+
+        series.ReplaceRange(new ScatterColumnarData(
+            new float[] { 10f, 20f },
+            new float[] { 40f, 45f },
+            new float[] { 100f, 110f }));
+
+        series.X.ToArray().Should().Equal(10f, 20f);
+        series.ReplaceBatchCount.Should().Be(1);
+        series.AppendBatchCount.Should().Be(1);
+    }
+
+    [Fact]
     public void BuildScene_MapsColumnarSeriesIntoRenderReadySeries()
     {
         var columnar = new ScatterColumnarSeries(0xFF102030u, label: "Columnar", pickable: true);
@@ -192,13 +254,40 @@ public class ScatterRendererTests
 
         data.SeriesCount.Should().Be(1);
         data.ColumnarSeriesCount.Should().Be(1);
+        data.ColumnarPointCount.Should().Be(2);
         data.PointCount.Should().Be(2);
         data.PickablePointCount.Should().Be(2);
+        data.StreamingReplaceBatchCount.Should().Be(1);
+        data.StreamingAppendBatchCount.Should().Be(0);
+        data.ConfiguredFifoCapacity.Should().Be(0);
         scene.Series.Should().ContainSingle();
         scene.Series[0].Label.Should().Be("Columnar");
         scene.Series[0].Points.Should().Equal(
             new ScatterRenderPoint(new Vector3(10f, 30f, 80f), 0xFFABCDEFu, 1f),
             new ScatterRenderPoint(new Vector3(25f, 45f, 100f), 0xFF405060u, 2f));
+    }
+
+    [Fact]
+    public void ScatterChartData_ReportsMutableColumnarStreamingCounters()
+    {
+        var columnar = new ScatterColumnarSeries(0xFF102030u, fifoCapacity: 3);
+        columnar.AppendRange(new ScatterColumnarData(
+            new float[] { 10f, 20f },
+            new float[] { 30f, 40f },
+            new float[] { 80f, 90f }));
+        var data = new ScatterChartData(CreateMetadata(), [], [columnar]);
+
+        columnar.AppendRange(new ScatterColumnarData(
+            new float[] { 25f, 30f },
+            new float[] { 42f, 45f },
+            new float[] { 95f, 100f }));
+
+        data.PointCount.Should().Be(3);
+        data.ColumnarPointCount.Should().Be(3);
+        data.StreamingAppendBatchCount.Should().Be(2);
+        data.StreamingDroppedPointCount.Should().Be(1);
+        data.LastStreamingDroppedPointCount.Should().Be(1);
+        data.ConfiguredFifoCapacity.Should().Be(3);
     }
 
     [Fact]

@@ -360,7 +360,8 @@ public sealed class SurfaceChartsDemoViewportBehaviorTests
             builtInInteractionText.Text.Should().Contain("Wheel dolly");
             builtInInteractionText.Text.Should().Contain("does not expose right-drag pan");
 
-            interactionQualityText.Text.Should().Contain("does not expose");
+            interactionQualityText.Text.Should().Contain("Current mode:");
+            interactionQualityText.Text.Should().Contain("Refine");
             overlayOptionsText.Text.Should().Contain("does not expose");
             statusText.Text.Should().Contain("Scatter proof navigation");
             statusText.Text.Should().Contain("Current scene:");
@@ -370,6 +371,7 @@ public sealed class SurfaceChartsDemoViewportBehaviorTests
             renderingDiagnosticsText.Text.Should().Contain("HasSource:");
             renderingDiagnosticsText.Text.Should().Contain("BackendKind:");
             renderingDiagnosticsText.Text.Should().Contain("IsInteracting:");
+            renderingDiagnosticsText.Text.Should().Contain("InteractionQuality:");
             renderingDiagnosticsText.Text.Should().Contain("SeriesCount:");
             renderingDiagnosticsText.Text.Should().Contain("PointCount:");
             renderingDiagnosticsText.Text.Should().Contain("CameraDistance:");
@@ -406,7 +408,7 @@ public sealed class SurfaceChartsDemoViewportBehaviorTests
             supportSummaryText.Text.Should().Contain("BackendKind:");
             supportSummaryText.Text.Should().Contain("SeriesCount");
             supportSummaryText.Text.Should().Contain("PointCount");
-            supportSummaryText.Text.Should().Contain("InteractionQuality: not exposed");
+            supportSummaryText.Text.Should().Contain("InteractionQuality: Refine");
             supportSummaryText.Text.Should().Contain("OverlayOptions: not exposed");
             supportSummaryText.Text.Should().NotContain("ViewState:");
         });

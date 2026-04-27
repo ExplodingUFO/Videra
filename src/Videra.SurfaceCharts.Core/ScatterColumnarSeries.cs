@@ -10,6 +10,7 @@ public sealed class ScatterColumnarSeries
     private float[] _z = [];
     private float[] _size = [];
     private uint[] _color = [];
+    private float? _lastFiniteX;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ScatterColumnarSeries"/> class.
@@ -77,6 +78,31 @@ public sealed class ScatterColumnarSeries
     public int Count => _x.Length;
 
     /// <summary>
+    /// Gets the number of append batches applied to this series.
+    /// </summary>
+    public int AppendBatchCount { get; private set; }
+
+    /// <summary>
+    /// Gets the number of replacement batches applied to this series.
+    /// </summary>
+    public int ReplaceBatchCount { get; private set; }
+
+    /// <summary>
+    /// Gets the total number of points accepted through append batches.
+    /// </summary>
+    public long TotalAppendedPointCount { get; private set; }
+
+    /// <summary>
+    /// Gets the total number of points dropped by FIFO trimming.
+    /// </summary>
+    public long TotalDroppedPointCount { get; private set; }
+
+    /// <summary>
+    /// Gets the number of points dropped by the most recent replace or append operation.
+    /// </summary>
+    public int LastDroppedPointCount { get; private set; }
+
+    /// <summary>
     /// Gets the horizontal-axis coordinates.
     /// </summary>
     public ReadOnlyMemory<float> X => _x;
@@ -107,10 +133,14 @@ public sealed class ScatterColumnarSeries
     /// <param name="data">The replacement data.</param>
     public void ReplaceRange(ScatterColumnarData data)
     {
-        ValidateData(data);
+        ValidateData(data, requireSortedContinuation: false);
         var retainedStart = GetRetainedStart(data.Count);
         var retainedCount = data.Count - retainedStart;
         ReplaceFrom(data, retainedStart, retainedCount);
+        ReplaceBatchCount++;
+        LastDroppedPointCount = retainedStart;
+        TotalDroppedPointCount += retainedStart;
+        RefreshLastFiniteX();
     }
 
     /// <summary>
@@ -119,16 +149,21 @@ public sealed class ScatterColumnarSeries
     /// <param name="data">The data to append.</param>
     public void AppendRange(ScatterColumnarData data)
     {
-        ValidateData(data);
+        ValidateData(data, requireSortedContinuation: true);
 
         var capacity = FifoCapacity;
         if (capacity is null)
         {
             AppendWithoutTrim(data);
+            AppendBatchCount++;
+            TotalAppendedPointCount += data.Count;
+            LastDroppedPointCount = 0;
+            RefreshLastFiniteX();
             return;
         }
 
         var retainedCount = Math.Min(_x.Length + data.Count, capacity.Value);
+        var droppedCount = (_x.Length + data.Count) - retainedCount;
         var nextX = new float[retainedCount];
         var nextY = new float[retainedCount];
         var nextZ = new float[retainedCount];
@@ -154,6 +189,11 @@ public sealed class ScatterColumnarSeries
         _z = nextZ;
         _size = nextSize;
         _color = nextColor;
+        AppendBatchCount++;
+        TotalAppendedPointCount += data.Count;
+        LastDroppedPointCount = droppedCount;
+        TotalDroppedPointCount += droppedCount;
+        RefreshLastFiniteX();
     }
 
     internal float GetSize(int index)
@@ -202,7 +242,7 @@ public sealed class ScatterColumnarSeries
         CopyData(data, start, _x, _y, _z, _size, _color, 0, count);
     }
 
-    private void ValidateData(ScatterColumnarData data)
+    private void ValidateData(ScatterColumnarData data, bool requireSortedContinuation)
     {
         var x = data.X.Span;
         var y = data.Y.Span;
@@ -218,6 +258,11 @@ public sealed class ScatterColumnarSeries
             {
                 throw new ArgumentOutOfRangeException(nameof(data), "Point sizes must be positive finite values.");
             }
+        }
+
+        if (IsSortedX)
+        {
+            ValidateSortedX(x, requireSortedContinuation ? _lastFiniteX : null);
         }
     }
 
@@ -297,5 +342,37 @@ public sealed class ScatterColumnarSeries
         }
 
         Array.Copy(source, sourceStart, target, 0, count);
+    }
+
+    private void ValidateSortedX(ReadOnlySpan<float> x, float? previous)
+    {
+        for (var index = 0; index < x.Length; index++)
+        {
+            var value = x[index];
+            if (float.IsNaN(value) && ContainsNaN)
+            {
+                continue;
+            }
+
+            if (previous is { } previousValue && value < previousValue)
+            {
+                throw new ArgumentException("Columnar scatter X values must be non-decreasing when IsSortedX is enabled.", nameof(x));
+            }
+
+            previous = value;
+        }
+    }
+
+    private void RefreshLastFiniteX()
+    {
+        _lastFiniteX = null;
+        for (var index = _x.Length - 1; index >= 0; index--)
+        {
+            if (!float.IsNaN(_x[index]))
+            {
+                _lastFiniteX = _x[index];
+                return;
+            }
+        }
     }
 }

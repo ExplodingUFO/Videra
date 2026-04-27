@@ -90,7 +90,7 @@ public sealed class SurfaceChartsDemoConfigurationTests
         mainWindowCodeBehind.Should().Contain("Right drag pan");
         mainWindowCodeBehind.Should().Contain("Wheel dolly");
         mainWindowCodeBehind.Should().Contain("Ctrl + Left drag");
-        mainWindowCodeBehind.Should().Contain("ScatterChartView does not expose `InteractionQuality`");
+        mainWindowCodeBehind.Should().Contain("status.InteractionQuality");
         mainWindowCodeBehind.Should().Contain("ScatterChartView does not expose `OverlayOptions`");
         mainWindowCodeBehind.Should().Contain("SurfaceChartOverlayOptions");
         mainWindowCodeBehind.Should().Contain(".OverlayOptions");
@@ -127,7 +127,7 @@ public sealed class SurfaceChartsDemoConfigurationTests
         mainWindowCodeBehind.Should().Contain("UpdateInteractionQualityText");
         mainWindowCodeBehind.Should().Contain("UpdateSupportSummaryText");
         mainWindowCodeBehind.Should().Contain("Current mode:");
-        mainWindowCodeBehind.Should().Contain("does not expose `InteractionQuality`");
+        mainWindowCodeBehind.Should().Contain("Refine: settled camera pose");
         mainWindowCodeBehind.Should().Contain("OnCopySupportSummaryClicked");
         mainWindowCodeBehind.Should().Contain("Clipboard");
         mainWindowCodeBehind.Should().Contain("Start here: In-memory first chart");
