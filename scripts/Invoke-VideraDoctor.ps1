@@ -199,6 +199,79 @@ function New-EvidenceArtifact(
     }
 }
 
+function Get-PerformanceLabVisualEvidence
+{
+    $manifestPath = "artifacts/performance-lab-visual-evidence/performance-lab-visual-evidence-manifest.json"
+    $resolvedManifestPath = Join-Path $repositoryRoot $manifestPath
+
+    if (-not (Test-Path -LiteralPath $resolvedManifestPath -PathType Leaf))
+    {
+        return [ordered]@{
+            status = "missing"
+            message = "Performance Lab visual evidence manifest is missing. Run scripts/Invoke-PerformanceLabVisualEvidence.ps1 when visual evidence is needed."
+            manifestPath = $manifestPath
+            summaryPath = ""
+            generatedAtUtc = $null
+            schemaVersion = $null
+            evidenceKind = "PerformanceLabVisualEvidence"
+            screenshotPaths = @()
+            diagnosticsPaths = @()
+            entries = @()
+        }
+    }
+
+    try
+    {
+        $manifest = Get-Content -LiteralPath $resolvedManifestPath -Raw | ConvertFrom-Json
+    }
+    catch
+    {
+        return [ordered]@{
+            status = "unavailable"
+            message = "Performance Lab visual evidence manifest could not be parsed."
+            manifestPath = $manifestPath
+            summaryPath = ""
+            generatedAtUtc = $null
+            schemaVersion = $null
+            evidenceKind = "PerformanceLabVisualEvidence"
+            screenshotPaths = @()
+            diagnosticsPaths = @()
+            entries = @()
+        }
+    }
+
+    $entries = @($manifest.entries | ForEach-Object {
+        [ordered]@{
+            id = [string]$_.id
+            scenarioType = [string]$_.scenarioType
+            displayName = [string]$_.displayName
+            status = [string]$_.status
+            pngPath = if ($null -eq $_.pngPath) { "" } else { [string]$_.pngPath }
+            diagnosticsPath = [string]$_.diagnosticsPath
+        }
+    })
+
+    $screenshotPaths = @($entries | Where-Object { -not [string]::IsNullOrWhiteSpace($_.pngPath) } | ForEach-Object { $_.pngPath })
+    $diagnosticsPaths = @($entries | Where-Object { -not [string]::IsNullOrWhiteSpace($_.diagnosticsPath) } | ForEach-Object { $_.diagnosticsPath })
+    $manifestStatus = [string]$manifest.status
+    $status = if ($manifestStatus -eq "unavailable") { "unavailable" } else { "present" }
+    $message = if ($status -eq "unavailable") { "Performance Lab visual evidence manifest records unavailable capture state." } else { "Performance Lab visual evidence bundle is present." }
+
+    return [ordered]@{
+        status = $status
+        captureStatus = $manifestStatus
+        message = $message
+        manifestPath = $manifestPath
+        summaryPath = [string]$manifest.summaryPath
+        generatedAtUtc = [string]$manifest.generatedUtc
+        schemaVersion = $manifest.schemaVersion
+        evidenceKind = [string]$manifest.evidenceKind
+        screenshotPaths = $screenshotPaths
+        diagnosticsPaths = $diagnosticsPaths
+        entries = $entries
+    }
+}
+
 $dotnetVersion = $null
 $dotnetInfo = $null
 $dotnetCommand = Get-Command dotnet -ErrorAction SilentlyContinue
@@ -280,7 +353,8 @@ $supportArtifactPaths = @(
     "artifacts/benchmarks",
     "artifacts/release-dry-run",
     "artifacts/consumer-smoke",
-    "artifacts/native-validation"
+    "artifacts/native-validation",
+    "artifacts/performance-lab-visual-evidence"
 )
 
 foreach ($supportArtifactPath in $supportArtifactPaths)
@@ -365,6 +439,7 @@ Add-Validation -Id "demo-diagnostics" -Status "skip" -Message "Reference-only: a
 
 $summaryPath = Join-Path $resolvedOutputRoot "doctor-summary.txt"
 $reportPath = Join-Path $resolvedOutputRoot "doctor-report.json"
+$performanceLabVisualEvidence = Get-PerformanceLabVisualEvidence
 
 $evidencePacket = [ordered]@{
     repository = [ordered]@{
@@ -416,6 +491,7 @@ $evidencePacket = [ordered]@{
             producedBy = "scripts/Invoke-VideraDoctor.ps1"
         }
     )
+    performanceLabVisualEvidence = $performanceLabVisualEvidence
     artifactReferences = @(
         (New-EvidenceArtifact -Id "release-dry-run-summary-json" -Category "release-dry-run" -Path "artifacts/release-dry-run/release-dry-run-summary.json" -ProducedBy "scripts/Invoke-ReleaseDryRun.ps1"),
         (New-EvidenceArtifact -Id "release-dry-run-summary-text" -Category "release-dry-run" -Path "artifacts/release-dry-run/release-dry-run-summary.txt" -ProducedBy "scripts/Invoke-ReleaseDryRun.ps1"),
@@ -432,7 +508,9 @@ $evidencePacket = [ordered]@{
         (New-EvidenceArtifact -Id "public-release-preflight-summary-json" -Category "public-release-preflight" -Path "artifacts/public-release-preflight/public-release-preflight-summary.json" -ProducedBy "scripts/Invoke-PublicReleasePreflight.ps1"),
         (New-EvidenceArtifact -Id "public-release-preflight-summary-text" -Category "public-release-preflight" -Path "artifacts/public-release-preflight/public-release-preflight-summary.txt" -ProducedBy "scripts/Invoke-PublicReleasePreflight.ps1"),
         (New-EvidenceArtifact -Id "demo-diagnostics-snapshot" -Category "demo-support" -Path "artifacts/consumer-smoke/diagnostics-snapshot.txt" -ProducedBy "Videra.Demo"),
-        (New-EvidenceArtifact -Id "surfacecharts-support-summary" -Category "demo-support" -Path "artifacts/consumer-smoke/surfacecharts-support-summary.txt" -ProducedBy "Videra.SurfaceCharts.Demo")
+        (New-EvidenceArtifact -Id "surfacecharts-support-summary" -Category "demo-support" -Path "artifacts/consumer-smoke/surfacecharts-support-summary.txt" -ProducedBy "Videra.SurfaceCharts.Demo"),
+        (New-EvidenceArtifact -Id "performance-lab-visual-evidence-manifest" -Category "performance-lab-visual-evidence" -Path "artifacts/performance-lab-visual-evidence/performance-lab-visual-evidence-manifest.json" -ProducedBy "scripts/Invoke-PerformanceLabVisualEvidence.ps1"),
+        (New-EvidenceArtifact -Id "performance-lab-visual-evidence-summary" -Category "performance-lab-visual-evidence" -Path "artifacts/performance-lab-visual-evidence/performance-lab-visual-evidence-summary.txt" -ProducedBy "scripts/Invoke-PerformanceLabVisualEvidence.ps1")
     )
 }
 
@@ -490,6 +568,22 @@ foreach ($artifact in $evidencePacket.artifactReferences)
 {
     $line = "- {0}/{1}: {2} - {3}" -f $artifact.category, $artifact.id, $artifact.status, $artifact.path
     $summaryLines.Add($line) | Out-Null
+}
+$summaryLines.Add("") | Out-Null
+$summaryLines.Add("Performance Lab visual evidence:") | Out-Null
+$summaryLines.Add(("- status: {0} - {1}" -f $performanceLabVisualEvidence.status, $performanceLabVisualEvidence.message)) | Out-Null
+$summaryLines.Add(("- manifest: {0}" -f $performanceLabVisualEvidence.manifestPath)) | Out-Null
+if (-not [string]::IsNullOrWhiteSpace($performanceLabVisualEvidence.summaryPath))
+{
+    $summaryLines.Add(("- summary: {0}" -f $performanceLabVisualEvidence.summaryPath)) | Out-Null
+}
+foreach ($screenshotPath in $performanceLabVisualEvidence.screenshotPaths)
+{
+    $summaryLines.Add(("- screenshot: {0}" -f $screenshotPath)) | Out-Null
+}
+foreach ($diagnosticsPath in $performanceLabVisualEvidence.diagnosticsPaths)
+{
+    $summaryLines.Add(("- diagnostics: {0}" -f $diagnosticsPath)) | Out-Null
 }
 $summaryLines.Add("") | Out-Null
 $summaryLines.Add("Reports:") | Out-Null
