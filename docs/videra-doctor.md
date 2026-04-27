@@ -13,7 +13,7 @@ The command writes:
 - `artifacts/doctor/doctor-report.json`
 - `artifacts/doctor/doctor-summary.txt`
 
-The report captures SDK/runtime, OS, git state, package and benchmark contract file presence, validation script presence, platform project presence, known support artifact paths, and an `evidencePacket` section for release-candidate triage.
+The report captures SDK/runtime, OS, git state, package and benchmark contract file presence, validation script presence, platform project presence, known support artifact paths, and an `evidencePacket` section for release-candidate triage. Doctor also reports whether the optional Performance Lab visual evidence bundle is `present`, `missing`, or `unavailable`.
 
 Contract and validation references reported by Doctor stay aligned with the repository files that own them:
 
@@ -26,6 +26,7 @@ Contract and validation references reported by Doctor stay aligned with the repo
 - `scripts/Invoke-ConsumerSmoke.ps1`
 - `scripts/run-native-validation.ps1`
 - `scripts/Invoke-PublicReleasePreflight.ps1`
+- `scripts/Invoke-PerformanceLabVisualEvidence.ps1`
 
 ## Validation References
 
@@ -58,7 +59,25 @@ Doctor complements `release-dry-run-evidence` and `public-release-preflight` sum
 - native validation: `artifacts/native-validation`
 - public release preflight: `public-release-preflight-summary.json` and `public-release-preflight-summary.txt`
 - demo support: diagnostics and SurfaceCharts support summaries copied from the demos
+- Performance Lab visual evidence: `performance-lab-visual-evidence-manifest.json`, `performance-lab-visual-evidence-summary.txt`, PNG visual evidence, and per-scenario diagnostics under `artifacts/performance-lab-visual-evidence`
 
 Doctor only reports whether those paths are present or missing. The owning scripts still produce and validate the artifacts.
+
+`evidencePacket.performanceLabVisualEvidence` is the structured visual evidence discovery object. It includes:
+
+- `status`: `present`, `missing`, or `unavailable`
+- `captureStatus`: the manifest status when a manifest exists, such as `produced` or `unavailable`
+- `manifestPath` and `summaryPath`
+- `generatedAtUtc`, `schemaVersion`, and `evidenceKind`
+- `screenshotPaths` and `diagnosticsPaths`
+- per-scenario `entries` with scenario id/type/display name/status and artifact paths
+
+Doctor does not generate screenshots by default. If visual evidence is needed for PR review or support, generate it explicitly:
+
+```powershell
+pwsh -File ./scripts/Invoke-PerformanceLabVisualEvidence.ps1 -Configuration Release -OutputRoot artifacts/performance-lab-visual-evidence
+```
+
+Then rerun Doctor and attach both `artifacts/doctor/*` and `artifacts/performance-lab-visual-evidence/*`.
 
 Doctor does not publish packages, does not push packages or git remotes, does not create tags, alter package feeds, change git remotes, update machine configuration, or fix local setup. Use it to attach repository state to support reports before running deeper validation.
