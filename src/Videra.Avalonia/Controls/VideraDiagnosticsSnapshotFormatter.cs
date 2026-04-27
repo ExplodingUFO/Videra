@@ -49,6 +49,15 @@ public static class VideraDiagnosticsSnapshotFormatter
         builder.AppendLine($"LastFrameObjectCount: {diagnostics.LastFrameObjectCount}");
         builder.AppendLine($"LastFrameOpaqueObjectCount: {diagnostics.LastFrameOpaqueObjectCount}");
         builder.AppendLine($"LastFrameTransparentObjectCount: {diagnostics.LastFrameTransparentObjectCount}");
+        builder.AppendLine("LastFrameObjectCountMetric: Measured scene count; not a draw-call metric.");
+        builder.AppendLine($"LastFrameDrawCallCount: {FormatNullable(diagnostics.LastFrameDrawCallCount)}");
+        builder.AppendLine($"LastFrameInstanceCount: {FormatNullable(diagnostics.LastFrameInstanceCount)}");
+        builder.AppendLine($"LastFrameVertexCount: {FormatNullable(diagnostics.LastFrameVertexCount)}");
+        builder.AppendLine($"LastFrameUploadBytes: {diagnostics.LastFrameUploadBytes}");
+        builder.AppendLine($"ResidentResourceCount: {diagnostics.ResidentResourceCount}");
+        builder.AppendLine($"ResidentResourceBytes: {diagnostics.ResidentResourceBytes}");
+        builder.AppendLine($"PickableObjectCount: {FormatNullable(diagnostics.PickableObjectCount)}");
+        builder.AppendLine("PerformanceMetricSources: draw calls, instances, vertices, and pickable objects are Unavailable when the active backend path does not report them; upload bytes are measured by scene residency; resident resource bytes are residency estimates.");
         builder.AppendLine($"SupportedRenderFeatureNames: {FormatList(diagnostics.SupportedRenderFeatureNames)}");
         builder.AppendLine($"TransparentFeatureStatus: {FormatNullable(diagnostics.TransparentFeatureStatus)}");
         builder.AppendLine($"SceneDocumentVersion: {diagnostics.SceneDocumentVersion}");
@@ -93,6 +102,12 @@ public static class VideraDiagnosticsSnapshotFormatter
 
     private static string FormatNullable(string? value) =>
         string.IsNullOrWhiteSpace(value) ? "Unavailable" : value;
+
+    private static string FormatNullable(int? value) =>
+        value?.ToString() ?? "Unavailable";
+
+    private static string FormatNullable(long? value) =>
+        value?.ToString() ?? "Unavailable";
 
     private static string FormatList(IReadOnlyList<string>? values) =>
         values is { Count: > 0 } ? string.Join(", ", values) : "Unavailable";

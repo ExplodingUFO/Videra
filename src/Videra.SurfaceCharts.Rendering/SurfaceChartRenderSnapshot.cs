@@ -13,4 +13,8 @@ public sealed record SurfaceChartRenderSnapshot
     public bool UsesNativeSurface { get; init; }
 
     public int ResidentTileCount { get; init; }
+
+    public int VisibleTileCount { get; init; }
+
+    public long ResidentTileBytes { get; init; }
 }

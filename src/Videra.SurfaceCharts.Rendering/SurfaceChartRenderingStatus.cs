@@ -14,6 +14,10 @@ public sealed record SurfaceChartRenderingStatus
 
     public int ResidentTileCount { get; init; }
 
+    public int VisibleTileCount { get; init; }
+
+    public long ResidentTileBytes { get; init; }
+
     public static SurfaceChartRenderingStatus FromSnapshot(SurfaceChartRenderSnapshot snapshot)
     {
         ArgumentNullException.ThrowIfNull(snapshot);
@@ -26,6 +30,8 @@ public sealed record SurfaceChartRenderingStatus
             FallbackReason = snapshot.FallbackReason,
             UsesNativeSurface = snapshot.UsesNativeSurface,
             ResidentTileCount = snapshot.ResidentTileCount,
+            VisibleTileCount = snapshot.VisibleTileCount,
+            ResidentTileBytes = snapshot.ResidentTileBytes,
         };
     }
 }

@@ -831,6 +831,8 @@ public partial class MainWindow : Window
             $"FallbackReason: {status.FallbackReason ?? "none"}\n" +
             $"UsesNativeSurface: {status.UsesNativeSurface}\n" +
             $"ResidentTileCount: {status.ResidentTileCount}\n" +
+            $"VisibleTileCount: {status.VisibleTileCount}\n" +
+            $"ResidentTileBytes: {status.ResidentTileBytes} (measured by GPU resources or estimated from software tile geometry)\n" +
             $"Fallback status: {CreateFallbackText(status)}\n" +
             $"Host path: {CreateHostText(status)}";
     }

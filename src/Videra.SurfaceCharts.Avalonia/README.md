@@ -21,7 +21,7 @@ The public overlay configuration seam is `SurfaceChartOverlayOptions` through `O
 
 - a chart-local renderer seam through `SurfaceChartRenderHost`; it is not a `VideraView` mode
 - a `GPU-first` renderer path with an explicit `software fallback`
-- control-visible `RenderingStatus` / `RenderStatusChanged` truth for `ActiveBackend`, `IsReady`, `IsFallback`, `FallbackReason`, `UsesNativeSurface`, and `ResidentTileCount`
+- control-visible `RenderingStatus` / `RenderStatusChanged` truth for `ActiveBackend`, `IsReady`, `IsFallback`, `FallbackReason`, `UsesNativeSurface`, `ResidentTileCount`, `VisibleTileCount`, and `ResidentTileBytes`
 - host-driven surface rendering from an `ISurfaceTileSource`
 - `ViewState` as the primary chart-view contract while `Viewport` remains a compatibility bridge for existing hosts
 - host-driven `FitToData()`, `ResetCamera()`, and `ZoomTo(...)` commands

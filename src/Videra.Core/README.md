@@ -56,7 +56,7 @@ Current profiles:
 - `StandardWithWireframeOverlay`
 - `WireframeOnly`
 
-When consumed through `Videra.Avalonia`, the control diagnostics mirror the same information through `RenderPipelineProfile`, `LastFrameStageNames`, `LastFrameObjectCount`, `LastFrameOpaqueObjectCount`, `LastFrameTransparentObjectCount`, and `UsesSoftwarePresentationCopy`. Those last-frame counts are backend-neutral scene diagnostics, not draw-call metrics.
+When consumed through `Videra.Avalonia`, the control diagnostics mirror the same information through `RenderPipelineProfile`, `LastFrameStageNames`, `LastFrameObjectCount`, `LastFrameOpaqueObjectCount`, `LastFrameTransparentObjectCount`, and `UsesSoftwarePresentationCopy`. Those last-frame counts are backend-neutral scene diagnostics, not draw-call metrics. Renderer-cost fields such as `LastFrameDrawCallCount`, `LastFrameInstanceCount`, `LastFrameVertexCount`, and `PickableObjectCount` are nullable so unsupported backend paths can report `Unavailable` instead of inventing measurements.
 
 Stable feature vocabulary:
 

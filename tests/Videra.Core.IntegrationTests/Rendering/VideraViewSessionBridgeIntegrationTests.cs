@@ -202,6 +202,7 @@ public sealed class VideraViewSessionBridgeIntegrationTests
         PendingUploads: 0,
         PendingUploadBytes: 0,
         ResidentObjects: 0,
+        ResidentObjectBytes: 0,
         DirtyObjects: 0,
         FailedUploads: 0,
         LastUploadedObjects: 0,
@@ -227,6 +228,7 @@ public sealed class VideraViewSessionBridgeIntegrationTests
                 PendingUploads: 2,
                 PendingUploadBytes: 4096,
                 ResidentObjects: 4,
+                ResidentObjectBytes: 8192,
                 DirtyObjects: 1,
                 FailedUploads: 0,
                 LastUploadedObjects: 1,
@@ -237,8 +239,11 @@ public sealed class VideraViewSessionBridgeIntegrationTests
                 LastBudgetMaxBytes: 16384));
 
         diagnostics.PendingSceneUploadBytes.Should().Be(4096);
+        diagnostics.ResidentResourceCount.Should().Be(4);
+        diagnostics.ResidentResourceBytes.Should().Be(8192);
         diagnostics.LastFrameUploadedObjects.Should().Be(1);
         diagnostics.LastFrameUploadedBytes.Should().Be(2048);
+        diagnostics.LastFrameUploadBytes.Should().Be(2048);
         diagnostics.LastFrameUploadFailures.Should().Be(0);
         diagnostics.LastFrameUploadDuration.Should().Be(TimeSpan.FromMilliseconds(12));
         diagnostics.ResolvedUploadBudgetObjects.Should().Be(2);

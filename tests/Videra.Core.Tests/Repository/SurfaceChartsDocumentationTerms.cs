@@ -48,7 +48,7 @@ internal static class SurfaceChartsDocumentationTerms
         "`SurfaceChartView` owns chart-local built-in gestures, tile scheduling/cache, overlay presentation, native-host/render-host orchestration, and `RenderingStatus` projection.";
 
     public const string SurfaceChartsRenderingStatusFieldsSentence =
-        "The public rendering truth is `RenderingStatus` + `RenderStatusChanged` with `ActiveBackend`, `IsReady`, `IsFallback`, `FallbackReason`, `UsesNativeSurface`, and `ResidentTileCount`.";
+        "The public rendering truth is `RenderingStatus` + `RenderStatusChanged` with `ActiveBackend`, `IsReady`, `IsFallback`, `FallbackReason`, `UsesNativeSurface`, `ResidentTileCount`, `VisibleTileCount`, and `ResidentTileBytes`.";
 
     public const string SurfaceChartsSourceFirstSentence =
         "The `Videra.SurfaceCharts.*` family is part of the current public package promise, while `Videra.SurfaceCharts.Demo` remains repository-only.";
@@ -84,7 +84,7 @@ internal static class SurfaceChartsDocumentationTerms
         "`SurfaceChartView` 拥有 chart-local built-in 手势、tile scheduling/cache、overlay presentation、native-host/render-host orchestration，以及 `RenderingStatus` 投影。";
 
     public const string ChineseSurfaceChartsRenderingStatusFieldsSentence =
-        "对外渲染 truth 是 `RenderingStatus` + `RenderStatusChanged`，字段包括 `ActiveBackend`、`IsReady`、`IsFallback`、`FallbackReason`、`UsesNativeSurface` 和 `ResidentTileCount`。";
+        "对外渲染 truth 是 `RenderingStatus` + `RenderStatusChanged`，字段包括 `ActiveBackend`、`IsReady`、`IsFallback`、`FallbackReason`、`UsesNativeSurface`、`ResidentTileCount`、`VisibleTileCount` 和 `ResidentTileBytes`。";
 
     public const string ChineseAvaloniaRenderStatusSentence =
         "暴露宿主可见的 `RenderingStatus` / `RenderStatusChanged`";
@@ -294,7 +294,9 @@ internal static class SurfaceChartsDocumentationTerms
         "`IsFallback`",
         "`FallbackReason`",
         "`UsesNativeSurface`",
-        "`ResidentTileCount`"
+        "`ResidentTileCount`",
+        "`VisibleTileCount`",
+        "`ResidentTileBytes`"
     ];
 
     public static readonly string[] SurfaceChartsSourceFirstTokens =
@@ -363,7 +365,9 @@ internal static class SurfaceChartsDocumentationTerms
         "`IsFallback`",
         "`FallbackReason`",
         "`UsesNativeSurface`",
-        "`ResidentTileCount`"
+        "`ResidentTileCount`",
+        "`VisibleTileCount`",
+        "`ResidentTileBytes`"
     ];
 
     public static readonly string[] SurfaceChartViewTypeXmlDocTokens =
@@ -382,7 +386,9 @@ internal static class SurfaceChartsDocumentationTerms
         "<c>IsFallback</c>",
         "<c>FallbackReason</c>",
         "<c>UsesNativeSurface</c>",
-        "<c>ResidentTileCount</c>"
+        "<c>ResidentTileCount</c>",
+        "<c>VisibleTileCount</c>",
+        "<c>ResidentTileBytes</c>"
     ];
 
     public static readonly string[] SurfaceChartViewportXmlDocTokens =
@@ -541,7 +547,9 @@ internal static class SurfaceChartsDocumentationTerms
         "`IsFallback`",
         "`FallbackReason`",
         "`UsesNativeSurface`",
-        "`ResidentTileCount`"
+        "`ResidentTileCount`",
+        "`VisibleTileCount`",
+        "`ResidentTileBytes`"
     ];
 
     public static readonly string[] ChineseSurfaceChartsSourceFirstTokens =
