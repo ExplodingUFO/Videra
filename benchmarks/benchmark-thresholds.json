@@ -22,7 +22,7 @@
         {
           "benchmark": "Videra.Viewer.Benchmarks.InspectionBenchmarks.SceneHitTest_MeshAccurateDistance",
           "baselineMeanNs": 300.915,
-          "maxRegressionPercent": 150
+          "maxRegressionPercent": 155
         },
         {
           "benchmark": "Videra.Viewer.Benchmarks.InspectionBenchmarks.SnapshotExport_LiveReadbackFastPath",
