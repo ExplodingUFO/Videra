@@ -85,6 +85,9 @@ public sealed class SurfaceChartsDemoConfigurationTests
         mainWindowCodeBehind.Should().Contain("OverlayOptionsText");
         mainWindowCodeBehind.Should().Contain("RenderingDiagnosticsText");
         mainWindowCodeBehind.Should().Contain("SupportSummaryText");
+        mainWindowCodeBehind.Should().Contain("EvidenceKind: SurfaceChartsStreamingDatasetProof");
+        mainWindowCodeBehind.Should().Contain("EvidenceOnly: true");
+        mainWindowCodeBehind.Should().Contain("ScenarioId:");
         mainWindowCodeBehind.Should().Contain("CopySupportSummaryButton");
         mainWindowCodeBehind.Should().Contain("SupportSummaryStatusText");
         mainWindowCodeBehind.Should().Contain("BuiltInInteractionText");

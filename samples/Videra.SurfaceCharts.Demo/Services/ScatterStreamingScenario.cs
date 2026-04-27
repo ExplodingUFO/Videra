@@ -62,15 +62,8 @@ public static class ScatterStreamingScenarios
     public static ScatterStreamingScenario Get(string id)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(id);
-        foreach (var scenario in Scenarios)
-        {
-            if (StringComparer.Ordinal.Equals(scenario.Id, id))
-            {
-                return scenario;
-            }
-        }
-
-        throw new ArgumentOutOfRangeException(nameof(id), id, "Unknown scatter streaming scenario.");
+        return Array.Find(Scenarios, scenario => StringComparer.Ordinal.Equals(scenario.Id, id))
+            ?? throw new ArgumentOutOfRangeException(nameof(id), id, "Unknown scatter streaming scenario.");
     }
 
     public static ScatterColumnarSeries CreateSeries(ScatterStreamingScenario scenario)

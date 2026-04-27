@@ -328,6 +328,9 @@ public sealed class DemoConfigurationTests
         codeBehind.Should().Contain("SceneHitTestService");
         codeBehind.Should().Contain("PickLatencyMs");
         codeBehind.Should().Contain("RetainedInstanceCount");
+        codeBehind.Should().Contain("EvidenceKind: PerformanceLabDatasetProof");
+        codeBehind.Should().Contain("EvidenceOnly: true");
+        codeBehind.Should().Contain("ScenarioId:");
         viewModel.Should().Contain("PerformanceLabSnapshot");
         viewModel.Should().Contain("PerformanceLabMode");
         viewModel.Should().Contain("SelectedPerformanceLabViewerScenario");

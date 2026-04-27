@@ -222,8 +222,7 @@ public partial class MainWindow : Window
 
     private void ApplySelectedScatterScenario()
     {
-        var scenario = _scatterScenarioSelector.SelectedItem as ScatterStreamingScenario
-            ?? ScatterStreamingScenarios.Get("scatter-replace-100k");
+        var scenario = GetSelectedScatterScenario();
 
         ApplyScatterSource(
             CreateScatterSource(scenario),
@@ -231,6 +230,12 @@ public partial class MainWindow : Window
             $"Repo-owned scatter proof on the same Avalonia chart line. Scenario `{scenario.Id}` uses {scenario.UpdateMode} columnar streaming with direct camera pose truth and no `ViewState` or `OverlayOptions` seam on this path.",
             $"The scatter proof uses scenario `{scenario.Id}`: {scenario.InitialPointCount:N0} initial points, {scenario.UpdatePointCount:N0} update points, FIFO capacity {FormatFifoCapacity(scenario.FifoCapacity)}, Pickable {scenario.Pickable}.",
             "No additional assets are used on this path.");
+    }
+
+    private ScatterStreamingScenario GetSelectedScatterScenario()
+    {
+        return _scatterScenarioSelector.SelectedItem as ScatterStreamingScenario
+            ?? ScatterStreamingScenarios.Get("scatter-replace-100k");
     }
 
     private async Task LoadAndApplyCacheSourceAsync(int requestedIndex)
@@ -809,10 +814,21 @@ public partial class MainWindow : Window
         if (IsScatterProofActive)
         {
             var status = _scatterChartView.RenderingStatus;
+            var scenario = GetSelectedScatterScenario();
             _supportSummaryText.Text =
                 "SurfaceCharts support summary\n" +
+                $"GeneratedUtc: {DateTimeOffset.UtcNow:O}\n" +
+                "EvidenceKind: SurfaceChartsStreamingDatasetProof\n" +
+                "EvidenceOnly: true - values are support evidence, not stable benchmark guarantees.\n" +
                 $"Source path: {_activeSourceHeading}\n" +
                 $"Source details: {_activeSourceDetails}\n" +
+                $"ScenarioId: {scenario.Id}\n" +
+                $"ScenarioName: {scenario.DisplayName}\n" +
+                $"ScenarioUpdateMode: {scenario.UpdateMode}\n" +
+                $"ScenarioInitialPointCount: {scenario.InitialPointCount}\n" +
+                $"ScenarioUpdatePointCount: {scenario.UpdatePointCount}\n" +
+                $"ScenarioFifoCapacity: {FormatFifoCapacity(scenario.FifoCapacity)}\n" +
+                $"ScenarioPickable: {scenario.Pickable}\n" +
                 $"Chart contract: ScatterChartView exposes direct point data, camera pose truth, Fit to data, and Reset camera on this proof path.\n" +
                 $"Camera: {CreateScatterCameraSummary(status)}\n" +
                 $"RenderingStatus:\n{CreateScatterRenderingDiagnosticsSummary(status)}\n" +
@@ -826,6 +842,9 @@ public partial class MainWindow : Window
         var surfaceStatus = ActiveSurfaceChartView.RenderingStatus;
         _supportSummaryText.Text =
             "SurfaceCharts support summary\n" +
+            $"GeneratedUtc: {DateTimeOffset.UtcNow:O}\n" +
+            "EvidenceKind: SurfaceChartsDatasetProof\n" +
+            "EvidenceOnly: true - values are support evidence, not stable benchmark guarantees.\n" +
             $"Source path: {_activeSourceHeading}\n" +
             $"Source details: {_activeSourceDetails}\n" +
             $"ViewState: {CreateViewStateSummary()}\n" +
