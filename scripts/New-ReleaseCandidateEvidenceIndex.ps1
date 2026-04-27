@@ -8,7 +8,11 @@ param(
 
     [string]$OutputRoot = "artifacts/release-dry-run",
 
-    [string]$EvidenceContractPath = "eng/release-candidate-evidence.json"
+    [string]$EvidenceContractPath = "eng/release-candidate-evidence.json",
+
+    [string]$DoctorReportPath = "artifacts/doctor/doctor-report.json",
+
+    [string]$PerformanceLabVisualEvidenceManifestPath = "artifacts/performance-lab-visual-evidence/performance-lab-visual-evidence-manifest.json"
 )
 
 $ErrorActionPreference = "Stop"
@@ -54,6 +58,101 @@ function Assert-ExistingFile([string]$Path, [string]$Description)
     }
 
     return $fullPath
+}
+
+function New-MissingVisualEvidence([string]$ManifestPath)
+{
+    return [ordered]@{
+        status = "missing"
+        captureStatus = ""
+        manifestPath = $ManifestPath
+        summaryPath = ""
+        screenshotPaths = @()
+        diagnosticsPaths = @()
+        source = "performance-lab-visual-evidence-manifest"
+        message = "Performance Lab visual evidence is optional evidence and was not found."
+    }
+}
+
+function Get-VisualEvidenceFromManifest([string]$ManifestPath)
+{
+    $visualEvidence = New-MissingVisualEvidence -ManifestPath $ManifestPath
+    $fullPath = Resolve-RepositoryPath $ManifestPath
+    if (-not (Test-Path -LiteralPath $fullPath -PathType Leaf))
+    {
+        return $visualEvidence
+    }
+
+    $manifest = Read-JsonFile -Path $fullPath
+    $captureStatus = [string]$manifest.status
+    $status = if ($captureStatus -eq "unavailable") { "unavailable" } else { "present" }
+
+    $summaryPath = [string]$manifest.summaryPath
+    $screenshotPaths = @()
+    $diagnosticsPaths = @()
+    foreach ($entry in @($manifest.entries))
+    {
+        $pngPath = [string]$entry.pngPath
+        if (-not [string]::IsNullOrWhiteSpace($pngPath))
+        {
+            $screenshotPaths += $pngPath
+        }
+
+        $diagnosticsPath = [string]$entry.diagnosticsPath
+        if (-not [string]::IsNullOrWhiteSpace($diagnosticsPath))
+        {
+            $diagnosticsPaths += $diagnosticsPath
+        }
+    }
+
+    return [ordered]@{
+        status = $status
+        captureStatus = $captureStatus
+        manifestPath = $ManifestPath
+        summaryPath = $summaryPath
+        screenshotPaths = $screenshotPaths
+        diagnosticsPaths = $diagnosticsPaths
+        source = "performance-lab-visual-evidence-manifest"
+        message = if ($status -eq "unavailable") { "Performance Lab visual evidence recorded host or capture unavailability." } else { "Performance Lab visual evidence bundle is present." }
+    }
+}
+
+function Get-DoctorVisualEvidence([string]$ReportPath)
+{
+    $fullPath = Resolve-RepositoryPath $ReportPath
+    if (-not (Test-Path -LiteralPath $fullPath -PathType Leaf))
+    {
+        return [ordered]@{
+            status = "missing"
+            reportPath = $ReportPath
+            source = "doctor-report"
+            message = "Doctor report is optional evidence and was not found."
+        }
+    }
+
+    $report = Read-JsonFile -Path $fullPath
+    if ($null -eq $report.evidencePacket -or $null -eq $report.evidencePacket.performanceLabVisualEvidence)
+    {
+        return [ordered]@{
+            status = "unavailable"
+            reportPath = $ReportPath
+            source = "doctor-report"
+            message = "Doctor report did not include performanceLabVisualEvidence."
+        }
+    }
+
+    $visualEvidence = $report.evidencePacket.performanceLabVisualEvidence
+    return [ordered]@{
+        status = [string]$visualEvidence.status
+        captureStatus = [string]$visualEvidence.captureStatus
+        reportPath = $ReportPath
+        manifestPath = [string]$visualEvidence.manifestPath
+        summaryPath = [string]$visualEvidence.summaryPath
+        screenshotPaths = @($visualEvidence.screenshotPaths)
+        diagnosticsPaths = @($visualEvidence.diagnosticsPaths)
+        source = "doctor-report"
+        message = [string]$visualEvidence.message
+    }
 }
 
 if ([string]::IsNullOrWhiteSpace($ExpectedVersion))
@@ -125,6 +224,9 @@ foreach ($requiredStepId in $requiredStepIds)
 $outputRootFull = Resolve-RepositoryPath $OutputRoot
 New-Item -ItemType Directory -Path $outputRootFull -Force | Out-Null
 
+$performanceLabVisualEvidence = Get-VisualEvidenceFromManifest -ManifestPath $PerformanceLabVisualEvidenceManifestPath
+$doctorVisualEvidence = Get-DoctorVisualEvidence -ReportPath $DoctorReportPath
+
 $index = [ordered]@{
     schemaVersion = 1
     expectedVersion = $ExpectedVersion
@@ -135,9 +237,16 @@ $index = [ordered]@{
     packageValidationScript = $packageValidationScript
     validationArtifacts = $summary.validationArtifacts
     dryRunArtifacts = $summary.artifactPaths
+    visualEvidence = [ordered]@{
+        evidenceOnly = $true
+        publishBlocker = $false
+        performanceLabVisualEvidence = $performanceLabVisualEvidence
+        doctorVisualEvidence = $doctorVisualEvidence
+    }
     validationSteps = @($summary.steps)
     requiredChecks = @($contract.requiredChecks)
     requiredArtifacts = @($contract.requiredArtifacts)
+    optionalArtifacts = @($contract.optionalArtifacts)
     supportDocs = @($contract.supportDocs)
     reviewerChecklist = @(
         "Confirm the Release Dry Run workflow completed for the expected version.",
@@ -145,6 +254,7 @@ $index = [ordered]@{
         "Confirm Benchmark Gates completed for viewer and SurfaceCharts suites.",
         "Confirm native validation completed for Windows, Linux X11, Linux XWayland, and macOS.",
         "Confirm consumer smoke completed for viewer and SurfaceCharts package paths.",
+        "Review optional Performance Lab visual evidence and Doctor visual evidence status when visual output is relevant.",
         "Confirm support docs and changelog describe the same release-candidate boundary."
     )
 }
@@ -169,10 +279,24 @@ foreach ($check in @($contract.requiredChecks))
 }
 
 $lines += ""
+$lines += "Optional visual evidence:"
+$lines += "- Performance Lab visual evidence: $($performanceLabVisualEvidence.status) ($($performanceLabVisualEvidence.manifestPath))"
+$lines += "- Doctor visual evidence status: $($doctorVisualEvidence.status) ($($doctorVisualEvidence.reportPath))"
+$lines += "- Evidence only: true"
+$lines += "- Publish blocker: false"
+
+$lines += ""
 $lines += "Required artifacts:"
 foreach ($artifact in @($contract.requiredArtifacts))
 {
     $lines += "- $artifact"
+}
+
+$lines += ""
+$lines += "Optional artifacts:"
+foreach ($artifact in @($contract.optionalArtifacts))
+{
+    $lines += "- $($artifact.id): $($artifact.path)"
 }
 
 $lines += ""
