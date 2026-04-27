@@ -73,6 +73,7 @@ public sealed partial class ScatterChartView
                         new ProjectedScatterDrawItem(
                             screenPosition,
                             point.Color,
+                            point.Size,
                             projected.Z));
 
                     if (series.ConnectPoints && previousProjected is not null)
@@ -118,7 +119,7 @@ public sealed partial class ScatterChartView
                 brushCache.Add(item.Color, brush);
             }
 
-            var radius = 2.5d + ((1d - Math.Clamp(item.SortKey, 0d, 1d)) * 2.5d);
+            var radius = (2.5d + ((1d - Math.Clamp(item.SortKey, 0d, 1d)) * 2.5d)) * item.Size;
             context.DrawEllipse(brush, null, item.ScreenPosition!.Value, radius, radius);
         }
     }
@@ -131,10 +132,11 @@ public sealed partial class ScatterChartView
 
     private readonly record struct ProjectedScatterDrawItem
     {
-        public ProjectedScatterDrawItem(Point screenPosition, uint color, double sortKey)
+        public ProjectedScatterDrawItem(Point screenPosition, uint color, double size, double sortKey)
         {
             ScreenPosition = screenPosition;
             Color = color;
+            Size = size;
             SortKey = sortKey;
             StartPosition = null;
             EndPosition = null;
@@ -145,6 +147,7 @@ public sealed partial class ScatterChartView
         {
             ScreenPosition = default;
             Color = color;
+            Size = 1d;
             SortKey = sortKey;
             StartPosition = startPosition;
             EndPosition = endPosition;
@@ -154,6 +157,8 @@ public sealed partial class ScatterChartView
         public Point? ScreenPosition { get; }
 
         public uint Color { get; }
+
+        public double Size { get; }
 
         public double SortKey { get; }
 

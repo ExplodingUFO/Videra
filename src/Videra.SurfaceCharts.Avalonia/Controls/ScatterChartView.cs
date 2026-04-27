@@ -153,6 +153,8 @@ public sealed partial class ScatterChartView : Control
             IsInteracting = _isInteracting,
             SeriesCount = source?.SeriesCount ?? 0,
             PointCount = source?.PointCount ?? 0,
+            ColumnarSeriesCount = source?.ColumnarSeriesCount ?? 0,
+            PickablePointCount = source?.PickablePointCount ?? 0,
             ViewSize = viewSize,
             CameraTarget = _camera.Target,
             CameraDistance = _camera.Distance,
@@ -188,6 +190,37 @@ public sealed partial class ScatterChartView : Control
                 maxY = Math.Max(maxY, point.Value);
                 minZ = Math.Min(minZ, point.Depth);
                 maxZ = Math.Max(maxZ, point.Depth);
+            }
+        }
+
+        foreach (var series in source.ColumnarSeries)
+        {
+            var x = series.X.Span;
+            var y = series.Y.Span;
+            var z = series.Z.Span;
+
+            for (var index = 0; index < series.Count; index++)
+            {
+                if (float.IsNaN(x[index]) || float.IsNaN(y[index]) || float.IsNaN(z[index]))
+                {
+                    continue;
+                }
+
+                if (!hasPoint)
+                {
+                    minX = maxX = x[index];
+                    minY = maxY = y[index];
+                    minZ = maxZ = z[index];
+                    hasPoint = true;
+                    continue;
+                }
+
+                minX = Math.Min(minX, x[index]);
+                maxX = Math.Max(maxX, x[index]);
+                minY = Math.Min(minY, y[index]);
+                maxY = Math.Max(maxY, y[index]);
+                minZ = Math.Min(minZ, z[index]);
+                maxZ = Math.Max(maxZ, z[index]);
             }
         }
 

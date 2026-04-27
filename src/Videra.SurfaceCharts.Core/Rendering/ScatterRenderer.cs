@@ -16,10 +16,15 @@ public static class ScatterRenderer
     {
         ArgumentNullException.ThrowIfNull(data);
 
-        var renderSeries = new ScatterRenderSeries[data.Series.Count];
+        var renderSeries = new ScatterRenderSeries[data.Series.Count + data.ColumnarSeries.Count];
         for (var index = 0; index < data.Series.Count; index++)
         {
             renderSeries[index] = BuildSeries(data.Series[index]);
+        }
+
+        for (var index = 0; index < data.ColumnarSeries.Count; index++)
+        {
+            renderSeries[data.Series.Count + index] = BuildColumnarSeries(data.ColumnarSeries[index]);
         }
 
         return new ScatterRenderScene(data.Metadata, renderSeries);
@@ -42,6 +47,32 @@ public static class ScatterRenderer
         }
 
         return new ScatterRenderSeries(renderPoints, series.Color, series.Label, series.ConnectPoints);
+    }
+
+    private static ScatterRenderSeries BuildColumnarSeries(ScatterColumnarSeries series)
+    {
+        ArgumentNullException.ThrowIfNull(series);
+
+        var renderPoints = new List<ScatterRenderPoint>(series.Count);
+        var x = series.X.Span;
+        var y = series.Y.Span;
+        var z = series.Z.Span;
+
+        for (var index = 0; index < series.Count; index++)
+        {
+            if (float.IsNaN(x[index]) || float.IsNaN(y[index]) || float.IsNaN(z[index]))
+            {
+                continue;
+            }
+
+            renderPoints.Add(
+                new ScatterRenderPoint(
+                    new Vector3(x[index], y[index], z[index]),
+                    series.GetColor(index),
+                    series.GetSize(index)));
+        }
+
+        return new ScatterRenderSeries(renderPoints, series.Color, series.Label);
     }
 
     private static float ToRenderComponent(double value, string paramName)
