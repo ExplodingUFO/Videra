@@ -65,6 +65,23 @@ bd ready --json
 
 Branch/worktree ownership is still Git-local: each agent owns its assigned files and branch, avoids reverting unrelated edits, and coordinates task state through Beads. Beads does not merge branches, resolve conflicts, or decide release readiness.
 
+## Issue Lifecycle and Handoff
+
+Use one Beads issue per bounded task or phase. The normal lifecycle is:
+
+1. `bd ready --json` to find unblocked work.
+2. `bd update <id> --claim --json` before editing files.
+3. `bd create ... --deps discovered-from:<parent-id> --json` for follow-up work found during implementation.
+4. `bd close <id> --reason "..." --json` after verification or intentional deferral.
+5. `bd export -o .beads/issues.jsonl` when issue state should be visible in the Git checkout.
+
+Session handoff has two state channels:
+
+- Git stores source, docs, scripts, and the `.beads/issues.jsonl` export.
+- Dolt stores live Beads issue state. Use `bd vc status` and `bd vc commit -m "..."` for local Dolt history, and `bd dolt push` only after a Beads remote is configured.
+
+Phase 276 recorded a lifecycle proof in `eng/beads-lifecycle-proof.json`: issue `Videra-mnx` was created and claimed, follow-up `Videra-4yl` was created with `discovered-from:Videra-mnx`, and the follow-up was closed with a concrete reason after Docker-backed database observation.
+
 ## Sync and Export
 
 Beads writes issue state to Dolt. Use Dolt sync only when a remote is configured for the Beads database:
