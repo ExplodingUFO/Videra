@@ -5,7 +5,7 @@ This runbook turns the viewer and surface-chart benchmarks into repeatable evide
 ## Suites
 
 - `Viewer` -> `benchmarks/Videra.Viewer.Benchmarks/ScenePipelineBenchmarks.cs`, `benchmarks/Videra.Viewer.Benchmarks/InspectionBenchmarks.cs`, and `benchmarks/Videra.Viewer.Benchmarks/InstanceBatchBenchmarks.cs`
-- `SurfaceCharts` -> `SurfaceChartsSelectionBenchmarks.cs`, `SurfaceChartsRenderStateBenchmarks.cs`, `SurfaceChartsCacheBenchmarks.cs`, `SurfaceChartsProbeBenchmarks.cs`, and `SurfaceChartsRenderHostContractBenchmarks.cs`
+- `SurfaceCharts` -> `SurfaceChartsSelectionBenchmarks.cs`, `SurfaceChartsRenderStateBenchmarks.cs`, `SurfaceChartsCacheBenchmarks.cs`, `SurfaceChartsProbeBenchmarks.cs`, `SurfaceChartsRenderHostContractBenchmarks.cs`, `SurfaceChartsDiagnosticsBenchmarks.cs`, and `SurfaceChartsStreamingBenchmarks.cs`
 
 The source-controlled suite contract lives in `benchmarks/benchmark-contract.json`. It is the canonical list of supported suites, benchmark families, and benchmark method names for the current benchmark gate.
 
@@ -58,12 +58,13 @@ Artifacts are written under `artifacts/benchmarks/<suite>`.
 - This is now a hard numeric blocker for the thresholded slice set, not a label-gated review switch.
 - Benchmark names listed in `benchmark-contract.json` but not in `benchmark-thresholds.json` remain evidence-only until promoted into the committed threshold slice.
 - The instance-batch benchmarks are intentionally evidence-only in this milestone slice. They compare normal scene-document population and hit-test cost against retained instance batches, and they expose retained diagnostics evidence before any hard thresholds are promoted.
+- The SurfaceCharts streaming benchmarks are also evidence-only. `SurfaceChartsStreamingBenchmarks.AppendColumnarBatch`, `AppendColumnarBatch_WithFifoTrim`, and `StreamingDiagnosticsAggregation` report `Mean` / `Allocated` evidence for columnar append, bounded FIFO trim, retained point count behavior, and streaming diagnostics aggregation, but they are not hard gates.
 
 ## What to watch
 
 - `Mean` and `Allocated` are the primary quick signals.
 - Viewer benchmarks are expected to show scene import, batch import/result creation, residency apply, upload drain, backend rehydrate costs, inspection pick/clip/snapshot costs, normal-object versus instance-batch population and hit-test evidence, and demo diagnostics/import-report formatting costs.
-- Surface-chart benchmarks are expected to show LOD selection, resident render-state change sets, cache batch reads, cache lookup-miss filtering, probe latency, tile residency churn, benchmark-local GPU contract-path recolor/orbit/resize-rebind behavior, and rendering-status/support-summary formatting costs.
+- Surface-chart benchmarks are expected to show LOD selection, resident render-state change sets, cache batch reads, cache lookup-miss filtering, probe latency, tile residency churn, benchmark-local GPU contract-path recolor/orbit/resize-rebind behavior, rendering-status/support-summary formatting costs, and evidence-only columnar streaming/FIFO costs.
 - The render-host contract benchmarks intentionally use a benchmark-local fake backend. They validate chart-local host/update contract cost and must stay on the GPU contract path without fallback; they do not measure driver, swapchain, or compositor overhead.
 - Compare runs over time before reacting to a single noisy data point. This workflow is meant to build trend evidence across alpha iterations, not to reward one-off wins.
 

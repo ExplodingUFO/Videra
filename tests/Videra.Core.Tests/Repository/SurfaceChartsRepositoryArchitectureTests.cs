@@ -45,6 +45,8 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
         AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.SurfaceChartsTriFamilyControlTokens);
         AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.SurfaceChartsSourceFirstTokens);
         AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.SurfaceChartsScatterProofTokens);
+        AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.SurfaceChartsColumnarStreamingTokens);
+        AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.SurfaceChartsStreamingBenchmarkTokens);
         AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.SurfaceChartsAnalyticsProofTokens);
         readme.Should().Contain("tighter interactive residency");
         readme.Should().Contain("lower probe-path churn");
@@ -82,6 +84,8 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
         AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.ChineseSurfaceChartControlOwnershipTokens);
         AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.ChineseSurfaceChartsRenderingStatusFieldTokens);
         AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.ChineseSurfaceChartsSourceFirstTokens);
+        AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.ChineseSurfaceChartsColumnarStreamingTokens);
+        AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.SurfaceChartsStreamingBenchmarkTokens);
     }
 
     [Fact]
@@ -136,6 +140,7 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
         coreReadme.Should().Contain("first-class `SurfaceMask`");
         coreReadme.Should().Contain("tighter interactive residency");
         coreReadme.Should().Contain("lower probe-path churn");
+        AssertContainsAllTokens(coreReadme, SurfaceChartsDocumentationTerms.SurfaceChartsColumnarStreamingTokens);
 
         renderingReadme.Should().Contain("tighter interactive residency");
         renderingReadme.Should().Contain("lower probe-path churn");
@@ -156,6 +161,7 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
         avaloniaReadme.Should().Contain("probe work");
         AssertContainsAllTokens(avaloniaReadme, SurfaceChartsDocumentationTerms.SurfaceChartsAvaloniaReadmeContractTokens);
         AssertContainsAllTokens(avaloniaReadme, SurfaceChartsDocumentationTerms.SurfaceChartsTriFamilyControlTokens);
+        AssertContainsAllTokens(avaloniaReadme, SurfaceChartsDocumentationTerms.SurfaceChartsColumnarStreamingTokens);
 
         demoReadme.Should().Contain("not a `VideraView` mode");
         AssertContainsAllTokens(demoReadme, SurfaceChartsDocumentationTerms.SurfaceChartsDemoGpuFallbackTokens);
@@ -170,6 +176,7 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
         AssertContainsAllTokens(demoReadme, SurfaceChartsDocumentationTerms.SurfaceChartsRenderingStatusFieldTokens);
         AssertContainsAllTokens(demoReadme, SurfaceChartsDocumentationTerms.SurfaceChartsSourceFirstTokens);
         AssertContainsAllTokens(demoReadme, SurfaceChartsDocumentationTerms.SurfaceChartsAnalyticsProofTokens);
+        AssertContainsAllTokens(demoReadme, SurfaceChartsDocumentationTerms.SurfaceChartsColumnarStreamingTokens);
         demoReadme.Should().Contain("FitToData()");
         demoReadme.Should().Contain("ResetCamera()");
         demoReadme.Should().Contain("ZoomTo(...)");
@@ -231,6 +238,7 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
         corePage.Should().Contain("一等 `SurfaceMask`");
         corePage.Should().Contain("交互驻留更紧");
         corePage.Should().Contain("probe 路径抖动更低");
+        AssertContainsAllTokens(corePage, SurfaceChartsDocumentationTerms.ChineseSurfaceChartsColumnarStreamingTokens);
 
         AssertContainsAllTokens(avaloniaPage, SurfaceChartsDocumentationTerms.ChineseAvaloniaRenderStatusTokens);
         AssertContainsAllTokens(avaloniaPage, SurfaceChartsDocumentationTerms.ChineseAvaloniaProbeTokens);
@@ -250,6 +258,7 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
         avaloniaPage.Should().Contain("ZoomTo(...)");
         avaloniaPage.Should().Contain("SurfaceChartOverlayOptions");
         avaloniaPage.Should().Contain("XWayland compatibility");
+        AssertContainsAllTokens(avaloniaPage, SurfaceChartsDocumentationTerms.ChineseSurfaceChartsColumnarStreamingTokens);
 
         processingPage.Should().Contain(SurfaceChartsDocumentationTerms.ChineseProcessingStatisticsSentence);
         processingPage.Should().Contain("SurfaceChartsRenderStateBenchmarks.ApplyResidencyChurnUnderCameraMovement");

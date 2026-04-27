@@ -314,6 +314,27 @@ internal static class SurfaceChartsDocumentationTerms
         "`ScatterChartView`"
     ];
 
+    public static readonly string[] SurfaceChartsColumnarStreamingTokens =
+    [
+        "`ScatterColumnarSeries`",
+        "`ReplaceRange(...)`",
+        "`AppendRange(...)`",
+        "`fifoCapacity`",
+        "`Pickable=false`",
+        "retained point count",
+        "append/replacement batch count",
+        "FIFO"
+    ];
+
+    public static readonly string[] SurfaceChartsStreamingBenchmarkTokens =
+    [
+        "`SurfaceChartsStreamingBenchmarks.AppendColumnarBatch`",
+        "`AppendColumnarBatch_WithFifoTrim`",
+        "`StreamingDiagnosticsAggregation`",
+        "`Mean` / `Allocated`",
+        "evidence-only"
+    ];
+
     public static readonly string[] SurfaceChartsAnalyticsProofTokens =
     [
         "`Try next: Analytics proof`",
@@ -463,6 +484,18 @@ internal static class SurfaceChartsDocumentationTerms
         "`Try next: Scatter proof`",
         "repo-owned",
         "scatter 路径"
+    ];
+
+    public static readonly string[] ChineseSurfaceChartsColumnarStreamingTokens =
+    [
+        "`ScatterColumnarSeries`",
+        "`ReplaceRange(...)`",
+        "`AppendRange(...)`",
+        "`fifoCapacity`",
+        "`Pickable=false`",
+        "retained point count",
+        "append/replacement batch count",
+        "FIFO"
     ];
 
     public static readonly string[] ChineseSurfaceChartsViewStateTokens =

@@ -71,6 +71,23 @@ public sealed class BenchmarkContractRepositoryTests
             ]);
     }
 
+    [Fact]
+    public void BenchmarkDocs_ShouldKeepSurfaceChartsStreamingBenchmarksEvidenceOnly()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var runbook = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "benchmark-gates.md"));
+        var thresholds = File.ReadAllText(Path.Combine(repositoryRoot, "benchmarks", "benchmark-thresholds.json"));
+
+        runbook.Should().Contain("SurfaceChartsStreamingBenchmarks.cs");
+        runbook.Should().Contain("SurfaceChartsStreamingBenchmarks.AppendColumnarBatch");
+        runbook.Should().Contain("AppendColumnarBatch_WithFifoTrim");
+        runbook.Should().Contain("StreamingDiagnosticsAggregation");
+        runbook.Should().Contain("evidence-only");
+        runbook.Should().Contain("Mean` / `Allocated");
+
+        thresholds.Should().NotContain("SurfaceChartsStreamingBenchmarks");
+    }
+
     private static void AssertSuite(JsonElement suite, string artifactDirectory, string projectPath, string[] benchmarks)
     {
         suite.GetProperty("artifactDirectory").GetString().Should().Be(artifactDirectory);

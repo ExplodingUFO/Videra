@@ -102,6 +102,8 @@ dotnet add package Videra.SurfaceCharts.Processing
 `Videra.SurfaceCharts.Avalonia` brings `Videra.SurfaceCharts.Core` and `Videra.SurfaceCharts.Rendering` transitively. Add `Videra.SurfaceCharts.Core` directly only when you are building chart-domain contracts or custom tile sources without the Avalonia shell. `Videra.SurfaceCharts.Processing` is only required for the surface/cache-backed path. `Videra.SurfaceCharts.Demo` remains repository-only.
 
 The current SurfaceCharts efficiency story is tighter interactive residency under camera movement and lower probe-path churn on the existing chart-local path; the committed hard-gate names remain `SurfaceChartsRenderStateBenchmarks.ApplyResidencyChurnUnderCameraMovement` and `SurfaceChartsProbeBenchmarks.ProbeLatency`.
+Columnar scatter streaming is a chart-domain contract, not a viewer/runtime mode. `ScatterColumnarSeries` accepts `ReplaceRange(...)` and `AppendRange(...)`, can use an optional positive `fifoCapacity` to retain a bounded point window, defaults high-volume data to `Pickable=false`, and reports retained point count, append/replacement batch counts, dropped FIFO points, configured FIFO capacity, and scatter `InteractionQuality` through `ScatterChartRenderingStatus`.
+The streaming benchmarks `SurfaceChartsStreamingBenchmarks.AppendColumnarBatch`, `AppendColumnarBatch_WithFifoTrim`, and `StreamingDiagnosticsAggregation` are listed in `benchmark-contract.json` for `Mean` / `Allocated` evidence-only results. They are intentionally absent from `benchmark-thresholds.json` until CI history supports hard thresholds.
 
 `Videra.Avalonia` remains the UI/control entry package. `PreferredBackend` and `VIDERA_BACKEND` only change backend preference. They do not install missing platform packages, and they do not replace matching-host native validation.
 The public install flow does not install missing platform packages for you.
@@ -227,6 +229,8 @@ Contract highlights:
 - SurfaceChartView now ships built-in `left-drag orbit`, `right-drag pan`, `wheel dolly`, `Ctrl + left-drag` focus zoom, and `Shift + left-click` pinned probe on top of the `ViewState` runtime contract.
 - The chart enters `Interactive` quality during motion and returns to `Refine` after input settles.
 - The public interaction diagnostics are `InteractionQuality` + `InteractionQualityChanged` with `Interactive` / `Refine`.
+- `ScatterChartView` follows the same chart-local interaction-quality terminology for its direct scatter path and reports that state through `ScatterChartRenderingStatus`.
+- Columnar scatter streaming uses `ScatterColumnarSeries.ReplaceRange(...)`, `AppendRange(...)`, optional `fifoCapacity`, and `Pickable=false` by default for high-volume data.
 - Hosts can keep professional axis, grid, and legend behavior chart-local through `OverlayOptions` for formatter, title/unit override, minor ticks, grid plane, and axis-side selection.
 - The public overlay configuration seam is `SurfaceChartOverlayOptions` through `OverlayOptions`; overlay state types remain internal.
 - Hosts own `ISurfaceTileSource`, persisted `ViewState`, color-map selection, and chart-local product UI.
