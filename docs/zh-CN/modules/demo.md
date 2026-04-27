@@ -15,6 +15,7 @@
 - 通过 `BackendDiagnostics` 展示当前请求后端、实际解析后端、native host 绑定状态和 fallback 信息
 - 切换渲染风格、线框模式、网格可见性和对象变换
 - 一个收窄的 `Scene Pipeline Lab` 面板，用来说明 deferred upload、原子 scene replace 与 backend rebind 真相
+- 一个收窄的 `Performance Lab` 面板，用 deterministic viewer instance-batch scenario 证明 small / medium / large 数据集、normal-object 对比、pickable toggle、pick latency evidence、retained instance diagnostics，以及可复制的 evidence-only support snapshot
 
 ## 运行时行为
 
@@ -60,6 +61,8 @@ var diagnostics = View3D.BackendDiagnostics;
 - 当前 renderer path 已经在有界的 static-scene seam 上消费 baseColor 纹理采样、occlusion texture binding/strength、emissive 输入和 normal-map-ready 输入，其中也会在相关绑定请求时应用 `KHR_texture_transform` 与 texture-coordinate override；这仍然只是一个有界的 renderer-consumption seam，而不是更宽的 lighting/shader/backend 承诺
 - canonical runtime path 可以把一个 imported entry 扩成多个 internal runtime objects，因此 mixed opaque/transparent primitive participation 可以穿过 runtime bridge
 - backend fallback / rebind 发生时，scene truth 会被保留，而不是依赖 steady-state software staging path
+
+`Performance Lab` 面板使用 `PerformanceLabViewerScenarios` 生成 deterministic 数据：稳定 transform、object id、per-instance color、object count 和默认 pickability。`Copy Snapshot` 会复制 scenario id/name/size、mode、object count、pickable、runtime status、diagnostics text 和 backend diagnostics。这里的数值是 support evidence，不是稳定 benchmark guarantee；GPU-driven culling、renderer rewrite、generic benchmark editor、new chart family 仍不属于这个 Demo 范围。
 
 ## 界面说明
 

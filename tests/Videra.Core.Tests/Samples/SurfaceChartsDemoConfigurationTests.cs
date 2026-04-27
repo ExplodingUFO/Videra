@@ -39,6 +39,9 @@ public sealed class SurfaceChartsDemoConfigurationTests
         readme.Should().Contain("lazy");
         readme.Should().Contain("sample.surfacecache.json.bin");
         readme.Should().Contain("ScatterChartView");
+        readme.Should().Contain("ScatterStreamingScenarios");
+        readme.Should().Contain("evidence-only support summary");
+        readme.Should().Contain("not stable benchmark guarantees");
         readme.Should().Contain("Try next: Analytics proof");
         readme.Should().Contain("ColorField");
 
@@ -143,6 +146,8 @@ public sealed class SurfaceChartsDemoConfigurationTests
         mainWindowCodeBehind.Should().NotContain("CreateOverviewViewport");
         mainWindowCodeBehind.Should().NotContain("CreateZoomedDetailViewport");
         mainWindowCodeBehind.Should().Contain("lazy");
+        readme.Should().Contain("no GPU-driven culling");
+        readme.Should().Contain("no hard performance guarantee");
 
         var cacheAsset = File.ReadAllText(cacheAssetPath);
         cacheAsset.Should().Contain(@"""version"": 2");
