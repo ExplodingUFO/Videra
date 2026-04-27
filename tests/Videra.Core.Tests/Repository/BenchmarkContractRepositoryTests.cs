@@ -64,7 +64,10 @@ public sealed class BenchmarkContractRepositoryTests
                 "SurfaceChartsRenderHostContractBenchmarks.OrbitInteractiveFrameGpuContractPath",
                 "SurfaceChartsRenderHostContractBenchmarks.ResizeAndRebindHandleGpuContractPath",
                 "SurfaceChartsDiagnosticsBenchmarks.RenderingStatus_FromSnapshot",
-                "SurfaceChartsDiagnosticsBenchmarks.SupportSummaryFormatting"
+                "SurfaceChartsDiagnosticsBenchmarks.SupportSummaryFormatting",
+                "SurfaceChartsStreamingBenchmarks.AppendColumnarBatch",
+                "SurfaceChartsStreamingBenchmarks.AppendColumnarBatch_WithFifoTrim",
+                "SurfaceChartsStreamingBenchmarks.StreamingDiagnosticsAggregation"
             ]);
     }
 
