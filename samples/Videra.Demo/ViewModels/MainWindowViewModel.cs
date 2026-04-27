@@ -38,7 +38,8 @@ public partial class MainWindowViewModel : ViewModelBase
     private readonly IEnumerable<PerformanceLabMode> _availablePerformanceLabModes =
         Enum.GetValues<PerformanceLabMode>().ToArray();
 
-    private readonly IReadOnlyList<int> _availablePerformanceLabObjectCounts = [1000, 5000, 10000];
+    private readonly IReadOnlyList<PerformanceLabViewerScenario> _availablePerformanceLabViewerScenarios =
+        PerformanceLabViewerScenarios.All;
 
     private IModelImporter? _importer;
     private IDemoViewportActions? _viewportActions;
@@ -76,6 +77,8 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty] private string _importReport = DemoSupportReportBuilder.FormatImportReport(null);
     [ObservableProperty] private string _diagnosticsBundle = string.Empty;
     [ObservableProperty] private string _minimalReproduction = string.Empty;
+    [ObservableProperty] private PerformanceLabViewerScenario _selectedPerformanceLabViewerScenario =
+        PerformanceLabViewerScenarios.Get("viewer-instance-medium");
     [ObservableProperty] private int _performanceLabObjectCount = 5000;
     [ObservableProperty] private PerformanceLabMode _performanceLabMode = PerformanceLabMode.InstanceBatch;
     [ObservableProperty] private bool _performanceLabPickable = true;
@@ -99,7 +102,8 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public IEnumerable<PerformanceLabMode> AvailablePerformanceLabModes => _availablePerformanceLabModes;
 
-    public IReadOnlyList<int> AvailablePerformanceLabObjectCounts => _availablePerformanceLabObjectCounts;
+    public IReadOnlyList<PerformanceLabViewerScenario> AvailablePerformanceLabViewerScenarios =>
+        _availablePerformanceLabViewerScenarios;
 
     public bool IsWireframeEnabled => WireframeMode != WireframeMode.None;
 
@@ -402,6 +406,17 @@ public partial class MainWindowViewModel : ViewModelBase
         return features is { Count: > 0 }
             ? string.Join(", ", features)
             : "None";
+    }
+
+    partial void OnSelectedPerformanceLabViewerScenarioChanged(PerformanceLabViewerScenario value)
+    {
+        if (value is null)
+        {
+            return;
+        }
+
+        PerformanceLabObjectCount = value.ObjectCount;
+        PerformanceLabPickable = value.Pickable;
     }
 }
 

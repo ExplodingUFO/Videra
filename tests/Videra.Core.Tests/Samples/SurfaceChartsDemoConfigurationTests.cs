@@ -39,6 +39,9 @@ public sealed class SurfaceChartsDemoConfigurationTests
         readme.Should().Contain("lazy");
         readme.Should().Contain("sample.surfacecache.json.bin");
         readme.Should().Contain("ScatterChartView");
+        readme.Should().Contain("ScatterStreamingScenarios");
+        readme.Should().Contain("evidence-only support summary");
+        readme.Should().Contain("not stable benchmark guarantees");
         readme.Should().Contain("Try next: Analytics proof");
         readme.Should().Contain("ColorField");
 
@@ -48,6 +51,8 @@ public sealed class SurfaceChartsDemoConfigurationTests
         mainWindow.Should().Contain("Try next: Waterfall proof");
         mainWindow.Should().Contain("Try next: Analytics proof");
         mainWindow.Should().Contain("Try next: Scatter proof");
+        mainWindow.Should().Contain("Scatter stream");
+        mainWindow.Should().Contain("ScatterScenarioSelector");
         mainWindow.Should().Contain("First-chart source");
         mainWindow.Should().Contain("Start here status");
         mainWindow.Should().Contain("Built-in interaction");
@@ -83,6 +88,9 @@ public sealed class SurfaceChartsDemoConfigurationTests
         mainWindowCodeBehind.Should().Contain("OverlayOptionsText");
         mainWindowCodeBehind.Should().Contain("RenderingDiagnosticsText");
         mainWindowCodeBehind.Should().Contain("SupportSummaryText");
+        mainWindowCodeBehind.Should().Contain("EvidenceKind: SurfaceChartsStreamingDatasetProof");
+        mainWindowCodeBehind.Should().Contain("EvidenceOnly: true");
+        mainWindowCodeBehind.Should().Contain("ScenarioId:");
         mainWindowCodeBehind.Should().Contain("CopySupportSummaryButton");
         mainWindowCodeBehind.Should().Contain("SupportSummaryStatusText");
         mainWindowCodeBehind.Should().Contain("BuiltInInteractionText");
@@ -101,6 +109,8 @@ public sealed class SurfaceChartsDemoConfigurationTests
         mainWindowCodeBehind.Should().Contain("ScatterSourceIndex");
         mainWindowCodeBehind.Should().Contain("ScatterChartRenderingStatus");
         mainWindowCodeBehind.Should().Contain("ScatterChartData");
+        mainWindowCodeBehind.Should().Contain("ScatterStreamingScenarios");
+        mainWindowCodeBehind.Should().Contain("ApplySelectedScatterScenario");
         mainWindowCodeBehind.Should().Contain("ScatterSeries");
         mainWindowCodeBehind.Should().Contain("ScatterPoint");
         mainWindowCodeBehind.Should().Contain("ScatterChartMetadata");
@@ -136,6 +146,8 @@ public sealed class SurfaceChartsDemoConfigurationTests
         mainWindowCodeBehind.Should().NotContain("CreateOverviewViewport");
         mainWindowCodeBehind.Should().NotContain("CreateZoomedDetailViewport");
         mainWindowCodeBehind.Should().Contain("lazy");
+        readme.Should().Contain("no GPU-driven culling");
+        readme.Should().Contain("no hard performance guarantee");
 
         var cacheAsset = File.ReadAllText(cacheAssetPath);
         cacheAsset.Should().Contain(@"""version"": 2");

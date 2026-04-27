@@ -159,12 +159,14 @@ public partial class MainWindow : Window
 
     private PerformanceLabResult GeneratePerformanceLabDataset(IResourceFactory? factory)
     {
+        var scenario = _viewModel.SelectedPerformanceLabViewerScenario;
         var mode = _viewModel.PerformanceLabMode;
-        var objectCount = _viewModel.PerformanceLabObjectCount;
+        var objectCount = scenario.ObjectCount;
         var pickable = _viewModel.PerformanceLabPickable;
         var meshData = CreatePerformanceLabMesh();
-        var transforms = CreatePerformanceLabTransforms(objectCount);
-        var objectIds = Enumerable.Range(0, objectCount).Select(static _ => Guid.NewGuid()).ToArray();
+        var transforms = PerformanceLabViewerScenarios.CreateTransforms(scenario);
+        var objectIds = PerformanceLabViewerScenarios.CreateObjectIds(scenario);
+        var colors = PerformanceLabViewerScenarios.CreateColors(scenario);
         var buildStopwatch = Stopwatch.StartNew();
 
         View3D.ClearScene();
@@ -191,6 +193,7 @@ public partial class MainWindow : Window
                 mesh,
                 material,
                 transforms,
+                colors,
                 objectIds: objectIds,
                 pickable: pickable);
             View3D.AddInstanceBatch(descriptor);
@@ -211,13 +214,21 @@ public partial class MainWindow : Window
         var diagnostics = View3D.BackendDiagnostics;
         var diagnosticsText = BuildPerformanceLabDiagnostics(
             mode,
+            scenario,
             objectCount,
             pickable,
             buildStopwatch.Elapsed,
             pickStopwatch.Elapsed,
             hit,
             diagnostics);
-        var snapshot = BuildPerformanceLabSnapshot(diagnosticsText, diagnostics);
+        var snapshot = PerformanceLabEvidenceSnapshotBuilder.Build(
+            scenario,
+            mode.ToString(),
+            objectCount,
+            pickable,
+            diagnosticsText,
+            diagnostics,
+            DateTimeOffset.UtcNow);
         return new PerformanceLabResult(mode, objectCount, diagnosticsText, snapshot);
     }
 
@@ -253,21 +264,6 @@ public partial class MainWindow : Window
         return objects;
     }
 
-    private static Matrix4x4[] CreatePerformanceLabTransforms(int count)
-    {
-        var transforms = new Matrix4x4[count];
-        transforms[0] = Matrix4x4.Identity;
-        var columns = Math.Max(1, (int)MathF.Ceiling(MathF.Sqrt(count)));
-        for (var i = 1; i < count; i++)
-        {
-            var x = (i % columns) * 1.4f;
-            var z = (i / columns) * 1.4f;
-            transforms[i] = Matrix4x4.CreateTranslation(x, 0f, z);
-        }
-
-        return transforms;
-    }
-
     private static MeshData CreatePerformanceLabMesh()
     {
         const float size = 0.4f;
@@ -286,6 +282,7 @@ public partial class MainWindow : Window
 
     private static string BuildPerformanceLabDiagnostics(
         PerformanceLabMode mode,
+        PerformanceLabViewerScenario scenario,
         int objectCount,
         bool pickable,
         TimeSpan buildDuration,
@@ -294,6 +291,9 @@ public partial class MainWindow : Window
         VideraBackendDiagnostics diagnostics)
     {
         var builder = new StringBuilder();
+        builder.AppendLine($"ScenarioId: {scenario.Id}");
+        builder.AppendLine($"ScenarioName: {scenario.DisplayName}");
+        builder.AppendLine($"ScenarioSize: {scenario.Size}");
         builder.AppendLine($"Mode: {mode}");
         builder.AppendLine($"ObjectCount: {objectCount:N0}");
         builder.AppendLine($"Pickable: {pickable}");
@@ -309,21 +309,6 @@ public partial class MainWindow : Window
         builder.AppendLine($"SubmittedInstances: {FormatNullable(diagnostics.LastFrameInstanceCount)}");
         builder.AppendLine($"RetainedInstanceCount: {diagnostics.RetainedInstanceCount}");
         builder.AppendLine($"PickableObjectCount: {FormatNullable(diagnostics.PickableObjectCount)}");
-        return builder.ToString().TrimEnd();
-    }
-
-    private static string BuildPerformanceLabSnapshot(
-        string diagnosticsText,
-        VideraBackendDiagnostics diagnostics)
-    {
-        var builder = new StringBuilder();
-        builder.AppendLine("Videra Performance Lab snapshot");
-        builder.AppendLine($"GeneratedUtc: {DateTimeOffset.UtcNow:O}");
-        builder.AppendLine();
-        builder.AppendLine(diagnosticsText);
-        builder.AppendLine();
-        builder.AppendLine("Backend diagnostics");
-        builder.AppendLine(VideraDiagnosticsSnapshotFormatter.Format(diagnostics));
         return builder.ToString().TrimEnd();
     }
 

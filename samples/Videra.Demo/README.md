@@ -18,7 +18,7 @@
 - Backend diagnostics via `BackendDiagnostics`, including readiness, native-host binding, fallback details, and `LastFrameObjectCount` / `LastFrameOpaqueObjectCount` / `LastFrameTransparentObjectCount`
 - A copyable support panel with a diagnostics bundle, per-file import report, and minimal reproduction metadata
 - A focused `Scene Pipeline Lab` panel that calls out `SceneDocument` versioning, retained `SceneNode` / `MeshPrimitive` / `MaterialInstance` / `Texture2D` / `Sampler` catalogs, the shipped static glTF/PBR baseline, tangent-aware retained assets, repeated unchanged imports that can reuse retained imported scene assets while they remain retained, deferred upload, render-feature diagnostics, residency counts, atomic scene replacement, and backend-rebind truth
-- A focused `Performance Lab` panel for normal-object versus retained instance-batch datasets, pickable toggle coverage, pick latency evidence, retained instance diagnostics, and a copyable support snapshot
+- A focused `Performance Lab` panel for deterministic viewer instance-batch scenarios, normal-object comparison, pickable toggle coverage, pick latency evidence, retained instance diagnostics, and a copyable evidence-only support snapshot
 
 ## Runtime Behavior
 
@@ -50,7 +50,7 @@ Import results are summarized in the status area and expanded in the support pan
 
 `Copy Diagnostics Bundle` copies a support artifact with OS/runtime information, package versions, backend diagnostics, render capabilities, current demo settings, loaded model count, and the latest import report. `Copy Repro Metadata` copies a smaller reproduction snapshot with scene paths, current settings, and the backend diagnostics snapshot.
 
-The `Performance Lab` panel generates bounded datasets at selectable counts. `NormalObjects` creates regular `Object3D` entries with the current resource factory; `InstanceBatch` records one retained `InstanceBatchDescriptor` through `VideraView.AddInstanceBatch(...)`. The panel reports build/frame-time proxy, pick latency, draw-call availability, upload bytes, resident bytes, retained instance count, pickable count, and per-instance pick identity where available. `Copy Snapshot` copies the current lab settings plus the backend diagnostics snapshot for support and release-validation notes.
+The `Performance Lab` panel generates bounded deterministic scenarios from `PerformanceLabViewerScenarios`: small, medium, and large viewer instance-batch datasets with stable transforms, object ids, colors, count, and default pickability. `NormalObjects` creates regular `Object3D` entries with the current resource factory for comparison; `InstanceBatch` records one retained `InstanceBatchDescriptor` through `VideraView.AddInstanceBatch(...)`. The panel reports scenario id/name/size, build/frame-time proxy, pick latency, draw-call availability, upload bytes, resident bytes, retained instance count, pickable count, and per-instance pick identity where available. `Copy Snapshot` copies an evidence-only dataset proof with scenario settings, runtime status, diagnostics text, and the backend diagnostics snapshot for support and release-validation notes. These values are support evidence, not stable benchmark guarantees.
 
 `Import Model`, `Frame All`, and `Reset Camera` follow command/capability readiness rather than a raw `IsBackendReady` XAML assumption, so the visible controls stay aligned with the live importer and viewport wiring.
 

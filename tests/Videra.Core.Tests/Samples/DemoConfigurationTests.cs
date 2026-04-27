@@ -87,6 +87,8 @@ public sealed class DemoConfigurationTests
         readme.Should().Contain("backend diagnostics");
         readme.Should().Contain("default demo cube");
         readme.Should().Contain("import feedback");
+        readme.Should().Contain("deterministic `Performance Lab` proof surface");
+        readme.Should().Contain("evidence-only copyable snapshot");
     }
 
     [Fact]
@@ -313,12 +315,17 @@ public sealed class DemoConfigurationTests
         var mainWindowPath = Path.Combine(repositoryRoot, "samples", "Videra.Demo", "Views", "MainWindow.axaml");
         var codeBehindPath = Path.Combine(repositoryRoot, "samples", "Videra.Demo", "Views", "MainWindow.axaml.cs");
         var viewModelPath = Path.Combine(repositoryRoot, "samples", "Videra.Demo", "ViewModels", "MainWindowViewModel.cs");
+        var snapshotBuilderPath = Path.Combine(repositoryRoot, "samples", "Videra.Demo", "Services", "PerformanceLabEvidenceSnapshotBuilder.cs");
+        var readmePath = Path.Combine(repositoryRoot, "samples", "Videra.Demo", "README.md");
         var xaml = File.ReadAllText(mainWindowPath);
         var codeBehind = File.ReadAllText(codeBehindPath);
         var viewModel = File.ReadAllText(viewModelPath);
+        var snapshotBuilder = File.ReadAllText(snapshotBuilderPath);
+        var readme = File.ReadAllText(readmePath);
 
         xaml.Should().Contain("PERFORMANCE LAB");
-        xaml.Should().Contain("AvailablePerformanceLabObjectCounts");
+        xaml.Should().Contain("AvailablePerformanceLabViewerScenarios");
+        xaml.Should().Contain("SelectedPerformanceLabViewerScenario");
         xaml.Should().Contain("AvailablePerformanceLabModes");
         xaml.Should().Contain("PerformanceLabPickable");
         xaml.Should().Contain("OnGeneratePerformanceLabClicked");
@@ -327,8 +334,17 @@ public sealed class DemoConfigurationTests
         codeBehind.Should().Contain("SceneHitTestService");
         codeBehind.Should().Contain("PickLatencyMs");
         codeBehind.Should().Contain("RetainedInstanceCount");
+        codeBehind.Should().Contain("PerformanceLabEvidenceSnapshotBuilder.Build");
+        snapshotBuilder.Should().Contain("EvidenceKind: PerformanceLabDatasetProof");
+        snapshotBuilder.Should().Contain("EvidenceOnly: true");
+        snapshotBuilder.Should().Contain("Backend diagnostics");
+        codeBehind.Should().Contain("ScenarioId:");
         viewModel.Should().Contain("PerformanceLabSnapshot");
         viewModel.Should().Contain("PerformanceLabMode");
+        viewModel.Should().Contain("SelectedPerformanceLabViewerScenario");
+        readme.Should().Contain("PerformanceLabViewerScenarios");
+        readme.Should().Contain("evidence-only dataset proof");
+        readme.Should().Contain("not stable benchmark guarantees");
     }
 
     [Fact]
