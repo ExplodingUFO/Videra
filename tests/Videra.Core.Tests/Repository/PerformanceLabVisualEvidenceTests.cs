@@ -24,6 +24,31 @@ public class PerformanceLabVisualEvidenceTests
     }
 
     [Fact]
+    public void Documentation_ShouldDescribeVisualEvidenceBoundaries()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var rootReadme = File.ReadAllText(Path.Combine(repositoryRoot, "README.md"));
+        var demoReadme = File.ReadAllText(Path.Combine(repositoryRoot, "samples", "Videra.Demo", "README.md"));
+        var surfaceChartsReadme = File.ReadAllText(Path.Combine(repositoryRoot, "samples", "Videra.SurfaceCharts.Demo", "README.md"));
+        var qualityGates = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "maintenance-quality-gates.md"));
+        var chineseReadme = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "zh-CN", "README.md"));
+        var chineseDemo = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "zh-CN", "modules", "demo.md"));
+
+        foreach (var document in new[] { rootReadme, demoReadme, surfaceChartsReadme, qualityGates, chineseReadme, chineseDemo })
+        {
+            document.Should().Contain("Invoke-PerformanceLabVisualEvidence.ps1");
+            document.Should().Contain("artifacts/performance-lab-visual-evidence");
+        }
+
+        rootReadme.Should().Contain("not pixel-perfect visual-regression gates");
+        demoReadme.Should().Contain("does not claim real GPU instancing");
+        surfaceChartsReadme.Should().Contain("not a claim that SurfaceCharts has gained GPU-driven culling or a new chart family");
+        qualityGates.Should().Contain("not pixel-perfect visual-regression gates");
+        chineseReadme.Should().Contain("不是 pixel-perfect visual-regression gate");
+        chineseDemo.Should().Contain("不代表 real GPU instancing");
+    }
+
+    [Fact]
     public void Capture_ShouldWriteManifestSummaryDiagnosticsAndNonblankPngArtifacts()
     {
         using var workspace = TemporaryDirectory.Create();

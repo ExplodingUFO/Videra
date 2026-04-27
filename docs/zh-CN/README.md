@@ -17,6 +17,14 @@ Columnar scatter streaming 仍是 chart-domain contract，不是 viewer/runtime 
 
 `Videra.Demo` 的 `Performance Lab` 是 deterministic dataset proof surface：small / medium / large viewer instance-batch scenarios、normal-object 对比、pickable toggle、pick latency evidence、retained instance diagnostics 和 evidence-only copy snapshot。它不是 generic benchmark editor，也不承诺 GPU-driven culling、renderer rewrite、新 chart family 或稳定 benchmark guarantee。
 
+维护者可以生成 repo-owned Performance Lab visual evidence bundle，用于 PR review 或 support report：
+
+```powershell
+pwsh -File ./scripts/Invoke-PerformanceLabVisualEvidence.ps1 -Configuration Release -OutputRoot artifacts/performance-lab-visual-evidence
+```
+
+该 bundle 包含 PNG visual evidence、`performance-lab-visual-evidence-manifest.json`、`performance-lab-visual-evidence-summary.txt` 和 per-scenario diagnostics text。它只是 evidence-only artifact，不是 pixel-perfect visual-regression gate、稳定 benchmark guarantee、real GPU instancing 证明、renderer parity 证明或新 chart family 承诺。
+
 当前 `alpha` 阶段需要明确说明：
 
 - 已完成独立模块边界、LOD、缓存读取、`GPU-first` 渲染主路径与 Demo 路径

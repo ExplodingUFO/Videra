@@ -64,6 +64,14 @@ var diagnostics = View3D.BackendDiagnostics;
 
 `Performance Lab` 面板使用 `PerformanceLabViewerScenarios` 生成 deterministic 数据：稳定 transform、object id、per-instance color、object count 和默认 pickability。`Copy Snapshot` 会复制 scenario id/name/size、mode、object count、pickable、runtime status、diagnostics text 和 backend diagnostics。这里的数值是 support evidence，不是稳定 benchmark guarantee；GPU-driven culling、renderer rewrite、generic benchmark editor、new chart family 仍不属于这个 Demo 范围。
 
+维护者还可以生成 Performance Lab visual evidence bundle：
+
+```powershell
+pwsh -File ./scripts/Invoke-PerformanceLabVisualEvidence.ps1 -Configuration Release -OutputRoot artifacts/performance-lab-visual-evidence
+```
+
+该 bundle 会输出 PNG visual evidence、manifest JSON、summary text 和 per-scenario diagnostics text，方便 PR review 或 support report 附件使用。它不是 pixel-perfect visual-regression gate，也不代表 real GPU instancing、renderer parity、GPU-driven culling、新 chart family 或稳定 Performance Lab benchmark guarantee。
+
 ## 界面说明
 
 - 左侧：`VideraView` 渲染区域
