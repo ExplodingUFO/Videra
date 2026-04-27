@@ -39,7 +39,7 @@
     <None Include="README.md" Pack="true" PackagePath="\" />
     <!-- Metal 通过 Objective-C Runtime 直接访问，不需要额外的 NuGet 包 -->
     <PackageReference Include="Silk.NET.Core" Version="2.21.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.11" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.7" />
   </ItemGroup>
 
   <ItemGroup>

@@ -64,8 +64,8 @@
   <ItemGroup>
     <None Include="..\..\eng\icon.png" Pack="true" PackagePath="\" Link="icon.png" />
     <None Include="README.md" Pack="true" PackagePath="\" />
-    <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.11" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.11" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.7" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.7" />
   </ItemGroup>
 
 </Project>
