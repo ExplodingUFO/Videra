@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-04-28T00:43:00+08:00",
+  "database": {
+    "host": "127.0.0.1",
+    "port": 3306,
+    "name": "Videra",
+    "projectId": "cf27bb80-40f6-4ba7-95f7-bc455a484d7b"
+  },
+  "phaseIssue": {
+    "id": "Videra-mnx",
+    "title": "Phase 276 issue lifecycle and handoff proof",
+    "observedStatus": "in_progress",
+    "observedAssignee": "ExplodingUFO"
+  },
+  "discoveredFollowUp": {
+    "id": "Videra-4yl",
+    "title": "Proof discovered follow-up for Beads lifecycle",
+    "dependencyType": "discovered-from",
+    "dependsOn": "Videra-mnx",
+    "observedStatus": "closed",
+    "closeReason": "Proof follow-up captured through discovered-from linkage; no implementation follow-up required."
+  },
+  "verificationCommands": [
+    "bd update Videra-mnx --claim --json",
+    "bd create \"Proof discovered follow-up for Beads lifecycle\" --description=\"Lifecycle proof issue created with discovered-from linkage during Phase 276; closed after proving follow-up capture works without markdown TODOs.\" -t task -p 3 --deps discovered-from:Videra-mnx --json",
+    "bd close Videra-4yl --reason \"Proof follow-up captured through discovered-from linkage; no implementation follow-up required.\" --json",
+    "docker exec dolt-sql-server dolt sql -q \"select * from Videra.dependencies;\""
+  ]
+}

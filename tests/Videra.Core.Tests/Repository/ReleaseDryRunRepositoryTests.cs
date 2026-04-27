@@ -103,10 +103,121 @@ public sealed class ReleaseDryRunRepositoryTests
         script.Should().Contain("supportDocs");
         script.Should().Contain("dryRunStatus");
         script.Should().Contain("dryRunArtifacts");
+        script.Should().Contain("visualEvidence");
+        script.Should().Contain("performanceLabVisualEvidence");
+        script.Should().Contain("doctorVisualEvidence");
+        script.Should().Contain("PerformanceLabVisualEvidenceManifestPath");
+        script.Should().Contain("DoctorReportPath");
         script.Should().Contain("validationSteps");
         script.Should().Contain("Assert-ExistingFile");
         script.Should().Contain("Package size evaluation artifact");
         script.Should().NotContain("dotnet nuget push");
+    }
+
+    [Fact]
+    public void ReleaseCandidateEvidenceIndexScript_ShouldRecordOptionalVisualEvidenceWithoutFailingDryRun()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var scriptPath = Path.Combine(repositoryRoot, "scripts", "New-ReleaseCandidateEvidenceIndex.ps1");
+        var outputRoot = Path.Combine(Path.GetTempPath(), "VideraReleaseDryRunTests", Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(outputRoot);
+
+        var packageSizeEvaluation = Path.Combine(outputRoot, "package-size-evaluation.json");
+        var packageSizeSummary = Path.Combine(outputRoot, "package-size-summary.txt");
+        File.WriteAllText(packageSizeEvaluation, "{}");
+        File.WriteAllText(packageSizeSummary, "ok");
+
+        var visualEvidenceManifest = Path.Combine(outputRoot, "performance-lab-visual-evidence-manifest.json");
+        var visualEvidenceSummary = Path.Combine(outputRoot, "performance-lab-visual-evidence-summary.txt");
+        var diagnosticsPath = Path.Combine(outputRoot, "viewer-instance-small-diagnostics.txt");
+        File.WriteAllText(visualEvidenceSummary, "visual host unavailable");
+        File.WriteAllText(diagnosticsPath, "EvidenceOnly: true");
+        File.WriteAllText(visualEvidenceManifest, JsonSerializer.Serialize(new
+        {
+            schemaVersion = 1,
+            evidenceKind = "PerformanceLabVisualEvidence",
+            status = "unavailable",
+            summaryPath = visualEvidenceSummary,
+            entries = new[]
+            {
+                new
+                {
+                    id = "viewer-instance-small",
+                    status = "unavailable",
+                    pngPath = "",
+                    diagnosticsPath
+                }
+            }
+        }, IndentedJsonOptions));
+
+        var summaryPath = Path.Combine(outputRoot, "release-dry-run-summary.json");
+        WriteValidDryRunSummary(summaryPath, packageSizeEvaluation, packageSizeSummary);
+
+        var result = RunPowerShell(
+            scriptPath,
+            repositoryRoot,
+            "-ExpectedVersion",
+            "0.1.0-alpha.7",
+            "-ReleaseDryRunSummaryPath",
+            summaryPath,
+            "-OutputRoot",
+            outputRoot,
+            "-PerformanceLabVisualEvidenceManifestPath",
+            visualEvidenceManifest);
+
+        result.ExitCode.Should().Be(0, $"stdout: {result.Stdout}\nstderr: {result.Stderr}");
+
+        using var indexDocument = JsonDocument.Parse(File.ReadAllText(Path.Combine(outputRoot, "release-candidate-evidence-index.json")));
+        var visualEvidence = indexDocument.RootElement.GetProperty("visualEvidence");
+        visualEvidence.GetProperty("evidenceOnly").GetBoolean().Should().BeTrue();
+        visualEvidence.GetProperty("publishBlocker").GetBoolean().Should().BeFalse();
+
+        var performanceLabVisualEvidence = visualEvidence.GetProperty("performanceLabVisualEvidence");
+        performanceLabVisualEvidence.GetProperty("status").GetString().Should().Be("unavailable");
+        performanceLabVisualEvidence.GetProperty("captureStatus").GetString().Should().Be("unavailable");
+        performanceLabVisualEvidence.GetProperty("manifestPath").GetString().Should().Be(visualEvidenceManifest);
+        performanceLabVisualEvidence.GetProperty("diagnosticsPaths").EnumerateArray().Select(static value => value.GetString())
+            .Should().Contain(diagnosticsPath);
+
+        var doctorVisualEvidence = visualEvidence.GetProperty("doctorVisualEvidence");
+        doctorVisualEvidence.GetProperty("status").GetString().Should().Be("missing");
+        doctorVisualEvidence.GetProperty("reportPath").GetString().Should().Be("artifacts/doctor/doctor-report.json");
+
+        var optionalArtifacts = indexDocument.RootElement.GetProperty("optionalArtifacts")
+            .EnumerateArray()
+            .Select(static artifact => artifact.GetProperty("path").GetString())
+            .ToArray();
+        optionalArtifacts.Should().Contain([
+            "artifacts/doctor/doctor-report.json",
+            "artifacts/performance-lab-visual-evidence/performance-lab-visual-evidence-manifest.json"
+        ]);
+
+        var textIndex = File.ReadAllText(Path.Combine(outputRoot, "release-candidate-evidence-index.txt"));
+        textIndex.Should().Contain("Optional visual evidence:");
+        textIndex.Should().Contain("Publish blocker: false");
+    }
+
+    [Fact]
+    public void ReleaseEvidenceDocs_ShouldKeepVisualEvidenceOptionalAndEvidenceOnly()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var releasing = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "releasing.md"));
+        var evidenceContract = File.ReadAllText(Path.Combine(repositoryRoot, "eng", "release-candidate-evidence.json"));
+        var dryRunScript = File.ReadAllText(Path.Combine(repositoryRoot, "scripts", "Invoke-ReleaseDryRun.ps1"));
+        var indexScript = File.ReadAllText(Path.Combine(repositoryRoot, "scripts", "New-ReleaseCandidateEvidenceIndex.ps1"));
+
+        releasing.Should().Contain("missing or unavailable visual evidence is review context, not a publish blocker");
+        dryRunScript.Should().Contain("publishBlocker = $false");
+        indexScript.Should().Contain("publishBlocker = $false");
+        evidenceContract.Should().Contain("missing or unavailable status is not a publish blocker");
+
+        foreach (var document in new[] { releasing, evidenceContract, dryRunScript, indexScript })
+        {
+            document.Should().NotContain("is a pixel-perfect visual-regression gate");
+            document.Should().NotContain("is a stable benchmark guarantee");
+            document.Should().NotContain("is renderer parity proof");
+            document.Should().NotContain("is real GPU instancing proof");
+        }
     }
 
     [Fact]
@@ -354,6 +465,34 @@ public sealed class ReleaseDryRunRepositoryTests
         var propsPath = Path.Combine(GetRepositoryRoot(), "Directory.Build.props");
         var document = XDocument.Load(propsPath);
         return document.Descendants("Version").Single().Value;
+    }
+
+    private static void WriteValidDryRunSummary(string summaryPath, string packageSizeEvaluation, string packageSizeSummary)
+    {
+        var summary = new
+        {
+            schemaVersion = 1,
+            status = "pass",
+            expectedVersion = "0.1.0-alpha.7",
+            packageContractPath = "eng/public-api-contract.json",
+            packageValidationScript = "scripts/Validate-Packages.ps1",
+            validationArtifacts = new
+            {
+                packageSizeEvaluation,
+                packageSizeSummary
+            },
+            artifactPaths = new { },
+            steps = new[]
+            {
+                new { id = "version-simulation-prepack", status = "pass" },
+                new { id = "package-build", status = "pass" },
+                new { id = "package-validation", status = "pass" },
+                new { id = "version-simulation-summary", status = "pass" },
+                new { id = "evidence-index", status = "pass" }
+            }
+        };
+
+        File.WriteAllText(summaryPath, JsonSerializer.Serialize(summary, IndentedJsonOptions));
     }
 
     private static PowerShellResult RunPowerShell(string scriptPath, string workingDirectory, params string[] arguments)

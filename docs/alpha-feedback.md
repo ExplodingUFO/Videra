@@ -12,7 +12,8 @@ Attach the smallest artifact set that explains the failure path:
 | Viewer issue | Reproduce with `Videra.MinimalSample` and attach the diagnostics snapshot from `VideraDiagnosticsSnapshotFormatter`. |
 | Import issue | Use `Videra.Demo` and attach the copied diagnostics bundle, import report, and smallest failing scene path. |
 | Backend issue | Attach `artifacts/doctor/doctor-report.json`, the diagnostics snapshot, and any backend fallback reason from `Videra.Demo`. |
-| Package issue | Attach `release-dry-run-summary.json`, `release-candidate-evidence-index.json`, `package-size-evaluation.json`, and `package-size-summary.txt` when the report concerns package metadata, package size budgets, or package contract drift. |
+| Visual rendering or Performance Lab issue | Attach `artifacts/doctor/doctor-report.json`, `artifacts/performance-lab-visual-evidence/performance-lab-visual-evidence-manifest.json`, `performance-lab-visual-evidence-summary.txt`, the relevant PNG files, and per-scenario diagnostics text. |
+| Package issue | Attach `release-dry-run-summary.json`, `release-candidate-evidence-index.json`, `package-size-evaluation.json`, and `package-size-summary.txt` when the report concerns package metadata, package size budgets, or package contract drift; the evidence index also carries optional Doctor/Performance Lab visual evidence status when visual output context is relevant. |
 | Release issue | Attach `public-release-preflight-summary.json`, `public-publish-before-summary.json`, `public-publish-after-summary.json`, and `public-release-notes.md`; include the Package matrix and Known alpha limitations section that shipped with the release. |
 | Native-host issue | Attach the matching `artifacts/native-validation` output plus `artifacts/doctor/doctor-report.json`; include `wpf-smoke-diagnostics.txt` when the Windows WPF smoke path was involved. |
 | Packaged viewer validation | Attach `artifacts/consumer-smoke/consumer-smoke-result.json` and `artifacts/consumer-smoke/diagnostics-snapshot.txt`. |
@@ -42,6 +43,8 @@ Attach the smallest artifact set that explains the failure path:
    - a snapshot exported through `ExportSnapshotAsync(...)`, or
    - an inspection bundle exported through `VideraInspectionBundleService.ExportAsync(...)`
      - check `CanReplayScene` and include `ReplayLimitation`; they describe replayability semantics and should travel with the bundle whenever it captured host-owned objects or other non-replayable scene state
+7. If the issue involves Performance Lab visual output, generate the visual evidence bundle with `scripts/Invoke-PerformanceLabVisualEvidence.ps1`, rerun `scripts/Invoke-VideraDoctor.ps1`, and attach the Doctor report plus `performance-lab-visual-evidence-manifest.json`, `performance-lab-visual-evidence-summary.txt`, relevant PNG files, and per-scenario diagnostics text.
+8. For release-candidate or package reports, attach `release-candidate-evidence-index.json` after the release dry run; use its `visualEvidence.performanceLabVisualEvidence` and `visualEvidence.doctorVisualEvidence` fields to show whether visual evidence was present, missing, or unavailable.
 
 ## What to include in a bug report
 
@@ -51,6 +54,7 @@ Attach the smallest artifact set that explains the failure path:
 - Release issue evidence when the report concerns publication, GitHub Release assets, or public package availability: `public-release-preflight-summary.json`, `public-publish-after-summary.json`, `public-release-notes.md`, the Package matrix section, and the Known alpha limitations section
 - `PreferredBackend` or `VIDERA_BACKEND` value, if you overrode backend preference
 - diagnostics snapshot from `VideraDiagnosticsSnapshotFormatter`
+- Performance Lab visual evidence bundle when visual rendering evidence is relevant: `artifacts/performance-lab-visual-evidence/performance-lab-visual-evidence-manifest.json`, `performance-lab-visual-evidence-summary.txt`, relevant PNG files, and per-scenario diagnostics text
 - `LastFrameObjectCount`, `LastFrameOpaqueObjectCount`, and `LastFrameTransparentObjectCount` when the issue depends on scene composition
 - `LastSnapshotExportPath` and `LastSnapshotExportStatus` when the report includes a snapshot export
 - exported inspection snapshot, when the issue affects clipping, measurements, labels, or camera state
@@ -103,6 +107,8 @@ Attach the smallest artifact set that explains the failure path:
 - `LastFrameDrawCallCount`, `LastFrameInstanceCount`, `LastFrameVertexCount`, and `PickableObjectCount` are `Unavailable` when the active backend path does not measure them; `LastFrameUploadBytes` is measured by scene residency, and `ResidentResourceBytes` is a residency estimate.
 - Imported-material fidelity now reaches the shipped static-scene renderer path for baseColor texture sampling, occlusion texture binding/strength, emissive inputs, normal-map-ready inputs, and `KHR_texture_transform` / texture-coordinate override. Treat those details as shipped on-screen output concerns on the bounded static-scene seam, not as a broader lighting/shader/backend promise.
 - `Videra.SurfaceCharts.Demo` remains repository-only and is the support-ready repro/reference app for the `Start here`, `Explore next`, and `Try next` paths.
+- Performance Lab visual evidence is support/review evidence only. It is not a pixel-perfect visual-regression gate, stable benchmark guarantee, real GPU instancing proof, renderer parity proof, or new chart-family promise.
+- Release-candidate evidence index visual evidence fields are optional support context. Missing or unavailable visual evidence should be classified as environment residual or not-run context unless the specific release issue depends on visual output.
 
 ## Where to send feedback
 
