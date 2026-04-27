@@ -40,6 +40,31 @@ bd close <id> --reason "Completed" --json
 
 Use `discovered-from` links when implementation reveals follow-up work. Close issues with a concrete reason that explains the delivered result or why work was intentionally deferred.
 
+## Worktree Coordination
+
+Parallel implementation work should keep Git branches isolated while sharing one Beads issue truth. Worktrees use `.beads/redirect` to point back to the main checkout's `.beads` directory; the redirect file is local-only and must not be committed.
+
+Validate the current worktree map before dispatching parallel agents:
+
+```powershell
+bd worktree list
+```
+
+Expected shape:
+
+- the main checkout reports `shared`
+- phase worktrees report `redirect -> Videra`
+- `bd context --json` from a worktree reports `is_redirected: true`, `is_worktree: true`, database `Videra`, and the same project id as the main checkout
+
+Use this minimal check from any candidate worktree:
+
+```powershell
+bd context --json
+bd ready --json
+```
+
+Branch/worktree ownership is still Git-local: each agent owns its assigned files and branch, avoids reverting unrelated edits, and coordinates task state through Beads. Beads does not merge branches, resolve conflicts, or decide release readiness.
+
 ## Sync and Export
 
 Beads writes issue state to Dolt. Use Dolt sync only when a remote is configured for the Beads database:
@@ -57,4 +82,3 @@ bd export -o .beads/issues.jsonl
 ```
 
 Do not commit runtime files such as `.beads/export-state.json`, local locks, embedded Dolt data, credentials, logs, or per-machine redirect files.
-
