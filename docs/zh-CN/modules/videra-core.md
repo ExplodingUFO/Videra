@@ -157,6 +157,7 @@ sequenceDiagram
 - `RenderPipelineProfile` 表示当前帧的 profile，当前值为 `Standard`、`StandardWithWireframeOverlay`、`WireframeOnly`。
 - `LastFrameStageNames` 镜像最近一帧真正执行过的 stage 名称。
 - `LastFrameObjectCount`、`LastFrameOpaqueObjectCount`、`LastFrameTransparentObjectCount` 镜像最近一帧的 backend-neutral 场景对象计数，不是 draw-call 指标。`LastFrameDrawCallCount`、`LastFrameInstanceCount`、`LastFrameVertexCount` 与 `PickableObjectCount` 在当前 backend path 无法测量时报告为 `Unavailable`；`LastFrameUploadBytes` 来自 scene residency 的实测上传字节，`ResidentResourceBytes` 是 residency 估算值。
+- 第一版 instance-batch 契约保持很窄：`InstanceBatchDescriptor` 只接受一个 `MeshPrimitive`、一个匹配的 `MaterialInstance`、per-instance `Matrix4x4` transform、可选 per-instance `RgbaFloat` color、可选 per-instance object id 和 `Pickable` 标志；`SceneDocument.AddInstanceBatch(...)` 记录带 batch-level bounds 的 `InstanceBatchEntry`。multi-geometry batching、per-instance material、transparent `Blend` sorting、GPU-driven culling、indirect draw 和 ECS-style ownership 都不在当前契约内。
 - `UsesSoftwarePresentationCopy` 用来区分当前是否经过软件位图拷贝呈现。
 
 Phase 11 新增的 public extensibility contract：

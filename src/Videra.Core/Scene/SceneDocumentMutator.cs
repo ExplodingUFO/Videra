@@ -71,7 +71,10 @@ internal sealed class SceneDocumentMutator
     public SceneDocument Clear(SceneDocument document)
     {
         ArgumentNullException.ThrowIfNull(document);
-        return document.WithEntries(Array.Empty<SceneDocumentEntry>(), document.Version + 1);
+        return document.WithEntries(
+            Array.Empty<SceneDocumentEntry>(),
+            document.Version + 1,
+            Array.Empty<InstanceBatchEntry>());
     }
 
     public SceneDocument RebuildPreservingEntries(SceneDocument previous, IEnumerable<Object3D> sceneObjects)
