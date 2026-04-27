@@ -524,7 +524,7 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
         string markdownDirectory,
         string target)
     {
-        if (string.IsNullOrWhiteSpace(target) || target.StartsWith("#", StringComparison.Ordinal))
+        if (string.IsNullOrWhiteSpace(target) || target.StartsWith('#'))
         {
             return;
         }

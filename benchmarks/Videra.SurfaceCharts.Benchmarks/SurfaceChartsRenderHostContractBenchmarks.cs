@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using BenchmarkDotNet.Attributes;
 using Videra.SurfaceCharts.Rendering;
 using Videra.SurfaceCharts.Rendering.Software;
@@ -5,6 +6,7 @@ using Videra.SurfaceCharts.Rendering.Software;
 namespace Videra.SurfaceCharts.Benchmarks;
 
 [MemoryDiagnoser]
+[SuppressMessage("Design", "CA1001:Types that own disposable fields should be disposable", Justification = "BenchmarkDotNet invokes IterationCleanup, which disposes per-iteration resources.")]
 public class SurfaceChartsRenderHostContractBenchmarks : SurfaceChartsBenchmarkBase
 {
     private BenchmarkGraphicsBackend _graphicsBackend = null!;

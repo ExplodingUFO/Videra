@@ -65,26 +65,31 @@ function Invoke-TestCheck([string]$title, [scriptblock]$command, [string]$succes
 }
 
 # Step 1: Build
+Invoke-Check "Dependency Hygiene" {
+    pwsh -NoProfile -ExecutionPolicy Bypass -File (Join-Path $root "scripts/Test-SharedTestToolingPackages.ps1") -RepositoryRoot $root
+} "Shared test tooling packages are aligned" "Shared test tooling package drift detected"
+
+# Step 2: Build
 Invoke-Check "Build ($Configuration)" {
     dotnet build "$root/Videra.slnx" --configuration $Configuration -v q 2>$null
 } "Build succeeded" "Build failed"
 
-# Step 2: Tests
+# Step 3: Tests
 Invoke-TestCheck "Tests" {
     dotnet test "$root/Videra.slnx" --configuration $Configuration -v m --logger "console;verbosity=detailed" --logger "trx;LogFilePrefix=verify" --results-directory "$testResultsDirectory"
 } "All tests passed" "Some tests failed"
 
-# Step 3: Demo build
+# Step 4: Demo build
 Invoke-Check "Demo Build" {
     dotnet build "$root/samples/Videra.Demo/Videra.Demo.csproj" --configuration $Configuration -v q 2>$null
 } "Demo builds" "Demo build failed"
 
-# Step 4: Minimal Sample build
+# Step 5: Minimal Sample build
 Invoke-Check "Minimal Sample Build" {
     dotnet build "$root/samples/Videra.MinimalSample/Videra.MinimalSample.csproj" --configuration $Configuration -v q 2>$null
 } "Minimal sample builds" "Minimal sample build failed"
 
-# Step 5: Surface Charts Demo build
+# Step 6: Surface Charts Demo build
 Invoke-Check "Surface Charts Demo Build" {
     dotnet build "$root/samples/Videra.SurfaceCharts.Demo/Videra.SurfaceCharts.Demo.csproj" --configuration $Configuration -v q 2>$null
 } "Surface charts demo builds" "Surface charts demo build failed"

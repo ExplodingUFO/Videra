@@ -8,6 +8,8 @@ namespace Videra.Core.Tests.Repository;
 
 public sealed class ReleaseDryRunRepositoryTests
 {
+    private static readonly JsonSerializerOptions IndentedJsonOptions = new() { WriteIndented = true };
+
     [Fact]
     public void ReleaseDryRunScript_ShouldPackCanonicalPackagesAndReuseValidator()
     {
@@ -140,7 +142,7 @@ public sealed class ReleaseDryRunRepositoryTests
             }
         };
 
-        File.WriteAllText(summaryPath, JsonSerializer.Serialize(summary, new JsonSerializerOptions { WriteIndented = true }));
+        File.WriteAllText(summaryPath, JsonSerializer.Serialize(summary, IndentedJsonOptions));
 
         var result = RunPowerShell(
             scriptPath,

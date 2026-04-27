@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 
 namespace Videra.Core.Styles.Parameters;
@@ -23,6 +24,7 @@ public sealed class LightingParameters : IEquatable<LightingParameters>
     public Vector3 LightDirection { get; set; } = Vector3.Normalize(new(0.5f, 1.0f, 0.3f));
 
     /// <summary>填充/包裹光强度 [0-1]</summary>
+    [SuppressMessage("Usage", "CA1805:Do not initialize unnecessarily", Justification = "The explicit default is part of the documented native-validation contract.")]
     public float FillIntensity { get; set; } = 0f;
 
     public LightingParameters Clone() => (LightingParameters)MemberwiseClone();

@@ -23,6 +23,8 @@ public static class EdgeExtractor
         public bool Equals(Edge other) => V0 == other.V0 && V1 == other.V1;
         public override bool Equals(object? obj) => obj is Edge other && Equals(other);
         public override int GetHashCode() => HashCode.Combine(V0, V1);
+        public static bool operator ==(Edge left, Edge right) => left.Equals(right);
+        public static bool operator !=(Edge left, Edge right) => !left.Equals(right);
     }
 
     /// <summary>

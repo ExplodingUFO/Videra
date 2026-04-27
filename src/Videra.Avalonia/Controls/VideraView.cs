@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Diagnostics.CodeAnalysis;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
@@ -23,6 +24,7 @@ namespace Videra.Avalonia.Controls;
 /// <summary>
 /// 3D 渲染视图控件 - 使用跨平台软件后端渲染。
 /// </summary>
+[SuppressMessage("Design", "CA1001:Types that own disposable fields should be disposable", Justification = "Avalonia control lifetime releases runtime resources through visual-tree detach.")]
 public partial class VideraView : Decorator
 {
     private readonly VideraViewRuntime _runtime;

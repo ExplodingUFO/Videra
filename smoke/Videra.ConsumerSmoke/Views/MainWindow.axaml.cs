@@ -16,6 +16,11 @@ namespace Videra.ConsumerSmoke.Views;
 
 public partial class MainWindow : Window
 {
+    private static readonly JsonSerializerOptions ReportJsonOptions = new()
+    {
+        WriteIndented = true
+    };
+
 #if VIDERA_CONSUMER_SMOKE_GLTF
     private const string ModelFormat = "Gltf";
     private const string ModelPath = "Assets/reference-triangle.gltf";
@@ -287,10 +292,7 @@ public partial class MainWindow : Window
         if (!string.IsNullOrWhiteSpace(_outputPath))
         {
             Directory.CreateDirectory(Path.GetDirectoryName(_outputPath!)!);
-            File.WriteAllText(_outputPath!, JsonSerializer.Serialize(report, new JsonSerializerOptions
-            {
-                WriteIndented = true
-            }));
+            File.WriteAllText(_outputPath!, JsonSerializer.Serialize(report, ReportJsonOptions));
             Trace($"Wrote report: {_outputPath}");
         }
 

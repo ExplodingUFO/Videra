@@ -9,6 +9,28 @@ dotnet_diagnostic.CA1303.severity = suggestion
 dotnet_diagnostic.CA2007.severity = warning
 # CA1845: Use span-based string.Concat/Equals
 dotnet_diagnostic.CA1845.severity = suggestion
+# CA1305: Diagnostics/support strings are invariant product evidence, not localized UI.
+dotnet_diagnostic.CA1305.severity = none
+# CA1707: BDD-style test names intentionally use underscores for readable failure output.
+dotnet_diagnostic.CA1707.severity = none
+# CA1848: LoggerMessage conversion is deferred unless a measured hot path needs it.
+dotnet_diagnostic.CA1848.severity = none
+# CA1051: Visible fields are intentional in selected low-level graphics/runtime structs.
+dotnet_diagnostic.CA1051.severity = none
+# CA1720: Established scene/selection vocabulary may intentionally contain type names.
+dotnet_diagnostic.CA1720.severity = none
+# CA1822: Static-conversion suggestions create low-value churn in service-shaped APIs.
+dotnet_diagnostic.CA1822.severity = none
+# CA1859: Concrete-type suggestions can leak implementation details across contracts.
+dotnet_diagnostic.CA1859.severity = none
+# CA1873: Logging argument micro-optimization is deferred unless profiling shows cost.
+dotnet_diagnostic.CA1873.severity = none
+# CA1861: Test assertion inputs favor inline readability over static-array extraction.
+dotnet_diagnostic.CA1861.severity = none
+# CA2201: Test-only failure-injection helpers may throw generic Exception intentionally.
+dotnet_diagnostic.CA2201.severity = none
+# CA2263: Existing FluentAssertions type assertions remain on the current idiom.
+dotnet_diagnostic.CA2263.severity = none
 # IDE0003: Remove unnecessary braces
 dotnet_diagnostic.IDE0003.severity = suggestion
 # Naming conventions
