@@ -37,6 +37,11 @@ public sealed class BenchmarkContractRepositoryTests
                 "InspectionBenchmarks.SceneHitTest_MeshAccurateDistance",
                 "InspectionBenchmarks.ClipPayload_CachedPlaneSignature",
                 "InspectionBenchmarks.SnapshotExport_LiveReadbackFastPath",
+                "InstanceBatchBenchmarks.NormalObjects_SceneDocumentPopulation",
+                "InstanceBatchBenchmarks.InstanceBatch_SceneDocumentPopulation",
+                "InstanceBatchBenchmarks.NormalObjects_HitTestPickLatency",
+                "InstanceBatchBenchmarks.InstanceBatch_HitTestPickLatency",
+                "InstanceBatchBenchmarks.InstanceBatch_DiagnosticsSnapshotEvidence",
                 "DemoDiagnosticsBenchmarks.FormatImportReport",
                 "DemoDiagnosticsBenchmarks.BuildDiagnosticsBundle"
             ]);

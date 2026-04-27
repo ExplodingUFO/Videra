@@ -25,6 +25,16 @@
           ]
         },
         {
+          "name": "InstanceBatch",
+          "benchmarks": [
+            "InstanceBatchBenchmarks.NormalObjects_SceneDocumentPopulation",
+            "InstanceBatchBenchmarks.InstanceBatch_SceneDocumentPopulation",
+            "InstanceBatchBenchmarks.NormalObjects_HitTestPickLatency",
+            "InstanceBatchBenchmarks.InstanceBatch_HitTestPickLatency",
+            "InstanceBatchBenchmarks.InstanceBatch_DiagnosticsSnapshotEvidence"
+          ]
+        },
+        {
           "name": "Diagnostics",
           "benchmarks": [
             "DemoDiagnosticsBenchmarks.FormatImportReport",
