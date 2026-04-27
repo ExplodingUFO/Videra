@@ -547,7 +547,7 @@ public sealed class SurfaceChartTileSchedulingTests
         var farPlan = scheduler.CreateRequestPlan(farViewState, farFrame, new Size(256, 256), SurfaceChartInteractionQuality.Refine);
 
         farPlan.OrderedKeys.Should().NotEqual(nearPlan.OrderedKeys);
-        farPlan.RetainedKeys.Should().NotBeEquivalentTo(nearPlan.RetainedKeys);
+        farPlan.RetainedKeys.SetEquals(nearPlan.RetainedKeys).Should().BeFalse();
     }
 
     [Fact]
@@ -614,7 +614,7 @@ public sealed class SurfaceChartTileSchedulingTests
         var basePlan = scheduler.CreateRequestPlan(baseViewState, baseFrame, new Size(256, 256), SurfaceChartInteractionQuality.Refine);
         var obliquePlan = scheduler.CreateRequestPlan(obliqueViewState, obliqueFrame, new Size(256, 256), SurfaceChartInteractionQuality.Refine);
 
-        obliquePlan.RetainedKeys.Should().BeEquivalentTo(basePlan.RetainedKeys);
+        obliquePlan.RetainedKeys.SetEquals(basePlan.RetainedKeys).Should().BeTrue();
         obliquePlan.OrderedKeys.Should().NotEqual(basePlan.OrderedKeys);
     }
 

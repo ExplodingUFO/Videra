@@ -556,7 +556,7 @@ public sealed class SurfaceChartsDemoViewportBehaviorTests
             .ToArray();
         var itemIndex = Array.IndexOf(items, item);
 
-        itemIndex.Should().BeGreaterOrEqualTo(0);
+        itemIndex.Should().BeGreaterThanOrEqualTo(0);
         selector.SelectedIndex = itemIndex;
     }
 
