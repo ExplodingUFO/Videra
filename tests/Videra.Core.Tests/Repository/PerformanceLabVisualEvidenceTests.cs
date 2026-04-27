@@ -10,6 +10,20 @@ namespace Videra.Core.Tests.Repository;
 public class PerformanceLabVisualEvidenceTests
 {
     [Fact]
+    public void CiWorkflow_ShouldPublishPerformanceLabVisualEvidenceAsEvidenceOnlyArtifact()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var workflow = File.ReadAllText(Path.Combine(repositoryRoot, ".github", "workflows", "ci.yml"));
+
+        workflow.Should().Contain("performance-lab-visual-evidence:");
+        workflow.Should().Contain("Invoke-PerformanceLabVisualEvidence.ps1");
+        workflow.Should().Contain("artifacts/performance-lab-visual-evidence");
+        workflow.Should().Contain("actions/upload-artifact@v4");
+        workflow.Should().Contain("FullyQualifiedName~PerformanceLabVisualEvidenceTests");
+        workflow.Should().NotContain("pixel-diff");
+    }
+
+    [Fact]
     public void Capture_ShouldWriteManifestSummaryDiagnosticsAndNonblankPngArtifacts()
     {
         using var workspace = TemporaryDirectory.Create();
@@ -120,6 +134,17 @@ public class PerformanceLabVisualEvidenceTests
     private static string ToLocalPath(string path)
     {
         return path.Replace('/', Path.DirectorySeparatorChar);
+    }
+
+    private static string GetRepositoryRoot()
+    {
+        var directory = new DirectoryInfo(AppContext.BaseDirectory);
+        while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "Videra.slnx")))
+        {
+            directory = directory.Parent;
+        }
+
+        return directory?.FullName ?? throw new InvalidOperationException("Unable to locate repository root.");
     }
 
     private sealed class TemporaryDirectory : IDisposable
