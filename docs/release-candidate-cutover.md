@@ -9,6 +9,8 @@ It does not publish packages and does not create release tags. Public publishing
 - `release-candidate-evidence-index.txt`
 - `release-candidate-evidence-index.json`
 - `release-dry-run-summary.json`
+- `artifacts/doctor/doctor-report.json` when repository or machine context matters
+- `artifacts/performance-lab-visual-evidence/performance-lab-visual-evidence-manifest.json` when visual output context matters
 - `package-size-evaluation.json`
 - `package-size-summary.txt`
 - `public-release-preflight-summary.json`
@@ -28,6 +30,7 @@ It does not publish packages and does not create release tags. Public publishing
 Abort the candidate before cutover if any of these are true:
 
 - A required check in `release-candidate-evidence-index.txt` is failing, missing, stale, or from the wrong commit.
+- Visual evidence recorded in the evidence index is missing or unavailable only when the candidate decision explicitly depends on visual output; otherwise classify it as optional context, not a release blocker.
 - `scripts/Test-ReleaseCandidateVersion.ps1` reports a candidate tag/version mismatch.
 - `release-dry-run-summary.json` does not match the intended package version.
 - `scripts/Validate-Packages.ps1` reports package metadata, package asset, dependency, symbol, or package-size budget failures.
@@ -62,6 +65,7 @@ Classify every dry-run or candidate-review finding before changing code:
 Before public publishing, a maintainer must confirm:
 
 - The candidate review notes link the final `release-candidate-evidence-index.txt`.
+- Optional Doctor/Performance Lab visual evidence status in the evidence index has been reviewed and classified as present, missing, unavailable, or not relevant.
 - `public-release-preflight-summary.json` reports the intended `tag`, `version`, and `expected_commit` truth.
 - Every required check and artifact listed in the evidence index is green and from the intended commit.
 - The package version matches the version-aligned tag that will be dispatched as `v<package-version>`.

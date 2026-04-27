@@ -27,6 +27,8 @@ pwsh -File ./scripts/Invoke-PerformanceLabVisualEvidence.ps1 -Configuration Rele
 
 `Videra Doctor` 会在 `doctor-report.json` 的 `evidencePacket.performanceLabVisualEvidence` 中报告该 bundle 是 `present`、`missing` 还是 `unavailable`。Doctor 不会默认生成截图；需要视觉证据时先显式运行上面的 visual evidence 脚本，再运行 `scripts/Invoke-VideraDoctor.ps1`，并一起附上 `artifacts/doctor/*` 与 `artifacts/performance-lab-visual-evidence/*`。
 
+`Release Dry Run` 生成的 `release-candidate-evidence-index.json` 也会读取已有 Doctor report 和 Performance Lab visual evidence manifest，把 visual evidence status 作为 optional evidence-only context 记录下来；`missing` 或 `unavailable` 不会自动成为 publish blocker。
+
 当前 `alpha` 阶段需要明确说明：
 
 - 已完成独立模块边界、LOD、缓存读取、`GPU-first` 渲染主路径与 Demo 路径
@@ -52,7 +54,7 @@ pwsh -File ./scripts/Invoke-PerformanceLabVisualEvidence.ps1 -Configuration Rele
 - `smoke/Videra.WpfSmoke` 是 repository-only 的 Windows WPF smoke 证明，只用于验证和 support evidence，不是第二条公开 UI 包线或发布路径。
 - `Videra.SurfaceCharts.*` 现在已经进入公开 `alpha` 包线，`Videra.SurfaceCharts.Demo` 继续保持 repository-only。
 - GitHub Actions 会在 pull requests 中自动执行跨平台原生验证；Linux 会同时覆盖 `X11` 原生路径和 Wayland 会话下的 `XWayland` bridge 路径；本地 matching-host 运行仍主要用于复现和排障
-- release-candidate review 使用只读的 `Release Dry Run` workflow：它通过 `scripts/Invoke-ReleaseDryRun.ps1` 读取 `eng/public-api-contract.json`，复用 `scripts/Validate-Packages.ps1`，上传 `release-dry-run-evidence`，但不会发布到 `nuget.org` 或 GitHub Packages。
+- release-candidate review 使用只读的 `Release Dry Run` workflow：它通过 `scripts/Invoke-ReleaseDryRun.ps1` 读取 `eng/public-api-contract.json`，复用 `scripts/Validate-Packages.ps1`，生成包含 optional visual evidence status 的 `release-candidate-evidence-index.json`，上传 `release-dry-run-evidence`，但不会发布到 `nuget.org` 或 GitHub Packages。
 
 ## 安装与包选择
 

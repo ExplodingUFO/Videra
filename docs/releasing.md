@@ -14,7 +14,8 @@ Use this sequence for release-candidate review, support triage, and local valida
 4. Run `Benchmark Gates` through GitHub Actions or run `scripts/Run-Benchmarks.ps1` locally for the affected suite, then use `scripts/Test-BenchmarkThresholds.ps1` against the emitted benchmark artifacts. Treat `benchmarks/benchmark-contract.json` as the source-controlled benchmark inventory and `benchmarks/benchmark-thresholds.json` as the hard-threshold slice.
 5. Run packaged viewer and SurfaceCharts validation through `scripts/Invoke-ConsumerSmoke.ps1`. Attach `artifacts/consumer-smoke/consumer-smoke-result.json`, `artifacts/consumer-smoke/diagnostics-snapshot.txt`, and `artifacts/consumer-smoke/surfacecharts-support-summary.txt` when packaged consumer behavior is relevant.
 6. Generate Performance Lab visual evidence with `scripts/Invoke-PerformanceLabVisualEvidence.ps1` when candidate review or support triage needs screenshot-backed context. Attach `artifacts/performance-lab-visual-evidence/performance-lab-visual-evidence-manifest.json`, `performance-lab-visual-evidence-summary.txt`, relevant PNG files, and per-scenario diagnostics text.
-7. Route issue-specific support artifacts through `docs/alpha-feedback.md`: use `Videra.MinimalSample` for the shortest viewer happy path, `Videra.Demo` for import/backend diagnostics, and `Videra.SurfaceCharts.Demo` or `smoke/Videra.SurfaceCharts.ConsumerSmoke` for chart-specific support summaries.
+7. Open `release-candidate-evidence-index.json` or `.txt` after the release dry run. It records optional visual evidence status from the Performance Lab bundle and Doctor report when those files already exist; missing or unavailable visual evidence is review context, not a publish blocker.
+8. Route issue-specific support artifacts through `docs/alpha-feedback.md`: use `Videra.MinimalSample` for the shortest viewer happy path, `Videra.Demo` for import/backend diagnostics, and `Videra.SurfaceCharts.Demo` or `smoke/Videra.SurfaceCharts.ConsumerSmoke` for chart-specific support summaries.
 
 This sequence does not publish packages, create release tags, push feeds, or replace the human-approved public release workflow.
 
@@ -98,7 +99,7 @@ That workflow is expected to:
 4. Pack each public package with the requested dry-run version.
 5. Reuse `scripts/Validate-Packages.ps1` for package set, symbols, README/license/icon/repository metadata, dependency boundaries, and package-size budgets.
 6. Validate `release-dry-run-summary.json` against the simulated tag version and public API contract.
-7. Generate `release-candidate-evidence-index.json` and `release-candidate-evidence-index.txt` from `eng/release-candidate-evidence.json`.
+7. Generate `release-candidate-evidence-index.json` and `release-candidate-evidence-index.txt` from `eng/release-candidate-evidence.json`; the index also records optional Doctor/Performance Lab visual evidence status when those artifacts are present.
 8. Upload `release-dry-run-evidence`.
 9. Avoid `dotnet nuget push`, `NUGET_API_KEY`, GitHub Packages tokens, and GitHub Release creation.
 
@@ -108,7 +109,7 @@ That workflow is expected to:
 - Generate public release notes from approved publish evidence with `scripts/New-PublicReleaseNotes.ps1`; the output is `public-release-notes.md`.
 - The release surface should communicate breaking changes, features, fixes, docs, and CI/build work.
 - Public release assets should make it obvious which package IDs are part of the release.
-- Alpha candidate notes should state whether Doctor, Release Dry Run, package validation, Benchmark Gates, native validation, packaged consumer smoke, and optional Performance Lab visual evidence passed, failed, were unavailable, or were not run.
+- Alpha candidate notes should state whether Doctor, Release Dry Run, package validation, Benchmark Gates, native validation, packaged consumer smoke, and optional Performance Lab visual evidence passed, failed, were unavailable, missing, or were not run.
 - Public release notes must link `docs/package-matrix.md`, include known alpha limitations, and reference `public-publish-after-summary.json`.
 - Known non-blockers should be listed under candidate validation notes, not under package features or fixes.
 - Dry-run evidence should be linked from release-candidate review notes, but it is not a substitute for the human-approved public publish workflow.

@@ -43,6 +43,28 @@
     "consumer-smoke-linux-xwayland",
     "consumer-smoke-macos"
   ],
+  "optionalArtifacts": [
+    {
+      "id": "doctor-report",
+      "path": "artifacts/doctor/doctor-report.json",
+      "description": "Repo-only Doctor JSON report. Its evidencePacket.performanceLabVisualEvidence status is optional release-candidate context."
+    },
+    {
+      "id": "doctor-summary",
+      "path": "artifacts/doctor/doctor-summary.txt",
+      "description": "Repo-only Doctor text summary for support and release-readiness triage."
+    },
+    {
+      "id": "performance-lab-visual-evidence-manifest",
+      "path": "artifacts/performance-lab-visual-evidence/performance-lab-visual-evidence-manifest.json",
+      "description": "Optional Performance Lab visual evidence manifest; missing or unavailable status is not a publish blocker."
+    },
+    {
+      "id": "performance-lab-visual-evidence-summary",
+      "path": "artifacts/performance-lab-visual-evidence/performance-lab-visual-evidence-summary.txt",
+      "description": "Optional Performance Lab visual evidence text summary for visual-output review."
+    }
+  ],
   "supportDocs": [
     "docs/releasing.md",
     "docs/release-candidate-cutover.md",

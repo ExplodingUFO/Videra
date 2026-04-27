@@ -97,6 +97,34 @@ public sealed class ReleaseCandidateTruthRepositoryTests
         dryRunWorkflow.Should().NotContain("NUGET_API_KEY");
     }
 
+    [Fact]
+    public void CandidateDocs_ShouldRouteVisualEvidenceThroughEvidenceIndexTruth()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var docs = new Dictionary<string, string>
+        {
+            ["docs/videra-doctor.md"] = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "videra-doctor.md")),
+            ["docs/alpha-feedback.md"] = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "alpha-feedback.md")),
+            ["docs/releasing.md"] = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "releasing.md")),
+            ["docs/release-candidate-cutover.md"] = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "release-candidate-cutover.md")),
+            ["docs/zh-CN/README.md"] = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "zh-CN", "README.md")),
+            ["docs/zh-CN/troubleshooting.md"] = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "zh-CN", "troubleshooting.md"))
+        };
+
+        foreach (var (name, content) in docs)
+        {
+            content.Should().Contain("release-candidate-evidence-index", name);
+            content.ToLowerInvariant().Should().Contain("visual evidence", name);
+        }
+
+        docs["docs/videra-doctor.md"].Should().Contain("visual evidence status as optional evidence-only context");
+        docs["docs/alpha-feedback.md"].Should().Contain("visualEvidence.performanceLabVisualEvidence");
+        docs["docs/alpha-feedback.md"].Should().Contain("visualEvidence.doctorVisualEvidence");
+        docs["docs/release-candidate-cutover.md"].Should().Contain("not a release blocker");
+        docs["docs/zh-CN/README.md"].Should().Contain("optional evidence-only context");
+        docs["docs/zh-CN/troubleshooting.md"].Should().Contain("不会自动成为 publish blocker");
+    }
+
     private static string GetRepositoryRoot()
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);
