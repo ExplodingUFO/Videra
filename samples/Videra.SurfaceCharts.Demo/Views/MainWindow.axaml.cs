@@ -144,6 +144,7 @@ public partial class MainWindow : Window
     private void ConfigureScatterChartView(ScatterChartView chartView)
     {
         chartView.RenderStatusChanged += OnRenderStatusChanged;
+        chartView.InteractionQualityChanged += OnInteractionQualityChanged;
     }
 
     private async void OnSourceSelectionChanged(object? sender, SelectionChangedEventArgs e)
@@ -310,7 +311,7 @@ public partial class MainWindow : Window
     private void OnInteractionQualityChanged(object? sender, EventArgs e)
     {
         _ = e;
-        if (!ReferenceEquals(sender, ActiveSurfaceChartView))
+        if (!ReferenceEquals(sender, ActiveSurfaceChartView) && !ReferenceEquals(sender, _scatterChartView))
         {
             return;
         }
@@ -387,9 +388,11 @@ public partial class MainWindow : Window
     {
         if (IsScatterProofActive)
         {
+            var status = _scatterChartView.RenderingStatus;
             _interactionQualityText.Text =
-                "ScatterChartView does not expose `InteractionQuality`.\n" +
-                "Use the render-status panel plus camera pose updates to track the proof path while the pointer is active.";
+                $"Current mode: {status.InteractionQuality}\n" +
+                "Interactive: pointer navigation is active on the direct scatter path.\n" +
+                "Refine: settled camera pose is ready for full-quality scatter work.";
             return;
         }
 
@@ -432,6 +435,7 @@ public partial class MainWindow : Window
                 $"Backend kind: {status.BackendKind}\n" +
                 $"Ready: {status.IsReady}\n" +
                 $"Interaction active: {status.IsInteracting}\n" +
+                $"Interaction quality: {status.InteractionQuality}\n" +
                 $"View size: {status.ViewSize.Width:0.#} x {status.ViewSize.Height:0.#}\n" +
                 $"Series: {status.SeriesCount}; Points: {status.PointCount}\n" +
                 $"Columnar series: {status.ColumnarSeriesCount}; Retained columnar points: {status.ColumnarPointCount}; Pickable points: {status.PickablePointCount}\n" +
@@ -802,7 +806,7 @@ public partial class MainWindow : Window
                 $"Chart contract: ScatterChartView exposes direct point data, camera pose truth, Fit to data, and Reset camera on this proof path.\n" +
                 $"Camera: {CreateScatterCameraSummary(status)}\n" +
                 $"RenderingStatus:\n{CreateScatterRenderingDiagnosticsSummary(status)}\n" +
-                "InteractionQuality: not exposed on ScatterChartView\n" +
+                $"InteractionQuality: {status.InteractionQuality}\n" +
                 "OverlayOptions: not exposed on ScatterChartView\n" +
                 $"Cache asset: {_activeAssetSummary}\n" +
                 $"Dataset: {_activeDatasetSummary}";
@@ -865,6 +869,7 @@ public partial class MainWindow : Window
             $"IsReady: {status.IsReady}\n" +
             $"BackendKind: {status.BackendKind}\n" +
             $"IsInteracting: {status.IsInteracting}\n" +
+            $"InteractionQuality: {status.InteractionQuality}\n" +
             $"SeriesCount: {status.SeriesCount}\n" +
             $"PointCount: {status.PointCount}\n" +
             $"ColumnarSeriesCount: {status.ColumnarSeriesCount}\n" +

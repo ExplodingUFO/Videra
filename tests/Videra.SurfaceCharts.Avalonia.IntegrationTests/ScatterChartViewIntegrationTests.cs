@@ -266,18 +266,63 @@ public sealed class ScatterChartViewIntegrationTests
 
             routedInput.RoutePointerPressed(pointer, start, RawInputModifiers.LeftMouseButton, PointerUpdateKind.LeftButtonPressed);
             view.RenderingStatus.IsInteracting.Should().BeTrue();
+            view.InteractionQuality.Should().Be(SurfaceChartInteractionQuality.Interactive);
+            view.RenderingStatus.InteractionQuality.Should().Be(SurfaceChartInteractionQuality.Interactive);
 
             routedInput.RoutePointerMoved(pointer, end, RawInputModifiers.LeftMouseButton);
             view.RenderingStatus.IsInteracting.Should().BeTrue();
+            view.RenderingStatus.InteractionQuality.Should().Be(SurfaceChartInteractionQuality.Interactive);
 
             routedInput.RoutePointerReleased(pointer, end, RawInputModifiers.None, PointerUpdateKind.LeftButtonReleased, MouseButton.Left);
 
             var nextCamera = GetCamera(view);
             view.RenderingStatus.IsInteracting.Should().BeFalse();
+            view.InteractionQuality.Should().Be(SurfaceChartInteractionQuality.Refine);
+            view.RenderingStatus.InteractionQuality.Should().Be(SurfaceChartInteractionQuality.Refine);
             view.RenderingStatus.CameraDistance.Should().BeApproximately(initialCamera.Distance, 0.0001d);
             view.RenderingStatus.CameraTarget.Should().Be(initialCamera.Target);
             nextCamera.YawDegrees.Should().NotBe(initialCamera.YawDegrees);
             nextCamera.PitchDegrees.Should().NotBe(initialCamera.PitchDegrees);
+        });
+    }
+
+    [Fact]
+    public void ScatterChartView_LeftDrag_RaisesInteractionQualityChanged_ForInteractiveAndRefine()
+    {
+        AvaloniaHeadlessTestSession.Run(() =>
+        {
+            var metadata = CreateMetadata();
+            var source = new ScatterChartData(
+                metadata,
+                [
+                    new ScatterSeries(
+                        [
+                            new ScatterPoint(1d, 2d, 3d),
+                            new ScatterPoint(4d, 5d, 6d),
+                        ],
+                        0xFF336699,
+                        "Alpha"),
+                ]);
+            var view = new ScatterChartView();
+            var routedInput = new RoutedInteractionTestScatterChartView(view);
+            var pointer = new Pointer(1, PointerType.Mouse, isPrimary: true);
+            var observedQualities = new List<SurfaceChartInteractionQuality>();
+
+            view.InteractionQualityChanged += (_, _) => observedQualities.Add(view.InteractionQuality);
+            view.Measure(new Size(240, 160));
+            view.Arrange(new Rect(0, 0, 240, 160));
+            view.Source = source;
+
+            view.InteractionQuality.Should().Be(SurfaceChartInteractionQuality.Refine);
+            view.RenderingStatus.InteractionQuality.Should().Be(SurfaceChartInteractionQuality.Refine);
+
+            var position = new Point(120d, 80d);
+            routedInput.RoutePointerPressed(pointer, position, RawInputModifiers.LeftMouseButton, PointerUpdateKind.LeftButtonPressed);
+            routedInput.RoutePointerReleased(pointer, position, RawInputModifiers.None, PointerUpdateKind.LeftButtonReleased, MouseButton.Left);
+
+            observedQualities.Should().Equal(
+                SurfaceChartInteractionQuality.Interactive,
+                SurfaceChartInteractionQuality.Refine);
         });
     }
 

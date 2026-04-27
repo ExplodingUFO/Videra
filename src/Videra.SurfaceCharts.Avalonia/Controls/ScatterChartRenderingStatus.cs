@@ -30,6 +30,11 @@ public sealed record ScatterChartRenderingStatus
     public bool IsInteracting { get; init; }
 
     /// <summary>
+    /// Gets the current interaction-quality mode for chart-local render work.
+    /// </summary>
+    public SurfaceChartInteractionQuality InteractionQuality { get; init; } = SurfaceChartInteractionQuality.Refine;
+
+    /// <summary>
     /// Gets the number of series in the current source.
     /// </summary>
     public int SeriesCount { get; init; }
