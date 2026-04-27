@@ -1,0 +1,149 @@
+using System.Text.Json;
+using FluentAssertions;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
+using Videra.PerformanceLabVisualEvidence;
+using Xunit;
+
+namespace Videra.Core.Tests.Repository;
+
+public class PerformanceLabVisualEvidenceTests
+{
+    [Fact]
+    public void Capture_ShouldWriteManifestSummaryDiagnosticsAndNonblankPngArtifacts()
+    {
+        using var workspace = TemporaryDirectory.Create();
+        var result = PerformanceLabVisualEvidenceCapture.Capture(new PerformanceLabVisualEvidenceOptions(
+            workspace.Path,
+            320,
+            180,
+            ["viewer-instance-small"],
+            ["scatter-replace-100k"]));
+
+        result.Status.Should().Be("produced");
+        File.Exists(result.ManifestPath).Should().BeTrue();
+
+        using var manifest = JsonDocument.Parse(File.ReadAllText(result.ManifestPath));
+        var root = manifest.RootElement;
+        root.GetProperty("schemaVersion").GetInt32().Should().Be(1);
+        root.GetProperty("evidenceKind").GetString().Should().Be("PerformanceLabVisualEvidence");
+        root.GetProperty("evidenceOnly").GetBoolean().Should().BeTrue();
+        root.GetProperty("status").GetString().Should().Be("produced");
+        root.GetProperty("width").GetInt32().Should().Be(320);
+        root.GetProperty("height").GetInt32().Should().Be(180);
+        var summaryPath = root.GetProperty("summaryPath").GetString();
+        summaryPath.Should().NotBeNullOrWhiteSpace();
+        File.Exists(ToLocalPath(summaryPath!)).Should().BeTrue();
+
+        var entries = root.GetProperty("entries").EnumerateArray().ToArray();
+        entries.Should().HaveCount(2);
+        entries.Select(static entry => entry.GetProperty("id").GetString()).Should().Equal(
+            "viewer-instance-small",
+            "scatter-replace-100k");
+
+        foreach (var entry in entries)
+        {
+            entry.GetProperty("status").GetString().Should().Be("produced");
+            var pngPath = entry.GetProperty("pngPath").GetString();
+            pngPath.Should().NotBeNullOrWhiteSpace();
+            AssertPngIsNonblank(ToLocalPath(pngPath!));
+
+            var diagnosticsPath = entry.GetProperty("diagnosticsPath").GetString();
+            diagnosticsPath.Should().NotBeNullOrWhiteSpace();
+            File.ReadAllText(ToLocalPath(diagnosticsPath!)).Should().Contain("EvidenceOnly: true");
+            entry.GetProperty("artifacts").EnumerateArray().Select(static artifact => artifact.GetString())
+                .Should().Contain([pngPath, diagnosticsPath]);
+        }
+
+        File.ReadAllText(ToLocalPath(summaryPath!)).Should().Contain("PixelPerfectRegressionGate: false");
+    }
+
+    [Fact]
+    public void Capture_ShouldRepresentUnavailableVisualHostWithoutPngArtifacts()
+    {
+        using var workspace = TemporaryDirectory.Create();
+        var result = PerformanceLabVisualEvidenceCapture.Capture(new PerformanceLabVisualEvidenceOptions(
+            workspace.Path,
+            320,
+            180,
+            ["viewer-instance-small"],
+            ["scatter-replace-100k"],
+            SimulateUnavailable: true));
+
+        result.Status.Should().Be("unavailable");
+
+        using var manifest = JsonDocument.Parse(File.ReadAllText(result.ManifestPath));
+        var root = manifest.RootElement;
+        root.GetProperty("status").GetString().Should().Be("unavailable");
+        root.GetProperty("notes").EnumerateArray().Select(static note => note.GetString())
+            .Any(static note => note != null && note.Contains("not product rendering failures", StringComparison.Ordinal))
+            .Should().BeTrue();
+
+        foreach (var entry in root.GetProperty("entries").EnumerateArray())
+        {
+            entry.GetProperty("status").GetString().Should().Be("unavailable");
+            entry.GetProperty("pngPath").ValueKind.Should().Be(JsonValueKind.Null);
+            var diagnosticsPath = entry.GetProperty("diagnosticsPath").GetString();
+            File.Exists(ToLocalPath(diagnosticsPath!)).Should().BeTrue();
+            entry.GetProperty("artifacts").EnumerateArray().Select(static artifact => artifact.GetString())
+                .Should().Equal(diagnosticsPath);
+        }
+    }
+
+    private static void AssertPngIsNonblank(string path)
+    {
+        File.Exists(path).Should().BeTrue();
+        using var image = Image.Load<Rgba32>(path);
+        image.Width.Should().Be(320);
+        image.Height.Should().Be(180);
+
+        var first = image[0, 0];
+        var differentPixelFound = false;
+        image.ProcessPixelRows(accessor =>
+        {
+            for (var y = 0; y < accessor.Height && !differentPixelFound; y++)
+            {
+                var row = accessor.GetRowSpan(y);
+                for (var x = 0; x < row.Length; x++)
+                {
+                    if (!row[x].Equals(first))
+                    {
+                        differentPixelFound = true;
+                        break;
+                    }
+                }
+            }
+        });
+        differentPixelFound.Should().BeTrue("visual evidence PNG should contain more than a blank solid fill");
+    }
+
+    private static string ToLocalPath(string path)
+    {
+        return path.Replace('/', Path.DirectorySeparatorChar);
+    }
+
+    private sealed class TemporaryDirectory : IDisposable
+    {
+        private TemporaryDirectory(string path)
+        {
+            Path = path;
+        }
+
+        public string Path { get; }
+
+        public static TemporaryDirectory Create()
+        {
+            var path = System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"videra-visual-evidence-{Guid.NewGuid():N}");
+            Directory.CreateDirectory(path);
+            return new TemporaryDirectory(path);
+        }
+
+        public void Dispose()
+        {
+            if (Directory.Exists(Path))
+            {
+                Directory.Delete(Path, recursive: true);
+            }
+        }
+    }
+}
