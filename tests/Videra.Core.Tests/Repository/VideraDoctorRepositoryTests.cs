@@ -29,12 +29,17 @@ public sealed class VideraDoctorRepositoryTests
         script.Should().Contain("RunBenchmarkThresholds");
         script.Should().Contain("RunConsumerSmoke");
         script.Should().Contain("RunNativeValidation");
+        script.Should().Contain("Get-PerformanceLabVisualEvidence");
+        script.Should().Contain("performanceLabVisualEvidence");
+        script.Should().Contain("artifacts/performance-lab-visual-evidence");
 
         script.Should().NotContain("dotnet nuget push");
         script.Should().NotContain("git push");
         script.Should().NotContain("git tag");
         script.Should().NotContain("Set-ExecutionPolicy");
         script.Should().NotContain("Remove-Item");
+        script.Should().NotContain("RunPerformanceLabVisualEvidence");
+        script.Should().NotContain("SimulateUnavailable:");
 
         var projectNames = Directory.EnumerateFiles(repositoryRoot, "*.csproj", SearchOption.AllDirectories)
             .Where(static path => !path.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}", StringComparison.Ordinal))
@@ -53,6 +58,8 @@ public sealed class VideraDoctorRepositoryTests
         docs.Should().Contain("RunBenchmarkThresholds");
         docs.Should().Contain("RunConsumerSmoke");
         docs.Should().Contain("RunNativeValidation");
+        docs.Should().Contain("performanceLabVisualEvidence");
+        docs.Should().Contain("Doctor does not generate screenshots by default");
         docs.Should().Contain("pass");
         docs.Should().Contain("fail");
         docs.Should().Contain("skip");

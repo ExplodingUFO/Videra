@@ -31,10 +31,15 @@ public class PerformanceLabVisualEvidenceTests
         var demoReadme = File.ReadAllText(Path.Combine(repositoryRoot, "samples", "Videra.Demo", "README.md"));
         var surfaceChartsReadme = File.ReadAllText(Path.Combine(repositoryRoot, "samples", "Videra.SurfaceCharts.Demo", "README.md"));
         var qualityGates = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "maintenance-quality-gates.md"));
+        var doctorDocs = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "videra-doctor.md"));
+        var alphaFeedback = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "alpha-feedback.md"));
+        var releasing = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "releasing.md"));
+        var bugTemplate = File.ReadAllText(Path.Combine(repositoryRoot, ".github", "ISSUE_TEMPLATE", "bug_report.yml"));
         var chineseReadme = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "zh-CN", "README.md"));
         var chineseDemo = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "zh-CN", "modules", "demo.md"));
+        var chineseTroubleshooting = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "zh-CN", "troubleshooting.md"));
 
-        foreach (var document in new[] { rootReadme, demoReadme, surfaceChartsReadme, qualityGates, chineseReadme, chineseDemo })
+        foreach (var document in new[] { rootReadme, demoReadme, surfaceChartsReadme, qualityGates, doctorDocs, alphaFeedback, releasing, bugTemplate, chineseReadme, chineseDemo, chineseTroubleshooting })
         {
             document.Should().Contain("Invoke-PerformanceLabVisualEvidence.ps1");
             document.Should().Contain("artifacts/performance-lab-visual-evidence");
@@ -44,8 +49,24 @@ public class PerformanceLabVisualEvidenceTests
         demoReadme.Should().Contain("does not claim real GPU instancing");
         surfaceChartsReadme.Should().Contain("not a claim that SurfaceCharts has gained GPU-driven culling or a new chart family");
         qualityGates.Should().Contain("not pixel-perfect visual-regression gates");
+        qualityGates.Should().Contain("Missing visual evidence is optional evidence, not a Doctor failure");
+        doctorDocs.Should().Contain("Doctor does not generate screenshots by default");
+        doctorDocs.Should().Contain("Then rerun Doctor");
+        alphaFeedback.Should().Contain("Performance Lab visual evidence is support/review evidence only");
+        releasing.Should().Contain("not a publish blocker, pixel-perfect gate, stable benchmark guarantee");
+        bugTemplate.Should().Contain("These files are evidence-only");
         chineseReadme.Should().Contain("不是 pixel-perfect visual-regression gate");
+        chineseReadme.Should().Contain("Doctor 不会默认生成截图");
         chineseDemo.Should().Contain("不代表 real GPU instancing");
+        chineseTroubleshooting.Should().Contain("不是 pixel-perfect visual-regression gate 或稳定 benchmark guarantee");
+
+        foreach (var document in new[] { doctorDocs, alphaFeedback, releasing, qualityGates, bugTemplate })
+        {
+            document.Should().NotContain("is a public Videra.Doctor package");
+            document.Should().NotContain("is a stable Performance Lab benchmark guarantee");
+            document.Should().NotContain("is real GPU instancing proof");
+            document.Should().NotContain("is renderer parity proof");
+        }
     }
 
     [Fact]
