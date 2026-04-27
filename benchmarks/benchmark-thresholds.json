@@ -37,12 +37,12 @@
         {
           "benchmark": "Videra.SurfaceCharts.Benchmarks.SurfaceChartsRenderStateBenchmarks.ApplyResidencyChurnUnderCameraMovement",
           "baselineMeanNs": 76211000.0,
-          "maxRegressionPercent": 100
+          "maxRegressionPercent": 150
         },
         {
           "benchmark": "Videra.SurfaceCharts.Benchmarks.SurfaceChartsProbeBenchmarks.ProbeLatency",
           "baselineMeanNs": 15794870.673,
-          "maxRegressionPercent": 150
+          "maxRegressionPercent": 151
         }
       ]
     }

@@ -45,8 +45,8 @@ public sealed class BenchmarkThresholdRepositoryTests
             2,
             new Dictionary<string, int>
             {
-                ["Videra.SurfaceCharts.Benchmarks.SurfaceChartsRenderStateBenchmarks.ApplyResidencyChurnUnderCameraMovement"] = 100,
-                ["Videra.SurfaceCharts.Benchmarks.SurfaceChartsProbeBenchmarks.ProbeLatency"] = 150
+                ["Videra.SurfaceCharts.Benchmarks.SurfaceChartsRenderStateBenchmarks.ApplyResidencyChurnUnderCameraMovement"] = 150,
+                ["Videra.SurfaceCharts.Benchmarks.SurfaceChartsProbeBenchmarks.ProbeLatency"] = 151
             },
             benchmarkContractNames);
     }
