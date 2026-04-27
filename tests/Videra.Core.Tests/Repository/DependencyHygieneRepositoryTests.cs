@@ -92,6 +92,34 @@ public sealed class DependencyHygieneRepositoryTests
         docsIndex.Should().Contain("shared test-tooling drift checks");
     }
 
+    [Fact]
+    public void VerifyScript_ShouldRunSharedTestToolingDriftCheck()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var verifyScript = File.ReadAllText(Path.Combine(repositoryRoot, "scripts", "verify.ps1"));
+
+        verifyScript.Should().Contain("Dependency Hygiene");
+        verifyScript.Should().Contain("Test-SharedTestToolingPackages.ps1");
+    }
+
+    [Fact]
+    public void MaintenanceQualityGateDocs_ShouldRecordAnalyzerAndDependencyEvidencePath()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var docs = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "maintenance-quality-gates.md"));
+        var docsIndex = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "index.md"));
+
+        docs.Should().Contain("pwsh -File ./scripts/verify.ps1 -Configuration Release");
+        docs.Should().Contain("scripts/Test-SharedTestToolingPackages.ps1");
+        docs.Should().Contain("dotnet build Videra.slnx -c Release -p:TreatWarningsAsErrors=true");
+        docs.Should().Contain("quality-gate-evidence");
+        docs.Should().Contain("Central package management remains deferred");
+        docs.Should().Contain("Broader analyzer rule-family adoption remains deferred");
+
+        docsIndex.Should().Contain("maintenance-quality-gates.md");
+        docsIndex.Should().Contain("analyzer/dependency hygiene verification commands");
+    }
+
     private static string GetRepositoryRoot()
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);
