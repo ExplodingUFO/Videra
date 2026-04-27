@@ -1,6 +1,7 @@
 namespace Videra.PerformanceLabVisualEvidence;
 
 public sealed record PerformanceLabVisualEvidenceManifest(
+    int SchemaVersion,
     string EvidenceKind,
     bool EvidenceOnly,
     string Status,
@@ -8,6 +9,7 @@ public sealed record PerformanceLabVisualEvidenceManifest(
     int Width,
     int Height,
     string OutputRoot,
+    string SummaryPath,
     IReadOnlyList<PerformanceLabVisualEvidenceEntry> Entries,
     IReadOnlyList<string> Notes);
 
@@ -18,6 +20,7 @@ public sealed record PerformanceLabVisualEvidenceEntry(
     string Status,
     string? PngPath,
     string DiagnosticsPath,
+    IReadOnlyList<string> Artifacts,
     IReadOnlyDictionary<string, string> Settings);
 
 public sealed record PerformanceLabVisualEvidenceResult(

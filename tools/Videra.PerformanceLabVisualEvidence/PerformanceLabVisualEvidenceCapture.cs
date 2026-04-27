@@ -12,6 +12,7 @@ namespace Videra.PerformanceLabVisualEvidence;
 public static class PerformanceLabVisualEvidenceCapture
 {
     private const string EvidenceKind = "PerformanceLabVisualEvidence";
+    private const int SchemaVersion = 1;
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web) { WriteIndented = true };
 
     public static PerformanceLabVisualEvidenceResult Capture(
@@ -39,18 +40,25 @@ public static class PerformanceLabVisualEvidenceCapture
             entries.Add(CaptureScatterScenario(options, scenario));
         }
 
+        var status = options.SimulateUnavailable ? "unavailable" : "produced";
+        var summaryPath = Path.Combine(options.OutputRoot, "performance-lab-visual-evidence-summary.txt");
+        WriteSummary(summaryPath, status, entries, options);
+
         var manifest = new PerformanceLabVisualEvidenceManifest(
+            SchemaVersion,
             EvidenceKind,
             true,
-            options.SimulateUnavailable ? "unavailable" : "produced",
+            status,
             DateTimeOffset.UtcNow.ToString("O", CultureInfo.InvariantCulture),
             options.Width,
             options.Height,
             NormalizePath(options.OutputRoot),
+            NormalizePath(summaryPath),
             entries,
             [
                 "Evidence-only artifact for PR review and support reports.",
-                "This is not a pixel-perfect visual regression gate.",
+                "Produced PNGs are bounded visual evidence, not pixel-perfect regression baselines.",
+                "Unavailable entries are explicit host/capture-state evidence, not product rendering failures.",
                 "This does not claim real GPU instancing, renderer parity, or stable benchmark guarantees."
             ]);
         var manifestPath = Path.Combine(options.OutputRoot, "performance-lab-visual-evidence-manifest.json");
@@ -95,6 +103,9 @@ public static class PerformanceLabVisualEvidenceCapture
             options.SimulateUnavailable ? "unavailable" : "produced",
             options.SimulateUnavailable ? null : NormalizePath(pngPath),
             NormalizePath(diagnosticsPath),
+            options.SimulateUnavailable
+                ? [NormalizePath(diagnosticsPath)]
+                : [NormalizePath(pngPath), NormalizePath(diagnosticsPath)],
             new Dictionary<string, string>(StringComparer.Ordinal)
             {
                 ["mode"] = "InstanceBatch",
@@ -143,6 +154,9 @@ public static class PerformanceLabVisualEvidenceCapture
             options.SimulateUnavailable ? "unavailable" : "produced",
             options.SimulateUnavailable ? null : NormalizePath(pngPath),
             NormalizePath(diagnosticsPath),
+            options.SimulateUnavailable
+                ? [NormalizePath(diagnosticsPath)]
+                : [NormalizePath(pngPath), NormalizePath(diagnosticsPath)],
             new Dictionary<string, string>(StringComparer.Ordinal)
             {
                 ["updateMode"] = scenario.UpdateMode.ToString(),
@@ -176,5 +190,35 @@ public static class PerformanceLabVisualEvidenceCapture
     private static string NormalizePath(string path)
     {
         return path.Replace('\\', '/');
+    }
+
+    private static void WriteSummary(
+        string summaryPath,
+        string status,
+        IReadOnlyList<PerformanceLabVisualEvidenceEntry> entries,
+        PerformanceLabVisualEvidenceOptions options)
+    {
+        var lines = new List<string>
+        {
+            "Performance Lab Visual Evidence",
+            $"EvidenceKind: {EvidenceKind}",
+            $"SchemaVersion: {SchemaVersion.ToString(CultureInfo.InvariantCulture)}",
+            "EvidenceOnly: true",
+            $"Status: {status}",
+            $"Dimensions: {options.Width.ToString(CultureInfo.InvariantCulture)}x{options.Height.ToString(CultureInfo.InvariantCulture)}",
+            $"OutputRoot: {NormalizePath(options.OutputRoot)}",
+            "StableBenchmarkGuarantee: false",
+            "PixelPerfectRegressionGate: false",
+            "RealGpuInstancingClaim: false",
+            "",
+            "Entries:"
+        };
+
+        lines.AddRange(entries.Select(entry =>
+            $"- {entry.Id} [{entry.ScenarioType}] status={entry.Status} png={entry.PngPath ?? "(unavailable)"} diagnostics={entry.DiagnosticsPath}"));
+
+        lines.Add("");
+        lines.Add("Attach this bundle to PR reviews or support reports when visual evidence helps explain the selected Performance Lab scenario.");
+        File.WriteAllLines(summaryPath, lines, Encoding.UTF8);
     }
 }
