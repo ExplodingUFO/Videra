@@ -61,4 +61,4 @@ dolt.database: "Videra"
 
 dolt.user: "root"
 
-sync.remote: "file:///var/dolt/remotes/Videra"
+# sync.remote: "file:///var/dolt/remotes/Videra"
