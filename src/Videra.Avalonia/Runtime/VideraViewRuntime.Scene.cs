@@ -116,7 +116,6 @@ internal sealed partial class VideraViewRuntime
         if (TryGetMutableSceneCollection(out var boundCollection))
         {
             boundCollection.Clear();
-            return;
         }
 
         _sceneCoordinator.ClearScene();

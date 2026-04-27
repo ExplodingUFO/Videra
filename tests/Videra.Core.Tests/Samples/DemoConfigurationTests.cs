@@ -307,6 +307,31 @@ public sealed class DemoConfigurationTests
     }
 
     [Fact]
+    public void Demo_ShouldExposePerformanceLabControlsAndSnapshotCopy()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var mainWindowPath = Path.Combine(repositoryRoot, "samples", "Videra.Demo", "Views", "MainWindow.axaml");
+        var codeBehindPath = Path.Combine(repositoryRoot, "samples", "Videra.Demo", "Views", "MainWindow.axaml.cs");
+        var viewModelPath = Path.Combine(repositoryRoot, "samples", "Videra.Demo", "ViewModels", "MainWindowViewModel.cs");
+        var xaml = File.ReadAllText(mainWindowPath);
+        var codeBehind = File.ReadAllText(codeBehindPath);
+        var viewModel = File.ReadAllText(viewModelPath);
+
+        xaml.Should().Contain("PERFORMANCE LAB");
+        xaml.Should().Contain("AvailablePerformanceLabObjectCounts");
+        xaml.Should().Contain("AvailablePerformanceLabModes");
+        xaml.Should().Contain("PerformanceLabPickable");
+        xaml.Should().Contain("OnGeneratePerformanceLabClicked");
+        xaml.Should().Contain("OnCopyPerformanceLabSnapshotClicked");
+        codeBehind.Should().Contain("View3D.AddInstanceBatch");
+        codeBehind.Should().Contain("SceneHitTestService");
+        codeBehind.Should().Contain("PickLatencyMs");
+        codeBehind.Should().Contain("RetainedInstanceCount");
+        viewModel.Should().Contain("PerformanceLabSnapshot");
+        viewModel.Should().Contain("PerformanceLabMode");
+    }
+
+    [Fact]
     public void DemoSupportReportBuilder_ShouldIncludeDiagnosticsBundleImportReportAndReproFields()
     {
         var loadResult = new ModelLoadBatchResult(

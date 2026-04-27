@@ -75,6 +75,46 @@
                     <Separator Background="#3E3E42"/>
 
                     <StackPanel Spacing="10">
+                        <TextBlock Text="PERFORMANCE LAB" FontWeight="Bold" Foreground="#007ACC" FontSize="12"/>
+                        <Grid RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="Auto,*" RowSpacing="8" ColumnSpacing="10">
+                            <TextBlock Text="Objects" Foreground="#CCCCCC" VerticalAlignment="Center"/>
+                            <ComboBox Grid.Column="1"
+                                      ItemsSource="{Binding AvailablePerformanceLabObjectCounts}"
+                                      SelectedItem="{Binding PerformanceLabObjectCount}"
+                                      HorizontalAlignment="Stretch"/>
+                            <TextBlock Grid.Row="1" Text="Mode" Foreground="#CCCCCC" VerticalAlignment="Center"/>
+                            <ComboBox Grid.Row="1"
+                                      Grid.Column="1"
+                                      ItemsSource="{Binding AvailablePerformanceLabModes}"
+                                      SelectedItem="{Binding PerformanceLabMode}"
+                                      HorizontalAlignment="Stretch"/>
+                            <CheckBox Grid.Row="2"
+                                      Grid.ColumnSpan="2"
+                                      IsChecked="{Binding PerformanceLabPickable}"
+                                      Content="Pickable"
+                                      Foreground="#CCCCCC"/>
+                        </Grid>
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+                            <Button Content="Generate Dataset"
+                                    Click="OnGeneratePerformanceLabClicked"
+                                    HorizontalAlignment="Stretch"/>
+                            <Button Grid.Column="1"
+                                    Content="Copy Snapshot"
+                                    Click="OnCopyPerformanceLabSnapshotClicked"
+                                    HorizontalAlignment="Stretch"/>
+                        </Grid>
+                        <TextBox Text="{Binding PerformanceLabDiagnostics}"
+                                 IsReadOnly="True"
+                                 AcceptsReturn="True"
+                                 TextWrapping="Wrap"
+                                 MaxHeight="180"
+                                 Background="#1E1E1E"
+                                 Foreground="#CCCCCC"
+                                 BorderBrush="#3E3E42"/>
+                    </StackPanel>
+                    <Separator Background="#3E3E42"/>
+
+                    <StackPanel Spacing="10">
                         <TextBlock Text="ENVIRONMENT" FontWeight="Bold" Foreground="#007ACC" FontSize="12"/>
                         <Grid ColumnDefinitions="Auto, *">
                             <TextBlock Text="Background" Foreground="#CCCCCC" VerticalAlignment="Center"/>
