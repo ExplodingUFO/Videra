@@ -76,19 +76,25 @@
 
                     <StackPanel Spacing="10">
                         <TextBlock Text="PERFORMANCE LAB" FontWeight="Bold" Foreground="#007ACC" FontSize="12"/>
-                        <Grid RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="Auto,*" RowSpacing="8" ColumnSpacing="10">
-                            <TextBlock Text="Objects" Foreground="#CCCCCC" VerticalAlignment="Center"/>
+                        <Grid RowDefinitions="Auto,Auto,Auto,Auto" ColumnDefinitions="Auto,*" RowSpacing="8" ColumnSpacing="10">
+                            <TextBlock Text="Scenario" Foreground="#CCCCCC" VerticalAlignment="Center"/>
                             <ComboBox Grid.Column="1"
-                                      ItemsSource="{Binding AvailablePerformanceLabObjectCounts}"
-                                      SelectedItem="{Binding PerformanceLabObjectCount}"
+                                      ItemsSource="{Binding AvailablePerformanceLabViewerScenarios}"
+                                      SelectedItem="{Binding SelectedPerformanceLabViewerScenario}"
                                       HorizontalAlignment="Stretch"/>
-                            <TextBlock Grid.Row="1" Text="Mode" Foreground="#CCCCCC" VerticalAlignment="Center"/>
-                            <ComboBox Grid.Row="1"
+                            <TextBlock Grid.Row="1" Text="Objects" Foreground="#CCCCCC" VerticalAlignment="Center"/>
+                            <TextBlock Grid.Row="1"
+                                       Grid.Column="1"
+                                       Text="{Binding PerformanceLabObjectCount}"
+                                       Foreground="#8DD3FF"
+                                       VerticalAlignment="Center"/>
+                            <TextBlock Grid.Row="2" Text="Mode" Foreground="#CCCCCC" VerticalAlignment="Center"/>
+                            <ComboBox Grid.Row="2"
                                       Grid.Column="1"
                                       ItemsSource="{Binding AvailablePerformanceLabModes}"
                                       SelectedItem="{Binding PerformanceLabMode}"
                                       HorizontalAlignment="Stretch"/>
-                            <CheckBox Grid.Row="2"
+                            <CheckBox Grid.Row="3"
                                       Grid.ColumnSpan="2"
                                       IsChecked="{Binding PerformanceLabPickable}"
                                       Content="Pickable"

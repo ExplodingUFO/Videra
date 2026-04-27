@@ -5,6 +5,7 @@ using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Videra.SurfaceCharts.Avalonia.Controls;
 using Videra.SurfaceCharts.Core;
+using Videra.SurfaceCharts.Demo.Services;
 using Videra.SurfaceCharts.Processing;
 using Videra.SurfaceCharts.Rendering;
 
@@ -23,6 +24,7 @@ public partial class MainWindow : Window
     private readonly WaterfallChartView _waterfallChartView;
     private readonly ScatterChartView _scatterChartView;
     private readonly ComboBox _sourceSelector;
+    private readonly ComboBox _scatterScenarioSelector;
     private readonly Button _fitToDataButton;
     private readonly Button _resetCameraButton;
     private readonly TextBlock _statusText;
@@ -40,7 +42,6 @@ public partial class MainWindow : Window
     private readonly ISurfaceTileSource _inMemorySource;
     private readonly ISurfaceTileSource _analyticsProofSource;
     private readonly ISurfaceTileSource _waterfallSource;
-    private readonly ScatterChartData _scatterSource;
     private readonly string _cachePath;
     private readonly string _cachePayloadPath;
     private Task<ISurfaceTileSource>? _cacheSourceTask;
@@ -61,6 +62,8 @@ public partial class MainWindow : Window
             ?? throw new InvalidOperationException("ScatterChartView is missing.");
         _sourceSelector = this.FindControl<ComboBox>("SourceSelector")
             ?? throw new InvalidOperationException("Source selector is missing.");
+        _scatterScenarioSelector = this.FindControl<ComboBox>("ScatterScenarioSelector")
+            ?? throw new InvalidOperationException("Scatter scenario selector is missing.");
         _fitToDataButton = this.FindControl<Button>("FitToDataButton")
             ?? throw new InvalidOperationException("FitToDataButton is missing.");
         _resetCameraButton = this.FindControl<Button>("ResetCameraButton")
@@ -100,12 +103,12 @@ public partial class MainWindow : Window
         _inMemorySource = CreateInMemorySource();
         _analyticsProofSource = CreateAnalyticsProofSource();
         _waterfallSource = CreateWaterfallSource();
-        _scatterSource = CreateScatterSource();
-
         ConfigureSurfaceChartView(_surfaceChartView);
         ConfigureSurfaceChartView(_waterfallChartView);
         ConfigureScatterChartView(_scatterChartView);
 
+        _scatterScenarioSelector.ItemsSource = ScatterStreamingScenarios.All;
+        _scatterScenarioSelector.SelectedIndex = 0;
         _sourceSelector.SelectedIndex = 0;
         ApplySource(
             _surfaceChartView,
@@ -116,6 +119,7 @@ public partial class MainWindow : Window
             "No additional assets are used on this path.");
 
         _sourceSelector.SelectionChanged += OnSourceSelectionChanged;
+        _scatterScenarioSelector.SelectionChanged += OnScatterScenarioSelectionChanged;
         _fitToDataButton.Click += OnFitToDataClicked;
         _resetCameraButton.Click += OnResetCameraClicked;
         _copySupportSummaryButton.Click += OnCopySupportSummaryClicked;
@@ -197,16 +201,36 @@ public partial class MainWindow : Window
 
         if (requestedIndex == ScatterSourceIndex)
         {
-            ApplyScatterSource(
-                _scatterSource,
-                "Try next: Scatter proof",
-                "Repo-owned scatter proof on the same Avalonia chart line. Uses direct point clouds plus one columnar append/FIFO source with direct camera pose truth and no `ViewState` or `OverlayOptions` seam on this path.",
-                "The scatter proof builds two point-object series plus one columnar series at startup so the view can report series count, columnar count, pickable point count, camera target, and camera distance without a cache or surface pyramid.",
-                "No additional assets are used on this path.");
+            ApplySelectedScatterScenario();
             return;
         }
 
         await LoadAndApplyCacheSourceAsync(requestedIndex).ConfigureAwait(false);
+    }
+
+    private void OnScatterScenarioSelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        _ = sender;
+        _ = e;
+        if (_sourceSelector.SelectedIndex != ScatterSourceIndex)
+        {
+            return;
+        }
+
+        ApplySelectedScatterScenario();
+    }
+
+    private void ApplySelectedScatterScenario()
+    {
+        var scenario = _scatterScenarioSelector.SelectedItem as ScatterStreamingScenario
+            ?? ScatterStreamingScenarios.Get("scatter-replace-100k");
+
+        ApplyScatterSource(
+            CreateScatterSource(scenario),
+            "Try next: Scatter streaming proof",
+            $"Repo-owned scatter proof on the same Avalonia chart line. Scenario `{scenario.Id}` uses {scenario.UpdateMode} columnar streaming with direct camera pose truth and no `ViewState` or `OverlayOptions` seam on this path.",
+            $"The scatter proof uses scenario `{scenario.Id}`: {scenario.InitialPointCount:N0} initial points, {scenario.UpdatePointCount:N0} update points, FIFO capacity {FormatFifoCapacity(scenario.FifoCapacity)}, Pickable {scenario.Pickable}.",
+            "No additional assets are used on this path.");
     }
 
     private async Task LoadAndApplyCacheSourceAsync(int requestedIndex)
@@ -613,12 +637,15 @@ public partial class MainWindow : Window
             colorField);
     }
 
-    private static ScatterChartData CreateScatterSource()
+    private static ScatterChartData CreateScatterSource(ScatterStreamingScenario scenario)
     {
+        ArgumentNullException.ThrowIfNull(scenario);
+
+        var xMaximum = (scenario.InitialPointCount + scenario.UpdatePointCount) * 0.01d;
         var metadata = new ScatterChartMetadata(
-            new SurfaceAxisDescriptor("Horizontal", "u", 0d, 12d),
-            new SurfaceAxisDescriptor("Depth", "u", 0d, 12d),
-            new SurfaceValueRange(0d, 14d));
+            new SurfaceAxisDescriptor("Horizontal", "u", 0d, xMaximum),
+            new SurfaceAxisDescriptor("Depth", "u", -20d, 20d),
+            new SurfaceValueRange(-20d, 20d));
 
         var series = new[]
         {
@@ -644,24 +671,7 @@ public partial class MainWindow : Window
                 "Cluster"),
         };
 
-        var columnarSeries = new ScatterColumnarSeries(
-            0xFF22C55Eu,
-            "Columnar stream",
-            isSortedX: true,
-            pickable: false,
-            fifoCapacity: 6);
-        columnarSeries.AppendRange(new ScatterColumnarData(
-            new float[] { 1.5f, 3.0f, 4.5f, 6.0f },
-            new float[] { 10.8f, 10.2f, 9.6f, 9.1f },
-            new float[] { 8.9f, 7.7f, 6.5f, 5.3f },
-            new float[] { 1.1f, 1.2f, 1.3f, 1.4f }));
-        columnarSeries.AppendRange(new ScatterColumnarData(
-            new float[] { 7.5f, 9.0f, 10.5f },
-            new float[] { 8.5f, 7.9f, 7.2f },
-            new float[] { 4.1f, 2.9f, 1.7f },
-            new float[] { 1.4f, 1.3f, 1.2f }));
-
-        return new ScatterChartData(metadata, series, [columnarSeries]);
+        return new ScatterChartData(metadata, series, [ScatterStreamingScenarios.CreateSeries(scenario)]);
     }
 
     private Task<ISurfaceTileSource> GetOrCreateCacheSourceAsync()
@@ -888,6 +898,11 @@ public partial class MainWindow : Window
     private static string FormatFifoCapacity(int configuredFifoCapacity)
     {
         return configuredFifoCapacity > 0 ? configuredFifoCapacity.ToString(CultureInfo.InvariantCulture) : "unbounded";
+    }
+
+    private static string FormatFifoCapacity(int? configuredFifoCapacity)
+    {
+        return configuredFifoCapacity is { } capacity ? capacity.ToString(CultureInfo.InvariantCulture) : "unbounded";
     }
 
     private static string CreateOverlayOptionsSummary(SurfaceChartOverlayOptions overlayOptions)

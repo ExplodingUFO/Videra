@@ -63,6 +63,15 @@
               <ComboBoxItem Content="Try next: Waterfall proof" />
               <ComboBoxItem Content="Try next: Scatter proof" />
             </ComboBox>
+            <Grid ColumnDefinitions="Auto,*"
+                  ColumnSpacing="10">
+              <TextBlock Text="Scatter stream"
+                         Foreground="#CBD5E1"
+                         VerticalAlignment="Center" />
+              <ComboBox x:Name="ScatterScenarioSelector"
+                        Grid.Column="1"
+                        HorizontalAlignment="Stretch" />
+            </Grid>
             <TextBlock Foreground="#CBD5E1"
                        TextWrapping="Wrap"
                        Text="Start here with the in-memory baseline first chart. Move to cache-backed streaming after that path renders. The waterfall and scatter options are thin proofs on the same Avalonia chart shell, not separate viewer stacks." />

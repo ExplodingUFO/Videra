@@ -20,7 +20,10 @@ public sealed record PerformanceLabViewerScenario(
     int ObjectCount,
     int Seed,
     bool Pickable,
-    string Description);
+    string Description)
+{
+    public override string ToString() => DisplayName;
+}
 
 public static class PerformanceLabViewerScenarios
 {

@@ -48,6 +48,8 @@ public sealed class SurfaceChartsDemoConfigurationTests
         mainWindow.Should().Contain("Try next: Waterfall proof");
         mainWindow.Should().Contain("Try next: Analytics proof");
         mainWindow.Should().Contain("Try next: Scatter proof");
+        mainWindow.Should().Contain("Scatter stream");
+        mainWindow.Should().Contain("ScatterScenarioSelector");
         mainWindow.Should().Contain("First-chart source");
         mainWindow.Should().Contain("Start here status");
         mainWindow.Should().Contain("Built-in interaction");
@@ -101,6 +103,8 @@ public sealed class SurfaceChartsDemoConfigurationTests
         mainWindowCodeBehind.Should().Contain("ScatterSourceIndex");
         mainWindowCodeBehind.Should().Contain("ScatterChartRenderingStatus");
         mainWindowCodeBehind.Should().Contain("ScatterChartData");
+        mainWindowCodeBehind.Should().Contain("ScatterStreamingScenarios");
+        mainWindowCodeBehind.Should().Contain("ApplySelectedScatterScenario");
         mainWindowCodeBehind.Should().Contain("ScatterSeries");
         mainWindowCodeBehind.Should().Contain("ScatterPoint");
         mainWindowCodeBehind.Should().Contain("ScatterChartMetadata");

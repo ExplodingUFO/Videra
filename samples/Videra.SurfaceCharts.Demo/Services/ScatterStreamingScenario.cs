@@ -19,7 +19,10 @@ public sealed record ScatterStreamingScenario(
     int UpdatePointCount,
     int? FifoCapacity,
     bool Pickable,
-    string Description);
+    string Description)
+{
+    public override string ToString() => DisplayName;
+}
 
 public static class ScatterStreamingScenarios
 {

@@ -318,7 +318,8 @@ public sealed class DemoConfigurationTests
         var viewModel = File.ReadAllText(viewModelPath);
 
         xaml.Should().Contain("PERFORMANCE LAB");
-        xaml.Should().Contain("AvailablePerformanceLabObjectCounts");
+        xaml.Should().Contain("AvailablePerformanceLabViewerScenarios");
+        xaml.Should().Contain("SelectedPerformanceLabViewerScenario");
         xaml.Should().Contain("AvailablePerformanceLabModes");
         xaml.Should().Contain("PerformanceLabPickable");
         xaml.Should().Contain("OnGeneratePerformanceLabClicked");
@@ -329,6 +330,7 @@ public sealed class DemoConfigurationTests
         codeBehind.Should().Contain("RetainedInstanceCount");
         viewModel.Should().Contain("PerformanceLabSnapshot");
         viewModel.Should().Contain("PerformanceLabMode");
+        viewModel.Should().Contain("SelectedPerformanceLabViewerScenario");
     }
 
     [Fact]
