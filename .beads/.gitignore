@@ -34,6 +34,7 @@ redirect
 # Sync state (local-only, per-machine)
 # These files are machine-specific and should not be shared across clones
 .sync.lock
+export-state.json
 export-state/
 
 # Ephemeral store (SQLite - wisps/molecules, intentionally not versioned)
@@ -41,6 +42,7 @@ ephemeral.sqlite3
 ephemeral.sqlite3-journal
 ephemeral.sqlite3-wal
 ephemeral.sqlite3-shm
+embeddeddolt/
 
 # Dolt server management (auto-started by bd)
 dolt-server.pid
