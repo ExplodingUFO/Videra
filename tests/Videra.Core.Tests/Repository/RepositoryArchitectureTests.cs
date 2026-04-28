@@ -371,8 +371,7 @@ public sealed class RepositoryArchitectureTests
         architecture.Should().Contain("SceneDocument");
         architecture.Should().Contain("IGraphicsDevice");
         architecture.Should().Contain("IRenderSurface");
-        architecture.Should().Contain("LegacyGraphicsBackendAdapter");
-        architecture.Should().Contain("compatibility");
+        architecture.Should().Contain("built-in backends implement this split directly");
         architecture.Should().Contain("typed retained-entry deltas");
         architecture.Should().Contain("prefers attached dirty entries during interactive draining");
         foreach (var symbol in ScenePipelineInternalSymbols)
@@ -694,6 +693,7 @@ public sealed class RepositoryArchitectureTests
         return output
             .Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
             .Where(path => path.EndsWith(".cs", StringComparison.Ordinal))
+            .Where(path => File.Exists(Path.Combine(repositoryRoot, path.Replace('/', Path.DirectorySeparatorChar))))
             .Select(path => path.Replace('\\', '/'));
     }
 

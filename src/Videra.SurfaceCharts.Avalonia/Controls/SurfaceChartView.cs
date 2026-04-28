@@ -67,7 +67,7 @@ public partial class SurfaceChartView : Decorator
         _nativeHostFactory = nativeHostFactory ?? new DefaultSurfaceChartNativeHostFactory();
         RenderingStatus = _renderHost.RenderingStatus;
         _runtime = new SurfaceChartRuntime(
-            Viewport,
+            ViewState,
             NotifyTilesChanged,
             OnTileRequestFailed,
             ClearLastTileFailure,

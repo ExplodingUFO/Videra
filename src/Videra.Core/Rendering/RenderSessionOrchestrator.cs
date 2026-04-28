@@ -75,7 +75,6 @@ internal sealed class RenderSessionOrchestrator : IDisposable
     internal ISoftwareBackend? SoftwareBackend => _device switch
     {
         ISoftwareBackend softwareBackend => softwareBackend,
-        LegacyGraphicsBackendAdapter adapter => adapter.LegacyBackend as ISoftwareBackend,
         _ => null
     };
 
@@ -251,7 +250,8 @@ internal sealed class RenderSessionOrchestrator : IDisposable
         {
             var resolution = _backendResolutionFactory(request);
             device = resolution.Backend as IGraphicsDevice
-                ?? new LegacyGraphicsBackendAdapter(resolution.Backend, resolution.ResolvedPreference);
+                ?? throw new InvalidOperationException(
+                    $"Resolved backend type '{resolution.Backend.GetType().FullName}' must implement the internal graphics device contract.");
             renderSurface = device.CreateRenderSurface();
             var handle = resolution.ResolvedPreference == GraphicsBackendPreference.Software
                 ? IntPtr.Zero

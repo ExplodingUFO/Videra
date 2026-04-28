@@ -15,7 +15,7 @@ The sample stays separate from `Videra.Demo` and `VideraView`. It exercises the 
 - `Try next: Waterfall proof`: exercises the thin `WaterfallChartView` proof on the same Avalonia shell.
 - `Try next: Scatter proof`: exercises the direct `ScatterChartView` proof path on the same Avalonia shell with repo-owned point-object data plus selectable deterministic columnar replace, append, and FIFO-trim scenarios.
 
-SurfaceChartView now exposes `ViewState` as the primary chart-view contract while `Viewport` remains a compatibility bridge for existing hosts.
+SurfaceChartView exposes `ViewState` as the chart-view contract for persisted camera and data-window state.
 SurfaceChartView now ships built-in `left-drag orbit`, `right-drag pan`, `wheel dolly`, `Ctrl + left-drag` focus zoom, and `Shift + left-click` pinned probe on top of the `ViewState` runtime contract.
 The chart enters `Interactive` quality during motion and returns to `Refine` after input settles.
 The public interaction diagnostics are `InteractionQuality` + `InteractionQualityChanged` with `Interactive` / `Refine`.

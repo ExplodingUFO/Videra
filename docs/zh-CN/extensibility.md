@@ -91,7 +91,7 @@ var diagnostics = view.BackendDiagnostics;
 
 - `VideraEngine` 是唯一的公开扩展根。
 - `VideraViewRuntime`、`RenderSessionOrchestrator`、`RenderSession` 与 `VideraViewSessionBridge` 仍然是 internal orchestration seam。
-- `SceneDocument`、`SceneUploadCoordinator`、`IGraphicsDevice`、`IRenderSurface` 与 `LegacyGraphicsBackendAdapter` 仍属于 internal contract，不是公开扩展点。
+- `SceneDocument`、`SceneUploadCoordinator`、`IGraphicsDevice` 与 `IRenderSurface` 仍属于 internal contract，不是公开扩展点。
 - 公开合同刻意保持 C#-first、in-process。
 - `package discovery` 与 `plugin loading` 继续保持 out of scope。
 - 公开 sample 与文档不应依赖 `SoftwareBackend` 这类 internal-only 类型。

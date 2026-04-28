@@ -41,7 +41,7 @@ This package supplies the Vulkan backend for the current Linux native path. On A
 Support-boundary diagnostics:
 
 - `ResolvedDisplayServer = X11` means the direct supported X11 host path is active.
-- `ResolvedDisplayServer = XWayland` means a Wayland session is using the documented X11 compatibility bridge.
+- `ResolvedDisplayServer = XWayland` means a Wayland session is using the documented XWayland host path.
 - `XWayland` does not mean compositor-native Wayland embedding is active.
 
 ## Validation

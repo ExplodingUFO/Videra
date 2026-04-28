@@ -95,13 +95,14 @@ public sealed class SurfaceChartIncrementalRenderingTests
         SurfaceViewport viewport,
         bool handleBound)
     {
+        var viewState = SurfaceViewState.CreateDefault(metadata, viewport.ToDataWindow());
+
         return new SurfaceChartRenderInputs
         {
             Metadata = metadata,
             LoadedTiles = tiles,
             ColorMap = colorMap,
-            Viewport = viewport,
-            ProjectionSettings = SurfaceChartProjectionSettings.Default,
+            ViewState = viewState,
             ViewWidth = 320d,
             ViewHeight = 180d,
             NativeHandle = handleBound ? new IntPtr(0x1234) : IntPtr.Zero,

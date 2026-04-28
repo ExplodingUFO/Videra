@@ -12,7 +12,7 @@ namespace Videra.SurfaceCharts.Avalonia.IntegrationTests;
 public sealed class SurfaceChartTileSchedulingTests
 {
     [Fact]
-    public Task SurfaceChartRuntime_ViewStateUpdatesDriveSchedulerThroughCompatibilityViewport()
+    public Task SurfaceChartRuntime_ViewStateUpdatesDriveScheduler()
     {
         return AvaloniaHeadlessTestSession.RunAsync(async () =>
         {
@@ -60,10 +60,10 @@ public sealed class SurfaceChartTileSchedulingTests
 
             var viewport = new SurfaceViewport(256, 128, 512, 256);
             var expectedSelection = SurfaceLodPolicy.Default.Select(
-                new SurfaceViewportRequest(metadata, viewport, outputWidth: 256, outputHeight: 128));
+                new SurfaceViewportRequest(metadata, viewport.ToDataWindow(), outputWidth: 256, outputHeight: 128));
             var expectedKeys = expectedSelection.EnumerateTileKeys().ToArray();
 
-            view.Viewport = viewport;
+            view.ViewState = new SurfaceViewState((viewport).ToDataWindow(), view.ViewState.Camera, view.ViewState.DisplaySpace);
 
             await source.WaitForRequestCountAsync(1 + expectedKeys.Length);
 
@@ -86,7 +86,7 @@ public sealed class SurfaceChartTileSchedulingTests
 
             var viewport = new SurfaceViewport(512, 512, 256, 256);
             var expectedOrderedKeys = GetPrioritizedKeys(metadata, viewport, outputWidth: 128, outputHeight: 128);
-            view.Viewport = viewport;
+            view.ViewState = new SurfaceViewState((viewport).ToDataWindow(), view.ViewState.Camera, view.ViewState.DisplaySpace);
 
             source.RequestLog.Should().BeEmpty();
             view.Source = source;
@@ -115,9 +115,9 @@ public sealed class SurfaceChartTileSchedulingTests
 
             var viewport = new SurfaceViewport(256, 256, 512, 512);
             var expectedSelection = SurfaceLodPolicy.Default.Select(
-                new SurfaceViewportRequest(metadata, viewport, outputWidth: 128, outputHeight: 128));
+                new SurfaceViewportRequest(metadata, viewport.ToDataWindow(), outputWidth: 128, outputHeight: 128));
             var expectedDetailRequestCount = expectedSelection.EnumerateTileKeys().Count();
-            view.Viewport = viewport;
+            view.ViewState = new SurfaceViewState((viewport).ToDataWindow(), view.ViewState.Camera, view.ViewState.DisplaySpace);
 
             source.RequestLog.Should().BeEmpty();
             view.Source = source;
@@ -176,7 +176,7 @@ public sealed class SurfaceChartTileSchedulingTests
                 await firstRequestStarted.Task;
             }
 
-            view.Viewport = new SurfaceViewport(64, 64, 128, 128);
+            view.ViewState = new SurfaceViewState((new SurfaceViewport(64, 64, 128, 128)).ToDataWindow(), view.ViewState.Camera, view.ViewState.DisplaySpace);
 
             await source.WaitForRequestCountAsync(2);
             await SurfaceChartTestHelpers.WaitForLoadedTileValuesAsync(view, [7]);
@@ -194,7 +194,7 @@ public sealed class SurfaceChartTileSchedulingTests
         var firstViewport = new SurfaceViewport(256, 256, 256, 256);
         var secondViewport = new SurfaceViewport(384, 256, 256, 256);
         var outputSize = new Size(64, 64);
-        var initialViewState = new SurfaceCameraController(firstViewport).CurrentViewState;
+        var initialViewState = SurfaceViewState.CreateDefault(metadata, firstViewport.ToDataWindow());
         var firstPlan = GetCameraAwareRequestPlan(metadata, initialViewState, outputSize, SurfaceChartInteractionQuality.Refine);
         var secondViewState = new SurfaceViewState(secondViewport.ToDataWindow(), initialViewState.Camera);
         var secondPlan = GetCameraAwareRequestPlan(metadata, secondViewState, outputSize, SurfaceChartInteractionQuality.Refine);
@@ -213,7 +213,7 @@ public sealed class SurfaceChartTileSchedulingTests
         var blockedRequestStarted = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
         var blockedCompletion = new TaskCompletionSource<SurfaceTile?>(TaskCreationOptions.RunContinuationsAsynchronously);
         var controller = new SurfaceChartController(
-            new SurfaceCameraController(firstViewport),
+            new SurfaceCameraController(initialViewState),
             tileCache,
             new SurfaceTileScheduler(tileCache, static () => { }),
             static () => { },
@@ -230,7 +230,7 @@ public sealed class SurfaceChartTileSchedulingTests
             source.EnqueuePendingResponse(blockedRequestStarted, blockedCompletion, observeCancellation: true);
         }
 
-        controller.UpdateViewport(secondViewport);
+        controller.UpdateDataWindow(secondViewport.ToDataWindow());
         await blockedRequestStarted.Task;
 
         var expectedKeys = new[] { overviewKey }.Concat(retainedDetailKeys).ToArray();
@@ -283,20 +283,20 @@ public sealed class SurfaceChartTileSchedulingTests
 
             await source.WaitForRequestCountAsync(1);
 
-            view.Viewport = new SurfaceViewport(0, 0, 512, 512);
+            view.ViewState = new SurfaceViewState((new SurfaceViewport(0, 0, 512, 512)).ToDataWindow(), view.ViewState.Camera, view.ViewState.DisplaySpace);
 
             var firstSelection = SurfaceLodPolicy.Default.Select(
-                new SurfaceViewportRequest(metadata, new SurfaceViewport(0, 0, 512, 512), 256, 256));
+                new SurfaceViewportRequest(metadata, new SurfaceViewport(0, 0, 512, 512).ToDataWindow(), 256, 256));
             var firstKeys = firstSelection.EnumerateTileKeys().ToArray();
             await source.WaitForRequestCountAsync(1 + firstKeys.Length);
 
             await SurfaceChartTestHelpers.WaitForLoadedTileValuesAsync(view,
                 SurfaceChartTestHelpers.GetLoadedTileKeys(view).Select(k => (float)(k.LevelX + k.LevelY + k.TileX + k.TileY)).Distinct().ToArray());
 
-            view.Viewport = new SurfaceViewport(512, 512, 512, 512);
+            view.ViewState = new SurfaceViewState((new SurfaceViewport(512, 512, 512, 512)).ToDataWindow(), view.ViewState.Camera, view.ViewState.DisplaySpace);
 
             var secondSelection = SurfaceLodPolicy.Default.Select(
-                new SurfaceViewportRequest(metadata, new SurfaceViewport(512, 512, 512, 512), 256, 256));
+                new SurfaceViewportRequest(metadata, new SurfaceViewport(512, 512, 512, 512).ToDataWindow(), 256, 256));
             var secondKeys = secondSelection.EnumerateTileKeys().ToArray();
             await source.WaitForRequestCountAsync(1 + firstKeys.Length + 1 + secondKeys.Length);
 
@@ -324,10 +324,10 @@ public sealed class SurfaceChartTileSchedulingTests
 
             await source.WaitForRequestCountAsync(1);
 
-            view.Viewport = new SurfaceViewport(0, 0, 512, 512);
+            view.ViewState = new SurfaceViewState((new SurfaceViewport(0, 0, 512, 512)).ToDataWindow(), view.ViewState.Camera, view.ViewState.DisplaySpace);
 
             var firstSelection = SurfaceLodPolicy.Default.Select(
-                new SurfaceViewportRequest(metadata, new SurfaceViewport(0, 0, 512, 512), 256, 256));
+                new SurfaceViewportRequest(metadata, new SurfaceViewport(0, 0, 512, 512).ToDataWindow(), 256, 256));
             var firstKeys = firstSelection.EnumerateTileKeys().ToArray();
             await source.WaitForRequestCountAsync(1 + firstKeys.Length);
 
@@ -340,7 +340,7 @@ public sealed class SurfaceChartTileSchedulingTests
             await Task.Delay(300).ConfigureAwait(false);
 
             var secondSelection = SurfaceLodPolicy.Default.Select(
-                new SurfaceViewportRequest(metadata, new SurfaceViewport(0, 0, 512, 512), 512, 512));
+                new SurfaceViewportRequest(metadata, new SurfaceViewport(0, 0, 512, 512).ToDataWindow(), 512, 512));
             var secondKeys = secondSelection.EnumerateTileKeys().ToArray();
             await source.WaitForRequestCountAsync(1 + firstKeys.Length + 1 + secondKeys.Length);
 
@@ -363,7 +363,7 @@ public sealed class SurfaceChartTileSchedulingTests
         var clearFailureCount = 0;
         var invalidateCount = 0;
         var controller = new SurfaceChartController(
-            new SurfaceCameraController(new SurfaceViewport(0, 0, 512, 512)),
+            new SurfaceCameraController(SurfaceViewState.CreateDefault(metadata, new SurfaceDataWindow(0d, 0d, 512d, 512d))),
             tileCache,
             new SurfaceTileScheduler(tileCache, static () => { }),
             () => clearFailureCount++,
@@ -395,7 +395,7 @@ public sealed class SurfaceChartTileSchedulingTests
         var tileCache = new SurfaceTileCache();
         var invalidateCount = 0;
         var controller = new SurfaceChartController(
-            new SurfaceCameraController(new SurfaceViewport(0, 0, 512, 512)),
+            new SurfaceCameraController(SurfaceViewState.CreateDefault(metadata, new SurfaceDataWindow(0d, 0d, 512d, 512d))),
             tileCache,
             new SurfaceTileScheduler(tileCache, static () => { }),
             static () => { },
@@ -432,15 +432,16 @@ public sealed class SurfaceChartTileSchedulingTests
         qualityMethod.Should().NotBeNull("Phase 20 should expose an explicit interaction-quality seam on the controller.");
         var qualityType = qualityMethod!.GetParameters().Single().ParameterType;
         var interactiveQuality = Enum.Parse(qualityType, "Interactive");
+        var viewState = SurfaceViewState.CreateDefault(metadata, viewport.ToDataWindow());
 
         var refineController = new SurfaceChartController(
-            new SurfaceCameraController(viewport),
+            new SurfaceCameraController(viewState),
             refineTileCache,
             new SurfaceTileScheduler(refineTileCache, static () => { }),
             static () => { },
             static () => { });
         var interactiveController = new SurfaceChartController(
-            new SurfaceCameraController(viewport),
+            new SurfaceCameraController(viewState),
             interactiveTileCache,
             new SurfaceTileScheduler(interactiveTileCache, static () => { }),
             static () => { },
@@ -449,7 +450,7 @@ public sealed class SurfaceChartTileSchedulingTests
         refineController.UpdateViewSize(outputSize);
         refineController.UpdateSource(refineSource);
 
-        var refineViewState = new SurfaceCameraController(viewport).CurrentViewState;
+        var refineViewState = viewState;
         var refinePlan = GetCameraAwareRequestPlan(metadata, refineViewState, outputSize, SurfaceChartInteractionQuality.Refine);
         await refineSource.WaitForRequestCountAsync(refinePlan.OrderedKeys.Count);
 
@@ -479,7 +480,7 @@ public sealed class SurfaceChartTileSchedulingTests
 
             var viewport = new SurfaceViewport(512, 512, 256, 256);
             var expectedOrderedKeys = GetPrioritizedKeys(metadata, viewport, outputWidth: 128, outputHeight: 128);
-            view.Viewport = viewport;
+            view.ViewState = new SurfaceViewState((viewport).ToDataWindow(), view.ViewState.Camera, view.ViewState.DisplaySpace);
 
             view.Source = source;
 
@@ -497,14 +498,14 @@ public sealed class SurfaceChartTileSchedulingTests
         var metadata = SurfaceChartViewLifecycleTests.CreateMetadata();
         var viewport = new SurfaceViewport(0, 0, metadata.Width, metadata.Height);
         var outputSize = new Size(256, 256);
-        var viewState = new SurfaceCameraController(viewport).CurrentViewState;
+        var viewState = SurfaceViewState.CreateDefault(metadata, viewport.ToDataWindow());
         var expectedPlan = GetCameraAwareRequestPlan(metadata, viewState, outputSize, SurfaceChartInteractionQuality.Refine);
         var expectedOrderedKeys = GetDetailOrderedKeys(expectedPlan);
         var source = new BatchRecordingSurfaceTileSource(metadata);
         var tileCache = new SurfaceTileCache();
         var scheduler = new SurfaceTileScheduler(tileCache, static () => { }, maxConcurrentRequests: 3);
         var controller = new SurfaceChartController(
-            new SurfaceCameraController(viewport),
+            new SurfaceCameraController(viewState),
             tileCache,
             scheduler,
             static () => { },
@@ -624,9 +625,9 @@ public sealed class SurfaceChartTileSchedulingTests
         int outputWidth,
         int outputHeight)
     {
-        var request = new SurfaceViewportRequest(metadata, viewport, outputWidth, outputHeight);
+        var request = new SurfaceViewportRequest(metadata, viewport.ToDataWindow(), outputWidth, outputHeight);
         var selection = SurfaceLodPolicy.Default.Select(request);
-        var clampedViewport = request.ClampedViewport;
+        var clampedViewport = request.ClampedDataWindow.ToViewport();
         var tileCountX = 1 << selection.LevelX;
         var tileCountY = 1 << selection.LevelY;
         var visibleTileXStart = GetTileIndexStart(clampedViewport.StartX, metadata.Width, tileCountX);

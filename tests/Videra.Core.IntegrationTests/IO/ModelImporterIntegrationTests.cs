@@ -140,7 +140,7 @@ public class ModelImporterIntegrationTests : IDisposable
         obj.InitializeWireframe(factory);
 
         using var engine = new Videra.Core.Graphics.VideraEngine();
-        engine.Initialize(backend);
+        engine.Initialize(backend, backend);
 
         var act = () => engine.AddObject(obj);
         act.Should().NotThrow();

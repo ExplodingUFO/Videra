@@ -376,7 +376,6 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
 
         AssertContainsAllTokens(viewApi, SurfaceChartsDocumentationTerms.SurfaceChartViewTypeXmlDocTokens);
         AssertContainsAllTokens(viewApi, SurfaceChartsDocumentationTerms.SurfaceChartRenderingStatusXmlDocTokens);
-        AssertContainsAllTokens(viewPropertiesApi, SurfaceChartsDocumentationTerms.SurfaceChartViewportXmlDocTokens);
         AssertContainsAllTokens(viewPropertiesApi, SurfaceChartsDocumentationTerms.SurfaceChartOverlayOptionsXmlDocTokens);
         AssertContainsAllTokens(viewPropertiesApi, SurfaceChartsDocumentationTerms.SurfaceChartInteractionQualityXmlDocTokens);
     }

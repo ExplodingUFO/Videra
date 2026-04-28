@@ -8,7 +8,7 @@ The control layer remains separate from `VideraView` and only depends on the sha
 
 The current shipped surface path is tighter under camera movement and churns less on probe work, without widening the existing chart-local path.
 
-SurfaceChartView now exposes `ViewState` as the primary chart-view contract while `Viewport` remains a compatibility bridge for existing hosts.
+SurfaceChartView exposes `ViewState` as the chart-view contract for persisted camera and data-window state.
 SurfaceChartView now ships built-in `left-drag orbit`, `right-drag pan`, `wheel dolly`, and `Ctrl + Left drag` focus zoom on top of the `ViewState` runtime contract.
 The chart enters `Interactive` quality during motion and returns to `Refine` after input settles.
 The public interaction diagnostics are `InteractionQuality` + `InteractionQualityChanged` with `Interactive` / `Refine`.
@@ -24,7 +24,7 @@ The public overlay configuration seam is `SurfaceChartOverlayOptions` through `O
 - a `GPU-first` renderer path with an explicit `software fallback`
 - control-visible `RenderingStatus` / `RenderStatusChanged` truth for `ActiveBackend`, `IsReady`, `IsFallback`, `FallbackReason`, `UsesNativeSurface`, `ResidentTileCount`, `VisibleTileCount`, and `ResidentTileBytes`
 - host-driven surface rendering from an `ISurfaceTileSource`
-- `ViewState` as the primary chart-view contract while `Viewport` remains a compatibility bridge for existing hosts
+- `ViewState` as the chart-view contract for persisted camera and data-window state
 - host-driven `FitToData()`, `ResetCamera()`, and `ZoomTo(...)` commands
 - built-in `left-drag orbit`, `right-drag pan`, `wheel dolly`, and `Ctrl + Left drag` focus zoom
 - explicit `InteractionQuality` / `InteractionQualityChanged` diagnostics with `Interactive` and `Refine` interaction-quality states
@@ -101,7 +101,7 @@ chartView.ResetCamera();
 Hosts currently own:
 
 - `ISurfaceTileSource` creation
-- persisted `ViewState` and compatibility `Viewport` updates when older hosts still depend on them
+- persisted `ViewState` updates for camera and data-window state
 - color-map selection
 - any chart-local product UI layered on top of the built-in orbit / pan / dolly / focus workflow
 - any custom render-status presentation beyond `RenderingStatus`, `RenderStatusChanged`, and the read-only `InteractionQuality` seam

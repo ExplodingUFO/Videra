@@ -1,7 +1,7 @@
 namespace Videra.SurfaceCharts.Core;
 
 /// <summary>
-/// Selects a surface-chart pyramid level and tile range from a viewport request.
+/// Selects a surface-chart pyramid level and tile range from a data-window request.
 /// </summary>
 public sealed class SurfaceLodPolicy
 {
@@ -26,9 +26,9 @@ public sealed class SurfaceLodPolicy
     }
 
     /// <summary>
-    /// Gets the selected level and tile range for the specified viewport request.
+    /// Gets the selected level and tile range for the specified data-window request.
     /// </summary>
-    /// <param name="request">The viewport request to evaluate.</param>
+    /// <param name="request">The data-window request to evaluate.</param>
     /// <returns>The resulting LOD selection.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="request"/> is invalid.</exception>
     public SurfaceLodSelection Select(in SurfaceViewportRequest request)
@@ -39,7 +39,7 @@ public sealed class SurfaceLodPolicy
     /// <summary>
     /// Gets the selected level and tile range for the specified camera-aware request.
     /// </summary>
-    /// <param name="request">The viewport request to evaluate.</param>
+    /// <param name="request">The data-window request to evaluate.</param>
     /// <param name="cameraFrame">The active camera frame.</param>
     /// <returns>The resulting LOD selection.</returns>
     public SurfaceLodSelection Select(in SurfaceViewportRequest request, in Rendering.SurfaceCameraFrame cameraFrame)
@@ -53,7 +53,8 @@ public sealed class SurfaceLodPolicy
         double horizontalZoomDensity,
         double verticalZoomDensity)
     {
-        var clampedViewport = request.ClampedViewport;
+        var clampedDataWindow = request.ClampedDataWindow;
+        var clampedViewport = clampedDataWindow.ToViewport();
         var levelX = GetTargetLevel(horizontalZoomDensity);
         var levelY = GetTargetLevel(verticalZoomDensity);
 

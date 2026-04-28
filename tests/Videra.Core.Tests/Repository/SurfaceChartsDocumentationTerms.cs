@@ -24,7 +24,7 @@ internal static class SurfaceChartsDocumentationTerms
         "The shipped chart surface is `GPU-first` with explicit `software fallback`, and hosts can inspect `RenderingStatus` / `RenderStatusChanged`.";
 
     public const string SurfaceChartsViewStateSentence =
-        "SurfaceChartView now exposes `ViewState` as the primary chart-view contract while `Viewport` remains a compatibility bridge for existing hosts.";
+        "SurfaceChartView exposes `ViewState` as the chart-view contract for persisted camera and data-window state.";
 
     public const string SurfaceChartsInteractionSentence =
         "SurfaceChartView now ships built-in `left-drag orbit`, `right-drag pan`, `wheel dolly`, `Ctrl + left-drag` focus zoom, and `Shift + left-click` pinned probe on top of the `ViewState` runtime contract.";
@@ -63,7 +63,7 @@ internal static class SurfaceChartsDocumentationTerms
         "当前对外 truth 是：独立 Demo、built-in `left-drag orbit` / `right-drag pan` / `wheel dolly` / `Ctrl + left-drag` focus zoom、hover 与 `Shift + left-click` pinned probe、可见 `RenderingStatus`，以及显式 `Interactive` / `Refine` 质量切换；`Try next: Analytics proof` 通过独立 `ColorField` 与 pinned-probe 分析级路径暴露，`Try next: Scatter proof` 覆盖 scatter 路径。";
 
     public const string ChineseSurfaceChartsViewStateSentence =
-        "SurfaceChartView 现在以 `ViewState` 作为主 chart-view 契约，而 `Viewport` 只保留为兼容桥接。";
+        "SurfaceChartView 现在以 `ViewState` 作为 chart-view 契约，持久化 camera 与 data-window 状态。";
 
     public const string ChineseSurfaceChartsInteractionQualitySentence =
         "图表在交互过程中进入 `Interactive` 质量模式，并在输入停稳后回到 `Refine`。";
@@ -201,8 +201,8 @@ internal static class SurfaceChartsDocumentationTerms
     [
         "SurfaceChartView",
         "`ViewState`",
-        "`Viewport`",
-        "compatibility bridge"
+        "camera",
+        "data-window"
     ];
 
     public static readonly string[] SurfaceChartsInteractionTokens =
@@ -412,12 +412,6 @@ internal static class SurfaceChartsDocumentationTerms
         "<c>ResidentTileBytes</c>"
     ];
 
-    public static readonly string[] SurfaceChartViewportXmlDocTokens =
-    [
-        "compatibility bridge",
-        "authoritative <see cref=\"ViewState\"/>"
-    ];
-
     public static readonly string[] SurfaceChartOverlayOptionsXmlDocTokens =
     [
         "chart-local overlay layout and formatting options",
@@ -502,8 +496,8 @@ internal static class SurfaceChartsDocumentationTerms
     [
         "SurfaceChartView",
         "`ViewState`",
-        "`Viewport`",
-        "兼容桥接"
+        "camera",
+        "data-window"
     ];
 
     public static readonly string[] ChineseSurfaceChartsInteractionQualityTokens =

@@ -32,13 +32,13 @@ public sealed class SurfaceChartRenderHostTests
         var host = new SurfaceChartRenderHost();
         var metadata = CreateMetadata(width: 4, height: 4);
         var tile = CreateTile(metadata, new SurfaceTileKey(0, 0, 0, 0), tileValue: 12f);
+        var viewState = SurfaceViewState.CreateDefault(metadata, new SurfaceDataWindow(0d, 0d, metadata.Width, metadata.Height));
         var inputs = new SurfaceChartRenderInputs
         {
             Metadata = metadata,
             LoadedTiles = [tile],
             ColorMap = CreateColorMap(metadata),
-            Viewport = new SurfaceViewport(0, 0, 4, 4),
-            ProjectionSettings = default,
+            ViewState = viewState,
             ViewWidth = 320d,
             ViewHeight = 180d,
             NativeHandle = IntPtr.Zero,

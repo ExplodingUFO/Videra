@@ -90,7 +90,7 @@ The concrete sample lives at `samples/Videra.ExtensibilitySample`, and its main 
 
 - `VideraEngine` is the only public extensibility root.
 - `VideraViewRuntime`, `RenderSessionOrchestrator`, `RenderSession`, and `VideraViewSessionBridge` are internal orchestration seams.
-- `SceneDocumentStore`, `SceneDeltaPlanner`, `SceneResidencyRegistry`, `SceneUploadQueue`, `SceneUploadCoordinator`, `IGraphicsDevice`, `IRenderSurface`, and `LegacyGraphicsBackendAdapter` are internal contracts; they inform diagnostics and docs truth, not public extension points.
+- `SceneDocumentStore`, `SceneDeltaPlanner`, `SceneResidencyRegistry`, `SceneUploadQueue`, `SceneUploadCoordinator`, `IGraphicsDevice`, and `IRenderSurface` are internal contracts; they inform diagnostics and docs truth, not public extension points.
 - The public contract is intentionally C#-first and in-process.
 - `package discovery` and `plugin loading` remain out of scope.
 - Public samples and docs should not rely on internal-only types such as `SoftwareBackend`.

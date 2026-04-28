@@ -94,7 +94,7 @@ public sealed class SurfaceAxisOverlayTests
                 ColorMap = new SurfaceColorMap(
                     new SurfaceValueRange(-20d, 40d),
                     new SurfaceColorMapPalette(0xFF102030u, 0xFF80C0FFu, 0xFFFFE080u)),
-                Viewport = new SurfaceViewport(-32d, -24d, 160d, 120d),
+                ViewState = SurfaceViewState.CreateDefault(metadata, new SurfaceDataWindow(-32d, -24d, 160d, 120d)),
             };
 
             view.Measure(new Size(320, 200));
@@ -108,7 +108,7 @@ public sealed class SurfaceAxisOverlayTests
             AssertAxisTicksMonotonic(GetAxisOverlayState(view), "Z");
             AssertLegendMatchesColorMapRange(view, GetLegendOverlayState(view));
 
-            view.Viewport = new SurfaceViewport(16d, 12d, 24d, 18d);
+            view.ViewState = new SurfaceViewState((new SurfaceViewport(16d, 12d, 24d, 18d)).ToDataWindow(), view.ViewState.Camera, view.ViewState.DisplaySpace);
             UpdateProjectionSettings(view, new SurfaceChartProjectionSettings(225d, 15d));
 
             var updatedAxisState = GetAxisOverlayState(view);

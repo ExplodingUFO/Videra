@@ -1,24 +1,10 @@
 namespace Videra.SurfaceCharts.Core;
 
 /// <summary>
-/// Describes a viewport request against a surface-chart dataset.
+/// Describes a data-window request against a surface-chart dataset.
 /// </summary>
 public readonly record struct SurfaceViewportRequest
 {
-    /// <summary>
-    /// Initializes a new instance of the <see cref="SurfaceViewportRequest"/> struct.
-    /// </summary>
-    /// <param name="metadata">The dataset metadata.</param>
-    /// <param name="viewport">The requested viewport.</param>
-    /// <param name="outputWidth">The output width in pixels.</param>
-    /// <param name="outputHeight">The output height in pixels.</param>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="metadata"/> is <c>null</c>.</exception>
-    /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="outputWidth"/> or <paramref name="outputHeight"/> is not positive.</exception>
-    public SurfaceViewportRequest(SurfaceMetadata metadata, SurfaceViewport viewport, int outputWidth, int outputHeight)
-        : this(metadata, viewport.ToDataWindow(), outputWidth, outputHeight)
-    {
-    }
-
     /// <summary>
     /// Initializes a new instance of the <see cref="SurfaceViewportRequest"/> struct.
     /// </summary>
@@ -51,11 +37,6 @@ public readonly record struct SurfaceViewportRequest
     public SurfaceDataWindow DataWindow { get; }
 
     /// <summary>
-    /// Gets the requested viewport.
-    /// </summary>
-    public SurfaceViewport Viewport => DataWindow.ToViewport();
-
-    /// <summary>
     /// Gets the output width in pixels.
     /// </summary>
     public int OutputWidth { get; }
@@ -71,12 +52,7 @@ public readonly record struct SurfaceViewportRequest
     public SurfaceDataWindow ClampedDataWindow => DataWindow.ClampTo(Metadata);
 
     /// <summary>
-    /// Gets the viewport clamped to the dataset bounds.
-    /// </summary>
-    public SurfaceViewport ClampedViewport => ClampedDataWindow.ToViewport();
-
-    /// <summary>
-    /// Gets the clamped viewport normalized to unit space.
+    /// Gets the clamped data window normalized to unit space.
     /// </summary>
     public SurfaceNormalizedViewport NormalizedViewport => ClampedDataWindow.Normalize(Metadata);
 

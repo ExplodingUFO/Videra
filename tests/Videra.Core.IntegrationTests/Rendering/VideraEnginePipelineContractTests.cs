@@ -18,7 +18,7 @@ public sealed class VideraEnginePipelineContractTests
         using var backend = new SoftwareBackend();
         backend.Initialize(IntPtr.Zero, 200, 200);
         using var engine = new VideraEngine();
-        engine.Initialize(backend);
+        engine.Initialize(backend, backend);
         engine.Resize(200, 200);
         engine.AddObject(DemoMeshFactory.CreateWhiteQuad(backend.GetResourceFactory()));
 
@@ -47,7 +47,7 @@ public sealed class VideraEnginePipelineContractTests
         using var backend = new SoftwareBackend();
         backend.Initialize(IntPtr.Zero, 200, 200);
         using var engine = new VideraEngine();
-        engine.Initialize(backend);
+        engine.Initialize(backend, backend);
         engine.Resize(200, 200);
         engine.AddObject(DemoMeshFactory.CreateWhiteQuad(backend.GetResourceFactory()));
         engine.Wireframe.Mode = WireframeMode.AllEdges;
@@ -70,7 +70,7 @@ public sealed class VideraEnginePipelineContractTests
         using var backend = new SoftwareBackend();
         backend.Initialize(IntPtr.Zero, 200, 200);
         using var engine = new VideraEngine();
-        engine.Initialize(backend);
+        engine.Initialize(backend, backend);
         engine.Resize(200, 200);
         engine.AddObject(DemoMeshFactory.CreateWhiteQuad(backend.GetResourceFactory()));
         engine.StyleService.ApplyPreset(RenderStylePreset.Wireframe);
@@ -95,7 +95,7 @@ public sealed class VideraEnginePipelineContractTests
         using var backend = new SoftwareBackend();
         backend.Initialize(IntPtr.Zero, 200, 200);
         using var engine = new VideraEngine();
-        engine.Initialize(backend);
+        engine.Initialize(backend, backend);
         engine.Resize(200, 200);
         engine.Grid.IsVisible = false;
         engine.ShowAxis = false;
@@ -118,7 +118,7 @@ public sealed class VideraEnginePipelineContractTests
         using var backend = new SoftwareBackend();
         backend.Initialize(IntPtr.Zero, 200, 200);
         using var engine = new VideraEngine();
-        engine.Initialize(backend);
+        engine.Initialize(backend, backend);
         engine.Resize(200, 200);
         engine.Grid.IsVisible = false;
         engine.ShowAxis = false;

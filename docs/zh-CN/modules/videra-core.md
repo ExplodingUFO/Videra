@@ -84,7 +84,6 @@ public class VideraEngine : IDisposable
     public bool ShowAxis { get; set; }
     public bool IsInitialized { get; }
 
-    public void Initialize(IGraphicsBackend backend);
     public void Resize(uint width, uint height);
     public void AddObject(Object3D obj);
     public void RemoveObject(Object3D obj);

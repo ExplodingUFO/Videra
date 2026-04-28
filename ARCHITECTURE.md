@@ -146,7 +146,7 @@ These packages handle:
 - Swapchain / drawable lifecycle
 - Depth-buffer and frame management
 - Resource factories and command executors
-- The direct internal `device/surface` seam used by `RenderSessionOrchestrator`; `LegacyGraphicsBackendAdapter` remains the compatibility bridge for older monolithic backends only
+- The direct internal `device/surface` seam used by `RenderSessionOrchestrator`; built-in backends implement this split directly
 
 Built-in backend minimum contract:
 
@@ -285,7 +285,7 @@ Boundary summary:
 - `SceneDocumentStore` owns the current desired scene truth, while `SceneDeltaPlanner` and `SceneEngineApplicator` turn document changes plus typed retained-entry deltas into engine add/remove and residency work.
 - `SceneResidencyRegistry` and `SceneUploadQueue` own per-entry upload state and frame-budgeted GPU realization; `SceneUploadQueue` coalesces repeated entry work, prefers attached dirty entries during interactive draining, and keeps backend rebind on the same queue path instead of synchronously allocating GPU resources on the public API path.
 - `RenderSessionOrchestrator` owns host-agnostic session orchestration and rendering cadence.
-- Built-in backends now satisfy the internal `IGraphicsDevice` / `IRenderSurface` split directly; `LegacyGraphicsBackendAdapter` is a compatibility seam, not the preferred steady-state path.
+- Built-in backends satisfy the internal `IGraphicsDevice` / `IRenderSurface` split directly.
 - `RenderSession` owns Avalonia-specific runtime/presentation adapter setup.
 - `VideraViewSessionBridge` translates synchronized Avalonia view options/events into session-facing state updates.
 - `VideraView` remains the UI shell and native-host/input surface.

@@ -187,20 +187,20 @@ public sealed class SurfaceScenePainterTests
 
             await source.WaitForRequestCountAsync(1);
 
-            view.Viewport = new SurfaceViewport(0, 0, 512, 512);
+            view.ViewState = new SurfaceViewState((new SurfaceViewport(0, 0, 512, 512)).ToDataWindow(), view.ViewState.Camera, view.ViewState.DisplaySpace);
 
             var firstSelection = SurfaceLodPolicy.Default.Select(
-                new SurfaceViewportRequest(metadata, new SurfaceViewport(0, 0, 512, 512), 256, 256));
+                new SurfaceViewportRequest(metadata, new SurfaceViewport(0, 0, 512, 512).ToDataWindow(), 256, 256));
             var firstKeys = firstSelection.EnumerateTileKeys().ToArray();
             await source.WaitForRequestCountAsync(1 + firstKeys.Length);
 
             await SurfaceChartTestHelpers.WaitForLoadedTileValuesAsync(view,
                 SurfaceChartTestHelpers.GetLoadedTileKeys(view).Select(k => (float)(k.LevelX + k.LevelY + k.TileX + k.TileY)).Distinct().ToArray());
 
-            view.Viewport = new SurfaceViewport(512, 512, 512, 512);
+            view.ViewState = new SurfaceViewState((new SurfaceViewport(512, 512, 512, 512)).ToDataWindow(), view.ViewState.Camera, view.ViewState.DisplaySpace);
 
             var secondSelection = SurfaceLodPolicy.Default.Select(
-                new SurfaceViewportRequest(metadata, new SurfaceViewport(512, 512, 512, 512), 256, 256));
+                new SurfaceViewportRequest(metadata, new SurfaceViewport(512, 512, 512, 512).ToDataWindow(), 256, 256));
             var secondKeys = secondSelection.EnumerateTileKeys().ToArray();
             await source.WaitForRequestCountAsync(1 + firstKeys.Length + 1 + secondKeys.Length);
 

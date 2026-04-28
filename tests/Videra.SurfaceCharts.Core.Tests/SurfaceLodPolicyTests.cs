@@ -13,8 +13,7 @@ public class SurfaceLodPolicyTests
     {
         var metadata = CreateMetadata(1024, 512);
         var request = new SurfaceViewportRequest(
-            metadata,
-            new SurfaceViewport(0.0, 0.0, 512.0, 256.0),
+            metadata, new SurfaceViewport(0.0, 0.0, 512.0, 256.0).ToDataWindow(),
             1024,
             512);
 
@@ -29,8 +28,7 @@ public class SurfaceLodPolicyTests
     {
         var metadata = CreateMetadata(8192, 512);
         var request = new SurfaceViewportRequest(
-            metadata,
-            new SurfaceViewport(0.0, 0.0, 8192.0, 512.0),
+            metadata, new SurfaceViewport(0.0, 0.0, 8192.0, 512.0).ToDataWindow(),
             1024,
             512);
 
@@ -49,8 +47,7 @@ public class SurfaceLodPolicyTests
     {
         var metadata = CreateMetadata(100, 80);
         var request = new SurfaceViewportRequest(
-            metadata,
-            new SurfaceViewport(25.0, 20.0, 50.0, 40.0),
+            metadata, new SurfaceViewport(25.0, 20.0, 50.0, 40.0).ToDataWindow(),
             10,
             8);
 
@@ -87,8 +84,7 @@ public class SurfaceLodPolicyTests
     {
         var metadata = CreateMetadata(100, 80);
         var request = new SurfaceViewportRequest(
-            metadata,
-            new SurfaceViewport(0.0, 0.0, 20.0, 20.0),
+            metadata, new SurfaceViewport(0.0, 0.0, 20.0, 20.0).ToDataWindow(),
             10,
             10);
 
@@ -110,8 +106,7 @@ public class SurfaceLodPolicyTests
         var builder = new SurfacePyramidBuilder(maxTileWidth: 4, maxTileHeight: 4);
         ISurfaceTileSource tileSource = builder.Build(source);
         var request = new SurfaceViewportRequest(
-            metadata,
-            new SurfaceViewport(0.0, 0.0, metadata.Width, metadata.Height),
+            metadata, new SurfaceViewport(0.0, 0.0, metadata.Width, metadata.Height).ToDataWindow(),
             outputWidth: 2,
             outputHeight: 2);
 
@@ -169,7 +164,7 @@ public class SurfaceLodPolicyTests
     {
         var request = new SurfaceViewportRequest(
             CreateMetadata(100, 80),
-            new SurfaceViewport(0.0, 0.0, 50.0, 40.0),
+            new SurfaceDataWindow(0.0, 0.0, 50.0, 40.0),
             10,
             8);
 

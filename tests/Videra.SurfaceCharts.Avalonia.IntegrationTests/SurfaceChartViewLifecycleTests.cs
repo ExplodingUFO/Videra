@@ -33,7 +33,7 @@ public sealed class SurfaceChartViewLifecycleTests
             var runtime = SurfaceChartTestHelpers.GetRuntime(view);
             var overlayCoordinator = SurfaceChartTestHelpers.GetOverlayCoordinator(view);
 
-            runtime.ViewState.DataWindow.Should().Be(view.Viewport.ToDataWindow());
+            runtime.ViewState.DataWindow.Should().Be(view.ViewState.DataWindow);
             runtime.GetLoadedTiles().Should().BeEmpty();
             overlayCoordinator.AxisState.Should().BeSameAs(SurfaceAxisOverlayState.Empty);
             overlayCoordinator.LegendState.Should().BeSameAs(SurfaceLegendOverlayState.Empty);
@@ -51,7 +51,7 @@ public sealed class SurfaceChartViewLifecycleTests
                 var view = new SurfaceChartView();
                 view.Measure(new Size(320, 180));
                 view.Arrange(new Rect(0, 0, 320, 180));
-                view.Viewport = new SurfaceViewport(0, 0, 128, 128);
+                view.ViewState = new SurfaceViewState((new SurfaceViewport(0, 0, 128, 128)).ToDataWindow(), view.ViewState.Camera, view.ViewState.DisplaySpace);
             };
 
             act.Should().NotThrow();
@@ -85,7 +85,7 @@ public sealed class SurfaceChartViewLifecycleTests
 
             view.Measure(new Size(256, 256));
             view.Arrange(new Rect(0, 0, 256, 256));
-            view.Viewport = new SurfaceViewport(128, 128, 256, 256);
+            view.ViewState = new SurfaceViewState((new SurfaceViewport(128, 128, 256, 256)).ToDataWindow(), view.ViewState.Camera, view.ViewState.DisplaySpace);
 
             source.RequestLog.Should().BeEmpty();
 
@@ -114,7 +114,7 @@ public sealed class SurfaceChartViewLifecycleTests
 
             await source.WaitForRequestCountAsync(1);
 
-            view.Viewport = new SurfaceViewport(0, 0, 512, 512);
+            view.ViewState = new SurfaceViewState((new SurfaceViewport(0, 0, 512, 512)).ToDataWindow(), view.ViewState.Camera, view.ViewState.DisplaySpace);
 
             await SurfaceChartTestHelpers.WaitForFailureAsync(view);
 
@@ -213,7 +213,7 @@ public sealed class SurfaceChartViewLifecycleTests
             view.TileRequestFailed += (_, args) => failureEvents.Add(args);
             view.Measure(new Size(256, 256));
             view.Arrange(new Rect(0, 0, 256, 256));
-            view.Viewport = new SurfaceViewport(0, 0, 512, 512);
+            view.ViewState = new SurfaceViewState((new SurfaceViewport(0, 0, 512, 512)).ToDataWindow(), view.ViewState.Camera, view.ViewState.DisplaySpace);
 
             staleSource.EnqueueSuccessResponse();
 
@@ -270,7 +270,7 @@ public sealed class SurfaceChartViewLifecycleTests
         var tileCache = new SurfaceTileCache();
         var scheduler = new SurfaceTileScheduler(tileCache, static () => { }, (key, exception) => failures.Enqueue((key, exception)));
         var controller = new SurfaceChartController(
-            new SurfaceCameraController(new SurfaceViewport(0, 0, 512, 512)),
+            new SurfaceCameraController(SurfaceViewState.CreateDefault(metadata, new SurfaceDataWindow(0d, 0d, 512d, 512d))),
             tileCache,
             scheduler,
             static () => { },
@@ -325,7 +325,7 @@ public sealed class SurfaceChartViewLifecycleTests
         var tileCache = new SurfaceTileCache();
         var scheduler = new SurfaceTileScheduler(tileCache, static () => { }, (key, exception) => failures.Enqueue((key, exception)));
         var controller = new SurfaceChartController(
-            new SurfaceCameraController(new SurfaceViewport(0, 0, 512, 512)),
+            new SurfaceCameraController(SurfaceViewState.CreateDefault(metadata, new SurfaceDataWindow(0d, 0d, 512d, 512d))),
             tileCache,
             scheduler,
             static () => { },
@@ -462,7 +462,7 @@ public sealed class SurfaceChartViewLifecycleTests
 
             view.LastTileFailure.Should().NotBeNull();
 
-            view.Viewport = new SurfaceViewport(0, 0, 512, 512);
+            view.ViewState = new SurfaceViewState((new SurfaceViewport(0, 0, 512, 512)).ToDataWindow(), view.ViewState.Camera, view.ViewState.DisplaySpace);
 
             await SurfaceChartTestHelpers.WaitForLoadedTileValuesAsync(view, [9]);
 
@@ -543,7 +543,7 @@ public sealed class SurfaceChartViewLifecycleTests
         var scheduler = new SurfaceTileScheduler(tileCache, static () => { });
         scheduler.UpdateSource(new RecordingSurfaceTileSource(metadata));
 
-        var viewState = new SurfaceCameraController(viewport).CurrentViewState;
+        var viewState = SurfaceViewState.CreateDefault(metadata, viewport.ToDataWindow());
         var cameraFrame = SurfaceProjectionMath.CreateCameraFrame(metadata, viewState, viewSize.Width, viewSize.Height, 1f);
         return scheduler.CreateRequestPlan(viewState, cameraFrame, viewSize, interactionQuality).OrderedKeys.Count;
     }

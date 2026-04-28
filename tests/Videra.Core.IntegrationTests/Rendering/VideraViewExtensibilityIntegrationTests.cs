@@ -31,7 +31,7 @@ public sealed class VideraViewExtensibilityIntegrationTests
                 RenderPassSlot.SolidGeometry,
                 new RecordingContributor(context => observed.Add(context.Slot.ToString())));
 
-            view.Engine.Initialize(backend);
+            view.Engine.Initialize(backend, backend);
             view.Engine.Resize(200, 200);
             view.Engine.Grid.IsVisible = false;
             view.Engine.ShowAxis = false;

@@ -39,22 +39,6 @@ public partial class VideraEngine
         GC.SuppressFinalize(this);
     }
 
-	/// <summary>
-	/// Initializes the engine with the specified graphics back-end.
-	/// Creates GPU resources (camera buffer, style buffer, mesh pipeline) and
-	/// initializes all sub-renderers (grid, axis, wireframe).
-	/// If the engine is already initialized this method returns immediately.
-	/// </summary>
-	/// <param name="backend">The platform-specific graphics back-end to use for rendering.</param>
-	public void Initialize(IGraphicsBackend backend)
-	{
-        ArgumentNullException.ThrowIfNull(backend);
-
-        var device = new LegacyGraphicsBackendAdapter(backend);
-        var renderSurface = device.CreateRenderSurface();
-        Initialize(device, renderSurface);
-	}
-
     internal void Initialize(IGraphicsDevice device, IRenderSurface renderSurface)
 	{
         lock (_lock)

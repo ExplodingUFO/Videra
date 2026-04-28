@@ -26,7 +26,7 @@ public sealed class SurfaceChartPinnedProbeTests
 
             view.Measure(new Size(256, 128));
             view.Arrange(new Rect(0, 0, 256, 128));
-            view.Viewport = new SurfaceViewport(128, 64, 256, 128);
+            view.ViewState = new SurfaceViewState((new SurfaceViewport(128, 64, 256, 128)).ToDataWindow(), view.ViewState.Camera, view.ViewState.DisplaySpace);
             view.Source = source;
 
             await SurfaceChartTestHelpers.WaitForLoadedTileValuesAsync(view, [11f]);
@@ -92,7 +92,7 @@ public sealed class SurfaceChartPinnedProbeTests
 
             view.Measure(new Size(200, 200));
             view.Arrange(new Rect(0, 0, 200, 200));
-            view.Viewport = new SurfaceViewport(0, 0, 4, 4);
+            view.ViewState = new SurfaceViewState((new SurfaceViewport(0, 0, 4, 4)).ToDataWindow(), view.ViewState.Camera, view.ViewState.DisplaySpace);
             view.Source = source;
 
             await SurfaceChartTestHelpers.WaitForLoadedTileValuesAsync(view, [11f]);
@@ -103,7 +103,7 @@ public sealed class SurfaceChartPinnedProbeTests
             var initialPinnedProbe = GetSinglePinnedProbe(GetOverlayState(view));
             AssertProbeTruth(initialPinnedProbe, sampleX: 2d, sampleY: 2d, axisX: 15d, axisY: 150d, value: 11d, isApproximate: false);
 
-            view.Viewport = new SurfaceViewport(3d, 3d, 1d, 1d);
+            view.ViewState = new SurfaceViewState((new SurfaceViewport(3d, 3d, 1d, 1d)).ToDataWindow(), view.ViewState.Camera, view.ViewState.DisplaySpace);
             UpdateProjectionSettings(view, new SurfaceChartProjectionSettings(210d, 15d));
 
             await SurfaceChartTestHelpers.AssertLoadedTileValuesStayAsync(view, [11f]);
@@ -125,7 +125,7 @@ public sealed class SurfaceChartPinnedProbeTests
 
             view.Measure(new Size(256, 192));
             view.Arrange(new Rect(0, 0, 256, 192));
-            view.Viewport = new SurfaceViewport(128, 64, 256, 192);
+            view.ViewState = new SurfaceViewState((new SurfaceViewport(128, 64, 256, 192)).ToDataWindow(), view.ViewState.Camera, view.ViewState.DisplaySpace);
             view.Source = source;
 
             await SurfaceChartTestHelpers.WaitForLoadedTileValuesAsync(view, [11f]);

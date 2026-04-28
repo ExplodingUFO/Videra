@@ -18,7 +18,7 @@ public sealed class VideraEngineExtensibilityIntegrationTests
         using var backend = new SoftwareBackend();
         backend.Initialize(IntPtr.Zero, 200, 200);
         using var engine = new VideraEngine();
-        engine.Initialize(backend);
+        engine.Initialize(backend, backend);
         engine.Resize(200, 200);
         engine.AddObject(DemoMeshFactory.CreateWhiteQuad(backend.GetResourceFactory()));
 
@@ -47,7 +47,7 @@ public sealed class VideraEngineExtensibilityIntegrationTests
         using var backend = new SoftwareBackend();
         backend.Initialize(IntPtr.Zero, 200, 200);
         using var engine = new VideraEngine();
-        engine.Initialize(backend);
+        engine.Initialize(backend, backend);
         engine.Resize(200, 200);
         var sceneObject = DemoMeshFactory.CreateWhiteQuad(backend.GetResourceFactory());
         engine.AddObject(sceneObject);
@@ -93,7 +93,7 @@ public sealed class VideraEngineExtensibilityIntegrationTests
         {
             BackgroundColor = RgbaFloat.Blue
         };
-        engine.Initialize(backend);
+        engine.Initialize(backend, backend);
         engine.Resize(200, 200);
         engine.Grid.IsVisible = false;
         engine.ShowAxis = false;
@@ -117,7 +117,7 @@ public sealed class VideraEngineExtensibilityIntegrationTests
         {
             BackgroundColor = RgbaFloat.Blue
         };
-        engine.Initialize(backend);
+        engine.Initialize(backend, backend);
         engine.Resize(200, 200);
         engine.Grid.IsVisible = false;
         engine.ShowAxis = false;
@@ -153,7 +153,7 @@ public sealed class VideraEngineExtensibilityIntegrationTests
         using var backend = new SoftwareBackend();
         backend.Initialize(IntPtr.Zero, 200, 200);
         using var engine = new VideraEngine();
-        engine.Initialize(backend);
+        engine.Initialize(backend, backend);
         engine.Resize(200, 200);
         engine.AddObject(DemoMeshFactory.CreateWhiteQuad(backend.GetResourceFactory()));
 
@@ -187,7 +187,7 @@ public sealed class VideraEngineExtensibilityIntegrationTests
         using var backend = new SoftwareBackend();
         backend.Initialize(IntPtr.Zero, 200, 200);
         using var engine = new VideraEngine();
-        engine.Initialize(backend);
+        engine.Initialize(backend, backend);
         engine.Resize(200, 200);
         engine.AddObject(DemoMeshFactory.CreateWhiteQuad(backend.GetResourceFactory()));
 
@@ -219,7 +219,7 @@ public sealed class VideraEngineExtensibilityIntegrationTests
         {
             BackgroundColor = RgbaFloat.Blue
         };
-        engine.Initialize(backend);
+        engine.Initialize(backend, backend);
         engine.Resize(200, 200);
         engine.Grid.IsVisible = false;
         engine.ShowAxis = false;
@@ -246,7 +246,7 @@ public sealed class VideraEngineExtensibilityIntegrationTests
         using var backend = new SoftwareBackend();
         backend.Initialize(IntPtr.Zero, 200, 200);
         using var engine = new VideraEngine();
-        engine.Initialize(backend);
+        engine.Initialize(backend, backend);
 
         engine.Dispose();
 
@@ -278,7 +278,7 @@ public sealed class VideraEngineExtensibilityIntegrationTests
         using var backend = new SoftwareBackend();
         backend.Initialize(IntPtr.Zero, 200, 200);
         using var engine = new VideraEngine();
-        engine.Initialize(backend);
+        engine.Initialize(backend, backend);
         engine.Resize(200, 200);
         engine.AddObject(DemoMeshFactory.CreateWhiteQuad(backend.GetResourceFactory()));
 

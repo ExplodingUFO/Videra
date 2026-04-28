@@ -91,7 +91,7 @@ public readonly record struct SurfaceViewport
     }
 
     /// <summary>
-    /// Converts the authoritative data-window contract into a viewport compatibility shell.
+    /// Converts the authoritative data-window contract into a sample-space viewport.
     /// </summary>
     /// <param name="dataWindow">The data window to convert.</param>
     /// <returns>The equivalent viewport.</returns>

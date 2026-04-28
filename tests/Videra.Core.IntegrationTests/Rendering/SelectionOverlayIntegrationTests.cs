@@ -25,7 +25,7 @@ public sealed class SelectionOverlayIntegrationTests
         {
             BackgroundColor = RgbaFloat.Blue
         };
-        engine.Initialize(backend);
+        engine.Initialize(backend, backend);
         engine.Resize(200, 200);
         engine.Grid.IsVisible = false;
         engine.ShowAxis = false;
@@ -58,7 +58,7 @@ public sealed class SelectionOverlayIntegrationTests
         {
             BackgroundColor = RgbaFloat.Blue
         };
-        engine.Initialize(backend);
+        engine.Initialize(backend, backend);
         engine.Resize(200, 200);
         engine.Grid.IsVisible = false;
         engine.ShowAxis = false;

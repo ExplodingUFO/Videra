@@ -50,11 +50,6 @@ internal sealed class SurfaceChartController
         StartRequestPipeline(plan, requestGeneration);
     }
 
-    public void UpdateViewport(SurfaceViewport viewport)
-    {
-        UpdateDataWindow(viewport.ToDataWindow());
-    }
-
     public void UpdateViewState(SurfaceViewState viewState)
     {
         var currentViewState = _cameraController.CurrentViewState;
@@ -102,7 +97,7 @@ internal sealed class SurfaceChartController
         var metadata = _tileScheduler.Metadata;
         if (metadata is null || effectiveOutputSize.Width <= 0d || effectiveOutputSize.Height <= 0d)
         {
-            return _tileScheduler.CreateRequestPlan(_cameraController.CurrentViewport, effectiveOutputSize);
+            return _tileScheduler.CreateRequestPlan(_cameraController.CurrentViewState.DataWindow, effectiveOutputSize);
         }
 
         var cameraFrame = SurfaceProjectionMath.CreateCameraFrame(

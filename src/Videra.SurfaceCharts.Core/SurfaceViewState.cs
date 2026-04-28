@@ -37,7 +37,7 @@ public readonly record struct SurfaceViewState
     public SurfaceDisplaySpace DisplaySpace { get; }
 
     /// <summary>
-    /// Converts the authoritative data window into the viewport compatibility shell.
+    /// Converts the authoritative data window into a sample-space viewport.
     /// </summary>
     /// <returns>The equivalent viewport.</returns>
     public SurfaceViewport ToViewport()

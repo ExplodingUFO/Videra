@@ -103,7 +103,7 @@ public sealed class VideraBackendDiagnostics
     /// <summary>
     /// Gets the resolved Linux display-server path when native host selection is relevant.
     /// `X11` means the direct supported X11 host path. `XWayland` means a Wayland session is
-    /// running through the documented X11 compatibility bridge rather than compositor-native
+    /// running through the documented XWayland host path rather than compositor-native
     /// Wayland embedding.
     /// </summary>
     public string? ResolvedDisplayServer { get; init; }

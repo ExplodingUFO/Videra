@@ -254,7 +254,7 @@ public sealed class SurfaceChartGpuFallbackTests
             Metadata = metadata,
             LoadedTiles = [tile],
             ColorMap = CreateColorMap(metadata),
-            Viewport = new SurfaceViewport(0, 0, 3, 3),
+            ViewState = SurfaceViewState.CreateDefault(metadata, new SurfaceDataWindow(0d, 0d, 3d, 3d)),
         });
 
         var expectedNormal = Vector3.Normalize(new Vector3(-1f, 1f, -1f));
@@ -305,7 +305,7 @@ public sealed class SurfaceChartGpuFallbackTests
             Metadata = metadata,
             LoadedTiles = [leftTile],
             ColorMap = CreateColorMap(metadata),
-            Viewport = new SurfaceViewport(0, 0, 4, 3),
+            ViewState = SurfaceViewState.CreateDefault(metadata, new SurfaceDataWindow(0d, 0d, 4d, 3d)),
         });
 
         host.UpdateInputs(CreateInputs(handleBound: true) with
@@ -313,7 +313,7 @@ public sealed class SurfaceChartGpuFallbackTests
             Metadata = metadata,
             LoadedTiles = [leftTile, rightTile],
             ColorMap = CreateColorMap(metadata),
-            Viewport = new SurfaceViewport(0, 0, 4, 3),
+            ViewState = SurfaceViewState.CreateDefault(metadata, new SurfaceDataWindow(0d, 0d, 4d, 3d)),
         });
 
         var expectedLeftBoundaryNormal = Vector3.Normalize(new Vector3(-2f, 1f, -1f));
@@ -483,14 +483,14 @@ public sealed class SurfaceChartGpuFallbackTests
     {
         var metadata = CreateMetadata(width: 4, height: 4);
         var tile = CreateTile(metadata, new SurfaceTileKey(0, 0, 0, 0), tileValue: 12f);
+        var viewState = SurfaceViewState.CreateDefault(metadata, new SurfaceDataWindow(0d, 0d, metadata.Width, metadata.Height));
 
         return new SurfaceChartRenderInputs
         {
             Metadata = metadata,
             LoadedTiles = [tile],
             ColorMap = CreateColorMap(metadata),
-            Viewport = new SurfaceViewport(0, 0, 4, 4),
-            ProjectionSettings = default,
+            ViewState = viewState,
             ViewWidth = 320d,
             ViewHeight = 180d,
             NativeHandle = handleBound ? new IntPtr(0x1234) : IntPtr.Zero,

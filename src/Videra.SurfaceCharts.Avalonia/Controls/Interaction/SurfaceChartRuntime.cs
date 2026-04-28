@@ -20,7 +20,7 @@ internal sealed class SurfaceChartRuntime
     private long _interactionSettleGeneration;
 
     public SurfaceChartRuntime(
-        SurfaceViewport initialViewport,
+        SurfaceViewState initialViewState,
         Action notifyTilesChanged,
         Action<SurfaceTileKey, Exception> onTileRequestFailed,
         Action clearFailureState,
@@ -39,7 +39,7 @@ internal sealed class SurfaceChartRuntime
         _publishInteractionQuality = publishInteractionQuality;
         _invalidateRenderScene = invalidateRenderScene;
         _invalidateOverlay = invalidateOverlay;
-        _cameraController = new SurfaceCameraController(initialViewport);
+        _cameraController = new SurfaceCameraController(initialViewState);
         _controller = new SurfaceChartController(
             _cameraController,
             _tileCache,
@@ -117,11 +117,6 @@ internal sealed class SurfaceChartRuntime
 
         _controller.UpdateDataWindow(dataWindow);
         _invalidateOverlay();
-    }
-
-    public void UpdateViewport(SurfaceViewport viewport)
-    {
-        UpdateDataWindow(viewport.ToDataWindow());
     }
 
     public void UpdateProjectionSettings(SurfaceChartProjectionSettings projectionSettings)

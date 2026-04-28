@@ -124,10 +124,10 @@ public sealed class SurfaceChartsBenchmarkContext : IDisposable
         var viewport = new SurfaceViewport(256, 256, 512, 512);
         var viewportRequest = new SurfaceViewportRequest(
             metadata,
-            viewport,
+            viewport.ToDataWindow(),
             outputWidth: 128,
             outputHeight: 128);
-        var dataWindow = viewportRequest.ClampedViewport.ToDataWindow();
+        var dataWindow = viewportRequest.ClampedDataWindow;
         var defaultViewState = SurfaceViewState.CreateDefault(metadata, dataWindow);
         var baseCameraFrame = SurfaceProjectionMath.CreateCameraFrame(
             metadata,
@@ -157,10 +157,10 @@ public sealed class SurfaceChartsBenchmarkContext : IDisposable
         var gpuViewport = new SurfaceViewport(64, 64, 128, 128);
         var gpuViewportRequest = new SurfaceViewportRequest(
             gpuMetadata,
-            gpuViewport,
+            gpuViewport.ToDataWindow(),
             outputWidth: 128,
             outputHeight: 128);
-        var gpuDataWindow = gpuViewportRequest.ClampedViewport.ToDataWindow();
+        var gpuDataWindow = gpuViewportRequest.ClampedDataWindow;
         var gpuDefaultViewState = SurfaceViewState.CreateDefault(gpuMetadata, gpuDataWindow);
         var gpuBaseCameraFrame = SurfaceProjectionMath.CreateCameraFrame(
             gpuMetadata,

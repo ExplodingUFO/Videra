@@ -22,7 +22,7 @@ public class VideraEngineIntegrationTests
         using var backend = new SoftwareBackend();
         using var engine = new VideraEngine();
 
-        engine.Initialize(backend);
+        engine.Initialize(backend, backend);
 
         engine.IsInitialized.Should().BeTrue();
     }
@@ -42,7 +42,7 @@ public class VideraEngineIntegrationTests
     {
         using var backend = new SoftwareBackend();
         using var engine = new VideraEngine();
-        engine.Initialize(backend);
+        engine.Initialize(backend, backend);
 
         var act = () => engine.Resize(200, 150);
         act.Should().NotThrow();
@@ -54,7 +54,7 @@ public class VideraEngineIntegrationTests
         using var backend = new SoftwareBackend();
         backend.Initialize(IntPtr.Zero, 200, 200);
         using var engine = new VideraEngine();
-        engine.Initialize(backend);
+        engine.Initialize(backend, backend);
 
         var factory = backend.GetResourceFactory();
         var cube = DemoMeshFactory.CreateTestCube(factory);
@@ -71,7 +71,7 @@ public class VideraEngineIntegrationTests
         using var backend = new SoftwareBackend();
         backend.Initialize(IntPtr.Zero, 200, 200);
         using var engine = new VideraEngine();
-        engine.Initialize(backend);
+        engine.Initialize(backend, backend);
 
         var factory = backend.GetResourceFactory();
         var cube = DemoMeshFactory.CreateTestCube(factory);
@@ -90,7 +90,7 @@ public class VideraEngineIntegrationTests
         using var backend = new SoftwareBackend();
         backend.Initialize(IntPtr.Zero, 200, 200);
         using var engine = new VideraEngine();
-        engine.Initialize(backend);
+        engine.Initialize(backend, backend);
 
         var factory = backend.GetResourceFactory();
         engine.AddObject(DemoMeshFactory.CreateTestCube(factory));
@@ -107,7 +107,7 @@ public class VideraEngineIntegrationTests
         using var backend = new SoftwareBackend();
         backend.Initialize(IntPtr.Zero, 200, 200);
         using var engine = new VideraEngine();
-        engine.Initialize(backend);
+        engine.Initialize(backend, backend);
 
         var factory = backend.GetResourceFactory();
         engine.AddObject(DemoMeshFactory.CreateTestCube(factory));
@@ -129,7 +129,7 @@ public class VideraEngineIntegrationTests
         using var backend = new SoftwareBackend();
         backend.Initialize(IntPtr.Zero, 200, 200);
         using var engine = new VideraEngine();
-        engine.Initialize(backend);
+        engine.Initialize(backend, backend);
 
         var factory = backend.GetResourceFactory();
         engine.AddObject(DemoMeshFactory.CreateTestCube(factory));
@@ -148,7 +148,7 @@ public class VideraEngineIntegrationTests
         {
             BackgroundColor = RgbaFloat.Blue
         };
-        engine.Initialize(backend);
+        engine.Initialize(backend, backend);
         engine.Resize(200, 200);
         engine.Grid.IsVisible = false;
         engine.ShowAxis = false;
@@ -174,7 +174,7 @@ public class VideraEngineIntegrationTests
         {
             BackgroundColor = RgbaFloat.Blue
         };
-        engine.Initialize(backend);
+        engine.Initialize(backend, backend);
         engine.Resize(200, 200);
         engine.Grid.IsVisible = false;
         engine.ShowAxis = false;
@@ -200,7 +200,7 @@ public class VideraEngineIntegrationTests
         {
             BackgroundColor = RgbaFloat.Blue
         };
-        engine.Initialize(backend);
+        engine.Initialize(backend, backend);
         engine.Resize(200, 200);
         engine.Grid.IsVisible = false;
         engine.ShowAxis = false;
@@ -224,7 +224,7 @@ public class VideraEngineIntegrationTests
         {
             BackgroundColor = RgbaFloat.Blue
         };
-        engine.Initialize(backend);
+        engine.Initialize(backend, backend);
         engine.Resize(200, 200);
         engine.Grid.IsVisible = false;
         engine.ShowAxis = false;
@@ -248,7 +248,7 @@ public class VideraEngineIntegrationTests
         {
             BackgroundColor = RgbaFloat.Black
         };
-        engine.Initialize(backend);
+        engine.Initialize(backend, backend);
         engine.Resize(200, 200);
         engine.Grid.IsVisible = false;
         engine.ShowAxis = false;
@@ -280,7 +280,7 @@ public class VideraEngineIntegrationTests
         {
             BackgroundColor = RgbaFloat.Black
         };
-        engine.Initialize(backend);
+        engine.Initialize(backend, backend);
         engine.Resize(200, 200);
         engine.Grid.IsVisible = false;
         engine.ShowAxis = false;
@@ -342,7 +342,7 @@ public class VideraEngineIntegrationTests
         using var backend = new SoftwareBackend();
         backend.Initialize(IntPtr.Zero, 200, 200);
         using var engine = new VideraEngine();
-        engine.Initialize(backend);
+        engine.Initialize(backend, backend);
         engine.ShowAxis = true;
 
         var act = () => engine.Draw();
@@ -354,7 +354,7 @@ public class VideraEngineIntegrationTests
     {
         using var backend = new SoftwareBackend();
         var engine = new VideraEngine();
-        engine.Initialize(backend);
+        engine.Initialize(backend, backend);
 
         var act = () => engine.Dispose();
         act.Should().NotThrow();
@@ -365,7 +365,7 @@ public class VideraEngineIntegrationTests
     {
         using var firstBackend = new SoftwareBackend();
         var engine = new VideraEngine();
-        engine.Initialize(firstBackend);
+        engine.Initialize(firstBackend, firstBackend);
         engine.Dispose();
 
         using var secondBackend = new SoftwareBackend();
@@ -379,7 +379,7 @@ public class VideraEngineIntegrationTests
             engine.AddObject(obj);
             engine.RemoveObject(obj);
             engine.ClearObjects();
-            engine.Initialize(secondBackend);
+            engine.Initialize(secondBackend, secondBackend);
             engine.Draw();
         };
 
@@ -392,18 +392,10 @@ public class VideraEngineIntegrationTests
     {
         using var backend = new SoftwareBackend();
         using var engine = new VideraEngine();
-        engine.Initialize(backend);
+        engine.Initialize(backend, backend);
 
         var act = () => engine.StyleService.ApplyPreset(RenderStylePreset.Cartoon);
         act.Should().NotThrow();
-    }
-
-    [Fact]
-    public void VideraEngine_Initialize_NullBackend_ThrowsArgumentNullException()
-    {
-        using var engine = new VideraEngine();
-        var act = () => engine.Initialize(null!);
-        act.Should().Throw<ArgumentNullException>();
     }
 
     [Fact]

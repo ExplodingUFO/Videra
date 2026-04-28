@@ -6,7 +6,7 @@ namespace Videra.SurfaceCharts.Avalonia.Controls;
 
 public partial class SurfaceChartView
 {
-    private static readonly SurfaceViewState DefaultViewState = CreateCompatibilityViewState(new SurfaceViewport(0d, 0d, 1d, 1d));
+    private static readonly SurfaceViewState DefaultViewState = CreateDefaultViewState();
     private bool _isSynchronizingViewStateProperties;
     private SurfaceChartInteractionQuality _interactionQuality = SurfaceChartInteractionQuality.Refine;
 
@@ -15,14 +15,6 @@ public partial class SurfaceChartView
     /// </summary>
     public static readonly StyledProperty<ISurfaceTileSource?> SourceProperty =
         AvaloniaProperty.Register<SurfaceChartView, ISurfaceTileSource?>(nameof(Source));
-
-    /// <summary>
-    /// Identifies the <see cref="Viewport"/> property.
-    /// </summary>
-    public static readonly StyledProperty<SurfaceViewport> ViewportProperty =
-        AvaloniaProperty.Register<SurfaceChartView, SurfaceViewport>(
-            nameof(Viewport),
-            defaultValue: new SurfaceViewport(0, 0, 1, 1));
 
     /// <summary>
     /// Identifies the <see cref="ViewState"/> property.
@@ -50,8 +42,6 @@ public partial class SurfaceChartView
     {
         SourceProperty.Changed.AddClassHandler<SurfaceChartView>(
             static (view, args) => view.OnSourceChanged((ISurfaceTileSource?)args.NewValue));
-        ViewportProperty.Changed.AddClassHandler<SurfaceChartView>(
-            static (view, args) => view.OnViewportChanged((SurfaceViewport)args.NewValue!));
         ViewStateProperty.Changed.AddClassHandler<SurfaceChartView>(
             static (view, args) => view.OnViewStateChanged((SurfaceViewState)args.NewValue!));
         ColorMapProperty.Changed.AddClassHandler<SurfaceChartView>(
@@ -67,16 +57,6 @@ public partial class SurfaceChartView
     {
         get => GetValue(SourceProperty);
         set => SetValue(SourceProperty, value);
-    }
-
-    /// <summary>
-    /// Gets or sets the current surface viewport in sample space as a compatibility bridge for
-    /// hosts that have not moved to the authoritative <see cref="ViewState"/> contract.
-    /// </summary>
-    public SurfaceViewport Viewport
-    {
-        get => GetValue(ViewportProperty);
-        set => SetValue(ViewportProperty, value);
     }
 
     /// <summary>
@@ -121,20 +101,6 @@ public partial class SurfaceChartView
         _runtime.UpdateSource(source);
     }
 
-    private void OnViewportChanged(SurfaceViewport viewport)
-    {
-        if (_isSynchronizingViewStateProperties)
-        {
-            return;
-        }
-
-        var nextViewState = new SurfaceViewState(
-            viewport.ToDataWindow(),
-            _runtime.ViewState.Camera,
-            _runtime.ViewState.DisplaySpace);
-        ApplyViewState(nextViewState);
-    }
-
     private void OnViewStateChanged(SurfaceViewState viewState)
     {
         if (_isSynchronizingViewStateProperties)
@@ -162,11 +128,6 @@ public partial class SurfaceChartView
                 SetCurrentValue(ViewStateProperty, viewState);
             }
 
-            var viewport = viewState.ToViewport();
-            if (GetValue(ViewportProperty) != viewport)
-            {
-                SetCurrentValue(ViewportProperty, viewport);
-            }
         }
         finally
         {
@@ -185,13 +146,14 @@ public partial class SurfaceChartView
         InteractionQualityChanged?.Invoke(this, EventArgs.Empty);
     }
 
-    private static SurfaceViewState CreateCompatibilityViewState(SurfaceViewport viewport)
+    private static SurfaceViewState CreateDefaultViewState()
     {
+        var dataWindow = new SurfaceDataWindow(0d, 0d, 1d, 1d);
         var target = new Vector3(
-            (float)(viewport.StartX + (viewport.Width * 0.5d)),
+            (float)(dataWindow.StartX + (dataWindow.Width * 0.5d)),
             0f,
-            (float)(viewport.StartY + (viewport.Height * 0.5d)));
-        var diagonal = Math.Sqrt((viewport.Width * viewport.Width) + (viewport.Height * viewport.Height));
+            (float)(dataWindow.StartY + (dataWindow.Height * 0.5d)));
+        var diagonal = Math.Sqrt((dataWindow.Width * dataWindow.Width) + (dataWindow.Height * dataWindow.Height));
         var camera = new SurfaceCameraPose(
             target,
             SurfaceCameraPose.DefaultYawDegrees,
@@ -199,6 +161,6 @@ public partial class SurfaceChartView
             Math.Max(diagonal, 1d),
             SurfaceCameraPose.DefaultFieldOfViewDegrees);
 
-        return new SurfaceViewState(viewport.ToDataWindow(), camera);
+        return new SurfaceViewState(dataWindow, camera);
     }
 }

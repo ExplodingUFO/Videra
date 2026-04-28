@@ -179,7 +179,7 @@ public class Object3DIntegrationTests
             BackgroundColor = backgroundColor ?? RgbaFloat.Black
         };
 
-        engine.Initialize(backend);
+        engine.Initialize(backend, backend);
         engine.Resize(200, 200);
         engine.Grid.IsVisible = false;
         engine.ShowAxis = false;

@@ -48,19 +48,20 @@ public class SurfaceViewportTests
     }
 
     [Fact]
-    public void Request_ExposesClampedAndNormalizedViewport()
+    public void Request_ExposesClampedDataWindowAndNormalizedViewport()
     {
         var metadata = CreateMetadata(200, 100);
         var request = new SurfaceViewportRequest(
             metadata,
-            new SurfaceViewport(-20.0, 25.0, 80.0, 40.0),
+            new SurfaceDataWindow(-20.0, 25.0, 80.0, 40.0),
             40,
             20);
+        var clampedViewport = request.ClampedDataWindow.ToViewport();
 
-        request.ClampedViewport.StartX.Should().Be(0.0);
-        request.ClampedViewport.StartY.Should().Be(25.0);
-        request.ClampedViewport.Width.Should().Be(80.0);
-        request.ClampedViewport.Height.Should().Be(40.0);
+        clampedViewport.StartX.Should().Be(0.0);
+        clampedViewport.StartY.Should().Be(25.0);
+        clampedViewport.Width.Should().Be(80.0);
+        clampedViewport.Height.Should().Be(40.0);
 
         request.NormalizedViewport.StartX.Should().BeApproximately(0.0, 0.000001);
         request.NormalizedViewport.StartY.Should().BeApproximately(0.25, 0.000001);
@@ -73,8 +74,7 @@ public class SurfaceViewportTests
     {
         var metadata = CreateMetadata(200, 100);
         var request = new SurfaceViewportRequest(
-            metadata,
-            new SurfaceViewport(10.0, 15.0, 80.0, 40.0),
+            metadata, new SurfaceViewport(10.0, 15.0, 80.0, 40.0).ToDataWindow(),
             40,
             20);
 

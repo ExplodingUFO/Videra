@@ -123,7 +123,6 @@ public sealed class SurfaceViewStateTests
         var request = new SurfaceViewportRequest(metadata, dataWindow, 40, 20);
 
         request.DataWindow.Should().Be(dataWindow);
-        request.Viewport.Should().Be(dataWindow.ToViewport());
         request.HorizontalZoomDensity.Should().Be(0.5);
         request.VerticalZoomDensity.Should().Be(0.8);
         request.ZoomDensity.Should().Be(0.8);

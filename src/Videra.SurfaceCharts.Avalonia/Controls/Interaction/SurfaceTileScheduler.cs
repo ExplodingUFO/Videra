@@ -51,7 +51,7 @@ internal sealed class SurfaceTileScheduler
         Interlocked.Exchange(ref _activeGeneration, requestGeneration);
     }
 
-    public SurfaceTileRequestPlan CreateRequestPlan(SurfaceViewport viewport, Size outputSize)
+    public SurfaceTileRequestPlan CreateRequestPlan(SurfaceDataWindow dataWindow, Size outputSize)
     {
         var retainedKeys = new HashSet<SurfaceTileKey> { OverviewKey };
         var orderedKeys = new List<SurfaceTileKey>();
@@ -70,14 +70,15 @@ internal sealed class SurfaceTileScheduler
             return new SurfaceTileRequestPlan(orderedKeys.ToArray(), retainedKeys, includeOverview);
         }
 
-        var request = new SurfaceViewportRequest(source.Metadata, viewport, outputWidth, outputHeight);
+        var request = new SurfaceViewportRequest(source.Metadata, dataWindow, outputWidth, outputHeight);
         var selection = _lodPolicy.Select(request);
-        var visibleTileXStart = GetTileIndexStart(request.ClampedViewport.StartX, source.Metadata.Width, 1 << selection.LevelX);
-        var visibleTileXEnd = GetTileIndexEnd(request.ClampedViewport.EndXExclusive, source.Metadata.Width, 1 << selection.LevelX);
-        var visibleTileYStart = GetTileIndexStart(request.ClampedViewport.StartY, source.Metadata.Height, 1 << selection.LevelY);
-        var visibleTileYEnd = GetTileIndexEnd(request.ClampedViewport.EndYExclusive, source.Metadata.Height, 1 << selection.LevelY);
-        var centerTileX = GetTileIndexStart(request.ClampedViewport.StartX + (request.ClampedViewport.Width / 2d), source.Metadata.Width, 1 << selection.LevelX);
-        var centerTileY = GetTileIndexStart(request.ClampedViewport.StartY + (request.ClampedViewport.Height / 2d), source.Metadata.Height, 1 << selection.LevelY);
+        var clampedViewport = request.ClampedDataWindow.ToViewport();
+        var visibleTileXStart = GetTileIndexStart(clampedViewport.StartX, source.Metadata.Width, 1 << selection.LevelX);
+        var visibleTileXEnd = GetTileIndexEnd(clampedViewport.EndXExclusive, source.Metadata.Width, 1 << selection.LevelX);
+        var visibleTileYStart = GetTileIndexStart(clampedViewport.StartY, source.Metadata.Height, 1 << selection.LevelY);
+        var visibleTileYEnd = GetTileIndexEnd(clampedViewport.EndYExclusive, source.Metadata.Height, 1 << selection.LevelY);
+        var centerTileX = GetTileIndexStart(clampedViewport.StartX + (clampedViewport.Width / 2d), source.Metadata.Width, 1 << selection.LevelX);
+        var centerTileY = GetTileIndexStart(clampedViewport.StartY + (clampedViewport.Height / 2d), source.Metadata.Height, 1 << selection.LevelY);
 
         var prioritizedKeys = selection.EnumerateTileKeys()
             .Where(key => key != OverviewKey)

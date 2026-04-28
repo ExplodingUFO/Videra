@@ -23,7 +23,7 @@ public sealed class SurfaceChartProbeOverlayTests
 
             view.Measure(new Size(256, 128));
             view.Arrange(new Rect(0, 0, 256, 128));
-            view.Viewport = new SurfaceViewport(128, 64, 256, 128);
+            view.ViewState = new SurfaceViewState((new SurfaceViewport(128, 64, 256, 128)).ToDataWindow(), view.ViewState.Camera, view.ViewState.DisplaySpace);
             view.Source = source;
 
             await SurfaceChartTestHelpers.WaitForLoadedTileValuesAsync(view, [7f]);
@@ -54,7 +54,7 @@ public sealed class SurfaceChartProbeOverlayTests
 
             view.Measure(new Size(256, 128));
             view.Arrange(new Rect(0, 0, 256, 128));
-            view.Viewport = new SurfaceViewport(128, 64, 256, 128);
+            view.ViewState = new SurfaceViewState((new SurfaceViewport(128, 64, 256, 128)).ToDataWindow(), view.ViewState.Camera, view.ViewState.DisplaySpace);
             view.Source = source;
 
             await SurfaceChartTestHelpers.WaitForLoadedTileValuesAsync(view, [7f]);
@@ -108,7 +108,7 @@ public sealed class SurfaceChartProbeOverlayTests
 
             view.Measure(new Size(200, 100));
             view.Arrange(new Rect(0, 0, 200, 100));
-            view.Viewport = new SurfaceViewport(100, 50, 200, 100);
+            view.ViewState = new SurfaceViewState((new SurfaceViewport(100, 50, 200, 100)).ToDataWindow(), view.ViewState.Camera, view.ViewState.DisplaySpace);
             view.Source = source;
 
             await SurfaceChartTestHelpers.WaitForLoadedTileValuesAsync(view, [5f]);
@@ -119,7 +119,7 @@ public sealed class SurfaceChartProbeOverlayTests
             GetDoubleProperty(GetPropertyValue(initialState, "ProbeResult")!, "SampleX").Should().BeApproximately(200d, 0.0001d);
             GetDoubleProperty(GetPropertyValue(initialState, "ProbeResult")!, "SampleY").Should().BeApproximately(100d, 0.0001d);
 
-            view.Viewport = new SurfaceViewport(300, 250, 200, 100);
+            view.ViewState = new SurfaceViewState((new SurfaceViewport(300, 250, 200, 100)).ToDataWindow(), view.ViewState.Camera, view.ViewState.DisplaySpace);
 
             var updatedState = GetOverlayState(view);
             GetBooleanProperty(updatedState, "HasNoData").Should().BeFalse();
@@ -403,7 +403,7 @@ public sealed class SurfaceChartProbeOverlayTests
 
             view.Measure(new Size(200, 200));
             view.Arrange(new Rect(0, 0, 200, 200));
-            view.Viewport = new SurfaceViewport(0, 0, 4, 4);
+            view.ViewState = new SurfaceViewState((new SurfaceViewport(0, 0, 4, 4)).ToDataWindow(), view.ViewState.Camera, view.ViewState.DisplaySpace);
             view.Source = source;
 
             await SurfaceChartTestHelpers.WaitForLoadedTileValuesAsync(view, [5f]);
@@ -416,7 +416,7 @@ public sealed class SurfaceChartProbeOverlayTests
             GetDoubleProperty(initialProbe, "AxisX").Should().BeApproximately(15d, 0.0001d);
             GetDoubleProperty(initialProbe, "AxisY").Should().BeApproximately(150d, 0.0001d);
 
-            view.Viewport = new SurfaceViewport(2d, 1d, 1d, 2d);
+            view.ViewState = new SurfaceViewState((new SurfaceViewport(2d, 1d, 1d, 2d)).ToDataWindow(), view.ViewState.Camera, view.ViewState.DisplaySpace);
 
             await SurfaceChartTestHelpers.AssertLoadedTileValuesStayAsync(view, [5f]);
 
@@ -430,7 +430,7 @@ public sealed class SurfaceChartProbeOverlayTests
     }
 
     [Fact]
-    public Task SurfaceChartRuntime_ViewStateChangesRecomputeOverlayFromCompatibilityViewport()
+    public Task SurfaceChartRuntime_ViewStateChangesRecomputeOverlay()
     {
         return AvaloniaHeadlessTestSession.RunAsync(async () =>
         {

@@ -12,21 +12,21 @@ namespace Videra.SurfaceCharts.Avalonia.IntegrationTests;
 public sealed class SurfaceChartViewViewStateTests
 {
     [Fact]
-    public void Viewport_Updates_ViewState_DataWindow()
+    public void ViewState_UpdatePreservesDataWindow()
     {
         AvaloniaHeadlessTestSession.Run(() =>
         {
             var view = new SurfaceChartView();
             var viewport = new SurfaceViewport(64d, 32d, 128d, 96d);
 
-            view.Viewport = viewport;
+            view.ViewState = new SurfaceViewState((viewport).ToDataWindow(), view.ViewState.Camera, view.ViewState.DisplaySpace);
 
             view.ViewState.DataWindow.Should().Be(viewport.ToDataWindow());
         });
     }
 
     [Fact]
-    public void ViewState_Updates_Viewport()
+    public void ViewState_ExposesDataWindowAsViewport()
     {
         AvaloniaHeadlessTestSession.Run(() =>
         {
@@ -37,7 +37,7 @@ public sealed class SurfaceChartViewViewStateTests
 
             view.ViewState = viewState;
 
-            view.Viewport.Should().Be(new SurfaceViewport(10d, 20d, 30d, 40d));
+            view.ViewState.DataWindow.ToViewport().Should().Be(new SurfaceViewport(10d, 20d, 30d, 40d));
         });
     }
 
@@ -58,7 +58,7 @@ public sealed class SurfaceChartViewViewStateTests
             view.FitToData();
 
             view.ViewState.DataWindow.Should().Be(new SurfaceDataWindow(0d, 0d, source.Metadata.Width, source.Metadata.Height));
-            view.Viewport.Should().Be(new SurfaceViewport(0d, 0d, source.Metadata.Width, source.Metadata.Height));
+            view.ViewState.DataWindow.ToViewport().Should().Be(new SurfaceViewport(0d, 0d, source.Metadata.Width, source.Metadata.Height));
         });
     }
 
@@ -81,7 +81,7 @@ public sealed class SurfaceChartViewViewStateTests
 
             view.ViewState.DataWindow.Should().Be(dataWindow);
             view.ViewState.Camera.Should().Be(SurfaceCameraPose.CreateDefault(source.Metadata, dataWindow));
-            view.Viewport.Should().Be(dataWindow.ToViewport());
+            view.ViewState.DataWindow.ToViewport().Should().Be(dataWindow.ToViewport());
         });
     }
 
@@ -100,7 +100,7 @@ public sealed class SurfaceChartViewViewStateTests
             view.ZoomTo(dataWindow);
 
             view.ViewState.DataWindow.Should().Be(dataWindow);
-            view.Viewport.Should().Be(dataWindow.ToViewport());
+            view.ViewState.DataWindow.ToViewport().Should().Be(dataWindow.ToViewport());
         });
     }
 
@@ -117,7 +117,7 @@ public sealed class SurfaceChartViewViewStateTests
             view.ZoomTo(new SurfaceDataWindow(10d, 20d, 30d, 40d));
 
             view.ViewState.Should().Be(initialState);
-            view.Viewport.Should().Be(initialState.ToViewport());
+            view.ViewState.DataWindow.ToViewport().Should().Be(initialState.ToViewport());
         });
     }
 

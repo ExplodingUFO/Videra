@@ -209,8 +209,6 @@ public sealed class SurfaceChartRenderStateTests
             ColorMap = colorMap,
             ViewState = resolvedViewState,
             CameraFrame = SurfaceProjectionMath.CreateCameraFrame(metadata, resolvedViewState, 320d, 180d, 1f),
-            Viewport = viewport,
-            ProjectionSettings = SurfaceChartProjectionSettings.Default,
             ViewWidth = 320d,
             ViewHeight = 180d,
             NativeHandle = IntPtr.Zero,
