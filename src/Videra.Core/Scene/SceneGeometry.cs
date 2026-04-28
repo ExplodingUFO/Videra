@@ -1,5 +1,6 @@
 using System.Numerics;
 using Videra.Core.Geometry;
+using Videra.Core.Graphics.Abstractions;
 
 namespace Videra.Core.Scene;
 
@@ -9,7 +10,9 @@ public static class SceneGeometry
         ReadOnlySpan<Vector3> positions,
         ReadOnlySpan<uint> indices,
         ReadOnlySpan<Vector3> normals = default,
-        ReadOnlySpan<RgbaFloat> colors = default)
+        ReadOnlySpan<RgbaFloat> colors = default,
+        ReadOnlySpan<Vector2> textureCoordinates = default,
+        MeshTopology topology = MeshTopology.Triangles)
     {
         var vertices = new VertexPositionNormalColor[positions.Length];
         for (var i = 0; i < positions.Length; i++)
@@ -23,7 +26,11 @@ public static class SceneGeometry
         return new MeshData
         {
             Vertices = vertices,
-            Indices = indices.ToArray()
+            Indices = indices.ToArray(),
+            TextureCoordinateSets = textureCoordinates.Length == positions.Length
+                ? [new MeshTextureCoordinateSet(0, textureCoordinates.ToArray())]
+                : [],
+            Topology = topology
         };
     }
 
@@ -53,6 +60,104 @@ public static class SceneGeometry
         };
         var colors = FillColors(positions.Length, color ?? RgbaFloat.White);
         return Buffer(positions, [0, 1, 2, 0, 2, 3], colors: colors);
+    }
+
+    public static MeshData Plane(float width = 1f, float depth = 1f, RgbaFloat? color = null)
+    {
+        var halfWidth = width * 0.5f;
+        var halfDepth = depth * 0.5f;
+        var positions = new[]
+        {
+            new Vector3(-halfWidth, 0f, -halfDepth),
+            new Vector3(halfWidth, 0f, -halfDepth),
+            new Vector3(halfWidth, 0f, halfDepth),
+            new Vector3(-halfWidth, 0f, halfDepth)
+        };
+        var normals = Enumerable.Repeat(Vector3.UnitY, positions.Length).ToArray();
+        var colors = FillColors(positions.Length, color ?? RgbaFloat.White);
+        var uvs = new[]
+        {
+            Vector2.Zero,
+            Vector2.UnitX,
+            Vector2.One,
+            Vector2.UnitY
+        };
+
+        return Buffer(positions, [0, 1, 2, 0, 2, 3], normals, colors, uvs);
+    }
+
+    public static MeshData Grid(float width = 1f, float depth = 1f, int divisions = 10, RgbaFloat? color = null)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(divisions);
+
+        var lineCount = divisions + 1;
+        var vertices = new VertexPositionNormalColor[lineCount * 4];
+        var indices = new uint[vertices.Length];
+        var halfWidth = width * 0.5f;
+        var halfDepth = depth * 0.5f;
+        var c = color ?? RgbaFloat.LightGrey;
+        var cursor = 0;
+
+        for (var i = 0; i <= divisions; i++)
+        {
+            var x = -halfWidth + width * i / divisions;
+            vertices[cursor] = new VertexPositionNormalColor(new Vector3(x, 0f, -halfDepth), Vector3.UnitY, c);
+            indices[cursor] = (uint)cursor;
+            cursor++;
+            vertices[cursor] = new VertexPositionNormalColor(new Vector3(x, 0f, halfDepth), Vector3.UnitY, c);
+            indices[cursor] = (uint)cursor;
+            cursor++;
+
+            var z = -halfDepth + depth * i / divisions;
+            vertices[cursor] = new VertexPositionNormalColor(new Vector3(-halfWidth, 0f, z), Vector3.UnitY, c);
+            indices[cursor] = (uint)cursor;
+            cursor++;
+            vertices[cursor] = new VertexPositionNormalColor(new Vector3(halfWidth, 0f, z), Vector3.UnitY, c);
+            indices[cursor] = (uint)cursor;
+            cursor++;
+        }
+
+        return new MeshData
+        {
+            Vertices = vertices,
+            Indices = indices,
+            Topology = MeshTopology.Lines
+        };
+    }
+
+    public static MeshData Polyline(ReadOnlySpan<Vector3> points, RgbaFloat? color = null)
+    {
+        if (points.Length < 2)
+        {
+            throw new ArgumentException("Polyline requires at least two points.", nameof(points));
+        }
+
+        var indices = new uint[(points.Length - 1) * 2];
+        var cursor = 0;
+        for (var i = 0; i < points.Length - 1; i++)
+        {
+            indices[cursor++] = (uint)i;
+            indices[cursor++] = (uint)(i + 1);
+        }
+
+        var colors = FillColors(points.Length, color ?? RgbaFloat.White);
+        return Buffer(points, indices, colors: colors, topology: MeshTopology.Lines);
+    }
+
+    public static MeshData PointCloud(ReadOnlySpan<Vector3> points, ReadOnlySpan<RgbaFloat> colors = default)
+    {
+        if (points.IsEmpty)
+        {
+            throw new ArgumentException("Point cloud requires at least one point.", nameof(points));
+        }
+
+        var indices = new uint[points.Length];
+        for (var i = 0; i < points.Length; i++)
+        {
+            indices[i] = (uint)i;
+        }
+
+        return Buffer(points, indices, colors: colors, topology: MeshTopology.Points);
     }
 
     public static MeshData Cube(float size = 1f, RgbaFloat? color = null)

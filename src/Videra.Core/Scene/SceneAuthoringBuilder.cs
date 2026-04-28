@@ -60,6 +60,54 @@ public sealed class SceneAuthoringBuilder
         return AddMesh(name, SceneGeometry.Quad(width, height, material.BaseColorFactor), material, transform, nodeId, primitiveId);
     }
 
+    public SceneAuthoringBuilder AddPlane(
+        string name,
+        MaterialInstance material,
+        float width = 1f,
+        float depth = 1f,
+        Matrix4x4? transform = null,
+        SceneNodeId? nodeId = null,
+        MeshPrimitiveId? primitiveId = null)
+    {
+        return AddMesh(name, SceneGeometry.Plane(width, depth, material.BaseColorFactor), material, transform, nodeId, primitiveId);
+    }
+
+    public SceneAuthoringBuilder AddGrid(
+        string name,
+        MaterialInstance material,
+        float width = 1f,
+        float depth = 1f,
+        int divisions = 10,
+        Matrix4x4? transform = null,
+        SceneNodeId? nodeId = null,
+        MeshPrimitiveId? primitiveId = null)
+    {
+        return AddMesh(name, SceneGeometry.Grid(width, depth, divisions, material.BaseColorFactor), material, transform, nodeId, primitiveId);
+    }
+
+    public SceneAuthoringBuilder AddPolyline(
+        string name,
+        MaterialInstance material,
+        ReadOnlySpan<Vector3> points,
+        Matrix4x4? transform = null,
+        SceneNodeId? nodeId = null,
+        MeshPrimitiveId? primitiveId = null)
+    {
+        return AddMesh(name, SceneGeometry.Polyline(points, material.BaseColorFactor), material, transform, nodeId, primitiveId);
+    }
+
+    public SceneAuthoringBuilder AddPointCloud(
+        string name,
+        MaterialInstance material,
+        ReadOnlySpan<Vector3> points,
+        ReadOnlySpan<RgbaFloat> colors = default,
+        Matrix4x4? transform = null,
+        SceneNodeId? nodeId = null,
+        MeshPrimitiveId? primitiveId = null)
+    {
+        return AddMesh(name, SceneGeometry.PointCloud(points, colors), material, transform, nodeId, primitiveId);
+    }
+
     public SceneAuthoringBuilder AddCube(
         string name,
         MaterialInstance material,
@@ -161,6 +209,11 @@ public sealed class SceneAuthoringBuilder
             diagnostics.Add(Error("mesh.indices.triangles", "Triangle meshes must use an index count divisible by three.", mesh.Name));
         }
 
+        if (mesh.MeshData.Topology == MeshTopology.Lines && mesh.MeshData.Indices.Length % 2 != 0)
+        {
+            diagnostics.Add(Error("mesh.indices.lines", "Line meshes must use an index count divisible by two.", mesh.Name));
+        }
+
         for (var i = 0; i < mesh.MeshData.Vertices.Length; i++)
         {
             var vertex = mesh.MeshData.Vertices[i];
@@ -177,6 +230,24 @@ public sealed class SceneAuthoringBuilder
             {
                 diagnostics.Add(Error("mesh.index.range", $"Index {i} references vertex {mesh.MeshData.Indices[i]}, outside the vertex buffer.", mesh.Name));
                 break;
+            }
+        }
+
+        foreach (var textureCoordinateSet in mesh.MeshData.TextureCoordinateSets)
+        {
+            if (textureCoordinateSet.Coordinates.Length != mesh.MeshData.Vertices.Length)
+            {
+                diagnostics.Add(Error("mesh.uv.length", $"UV set {textureCoordinateSet.SetIndex} must match the vertex count.", mesh.Name));
+                break;
+            }
+
+            foreach (var uv in textureCoordinateSet.Coordinates.Span)
+            {
+                if (!IsFinite(uv))
+                {
+                    diagnostics.Add(Error("mesh.uv.nonfinite", $"UV set {textureCoordinateSet.SetIndex} contains a non-finite value.", mesh.Name));
+                    break;
+                }
             }
         }
 
@@ -251,6 +322,11 @@ public sealed class SceneAuthoringBuilder
     private static bool IsFinite(Vector3 value)
     {
         return float.IsFinite(value.X) && float.IsFinite(value.Y) && float.IsFinite(value.Z);
+    }
+
+    private static bool IsFinite(Vector2 value)
+    {
+        return float.IsFinite(value.X) && float.IsFinite(value.Y);
     }
 
     private static bool IsFinite(RgbaFloat value)

@@ -1,6 +1,7 @@
 using System.Numerics;
 using FluentAssertions;
 using Videra.Core.Geometry;
+using Videra.Core.Graphics.Abstractions;
 using Videra.Core.Scene;
 using Xunit;
 
@@ -82,6 +83,37 @@ public sealed class SceneAuthoringBuilderTests
         entry.Mesh.Should().BeSameAs(mesh);
         entry.Material.Should().BeSameAs(material);
         entry.InstanceCount.Should().Be(2);
+    }
+
+    [Fact]
+    public void Build_WithPlaneGridPolylineAndPointCloud_CreatesExpectedTopologies()
+    {
+        var material = SceneMaterials.Matte("paint", RgbaFloat.White);
+
+        var document = SceneAuthoring.Create("primitives")
+            .AddPlane("plane", material, width: 4f, depth: 2f)
+            .AddGrid("grid", material, width: 4f, depth: 2f, divisions: 2)
+            .AddPolyline("path", material, [Vector3.Zero, Vector3.UnitX, Vector3.One])
+            .AddPointCloud("markers", material, [Vector3.Zero, Vector3.UnitY])
+            .Build();
+
+        var primitives = document.Entries.Single().ImportedAsset!.Primitives;
+        primitives.Should().Contain(primitive =>
+            primitive.Name == "plane" &&
+            primitive.MeshData.Topology == MeshTopology.Triangles &&
+            primitive.MeshData.TextureCoordinateSets.Single().Coordinates.Length == 4);
+        primitives.Should().Contain(primitive =>
+            primitive.Name == "grid" &&
+            primitive.MeshData.Topology == MeshTopology.Lines &&
+            primitive.MeshData.Indices.Length == 12);
+        primitives.Should().Contain(primitive =>
+            primitive.Name == "path" &&
+            primitive.MeshData.Topology == MeshTopology.Lines &&
+            primitive.MeshData.Indices.Length == 4);
+        primitives.Should().Contain(primitive =>
+            primitive.Name == "markers" &&
+            primitive.MeshData.Topology == MeshTopology.Points &&
+            primitive.MeshData.Indices.Length == 2);
     }
 
     [Fact]
