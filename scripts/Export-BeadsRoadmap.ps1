@@ -65,6 +65,40 @@ function Add-IssueSection([string[]]$Lines, [string]$Title, [object[]]$Issues)
     return $Lines
 }
 
+function Test-HasOpenBlockingDependency([object]$Issue, [hashtable]$IssueById)
+{
+    if ($null -eq $Issue.dependencies)
+    {
+        return $false
+    }
+
+    foreach ($dependency in @($Issue.dependencies))
+    {
+        if ((Get-Scalar $dependency.type) -ne "blocks")
+        {
+            continue
+        }
+
+        $dependencyId = Get-Scalar $dependency.depends_on_id
+        if ([string]::IsNullOrWhiteSpace($dependencyId))
+        {
+            continue
+        }
+
+        if (-not $IssueById.ContainsKey($dependencyId))
+        {
+            return $true
+        }
+
+        if ((Get-Scalar $IssueById[$dependencyId].status) -ne "closed")
+        {
+            return $true
+        }
+    }
+
+    return $false
+}
+
 $issuesPathFull = Resolve-RepositoryPath $IssuesPath
 $outputPathFull = Resolve-RepositoryPath $OutputPath
 
@@ -88,10 +122,16 @@ foreach ($line in Get-Content -LiteralPath $issuesPathFull)
     }
 }
 
+$issueById = @{}
+foreach ($issue in $issues)
+{
+    $issueById[(Get-Scalar $issue.id)] = $issue
+}
+
 $openIssues = @($issues | Where-Object { (Get-Scalar $_.status) -ne "closed" })
 $active = @($openIssues | Where-Object { (Get-Scalar $_.status) -eq "in_progress" })
-$ready = @($openIssues | Where-Object { (Get-Scalar $_.status) -eq "open" -and [int]$_.priority -le 2 -and [int]$_.dependency_count -eq 0 })
-$blocked = @($openIssues | Where-Object { (Get-Scalar $_.status) -eq "open" -and [int]$_.priority -le 2 -and [int]$_.dependency_count -gt 0 })
+$ready = @($openIssues | Where-Object { (Get-Scalar $_.status) -eq "open" -and [int]$_.priority -le 2 -and -not (Test-HasOpenBlockingDependency $_ $issueById) })
+$blocked = @($openIssues | Where-Object { (Get-Scalar $_.status) -eq "open" -and [int]$_.priority -le 2 -and (Test-HasOpenBlockingDependency $_ $issueById) })
 $backlog = @($openIssues | Where-Object { (Get-Scalar $_.status) -eq "open" -and [int]$_.priority -gt 2 })
 $recentlyClosed = @(
     $issues |
