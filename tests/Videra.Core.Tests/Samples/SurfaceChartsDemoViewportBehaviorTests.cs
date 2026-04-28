@@ -27,9 +27,9 @@ public sealed class SurfaceChartsDemoViewportBehaviorTests
             var interactionQualityText = window.FindControl<TextBlock>("InteractionQualityText")
                 ?? throw new InvalidOperationException("InteractionQualityText is missing.");
 
-            chartView.Source.Should().NotBeNull();
+            var initialSource = GetActiveSurfaceSource(chartView);
             window.FindControl<ComboBox>("ViewportSelector").Should().BeNull();
-            chartView.ViewState.DataWindow.Should().Be(new SurfaceDataWindow(0d, 0d, chartView.Source!.Metadata.Width, chartView.Source.Metadata.Height));
+            chartView.ViewState.DataWindow.Should().Be(new SurfaceDataWindow(0d, 0d, initialSource.Metadata.Width, initialSource.Metadata.Height));
             statusText.Text.Should().Contain("Start here: In-memory first chart");
             statusText.Text.Should().Contain("baseline");
             interactionQualityText.Text.Should().Contain("Refine");
@@ -37,12 +37,13 @@ public sealed class SurfaceChartsDemoViewportBehaviorTests
             SelectItem(sourceSelector, GetComboBoxItemByContent(sourceSelector, "Explore next: Cache-backed streaming"));
 
             await WaitForConditionAsync(
-                () => chartView.Source is not null &&
+                () => HasActiveSurfaceSource(chartView) &&
                       statusText.Text?.Contains("Explore next: Cache-backed streaming", StringComparison.Ordinal) == true,
                 "switching sources should keep the built-in interaction workflow active on the new source.")
                 .ConfigureAwait(true);
 
-            chartView.ViewState.DataWindow.Should().Be(new SurfaceDataWindow(0d, 0d, chartView.Source!.Metadata.Width, chartView.Source.Metadata.Height));
+            var cacheSource = GetActiveSurfaceSource(chartView);
+            chartView.ViewState.DataWindow.Should().Be(new SurfaceDataWindow(0d, 0d, cacheSource.Metadata.Width, cacheSource.Metadata.Height));
             statusText.Text.Should().Contain("Explore next: Cache-backed streaming");
             statusText.Text.Should().Contain("Advanced follow-up");
             statusText.Text.Should().Contain("lazy");
@@ -67,14 +68,13 @@ public sealed class SurfaceChartsDemoViewportBehaviorTests
             SelectItem(sourceSelector, GetComboBoxItemByContent(sourceSelector, "Try next: Analytics proof"));
 
             await WaitForConditionAsync(
-                () => chartView.Source is not null &&
+                () => HasActiveSurfaceSource(chartView) &&
                       statusText.Text?.Contains("Try next: Analytics proof", StringComparison.Ordinal) == true &&
-                      chartView.Source!.Metadata.HorizontalAxis.ScaleKind == SurfaceAxisScaleKind.ExplicitCoordinates,
+                      GetActiveSurfaceSource(chartView).Metadata.HorizontalAxis.ScaleKind == SurfaceAxisScaleKind.ExplicitCoordinates,
                 "the analytics proof should switch to an explicit-coordinate source and update the onboarding status.")
                 .ConfigureAwait(true);
 
-            chartView.Source.Should().BeOfType<InMemorySurfaceTileSource>();
-            var surfaceSource = (InMemorySurfaceTileSource)chartView.Source!;
+            var surfaceSource = GetActiveSurfaceSource(chartView).Should().BeOfType<InMemorySurfaceTileSource>().Subject;
             surfaceSource.Metadata.Geometry.Should().BeOfType<SurfaceExplicitGrid>();
             surfaceSource.Metadata.HorizontalAxis.ScaleKind.Should().Be(SurfaceAxisScaleKind.ExplicitCoordinates);
             surfaceSource.Metadata.VerticalAxis.ScaleKind.Should().Be(SurfaceAxisScaleKind.ExplicitCoordinates);
@@ -146,14 +146,18 @@ public sealed class SurfaceChartsDemoViewportBehaviorTests
             ClickButton(resetCameraButton);
 
             await WaitForConditionAsync(
-                () => chartView.ViewState.Camera == SurfaceCameraPose.CreateDefault(chartView.Source!.Metadata, chartView.ViewState.DataWindow),
+                () => chartView.ViewState.Camera == SurfaceCameraPose.CreateDefault(GetActiveSurfaceSource(chartView).Metadata, chartView.ViewState.DataWindow),
                 "Reset camera should restore the default pose for the active data window.")
                 .ConfigureAwait(true);
 
             ClickButton(fitToDataButton);
 
             await WaitForConditionAsync(
-                () => chartView.ViewState.DataWindow == new SurfaceDataWindow(0d, 0d, chartView.Source!.Metadata.Width, chartView.Source.Metadata.Height),
+                () =>
+                {
+                    var activeSource = GetActiveSurfaceSource(chartView);
+                    return chartView.ViewState.DataWindow == new SurfaceDataWindow(0d, 0d, activeSource.Metadata.Width, activeSource.Metadata.Height);
+                },
                 "Fit to data should restore the full dataset window through the public API.")
                 .ConfigureAwait(true);
 
@@ -276,16 +280,17 @@ public sealed class SurfaceChartsDemoViewportBehaviorTests
 
             await WaitForConditionAsync(
                 () => waterfallPlotView.IsVisible &&
-                      waterfallPlotView.Source is not null &&
+                      HasActiveSurfaceSource(waterfallPlotView) &&
                       statusText.Text?.Contains("Try next: Waterfall proof", StringComparison.Ordinal) == true,
                 "switching sources should activate the thin Waterfall proof path.")
                 .ConfigureAwait(true);
 
             chartView.IsVisible.Should().BeFalse();
-            waterfallPlotView.ViewState.DataWindow.Should().Be(new SurfaceDataWindow(0d, 0d, waterfallPlotView.Source!.Metadata.Width, waterfallPlotView.Source.Metadata.Height));
+            var waterfallSource = GetActiveSurfaceSource(waterfallPlotView);
+            waterfallPlotView.ViewState.DataWindow.Should().Be(new SurfaceDataWindow(0d, 0d, waterfallSource.Metadata.Width, waterfallSource.Metadata.Height));
 
             var requestedWindow = new SurfaceDataWindow(-12d, -6d, 120d, 60d);
-            var expectedWindow = requestedWindow.ClampTo(waterfallPlotView.Source!.Metadata);
+            var expectedWindow = requestedWindow.ClampTo(waterfallSource.Metadata);
             waterfallPlotView.ZoomTo(requestedWindow);
             waterfallPlotView.ViewState.DataWindow.Should().Be(expectedWindow);
 
@@ -297,14 +302,18 @@ public sealed class SurfaceChartsDemoViewportBehaviorTests
             ClickButton(resetCameraButton);
 
             await WaitForConditionAsync(
-                () => waterfallPlotView.ViewState.Camera == SurfaceCameraPose.CreateDefault(waterfallPlotView.Source!.Metadata, waterfallPlotView.ViewState.DataWindow),
+                () => waterfallPlotView.ViewState.Camera == SurfaceCameraPose.CreateDefault(GetActiveSurfaceSource(waterfallPlotView).Metadata, waterfallPlotView.ViewState.DataWindow),
                 "reset camera should keep working on the Waterfall proof path.")
                 .ConfigureAwait(true);
 
             ClickButton(fitToDataButton);
 
             await WaitForConditionAsync(
-                () => waterfallPlotView.ViewState.DataWindow == new SurfaceDataWindow(0d, 0d, waterfallPlotView.Source!.Metadata.Width, waterfallPlotView.Source.Metadata.Height),
+                () =>
+                {
+                    var activeSource = GetActiveSurfaceSource(waterfallPlotView);
+                    return waterfallPlotView.ViewState.DataWindow == new SurfaceDataWindow(0d, 0d, activeSource.Metadata.Width, activeSource.Metadata.Height);
+                },
                 "fit to data should still use the inherited ViewState workflow on the Waterfall proof path.")
                 .ConfigureAwait(true);
         });
@@ -413,7 +422,7 @@ public sealed class SurfaceChartsDemoViewportBehaviorTests
 
             await WaitForConditionAsync(
                 () => waterfallPlotView.IsVisible &&
-                      waterfallPlotView.Source is not null &&
+                      HasActiveSurfaceSource(waterfallPlotView) &&
                       statusText.Text?.Contains("Try next: Waterfall proof", StringComparison.Ordinal) == true,
                 "the newer waterfall selection should become active before the pending cache load completes.")
                 .ConfigureAwait(true);
@@ -444,7 +453,7 @@ public sealed class SurfaceChartsDemoViewportBehaviorTests
                 ?? throw new InvalidOperationException("SupportSummaryText is missing.");
 
             SelectItem(sourceSelector, GetComboBoxItemByContent(sourceSelector, "Try next: Analytics proof"));
-            var previousSource = chartView.Source;
+            var previousSource = GetActiveSurfaceSource(chartView);
             previousSource.Should().NotBeNull();
 
             var cacheSourceTaskField = typeof(MainWindow).GetField("_cacheSourceTask", BindingFlags.Instance | BindingFlags.NonPublic);
@@ -462,7 +471,7 @@ public sealed class SurfaceChartsDemoViewportBehaviorTests
                 .ConfigureAwait(true);
 
             sourceSelector.SelectedItem.Should().BeSameAs(cacheItem);
-            chartView.Source.Should().BeSameAs(previousSource);
+            GetActiveSurfaceSource(chartView).Should().BeSameAs(previousSource);
             statusText.Text.Should().Contain("Explore next: Cache-backed streaming");
             statusText.Text.Should().Contain("Cache-backed streaming failed to load: cache manifest sidecar missing");
             supportSummaryText.Text.Should().Contain("CacheLoadFailure: InvalidOperationException: cache manifest sidecar missing");
@@ -534,7 +543,7 @@ public sealed class SurfaceChartsDemoViewportBehaviorTests
             SelectItem(sourceSelector, GetComboBoxItemByContent(sourceSelector, "Explore next: Cache-backed streaming"));
 
             await WaitForConditionAsync(
-                () => chartView.Source is not null &&
+                () => HasActiveSurfaceSource(chartView) &&
                       supportSummaryText.Text?.Contains("Explore next: Cache-backed streaming", StringComparison.Ordinal) == true,
                 "switching sources should project the new source path into the visible support summary.")
                 .ConfigureAwait(true);
@@ -579,6 +588,22 @@ public sealed class SurfaceChartsDemoViewportBehaviorTests
     private static void ClickButton(Button button)
     {
         button.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+    }
+
+    private static bool HasActiveSurfaceSource(VideraChartView view)
+    {
+        return view.Plot.Series.Any(static series =>
+            series.Kind is Plot3DSeriesKind.Surface or Plot3DSeriesKind.Waterfall &&
+            series.SurfaceSource is not null);
+    }
+
+    private static ISurfaceTileSource GetActiveSurfaceSource(VideraChartView view)
+    {
+        var source = view.Plot.Series
+            .LastOrDefault(static series => series.Kind is Plot3DSeriesKind.Surface or Plot3DSeriesKind.Waterfall)
+            ?.SurfaceSource;
+
+        return source ?? throw new InvalidOperationException("The active plot does not contain a surface or waterfall source.");
     }
 
     private static async Task WaitForConditionAsync(Func<bool> condition, string because, TimeSpan? timeout = null)

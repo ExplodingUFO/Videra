@@ -27,7 +27,7 @@ public sealed class SurfaceChartPinnedProbeTests
             view.Measure(new Size(256, 128));
             view.Arrange(new Rect(0, 0, 256, 128));
             view.ViewState = new SurfaceViewState((new SurfaceViewport(128, 64, 256, 128)).ToDataWindow(), view.ViewState.Camera, view.ViewState.DisplaySpace);
-            view.Source = source;
+            SurfaceChartTestHelpers.LoadSurface(view, source);
 
             await SurfaceChartTestHelpers.WaitForLoadedTileValuesAsync(view, [11f]);
 
@@ -93,7 +93,7 @@ public sealed class SurfaceChartPinnedProbeTests
             view.Measure(new Size(200, 200));
             view.Arrange(new Rect(0, 0, 200, 200));
             view.ViewState = new SurfaceViewState((new SurfaceViewport(0, 0, 4, 4)).ToDataWindow(), view.ViewState.Camera, view.ViewState.DisplaySpace);
-            view.Source = source;
+            SurfaceChartTestHelpers.LoadSurface(view, source);
 
             await SurfaceChartTestHelpers.WaitForLoadedTileValuesAsync(view, [11f]);
 
@@ -126,7 +126,7 @@ public sealed class SurfaceChartPinnedProbeTests
             view.Measure(new Size(256, 192));
             view.Arrange(new Rect(0, 0, 256, 192));
             view.ViewState = new SurfaceViewState((new SurfaceViewport(128, 64, 256, 192)).ToDataWindow(), view.ViewState.Camera, view.ViewState.DisplaySpace);
-            view.Source = source;
+            SurfaceChartTestHelpers.LoadSurface(view, source);
 
             await SurfaceChartTestHelpers.WaitForLoadedTileValuesAsync(view, [11f]);
 

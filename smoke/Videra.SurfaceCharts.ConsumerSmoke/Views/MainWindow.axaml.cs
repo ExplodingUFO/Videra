@@ -83,9 +83,10 @@ public partial class MainWindow : Window
 
     private void ConfigureChart(SurfaceMetadata metadata)
     {
+        _chartView.Plot.Clear();
+        _chartView.Plot.Add.Surface(_source, "Start here: In-memory first chart");
         _chartView.Plot.ColorMap = _colorMap;
         _chartView.Plot.OverlayOptions = _overlayOptions;
-        _chartView.Source = _source;
         _chartView.ViewState = SurfaceViewState.CreateDefault(
             metadata,
             new SurfaceDataWindow(0d, 0d, metadata.Width, metadata.Height));
@@ -146,7 +147,7 @@ public partial class MainWindow : Window
 
     private void ReapplyChartAfterOpen()
     {
-        _chartView.Source = null;
+        _chartView.Plot.Clear();
         ConfigureChart(_metadata);
         Trace("Reapplied chart after window open.");
     }

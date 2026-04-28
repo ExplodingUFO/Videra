@@ -11,12 +11,6 @@ public partial class VideraChartView
     private SurfaceChartInteractionQuality _interactionQuality = SurfaceChartInteractionQuality.Refine;
 
     /// <summary>
-    /// Identifies the <see cref="Source"/> property.
-    /// </summary>
-    public static readonly StyledProperty<ISurfaceTileSource?> SourceProperty =
-        AvaloniaProperty.Register<VideraChartView, ISurfaceTileSource?>(nameof(Source));
-
-    /// <summary>
     /// Identifies the <see cref="ViewState"/> property.
     /// </summary>
     public static readonly StyledProperty<SurfaceViewState> ViewStateProperty =
@@ -26,19 +20,8 @@ public partial class VideraChartView
 
     static VideraChartView()
     {
-        SourceProperty.Changed.AddClassHandler<VideraChartView>(
-            static (view, args) => view.OnSourceChanged((ISurfaceTileSource?)args.NewValue));
         ViewStateProperty.Changed.AddClassHandler<VideraChartView>(
             static (view, args) => view.OnViewStateChanged((SurfaceViewState)args.NewValue!));
-    }
-
-    /// <summary>
-    /// Gets or sets the source used to resolve surface tiles.
-    /// </summary>
-    public ISurfaceTileSource? Source
-    {
-        get => GetValue(SourceProperty);
-        set => SetValue(SourceProperty, value);
     }
 
     /// <summary>

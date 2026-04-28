@@ -33,7 +33,7 @@ public sealed class SurfaceAxisOverlayTests
 
             view.Measure(new Size(320, 200));
             view.Arrange(new Rect(0, 0, 320, 200));
-            view.Source = source;
+            SurfaceChartTestHelpers.LoadSurface(view, source);
 
             await SurfaceChartTestHelpers.WaitForLoadedTileValuesAsync(view, [7f]);
 
@@ -59,7 +59,7 @@ public sealed class SurfaceAxisOverlayTests
 
             view.Measure(new Size(320, 200));
             view.Arrange(new Rect(0, 0, 320, 200));
-            view.Source = source;
+            SurfaceChartTestHelpers.LoadSurface(view, source);
 
             await SurfaceChartTestHelpers.WaitForLoadedTileValuesAsync(view, [5f]);
 
@@ -97,7 +97,7 @@ public sealed class SurfaceAxisOverlayTests
 
             view.Measure(new Size(320, 200));
             view.Arrange(new Rect(0, 0, 320, 200));
-            view.Source = source;
+            SurfaceChartTestHelpers.LoadSurface(view, source);
 
             await SurfaceChartTestHelpers.WaitForLoadedTileValuesAsync(view, [7f]);
 
@@ -136,7 +136,7 @@ public sealed class SurfaceAxisOverlayTests
 
             view.Measure(new Size(320, 200));
             view.Arrange(new Rect(0, 0, 320, 200));
-            view.Source = source;
+            SurfaceChartTestHelpers.LoadSurface(view, source);
 
             await SurfaceChartTestHelpers.WaitForLoadedTileValuesAsync(view, [7f]);
 
@@ -189,7 +189,7 @@ public sealed class SurfaceAxisOverlayTests
 
             view.Measure(new Size(320, 200));
             view.Arrange(new Rect(0, 0, 320, 200));
-            view.Source = source;
+            SurfaceChartTestHelpers.LoadSurface(view, source);
 
             await SurfaceChartTestHelpers.WaitForLoadedTileValuesAsync(view, [7f]);
 
@@ -226,7 +226,7 @@ public sealed class SurfaceAxisOverlayTests
 
             view.Measure(new Size(260, 180));
             view.Arrange(new Rect(0, 0, 260, 180));
-            view.Source = source;
+            SurfaceChartTestHelpers.LoadSurface(view, source);
 
             await SurfaceChartTestHelpers.WaitForLoadedTileValuesAsync(view, [7f]);
 
@@ -250,7 +250,7 @@ public sealed class SurfaceAxisOverlayTests
 
             view.Measure(new Size(340, 220));
             view.Arrange(new Rect(0, 0, 340, 220));
-            view.Source = source;
+            SurfaceChartTestHelpers.LoadSurface(view, source);
 
             await SurfaceChartTestHelpers.WaitForLoadedTileValuesAsync(view, [4f]);
 
@@ -307,7 +307,7 @@ public sealed class SurfaceAxisOverlayTests
 
             view.Measure(new Size(320, 200));
             view.Arrange(new Rect(0, 0, 320, 200));
-            view.Source = source;
+            SurfaceChartTestHelpers.LoadSurface(view, source);
 
             await SurfaceChartTestHelpers.WaitForLoadedTileValuesAsync(view, [5f]);
 

@@ -84,7 +84,7 @@ public sealed class SurfaceScenePainterTests
 
             view.Measure(new Size(240, 160));
             view.Arrange(new Rect(0, 0, 240, 160));
-            view.Source = source;
+            SurfaceChartTestHelpers.LoadSurface(view, source);
 
             await SurfaceChartTestHelpers.WaitForLoadedTileValuesAsync(view, [6f]);
 
@@ -106,7 +106,7 @@ public sealed class SurfaceScenePainterTests
 
             view.Measure(new Size(240, 160));
             view.Arrange(new Rect(0, 0, 240, 160));
-            view.Source = source;
+            SurfaceChartTestHelpers.LoadSurface(view, source);
 
             await SurfaceChartTestHelpers.WaitForLoadedTileValuesAsync(view, [6f]);
 
@@ -183,7 +183,7 @@ public sealed class SurfaceScenePainterTests
 
             view.Measure(new Size(256, 256));
             view.Arrange(new Rect(0, 0, 256, 256));
-            view.Source = source;
+            SurfaceChartTestHelpers.LoadSurface(view, source);
 
             await source.WaitForRequestCountAsync(1);
 

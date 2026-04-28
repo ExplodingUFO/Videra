@@ -303,7 +303,6 @@ public partial class MainWindow : Window
         }
 
         chartView.Plot.ColorMap = CreateColorMap(source.Metadata.ValueRange);
-        chartView.Source = source;
         chartView.FitToData();
         _activeSourceHeading = heading;
         _activeSourceDetails = details;
@@ -324,7 +323,6 @@ public partial class MainWindow : Window
         _activeScatterData = source;
         _scatterChartView.Plot.Clear();
         _scatterChartView.Plot.Add.Scatter(source, heading);
-        _scatterChartView.Source = null;
         _scatterChartView.FitToData();
         _activeSourceHeading = heading;
         _activeSourceDetails = details;

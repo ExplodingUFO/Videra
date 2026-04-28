@@ -49,11 +49,11 @@ public sealed class VideraChartViewStateTests
             var source = new RecordingSurfaceTileSource(VideraChartViewLifecycleTests.CreateMetadata());
             var view = new VideraChartView
             {
-                Source = source,
                 ViewState = new SurfaceViewState(
                     new SurfaceDataWindow(128d, 64d, 256d, 128d),
                     new SurfaceCameraPose(new Vector3(2f, 3f, 4f), 180d, 22d, 16d, 40d))
             };
+            SurfaceChartTestHelpers.LoadSurface(view, source);
 
             view.FitToData();
 
@@ -71,11 +71,11 @@ public sealed class VideraChartViewStateTests
             var dataWindow = new SurfaceDataWindow(128d, 64d, 256d, 128d);
             var view = new VideraChartView
             {
-                Source = source,
                 ViewState = new SurfaceViewState(
                     dataWindow,
                     new SurfaceCameraPose(new Vector3(2f, 3f, 4f), 180d, 22d, 16d, 40d))
             };
+            SurfaceChartTestHelpers.LoadSurface(view, source);
 
             view.ResetCamera();
 
@@ -91,11 +91,9 @@ public sealed class VideraChartViewStateTests
         AvaloniaHeadlessTestSession.Run(() =>
         {
             var source = new RecordingSurfaceTileSource(VideraChartViewLifecycleTests.CreateMetadata());
-            var view = new VideraChartView
-            {
-                Source = source
-            };
+            var view = new VideraChartView();
             var dataWindow = new SurfaceDataWindow(96d, 48d, 128d, 96d);
+            SurfaceChartTestHelpers.LoadSurface(view, source);
 
             view.ZoomTo(dataWindow);
 
@@ -127,11 +125,9 @@ public sealed class VideraChartViewStateTests
         return AvaloniaHeadlessTestSession.RunAsync(async () =>
         {
             var source = new ScriptedSurfaceTileSource(VideraChartViewLifecycleTests.CreateMetadata(), defaultTileValue: 11f);
-            var view = new RoutedInteractionTestView
-            {
-                Source = source
-            };
+            var view = new RoutedInteractionTestView();
             var pointer = new Pointer(1, PointerType.Mouse, isPrimary: true);
+            SurfaceChartTestHelpers.LoadSurface(view, source);
 
             view.Measure(new Size(256, 192));
             view.Arrange(new Rect(0, 0, 256, 192));

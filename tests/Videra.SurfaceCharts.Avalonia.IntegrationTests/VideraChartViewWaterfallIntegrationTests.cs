@@ -21,7 +21,7 @@ public sealed class VideraChartViewWaterfallIntegrationTests
 
             view.Measure(new Size(240, 160));
             view.Arrange(new Rect(0, 0, 240, 160));
-            view.Source = source;
+            SurfaceChartTestHelpers.LoadSurface(view, source);
 
             await SurfaceChartTestHelpers.WaitForLoadedTileValuesAsync(view, [6f]);
 
@@ -47,11 +47,11 @@ public sealed class VideraChartViewWaterfallIntegrationTests
             var dataWindow = new SurfaceDataWindow(128d, 64d, 256d, 128d);
             var view = new VideraChartView
             {
-                Source = source,
                 ViewState = new SurfaceViewState(
                     dataWindow,
                     new SurfaceCameraPose(new Vector3(2f, 3f, 4f), 180d, 22d, 16d, 40d))
             };
+            SurfaceChartTestHelpers.LoadWaterfall(view, source);
 
             view.ResetCamera();
             view.ViewState.DataWindow.Should().Be(dataWindow);

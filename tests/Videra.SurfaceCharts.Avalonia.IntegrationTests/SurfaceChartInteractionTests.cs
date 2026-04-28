@@ -22,7 +22,7 @@ public sealed class SurfaceChartInteractionTests
 
             view.Measure(new Size(256, 192));
             view.Arrange(new Rect(0, 0, 256, 192));
-            view.Source = source;
+            SurfaceChartTestHelpers.LoadSurface(view, source);
 
             await SurfaceChartTestHelpers.WaitForLoadedTileValuesAsync(view, [11f]);
 
@@ -55,7 +55,7 @@ public sealed class SurfaceChartInteractionTests
 
             view.Measure(new Size(256, 192));
             view.Arrange(new Rect(0, 0, 256, 192));
-            view.Source = source;
+            SurfaceChartTestHelpers.LoadSurface(view, source);
 
             await SurfaceChartTestHelpers.WaitForLoadedTileValuesAsync(view, [11f]);
 
@@ -90,7 +90,7 @@ public sealed class SurfaceChartInteractionTests
 
             view.Measure(new Size(256, 192));
             view.Arrange(new Rect(0, 0, 256, 192));
-            view.Source = source;
+            SurfaceChartTestHelpers.LoadSurface(view, source);
 
             await SurfaceChartTestHelpers.WaitForLoadedTileValuesAsync(view, [11f]);
 
@@ -125,7 +125,7 @@ public sealed class SurfaceChartInteractionTests
 
             view.Measure(new Size(256, 192));
             view.Arrange(new Rect(0, 0, 256, 192));
-            view.Source = source;
+            SurfaceChartTestHelpers.LoadSurface(view, source);
 
             await SurfaceChartTestHelpers.WaitForLoadedTileValuesAsync(view, [11f]);
 
@@ -158,7 +158,7 @@ public sealed class SurfaceChartInteractionTests
 
             view.Measure(new Size(256, 192));
             view.Arrange(new Rect(0, 0, 256, 192));
-            view.Source = source;
+            SurfaceChartTestHelpers.LoadSurface(view, source);
 
             await SurfaceChartTestHelpers.WaitForLoadedTileValuesAsync(view, [11f]);
 
@@ -203,7 +203,7 @@ public sealed class SurfaceChartInteractionTests
 
             view.Measure(new Size(256, 192));
             view.Arrange(new Rect(0, 0, 256, 192));
-            view.Source = source;
+            SurfaceChartTestHelpers.LoadSurface(view, source);
 
             await SurfaceChartTestHelpers.WaitForLoadedTileValuesAsync(view, [11f]);
 
@@ -244,7 +244,7 @@ public sealed class SurfaceChartInteractionTests
 
             view.Measure(new Size(256, 192));
             view.Arrange(new Rect(0, 0, 256, 192));
-            view.Source = source;
+            SurfaceChartTestHelpers.LoadSurface(view, source);
 
             await SurfaceChartTestHelpers.WaitForLoadedTileValuesAsync(view, [11f]);
 
@@ -279,7 +279,7 @@ public sealed class SurfaceChartInteractionTests
             view.InteractionQualityChanged += (_, _) => observedQualities.Add(view.InteractionQuality);
             view.Measure(new Size(256, 192));
             view.Arrange(new Rect(0, 0, 256, 192));
-            view.Source = source;
+            SurfaceChartTestHelpers.LoadSurface(view, source);
 
             await SurfaceChartTestHelpers.WaitForLoadedTileValuesAsync(view, [11f]);
 

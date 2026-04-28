@@ -1,3 +1,4 @@
+using System.Reflection;
 using Avalonia;
 using FluentAssertions;
 using Videra.SurfaceCharts.Avalonia.Controls;
@@ -98,7 +99,7 @@ public sealed class VideraChartViewPlotApiTests
 
             view.RenderingStatus.IsReady.Should().BeTrue();
             view.RenderingStatus.VisibleTileCount.Should().BeGreaterThan(0);
-            view.Source.Should().BeNull();
+            SurfaceChartTestHelpers.GetRuntime(view).Source.Should().BeSameAs(source);
             view.ViewState.DataWindow.Should().Be(new SurfaceDataWindow(0d, 0d, source.Metadata.Width, source.Metadata.Height));
         });
     }
@@ -120,7 +121,7 @@ public sealed class VideraChartViewPlotApiTests
             view.FitToData();
 
             view.RenderingStatus.IsReady.Should().BeTrue();
-            view.Source.Should().BeNull();
+            SurfaceChartTestHelpers.GetRuntime(view).Source.Should().BeSameAs(waterfall);
             view.ViewState.DataWindow.Should().Be(new SurfaceDataWindow(0d, 0d, waterfall.Metadata.Width, waterfall.Metadata.Height));
         });
     }
@@ -143,7 +144,7 @@ public sealed class VideraChartViewPlotApiTests
 
             view.RenderingStatus.IsReady.Should().BeFalse();
             view.RenderingStatus.VisibleTileCount.Should().Be(0);
-            view.Source.Should().BeNull();
+            SurfaceChartTestHelpers.GetRuntime(view).Source.Should().BeNull();
         });
     }
 
@@ -171,7 +172,7 @@ public sealed class VideraChartViewPlotApiTests
             view.ScatterRenderingStatus.StreamingDroppedPointCount.Should().Be(scatter.StreamingDroppedPointCount);
             view.ScatterRenderingStatus.LastStreamingDroppedPointCount.Should().Be(scatter.LastStreamingDroppedPointCount);
             view.ScatterRenderingStatus.ConfiguredFifoCapacity.Should().Be(scatter.ConfiguredFifoCapacity);
-            view.Source.Should().BeNull();
+            SurfaceChartTestHelpers.GetRuntime(view).Source.Should().BeNull();
         });
     }
 
@@ -203,6 +204,8 @@ public sealed class VideraChartViewPlotApiTests
         typeof(VideraChartView).Assembly.GetType("Videra.SurfaceCharts.Avalonia.Controls.ScatterChartView").Should().BeNull();
         typeof(VideraChartView).GetProperty("ColorMap").Should().BeNull();
         typeof(VideraChartView).GetProperty("OverlayOptions").Should().BeNull();
+        typeof(VideraChartView).GetProperty("Source").Should().BeNull();
+        typeof(VideraChartView).GetField("SourceProperty", BindingFlags.Public | BindingFlags.Static).Should().BeNull();
     }
 
     private static ScatterChartData CreateScatterData()

@@ -66,7 +66,7 @@ public sealed class VideraChartViewLifecycleTests
             var view = new VideraChartView();
             var source = new RecordingSurfaceTileSource(CreateMetadata());
 
-            view.Source = source;
+            SurfaceChartTestHelpers.LoadSurface(view, source);
 
             await source.WaitForRequestCountAsync(1);
             await source.AssertRequestCountSettlesAtAsync(1);
@@ -89,7 +89,7 @@ public sealed class VideraChartViewLifecycleTests
 
             source.RequestLog.Should().BeEmpty();
 
-            view.Source = source;
+            SurfaceChartTestHelpers.LoadSurface(view, source);
 
             await source.WaitForRequestCountAsync(1);
 
@@ -110,7 +110,7 @@ public sealed class VideraChartViewLifecycleTests
             var view = new VideraChartView();
             view.Measure(new Size(256, 256));
             view.Arrange(new Rect(0, 0, 256, 256));
-            view.Source = source;
+            SurfaceChartTestHelpers.LoadSurface(view, source);
 
             await source.WaitForRequestCountAsync(1);
 
@@ -148,11 +148,11 @@ public sealed class VideraChartViewLifecycleTests
 
             staleSource.EnqueuePendingResponse(staleRequestStarted, staleCompletion, observeCancellation: false);
 
-            view.Source = staleSource;
+            SurfaceChartTestHelpers.LoadSurface(view, staleSource);
 
             await staleRequestStarted.Task;
 
-            view.Source = activeSource;
+            SurfaceChartTestHelpers.LoadSurface(view, activeSource);
 
             await activeSource.WaitForRequestCountAsync(1);
             await SurfaceChartTestHelpers.WaitForLoadedTileValuesAsync(view, [42]);
@@ -180,11 +180,11 @@ public sealed class VideraChartViewLifecycleTests
 
             staleSource.EnqueuePendingResponse(staleRequestStarted, staleCompletion, observeCancellation: false);
 
-            view.Source = staleSource;
+            SurfaceChartTestHelpers.LoadSurface(view, staleSource);
 
             await staleRequestStarted.Task;
 
-            view.Source = activeSource;
+            SurfaceChartTestHelpers.LoadSurface(view, activeSource);
 
             await activeSource.WaitForRequestCountAsync(1);
             await SurfaceChartTestHelpers.WaitForLoadedTileValuesAsync(view, [42]);
@@ -231,11 +231,11 @@ public sealed class VideraChartViewLifecycleTests
                 }
             });
 
-            view.Source = staleSource;
+            SurfaceChartTestHelpers.LoadSurface(view, staleSource);
 
             await staleRequestStarted.Task;
 
-            view.Source = activeSource;
+            SurfaceChartTestHelpers.LoadSurface(view, activeSource);
 
             await activeSource.WaitForRequestCountAsync(1);
             await SurfaceChartTestHelpers.WaitForLoadedTileValuesAsync(view, [42]);
@@ -387,10 +387,8 @@ public sealed class VideraChartViewLifecycleTests
             var metadata = CreateMetadata();
             var source = new ScriptedSurfaceTileSource(metadata, defaultTileValue: 5);
             source.EnqueueResponse(static (_, _) => Task.FromException<SurfaceTile?>(new InvalidOperationException("tile fault")));
-            var view = new VideraChartView
-            {
-                Source = source
-            };
+            var view = new VideraChartView();
+            SurfaceChartTestHelpers.LoadSurface(view, source);
 
             await SurfaceChartTestHelpers.WaitForFailureAsync(view);
 
@@ -453,10 +451,8 @@ public sealed class VideraChartViewLifecycleTests
             var source = new ScriptedSurfaceTileSource(metadata, defaultTileValue: 9);
             source.EnqueueResponse(static (_, _) => Task.FromException<SurfaceTile?>(new InvalidOperationException("tile fault")));
             source.EnqueueSuccessResponse();
-            var view = new VideraChartView
-            {
-                Source = source
-            };
+            var view = new VideraChartView();
+            SurfaceChartTestHelpers.LoadSurface(view, source);
 
             await SurfaceChartTestHelpers.WaitForFailureAsync(view);
 
@@ -498,24 +494,22 @@ public sealed class VideraChartViewLifecycleTests
     }
 
     [Fact]
-    public Task SourceReplacement_ClearsLastTileFailure()
+    public Task PlotSourceReplacement_ClearsLastTileFailure()
     {
         return AvaloniaHeadlessTestSession.RunAsync(async () =>
         {
             var metadata = CreateMetadata();
             var faultingSource = new ScriptedSurfaceTileSource(metadata, defaultTileValue: 3);
             faultingSource.EnqueueResponse(static (_, _) => Task.FromException<SurfaceTile?>(new InvalidOperationException("tile fault")));
-            var view = new VideraChartView
-            {
-                Source = faultingSource
-            };
+            var view = new VideraChartView();
+            SurfaceChartTestHelpers.LoadSurface(view, faultingSource);
 
             await SurfaceChartTestHelpers.WaitForFailureAsync(view);
 
             view.LastTileFailure.Should().NotBeNull();
 
             var freshSource = new RecordingSurfaceTileSource(metadata);
-            view.Source = freshSource;
+            SurfaceChartTestHelpers.LoadSurface(view, freshSource);
 
             await Task.Delay(100).ConfigureAwait(false);
 
@@ -879,6 +873,30 @@ internal sealed class ScriptedSurfaceTileSource : ISurfaceTileSource
 
 internal static class SurfaceChartTestHelpers
 {
+    public static void LoadSurface(VideraChartView view, ISurfaceTileSource source)
+    {
+        ArgumentNullException.ThrowIfNull(view);
+        ArgumentNullException.ThrowIfNull(source);
+
+        view.Plot.Clear();
+        view.Plot.Add.Surface(source);
+    }
+
+    public static void LoadWaterfall(VideraChartView view, ISurfaceTileSource source)
+    {
+        ArgumentNullException.ThrowIfNull(view);
+        ArgumentNullException.ThrowIfNull(source);
+
+        view.Plot.Clear();
+        view.Plot.Add.Waterfall(source);
+    }
+
+    public static void ClearPlot(VideraChartView view)
+    {
+        ArgumentNullException.ThrowIfNull(view);
+        view.Plot.Clear();
+    }
+
     public static SurfaceChartRuntime GetRuntime(VideraChartView view)
     {
         var runtimeField = typeof(VideraChartView).GetField("_runtime", BindingFlags.Instance | BindingFlags.NonPublic);

@@ -26,7 +26,7 @@ public sealed class SurfaceChartTileSchedulingTests
 
             view.Measure(new Size(256, 128));
             view.Arrange(new Rect(0, 0, 256, 128));
-            view.Source = source;
+            SurfaceChartTestHelpers.LoadSurface(view, source);
 
             await source.WaitForRequestCountAsync(1);
 
@@ -48,10 +48,8 @@ public sealed class SurfaceChartTileSchedulingTests
         {
             var metadata = VideraChartViewLifecycleTests.CreateMetadata();
             var source = new RecordingSurfaceTileSource(metadata);
-            var view = new VideraChartView
-            {
-                Source = source
-            };
+            var view = new VideraChartView();
+            SurfaceChartTestHelpers.LoadSurface(view, source);
 
             await source.WaitForRequestCountAsync(1);
 
@@ -89,7 +87,7 @@ public sealed class SurfaceChartTileSchedulingTests
             view.ViewState = new SurfaceViewState((viewport).ToDataWindow(), view.ViewState.Camera, view.ViewState.DisplaySpace);
 
             source.RequestLog.Should().BeEmpty();
-            view.Source = source;
+            SurfaceChartTestHelpers.LoadSurface(view, source);
 
             await source.WaitForRequestCountAsync(1 + expectedOrderedKeys.Length);
 
@@ -120,7 +118,7 @@ public sealed class SurfaceChartTileSchedulingTests
             view.ViewState = new SurfaceViewState((viewport).ToDataWindow(), view.ViewState.Camera, view.ViewState.DisplaySpace);
 
             source.RequestLog.Should().BeEmpty();
-            view.Source = source;
+            SurfaceChartTestHelpers.LoadSurface(view, source);
 
             await source.WaitForRequestCountAsync(1 + expectedDetailRequestCount, timeout: TimeSpan.FromSeconds(5));
             await source.WaitForIdleAsync();
@@ -164,10 +162,8 @@ public sealed class SurfaceChartTileSchedulingTests
 
             source.EnqueueSuccessResponse();
 
-            var view = new VideraChartView
-            {
-                Source = source
-            };
+            var view = new VideraChartView();
+            SurfaceChartTestHelpers.LoadSurface(view, source);
 
             await source.WaitForRequestCountAsync(1);
 
@@ -279,7 +275,7 @@ public sealed class SurfaceChartTileSchedulingTests
 
             view.Measure(new Size(256, 256));
             view.Arrange(new Rect(0, 0, 256, 256));
-            view.Source = source;
+            SurfaceChartTestHelpers.LoadSurface(view, source);
 
             await source.WaitForRequestCountAsync(1);
 
@@ -320,7 +316,7 @@ public sealed class SurfaceChartTileSchedulingTests
 
             view.Measure(new Size(256, 256));
             view.Arrange(new Rect(0, 0, 256, 256));
-            view.Source = source;
+            SurfaceChartTestHelpers.LoadSurface(view, source);
 
             await source.WaitForRequestCountAsync(1);
 
@@ -482,7 +478,7 @@ public sealed class SurfaceChartTileSchedulingTests
             var expectedOrderedKeys = GetPrioritizedKeys(metadata, viewport, outputWidth: 128, outputHeight: 128);
             view.ViewState = new SurfaceViewState((viewport).ToDataWindow(), view.ViewState.Camera, view.ViewState.DisplaySpace);
 
-            view.Source = source;
+            SurfaceChartTestHelpers.LoadSurface(view, source);
 
             await source.WaitForTotalRequestCountAsync(1 + expectedOrderedKeys.Length);
 

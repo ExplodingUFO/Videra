@@ -32,7 +32,7 @@ public sealed class VideraChartViewGpuFallbackTests
             view.RenderStatusChanged += (_, _) => statusChangedCount++;
             view.Measure(new Size(240, 160));
             view.Arrange(new Rect(0, 0, 240, 160));
-            view.Source = source;
+            SurfaceChartTestHelpers.LoadSurface(view, source);
 
             await WaitForRenderingStatusAsync(
                 view,
@@ -63,7 +63,7 @@ public sealed class VideraChartViewGpuFallbackTests
             view.RenderStatusChanged += (_, _) => statusChangedCount++;
             view.Measure(new Size(240, 160));
             view.Arrange(new Rect(0, 0, 240, 160));
-            view.Source = source;
+            SurfaceChartTestHelpers.LoadSurface(view, source);
 
             await WaitForRenderingStatusAsync(
                 view,

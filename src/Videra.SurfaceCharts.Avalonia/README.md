@@ -78,15 +78,15 @@ var matrix = new SurfaceMatrix(
         new SurfaceValueRange(-1d, 1d)),
     sampleValues);
 
+var source = new SurfacePyramidBuilder(32, 32).Build(matrix);
 var chartView = new VideraChartView
 {
-    Source = new SurfacePyramidBuilder(32, 32).Build(matrix),
     ViewState = SurfaceViewState.CreateDefault(
         matrix.Metadata,
         new SurfaceDataWindow(0d, 0d, matrix.Metadata.Width, matrix.Metadata.Height)),
 };
 
-chartView.Plot.Add.Surface(chartView.Source, "Surface");
+chartView.Plot.Add.Surface(source, "Surface");
 chartView.Plot.ColorMap = colorMap;
 chartView.Plot.OverlayOptions = new SurfaceChartOverlayOptions
 {
@@ -108,7 +108,7 @@ using Videra.SurfaceCharts.Core;
 var matrix = ...;
 var source = new SurfacePyramidBuilder(32, 32).Build(matrix);
 
-var chartView = new VideraChartView { Source = source };
+var chartView = new VideraChartView();
 chartView.Plot.Add.Surface(source, "Surface");
 chartView.Plot.ColorMap = new SurfaceColorMap(matrix.Metadata.ValueRange, SurfaceColorMapPresets.CreateProfessional());
 chartView.Plot.OverlayOptions = SurfaceChartOverlayPresets.Professional;
