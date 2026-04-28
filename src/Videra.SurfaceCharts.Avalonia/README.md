@@ -120,6 +120,7 @@ chartView.OverlayOptions = SurfaceChartOverlayPresets.Compact;
 
 `SurfaceColorMapPresets` exposes `CreateDefault()`, `CreateProfessional()`, `CreateCoolWarm()`, and `CreateGrayscale()` entry palettes for quick, proof-ready chart setups.
 `SurfaceChartNumericLabelPresets` keeps numeric precision explicit per overlay mode (`Engineering`, `Scientific`, `Fixed`) and `SurfaceChartOverlayPresets` provides tuned `Professional` and `Compact` chart profiles.
+`SurfaceChartEvidenceFormatter.Create(...)` provides deterministic chart-local output evidence for support/adoption surfaces that need palette name, color stops, precision profile, and representative formatted labels without coupling to image export, file I/O, viewer diagnostics, or a renderer backend.
 
 `SurfaceMatrix` remains the simplest source-first regular-grid entrypoint. When you need richer analytics payloads, you can keep the same `SurfaceChartView` shell and switch the underlying source construction to `SurfaceScalarField`, an independent `ColorField`, and `SurfaceMask` without widening `SurfaceChartView` itself.
 

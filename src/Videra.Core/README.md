@@ -107,6 +107,7 @@ var objectIds = new[]
 
 var document = SceneAuthoring.Create("batched-markers")
     .AddAxisTriad("world", length: 2f)
+    .AddScaleBar("one-meter", paint, length: 1f, tickHeight: 0.1f)
     .AddInstances(
         "marker-cubes",
         SceneGeometry.Cube(1f, paint.BaseColorFactor),
@@ -120,6 +121,7 @@ var document = SceneAuthoring.Create("batched-markers")
 
 This produces a single `InstanceBatchEntry`, no expanded per-instance mesh entries, with stable pick IDs and deterministic bounds.
 `AddAxisTriad(...)` expands to three retained line primitives and stays in the same static-scene authoring model; it does not introduce a runtime gizmo system or backend-specific helper.
+`AddScaleBar(...)` is also retained line-topology scene truth; it is a static scene semantic helper, not a UI overlay, text label, runtime manipulator, or fallback path.
 
 For a Core-only executable example that authors primitives and repeated marker instances without model files, see [samples/Videra.MinimalAuthoringSample](../../samples/Videra.MinimalAuthoringSample/README.md).
 

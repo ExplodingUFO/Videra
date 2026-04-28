@@ -8,9 +8,11 @@
 - `SceneAuthoringBuilder.AddPlane(...)`
 - `SceneAuthoringBuilder.AddGrid(...)`
 - `SceneAuthoringBuilder.AddAxisTriad(...)`
+- `SceneAuthoringBuilder.AddScaleBar(...)`
 - `SceneAuthoringBuilder.AddSphere(...)`
 - `SceneAuthoringBuilder.AddInstances(...)`
 - `SceneGeometry.AxisLine(...)`
+- `SceneGeometry.ScaleBar(...)`
 - `SceneGeometry.Sphere(...)`
 - `SceneDocument`
 - `ImportedSceneAsset`
