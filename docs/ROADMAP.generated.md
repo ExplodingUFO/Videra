@@ -12,7 +12,7 @@ pwsh -File ./scripts/Export-BeadsRoadmap.ps1
 
 ## Active
 
-- **Videra-bja** - Phase 314: Scene authoring polish and MinimalAuthoringSample (task, P1, in_progress; labels: authoring, phase-314, v2.43)
+_No matching beads in the exported snapshot._
 
 ## Ready
 
@@ -25,6 +25,7 @@ _No matching beads in the exported snapshot._
 
 ## Recently Closed
 
+- **Videra-bja** - Phase 314: Scene authoring polish and MinimalAuthoringSample (task, P1, closed; labels: authoring, phase-314, v2.43)
 - **Videra-dux** - Phase 315: SurfaceCharts numeric precision policy (task, P1, closed; labels: phase-315, surfacecharts, v2.43)
 - **Videra-9m7** - Phase 317: Beads public roadmap generation (task, P2, closed; labels: beads, docs, phase-317, v2.43)
 - **Videra-sge** - Phase 313: Authoring polish inventory (task, P1, closed; labels: phase-313, v2.43)
@@ -34,5 +35,4 @@ _No matching beads in the exported snapshot._
 - **Videra-sw5** - Phase 311: SurfaceCharts professional style and precision (task, P1, closed)
 - **Videra-9xg** - Phase 309: Scene authoring builder contracts (task, P1, closed)
 - **Videra-5f3** - Phase 308: Visual authoring and chart presentation inventory (task, P1, closed)
-- **Videra-73p** - v2.41 No-Downshift Contract Hardening (epic, P1, closed)
 
