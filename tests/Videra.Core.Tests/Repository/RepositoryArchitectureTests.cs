@@ -104,6 +104,29 @@ public sealed class RepositoryArchitectureTests
     private const string StaleRendererConsumptionSentence =
         "renderer/shader/backend consumption of occlusion or texture-transform metadata is not being claimed here";
 
+    private const int GodCodeHotspotLineThreshold = 1000;
+    private const int SampleDemoCodeBehindLineBudget = 1015;
+    private const string SurfaceChartsDemoCodeBehindPath = "samples/Videra.SurfaceCharts.Demo/Views/MainWindow.axaml.cs";
+
+    private static readonly IReadOnlyDictionary<string, string> GodCodeHotspotAllowlist =
+        new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            ["samples/Videra.SurfaceCharts.Demo/Views/MainWindow.axaml.cs"] =
+                "Phase 303 guardrail baseline: known demo code-behind hotspot owned by Phase 302 follow-up.",
+            ["src/Videra.Platform.Linux/VulkanBackend.cs"] =
+                "Known platform backend hotspot; excluded from this phase's split scope.",
+            ["tests/Videra.Core.IntegrationTests/Rendering/VideraViewSceneIntegrationTests.cs"] =
+                "Large integration contract suite preserving scene-load and scene-runtime behavior.",
+            ["tests/Videra.Core.Tests/Graphics/Object3DTests.cs"] =
+                "Large behavior contract suite for Object3D mesh/material invariants.",
+            ["tests/Videra.Core.Tests/IO/ModelImporterTests.cs"] =
+                "Large importer contract suite with broad fixture coverage.",
+            ["tests/Videra.Core.Tests/Repository/RepositoryReleaseReadinessTests.cs"] =
+                "Large repository release-readiness policy suite.",
+            ["tests/Videra.SurfaceCharts.Avalonia.IntegrationTests/SurfaceChartViewLifecycleTests.cs"] =
+                "Large SurfaceCharts lifecycle integration suite covering host/runtime edge cases."
+        };
+
     [Fact]
     public void Repository_ShouldIncludeViewerBenchmarkProjectForScenePipelineEvidence()
     {
@@ -583,6 +606,49 @@ public sealed class RepositoryArchitectureTests
         videraViewFile.Should().NotBeNullOrWhiteSpace();
     }
 
+    [Fact]
+    public void Repository_ShouldMakeGodCodeHotspotsExplicit_AndCapSampleCodeBehindGrowth()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var trackedSourceFiles = GetTrackedRepositorySourceFiles(repositoryRoot).ToArray();
+
+        trackedSourceFiles.Should().NotBeEmpty("the guardrail should scan source-controlled C# files only");
+
+        var oversizedFiles = trackedSourceFiles
+            .Select(path => new SourceFileSize(path, CountLines(repositoryRoot, path)))
+            .Where(file => file.LineCount > GodCodeHotspotLineThreshold)
+            .OrderBy(file => file.RelativePath, StringComparer.Ordinal)
+            .ToArray();
+
+        oversizedFiles.Select(file => file.RelativePath)
+            .Should()
+            .BeEquivalentTo(GodCodeHotspotAllowlist.Keys, "current god-code hotspots must stay explicit with a rationale");
+
+        foreach (var file in oversizedFiles)
+        {
+            GodCodeHotspotAllowlist[file.RelativePath]
+                .Should()
+                .NotBeNullOrWhiteSpace($"hotspot {file.RelativePath} needs a rationale before the allowlist is updated");
+        }
+
+        var sampleCodeBehindFiles = trackedSourceFiles
+            .Where(IsSampleOrSmokeCodeBehind)
+            .Select(path => new SourceFileSize(path, CountLines(repositoryRoot, path)))
+            .OrderByDescending(file => file.LineCount)
+            .ToArray();
+
+        sampleCodeBehindFiles
+            .Where(file => file.LineCount > SampleDemoCodeBehindLineBudget)
+            .Should()
+            .BeEmpty("new sample/demo code-behind should not exceed the current SurfaceCharts demo scale without a conscious budget update");
+
+        sampleCodeBehindFiles
+            .Single(file => file.RelativePath == SurfaceChartsDemoCodeBehindPath)
+            .LineCount
+            .Should()
+            .Be(SampleDemoCodeBehindLineBudget, "the sample/demo code-behind budget is pinned to the current SurfaceCharts demo scale");
+    }
+
     private static string GetRepositoryRoot()
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);
@@ -606,6 +672,45 @@ public sealed class RepositoryArchitectureTests
         file.Should().NotBeNullOrWhiteSpace($"expected {fileName} to exist in repository tree");
         return file!;
     }
+
+    private static IEnumerable<string> GetTrackedRepositorySourceFiles(string repositoryRoot)
+    {
+        var startInfo = new System.Diagnostics.ProcessStartInfo("git", "ls-files -- src samples smoke tests")
+        {
+            WorkingDirectory = repositoryRoot,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true
+        };
+
+        using var process = System.Diagnostics.Process.Start(startInfo)
+            ?? throw new InvalidOperationException("Could not start git to enumerate source-controlled files.");
+
+        var output = process.StandardOutput.ReadToEnd();
+        var error = process.StandardError.ReadToEnd();
+        process.WaitForExit();
+
+        process.ExitCode.Should().Be(0, $"git ls-files must succeed to avoid scanning bin/obj/generated files: {error}");
+
+        return output
+            .Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
+            .Where(path => path.EndsWith(".cs", StringComparison.Ordinal))
+            .Select(path => path.Replace('\\', '/'));
+    }
+
+    private static int CountLines(string repositoryRoot, string relativePath)
+    {
+        return File.ReadLines(Path.Combine(repositoryRoot, relativePath.Replace('/', Path.DirectorySeparatorChar))).Count();
+    }
+
+    private static bool IsSampleOrSmokeCodeBehind(string relativePath)
+    {
+        return (relativePath.StartsWith("samples/", StringComparison.Ordinal) ||
+                relativePath.StartsWith("smoke/", StringComparison.Ordinal)) &&
+               (relativePath.EndsWith(".axaml.cs", StringComparison.Ordinal) ||
+                relativePath.EndsWith(".xaml.cs", StringComparison.Ordinal));
+    }
+
+    private sealed record SourceFileSize(string RelativePath, int LineCount);
 
     private static void ShouldExplicitlyDenyOpenGlProductPromise(string document)
     {
