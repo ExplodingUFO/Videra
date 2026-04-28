@@ -19,6 +19,8 @@ Attach the smallest artifact set that explains the failure path:
 | Packaged viewer validation | Attach `artifacts/consumer-smoke/consumer-smoke-result.json` and `artifacts/consumer-smoke/diagnostics-snapshot.txt`. |
 | SurfaceCharts issue | Attach `surfacecharts-support-summary.txt` from `smoke/Videra.SurfaceCharts.ConsumerSmoke` or the copied `Videra.SurfaceCharts.Demo` support summary; keep it separate from `VideraDiagnosticsSnapshotFormatter` output. |
 
+SurfaceCharts support summaries are support evidence, not benchmark results, pixel-perfect visual-regression gates, or GPU performance guarantees. A structured summary must include these prefixes: `GeneratedUtc`, `EvidenceKind`, `EvidenceOnly`, `ChartControl`, `EnvironmentRuntime`, `AssemblyIdentity`, `BackendDisplayEnvironment`, and `RenderingStatus`.
+
 ## Before filing
 
 1. Confirm the install path:
@@ -62,7 +64,7 @@ Attach the smallest artifact set that explains the failure path:
 - `CanReplayScene` and `ReplayLimitation` from `VideraInspectionBundleService.ExportAsync(...)` whenever the bundle is exportable but not replayable
 - `SurfaceCharts support summary` from either the packaged `smoke/Videra.SurfaceCharts.ConsumerSmoke` `surfacecharts-support-summary.txt` artifact or the `Videra.SurfaceCharts.Demo` `Support summary` panel when the issue is in `area: surfacecharts`; keep it separate from `VideraDiagnosticsSnapshotFormatter` output
 - use `Copy support summary` after reproducing `Start here: In-memory first chart`; continue to `Explore next: Cache-backed streaming` only if needed, and use `Try next: Analytics proof` for explicit-coordinate pinned-probe/analysis scenarios, `Try next: Waterfall proof` when the issue involves the second chart control, or `Try next: Scatter proof` when the issue involves the scatter control path; `ScatterChartView` is shipped in the Avalonia control line
-- include the SurfaceCharts summary fields for active chart control type, runtime and assembly identity, backend/display environment variables, and `CacheLoadFailure` when the cache-backed path falls back
+- include the SurfaceCharts summary fields `GeneratedUtc`, `EvidenceKind`, `EvidenceOnly`, `ChartControl`, `EnvironmentRuntime`, `AssemblyIdentity`, `BackendDisplayEnvironment`, and `RenderingStatus`; include `CacheLoadFailure` when the cache-backed path falls back
 - SurfaceCharts demo-path choice when relevant:
   - `Start here: In-memory first chart`
   - `Explore next: Cache-backed streaming`

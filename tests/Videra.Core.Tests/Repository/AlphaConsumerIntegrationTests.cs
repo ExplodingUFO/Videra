@@ -322,12 +322,29 @@ public sealed class AlphaConsumerIntegrationTests
         var featureFormPath = Path.Combine(repositoryRoot, ".github", "ISSUE_TEMPLATE", "feature_request.yml");
         var contributingPath = Path.Combine(repositoryRoot, "CONTRIBUTING.md");
         var troubleshootingPath = Path.Combine(repositoryRoot, "docs", "troubleshooting.md");
+        var releasingPath = Path.Combine(repositoryRoot, "docs", "releasing.md");
         var supportMatrixPath = Path.Combine(repositoryRoot, "docs", "support-matrix.md");
         var avaloniaReadmePath = Path.Combine(repositoryRoot, "src", "Videra.Avalonia", "README.md");
+        var requiredSurfaceChartsSupportFields = new[]
+        {
+            "GeneratedUtc",
+            "EvidenceKind",
+            "EvidenceOnly",
+            "ChartControl",
+            "EnvironmentRuntime",
+            "AssemblyIdentity",
+            "BackendDisplayEnvironment",
+            "RenderingStatus",
+        };
 
         File.Exists(feedbackDocPath).Should().BeTrue();
 
         var feedbackDoc = File.ReadAllText(feedbackDocPath);
+        foreach (var field in requiredSurfaceChartsSupportFields)
+        {
+            feedbackDoc.Should().Contain(field);
+        }
+
         feedbackDoc.Should().Contain("Videra.MinimalSample");
         feedbackDoc.Should().Contain("consumer smoke");
         feedbackDoc.Should().Contain("smoke/Videra.SurfaceCharts.ConsumerSmoke");
@@ -401,6 +418,21 @@ public sealed class AlphaConsumerIntegrationTests
         troubleshooting.Should().Contain("InteractionQuality");
         troubleshooting.Should().Contain("ViewState");
         troubleshooting.Should().Contain("OverlayOptions");
+        foreach (var field in requiredSurfaceChartsSupportFields)
+        {
+            troubleshooting.Should().Contain(field);
+        }
+
+        var releasing = File.ReadAllText(releasingPath);
+        foreach (var field in requiredSurfaceChartsSupportFields)
+        {
+            releasing.Should().Contain(field);
+        }
+
+        releasing.Should().Contain("support evidence");
+        releasing.Should().Contain("not a benchmark result");
+        releasing.Should().Contain("pixel-perfect visual-regression gate");
+        releasing.Should().Contain("GPU performance guarantee");
 
         var supportMatrix = File.ReadAllText(supportMatrixPath);
         supportMatrix.Should().Contain("alpha-feedback.md");

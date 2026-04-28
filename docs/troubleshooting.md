@@ -38,6 +38,7 @@ For `area: surfacecharts`, start from `smoke/Videra.SurfaceCharts.ConsumerSmoke`
 - `Try next: Analytics proof` covers the explicit-coordinate, independent-`ColorField` and pinned-probe analytic workflow on the same shell, `Try next: Waterfall proof` is the fourth demo path, and `Try next: Scatter proof` covers the repo-owned scatter path on that same shell.
 - Use `Copy support summary` to paste the demo `Support summary` block into the issue so support has the same `ViewState`, `InteractionQuality`, `RenderingStatus`, and `OverlayOptions` contract the SurfaceCharts sample exposes.
 - Keep the SurfaceCharts `Support summary` separate from the viewer diagnostics snapshot. The chart summary is chart-scoped and does not replace `VideraDiagnosticsSnapshotFormatter` output.
+- Treat the SurfaceCharts summary as support evidence, not a benchmark result, pixel-perfect visual-regression gate, or GPU performance guarantee. A structured summary must include `GeneratedUtc`, `EvidenceKind`, `EvidenceOnly`, `ChartControl`, `EnvironmentRuntime`, `AssemblyIdentity`, `BackendDisplayEnvironment`, and `RenderingStatus`.
 
 ## Package Selection vs Backend Preference
 
@@ -111,6 +112,7 @@ Include:
 - Backend preference or `VIDERA_BACKEND` value
 - diagnostics snapshot from `VideraDiagnosticsSnapshotFormatter`
 - `surfacecharts-support-summary.txt` from `smoke/Videra.SurfaceCharts.ConsumerSmoke` or the `Support summary` from `Videra.SurfaceCharts.Demo` when the issue is in `area: surfacecharts`
+- required SurfaceCharts support-summary fields: `GeneratedUtc`, `EvidenceKind`, `EvidenceOnly`, `ChartControl`, `EnvironmentRuntime`, `AssemblyIdentity`, `BackendDisplayEnvironment`, and `RenderingStatus`
 - `LastSnapshotExportPath` and `LastSnapshotExportStatus` when an inspection snapshot was exported
 - the exact SurfaceCharts demo path you used:
   - `Start here: In-memory first chart`
