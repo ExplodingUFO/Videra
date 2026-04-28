@@ -37,6 +37,17 @@ public sealed class SceneAuthoringBuilder
         return this;
     }
 
+    public SceneAuthoringBuilder AddMesh(
+        string name,
+        MeshData meshData,
+        MaterialInstance material,
+        SceneAuthoringPlacement placement,
+        SceneNodeId? nodeId = null,
+        MeshPrimitiveId? primitiveId = null)
+    {
+        return AddMesh(name, meshData, material, placement.ToMatrix(), nodeId, primitiveId);
+    }
+
     public SceneAuthoringBuilder AddTriangle(
         string name,
         MaterialInstance material,
@@ -70,6 +81,30 @@ public sealed class SceneAuthoringBuilder
         MeshPrimitiveId? primitiveId = null)
     {
         return AddMesh(name, SceneGeometry.Plane(width, depth, material.BaseColorFactor), material, transform, nodeId, primitiveId);
+    }
+
+    public SceneAuthoringBuilder AddPlane(
+        string name,
+        MaterialInstance material,
+        SceneAuthoringPlacement placement,
+        float width = 1f,
+        float depth = 1f,
+        SceneNodeId? nodeId = null,
+        MeshPrimitiveId? primitiveId = null)
+    {
+        return AddPlane(name, material, width, depth, placement.ToMatrix(), nodeId, primitiveId);
+    }
+
+    public SceneAuthoringBuilder AddPlane(
+        string name,
+        RgbaFloat color,
+        SceneAuthoringPlacement placement,
+        float width = 1f,
+        float depth = 1f,
+        SceneNodeId? nodeId = null,
+        MeshPrimitiveId? primitiveId = null)
+    {
+        return AddPlane(name, SceneMaterials.Matte(name, color), placement, width, depth, nodeId, primitiveId);
     }
 
     public SceneAuthoringBuilder AddGrid(
@@ -154,6 +189,28 @@ public sealed class SceneAuthoringBuilder
         return AddMesh(name, SceneGeometry.Cube(size, material.BaseColorFactor), material, transform, nodeId, primitiveId);
     }
 
+    public SceneAuthoringBuilder AddCube(
+        string name,
+        MaterialInstance material,
+        SceneAuthoringPlacement placement,
+        float size = 1f,
+        SceneNodeId? nodeId = null,
+        MeshPrimitiveId? primitiveId = null)
+    {
+        return AddCube(name, material, size, placement.ToMatrix(), nodeId, primitiveId);
+    }
+
+    public SceneAuthoringBuilder AddCube(
+        string name,
+        RgbaFloat color,
+        SceneAuthoringPlacement placement,
+        float size = 1f,
+        SceneNodeId? nodeId = null,
+        MeshPrimitiveId? primitiveId = null)
+    {
+        return AddCube(name, SceneMaterials.Matte(name, color), placement, size, nodeId, primitiveId);
+    }
+
     public SceneAuthoringBuilder AddSphere(
         string name,
         MaterialInstance material,
@@ -165,6 +222,32 @@ public sealed class SceneAuthoringBuilder
         MeshPrimitiveId? primitiveId = null)
     {
         return AddMesh(name, SceneGeometry.Sphere(radius, segments, rings, material.BaseColorFactor), material, transform, nodeId, primitiveId);
+    }
+
+    public SceneAuthoringBuilder AddSphere(
+        string name,
+        MaterialInstance material,
+        SceneAuthoringPlacement placement,
+        float radius = 0.5f,
+        int segments = 16,
+        int rings = 8,
+        SceneNodeId? nodeId = null,
+        MeshPrimitiveId? primitiveId = null)
+    {
+        return AddSphere(name, material, radius, segments, rings, placement.ToMatrix(), nodeId, primitiveId);
+    }
+
+    public SceneAuthoringBuilder AddSphere(
+        string name,
+        RgbaFloat color,
+        SceneAuthoringPlacement placement,
+        float radius = 0.5f,
+        int segments = 16,
+        int rings = 8,
+        SceneNodeId? nodeId = null,
+        MeshPrimitiveId? primitiveId = null)
+    {
+        return AddSphere(name, SceneMaterials.Matte(name, color), placement, radius, segments, rings, nodeId, primitiveId);
     }
 
     public SceneAuthoringBuilder AddInstances(
@@ -182,6 +265,25 @@ public sealed class SceneAuthoringBuilder
 
         var mesh = new MeshPrimitive(primitiveId ?? MeshPrimitiveId.New(), name, meshData, material.Id);
         return AddInstanceBatch(new InstanceBatchDescriptor(name, mesh, material, transforms, colors, objectIds, pickable));
+    }
+
+    public SceneAuthoringBuilder AddInstances(
+        string name,
+        MeshData meshData,
+        MaterialInstance material,
+        ReadOnlyMemory<SceneAuthoringPlacement> placements,
+        ReadOnlyMemory<RgbaFloat> colors = default,
+        ReadOnlyMemory<Guid> objectIds = default,
+        bool pickable = true,
+        MeshPrimitiveId? primitiveId = null)
+    {
+        var transforms = new Matrix4x4[placements.Length];
+        for (var i = 0; i < placements.Length; i++)
+        {
+            transforms[i] = placements.Span[i].ToMatrix();
+        }
+
+        return AddInstances(name, meshData, material, transforms, colors, objectIds, pickable, primitiveId);
     }
 
     public SceneAuthoringBuilder AddInstanceBatch(InstanceBatchDescriptor descriptor)
