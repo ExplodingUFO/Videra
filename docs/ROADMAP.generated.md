@@ -16,7 +16,12 @@ _No matching beads in the exported snapshot._
 
 ## Ready
 
-_No matching beads in the exported snapshot._
+- **Videra-rme** - v2.44 Professional Visualization Quality (epic, P1, open)
+- **Videra-5eu** - Phase 318: Professional visualization quality inventory (task, P1, open; labels: phase-318, v2.44)
+- **Videra-wyh** - Phase 319: Authoring visual semantics polish (task, P1, open; labels: authoring, phase-319, v2.44)
+- **Videra-8n2** - Phase 320: SurfaceCharts professional presentation polish (task, P1, open; labels: phase-320, surfacecharts, v2.44)
+- **Videra-3jz** - Phase 321: Workbench evidence and adoption polish (task, P2, open; labels: phase-321, v2.44, workbench)
+- **Videra-zbe** - Phase 322: Visualization quality guardrails and docs closure (task, P2, open; labels: docs, guardrails, phase-322, v2.44)
 
 ## Backlog
 
