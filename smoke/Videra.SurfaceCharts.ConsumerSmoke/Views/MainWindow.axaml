@@ -13,7 +13,7 @@
             BorderThickness="1"
             CornerRadius="18"
             ClipToBounds="True">
-      <charts:SurfaceChartView x:Name="ChartView" />
+      <charts:VideraChartView x:Name="ChartView" />
     </Border>
     <TextBlock Grid.Row="1"
                x:Name="StatusText"

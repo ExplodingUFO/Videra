@@ -43,7 +43,7 @@ For scatter data, retained streaming truth is exposed as retained point count, a
 
 Advanced callers can keep the same chart shell while supplying richer analytics payloads underneath it. The lower-level contracts now also support `SurfaceScalarField`-backed height data, an independent `ColorField`, and a first-class `SurfaceMask` through the `SurfaceMatrix(metadata, heightField, colorField, mask)` and `SurfaceTile(..., heightField, colorField, mask)` overloads.
 
-That split is intentional: the default source-first regular-grid path stays narrow, while advanced callers can opt into independent `ColorField` and first-class `SurfaceMask` semantics without widening `SurfaceChartView` itself.
+That split is intentional: the default source-first regular-grid path stays narrow, while advanced callers can opt into independent `ColorField` and first-class `SurfaceMask` semantics without widening `VideraChartView` itself.
 
 ## What Does Not Belong Here
 

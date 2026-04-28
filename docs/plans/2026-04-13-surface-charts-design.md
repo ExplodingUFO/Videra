@@ -68,7 +68,7 @@ The recommended architecture is a four-layer split:
 
 1. `Videra.SurfaceCharts.Core` for chart-domain models, LOD policies, tile contracts, color maps, and viewport logic
 2. `Videra.SurfaceCharts.Processing` for pyramid building, offline cache generation, and future native acceleration
-3. `Videra.SurfaceCharts.Avalonia` for the dedicated `SurfaceChartView` control and Avalonia-specific overlay/input behavior
+3. `Videra.SurfaceCharts.Avalonia` for the dedicated `VideraChartView` control and Avalonia-specific overlay/input behavior
 4. Independent demo and docs that show the supported chart workflow without using `VideraView`
 
 ## Architectural Boundaries
@@ -121,7 +121,7 @@ This layer should ship the public control surface.
 
 Responsibilities:
 
-- `SurfaceChartView`
+- `VideraChartView`
 - control lifecycle and host integration
 - input interpretation
 - camera interaction
@@ -250,7 +250,7 @@ The control does not need strict MVVM ownership for high-frequency render state.
 
 The following constraints are part of the design, not optional implementation taste:
 
-- `SurfaceChartView` must remain a UI shell, not a god class
+- `VideraChartView` must remain a UI shell, not a god class
 - input interpretation, tile scheduling, rendering, cache access, and overlay presentation must be separated
 - code comments must be in English
 - public APIs should carry XML docs

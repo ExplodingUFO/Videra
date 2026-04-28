@@ -11,7 +11,7 @@
 ## Execution Constraints
 
 - Keep the chart control decoupled from `VideraView`.
-- Do not let `SurfaceChartView` or any new controller become god code.
+- Do not let `VideraChartView` or any new controller become god code.
 - All code comments and public XML docs must be in English.
 - Prefer TDD for every task.
 - Prefer `gpt-5.4-mini` for simple, bounded tasks.
@@ -363,10 +363,10 @@ git commit -m "feat: add dedicated surface rendering path"
 **Suggested worker:** `gpt-5.4`
 
 **Files:**
-- Create: `src/Videra.SurfaceCharts.Avalonia/Controls/SurfaceChartView.cs`
-- Create: `src/Videra.SurfaceCharts.Avalonia/Controls/SurfaceChartView.Rendering.cs`
-- Create: `src/Videra.SurfaceCharts.Avalonia/Controls/SurfaceChartView.Properties.cs`
-- Create: `src/Videra.SurfaceCharts.Avalonia/Controls/SurfaceChartView.Overlay.cs`
+- Create: `src/Videra.SurfaceCharts.Avalonia/Controls/VideraChartView.cs`
+- Create: `src/Videra.SurfaceCharts.Avalonia/Controls/VideraChartView.Rendering.cs`
+- Create: `src/Videra.SurfaceCharts.Avalonia/Controls/VideraChartView.Properties.cs`
+- Create: `src/Videra.SurfaceCharts.Avalonia/Controls/VideraChartView.Overlay.cs`
 - Create: `src/Videra.SurfaceCharts.Avalonia/Controls/Interaction/SurfaceChartController.cs`
 - Create: `src/Videra.SurfaceCharts.Avalonia/Controls/Interaction/SurfaceCameraController.cs`
 - Create: `src/Videra.SurfaceCharts.Avalonia/Controls/Interaction/SurfaceTileScheduler.cs`
@@ -395,7 +395,7 @@ Expected: FAIL.
 
 **Step 3: Write minimal implementation**
 
-Keep `SurfaceChartView` as a shell. Put input interpretation, camera behavior, and scheduling in separate classes. Do not mirror `VideraView` internals.
+Keep `VideraChartView` as a shell. Put input interpretation, camera behavior, and scheduling in separate classes. Do not mirror `VideraView` internals.
 
 **Step 4: Run tests to verify they pass**
 
@@ -415,7 +415,7 @@ git commit -m "feat: add avalonia surface chart control shell"
 **Files:**
 - Create: `src/Videra.SurfaceCharts.Avalonia/Controls/Overlay/SurfaceProbeOverlayState.cs`
 - Create: `src/Videra.SurfaceCharts.Avalonia/Controls/Overlay/SurfaceProbeOverlayPresenter.cs`
-- Modify: `src/Videra.SurfaceCharts.Avalonia/Controls/SurfaceChartView.Overlay.cs`
+- Modify: `src/Videra.SurfaceCharts.Avalonia/Controls/VideraChartView.Overlay.cs`
 - Create: `tests/Videra.SurfaceCharts.Avalonia.IntegrationTests/SurfaceChartProbeOverlayTests.cs`
 
 **Step 1: Write the failing tests**
@@ -525,7 +525,7 @@ git commit -m "feat: add surface charts demo"
 Add repository/documentation guards that check:
 
 - README describes the chart modules as independent from `VideraView`
-- docs use the intended `SurfaceChartView` vocabulary
+- docs use the intended `VideraChartView` vocabulary
 - localization coverage includes the new modules
 - verification scripts build the new demo
 

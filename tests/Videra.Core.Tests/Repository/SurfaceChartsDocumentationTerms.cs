@@ -12,22 +12,22 @@ internal static class SurfaceChartsDocumentationTerms
         "For the canonical SurfaceCharts story, start from `Videra.SurfaceCharts.Avalonia`, add `Videra.SurfaceCharts.Processing` only for the surface/cache-backed path, and use [Videra.SurfaceCharts.Demo](samples/Videra.SurfaceCharts.Demo/README.md) as the repository reference app for the same path.";
 
     public const string SurfaceChartsDemoFirstChartSentence =
-        "For the canonical surface/cache-backed chart story, start from `Videra.SurfaceCharts.Avalonia` plus `Videra.SurfaceCharts.Processing`, and use this demo as the repository reference app for that same path. `SurfaceChartView`, `WaterfallChartView`, and `ScatterChartView` in `Videra.SurfaceCharts.Avalonia` are the current chart control entrypoints, and this demo includes repo-owned `Try next: Analytics proof` and `Try next: Scatter proof` paths.";
+        "For the canonical surface/cache-backed chart story, start from `Videra.SurfaceCharts.Avalonia` plus `Videra.SurfaceCharts.Processing`, and use this demo as the repository reference app for that same path. `VideraChartView`, `VideraChartView`, and `VideraChartView` in `Videra.SurfaceCharts.Avalonia` are the current chart control entrypoints, and this demo includes repo-owned `Try next: Analytics proof` and `Try next: Scatter proof` paths.";
 
     public const string SurfaceChartsDemoSentence =
         "`Videra.SurfaceCharts.Demo` is the independent demo application for the surface-chart module family.";
 
     public const string SurfaceChartViewSentence =
-        "The dedicated `SurfaceChartView`, `WaterfallChartView`, and `ScatterChartView` controls remain the public chart entrypoints in `Videra.SurfaceCharts.Avalonia`.";
+        "The dedicated `VideraChartView`, `VideraChartView`, and `VideraChartView` controls remain the public chart entrypoints in `Videra.SurfaceCharts.Avalonia`.";
 
     public const string SurfaceChartsRendererStatusSentence =
         "The shipped chart surface is `GPU-first` with explicit chart-local `software fallback`, and hosts can inspect `RenderingStatus` / `RenderStatusChanged` without implying any `VideraView` backend downshift.";
 
     public const string SurfaceChartsViewStateSentence =
-        "SurfaceChartView exposes `ViewState` as the chart-view contract for persisted camera and data-window state.";
+        "VideraChartView exposes `ViewState` as the chart-view contract for persisted camera and data-window state.";
 
     public const string SurfaceChartsInteractionSentence =
-        "SurfaceChartView now ships built-in `left-drag orbit`, `right-drag pan`, `wheel dolly`, `Ctrl + left-drag` focus zoom, and `Shift + left-click` pinned probe on top of the `ViewState` runtime contract.";
+        "VideraChartView now ships built-in `left-drag orbit`, `right-drag pan`, `wheel dolly`, `Ctrl + left-drag` focus zoom, and `Shift + left-click` pinned probe on top of the `ViewState` runtime contract.";
 
     public const string SurfaceChartsInteractionQualitySentence =
         "The chart enters `Interactive` quality during motion and returns to `Refine` after input settles.";
@@ -45,7 +45,7 @@ internal static class SurfaceChartsDocumentationTerms
         "Hosts own `ISurfaceTileSource`, persisted `ViewState`, color-map selection, and chart-local product UI.";
 
     public const string SurfaceChartControlOwnershipSentence =
-        "`SurfaceChartView` owns chart-local built-in gestures, tile scheduling/cache, overlay presentation, native-host/render-host orchestration, and `RenderingStatus` projection.";
+        "`VideraChartView` owns chart-local built-in gestures, tile scheduling/cache, overlay presentation, native-host/render-host orchestration, and `RenderingStatus` projection.";
 
     public const string SurfaceChartsRenderingStatusFieldsSentence =
         "The public rendering truth is `RenderingStatus` + `RenderStatusChanged` with `ActiveBackend`, `IsReady`, `IsFallback`, `FallbackReason`, `UsesNativeSurface`, `ResidentTileCount`, `VisibleTileCount`, and `ResidentTileBytes`.";
@@ -66,7 +66,7 @@ internal static class SurfaceChartsDocumentationTerms
         "当前对外 truth 是：独立 Demo、built-in `left-drag orbit` / `right-drag pan` / `wheel dolly` / `Ctrl + left-drag` focus zoom、hover 与 `Shift + left-click` pinned probe、可见 `RenderingStatus`，以及显式 `Interactive` / `Refine` 质量切换；`Try next: Analytics proof` 通过独立 `ColorField` 与 pinned-probe 分析级路径暴露，`Try next: Scatter proof` 覆盖 scatter 路径。";
 
     public const string ChineseSurfaceChartsViewStateSentence =
-        "SurfaceChartView 现在以 `ViewState` 作为 chart-view 契约，持久化 camera 与 data-window 状态。";
+        "VideraChartView 现在以 `ViewState` 作为 chart-view 契约，持久化 camera 与 data-window 状态。";
 
     public const string ChineseSurfaceChartsInteractionQualitySentence =
         "图表在交互过程中进入 `Interactive` 质量模式，并在输入停稳后回到 `Refine`。";
@@ -75,7 +75,7 @@ internal static class SurfaceChartsDocumentationTerms
         "对外交互诊断是 `InteractionQuality` + `InteractionQualityChanged`，状态为 `Interactive` / `Refine`。";
 
     public const string ChineseSurfaceChartsOverlayOptionsSentence =
-        "SurfaceChartView 通过 chart-local `OverlayOptions` 提供 formatter、标题/单位覆盖、minor ticks、grid plane 与 axis-side 行为。";
+        "VideraChartView 通过 chart-local `OverlayOptions` 提供 formatter、标题/单位覆盖、minor ticks、grid plane 与 axis-side 行为。";
 
     public const string ChineseSurfaceChartsOverlayBoundarySentence =
         "公开 overlay 配置入口是 `SurfaceChartOverlayOptions` / `OverlayOptions`，overlay state 类型继续保持 internal。";
@@ -84,7 +84,7 @@ internal static class SurfaceChartsDocumentationTerms
         "宿主拥有 `ISurfaceTileSource`、持久化的 `ViewState`、color-map 选择，以及 chart-local 产品 UI。";
 
     public const string ChineseSurfaceChartControlOwnershipSentence =
-        "`SurfaceChartView` 拥有 chart-local built-in 手势、tile scheduling/cache、overlay presentation、native-host/render-host orchestration，以及 `RenderingStatus` 投影。";
+        "`VideraChartView` 拥有 chart-local built-in 手势、tile scheduling/cache、overlay presentation、native-host/render-host orchestration，以及 `RenderingStatus` 投影。";
 
     public const string ChineseSurfaceChartsRenderingStatusFieldsSentence =
         "对外渲染 truth 是 `RenderingStatus` + `RenderStatusChanged`，字段包括 `ActiveBackend`、`IsReady`、`IsFallback`、`FallbackReason`、`UsesNativeSurface`、`ResidentTileCount`、`VisibleTileCount` 和 `ResidentTileBytes`。";
@@ -120,7 +120,7 @@ internal static class SurfaceChartsDocumentationTerms
         "Videra.SurfaceCharts.Avalonia",
         "Videra.SurfaceCharts.Processing",
         "Videra.SurfaceCharts.Demo",
-        "SurfaceChartView"
+        "VideraChartView"
     ];
 
     public static readonly string[] GuardedSurfaceChartsEntryPointPaths =
@@ -155,9 +155,9 @@ internal static class SurfaceChartsDocumentationTerms
 
     public static readonly string[] SurfaceChartViewEntryTokens =
     [
-        "`SurfaceChartView`",
-        "`WaterfallChartView`",
-        "`ScatterChartView`",
+        "`VideraChartView`",
+        "`VideraChartView`",
+        "`VideraChartView`",
         "public chart entrypoints",
         "`Videra.SurfaceCharts.Avalonia`"
     ];
@@ -180,7 +180,7 @@ internal static class SurfaceChartsDocumentationTerms
 
     public static readonly string[] SurfaceChartsRendererBoundaryTokens =
     [
-        "`SurfaceChartView`",
+        "`VideraChartView`",
         "chart-local renderer seam",
         "chart-local `software fallback`",
         "`VideraView`"
@@ -198,7 +198,7 @@ internal static class SurfaceChartsDocumentationTerms
     [
         "`GPU-first`",
         "`software fallback`",
-        "`SurfaceChartView`",
+        "`VideraChartView`",
         "native-host or GPU initialization",
         "no source switch",
         "previous chart source remains active",
@@ -207,7 +207,7 @@ internal static class SurfaceChartsDocumentationTerms
 
     public static readonly string[] SurfaceChartsViewStateTokens =
     [
-        "SurfaceChartView",
+        "VideraChartView",
         "`ViewState`",
         "camera",
         "data-window"
@@ -237,18 +237,18 @@ internal static class SurfaceChartsDocumentationTerms
         "`Videra.SurfaceCharts.Avalonia`",
         "`Videra.SurfaceCharts.Processing`",
         "repository reference app",
-        "`SurfaceChartView`",
-        "`WaterfallChartView`",
-        "`ScatterChartView`",
+        "`VideraChartView`",
+        "`VideraChartView`",
+        "`VideraChartView`",
         "`Try next: Analytics proof`",
         "`Try next: Scatter proof`"
     ];
 
     public static readonly string[] SurfaceChartsTriFamilyControlTokens =
     [
-        "`SurfaceChartView`",
-        "`ScatterChartView`",
-        "`WaterfallChartView`"
+        "`VideraChartView`",
+        "`VideraChartView`",
+        "`VideraChartView`"
     ];
 
     public static readonly string[] SurfaceChartsInteractionDiagnosticsTokens =
@@ -286,7 +286,7 @@ internal static class SurfaceChartsDocumentationTerms
 
     public static readonly string[] SurfaceChartControlOwnershipTokens =
     [
-        "`SurfaceChartView` owns",
+        "`VideraChartView` owns",
         "tile scheduling/cache",
         "overlay presentation",
         "native-host/render-host orchestration",
@@ -319,7 +319,7 @@ internal static class SurfaceChartsDocumentationTerms
     [
         "`Try next: Scatter proof`",
         "repo-owned scatter proof path",
-        "`ScatterChartView`"
+        "`VideraChartView`"
     ];
 
     public static readonly string[] SurfaceChartsColumnarStreamingTokens =
@@ -365,7 +365,7 @@ internal static class SurfaceChartsDocumentationTerms
         "`SurfaceMatrix`",
         "source-first",
         "regular-grid entrypoint",
-        "same `SurfaceChartView` shell",
+        "same `VideraChartView` shell",
         "`SurfaceScalarField`",
         "`ColorField`",
         "`SurfaceMask`"
@@ -384,7 +384,7 @@ internal static class SurfaceChartsDocumentationTerms
         "persisted `ViewState`",
         "color-map selection",
         "chart-local product UI",
-        "`SurfaceChartView` owns",
+        "`VideraChartView` owns",
         "tile scheduling/cache",
         "overlay presentation",
         "native-host/render-host orchestration",
@@ -502,7 +502,7 @@ internal static class SurfaceChartsDocumentationTerms
 
     public static readonly string[] ChineseSurfaceChartsViewStateTokens =
     [
-        "SurfaceChartView",
+        "VideraChartView",
         "`ViewState`",
         "camera",
         "data-window"
@@ -533,7 +533,7 @@ internal static class SurfaceChartsDocumentationTerms
 
     public static readonly string[] ChineseSurfaceChartsOverlayOptionsTokens =
     [
-        "SurfaceChartView",
+        "VideraChartView",
         "`OverlayOptions`",
         "formatter",
         "标题/单位覆盖",
@@ -566,7 +566,7 @@ internal static class SurfaceChartsDocumentationTerms
 
     public static readonly string[] ChineseSurfaceChartControlOwnershipTokens =
     [
-        "`SurfaceChartView`",
+        "`VideraChartView`",
         "chart-local built-in 手势",
         "tile scheduling/cache",
         "overlay presentation",

@@ -7,12 +7,12 @@ Videra 是一套面向 .NET 桌面应用的跨平台 3D 查看组件库。公开
 当前 shipped viewer 路径保持 static-scene-only：`SceneDocument` 保留 backend-neutral 的 imported scene truth，进入运行时的资产仍以 `SceneNode`、`MeshPrimitive`、`MaterialInstance`、`Texture2D` 和 `Sampler` 为中心；其中还包括 per-primitive non-Blend material participation、occlusion texture binding/strength，以及 `KHR_texture_transform` 的 offset/scale/rotation 和 texture-coordinate override。当前 native static-scene 路径还带有一个 bounded、style-driven 的 broader-lighting baseline。canonical runtime path 现在可以把一个 imported entry 扩成多个 internal runtime objects，因此 mixed opaque/transparent primitive participation 可以穿过 runtime bridge，而不需要把公开边界扩大成更宽的 transparency system。当前 renderer path 已经在有界的 static-scene seam 上消费 baseColor 纹理采样、occlusion texture binding/strength、emissive 输入和 normal-map-ready 输入；其中也会在相关绑定请求时应用 `KHR_texture_transform` 的 offset/scale/rotation 与 texture-coordinate override。这仍然只是一个有界的 renderer-consumption seam，不代表更宽的 lighting/shader/backend 着色承诺。动画、骨骼、morph targets、broader lighting systems、阴影、environment maps、post-processing、额外 UI adapter，以及 Wayland/OpenGL/WebGL/backend API 扩展仍在当前边界之外。
 
 surface-chart 模块家族与 `VideraView` 相互独立。它面向离线大矩阵、曲面图和时频图一类可视化场景；`Videra.SurfaceCharts.Demo` 保持 repository-only，只用于参考和 support repro。
-当前公开控制层包括 `SurfaceChartView`、`WaterfallChartView` 和 `ScatterChartView` 三个 Avalonia 控件；`Videra.SurfaceCharts.Processing` 只在 surface/cache-backed 路径需要，不是每条 chart 路径都必须安装。独立 Demo 现在通过 repo-owned `Try next: Analytics proof` 和 `Try next: Scatter proof` 也覆盖分析与 scatter 路径。
+当前公开控制层包括 `VideraChartView`、`VideraChartView` 和 `VideraChartView` 三个 Avalonia 控件；`Videra.SurfaceCharts.Processing` 只在 surface/cache-backed 路径需要，不是每条 chart 路径都必须安装。独立 Demo 现在通过 repo-owned `Try next: Analytics proof` 和 `Try next: Scatter proof` 也覆盖分析与 scatter 路径。
 
 Phases 181-182 之后，现有 chart-local 路径的交互驻留更紧、probe 路径抖动更低；当前 SurfaceCharts 硬门槛仍只落在 `ApplyResidencyChurnUnderCameraMovement` 和 `ProbeLatency`。
 Columnar scatter streaming 仍是 chart-domain contract，不是 viewer/runtime mode。`ScatterColumnarSeries` 通过 `ReplaceRange(...)` / `AppendRange(...)` 接收批量数据，可用正数 `fifoCapacity` 保持 bounded retained point window；高容量路径默认 `Pickable=false`，并通过 `ScatterChartRenderingStatus` 报告 retained point count、append/replacement batch count、FIFO dropped points、configured FIFO capacity、pickable point count 和 scatter `InteractionQuality`。`Videra.SurfaceCharts.Demo` 现在用 deterministic `ScatterStreamingScenarios` 暴露 replace、append 和 FIFO-trim proof，并在 copyable support summary 里标注 scenario id/name/update mode、point counts、FIFO capacity、pickability、rendering status 和 evidence-only 语义。`SurfaceChartsStreamingBenchmarks.AppendColumnarBatch`、`AppendColumnarBatch_WithFifoTrim` 与 `StreamingDiagnosticsAggregation` 只作为 `Mean` / `Allocated` evidence-only benchmark，不进入当前 hard thresholds。
 
-默认的打包支持证明请先把 `smoke/Videra.SurfaceCharts.ConsumerSmoke` 当作 surface/cache-backed proof，`surfacecharts-support-summary.txt` 也从这里产出；再把 `Videra.SurfaceCharts.Avalonia` 中的 `SurfaceChartView`、`WaterfallChartView` 和 `ScatterChartView` 视为当前 chart control entrypoint。
+默认的打包支持证明请先把 `smoke/Videra.SurfaceCharts.ConsumerSmoke` 当作 surface/cache-backed proof，`surfacecharts-support-summary.txt` 也从这里产出；再把 `Videra.SurfaceCharts.Avalonia` 中的 `VideraChartView`、`VideraChartView` 和 `VideraChartView` 视为当前 chart control entrypoint。
 先从 Demo 默认的 `Start here: In-memory first chart` 路径开始，确认基线 first chart 可以渲染后，再切到 `Explore next: Cache-backed streaming`，需要 explicit/non-uniform 坐标和 `ColorField`/`pinned probe` 的分析级路径时再看 `Try next: Analytics proof`，需要第二个控件证明时再看 `Try next: Waterfall proof`。
 
 `Videra.Demo` 的 `Performance Lab` 是 deterministic dataset proof surface：small / medium / large viewer instance-batch scenarios、normal-object 对比、pickable toggle、pick latency evidence、retained instance diagnostics 和 evidence-only copy snapshot。它不是 generic benchmark editor，也不承诺 GPU-driven culling、renderer rewrite、新 chart family 或稳定 benchmark guarantee。
@@ -32,16 +32,16 @@ pwsh -File ./scripts/Invoke-PerformanceLabVisualEvidence.ps1 -Configuration Rele
 当前 `alpha` 阶段需要明确说明：
 
 - 已完成独立模块边界、LOD、缓存读取、`GPU-first` 渲染主路径与 Demo 路径
-- `SurfaceChartView` 当前已经交付 axis/legend overlays、hover readout、`Shift + left-click` pinned probe，以及可见的 `RenderingStatus` / `RenderStatusChanged`
-- SurfaceChartView 现在以 `ViewState` 作为 chart-view 契约，持久化 camera 与 data-window 状态。
+- `VideraChartView` 当前已经交付 axis/legend overlays、hover readout、`Shift + left-click` pinned probe，以及可见的 `RenderingStatus` / `RenderStatusChanged`
+- VideraChartView 现在以 `ViewState` 作为 chart-view 契约，持久化 camera 与 data-window 状态。
 - 当前对外交付 built-in `left-drag orbit` / `right-drag pan` / `wheel dolly` / `Ctrl + left-drag` focus zoom
 - 图表在交互过程中进入 `Interactive` 质量模式，并在输入停稳后回到 `Refine`。
 - 对外交互诊断是 `InteractionQuality` + `InteractionQualityChanged`，状态为 `Interactive` / `Refine`。
-- `ScatterChartView` 在 direct scatter 路径上复用同一套 chart-local interaction-quality 术语，并通过 `ScatterChartRenderingStatus` 暴露状态。
-- SurfaceChartView 通过 chart-local `OverlayOptions` 提供 formatter、标题/单位覆盖、minor ticks、grid plane 与 axis-side 行为。
+- `VideraChartView` 在 direct scatter 路径上复用同一套 chart-local interaction-quality 术语，并通过 `ScatterChartRenderingStatus` 暴露状态。
+- VideraChartView 通过 chart-local `OverlayOptions` 提供 formatter、标题/单位覆盖、minor ticks、grid plane 与 axis-side 行为。
 - 公开 overlay 配置入口是 `SurfaceChartOverlayOptions` / `OverlayOptions`，overlay state 类型继续保持 internal。
 - 宿主拥有 `ISurfaceTileSource`、持久化的 `ViewState`、color-map 选择，以及 chart-local 产品 UI。
-- `SurfaceChartView` 拥有 chart-local built-in 手势、tile scheduling/cache、overlay presentation、native-host/render-host orchestration，以及 `RenderingStatus` 投影。
+- `VideraChartView` 拥有 chart-local built-in 手势、tile scheduling/cache、overlay presentation、native-host/render-host orchestration，以及 `RenderingStatus` 投影。
 - 对外渲染 truth 是 `RenderingStatus` + `RenderStatusChanged`，字段包括 `ActiveBackend`、`IsReady`、`IsFallback`、`FallbackReason`、`UsesNativeSurface`、`ResidentTileCount`、`VisibleTileCount` 和 `ResidentTileBytes`。
 - Linux Wayland 会话当前仍是 `XWayland` bridge 路径，不是 compositor-native Wayland surface embedding
 
@@ -93,7 +93,7 @@ dotnet add package Videra.SurfaceCharts.Avalonia
 dotnet add package Videra.SurfaceCharts.Processing
 ```
 
-`Videra.SurfaceCharts.Avalonia` 会传递依赖 `Videra.SurfaceCharts.Core` 与 `Videra.SurfaceCharts.Rendering`。只有在你不走 `SurfaceChartView` 壳层、需要直接构建 chart-domain contracts 或自定义 tile source 时，才需要单独安装 `Videra.SurfaceCharts.Core`。
+`Videra.SurfaceCharts.Avalonia` 会传递依赖 `Videra.SurfaceCharts.Core` 与 `Videra.SurfaceCharts.Rendering`。只有在你不走 `VideraChartView` 壳层、需要直接构建 chart-domain contracts 或自定义 tile source 时，才需要单独安装 `Videra.SurfaceCharts.Core`。
 
 当前 `alpha` 预览线在需要时仍可通过 `GitHub Packages` 进行 `preview` 验证，但那不是默认公开安装路径。
 
@@ -113,9 +113,9 @@ dotnet add package Videra.SurfaceCharts.Processing
 - [Alpha Feedback](../alpha-feedback.md)
 - [扩展合同](extensibility.md)：`VideraView.Engine`、`RegisterPassContributor(...)`、`RegisterFrameHook(...)`、`RenderCapabilities`、`BackendDiagnostics` 与 `samples/Videra.ExtensibilitySample`
 - [交互示例](../../samples/Videra.InteractionSample/README.md)：`host owns` `SelectionState`、`Annotations` 和 annotation state，`Navigate` / `Select` / `Annotate` / `Measure`，`SelectionRequested` / `AnnotationRequested`，`Measurements`、`ClippingPlanes`、`CaptureInspectionState()`、`ApplyInspectionState(...)`、`ExportSnapshotAsync(...)`、`VideraInspectionBundleService`，以及 `VideraNodeAnnotation` / `VideraWorldPointAnnotation`
-- [SurfaceCharts.Core](modules/videra-surfacecharts-core.md)：`SurfaceChartView` 之外的领域契约、viewport / LOD、tile source 与 probe contract
+- [SurfaceCharts.Core](modules/videra-surfacecharts-core.md)：`VideraChartView` 之外的领域契约、viewport / LOD、tile source 与 probe contract
 - [SurfaceCharts.Rendering](../../src/Videra.SurfaceCharts.Rendering/README.md)：chart-local render-state orchestration 与 backend runtime seam
-- [SurfaceCharts.Avalonia](modules/videra-surfacecharts-avalonia.md)：专用 `SurfaceChartView` 控件层，独立于 `VideraView`，包含 `RenderingStatus` / `RenderStatusChanged`、axis/legend overlays 与 probe overlay
+- [SurfaceCharts.Avalonia](modules/videra-surfacecharts-avalonia.md)：专用 `VideraChartView` 控件层，独立于 `VideraView`，包含 `RenderingStatus` / `RenderStatusChanged`、axis/legend overlays 与 probe overlay
 - [SurfaceCharts.Processing](modules/videra-surfacecharts-processing.md)：离线 pyramid / cache 构建、persistent payload session、ordered batch reads 与 `SurfaceTileStatistics`
 - [独立 Demo](../../samples/Videra.SurfaceCharts.Demo/README.md)：`Videra.SurfaceCharts.Demo`，作为 repository-only 的 support-ready chart 参考应用，保留 `Copy support summary` 复现路径，展示 source 切换、built-in interaction、probe workflow、`Try next: Analytics proof` 与 `Try next: Scatter proof` 以及 rendering path truth
 - [架构说明](ARCHITECTURE.md)
@@ -150,4 +150,4 @@ dotnet add package Videra.SurfaceCharts.Processing
 
 受控交互入口则以 [samples/Videra.InteractionSample](../../samples/Videra.InteractionSample/README.md) 为主：`host owns` `SelectionState`、`Annotations` 与 annotation state，内建模式是 `Navigate`、`Select`、`Annotate`、`Measure`，并通过 `SelectionRequested` / `AnnotationRequested` 报告 host 需要接管的选择与标注意图；选择保持 `object-level`，标注同时覆盖 object anchors 与 world-point anchors，并通过 `VideraNodeAnnotation` / `VideraWorldPointAnnotation` 表达；同时 `Measurements`、`ClippingPlanes`、`CaptureInspectionState()`、`ApplyInspectionState(...)`、`ExportSnapshotAsync(...)` 与 `VideraInspectionBundleService` 组成 viewer-first inspection workflow，overlay responsibilities split between `3D highlight/render state` and `2D label/feedback rendering`。
 
-surface-chart 模块家族则以 `SurfaceChartView` 为中心，独立于 `VideraView`，并保持与 viewer 侧选择、标注和 camera 流程解耦。当前对外 truth 是：独立 Demo、built-in `left-drag orbit` / `right-drag pan` / `wheel dolly` / `Ctrl + left-drag` focus zoom、hover 与 `Shift + left-click` pinned probe、可见 `RenderingStatus`，以及显式 `Interactive` / `Refine` 质量切换；`Try next: Analytics proof` 通过显式/non-uniform 坐标、独立 `ColorField` 与分析级 `pinned-probe` 工作流暴露分析语义，`Try next: Scatter proof` 则覆盖 scatter 路径。SurfaceChartView 现在以 `ViewState` 作为 chart-view 契约，持久化 camera 与 data-window 状态。图表在交互过程中进入 `Interactive` 质量模式，并在输入停稳后回到 `Refine``。对外交互诊断是 `InteractionQuality` + `InteractionQualityChanged`，状态为 `Interactive` / `Refine`。SurfaceChartView 通过 chart-local `OverlayOptions` 提供 formatter、标题/单位覆盖、minor ticks、grid plane 与 axis-side 行为。公开 overlay 配置入口是 `SurfaceChartOverlayOptions` / `OverlayOptions`，overlay state 类型继续保持 internal。宿主拥有 `ISurfaceTileSource`、持久化的 `ViewState`、color-map 选择，以及 chart-local 产品 UI。`SurfaceChartView` 拥有 chart-local built-in 手势、tile scheduling/cache、overlay presentation、native-host/render-host orchestration，以及 `RenderingStatus` 投影。对外渲染 truth 是 `RenderingStatus` + `RenderStatusChanged`，字段包括 `ActiveBackend`、`IsReady`、`IsFallback`、`FallbackReason`、`UsesNativeSurface`、`ResidentTileCount`、`VisibleTileCount` 和 `ResidentTileBytes`。
+surface-chart 模块家族则以 `VideraChartView` 为中心，独立于 `VideraView`，并保持与 viewer 侧选择、标注和 camera 流程解耦。当前对外 truth 是：独立 Demo、built-in `left-drag orbit` / `right-drag pan` / `wheel dolly` / `Ctrl + left-drag` focus zoom、hover 与 `Shift + left-click` pinned probe、可见 `RenderingStatus`，以及显式 `Interactive` / `Refine` 质量切换；`Try next: Analytics proof` 通过显式/non-uniform 坐标、独立 `ColorField` 与分析级 `pinned-probe` 工作流暴露分析语义，`Try next: Scatter proof` 则覆盖 scatter 路径。VideraChartView 现在以 `ViewState` 作为 chart-view 契约，持久化 camera 与 data-window 状态。图表在交互过程中进入 `Interactive` 质量模式，并在输入停稳后回到 `Refine``。对外交互诊断是 `InteractionQuality` + `InteractionQualityChanged`，状态为 `Interactive` / `Refine`。VideraChartView 通过 chart-local `OverlayOptions` 提供 formatter、标题/单位覆盖、minor ticks、grid plane 与 axis-side 行为。公开 overlay 配置入口是 `SurfaceChartOverlayOptions` / `OverlayOptions`，overlay state 类型继续保持 internal。宿主拥有 `ISurfaceTileSource`、持久化的 `ViewState`、color-map 选择，以及 chart-local 产品 UI。`VideraChartView` 拥有 chart-local built-in 手势、tile scheduling/cache、overlay presentation、native-host/render-host orchestration，以及 `RenderingStatus` 投影。对外渲染 truth 是 `RenderingStatus` + `RenderStatusChanged`，字段包括 `ActiveBackend`、`IsReady`、`IsFallback`、`FallbackReason`、`UsesNativeSurface`、`ResidentTileCount`、`VisibleTileCount` 和 `ResidentTileBytes`。

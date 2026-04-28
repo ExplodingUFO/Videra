@@ -129,7 +129,7 @@ public sealed class RepositoryLocalizationTests
 
         foreach (var module in new[] { coreModule, avaloniaModule })
         {
-            module.Should().Contain("SurfaceChartView");
+            module.Should().Contain("VideraChartView");
             module.Should().Contain("VideraView");
             module.Should().Contain("Videra.SurfaceCharts.Demo");
         }
@@ -338,7 +338,7 @@ public sealed class RepositoryLocalizationTests
 
         foreach (var module in new[] { coreModule, avaloniaModule })
         {
-            module.Should().Contain("SurfaceChartView");
+            module.Should().Contain("VideraChartView");
             module.Should().Contain("Videra.SurfaceCharts.Demo");
             module.Should().Contain("独立于 `VideraView`");
         }

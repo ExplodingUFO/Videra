@@ -18,7 +18,7 @@ public sealed class SurfaceChartsDemoViewportBehaviorTests
         return AvaloniaHeadlessTestSession.RunAsync(async () =>
         {
             var window = new MainWindow();
-            var chartView = window.FindControl<SurfaceChartView>("ChartView")
+            var chartView = window.FindControl<VideraChartView>("ChartView")
                 ?? throw new InvalidOperationException("ChartView is missing.");
             var sourceSelector = window.FindControl<ComboBox>("SourceSelector")
                 ?? throw new InvalidOperationException("SourceSelector is missing.");
@@ -55,7 +55,7 @@ public sealed class SurfaceChartsDemoViewportBehaviorTests
         return AvaloniaHeadlessTestSession.RunAsync(async () =>
         {
             var window = new MainWindow();
-            var chartView = window.FindControl<SurfaceChartView>("ChartView")
+            var chartView = window.FindControl<VideraChartView>("ChartView")
                 ?? throw new InvalidOperationException("ChartView is missing.");
             var sourceSelector = window.FindControl<ComboBox>("SourceSelector")
                 ?? throw new InvalidOperationException("SourceSelector is missing.");
@@ -124,7 +124,7 @@ public sealed class SurfaceChartsDemoViewportBehaviorTests
         return AvaloniaHeadlessTestSession.RunAsync(async () =>
         {
             var window = new MainWindow();
-            var chartView = window.FindControl<SurfaceChartView>("ChartView")
+            var chartView = window.FindControl<VideraChartView>("ChartView")
                 ?? throw new InvalidOperationException("ChartView is missing.");
             var fitToDataButton = window.FindControl<Button>("FitToDataButton")
                 ?? throw new InvalidOperationException("FitToDataButton is missing.");
@@ -199,7 +199,7 @@ public sealed class SurfaceChartsDemoViewportBehaviorTests
         return AvaloniaHeadlessTestSession.RunAsync(async () =>
         {
             var window = new MainWindow();
-            var chartView = window.FindControl<SurfaceChartView>("ChartView")
+            var chartView = window.FindControl<VideraChartView>("ChartView")
                 ?? throw new InvalidOperationException("ChartView is missing.");
             var overlayOptionsText = window.FindControl<TextBlock>("OverlayOptionsText")
                 ?? throw new InvalidOperationException("OverlayOptionsText is missing.");
@@ -226,7 +226,7 @@ public sealed class SurfaceChartsDemoViewportBehaviorTests
         return AvaloniaHeadlessTestSession.RunAsync(async () =>
         {
             var window = new MainWindow();
-            var chartView = window.FindControl<SurfaceChartView>("ChartView")
+            var chartView = window.FindControl<VideraChartView>("ChartView")
                 ?? throw new InvalidOperationException("ChartView is missing.");
             var renderingPathText = window.FindControl<TextBlock>("RenderingPathText")
                 ?? throw new InvalidOperationException("RenderingPathText is missing.");
@@ -259,10 +259,10 @@ public sealed class SurfaceChartsDemoViewportBehaviorTests
         return AvaloniaHeadlessTestSession.RunAsync(async () =>
         {
             var window = new MainWindow();
-            var surfaceChartView = window.FindControl<SurfaceChartView>("ChartView")
+            var chartView = window.FindControl<VideraChartView>("ChartView")
                 ?? throw new InvalidOperationException("ChartView is missing.");
-            var waterfallChartView = window.FindControl<WaterfallChartView>("WaterfallChartView")
-                ?? throw new InvalidOperationException("WaterfallChartView is missing.");
+            var waterfallPlotView = window.FindControl<VideraChartView>("WaterfallPlotView")
+                ?? throw new InvalidOperationException("WaterfallPlotView is missing.");
             var sourceSelector = window.FindControl<ComboBox>("SourceSelector")
                 ?? throw new InvalidOperationException("SourceSelector is missing.");
             var fitToDataButton = window.FindControl<Button>("FitToDataButton")
@@ -275,36 +275,36 @@ public sealed class SurfaceChartsDemoViewportBehaviorTests
             SelectItem(sourceSelector, GetComboBoxItemByContent(sourceSelector, "Try next: Waterfall proof"));
 
             await WaitForConditionAsync(
-                () => waterfallChartView.IsVisible &&
-                      waterfallChartView.Source is not null &&
+                () => waterfallPlotView.IsVisible &&
+                      waterfallPlotView.Source is not null &&
                       statusText.Text?.Contains("Try next: Waterfall proof", StringComparison.Ordinal) == true,
                 "switching sources should activate the thin Waterfall proof path.")
                 .ConfigureAwait(true);
 
-            surfaceChartView.IsVisible.Should().BeFalse();
-            waterfallChartView.ViewState.DataWindow.Should().Be(new SurfaceDataWindow(0d, 0d, waterfallChartView.Source!.Metadata.Width, waterfallChartView.Source.Metadata.Height));
+            chartView.IsVisible.Should().BeFalse();
+            waterfallPlotView.ViewState.DataWindow.Should().Be(new SurfaceDataWindow(0d, 0d, waterfallPlotView.Source!.Metadata.Width, waterfallPlotView.Source.Metadata.Height));
 
             var requestedWindow = new SurfaceDataWindow(-12d, -6d, 120d, 60d);
-            var expectedWindow = requestedWindow.ClampTo(waterfallChartView.Source!.Metadata);
-            waterfallChartView.ZoomTo(requestedWindow);
-            waterfallChartView.ViewState.DataWindow.Should().Be(expectedWindow);
+            var expectedWindow = requestedWindow.ClampTo(waterfallPlotView.Source!.Metadata);
+            waterfallPlotView.ZoomTo(requestedWindow);
+            waterfallPlotView.ViewState.DataWindow.Should().Be(expectedWindow);
 
             var camera = new SurfaceCameraPose(new System.Numerics.Vector3(2f, 3f, 4f), 180d, 22d, 16d, 40d);
-            waterfallChartView.ViewState = new SurfaceViewState(
+            waterfallPlotView.ViewState = new SurfaceViewState(
                 expectedWindow,
                 camera);
 
             ClickButton(resetCameraButton);
 
             await WaitForConditionAsync(
-                () => waterfallChartView.ViewState.Camera == SurfaceCameraPose.CreateDefault(waterfallChartView.Source!.Metadata, waterfallChartView.ViewState.DataWindow),
+                () => waterfallPlotView.ViewState.Camera == SurfaceCameraPose.CreateDefault(waterfallPlotView.Source!.Metadata, waterfallPlotView.ViewState.DataWindow),
                 "reset camera should keep working on the Waterfall proof path.")
                 .ConfigureAwait(true);
 
             ClickButton(fitToDataButton);
 
             await WaitForConditionAsync(
-                () => waterfallChartView.ViewState.DataWindow == new SurfaceDataWindow(0d, 0d, waterfallChartView.Source!.Metadata.Width, waterfallChartView.Source.Metadata.Height),
+                () => waterfallPlotView.ViewState.DataWindow == new SurfaceDataWindow(0d, 0d, waterfallPlotView.Source!.Metadata.Width, waterfallPlotView.Source.Metadata.Height),
                 "fit to data should still use the inherited ViewState workflow on the Waterfall proof path.")
                 .ConfigureAwait(true);
         });
@@ -316,18 +316,14 @@ public sealed class SurfaceChartsDemoViewportBehaviorTests
         return AvaloniaHeadlessTestSession.RunAsync(async () =>
         {
             var window = new MainWindow();
-            var surfaceChartView = window.FindControl<SurfaceChartView>("ChartView")
+            var chartView = window.FindControl<VideraChartView>("ChartView")
                 ?? throw new InvalidOperationException("ChartView is missing.");
-            var waterfallChartView = window.FindControl<WaterfallChartView>("WaterfallChartView")
-                ?? throw new InvalidOperationException("WaterfallChartView is missing.");
-            var scatterChartView = window.FindControl<ScatterChartView>("ScatterChartView")
-                ?? throw new InvalidOperationException("ScatterChartView is missing.");
+            var waterfallPlotView = window.FindControl<VideraChartView>("WaterfallPlotView")
+                ?? throw new InvalidOperationException("WaterfallPlotView is missing.");
+            var scatterPlotView = window.FindControl<VideraChartView>("ScatterPlotView")
+                ?? throw new InvalidOperationException("ScatterPlotView is missing.");
             var sourceSelector = window.FindControl<ComboBox>("SourceSelector")
                 ?? throw new InvalidOperationException("SourceSelector is missing.");
-            var fitToDataButton = window.FindControl<Button>("FitToDataButton")
-                ?? throw new InvalidOperationException("FitToDataButton is missing.");
-            var resetCameraButton = window.FindControl<Button>("ResetCameraButton")
-                ?? throw new InvalidOperationException("ResetCameraButton is missing.");
             var statusText = window.FindControl<TextBlock>("StatusText")
                 ?? throw new InvalidOperationException("StatusText is missing.");
             var renderingPathText = window.FindControl<TextBlock>("RenderingPathText")
@@ -346,15 +342,15 @@ public sealed class SurfaceChartsDemoViewportBehaviorTests
             SelectItem(sourceSelector, GetComboBoxItemByContent(sourceSelector, "Try next: Scatter proof"));
 
             await WaitForConditionAsync(
-                () => scatterChartView.IsVisible &&
-                      scatterChartView.Source is not null &&
+                () => scatterPlotView.IsVisible &&
+                      scatterPlotView.Plot.Series.Any(series => series.Kind == Plot3DSeriesKind.Scatter) &&
                       statusText.Text?.Contains("Try next: Scatter proof", StringComparison.Ordinal) == true,
                 "switching sources should activate the direct scatter proof path.")
                 .ConfigureAwait(true);
 
-            surfaceChartView.IsVisible.Should().BeFalse();
-            waterfallChartView.IsVisible.Should().BeFalse();
-            scatterChartView.IsVisible.Should().BeTrue();
+            chartView.IsVisible.Should().BeFalse();
+            waterfallPlotView.IsVisible.Should().BeFalse();
+            scatterPlotView.IsVisible.Should().BeTrue();
 
             builtInInteractionText.Text.Should().Contain("Left drag orbit");
             builtInInteractionText.Text.Should().Contain("Wheel dolly");
@@ -362,59 +358,28 @@ public sealed class SurfaceChartsDemoViewportBehaviorTests
 
             interactionQualityText.Text.Should().Contain("Current mode:");
             interactionQualityText.Text.Should().Contain("Refine");
-            overlayOptionsText.Text.Should().Contain("does not expose");
-            statusText.Text.Should().Contain("Scatter proof navigation");
+            overlayOptionsText.Text.Should().Contain("shared by");
+            statusText.Text.Should().Contain("Plot.Add.Scatter");
             statusText.Text.Should().Contain("Current scene:");
-            renderingPathText.Text.Should().Contain("Backend kind");
+            renderingPathText.Text.Should().Contain("Plot path");
             renderingPathText.Text.Should().Contain("Series:");
             renderingPathText.Text.Should().Contain("Points:");
-            renderingDiagnosticsText.Text.Should().Contain("HasSource:");
-            renderingDiagnosticsText.Text.Should().Contain("BackendKind:");
-            renderingDiagnosticsText.Text.Should().Contain("IsInteracting:");
+            renderingDiagnosticsText.Text.Should().Contain("PlotRevision:");
             renderingDiagnosticsText.Text.Should().Contain("InteractionQuality:");
             renderingDiagnosticsText.Text.Should().Contain("SeriesCount:");
             renderingDiagnosticsText.Text.Should().Contain("PointCount:");
-            renderingDiagnosticsText.Text.Should().Contain("CameraDistance:");
 
-            var source = scatterChartView.Source!;
-            var bounds = GetScatterBounds(source);
-            var customCamera = new SurfaceCameraPose(
-                new System.Numerics.Vector3(99f, 88f, 77f),
-                73d,
-                -17d,
-                42d,
-                60d);
-
-            SetCamera(scatterChartView, customCamera);
-
-            ClickButton(fitToDataButton);
-
-            var fitCamera = GetCamera(scatterChartView);
-            fitCamera.Target.Should().Be(bounds.Center);
-            fitCamera.YawDegrees.Should().Be(customCamera.YawDegrees);
-            fitCamera.PitchDegrees.Should().Be(customCamera.PitchDegrees);
-            fitCamera.Distance.Should().BeApproximately(GetFitDistance(bounds.Size, customCamera.FieldOfViewDegrees), 0.0001d);
-
-            ClickButton(resetCameraButton);
-
-            var resetCamera = GetCamera(scatterChartView);
-            resetCamera.Target.Should().Be(bounds.Center);
-            resetCamera.YawDegrees.Should().Be(SurfaceCameraPose.DefaultYawDegrees);
-            resetCamera.PitchDegrees.Should().Be(SurfaceCameraPose.DefaultPitchDegrees);
-            resetCamera.Distance.Should().BeApproximately(GetFitDistance(bounds.Size, SurfaceCameraPose.DefaultFieldOfViewDegrees), 0.0001d);
-
-            supportSummaryText.Text.Should().Contain("ScatterChartView");
-            supportSummaryText.Text.Should().Contain("ChartControl: ScatterChartView");
+            supportSummaryText.Text.Should().Contain("VideraChartView");
+            supportSummaryText.Text.Should().Contain("ChartControl: VideraChartView");
             supportSummaryText.Text.Should().Contain("EnvironmentRuntime:");
             supportSummaryText.Text.Should().Contain("AssemblyIdentity:");
             supportSummaryText.Text.Should().Contain("BackendDisplayEnvironment:");
             supportSummaryText.Text.Should().Contain("CacheLoadFailure: none");
             supportSummaryText.Text.Should().Contain("RenderingStatus:");
-            supportSummaryText.Text.Should().Contain("BackendKind:");
             supportSummaryText.Text.Should().Contain("SeriesCount");
             supportSummaryText.Text.Should().Contain("PointCount");
             supportSummaryText.Text.Should().Contain("InteractionQuality: Refine");
-            supportSummaryText.Text.Should().Contain("OverlayOptions: not exposed");
+            supportSummaryText.Text.Should().Contain("OverlayOptions: shared");
             supportSummaryText.Text.Should().NotContain("ViewState:");
         });
     }
@@ -425,10 +390,10 @@ public sealed class SurfaceChartsDemoViewportBehaviorTests
         return AvaloniaHeadlessTestSession.RunAsync(async () =>
         {
             var window = new MainWindow();
-            var surfaceChartView = window.FindControl<SurfaceChartView>("ChartView")
+            var chartView = window.FindControl<VideraChartView>("ChartView")
                 ?? throw new InvalidOperationException("ChartView is missing.");
-            var waterfallChartView = window.FindControl<WaterfallChartView>("WaterfallChartView")
-                ?? throw new InvalidOperationException("WaterfallChartView is missing.");
+            var waterfallPlotView = window.FindControl<VideraChartView>("WaterfallPlotView")
+                ?? throw new InvalidOperationException("WaterfallPlotView is missing.");
             var sourceSelector = window.FindControl<ComboBox>("SourceSelector")
                 ?? throw new InvalidOperationException("SourceSelector is missing.");
             var statusText = window.FindControl<TextBlock>("StatusText")
@@ -447,8 +412,8 @@ public sealed class SurfaceChartsDemoViewportBehaviorTests
             SelectItem(sourceSelector, GetComboBoxItemByContent(sourceSelector, "Try next: Waterfall proof"));
 
             await WaitForConditionAsync(
-                () => waterfallChartView.IsVisible &&
-                      waterfallChartView.Source is not null &&
+                () => waterfallPlotView.IsVisible &&
+                      waterfallPlotView.Source is not null &&
                       statusText.Text?.Contains("Try next: Waterfall proof", StringComparison.Ordinal) == true,
                 "the newer waterfall selection should become active before the pending cache load completes.")
                 .ConfigureAwait(true);
@@ -457,8 +422,8 @@ public sealed class SurfaceChartsDemoViewportBehaviorTests
             await Task.Yield();
             await Task.Yield();
 
-            waterfallChartView.IsVisible.Should().BeTrue();
-            surfaceChartView.IsVisible.Should().BeFalse();
+            chartView.IsVisible.Should().BeFalse();
+            waterfallPlotView.IsVisible.Should().BeTrue();
             statusText.Text.Should().Contain("Try next: Waterfall proof");
         });
     }
@@ -469,7 +434,7 @@ public sealed class SurfaceChartsDemoViewportBehaviorTests
         return AvaloniaHeadlessTestSession.RunAsync(async () =>
         {
             var window = new MainWindow();
-            var chartView = window.FindControl<SurfaceChartView>("ChartView")
+            var chartView = window.FindControl<VideraChartView>("ChartView")
                 ?? throw new InvalidOperationException("ChartView is missing.");
             var sourceSelector = window.FindControl<ComboBox>("SourceSelector")
                 ?? throw new InvalidOperationException("SourceSelector is missing.");
@@ -531,7 +496,7 @@ public sealed class SurfaceChartsDemoViewportBehaviorTests
                 .ConfigureAwait(true);
 
             supportSummaryText.Text.Should().Contain("Source path:");
-            supportSummaryText.Text.Should().Contain("ChartControl: SurfaceChartView");
+            supportSummaryText.Text.Should().Contain("ChartControl: VideraChartView");
             supportSummaryText.Text.Should().Contain("EnvironmentRuntime:");
             supportSummaryText.Text.Should().Contain("AssemblyIdentity:");
             supportSummaryText.Text.Should().Contain("BackendDisplayEnvironment:");
@@ -557,7 +522,7 @@ public sealed class SurfaceChartsDemoViewportBehaviorTests
         return AvaloniaHeadlessTestSession.RunAsync(async () =>
         {
             var window = new MainWindow();
-            var chartView = window.FindControl<SurfaceChartView>("ChartView")
+            var chartView = window.FindControl<VideraChartView>("ChartView")
                 ?? throw new InvalidOperationException("ChartView is missing.");
             var sourceSelector = window.FindControl<ComboBox>("SourceSelector")
                 ?? throw new InvalidOperationException("SourceSelector is missing.");
@@ -614,75 +579,6 @@ public sealed class SurfaceChartsDemoViewportBehaviorTests
     private static void ClickButton(Button button)
     {
         button.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
-    }
-
-    private static SurfacePlotBounds GetScatterBounds(ScatterChartData source)
-    {
-        var hasPoint = false;
-        double minX = 0d;
-        double maxX = 0d;
-        double minY = 0d;
-        double maxY = 0d;
-        double minZ = 0d;
-        double maxZ = 0d;
-
-        foreach (var series in source.Series)
-        {
-            foreach (var point in series.Points)
-            {
-                if (!hasPoint)
-                {
-                    minX = maxX = point.Horizontal;
-                    minY = maxY = point.Value;
-                    minZ = maxZ = point.Depth;
-                    hasPoint = true;
-                    continue;
-                }
-
-                minX = Math.Min(minX, point.Horizontal);
-                maxX = Math.Max(maxX, point.Horizontal);
-                minY = Math.Min(minY, point.Value);
-                maxY = Math.Max(maxY, point.Value);
-                minZ = Math.Min(minZ, point.Depth);
-                maxZ = Math.Max(maxZ, point.Depth);
-            }
-        }
-
-        if (!hasPoint)
-        {
-            throw new InvalidOperationException("Scatter source should contain at least one point.");
-        }
-
-        return new SurfacePlotBounds(
-            new System.Numerics.Vector3((float)minX, (float)minY, (float)minZ),
-            new System.Numerics.Vector3((float)maxX, (float)maxY, (float)maxZ));
-    }
-
-    private static SurfaceCameraPose GetCamera(ScatterChartView view)
-    {
-        var field = typeof(ScatterChartView).GetField(
-            "_camera",
-            BindingFlags.Instance | BindingFlags.NonPublic);
-        field.Should().NotBeNull();
-
-        return (SurfaceCameraPose)field!.GetValue(view)!;
-    }
-
-    private static void SetCamera(ScatterChartView view, SurfaceCameraPose camera)
-    {
-        var field = typeof(ScatterChartView).GetField(
-            "_camera",
-            BindingFlags.Instance | BindingFlags.NonPublic);
-        field.Should().NotBeNull();
-
-        field!.SetValue(view, camera);
-    }
-
-    private static double GetFitDistance(System.Numerics.Vector3 size, double fieldOfViewDegrees)
-    {
-        var diagonal = Math.Sqrt((size.X * size.X) + (size.Y * size.Y) + (size.Z * size.Z));
-        var halfFieldOfViewRadians = (fieldOfViewDegrees * (Math.PI / 180d)) * 0.5d;
-        return Math.Max((Math.Max(diagonal, 1d) * 0.5d) / Math.Tan(halfFieldOfViewRadians), 1d);
     }
 
     private static async Task WaitForConditionAsync(Func<bool> condition, string because, TimeSpan? timeout = null)

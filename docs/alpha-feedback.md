@@ -69,7 +69,7 @@ Workbench support captures are support evidence too. `ViewerInteractionEvidence`
 - `CanReplayScene` and `ReplayLimitation` from `VideraInspectionBundleService.ExportAsync(...)` whenever the bundle is exportable but not replayable
 - `SurfaceCharts support summary` from either the packaged `smoke/Videra.SurfaceCharts.ConsumerSmoke` `surfacecharts-support-summary.txt` artifact or the `Videra.SurfaceCharts.Demo` `Support summary` panel when the issue is in `area: surfacecharts`; keep it separate from `VideraDiagnosticsSnapshotFormatter` output
 - `ChartProbeEvidence` from `SurfaceChartProbeEvidenceFormatter` or the optional Workbench support capture when hovered or pinned probe values affect the report
-- use `Copy support summary` after reproducing `Start here: In-memory first chart`; continue to `Explore next: Cache-backed streaming` only if needed, and use `Try next: Analytics proof` for explicit-coordinate pinned-probe/analysis scenarios, `Try next: Waterfall proof` when the issue involves the second chart control, or `Try next: Scatter proof` when the issue involves the scatter control path; `ScatterChartView` is shipped in the Avalonia control line
+- use `Copy support summary` after reproducing `Start here: In-memory first chart`; continue to `Explore next: Cache-backed streaming` only if needed, and use `Try next: Analytics proof` for explicit-coordinate pinned-probe/analysis scenarios, `Try next: Waterfall proof` when the issue involves the second chart control, or `Try next: Scatter proof` when the issue involves the scatter control path; `VideraChartView` is shipped in the Avalonia control line
 - include the SurfaceCharts summary fields `GeneratedUtc`, `EvidenceKind`, `EvidenceOnly`, `ChartControl`, `EnvironmentRuntime`, `AssemblyIdentity`, `BackendDisplayEnvironment`, and `RenderingStatus`; include `CacheLoadFailure` when the cache-backed path falls back
 - SurfaceCharts demo-path choice when relevant:
   - `Start here: In-memory first chart`
@@ -77,7 +77,7 @@ Workbench support captures are support evidence too. `ViewerInteractionEvidence`
   - `Try next: Analytics proof`
   - `Try next: Waterfall proof`
   - `Try next: Scatter proof`
-- `ScatterChartView` is shipped in `Videra.SurfaceCharts.Avalonia`; the repository-owned `Try next: Scatter proof` path is the demo path to cite
+- `VideraChartView` is shipped in `Videra.SurfaceCharts.Avalonia`; the repository-owned `Try next: Scatter proof` path is the demo path to cite
 - SurfaceCharts chart state when relevant:
   - `ViewState`
   - `InteractionQuality`

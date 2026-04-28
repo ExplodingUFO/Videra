@@ -8,17 +8,17 @@ The control layer remains separate from `VideraView` and only depends on the sha
 
 The current shipped surface path is tighter under camera movement and churns less on probe work, without widening the existing chart-local path.
 
-SurfaceChartView exposes `ViewState` as the chart-view contract for persisted camera and data-window state.
-SurfaceChartView now ships built-in `left-drag orbit`, `right-drag pan`, `wheel dolly`, and `Ctrl + Left drag` focus zoom on top of the `ViewState` runtime contract.
+VideraChartView exposes `ViewState` as the chart-view contract for persisted camera and data-window state.
+VideraChartView now ships built-in `left-drag orbit`, `right-drag pan`, `wheel dolly`, and `Ctrl + Left drag` focus zoom on top of the `ViewState` runtime contract.
 The chart enters `Interactive` quality during motion and returns to `Refine` after input settles.
 The public interaction diagnostics are `InteractionQuality` + `InteractionQualityChanged` with `Interactive` / `Refine`.
-`ScatterChartView` follows the same chart-local terminology on the direct scatter path: left-drag navigation reports `Interactive`, release/capture loss returns to `Refine`, and `ScatterChartRenderingStatus` carries `InteractionQuality` alongside retained columnar streaming counters. Columnar scatter data still comes from `ScatterColumnarSeries` through `ReplaceRange(...)` / `AppendRange(...)`, optional `fifoCapacity`, and the high-volume default `Pickable=false`.
+`VideraChartView` follows the same chart-local terminology on the direct scatter path: left-drag navigation reports `Interactive`, release/capture loss returns to `Refine`, and `ScatterChartRenderingStatus` carries `InteractionQuality` alongside retained columnar streaming counters. Columnar scatter data still comes from `ScatterColumnarSeries` through `ReplaceRange(...)` / `AppendRange(...)`, optional `fifoCapacity`, and the high-volume default `Pickable=false`.
 Hosts can keep professional axis, grid, and legend behavior chart-local through `OverlayOptions` for formatter, title/unit override, minor ticks, grid plane, and axis-side selection.
 The public overlay configuration seam is `SurfaceChartOverlayOptions` through `OverlayOptions`; overlay state types remain internal.
 
 ## Current Scope
 
-`SurfaceChartView` currently provides:
+`VideraChartView` currently provides:
 
 - a chart-local renderer seam through `SurfaceChartRenderHost`; it is not a `VideraView` mode
 - a `GPU-first` renderer path with an explicit chart-local `software fallback` seam (no viewer/backend downshift)
@@ -28,22 +28,22 @@ The public overlay configuration seam is `SurfaceChartOverlayOptions` through `O
 - host-driven `FitToData()`, `ResetCamera()`, and `ZoomTo(...)` commands
 - built-in `left-drag orbit`, `right-drag pan`, `wheel dolly`, and `Ctrl + Left drag` focus zoom
 - explicit `InteractionQuality` / `InteractionQualityChanged` diagnostics with `Interactive` and `Refine` interaction-quality states
-- `ScatterChartView` render-status diagnostics for `InteractionQuality`, columnar retained point count, append/replacement batch count, FIFO dropped points, configured FIFO capacity, and pickable point count
+- `VideraChartView` render-status diagnostics for `InteractionQuality`, columnar retained point count, append/replacement batch count, FIFO dropped points, configured FIFO capacity, and pickable point count
 - public overlay configuration through `SurfaceChartOverlayOptions` / `OverlayOptions`; overlay state types remain internal
 - chart-local `OverlayOptions` for formatter, title/unit override, minor ticks, grid plane, and axis-side selection
 - overview-first tile scheduling with lazy cache-backed reads
 - color-map driven surface rendering
 - chart-local axis/legend overlays and hover/pinned probe readout, including `Shift + LeftClick` pinning
-- `SurfaceChartView` owns chart-local built-in gestures, tile scheduling/cache, overlay presentation, native-host/render-host orchestration, and `RenderingStatus` projection
+- `VideraChartView` owns chart-local built-in gestures, tile scheduling/cache, overlay presentation, native-host/render-host orchestration, and `RenderingStatus` projection
 
-`WaterfallChartView` is the second shipped control on top of the same chart shell, and `ScatterChartView` ships in the same Avalonia control line.
+`VideraChartView` is the second shipped control on top of the same chart shell, and `VideraChartView` ships in the same Avalonia control line.
 The scatter path is intentionally direct and chart-local: it does not introduce `ViewState`, `OverlayOptions`, or `VideraView` semantics, and its columnar streaming/FIFO diagnostics remain on `ScatterChartRenderingStatus`.
 
 This module is intentionally a thin UI shell. Tile decoding, preprocessing, cache generation, and LOD policy remain outside the control layer.
 
 ## Renderer Truth
 
-- `SurfaceChartView` works through a chart-local renderer seam and stays independent from `VideraView`.
+- `VideraChartView` works through a chart-local renderer seam and stays independent from `VideraView`.
 - The renderer is `GPU-first`, but chart-local `software fallback` remains a shipped path for unsupported or fallback-triggering environments.
 - Hosts can inspect `RenderingStatus` and subscribe to `RenderStatusChanged` instead of relying on silent backend switches.
 - Linux native GPU hosting currently embeds through X11 handles. On Wayland sessions the chart host uses an `XWayland compatibility` path; compositor-native Wayland surface embedding is not available in this host shell today.
@@ -59,7 +59,7 @@ This module is intentionally a thin UI shell. Tile decoding, preprocessing, cach
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:charts="using:Videra.SurfaceCharts.Avalonia.Controls">
-    <charts:SurfaceChartView x:Name="ChartView" />
+    <charts:VideraChartView x:Name="ChartView" />
 </Window>
 ```
 
@@ -77,7 +77,7 @@ var matrix = new SurfaceMatrix(
         new SurfaceValueRange(-1d, 1d)),
     sampleValues);
 
-var chartView = new SurfaceChartView
+var chartView = new VideraChartView
 {
     Source = new SurfacePyramidBuilder(32, 32).Build(matrix),
     ViewState = SurfaceViewState.CreateDefault(
@@ -105,7 +105,7 @@ using Videra.SurfaceCharts.Core;
 var matrix = ...;
 var source = new SurfacePyramidBuilder(32, 32).Build(matrix);
 
-var chartView = new SurfaceChartView
+var chartView = new VideraChartView
 {
     Source = source,
     ColorMap = new SurfaceColorMap(matrix.Metadata.ValueRange, SurfaceColorMapPresets.CreateProfessional()),
@@ -123,7 +123,7 @@ chartView.OverlayOptions = SurfaceChartOverlayPresets.Compact;
 `SurfaceChartEvidenceFormatter.Create(...)` provides deterministic chart-local output evidence for support/adoption surfaces that need palette name, color stops, precision profile, and representative formatted labels without coupling to image export, file I/O, viewer diagnostics, or a renderer backend.
 `SurfaceChartProbeEvidenceFormatter.Create(...)` and `SurfaceChartProbeEvidenceFormatter.Format(...)` provide chart-local probe evidence for hovered and pinned `SurfaceProbeInfo` values plus `SurfaceChartOverlayOptions`; overlay state types remain internal, and the report does not add `VideraView` or viewer-runtime semantics.
 
-`SurfaceMatrix` remains the simplest source-first regular-grid entrypoint. When you need richer analytics payloads, you can keep the same `SurfaceChartView` shell and switch the underlying source construction to `SurfaceScalarField`, an independent `ColorField`, and `SurfaceMask` without widening `SurfaceChartView` itself.
+`SurfaceMatrix` remains the simplest source-first regular-grid entrypoint. When you need richer analytics payloads, you can keep the same `VideraChartView` shell and switch the underlying source construction to `SurfaceScalarField`, an independent `ColorField`, and `SurfaceMask` without widening `VideraChartView` itself.
 
 Hosts currently own:
 
@@ -135,6 +135,6 @@ Hosts currently own:
 
 ## Boundary Guidance
 
-- Do not treat `SurfaceChartView` as a `VideraView` mode.
+- Do not treat `VideraChartView` as a `VideraView` mode.
 - Do not push chart-specific semantics back into viewer selection, annotation, or camera contracts.
 - Keep input interpretation, tile scheduling, render-host orchestration, and overlay behavior separated.

@@ -21,7 +21,7 @@ public partial class MainWindow : Window
         WriteIndented = true
     };
 
-    private readonly SurfaceChartView _chartView;
+    private readonly VideraChartView _chartView;
     private readonly TextBlock _statusText;
     private readonly string? _outputPath;
     private readonly string? _diagnosticsSnapshotPath;
@@ -40,7 +40,7 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
 
-        _chartView = this.FindControl<SurfaceChartView>("ChartView")
+        _chartView = this.FindControl<VideraChartView>("ChartView")
             ?? throw new InvalidOperationException("ChartView is missing.");
         _statusText = this.FindControl<TextBlock>("StatusText")
             ?? throw new InvalidOperationException("StatusText is missing.");
@@ -124,7 +124,7 @@ public partial class MainWindow : Window
     {
         _ = sender;
 
-        if (e.Property == SurfaceChartView.ViewStateProperty)
+        if (e.Property == VideraChartView.ViewStateProperty)
         {
             UpdateStatusText("View state changed.");
         }
@@ -436,7 +436,7 @@ public partial class MainWindow : Window
     {
         return
             $"ConsumerSmoke {CreateAssemblyIdentity(typeof(MainWindow))}; " +
-            $"Avalonia {CreateAssemblyIdentity(typeof(SurfaceChartView))}; " +
+            $"Avalonia {CreateAssemblyIdentity(typeof(VideraChartView))}; " +
             $"Processing {CreateAssemblyIdentity(typeof(SurfacePyramidBuilder))}; " +
             $"Rendering {CreateAssemblyIdentity(typeof(SurfaceChartRenderingStatus))}";
     }

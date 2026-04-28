@@ -21,9 +21,9 @@ public partial class MainWindow : Window
     private const int WaterfallSourceIndex = 3;
     private const int ScatterSourceIndex = 4;
 
-    private readonly SurfaceChartView _surfaceChartView;
-    private readonly WaterfallChartView _waterfallChartView;
-    private readonly ScatterChartView _scatterChartView;
+    private readonly VideraChartView _surfaceChartView;
+    private readonly VideraChartView _waterfallChartView;
+    private readonly VideraChartView _scatterChartView;
     private readonly ComboBox _sourceSelector;
     private readonly ComboBox _scatterScenarioSelector;
     private readonly Button _fitToDataButton;
@@ -51,17 +51,18 @@ public partial class MainWindow : Window
     private string _activeDatasetSummary = string.Empty;
     private string _activeAssetSummary = "No additional assets are used on this path.";
     private string? _lastCacheLoadFailureMessage;
+    private ScatterChartData? _activeScatterData;
 
     public MainWindow()
     {
         InitializeComponent();
 
-        _surfaceChartView = this.FindControl<SurfaceChartView>("ChartView")
+        _surfaceChartView = this.FindControl<VideraChartView>("ChartView")
             ?? throw new InvalidOperationException("Surface chart view is missing.");
-        _waterfallChartView = this.FindControl<WaterfallChartView>("WaterfallChartView")
-            ?? throw new InvalidOperationException("Waterfall chart view is missing.");
-        _scatterChartView = this.FindControl<ScatterChartView>("ScatterChartView")
-            ?? throw new InvalidOperationException("ScatterChartView is missing.");
+        _waterfallChartView = this.FindControl<VideraChartView>("WaterfallPlotView")
+            ?? throw new InvalidOperationException("WaterfallPlotView is missing.");
+        _scatterChartView = this.FindControl<VideraChartView>("ScatterPlotView")
+            ?? throw new InvalidOperationException("ScatterPlotView is missing.");
         _sourceSelector = this.FindControl<ComboBox>("SourceSelector")
             ?? throw new InvalidOperationException("Source selector is missing.");
         _scatterScenarioSelector = this.FindControl<ComboBox>("ScatterScenarioSelector")
@@ -130,7 +131,7 @@ public partial class MainWindow : Window
         RefreshActiveProofTexts();
     }
 
-    private SurfaceChartView ActiveSurfaceChartView => _waterfallChartView.IsVisible ? _waterfallChartView : _surfaceChartView;
+    private VideraChartView ActiveSurfaceChartView => _waterfallChartView.IsVisible ? _waterfallChartView : _surfaceChartView;
 
     private bool IsScatterProofActive => _scatterChartView.IsVisible;
 
@@ -139,7 +140,7 @@ public partial class MainWindow : Window
         AvaloniaXamlLoader.Load(this);
     }
 
-    private void ConfigureSurfaceChartView(SurfaceChartView chartView)
+    private void ConfigureSurfaceChartView(VideraChartView chartView)
     {
         chartView.OverlayOptions = CreateOverlayOptions();
         chartView.RenderStatusChanged += OnRenderStatusChanged;
@@ -147,7 +148,7 @@ public partial class MainWindow : Window
         chartView.PropertyChanged += OnChartViewPropertyChanged;
     }
 
-    private void ConfigureScatterChartView(ScatterChartView chartView)
+    private void ConfigureScatterChartView(VideraChartView chartView)
     {
         chartView.RenderStatusChanged += OnRenderStatusChanged;
         chartView.InteractionQualityChanged += OnInteractionQualityChanged;
@@ -184,7 +185,7 @@ public partial class MainWindow : Window
                 _analyticsProofSource,
                 "Try next: Analytics proof",
                 "Repo-owned analytics proof on the same Avalonia shell. Uses explicit/non-uniform coordinates with an independent `ColorField`, keeps pinned-probe workflow (`Shift + LeftClick`), and keeps the built-in `ViewState` + `InteractionQuality` camera truth contract.",
-                "The analytics proof uses a 19x13 explicit grid with non-uniform axis spacing and separate height and color scalar fields, while preserving the same SurfaceChartView interaction contracts.",
+                "The analytics proof uses a 19x13 explicit grid with non-uniform axis spacing and separate height and color scalar fields, while preserving the same VideraChartView interaction contracts.",
                 "No additional assets are used on this path.");
             return;
         }
@@ -282,7 +283,7 @@ public partial class MainWindow : Window
     }
 
     private void ApplySource(
-        SurfaceChartView chartView,
+        VideraChartView chartView,
         ISurfaceTileSource source,
         string heading,
         string details,
@@ -290,6 +291,17 @@ public partial class MainWindow : Window
         string assetSummary)
     {
         SetActiveChartView(chartView);
+        _activeScatterData = null;
+        chartView.Plot.Clear();
+        if (ReferenceEquals(chartView, _waterfallChartView))
+        {
+            chartView.Plot.Add.Waterfall(source, heading);
+        }
+        else
+        {
+            chartView.Plot.Add.Surface(source, heading);
+        }
+
         chartView.ColorMap = CreateColorMap(source.Metadata.ValueRange);
         chartView.Source = source;
         chartView.FitToData();
@@ -309,7 +321,10 @@ public partial class MainWindow : Window
         string assetSummary)
     {
         SetActiveChartView(_scatterChartView);
-        _scatterChartView.Source = source;
+        _activeScatterData = source;
+        _scatterChartView.Plot.Clear();
+        _scatterChartView.Plot.Add.Scatter(source, heading);
+        _scatterChartView.Source = null;
         _scatterChartView.FitToData();
         _activeSourceHeading = heading;
         _activeSourceDetails = details;
@@ -319,17 +334,10 @@ public partial class MainWindow : Window
         RefreshActiveProofTexts();
     }
 
-    private void SetActiveChartView(SurfaceChartView chartView)
+    private void SetActiveChartView(VideraChartView chartView)
     {
         _surfaceChartView.IsVisible = ReferenceEquals(chartView, _surfaceChartView);
         _waterfallChartView.IsVisible = ReferenceEquals(chartView, _waterfallChartView);
-        _scatterChartView.IsVisible = false;
-    }
-
-    private void SetActiveChartView(ScatterChartView chartView)
-    {
-        _surfaceChartView.IsVisible = false;
-        _waterfallChartView.IsVisible = false;
         _scatterChartView.IsVisible = ReferenceEquals(chartView, _scatterChartView);
     }
 
@@ -357,7 +365,7 @@ public partial class MainWindow : Window
 
     private void OnChartViewPropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
     {
-        if (!ReferenceEquals(sender, ActiveSurfaceChartView) || e.Property != SurfaceChartView.ViewStateProperty)
+        if (!ReferenceEquals(sender, ActiveSurfaceChartView) || e.Property != VideraChartView.ViewStateProperty)
         {
             return;
         }
@@ -424,11 +432,11 @@ public partial class MainWindow : Window
     {
         if (IsScatterProofActive)
         {
-            var status = _scatterChartView.RenderingStatus;
+            var scatter = _activeScatterData;
             _interactionQualityText.Text =
-                $"Current mode: {status.InteractionQuality}\n" +
-                "Interactive: pointer navigation is active on the direct scatter path.\n" +
-                "Refine: settled camera pose is ready for full-quality scatter work.";
+                $"Current mode: {_scatterChartView.InteractionQuality}\n" +
+                "Interactive: pointer navigation is active on the unified plot path.\n" +
+                $"Refine: settled plot is ready for {scatter?.PointCount ?? 0} scatter points.";
             return;
         }
 
@@ -442,15 +450,14 @@ public partial class MainWindow : Window
     {
         if (IsScatterProofActive)
         {
-            var status = _scatterChartView.RenderingStatus;
+            var scatter = _activeScatterData;
             _statusText.Text =
                 $"{_activeSourceHeading}\n" +
                 $"{_activeSourceDetails}\n" +
-                "Scatter proof navigation: Left drag orbit, Wheel dolly.\n" +
-                $"Current scene: {status.SeriesCount} series, {status.PointCount} points.\n" +
-                $"Columnar series: {status.ColumnarSeriesCount}; Retained columnar points: {status.ColumnarPointCount}; Pickable points: {status.PickablePointCount}.\n" +
-                $"Streaming appends: {status.StreamingAppendBatchCount}; FIFO capacity: {FormatFifoCapacity(status.ConfiguredFifoCapacity)}; Dropped points: {status.StreamingDroppedPointCount}.\n" +
-                $"Camera target ({status.CameraTarget.X:0.###}, {status.CameraTarget.Y:0.###}, {status.CameraTarget.Z:0.###}), distance {status.CameraDistance:0.###}";
+                "Scatter proof is authored through VideraChartView.Plot.Add.Scatter.\n" +
+                $"Current scene: {scatter?.SeriesCount ?? 0} series, {scatter?.PointCount ?? 0} points.\n" +
+                $"Columnar series: {scatter?.ColumnarSeriesCount ?? 0}; Retained columnar points: {scatter?.ColumnarPointCount ?? 0}; Pickable points: {scatter?.PickablePointCount ?? 0}.\n" +
+                $"Streaming appends: {scatter?.StreamingAppendBatchCount ?? 0}; FIFO capacity: {FormatFifoCapacity(scatter?.ConfiguredFifoCapacity)}; Dropped points: {scatter?.StreamingDroppedPointCount ?? 0}.";
             return;
         }
 
@@ -466,17 +473,14 @@ public partial class MainWindow : Window
     {
         if (IsScatterProofActive)
         {
-            var status = _scatterChartView.RenderingStatus;
+            var scatter = _activeScatterData;
             _renderingPathText.Text =
-                $"Backend kind: {status.BackendKind}\n" +
-                $"Ready: {status.IsReady}\n" +
-                $"Interaction active: {status.IsInteracting}\n" +
-                $"Interaction quality: {status.InteractionQuality}\n" +
-                $"View size: {status.ViewSize.Width:0.#} x {status.ViewSize.Height:0.#}\n" +
-                $"Series: {status.SeriesCount}; Points: {status.PointCount}\n" +
-                $"Columnar series: {status.ColumnarSeriesCount}; Retained columnar points: {status.ColumnarPointCount}; Pickable points: {status.PickablePointCount}\n" +
-                $"Streaming appends: {status.StreamingAppendBatchCount}; Replacements: {status.StreamingReplaceBatchCount}; FIFO capacity: {FormatFifoCapacity(status.ConfiguredFifoCapacity)}; Dropped points: {status.StreamingDroppedPointCount} (last {status.LastStreamingDroppedPointCount})\n" +
-                $"Camera target: ({status.CameraTarget.X:0.###}, {status.CameraTarget.Y:0.###}, {status.CameraTarget.Z:0.###}); Distance: {status.CameraDistance:0.###}";
+                "Plot path: VideraChartView.Plot.Add.Scatter\n" +
+                $"Plot revision: {_scatterChartView.Plot.Revision}\n" +
+                $"Interaction quality: {_scatterChartView.InteractionQuality}\n" +
+                $"Series: {scatter?.SeriesCount ?? 0}; Points: {scatter?.PointCount ?? 0}\n" +
+                $"Columnar series: {scatter?.ColumnarSeriesCount ?? 0}; Retained columnar points: {scatter?.ColumnarPointCount ?? 0}; Pickable points: {scatter?.PickablePointCount ?? 0}\n" +
+                $"Streaming appends: {scatter?.StreamingAppendBatchCount ?? 0}; Replacements: {scatter?.StreamingReplaceBatchCount ?? 0}; FIFO capacity: {FormatFifoCapacity(scatter?.ConfiguredFifoCapacity)}; Dropped points: {scatter?.StreamingDroppedPointCount ?? 0} (last {scatter?.LastStreamingDroppedPointCount ?? 0})";
             return;
         }
 
@@ -492,7 +496,7 @@ public partial class MainWindow : Window
     private void UpdateRenderingDiagnosticsText()
     {
         _renderingDiagnosticsText.Text = IsScatterProofActive
-            ? CreateScatterRenderingDiagnosticsSummary(_scatterChartView.RenderingStatus)
+            ? CreateScatterRenderingDiagnosticsSummary(_activeScatterData, _scatterChartView)
             : CreateSurfaceRenderingDiagnosticsSummary(ActiveSurfaceChartView.RenderingStatus);
     }
 
@@ -501,14 +505,14 @@ public partial class MainWindow : Window
         if (IsScatterProofActive)
         {
             _overlayOptionsText.Text =
-                "ScatterChartView does not expose `OverlayOptions`.\n" +
+                "VideraChartView does not expose `OverlayOptions`.\n" +
                 "This proof path stays direct-scatter only and keeps chart-local overlay configuration out of the scatter host.";
             return;
         }
 
         var overlayOptions = ActiveSurfaceChartView.OverlayOptions;
         _overlayOptionsText.Text =
-            "Chart-local `OverlayOptions` keep formatter, minor ticks, grid plane, and axis-side behavior inside `SurfaceChartView` instead of pushing chart semantics into `VideraView`.\n" +
+            "Chart-local `OverlayOptions` keep formatter, minor ticks, grid plane, and axis-side behavior inside `VideraChartView` instead of pushing chart semantics into `VideraView`.\n" +
             $"Minor ticks: {(overlayOptions.ShowMinorTicks ? "enabled" : "disabled")} (divisions {overlayOptions.MinorTickDivisions})\n" +
             $"Grid plane: {overlayOptions.GridPlane}\n" +
             $"Axis side: {overlayOptions.AxisSideMode}\n" +
@@ -815,7 +819,6 @@ public partial class MainWindow : Window
     {
         if (IsScatterProofActive)
         {
-            var status = _scatterChartView.RenderingStatus;
             var scenario = GetSelectedScatterScenario();
             _supportSummaryText.Text =
                 "SurfaceCharts support summary\n" +
@@ -836,11 +839,11 @@ public partial class MainWindow : Window
                 $"ScenarioUpdatePointCount: {scenario.UpdatePointCount}\n" +
                 $"ScenarioFifoCapacity: {FormatFifoCapacity(scenario.FifoCapacity)}\n" +
                 $"ScenarioPickable: {scenario.Pickable}\n" +
-                $"Chart contract: ScatterChartView exposes direct point data, camera pose truth, Fit to data, and Reset camera on this proof path.\n" +
-                $"Camera: {CreateScatterCameraSummary(status)}\n" +
-                $"RenderingStatus:\n{CreateScatterRenderingDiagnosticsSummary(status)}\n" +
-                $"InteractionQuality: {status.InteractionQuality}\n" +
-                "OverlayOptions: not exposed on ScatterChartView\n" +
+                $"Chart contract: VideraChartView exposes Plot.Add.Scatter on this proof path.\n" +
+                $"Plot: {CreateScatterCameraSummary(_activeScatterData, _scatterChartView)}\n" +
+                $"RenderingStatus:\n{CreateScatterRenderingDiagnosticsSummary(_activeScatterData, _scatterChartView)}\n" +
+                $"InteractionQuality: {_scatterChartView.InteractionQuality}\n" +
+                "OverlayOptions: shared by VideraChartView\n" +
                 $"Cache asset: {_activeAssetSummary}\n" +
                 $"Dataset: {_activeDatasetSummary}";
             return;
@@ -889,7 +892,7 @@ public partial class MainWindow : Window
     {
         return
             $"Demo {CreateAssemblyIdentity(typeof(MainWindow))}; " +
-            $"Avalonia {CreateAssemblyIdentity(typeof(SurfaceChartView))}; " +
+            $"Avalonia {CreateAssemblyIdentity(typeof(VideraChartView))}; " +
             $"Processing {CreateAssemblyIdentity(typeof(SurfaceCacheReader))}; " +
             $"Rendering {CreateAssemblyIdentity(typeof(SurfaceChartRenderingStatus))}";
     }
@@ -924,7 +927,7 @@ public partial class MainWindow : Window
     {
         if (IsScatterProofActive)
         {
-            return CreateScatterCameraSummary(_scatterChartView.RenderingStatus);
+            return CreateScatterCameraSummary(_activeScatterData, _scatterChartView);
         }
 
         var viewState = ActiveSurfaceChartView.ViewState;
@@ -935,10 +938,10 @@ public partial class MainWindow : Window
             $"Camera target ({camera.Target.X:0.###}, {camera.Target.Y:0.###}, {camera.Target.Z:0.###}), Yaw {camera.YawDegrees:0.###}, Pitch {camera.PitchDegrees:0.###}, Distance {camera.Distance:0.###}";
     }
 
-    private static string CreateScatterCameraSummary(ScatterChartRenderingStatus status)
+    private static string CreateScatterCameraSummary(ScatterChartData? scatter, VideraChartView chartView)
     {
         return
-            $"Camera target ({status.CameraTarget.X:0.###}, {status.CameraTarget.Y:0.###}, {status.CameraTarget.Z:0.###}), Distance {status.CameraDistance:0.###}, SeriesCount {status.SeriesCount}, PointCount {status.PointCount}, ColumnarSeriesCount {status.ColumnarSeriesCount}, ColumnarPointCount {status.ColumnarPointCount}, PickablePointCount {status.PickablePointCount}, StreamingAppendBatchCount {status.StreamingAppendBatchCount}, ConfiguredFifoCapacity {FormatFifoCapacity(status.ConfiguredFifoCapacity)}";
+            $"PlotRevision {chartView.Plot.Revision}, SeriesCount {scatter?.SeriesCount ?? 0}, PointCount {scatter?.PointCount ?? 0}, ColumnarSeriesCount {scatter?.ColumnarSeriesCount ?? 0}, ColumnarPointCount {scatter?.ColumnarPointCount ?? 0}, PickablePointCount {scatter?.PickablePointCount ?? 0}, StreamingAppendBatchCount {scatter?.StreamingAppendBatchCount ?? 0}, ConfiguredFifoCapacity {FormatFifoCapacity(scatter?.ConfiguredFifoCapacity)}";
     }
 
     private static string CreateSurfaceRenderingDiagnosticsSummary(SurfaceChartRenderingStatus status)
@@ -956,32 +959,22 @@ public partial class MainWindow : Window
             $"Host path: {CreateHostText(status)}";
     }
 
-    private static string CreateScatterRenderingDiagnosticsSummary(ScatterChartRenderingStatus status)
+    private static string CreateScatterRenderingDiagnosticsSummary(ScatterChartData? scatter, VideraChartView chartView)
     {
         return
-            $"HasSource: {status.HasSource}\n" +
-            $"IsReady: {status.IsReady}\n" +
-            $"BackendKind: {status.BackendKind}\n" +
-            $"IsInteracting: {status.IsInteracting}\n" +
-            $"InteractionQuality: {status.InteractionQuality}\n" +
-            $"SeriesCount: {status.SeriesCount}\n" +
-            $"PointCount: {status.PointCount}\n" +
-            $"ColumnarSeriesCount: {status.ColumnarSeriesCount}\n" +
-            $"ColumnarPointCount: {status.ColumnarPointCount}\n" +
-            $"PickablePointCount: {status.PickablePointCount}\n" +
-            $"StreamingAppendBatchCount: {status.StreamingAppendBatchCount}\n" +
-            $"StreamingReplaceBatchCount: {status.StreamingReplaceBatchCount}\n" +
-            $"StreamingDroppedPointCount: {status.StreamingDroppedPointCount}\n" +
-            $"LastStreamingDroppedPointCount: {status.LastStreamingDroppedPointCount}\n" +
-            $"ConfiguredFifoCapacity: {FormatFifoCapacity(status.ConfiguredFifoCapacity)}\n" +
-            $"ViewSize: {status.ViewSize.Width:0.#} x {status.ViewSize.Height:0.#}\n" +
-            $"CameraTarget: ({status.CameraTarget.X:0.###}, {status.CameraTarget.Y:0.###}, {status.CameraTarget.Z:0.###})\n" +
-            $"CameraDistance: {status.CameraDistance:0.###}";
-    }
-
-    private static string FormatFifoCapacity(int configuredFifoCapacity)
-    {
-        return configuredFifoCapacity > 0 ? configuredFifoCapacity.ToString(CultureInfo.InvariantCulture) : "unbounded";
+            $"PlotRevision: {chartView.Plot.Revision}\n" +
+            $"LastRefreshRevision: {chartView.LastRefreshRevision}\n" +
+            $"InteractionQuality: {chartView.InteractionQuality}\n" +
+            $"SeriesCount: {scatter?.SeriesCount ?? 0}\n" +
+            $"PointCount: {scatter?.PointCount ?? 0}\n" +
+            $"ColumnarSeriesCount: {scatter?.ColumnarSeriesCount ?? 0}\n" +
+            $"ColumnarPointCount: {scatter?.ColumnarPointCount ?? 0}\n" +
+            $"PickablePointCount: {scatter?.PickablePointCount ?? 0}\n" +
+            $"StreamingAppendBatchCount: {scatter?.StreamingAppendBatchCount ?? 0}\n" +
+            $"StreamingReplaceBatchCount: {scatter?.StreamingReplaceBatchCount ?? 0}\n" +
+            $"StreamingDroppedPointCount: {scatter?.StreamingDroppedPointCount ?? 0}\n" +
+            $"LastStreamingDroppedPointCount: {scatter?.LastStreamingDroppedPointCount ?? 0}\n" +
+            $"ConfiguredFifoCapacity: {FormatFifoCapacity(scatter?.ConfiguredFifoCapacity)}";
     }
 
     private static string FormatFifoCapacity(int? configuredFifoCapacity)

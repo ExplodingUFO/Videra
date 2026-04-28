@@ -30,7 +30,7 @@ public sealed class SurfaceChartsConsumerSmokeConfigurationTests
         project.Should().NotContain("<ProjectReference");
 
         var mainWindowXaml = File.ReadAllText(mainWindowXamlPath);
-        mainWindowXaml.Should().Contain("SurfaceChartView");
+        mainWindowXaml.Should().Contain("VideraChartView");
         mainWindowXaml.Should().Contain("StatusText");
         mainWindowXaml.Should().Contain("Videra SurfaceCharts Consumer Smoke");
         mainWindowXaml.Should().NotContain("VideraView");

@@ -66,7 +66,7 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
         readme.Should().Contain("modules/videra-surfacecharts-avalonia.md");
         readme.Should().Contain("modules/videra-surfacecharts-processing.md");
         readme.Should().Contain("samples/Videra.SurfaceCharts.Demo/README.md");
-        readme.Should().Contain("SurfaceChartView");
+        readme.Should().Contain("VideraChartView");
         readme.Should().Contain("Videra.SurfaceCharts.Demo");
         AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.ChineseSurfaceChartsFamilyBoundaryTokens);
         readme.Should().Contain("交互驻留更紧");
@@ -156,7 +156,7 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
         avaloniaReadme.Should().Contain("FitToData()");
         avaloniaReadme.Should().Contain("ResetCamera()");
         avaloniaReadme.Should().Contain("ZoomTo(...)");
-        avaloniaReadme.Should().Contain("without widening `SurfaceChartView` itself");
+        avaloniaReadme.Should().Contain("without widening `VideraChartView` itself");
         avaloniaReadme.Should().Contain("tighter under camera movement");
         avaloniaReadme.Should().Contain("probe work");
         AssertContainsAllTokens(avaloniaReadme, SurfaceChartsDocumentationTerms.SurfaceChartsAvaloniaReadmeContractTokens);
@@ -310,12 +310,12 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
     }
 
     [Fact]
-    public void SurfaceChartView_ShouldDelegateTileResidencyAndOverlayStateToInternalSeams()
+    public void VideraChartView_ShouldDelegateTileResidencyAndOverlayStateToInternalSeams()
     {
         var repositoryRoot = GetRepositoryRoot();
-        var viewApi = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.SurfaceCharts.Avalonia", "Controls", "SurfaceChartView.cs"));
-        var viewOverlay = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.SurfaceCharts.Avalonia", "Controls", "SurfaceChartView.Overlay.cs"));
-        var viewRendering = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.SurfaceCharts.Avalonia", "Controls", "SurfaceChartView.Rendering.cs"));
+        var viewApi = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.SurfaceCharts.Avalonia", "Controls", "VideraChartView.Core.cs"));
+        var viewOverlay = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.SurfaceCharts.Avalonia", "Controls", "VideraChartView.Overlay.cs"));
+        var viewRendering = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.SurfaceCharts.Avalonia", "Controls", "VideraChartView.Rendering.cs"));
         var runtime = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.SurfaceCharts.Avalonia", "Controls", "Interaction", "SurfaceChartRuntime.cs"));
         var overlayCoordinator = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.SurfaceCharts.Avalonia", "Controls", "Overlay", "SurfaceChartOverlayCoordinator.cs"));
 
@@ -368,11 +368,11 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
     }
 
     [Fact]
-    public void SurfaceChartViewPublicApis_ShouldCarryContractXmlDocs()
+    public void VideraChartViewPublicApis_ShouldCarryContractXmlDocs()
     {
         var repositoryRoot = GetRepositoryRoot();
-        var viewApi = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.SurfaceCharts.Avalonia", "Controls", "SurfaceChartView.cs"));
-        var viewPropertiesApi = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.SurfaceCharts.Avalonia", "Controls", "SurfaceChartView.Properties.cs"));
+        var viewApi = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.SurfaceCharts.Avalonia", "Controls", "VideraChartView.Core.cs"));
+        var viewPropertiesApi = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.SurfaceCharts.Avalonia", "Controls", "VideraChartView.Properties.cs"));
 
         AssertContainsAllTokens(viewApi, SurfaceChartsDocumentationTerms.SurfaceChartViewTypeXmlDocTokens);
         AssertContainsAllTokens(viewApi, SurfaceChartsDocumentationTerms.SurfaceChartRenderingStatusXmlDocTokens);

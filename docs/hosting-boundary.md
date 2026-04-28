@@ -23,7 +23,7 @@ The normal viewer stack is:
 | `Import` | CPU-side scene asset ingestion | `GltfModelImporter`, `ObjModelImporter`, `ImportedSceneAsset` |
 | `UI adapter` | Avalonia host shell | `VideraView`, `VideraViewOptions`, `BackendDiagnostics`, `RenderCapabilities` |
 | `Backend` | Native graphics implementation | matching `Videra.Platform.Windows` / `Linux` / `macOS` backend package |
-| `Charts` | Shipped public chart package family | `SurfaceChartView`, `WaterfallChartView`, `ScatterChartView`, and `Videra.SurfaceCharts.*` |
+| `Charts` | Shipped public chart package family | `VideraChartView`, `VideraChartView`, `VideraChartView`, and `Videra.SurfaceCharts.*` |
 
 ## Scene and Material Runtime Model
 

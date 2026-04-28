@@ -33,11 +33,11 @@
             CornerRadius="20"
             ClipToBounds="True">
         <Grid>
-        <charts:SurfaceChartView x:Name="ChartView" />
-        <charts:WaterfallChartView x:Name="WaterfallChartView"
-                                   IsVisible="False" />
-        <charts:ScatterChartView x:Name="ScatterChartView"
-                                 IsVisible="False" />
+        <charts:VideraChartView x:Name="ChartView" />
+        <charts:VideraChartView x:Name="WaterfallPlotView"
+                                IsVisible="False" />
+        <charts:VideraChartView x:Name="ScatterPlotView"
+                                IsVisible="False" />
         </Grid>
     </Border>
 
@@ -100,7 +100,7 @@
                        TextWrapping="Wrap" />
             <TextBlock Foreground="#CBD5E1"
                        TextWrapping="Wrap"
-                       Text="`ViewState` remains the primary contract for `SurfaceChartView` and `WaterfallChartView`. `ScatterChartView` uses camera pose truth instead, but `Fit to data` and `Reset camera` stay as deterministic host commands on the same proof surface." />
+                       Text="`ViewState` remains the primary contract for `VideraChartView` and `VideraChartView`. `VideraChartView` uses camera pose truth instead, but `Fit to data` and `Reset camera` stay as deterministic host commands on the same proof surface." />
           </StackPanel>
         </Border>
 

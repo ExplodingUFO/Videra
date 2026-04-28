@@ -341,13 +341,11 @@
       "sourceRoot": "src/Videra.SurfaceCharts.Avalonia",
       "publicTypes": [
         "Videra.SurfaceCharts.Avalonia.Controls.ScatterChartRenderingStatus",
-        "Videra.SurfaceCharts.Avalonia.Controls.ScatterChartView",
+        "Videra.SurfaceCharts.Avalonia.Controls.VideraChartView",
         "Videra.SurfaceCharts.Avalonia.Controls.SurfaceChartAxisSideMode",
         "Videra.SurfaceCharts.Avalonia.Controls.SurfaceChartGridPlane",
         "Videra.SurfaceCharts.Avalonia.Controls.SurfaceChartInteractionQuality",
-        "Videra.SurfaceCharts.Avalonia.Controls.SurfaceChartOverlayOptions",
-        "Videra.SurfaceCharts.Avalonia.Controls.SurfaceChartView",
-        "Videra.SurfaceCharts.Avalonia.Controls.WaterfallChartView"
+        "Videra.SurfaceCharts.Avalonia.Controls.SurfaceChartOverlayOptions"
       ]
     }
   ]

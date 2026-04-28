@@ -33,7 +33,7 @@ Explicit exclusions remain: animation, skeletons, morph targets, mixers, broader
 - Current repository baseline: `0.1.0-alpha.7`
 - Public release tags are intended to publish the consumer packages on `nuget.org`
 - `GitHub Packages` remains the `preview` / internal feed for contributors and pre-release validation
-- `Videra.SurfaceCharts.*` now ships as a public `alpha` package line, `SurfaceChartView`, `WaterfallChartView`, and `ScatterChartView` are the current Avalonia controls, `Videra.SurfaceCharts.Processing` is needed for the surface/cache-backed path, and `Videra.SurfaceCharts.Demo` remains repository-only
+- `Videra.SurfaceCharts.*` now ships as a public `alpha` package line, `VideraChartView`, `VideraChartView`, and `VideraChartView` are the current Avalonia controls, `Videra.SurfaceCharts.Processing` is needed for the surface/cache-backed path, and `Videra.SurfaceCharts.Demo` remains repository-only
 - `smoke/Videra.WpfSmoke` remains a repository-only Windows WPF smoke proof for validation and support evidence on the Avalonia-first public viewer path; it is not a second public UI package or release path
 - Linux native rendering remains `X11`-hosted, and Wayland sessions stay on the documented `XWayland` bridge
 - GitHub Actions runs matching-host native validation, packaged viewer consumer smoke, packaged SurfaceCharts first-chart consumer smoke, and explicit sample-contract evidence on pull requests, and the [Native Validation runbook](docs/native-validation.md) documents how to use `Run workflow` for targeted reruns
@@ -131,7 +131,7 @@ For alpha adoption feedback, use [Alpha Feedback](docs/alpha-feedback.md) before
 | `Videra.SurfaceCharts.Core` | Chart-domain consumers and custom tile-source integrators | `nuget.org` public tags | `alpha` |
 | `Videra.SurfaceCharts.Rendering` | SurfaceCharts rendering-runtime consumers | `nuget.org` public tags | `alpha` |
 | `Videra.SurfaceCharts.Processing` | Surface preprocessing, cache, and pyramid helpers for the surface/cache-backed path | `nuget.org` public tags | `alpha` |
-| `Videra.SurfaceCharts.Avalonia` | Avalonia desktop applications that host `SurfaceChartView`, `WaterfallChartView`, or `ScatterChartView` | `nuget.org` public tags | `alpha` |
+| `Videra.SurfaceCharts.Avalonia` | Avalonia desktop applications that host `VideraChartView`, `VideraChartView`, or `VideraChartView` | `nuget.org` public tags | `alpha` |
 
 ## Repository-only entries
 
@@ -223,14 +223,14 @@ Contract highlights:
 ## Surface Charts Onboarding
 
 For the canonical SurfaceCharts story, start from `Videra.SurfaceCharts.Avalonia`, add `Videra.SurfaceCharts.Processing` only for the surface/cache-backed path, and use [Videra.SurfaceCharts.Demo](samples/Videra.SurfaceCharts.Demo/README.md) as the repository reference app for the paths it actually exposes.
-Inside that demo, keep the default `Start here: In-memory first chart` path for the baseline repro, then move to `Explore next: Cache-backed streaming` when you want to validate lazy tile reads and the broader chart diagnostics surface, use `Try next: Analytics proof` for the explicit-coordinate, independent-`ColorField`, analysis-grade pinned-probe workflow on the same shell, use `Try next: Waterfall proof` for the thin second chart proof on the same Avalonia shell, and use `Try next: Scatter proof` for the repo-owned scatter proof path on the same shell. `ScatterChartView` ships in the Avalonia control line, and the demo exercises it through that repo-owned path.
+Inside that demo, keep the default `Start here: In-memory first chart` path for the baseline repro, then move to `Explore next: Cache-backed streaming` when you want to validate lazy tile reads and the broader chart diagnostics surface, use `Try next: Analytics proof` for the explicit-coordinate, independent-`ColorField`, analysis-grade pinned-probe workflow on the same shell, use `Try next: Waterfall proof` for the thin second chart proof on the same Avalonia shell, and use `Try next: Scatter proof` for the repo-owned scatter proof path on the same shell. `VideraChartView` ships in the Avalonia control line, and the demo exercises it through that repo-owned path.
 Use `Copy support summary` when you need the chart support artifact that matches the docs and bug template. Public release workflows publish the `Videra.SurfaceCharts.*` package assets after explicit approval, while `Videra.SurfaceCharts.Demo` remains repository-only and keeps the support-summary repro workflow.
 The packaged SurfaceCharts proof lives separately in `smoke/Videra.SurfaceCharts.ConsumerSmoke`, which writes `surfacecharts-support-summary.txt` on the packaged install path without turning the broader demo into a public install story.
 
 Contract highlights:
 
 - The surface-chart module family is a sibling product area, independent from `VideraView`.
-- The dedicated `SurfaceChartView`, `WaterfallChartView`, and `ScatterChartView` controls remain the public chart entrypoints in `Videra.SurfaceCharts.Avalonia`.
+- The dedicated `VideraChartView`, `VideraChartView`, and `VideraChartView` controls remain the public chart entrypoints in `Videra.SurfaceCharts.Avalonia`.
 - `Videra.SurfaceCharts.Demo` is the independent demo application for the surface-chart module family.
 - `Videra.SurfaceCharts.Core` owns chart-domain models, tile identities, probe contracts, and LOD selection.
 - `Videra.SurfaceCharts.Rendering` owns chart render-state orchestration and the chart-local backend runtime.
@@ -238,16 +238,16 @@ Contract highlights:
 - `Videra.SurfaceCharts.Avalonia` owns the UI shell, axis/legend overlays, hover/pinned probe behavior, and renderer-status surface.
 - The shipped chart surface is `GPU-first` with explicit `software fallback`, and hosts can inspect `RenderingStatus` / `RenderStatusChanged`.
 - The public rendering truth is `RenderingStatus` + `RenderStatusChanged` with `ActiveBackend`, `IsReady`, `IsFallback`, `FallbackReason`, `UsesNativeSurface`, `ResidentTileCount`, `VisibleTileCount`, and `ResidentTileBytes`.
-- SurfaceChartView exposes `ViewState` as the chart-view contract for persisted camera and data-window state.
-- SurfaceChartView now ships built-in `left-drag orbit`, `right-drag pan`, `wheel dolly`, `Ctrl + left-drag` focus zoom, and `Shift + left-click` pinned probe on top of the `ViewState` runtime contract.
+- VideraChartView exposes `ViewState` as the chart-view contract for persisted camera and data-window state.
+- VideraChartView now ships built-in `left-drag orbit`, `right-drag pan`, `wheel dolly`, `Ctrl + left-drag` focus zoom, and `Shift + left-click` pinned probe on top of the `ViewState` runtime contract.
 - The chart enters `Interactive` quality during motion and returns to `Refine` after input settles.
 - The public interaction diagnostics are `InteractionQuality` + `InteractionQualityChanged` with `Interactive` / `Refine`.
-- `ScatterChartView` follows the same chart-local interaction-quality terminology for its direct scatter path and reports that state through `ScatterChartRenderingStatus`.
+- `VideraChartView` follows the same chart-local interaction-quality terminology for its direct scatter path and reports that state through `ScatterChartRenderingStatus`.
 - Columnar scatter streaming uses `ScatterColumnarSeries.ReplaceRange(...)`, `AppendRange(...)`, optional `fifoCapacity`, and `Pickable=false` by default for high-volume data.
 - Hosts can keep professional axis, grid, and legend behavior chart-local through `OverlayOptions` for formatter, title/unit override, minor ticks, grid plane, and axis-side selection.
 - The public overlay configuration seam is `SurfaceChartOverlayOptions` through `OverlayOptions`; overlay state types remain internal.
 - Hosts own `ISurfaceTileSource`, persisted `ViewState`, color-map selection, and chart-local product UI.
-- `SurfaceChartView` owns chart-local built-in gestures, tile scheduling/cache, overlay presentation, native-host/render-host orchestration, and `RenderingStatus` projection.
+- `VideraChartView` owns chart-local built-in gestures, tile scheduling/cache, overlay presentation, native-host/render-host orchestration, and `RenderingStatus` projection.
 - The `Videra.SurfaceCharts.*` family is part of the current public package promise, but `Videra.SurfaceCharts.Demo` remains repository-only.
 
 ## Current Boundaries

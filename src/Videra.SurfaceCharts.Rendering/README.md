@@ -4,7 +4,7 @@
 
 `nuget.org` is the default public feed for this package. `GitHub Packages` remains `preview` / internal validation only. The current support level is `alpha`.
 
-Most consumers should start with `Videra.SurfaceCharts.Avalonia`, which depends on this package transitively. This package exists so the public chart package line can stay truthful about the current assembly/runtime split without pretending `SurfaceChartView` or `WaterfallChartView` owns the entire rendering pipeline by itself.
+Most consumers should start with `Videra.SurfaceCharts.Avalonia`, which depends on this package transitively. This package exists so the public chart package line can stay truthful about the current assembly/runtime split without pretending `VideraChartView` or `VideraChartView` owns the entire rendering pipeline by itself.
 
 That chart-local runtime split is also where the current efficiency story lives: tighter interactive residency under camera movement and lower probe-path churn stay on the existing chart-local path.
 
@@ -13,7 +13,7 @@ That chart-local runtime split is also where the current efficiency story lives:
 - chart-local render-state orchestration
 - `GPU-first` / chart-local `software fallback` backend runtime
 - resident tile state and incremental render snapshots
-- shared rendering helpers used by `SurfaceChartView`
+- shared rendering helpers used by `VideraChartView`
 
 ## Boundaries
 
