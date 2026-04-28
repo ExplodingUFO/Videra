@@ -1,0 +1,44 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>CS1591</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="11.3.9" />
+    <PackageReference Include="Avalonia.Desktop" Version="11.3.9" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.9" />
+    <PackageReference Include="Avalonia.Fonts.Inter" Version="11.3.9" />
+    <PackageReference Include="Avalonia.Diagnostics" Version="11.3.9">
+      <IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
+      <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Videra.Avalonia\Videra.Avalonia.csproj" />
+    <ProjectReference Include="..\..\src\Videra.Import.Obj\Videra.Import.Obj.csproj" />
+    <ProjectReference Include="..\..\src\Videra.SurfaceCharts.Avalonia\Videra.SurfaceCharts.Avalonia.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Condition="$([MSBuild]::IsOSPlatform('Windows'))">
+    <ProjectReference Include="..\..\src\Videra.Platform.Windows\Videra.Platform.Windows.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Condition="$([MSBuild]::IsOSPlatform('Linux'))">
+    <ProjectReference Include="..\..\src\Videra.Platform.Linux\Videra.Platform.Linux.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Condition="$([MSBuild]::IsOSPlatform('OSX'))">
+    <ProjectReference Include="..\..\src\Videra.Platform.macOS\Videra.Platform.macOS.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\Videra.MinimalSample\Assets\reference-cube.obj" Link="Assets\reference-cube.obj" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

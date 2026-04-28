@@ -34,6 +34,7 @@
     <Project Path="samples/Videra.SurfaceCharts.Demo/Videra.SurfaceCharts.Demo.csproj" />
   </Folder>
   <Folder Name="/Startups/Videra/">
+    <Project Path="samples/Videra.AvaloniaWorkbenchSample/Videra.AvaloniaWorkbenchSample.csproj" />
     <Project Path="samples/Videra.Demo/Videra.Demo.csproj" />
     <Project Path="samples/Videra.ExtensibilitySample/Videra.ExtensibilitySample.csproj" />
     <Project Path="samples/Videra.InteractionSample/Videra.InteractionSample.csproj" />

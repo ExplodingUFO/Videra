@@ -1,0 +1,124 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:videra="using:Videra.Avalonia.Controls"
+        x:Class="Videra.AvaloniaWorkbenchSample.Views.MainWindow"
+        Title="Videra Avalonia Workbench Sample"
+        Width="1320"
+        Height="820"
+        MinWidth="1040"
+        MinHeight="680"
+        Background="#111827">
+  <Grid ColumnDefinitions="2.1*,1.2*" RowDefinitions="Auto,*">
+    <Border Grid.ColumnSpan="2"
+            Background="#1F2937"
+            BorderBrush="#374151"
+            BorderThickness="0,0,0,1"
+            Padding="22,16">
+      <StackPanel Spacing="6">
+        <TextBlock FontSize="24"
+                   FontWeight="SemiBold"
+                   Foreground="#F9FAFB"
+                   Text="Avalonia workbench first slice" />
+        <TextBlock Foreground="#D1D5DB"
+                   TextWrapping="Wrap"
+                   Text="Optional sample workflow for authored-scene evidence, model loading evidence, snapshot diagnostics, support capture, and chart-local precision proof." />
+      </StackPanel>
+    </Border>
+
+    <Border Grid.Row="1"
+            Margin="20,20,10,20"
+            CornerRadius="6"
+            BorderBrush="#374151"
+            BorderThickness="1"
+            ClipToBounds="True">
+      <videra:VideraView x:Name="View3D"
+                         BackgroundColor="#111827"
+                         GridColor="#4B5563"
+                         IsGridVisible="True" />
+    </Border>
+
+    <ScrollViewer Grid.Row="1"
+                  Grid.Column="1"
+                  Margin="10,20,20,20"
+                  VerticalScrollBarVisibility="Auto">
+      <StackPanel Spacing="12">
+        <Border Padding="16"
+                Background="#1F2937"
+                BorderBrush="#374151"
+                BorderThickness="1"
+                CornerRadius="6">
+          <StackPanel Spacing="10">
+            <TextBlock FontSize="16"
+                       FontWeight="SemiBold"
+                       Foreground="#F9FAFB"
+                       Text="Scene workflow" />
+            <Button x:Name="LoadAuthoredSceneButton"
+                    Content="Load Authored Scene"
+                    HorizontalAlignment="Stretch" />
+            <Button x:Name="LoadReferenceAssetButton"
+                    Content="Load OBJ Evidence"
+                    HorizontalAlignment="Stretch" />
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+              <Button x:Name="FrameAllButton"
+                      Content="Frame All"
+                      HorizontalAlignment="Stretch" />
+              <Button Grid.Column="1"
+                      x:Name="ResetCameraButton"
+                      Content="Reset Camera"
+                      HorizontalAlignment="Stretch" />
+            </Grid>
+            <TextBlock x:Name="SceneEvidenceText"
+                       Foreground="#D1D5DB"
+                       TextWrapping="Wrap" />
+          </StackPanel>
+        </Border>
+
+        <Border Padding="16"
+                Background="#1F2937"
+                BorderBrush="#374151"
+                BorderThickness="1"
+                CornerRadius="6">
+          <StackPanel Spacing="8">
+            <TextBlock FontSize="16"
+                       FontWeight="SemiBold"
+                       Foreground="#F9FAFB"
+                       Text="Diagnostics snapshot" />
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+              <Button x:Name="RefreshSnapshotButton"
+                      Content="Refresh Snapshot"
+                      HorizontalAlignment="Stretch" />
+              <Button Grid.Column="1"
+                      x:Name="CopySupportCaptureButton"
+                      Content="Copy Support"
+                      HorizontalAlignment="Stretch" />
+            </Grid>
+            <TextBlock x:Name="SupportStatusText"
+                       Foreground="#D1D5DB"
+                       TextWrapping="Wrap" />
+            <TextBlock x:Name="DiagnosticsText"
+                       Foreground="#D1D5DB"
+                       FontFamily="Consolas"
+                       FontSize="12"
+                       TextWrapping="Wrap" />
+          </StackPanel>
+        </Border>
+
+        <Border Padding="16"
+                Background="#1F2937"
+                BorderBrush="#374151"
+                BorderThickness="1"
+                CornerRadius="6">
+          <StackPanel Spacing="8">
+            <TextBlock FontSize="16"
+                       FontWeight="SemiBold"
+                       Foreground="#F9FAFB"
+                       Text="Chart precision proof" />
+            <TextBlock x:Name="ChartPrecisionText"
+                       Foreground="#D1D5DB"
+                       TextWrapping="Wrap" />
+          </StackPanel>
+        </Border>
+      </StackPanel>
+    </ScrollViewer>
+  </Grid>
+</Window>

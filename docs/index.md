@@ -48,6 +48,7 @@ This page maps the long-lived public documentation for Videra. Start with the re
 ## Repository-Only Samples and Demos
 
 - [Videra.Demo](../samples/Videra.Demo/README.md)
+- [Videra.AvaloniaWorkbenchSample](../samples/Videra.AvaloniaWorkbenchSample/README.md)
 - [Videra.SurfaceCharts.Demo](../samples/Videra.SurfaceCharts.Demo/README.md)
 - [Videra.ExtensibilitySample](../samples/Videra.ExtensibilitySample/README.md)
 - [Videra.InteractionSample](../samples/Videra.InteractionSample/README.md)

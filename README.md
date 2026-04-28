@@ -138,6 +138,7 @@ For alpha adoption feedback, use [Alpha Feedback](docs/alpha-feedback.md) before
 | Entry | Status | Notes |
 | --- | --- | --- |
 | `Videra.Demo` | Repository-only | Viewer diagnostics, `LastFrameObjectCount` / `LastFrameOpaqueObjectCount` / `LastFrameTransparentObjectCount`, and scene-pipeline reference app |
+| `Videra.AvaloniaWorkbenchSample` | Repository-only | Optional sample-first workbench slice for authored-scene evidence, model-load evidence, snapshot diagnostics, support capture, and chart precision proof |
 | `smoke/Videra.WpfSmoke` | Repository-only | Windows WPF smoke proof for validation and support evidence on the Avalonia-first public viewer path; not a second public UI package or release path |
 | `smoke/Videra.SurfaceCharts.ConsumerSmoke` | Repository-only | Packaged SurfaceCharts first-chart smoke proof and `surfacecharts-support-summary.txt` support artifact |
 | `Videra.SurfaceCharts.Demo` | Repository-only | SurfaceCharts reference app and support-summary repro path with `Start here`, `Explore next`, and `Try next` demo paths |
@@ -149,6 +150,7 @@ For alpha adoption feedback, use [Alpha Feedback](docs/alpha-feedback.md) before
 | Entry | Purpose |
 | --- | --- |
 | `Videra.MinimalSample` | Shortest first-scene reference for `VideraViewOptions`, `LoadModelAsync`, `FrameAll`, `ResetCamera`, `BackendDiagnostics`, and diagnostics snapshot export |
+| `Videra.AvaloniaWorkbenchSample` | Optional sample-first workbench workflow for authored scenes, model loading, support capture, and chart precision evidence |
 | `Videra.Demo` | Viewer demo for backend diagnostics, import feedback, and baseline interaction |
 | `Videra.SurfaceCharts.Demo` | Independent surface-chart demo for the surface-chart module family, chart-local overlays, and rendering-path truth |
 | `Videra.ExtensibilitySample` | Narrow public reference for `VideraView.Engine`, `RegisterPassContributor(...)`, and `RegisterFrameHook(...)` |
