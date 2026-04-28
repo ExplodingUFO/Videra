@@ -16,11 +16,15 @@ _No matching beads in the exported snapshot._
 
 ## Ready
 
-_No matching beads in the exported snapshot._
+- **Videra-lu9** - v2.52 Professional Chart Snapshot Export (epic, P1, open; labels: professional-charts, snapshot-export, v2.52)
+- **Videra-lu9.1** - Phase 361 Chart Snapshot Export Inventory (task, P1, open; labels: inventory, professional-charts, snapshot-export, v2.52)
 
 ## Blocked
 
-_No matching beads in the exported snapshot._
+- **Videra-lu9.2** - Phase 362 Plot Snapshot Export Contract (task, P1, open; labels: contract, professional-charts, snapshot-export, v2.52)
+- **Videra-lu9.3** - Phase 363 Chart Snapshot Capture Implementation (task, P1, open; labels: capture, professional-charts, snapshot-export, v2.52)
+- **Videra-lu9.4** - Phase 364 Demo Smoke Doctor Snapshot Evidence (task, P1, open; labels: demo, doctor, professional-charts, snapshot-export, v2.52)
+- **Videra-lu9.5** - Phase 365 Snapshot Export Guardrails and Docs (task, P1, open; labels: docs, guardrails, professional-charts, snapshot-export, v2.52)
 
 ## Backlog
 
