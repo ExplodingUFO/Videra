@@ -8,6 +8,7 @@ public sealed class SceneAuthoringBuilder
 {
     private readonly List<AuthoredMesh> _meshes = [];
     private readonly List<InstanceBatchDescriptor> _instanceBatches = [];
+    private readonly List<SceneAuthoringDiagnostic> _inputDiagnostics = [];
 
     internal SceneAuthoringBuilder(string name)
     {
@@ -263,6 +264,13 @@ public sealed class SceneAuthoringBuilder
         ArgumentNullException.ThrowIfNull(meshData);
         ArgumentNullException.ThrowIfNull(material);
 
+        var diagnosticsBefore = _inputDiagnostics.Count;
+        ValidateAuthoredInstanceBatchData(name, meshData, material, transforms, colors, objectIds, _inputDiagnostics);
+        if (_inputDiagnostics.Count != diagnosticsBefore)
+        {
+            return this;
+        }
+
         var mesh = new MeshPrimitive(primitiveId ?? MeshPrimitiveId.New(), name, meshData, material.Id);
         return AddInstanceBatch(new InstanceBatchDescriptor(name, mesh, material, transforms, colors, objectIds, pickable));
     }
@@ -296,7 +304,7 @@ public sealed class SceneAuthoringBuilder
 
     public IReadOnlyList<SceneAuthoringDiagnostic> Validate()
     {
-        var diagnostics = new List<SceneAuthoringDiagnostic>();
+        var diagnostics = new List<SceneAuthoringDiagnostic>(_inputDiagnostics);
         ValidateScene(diagnostics);
         ValidateMeshes(diagnostics);
         return diagnostics;
@@ -421,6 +429,73 @@ public sealed class SceneAuthoringBuilder
         if (!IsFinite(mesh.Transform))
         {
             diagnostics.Add(Error("node.transform.nonfinite", "Node transform must contain only finite matrix values.", mesh.Name));
+        }
+    }
+
+    private static void ValidateAuthoredInstanceBatchData(
+        string name,
+        MeshData meshData,
+        MaterialInstance material,
+        ReadOnlyMemory<Matrix4x4> transforms,
+        ReadOnlyMemory<RgbaFloat> colors,
+        ReadOnlyMemory<Guid> objectIds,
+        ICollection<SceneAuthoringDiagnostic> diagnostics)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            diagnostics.Add(Error("instance.name", "Instance batch name is required."));
+        }
+
+        if (material.Alpha.Mode == MaterialAlphaMode.Blend)
+        {
+            diagnostics.Add(Error("instance.material.blend", "Instance batches do not support transparent Blend materials.", name));
+        }
+
+        if (meshData.Vertices.Length == 0)
+        {
+            diagnostics.Add(Error("instance.mesh.vertices.empty", "Instance batch mesh must contain at least one vertex.", name));
+        }
+
+        if (transforms.IsEmpty)
+        {
+            diagnostics.Add(Error("instance.transforms.empty", "Instance batch transforms must contain at least one transform.", name));
+        }
+
+        if (!colors.IsEmpty && colors.Length != transforms.Length)
+        {
+            diagnostics.Add(Error("instance.colors.length", "Per-instance colors must be empty or match the transform count.", name));
+        }
+
+        if (!objectIds.IsEmpty && objectIds.Length != transforms.Length)
+        {
+            diagnostics.Add(Error("instance.objectIds.length", "Per-instance object ids must be empty or match the transform count.", name));
+        }
+
+        foreach (var transform in transforms.Span)
+        {
+            if (!IsFinite(transform))
+            {
+                diagnostics.Add(Error("instance.transform.nonfinite", "Instance batch transforms must contain only finite matrix values.", name));
+                break;
+            }
+        }
+
+        foreach (var color in colors.Span)
+        {
+            if (!IsFinite(color))
+            {
+                diagnostics.Add(Error("instance.color.nonfinite", "Per-instance colors must contain only finite values.", name));
+                break;
+            }
+        }
+
+        foreach (var objectId in objectIds.Span)
+        {
+            if (objectId == Guid.Empty)
+            {
+                diagnostics.Add(Error("instance.objectId.empty", "Per-instance object ids must not contain Guid.Empty.", name));
+                break;
+            }
         }
     }
 
