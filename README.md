@@ -33,7 +33,7 @@ Explicit exclusions remain: animation, skeletons, morph targets, mixers, broader
 - Current repository baseline: `0.1.0-alpha.7`
 - Public release tags are intended to publish the consumer packages on `nuget.org`
 - `GitHub Packages` remains the `preview` / internal feed for contributors and pre-release validation
-- `Videra.SurfaceCharts.*` now ships as a public `alpha` package line, `VideraChartView` is the current Avalonia chart control, `Plot.Add.Surface`, `Plot.Add.Waterfall`, and `Plot.Add.Scatter` are its chart authoring entrypoints, `Videra.SurfaceCharts.Processing` is needed for the surface/cache-backed path, and `Videra.SurfaceCharts.Demo` remains repository-only
+- `Videra.SurfaceCharts.*` now ships as a public `alpha` package line, `VideraChartView` is the current Avalonia chart control, `Plot.Add.Surface`, `Plot.Add.Waterfall`, and `Plot.Add.Scatter` are its chart authoring and runtime data-loading entrypoints, `Videra.SurfaceCharts.Processing` is needed for the surface/cache-backed path, and `Videra.SurfaceCharts.Demo` remains repository-only
 - `smoke/Videra.WpfSmoke` remains a repository-only Windows WPF smoke proof for validation and support evidence on the Avalonia-first public viewer path; it is not a second public UI package or release path
 - Linux native rendering remains `X11`-hosted, and Wayland sessions stay on the documented `XWayland` bridge
 - GitHub Actions runs matching-host native validation, packaged viewer consumer smoke, packaged SurfaceCharts first-chart consumer smoke, and explicit sample-contract evidence on pull requests, and the [Native Validation runbook](docs/native-validation.md) documents how to use `Run workflow` for targeted reruns
@@ -230,7 +230,7 @@ The packaged SurfaceCharts proof lives separately in `smoke/Videra.SurfaceCharts
 Contract highlights:
 
 - The surface-chart module family is a sibling product area, independent from `VideraView`.
-- The dedicated `VideraChartView` remains the public chart control in `Videra.SurfaceCharts.Avalonia`; `Plot.Add.Surface`, `Plot.Add.Waterfall`, and `Plot.Add.Scatter` are its chart authoring entrypoints.
+- The dedicated `VideraChartView` remains the public chart control in `Videra.SurfaceCharts.Avalonia`; `Plot.Add.Surface`, `Plot.Add.Waterfall`, and `Plot.Add.Scatter` are its chart authoring and runtime data-loading entrypoints.
 - `Videra.SurfaceCharts.Demo` is the independent demo application for the surface-chart module family.
 - `Videra.SurfaceCharts.Core` owns chart-domain models, tile identities, probe contracts, and LOD selection.
 - `Videra.SurfaceCharts.Rendering` owns chart render-state orchestration and the chart-local backend runtime.
@@ -242,7 +242,7 @@ Contract highlights:
 - VideraChartView now ships built-in `left-drag orbit`, `right-drag pan`, `wheel dolly`, `Ctrl + left-drag` focus zoom, and `Shift + left-click` pinned probe on top of the `ViewState` runtime contract.
 - The chart enters `Interactive` quality during motion and returns to `Refine` after input settles.
 - The public interaction diagnostics are `InteractionQuality` + `InteractionQualityChanged` with `Interactive` / `Refine`.
-- `VideraChartView` follows the same chart-local interaction-quality terminology for its direct scatter path and reports that state through `ScatterChartRenderingStatus`.
+- `VideraChartView` follows the same chart-local interaction-quality terminology for its Plot.Add.Scatter path and reports that state through `ScatterChartRenderingStatus`.
 - Columnar scatter streaming uses `ScatterColumnarSeries.ReplaceRange(...)`, `AppendRange(...)`, optional `fifoCapacity`, and `Pickable=false` by default for high-volume data.
 - Hosts can keep professional axis, grid, and legend behavior chart-local through `Plot.OverlayOptions` for formatter, title/unit override, minor ticks, grid plane, and axis-side selection.
 - The public overlay configuration seam is `SurfaceChartOverlayOptions` through `Plot.OverlayOptions`; overlay state types remain internal.

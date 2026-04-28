@@ -18,7 +18,7 @@ internal static class SurfaceChartsDocumentationTerms
         "`Videra.SurfaceCharts.Demo` is the independent demo application for the surface-chart module family.";
 
     public const string VideraChartViewSentence =
-        "The dedicated `VideraChartView` remains the public chart control in `Videra.SurfaceCharts.Avalonia`; `Plot.Add.Surface`, `Plot.Add.Waterfall`, and `Plot.Add.Scatter` are its chart authoring entrypoints.";
+        "The dedicated `VideraChartView` remains the public chart control in `Videra.SurfaceCharts.Avalonia`; `Plot.Add.Surface`, `Plot.Add.Waterfall`, and `Plot.Add.Scatter` are its chart authoring and runtime data-loading entrypoints.";
 
     public const string SurfaceChartsRendererStatusSentence =
         "The shipped chart surface is `GPU-first` with explicit chart-local `software fallback`, and hosts can inspect `RenderingStatus` / `RenderStatusChanged` without implying any `VideraView` backend downshift.";
@@ -165,7 +165,7 @@ internal static class SurfaceChartsDocumentationTerms
     [
         "`VideraChartView`",
         "public chart control",
-        "chart authoring entrypoints",
+        "chart authoring and runtime data-loading entrypoints",
         "`Videra.SurfaceCharts.Avalonia`"
     ];
 
@@ -207,9 +207,9 @@ internal static class SurfaceChartsDocumentationTerms
         "`software fallback`",
         "`VideraChartView`",
         "native-host or GPU initialization",
-        "no source switch",
-        "previous chart source remains active",
-        "cache-backed source unavailable"
+        "no Plot path switch",
+        "previous chart Plot path remains active",
+        "Cache-backed data path unavailable"
     ];
 
     public static readonly string[] SurfaceChartsViewStateTokens =
@@ -655,7 +655,7 @@ internal static class SurfaceChartsDocumentationTerms
         "second chart control",
         "second control proof",
         "scatter control path",
-        "direct scatter control path",
+        "Plot.Add.Scatter control path",
         "还没有完成坐标轴、刻度、标签与图例系统",
         "还没有交付完成态的 built-in orbit / pan / dolly 工作流",
         "由宿主驱动的 overview/detail 视口切换",

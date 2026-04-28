@@ -12,7 +12,7 @@ VideraChartView exposes `ViewState` as the chart-view contract for persisted cam
 VideraChartView now ships built-in `left-drag orbit`, `right-drag pan`, `wheel dolly`, and `Ctrl + Left drag` focus zoom on top of the `ViewState` runtime contract.
 The chart enters `Interactive` quality during motion and returns to `Refine` after input settles.
 The public interaction diagnostics are `InteractionQuality` + `InteractionQualityChanged` with `Interactive` / `Refine`.
-`VideraChartView` follows the same chart-local terminology on the direct scatter path: left-drag navigation reports `Interactive`, release/capture loss returns to `Refine`, and `ScatterChartRenderingStatus` carries `InteractionQuality` alongside retained columnar streaming counters. Columnar scatter data still comes from `ScatterColumnarSeries` through `ReplaceRange(...)` / `AppendRange(...)`, optional `fifoCapacity`, and the high-volume default `Pickable=false`.
+`VideraChartView` follows the same chart-local terminology on the Plot.Add.Scatter path: left-drag navigation reports `Interactive`, release/capture loss returns to `Refine`, and `ScatterChartRenderingStatus` carries `InteractionQuality` alongside retained columnar streaming counters. Columnar scatter data still comes from `ScatterColumnarSeries` through `ReplaceRange(...)` / `AppendRange(...)`, optional `fifoCapacity`, and the high-volume default `Pickable=false`.
 Hosts can keep professional axis, grid, and legend behavior chart-local through `VideraChartView.Plot.OverlayOptions` for formatter, title/unit override, minor ticks, grid plane, and axis-side selection.
 The public overlay configuration seam is `SurfaceChartOverlayOptions` through `Plot.OverlayOptions`; overlay state types remain internal.
 
@@ -21,7 +21,7 @@ The public overlay configuration seam is `SurfaceChartOverlayOptions` through `P
 `VideraChartView` currently provides:
 
 - a chart-local renderer seam through `SurfaceChartRenderHost`; it is not a `VideraView` mode
-- one Plot authoring surface with `Plot.Add.Surface`, `Plot.Add.Waterfall`, and `Plot.Add.Scatter`
+- one Plot authoring and runtime data-loading surface with `Plot.Add.Surface`, `Plot.Add.Waterfall`, and `Plot.Add.Scatter`
 - a `GPU-first` renderer path with an explicit chart-local `software fallback` seam (no viewer/backend downshift)
 - control-visible `RenderingStatus` / `RenderStatusChanged` truth for `ActiveBackend`, `IsReady`, `IsFallback`, `FallbackReason`, `UsesNativeSurface`, `ResidentTileCount`, `VisibleTileCount`, and `ResidentTileBytes`
 - host-driven surface rendering from an `ISurfaceTileSource`

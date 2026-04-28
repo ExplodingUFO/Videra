@@ -5,7 +5,7 @@
 For the canonical surface/cache-backed chart story, start from `Videra.SurfaceCharts.Avalonia` plus `Videra.SurfaceCharts.Processing`, and use this demo as the repository reference app for the paths it actually exposes. `VideraChartView` ships in `Videra.SurfaceCharts.Avalonia`, and this sample exercises `Plot.Add.Surface`, `Plot.Add.Waterfall`, and `Plot.Add.Scatter` on that one control.
 
 The shipped efficiency story is the same chart-local path used by the benchmark gate: tighter interactive residency under camera movement and lower probe-path churn.
-The scatter proof also exposes columnar streaming/FIFO truth from `ScatterColumnarSeries`: retained point count, append/replacement batch count, configured FIFO capacity, FIFO dropped point count, pickable point count, and direct scatter `InteractionQuality`. The demo source uses deterministic `ScatterStreamingScenarios` for replace, append, and FIFO-trim paths through `ReplaceRange(...)` / `AppendRange(...)`, optional `fifoCapacity`, and the high-volume default `Pickable=false`.
+The scatter proof also exposes columnar streaming/FIFO truth from `ScatterColumnarSeries`: retained point count, append/replacement batch count, configured FIFO capacity, FIFO dropped point count, pickable point count, and Plot.Add.Scatter `InteractionQuality`. The demo source uses deterministic `ScatterStreamingScenarios` for replace, append, and FIFO-trim paths through `ReplaceRange(...)` / `AppendRange(...)`, optional `fifoCapacity`, and the high-volume default `Pickable=false`.
 
 The sample stays separate from `Videra.Demo` and `VideraView`. It exercises the chart-local renderer seam shipped in `VideraChartView`, not a `VideraView` mode. It provides switchable sources and built-in chart interaction:
 
@@ -34,7 +34,7 @@ The committed cache sample uses a tiled manifest+sidecar layout so panning, doll
 3. Move to `Explore next: Cache-backed streaming` only after the first chart path works and you want to validate lazy tile reads plus the broader demo surfaces.
 4. Use `Try next: Analytics proof` to validate explicit-coordinate sampling and independent color scalar flow while keeping `VideraChartView` as the proof host.
 5. Use `Try next: Waterfall proof` when you want the second chart-family proof on the same Avalonia shell.
-6. Use `Try next: Scatter proof` when you want the direct scatter proof and columnar data-path diagnostics on the same Avalonia shell. Use the `Scatter stream` selector to switch between replace, append, and FIFO-trim scenarios.
+6. Use `Try next: Scatter proof` when you want the Plot.Add.Scatter proof and columnar data-path diagnostics on the same Avalonia shell. Use the `Scatter stream` selector to switch between replace, append, and FIFO-trim scenarios.
 
 ## Run
 

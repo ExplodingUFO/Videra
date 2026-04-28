@@ -294,6 +294,50 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
     }
 
     [Fact]
+    public void SurfaceChartPlotRuntimeGuardrails_ShouldRejectDeletedSourceApiAndExamples()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var publicEntryFiles = new[]
+        {
+            "README.md",
+            "docs/zh-CN/README.md",
+            "docs/zh-CN/modules/videra-surfacecharts-avalonia.md",
+            "src/Videra.SurfaceCharts.Avalonia/README.md",
+            "samples/Videra.SurfaceCharts.Demo/README.md",
+            "samples/Videra.SurfaceCharts.Demo/Views/MainWindow.axaml.cs",
+            "smoke/Videra.SurfaceCharts.ConsumerSmoke/Views/MainWindow.axaml.cs"
+        };
+        var stalePublicTerms = new[]
+        {
+            "VideraChartView.Source",
+            "SourceProperty",
+            "Source path:",
+            "Source details:",
+            ".Source =",
+            "new VideraChartView { Source"
+        };
+
+        foreach (var relativePath in publicEntryFiles)
+        {
+            var content = File.ReadAllText(Path.Combine(repositoryRoot, relativePath.Replace('/', Path.DirectorySeparatorChar)));
+
+            foreach (var staleTerm in stalePublicTerms)
+            {
+                content.Should().NotContain(staleTerm, $"{relativePath} must stay on Plot.Add.* runtime loading instead of the deleted direct Source API");
+            }
+
+            if (relativePath.EndsWith("README.md", StringComparison.Ordinal))
+            {
+                content.Should().Contain("Plot.Add", $"{relativePath} should teach the Plot-owned chart path");
+            }
+        }
+
+        var viewProperties = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.SurfaceCharts.Avalonia", "Controls", "VideraChartView.Properties.cs"));
+        viewProperties.Should().NotContain("SourceProperty");
+        viewProperties.Should().NotContain("public ISurfaceTileSource? Source");
+    }
+
+    [Fact]
     public void VideraChartStateAndCommandApis_ShouldStayOutOfVideraView()
     {
         var repositoryRoot = GetRepositoryRoot();
