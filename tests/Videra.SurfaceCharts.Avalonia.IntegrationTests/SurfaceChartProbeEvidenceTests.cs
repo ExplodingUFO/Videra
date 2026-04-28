@@ -8,6 +8,50 @@ namespace Videra.SurfaceCharts.Avalonia.IntegrationTests;
 public sealed class SurfaceChartProbeEvidenceTests
 {
     [Fact]
+    public void OverlayEvidenceFormatter_UsesLegendPrecisionFromOverlayOptions()
+    {
+        var overlayOptions = new SurfaceChartOverlayOptions
+        {
+            TickLabelFormat = SurfaceChartNumericLabelFormat.Scientific,
+            TickLabelPrecision = 2,
+            LegendLabelFormat = SurfaceChartNumericLabelFormat.Fixed,
+            LegendLabelPrecision = 4,
+        };
+
+        var evidence = SurfaceChartOverlayEvidenceFormatter.Create(
+            "Professional",
+            SurfaceColorMapPresets.CreateProfessional(),
+            overlayOptions,
+            1234.56789d,
+            -0.25d);
+
+        evidence.PrecisionProfile.Should().Be(
+            "SurfaceChartOverlayOptions:Tick=Scientific(2);Legend=Fixed(4);Formatter=Default");
+        evidence.SampleFormattedLabels.Should().Equal("1234.5679", "-0.2500");
+    }
+
+    [Fact]
+    public void OverlayEvidenceFormatter_UsesCustomOverlayFormatter()
+    {
+        var colorMap = new SurfaceColorMap(
+            new SurfaceValueRange(1d, 5d),
+            SurfaceColorMapPresets.CreateGrayscale());
+        var overlayOptions = new SurfaceChartOverlayOptions
+        {
+            LabelFormatter = (axisKey, value) => $"{axisKey}:{value:0}",
+        };
+
+        var evidence = SurfaceChartOverlayEvidenceFormatter.Create(
+            "Grayscale",
+            colorMap,
+            overlayOptions);
+
+        evidence.PrecisionProfile.Should().Be(
+            "SurfaceChartOverlayOptions:Tick=General(3);Legend=General(3);Formatter=Custom");
+        evidence.SampleFormattedLabels.Should().Equal("Legend:1", "Legend:3", "Legend:5");
+    }
+
+    [Fact]
     public void Create_WithHoveredAndPinnedProbes_ReportsStatusCountsReadoutsAndDelta()
     {
         var hoveredProbe = new SurfaceProbeInfo(

@@ -1,3 +1,4 @@
+using System.Globalization;
 using FluentAssertions;
 using Xunit;
 
@@ -40,6 +41,21 @@ public class SurfaceChartOutputEvidenceTests
 
         evidence.ColorStops.Should().Equal("#FF000000", "#FFFFFFFF");
         evidence.SampleFormattedLabels.Should().Equal("-1E+308", "0", "1E+308");
+    }
+
+    [Fact]
+    public void Create_WithExplicitPrecisionProfile_UsesSuppliedFormatterWithoutFallback()
+    {
+        var evidence = SurfaceChartEvidenceFormatter.Create(
+            "Default",
+            SurfaceColorMapPresets.CreateDefault(),
+            "custom-profile",
+            value => "label:" + value.ToString("0.0", CultureInfo.InvariantCulture),
+            1.234d,
+            5.678d);
+
+        evidence.PrecisionProfile.Should().Be("custom-profile");
+        evidence.SampleFormattedLabels.Should().Equal("label:1.2", "label:5.7");
     }
 
     [Theory]

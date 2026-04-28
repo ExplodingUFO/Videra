@@ -179,7 +179,7 @@ public sealed class SurfaceChartOverlayOptions
         return value.ToString($"F{NormalizePrecision(precision)}", CultureInfo.InvariantCulture);
     }
 
-    private static int NormalizePrecision(int precision)
+    internal static int NormalizePrecision(int precision)
     {
         return Math.Clamp(precision, 0, 12);
     }

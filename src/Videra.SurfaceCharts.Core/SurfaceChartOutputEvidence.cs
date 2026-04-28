@@ -92,6 +92,34 @@ public static class SurfaceChartEvidenceFormatter
     }
 
     /// <summary>
+    /// Creates output evidence for a color map using the supplied precision profile and label formatter.
+    /// </summary>
+    /// <param name="paletteName">The palette name.</param>
+    /// <param name="colorMap">The color map that supplies palette and range semantics.</param>
+    /// <param name="precisionProfile">The deterministic precision profile description.</param>
+    /// <param name="sampleLabelFormatter">The formatter used for sample labels.</param>
+    /// <returns>The formatted output evidence.</returns>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="paletteName"/> or <paramref name="precisionProfile"/> is blank.</exception>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="colorMap"/> or <paramref name="sampleLabelFormatter"/> is <c>null</c>.</exception>
+    public static SurfaceChartOutputEvidence Create(
+        string paletteName,
+        SurfaceColorMap colorMap,
+        string precisionProfile,
+        Func<double, string> sampleLabelFormatter)
+    {
+        ArgumentNullException.ThrowIfNull(colorMap);
+
+        return Create(
+            paletteName,
+            colorMap.Palette,
+            precisionProfile,
+            sampleLabelFormatter,
+            colorMap.Range.Minimum,
+            GetMidpoint(colorMap.Range),
+            colorMap.Range.Maximum);
+    }
+
+    /// <summary>
     /// Creates output evidence for a palette and explicit sample label values.
     /// </summary>
     /// <param name="paletteName">The palette name.</param>
@@ -106,8 +134,32 @@ public static class SurfaceChartEvidenceFormatter
         SurfaceColorMapPalette palette,
         params double[] sampleValues)
     {
+        return Create(paletteName, palette, PrecisionProfile, FormatSampleLabel, sampleValues);
+    }
+
+    /// <summary>
+    /// Creates output evidence for a palette and explicit sample label values using the supplied precision profile.
+    /// </summary>
+    /// <param name="paletteName">The palette name.</param>
+    /// <param name="palette">The palette that supplies output color stops.</param>
+    /// <param name="precisionProfile">The deterministic precision profile description.</param>
+    /// <param name="sampleLabelFormatter">The formatter used for sample labels.</param>
+    /// <param name="sampleValues">Representative numeric values to format as labels.</param>
+    /// <returns>The formatted output evidence.</returns>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="paletteName"/> or <paramref name="precisionProfile"/> is blank.</exception>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="palette"/>, <paramref name="sampleLabelFormatter"/>, or <paramref name="sampleValues"/> is <c>null</c>.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when a sample value is not finite.</exception>
+    public static SurfaceChartOutputEvidence Create(
+        string paletteName,
+        SurfaceColorMapPalette palette,
+        string precisionProfile,
+        Func<double, string> sampleLabelFormatter,
+        params double[] sampleValues)
+    {
         ArgumentException.ThrowIfNullOrWhiteSpace(paletteName);
         ArgumentNullException.ThrowIfNull(palette);
+        ArgumentException.ThrowIfNullOrWhiteSpace(precisionProfile);
+        ArgumentNullException.ThrowIfNull(sampleLabelFormatter);
         ArgumentNullException.ThrowIfNull(sampleValues);
 
         var colorStops = new string[palette.Count];
@@ -119,14 +171,14 @@ public static class SurfaceChartEvidenceFormatter
         var sampleFormattedLabels = new string[sampleValues.Length];
         for (var index = 0; index < sampleValues.Length; index++)
         {
-            sampleFormattedLabels[index] = FormatSampleLabel(sampleValues[index]);
+            sampleFormattedLabels[index] = FormatSampleLabel(sampleValues[index], sampleLabelFormatter);
         }
 
         return new SurfaceChartOutputEvidence(
             EvidenceKind,
             paletteName,
             colorStops,
-            PrecisionProfile,
+            precisionProfile,
             sampleFormattedLabels);
     }
 
@@ -143,6 +195,16 @@ public static class SurfaceChartEvidenceFormatter
         }
 
         return value.ToString("G6", CultureInfo.InvariantCulture);
+    }
+
+    private static string FormatSampleLabel(double value, Func<double, string> sampleLabelFormatter)
+    {
+        if (!double.IsFinite(value))
+        {
+            throw new ArgumentOutOfRangeException(nameof(value), "Surface chart evidence sample labels must be finite.");
+        }
+
+        return sampleLabelFormatter(value);
     }
 
     private static double GetMidpoint(SurfaceValueRange range)

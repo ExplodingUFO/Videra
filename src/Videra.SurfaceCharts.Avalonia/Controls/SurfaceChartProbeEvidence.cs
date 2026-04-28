@@ -73,6 +73,73 @@ public enum SurfaceChartProbeEvidenceStatus
 }
 
 /// <summary>
+/// Creates deterministic chart-local output evidence from overlay presentation options.
+/// </summary>
+public static class SurfaceChartOverlayEvidenceFormatter
+{
+    /// <summary>
+    /// Creates output evidence for a color map using legend label semantics from the overlay options.
+    /// </summary>
+    /// <param name="paletteName">The palette name.</param>
+    /// <param name="colorMap">The color map that supplies palette and range semantics.</param>
+    /// <param name="overlayOptions">The chart-local overlay formatting options.</param>
+    /// <returns>The formatted output evidence.</returns>
+    public static SurfaceChartOutputEvidence Create(
+        string paletteName,
+        SurfaceColorMap colorMap,
+        SurfaceChartOverlayOptions? overlayOptions = null)
+    {
+        overlayOptions ??= SurfaceChartOverlayOptions.Default;
+
+        return SurfaceChartEvidenceFormatter.Create(
+            paletteName,
+            colorMap,
+            DescribePrecisionProfile(overlayOptions),
+            value => overlayOptions.FormatLabel("Legend", value));
+    }
+
+    /// <summary>
+    /// Creates output evidence for a palette and explicit sample label values using legend label semantics from the overlay options.
+    /// </summary>
+    /// <param name="paletteName">The palette name.</param>
+    /// <param name="palette">The palette that supplies output color stops.</param>
+    /// <param name="overlayOptions">The chart-local overlay formatting options.</param>
+    /// <param name="sampleValues">Representative numeric values to format as labels.</param>
+    /// <returns>The formatted output evidence.</returns>
+    public static SurfaceChartOutputEvidence Create(
+        string paletteName,
+        SurfaceColorMapPalette palette,
+        SurfaceChartOverlayOptions? overlayOptions = null,
+        params double[] sampleValues)
+    {
+        overlayOptions ??= SurfaceChartOverlayOptions.Default;
+
+        return SurfaceChartEvidenceFormatter.Create(
+            paletteName,
+            palette,
+            DescribePrecisionProfile(overlayOptions),
+            value => overlayOptions.FormatLabel("Legend", value),
+            sampleValues);
+    }
+
+    /// <summary>
+    /// Creates a deterministic precision profile description for overlay-backed output evidence.
+    /// </summary>
+    /// <param name="overlayOptions">The chart-local overlay formatting options.</param>
+    /// <returns>The precision profile description.</returns>
+    public static string DescribePrecisionProfile(SurfaceChartOverlayOptions? overlayOptions = null)
+    {
+        overlayOptions ??= SurfaceChartOverlayOptions.Default;
+
+        var formatterProfile = overlayOptions.LabelFormatter is null ? "Default" : "Custom";
+        return $"SurfaceChartOverlayOptions:" +
+            $"Tick={overlayOptions.TickLabelFormat}({SurfaceChartOverlayOptions.NormalizePrecision(overlayOptions.TickLabelPrecision)});" +
+            $"Legend={overlayOptions.LegendLabelFormat}({SurfaceChartOverlayOptions.NormalizePrecision(overlayOptions.LegendLabelPrecision)});" +
+            $"Formatter={formatterProfile}";
+    }
+}
+
+/// <summary>
 /// Creates deterministic chart-local probe evidence readouts.
 /// </summary>
 public static class SurfaceChartProbeEvidenceFormatter
