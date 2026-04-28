@@ -17,12 +17,10 @@ _No matching beads in the exported snapshot._
 ## Ready
 
 - **Videra-z44** - v2.50 Plot Authoring Usability and Professional Chart Polish (epic, P1, open; labels: plot, professional-charts, v2.50)
-- **Videra-z44.2** - Phase 352 Plot Series Lifecycle and Naming Polish (feature, P1, open; labels: phase-352, plot, plot-api, professional-charts, v2.50)
-- **Videra-z44.3** - Phase 353 Professional Plot Presentation and Precision Wiring (feature, P1, open; labels: phase-353, plot, presentation, professional-charts, v2.50)
+- **Videra-z44.4** - Phase 354 Plot Demo and Support Evidence Refresh (task, P2, open; labels: demo, evidence, phase-354, plot, professional-charts, v2.50)
 
 ## Blocked
 
-- **Videra-z44.4** - Phase 354 Plot Demo and Support Evidence Refresh (task, P2, open; labels: demo, evidence, phase-354, plot, professional-charts, v2.50)
 - **Videra-z44.5** - Phase 355 Single Chart View Guardrails and Documentation (task, P2, open; labels: docs, guardrails, phase-355, plot, professional-charts, v2.50)
 
 ## Backlog
@@ -31,6 +29,8 @@ _No matching beads in the exported snapshot._
 
 ## Recently Closed
 
+- **Videra-z44.3** - Phase 353 Professional Plot Presentation and Precision Wiring (feature, P1, closed; labels: phase-353, plot, presentation, professional-charts, v2.50)
+- **Videra-z44.2** - Phase 352 Plot Series Lifecycle and Naming Polish (feature, P1, closed; labels: phase-352, plot, plot-api, professional-charts, v2.50)
 - **Videra-z44.1** - Phase 351 Plot API and Professional Chart Gap Inventory (task, P1, closed; labels: inventory, phase-351, plot, professional-charts, v2.50)
 - **Videra-t8y** - v2.49 Scene Authoring Builder Polish (epic, P1, closed)
 - **Videra-y9t** - Phase 349: Minimal Authoring Sample Refresh (task, P1, closed)
@@ -39,6 +39,4 @@ _No matching beads in the exported snapshot._
 - **Videra-x9g** - Phase 346: Fluent Authoring Placement and Style Affordances (task, P1, closed)
 - **Videra-1wn** - Phase 347: Primitive and Material Preset Polish (task, P1, closed)
 - **Videra-eqh** - Phase 345: Scene Authoring API Gap Inventory (task, P1, closed)
-- **Videra-qbt** - v2.48 Plot-Driven Chart Runtime (epic, P1, closed)
-- **Videra-rwp** - Phase 344: Plot Runtime Docs and Guardrails (task, P1, closed)
 
