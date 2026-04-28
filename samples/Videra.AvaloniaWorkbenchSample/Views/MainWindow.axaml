@@ -70,6 +70,13 @@
             <TextBlock x:Name="SceneEvidenceText"
                        Foreground="#D1D5DB"
                        TextWrapping="Wrap" />
+            <TextBlock FontSize="14"
+                       FontWeight="SemiBold"
+                       Foreground="#F9FAFB"
+                       Text="Interaction evidence" />
+            <TextBlock x:Name="InteractionEvidenceText"
+                       Foreground="#D1D5DB"
+                       TextWrapping="Wrap" />
           </StackPanel>
         </Border>
 

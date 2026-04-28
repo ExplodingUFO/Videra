@@ -12,7 +12,10 @@
 - `VideraView.SelectionState`
 - `VideraView.Annotations`
 - `VideraView.Measurements`
+- `VideraView.CaptureInspectionState()`
 - `VideraDiagnosticsSnapshotFormatter.Format(...)`
+- `VideraInteractionEvidenceFormatter.Create(...)`
+- `VideraInteractionEvidenceFormatter.Format(...)`
 - `SceneAuthoring.Create(...)`
 - `SceneAuthoringBuilder.AddAxisTriad(...)`
 - `SceneAuthoringBuilder.AddScaleBar(...)`
@@ -20,14 +23,16 @@
 - `ObjModelImporter.Create()`
 - `SurfaceColorMapPresets.CreateProfessional()`
 - `SurfaceChartEvidenceFormatter.Create(...)`
+- `SurfaceChartProbeEvidenceFormatter.Create(...)`
+- `SurfaceChartProbeEvidenceFormatter.Format(...)`
 
 ## Workflow
 
 - Load an authored scene built from `SceneAuthoring` and show retained-scene evidence.
 - Load the shared `reference-cube.obj` through `LoadModelAsync(...)`.
 - Capture diagnostics only on explicit refresh, backend status changes, and support-copy actions.
-- Copy a structured support capture with scene name/version, node count, primitive count, instance batch count, instance count, selected marker id, chart output evidence, palette details, and diagnostics snapshot status.
-- Demonstrate chart-local output evidence with SurfaceCharts palette/precision metadata without adding chart semantics to `VideraView`.
+- Copy a structured support capture with scene name/version, node count, primitive count, instance batch count, instance count, selected marker id, viewer interaction evidence, chart output evidence, chart probe evidence, palette details, and diagnostics snapshot status.
+- Demonstrate chart-local output and probe evidence with SurfaceCharts palette/precision metadata without adding chart semantics to `VideraView`.
 
 ## Run
 

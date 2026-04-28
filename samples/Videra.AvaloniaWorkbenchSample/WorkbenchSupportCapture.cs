@@ -1,3 +1,5 @@
+using Videra.Avalonia.Controls;
+using Videra.SurfaceCharts.Avalonia.Controls;
 using Videra.SurfaceCharts.Core;
 
 namespace Videra.AvaloniaWorkbenchSample;
@@ -13,7 +15,11 @@ internal sealed record WorkbenchSceneEvidence(
     Guid? SelectedMarkerId);
 
 internal sealed record WorkbenchChartEvidence(
-    SurfaceChartOutputEvidence OutputEvidence);
+    SurfaceChartOutputEvidence OutputEvidence,
+    SurfaceChartProbeEvidence ProbeEvidence);
+
+internal sealed record WorkbenchInteractionEvidence(
+    VideraInteractionEvidence InteractionEvidence);
 
 internal static class WorkbenchSupportCapture
 {
@@ -47,16 +53,27 @@ internal static class WorkbenchSupportCapture
             $"PaletteColors: {string.Join(", ", output.ColorStops)}"
         };
         lines.AddRange(output.SampleFormattedLabels.Select(static sample => $"Sample: {sample}"));
+        lines.Add("ProbeEvidence:");
+        lines.AddRange(SurfaceChartProbeEvidenceFormatter.Format(evidence.ProbeEvidence).Split(Environment.NewLine));
         return string.Join(Environment.NewLine, lines);
+    }
+
+    public static string FormatInteractionEvidence(WorkbenchInteractionEvidence evidence)
+    {
+        ArgumentNullException.ThrowIfNull(evidence);
+
+        return VideraInteractionEvidenceFormatter.Format(evidence.InteractionEvidence).TrimEnd();
     }
 
     public static string FormatSupportCapture(
         DateTimeOffset generatedUtc,
         WorkbenchSceneEvidence sceneEvidence,
+        WorkbenchInteractionEvidence interactionEvidence,
         WorkbenchChartEvidence chartEvidence,
         string diagnosticsSnapshot)
     {
         ArgumentNullException.ThrowIfNull(sceneEvidence);
+        ArgumentNullException.ThrowIfNull(interactionEvidence);
         ArgumentNullException.ThrowIfNull(chartEvidence);
 
         var hasDiagnostics = !string.IsNullOrWhiteSpace(diagnosticsSnapshot);
@@ -66,6 +83,8 @@ internal static class WorkbenchSupportCapture
             $"GeneratedUtc: {generatedUtc:O}",
             "SceneEvidence:",
             FormatSceneEvidence(sceneEvidence),
+            "ViewerInteractionEvidence:",
+            FormatInteractionEvidence(interactionEvidence),
             "ChartOutputEvidence:",
             FormatChartEvidence(chartEvidence),
             $"DiagnosticsSnapshotStatus: {(hasDiagnostics ? "captured" : "empty")}",

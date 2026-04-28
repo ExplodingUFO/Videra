@@ -28,6 +28,7 @@ public partial class MainWindow : Window
     private readonly Button _refreshSnapshotButton;
     private readonly Button _copySupportCaptureButton;
     private readonly TextBlock _sceneEvidenceText;
+    private readonly TextBlock _interactionEvidenceText;
     private readonly TextBlock _supportStatusText;
     private readonly TextBlock _diagnosticsText;
     private readonly TextBlock _chartPrecisionText;
@@ -61,6 +62,8 @@ public partial class MainWindow : Window
             ?? throw new InvalidOperationException("CopySupportCaptureButton is missing.");
         _sceneEvidenceText = this.FindControl<TextBlock>("SceneEvidenceText")
             ?? throw new InvalidOperationException("SceneEvidenceText is missing.");
+        _interactionEvidenceText = this.FindControl<TextBlock>("InteractionEvidenceText")
+            ?? throw new InvalidOperationException("InteractionEvidenceText is missing.");
         _supportStatusText = this.FindControl<TextBlock>("SupportStatusText")
             ?? throw new InvalidOperationException("SupportStatusText is missing.");
         _diagnosticsText = this.FindControl<TextBlock>("DiagnosticsText")
@@ -91,6 +94,7 @@ public partial class MainWindow : Window
         Closed += OnClosed;
 
         _sceneEvidenceText.Text = WorkbenchSupportCapture.FormatSceneEvidence(_activeSceneEvidence);
+        RefreshInteractionEvidenceText();
         _supportStatusText.Text = "Diagnostics are captured on explicit refresh, backend status changes, and support-copy actions.";
         _chartPrecisionText.Text = WorkbenchSupportCapture.FormatChartEvidence(_chartEvidence);
         RefreshDiagnosticsSnapshot();
@@ -182,6 +186,7 @@ public partial class MainWindow : Window
         }
 
         _sceneEvidenceText.Text = WorkbenchSupportCapture.FormatSceneEvidence(_activeSceneEvidence);
+        RefreshInteractionEvidenceText();
         View3D.FrameAll();
         RefreshDiagnosticsSnapshot();
     }
@@ -203,6 +208,7 @@ public partial class MainWindow : Window
     private void OnRefreshSnapshotClicked(object? sender, EventArgs e)
     {
         RefreshDiagnosticsSnapshot();
+        RefreshInteractionEvidenceText();
         _supportStatusText.Text = "Diagnostics snapshot refreshed.";
     }
 
@@ -276,6 +282,7 @@ public partial class MainWindow : Window
             document.InstanceBatches.Sum(static batch => batch.InstanceCount),
             MarkerAId);
         _sceneEvidenceText.Text = WorkbenchSupportCapture.FormatSceneEvidence(_activeSceneEvidence);
+        RefreshInteractionEvidenceText();
         View3D.FrameAll();
         RefreshDiagnosticsSnapshot();
     }
@@ -291,13 +298,27 @@ public partial class MainWindow : Window
         _diagnosticsText.Text = _latestDiagnosticsSnapshot;
     }
 
+    private void RefreshInteractionEvidenceText()
+    {
+        _interactionEvidenceText.Text = WorkbenchSupportCapture.FormatInteractionEvidence(CreateInteractionEvidence());
+    }
+
     private string CreateSupportCapture()
     {
         return WorkbenchSupportCapture.FormatSupportCapture(
             DateTimeOffset.UtcNow,
             _activeSceneEvidence,
+            CreateInteractionEvidence(),
             _chartEvidence,
             _latestDiagnosticsSnapshot);
+    }
+
+    private WorkbenchInteractionEvidence CreateInteractionEvidence()
+    {
+        return new WorkbenchInteractionEvidence(
+            VideraInteractionEvidenceFormatter.Create(
+                View3D.CaptureInspectionState(),
+                VideraInteractionDiagnostics.CreateDefault()));
     }
 
     private static SceneDocument CreateAuthoredSceneDocument()
@@ -345,12 +366,32 @@ public partial class MainWindow : Window
     {
         var palette = SurfaceColorMapPresets.CreateProfessional();
 
-        return new WorkbenchChartEvidence(
-            SurfaceChartEvidenceFormatter.Create(
+        var outputEvidence = SurfaceChartEvidenceFormatter.Create(
                 "SurfaceColorMapPresets.CreateProfessional()",
                 palette,
                 0.000456789d,
                 12.3456789d,
-                12345.6789d));
+                12345.6789d);
+        var hoveredProbe = new SurfaceProbeInfo(
+            sampleX: 16d,
+            sampleY: 24d,
+            axisX: 1600d,
+            axisY: 2400d,
+            value: 12.345d,
+            isApproximate: false);
+        var pinnedProbe = new SurfaceProbeInfo(
+            sampleX: 8d,
+            sampleY: 12d,
+            axisX: 800d,
+            axisY: 1200d,
+            value: 10d,
+            isApproximate: false);
+
+        return new WorkbenchChartEvidence(
+            outputEvidence,
+            SurfaceChartProbeEvidenceFormatter.Create(
+                hoveredProbe,
+                [pinnedProbe],
+                SurfaceChartNumericLabelPresets.Fixed(3)));
     }
 }
