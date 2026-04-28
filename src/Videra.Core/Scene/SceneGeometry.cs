@@ -189,6 +189,40 @@ public static class SceneGeometry
         };
     }
 
+    public static MeshData BoxOutline(float width = 1f, float height = 1f, float depth = 1f, RgbaFloat? color = null)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(width);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(height);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(depth);
+
+        var halfWidth = width * 0.5f;
+        var halfHeight = height * 0.5f;
+        var halfDepth = depth * 0.5f;
+        var c = color ?? RgbaFloat.White;
+
+        return new MeshData
+        {
+            Vertices =
+            [
+                new VertexPositionNormalColor(new Vector3(-halfWidth, -halfHeight, -halfDepth), Vector3.UnitY, c),
+                new VertexPositionNormalColor(new Vector3(halfWidth, -halfHeight, -halfDepth), Vector3.UnitY, c),
+                new VertexPositionNormalColor(new Vector3(halfWidth, halfHeight, -halfDepth), Vector3.UnitY, c),
+                new VertexPositionNormalColor(new Vector3(-halfWidth, halfHeight, -halfDepth), Vector3.UnitY, c),
+                new VertexPositionNormalColor(new Vector3(-halfWidth, -halfHeight, halfDepth), Vector3.UnitY, c),
+                new VertexPositionNormalColor(new Vector3(halfWidth, -halfHeight, halfDepth), Vector3.UnitY, c),
+                new VertexPositionNormalColor(new Vector3(halfWidth, halfHeight, halfDepth), Vector3.UnitY, c),
+                new VertexPositionNormalColor(new Vector3(-halfWidth, halfHeight, halfDepth), Vector3.UnitY, c)
+            ],
+            Indices =
+            [
+                0, 1, 1, 2, 2, 3, 3, 0,
+                4, 5, 5, 6, 6, 7, 7, 4,
+                0, 4, 1, 5, 2, 6, 3, 7
+            ],
+            Topology = MeshTopology.Lines
+        };
+    }
+
     public static MeshData PointCloud(ReadOnlySpan<Vector3> points, ReadOnlySpan<RgbaFloat> colors = default)
     {
         if (points.IsEmpty)
