@@ -2,9 +2,9 @@
 
 [English](../../../src/Videra.SurfaceCharts.Avalonia/README.md) | [中文](videra-surfacecharts-avalonia.md)
 
-`Videra.SurfaceCharts.Avalonia` 提供专用的 `VideraChartView` 以及 `Plot.Add.Surface`、`Plot.Add.Waterfall`、`Plot.Add.Scatter` 控件层。它独立于 `VideraView`，不承载 viewer 模式，也不耦合到 `VideraView` 的选择、标注或相机链路。
+`Videra.SurfaceCharts.Avalonia` 提供专用的 `VideraChartView` 控件；`Plot.Add.Surface`、`Plot.Add.Waterfall`、`Plot.Add.Scatter` 是这个控件上的 chart authoring 入口。它独立于 `VideraView`，不承载 viewer 模式，也不耦合到 `VideraView` 的选择、标注或相机链路。
 `Videra.SurfaceCharts.Processing` 只在 surface/cache-backed 路径需要，不是每条 chart 路径都必须安装。
-独立 Demo 会先把 `Start here: In-memory first chart` 作为默认入口，等基线 first chart 跑通后，再切到 `Explore next: Cache-backed streaming`，需要 explicit/non-uniform 坐标、独立 `ColorField` 与 pinned-probe 分析级路径时再看 `Try next: Analytics proof`，需要第二个控件证明时再看 `Try next: Waterfall proof`，需要 scatter 路径证明时再看 repo-owned `Try next: Scatter proof`。
+独立 Demo 会先把 `Start here: In-memory first chart` 作为默认入口，等基线 first chart 跑通后，再切到 `Explore next: Cache-backed streaming`，需要 explicit/non-uniform 坐标、独立 `ColorField` 与 pinned-probe 分析级路径时再看 `Try next: Analytics proof`，需要第二个 chart family 证明时再看 `Try next: Waterfall proof`，需要 scatter 路径证明时再看 repo-owned `Try next: Scatter proof`。
 
 Phases 181-182 之后，这条已交付的 surface 路径在交互驻留更紧，probe 路径抖动更低，而且没有把边界扩大出现有 chart-local 路径。
 

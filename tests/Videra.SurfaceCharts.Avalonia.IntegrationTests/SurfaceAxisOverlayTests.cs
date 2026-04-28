@@ -54,7 +54,7 @@ public sealed class SurfaceAxisOverlayTests
     {
         return AvaloniaHeadlessTestSession.RunAsync(async () =>
         {
-            var source = new ScriptedSurfaceTileSource(SurfaceChartViewLifecycleTests.CreateMetadata(), defaultTileValue: 5f);
+            var source = new ScriptedSurfaceTileSource(VideraChartViewLifecycleTests.CreateMetadata(), defaultTileValue: 5f);
             var view = new VideraChartView();
 
             view.Measure(new Size(320, 200));
@@ -240,7 +240,7 @@ public sealed class SurfaceAxisOverlayTests
     {
         return AvaloniaHeadlessTestSession.RunAsync(async () =>
         {
-            var metadata = SurfaceChartViewLifecycleTests.CreateMetadata();
+            var metadata = VideraChartViewLifecycleTests.CreateMetadata();
             var source = new ScriptedSurfaceTileSource(metadata, defaultTileValue: 4f);
             var view = new VideraChartView();
             view.Plot.OverlayOptions = SurfaceChartNumericLabelPresets.Fixed(2);
@@ -296,7 +296,7 @@ public sealed class SurfaceAxisOverlayTests
     {
         return AvaloniaHeadlessTestSession.RunAsync(async () =>
         {
-            var metadata = SurfaceChartViewLifecycleTests.CreateMetadata();
+            var metadata = VideraChartViewLifecycleTests.CreateMetadata();
             var source = new ScriptedSurfaceTileSource(metadata, defaultTileValue: 5f);
             var view = new VideraChartView();
             view.Plot.OverlayOptions = new SurfaceChartOverlayOptions

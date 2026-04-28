@@ -13,10 +13,10 @@ using Xunit;
 
 namespace Videra.SurfaceCharts.Avalonia.IntegrationTests;
 
-public sealed class SurfaceChartViewGpuFallbackTests
+public sealed class VideraChartViewGpuFallbackTests
 {
     [Fact]
-    public Task SurfaceChartView_CreatesChartLocalNativeHostOnlyForGpuStatus()
+    public Task VideraChartView_CreatesChartLocalNativeHostOnlyForGpuStatus()
     {
         return AvaloniaHeadlessTestSession.RunAsync(async () =>
         {
@@ -25,8 +25,8 @@ public sealed class SurfaceChartViewGpuFallbackTests
                 gpuBackend: new SurfaceChartGpuRenderBackend(new FakeGraphicsBackend()),
                 allowSoftwareFallback: true);
             var nativeHostFactory = new RecordingSurfaceChartNativeHostFactory(new IntPtr(0x4321));
-            var view = new TestSurfaceChartView(renderHost, nativeHostFactory);
-            var source = new ScriptedSurfaceTileSource(SurfaceChartViewLifecycleTests.CreateMetadata(), defaultTileValue: 6f);
+            var view = new TestVideraChartView(renderHost, nativeHostFactory);
+            var source = new ScriptedSurfaceTileSource(VideraChartViewLifecycleTests.CreateMetadata(), defaultTileValue: 6f);
             var statusChangedCount = 0;
 
             view.RenderStatusChanged += (_, _) => statusChangedCount++;
@@ -46,7 +46,7 @@ public sealed class SurfaceChartViewGpuFallbackTests
     }
 
     [Fact]
-    public Task SurfaceChartView_ExposesFallbackTruth_AndKeepsChartLocalOverlayPath_WhenGpuFallsBack()
+    public Task VideraChartView_ExposesFallbackTruth_AndKeepsChartLocalOverlayPath_WhenGpuFallsBack()
     {
         return AvaloniaHeadlessTestSession.RunAsync(async () =>
         {
@@ -56,8 +56,8 @@ public sealed class SurfaceChartViewGpuFallbackTests
                     new FakeGraphicsBackend(initializeException: new InvalidOperationException("gpu init failed"))),
                 allowSoftwareFallback: true);
             var nativeHostFactory = new RecordingSurfaceChartNativeHostFactory(new IntPtr(0x4321));
-            var view = new TestSurfaceChartView(renderHost, nativeHostFactory);
-            var source = new ScriptedSurfaceTileSource(SurfaceChartViewLifecycleTests.CreateMetadata(), defaultTileValue: 8f);
+            var view = new TestVideraChartView(renderHost, nativeHostFactory);
+            var source = new ScriptedSurfaceTileSource(VideraChartViewLifecycleTests.CreateMetadata(), defaultTileValue: 8f);
             var statusChangedCount = 0;
 
             view.RenderStatusChanged += (_, _) => statusChangedCount++;
@@ -130,9 +130,9 @@ public sealed class SurfaceChartViewGpuFallbackTests
         return ((System.Collections.ICollection)value!).Count;
     }
 
-    private sealed class TestSurfaceChartView : VideraChartView
+    private sealed class TestVideraChartView : VideraChartView
     {
-        public TestSurfaceChartView(SurfaceChartRenderHost renderHost, ISurfaceChartNativeHostFactory nativeHostFactory)
+        public TestVideraChartView(SurfaceChartRenderHost renderHost, ISurfaceChartNativeHostFactory nativeHostFactory)
             : base(renderHost, nativeHostFactory)
         {
         }

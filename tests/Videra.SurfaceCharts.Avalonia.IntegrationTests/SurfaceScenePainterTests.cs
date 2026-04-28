@@ -74,7 +74,7 @@ public sealed class SurfaceScenePainterTests
     }
 
     [Fact]
-    public Task SurfaceChartView_LoadedTiles_BuildsRenderSceneConsumableByPainter()
+    public Task VideraChartView_LoadedTiles_BuildsRenderSceneConsumableByPainter()
     {
         return AvaloniaHeadlessTestSession.RunAsync(async () =>
         {
@@ -96,7 +96,7 @@ public sealed class SurfaceScenePainterTests
     }
 
     [Fact]
-    public Task SurfaceChartView_Render_WithLoadedTiles_IssuesGeometryDrawCalls()
+    public Task VideraChartView_Render_WithLoadedTiles_IssuesGeometryDrawCalls()
     {
         return AvaloniaHeadlessTestSession.RunAsync(async () =>
         {
@@ -124,7 +124,7 @@ public sealed class SurfaceScenePainterTests
     }
 
     [Fact]
-    public void SurfaceChartView_Render_WithoutRenderScene_IssuesNoGeometryDrawCalls()
+    public void VideraChartView_Render_WithoutRenderScene_IssuesNoGeometryDrawCalls()
     {
         AvaloniaHeadlessTestSession.Run(() =>
         {

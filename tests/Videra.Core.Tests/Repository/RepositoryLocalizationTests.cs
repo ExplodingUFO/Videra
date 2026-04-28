@@ -115,7 +115,7 @@ public sealed class RepositoryLocalizationTests
     }
 
     [Fact]
-    public void ChineseSurfaceChartsModulePages_ShouldExistAndUseSurfaceChartViewVocabulary()
+    public void ChineseSurfaceChartsModulePages_ShouldExistAndUseVideraChartViewVocabulary()
     {
         var repositoryRoot = GetRepositoryRoot();
 

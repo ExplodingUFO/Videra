@@ -13,10 +13,10 @@ using Xunit;
 
 namespace Videra.SurfaceCharts.Avalonia.IntegrationTests;
 
-public sealed class SurfaceChartViewLifecycleTests
+public sealed class VideraChartViewLifecycleTests
 {
     [Fact]
-    public void SurfaceChartView_DelegatesAuthoritativeStateToSurfaceChartRuntime()
+    public void VideraChartView_DelegatesAuthoritativeStateToSurfaceChartRuntime()
     {
         AvaloniaHeadlessTestSession.Run(() =>
         {

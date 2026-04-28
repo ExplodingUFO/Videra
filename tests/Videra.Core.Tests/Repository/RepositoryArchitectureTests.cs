@@ -129,7 +129,7 @@ public sealed class RepositoryArchitectureTests
                 "Large importer contract suite with broad fixture coverage.",
             ["tests/Videra.Core.Tests/Repository/RepositoryReleaseReadinessTests.cs"] =
                 "Large repository release-readiness policy suite.",
-            ["tests/Videra.SurfaceCharts.Avalonia.IntegrationTests/SurfaceChartViewLifecycleTests.cs"] =
+            ["tests/Videra.SurfaceCharts.Avalonia.IntegrationTests/VideraChartViewLifecycleTests.cs"] =
                 "Large SurfaceCharts lifecycle integration suite covering host/runtime edge cases."
         };
 

@@ -19,7 +19,7 @@ public sealed class SurfaceChartPinnedProbeTests
     {
         return AvaloniaHeadlessTestSession.RunAsync(async () =>
         {
-            var source = new ScriptedSurfaceTileSource(SurfaceChartViewLifecycleTests.CreateMetadata(), defaultTileValue: 11f);
+            var source = new ScriptedSurfaceTileSource(VideraChartViewLifecycleTests.CreateMetadata(), defaultTileValue: 11f);
             var view = new RoutedProbeTestView();
             var pointer = new Pointer(1, PointerType.Mouse, isPrimary: true);
             var point = new Point(64, 32);
@@ -118,7 +118,7 @@ public sealed class SurfaceChartPinnedProbeTests
     {
         return AvaloniaHeadlessTestSession.RunAsync(async () =>
         {
-            var source = new ScriptedSurfaceTileSource(SurfaceChartViewLifecycleTests.CreateMetadata(), defaultTileValue: 11f);
+            var source = new ScriptedSurfaceTileSource(VideraChartViewLifecycleTests.CreateMetadata(), defaultTileValue: 11f);
             var view = new RoutedProbeTestView();
             var pointer = new Pointer(1, PointerType.Mouse, isPrimary: true);
             var point = new Point(96, 72);

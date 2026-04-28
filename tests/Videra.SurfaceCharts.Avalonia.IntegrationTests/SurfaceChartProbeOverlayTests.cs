@@ -18,7 +18,7 @@ public sealed class SurfaceChartProbeOverlayTests
     {
         return AvaloniaHeadlessTestSession.RunAsync(async () =>
         {
-            var source = new ScriptedSurfaceTileSource(SurfaceChartViewLifecycleTests.CreateMetadata(), defaultTileValue: 7f);
+            var source = new ScriptedSurfaceTileSource(VideraChartViewLifecycleTests.CreateMetadata(), defaultTileValue: 7f);
             var view = new VideraChartView();
 
             view.Measure(new Size(256, 128));
@@ -49,7 +49,7 @@ public sealed class SurfaceChartProbeOverlayTests
     {
         return AvaloniaHeadlessTestSession.RunAsync(async () =>
         {
-            var source = new ScriptedSurfaceTileSource(SurfaceChartViewLifecycleTests.CreateMetadata(), defaultTileValue: 7f);
+            var source = new ScriptedSurfaceTileSource(VideraChartViewLifecycleTests.CreateMetadata(), defaultTileValue: 7f);
             var view = new VideraChartView();
 
             view.Measure(new Size(256, 128));
@@ -76,7 +76,7 @@ public sealed class SurfaceChartProbeOverlayTests
         {
             var started = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             var completion = new TaskCompletionSource<SurfaceTile?>(TaskCreationOptions.RunContinuationsAsynchronously);
-            var source = new ScriptedSurfaceTileSource(SurfaceChartViewLifecycleTests.CreateMetadata(), defaultTileValue: 9f);
+            var source = new ScriptedSurfaceTileSource(VideraChartViewLifecycleTests.CreateMetadata(), defaultTileValue: 9f);
             var view = new VideraChartView();
 
             source.EnqueuePendingResponse(started, completion, observeCancellation: true);
@@ -103,7 +103,7 @@ public sealed class SurfaceChartProbeOverlayTests
     {
         return AvaloniaHeadlessTestSession.RunAsync(async () =>
         {
-            var source = new ScriptedSurfaceTileSource(SurfaceChartViewLifecycleTests.CreateMetadata(), defaultTileValue: 5f);
+            var source = new ScriptedSurfaceTileSource(VideraChartViewLifecycleTests.CreateMetadata(), defaultTileValue: 5f);
             var view = new VideraChartView();
 
             view.Measure(new Size(200, 100));
@@ -138,7 +138,7 @@ public sealed class SurfaceChartProbeOverlayTests
     [Fact]
     public void CoarseTileProbe_MapsSampleCoordinatesThroughClampedViewportAndTileBoundsSpan()
     {
-        var metadata = SurfaceChartViewLifecycleTests.CreateMetadata();
+        var metadata = VideraChartViewLifecycleTests.CreateMetadata();
         var coarseTile = new SurfaceTile(
             new SurfaceTileKey(0, 0, 0, 0),
             width: 2,
@@ -172,7 +172,7 @@ public sealed class SurfaceChartProbeOverlayTests
     [Fact]
     public void CoarseTileProbe_FallsBackToDiscreteReadAndRemainsApproximate()
     {
-        var metadata = SurfaceChartViewLifecycleTests.CreateMetadata();
+        var metadata = VideraChartViewLifecycleTests.CreateMetadata();
         var coarseTile = new SurfaceTile(
             new SurfaceTileKey(0, 0, 0, 0),
             width: 2,
@@ -523,7 +523,7 @@ public sealed class SurfaceChartProbeOverlayTests
     [Fact]
     public void ProbeOverlay_FlagsApproximateWhenTileDensityIsCoarse()
     {
-        var metadata = SurfaceChartViewLifecycleTests.CreateMetadata();
+        var metadata = VideraChartViewLifecycleTests.CreateMetadata();
         var coarseTile = new SurfaceTile(
             new SurfaceTileKey(0, 0, 0, 0),
             width: 2,

@@ -16,7 +16,7 @@ public sealed class SurfaceChartInteractionTests
     {
         return AvaloniaHeadlessTestSession.RunAsync(async () =>
         {
-            var source = new ScriptedSurfaceTileSource(SurfaceChartViewLifecycleTests.CreateMetadata(), defaultTileValue: 11f);
+            var source = new ScriptedSurfaceTileSource(VideraChartViewLifecycleTests.CreateMetadata(), defaultTileValue: 11f);
             var view = new RoutedInteractionTestView();
             var pointer = new Pointer(1, PointerType.Mouse, isPrimary: true);
 
@@ -49,7 +49,7 @@ public sealed class SurfaceChartInteractionTests
     {
         return AvaloniaHeadlessTestSession.RunAsync(async () =>
         {
-            var source = new ScriptedSurfaceTileSource(SurfaceChartViewLifecycleTests.CreateMetadata(), defaultTileValue: 11f);
+            var source = new ScriptedSurfaceTileSource(VideraChartViewLifecycleTests.CreateMetadata(), defaultTileValue: 11f);
             var view = new RoutedInteractionTestView();
             var pointer = new Pointer(1, PointerType.Mouse, isPrimary: true);
 
@@ -84,7 +84,7 @@ public sealed class SurfaceChartInteractionTests
     {
         return AvaloniaHeadlessTestSession.RunAsync(async () =>
         {
-            var source = new ScriptedSurfaceTileSource(SurfaceChartViewLifecycleTests.CreateMetadata(), defaultTileValue: 11f);
+            var source = new ScriptedSurfaceTileSource(VideraChartViewLifecycleTests.CreateMetadata(), defaultTileValue: 11f);
             var view = new RoutedInteractionTestView();
             var pointer = new Pointer(1, PointerType.Mouse, isPrimary: true);
 
@@ -119,7 +119,7 @@ public sealed class SurfaceChartInteractionTests
     {
         return AvaloniaHeadlessTestSession.RunAsync(async () =>
         {
-            var source = new ScriptedSurfaceTileSource(SurfaceChartViewLifecycleTests.CreateMetadata(), defaultTileValue: 11f);
+            var source = new ScriptedSurfaceTileSource(VideraChartViewLifecycleTests.CreateMetadata(), defaultTileValue: 11f);
             var view = new RoutedInteractionTestView();
             var pointer = new Pointer(1, PointerType.Mouse, isPrimary: true);
 
@@ -152,7 +152,7 @@ public sealed class SurfaceChartInteractionTests
     {
         return AvaloniaHeadlessTestSession.RunAsync(async () =>
         {
-            var source = new ScriptedSurfaceTileSource(SurfaceChartViewLifecycleTests.CreateMetadata(), defaultTileValue: 11f);
+            var source = new ScriptedSurfaceTileSource(VideraChartViewLifecycleTests.CreateMetadata(), defaultTileValue: 11f);
             var view = new RoutedInteractionTestView();
             var pointer = new Pointer(1, PointerType.Mouse, isPrimary: true);
 
@@ -197,7 +197,7 @@ public sealed class SurfaceChartInteractionTests
     {
         return AvaloniaHeadlessTestSession.RunAsync(async () =>
         {
-            var source = new ScriptedSurfaceTileSource(SurfaceChartViewLifecycleTests.CreateMetadata(), defaultTileValue: 11f);
+            var source = new ScriptedSurfaceTileSource(VideraChartViewLifecycleTests.CreateMetadata(), defaultTileValue: 11f);
             var view = new RoutedInteractionTestView();
             var pointer = new Pointer(1, PointerType.Mouse, isPrimary: true);
 
@@ -238,7 +238,7 @@ public sealed class SurfaceChartInteractionTests
     {
         return AvaloniaHeadlessTestSession.RunAsync(async () =>
         {
-            var source = new ScriptedSurfaceTileSource(SurfaceChartViewLifecycleTests.CreateMetadata(), defaultTileValue: 11f);
+            var source = new ScriptedSurfaceTileSource(VideraChartViewLifecycleTests.CreateMetadata(), defaultTileValue: 11f);
             var view = new RoutedInteractionTestView();
             var pointer = new Pointer(1, PointerType.Mouse, isPrimary: true);
 
@@ -271,7 +271,7 @@ public sealed class SurfaceChartInteractionTests
     {
         return AvaloniaHeadlessTestSession.RunAsync(async () =>
         {
-            var source = new ScriptedSurfaceTileSource(SurfaceChartViewLifecycleTests.CreateMetadata(), defaultTileValue: 11f);
+            var source = new ScriptedSurfaceTileSource(VideraChartViewLifecycleTests.CreateMetadata(), defaultTileValue: 11f);
             var view = new RoutedInteractionTestView();
             var pointer = new Pointer(1, PointerType.Mouse, isPrimary: true);
             var observedQualities = new List<SurfaceChartInteractionQuality>();

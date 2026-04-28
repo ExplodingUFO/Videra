@@ -12,7 +12,7 @@ namespace Videra.SurfaceCharts.Avalonia.IntegrationTests;
 public sealed class SurfaceChartRenderHostIntegrationTests
 {
     [Fact]
-    public void SurfaceChartView_DefaultRenderSnapshot_IsSoftwareAndNotReady()
+    public void VideraChartView_DefaultRenderSnapshot_IsSoftwareAndNotReady()
     {
         AvaloniaHeadlessTestSession.Run(() =>
         {
@@ -26,11 +26,11 @@ public sealed class SurfaceChartRenderHostIntegrationTests
     }
 
     [Fact]
-    public Task SurfaceChartView_LoadedTiles_PublishSoftwareSnapshotFromRenderHost()
+    public Task VideraChartView_LoadedTiles_PublishSoftwareSnapshotFromRenderHost()
     {
         return AvaloniaHeadlessTestSession.RunAsync(async () =>
         {
-            var metadata = SurfaceChartViewLifecycleTests.CreateMetadata();
+            var metadata = VideraChartViewLifecycleTests.CreateMetadata();
             var source = new ScriptedSurfaceTileSource(metadata, defaultTileValue: 6f);
             var view = new VideraChartView();
 
@@ -53,7 +53,7 @@ public sealed class SurfaceChartRenderHostIntegrationTests
     {
         return AvaloniaHeadlessTestSession.RunAsync(async () =>
         {
-            var metadata = SurfaceChartViewLifecycleTests.CreateMetadata();
+            var metadata = VideraChartViewLifecycleTests.CreateMetadata();
             var source = new ScriptedSurfaceTileSource(metadata, defaultTileValue: 6f);
             var view = new VideraChartView();
 
@@ -76,11 +76,11 @@ public sealed class SurfaceChartRenderHostIntegrationTests
     }
 
     [Fact]
-    public Task SurfaceChartView_LoadedTiles_PublishViewStateAndCameraFrameToRenderHost()
+    public Task VideraChartView_LoadedTiles_PublishViewStateAndCameraFrameToRenderHost()
     {
         return AvaloniaHeadlessTestSession.RunAsync(async () =>
         {
-            var metadata = SurfaceChartViewLifecycleTests.CreateMetadata();
+            var metadata = VideraChartViewLifecycleTests.CreateMetadata();
             var source = new ScriptedSurfaceTileSource(metadata, defaultTileValue: 6f);
             var view = new VideraChartView();
 

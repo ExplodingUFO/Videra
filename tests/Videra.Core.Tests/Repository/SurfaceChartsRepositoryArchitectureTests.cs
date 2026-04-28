@@ -29,7 +29,7 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
         readme.Should().Contain(SurfaceChartsDocumentationTerms.SurfaceChartsOnboardingHeading);
         AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.SurfaceChartsFamilyBoundaryTokens);
         AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.SurfaceChartsDemoEntryTokens);
-        AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.SurfaceChartViewEntryTokens);
+        AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.VideraChartViewEntryTokens);
         AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.SurfaceChartsFirstChartTokens);
         AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.SurfaceChartsStartHereTokens);
         AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.SurfaceChartsRendererStatusTokens);
@@ -42,7 +42,7 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
         AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.SurfaceChartsOverlayBoundaryTokens);
         AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.SurfaceChartsOwnershipTokens);
         AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.SurfaceChartControlOwnershipTokens);
-        AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.SurfaceChartsTriFamilyControlTokens);
+        AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.SurfaceChartsPlotEntryTokens);
         AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.SurfaceChartsSourceFirstTokens);
         AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.SurfaceChartsScatterProofTokens);
         AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.SurfaceChartsColumnarStreamingTokens);
@@ -55,6 +55,8 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
         readme.Should().Contain("src/Videra.SurfaceCharts.Avalonia/README.md");
         readme.Should().Contain("src/Videra.SurfaceCharts.Processing/README.md");
         readme.Should().Contain("samples/Videra.SurfaceCharts.Demo/README.md");
+        readme.Should().NotContain("current Avalonia controls");
+        readme.Should().NotContain("controls remain the public chart entrypoints");
     }
 
     [Fact]
@@ -86,6 +88,8 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
         AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.ChineseSurfaceChartsSourceFirstTokens);
         AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.ChineseSurfaceChartsColumnarStreamingTokens);
         AssertContainsAllTokens(readme, SurfaceChartsDocumentationTerms.SurfaceChartsStreamingBenchmarkTokens);
+        readme.Should().NotContain("三个 Avalonia 控件");
+        readme.Should().NotContain("第二个控件证明");
     }
 
     [Fact]
@@ -160,7 +164,7 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
         avaloniaReadme.Should().Contain("tighter under camera movement");
         avaloniaReadme.Should().Contain("probe work");
         AssertContainsAllTokens(avaloniaReadme, SurfaceChartsDocumentationTerms.SurfaceChartsAvaloniaReadmeContractTokens);
-        AssertContainsAllTokens(avaloniaReadme, SurfaceChartsDocumentationTerms.SurfaceChartsTriFamilyControlTokens);
+        AssertContainsAllTokens(avaloniaReadme, SurfaceChartsDocumentationTerms.SurfaceChartsPlotEntryTokens);
         AssertContainsAllTokens(avaloniaReadme, SurfaceChartsDocumentationTerms.SurfaceChartsColumnarStreamingTokens);
 
         demoReadme.Should().Contain("not a `VideraView` mode");
@@ -184,6 +188,7 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
         demoReadme.Should().Contain("tighter interactive residency");
         demoReadme.Should().Contain("lower probe-path churn");
         demoReadme.Should().Contain("`XWayland compatibility` only, not compositor-native Wayland surface embedding");
+        demoReadme.Should().NotContain("second control proof");
         AssertMarkdownFileDoesNotContainSelfReferentialFileLinks(Path.Combine(repositoryRoot, "samples", "Videra.SurfaceCharts.Demo", "README.md"));
     }
 
@@ -289,7 +294,7 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
     }
 
     [Fact]
-    public void SurfaceChartViewStateAndCommandApis_ShouldStayOutOfVideraView()
+    public void VideraChartStateAndCommandApis_ShouldStayOutOfVideraView()
     {
         var repositoryRoot = GetRepositoryRoot();
         var controlsRoot = Path.Combine(repositoryRoot, "src", "Videra.Avalonia", "Controls");
@@ -375,7 +380,7 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
         var viewPropertiesApi = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.SurfaceCharts.Avalonia", "Controls", "VideraChartView.Properties.cs"));
         var plotApi = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.SurfaceCharts.Avalonia", "Controls", "Plot", "Plot3D.cs"));
 
-        AssertContainsAllTokens(viewApi, SurfaceChartsDocumentationTerms.SurfaceChartViewTypeXmlDocTokens);
+        AssertContainsAllTokens(viewApi, SurfaceChartsDocumentationTerms.VideraChartViewTypeXmlDocTokens);
         AssertContainsAllTokens(viewApi, SurfaceChartsDocumentationTerms.SurfaceChartRenderingStatusXmlDocTokens);
         AssertContainsAllTokens(plotApi, SurfaceChartsDocumentationTerms.SurfaceChartOverlayOptionsXmlDocTokens);
         AssertContainsAllTokens(viewPropertiesApi, SurfaceChartsDocumentationTerms.SurfaceChartInteractionQualityXmlDocTokens);
