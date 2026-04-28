@@ -32,14 +32,16 @@ public sealed class BeadsPublicRoadmapTests
         after.Should().Contain("## Ready");
         after.Should().Contain("## Backlog");
         after.Should().Contain("## Recently Closed");
-        after.Should().Contain("Videra-21d");
-        after.Should().Contain("v2.43 Visual Workbench and Authoring Polish");
-        after.Should().Contain("Videra-bja");
-        after.Should().Contain("Phase 314: Scene authoring polish and MinimalAuthoringSample");
-        after.Should().Contain("Videra-dux");
-        after.Should().Contain("Phase 315: SurfaceCharts numeric precision policy");
-        after.Should().Contain("Videra-9m7");
-        after.Should().Contain("Phase 317: Beads public roadmap generation");
+        after.Should().Contain("Videra-rme");
+        after.Should().Contain("v2.44 Professional Visualization Quality");
+        after.Should().Contain("Videra-wyh");
+        after.Should().Contain("Phase 319: Authoring visual semantics polish");
+        after.Should().Contain("Videra-8n2");
+        after.Should().Contain("Phase 320: SurfaceCharts professional presentation polish");
+        after.Should().Contain("Videra-3jz");
+        after.Should().Contain("Phase 321: Workbench evidence and adoption polish");
+        after.Should().Contain("Videra-zbe");
+        after.Should().Contain("Phase 322: Visualization quality guardrails and docs closure");
 
         docsIndex.Should().Contain("ROADMAP.generated.md");
         beadsCoordination.Should().Contain("scripts/Export-BeadsRoadmap.ps1");

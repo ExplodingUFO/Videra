@@ -106,6 +106,7 @@ var objectIds = new[]
 };
 
 var document = SceneAuthoring.Create("batched-markers")
+    .AddAxisTriad("world", length: 2f)
     .AddInstances(
         "marker-cubes",
         SceneGeometry.Cube(1f, paint.BaseColorFactor),
@@ -118,6 +119,7 @@ var document = SceneAuthoring.Create("batched-markers")
 ```
 
 This produces a single `InstanceBatchEntry`, no expanded per-instance mesh entries, with stable pick IDs and deterministic bounds.
+`AddAxisTriad(...)` expands to three retained line primitives and stays in the same static-scene authoring model; it does not introduce a runtime gizmo system or backend-specific helper.
 
 For a Core-only executable example that authors primitives and repeated marker instances without model files, see [samples/Videra.MinimalAuthoringSample](../../samples/Videra.MinimalAuthoringSample/README.md).
 

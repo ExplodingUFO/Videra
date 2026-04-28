@@ -7,8 +7,10 @@
 - `SceneAuthoring.Create(...)`
 - `SceneAuthoringBuilder.AddPlane(...)`
 - `SceneAuthoringBuilder.AddGrid(...)`
+- `SceneAuthoringBuilder.AddAxisTriad(...)`
 - `SceneAuthoringBuilder.AddSphere(...)`
 - `SceneAuthoringBuilder.AddInstances(...)`
+- `SceneGeometry.AxisLine(...)`
 - `SceneGeometry.Sphere(...)`
 - `SceneDocument`
 - `ImportedSceneAsset`
