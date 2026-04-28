@@ -35,7 +35,7 @@ The canonical public SurfaceCharts stack is:
 
 | Package | Published | Official feed | Preview feed | Audience | Support level | Notes |
 | --- | --- | --- | --- | --- | --- | --- |
-| `Videra.Core` | Yes, on public release tags | `nuget.org` | `GitHub Packages` preview/internal only | Core-only consumers and backend integrators | `alpha` | Core scene/runtime abstractions and software fallback |
+| `Videra.Core` | Yes, on public release tags | `nuget.org` | `GitHub Packages` preview/internal only | Core-only consumers and backend integrators | `alpha` | Core scene/runtime abstractions and optional software fallback |
 | `Videra.Import.Gltf` | Yes, on public release tags | `nuget.org` | `GitHub Packages` preview/internal only | Core-first consumers that need `.gltf` / `.glb` ingestion | `alpha` | Dedicated glTF / GLB import package layered on `Videra.Core` |
 | `Videra.Import.Obj` | Yes, on public release tags | `nuget.org` | `GitHub Packages` preview/internal only | Core-first consumers that need `.obj` ingestion | `alpha` | Dedicated OBJ import package layered on `Videra.Core` |
 | `Videra.Avalonia` | Yes, on public release tags | `nuget.org` | `GitHub Packages` preview/internal only | Avalonia desktop applications | `alpha` | Main public UI entry package; importer-backed file loading requires explicit `Videra.Import.*` installation plus `VideraViewOptions.UseModelImporter(...)` |

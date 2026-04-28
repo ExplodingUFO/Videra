@@ -46,8 +46,9 @@ For `area: surfacecharts`, start from `smoke/Videra.SurfaceCharts.ConsumerSmoke`
 - `smoke/Videra.WpfSmoke` is repository-only Windows WPF smoke evidence for the public viewer path; use it as validation/support evidence, not as a second public UI package or release path.
 - Install `Videra.Core` directly only when you want the runtime kernel without the Avalonia UI layer.
 - Add `Videra.Import.Gltf` and/or `Videra.Import.Obj` when you need `.gltf` / `.glb` / `.obj` ingestion on the core path.
-- Software fallback helps with diagnostics, but it does not install missing platform packages.
+- Software fallback helps with diagnostics only when explicitly enabled (`AllowSoftwareFallback = true` or `VIDERA_BACKEND=software`), but it does not install missing platform packages.
 - `VIDERA_BACKEND` and `PreferredBackend` only change backend preference. `VIDERA_BACKEND` does not install missing platform packages and does not replace matching-host native validation.
+- With default backend preference, missing native backends surface as initialization/readiness failure; software is not the automatic recovery path.
 - `TransparentFeatureStatus` in diagnostics snapshots captures the shipped transparency contract: alpha mask rendering plus deterministic alpha blend ordering for per-primitive carried alpha sources.
 - `LastFrameObjectCount`, `LastFrameOpaqueObjectCount`, and `LastFrameTransparentObjectCount` are backend-neutral scene diagnostics, not draw-call metrics or broader renderer promises.
 - `LastSnapshotExportPath` and `LastSnapshotExportStatus` capture the most recent inspection snapshot export target and outcome when snapshot export is part of the report.

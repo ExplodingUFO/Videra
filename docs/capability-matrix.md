@@ -9,7 +9,7 @@ The `1.0` line is a native desktop viewer/runtime for .NET applications, centere
 | Capability area | Included in `1.0` | Current truth |
 | --- | --- | --- |
 | Native desktop viewer runtime | Yes | Cross-platform viewer stack for Avalonia hosts with Windows=`D3D11`, Linux=`Vulkan`, and macOS=`Metal` native backends |
-| Software fallback and diagnostics | Yes | Viewer path includes software fallback, backend diagnostics, and matching-host validation truth |
+| Software fallback and diagnostics | Yes | Viewer path includes optional software fallback (explicit opt-in), backend diagnostics, and matching-host validation truth |
 | Scene truth and upload/runtime services | Yes | `SceneDocument`, imported-asset catalogs, delta planning, residency, upload queueing, and backend rebind/recovery are part of the shipped viewer runtime |
 | Dedicated scene import | Yes | `Videra.Import.Gltf` and `Videra.Import.Obj` deliver `.gltf`, `.glb`, and `.obj` ingestion on the viewer/runtime path |
 | Viewer-first inspection workflows | Yes | Picking, measurement, clipping, snapshot export, inspection-state capture/restore, and inspection bundles are part of the product surface |

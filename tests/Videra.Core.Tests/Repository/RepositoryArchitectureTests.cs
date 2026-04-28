@@ -235,6 +235,30 @@ public sealed class RepositoryArchitectureTests
     }
 
     [Fact]
+    public void ViewerFallbackDocs_ShouldRequireExplicitOptInAndDocumentInitializationFailure()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var architecture = File.ReadAllText(Path.Combine(repositoryRoot, "ARCHITECTURE.md"));
+        var coreReadme = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Core", "README.md"));
+        var capabilityMatrix = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "capability-matrix.md"));
+        var packageMatrix = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "package-matrix.md"));
+        var troubleshooting = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "troubleshooting.md"));
+
+        architecture.Should().Contain("Software fallback is explicit opt-in");
+        architecture.Should().Contain("With default `Auto` selection and `AllowSoftwareFallback` disabled");
+        architecture.Should().Contain("initialization/readiness");
+        architecture.Should().NotContain("If the native backend is unavailable, or if `software` is selected explicitly, rendering falls back to the software path.");
+
+        coreReadme.Should().Contain("an explicit software fallback path used by the higher-level packages when requested");
+        coreReadme.Should().Contain("For Core-first backend resolution, `GraphicsBackendFactory.ResolveBackend(...)` defaults to explicit failure for unavailable native backends.");
+
+        capabilityMatrix.Should().Contain("optional software fallback (explicit opt-in)");
+        packageMatrix.Should().Contain("optional software fallback");
+        troubleshooting.Should().Contain("With default backend preference, missing native backends surface as initialization/readiness failure");
+        troubleshooting.Should().Contain("software is not the automatic recovery path");
+    }
+
+    [Fact]
     public void VideraEngine_ShouldSplitRenderingAndResourceOrchestrationAcrossDedicatedPartialFiles()
     {
         var repositoryRoot = GetRepositoryRoot();

@@ -13,7 +13,7 @@ Videra is designed to provide stable 3D viewer capabilities inside Avalonia desk
 - Unify cross-platform 3D view behavior
 - Keep core rendering logic decoupled from platform graphics APIs
 - Select the most suitable native backend per platform
-- Provide a software fallback for diagnostics and no-GPU environments
+- Provide optional software fallback for diagnostics and no-GPU environments when explicitly requested
 - Maintain clear boundaries between demo code, library code, and validation
 
 ## Layering
@@ -42,7 +42,7 @@ graph TB
 
 | Layer | Responsibility |
 | --- | --- |
-| `Core` | Viewer/runtime kernel, scene truth, render pipeline, software fallback, and narrow extensibility |
+| `Core` | Viewer/runtime kernel, scene truth, render pipeline, optional software fallback, and narrow extensibility |
 | `Import` | Asset ingestion for viewer/runtime scenes |
 | `Backend` | Native graphics implementations for `D3D11`, `Vulkan`, and `Metal` |
 | `UI adapter` | Host-framework shell, orchestration, and input/presentation translation |
@@ -58,7 +58,7 @@ Platform-agnostic rendering layer responsible for:
 - Scene/material runtime catalogs expressed as `SceneNode`, `MeshPrimitive`, `MaterialInstance`, `Texture2D`, and `Sampler`
 - Camera, grid, axis, and wireframe logic
 - Render-style presets
-- Software fallback rendering
+- Optional software fallback rendering
 - Frame-plan construction and pipeline execution via `VideraEngine`
 
 `Videra.Core` is the runtime kernel of the viewer stack. The `v1.20` boundary treats import as a distinct layer that composes with the kernel rather than redefining the whole product as a general engine.
@@ -303,7 +303,9 @@ When set to `Auto`, the default preference is:
 - Linux: `Vulkan`
 - macOS: `Metal`
 
-If the native backend is unavailable, or if `software` is selected explicitly, rendering falls back to the software path.
+If `software` is selected explicitly, the runtime uses the software path.
+
+With default `Auto` selection and `AllowSoftwareFallback` disabled, native-backend-unavailable remains an initialization/readiness failure path instead of implicit software downshift.
 
 ## Supported Capabilities
 
@@ -314,7 +316,7 @@ If the native backend is unavailable, or if `software` is selected explicitly, r
 - Wireframe and overlay modes
 - Grid and axis helpers
 - Native rendering backends
-- Software fallback backend
+- Optional software fallback backend (explicitly requested)
 
 For the explicit `1.0` versus deferred capability split, use [docs/capability-matrix.md](docs/capability-matrix.md).
 

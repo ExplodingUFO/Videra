@@ -2,7 +2,7 @@
 
 [English](README.md) | [中文](../../docs/zh-CN/modules/videra-core.md)
 
-`Videra.Core` is the platform-agnostic viewer/runtime kernel of Videra. It provides the shared abstractions, `SceneDocument`-backed imported-asset truth, scene engine, and software fallback path used by the higher-level packages.
+`Videra.Core` is the platform-agnostic viewer/runtime kernel of Videra. It provides the shared abstractions, `SceneDocument`-backed imported-asset truth, scene engine, and an explicit software fallback path used by the higher-level packages when requested.
 
 Current status: `alpha`. This package is the right starting point only for core-only consumption. Most desktop applications should start with `Videra.Avalonia` plus a matching `Videra.Platform.*` package.
 
@@ -12,7 +12,7 @@ Current status: `alpha`. This package is the right starting point only for core-
 - Scene lifecycle management through `VideraEngine`
 - Backend-neutral scene/material runtime contracts through `SceneDocument`, `ImportedSceneAsset`, `SceneNode`, `MeshPrimitive`, `MaterialInstance`, `Texture2D`, and `Sampler`
 - Camera, grid, axis, and wireframe helpers
-- Render-style presets and software fallback rendering
+- Render-style presets and optional software fallback rendering
 
 The current shipped viewer/runtime baseline is static glTF/PBR with one bounded style-driven broader-lighting baseline on the native static-scene path: imported assets can carry UV-backed texture bindings, per-primitive non-Blend material participation, metallic-roughness and alpha semantics, emissive and normal-map-ready inputs, occlusion texture binding/strength, `KHR_texture_transform` offset/scale/rotation plus texture-coordinate override, and tangent-aware mesh data through explicit runtime contracts. The canonical runtime path may expand one imported entry into multiple internal runtime objects so mixed opaque and transparent primitive participation survives the runtime bridge without widening the public surface into a broader transparency system. The current renderer path consumes baseColor texture sampling, occlusion texture binding/strength, emissive inputs, and normal-map-ready inputs on the bounded static-scene seam, including `KHR_texture_transform` offset/scale/rotation and texture-coordinate override where those bindings request them. This remains a bounded renderer-consumption seam rather than a broader lighting/shader/backend promise. This does not imply an `OpenGL` product promise. Animation, skeletons, morph targets, broader lighting systems beyond the bounded broader-lighting baseline, shadows, environment maps, post-processing, extra UI adapters, and Wayland/OpenGL/WebGL/backend API expansion remain outside this baseline.
 
