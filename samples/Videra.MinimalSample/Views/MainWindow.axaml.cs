@@ -37,8 +37,7 @@ public partial class MainWindow : Window
         {
             Backend =
             {
-                PreferredBackend = GraphicsBackendPreference.Auto,
-                AllowSoftwareFallback = true
+                PreferredBackend = GraphicsBackendPreference.Auto
             }
         }.UseModelImporter(ObjModelImporter.Create());
 

@@ -45,7 +45,7 @@ dotnet add package Videra.Avalonia --version 0.1.0-alpha.7 --source github-Explo
 dotnet add package Videra.Platform.Windows --version 0.1.0-alpha.7 --source github-ExplodingUFO
 ```
 
-If no matching platform package is installed, the software fallback path can still help with diagnostics, but it does not install missing platform packages.
+If no matching platform package is installed, the default path fails instead of silently falling back. The software fallback path can still help with diagnostics when a host explicitly enables it, but it does not install missing platform packages.
 
 `PreferredBackend` and `VIDERA_BACKEND` only change backend preference. They do not install missing platform packages and do not replace matching-host native validation.
 
@@ -62,8 +62,7 @@ View3D.Options = new VideraViewOptions
 {
     Backend =
     {
-        PreferredBackend = GraphicsBackendPreference.Auto,
-        AllowSoftwareFallback = true
+        PreferredBackend = GraphicsBackendPreference.Auto
     }
 }.UseModelImporter(ObjModelImporter.Create());
 
@@ -105,9 +104,9 @@ Contract notes:
 
 - After the engine is `disposed`, additional contributor and hook registrations are ignored as a `no-op`.
 - `RenderCapabilities` remains queryable before initialization and after disposal.
-- With `AllowSoftwareFallback = true`, `BackendDiagnostics.IsUsingSoftwareFallback` and `BackendDiagnostics.FallbackReason` explain native backend fallback.
+- Software fallback is explicit opt-in. With the default `AllowSoftwareFallback = false`, the view stays not ready until the native backend issue is fixed; it does not silently recover through fallback.
+- If a host intentionally sets `AllowSoftwareFallback = true`, `BackendDiagnostics.IsUsingSoftwareFallback` and `BackendDiagnostics.FallbackReason` explain native backend fallback.
 - Advanced shader/resource-set APIs are guarded by `SupportsShaderCreation`, `SupportsResourceSetCreation`, and `SupportsResourceSetBinding`.
-- With `AllowSoftwareFallback = false`, the view stays not ready until the native backend issue is fixed; it does not silently recover through fallback.
 - Scene loading uses retained imported assets and `SceneDocument` truth so backend rebind can restore scene resources without a steady-state software staging path.
 - `SceneDocumentStore`, `SceneDeltaPlanner`, `SceneResidencyRegistry`, and `SceneUploadQueue` stay internal to `Videra.Avalonia`; they let `VideraViewRuntime` publish document deltas plus typed retained-entry changes, coalesce per-entry upload work, prefer attached dirty entries during interactive draining, and expose read-only scene residency counts through `BackendDiagnostics`.
 - The retained asset catalog behind that path is `SceneNode` + `MeshPrimitive` + `MaterialInstance` + `Texture2D` + `Sampler`, surfaced to hosts as viewer/runtime truth rather than backend-specific resources.

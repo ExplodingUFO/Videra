@@ -250,7 +250,7 @@ public sealed class VideraViewSessionBridgeIntegrationTests
         diagnostics.ResolvedUploadBudgetBytes.Should().Be(16384);
     }
 
-    private sealed class TrackingSoftwareBackend : IGraphicsBackend, ISoftwareBackend
+    private sealed class TrackingSoftwareBackend : IGraphicsBackend, IGraphicsDevice, IRenderSurface, ISoftwareBackend
     {
         private readonly TrackingResourceFactory _resourceFactory = new();
         private readonly TrackingCommandExecutor _commandExecutor = new();
@@ -260,6 +260,19 @@ public sealed class VideraViewSessionBridgeIntegrationTests
         public int Width { get; private set; }
 
         public int Height { get; private set; }
+        private bool _disposed;
+
+        public GraphicsBackendPreference? ActiveBackendPreference => GraphicsBackendPreference.Software;
+
+        public bool IsSoftwareBackend => true;
+
+        public IResourceFactory ResourceFactory => _resourceFactory;
+
+        public ICommandExecutor CommandExecutor => _commandExecutor;
+
+        public bool UsesSoftwarePresentationCopy => true;
+
+        public IRenderSurface CreateRenderSurface() => this;
 
         public void Initialize(IntPtr windowHandle, int width, int height)
         {
@@ -279,6 +292,12 @@ public sealed class VideraViewSessionBridgeIntegrationTests
         {
         }
 
+        public IFrameContext BeginFrame(Vector4 clearColor)
+        {
+            _ = clearColor;
+            return new TrackingFrameContext();
+        }
+
         public void EndFrame()
         {
         }
@@ -288,9 +307,9 @@ public sealed class VideraViewSessionBridgeIntegrationTests
             _ = color;
         }
 
-        public IResourceFactory GetResourceFactory() => _resourceFactory;
+        public IResourceFactory GetResourceFactory() => ResourceFactory;
 
-        public ICommandExecutor GetCommandExecutor() => _commandExecutor;
+        public ICommandExecutor GetCommandExecutor() => CommandExecutor;
 
         public void CopyFrameTo(IntPtr destination, int destinationStride)
         {
@@ -300,16 +319,35 @@ public sealed class VideraViewSessionBridgeIntegrationTests
 
         public void Dispose()
         {
+            if (_disposed)
+            {
+                return;
+            }
+
+            _disposed = true;
             IsInitialized = false;
         }
     }
 
-    private sealed class TrackingNativeBackend : IGraphicsBackend
+    private sealed class TrackingNativeBackend : IGraphicsBackend, IGraphicsDevice, IRenderSurface
     {
         private readonly TrackingResourceFactory _resourceFactory = new();
         private readonly TrackingCommandExecutor _commandExecutor = new();
 
         public bool IsInitialized { get; private set; }
+        private bool _disposed;
+
+        public GraphicsBackendPreference? ActiveBackendPreference => GraphicsBackendPreference.D3D11;
+
+        public bool IsSoftwareBackend => false;
+
+        public IResourceFactory ResourceFactory => _resourceFactory;
+
+        public ICommandExecutor CommandExecutor => _commandExecutor;
+
+        public bool UsesSoftwarePresentationCopy => false;
+
+        public IRenderSurface CreateRenderSurface() => this;
 
         public void Initialize(IntPtr windowHandle, int width, int height)
         {
@@ -329,6 +367,12 @@ public sealed class VideraViewSessionBridgeIntegrationTests
         {
         }
 
+        public IFrameContext BeginFrame(Vector4 clearColor)
+        {
+            _ = clearColor;
+            return new TrackingFrameContext();
+        }
+
         public void EndFrame()
         {
         }
@@ -338,13 +382,26 @@ public sealed class VideraViewSessionBridgeIntegrationTests
             _ = color;
         }
 
-        public IResourceFactory GetResourceFactory() => _resourceFactory;
+        public IResourceFactory GetResourceFactory() => ResourceFactory;
 
-        public ICommandExecutor GetCommandExecutor() => _commandExecutor;
+        public ICommandExecutor GetCommandExecutor() => CommandExecutor;
 
         public void Dispose()
         {
+            if (_disposed)
+            {
+                return;
+            }
+
+            _disposed = true;
             IsInitialized = false;
+        }
+    }
+
+    private sealed class TrackingFrameContext : IFrameContext
+    {
+        public void Dispose()
+        {
         }
     }
 

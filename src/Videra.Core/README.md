@@ -112,7 +112,7 @@ Scope boundary:
 - Shipped onboarding lives in [docs/extensibility.md](../../docs/extensibility.md) and [samples/Videra.ExtensibilitySample](../../samples/Videra.ExtensibilitySample/README.md).
 - Before initialization and after disposal, `GetRenderCapabilities()` remains queryable so host apps can inspect the stable support flags without inferring internal state.
 - After the engine is `disposed`, `RegisterPassContributor(...)`, `ReplacePassContributor(...)`, and `RegisterFrameHook(...)` are ignored as a `no-op`.
-- For Core-first backend resolution, `GraphicsBackendFactory.ResolveBackend(...)` uses `AllowSoftwareFallback` to choose between a software backend with `FallbackReason` populated and an explicit failure.
+- For Core-first backend resolution, `GraphicsBackendFactory.ResolveBackend(...)` defaults to explicit failure for unavailable native backends. Set `AllowSoftwareFallback = true` only when a host intentionally wants a software backend with `FallbackReason` populated.
 - `SceneDocument` keeps imported assets backend-neutral until a ready resource factory uploads them, and backend recovery restores scene resources from retained scene truth instead of a steady-state software staging path.
 - `ImportedSceneAsset.Metrics` and retained deferred mesh state give the runtime enough budget/recovery metadata to queue uploads and rebuild scene resources after backend recreation.
 - `package discovery` and `plugin loading` remain out of scope.

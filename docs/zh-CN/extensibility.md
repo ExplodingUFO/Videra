@@ -19,7 +19,7 @@
 受支持的公开流程如下：
 
 1. 创建或取得一个 `VideraView`。
-2. 配置 backend 选项，包含是否启用 `AllowSoftwareFallback`。
+2. 配置 backend 选项；除非宿主明确需要诊断用软件路径，否则保持 software fallback 关闭。
 3. 通过 `VideraView.Engine` 调用 `RegisterPassContributor(...)`。
 4. 通过 `VideraView.Engine` 调用 `RegisterFrameHook(...)`。
 5. 等待 `BackendDiagnostics.IsReady` 或 `BackendReady` 后再加载内容。
@@ -38,8 +38,7 @@ view.Options = new VideraViewOptions
 {
     Backend =
     {
-        PreferredBackend = GraphicsBackendPreference.Auto,
-        AllowSoftwareFallback = true
+        PreferredBackend = GraphicsBackendPreference.Auto
     }
 };
 
@@ -75,8 +74,8 @@ var diagnostics = view.BackendDiagnostics;
 | Ready | `RegisterPassContributor(...)` 与 `RegisterFrameHook(...)` 正常注册，并参与下一帧。 | `RenderCapabilities.IsInitialized` 为 `true`。`BackendDiagnostics.IsReady` 为 `true`，backend/profile 字段描述当前运行时。 | `LoadModelAsync(...)` 与 `FrameAll()` 是 view ready 之后的预期公开流程。 |
 | Pre-initialization | 在第一帧 backend-ready 之前允许注册，并会保留到渲染真正开始。 | `RenderCapabilities` 可查询，但 `IsInitialized = false`。`BackendDiagnostics.IsReady` 为 `false`，此时还没有 native fallback reason。 | 在调用 `LoadModelAsync(...)` 与 `FrameAll()` 之前，先等待 `BackendReady` 或 `BackendDiagnostics.IsReady`。 |
 | `disposed` engine | 后续的 `RegisterPassContributor(...)`、`ReplacePassContributor(...)` 与 `RegisterFrameHook(...)` 调用都会被忽略，保持 `no-op`。 | `RenderCapabilities` 仍可查询，并报告 `IsInitialized = false`。如果前面已经完成过一帧，最近一次 pipeline snapshot 仍可能在 disposal 后被保留。此时应把 `BackendDiagnostics` 视为 last-known view/session state，而不是重新激活机制。 | 不要期待 `disposed` 过的 engine 或 view 再产生新的渲染工作；如果需要新的 session，请创建新的 view/engine。 |
-| Native unavailable with software fallback | 注册接口不变；engine 会切到 software backend，而不是改掉 API 形状。 | 当 `AllowSoftwareFallback = true` 时，`BackendDiagnostics.IsUsingSoftwareFallback` 为 `true`，`ResolvedBackend` 会变成 `Software`，`FallbackReason` 会解释 native backend 为什么不可用。`RenderCapabilities` 继续暴露相同的 contributor/hook support 标志。 | 在 ready 之后，窄 sample 仍可调用 `LoadModelAsync(...)` 与 `FrameAll()`，但宿主应用应把 fallback 状态显式展示给用户。 |
-| Native unavailable without software fallback | 注册合同不变，但不会创建 ready session。同一份 unavailable 原因会以 failure 的形式暴露，而不是 fallback。 | 当 `AllowSoftwareFallback = false` 时，backend resolution 会失败，而不是走带 `FallbackReason` 的 software 路径。在 Core-first 流程中，`GraphicsBackendFactory.ResolveBackend(...)` 会抛出同一份 unavailable reason；在 Avalonia 流程中，view 会保持 not ready，并通过 `InitializationFailed` / `LastInitializationError` 暴露失败。 | 在缺失 package/runtime 问题修复并且 view 能正常初始化之前，不要调用 `LoadModelAsync(...)` 或 `FrameAll()`。 |
+| Native unavailable without software fallback | 注册合同不变，但不会创建 ready session。同一份 unavailable 原因会以 failure 的形式暴露，而不是 fallback。 | 默认 `AllowSoftwareFallback = false`，backend resolution 会失败，而不是走带 `FallbackReason` 的 software 路径。在 Core-first 流程中，`GraphicsBackendFactory.ResolveBackend(...)` 会抛出同一份 unavailable reason；在 Avalonia 流程中，view 会保持 not ready，并通过 `InitializationFailed` / `LastInitializationError` 暴露失败。 | 在缺失 package/runtime 问题修复并且 view 能正常初始化之前，不要调用 `LoadModelAsync(...)` 或 `FrameAll()`。 |
+| Native unavailable with explicit software fallback | 注册接口不变；engine 会切到 software backend，而不是改掉 API 形状。 | 当宿主明确设置 `AllowSoftwareFallback = true` 时，`BackendDiagnostics.IsUsingSoftwareFallback` 为 `true`，`ResolvedBackend` 会变成 `Software`，`FallbackReason` 会解释 native backend 为什么不可用。`RenderCapabilities` 继续暴露相同的 contributor/hook support 标志。 | 在 ready 之后，窄 sample 仍可调用 `LoadModelAsync(...)` 与 `FrameAll()`，但宿主应用应把 fallback 状态显式展示给用户。 |
 
 `CreateShader(...)`、`CreateResourceSet(...)` 与 `SetResourceSet(...)` 不属于内置 native backend 的最小合同。调用这些高级 API 前，请把 `SupportsShaderCreation`、`SupportsResourceSetCreation`、`SupportsResourceSetBinding` 当作 guard；`false` 表示该 backend 可能直接抛出 `UnsupportedOperationException`。
 

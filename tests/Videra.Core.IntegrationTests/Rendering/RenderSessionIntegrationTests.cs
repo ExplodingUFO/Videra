@@ -1,4 +1,5 @@
 using FluentAssertions;
+using System.Numerics;
 using Videra.Avalonia.Controls;
 using Videra.Avalonia.Rendering;
 using Videra.Core.Geometry;
@@ -84,6 +85,7 @@ public sealed class RenderSessionIntegrationTests
         };
 
         view.Options.Backend.PreferredBackend.Should().Be(GraphicsBackendPreference.Vulkan);
+        view.Options.Backend.AllowSoftwareFallback.Should().BeFalse();
         view.BackendDiagnostics.RequestedBackend.Should().Be(GraphicsBackendPreference.Vulkan);
         view.BackendDiagnostics.EnvironmentOverrideApplied.Should().BeFalse();
         view.BackendDiagnostics.IsReady.Should().BeFalse();
@@ -357,7 +359,7 @@ public sealed class RenderSessionIntegrationTests
         }
     }
 
-    private sealed class TrackingBackend : IGraphicsBackend
+    private sealed class TrackingBackend : IGraphicsBackend, IGraphicsDevice, IRenderSurface
     {
         private readonly TrackingResourceFactory _resourceFactory = new();
         private readonly TrackingCommandExecutor _commandExecutor = new();
@@ -366,6 +368,19 @@ public sealed class RenderSessionIntegrationTests
         public int InitializeCalls { get; private set; }
         public int ResizeCalls { get; private set; }
         public int DisposeCalls { get; private set; }
+        private bool _disposed;
+
+        public GraphicsBackendPreference? ActiveBackendPreference => GraphicsBackendPreference.D3D11;
+
+        public bool IsSoftwareBackend => false;
+
+        public IResourceFactory ResourceFactory => _resourceFactory;
+
+        public ICommandExecutor CommandExecutor => _commandExecutor;
+
+        public bool UsesSoftwarePresentationCopy => false;
+
+        public IRenderSurface CreateRenderSurface() => this;
 
         public void Initialize(IntPtr windowHandle, int width, int height)
         {
@@ -376,6 +391,12 @@ public sealed class RenderSessionIntegrationTests
         public void Resize(int width, int height)
         {
             ResizeCalls++;
+        }
+
+        public IFrameContext BeginFrame(Vector4 clearColor)
+        {
+            _ = clearColor;
+            return new TrackingFrameContext();
         }
 
         public void BeginFrame()
@@ -390,14 +411,27 @@ public sealed class RenderSessionIntegrationTests
         {
         }
 
-        public IResourceFactory GetResourceFactory() => _resourceFactory;
+        public IResourceFactory GetResourceFactory() => ResourceFactory;
 
-        public ICommandExecutor GetCommandExecutor() => _commandExecutor;
+        public ICommandExecutor GetCommandExecutor() => CommandExecutor;
 
         public void Dispose()
         {
+            if (_disposed)
+            {
+                return;
+            }
+
+            _disposed = true;
             DisposeCalls++;
             IsInitialized = false;
+        }
+    }
+
+    private sealed class TrackingFrameContext : IFrameContext
+    {
+        public void Dispose()
+        {
         }
     }
 

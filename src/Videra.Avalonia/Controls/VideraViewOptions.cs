@@ -71,7 +71,7 @@ public sealed class VideraBackendOptions : INotifyPropertyChanged
 {
     private GraphicsBackendPreference _preferredBackend = GraphicsBackendPreference.Auto;
     private BackendEnvironmentOverrideMode _environmentOverrideMode = BackendEnvironmentOverrideMode.Disabled;
-    private bool _allowSoftwareFallback = true;
+    private bool _allowSoftwareFallback;
 
     public event PropertyChangedEventHandler? PropertyChanged;
 

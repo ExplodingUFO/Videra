@@ -64,7 +64,7 @@ public sealed class MinimalSampleConfigurationTests
         var codeBehind = File.ReadAllText(Path.Combine(GetRepositoryRoot(), "samples", "Videra.MinimalSample", "Views", "MainWindow.axaml.cs"));
 
         codeBehind.Should().Contain("new VideraViewOptions");
-        codeBehind.Should().Contain("AllowSoftwareFallback = true");
+        codeBehind.Should().NotContain("AllowSoftwareFallback = true");
         codeBehind.Should().Contain("LoadModelAsync(\"Assets/reference-cube.obj\")");
         codeBehind.Should().Contain("FrameAll()");
         codeBehind.Should().Contain("ResetCamera()");

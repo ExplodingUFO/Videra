@@ -13,7 +13,7 @@
 
 The sample keeps the default flow intentionally short:
 
-1. Configure `View3D.Options` with `AllowSoftwareFallback = true`.
+1. Configure `View3D.Options`.
 2. Wait for `BackendReady` / `BackendDiagnostics.IsReady`.
 3. Call `LoadModelAsync("Assets/reference-cube.obj")`.
 4. Call `FrameAll()`.

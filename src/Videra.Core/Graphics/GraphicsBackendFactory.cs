@@ -14,7 +14,7 @@ public static partial class GraphicsBackendFactory
 
     /// <summary>
     /// Configures the backend resolver used by the current composition layer.
-    /// Passing <c>null</c> clears the resolver and leaves only software fallback available.
+    /// Passing <c>null</c> clears the resolver; native preferences then fail unless software is requested or explicitly allowed as fallback.
     /// </summary>
     public static void ConfigureResolver(IGraphicsBackendResolver? resolver)
     {
@@ -29,7 +29,7 @@ public static partial class GraphicsBackendFactory
         return ResolveBackend(new GraphicsBackendRequest(
             preference,
             BackendEnvironmentOverrideMode.PreferOverrides,
-            AllowSoftwareFallback: true,
+            AllowSoftwareFallback: false,
             LoggerFactory: loggerFactory)).Backend;
     }
 

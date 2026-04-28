@@ -272,8 +272,8 @@ Boundary notes:
 - `VideraViewRuntime`, `RenderSessionOrchestrator`, `RenderSession`, and `VideraViewSessionBridge` remain internal orchestration seams, not public extension roots.
 - Before initialization, registrations can be queued, but `RenderCapabilities.IsInitialized` remains `false` and host apps should wait for readiness before `LoadModelAsync(...)` and `FrameAll()`.
 - After `VideraEngine` is `disposed`, `RegisterPassContributor(...)`, `ReplacePassContributor(...)`, and `RegisterFrameHook(...)` are harmless `no-op` calls; `GetRenderCapabilities()` stays queryable and can retain the last pipeline snapshot.
-- When a native backend is unavailable and `AllowSoftwareFallback` is enabled, the view resolves to software and `VideraView.BackendDiagnostics.FallbackReason` records the native failure reason.
-- When `AllowSoftwareFallback` is disabled, backend resolution fails instead of populating `FallbackReason`, so host apps must fix the package/runtime gap before the view becomes ready.
+- Software fallback is explicit opt-in. When a native backend is unavailable and `AllowSoftwareFallback` remains at its default disabled value, backend resolution fails instead of populating `FallbackReason`, so host apps must fix the package/runtime gap before the view becomes ready.
+- When a host intentionally enables `AllowSoftwareFallback`, the view resolves to software and `VideraView.BackendDiagnostics.FallbackReason` records the native failure reason.
 - This milestone does not add package discovery or plugin loading for the new API surface.
 
 Boundary summary:

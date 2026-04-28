@@ -309,7 +309,7 @@ internal sealed class RenderSessionOrchestrator : IDisposable
             return new GraphicsBackendRequest(
                 _inputs.RequestedBackend,
                 BackendEnvironmentOverrideMode.PreferOverrides,
-                AllowSoftwareFallback: true);
+                AllowSoftwareFallback: false);
         }
 
         return new GraphicsBackendRequest(

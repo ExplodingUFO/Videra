@@ -13,7 +13,7 @@ public enum BackendEnvironmentOverrideMode
 public readonly record struct GraphicsBackendRequest(
     GraphicsBackendPreference RequestedPreference,
     BackendEnvironmentOverrideMode EnvironmentOverrideMode = BackendEnvironmentOverrideMode.PreferOverrides,
-    bool AllowSoftwareFallback = true,
+    bool AllowSoftwareFallback = false,
     ILoggerFactory? LoggerFactory = null);
 
 public sealed class GraphicsBackendResolution

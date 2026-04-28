@@ -17,7 +17,7 @@ This page is the English source of truth for Videra's public render extensibilit
 The supported public flow is:
 
 1. Create or obtain a `VideraView`.
-2. Configure backend options, including whether `AllowSoftwareFallback` is enabled.
+2. Configure backend options, leaving software fallback disabled unless this host intentionally opts in.
 3. Use `VideraView.Engine` to call `RegisterPassContributor(...)`.
 4. Use `VideraView.Engine` to call `RegisterFrameHook(...)`.
 5. Wait for `BackendDiagnostics.IsReady` or `BackendReady` before loading content.
@@ -36,8 +36,7 @@ view.Options = new VideraViewOptions
 {
     Backend =
     {
-        PreferredBackend = GraphicsBackendPreference.Auto,
-        AllowSoftwareFallback = true
+        PreferredBackend = GraphicsBackendPreference.Auto
     }
 };
 

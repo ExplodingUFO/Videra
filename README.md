@@ -197,8 +197,8 @@ Contract highlights:
 - After the engine is `disposed`, additional contributor and hook registrations are ignored as a `no-op`.
 - `RenderCapabilities` remains queryable before initialization and after disposal, with `IsInitialized = false` until the engine is ready.
 - `SupportsShaderCreation`, `SupportsResourceSetCreation`, and `SupportsResourceSetBinding` are the guardrails for advanced backend seams; shipped native backends can report `false` and throw `UnsupportedOperationException` there.
-- When `AllowSoftwareFallback = true`, native backend failures resolve to software and `BackendDiagnostics.FallbackReason` explains why the native backend was unavailable.
-- When `AllowSoftwareFallback = false`, native backend resolution fails instead of silently falling back, so the view does not become ready until the package/runtime issue is fixed.
+- Software fallback is explicit opt-in. With the default `AllowSoftwareFallback = false`, native backend resolution fails instead of silently falling back, so the view does not become ready until the package/runtime issue is fixed.
+- When a host intentionally sets `AllowSoftwareFallback = true`, native backend failures resolve to software and `BackendDiagnostics.FallbackReason` explains why the native backend was unavailable.
 - `package discovery` and `plugin loading` remain out of scope for the public extension model.
 
 ## Interaction Onboarding
