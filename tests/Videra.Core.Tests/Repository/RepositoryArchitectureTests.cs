@@ -98,6 +98,12 @@ public sealed class RepositoryArchitectureTests
     private const string RendererConsumptionSentence =
         "The current renderer path consumes baseColor texture sampling, occlusion texture binding/strength, emissive inputs, and normal-map-ready inputs on the bounded static-scene seam, including `KHR_texture_transform` offset/scale/rotation and texture-coordinate override where those bindings request them.";
 
+    private static readonly string[] DeferredScopeDriftTerms =
+    {
+        "material graphs",
+        "generic chart engines",
+        "fallback layers"
+    };
     private const string RetainedShadingBoundarySentence =
         "This remains a bounded renderer-consumption seam rather than a broader lighting/shader/backend promise";
 
@@ -462,6 +468,7 @@ public sealed class RepositoryArchitectureTests
         var readme = File.ReadAllText(Path.Combine(repositoryRoot, "README.md"));
         var architecture = File.ReadAllText(Path.Combine(repositoryRoot, "ARCHITECTURE.md"));
         var packageMatrix = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "package-matrix.md"));
+        var capabilityMatrix = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "capability-matrix.md"));
         var hostingBoundary = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "hosting-boundary.md"));
         var coreReadme = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Core", "README.md"));
         var avaloniaReadme = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Avalonia", "README.md"));
@@ -474,7 +481,7 @@ public sealed class RepositoryArchitectureTests
         const string HostingBoundaryNonGoalsSentence =
             "That boundary is intentionally static-scene-only. Animation, skeletons, morph targets, broader lighting systems beyond the bounded broader-lighting baseline, shadows, environment maps, post-processing, extra UI adapters, Wayland/OpenGL/WebGL/backend API expansion, and other non-static scene systems stay out of scope here.";
         const string CoreReadmeNonGoalsSentence =
-            "This does not imply an `OpenGL` product promise. Animation, skeletons, morph targets, broader lighting systems beyond the bounded broader-lighting baseline, shadows, environment maps, post-processing, extra UI adapters, and Wayland/OpenGL/WebGL/backend API expansion remain outside this baseline.";
+            "This does not imply an `OpenGL` product promise. Animation, skeletons, morph targets, broader lighting systems beyond the bounded broader-lighting baseline, shadows, environment maps, post-processing, material graphs, generic chart engines, fallback layers, extra UI adapters, and Wayland/OpenGL/WebGL/backend API expansion remain outside this baseline.";
         const string AvaloniaReadmeNonGoalsSentence =
             "Animation, skeletons, morph targets, broader lighting systems beyond the bounded broader-lighting baseline, shadows, environment maps, post-processing, extra UI adapters, and Wayland/OpenGL/WebGL/backend API expansion stay deferred.";
         const string DirectLightingBaselineSentence =
@@ -511,6 +518,16 @@ public sealed class RepositoryArchitectureTests
         hostingBoundary.Should().Contain(HostingBoundaryNonGoalsSentence);
         coreReadme.Should().Contain(CoreReadmeNonGoalsSentence);
         avaloniaReadme.Should().Contain(AvaloniaReadmeNonGoalsSentence);
+
+        var lowerCoreReadme = coreReadme.ToLowerInvariant();
+        var lowerCapabilityMatrix = capabilityMatrix.ToLowerInvariant();
+        var lowerPackageMatrix = packageMatrix.ToLowerInvariant();
+        foreach (var term in DeferredScopeDriftTerms)
+        {
+            lowerCoreReadme.Should().Contain(term);
+            lowerCapabilityMatrix.Should().Contain(term);
+            lowerPackageMatrix.Should().Contain(term);
+        }
 
         foreach (var document in new[] { readme, architecture, packageMatrix, hostingBoundary, avaloniaReadme })
         {

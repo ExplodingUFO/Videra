@@ -96,6 +96,31 @@ chartView.ZoomTo(new SurfaceDataWindow(64d, 32d, 128d, 96d));
 chartView.ResetCamera();
 ```
 
+### Professional Presentation And Precision
+
+```csharp
+using Videra.SurfaceCharts.Avalonia.Controls;
+using Videra.SurfaceCharts.Core;
+
+var matrix = ...;
+var source = new SurfacePyramidBuilder(32, 32).Build(matrix);
+
+var chartView = new SurfaceChartView
+{
+    Source = source,
+    ColorMap = new SurfaceColorMap(matrix.Metadata.ValueRange, SurfaceColorMapPresets.CreateCoolWarm()),
+    OverlayOptions = SurfaceChartOverlayPresets.Professional,
+};
+
+chartView.OverlayOptions = SurfaceChartNumericLabelPresets.Engineering(precision: 4);
+chartView.OverlayOptions = SurfaceChartNumericLabelPresets.Scientific(precision: 2);
+chartView.OverlayOptions = SurfaceChartNumericLabelPresets.Fixed(precision: 1);
+chartView.OverlayOptions = SurfaceChartOverlayPresets.Compact;
+```
+
+`SurfaceColorMapPresets` exposes `CreateDefault()`, `CreateCoolWarm()`, and `CreateGrayscale()` entry palettes for quick, proof-ready chart setups.
+`SurfaceChartNumericLabelPresets` keeps numeric precision explicit per overlay mode (`Engineering`, `Scientific`, `Fixed`) and `SurfaceChartOverlayPresets` provides tuned `Professional` and `Compact` chart profiles.
+
 `SurfaceMatrix` remains the simplest source-first regular-grid entrypoint. When you need richer analytics payloads, you can keep the same `SurfaceChartView` shell and switch the underlying source construction to `SurfaceScalarField`, an independent `ColorField`, and `SurfaceMask` without widening `SurfaceChartView` itself.
 
 Hosts currently own:

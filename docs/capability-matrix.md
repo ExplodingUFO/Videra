@@ -24,7 +24,7 @@ The `1.0` line is a native desktop viewer/runtime for .NET applications, centere
 | Capability area | Deferred status | Reason it is not in `1.0` |
 | --- | --- | --- |
 | General engine/runtime parity | Deferred | The current target is an embeddable viewer/runtime, not a broad engine surface |
-| Static-scene material/runtime breadth | Deferred | Broader static-scene breadth beyond the shipped imported-asset/runtime truth remains out of scope until the viewer boundary expands; animation, skeleton, morph, and mixer APIs, broader lighting systems beyond the bounded broader-lighting baseline, shadows, environment maps, post-processing, extra UI adapters, and Wayland/OpenGL/WebGL/backend API expansion stay deferred |
+| Static-scene material/runtime breadth | Deferred | Broader static-scene breadth beyond the shipped imported-asset/runtime truth remains out of scope until the viewer boundary expands; animation, skeleton, morph, and mixer APIs, broader lighting systems beyond the bounded broader-lighting baseline, shadows, environment maps, post-processing, material graphs, generic chart engines, fallback layers, extra UI adapters, and Wayland/OpenGL/WebGL/backend API expansion stay deferred |
 | Animation, skeleton, morph, and mixer APIs | Deferred | These are engine-style feature lines, not part of the current viewer-first scope |
 | Broader lighting systems, shadows, environment maps, and post-processing | Deferred | These remain outside the bounded broader-lighting baseline and the current static-scene viewer/runtime boundary |
 | Extra UI adapters beyond Avalonia | Deferred | Avalonia remains the current public UI adapter while the runtime boundary is tightened |

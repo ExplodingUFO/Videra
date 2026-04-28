@@ -14,7 +14,7 @@ Current status: `alpha`. This package is the right starting point only for core-
 - Camera, grid, axis, and wireframe helpers
 - Render-style presets and optional software fallback rendering
 
-The current shipped viewer/runtime baseline is static glTF/PBR with one bounded style-driven broader-lighting baseline on the native static-scene path: imported assets can carry UV-backed texture bindings, per-primitive non-Blend material participation, metallic-roughness and alpha semantics, emissive and normal-map-ready inputs, occlusion texture binding/strength, `KHR_texture_transform` offset/scale/rotation plus texture-coordinate override, and tangent-aware mesh data through explicit runtime contracts. The canonical runtime path may expand one imported entry into multiple internal runtime objects so mixed opaque and transparent primitive participation survives the runtime bridge without widening the public surface into a broader transparency system. The current renderer path consumes baseColor texture sampling, occlusion texture binding/strength, emissive inputs, and normal-map-ready inputs on the bounded static-scene seam, including `KHR_texture_transform` offset/scale/rotation and texture-coordinate override where those bindings request them. This remains a bounded renderer-consumption seam rather than a broader lighting/shader/backend promise. This does not imply an `OpenGL` product promise. Animation, skeletons, morph targets, broader lighting systems beyond the bounded broader-lighting baseline, shadows, environment maps, post-processing, extra UI adapters, and Wayland/OpenGL/WebGL/backend API expansion remain outside this baseline.
+The current shipped viewer/runtime baseline is static glTF/PBR with one bounded style-driven broader-lighting baseline on the native static-scene path: imported assets can carry UV-backed texture bindings, per-primitive non-Blend material participation, metallic-roughness and alpha semantics, emissive and normal-map-ready inputs, occlusion texture binding/strength, `KHR_texture_transform` offset/scale/rotation plus texture-coordinate override, and tangent-aware mesh data through explicit runtime contracts. The canonical runtime path may expand one imported entry into multiple internal runtime objects so mixed opaque and transparent primitive participation survives the runtime bridge without widening the public surface into a broader transparency system. The current renderer path consumes baseColor texture sampling, occlusion texture binding/strength, emissive inputs, and normal-map-ready inputs on the bounded static-scene seam, including `KHR_texture_transform` offset/scale/rotation and texture-coordinate override where those bindings request them. This remains a bounded renderer-consumption seam rather than a broader lighting/shader/backend promise. This does not imply an `OpenGL` product promise. Animation, skeletons, morph targets, broader lighting systems beyond the bounded broader-lighting baseline, shadows, environment maps, post-processing, material graphs, generic chart engines, fallback layers, extra UI adapters, and Wayland/OpenGL/WebGL/backend API expansion remain outside this baseline.
 
 Use [docs/capability-matrix.md](../../docs/capability-matrix.md) for the explicit layer matrix.
 
@@ -70,6 +70,54 @@ Stable feature vocabulary:
 `Transparent` means alpha mask rendering plus deterministic alpha blend ordering for per-primitive carried alpha sources; broader transparency work stays deferred. Public feature truth flows through `RenderCapabilitySnapshot.SupportedFeatureNames`, `RenderPipelineSnapshot.FeatureNames`, `BackendDiagnostics.LastFrameFeatureNames`, `BackendDiagnostics.SupportedRenderFeatureNames`, `BackendDiagnostics.LastFrameObjectCount`, `BackendDiagnostics.LastFrameOpaqueObjectCount`, `BackendDiagnostics.LastFrameTransparentObjectCount`, and `TransparentFeatureStatus`.
 
 The first instance-batch contract is intentionally narrow: `InstanceBatchDescriptor` accepts one `MeshPrimitive`, one matching `MaterialInstance`, per-instance `Matrix4x4` transforms, optional per-instance `RgbaFloat` colors, optional per-instance `Guid` object ids, and a `Pickable` flag. `SceneDocument.AddInstanceBatch(...)` records an `InstanceBatchEntry` with batch-level bounds. Multi-geometry batching, per-instance material overrides, transparent `Blend` material sorting, GPU-driven culling, indirect draw, and ECS-style ownership are outside this contract.
+
+## Scene Authoring Happy Path
+
+`SceneAuthoringBuilder` lets core consumers compose scene-doc truth directly, including instance-batched geometry:
+
+```csharp
+using System.Numerics;
+using Videra.Core;
+using Videra.Core.Geometry;
+using Videra.Core.Graphics.Abstractions;
+using Videra.Core.Scene;
+
+var paint = SceneMaterials.Matte("paint", RgbaFloat.White);
+
+var transforms = new[]
+{
+    Matrix4x4.Identity,
+    Matrix4x4.CreateTranslation(2f, 0f, 0f),
+    Matrix4x4.CreateTranslation(4f, 0f, 0f)
+};
+
+var colors = new[]
+{
+    RgbaFloat.Red,
+    RgbaFloat.Green,
+    RgbaFloat.Blue
+};
+
+var objectIds = new[]
+{
+    Guid.NewGuid(),
+    Guid.NewGuid(),
+    Guid.NewGuid()
+};
+
+var document = SceneAuthoring.Create("batched-markers")
+    .AddInstances(
+        "marker-cubes",
+        SceneGeometry.Cube(1f, paint.BaseColorFactor),
+        paint,
+        transforms,
+        colors,
+        objectIds: objectIds,
+        pickable: true)
+    .Build();
+```
+
+This produces a single `InstanceBatchEntry`, no expanded per-instance mesh entries, with stable pick IDs and deterministic bounds.
 
 ## Built-in Backend Minimum Contract
 
