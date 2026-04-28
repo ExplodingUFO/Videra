@@ -290,9 +290,14 @@ function Get-SurfaceChartsSupportReport
             environmentRuntime = ""
             assemblyIdentity = ""
             backendDisplayEnvironment = ""
+            seriesCount = ""
+            activeSeries = ""
+            chartKind = ""
+            colorMap = ""
+            precisionProfile = ""
             renderingStatusPresent = $false
             isStructuredComplete = $false
-            missingFields = @("GeneratedUtc", "EvidenceKind", "EvidenceOnly", "ChartControl", "EnvironmentRuntime", "AssemblyIdentity", "BackendDisplayEnvironment", "RenderingStatus")
+            missingFields = @("GeneratedUtc", "EvidenceKind", "EvidenceOnly", "ChartControl", "EnvironmentRuntime", "AssemblyIdentity", "BackendDisplayEnvironment", "SeriesCount", "ActiveSeries", "ChartKind", "ColorMap", "PrecisionProfile", "RenderingStatus")
         }
     }
 
@@ -313,9 +318,14 @@ function Get-SurfaceChartsSupportReport
             environmentRuntime = ""
             assemblyIdentity = ""
             backendDisplayEnvironment = ""
+            seriesCount = ""
+            activeSeries = ""
+            chartKind = ""
+            colorMap = ""
+            precisionProfile = ""
             renderingStatusPresent = $false
             isStructuredComplete = $false
-            missingFields = @("GeneratedUtc", "EvidenceKind", "EvidenceOnly", "ChartControl", "EnvironmentRuntime", "AssemblyIdentity", "BackendDisplayEnvironment", "RenderingStatus")
+            missingFields = @("GeneratedUtc", "EvidenceKind", "EvidenceOnly", "ChartControl", "EnvironmentRuntime", "AssemblyIdentity", "BackendDisplayEnvironment", "SeriesCount", "ActiveSeries", "ChartKind", "ColorMap", "PrecisionProfile", "RenderingStatus")
         }
     }
 
@@ -339,6 +349,11 @@ function Get-SurfaceChartsSupportReport
     $environmentRuntime = Get-SurfaceChartsSupportValue -Prefix "EnvironmentRuntime:"
     $assemblyIdentity = Get-SurfaceChartsSupportValue -Prefix "AssemblyIdentity:"
     $backendDisplayEnvironment = Get-SurfaceChartsSupportValue -Prefix "BackendDisplayEnvironment:"
+    $seriesCount = Get-SurfaceChartsSupportValue -Prefix "SeriesCount:"
+    $activeSeries = Get-SurfaceChartsSupportValue -Prefix "ActiveSeries:"
+    $chartKind = Get-SurfaceChartsSupportValue -Prefix "ChartKind:"
+    $colorMap = Get-SurfaceChartsSupportValue -Prefix "ColorMap:"
+    $precisionProfile = Get-SurfaceChartsSupportValue -Prefix "PrecisionProfile:"
     $renderingStatusPresent = ($lines | Where-Object { $_.StartsWith("RenderingStatus", [System.StringComparison]::Ordinal) }).Count -gt 0
     $missingFields = @()
     if ([string]::IsNullOrWhiteSpace($generatedAtUtc)) { $missingFields += "GeneratedUtc" }
@@ -348,6 +363,11 @@ function Get-SurfaceChartsSupportReport
     if ([string]::IsNullOrWhiteSpace($environmentRuntime)) { $missingFields += "EnvironmentRuntime" }
     if ([string]::IsNullOrWhiteSpace($assemblyIdentity)) { $missingFields += "AssemblyIdentity" }
     if ([string]::IsNullOrWhiteSpace($backendDisplayEnvironment)) { $missingFields += "BackendDisplayEnvironment" }
+    if ([string]::IsNullOrWhiteSpace($seriesCount)) { $missingFields += "SeriesCount" }
+    if ([string]::IsNullOrWhiteSpace($activeSeries)) { $missingFields += "ActiveSeries" }
+    if ([string]::IsNullOrWhiteSpace($chartKind)) { $missingFields += "ChartKind" }
+    if ([string]::IsNullOrWhiteSpace($colorMap)) { $missingFields += "ColorMap" }
+    if ([string]::IsNullOrWhiteSpace($precisionProfile)) { $missingFields += "PrecisionProfile" }
     if (-not $renderingStatusPresent) { $missingFields += "RenderingStatus" }
 
     return [ordered]@{
@@ -361,6 +381,11 @@ function Get-SurfaceChartsSupportReport
         environmentRuntime = $environmentRuntime
         assemblyIdentity = $assemblyIdentity
         backendDisplayEnvironment = $backendDisplayEnvironment
+        seriesCount = $seriesCount
+        activeSeries = $activeSeries
+        chartKind = $chartKind
+        colorMap = $colorMap
+        precisionProfile = $precisionProfile
         renderingStatusPresent = $renderingStatusPresent
         isStructuredComplete = $missingFields.Count -eq 0
         missingFields = @($missingFields)
@@ -698,6 +723,26 @@ if (-not [string]::IsNullOrWhiteSpace($surfaceChartsSupportReport.evidenceKind))
 if (-not [string]::IsNullOrWhiteSpace($surfaceChartsSupportReport.chartControl))
 {
     $summaryLines.Add(("- chart control: {0}" -f $surfaceChartsSupportReport.chartControl)) | Out-Null
+}
+if (-not [string]::IsNullOrWhiteSpace($surfaceChartsSupportReport.seriesCount))
+{
+    $summaryLines.Add(("- series count: {0}" -f $surfaceChartsSupportReport.seriesCount)) | Out-Null
+}
+if (-not [string]::IsNullOrWhiteSpace($surfaceChartsSupportReport.activeSeries))
+{
+    $summaryLines.Add(("- active series: {0}" -f $surfaceChartsSupportReport.activeSeries)) | Out-Null
+}
+if (-not [string]::IsNullOrWhiteSpace($surfaceChartsSupportReport.chartKind))
+{
+    $summaryLines.Add(("- chart kind: {0}" -f $surfaceChartsSupportReport.chartKind)) | Out-Null
+}
+if (-not [string]::IsNullOrWhiteSpace($surfaceChartsSupportReport.colorMap))
+{
+    $summaryLines.Add(("- color map: {0}" -f $surfaceChartsSupportReport.colorMap)) | Out-Null
+}
+if (-not [string]::IsNullOrWhiteSpace($surfaceChartsSupportReport.precisionProfile))
+{
+    $summaryLines.Add(("- precision profile: {0}" -f $surfaceChartsSupportReport.precisionProfile)) | Out-Null
 }
 if (-not [string]::IsNullOrWhiteSpace($surfaceChartsSupportReport.assemblyIdentity))
 {

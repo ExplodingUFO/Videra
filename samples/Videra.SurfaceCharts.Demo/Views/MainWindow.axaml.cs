@@ -830,6 +830,11 @@ public partial class MainWindow : Window
                 $"CacheLoadFailure: {CreateCacheLoadFailureSummary()}\n" +
                 $"Plot path: {_activePlotPathHeading}\n" +
                 $"Plot details: {_activePlotPathDetails}\n" +
+                $"SeriesCount: {_scatterChartView.Plot.Series.Count}\n" +
+                $"ActiveSeries: {CreateActiveSeriesSummary(_scatterChartView)}\n" +
+                $"ChartKind: {CreateChartKindSummary(_scatterChartView)}\n" +
+                $"ColorMap: {CreateColorMapSummary(_scatterChartView.Plot.ColorMap)}\n" +
+                $"PrecisionProfile: {CreatePrecisionProfileSummary(_scatterChartView)}\n" +
                 $"ScenarioId: {scenario.Id}\n" +
                 $"ScenarioName: {scenario.DisplayName}\n" +
                 $"ScenarioUpdateMode: {scenario.UpdateMode}\n" +
@@ -860,6 +865,11 @@ public partial class MainWindow : Window
             $"CacheLoadFailure: {CreateCacheLoadFailureSummary()}\n" +
             $"Plot path: {_activePlotPathHeading}\n" +
             $"Plot details: {_activePlotPathDetails}\n" +
+            $"SeriesCount: {ActiveSurfaceFamilyChartView.Plot.Series.Count}\n" +
+            $"ActiveSeries: {CreateActiveSeriesSummary(ActiveSurfaceFamilyChartView)}\n" +
+            $"ChartKind: {CreateChartKindSummary(ActiveSurfaceFamilyChartView)}\n" +
+            $"ColorMap: {CreateColorMapSummary(ActiveSurfaceFamilyChartView.Plot.ColorMap)}\n" +
+            $"PrecisionProfile: {CreatePrecisionProfileSummary(ActiveSurfaceFamilyChartView)}\n" +
             $"ViewState: {CreateViewStateSummary()}\n" +
             $"InteractionQuality: {ActiveSurfaceFamilyChartView.InteractionQuality}\n" +
             $"RenderingStatus:\n{CreateSurfaceRenderingDiagnosticsSummary(surfaceStatus)}\n" +
@@ -919,6 +929,48 @@ public partial class MainWindow : Window
     private string CreateCacheLoadFailureSummary()
     {
         return _lastCacheLoadFailureMessage ?? "none";
+    }
+
+    private static string CreateActiveSeriesSummary(VideraChartView chartView)
+    {
+        var activeSeries = chartView.Plot.ActiveSeries;
+        if (activeSeries is null)
+        {
+            return "none";
+        }
+
+        return
+            $"Index {chartView.Plot.IndexOf(activeSeries)}, " +
+            $"Kind {activeSeries.Kind}, " +
+            $"Name {FormatSeriesName(activeSeries.Name)}";
+    }
+
+    private static string CreateChartKindSummary(VideraChartView chartView)
+    {
+        return chartView.Plot.ActiveSeries?.Kind.ToString() ?? "none";
+    }
+
+    private static string CreateColorMapSummary(SurfaceColorMap? colorMap)
+    {
+        if (colorMap is null)
+        {
+            return "none";
+        }
+
+        return
+            $"PaletteStops {colorMap.Palette.Count}, " +
+            $"Range {colorMap.Range.Minimum.ToString("0.###", CultureInfo.InvariantCulture)}.." +
+            $"{colorMap.Range.Maximum.ToString("0.###", CultureInfo.InvariantCulture)}";
+    }
+
+    private static string CreatePrecisionProfileSummary(VideraChartView chartView)
+    {
+        return SurfaceChartOverlayEvidenceFormatter.DescribePrecisionProfile(chartView.Plot.OverlayOptions);
+    }
+
+    private static string FormatSeriesName(string? name)
+    {
+        return string.IsNullOrWhiteSpace(name) ? "unnamed" : name;
     }
 
     private string CreateViewStateSummary()

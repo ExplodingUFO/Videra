@@ -49,6 +49,11 @@ public sealed class SurfaceChartsConsumerSmokeConfigurationTests
         mainWindowCodeBehind.Should().Contain("EnvironmentRuntime:");
         mainWindowCodeBehind.Should().Contain("AssemblyIdentity:");
         mainWindowCodeBehind.Should().Contain("BackendDisplayEnvironment:");
+        mainWindowCodeBehind.Should().Contain("SeriesCount:");
+        mainWindowCodeBehind.Should().Contain("ActiveSeries:");
+        mainWindowCodeBehind.Should().Contain("ChartKind:");
+        mainWindowCodeBehind.Should().Contain("ColorMap:");
+        mainWindowCodeBehind.Should().Contain("PrecisionProfile:");
         mainWindowCodeBehind.Should().Contain("FirstChartRendered");
         mainWindowCodeBehind.Should().Contain("ViewState");
         mainWindowCodeBehind.Should().Contain("ResidentTileCount");

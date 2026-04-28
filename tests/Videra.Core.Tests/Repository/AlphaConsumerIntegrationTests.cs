@@ -182,6 +182,11 @@ public sealed class AlphaConsumerIntegrationTests
         smokeScript.Should().Contain("EnvironmentRuntime:");
         smokeScript.Should().Contain("AssemblyIdentity:");
         smokeScript.Should().Contain("BackendDisplayEnvironment:");
+        smokeScript.Should().Contain("SeriesCount:");
+        smokeScript.Should().Contain("ActiveSeries:");
+        smokeScript.Should().Contain("ChartKind:");
+        smokeScript.Should().Contain("ColorMap:");
+        smokeScript.Should().Contain("PrecisionProfile:");
         smokeScript.Should().Contain("RenderingStatus");
     }
 
@@ -334,6 +339,11 @@ public sealed class AlphaConsumerIntegrationTests
             "EnvironmentRuntime",
             "AssemblyIdentity",
             "BackendDisplayEnvironment",
+            "SeriesCount",
+            "ActiveSeries",
+            "ChartKind",
+            "ColorMap",
+            "PrecisionProfile",
             "RenderingStatus",
         };
 

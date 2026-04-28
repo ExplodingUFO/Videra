@@ -99,6 +99,11 @@ public sealed class SurfaceChartsDemoConfigurationTests
         mainWindowCodeBehind.Should().Contain("AssemblyIdentity:");
         mainWindowCodeBehind.Should().Contain("BackendDisplayEnvironment:");
         mainWindowCodeBehind.Should().Contain("CacheLoadFailure:");
+        mainWindowCodeBehind.Should().Contain("SeriesCount:");
+        mainWindowCodeBehind.Should().Contain("ActiveSeries:");
+        mainWindowCodeBehind.Should().Contain("ChartKind:");
+        mainWindowCodeBehind.Should().Contain("ColorMap:");
+        mainWindowCodeBehind.Should().Contain("PrecisionProfile:");
         mainWindowCodeBehind.Should().Contain("ScenarioId:");
         mainWindowCodeBehind.Should().Contain("CopySupportSummaryButton");
         mainWindowCodeBehind.Should().Contain("SupportSummaryStatusText");
@@ -145,6 +150,8 @@ public sealed class SurfaceChartsDemoConfigurationTests
         mainWindowCodeBehind.Should().Contain("UpdateViewStateText");
         mainWindowCodeBehind.Should().Contain("UpdateInteractionQualityText");
         mainWindowCodeBehind.Should().Contain("UpdateSupportSummaryText");
+        mainWindowCodeBehind.Should().Contain("CreateActiveSeriesSummary");
+        mainWindowCodeBehind.Should().Contain("CreatePrecisionProfileSummary");
         mainWindowCodeBehind.Should().Contain("Current mode:");
         mainWindowCodeBehind.Should().Contain("Refine: full settled requests for the current view.");
         mainWindowCodeBehind.Should().Contain("Refine: settled plot is ready for");

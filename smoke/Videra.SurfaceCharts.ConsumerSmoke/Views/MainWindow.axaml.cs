@@ -411,6 +411,11 @@ public partial class MainWindow : Window
             $"BackendDisplayEnvironment: {CreateBackendDisplayEnvironmentSummary()}\n" +
             "Plot path: Start here: In-memory first chart\n" +
             "Plot details: Generated at runtime from a dense 64x48 matrix, built with SurfacePyramidBuilder, and used as the packaged first-chart smoke baseline.\n" +
+            $"SeriesCount: {_chartView.Plot.Series.Count}\n" +
+            $"ActiveSeries: {CreateActiveSeriesSummary(_chartView)}\n" +
+            $"ChartKind: {CreateChartKindSummary(_chartView)}\n" +
+            $"ColorMap: {CreateColorMapSummary(_chartView.Plot.ColorMap)}\n" +
+            $"PrecisionProfile: {CreatePrecisionProfileSummary(_chartView)}\n" +
             $"ViewState: {CreateViewStateSummary()}\n" +
             $"InteractionQuality: {_chartView.InteractionQuality}\n" +
             $"RenderingStatus: ActiveBackend {status.ActiveBackend}; IsReady {status.IsReady}; IsFallback {status.IsFallback}; FallbackReason {status.FallbackReason ?? "none"}; UsesNativeSurface {status.UsesNativeSurface}; ResidentTileCount {status.ResidentTileCount}; VisibleTileCount {status.VisibleTileCount}; ResidentTileBytes {status.ResidentTileBytes}\n" +
@@ -455,6 +460,48 @@ public partial class MainWindow : Window
             $"DISPLAY={GetEnvironmentValue("DISPLAY")}; " +
             $"WAYLAND_DISPLAY={GetEnvironmentValue("WAYLAND_DISPLAY")}; " +
             $"XDG_SESSION_TYPE={GetEnvironmentValue("XDG_SESSION_TYPE")}";
+    }
+
+    private static string CreateActiveSeriesSummary(VideraChartView chartView)
+    {
+        var activeSeries = chartView.Plot.ActiveSeries;
+        if (activeSeries is null)
+        {
+            return "none";
+        }
+
+        return
+            $"Index {chartView.Plot.IndexOf(activeSeries)}, " +
+            $"Kind {activeSeries.Kind}, " +
+            $"Name {FormatSeriesName(activeSeries.Name)}";
+    }
+
+    private static string CreateChartKindSummary(VideraChartView chartView)
+    {
+        return chartView.Plot.ActiveSeries?.Kind.ToString() ?? "none";
+    }
+
+    private static string CreateColorMapSummary(SurfaceColorMap? colorMap)
+    {
+        if (colorMap is null)
+        {
+            return "none";
+        }
+
+        return
+            $"PaletteStops {colorMap.Palette.Count}, " +
+            $"Range {colorMap.Range.Minimum.ToString("0.###", CultureInfo.InvariantCulture)}.." +
+            $"{colorMap.Range.Maximum.ToString("0.###", CultureInfo.InvariantCulture)}";
+    }
+
+    private static string CreatePrecisionProfileSummary(VideraChartView chartView)
+    {
+        return SurfaceChartOverlayEvidenceFormatter.DescribePrecisionProfile(chartView.Plot.OverlayOptions);
+    }
+
+    private static string FormatSeriesName(string? name)
+    {
+        return string.IsNullOrWhiteSpace(name) ? "unnamed" : name;
     }
 
     private static string GetEnvironmentValue(string variableName)

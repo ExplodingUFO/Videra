@@ -273,6 +273,11 @@ function Test-SurfaceChartsSupportSummaryContract([string]$summaryPath)
         "EnvironmentRuntime:",
         "AssemblyIdentity:",
         "BackendDisplayEnvironment:",
+        "SeriesCount:",
+        "ActiveSeries:",
+        "ChartKind:",
+        "ColorMap:",
+        "PrecisionProfile:",
         "RenderingStatus"
     )
 

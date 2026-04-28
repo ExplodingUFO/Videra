@@ -393,6 +393,11 @@ public sealed class VideraDoctorRepositoryTests
             "EnvironmentRuntime: .NET 8.0.0; OS Windows; ProcessArchitecture X64; OSArchitecture X64",
             "AssemblyIdentity: ConsumerSmoke Videra.SurfaceCharts.ConsumerSmoke 0.1.0.0; Avalonia Videra.SurfaceCharts.Avalonia 0.1.0.0",
             "BackendDisplayEnvironment: VIDERA_BACKEND=unset; DISPLAY=unset; WAYLAND_DISPLAY=unset; XDG_SESSION_TYPE=unset",
+            "SeriesCount: 1",
+            "ActiveSeries: Index 0, Kind Surface, Name Start here: In-memory first chart",
+            "ChartKind: Surface",
+            "ColorMap: PaletteStops 6, Range 0..1",
+            "PrecisionProfile: SurfaceChartOverlayOptions:Tick=General(3);Legend=General(3);Formatter=Default",
             "RenderingStatus:",
             "ActiveBackend: Software");
 
@@ -413,6 +418,11 @@ public sealed class VideraDoctorRepositoryTests
         supportReport.GetProperty("environmentRuntime").GetString().Should().Contain(".NET");
         supportReport.GetProperty("assemblyIdentity").GetString().Should().Contain("ConsumerSmoke");
         supportReport.GetProperty("backendDisplayEnvironment").GetString().Should().Contain("VIDERA_BACKEND");
+        supportReport.GetProperty("seriesCount").GetString().Should().Be("1");
+        supportReport.GetProperty("activeSeries").GetString().Should().Contain("Kind Surface");
+        supportReport.GetProperty("chartKind").GetString().Should().Be("Surface");
+        supportReport.GetProperty("colorMap").GetString().Should().Contain("PaletteStops");
+        supportReport.GetProperty("precisionProfile").GetString().Should().Contain("SurfaceChartOverlayOptions");
         supportReport.GetProperty("renderingStatusPresent").GetBoolean().Should().BeTrue();
         supportReport.GetProperty("isStructuredComplete").GetBoolean().Should().BeTrue();
         supportReport.GetProperty("missingFields").GetArrayLength().Should().Be(0);
@@ -423,6 +433,11 @@ public sealed class VideraDoctorRepositoryTests
         summary.Should().Contain("structured complete: True");
         summary.Should().Contain("evidence kind: SurfaceChartsDatasetProof");
         summary.Should().Contain("chart control: VideraChartView");
+        summary.Should().Contain("series count: 1");
+        summary.Should().Contain("active series: Index 0, Kind Surface");
+        summary.Should().Contain("chart kind: Surface");
+        summary.Should().Contain("color map: PaletteStops");
+        summary.Should().Contain("precision profile: SurfaceChartOverlayOptions");
         summary.Should().Contain("assembly identity: ConsumerSmoke");
         summary.Should().Contain("backend/display environment: VIDERA_BACKEND");
     }

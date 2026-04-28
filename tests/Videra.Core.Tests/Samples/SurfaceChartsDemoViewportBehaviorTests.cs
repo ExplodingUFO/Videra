@@ -385,6 +385,11 @@ public sealed class SurfaceChartsDemoViewportBehaviorTests
             supportSummaryText.Text.Should().Contain("BackendDisplayEnvironment:");
             supportSummaryText.Text.Should().Contain("CacheLoadFailure: none");
             supportSummaryText.Text.Should().Contain("RenderingStatus:");
+            supportSummaryText.Text.Should().Contain("SeriesCount:");
+            supportSummaryText.Text.Should().Contain("ActiveSeries:");
+            supportSummaryText.Text.Should().Contain("ChartKind: Scatter");
+            supportSummaryText.Text.Should().Contain("ColorMap: none");
+            supportSummaryText.Text.Should().Contain("PrecisionProfile:");
             supportSummaryText.Text.Should().Contain("SeriesCount");
             supportSummaryText.Text.Should().Contain("PointCount");
             supportSummaryText.Text.Should().Contain("InteractionQuality: Refine");
@@ -511,6 +516,11 @@ public sealed class SurfaceChartsDemoViewportBehaviorTests
             supportSummaryText.Text.Should().Contain("BackendDisplayEnvironment:");
             supportSummaryText.Text.Should().Contain("CacheLoadFailure: none");
             supportSummaryText.Text.Should().Contain("ViewState:");
+            supportSummaryText.Text.Should().Contain("SeriesCount:");
+            supportSummaryText.Text.Should().Contain("ActiveSeries:");
+            supportSummaryText.Text.Should().Contain("ChartKind:");
+            supportSummaryText.Text.Should().Contain("ColorMap:");
+            supportSummaryText.Text.Should().Contain("PrecisionProfile:");
             supportSummaryText.Text.Should().Contain("InteractionQuality:");
             supportSummaryText.Text.Should().Contain("RenderingStatus:");
             supportSummaryText.Text.Should().Contain("ActiveBackend:");
