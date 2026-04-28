@@ -1,8 +1,8 @@
 using System.Numerics;
-using System.Text;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
+using Videra.AvaloniaWorkbenchSample;
 using Videra.Avalonia.Controls;
 using Videra.Avalonia.Controls.Interaction;
 using Videra.Core.Geometry;
@@ -11,6 +11,7 @@ using Videra.Core.Inspection;
 using Videra.Core.Scene;
 using Videra.Import.Obj;
 using Videra.SurfaceCharts.Avalonia.Controls;
+using Videra.SurfaceCharts.Core;
 
 namespace Videra.AvaloniaWorkbenchSample.Views;
 
@@ -30,7 +31,16 @@ public partial class MainWindow : Window
     private readonly TextBlock _supportStatusText;
     private readonly TextBlock _diagnosticsText;
     private readonly TextBlock _chartPrecisionText;
-    private string _activeSceneEvidence = "No scene loaded.";
+    private WorkbenchSceneEvidence _activeSceneEvidence = new(
+        "No scene loaded.",
+        "none",
+        SceneVersion: null,
+        NodeCount: 0,
+        PrimitiveCount: 0,
+        InstanceBatchCount: 0,
+        InstanceCount: 0,
+        SelectedMarkerId: null);
+    private readonly WorkbenchChartEvidence _chartEvidence = CreateChartPrecisionEvidence();
     private string _latestDiagnosticsSnapshot = string.Empty;
 
     public MainWindow()
@@ -80,9 +90,9 @@ public partial class MainWindow : Window
         Opened += OnOpened;
         Closed += OnClosed;
 
-        _sceneEvidenceText.Text = _activeSceneEvidence;
+        _sceneEvidenceText.Text = WorkbenchSupportCapture.FormatSceneEvidence(_activeSceneEvidence);
         _supportStatusText.Text = "Diagnostics are captured on explicit refresh, backend status changes, and support-copy actions.";
-        _chartPrecisionText.Text = CreateChartPrecisionEvidence();
+        _chartPrecisionText.Text = WorkbenchSupportCapture.FormatChartEvidence(_chartEvidence);
         RefreshDiagnosticsSnapshot();
     }
 
@@ -137,16 +147,41 @@ public partial class MainWindow : Window
         try
         {
             var result = await View3D.LoadModelAsync("Assets/reference-cube.obj").ConfigureAwait(true);
+            var importedAsset = result.Entry?.ImportedAsset;
             _activeSceneEvidence = result.Succeeded
-                ? $"OBJ evidence loaded: {result.Entry?.Name ?? "reference-cube.obj"} in {result.Duration.TotalMilliseconds:N0} ms. Diagnostics include SceneDocumentVersion and residency counters."
-                : $"OBJ evidence failed: {result.Failure?.ErrorMessage ?? "Unknown load failure."}";
+                ? new WorkbenchSceneEvidence(
+                    $"OBJ evidence loaded in {result.Duration.TotalMilliseconds:N0} ms.",
+                    importedAsset?.Name ?? result.Entry?.Name ?? "reference-cube.obj",
+                    SceneVersion: null,
+                    NodeCount: importedAsset?.Nodes.Count ?? 0,
+                    PrimitiveCount: importedAsset?.Primitives.Count ?? 0,
+                    InstanceBatchCount: 0,
+                    InstanceCount: 0,
+                    SelectedMarkerId: null)
+                : new WorkbenchSceneEvidence(
+                    $"OBJ evidence failed: {result.Failure?.ErrorMessage ?? "Unknown load failure."}",
+                    "reference-cube.obj",
+                    SceneVersion: null,
+                    NodeCount: 0,
+                    PrimitiveCount: 0,
+                    InstanceBatchCount: 0,
+                    InstanceCount: 0,
+                    SelectedMarkerId: null);
         }
         catch (Exception ex)
         {
-            _activeSceneEvidence = $"OBJ evidence failed: {ex.Message}";
+            _activeSceneEvidence = new WorkbenchSceneEvidence(
+                $"OBJ evidence failed: {ex.Message}",
+                "reference-cube.obj",
+                SceneVersion: null,
+                NodeCount: 0,
+                PrimitiveCount: 0,
+                InstanceBatchCount: 0,
+                InstanceCount: 0,
+                SelectedMarkerId: null);
         }
 
-        _sceneEvidenceText.Text = _activeSceneEvidence;
+        _sceneEvidenceText.Text = WorkbenchSupportCapture.FormatSceneEvidence(_activeSceneEvidence);
         View3D.FrameAll();
         RefreshDiagnosticsSnapshot();
     }
@@ -231,11 +266,16 @@ public partial class MainWindow : Window
             }
         ];
 
-        _activeSceneEvidence =
-            $"Authored evidence loaded: document v{document.Version}, {importedAsset.Nodes.Count} nodes, " +
-            $"{importedAsset.Primitives.Count} primitives, {document.InstanceBatches.Count} instance batch, " +
-            $"{document.InstanceBatches.Sum(static batch => batch.InstanceCount)} marker instances, selected marker {MarkerAId}.";
-        _sceneEvidenceText.Text = _activeSceneEvidence;
+        _activeSceneEvidence = new WorkbenchSceneEvidence(
+            "Authored evidence loaded.",
+            importedAsset.Name,
+            document.Version,
+            importedAsset.Nodes.Count,
+            importedAsset.Primitives.Count,
+            document.InstanceBatches.Count,
+            document.InstanceBatches.Sum(static batch => batch.InstanceCount),
+            MarkerAId);
+        _sceneEvidenceText.Text = WorkbenchSupportCapture.FormatSceneEvidence(_activeSceneEvidence);
         View3D.FrameAll();
         RefreshDiagnosticsSnapshot();
     }
@@ -253,15 +293,11 @@ public partial class MainWindow : Window
 
     private string CreateSupportCapture()
     {
-        var builder = new StringBuilder();
-        builder.AppendLine("Videra Avalonia workbench support capture");
-        builder.AppendLine($"GeneratedUtc: {DateTimeOffset.UtcNow:O}");
-        builder.AppendLine($"ActiveSceneEvidence: {_activeSceneEvidence}");
-        builder.AppendLine("ChartPrecisionEvidence:");
-        builder.AppendLine(CreateChartPrecisionEvidence());
-        builder.AppendLine("DiagnosticsSnapshot:");
-        builder.Append(_latestDiagnosticsSnapshot);
-        return builder.ToString();
+        return WorkbenchSupportCapture.FormatSupportCapture(
+            DateTimeOffset.UtcNow,
+            _activeSceneEvidence,
+            _chartEvidence,
+            _latestDiagnosticsSnapshot);
     }
 
     private static SceneDocument CreateAuthoredSceneDocument()
@@ -291,6 +327,7 @@ public partial class MainWindow : Window
         return SceneAuthoring.Create("avalonia-workbench")
             .AddPlane("ground", ground, width: 4f, depth: 3f)
             .AddGrid("grid", SceneMaterials.Matte("grid", RgbaFloat.DarkGrey), width: 4f, depth: 3f, divisions: 4)
+            .AddAxisTriad("origin-axis", length: 0.9f)
             .AddSphere("focus", focus, radius: 0.35f, transform: Matrix4x4.CreateTranslation(0f, 0.35f, 0f))
             .AddInstances(
                 "marker-spheres",
@@ -303,16 +340,23 @@ public partial class MainWindow : Window
             .Build();
     }
 
-    private static string CreateChartPrecisionEvidence()
+    private static WorkbenchChartEvidence CreateChartPrecisionEvidence()
     {
         var engineering = SurfaceChartNumericLabelPresets.Engineering(precision: 2);
         var scientific = SurfaceChartNumericLabelPresets.Scientific(precision: 3);
         var fixedPoint = SurfaceChartNumericLabelPresets.Fixed(precision: 4);
+        var palette = SurfaceColorMapPresets.CreateProfessional();
 
-        return string.Join(
-            Environment.NewLine,
-            $"Engineering X 12345.6789 -> {engineering.FormatLabel("X", 12345.6789)}",
-            $"Scientific Legend 0.000456789 -> {scientific.FormatLabel("Legend", 0.000456789)}",
-            $"Fixed Value 12.3456789 -> {fixedPoint.FormatLabel("Y", 12.3456789)}");
+        return new WorkbenchChartEvidence(
+            "Engineering precision 2; Scientific precision 3; Fixed precision 4",
+            "SurfaceColorMapPresets.CreateProfessional()",
+            Enumerable.Range(0, palette.Count)
+                .Select(index => WorkbenchSupportCapture.FormatPaletteColor(palette[index]))
+                .ToArray(),
+            [
+                $"Engineering X 12345.6789 -> {engineering.FormatLabel("X", 12345.6789)}",
+                $"Scientific Legend 0.000456789 -> {scientific.FormatLabel("Legend", 0.000456789)}",
+                $"Fixed Value 12.3456789 -> {fixedPoint.FormatLabel("Y", 12.3456789)}"
+            ]);
     }
 }
