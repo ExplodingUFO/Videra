@@ -119,6 +119,18 @@ public sealed class SceneAuthoringBuilder
         return this;
     }
 
+    public SceneAuthoringBuilder AddScaleBar(
+        string name,
+        MaterialInstance material,
+        float length,
+        float tickHeight,
+        Matrix4x4? transform = null,
+        SceneNodeId? nodeId = null,
+        MeshPrimitiveId? primitiveId = null)
+    {
+        return AddMesh(name, SceneGeometry.ScaleBar(length, tickHeight, material.BaseColorFactor), material, transform, nodeId, primitiveId);
+    }
+
     public SceneAuthoringBuilder AddPointCloud(
         string name,
         MaterialInstance material,

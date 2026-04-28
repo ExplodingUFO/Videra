@@ -166,6 +166,29 @@ public static class SceneGeometry
         };
     }
 
+    public static MeshData ScaleBar(float length, float tickHeight, RgbaFloat? color = null)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(length);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(tickHeight);
+
+        var c = color ?? RgbaFloat.White;
+        var halfTickHeight = tickHeight * 0.5f;
+        return new MeshData
+        {
+            Vertices =
+            [
+                new VertexPositionNormalColor(Vector3.Zero, Vector3.UnitZ, c),
+                new VertexPositionNormalColor(new Vector3(length, 0f, 0f), Vector3.UnitZ, c),
+                new VertexPositionNormalColor(new Vector3(0f, -halfTickHeight, 0f), Vector3.UnitZ, c),
+                new VertexPositionNormalColor(new Vector3(0f, halfTickHeight, 0f), Vector3.UnitZ, c),
+                new VertexPositionNormalColor(new Vector3(length, -halfTickHeight, 0f), Vector3.UnitZ, c),
+                new VertexPositionNormalColor(new Vector3(length, halfTickHeight, 0f), Vector3.UnitZ, c)
+            ],
+            Indices = [0, 1, 2, 3, 4, 5],
+            Topology = MeshTopology.Lines
+        };
+    }
+
     public static MeshData PointCloud(ReadOnlySpan<Vector3> points, ReadOnlySpan<RgbaFloat> colors = default)
     {
         if (points.IsEmpty)

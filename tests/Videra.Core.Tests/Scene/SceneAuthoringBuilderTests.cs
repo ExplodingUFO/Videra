@@ -230,6 +230,42 @@ public sealed class SceneAuthoringBuilderTests
     }
 
     [Fact]
+    public void Build_WithScaleBar_AddsRetainedLinePrimitiveWithMaterialAndIds()
+    {
+        var material = SceneMaterials.Matte("measure", RgbaFloat.LightGrey);
+        var nodeId = SceneNodeId.New();
+        var primitiveId = MeshPrimitiveId.New();
+        var transform = Matrix4x4.CreateTranslation(1f, 2f, 3f);
+
+        var document = SceneAuthoring.Create("scale-scene")
+            .AddScaleBar("one-meter", material, length: 1f, tickHeight: 0.2f, transform, nodeId, primitiveId)
+            .Build();
+
+        var asset = document.Entries.Should().ContainSingle().Which.ImportedAsset;
+        asset.Should().NotBeNull();
+        asset!.Materials.Should().ContainSingle().Which.Should().BeSameAs(material);
+        var node = asset.Nodes.Should().ContainSingle().Which;
+        node.Id.Should().Be(nodeId);
+        node.LocalTransform.Should().Be(transform);
+        node.PrimitiveIds.Should().Equal(primitiveId);
+
+        var primitive = asset.Primitives.Should().ContainSingle().Which;
+        primitive.Id.Should().Be(primitiveId);
+        primitive.Name.Should().Be("one-meter");
+        primitive.MaterialId.Should().Be(material.Id);
+        primitive.MeshData.Topology.Should().Be(MeshTopology.Lines);
+        primitive.MeshData.Indices.Should().Equal(0u, 1u, 2u, 3u, 4u, 5u);
+        primitive.MeshData.Vertices.Select(vertex => vertex.Position).Should().Equal(
+            Vector3.Zero,
+            new Vector3(1f, 0f, 0f),
+            new Vector3(0f, -0.1f, 0f),
+            new Vector3(0f, 0.1f, 0f),
+            new Vector3(1f, -0.1f, 0f),
+            new Vector3(1f, 0.1f, 0f));
+        primitive.MeshData.Vertices.Select(vertex => vertex.Color).Should().OnlyContain(vertexColor => vertexColor == material.BaseColorFactor);
+    }
+
+    [Fact]
     public void Sphere_CreatesIndexedTriangleMeshWithExpectedBoundsAndColor()
     {
         var color = new RgbaFloat(0.2f, 0.4f, 0.8f, 1f);
