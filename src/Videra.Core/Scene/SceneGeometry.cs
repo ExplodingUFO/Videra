@@ -205,6 +205,84 @@ public static class SceneGeometry
         };
     }
 
+    public static MeshData Sphere(float radius = 0.5f, int segments = 16, int rings = 8, RgbaFloat? color = null)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(radius);
+        ArgumentOutOfRangeException.ThrowIfLessThan(segments, 3);
+        ArgumentOutOfRangeException.ThrowIfLessThan(rings, 2);
+
+        var c = color ?? RgbaFloat.White;
+        var vertices = new List<VertexPositionNormalColor>(2 + (segments * (rings - 1)));
+        var indices = new List<uint>(segments * (6 * rings - 6));
+
+        vertices.Add(new VertexPositionNormalColor(new Vector3(0f, radius, 0f), Vector3.UnitY, c));
+
+        for (var ring = 1; ring < rings; ring++)
+        {
+            var v = MathF.PI * ring / rings;
+            var y = MathF.Cos(v);
+            var horizontal = MathF.Sin(v);
+
+            for (var segment = 0; segment < segments; segment++)
+            {
+                var u = 2f * MathF.PI * segment / segments;
+                var normal = new Vector3(
+                    horizontal * MathF.Cos(u),
+                    y,
+                    horizontal * MathF.Sin(u));
+                vertices.Add(new VertexPositionNormalColor(normal * radius, normal, c));
+            }
+        }
+
+        var bottomIndex = (uint)vertices.Count;
+        vertices.Add(new VertexPositionNormalColor(new Vector3(0f, -radius, 0f), -Vector3.UnitY, c));
+
+        for (var segment = 0; segment < segments; segment++)
+        {
+            var current = (uint)(1 + segment);
+            var next = (uint)(1 + ((segment + 1) % segments));
+            indices.Add(0);
+            indices.Add(next);
+            indices.Add(current);
+        }
+
+        for (var ring = 0; ring < rings - 2; ring++)
+        {
+            var currentRing = (uint)(1 + (ring * segments));
+            var nextRing = (uint)(currentRing + segments);
+
+            for (var segment = 0; segment < segments; segment++)
+            {
+                var current = currentRing + (uint)segment;
+                var next = currentRing + (uint)((segment + 1) % segments);
+                var below = nextRing + (uint)segment;
+                var belowNext = nextRing + (uint)((segment + 1) % segments);
+                indices.Add(current);
+                indices.Add(next);
+                indices.Add(belowNext);
+                indices.Add(current);
+                indices.Add(belowNext);
+                indices.Add(below);
+            }
+        }
+
+        var bottomRing = (uint)(1 + ((rings - 2) * segments));
+        for (var segment = 0; segment < segments; segment++)
+        {
+            var current = bottomRing + (uint)segment;
+            var next = bottomRing + (uint)((segment + 1) % segments);
+            indices.Add(current);
+            indices.Add(next);
+            indices.Add(bottomIndex);
+        }
+
+        return new MeshData
+        {
+            Vertices = vertices.ToArray(),
+            Indices = indices.ToArray()
+        };
+    }
+
     private static RgbaFloat[] FillColors(int count, RgbaFloat color)
     {
         var colors = new RgbaFloat[count];

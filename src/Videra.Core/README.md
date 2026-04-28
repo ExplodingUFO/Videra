@@ -119,6 +119,8 @@ var document = SceneAuthoring.Create("batched-markers")
 
 This produces a single `InstanceBatchEntry`, no expanded per-instance mesh entries, with stable pick IDs and deterministic bounds.
 
+For a Core-only executable example that authors primitives and repeated marker instances without model files, see [samples/Videra.MinimalAuthoringSample](../../samples/Videra.MinimalAuthoringSample/README.md).
+
 ## Built-in Backend Minimum Contract
 
 The shipped native backends (`D3D11`, `Vulkan`, and `Metal`) intentionally share a narrow common contract instead of exposing every backend-specific graphics feature through the public abstractions.

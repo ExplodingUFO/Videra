@@ -119,6 +119,19 @@ public sealed class SceneAuthoringBuilder
         return AddMesh(name, SceneGeometry.Cube(size, material.BaseColorFactor), material, transform, nodeId, primitiveId);
     }
 
+    public SceneAuthoringBuilder AddSphere(
+        string name,
+        MaterialInstance material,
+        float radius = 0.5f,
+        int segments = 16,
+        int rings = 8,
+        Matrix4x4? transform = null,
+        SceneNodeId? nodeId = null,
+        MeshPrimitiveId? primitiveId = null)
+    {
+        return AddMesh(name, SceneGeometry.Sphere(radius, segments, rings, material.BaseColorFactor), material, transform, nodeId, primitiveId);
+    }
+
     public SceneAuthoringBuilder AddInstances(
         string name,
         MeshData meshData,

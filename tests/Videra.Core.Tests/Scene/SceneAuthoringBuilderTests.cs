@@ -151,6 +151,80 @@ public sealed class SceneAuthoringBuilderTests
     }
 
     [Fact]
+    public void Sphere_CreatesIndexedTriangleMeshWithExpectedBoundsAndColor()
+    {
+        var color = new RgbaFloat(0.2f, 0.4f, 0.8f, 1f);
+
+        var mesh = SceneGeometry.Sphere(radius: 2f, segments: 8, rings: 4, color: color);
+
+        mesh.Topology.Should().Be(MeshTopology.Triangles);
+        mesh.Vertices.Should().HaveCount(26);
+        mesh.Indices.Should().HaveCount(144);
+        mesh.Indices.Should().OnlyContain(index => index < mesh.Vertices.Length);
+        mesh.Vertices.Select(vertex => vertex.Color).Should().OnlyContain(vertexColor => vertexColor == color);
+        mesh.Vertices.Select(vertex => vertex.Position.Y).Should().Contain(2f);
+        mesh.Vertices.Select(vertex => vertex.Position.Y).Should().Contain(-2f);
+        mesh.Vertices.Should().OnlyContain(vertex => Math.Abs(vertex.Normal.Length() - 1f) < 0.001f);
+    }
+
+    [Fact]
+    public void Build_WithSphere_AddsAuthoredSpherePrimitive()
+    {
+        var material = SceneMaterials.Matte("paint", RgbaFloat.Blue);
+
+        var document = SceneAuthoring.Create("sphere-scene")
+            .AddSphere("marker", material, radius: 1.5f, segments: 12, rings: 6)
+            .Build();
+
+        var primitive = document.Entries.Single().ImportedAsset!.Primitives.Should().ContainSingle().Which;
+        primitive.Name.Should().Be("marker");
+        primitive.MaterialId.Should().Be(material.Id);
+        primitive.MeshData.Vertices.Should().HaveCount(62);
+        primitive.MeshData.Indices.Should().HaveCount(360);
+    }
+
+    [Fact]
+    public void Build_WithAuthoredPrimitiveAndMarkerInstances_PreservesDocumentAndBatchTruth()
+    {
+        var ground = SceneMaterials.Matte("ground", RgbaFloat.LightGrey);
+        var marker = SceneMaterials.Matte("marker", RgbaFloat.White);
+        var markerTransforms = new[]
+        {
+            Matrix4x4.CreateTranslation(-1f, 0.25f, 0f),
+            Matrix4x4.CreateTranslation(0f, 0.25f, 0f),
+            Matrix4x4.CreateTranslation(1f, 0.25f, 0f)
+        };
+        var markerColors = new[]
+        {
+            RgbaFloat.Red,
+            RgbaFloat.Green,
+            RgbaFloat.Blue
+        };
+
+        var document = SceneAuthoring.Create("minimal-authoring")
+            .AddPlane("ground", ground, width: 4f, depth: 2f)
+            .AddSphere("focus", marker, radius: 0.35f, transform: Matrix4x4.CreateTranslation(0f, 0.35f, 0f))
+            .AddInstances(
+                "sample-markers",
+                SceneGeometry.Sphere(radius: 0.1f, segments: 8, rings: 4, color: marker.BaseColorFactor),
+                marker,
+                markerTransforms,
+                markerColors,
+                objectIds: new[] { Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid() },
+                pickable: true)
+            .Build();
+
+        document.Entries.Should().ContainSingle();
+        document.Entries[0].ImportedAsset!.Primitives.Should().HaveCount(2);
+        var batch = document.InstanceBatches.Should().ContainSingle().Which;
+        batch.Name.Should().Be("sample-markers");
+        batch.InstanceCount.Should().Be(3);
+        batch.HasPerInstanceColors.Should().BeTrue();
+        batch.HasObjectIds.Should().BeTrue();
+        batch.Pickable.Should().BeTrue();
+    }
+
+    [Fact]
     public void Validate_WithDuplicateIds_ReportsAuthoringErrors()
     {
         var material = SceneMaterials.Matte("paint", RgbaFloat.Blue);
