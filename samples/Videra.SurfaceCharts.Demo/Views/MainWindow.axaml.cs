@@ -940,8 +940,10 @@ public partial class MainWindow : Window
 
     private static string CreateScatterCameraSummary(ScatterChartData? scatter, VideraChartView chartView)
     {
+        _ = scatter;
+        var status = chartView.ScatterRenderingStatus;
         return
-            $"PlotRevision {chartView.Plot.Revision}, SeriesCount {scatter?.SeriesCount ?? 0}, PointCount {scatter?.PointCount ?? 0}, ColumnarSeriesCount {scatter?.ColumnarSeriesCount ?? 0}, ColumnarPointCount {scatter?.ColumnarPointCount ?? 0}, PickablePointCount {scatter?.PickablePointCount ?? 0}, StreamingAppendBatchCount {scatter?.StreamingAppendBatchCount ?? 0}, ConfiguredFifoCapacity {FormatFifoCapacity(scatter?.ConfiguredFifoCapacity)}";
+            $"PlotRevision {chartView.Plot.Revision}, SeriesCount {status.SeriesCount}, PointCount {status.PointCount}, ColumnarSeriesCount {status.ColumnarSeriesCount}, ColumnarPointCount {status.ColumnarPointCount}, PickablePointCount {status.PickablePointCount}, StreamingAppendBatchCount {status.StreamingAppendBatchCount}, ConfiguredFifoCapacity {FormatFifoCapacity(status.ConfiguredFifoCapacity == 0 ? null : status.ConfiguredFifoCapacity)}";
     }
 
     private static string CreateSurfaceRenderingDiagnosticsSummary(SurfaceChartRenderingStatus status)
@@ -961,20 +963,22 @@ public partial class MainWindow : Window
 
     private static string CreateScatterRenderingDiagnosticsSummary(ScatterChartData? scatter, VideraChartView chartView)
     {
+        _ = scatter;
+        var status = chartView.ScatterRenderingStatus;
         return
             $"PlotRevision: {chartView.Plot.Revision}\n" +
             $"LastRefreshRevision: {chartView.LastRefreshRevision}\n" +
-            $"InteractionQuality: {chartView.InteractionQuality}\n" +
-            $"SeriesCount: {scatter?.SeriesCount ?? 0}\n" +
-            $"PointCount: {scatter?.PointCount ?? 0}\n" +
-            $"ColumnarSeriesCount: {scatter?.ColumnarSeriesCount ?? 0}\n" +
-            $"ColumnarPointCount: {scatter?.ColumnarPointCount ?? 0}\n" +
-            $"PickablePointCount: {scatter?.PickablePointCount ?? 0}\n" +
-            $"StreamingAppendBatchCount: {scatter?.StreamingAppendBatchCount ?? 0}\n" +
-            $"StreamingReplaceBatchCount: {scatter?.StreamingReplaceBatchCount ?? 0}\n" +
-            $"StreamingDroppedPointCount: {scatter?.StreamingDroppedPointCount ?? 0}\n" +
-            $"LastStreamingDroppedPointCount: {scatter?.LastStreamingDroppedPointCount ?? 0}\n" +
-            $"ConfiguredFifoCapacity: {FormatFifoCapacity(scatter?.ConfiguredFifoCapacity)}";
+            $"InteractionQuality: {status.InteractionQuality}\n" +
+            $"SeriesCount: {status.SeriesCount}\n" +
+            $"PointCount: {status.PointCount}\n" +
+            $"ColumnarSeriesCount: {status.ColumnarSeriesCount}\n" +
+            $"ColumnarPointCount: {status.ColumnarPointCount}\n" +
+            $"PickablePointCount: {status.PickablePointCount}\n" +
+            $"StreamingAppendBatchCount: {status.StreamingAppendBatchCount}\n" +
+            $"StreamingReplaceBatchCount: {status.StreamingReplaceBatchCount}\n" +
+            $"StreamingDroppedPointCount: {status.StreamingDroppedPointCount}\n" +
+            $"LastStreamingDroppedPointCount: {status.LastStreamingDroppedPointCount}\n" +
+            $"ConfiguredFifoCapacity: {FormatFifoCapacity(status.ConfiguredFifoCapacity == 0 ? null : status.ConfiguredFifoCapacity)}";
     }
 
     private static string FormatFifoCapacity(int? configuredFifoCapacity)

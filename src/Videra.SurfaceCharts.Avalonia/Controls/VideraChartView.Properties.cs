@@ -106,6 +106,7 @@ public partial class VideraChartView
         }
 
         _interactionQuality = interactionQuality;
+        UpdateScatterRenderingStatus();
         InteractionQualityChanged?.Invoke(this, EventArgs.Empty);
     }
 

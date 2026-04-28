@@ -2,6 +2,7 @@ using Avalonia;
 using FluentAssertions;
 using Videra.SurfaceCharts.Avalonia.Controls;
 using Videra.SurfaceCharts.Core;
+using Videra.SurfaceCharts.Rendering;
 using Xunit;
 
 namespace Videra.SurfaceCharts.Avalonia.IntegrationTests;
@@ -40,6 +41,9 @@ public sealed class VideraChartViewPlotApiTests
 
             view.Plot.Revision.Should().Be(3);
             view.LastRefreshRevision.Should().Be(3);
+            view.ScatterRenderingStatus.IsReady.Should().BeTrue();
+            view.ScatterRenderingStatus.SeriesCount.Should().Be(scatter.SeriesCount);
+            view.ScatterRenderingStatus.PointCount.Should().Be(scatter.PointCount);
         });
     }
 
@@ -144,6 +148,54 @@ public sealed class VideraChartViewPlotApiTests
     }
 
     [Fact]
+    public void PlotAddScatter_ActivatesScatterRenderingStatus()
+    {
+        AvaloniaHeadlessTestSession.Run(() =>
+        {
+            var view = new VideraChartView();
+            var scatter = CreateScatterData();
+
+            view.Plot.Add.Scatter(scatter, "scatter");
+
+            view.ScatterRenderingStatus.HasSource.Should().BeTrue();
+            view.ScatterRenderingStatus.IsReady.Should().BeTrue();
+            view.ScatterRenderingStatus.BackendKind.Should().Be(SurfaceChartRenderBackendKind.Software);
+            view.ScatterRenderingStatus.InteractionQuality.Should().Be(SurfaceChartInteractionQuality.Refine);
+            view.ScatterRenderingStatus.SeriesCount.Should().Be(scatter.SeriesCount);
+            view.ScatterRenderingStatus.PointCount.Should().Be(scatter.PointCount);
+            view.ScatterRenderingStatus.ColumnarSeriesCount.Should().Be(scatter.ColumnarSeriesCount);
+            view.ScatterRenderingStatus.ColumnarPointCount.Should().Be(scatter.ColumnarPointCount);
+            view.ScatterRenderingStatus.PickablePointCount.Should().Be(scatter.PickablePointCount);
+            view.ScatterRenderingStatus.StreamingAppendBatchCount.Should().Be(scatter.StreamingAppendBatchCount);
+            view.ScatterRenderingStatus.StreamingReplaceBatchCount.Should().Be(scatter.StreamingReplaceBatchCount);
+            view.ScatterRenderingStatus.StreamingDroppedPointCount.Should().Be(scatter.StreamingDroppedPointCount);
+            view.ScatterRenderingStatus.LastStreamingDroppedPointCount.Should().Be(scatter.LastStreamingDroppedPointCount);
+            view.ScatterRenderingStatus.ConfiguredFifoCapacity.Should().Be(scatter.ConfiguredFifoCapacity);
+            view.Source.Should().BeNull();
+        });
+    }
+
+    [Fact]
+    public void PlotAddSurface_ClearsActiveScatterRenderingStatus()
+    {
+        AvaloniaHeadlessTestSession.Run(() =>
+        {
+            var view = new VideraChartView();
+            var scatter = CreateScatterData();
+            var source = new ScriptedSurfaceTileSource(VideraChartViewLifecycleTests.CreateMetadata(), defaultTileValue: 4f);
+
+            view.Plot.Add.Scatter(scatter, "scatter");
+            view.ScatterRenderingStatus.IsReady.Should().BeTrue();
+
+            view.Plot.Add.Surface(source, "surface");
+
+            view.ScatterRenderingStatus.HasSource.Should().BeFalse();
+            view.ScatterRenderingStatus.IsReady.Should().BeFalse();
+            view.ScatterRenderingStatus.PointCount.Should().Be(0);
+        });
+    }
+
+    [Fact]
     public void VideraChartView_IsNotAnOldChartViewWrapper()
     {
         typeof(VideraChartView).Assembly.GetType("Videra.SurfaceCharts.Avalonia.Controls.SurfaceChartView").Should().BeNull();
@@ -165,8 +217,17 @@ public sealed class VideraChartViewPlotApiTests
             ],
             0xFF2F80ED,
             "points");
+        var columnarSeries = new ScatterColumnarSeries(0xFF5EEAD4, "columnar", pickable: true, fifoCapacity: 3);
+        columnarSeries.ReplaceRange(new ScatterColumnarData(
+            new[] { 0.1f, 0.2f },
+            new[] { 0.3f, 0.4f },
+            new[] { 0.5f, 0.6f }));
+        columnarSeries.AppendRange(new ScatterColumnarData(
+            new[] { 0.3f, 0.4f, 0.5f },
+            new[] { 0.5f, 0.6f, 0.7f },
+            new[] { 0.7f, 0.8f, 0.9f }));
 
-        return new ScatterChartData(metadata, [series]);
+        return new ScatterChartData(metadata, [series], [columnarSeries]);
     }
 
     private static SurfaceMetadata CreateWaterfallMetadata()

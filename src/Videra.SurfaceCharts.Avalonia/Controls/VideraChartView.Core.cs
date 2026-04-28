@@ -52,6 +52,11 @@ public partial class VideraChartView : Decorator
     public SurfaceChartRenderingStatus RenderingStatus { get; private set; }
 
     /// <summary>
+    /// Gets the latest Plot-owned scatter rendering and streaming diagnostics.
+    /// </summary>
+    public ScatterChartRenderingStatus ScatterRenderingStatus { get; private set; }
+
+    /// <summary>
     /// Gets the chart plot model used to add surface, waterfall, and scatter series.
     /// </summary>
     public Plot3D Plot { get; }
@@ -85,6 +90,7 @@ public partial class VideraChartView : Decorator
             UpdateInteractionQuality,
             InvalidateRenderScene,
             InvalidateOverlay);
+        ScatterRenderingStatus = CreateScatterRenderingStatus();
 
         _overlayLayer = new SurfaceChartOverlayLayer(this)
         {
@@ -104,6 +110,7 @@ public partial class VideraChartView : Decorator
     {
         _runtime.UpdateViewSize(finalSize);
         UpdateOverlayViewSize(finalSize);
+        UpdateScatterRenderingStatus();
         return base.ArrangeOverride(finalSize);
     }
 
@@ -170,6 +177,7 @@ public partial class VideraChartView : Decorator
     public void Refresh()
     {
         LastRefreshRevision = Plot.Revision;
+        UpdateScatterRenderingStatus();
         InvalidateRenderScene();
     }
 
@@ -183,5 +191,43 @@ public partial class VideraChartView : Decorator
         }
 
         Refresh();
+    }
+
+    private void UpdateScatterRenderingStatus()
+    {
+        var nextStatus = CreateScatterRenderingStatus();
+        if (ScatterRenderingStatus == nextStatus)
+        {
+            return;
+        }
+
+        ScatterRenderingStatus = nextStatus;
+    }
+
+    private ScatterChartRenderingStatus CreateScatterRenderingStatus()
+    {
+        var scatterData = Plot.ActiveScatterSeries?.ScatterData;
+        var hasScatterData = scatterData is not null;
+        return new ScatterChartRenderingStatus
+        {
+            HasSource = hasScatterData,
+            IsReady = hasScatterData,
+            BackendKind = SurfaceChartRenderBackendKind.Software,
+            IsInteracting = _interactionController.HasActiveGesture,
+            InteractionQuality = InteractionQuality,
+            SeriesCount = scatterData?.SeriesCount ?? 0,
+            PointCount = scatterData?.PointCount ?? 0,
+            ColumnarSeriesCount = scatterData?.ColumnarSeriesCount ?? 0,
+            ColumnarPointCount = scatterData?.ColumnarPointCount ?? 0,
+            PickablePointCount = scatterData?.PickablePointCount ?? 0,
+            StreamingAppendBatchCount = scatterData?.StreamingAppendBatchCount ?? 0,
+            StreamingReplaceBatchCount = scatterData?.StreamingReplaceBatchCount ?? 0,
+            StreamingDroppedPointCount = scatterData?.StreamingDroppedPointCount ?? 0,
+            LastStreamingDroppedPointCount = scatterData?.LastStreamingDroppedPointCount ?? 0,
+            ConfiguredFifoCapacity = scatterData?.ConfiguredFifoCapacity ?? 0,
+            ViewSize = _runtime.ViewSize,
+            CameraTarget = ViewState.Camera.Target,
+            CameraDistance = ViewState.Camera.Distance,
+        };
     }
 }

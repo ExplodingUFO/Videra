@@ -30,20 +30,23 @@ public sealed class Plot3D
     /// </summary>
     public IReadOnlyList<Plot3DSeries> Series => _seriesView;
 
+    internal Plot3DSeries? ActiveSeries => _series.Count == 0 ? null : _series[^1];
+
     internal Plot3DSeries? ActiveSurfaceSeries
     {
         get
         {
-            for (var index = _series.Count - 1; index >= 0; index--)
-            {
-                var series = _series[index];
-                if (series.Kind is Plot3DSeriesKind.Surface or Plot3DSeriesKind.Waterfall)
-                {
-                    return series;
-                }
-            }
+            var activeSeries = ActiveSeries;
+            return activeSeries?.Kind is Plot3DSeriesKind.Surface or Plot3DSeriesKind.Waterfall ? activeSeries : null;
+        }
+    }
 
-            return null;
+    internal Plot3DSeries? ActiveScatterSeries
+    {
+        get
+        {
+            var activeSeries = ActiveSeries;
+            return activeSeries?.Kind == Plot3DSeriesKind.Scatter ? activeSeries : null;
         }
     }
 
