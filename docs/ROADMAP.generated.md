@@ -12,12 +12,11 @@ pwsh -File ./scripts/Export-BeadsRoadmap.ps1
 
 ## Active
 
-_No matching beads in the exported snapshot._
+- **Videra-q7q** - Phase 335: Delete old SurfaceCharts View components (task, P1, in_progress)
 
 ## Ready
 
 - **Videra-tyn** - v2.47 Single Plot View for 3D Charts (epic, P1, open)
-- **Videra-q7q** - Phase 335: Delete old SurfaceCharts View components (task, P1, open)
 - **Videra-v49** - Phase 337: Unified professional Plot presentation (task, P1, open)
 
 ## Blocked
