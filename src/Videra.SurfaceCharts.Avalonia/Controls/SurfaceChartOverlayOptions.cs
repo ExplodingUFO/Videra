@@ -116,6 +116,20 @@ public sealed class SurfaceChartOverlayOptions
         return FormatNumericLabel(value, TickLabelFormat, TickLabelPrecision);
     }
 
+    internal string FormatProbeAxisX(double value) => FormatLabel("X", value);
+
+    internal string FormatProbeAxisY(double value) => FormatLabel("Z", value);
+
+    internal string FormatProbeValue(double value) => FormatLabel("Y", value);
+
+    internal string FormatProbeDelta(string axisKey, double value)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(axisKey);
+
+        var formattedValue = FormatLabel(axisKey, value);
+        return value > 0d ? $"+{formattedValue}" : formattedValue;
+    }
+
     internal static string FormatNumericLabel(double value, SurfaceChartNumericLabelFormat format, int precision)
     {
         return format switch

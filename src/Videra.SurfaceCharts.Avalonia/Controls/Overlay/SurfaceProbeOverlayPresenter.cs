@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Numerics;
 using Avalonia;
 using Avalonia.Media;
+using Videra.SurfaceCharts.Avalonia.Controls;
 using Videra.SurfaceCharts.Core;
 using Videra.SurfaceCharts.Core.Rendering;
 
@@ -22,9 +23,11 @@ internal static class SurfaceProbeOverlayPresenter
         SurfaceCameraFrame? cameraFrame,
         IReadOnlyList<SurfaceTile> loadedTiles,
         Point? probeScreenPosition,
-        IReadOnlyList<SurfaceProbeRequest>? pinnedProbeRequests = null)
+        IReadOnlyList<SurfaceProbeRequest>? pinnedProbeRequests = null,
+        SurfaceChartOverlayOptions? overlayOptions = null)
     {
         ArgumentNullException.ThrowIfNull(loadedTiles);
+        overlayOptions ??= SurfaceChartOverlayOptions.Default;
 
         if (source is null || loadedTiles.Count == 0)
         {
@@ -33,7 +36,8 @@ internal static class SurfaceProbeOverlayPresenter
                 noDataText: "No data",
                 hoveredProbeScreenPosition: null,
                 hoveredProbe: null,
-                pinnedProbes: []);
+                pinnedProbes: [],
+                overlayOptions: overlayOptions);
         }
 
         var hoveredProbe = probeScreenPosition is Point hoveredProbeScreenPosition && cameraFrame is SurfaceCameraFrame resolvedCameraFrame
@@ -46,7 +50,8 @@ internal static class SurfaceProbeOverlayPresenter
             noDataText: null,
             hoveredProbeScreenPosition: hoveredProbe is null ? null : probeScreenPosition,
             hoveredProbe: hoveredProbe,
-            pinnedProbes: pinnedProbes);
+            pinnedProbes: pinnedProbes,
+            overlayOptions: overlayOptions);
     }
 
     public static SurfaceProbeOverlayState CreateState(
@@ -55,9 +60,11 @@ internal static class SurfaceProbeOverlayPresenter
         Size viewSize,
         IReadOnlyList<SurfaceTile> loadedTiles,
         Point? probeScreenPosition,
-        IReadOnlyList<SurfaceProbeRequest>? pinnedProbeRequests = null)
+        IReadOnlyList<SurfaceProbeRequest>? pinnedProbeRequests = null,
+        SurfaceChartOverlayOptions? overlayOptions = null)
     {
         ArgumentNullException.ThrowIfNull(loadedTiles);
+        overlayOptions ??= SurfaceChartOverlayOptions.Default;
 
         if (source is null || loadedTiles.Count == 0)
         {
@@ -66,7 +73,8 @@ internal static class SurfaceProbeOverlayPresenter
                 noDataText: "No data",
                 hoveredProbeScreenPosition: null,
                 hoveredProbe: null,
-                pinnedProbes: []);
+                pinnedProbes: [],
+                overlayOptions: overlayOptions);
         }
 
         var hoveredProbe = probeScreenPosition is Point hoveredProbeScreenPosition
@@ -79,7 +87,8 @@ internal static class SurfaceProbeOverlayPresenter
             noDataText: null,
             hoveredProbeScreenPosition: hoveredProbe is null ? null : probeScreenPosition,
             hoveredProbe: hoveredProbe,
-            pinnedProbes: pinnedProbes);
+            pinnedProbes: pinnedProbes,
+            overlayOptions: overlayOptions);
     }
 
     public static void Render(
@@ -98,7 +107,7 @@ internal static class SurfaceProbeOverlayPresenter
 
         if (projection is not null && overlayState.PinnedProbes.Count > 0)
         {
-            DrawPinnedReadouts(context, overlayState.PinnedProbes, projection, viewSize);
+            DrawPinnedReadouts(context, overlayState.PinnedProbes, projection, viewSize, overlayState.OverlayOptions);
         }
 
         if (overlayState.HoveredProbe is SurfaceProbeInfo hoveredProbe &&
@@ -106,7 +115,7 @@ internal static class SurfaceProbeOverlayPresenter
         {
             DrawReadoutBubble(
                 context,
-                CreateHoveredReadoutText(hoveredProbe, overlayState.PinnedProbes),
+                CreateHoveredReadoutText(hoveredProbe, overlayState.PinnedProbes, overlayState.OverlayOptions),
                 hoveredProbeScreenPosition,
                 viewSize,
                 bubbleIndex: 0,
@@ -150,7 +159,8 @@ internal static class SurfaceProbeOverlayPresenter
         DrawingContext context,
         IReadOnlyList<SurfaceProbeInfo> pinnedProbes,
         SurfaceChartProjection projection,
-        Size viewSize)
+        Size viewSize,
+        SurfaceChartOverlayOptions overlayOptions)
     {
         for (var index = 0; index < pinnedProbes.Count; index++)
         {
@@ -160,7 +170,7 @@ internal static class SurfaceProbeOverlayPresenter
 
             DrawReadoutBubble(
                 context,
-                CreatePinnedReadoutText(index + 1, probe),
+                CreatePinnedReadoutText(index + 1, probe, overlayOptions),
                 markerPosition,
                 viewSize,
                 bubbleIndex: index,
@@ -220,11 +230,14 @@ internal static class SurfaceProbeOverlayPresenter
             Math.Clamp(candidate.Y, BubbleMargin, maxY));
     }
 
-    private static string CreateHoveredReadoutText(SurfaceProbeInfo probe, IReadOnlyList<SurfaceProbeInfo> pinnedProbes)
+    private static string CreateHoveredReadoutText(
+        SurfaceProbeInfo probe,
+        IReadOnlyList<SurfaceProbeInfo> pinnedProbes,
+        SurfaceChartOverlayOptions overlayOptions)
     {
-        var readout = string.Create(
-            CultureInfo.InvariantCulture,
-            $"X {probe.AxisX:0.###} (sample {probe.SampleX:0.###})\nY {probe.AxisY:0.###} (sample {probe.SampleY:0.###})\nValue {probe.Value:0.###} {(probe.IsApproximate ? "Approx" : "Exact")}");
+        var readout = $"X {overlayOptions.FormatProbeAxisX(probe.AxisX)} (sample {overlayOptions.FormatProbeAxisX(probe.SampleX)})\n" +
+            $"Y {overlayOptions.FormatProbeAxisY(probe.AxisY)} (sample {overlayOptions.FormatProbeAxisY(probe.SampleY)})\n" +
+            $"Value {overlayOptions.FormatProbeValue(probe.Value)} {(probe.IsApproximate ? "Approx" : "Exact")}";
 
         if (pinnedProbes.Count == 0)
         {
@@ -235,16 +248,18 @@ internal static class SurfaceProbeOverlayPresenter
         var deltaX = probe.AxisX - referenceProbe.AxisX;
         var deltaY = probe.AxisY - referenceProbe.AxisY;
         var deltaValue = probe.Value - referenceProbe.Value;
-        return string.Create(
-            CultureInfo.InvariantCulture,
-            $"{readout}\nDelta vs Pin 1\nX {deltaX:+0.###;-0.###;0}\nY {deltaY:+0.###;-0.###;0}\nValue {deltaValue:+0.###;-0.###;0}");
+        return $"{readout}\nDelta vs Pin 1\nX {overlayOptions.FormatProbeDelta("X", deltaX)}\nY {overlayOptions.FormatProbeDelta("Z", deltaY)}\nValue {overlayOptions.FormatProbeDelta("Y", deltaValue)}";
     }
 
-    private static string CreatePinnedReadoutText(int pinnedIndex, SurfaceProbeInfo probe)
+    private static string CreatePinnedReadoutText(
+        int pinnedIndex,
+        SurfaceProbeInfo probe,
+        SurfaceChartOverlayOptions overlayOptions)
     {
-        return string.Create(
-            CultureInfo.InvariantCulture,
-            $"Pin {pinnedIndex} {(probe.IsApproximate ? "Approx" : "Exact")}\nX {probe.AxisX:0.###} (sample {probe.SampleX:0.###})\nY {probe.AxisY:0.###} (sample {probe.SampleY:0.###})\nValue {probe.Value:0.###}");
+        return $"Pin {pinnedIndex} {(probe.IsApproximate ? "Approx" : "Exact")}\n" +
+            $"X {overlayOptions.FormatProbeAxisX(probe.AxisX)} (sample {overlayOptions.FormatProbeAxisX(probe.SampleX)})\n" +
+            $"Y {overlayOptions.FormatProbeAxisY(probe.AxisY)} (sample {overlayOptions.FormatProbeAxisY(probe.SampleY)})\n" +
+            $"Value {overlayOptions.FormatProbeValue(probe.Value)}";
     }
 
     private static Vector3 CreateMarkerVector(SurfaceProbeInfo probe)

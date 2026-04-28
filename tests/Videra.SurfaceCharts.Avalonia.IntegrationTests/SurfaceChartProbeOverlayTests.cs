@@ -388,6 +388,57 @@ public sealed class SurfaceChartProbeOverlayTests
     }
 
     [Fact]
+    public void ProbeReadout_UsesFixedOverlayNumericPolicy_ForCoordinatesValuesAndDeltas()
+    {
+        var state = new SurfaceProbeOverlayState(
+            hasNoData: false,
+            noDataText: null,
+            hoveredProbeScreenPosition: new Point(10d, 20d),
+            hoveredProbe: new SurfaceProbeInfo(1.234d, 2.345d, 1234.567d, 98.765d, -9.876d, isApproximate: false),
+            pinnedProbes:
+            [
+                new SurfaceProbeInfo(1d, 2d, 1000d, 100d, -10d, isApproximate: false),
+            ],
+            overlayOptions: SurfaceChartNumericLabelPresets.Fixed(2));
+
+        state.ReadoutText.Should().Contain("X 1234.57 (sample 1.23)");
+        state.ReadoutText.Should().Contain("Y 98.77 (sample 2.35)");
+        state.ReadoutText.Should().Contain("Value -9.88 Exact");
+        state.ReadoutText.Should().Contain("X +234.57");
+        state.ReadoutText.Should().Contain("Y -1.23");
+        state.ReadoutText.Should().Contain("Value +0.12");
+    }
+
+    [Fact]
+    public void ProbeReadout_UsesScientificOverlayNumericPolicy_ForHoveredReadout()
+    {
+        var state = new SurfaceProbeOverlayState(
+            hasNoData: false,
+            noDataText: null,
+            hoveredProbeScreenPosition: new Point(10d, 20d),
+            hoveredProbe: new SurfaceProbeInfo(1.234d, 0.001234d, 1234.567d, 0.001234d, -98765.432d, isApproximate: true),
+            pinnedProbes: [],
+            overlayOptions: SurfaceChartNumericLabelPresets.Scientific(2));
+
+        state.ReadoutText.Should().Contain("X 1.23E+3 (sample 1.23E+0)");
+        state.ReadoutText.Should().Contain("Y 1.23E-3 (sample 1.23E-3)");
+        state.ReadoutText.Should().Contain("Value -9.88E+4 Approx");
+    }
+
+    [Fact]
+    public void PinnedProbeReadout_UsesEngineeringOverlayNumericPolicy()
+    {
+        var probe = new SurfaceProbeInfo(0.001234d, 12.345d, 1234.567d, 987654d, 0.0001234d, isApproximate: false);
+
+        var readoutText = CreatePinnedReadoutText(1, probe, SurfaceChartNumericLabelPresets.Engineering(2));
+
+        readoutText.Should().Contain("Pin 1 Exact");
+        readoutText.Should().Contain("X 1.23E+3 (sample 1.23E-3)");
+        readoutText.Should().Contain("Y 987.65E+3 (sample 12.35E+0)");
+        readoutText.Should().Contain("Value 123.40E-6");
+    }
+
+    [Fact]
     public Task ProbeUpdate_ViewportFocusChange_RecomputesAxisValues()
     {
         return AvaloniaHeadlessTestSession.RunAsync(async () =>
@@ -749,6 +800,19 @@ public sealed class SurfaceChartProbeOverlayTests
         var hoveredProbe = GetPropertyValue(overlayState, "HoveredProbe");
         hoveredProbe.Should().NotBeNull("the overlay state should keep the currently hovered probe.");
         return hoveredProbe!;
+    }
+
+    private static string CreatePinnedReadoutText(
+        int pinnedIndex,
+        SurfaceProbeInfo probe,
+        SurfaceChartOverlayOptions overlayOptions)
+    {
+        var method = typeof(SurfaceProbeOverlayPresenter).GetMethod(
+            "CreatePinnedReadoutText",
+            BindingFlags.Static | BindingFlags.NonPublic);
+
+        method.Should().NotBeNull("pinned readouts should use the same chart-local numeric policy as hover readouts.");
+        return (string)method!.Invoke(null, [pinnedIndex, probe, overlayOptions])!;
     }
 
     private static object? GetPropertyValue(object instance, string propertyName)
