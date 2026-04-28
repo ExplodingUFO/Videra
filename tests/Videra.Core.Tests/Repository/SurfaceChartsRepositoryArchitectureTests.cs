@@ -335,6 +335,28 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
         var viewProperties = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.SurfaceCharts.Avalonia", "Controls", "VideraChartView.Properties.cs"));
         viewProperties.Should().NotContain("SourceProperty");
         viewProperties.Should().NotContain("public ISurfaceTileSource? Source");
+
+        var controlsRoot = Path.Combine(repositoryRoot, "src", "Videra.SurfaceCharts.Avalonia", "Controls");
+        var publicControlSources = Directory
+            .GetFiles(controlsRoot, "*.cs", SearchOption.AllDirectories)
+            .Select(path => (Path: path, Content: File.ReadAllText(path)))
+            .Where(source => source.Content.Contains("public", StringComparison.Ordinal))
+            .ToArray();
+
+        foreach (var source in publicControlSources)
+        {
+            source.Content.Should().NotMatchRegex(
+                @"public\s+(?:sealed\s+|partial\s+|abstract\s+)*class\s+(?:SurfaceChartView|WaterfallChartView|ScatterChartView)\b",
+                $"{Path.GetRelativePath(repositoryRoot, source.Path)} must not restore old chart-specific public controls");
+
+            if (Path.GetFileName(source.Path).StartsWith("VideraChartView", StringComparison.Ordinal))
+            {
+                source.Content.Should().NotContain("SourceProperty", "VideraChartView must stay Plot.Add-owned");
+                source.Content.Should().NotMatchRegex(
+                    @"public\s+.*\bSource\b",
+                    "VideraChartView must not restore the deleted direct Source API");
+            }
+        }
     }
 
     [Fact]

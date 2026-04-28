@@ -41,6 +41,8 @@ The public SurfaceCharts install rule is similarly narrow: start with `Videra.Su
 
 ## Boundary notes
 
+- `VideraChartView` is the single public chart control. Use `Plot.Add.Surface`, `Plot.Add.Waterfall`, and `Plot.Add.Scatter` for chart data loading; do not restore old chart-specific view controls or direct public `Source` APIs.
+- SurfaceCharts support summaries should carry `SeriesCount`, `ActiveSeries`, `ChartKind`, `ColorMap`, `PrecisionProfile`, and `RenderingStatus` so support reports can describe Plot-authored chart state without inspecting internal runtime objects.
 - `VIDERA_BACKEND` and `PreferredBackend` change backend preference only.
 - They do not install missing platform packages.
 - They do not replace matching-host native validation.
