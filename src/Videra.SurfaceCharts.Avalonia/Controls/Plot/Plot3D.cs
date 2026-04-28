@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using Videra.SurfaceCharts.Core;
+using Videra.SurfaceCharts.Rendering;
 
 namespace Videra.SurfaceCharts.Avalonia.Controls;
 
@@ -139,6 +140,43 @@ public sealed class Plot3D
         return _series.IndexOf(series);
     }
 
+    /// <summary>
+    /// Creates deterministic chart-local output evidence for the current plot model.
+    /// </summary>
+    /// <returns>The chart-local output evidence.</returns>
+    public Plot3DOutputEvidence CreateOutputEvidence()
+    {
+        return CreateOutputEvidence(renderingStatus: null, scatterRenderingStatus: null);
+    }
+
+    /// <summary>
+    /// Creates deterministic chart-local output evidence for the current plot model and public rendering status projections.
+    /// </summary>
+    /// <param name="renderingStatus">The latest surface or waterfall rendering status, when available.</param>
+    /// <param name="scatterRenderingStatus">The latest scatter rendering status, when available.</param>
+    /// <returns>The chart-local output evidence.</returns>
+    public Plot3DOutputEvidence CreateOutputEvidence(
+        SurfaceChartRenderingStatus? renderingStatus,
+        ScatterChartRenderingStatus? scatterRenderingStatus)
+    {
+        var activeSeries = ActiveSeries;
+        var activeSeriesIndex = activeSeries is null ? -1 : _series.IndexOf(activeSeries);
+        var colorMapEvidence = CreateColorMapEvidence(activeSeries);
+        var renderingEvidence = CreateRenderingEvidence(activeSeries, renderingStatus, scatterRenderingStatus);
+
+        return new Plot3DOutputEvidence(
+            seriesCount: _series.Count,
+            activeSeriesIndex: activeSeriesIndex,
+            activeSeriesName: activeSeries?.Name,
+            activeSeriesKind: activeSeries?.Kind,
+            activeSeriesIdentity: CreateSeriesIdentity(activeSeries, activeSeriesIndex),
+            colorMapStatus: CreateColorMapStatus(activeSeries, colorMapEvidence),
+            colorMapEvidence: colorMapEvidence,
+            precisionProfile: SurfaceChartOverlayEvidenceFormatter.DescribePrecisionProfile(OverlayOptions),
+            renderingEvidence: renderingEvidence,
+            outputCapabilityDiagnostics: Plot3DOutputCapabilityDiagnostic.CreateUnsupportedExportDiagnostics());
+    }
+
     internal Plot3DSeries AddSeries(Plot3DSeries series)
     {
         ArgumentNullException.ThrowIfNull(series);
@@ -146,6 +184,64 @@ public sealed class Plot3D
         _series.Add(series);
         NotifyChanged();
         return series;
+    }
+
+    private SurfaceChartOutputEvidence? CreateColorMapEvidence(Plot3DSeries? activeSeries)
+    {
+        if (activeSeries?.Kind is not (Plot3DSeriesKind.Surface or Plot3DSeriesKind.Waterfall))
+        {
+            return null;
+        }
+
+        var source = activeSeries.SurfaceSource;
+        if (source is null)
+        {
+            return null;
+        }
+
+        var colorMap = ColorMap ?? new SurfaceColorMap(source.Metadata.ValueRange, SurfaceColorMapPresets.CreateDefault());
+        var paletteName = ColorMap is null ? "Default" : "Plot.ColorMap";
+        return SurfaceChartOverlayEvidenceFormatter.Create(paletteName, colorMap, OverlayOptions);
+    }
+
+    private static Plot3DRenderingEvidence? CreateRenderingEvidence(
+        Plot3DSeries? activeSeries,
+        SurfaceChartRenderingStatus? renderingStatus,
+        ScatterChartRenderingStatus? scatterRenderingStatus)
+    {
+        return activeSeries?.Kind switch
+        {
+            Plot3DSeriesKind.Surface or Plot3DSeriesKind.Waterfall when renderingStatus is not null =>
+                Plot3DRenderingEvidence.FromSurfaceStatus(renderingStatus),
+            Plot3DSeriesKind.Scatter when scatterRenderingStatus is not null =>
+                Plot3DRenderingEvidence.FromScatterStatus(scatterRenderingStatus),
+            _ => null,
+        };
+    }
+
+    private static string? CreateSeriesIdentity(Plot3DSeries? activeSeries, int activeSeriesIndex)
+    {
+        if (activeSeries is null || activeSeriesIndex < 0)
+        {
+            return null;
+        }
+
+        var name = activeSeries.Name ?? "<unnamed>";
+        return $"{activeSeries.Kind}:{name}:{activeSeriesIndex}";
+    }
+
+    private static Plot3DColorMapStatus CreateColorMapStatus(
+        Plot3DSeries? activeSeries,
+        SurfaceChartOutputEvidence? colorMapEvidence)
+    {
+        if (colorMapEvidence is not null)
+        {
+            return Plot3DColorMapStatus.Applied;
+        }
+
+        return activeSeries is null || activeSeries.Kind == Plot3DSeriesKind.Scatter
+            ? Plot3DColorMapStatus.NotApplicable
+            : Plot3DColorMapStatus.Unavailable;
     }
 
     private void NotifyChanged()

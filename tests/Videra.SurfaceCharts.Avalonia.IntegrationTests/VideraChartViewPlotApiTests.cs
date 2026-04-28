@@ -162,6 +162,108 @@ public sealed class VideraChartViewPlotApiTests
     }
 
     [Fact]
+    public void Plot3D_CreateOutputEvidence_ReportsActiveSurfaceContract()
+    {
+        AvaloniaHeadlessTestSession.Run(() =>
+        {
+            var view = new VideraChartView();
+            var source = new ScriptedSurfaceTileSource(VideraChartViewLifecycleTests.CreateMetadata(), defaultTileValue: 4f);
+            var colorMap = new SurfaceColorMap(
+                new SurfaceValueRange(-12d, 12d),
+                SurfaceColorMapPresets.CreateProfessional());
+            view.Plot.ColorMap = colorMap;
+            view.Plot.OverlayOptions = SurfaceChartNumericLabelPresets.Scientific(precision: 2);
+
+            view.Plot.Add.Surface(source, "surface");
+
+            var evidence = view.Plot.CreateOutputEvidence(view.RenderingStatus, view.ScatterRenderingStatus);
+
+            evidence.EvidenceKind.Should().Be("plot-3d-output");
+            evidence.SeriesCount.Should().Be(1);
+            evidence.ActiveSeriesIndex.Should().Be(0);
+            evidence.ActiveSeriesName.Should().Be("surface");
+            evidence.ActiveSeriesKind.Should().Be(Plot3DSeriesKind.Surface);
+            evidence.ActiveSeriesIdentity.Should().Be("Surface:surface:0");
+            evidence.ColorMapStatus.Should().Be(Plot3DColorMapStatus.Applied);
+            evidence.ColorMapEvidence.Should().NotBeNull();
+            evidence.ColorMapEvidence!.PaletteName.Should().Be("Plot.ColorMap");
+            evidence.ColorMapEvidence.ColorStops.Should().Equal(
+                "#FF08111F",
+                "#FF154C79",
+                "#FF2DD4BF",
+                "#FFFDE68A",
+                "#FFF97316");
+            evidence.PrecisionProfile.Should().Be("SurfaceChartOverlayOptions:Tick=Scientific(2);Legend=Scientific(2);Formatter=Default");
+            evidence.ColorMapEvidence.PrecisionProfile.Should().Be(evidence.PrecisionProfile);
+            evidence.ColorMapEvidence.SampleFormattedLabels.Should().Equal("-1.20E+1", "0.00E+0", "1.20E+1");
+            evidence.RenderingEvidence.Should().NotBeNull();
+            evidence.RenderingEvidence!.RenderingKind.Should().Be("surface-rendering-status");
+            evidence.RenderingEvidence.BackendKind.Should().Be(view.RenderingStatus.ActiveBackend);
+            evidence.OutputCapabilityDiagnostics.Should().HaveCount(3);
+            evidence.OutputCapabilityDiagnostics.Should().OnlyContain(diagnostic => !diagnostic.IsSupported);
+            evidence.OutputCapabilityDiagnostics.Select(diagnostic => diagnostic.Capability).Should().Equal(
+                "ImageExport",
+                "PdfExport",
+                "VectorExport");
+        });
+    }
+
+    [Fact]
+    public void Plot3D_CreateOutputEvidence_ReportsScatterWithoutColorMapOrExportFallback()
+    {
+        AvaloniaHeadlessTestSession.Run(() =>
+        {
+            var view = new VideraChartView();
+            var scatter = CreateScatterData();
+
+            view.Measure(new Size(320, 180));
+            view.Arrange(new Rect(0, 0, 320, 180));
+            view.Plot.Add.Scatter(scatter, "scatter");
+
+            var evidence = view.Plot.CreateOutputEvidence(view.RenderingStatus, view.ScatterRenderingStatus);
+
+            evidence.SeriesCount.Should().Be(1);
+            evidence.ActiveSeriesIndex.Should().Be(0);
+            evidence.ActiveSeriesKind.Should().Be(Plot3DSeriesKind.Scatter);
+            evidence.ActiveSeriesIdentity.Should().Be("Scatter:scatter:0");
+            evidence.ColorMapStatus.Should().Be(Plot3DColorMapStatus.NotApplicable);
+            evidence.ColorMapEvidence.Should().BeNull();
+            evidence.RenderingEvidence.Should().NotBeNull();
+            evidence.RenderingEvidence!.RenderingKind.Should().Be("scatter-rendering-status");
+            evidence.RenderingEvidence.IsReady.Should().BeTrue();
+            evidence.RenderingEvidence.ViewWidth.Should().Be(320d);
+            evidence.RenderingEvidence.ViewHeight.Should().Be(180d);
+            evidence.OutputCapabilityDiagnostics.Should().Contain(diagnostic =>
+                diagnostic.Capability == "ImageExport" &&
+                diagnostic.DiagnosticCode == "plot-output.export.image.unsupported" &&
+                !diagnostic.IsSupported);
+        });
+    }
+
+    [Fact]
+    public void Plot3D_CreateOutputEvidence_ReportsEmptyPlotDeterministically()
+    {
+        AvaloniaHeadlessTestSession.Run(() =>
+        {
+            var view = new VideraChartView();
+
+            var evidence = view.Plot.CreateOutputEvidence();
+
+            evidence.EvidenceKind.Should().Be("plot-3d-output");
+            evidence.SeriesCount.Should().Be(0);
+            evidence.ActiveSeriesIndex.Should().Be(-1);
+            evidence.ActiveSeriesName.Should().BeNull();
+            evidence.ActiveSeriesKind.Should().BeNull();
+            evidence.ActiveSeriesIdentity.Should().BeNull();
+            evidence.ColorMapStatus.Should().Be(Plot3DColorMapStatus.NotApplicable);
+            evidence.ColorMapEvidence.Should().BeNull();
+            evidence.PrecisionProfile.Should().Be("SurfaceChartOverlayOptions:Tick=General(3);Legend=General(3);Formatter=Default");
+            evidence.RenderingEvidence.Should().BeNull();
+            evidence.OutputCapabilityDiagnostics.Should().OnlyContain(diagnostic => !diagnostic.IsSupported);
+        });
+    }
+
+    [Fact]
     public Task PlotAddSurface_ActivatesRuntimeSourceWithoutPublicSourceAssignment()
     {
         return AvaloniaHeadlessTestSession.RunAsync(async () =>
