@@ -288,6 +288,8 @@ function Get-SurfaceChartsSupportReport
             evidenceOnly = $null
             chartControl = ""
             environmentRuntime = ""
+            assemblyIdentity = ""
+            backendDisplayEnvironment = ""
             renderingStatusPresent = $false
         }
     }
@@ -307,6 +309,8 @@ function Get-SurfaceChartsSupportReport
             evidenceOnly = $null
             chartControl = ""
             environmentRuntime = ""
+            assemblyIdentity = ""
+            backendDisplayEnvironment = ""
             renderingStatusPresent = $false
         }
     }
@@ -334,6 +338,8 @@ function Get-SurfaceChartsSupportReport
         evidenceOnly = if ([string]::IsNullOrWhiteSpace($evidenceOnlyText)) { $null } else { $evidenceOnlyText.StartsWith("true", [System.StringComparison]::OrdinalIgnoreCase) }
         chartControl = Get-SurfaceChartsSupportValue -Prefix "ChartControl:"
         environmentRuntime = Get-SurfaceChartsSupportValue -Prefix "EnvironmentRuntime:"
+        assemblyIdentity = Get-SurfaceChartsSupportValue -Prefix "AssemblyIdentity:"
+        backendDisplayEnvironment = Get-SurfaceChartsSupportValue -Prefix "BackendDisplayEnvironment:"
         renderingStatusPresent = ($lines | Where-Object { $_.StartsWith("RenderingStatus", [System.StringComparison]::Ordinal) }).Count -gt 0
     }
 }
@@ -664,6 +670,14 @@ if (-not [string]::IsNullOrWhiteSpace($surfaceChartsSupportReport.evidenceKind))
 if (-not [string]::IsNullOrWhiteSpace($surfaceChartsSupportReport.chartControl))
 {
     $summaryLines.Add(("- chart control: {0}" -f $surfaceChartsSupportReport.chartControl)) | Out-Null
+}
+if (-not [string]::IsNullOrWhiteSpace($surfaceChartsSupportReport.assemblyIdentity))
+{
+    $summaryLines.Add(("- assembly identity: {0}" -f $surfaceChartsSupportReport.assemblyIdentity)) | Out-Null
+}
+if (-not [string]::IsNullOrWhiteSpace($surfaceChartsSupportReport.backendDisplayEnvironment))
+{
+    $summaryLines.Add(("- backend/display environment: {0}" -f $surfaceChartsSupportReport.backendDisplayEnvironment)) | Out-Null
 }
 $summaryLines.Add("") | Out-Null
 $summaryLines.Add("Reports:") | Out-Null

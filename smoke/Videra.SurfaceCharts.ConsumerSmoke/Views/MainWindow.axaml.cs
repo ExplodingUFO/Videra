@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Numerics;
+using System.Runtime.InteropServices;
 using System.Text.Json;
 using Avalonia;
 using Avalonia.Controls;
@@ -400,6 +401,13 @@ public partial class MainWindow : Window
         var status = _chartView.RenderingStatus;
         return
             "SurfaceCharts support summary\n" +
+            $"GeneratedUtc: {DateTimeOffset.UtcNow:O}\n" +
+            "EvidenceKind: SurfaceChartsDatasetProof\n" +
+            "EvidenceOnly: true - values are support evidence, not stable benchmark guarantees.\n" +
+            $"ChartControl: {CreateChartControlSummary()}\n" +
+            $"EnvironmentRuntime: {CreateEnvironmentRuntimeSummary()}\n" +
+            $"AssemblyIdentity: {CreateAssemblyIdentitySummary()}\n" +
+            $"BackendDisplayEnvironment: {CreateBackendDisplayEnvironmentSummary()}\n" +
             "Source path: Start here: In-memory first chart\n" +
             "Source details: Generated at runtime from a dense 64x48 matrix, built with SurfacePyramidBuilder, and used as the packaged first-chart smoke baseline.\n" +
             $"ViewState: {CreateViewStateSummary()}\n" +
@@ -407,6 +415,51 @@ public partial class MainWindow : Window
             $"RenderingStatus: ActiveBackend {status.ActiveBackend}; IsReady {status.IsReady}; IsFallback {status.IsFallback}; FallbackReason {status.FallbackReason ?? "none"}; UsesNativeSurface {status.UsesNativeSurface}; ResidentTileCount {status.ResidentTileCount}; VisibleTileCount {status.VisibleTileCount}; ResidentTileBytes {status.ResidentTileBytes}\n" +
             $"OverlayOptions: {CreateOverlayOptionsSummary(_chartView.OverlayOptions)}\n" +
             "Dataset: Generated 64x48 in-memory matrix for the packaged first-chart consumer proof.";
+    }
+
+    private string CreateChartControlSummary()
+    {
+        var chartType = _chartView.GetType();
+        return $"{chartType.Name} ({chartType.FullName})";
+    }
+
+    private static string CreateEnvironmentRuntimeSummary()
+    {
+        return
+            $"{RuntimeInformation.FrameworkDescription}; " +
+            $"OS {RuntimeInformation.OSDescription}; " +
+            $"ProcessArchitecture {RuntimeInformation.ProcessArchitecture}; " +
+            $"OSArchitecture {RuntimeInformation.OSArchitecture}";
+    }
+
+    private static string CreateAssemblyIdentitySummary()
+    {
+        return
+            $"ConsumerSmoke {CreateAssemblyIdentity(typeof(MainWindow))}; " +
+            $"Avalonia {CreateAssemblyIdentity(typeof(SurfaceChartView))}; " +
+            $"Processing {CreateAssemblyIdentity(typeof(SurfacePyramidBuilder))}; " +
+            $"Rendering {CreateAssemblyIdentity(typeof(SurfaceChartRenderingStatus))}";
+    }
+
+    private static string CreateAssemblyIdentity(Type type)
+    {
+        var name = type.Assembly.GetName();
+        return $"{name.Name} {name.Version}";
+    }
+
+    private static string CreateBackendDisplayEnvironmentSummary()
+    {
+        return
+            $"VIDERA_BACKEND={GetEnvironmentValue("VIDERA_BACKEND")}; " +
+            $"DISPLAY={GetEnvironmentValue("DISPLAY")}; " +
+            $"WAYLAND_DISPLAY={GetEnvironmentValue("WAYLAND_DISPLAY")}; " +
+            $"XDG_SESSION_TYPE={GetEnvironmentValue("XDG_SESSION_TYPE")}";
+    }
+
+    private static string GetEnvironmentValue(string variableName)
+    {
+        var value = Environment.GetEnvironmentVariable(variableName);
+        return string.IsNullOrWhiteSpace(value) ? "unset" : value;
     }
 
     private string CreateViewStateSummary()

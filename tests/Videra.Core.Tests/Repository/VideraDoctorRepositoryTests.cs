@@ -386,6 +386,8 @@ public sealed class VideraDoctorRepositoryTests
             "EvidenceOnly: true - values are support evidence, not stable benchmark guarantees.",
             "ChartControl: SurfaceChartView (Videra.SurfaceCharts.Avalonia.Controls.SurfaceChartView)",
             "EnvironmentRuntime: .NET 8.0.0; OS Windows; ProcessArchitecture X64; OSArchitecture X64",
+            "AssemblyIdentity: ConsumerSmoke Videra.SurfaceCharts.ConsumerSmoke 0.1.0.0; Avalonia Videra.SurfaceCharts.Avalonia 0.1.0.0",
+            "BackendDisplayEnvironment: VIDERA_BACKEND=unset; DISPLAY=unset; WAYLAND_DISPLAY=unset; XDG_SESSION_TYPE=unset",
             "RenderingStatus:",
             "ActiveBackend: Software");
 
@@ -404,6 +406,8 @@ public sealed class VideraDoctorRepositoryTests
         supportReport.GetProperty("evidenceOnly").GetBoolean().Should().BeTrue();
         supportReport.GetProperty("chartControl").GetString().Should().Contain("SurfaceChartView");
         supportReport.GetProperty("environmentRuntime").GetString().Should().Contain(".NET");
+        supportReport.GetProperty("assemblyIdentity").GetString().Should().Contain("ConsumerSmoke");
+        supportReport.GetProperty("backendDisplayEnvironment").GetString().Should().Contain("VIDERA_BACKEND");
         supportReport.GetProperty("renderingStatusPresent").GetBoolean().Should().BeTrue();
 
         var summary = File.ReadAllText(Path.Combine(outputRoot, "doctor-summary.txt"));
@@ -411,6 +415,8 @@ public sealed class VideraDoctorRepositoryTests
         summary.Should().Contain("status: present");
         summary.Should().Contain("evidence kind: SurfaceChartsDatasetProof");
         summary.Should().Contain("chart control: SurfaceChartView");
+        summary.Should().Contain("assembly identity: ConsumerSmoke");
+        summary.Should().Contain("backend/display environment: VIDERA_BACKEND");
     }
 
     [Fact]

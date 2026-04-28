@@ -42,6 +42,13 @@ public sealed class SurfaceChartsConsumerSmokeConfigurationTests
         mainWindowCodeBehind.Should().Contain("SurfaceChartOverlayOptions");
         mainWindowCodeBehind.Should().Contain("InteractionQuality");
         mainWindowCodeBehind.Should().Contain("RenderingStatus");
+        mainWindowCodeBehind.Should().Contain("GeneratedUtc:");
+        mainWindowCodeBehind.Should().Contain("EvidenceKind: SurfaceChartsDatasetProof");
+        mainWindowCodeBehind.Should().Contain("EvidenceOnly: true - values are support evidence, not stable benchmark guarantees.");
+        mainWindowCodeBehind.Should().Contain("ChartControl:");
+        mainWindowCodeBehind.Should().Contain("EnvironmentRuntime:");
+        mainWindowCodeBehind.Should().Contain("AssemblyIdentity:");
+        mainWindowCodeBehind.Should().Contain("BackendDisplayEnvironment:");
         mainWindowCodeBehind.Should().Contain("FirstChartRendered");
         mainWindowCodeBehind.Should().Contain("ViewState");
         mainWindowCodeBehind.Should().Contain("ResidentTileCount");
