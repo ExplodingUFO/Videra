@@ -353,18 +353,6 @@ public partial class VideraEngine : IDisposable
         Log.ObjectsCleared(_logger);
     }
 
-    // 保留这个方法以兼容旧代码，但现在不再使用
-    /// <summary>
-    /// This method is deprecated in the current architecture where each
-    /// <see cref="Object3D"/> manages its own mesh. Calling it logs a warning.
-    /// </summary>
-    /// <param name="mesh">Mesh data (ignored).</param>
-    [Obsolete("UpdateMesh is deprecated. Each Object3D manages its own mesh in the current architecture.")]
-    public void UpdateMesh(MeshData mesh)
-    {
-        Log.UpdateMeshDeprecated(_logger);
-    }
-
     private static partial class Log
     {
         [LoggerMessage(EventId = 1, Level = LogLevel.Information, Message = "[VideraEngine] Initialized successfully")]
@@ -424,8 +412,6 @@ public partial class VideraEngine : IDisposable
         [LoggerMessage(EventId = 19, Level = LogLevel.Information, Message = "[VideraEngine] Cleared all objects")]
         public static partial void ObjectsCleared(ILogger logger);
 
-        [LoggerMessage(EventId = 20, Level = LogLevel.Warning, Message = "[VideraEngine] UpdateMesh is deprecated in new architecture")]
-        public static partial void UpdateMeshDeprecated(ILogger logger);
     }
 
     private void TransitionToStateUnsafe(EngineLifecycleState nextState)
