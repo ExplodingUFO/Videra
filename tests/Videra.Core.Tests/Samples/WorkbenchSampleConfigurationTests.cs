@@ -34,6 +34,27 @@ public sealed class WorkbenchSampleConfigurationTests
         codeBehind.Should().NotContain("VideraViewRuntime");
     }
 
+    [Fact]
+    public void Docs_ShouldDescribeProfessionalInteractionEvidenceBoundaries()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var avaloniaReadme = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.Avalonia", "README.md"));
+        var surfaceChartsReadme = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.SurfaceCharts.Avalonia", "README.md"));
+        var alphaFeedback = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "alpha-feedback.md"));
+
+        avaloniaReadme.Should().Contain("VideraInteractionEvidenceFormatter.Create");
+        avaloniaReadme.Should().Contain("report-only viewer interaction evidence");
+        avaloniaReadme.Should().Contain("do not mutate runtime state");
+
+        surfaceChartsReadme.Should().Contain("SurfaceChartProbeEvidenceFormatter.Create");
+        surfaceChartsReadme.Should().Contain("chart-local probe evidence");
+        surfaceChartsReadme.Should().Contain("overlay state types remain internal");
+
+        alphaFeedback.Should().Contain("ViewerInteractionEvidence");
+        alphaFeedback.Should().Contain("ChartProbeEvidence");
+        alphaFeedback.Should().Contain("not as replay files, benchmark guarantees, visual-regression baselines, fallback proof, or a broader viewer/chart project format");
+    }
+
     private static string GetRepositoryRoot()
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);

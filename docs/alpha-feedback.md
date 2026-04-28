@@ -18,8 +18,10 @@ Attach the smallest artifact set that explains the failure path:
 | Native-host issue | Attach the matching `artifacts/native-validation` output plus `artifacts/doctor/doctor-report.json`; include `wpf-smoke-diagnostics.txt` when the Windows WPF smoke path was involved. |
 | Packaged viewer validation | Attach `artifacts/consumer-smoke/consumer-smoke-result.json` and `artifacts/consumer-smoke/diagnostics-snapshot.txt`. |
 | SurfaceCharts issue | Attach `surfacecharts-support-summary.txt` from `smoke/Videra.SurfaceCharts.ConsumerSmoke` or the copied `Videra.SurfaceCharts.Demo` support summary; keep it separate from `VideraDiagnosticsSnapshotFormatter` output. |
+| Professional interaction workflow | Attach the optional `Videra.AvaloniaWorkbenchSample` support capture when the report depends on viewer interaction state, chart output evidence, chart probe evidence, and environment diagnostics together. |
 
 SurfaceCharts support summaries are support evidence, not benchmark results, pixel-perfect visual-regression gates, or GPU performance guarantees. A structured summary must include these prefixes: `GeneratedUtc`, `EvidenceKind`, `EvidenceOnly`, `ChartControl`, `EnvironmentRuntime`, `AssemblyIdentity`, `BackendDisplayEnvironment`, and `RenderingStatus`.
+Workbench support captures are support evidence too. `ViewerInteractionEvidence`, `ChartOutputEvidence`, and `ChartProbeEvidence` should be treated as report-only context from public APIs, not as replay files, benchmark guarantees, visual-regression baselines, fallback proof, or a broader viewer/chart project format.
 
 ## Before filing
 
@@ -45,8 +47,10 @@ SurfaceCharts support summaries are support evidence, not benchmark results, pix
    - a snapshot exported through `ExportSnapshotAsync(...)`, or
    - an inspection bundle exported through `VideraInspectionBundleService.ExportAsync(...)`
      - check `CanReplayScene` and include `ReplayLimitation`; they describe replayability semantics and should travel with the bundle whenever it captured host-owned objects or other non-replayable scene state
-7. If the issue involves Performance Lab visual output, generate the visual evidence bundle with `scripts/Invoke-PerformanceLabVisualEvidence.ps1`, rerun `scripts/Invoke-VideraDoctor.ps1`, and attach the Doctor report plus `performance-lab-visual-evidence-manifest.json`, `performance-lab-visual-evidence-summary.txt`, relevant PNG files, and per-scenario diagnostics text.
-8. For release-candidate or package reports, attach `release-candidate-evidence-index.json` after the release dry run; use its `visualEvidence.performanceLabVisualEvidence` and `visualEvidence.doctorVisualEvidence` fields to show whether visual evidence was present, missing, or unavailable.
+7. If viewer interaction state matters, include `VideraInteractionEvidenceFormatter.Format(...)` output or the `Videra.AvaloniaWorkbenchSample` `ViewerInteractionEvidence` section.
+8. If chart probe state matters, include `SurfaceChartProbeEvidenceFormatter.Format(...)` output or the `Videra.AvaloniaWorkbenchSample` `ChartProbeEvidence` section.
+9. If the issue involves Performance Lab visual output, generate the visual evidence bundle with `scripts/Invoke-PerformanceLabVisualEvidence.ps1`, rerun `scripts/Invoke-VideraDoctor.ps1`, and attach the Doctor report plus `performance-lab-visual-evidence-manifest.json`, `performance-lab-visual-evidence-summary.txt`, relevant PNG files, and per-scenario diagnostics text.
+10. For release-candidate or package reports, attach `release-candidate-evidence-index.json` after the release dry run; use its `visualEvidence.performanceLabVisualEvidence` and `visualEvidence.doctorVisualEvidence` fields to show whether visual evidence was present, missing, or unavailable.
 
 ## What to include in a bug report
 
@@ -56,6 +60,7 @@ SurfaceCharts support summaries are support evidence, not benchmark results, pix
 - Release issue evidence when the report concerns publication, GitHub Release assets, or public package availability: `public-release-preflight-summary.json`, `public-publish-after-summary.json`, `public-release-notes.md`, the Package matrix section, and the Known alpha limitations section
 - `PreferredBackend` or `VIDERA_BACKEND` value, if you overrode backend preference
 - diagnostics snapshot from `VideraDiagnosticsSnapshotFormatter`
+- `ViewerInteractionEvidence` from `VideraInteractionEvidenceFormatter` or the optional Workbench support capture when selection, measurement, clipping, camera, or annotation context is relevant
 - Performance Lab visual evidence bundle when visual rendering evidence is relevant: `artifacts/performance-lab-visual-evidence/performance-lab-visual-evidence-manifest.json`, `performance-lab-visual-evidence-summary.txt`, relevant PNG files, and per-scenario diagnostics text
 - `LastFrameObjectCount`, `LastFrameOpaqueObjectCount`, and `LastFrameTransparentObjectCount` when the issue depends on scene composition
 - `LastSnapshotExportPath` and `LastSnapshotExportStatus` when the report includes a snapshot export
@@ -63,6 +68,7 @@ SurfaceCharts support summaries are support evidence, not benchmark results, pix
 - inspection bundle directory when you need camera, clipping, measurements, annotations, and imported assets to replay together
 - `CanReplayScene` and `ReplayLimitation` from `VideraInspectionBundleService.ExportAsync(...)` whenever the bundle is exportable but not replayable
 - `SurfaceCharts support summary` from either the packaged `smoke/Videra.SurfaceCharts.ConsumerSmoke` `surfacecharts-support-summary.txt` artifact or the `Videra.SurfaceCharts.Demo` `Support summary` panel when the issue is in `area: surfacecharts`; keep it separate from `VideraDiagnosticsSnapshotFormatter` output
+- `ChartProbeEvidence` from `SurfaceChartProbeEvidenceFormatter` or the optional Workbench support capture when hovered or pinned probe values affect the report
 - use `Copy support summary` after reproducing `Start here: In-memory first chart`; continue to `Explore next: Cache-backed streaming` only if needed, and use `Try next: Analytics proof` for explicit-coordinate pinned-probe/analysis scenarios, `Try next: Waterfall proof` when the issue involves the second chart control, or `Try next: Scatter proof` when the issue involves the scatter control path; `ScatterChartView` is shipped in the Avalonia control line
 - include the SurfaceCharts summary fields `GeneratedUtc`, `EvidenceKind`, `EvidenceOnly`, `ChartControl`, `EnvironmentRuntime`, `AssemblyIdentity`, `BackendDisplayEnvironment`, and `RenderingStatus`; include `CacheLoadFailure` when the cache-backed path falls back
 - SurfaceCharts demo-path choice when relevant:

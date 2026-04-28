@@ -16,8 +16,7 @@ _No matching beads in the exported snapshot._
 
 ## Ready
 
-- **Videra-53d** - v2.46 Professional Interaction Evidence (epic, P1, open)
-- **Videra-m4z** - Phase 332: Professional interaction guardrails and docs closure (task, P1, open)
+_No matching beads in the exported snapshot._
 
 ## Blocked
 
@@ -29,6 +28,8 @@ _No matching beads in the exported snapshot._
 
 ## Recently Closed
 
+- **Videra-53d** - v2.46 Professional Interaction Evidence (epic, P1, closed)
+- **Videra-m4z** - Phase 332: Professional interaction guardrails and docs closure (task, P1, closed)
 - **Videra-nll** - Phase 331: Workbench professional interaction report workflow (task, P1, closed)
 - **Videra-k38** - Phase 330: SurfaceCharts probe output evidence polish (task, P1, closed)
 - **Videra-6oi** - Phase 329: Viewer interaction evidence polish (task, P1, closed)
@@ -37,6 +38,4 @@ _No matching beads in the exported snapshot._
 - **Videra-422** - Phase 327: Professional output guardrails and docs closure (task, P2, closed)
 - **Videra-ki0** - Phase 326: Workbench professional output workflow (task, P2, closed)
 - **Videra-ct5** - Phase 325: SurfaceCharts professional output evidence (task, P1, closed)
-- **Videra-uxg** - Phase 324: Static-scene semantic helpers polish (task, P1, closed)
-- **Videra-5wz** - Phase 323: Professional output and scene semantics inventory (task, P1, closed)
 

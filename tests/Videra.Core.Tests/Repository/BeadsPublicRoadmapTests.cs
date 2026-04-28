@@ -41,10 +41,12 @@ public sealed class BeadsPublicRoadmapTests
         after.Should().Contain("Phase 329: Viewer interaction evidence polish");
         after.Should().Contain("Videra-k38");
         after.Should().Contain("Phase 330: SurfaceCharts probe output evidence polish");
+        after.Should().Contain("Videra-nll");
+        after.Should().Contain("Phase 331: Workbench professional interaction report workflow");
+        after.Should().Contain("Videra-m4z");
+        after.Should().Contain("Phase 332: Professional interaction guardrails and docs closure");
         after.Should().Contain("Videra-j16");
         after.Should().Contain("v2.45 Professional Output and Scene Semantics");
-        after.Should().Contain("Videra-uxg");
-        after.Should().Contain("Phase 324: Static-scene semantic helpers polish");
         after.Should().Contain("Videra-ct5");
         after.Should().Contain("Phase 325: SurfaceCharts professional output evidence");
         after.Should().Contain("Videra-ki0");

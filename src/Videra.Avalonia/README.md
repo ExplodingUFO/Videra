@@ -178,6 +178,7 @@ Contract notes:
 - `ClippingPlanes`, `CaptureInspectionState()`, `ApplyInspectionState(...)`, and `ExportSnapshotAsync(...)` stay on the public inspection surface.
 - `CaptureInspectionState()` / `ApplyInspectionState(...)` now round-trip the typed inspection session, including host-owned annotations.
 - `VideraInspectionBundleService` exports and restores inspection bundles on top of that same typed session contract without widening `VideraView` into a larger project-format surface. `CanReplayScene` and `ReplayLimitation` describe replayability semantics and should be included when you export a bundle for support.
+- `VideraInteractionEvidenceFormatter.Create(...)` and `VideraInteractionEvidenceFormatter.Format(...)` create report-only viewer interaction evidence from `CaptureInspectionState()` plus optional `VideraInteractionDiagnostics`; they do not mutate runtime state, persist projects, or widen `VideraView` into a report system.
 - Overlay responsibilities are split between `3D highlight/render state` and `2D label/feedback rendering`.
 
 For the end-to-end public flow, see [samples/Videra.InteractionSample](../../samples/Videra.InteractionSample/README.md).
