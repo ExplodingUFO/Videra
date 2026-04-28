@@ -57,7 +57,7 @@ public sealed class SurfaceChartsDemoConfigurationTests
         mainWindow.Should().Contain("Try next: Scatter proof");
         mainWindow.Should().Contain("Scatter stream");
         mainWindow.Should().Contain("ScatterScenarioSelector");
-        mainWindow.Should().Contain("First-chart source");
+        mainWindow.Should().Contain("First-chart Plot path");
         mainWindow.Should().Contain("Start here status");
         mainWindow.Should().Contain("Built-in interaction");
         mainWindow.Should().Contain("BuiltInInteractionText");

@@ -46,8 +46,8 @@ public partial class MainWindow : Window
     private readonly string _cachePath;
     private readonly string _cachePayloadPath;
     private Task<ISurfaceTileSource>? _cacheSourceTask;
-    private string _activeSourceHeading = string.Empty;
-    private string _activeSourceDetails = string.Empty;
+    private string _activePlotPathHeading = string.Empty;
+    private string _activePlotPathDetails = string.Empty;
     private string _activeDatasetSummary = string.Empty;
     private string _activeAssetSummary = "No additional assets are used on this path.";
     private string? _lastCacheLoadFailureMessage;
@@ -274,9 +274,9 @@ public partial class MainWindow : Window
 
     private void ApplyCacheLoadFailure(Exception exception)
     {
-        _activeSourceHeading = "Explore next: Cache-backed streaming";
-        _activeSourceDetails = $"Cache-backed streaming failed to load: {exception.Message}. No source switch was performed.";
-        _activeDatasetSummary = "Cache-backed source unavailable. The previous chart source remains active and there was no scenario/data-path fallback.";
+        _activePlotPathHeading = "Explore next: Cache-backed streaming";
+        _activePlotPathDetails = $"Cache-backed streaming failed to load: {exception.Message}. No Plot path switch was performed.";
+        _activeDatasetSummary = "Cache-backed data path unavailable. The previous chart Plot path remains active and there was no scenario/data-path fallback.";
         _activeAssetSummary = $"Manifest {_cachePath}; Payload sidecar {_cachePayloadPath}";
         _datasetText.Text = _activeDatasetSummary;
         RefreshActiveProofTexts();
@@ -304,8 +304,8 @@ public partial class MainWindow : Window
 
         chartView.Plot.ColorMap = CreateColorMap(source.Metadata.ValueRange);
         chartView.FitToData();
-        _activeSourceHeading = heading;
-        _activeSourceDetails = details;
+        _activePlotPathHeading = heading;
+        _activePlotPathDetails = details;
         _activeDatasetSummary = datasetSummary;
         _activeAssetSummary = assetSummary;
         _datasetText.Text = datasetSummary;
@@ -324,8 +324,8 @@ public partial class MainWindow : Window
         _scatterChartView.Plot.Clear();
         _scatterChartView.Plot.Add.Scatter(source, heading);
         _scatterChartView.FitToData();
-        _activeSourceHeading = heading;
-        _activeSourceDetails = details;
+        _activePlotPathHeading = heading;
+        _activePlotPathDetails = details;
         _activeDatasetSummary = datasetSummary;
         _activeAssetSummary = assetSummary;
         _datasetText.Text = datasetSummary;
@@ -450,8 +450,8 @@ public partial class MainWindow : Window
         {
             var scatter = _activeScatterData;
             _statusText.Text =
-                $"{_activeSourceHeading}\n" +
-                $"{_activeSourceDetails}\n" +
+                $"{_activePlotPathHeading}\n" +
+                $"{_activePlotPathDetails}\n" +
                 "Scatter proof is authored through VideraChartView.Plot.Add.Scatter.\n" +
                 $"Current scene: {scatter?.SeriesCount ?? 0} series, {scatter?.PointCount ?? 0} points.\n" +
                 $"Columnar series: {scatter?.ColumnarSeriesCount ?? 0}; Retained columnar points: {scatter?.ColumnarPointCount ?? 0}; Pickable points: {scatter?.PickablePointCount ?? 0}.\n" +
@@ -461,8 +461,8 @@ public partial class MainWindow : Window
 
         var dataWindow = ActiveSurfaceFamilyChartView.ViewState.DataWindow;
         _statusText.Text =
-            $"{_activeSourceHeading}\n" +
-            $"{_activeSourceDetails}\n" +
+            $"{_activePlotPathHeading}\n" +
+            $"{_activePlotPathDetails}\n" +
             "First-chart navigation: Left drag orbit, Right drag pan, Wheel dolly, Ctrl + Left drag focus zoom.\n" +
             $"Current window: StartX {dataWindow.StartX:0.###}, StartY {dataWindow.StartY:0.###}, Width {dataWindow.Width:0.###}, Height {dataWindow.Height:0.###}";
     }
@@ -828,8 +828,8 @@ public partial class MainWindow : Window
                 $"AssemblyIdentity: {CreateAssemblyIdentitySummary()}\n" +
                 $"BackendDisplayEnvironment: {CreateBackendDisplayEnvironmentSummary()}\n" +
                 $"CacheLoadFailure: {CreateCacheLoadFailureSummary()}\n" +
-                $"Source path: {_activeSourceHeading}\n" +
-                $"Source details: {_activeSourceDetails}\n" +
+                $"Plot path: {_activePlotPathHeading}\n" +
+                $"Plot details: {_activePlotPathDetails}\n" +
                 $"ScenarioId: {scenario.Id}\n" +
                 $"ScenarioName: {scenario.DisplayName}\n" +
                 $"ScenarioUpdateMode: {scenario.UpdateMode}\n" +
@@ -858,8 +858,8 @@ public partial class MainWindow : Window
             $"AssemblyIdentity: {CreateAssemblyIdentitySummary()}\n" +
             $"BackendDisplayEnvironment: {CreateBackendDisplayEnvironmentSummary()}\n" +
             $"CacheLoadFailure: {CreateCacheLoadFailureSummary()}\n" +
-            $"Source path: {_activeSourceHeading}\n" +
-            $"Source details: {_activeSourceDetails}\n" +
+            $"Plot path: {_activePlotPathHeading}\n" +
+            $"Plot details: {_activePlotPathDetails}\n" +
             $"ViewState: {CreateViewStateSummary()}\n" +
             $"InteractionQuality: {ActiveSurfaceFamilyChartView.InteractionQuality}\n" +
             $"RenderingStatus:\n{CreateSurfaceRenderingDiagnosticsSummary(surfaceStatus)}\n" +

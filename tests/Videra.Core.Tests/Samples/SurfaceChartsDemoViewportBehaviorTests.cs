@@ -39,7 +39,7 @@ public sealed class SurfaceChartsDemoViewportBehaviorTests
             await WaitForConditionAsync(
                 () => HasActiveSurfaceSource(chartView) &&
                       statusText.Text?.Contains("Explore next: Cache-backed streaming", StringComparison.Ordinal) == true,
-                "switching sources should keep the built-in interaction workflow active on the new source.")
+                "switching data paths should keep the built-in interaction workflow active on the new source.")
                 .ConfigureAwait(true);
 
             var cacheSource = GetActiveSurfaceSource(chartView);
@@ -111,8 +111,8 @@ public sealed class SurfaceChartsDemoViewportBehaviorTests
                 "switching to the analytics proof should project explicit-coordinate and independent color scalar truth into the summary text.")
                 .ConfigureAwait(true);
 
-            supportSummaryText.Text.Should().Contain("Source path:");
-            supportSummaryText.Text.Should().Contain("Source details:");
+            supportSummaryText.Text.Should().Contain("Plot path:");
+            supportSummaryText.Text.Should().Contain("Plot details:");
             supportSummaryText.Text.Should().Contain("Dataset:");
             supportSummaryText.Text.Should().Contain("Shift + LeftClick");
         });
@@ -282,7 +282,7 @@ public sealed class SurfaceChartsDemoViewportBehaviorTests
                 () => waterfallPlotView.IsVisible &&
                       HasActiveSurfaceSource(waterfallPlotView) &&
                       statusText.Text?.Contains("Try next: Waterfall proof", StringComparison.Ordinal) == true,
-                "switching sources should activate the thin Waterfall proof path.")
+                "switching data paths should activate the thin Waterfall proof path.")
                 .ConfigureAwait(true);
 
             chartView.IsVisible.Should().BeFalse();
@@ -354,7 +354,7 @@ public sealed class SurfaceChartsDemoViewportBehaviorTests
                 () => scatterPlotView.IsVisible &&
                       scatterPlotView.Plot.Series.Any(series => series.Kind == Plot3DSeriesKind.Scatter) &&
                       statusText.Text?.Contains("Try next: Scatter proof", StringComparison.Ordinal) == true,
-                "switching sources should activate the direct scatter proof path.")
+                "switching data paths should activate the direct scatter proof path.")
                 .ConfigureAwait(true);
 
             chartView.IsVisible.Should().BeFalse();
@@ -504,7 +504,7 @@ public sealed class SurfaceChartsDemoViewportBehaviorTests
                 "the demo should give users a copy workflow for the support summary.")
                 .ConfigureAwait(true);
 
-            supportSummaryText.Text.Should().Contain("Source path:");
+            supportSummaryText.Text.Should().Contain("Plot path:");
             supportSummaryText.Text.Should().Contain("ChartControl: VideraChartView");
             supportSummaryText.Text.Should().Contain("EnvironmentRuntime:");
             supportSummaryText.Text.Should().Contain("AssemblyIdentity:");
@@ -526,7 +526,7 @@ public sealed class SurfaceChartsDemoViewportBehaviorTests
     }
 
     [Fact]
-    public Task DemoWindow_CopySupportSummaryCapturesCurrentSourceAndViewState()
+    public Task DemoWindow_CopySupportSummaryCapturesCurrentPlotPathAndViewState()
     {
         return AvaloniaHeadlessTestSession.RunAsync(async () =>
         {
@@ -545,7 +545,7 @@ public sealed class SurfaceChartsDemoViewportBehaviorTests
             await WaitForConditionAsync(
                 () => HasActiveSurfaceSource(chartView) &&
                       supportSummaryText.Text?.Contains("Explore next: Cache-backed streaming", StringComparison.Ordinal) == true,
-                "switching sources should project the new source path into the visible support summary.")
+                "switching data paths should project the new Plot path into the visible support summary.")
                 .ConfigureAwait(true);
 
             chartView.ZoomTo(new SurfaceDataWindow(8d, 6d, 32d, 24d));

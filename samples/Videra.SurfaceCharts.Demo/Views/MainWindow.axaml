@@ -55,7 +55,7 @@
             <TextBlock FontSize="18"
                        FontWeight="SemiBold"
                        Foreground="#E2E8F0"
-                       Text="First-chart source" />
+                       Text="First-chart Plot path" />
             <ComboBox x:Name="SourceSelector">
               <ComboBoxItem Content="Start here: In-memory first chart" />
               <ComboBoxItem Content="Explore next: Cache-backed streaming" />

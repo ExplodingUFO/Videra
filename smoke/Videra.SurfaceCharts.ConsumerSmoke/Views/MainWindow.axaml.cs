@@ -384,7 +384,7 @@ public partial class MainWindow : Window
         var status = _chartView.RenderingStatus;
         return
             "SurfaceCharts consumer smoke diagnostics\n" +
-            $"Source path: Start here: In-memory first chart\n" +
+            $"Plot path: Start here: In-memory first chart\n" +
             $"ActiveBackend: {status.ActiveBackend}\n" +
             $"IsReady: {status.IsReady}\n" +
             $"IsFallback: {status.IsFallback}\n" +
@@ -409,8 +409,8 @@ public partial class MainWindow : Window
             $"EnvironmentRuntime: {CreateEnvironmentRuntimeSummary()}\n" +
             $"AssemblyIdentity: {CreateAssemblyIdentitySummary()}\n" +
             $"BackendDisplayEnvironment: {CreateBackendDisplayEnvironmentSummary()}\n" +
-            "Source path: Start here: In-memory first chart\n" +
-            "Source details: Generated at runtime from a dense 64x48 matrix, built with SurfacePyramidBuilder, and used as the packaged first-chart smoke baseline.\n" +
+            "Plot path: Start here: In-memory first chart\n" +
+            "Plot details: Generated at runtime from a dense 64x48 matrix, built with SurfacePyramidBuilder, and used as the packaged first-chart smoke baseline.\n" +
             $"ViewState: {CreateViewStateSummary()}\n" +
             $"InteractionQuality: {_chartView.InteractionQuality}\n" +
             $"RenderingStatus: ActiveBackend {status.ActiveBackend}; IsReady {status.IsReady}; IsFallback {status.IsFallback}; FallbackReason {status.FallbackReason ?? "none"}; UsesNativeSurface {status.UsesNativeSurface}; ResidentTileCount {status.ResidentTileCount}; VisibleTileCount {status.VisibleTileCount}; ResidentTileBytes {status.ResidentTileBytes}\n" +
