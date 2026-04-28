@@ -16,11 +16,15 @@ _No matching beads in the exported snapshot._
 
 ## Ready
 
-_No matching beads in the exported snapshot._
+- **Videra-779** - v2.51 Professional Chart Output and Dataset Evidence (epic, P1, open; labels: evidence, output, professional-charts, v2.51)
+- **Videra-779.1** - Phase 356 Chart Output and Dataset Evidence Inventory (task, P1, open; labels: evidence, inventory, output, phase-356, professional-charts, v2.51)
 
 ## Blocked
 
-_No matching beads in the exported snapshot._
+- **Videra-779.2** - Phase 357 Chart Output Contract (feature, P1, open; labels: evidence, output, phase-357, professional-charts, v2.51)
+- **Videra-779.3** - Phase 358 Dataset Metadata and Reproducibility Evidence (feature, P1, open; labels: dataset, evidence, output, phase-358, professional-charts, v2.51)
+- **Videra-779.4** - Phase 359 Demo and Consumer Smoke Output Evidence (task, P2, open; labels: consumer-smoke, demo, evidence, output, phase-359, professional-charts, v2.51)
+- **Videra-779.5** - Phase 360 Professional Chart Output Guardrails and Docs (task, P2, open; labels: docs, evidence, guardrails, output, phase-360, professional-charts, v2.51)
 
 ## Backlog
 
