@@ -16,7 +16,12 @@ _No matching beads in the exported snapshot._
 
 ## Ready
 
-_No matching beads in the exported snapshot._
+- **Videra-j16** - v2.45 Professional Output and Scene Semantics (epic, P1, open)
+- **Videra-5wz** - Phase 323: Professional output and scene semantics inventory (task, P1, open)
+- **Videra-uxg** - Phase 324: Static-scene semantic helpers polish (task, P1, open)
+- **Videra-ct5** - Phase 325: SurfaceCharts professional output evidence (task, P1, open)
+- **Videra-ki0** - Phase 326: Workbench professional output workflow (task, P2, open)
+- **Videra-422** - Phase 327: Professional output guardrails and docs closure (task, P2, open)
 
 ## Backlog
 
