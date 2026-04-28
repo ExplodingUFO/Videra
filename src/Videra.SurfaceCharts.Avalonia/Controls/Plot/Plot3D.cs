@@ -99,6 +99,15 @@ public sealed class Plot3D
     private Action Changed { get; }
 
     /// <summary>
+    /// Creates deterministic dataset evidence from the current Plot-authored series.
+    /// </summary>
+    /// <returns>A snapshot of the current dataset evidence.</returns>
+    public Plot3DDatasetEvidence CreateDatasetEvidence()
+    {
+        return Plot3DDatasetEvidence.Create(Revision, _series, _overlayOptions);
+    }
+
+    /// <summary>
     /// Removes all series from the plot.
     /// </summary>
     public void Clear()

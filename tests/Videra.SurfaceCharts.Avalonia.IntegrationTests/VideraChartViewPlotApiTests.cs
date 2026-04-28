@@ -109,6 +109,150 @@ public sealed class VideraChartViewPlotApiTests
     }
 
     [Fact]
+    public void Plot3D_DatasetEvidence_ReportsSurfaceMetadataFromCurrentSeries()
+    {
+        AvaloniaHeadlessTestSession.Run(() =>
+        {
+            var view = new VideraChartView();
+            view.Plot.OverlayOptions = SurfaceChartNumericLabelPresets.Fixed(2);
+            var source = new ScriptedSurfaceTileSource(VideraChartViewLifecycleTests.CreateMetadata(), defaultTileValue: 4f);
+
+            view.Plot.Add.Surface(source, "surface");
+
+            var evidence = view.Plot.CreateDatasetEvidence();
+            var series = evidence.Series.Should().ContainSingle().Subject;
+            evidence.EvidenceKind.Should().Be("Plot3DDatasetEvidence");
+            evidence.PlotRevision.Should().Be(view.Plot.Revision);
+            evidence.ActiveSeriesIndex.Should().Be(0);
+            evidence.PrecisionProfile.Should().Be("SurfaceChartOverlayOptions:Tick=Fixed(2);Legend=Fixed(2);Formatter=Default");
+            series.Identity.Should().Be("PlotSeries[0]:Surface:surface");
+            series.Name.Should().Be("surface");
+            series.Kind.Should().Be(Plot3DSeriesKind.Surface);
+            series.IsActive.Should().BeTrue();
+            series.Width.Should().Be(source.Metadata.Width);
+            series.Height.Should().Be(source.Metadata.Height);
+            series.SampleCount.Should().Be(source.Metadata.SampleCount);
+            series.HorizontalAxis!.Label.Should().Be("X");
+            series.HorizontalAxis.ScaleKind.Should().Be(SurfaceAxisScaleKind.Linear);
+            series.VerticalAxis!.Label.Should().Be("Y");
+            series.ValueRange!.Minimum.Should().Be(0d);
+            series.ValueRange.Maximum.Should().Be(100d);
+            series.SamplingProfile.Should().Be("RegularGrid:XSpacing=1;YSpacing=1");
+        });
+    }
+
+    [Fact]
+    public void Plot3D_DatasetEvidence_ReportsWaterfallExplicitSamplingMetadata()
+    {
+        AvaloniaHeadlessTestSession.Run(() =>
+        {
+            var view = new VideraChartView();
+            var source = new ScriptedSurfaceTileSource(CreateWaterfallMetadata(), defaultTileValue: 7f);
+
+            view.Plot.Add.Waterfall(source, "waterfall");
+
+            var series = view.Plot.CreateDatasetEvidence().Series.Should().ContainSingle().Subject;
+            series.Identity.Should().Be("PlotSeries[0]:Waterfall:waterfall");
+            series.Kind.Should().Be(Plot3DSeriesKind.Waterfall);
+            series.Width.Should().Be(4);
+            series.Height.Should().Be(6);
+            series.SampleCount.Should().Be(24);
+            series.HorizontalAxis!.Label.Should().Be("Time");
+            series.HorizontalAxis.Unit.Should().Be("s");
+            series.HorizontalAxis.ScaleKind.Should().Be(SurfaceAxisScaleKind.ExplicitCoordinates);
+            series.VerticalAxis!.Label.Should().Be("Sweep");
+            series.SamplingProfile.Should().Be("ExplicitCoordinates:Width=4;Height=6");
+        });
+    }
+
+    [Fact]
+    public void Plot3D_DatasetEvidence_ReportsScatterMetadataCountsAndStreamingCounters()
+    {
+        AvaloniaHeadlessTestSession.Run(() =>
+        {
+            var view = new VideraChartView();
+            var scatter = CreateScatterData();
+
+            view.Plot.Add.Scatter(scatter, "scatter");
+
+            var series = view.Plot.CreateDatasetEvidence().Series.Should().ContainSingle().Subject;
+            series.Identity.Should().Be("PlotSeries[0]:Scatter:scatter");
+            series.Kind.Should().Be(Plot3DSeriesKind.Scatter);
+            series.SeriesCount.Should().Be(scatter.SeriesCount);
+            series.PointCount.Should().Be(scatter.PointCount);
+            series.ColumnarSeriesCount.Should().Be(scatter.ColumnarSeriesCount);
+            series.ColumnarPointCount.Should().Be(scatter.ColumnarPointCount);
+            series.PickablePointCount.Should().Be(scatter.PickablePointCount);
+            series.StreamingAppendBatchCount.Should().Be(scatter.StreamingAppendBatchCount);
+            series.StreamingReplaceBatchCount.Should().Be(scatter.StreamingReplaceBatchCount);
+            series.StreamingDroppedPointCount.Should().Be(scatter.StreamingDroppedPointCount);
+            series.LastStreamingDroppedPointCount.Should().Be(scatter.LastStreamingDroppedPointCount);
+            series.ConfiguredFifoCapacity.Should().Be(scatter.ConfiguredFifoCapacity);
+            series.HorizontalAxis!.Label.Should().Be("X");
+            series.HorizontalAxis.Unit.Should().Be("m");
+            series.DepthAxis!.Label.Should().Be("Z");
+            series.ValueRange!.Maximum.Should().Be(1d);
+            series.SamplingProfile.Should().Be("ScatterPoints");
+
+            var columnar = series.ColumnarSeries.Should().ContainSingle().Subject;
+            columnar.Label.Should().Be("columnar");
+            columnar.PointCount.Should().Be(3);
+            columnar.Pickable.Should().BeTrue();
+            columnar.FifoCapacity.Should().Be(3);
+            columnar.AppendBatchCount.Should().Be(1);
+            columnar.ReplaceBatchCount.Should().Be(1);
+            columnar.TotalAppendedPointCount.Should().Be(3);
+            columnar.TotalDroppedPointCount.Should().Be(2);
+            columnar.LastDroppedPointCount.Should().Be(2);
+        });
+    }
+
+    [Fact]
+    public void Plot3D_DatasetEvidence_ReadsCurrentSeriesAfterLifecycleChanges()
+    {
+        AvaloniaHeadlessTestSession.Run(() =>
+        {
+            var view = new VideraChartView();
+            view.Plot.Add.Surface(
+                new ScriptedSurfaceTileSource(VideraChartViewLifecycleTests.CreateMetadata(), defaultTileValue: 4f),
+                "surface");
+            var waterfall = view.Plot.Add.Waterfall(
+                new ScriptedSurfaceTileSource(CreateWaterfallMetadata(), defaultTileValue: 7f),
+                "waterfall");
+            var scatter = view.Plot.Add.Scatter(CreateScatterData(), "scatter");
+
+            view.Plot.CreateDatasetEvidence().Series.Select(item => item.Identity).Should().Equal(
+                "PlotSeries[0]:Surface:surface",
+                "PlotSeries[1]:Waterfall:waterfall",
+                "PlotSeries[2]:Scatter:scatter");
+            view.Plot.CreateDatasetEvidence().ActiveSeriesIndex.Should().Be(2);
+
+            view.Plot.Remove(waterfall).Should().BeTrue();
+
+            var afterRemove = view.Plot.CreateDatasetEvidence();
+            afterRemove.Series.Select(item => item.Identity).Should().Equal(
+                "PlotSeries[0]:Surface:surface",
+                "PlotSeries[1]:Scatter:scatter");
+            afterRemove.Series[1].IsActive.Should().BeTrue();
+            afterRemove.ActiveSeriesIndex.Should().Be(1);
+            view.Plot.IndexOf(scatter).Should().Be(1);
+
+            view.Plot.Remove(scatter).Should().BeTrue();
+
+            var afterScatterRemove = view.Plot.CreateDatasetEvidence();
+            afterScatterRemove.Series.Select(item => item.Identity).Should().Equal("PlotSeries[0]:Surface:surface");
+            afterScatterRemove.Series[0].IsActive.Should().BeTrue();
+
+            view.Plot.Clear();
+
+            var empty = view.Plot.CreateDatasetEvidence();
+            empty.Series.Should().BeEmpty();
+            empty.ActiveSeriesIndex.Should().Be(-1);
+            empty.PlotRevision.Should().Be(view.Plot.Revision);
+        });
+    }
+
+    [Fact]
     public void Plot3D_RejectsNullLifecycleArgumentsWithoutChangingRevision()
     {
         AvaloniaHeadlessTestSession.Run(() =>
