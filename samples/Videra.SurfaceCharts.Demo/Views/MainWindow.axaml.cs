@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Runtime.InteropServices;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
@@ -49,6 +50,7 @@ public partial class MainWindow : Window
     private string _activeSourceDetails = string.Empty;
     private string _activeDatasetSummary = string.Empty;
     private string _activeAssetSummary = "No additional assets are used on this path.";
+    private string? _lastCacheLoadFailureMessage;
 
     public MainWindow()
     {
@@ -248,6 +250,7 @@ public partial class MainWindow : Window
                 return;
             }
 
+            _lastCacheLoadFailureMessage = null;
             ApplySource(
                 _surfaceChartView,
                 cacheSource,
@@ -263,6 +266,7 @@ public partial class MainWindow : Window
                 return;
             }
 
+            _lastCacheLoadFailureMessage = $"{exception.GetType().Name}: {exception.Message}";
             ApplySource(
                 _surfaceChartView,
                 _inMemorySource,
@@ -820,6 +824,11 @@ public partial class MainWindow : Window
                 $"GeneratedUtc: {DateTimeOffset.UtcNow:O}\n" +
                 "EvidenceKind: SurfaceChartsStreamingDatasetProof\n" +
                 "EvidenceOnly: true - values are support evidence, not stable benchmark guarantees.\n" +
+                $"ChartControl: {CreateActiveChartControlSummary()}\n" +
+                $"EnvironmentRuntime: {CreateEnvironmentRuntimeSummary()}\n" +
+                $"AssemblyIdentity: {CreateAssemblyIdentitySummary()}\n" +
+                $"BackendDisplayEnvironment: {CreateBackendDisplayEnvironmentSummary()}\n" +
+                $"CacheLoadFailure: {CreateCacheLoadFailureSummary()}\n" +
                 $"Source path: {_activeSourceHeading}\n" +
                 $"Source details: {_activeSourceDetails}\n" +
                 $"ScenarioId: {scenario.Id}\n" +
@@ -845,6 +854,11 @@ public partial class MainWindow : Window
             $"GeneratedUtc: {DateTimeOffset.UtcNow:O}\n" +
             "EvidenceKind: SurfaceChartsDatasetProof\n" +
             "EvidenceOnly: true - values are support evidence, not stable benchmark guarantees.\n" +
+            $"ChartControl: {CreateActiveChartControlSummary()}\n" +
+            $"EnvironmentRuntime: {CreateEnvironmentRuntimeSummary()}\n" +
+            $"AssemblyIdentity: {CreateAssemblyIdentitySummary()}\n" +
+            $"BackendDisplayEnvironment: {CreateBackendDisplayEnvironmentSummary()}\n" +
+            $"CacheLoadFailure: {CreateCacheLoadFailureSummary()}\n" +
             $"Source path: {_activeSourceHeading}\n" +
             $"Source details: {_activeSourceDetails}\n" +
             $"ViewState: {CreateViewStateSummary()}\n" +
@@ -853,6 +867,59 @@ public partial class MainWindow : Window
             $"OverlayOptions: {CreateOverlayOptionsSummary(ActiveSurfaceChartView.OverlayOptions)}\n" +
             $"Cache asset: {_activeAssetSummary}\n" +
             $"Dataset: {_activeDatasetSummary}";
+    }
+
+    private string CreateActiveChartControlSummary()
+    {
+        var chartType = IsScatterProofActive
+            ? _scatterChartView.GetType()
+            : ActiveSurfaceChartView.GetType();
+
+        return $"{chartType.Name} ({chartType.FullName})";
+    }
+
+    private static string CreateEnvironmentRuntimeSummary()
+    {
+        return
+            $"{RuntimeInformation.FrameworkDescription}; " +
+            $"OS {RuntimeInformation.OSDescription}; " +
+            $"ProcessArchitecture {RuntimeInformation.ProcessArchitecture}; " +
+            $"OSArchitecture {RuntimeInformation.OSArchitecture}";
+    }
+
+    private static string CreateAssemblyIdentitySummary()
+    {
+        return
+            $"Demo {CreateAssemblyIdentity(typeof(MainWindow))}; " +
+            $"Avalonia {CreateAssemblyIdentity(typeof(SurfaceChartView))}; " +
+            $"Processing {CreateAssemblyIdentity(typeof(SurfaceCacheReader))}; " +
+            $"Rendering {CreateAssemblyIdentity(typeof(SurfaceChartRenderingStatus))}";
+    }
+
+    private static string CreateAssemblyIdentity(Type type)
+    {
+        var name = type.Assembly.GetName();
+        return $"{name.Name} {name.Version}";
+    }
+
+    private static string CreateBackendDisplayEnvironmentSummary()
+    {
+        return
+            $"VIDERA_BACKEND={GetEnvironmentValue("VIDERA_BACKEND")}; " +
+            $"DISPLAY={GetEnvironmentValue("DISPLAY")}; " +
+            $"WAYLAND_DISPLAY={GetEnvironmentValue("WAYLAND_DISPLAY")}; " +
+            $"XDG_SESSION_TYPE={GetEnvironmentValue("XDG_SESSION_TYPE")}";
+    }
+
+    private static string GetEnvironmentValue(string variableName)
+    {
+        var value = Environment.GetEnvironmentVariable(variableName);
+        return string.IsNullOrWhiteSpace(value) ? "unset" : value;
+    }
+
+    private string CreateCacheLoadFailureSummary()
+    {
+        return _lastCacheLoadFailureMessage ?? "none";
     }
 
     private string CreateViewStateSummary()

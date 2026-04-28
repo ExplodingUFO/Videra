@@ -62,7 +62,7 @@ dotnet run --project samples/Videra.SurfaceCharts.Demo/Videra.SurfaceCharts.Demo
 - a lightweight rendering-path panel driven by `RenderingStatus` / `RenderStatusChanged`
 - a dedicated `RenderingStatus` diagnostics panel that exposes the active backend, readiness, fallback status/reason, native-host state, resident tile count, visible tile count, and resident tile bytes for the active surface chart path
 - scatter diagnostics for series count, point count, columnar series count, retained columnar point count, append/replacement batch count, FIFO dropped points, configured FIFO capacity, pickable point count, and `InteractionQuality`; the columnar high-volume path defaults to `Pickable=false`
-- a copyable evidence-only support summary that includes selected scenario id/name/update mode, point counts, FIFO capacity, pickability, rendering status, and dataset/source details; these values are support evidence, not stable benchmark guarantees
+- a copyable evidence-only support summary that includes active chart control type, runtime/assembly identity, backend/display environment variables, last cache-load failure if fallback occurred, selected scenario id/name/update mode, point counts, FIFO capacity, pickability, rendering status, and dataset/source details; these values are support evidence, not stable benchmark guarantees
 
 Maintainers can include the deterministic scatter streaming scenarios in the repo-owned visual evidence bundle:
 
@@ -77,6 +77,7 @@ The bundle includes PNG visual evidence, manifest JSON, summary text, and per-sc
 The current sample is still a focused onboarding surface, not a finished end-user chart workstation:
 
 - no exhaustive UI that forces every GPU host / fallback combination; the diagnostics panel reports the active runtime path and current `RenderingStatus` fields
+- no replacement for `VideraDiagnosticsSnapshotFormatter`; the SurfaceCharts support summary stays separate and reports only chart-local evidence from this demo path
 - no hard performance guarantee from the demo scenarios; benchmark thresholds remain in the dedicated benchmark gate files after CI history supports promotion
 - no GPU-driven culling, renderer rewrite, new chart family, or generic benchmark editor
 - on Linux, native GPU hosting still depends on X11 handles; Wayland sessions are `XWayland compatibility` only, not compositor-native Wayland surface embedding

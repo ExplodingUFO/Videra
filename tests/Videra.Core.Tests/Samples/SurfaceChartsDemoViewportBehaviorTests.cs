@@ -404,6 +404,11 @@ public sealed class SurfaceChartsDemoViewportBehaviorTests
             resetCamera.Distance.Should().BeApproximately(GetFitDistance(bounds.Size, SurfaceCameraPose.DefaultFieldOfViewDegrees), 0.0001d);
 
             supportSummaryText.Text.Should().Contain("ScatterChartView");
+            supportSummaryText.Text.Should().Contain("ChartControl: ScatterChartView");
+            supportSummaryText.Text.Should().Contain("EnvironmentRuntime:");
+            supportSummaryText.Text.Should().Contain("AssemblyIdentity:");
+            supportSummaryText.Text.Should().Contain("BackendDisplayEnvironment:");
+            supportSummaryText.Text.Should().Contain("CacheLoadFailure: none");
             supportSummaryText.Text.Should().Contain("RenderingStatus:");
             supportSummaryText.Text.Should().Contain("BackendKind:");
             supportSummaryText.Text.Should().Contain("SeriesCount");
@@ -459,6 +464,34 @@ public sealed class SurfaceChartsDemoViewportBehaviorTests
     }
 
     [Fact]
+    public Task DemoWindow_CacheLoadFallback_ProjectsFailureDetailIntoSupportSummary()
+    {
+        return AvaloniaHeadlessTestSession.RunAsync(async () =>
+        {
+            var window = new MainWindow();
+            var sourceSelector = window.FindControl<ComboBox>("SourceSelector")
+                ?? throw new InvalidOperationException("SourceSelector is missing.");
+            var supportSummaryText = window.FindControl<TextBlock>("SupportSummaryText")
+                ?? throw new InvalidOperationException("SupportSummaryText is missing.");
+
+            var cacheSourceTaskField = typeof(MainWindow).GetField("_cacheSourceTask", BindingFlags.Instance | BindingFlags.NonPublic);
+            cacheSourceTaskField.Should().NotBeNull();
+            cacheSourceTaskField!.SetValue(
+                window,
+                Task.FromException<ISurfaceTileSource>(new InvalidOperationException("cache manifest sidecar missing")));
+
+            SelectItem(sourceSelector, GetComboBoxItemByContent(sourceSelector, "Explore next: Cache-backed streaming"));
+
+            await WaitForConditionAsync(
+                () => supportSummaryText.Text?.Contains("CacheLoadFailure: InvalidOperationException: cache manifest sidecar missing", StringComparison.Ordinal) == true,
+                "cache-backed fallback should keep the exact cache load failure available in the support summary.")
+                .ConfigureAwait(true);
+
+            supportSummaryText.Text.Should().Contain("CacheLoadFailure: InvalidOperationException: cache manifest sidecar missing");
+        });
+    }
+
+    [Fact]
     public Task DemoWindow_SupportSummaryProjectsSupportReadyChartTruth()
     {
         return AvaloniaHeadlessTestSession.RunAsync(async () =>
@@ -485,6 +518,11 @@ public sealed class SurfaceChartsDemoViewportBehaviorTests
                 .ConfigureAwait(true);
 
             supportSummaryText.Text.Should().Contain("Source path:");
+            supportSummaryText.Text.Should().Contain("ChartControl: SurfaceChartView");
+            supportSummaryText.Text.Should().Contain("EnvironmentRuntime:");
+            supportSummaryText.Text.Should().Contain("AssemblyIdentity:");
+            supportSummaryText.Text.Should().Contain("BackendDisplayEnvironment:");
+            supportSummaryText.Text.Should().Contain("CacheLoadFailure: none");
             supportSummaryText.Text.Should().Contain("ViewState:");
             supportSummaryText.Text.Should().Contain("InteractionQuality:");
             supportSummaryText.Text.Should().Contain("RenderingStatus:");

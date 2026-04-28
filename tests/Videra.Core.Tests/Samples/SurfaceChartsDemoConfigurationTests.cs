@@ -41,6 +41,10 @@ public sealed class SurfaceChartsDemoConfigurationTests
         readme.Should().Contain("ScatterChartView");
         readme.Should().Contain("ScatterStreamingScenarios");
         readme.Should().Contain("evidence-only support summary");
+        readme.Should().Contain("active chart control type");
+        readme.Should().Contain("runtime/assembly identity");
+        readme.Should().Contain("backend/display environment variables");
+        readme.Should().Contain("last cache-load failure");
         readme.Should().Contain("not stable benchmark guarantees");
         readme.Should().Contain("Try next: Analytics proof");
         readme.Should().Contain("ColorField");
@@ -90,6 +94,11 @@ public sealed class SurfaceChartsDemoConfigurationTests
         mainWindowCodeBehind.Should().Contain("SupportSummaryText");
         mainWindowCodeBehind.Should().Contain("EvidenceKind: SurfaceChartsStreamingDatasetProof");
         mainWindowCodeBehind.Should().Contain("EvidenceOnly: true");
+        mainWindowCodeBehind.Should().Contain("ChartControl:");
+        mainWindowCodeBehind.Should().Contain("EnvironmentRuntime:");
+        mainWindowCodeBehind.Should().Contain("AssemblyIdentity:");
+        mainWindowCodeBehind.Should().Contain("BackendDisplayEnvironment:");
+        mainWindowCodeBehind.Should().Contain("CacheLoadFailure:");
         mainWindowCodeBehind.Should().Contain("ScenarioId:");
         mainWindowCodeBehind.Should().Contain("CopySupportSummaryButton");
         mainWindowCodeBehind.Should().Contain("SupportSummaryStatusText");
