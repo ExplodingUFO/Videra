@@ -187,6 +187,12 @@ public sealed class AlphaConsumerIntegrationTests
         smokeScript.Should().Contain("ChartKind:");
         smokeScript.Should().Contain("ColorMap:");
         smokeScript.Should().Contain("PrecisionProfile:");
+        smokeScript.Should().Contain("OutputEvidenceKind:");
+        smokeScript.Should().Contain("OutputCapabilityDiagnostics:");
+        smokeScript.Should().Contain("DatasetEvidenceKind:");
+        smokeScript.Should().Contain("DatasetSeriesCount:");
+        smokeScript.Should().Contain("DatasetActiveSeriesIndex:");
+        smokeScript.Should().Contain("DatasetActiveSeriesMetadata:");
         smokeScript.Should().Contain("RenderingStatus");
     }
 

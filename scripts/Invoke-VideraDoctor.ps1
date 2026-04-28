@@ -295,9 +295,15 @@ function Get-SurfaceChartsSupportReport
             chartKind = ""
             colorMap = ""
             precisionProfile = ""
+            outputEvidenceKind = ""
+            outputCapabilityDiagnostics = ""
+            datasetEvidenceKind = ""
+            datasetSeriesCount = ""
+            datasetActiveSeriesIndex = ""
+            datasetActiveSeriesMetadata = ""
             renderingStatusPresent = $false
             isStructuredComplete = $false
-            missingFields = @("GeneratedUtc", "EvidenceKind", "EvidenceOnly", "ChartControl", "EnvironmentRuntime", "AssemblyIdentity", "BackendDisplayEnvironment", "SeriesCount", "ActiveSeries", "ChartKind", "ColorMap", "PrecisionProfile", "RenderingStatus")
+            missingFields = @("GeneratedUtc", "EvidenceKind", "EvidenceOnly", "ChartControl", "EnvironmentRuntime", "AssemblyIdentity", "BackendDisplayEnvironment", "SeriesCount", "ActiveSeries", "ChartKind", "ColorMap", "PrecisionProfile", "OutputEvidenceKind", "OutputCapabilityDiagnostics", "DatasetEvidenceKind", "DatasetSeriesCount", "DatasetActiveSeriesIndex", "DatasetActiveSeriesMetadata", "RenderingStatus")
         }
     }
 
@@ -323,9 +329,15 @@ function Get-SurfaceChartsSupportReport
             chartKind = ""
             colorMap = ""
             precisionProfile = ""
+            outputEvidenceKind = ""
+            outputCapabilityDiagnostics = ""
+            datasetEvidenceKind = ""
+            datasetSeriesCount = ""
+            datasetActiveSeriesIndex = ""
+            datasetActiveSeriesMetadata = ""
             renderingStatusPresent = $false
             isStructuredComplete = $false
-            missingFields = @("GeneratedUtc", "EvidenceKind", "EvidenceOnly", "ChartControl", "EnvironmentRuntime", "AssemblyIdentity", "BackendDisplayEnvironment", "SeriesCount", "ActiveSeries", "ChartKind", "ColorMap", "PrecisionProfile", "RenderingStatus")
+            missingFields = @("GeneratedUtc", "EvidenceKind", "EvidenceOnly", "ChartControl", "EnvironmentRuntime", "AssemblyIdentity", "BackendDisplayEnvironment", "SeriesCount", "ActiveSeries", "ChartKind", "ColorMap", "PrecisionProfile", "OutputEvidenceKind", "OutputCapabilityDiagnostics", "DatasetEvidenceKind", "DatasetSeriesCount", "DatasetActiveSeriesIndex", "DatasetActiveSeriesMetadata", "RenderingStatus")
         }
     }
 
@@ -354,6 +366,12 @@ function Get-SurfaceChartsSupportReport
     $chartKind = Get-SurfaceChartsSupportValue -Prefix "ChartKind:"
     $colorMap = Get-SurfaceChartsSupportValue -Prefix "ColorMap:"
     $precisionProfile = Get-SurfaceChartsSupportValue -Prefix "PrecisionProfile:"
+    $outputEvidenceKind = Get-SurfaceChartsSupportValue -Prefix "OutputEvidenceKind:"
+    $outputCapabilityDiagnostics = Get-SurfaceChartsSupportValue -Prefix "OutputCapabilityDiagnostics:"
+    $datasetEvidenceKind = Get-SurfaceChartsSupportValue -Prefix "DatasetEvidenceKind:"
+    $datasetSeriesCount = Get-SurfaceChartsSupportValue -Prefix "DatasetSeriesCount:"
+    $datasetActiveSeriesIndex = Get-SurfaceChartsSupportValue -Prefix "DatasetActiveSeriesIndex:"
+    $datasetActiveSeriesMetadata = Get-SurfaceChartsSupportValue -Prefix "DatasetActiveSeriesMetadata:"
     $renderingStatusPresent = ($lines | Where-Object { $_.StartsWith("RenderingStatus", [System.StringComparison]::Ordinal) }).Count -gt 0
     $missingFields = @()
     if ([string]::IsNullOrWhiteSpace($generatedAtUtc)) { $missingFields += "GeneratedUtc" }
@@ -368,6 +386,12 @@ function Get-SurfaceChartsSupportReport
     if ([string]::IsNullOrWhiteSpace($chartKind)) { $missingFields += "ChartKind" }
     if ([string]::IsNullOrWhiteSpace($colorMap)) { $missingFields += "ColorMap" }
     if ([string]::IsNullOrWhiteSpace($precisionProfile)) { $missingFields += "PrecisionProfile" }
+    if ([string]::IsNullOrWhiteSpace($outputEvidenceKind)) { $missingFields += "OutputEvidenceKind" }
+    if ([string]::IsNullOrWhiteSpace($outputCapabilityDiagnostics)) { $missingFields += "OutputCapabilityDiagnostics" }
+    if ([string]::IsNullOrWhiteSpace($datasetEvidenceKind)) { $missingFields += "DatasetEvidenceKind" }
+    if ([string]::IsNullOrWhiteSpace($datasetSeriesCount)) { $missingFields += "DatasetSeriesCount" }
+    if ([string]::IsNullOrWhiteSpace($datasetActiveSeriesIndex)) { $missingFields += "DatasetActiveSeriesIndex" }
+    if ([string]::IsNullOrWhiteSpace($datasetActiveSeriesMetadata)) { $missingFields += "DatasetActiveSeriesMetadata" }
     if (-not $renderingStatusPresent) { $missingFields += "RenderingStatus" }
 
     return [ordered]@{
@@ -386,6 +410,12 @@ function Get-SurfaceChartsSupportReport
         chartKind = $chartKind
         colorMap = $colorMap
         precisionProfile = $precisionProfile
+        outputEvidenceKind = $outputEvidenceKind
+        outputCapabilityDiagnostics = $outputCapabilityDiagnostics
+        datasetEvidenceKind = $datasetEvidenceKind
+        datasetSeriesCount = $datasetSeriesCount
+        datasetActiveSeriesIndex = $datasetActiveSeriesIndex
+        datasetActiveSeriesMetadata = $datasetActiveSeriesMetadata
         renderingStatusPresent = $renderingStatusPresent
         isStructuredComplete = $missingFields.Count -eq 0
         missingFields = @($missingFields)
@@ -743,6 +773,30 @@ if (-not [string]::IsNullOrWhiteSpace($surfaceChartsSupportReport.colorMap))
 if (-not [string]::IsNullOrWhiteSpace($surfaceChartsSupportReport.precisionProfile))
 {
     $summaryLines.Add(("- precision profile: {0}" -f $surfaceChartsSupportReport.precisionProfile)) | Out-Null
+}
+if (-not [string]::IsNullOrWhiteSpace($surfaceChartsSupportReport.outputEvidenceKind))
+{
+    $summaryLines.Add(("- output evidence kind: {0}" -f $surfaceChartsSupportReport.outputEvidenceKind)) | Out-Null
+}
+if (-not [string]::IsNullOrWhiteSpace($surfaceChartsSupportReport.outputCapabilityDiagnostics))
+{
+    $summaryLines.Add(("- output capability diagnostics: {0}" -f $surfaceChartsSupportReport.outputCapabilityDiagnostics)) | Out-Null
+}
+if (-not [string]::IsNullOrWhiteSpace($surfaceChartsSupportReport.datasetEvidenceKind))
+{
+    $summaryLines.Add(("- dataset evidence kind: {0}" -f $surfaceChartsSupportReport.datasetEvidenceKind)) | Out-Null
+}
+if (-not [string]::IsNullOrWhiteSpace($surfaceChartsSupportReport.datasetSeriesCount))
+{
+    $summaryLines.Add(("- dataset series count: {0}" -f $surfaceChartsSupportReport.datasetSeriesCount)) | Out-Null
+}
+if (-not [string]::IsNullOrWhiteSpace($surfaceChartsSupportReport.datasetActiveSeriesIndex))
+{
+    $summaryLines.Add(("- dataset active series index: {0}" -f $surfaceChartsSupportReport.datasetActiveSeriesIndex)) | Out-Null
+}
+if (-not [string]::IsNullOrWhiteSpace($surfaceChartsSupportReport.datasetActiveSeriesMetadata))
+{
+    $summaryLines.Add(("- dataset active series metadata: {0}" -f $surfaceChartsSupportReport.datasetActiveSeriesMetadata)) | Out-Null
 }
 if (-not [string]::IsNullOrWhiteSpace($surfaceChartsSupportReport.assemblyIdentity))
 {

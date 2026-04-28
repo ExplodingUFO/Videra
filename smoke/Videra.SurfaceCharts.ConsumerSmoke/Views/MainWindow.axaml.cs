@@ -416,6 +416,12 @@ public partial class MainWindow : Window
             $"ChartKind: {CreateChartKindSummary(_chartView)}\n" +
             $"ColorMap: {CreateColorMapSummary(_chartView.Plot.ColorMap)}\n" +
             $"PrecisionProfile: {CreatePrecisionProfileSummary(_chartView)}\n" +
+            $"OutputEvidenceKind: {CreateOutputEvidenceKindSummary(_chartView)}\n" +
+            $"OutputCapabilityDiagnostics: {CreateOutputCapabilityDiagnosticsSummary(_chartView)}\n" +
+            $"DatasetEvidenceKind: {CreateDatasetEvidenceKindSummary(_chartView)}\n" +
+            $"DatasetSeriesCount: {CreateDatasetSeriesCountSummary(_chartView)}\n" +
+            $"DatasetActiveSeriesIndex: {CreateDatasetActiveSeriesIndexSummary(_chartView)}\n" +
+            $"DatasetActiveSeriesMetadata: {CreateDatasetActiveSeriesMetadataSummary(_chartView)}\n" +
             $"ViewState: {CreateViewStateSummary()}\n" +
             $"InteractionQuality: {_chartView.InteractionQuality}\n" +
             $"RenderingStatus: ActiveBackend {status.ActiveBackend}; IsReady {status.IsReady}; IsFallback {status.IsFallback}; FallbackReason {status.FallbackReason ?? "none"}; UsesNativeSurface {status.UsesNativeSurface}; ResidentTileCount {status.ResidentTileCount}; VisibleTileCount {status.VisibleTileCount}; ResidentTileBytes {status.ResidentTileBytes}\n" +
@@ -497,6 +503,61 @@ public partial class MainWindow : Window
     private static string CreatePrecisionProfileSummary(VideraChartView chartView)
     {
         return SurfaceChartOverlayEvidenceFormatter.DescribePrecisionProfile(chartView.Plot.OverlayOptions);
+    }
+
+    private static string CreateOutputEvidenceKindSummary(VideraChartView chartView)
+    {
+        return CreateOutputEvidence(chartView).EvidenceKind;
+    }
+
+    private static string CreateOutputCapabilityDiagnosticsSummary(VideraChartView chartView)
+    {
+        var diagnostics = CreateOutputEvidence(chartView).OutputCapabilityDiagnostics;
+        return string.Join(
+            "; ",
+            diagnostics.Select(diagnostic =>
+                $"{diagnostic.Capability}={diagnostic.DiagnosticCode};Supported={diagnostic.IsSupported}"));
+    }
+
+    private static string CreateDatasetEvidenceKindSummary(VideraChartView chartView)
+    {
+        return chartView.Plot.CreateDatasetEvidence().EvidenceKind;
+    }
+
+    private static string CreateDatasetSeriesCountSummary(VideraChartView chartView)
+    {
+        return chartView.Plot.CreateDatasetEvidence().Series.Count.ToString(CultureInfo.InvariantCulture);
+    }
+
+    private static string CreateDatasetActiveSeriesIndexSummary(VideraChartView chartView)
+    {
+        return chartView.Plot.CreateDatasetEvidence().ActiveSeriesIndex.ToString(CultureInfo.InvariantCulture);
+    }
+
+    private static string CreateDatasetActiveSeriesMetadataSummary(VideraChartView chartView)
+    {
+        var evidence = chartView.Plot.CreateDatasetEvidence();
+        var active = evidence.Series.FirstOrDefault(series => series.IsActive);
+        if (active is null)
+        {
+            return "none";
+        }
+
+        return
+            $"{active.Identity}; Samples {active.Width}x{active.Height}; Count {active.SampleCount}; " +
+            $"ValueRange {FormatValueRange(active.ValueRange)}; Sampling {active.SamplingProfile}";
+    }
+
+    private static Plot3DOutputEvidence CreateOutputEvidence(VideraChartView chartView)
+    {
+        return chartView.Plot.CreateOutputEvidence(chartView.RenderingStatus, chartView.ScatterRenderingStatus);
+    }
+
+    private static string FormatValueRange(SurfaceValueRangeDatasetEvidence? valueRange)
+    {
+        return valueRange is null
+            ? "none"
+            : $"{valueRange.Minimum.ToString("G6", CultureInfo.InvariantCulture)}..{valueRange.Maximum.ToString("G6", CultureInfo.InvariantCulture)}";
     }
 
     private static string FormatSeriesName(string? name)

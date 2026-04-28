@@ -835,6 +835,12 @@ public partial class MainWindow : Window
                 $"ChartKind: {CreateChartKindSummary(_scatterChartView)}\n" +
                 $"ColorMap: {CreateColorMapSummary(_scatterChartView.Plot.ColorMap)}\n" +
                 $"PrecisionProfile: {CreatePrecisionProfileSummary(_scatterChartView)}\n" +
+                $"OutputEvidenceKind: {CreateOutputEvidenceKindSummary(_scatterChartView)}\n" +
+                $"OutputCapabilityDiagnostics: {CreateOutputCapabilityDiagnosticsSummary(_scatterChartView)}\n" +
+                $"DatasetEvidenceKind: {CreateDatasetEvidenceKindSummary(_scatterChartView)}\n" +
+                $"DatasetSeriesCount: {CreateDatasetSeriesCountSummary(_scatterChartView)}\n" +
+                $"DatasetActiveSeriesIndex: {CreateDatasetActiveSeriesIndexSummary(_scatterChartView)}\n" +
+                $"DatasetActiveSeriesMetadata: {CreateDatasetActiveSeriesMetadataSummary(_scatterChartView)}\n" +
                 $"ScenarioId: {scenario.Id}\n" +
                 $"ScenarioName: {scenario.DisplayName}\n" +
                 $"ScenarioUpdateMode: {scenario.UpdateMode}\n" +
@@ -870,6 +876,12 @@ public partial class MainWindow : Window
             $"ChartKind: {CreateChartKindSummary(ActiveSurfaceFamilyChartView)}\n" +
             $"ColorMap: {CreateColorMapSummary(ActiveSurfaceFamilyChartView.Plot.ColorMap)}\n" +
             $"PrecisionProfile: {CreatePrecisionProfileSummary(ActiveSurfaceFamilyChartView)}\n" +
+            $"OutputEvidenceKind: {CreateOutputEvidenceKindSummary(ActiveSurfaceFamilyChartView)}\n" +
+            $"OutputCapabilityDiagnostics: {CreateOutputCapabilityDiagnosticsSummary(ActiveSurfaceFamilyChartView)}\n" +
+            $"DatasetEvidenceKind: {CreateDatasetEvidenceKindSummary(ActiveSurfaceFamilyChartView)}\n" +
+            $"DatasetSeriesCount: {CreateDatasetSeriesCountSummary(ActiveSurfaceFamilyChartView)}\n" +
+            $"DatasetActiveSeriesIndex: {CreateDatasetActiveSeriesIndexSummary(ActiveSurfaceFamilyChartView)}\n" +
+            $"DatasetActiveSeriesMetadata: {CreateDatasetActiveSeriesMetadataSummary(ActiveSurfaceFamilyChartView)}\n" +
             $"ViewState: {CreateViewStateSummary()}\n" +
             $"InteractionQuality: {ActiveSurfaceFamilyChartView.InteractionQuality}\n" +
             $"RenderingStatus:\n{CreateSurfaceRenderingDiagnosticsSummary(surfaceStatus)}\n" +
@@ -966,6 +978,69 @@ public partial class MainWindow : Window
     private static string CreatePrecisionProfileSummary(VideraChartView chartView)
     {
         return SurfaceChartOverlayEvidenceFormatter.DescribePrecisionProfile(chartView.Plot.OverlayOptions);
+    }
+
+    private static string CreateOutputEvidenceKindSummary(VideraChartView chartView)
+    {
+        return CreateOutputEvidence(chartView).EvidenceKind;
+    }
+
+    private static string CreateOutputCapabilityDiagnosticsSummary(VideraChartView chartView)
+    {
+        var diagnostics = CreateOutputEvidence(chartView).OutputCapabilityDiagnostics;
+        return string.Join(
+            "; ",
+            diagnostics.Select(diagnostic =>
+                $"{diagnostic.Capability}={diagnostic.DiagnosticCode};Supported={diagnostic.IsSupported}"));
+    }
+
+    private static string CreateDatasetEvidenceKindSummary(VideraChartView chartView)
+    {
+        return chartView.Plot.CreateDatasetEvidence().EvidenceKind;
+    }
+
+    private static string CreateDatasetSeriesCountSummary(VideraChartView chartView)
+    {
+        return chartView.Plot.CreateDatasetEvidence().Series.Count.ToString(CultureInfo.InvariantCulture);
+    }
+
+    private static string CreateDatasetActiveSeriesIndexSummary(VideraChartView chartView)
+    {
+        return chartView.Plot.CreateDatasetEvidence().ActiveSeriesIndex.ToString(CultureInfo.InvariantCulture);
+    }
+
+    private static string CreateDatasetActiveSeriesMetadataSummary(VideraChartView chartView)
+    {
+        var evidence = chartView.Plot.CreateDatasetEvidence();
+        var active = evidence.Series.FirstOrDefault(series => series.IsActive);
+        if (active is null)
+        {
+            return "none";
+        }
+
+        return active.Kind switch
+        {
+            Plot3DSeriesKind.Surface or Plot3DSeriesKind.Waterfall =>
+                $"{active.Identity}; Samples {active.Width}x{active.Height}; Count {active.SampleCount}; " +
+                $"ValueRange {FormatValueRange(active.ValueRange)}; Sampling {active.SamplingProfile}",
+            Plot3DSeriesKind.Scatter =>
+                $"{active.Identity}; Points {active.PointCount}; Series {active.SeriesCount}; " +
+                $"ColumnarSeries {active.ColumnarSeriesCount}; PickablePoints {active.PickablePointCount}; " +
+                $"FifoCapacity {FormatFifoCapacity(active.ConfiguredFifoCapacity == 0 ? null : active.ConfiguredFifoCapacity)}",
+            _ => active.Identity,
+        };
+    }
+
+    private static Plot3DOutputEvidence CreateOutputEvidence(VideraChartView chartView)
+    {
+        return chartView.Plot.CreateOutputEvidence(chartView.RenderingStatus, chartView.ScatterRenderingStatus);
+    }
+
+    private static string FormatValueRange(SurfaceValueRangeDatasetEvidence? valueRange)
+    {
+        return valueRange is null
+            ? "none"
+            : $"{valueRange.Minimum.ToString("G6", CultureInfo.InvariantCulture)}..{valueRange.Maximum.ToString("G6", CultureInfo.InvariantCulture)}";
     }
 
     private static string FormatSeriesName(string? name)

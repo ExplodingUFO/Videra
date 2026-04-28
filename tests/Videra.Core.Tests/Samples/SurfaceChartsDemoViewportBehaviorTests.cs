@@ -390,6 +390,12 @@ public sealed class SurfaceChartsDemoViewportBehaviorTests
             supportSummaryText.Text.Should().Contain("ChartKind: Scatter");
             supportSummaryText.Text.Should().Contain("ColorMap: none");
             supportSummaryText.Text.Should().Contain("PrecisionProfile:");
+            supportSummaryText.Text.Should().Contain("OutputEvidenceKind: plot-3d-output");
+            supportSummaryText.Text.Should().Contain("OutputCapabilityDiagnostics:");
+            supportSummaryText.Text.Should().Contain("DatasetEvidenceKind: Plot3DDatasetEvidence");
+            supportSummaryText.Text.Should().Contain("DatasetSeriesCount:");
+            supportSummaryText.Text.Should().Contain("DatasetActiveSeriesIndex:");
+            supportSummaryText.Text.Should().Contain("DatasetActiveSeriesMetadata:");
             supportSummaryText.Text.Should().Contain("SeriesCount");
             supportSummaryText.Text.Should().Contain("PointCount");
             supportSummaryText.Text.Should().Contain("InteractionQuality: Refine");
@@ -521,6 +527,12 @@ public sealed class SurfaceChartsDemoViewportBehaviorTests
             supportSummaryText.Text.Should().Contain("ChartKind:");
             supportSummaryText.Text.Should().Contain("ColorMap:");
             supportSummaryText.Text.Should().Contain("PrecisionProfile:");
+            supportSummaryText.Text.Should().Contain("OutputEvidenceKind:");
+            supportSummaryText.Text.Should().Contain("OutputCapabilityDiagnostics:");
+            supportSummaryText.Text.Should().Contain("DatasetEvidenceKind:");
+            supportSummaryText.Text.Should().Contain("DatasetSeriesCount:");
+            supportSummaryText.Text.Should().Contain("DatasetActiveSeriesIndex:");
+            supportSummaryText.Text.Should().Contain("DatasetActiveSeriesMetadata:");
             supportSummaryText.Text.Should().Contain("InteractionQuality:");
             supportSummaryText.Text.Should().Contain("RenderingStatus:");
             supportSummaryText.Text.Should().Contain("ActiveBackend:");

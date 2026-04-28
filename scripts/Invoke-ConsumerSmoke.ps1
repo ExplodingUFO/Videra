@@ -278,6 +278,12 @@ function Test-SurfaceChartsSupportSummaryContract([string]$summaryPath)
         "ChartKind:",
         "ColorMap:",
         "PrecisionProfile:",
+        "OutputEvidenceKind:",
+        "OutputCapabilityDiagnostics:",
+        "DatasetEvidenceKind:",
+        "DatasetSeriesCount:",
+        "DatasetActiveSeriesIndex:",
+        "DatasetActiveSeriesMetadata:",
         "RenderingStatus"
     )
 

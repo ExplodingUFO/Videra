@@ -398,6 +398,12 @@ public sealed class VideraDoctorRepositoryTests
             "ChartKind: Surface",
             "ColorMap: PaletteStops 6, Range 0..1",
             "PrecisionProfile: SurfaceChartOverlayOptions:Tick=General(3);Legend=General(3);Formatter=Default",
+            "OutputEvidenceKind: plot-3d-output",
+            "OutputCapabilityDiagnostics: ImageExport=plot-output.export.image.unsupported;Supported=False",
+            "DatasetEvidenceKind: Plot3DDatasetEvidence",
+            "DatasetSeriesCount: 1",
+            "DatasetActiveSeriesIndex: 0",
+            "DatasetActiveSeriesMetadata: PlotSeries[0]:Surface:Start here: In-memory first chart; Samples 64x48; Count 3072",
             "RenderingStatus:",
             "ActiveBackend: Software");
 
@@ -423,6 +429,12 @@ public sealed class VideraDoctorRepositoryTests
         supportReport.GetProperty("chartKind").GetString().Should().Be("Surface");
         supportReport.GetProperty("colorMap").GetString().Should().Contain("PaletteStops");
         supportReport.GetProperty("precisionProfile").GetString().Should().Contain("SurfaceChartOverlayOptions");
+        supportReport.GetProperty("outputEvidenceKind").GetString().Should().Be("plot-3d-output");
+        supportReport.GetProperty("outputCapabilityDiagnostics").GetString().Should().Contain("ImageExport");
+        supportReport.GetProperty("datasetEvidenceKind").GetString().Should().Be("Plot3DDatasetEvidence");
+        supportReport.GetProperty("datasetSeriesCount").GetString().Should().Be("1");
+        supportReport.GetProperty("datasetActiveSeriesIndex").GetString().Should().Be("0");
+        supportReport.GetProperty("datasetActiveSeriesMetadata").GetString().Should().Contain("Samples 64x48");
         supportReport.GetProperty("renderingStatusPresent").GetBoolean().Should().BeTrue();
         supportReport.GetProperty("isStructuredComplete").GetBoolean().Should().BeTrue();
         supportReport.GetProperty("missingFields").GetArrayLength().Should().Be(0);
@@ -438,6 +450,12 @@ public sealed class VideraDoctorRepositoryTests
         summary.Should().Contain("chart kind: Surface");
         summary.Should().Contain("color map: PaletteStops");
         summary.Should().Contain("precision profile: SurfaceChartOverlayOptions");
+        summary.Should().Contain("output evidence kind: plot-3d-output");
+        summary.Should().Contain("output capability diagnostics: ImageExport");
+        summary.Should().Contain("dataset evidence kind: Plot3DDatasetEvidence");
+        summary.Should().Contain("dataset series count: 1");
+        summary.Should().Contain("dataset active series index: 0");
+        summary.Should().Contain("dataset active series metadata: PlotSeries[0]:Surface");
         summary.Should().Contain("assembly identity: ConsumerSmoke");
         summary.Should().Contain("backend/display environment: VIDERA_BACKEND");
     }
