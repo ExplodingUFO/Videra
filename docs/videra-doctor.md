@@ -13,7 +13,7 @@ The command writes:
 - `artifacts/doctor/doctor-report.json`
 - `artifacts/doctor/doctor-summary.txt`
 
-The report captures SDK/runtime, OS, git state, package and benchmark contract file presence, validation script presence, platform project presence, known support artifact paths, and an `evidencePacket` section for release-candidate triage. Doctor also reports whether the optional Performance Lab visual evidence bundle is `present`, `missing`, or `unavailable`.
+The report captures SDK/runtime, OS, git state, package and benchmark contract file presence, validation script presence, platform project presence, known support artifact paths, and an `evidencePacket` section for release-candidate triage. Doctor also reports whether the optional Performance Lab visual evidence bundle and SurfaceCharts support report are `present`, `missing`, or `unavailable`.
 
 Contract and validation references reported by Doctor stay aligned with the repository files that own them:
 
@@ -71,6 +71,16 @@ Doctor only reports whether those paths are present or missing. The owning scrip
 - `generatedAtUtc`, `schemaVersion`, and `evidenceKind`
 - `screenshotPaths` and `diagnosticsPaths`
 - per-scenario `entries` with scenario id/type/display name/status and artifact paths
+
+`evidencePacket.surfaceChartsSupportReport` is the structured SurfaceCharts support-summary discovery object. It includes:
+
+- `status`: `present`, `missing`, or `unavailable`
+- `supportSummaryPath`
+- `generatedAtUtc`, `evidenceKind`, and `evidenceOnly` when the summary contains them
+- `chartControl` and `environmentRuntime` when copied from the demo support report
+- `renderingStatusPresent`
+
+Doctor does not run the SurfaceCharts demo or consumer smoke by default. Generate or copy `surfacecharts-support-summary.txt` first, then rerun Doctor when chart support triage needs repository state and chart-local evidence in the same packet.
 
 Doctor does not generate screenshots by default. If visual evidence is needed for PR review or support, generate it explicitly:
 

@@ -272,6 +272,72 @@ function Get-PerformanceLabVisualEvidence
     }
 }
 
+function Get-SurfaceChartsSupportReport
+{
+    $summaryPath = "artifacts/consumer-smoke/surfacecharts-support-summary.txt"
+    $resolvedSummaryPath = Join-Path $repositoryRoot $summaryPath
+
+    if (-not (Test-Path -LiteralPath $resolvedSummaryPath -PathType Leaf))
+    {
+        return [ordered]@{
+            status = "missing"
+            message = "SurfaceCharts support summary is missing. Run SurfaceCharts consumer smoke or copy the Videra.SurfaceCharts.Demo support summary when chart support evidence is needed."
+            supportSummaryPath = $summaryPath
+            generatedAtUtc = $null
+            evidenceKind = $null
+            evidenceOnly = $null
+            chartControl = ""
+            environmentRuntime = ""
+            renderingStatusPresent = $false
+        }
+    }
+
+    try
+    {
+        $lines = @(Get-Content -LiteralPath $resolvedSummaryPath)
+    }
+    catch
+    {
+        return [ordered]@{
+            status = "unavailable"
+            message = "SurfaceCharts support summary could not be read."
+            supportSummaryPath = $summaryPath
+            generatedAtUtc = $null
+            evidenceKind = $null
+            evidenceOnly = $null
+            chartControl = ""
+            environmentRuntime = ""
+            renderingStatusPresent = $false
+        }
+    }
+
+    function Get-SurfaceChartsSupportValue([string]$Prefix)
+    {
+        foreach ($line in $lines)
+        {
+            if ($line.StartsWith($Prefix, [System.StringComparison]::Ordinal))
+            {
+                return $line.Substring($Prefix.Length).Trim()
+            }
+        }
+
+        return ""
+    }
+
+    $evidenceOnlyText = Get-SurfaceChartsSupportValue -Prefix "EvidenceOnly:"
+    return [ordered]@{
+        status = "present"
+        message = "SurfaceCharts support summary is present."
+        supportSummaryPath = $summaryPath
+        generatedAtUtc = Get-SurfaceChartsSupportValue -Prefix "GeneratedUtc:"
+        evidenceKind = Get-SurfaceChartsSupportValue -Prefix "EvidenceKind:"
+        evidenceOnly = if ([string]::IsNullOrWhiteSpace($evidenceOnlyText)) { $null } else { $evidenceOnlyText.StartsWith("true", [System.StringComparison]::OrdinalIgnoreCase) }
+        chartControl = Get-SurfaceChartsSupportValue -Prefix "ChartControl:"
+        environmentRuntime = Get-SurfaceChartsSupportValue -Prefix "EnvironmentRuntime:"
+        renderingStatusPresent = ($lines | Where-Object { $_.StartsWith("RenderingStatus", [System.StringComparison]::Ordinal) }).Count -gt 0
+    }
+}
+
 $dotnetVersion = $null
 $dotnetInfo = $null
 $dotnetCommand = Get-Command dotnet -ErrorAction SilentlyContinue
@@ -440,6 +506,7 @@ Add-Validation -Id "demo-diagnostics" -Status "skip" -Message "Reference-only: a
 $summaryPath = Join-Path $resolvedOutputRoot "doctor-summary.txt"
 $reportPath = Join-Path $resolvedOutputRoot "doctor-report.json"
 $performanceLabVisualEvidence = Get-PerformanceLabVisualEvidence
+$surfaceChartsSupportReport = Get-SurfaceChartsSupportReport
 
 $evidencePacket = [ordered]@{
     repository = [ordered]@{
@@ -492,6 +559,7 @@ $evidencePacket = [ordered]@{
         }
     )
     performanceLabVisualEvidence = $performanceLabVisualEvidence
+    surfaceChartsSupportReport = $surfaceChartsSupportReport
     artifactReferences = @(
         (New-EvidenceArtifact -Id "release-dry-run-summary-json" -Category "release-dry-run" -Path "artifacts/release-dry-run/release-dry-run-summary.json" -ProducedBy "scripts/Invoke-ReleaseDryRun.ps1"),
         (New-EvidenceArtifact -Id "release-dry-run-summary-text" -Category "release-dry-run" -Path "artifacts/release-dry-run/release-dry-run-summary.txt" -ProducedBy "scripts/Invoke-ReleaseDryRun.ps1"),
@@ -584,6 +652,18 @@ foreach ($screenshotPath in $performanceLabVisualEvidence.screenshotPaths)
 foreach ($diagnosticsPath in $performanceLabVisualEvidence.diagnosticsPaths)
 {
     $summaryLines.Add(("- diagnostics: {0}" -f $diagnosticsPath)) | Out-Null
+}
+$summaryLines.Add("") | Out-Null
+$summaryLines.Add("SurfaceCharts support report:") | Out-Null
+$summaryLines.Add(("- status: {0} - {1}" -f $surfaceChartsSupportReport.status, $surfaceChartsSupportReport.message)) | Out-Null
+$summaryLines.Add(("- summary: {0}" -f $surfaceChartsSupportReport.supportSummaryPath)) | Out-Null
+if (-not [string]::IsNullOrWhiteSpace($surfaceChartsSupportReport.evidenceKind))
+{
+    $summaryLines.Add(("- evidence kind: {0}" -f $surfaceChartsSupportReport.evidenceKind)) | Out-Null
+}
+if (-not [string]::IsNullOrWhiteSpace($surfaceChartsSupportReport.chartControl))
+{
+    $summaryLines.Add(("- chart control: {0}" -f $surfaceChartsSupportReport.chartControl)) | Out-Null
 }
 $summaryLines.Add("") | Out-Null
 $summaryLines.Add("Reports:") | Out-Null

@@ -31,7 +31,10 @@ public sealed class VideraDoctorRepositoryTests
         script.Should().Contain("RunNativeValidation");
         script.Should().Contain("Get-PerformanceLabVisualEvidence");
         script.Should().Contain("performanceLabVisualEvidence");
+        script.Should().Contain("Get-SurfaceChartsSupportReport");
+        script.Should().Contain("surfaceChartsSupportReport");
         script.Should().Contain("artifacts/performance-lab-visual-evidence");
+        script.Should().Contain("artifacts/consumer-smoke/surfacecharts-support-summary.txt");
 
         script.Should().NotContain("dotnet nuget push");
         script.Should().NotContain("git push");
@@ -59,7 +62,9 @@ public sealed class VideraDoctorRepositoryTests
         docs.Should().Contain("RunConsumerSmoke");
         docs.Should().Contain("RunNativeValidation");
         docs.Should().Contain("performanceLabVisualEvidence");
+        docs.Should().Contain("surfaceChartsSupportReport");
         docs.Should().Contain("Doctor does not generate screenshots by default");
+        docs.Should().Contain("Doctor does not run the SurfaceCharts demo or consumer smoke by default");
         docs.Should().Contain("pass");
         docs.Should().Contain("fail");
         docs.Should().Contain("skip");
@@ -241,6 +246,12 @@ public sealed class VideraDoctorRepositoryTests
         visualEvidence.GetProperty("diagnosticsPaths").ValueKind.Should().Be(JsonValueKind.Array);
         visualEvidence.GetProperty("entries").ValueKind.Should().Be(JsonValueKind.Array);
 
+        var surfaceChartsSupportReport = evidencePacket.GetProperty("surfaceChartsSupportReport");
+        surfaceChartsSupportReport.GetProperty("status").GetString().Should().BeOneOf("present", "missing", "unavailable");
+        surfaceChartsSupportReport.GetProperty("supportSummaryPath").GetString()
+            .Should().Be("artifacts/consumer-smoke/surfacecharts-support-summary.txt");
+        surfaceChartsSupportReport.GetProperty("renderingStatusPresent").ValueKind.Should().BeOneOf(JsonValueKind.True, JsonValueKind.False);
+
         var validations = report.GetProperty("validations")
             .EnumerateArray()
             .ToDictionary(
@@ -338,6 +349,68 @@ public sealed class VideraDoctorRepositoryTests
         summary.Should().Contain("Performance Lab visual evidence:");
         summary.Should().Contain("status: missing");
         summary.Should().Contain("artifacts/performance-lab-visual-evidence/performance-lab-visual-evidence-manifest.json");
+    }
+
+    [Fact]
+    public void VideraDoctor_ShouldReportMissingSurfaceChartsSupportReportAsOptionalEvidence()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        using var supportScope = DefaultSurfaceChartsSupportDirectoryScope.Create(repositoryRoot);
+        var scriptPath = Path.Combine(repositoryRoot, "scripts", "Invoke-VideraDoctor.ps1");
+        var outputRoot = Path.Combine(Path.GetTempPath(), "VideraDoctorTests", Guid.NewGuid().ToString("N"));
+
+        var result = RunPowerShell(scriptPath, outputRoot, repositoryRoot);
+
+        result.ExitCode.Should().Be(0, $"stdout: {result.Stdout}\nstderr: {result.Stderr}");
+
+        using var reportDocument = JsonDocument.Parse(File.ReadAllText(Path.Combine(outputRoot, "doctor-report.json")));
+        var supportReport = reportDocument.RootElement.GetProperty("evidencePacket").GetProperty("surfaceChartsSupportReport");
+        supportReport.GetProperty("status").GetString().Should().Be("missing");
+        supportReport.GetProperty("supportSummaryPath").GetString().Should().Be("artifacts/consumer-smoke/surfacecharts-support-summary.txt");
+        supportReport.GetProperty("renderingStatusPresent").GetBoolean().Should().BeFalse();
+
+        var summary = File.ReadAllText(Path.Combine(outputRoot, "doctor-summary.txt"));
+        summary.Should().Contain("SurfaceCharts support report:");
+        summary.Should().Contain("status: missing");
+    }
+
+    [Fact]
+    public void VideraDoctor_ShouldReportPresentSurfaceChartsSupportReport()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        using var supportScope = DefaultSurfaceChartsSupportDirectoryScope.Create(repositoryRoot);
+        supportScope.WriteSupportSummary(
+            "SurfaceCharts support summary",
+            "GeneratedUtc: 2026-04-28T02:00:00.0000000+00:00",
+            "EvidenceKind: SurfaceChartsDatasetProof",
+            "EvidenceOnly: true - values are support evidence, not stable benchmark guarantees.",
+            "ChartControl: SurfaceChartView (Videra.SurfaceCharts.Avalonia.Controls.SurfaceChartView)",
+            "EnvironmentRuntime: .NET 8.0.0; OS Windows; ProcessArchitecture X64; OSArchitecture X64",
+            "RenderingStatus:",
+            "ActiveBackend: Software");
+
+        var scriptPath = Path.Combine(repositoryRoot, "scripts", "Invoke-VideraDoctor.ps1");
+        var outputRoot = Path.Combine(Path.GetTempPath(), "VideraDoctorTests", Guid.NewGuid().ToString("N"));
+
+        var result = RunPowerShell(scriptPath, outputRoot, repositoryRoot);
+
+        result.ExitCode.Should().Be(0, $"stdout: {result.Stdout}\nstderr: {result.Stderr}");
+
+        using var reportDocument = JsonDocument.Parse(File.ReadAllText(Path.Combine(outputRoot, "doctor-report.json")));
+        var supportReport = reportDocument.RootElement.GetProperty("evidencePacket").GetProperty("surfaceChartsSupportReport");
+        supportReport.GetProperty("status").GetString().Should().Be("present");
+        supportReport.GetProperty("generatedAtUtc").GetString().Should().Be("2026-04-28T02:00:00.0000000+00:00");
+        supportReport.GetProperty("evidenceKind").GetString().Should().Be("SurfaceChartsDatasetProof");
+        supportReport.GetProperty("evidenceOnly").GetBoolean().Should().BeTrue();
+        supportReport.GetProperty("chartControl").GetString().Should().Contain("SurfaceChartView");
+        supportReport.GetProperty("environmentRuntime").GetString().Should().Contain(".NET");
+        supportReport.GetProperty("renderingStatusPresent").GetBoolean().Should().BeTrue();
+
+        var summary = File.ReadAllText(Path.Combine(outputRoot, "doctor-summary.txt"));
+        summary.Should().Contain("SurfaceCharts support report:");
+        summary.Should().Contain("status: present");
+        summary.Should().Contain("evidence kind: SurfaceChartsDatasetProof");
+        summary.Should().Contain("chart control: SurfaceChartView");
     }
 
     [Fact]
@@ -585,6 +658,53 @@ public sealed class VideraDoctorRepositoryTests
         public static DefaultVisualEvidenceDirectoryScope Create(string repositoryRoot)
         {
             return new DefaultVisualEvidenceDirectoryScope(repositoryRoot);
+        }
+
+        public void Dispose()
+        {
+            if (Directory.Exists(_directoryPath))
+            {
+                Directory.Delete(_directoryPath, recursive: true);
+            }
+
+            if (_hadExistingDirectory && Directory.Exists(_backupPath))
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(_directoryPath)!);
+                Directory.Move(_backupPath, _directoryPath);
+            }
+        }
+    }
+
+    private sealed class DefaultSurfaceChartsSupportDirectoryScope : IDisposable
+    {
+        private readonly string _directoryPath;
+        private readonly string _summaryPath;
+        private readonly string _backupPath;
+        private readonly bool _hadExistingDirectory;
+
+        private DefaultSurfaceChartsSupportDirectoryScope(string repositoryRoot)
+        {
+            _directoryPath = Path.Combine(repositoryRoot, "artifacts", "consumer-smoke");
+            _summaryPath = Path.Combine(_directoryPath, "surfacecharts-support-summary.txt");
+            _backupPath = Path.Combine(repositoryRoot, "artifacts", $"surfacecharts-support-backup-{Guid.NewGuid():N}");
+            _hadExistingDirectory = Directory.Exists(_directoryPath);
+
+            if (_hadExistingDirectory)
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(_backupPath)!);
+                Directory.Move(_directoryPath, _backupPath);
+            }
+        }
+
+        public static DefaultSurfaceChartsSupportDirectoryScope Create(string repositoryRoot)
+        {
+            return new DefaultSurfaceChartsSupportDirectoryScope(repositoryRoot);
+        }
+
+        public void WriteSupportSummary(params string[] lines)
+        {
+            Directory.CreateDirectory(_directoryPath);
+            File.WriteAllLines(_summaryPath, lines);
         }
 
         public void Dispose()
