@@ -30,8 +30,17 @@ public sealed class BeadsPublicRoadmapTests
         after.Should().Contain("Beads remains the single authoritative task tracker.");
         after.Should().Contain("## Active");
         after.Should().Contain("## Ready");
+        after.Should().Contain("## Blocked");
         after.Should().Contain("## Backlog");
         after.Should().Contain("## Recently Closed");
+        after.Should().Contain("Videra-53d");
+        after.Should().Contain("v2.46 Professional Interaction Evidence");
+        after.Should().Contain("Videra-7l7");
+        after.Should().Contain("Phase 328: Professional interaction evidence inventory");
+        after.Should().Contain("Videra-6oi");
+        after.Should().Contain("Phase 329: Viewer interaction evidence polish");
+        after.Should().Contain("Videra-k38");
+        after.Should().Contain("Phase 330: SurfaceCharts probe output evidence polish");
         after.Should().Contain("Videra-j16");
         after.Should().Contain("v2.45 Professional Output and Scene Semantics");
         after.Should().Contain("Videra-uxg");

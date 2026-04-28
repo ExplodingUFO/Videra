@@ -16,7 +16,15 @@ _No matching beads in the exported snapshot._
 
 ## Ready
 
-_No matching beads in the exported snapshot._
+- **Videra-53d** - v2.46 Professional Interaction Evidence (epic, P1, open)
+- **Videra-7l7** - Phase 328: Professional interaction evidence inventory (task, P1, open)
+
+## Blocked
+
+- **Videra-6oi** - Phase 329: Viewer interaction evidence polish (task, P1, open)
+- **Videra-k38** - Phase 330: SurfaceCharts probe output evidence polish (task, P1, open)
+- **Videra-nll** - Phase 331: Workbench professional interaction report workflow (task, P1, open)
+- **Videra-m4z** - Phase 332: Professional interaction guardrails and docs closure (task, P1, open)
 
 ## Backlog
 

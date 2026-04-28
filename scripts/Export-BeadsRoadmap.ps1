@@ -90,7 +90,8 @@ foreach ($line in Get-Content -LiteralPath $issuesPathFull)
 
 $openIssues = @($issues | Where-Object { (Get-Scalar $_.status) -ne "closed" })
 $active = @($openIssues | Where-Object { (Get-Scalar $_.status) -eq "in_progress" })
-$ready = @($openIssues | Where-Object { (Get-Scalar $_.status) -eq "open" -and [int]$_.priority -le 2 })
+$ready = @($openIssues | Where-Object { (Get-Scalar $_.status) -eq "open" -and [int]$_.priority -le 2 -and [int]$_.dependency_count -eq 0 })
+$blocked = @($openIssues | Where-Object { (Get-Scalar $_.status) -eq "open" -and [int]$_.priority -le 2 -and [int]$_.dependency_count -gt 0 })
 $backlog = @($openIssues | Where-Object { (Get-Scalar $_.status) -eq "open" -and [int]$_.priority -gt 2 })
 $recentlyClosed = @(
     $issues |
@@ -108,6 +109,7 @@ $roadmapOrder = @(
 
 $active = @($active | Sort-Object $roadmapOrder)
 $ready = @($ready | Sort-Object $roadmapOrder)
+$blocked = @($blocked | Sort-Object $roadmapOrder)
 $backlog = @($backlog | Sort-Object $roadmapOrder)
 
 $lines = @(
@@ -127,6 +129,7 @@ $lines = @(
 
 $lines = Add-IssueSection $lines "Active" $active
 $lines = Add-IssueSection $lines "Ready" $ready
+$lines = Add-IssueSection $lines "Blocked" $blocked
 $lines = Add-IssueSection $lines "Backlog" $backlog
 $lines = Add-IssueSection $lines "Recently Closed" $recentlyClosed
 
