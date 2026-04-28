@@ -54,6 +54,30 @@ public class SurfaceColorMapTests
             .Where(ex => ex.ParamName == "colors");
     }
 
+    [Fact]
+    public void Presets_ReturnExpectedPaletteStops()
+    {
+        var defaultMap = SurfaceColorMapPresets.CreateDefault();
+        defaultMap[0].Should().Be(0xFF102030u);
+        defaultMap[1].Should().Be(0xFFE6EEF5u);
+    }
+
+    [Fact]
+    public void Presets_MapAcrossTheFullRange()
+    {
+        var coolWarm = SurfaceColorMapPresets.CreateCoolWarm();
+        var colorMap = new SurfaceColorMap(new SurfaceValueRange(-10d, 10d), coolWarm);
+
+        colorMap.Map(-10d).Should().Be(coolWarm[0]);
+        colorMap.Map(0d).Should().Be(coolWarm[1]);
+        colorMap.Map(10d).Should().Be(coolWarm[^1]);
+
+        var grayscale = SurfaceColorMapPresets.CreateGrayscale();
+        var grayscaleMap = new SurfaceColorMap(new SurfaceValueRange(0d, 1d), grayscale);
+        grayscaleMap.Map(0d).Should().Be(grayscale[0]);
+        grayscaleMap.Map(1d).Should().Be(grayscale[1]);
+    }
+
     private static SurfaceColorMap CreateColorMap()
     {
         return new SurfaceColorMap(

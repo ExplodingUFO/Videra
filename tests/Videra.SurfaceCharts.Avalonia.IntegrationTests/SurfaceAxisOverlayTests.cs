@@ -244,6 +244,64 @@ public sealed class SurfaceAxisOverlayTests
     }
 
     [Fact]
+    public Task AxisOverlay_AppliesNumericPresetPrecision_ForAxisAndLegend()
+    {
+        return AvaloniaHeadlessTestSession.RunAsync(async () =>
+        {
+            var metadata = SurfaceChartViewLifecycleTests.CreateMetadata();
+            var source = new ScriptedSurfaceTileSource(metadata, defaultTileValue: 4f);
+            var view = new SurfaceChartView
+            {
+                OverlayOptions = SurfaceChartNumericLabelPresets.Fixed(2),
+                ColorMap = new SurfaceColorMap(
+                    new SurfaceValueRange(-20d, 40d),
+                    SurfaceColorMapPresets.CreateGrayscale()),
+            };
+
+            view.Measure(new Size(340, 220));
+            view.Arrange(new Rect(0, 0, 340, 220));
+            view.Source = source;
+
+            await SurfaceChartTestHelpers.WaitForLoadedTileValuesAsync(view, [4f]);
+
+            var axisState = GetAxisOverlayState(view);
+            var xLabels = GetAxisTickLabels(axisState, "X");
+            xLabels.Should().NotBeEmpty();
+            xLabels.Should().OnlyContain(label => label.Contains('.', StringComparison.Ordinal) && label.EndsWith("00", StringComparison.Ordinal));
+            xLabels.Should().OnlyContain(label => char.IsDigit(label[0]) || label[0] == '-');
+
+            var yLabels = GetAxisTickLabels(axisState, "Y");
+            yLabels.Should().NotBeEmpty();
+            yLabels.Should().OnlyContain(label => label.Contains('.', StringComparison.Ordinal) && label.EndsWith("00", StringComparison.Ordinal));
+
+            var zLabels = GetAxisTickLabels(axisState, "Z");
+            zLabels.Should().NotBeEmpty();
+            zLabels.Should().OnlyContain(label => label.Contains('.', StringComparison.Ordinal) && label.EndsWith("00", StringComparison.Ordinal));
+
+            var legendState = GetLegendOverlayState(view);
+            GetStringProperty(legendState, "MinimumText").Should().Be("-20.00");
+            GetStringProperty(legendState, "MaximumText").Should().Be("40.00");
+        });
+    }
+
+    [Fact]
+    public void SurfaceChartOverlayOptions_FormatLabel_UsesDistinctAxisAndLegendPresetStyles()
+    {
+        var options = new SurfaceChartOverlayOptions
+        {
+            TickLabelFormat = SurfaceChartNumericLabelFormat.Scientific,
+            TickLabelPrecision = 2,
+            LegendLabelFormat = SurfaceChartNumericLabelFormat.Fixed,
+            LegendLabelPrecision = 4,
+        };
+
+        options.FormatLabel("X", 1234.567).Should().Be("1.23E+3");
+        options.FormatLabel("Y", -1234.567).Should().Be("-1.23E+3");
+        options.FormatLabel("Legend", 1234.567).Should().Be("1234.5670");
+        options.FormatLabel("Legend", -1234.567).Should().Be("-1234.5670");
+    }
+
+    [Fact]
     public Task AxisOverlay_UsesConfiguredGridPlane_AndPinnedAxisSideMode()
     {
         return AvaloniaHeadlessTestSession.RunAsync(async () =>

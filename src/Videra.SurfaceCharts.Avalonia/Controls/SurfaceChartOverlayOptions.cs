@@ -33,6 +33,26 @@ public sealed class SurfaceChartOverlayOptions
     public SurfaceChartAxisSideMode AxisSideMode { get; init; } = SurfaceChartAxisSideMode.Auto;
 
     /// <summary>
+    /// Gets the numeric formatting strategy for axis tick labels.
+    /// </summary>
+    public SurfaceChartNumericLabelFormat TickLabelFormat { get; init; } = SurfaceChartNumericLabelFormat.General;
+
+    /// <summary>
+    /// Gets the numeric precision for axis tick labels.
+    /// </summary>
+    public int TickLabelPrecision { get; init; } = 3;
+
+    /// <summary>
+    /// Gets the numeric formatting strategy for legend labels.
+    /// </summary>
+    public SurfaceChartNumericLabelFormat LegendLabelFormat { get; init; } = SurfaceChartNumericLabelFormat.General;
+
+    /// <summary>
+    /// Gets the numeric precision for legend labels.
+    /// </summary>
+    public int LegendLabelPrecision { get; init; } = 3;
+
+    /// <summary>
     /// Gets the optional chart-local label formatter. The formatter receives an axis key such as
     /// <c>X</c>, <c>Y</c>, <c>Z</c>, or <c>Legend</c>.
     /// </summary>
@@ -83,13 +103,178 @@ public sealed class SurfaceChartOverlayOptions
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(axisKey);
 
-        return LabelFormatter?.Invoke(axisKey, value)
-            ?? value.ToString("0.###", CultureInfo.InvariantCulture);
+        if (LabelFormatter is not null)
+        {
+            return LabelFormatter(axisKey, value);
+        }
+
+        if (string.Equals(axisKey, "Legend", StringComparison.Ordinal))
+        {
+            return FormatNumericLabel(value, LegendLabelFormat, LegendLabelPrecision);
+        }
+
+        return FormatNumericLabel(value, TickLabelFormat, TickLabelPrecision);
+    }
+
+    internal static string FormatNumericLabel(double value, SurfaceChartNumericLabelFormat format, int precision)
+    {
+        return format switch
+        {
+            SurfaceChartNumericLabelFormat.Engineering => FormatEngineering(value, precision),
+            SurfaceChartNumericLabelFormat.Scientific => FormatScientific(value, precision),
+            SurfaceChartNumericLabelFormat.Fixed => FormatFixed(value, precision),
+            _ => FormatGeneral(value, precision),
+        };
+    }
+
+    private static string FormatGeneral(double value, int precision)
+    {
+        var safePrecision = NormalizePrecision(precision);
+        return value.ToString(safePrecision == 0 ? "0" : $"0.{new string('#', safePrecision)}", CultureInfo.InvariantCulture);
+    }
+
+    private static string FormatScientific(double value, int precision)
+    {
+        var safePrecision = NormalizePrecision(precision);
+        var format = safePrecision == 0 ? "0E+0" : $"0.{new string('0', safePrecision)}E+0";
+
+        return value.ToString(format, CultureInfo.InvariantCulture);
+    }
+
+    private static string FormatEngineering(double value, int precision)
+    {
+        if (!double.IsFinite(value))
+        {
+            return value.ToString("G", CultureInfo.InvariantCulture);
+        }
+
+        if (Math.Abs(value) <= double.Epsilon)
+        {
+            return FormatFixed(0d, precision);
+        }
+
+        var absValue = Math.Abs(value);
+        var exponent = (int)(Math.Floor(Math.Log10(absValue) / 3d) * 3d);
+        var scaled = value / Math.Pow(10d, exponent);
+
+        return $"{FormatFixed(scaled, precision)}E{(exponent >= 0 ? "+" : "")}{exponent}";
+    }
+
+    private static string FormatFixed(double value, int precision)
+    {
+        return value.ToString($"F{NormalizePrecision(precision)}", CultureInfo.InvariantCulture);
+    }
+
+    private static int NormalizePrecision(int precision)
+    {
+        return Math.Clamp(precision, 0, 12);
     }
 }
 
 /// <summary>
-/// Selects which projected plot plane receives grid lines.
+/// Selects the numeric formatting style used by overlay labels.
+/// </summary>
+public enum SurfaceChartNumericLabelFormat
+{
+    /// <summary>Auto-style labels: trims trailing zeros and keeps a small precision.</summary>
+    General,
+
+    /// <summary>Engineering-style exponent notation with 10^3 aligned exponents.</summary>
+    Engineering,
+
+    /// <summary>Scientific notation (1.234E+03 style).</summary>
+    Scientific,
+
+    /// <summary>Fixed-point notation.</summary>
+    Fixed,
+}
+
+/// <summary>
+/// Reusable numeric-label presets for common chart-local presentation profiles.
+/// </summary>
+public static class SurfaceChartNumericLabelPresets
+{
+    /// <summary>
+    /// Creates an engineering format overlay preset that aligns exponents by 3.
+    /// </summary>
+    /// <param name="precision">The number of fixed fractional digits for each scaled mantissa.</param>
+    /// <returns>An overlay option preset using engineering numeric labels.</returns>
+    public static SurfaceChartOverlayOptions Engineering(int precision = 3)
+        => new()
+        {
+            TickLabelFormat = SurfaceChartNumericLabelFormat.Engineering,
+            TickLabelPrecision = precision,
+            LegendLabelFormat = SurfaceChartNumericLabelFormat.Engineering,
+            LegendLabelPrecision = precision,
+        };
+
+    /// <summary>
+    /// Creates a scientific format overlay preset.
+    /// </summary>
+    /// <param name="precision">The number of fixed fractional digits in scientific notation.</param>
+    /// <returns>An overlay option preset using scientific numeric labels.</returns>
+    public static SurfaceChartOverlayOptions Scientific(int precision = 3)
+        => new()
+        {
+            TickLabelFormat = SurfaceChartNumericLabelFormat.Scientific,
+            TickLabelPrecision = precision,
+            LegendLabelFormat = SurfaceChartNumericLabelFormat.Scientific,
+            LegendLabelPrecision = precision,
+        };
+
+    /// <summary>
+    /// Creates a fixed-point overlay preset.
+    /// </summary>
+    /// <param name="precision">The number of fixed fractional digits.</param>
+    /// <returns>An overlay option preset using fixed-point numeric labels.</returns>
+    public static SurfaceChartOverlayOptions Fixed(int precision = 3)
+        => new()
+        {
+            TickLabelFormat = SurfaceChartNumericLabelFormat.Fixed,
+            TickLabelPrecision = precision,
+            LegendLabelFormat = SurfaceChartNumericLabelFormat.Fixed,
+            LegendLabelPrecision = precision,
+        };
+}
+
+/// <summary>
+/// Reusable chart-local presentation presets.
+/// </summary>
+public static class SurfaceChartOverlayPresets
+{
+    /// <summary>
+    /// Balanced presentation preset with minor ticks enabled and scientific labels.
+    /// </summary>
+    public static SurfaceChartOverlayOptions Professional { get; } = new()
+    {
+        ShowMinorTicks = true,
+        MinorTickDivisions = 4,
+        TickLabelFormat = SurfaceChartNumericLabelFormat.Scientific,
+        TickLabelPrecision = 3,
+        LegendLabelFormat = SurfaceChartNumericLabelFormat.Scientific,
+        LegendLabelPrecision = 3,
+        GridPlane = SurfaceChartGridPlane.XZ,
+        AxisSideMode = SurfaceChartAxisSideMode.Auto,
+    };
+
+    /// <summary>
+    /// Compact presentation preset used for compact dashboards with fewer tick decorations.
+    /// </summary>
+    public static SurfaceChartOverlayOptions Compact { get; } = new()
+    {
+        ShowMinorTicks = false,
+        MinorTickDivisions = 2,
+        TickLabelFormat = SurfaceChartNumericLabelFormat.General,
+        TickLabelPrecision = 3,
+        LegendLabelFormat = SurfaceChartNumericLabelFormat.General,
+        LegendLabelPrecision = 3,
+        GridPlane = SurfaceChartGridPlane.XZ,
+        AxisSideMode = SurfaceChartAxisSideMode.Auto,
+    };
+}
+
+/// <summary>
+/// Selects which projected axis and label the chart uses for grid lines.
 /// </summary>
 public enum SurfaceChartGridPlane
 {
@@ -134,3 +319,4 @@ public enum SurfaceChartAxisSideMode
     /// </summary>
     MaximumBounds,
 }
+

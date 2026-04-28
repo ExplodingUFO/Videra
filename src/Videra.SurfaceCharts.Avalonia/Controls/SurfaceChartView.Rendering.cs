@@ -87,7 +87,7 @@ public partial class SurfaceChartView
 
     private static SurfaceColorMap CreateFallbackColorMap(SurfaceValueRange range)
     {
-        return new SurfaceColorMap(range, new SurfaceColorMapPalette(0xFF102030u, 0xFFE6EEF5u));
+        return new SurfaceColorMap(range, SurfaceColorMapPresets.CreateDefault());
     }
 
     private SurfaceChartProjection? CreateChartProjection()
