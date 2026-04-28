@@ -25,6 +25,10 @@ public sealed class VideraChartViewPlotApiTests
             var scatterSeries = view.Plot.Add.Scatter(scatter, "scatter");
 
             view.Plot.Series.Should().Equal(surface, waterfall, scatterSeries);
+            view.Plot.ActiveSeries.Should().BeSameAs(scatterSeries);
+            view.Plot.IndexOf(surface).Should().Be(0);
+            view.Plot.IndexOf(waterfall).Should().Be(1);
+            view.Plot.IndexOf(scatterSeries).Should().Be(2);
             surface.Kind.Should().Be(Plot3DSeriesKind.Surface);
             surface.Name.Should().Be("surface");
             surface.SurfaceSource.Should().BeSameAs(surfaceSource);
@@ -45,6 +49,80 @@ public sealed class VideraChartViewPlotApiTests
             view.ScatterRenderingStatus.IsReady.Should().BeTrue();
             view.ScatterRenderingStatus.SeriesCount.Should().Be(scatter.SeriesCount);
             view.ScatterRenderingStatus.PointCount.Should().Be(scatter.PointCount);
+        });
+    }
+
+    [Fact]
+    public void Plot3D_RemoveAndClear_UpdateLifecycleDeterministically()
+    {
+        AvaloniaHeadlessTestSession.Run(() =>
+        {
+            var view = new VideraChartView();
+            var surfaceSource = new ScriptedSurfaceTileSource(VideraChartViewLifecycleTests.CreateMetadata(), defaultTileValue: 4f);
+            var waterfallSource = new ScriptedSurfaceTileSource(CreateWaterfallMetadata(), defaultTileValue: 7f);
+            var scatter = CreateScatterData();
+            var detached = new VideraChartView().Plot.Add.Surface(
+                new ScriptedSurfaceTileSource(VideraChartViewLifecycleTests.CreateMetadata(), defaultTileValue: 9f),
+                "detached");
+
+            var surface = view.Plot.Add.Surface(surfaceSource, "surface");
+            var waterfall = view.Plot.Add.Waterfall(waterfallSource, "waterfall");
+            var scatterSeries = view.Plot.Add.Scatter(scatter, "scatter");
+
+            view.Plot.Revision.Should().Be(3);
+            view.LastRefreshRevision.Should().Be(3);
+            view.Plot.ActiveSeries.Should().BeSameAs(scatterSeries);
+            view.Plot.IndexOf(detached).Should().Be(-1);
+
+            view.Plot.Remove(detached).Should().BeFalse();
+            view.Plot.Revision.Should().Be(3);
+            view.LastRefreshRevision.Should().Be(3);
+            view.Plot.ActiveSeries.Should().BeSameAs(scatterSeries);
+
+            view.Plot.Remove(scatterSeries).Should().BeTrue();
+            view.Plot.Series.Should().Equal(surface, waterfall);
+            view.Plot.ActiveSeries.Should().BeSameAs(waterfall);
+            view.Plot.IndexOf(scatterSeries).Should().Be(-1);
+            view.Plot.Revision.Should().Be(4);
+            view.LastRefreshRevision.Should().Be(4);
+            SurfaceChartTestHelpers.GetRuntime(view).Source.Should().BeSameAs(waterfallSource);
+            view.ScatterRenderingStatus.HasSource.Should().BeFalse();
+
+            view.Plot.Remove(surface).Should().BeTrue();
+            view.Plot.Series.Should().Equal(waterfall);
+            view.Plot.ActiveSeries.Should().BeSameAs(waterfall);
+            view.Plot.IndexOf(waterfall).Should().Be(0);
+            view.Plot.Revision.Should().Be(5);
+            view.LastRefreshRevision.Should().Be(5);
+
+            view.Plot.Clear();
+            view.Plot.Series.Should().BeEmpty();
+            view.Plot.ActiveSeries.Should().BeNull();
+            view.Plot.Revision.Should().Be(6);
+            view.LastRefreshRevision.Should().Be(6);
+            SurfaceChartTestHelpers.GetRuntime(view).Source.Should().BeNull();
+
+            view.Plot.Clear();
+            view.Plot.Revision.Should().Be(6);
+            view.LastRefreshRevision.Should().Be(6);
+        });
+    }
+
+    [Fact]
+    public void Plot3D_RejectsNullLifecycleArgumentsWithoutChangingRevision()
+    {
+        AvaloniaHeadlessTestSession.Run(() =>
+        {
+            var view = new VideraChartView();
+            view.Plot.Add.Surface(new ScriptedSurfaceTileSource(VideraChartViewLifecycleTests.CreateMetadata(), defaultTileValue: 4f));
+
+            var removeNull = () => view.Plot.Remove(null!);
+            var indexNull = () => view.Plot.IndexOf(null!);
+
+            removeNull.Should().Throw<ArgumentNullException>();
+            indexNull.Should().Throw<ArgumentNullException>();
+            view.Plot.Revision.Should().Be(1);
+            view.LastRefreshRevision.Should().Be(1);
         });
     }
 

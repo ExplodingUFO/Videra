@@ -30,7 +30,10 @@ public sealed class Plot3D
     /// </summary>
     public IReadOnlyList<Plot3DSeries> Series => _seriesView;
 
-    internal Plot3DSeries? ActiveSeries => _series.Count == 0 ? null : _series[^1];
+    /// <summary>
+    /// Gets the series currently driving the chart view, or <c>null</c> when the plot is empty.
+    /// </summary>
+    public Plot3DSeries? ActiveSeries => _series.Count == 0 ? null : _series[^1];
 
     internal Plot3DSeries? ActiveSurfaceSeries
     {
@@ -107,6 +110,33 @@ public sealed class Plot3D
 
         _series.Clear();
         NotifyChanged();
+    }
+
+    /// <summary>
+    /// Removes a series from the plot.
+    /// </summary>
+    /// <returns><c>true</c> when the series was present and removed; otherwise, <c>false</c>.</returns>
+    public bool Remove(Plot3DSeries series)
+    {
+        ArgumentNullException.ThrowIfNull(series);
+
+        var removed = _series.Remove(series);
+        if (!removed)
+        {
+            return false;
+        }
+
+        NotifyChanged();
+        return true;
+    }
+
+    /// <summary>
+    /// Gets the draw-order index of a series, or <c>-1</c> when the series is not attached to this plot.
+    /// </summary>
+    public int IndexOf(Plot3DSeries series)
+    {
+        ArgumentNullException.ThrowIfNull(series);
+        return _series.IndexOf(series);
     }
 
     internal Plot3DSeries AddSeries(Plot3DSeries series)
