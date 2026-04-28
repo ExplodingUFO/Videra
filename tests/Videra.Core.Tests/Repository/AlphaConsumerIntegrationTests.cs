@@ -168,6 +168,24 @@ public sealed class AlphaConsumerIntegrationTests
     }
 
     [Fact]
+    public void ConsumerSmokeScript_ShouldValidateSurfaceChartsSupportSummaryContractNearProducer()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var smokeScript = File.ReadAllText(Path.Combine(repositoryRoot, "scripts", "Invoke-ConsumerSmoke.ps1"));
+
+        smokeScript.Should().Contain("Test-SurfaceChartsSupportSummaryContract");
+        smokeScript.Should().Contain("SurfaceCharts support summary '$summaryPath' is missing required field(s):");
+        smokeScript.Should().Contain("GeneratedUtc:");
+        smokeScript.Should().Contain("EvidenceKind:");
+        smokeScript.Should().Contain("EvidenceOnly:");
+        smokeScript.Should().Contain("ChartControl:");
+        smokeScript.Should().Contain("EnvironmentRuntime:");
+        smokeScript.Should().Contain("AssemblyIdentity:");
+        smokeScript.Should().Contain("BackendDisplayEnvironment:");
+        smokeScript.Should().Contain("RenderingStatus");
+    }
+
+    [Fact]
     public void ConsumerSmokeWindow_ShouldAvoidLayoutDrivenViewportResizesDuringStatusUpdates()
     {
         var repositoryRoot = GetRepositoryRoot();

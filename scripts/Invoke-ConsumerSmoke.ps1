@@ -263,6 +263,44 @@ function Set-ConsumerSmokeReportMetadata
     $report | ConvertTo-Json -Depth 8 | Set-Content -Path $script:jsonPath
 }
 
+function Test-SurfaceChartsSupportSummaryContract([string]$summaryPath)
+{
+    $requiredPrefixes = @(
+        "GeneratedUtc:",
+        "EvidenceKind:",
+        "EvidenceOnly:",
+        "ChartControl:",
+        "EnvironmentRuntime:",
+        "AssemblyIdentity:",
+        "BackendDisplayEnvironment:",
+        "RenderingStatus"
+    )
+
+    $lines = @(Get-Content -LiteralPath $summaryPath)
+    $missingPrefixes = foreach ($prefix in $requiredPrefixes)
+    {
+        $hasPrefix = $false
+        foreach ($line in $lines)
+        {
+            if ($line.StartsWith($prefix, [System.StringComparison]::Ordinal))
+            {
+                $hasPrefix = $true
+                break
+            }
+        }
+
+        if (-not $hasPrefix)
+        {
+            $prefix
+        }
+    }
+
+    if ($missingPrefixes.Count -gt 0)
+    {
+        throw "SurfaceCharts support summary '$summaryPath' is missing required field(s): $($missingPrefixes -join ', ')."
+    }
+}
+
 Write-ConsumerSmokeEnvironmentSnapshot
 
 Write-Host "=== Pack Public Consumer Packages ($Scenario) ===" -ForegroundColor Cyan
@@ -519,6 +557,17 @@ elseif ($Scenario -eq "SurfaceCharts")
     elseif ((Get-Item -LiteralPath $surfaceChartsSupportSummaryPath).Length -le 0)
     {
         $missingArtifactFailure = "Consumer smoke produced '$surfaceChartsSupportSummaryPath' but it was empty."
+    }
+    else
+    {
+        try
+        {
+            Test-SurfaceChartsSupportSummaryContract -summaryPath $surfaceChartsSupportSummaryPath
+        }
+        catch
+        {
+            $missingArtifactFailure = $_.Exception.Message
+        }
     }
 }
 
