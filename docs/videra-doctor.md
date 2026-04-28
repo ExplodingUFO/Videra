@@ -81,10 +81,13 @@ Doctor only reports whether those paths are present or missing. The owning scrip
 - `generatedAtUtc`, `evidenceKind`, and `evidenceOnly` when the summary contains them
 - `chartControl` and `environmentRuntime` when copied from the demo support report
 - `assemblyIdentity` and `backendDisplayEnvironment` when present in the SurfaceCharts support report
+- `seriesCount`, `activeSeries`, `chartKind`, `colorMap`, and `precisionProfile`
+- `outputEvidenceKind` (`OutputEvidenceKind` prefix) and `outputCapabilityDiagnostics` (`OutputCapabilityDiagnostics` prefix) for bounded Plot-owned output/report evidence
+- `datasetEvidenceKind` (`DatasetEvidenceKind` prefix), `datasetSeriesCount` (`DatasetSeriesCount` prefix), `datasetActiveSeriesIndex` (`DatasetActiveSeriesIndex` prefix), and `datasetActiveSeriesMetadata` (`DatasetActiveSeriesMetadata` prefix) for reproducible dataset context
 - `renderingStatusPresent`
 - `isStructuredComplete` and `missingFields`, so present-but-legacy reports stay distinguishable from complete structured evidence
 
-Doctor does not run the SurfaceCharts demo or consumer smoke by default. Generate `surfacecharts-support-summary.txt` with `scripts/Invoke-ConsumerSmoke.ps1 -Scenario SurfaceCharts`, or save the copied `Videra.SurfaceCharts.Demo` support summary to `artifacts/consumer-smoke/surfacecharts-support-summary.txt`, then rerun Doctor when chart support triage needs repository state and chart-local evidence in the same packet.
+Doctor does not run the SurfaceCharts demo or consumer smoke by default. Generate `surfacecharts-support-summary.txt` with `scripts/Invoke-ConsumerSmoke.ps1 -Scenario SurfaceCharts`, or save the copied `Videra.SurfaceCharts.Demo` support summary to `artifacts/consumer-smoke/surfacecharts-support-summary.txt`, then rerun Doctor when chart support triage needs repository state and chart-local evidence in the same packet. These fields are support/report evidence only; they are not image/PDF/vector export, a replay file, a benchmark guarantee, backend expansion, or fallback proof.
 
 Doctor does not generate screenshots by default. If visual evidence is needed for PR review or support, generate it explicitly:
 

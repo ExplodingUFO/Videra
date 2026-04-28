@@ -113,7 +113,8 @@ Include:
 - Backend preference or `VIDERA_BACKEND` value
 - diagnostics snapshot from `VideraDiagnosticsSnapshotFormatter`
 - `surfacecharts-support-summary.txt` from `smoke/Videra.SurfaceCharts.ConsumerSmoke` or the `Support summary` from `Videra.SurfaceCharts.Demo` when the issue is in `area: surfacecharts`
-- required SurfaceCharts support-summary fields: `GeneratedUtc`, `EvidenceKind`, `EvidenceOnly`, `ChartControl`, `EnvironmentRuntime`, `AssemblyIdentity`, `BackendDisplayEnvironment`, and `RenderingStatus`
+- required SurfaceCharts support-summary fields: `GeneratedUtc`, `EvidenceKind`, `EvidenceOnly`, `ChartControl`, `EnvironmentRuntime`, `AssemblyIdentity`, `BackendDisplayEnvironment`, `SeriesCount`, `ActiveSeries`, `ChartKind`, `ColorMap`, `PrecisionProfile`, `OutputEvidenceKind`, `OutputCapabilityDiagnostics`, `DatasetEvidenceKind`, `DatasetSeriesCount`, `DatasetActiveSeriesIndex`, `DatasetActiveSeriesMetadata`, and `RenderingStatus`
+- treat `OutputEvidenceKind`, `OutputCapabilityDiagnostics`, and dataset evidence fields as support/report evidence, not image/PDF/vector export, backend expansion, fallback proof, benchmark truth, or replay state
 - `LastSnapshotExportPath` and `LastSnapshotExportStatus` when an inspection snapshot was exported
 - the exact SurfaceCharts demo path you used:
   - `Start here: In-memory first chart`
@@ -124,7 +125,7 @@ Include:
 - use `Copy support summary` after reproducing `Start here: In-memory first chart`; continue to `Explore next: Cache-backed streaming` only if needed. The copied SurfaceCharts summary is chart-scoped and carries `ViewState`, `InteractionQuality`, `RenderingStatus`, and `OverlayOptions` details.
 - use `Try next: Analytics proof` when the issue is about explicit-coordinate/analysis workflow checks, `Try next: Waterfall proof` when the issue is about the waterfall chart-family path instead of the cache-backed path, and `Try next: Scatter proof` when the issue is about the direct scatter Plot path; the shipped control line also includes `VideraChartView`
 - if the issue is about imported-material fidelity, include the smallest asset plus the relevant baseColor texture usage, occlusion texture binding/strength, emissive factor/texture details, normal-texture details, and `KHR_texture_transform` details; those values now affect shipped renderer output on the bounded static-scene path
-- `ViewState`, `InteractionQuality`, `RenderingStatus`, `OverlayOptions`, `SeriesCount`, `ActiveSeries`, `ChartKind`, `ColorMap`, and `PrecisionProfile` from the SurfaceCharts support summary when relevant
+- `ViewState`, `InteractionQuality`, `RenderingStatus`, `OverlayOptions`, `SeriesCount`, `ActiveSeries`, `ChartKind`, `ColorMap`, `PrecisionProfile`, `OutputEvidenceKind`, `OutputCapabilityDiagnostics`, `DatasetEvidenceKind`, `DatasetSeriesCount`, `DatasetActiveSeriesIndex`, and `DatasetActiveSeriesMetadata` from the SurfaceCharts support summary when relevant
 - `TransparentFeatureStatus` from `VideraDiagnosticsSnapshotFormatter` when the issue involves transparency behavior
 - inspection bundle from `VideraInspectionBundleService.ExportAsync(...)` when you need support to replay camera, clipping, measurements, and annotations together
 - `CanReplayScene` and `ReplayLimitation` from `VideraInspectionBundleService.ExportAsync(...)` because they describe replayability semantics and should travel with any support bundle, especially when the bundle captures host-owned objects or any other scene state that cannot be replayed on import

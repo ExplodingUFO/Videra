@@ -360,6 +360,69 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
     }
 
     [Fact]
+    public void SurfaceChartsOutputEvidenceGuardrails_ShouldStayChartLocalAndStructured()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var evidencePrefixes = new[]
+        {
+            "OutputEvidenceKind",
+            "OutputCapabilityDiagnostics",
+            "DatasetEvidenceKind",
+            "DatasetSeriesCount",
+            "DatasetActiveSeriesIndex",
+            "DatasetActiveSeriesMetadata"
+        };
+        var producerAndParserFiles = new[]
+        {
+            "samples/Videra.SurfaceCharts.Demo/Views/MainWindow.axaml.cs",
+            "smoke/Videra.SurfaceCharts.ConsumerSmoke/Views/MainWindow.axaml.cs",
+            "scripts/Invoke-ConsumerSmoke.ps1",
+            "scripts/Invoke-VideraDoctor.ps1",
+            "docs/alpha-feedback.md",
+            "docs/releasing.md",
+            "docs/support-matrix.md",
+            "docs/troubleshooting.md",
+            "docs/videra-doctor.md",
+            "samples/Videra.SurfaceCharts.Demo/README.md"
+        };
+
+        foreach (var relativePath in producerAndParserFiles)
+        {
+            var content = File.ReadAllText(Path.Combine(repositoryRoot, relativePath.Replace('/', Path.DirectorySeparatorChar)));
+            foreach (var prefix in evidencePrefixes)
+            {
+                content.Should().Contain(prefix, $"{relativePath} must stay aligned on the chart output/dataset evidence support contract");
+            }
+        }
+
+        var docs = new[]
+        {
+            "docs/alpha-feedback.md",
+            "docs/releasing.md",
+            "docs/support-matrix.md",
+            "docs/videra-doctor.md",
+            "samples/Videra.SurfaceCharts.Demo/README.md"
+        };
+        foreach (var relativePath in docs)
+        {
+            var content = File.ReadAllText(Path.Combine(repositoryRoot, relativePath.Replace('/', Path.DirectorySeparatorChar)));
+            content.Should().Contain("not", $"{relativePath} should describe output evidence boundaries");
+            content.Should().Contain("image/PDF/vector export", $"{relativePath} should not let report evidence read as an export feature");
+        }
+
+        var plotOutputEvidence = File.ReadAllText(Path.Combine(
+            repositoryRoot,
+            "src",
+            "Videra.SurfaceCharts.Avalonia",
+            "Controls",
+            "Plot",
+            "Plot3DOutputEvidence.cs"));
+        plotOutputEvidence.Should().Contain("plot-output.export.image.unsupported");
+        plotOutputEvidence.Should().Contain("plot-output.export.pdf.unsupported");
+        plotOutputEvidence.Should().Contain("plot-output.export.vector.unsupported");
+    }
+
+    [Fact]
     public void VideraChartStateAndCommandApis_ShouldStayOutOfVideraView()
     {
         var repositoryRoot = GetRepositoryRoot();
