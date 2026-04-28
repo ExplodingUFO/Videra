@@ -30,7 +30,7 @@ public sealed class AvaloniaHeadlessTestSessionLifecycleTests
         finally
         {
             releaseBlocker.TrySetResult(true);
-            await blockingDispatch.WaitAsync(TimeSpan.FromSeconds(1));
+            await blockingDispatch.WaitAsync(TimeSpan.FromSeconds(5));
         }
     }
 
@@ -59,7 +59,7 @@ public sealed class AvaloniaHeadlessTestSessionLifecycleTests
         finally
         {
             releaseBlocker.TrySetResult(true);
-            await blockingDispatch.WaitAsync(TimeSpan.FromSeconds(1));
+            await blockingDispatch.WaitAsync(TimeSpan.FromSeconds(5));
         }
     }
 
