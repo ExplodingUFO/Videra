@@ -61,19 +61,6 @@ internal sealed class SurfaceProbeOverlayState
         IReadOnlyList<SurfaceProbeInfo> pinnedProbes,
         SurfaceChartOverlayOptions overlayOptions)
     {
-        var readout = $"X {overlayOptions.FormatProbeAxisX(probe.AxisX)} (sample {overlayOptions.FormatProbeAxisX(probe.SampleX)}), " +
-            $"Y {overlayOptions.FormatProbeAxisY(probe.AxisY)} (sample {overlayOptions.FormatProbeAxisY(probe.SampleY)}), " +
-            $"Value {overlayOptions.FormatProbeValue(probe.Value)} {(probe.IsApproximate ? "Approx" : "Exact")}";
-
-        if (pinnedProbes.Count == 0)
-        {
-            return readout;
-        }
-
-        var referenceProbe = pinnedProbes[0];
-        var deltaX = probe.AxisX - referenceProbe.AxisX;
-        var deltaY = probe.AxisY - referenceProbe.AxisY;
-        var deltaValue = probe.Value - referenceProbe.Value;
-        return $"{readout}\nDelta vs Pin 1\nX {overlayOptions.FormatProbeDelta("X", deltaX)}\nY {overlayOptions.FormatProbeDelta("Z", deltaY)}\nValue {overlayOptions.FormatProbeDelta("Y", deltaValue)}";
+        return SurfaceChartProbeEvidenceFormatter.CreateHoveredOverlayReadout(probe, pinnedProbes, overlayOptions);
     }
 }

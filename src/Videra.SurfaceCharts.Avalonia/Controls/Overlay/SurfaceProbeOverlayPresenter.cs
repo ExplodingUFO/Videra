@@ -235,20 +235,7 @@ internal static class SurfaceProbeOverlayPresenter
         IReadOnlyList<SurfaceProbeInfo> pinnedProbes,
         SurfaceChartOverlayOptions overlayOptions)
     {
-        var readout = $"X {overlayOptions.FormatProbeAxisX(probe.AxisX)} (sample {overlayOptions.FormatProbeAxisX(probe.SampleX)})\n" +
-            $"Y {overlayOptions.FormatProbeAxisY(probe.AxisY)} (sample {overlayOptions.FormatProbeAxisY(probe.SampleY)})\n" +
-            $"Value {overlayOptions.FormatProbeValue(probe.Value)} {(probe.IsApproximate ? "Approx" : "Exact")}";
-
-        if (pinnedProbes.Count == 0)
-        {
-            return readout;
-        }
-
-        var referenceProbe = pinnedProbes[0];
-        var deltaX = probe.AxisX - referenceProbe.AxisX;
-        var deltaY = probe.AxisY - referenceProbe.AxisY;
-        var deltaValue = probe.Value - referenceProbe.Value;
-        return $"{readout}\nDelta vs Pin 1\nX {overlayOptions.FormatProbeDelta("X", deltaX)}\nY {overlayOptions.FormatProbeDelta("Z", deltaY)}\nValue {overlayOptions.FormatProbeDelta("Y", deltaValue)}";
+        return SurfaceChartProbeEvidenceFormatter.CreateHoveredOverlayReadout(probe, pinnedProbes, overlayOptions);
     }
 
     private static string CreatePinnedReadoutText(
@@ -256,10 +243,7 @@ internal static class SurfaceProbeOverlayPresenter
         SurfaceProbeInfo probe,
         SurfaceChartOverlayOptions overlayOptions)
     {
-        return $"Pin {pinnedIndex} {(probe.IsApproximate ? "Approx" : "Exact")}\n" +
-            $"X {overlayOptions.FormatProbeAxisX(probe.AxisX)} (sample {overlayOptions.FormatProbeAxisX(probe.SampleX)})\n" +
-            $"Y {overlayOptions.FormatProbeAxisY(probe.AxisY)} (sample {overlayOptions.FormatProbeAxisY(probe.SampleY)})\n" +
-            $"Value {overlayOptions.FormatProbeValue(probe.Value)}";
+        return SurfaceChartProbeEvidenceFormatter.CreatePinnedOverlayReadout(pinnedIndex, probe, overlayOptions);
     }
 
     private static Vector3 CreateMarkerVector(SurfaceProbeInfo probe)
