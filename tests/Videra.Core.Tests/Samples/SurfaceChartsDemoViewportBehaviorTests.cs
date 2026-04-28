@@ -464,15 +464,23 @@ public sealed class SurfaceChartsDemoViewportBehaviorTests
     }
 
     [Fact]
-    public Task DemoWindow_CacheLoadFallback_ProjectsFailureDetailIntoSupportSummary()
+    public Task DemoWindow_CacheLoadFailure_KeepsCachePathSelectedAndProjectsFailureDetail()
     {
         return AvaloniaHeadlessTestSession.RunAsync(async () =>
         {
             var window = new MainWindow();
+            var chartView = window.FindControl<SurfaceChartView>("ChartView")
+                ?? throw new InvalidOperationException("ChartView is missing.");
             var sourceSelector = window.FindControl<ComboBox>("SourceSelector")
                 ?? throw new InvalidOperationException("SourceSelector is missing.");
+            var statusText = window.FindControl<TextBlock>("StatusText")
+                ?? throw new InvalidOperationException("StatusText is missing.");
             var supportSummaryText = window.FindControl<TextBlock>("SupportSummaryText")
                 ?? throw new InvalidOperationException("SupportSummaryText is missing.");
+
+            SelectItem(sourceSelector, GetComboBoxItemByContent(sourceSelector, "Try next: Analytics proof"));
+            var previousSource = chartView.Source;
+            previousSource.Should().NotBeNull();
 
             var cacheSourceTaskField = typeof(MainWindow).GetField("_cacheSourceTask", BindingFlags.Instance | BindingFlags.NonPublic);
             cacheSourceTaskField.Should().NotBeNull();
@@ -480,13 +488,18 @@ public sealed class SurfaceChartsDemoViewportBehaviorTests
                 window,
                 Task.FromException<ISurfaceTileSource>(new InvalidOperationException("cache manifest sidecar missing")));
 
-            SelectItem(sourceSelector, GetComboBoxItemByContent(sourceSelector, "Explore next: Cache-backed streaming"));
+            var cacheItem = GetComboBoxItemByContent(sourceSelector, "Explore next: Cache-backed streaming");
+            SelectItem(sourceSelector, cacheItem);
 
             await WaitForConditionAsync(
                 () => supportSummaryText.Text?.Contains("CacheLoadFailure: InvalidOperationException: cache manifest sidecar missing", StringComparison.Ordinal) == true,
-                "cache-backed fallback should keep the exact cache load failure available in the support summary.")
+                "cache-backed load failure should keep the exact failure available in the support summary.")
                 .ConfigureAwait(true);
 
+            sourceSelector.SelectedItem.Should().BeSameAs(cacheItem);
+            chartView.Source.Should().BeSameAs(previousSource);
+            statusText.Text.Should().Contain("Explore next: Cache-backed streaming");
+            statusText.Text.Should().Contain("Cache-backed streaming failed to load: cache manifest sidecar missing");
             supportSummaryText.Text.Should().Contain("CacheLoadFailure: InvalidOperationException: cache manifest sidecar missing");
         });
     }

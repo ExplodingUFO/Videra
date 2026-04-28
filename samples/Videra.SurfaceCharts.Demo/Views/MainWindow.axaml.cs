@@ -267,15 +267,18 @@ public partial class MainWindow : Window
             }
 
             _lastCacheLoadFailureMessage = $"{exception.GetType().Name}: {exception.Message}";
-            ApplySource(
-                _surfaceChartView,
-                _inMemorySource,
-                "Start here: In-memory first chart",
-                $"Start here fallback. Cache-backed streaming failed to load: {exception.Message}",
-                "The start-here in-memory path uses a generated 64x48 matrix with an overview-first pyramid.",
-                "No additional assets are used on this path.");
-            _sourceSelector.SelectedIndex = 0;
+            ApplyCacheLoadFailure(exception);
         }
+    }
+
+    private void ApplyCacheLoadFailure(Exception exception)
+    {
+        _activeSourceHeading = "Explore next: Cache-backed streaming";
+        _activeSourceDetails = $"Cache-backed streaming failed to load: {exception.Message}";
+        _activeDatasetSummary = "Cache-backed source unavailable. The previous chart source remains active.";
+        _activeAssetSummary = $"Manifest {_cachePath}; Payload sidecar {_cachePayloadPath}";
+        _datasetText.Text = _activeDatasetSummary;
+        RefreshActiveProofTexts();
     }
 
     private void ApplySource(
