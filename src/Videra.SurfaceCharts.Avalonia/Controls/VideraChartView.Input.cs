@@ -4,7 +4,7 @@ using Videra.SurfaceCharts.Core;
 
 namespace Videra.SurfaceCharts.Avalonia.Controls;
 
-public partial class SurfaceChartView
+public partial class VideraChartView
 {
     private readonly SurfaceChartInteractionController _interactionController = new();
 

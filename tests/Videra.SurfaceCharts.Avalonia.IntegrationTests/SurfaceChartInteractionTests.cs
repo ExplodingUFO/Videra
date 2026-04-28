@@ -308,9 +308,9 @@ public sealed class SurfaceChartInteractionTests
         return dataWindow.StartY + (dataWindow.Height * 0.5d);
     }
 
-    private static string? ReadInteractionQuality(SurfaceChartView view)
+    private static string? ReadInteractionQuality(VideraChartView view)
     {
-        var property = typeof(SurfaceChartView).GetProperty("InteractionQuality");
+        var property = typeof(VideraChartView).GetProperty("InteractionQuality");
         return property?.GetValue(view)?.ToString();
     }
 
@@ -334,7 +334,7 @@ public sealed class SurfaceChartInteractionTests
         condition().Should().BeTrue(because);
     }
 
-    private sealed class RoutedInteractionTestView : SurfaceChartView
+    private sealed class RoutedInteractionTestView : VideraChartView
     {
         public void RoutePointerPressed(
             Pointer pointer,

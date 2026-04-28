@@ -17,7 +17,7 @@ public sealed class WaterfallChartViewIntegrationTests
         return AvaloniaHeadlessTestSession.RunAsync(async () =>
         {
             var source = new ScriptedSurfaceTileSource(CreateWaterfallMetadata(), defaultTileValue: 6f);
-            var view = new WaterfallChartView();
+            var view = new VideraChartView();
 
             view.Measure(new Size(240, 160));
             view.Arrange(new Rect(0, 0, 240, 160));
@@ -29,7 +29,7 @@ public sealed class WaterfallChartViewIntegrationTests
             view.RenderingStatus.IsReady.Should().BeTrue();
             view.ViewState.DataWindow.Should().Be(new SurfaceDataWindow(0d, 0d, source.Metadata.Width, source.Metadata.Height));
 
-            var renderHost = (SurfaceChartRenderHost)typeof(SurfaceChartView)
+            var renderHost = (SurfaceChartRenderHost)typeof(VideraChartView)
                 .GetField("_renderHost", BindingFlags.Instance | BindingFlags.NonPublic)!
                 .GetValue(view)!;
             var tile = renderHost.SoftwareScene!.Tiles.Should().ContainSingle().Subject;
@@ -45,7 +45,7 @@ public sealed class WaterfallChartViewIntegrationTests
         {
             var source = new RecordingSurfaceTileSource(CreateWaterfallMetadata());
             var dataWindow = new SurfaceDataWindow(128d, 64d, 256d, 128d);
-            var view = new WaterfallChartView
+            var view = new VideraChartView
             {
                 Source = source,
                 ViewState = new SurfaceViewState(

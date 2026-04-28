@@ -18,7 +18,7 @@ public sealed class SurfaceChartTileSchedulingTests
         {
             var metadata = SurfaceChartViewLifecycleTests.CreateMetadata();
             var source = new RecordingSurfaceTileSource(metadata);
-            var view = new SurfaceChartView();
+            var view = new VideraChartView();
             var expectedViewState = SurfaceViewState.CreateDefault(metadata, new SurfaceDataWindow(256, 128, 512, 256));
             var expectedSelection = SurfaceLodPolicy.Default.Select(
                 new SurfaceViewportRequest(metadata, expectedViewState.DataWindow, outputWidth: 256, outputHeight: 128));
@@ -48,7 +48,7 @@ public sealed class SurfaceChartTileSchedulingTests
         {
             var metadata = SurfaceChartViewLifecycleTests.CreateMetadata();
             var source = new RecordingSurfaceTileSource(metadata);
-            var view = new SurfaceChartView
+            var view = new VideraChartView
             {
                 Source = source
             };
@@ -79,7 +79,7 @@ public sealed class SurfaceChartTileSchedulingTests
         {
             var metadata = SurfaceChartViewLifecycleTests.CreateMetadata();
             var source = new RecordingSurfaceTileSource(metadata);
-            var view = new SurfaceChartView();
+            var view = new VideraChartView();
 
             view.Measure(new Size(128, 128));
             view.Arrange(new Rect(0, 0, 128, 128));
@@ -108,7 +108,7 @@ public sealed class SurfaceChartTileSchedulingTests
                 metadata,
                 defaultTileValue: 5,
                 requestDelay: TimeSpan.FromMilliseconds(75));
-            var view = new SurfaceChartView();
+            var view = new VideraChartView();
 
             view.Measure(new Size(128, 128));
             view.Arrange(new Rect(0, 0, 128, 128));
@@ -164,7 +164,7 @@ public sealed class SurfaceChartTileSchedulingTests
 
             source.EnqueueSuccessResponse();
 
-            var view = new SurfaceChartView
+            var view = new VideraChartView
             {
                 Source = source
             };
@@ -275,7 +275,7 @@ public sealed class SurfaceChartTileSchedulingTests
         {
             var metadata = SurfaceChartViewLifecycleTests.CreateMetadata();
             var source = new RecordingSurfaceTileSource(metadata);
-            var view = new SurfaceChartView();
+            var view = new VideraChartView();
 
             view.Measure(new Size(256, 256));
             view.Arrange(new Rect(0, 0, 256, 256));
@@ -316,7 +316,7 @@ public sealed class SurfaceChartTileSchedulingTests
         {
             var metadata = SurfaceChartViewLifecycleTests.CreateMetadata();
             var source = new RecordingSurfaceTileSource(metadata);
-            var view = new SurfaceChartView();
+            var view = new VideraChartView();
 
             view.Measure(new Size(256, 256));
             view.Arrange(new Rect(0, 0, 256, 256));
@@ -473,7 +473,7 @@ public sealed class SurfaceChartTileSchedulingTests
         {
             var metadata = SurfaceChartViewLifecycleTests.CreateMetadata();
             var source = new BatchRecordingSurfaceTileSource(metadata);
-            var view = new SurfaceChartView();
+            var view = new VideraChartView();
 
             view.Measure(new Size(128, 128));
             view.Arrange(new Rect(0, 0, 128, 128));

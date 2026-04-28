@@ -8,7 +8,7 @@ using Videra.SurfaceCharts.Rendering;
 
 namespace Videra.SurfaceCharts.Avalonia.Controls;
 
-public partial class SurfaceChartView
+public partial class VideraChartView
 {
     private SurfaceRenderScene? _renderScene;
 
@@ -204,9 +204,9 @@ public partial class SurfaceChartView
 
     private sealed class SurfaceChartOverlayLayer : Control
     {
-        private readonly SurfaceChartView _owner;
+        private readonly VideraChartView _owner;
 
-        public SurfaceChartOverlayLayer(SurfaceChartView owner)
+        public SurfaceChartOverlayLayer(VideraChartView owner)
         {
             _owner = owner ?? throw new ArgumentNullException(nameof(owner));
         }

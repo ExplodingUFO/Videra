@@ -16,7 +16,7 @@ public sealed class SurfaceChartRenderHostIntegrationTests
     {
         AvaloniaHeadlessTestSession.Run(() =>
         {
-            var view = new SurfaceChartView();
+            var view = new VideraChartView();
             view.RenderSnapshot.ActiveBackend.Should().Be(SurfaceChartRenderBackendKind.Software);
             view.RenderSnapshot.IsReady.Should().BeFalse();
             view.RenderSnapshot.IsFallback.Should().BeFalse();
@@ -32,7 +32,7 @@ public sealed class SurfaceChartRenderHostIntegrationTests
         {
             var metadata = SurfaceChartViewLifecycleTests.CreateMetadata();
             var source = new ScriptedSurfaceTileSource(metadata, defaultTileValue: 6f);
-            var view = new SurfaceChartView();
+            var view = new VideraChartView();
 
             view.Measure(new Size(240, 160));
             view.Arrange(new Rect(0, 0, 240, 160));
@@ -55,7 +55,7 @@ public sealed class SurfaceChartRenderHostIntegrationTests
         {
             var metadata = SurfaceChartViewLifecycleTests.CreateMetadata();
             var source = new ScriptedSurfaceTileSource(metadata, defaultTileValue: 6f);
-            var view = new SurfaceChartView();
+            var view = new VideraChartView();
 
             view.Measure(new Size(240, 160));
             view.Arrange(new Rect(0, 0, 240, 160));
@@ -82,7 +82,7 @@ public sealed class SurfaceChartRenderHostIntegrationTests
         {
             var metadata = SurfaceChartViewLifecycleTests.CreateMetadata();
             var source = new ScriptedSurfaceTileSource(metadata, defaultTileValue: 6f);
-            var view = new SurfaceChartView();
+            var view = new VideraChartView();
 
             view.Measure(new Size(240, 160));
             view.Arrange(new Rect(0, 0, 240, 160));
@@ -90,7 +90,7 @@ public sealed class SurfaceChartRenderHostIntegrationTests
 
             await SurfaceChartTestHelpers.WaitForLoadedTileValuesAsync(view, [6f]);
 
-            var renderHost = (SurfaceChartRenderHost)typeof(SurfaceChartView)
+            var renderHost = (SurfaceChartRenderHost)typeof(VideraChartView)
                 .GetField("_renderHost", BindingFlags.Instance | BindingFlags.NonPublic)!
                 .GetValue(view)!;
             var runtime = SurfaceChartTestHelpers.GetRuntime(view);

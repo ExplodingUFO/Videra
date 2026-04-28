@@ -5,7 +5,7 @@ using Videra.SurfaceCharts.Rendering;
 namespace Videra.SurfaceCharts.Avalonia.Controls;
 
 /// <summary>
-/// Describes the current readiness and interaction state for <see cref="ScatterChartView"/>.
+/// Describes the current readiness and interaction state for <see cref="VideraChartView"/>.
 /// </summary>
 public sealed record ScatterChartRenderingStatus
 {

@@ -26,7 +26,7 @@ public sealed class SurfaceAxisOverlayTests
                 new SurfaceAxisDescriptor("Frequency", "kHz", 0d, 24d),
                 new SurfaceValueRange(-8d, 32d));
             var source = new ScriptedSurfaceTileSource(metadata, defaultTileValue: 7f);
-            var view = new SurfaceChartView
+            var view = new VideraChartView
             {
                 ColorMap = new SurfaceColorMap(
                     new SurfaceValueRange(-20d, 20d),
@@ -57,7 +57,7 @@ public sealed class SurfaceAxisOverlayTests
         return AvaloniaHeadlessTestSession.RunAsync(async () =>
         {
             var source = new ScriptedSurfaceTileSource(SurfaceChartViewLifecycleTests.CreateMetadata(), defaultTileValue: 5f);
-            var view = new SurfaceChartView();
+            var view = new VideraChartView();
 
             view.Measure(new Size(320, 200));
             view.Arrange(new Rect(0, 0, 320, 200));
@@ -89,7 +89,7 @@ public sealed class SurfaceAxisOverlayTests
                 new SurfaceAxisDescriptor("Frequency", "kHz", 100d, 220d),
                 new SurfaceValueRange(-80d, 160d));
             var source = new ScriptedSurfaceTileSource(metadata, defaultTileValue: 7f);
-            var view = new SurfaceChartView
+            var view = new VideraChartView
             {
                 ColorMap = new SurfaceColorMap(
                     new SurfaceValueRange(-20d, 40d),
@@ -131,7 +131,7 @@ public sealed class SurfaceAxisOverlayTests
                 new SurfaceAxisDescriptor("Frequency", "kHz", 0d, 23d),
                 new SurfaceValueRange(-8d, 32d));
             var source = new ScriptedSurfaceTileSource(metadata, defaultTileValue: 7f);
-            var view = new SurfaceChartView
+            var view = new VideraChartView
             {
                 ColorMap = new SurfaceColorMap(
                     new SurfaceValueRange(-20d, 20d),
@@ -173,7 +173,7 @@ public sealed class SurfaceAxisOverlayTests
                 new SurfaceAxisDescriptor("Frequency", "kHz", 0d, 24d),
                 new SurfaceValueRange(-20d, 40d));
             var source = new ScriptedSurfaceTileSource(metadata, defaultTileValue: 7f);
-            var view = new SurfaceChartView
+            var view = new VideraChartView
             {
                 ColorMap = new SurfaceColorMap(
                     new SurfaceValueRange(-20d, 40d),
@@ -224,7 +224,7 @@ public sealed class SurfaceAxisOverlayTests
                 new SurfaceAxisDescriptor("Frequency", "kHz", 0d, 24d),
                 new SurfaceValueRange(-20d, 40d));
             var source = new ScriptedSurfaceTileSource(metadata, defaultTileValue: 7f);
-            var view = new SurfaceChartView
+            var view = new VideraChartView
             {
                 OverlayOptions = new SurfaceChartOverlayOptions
                 {
@@ -250,7 +250,7 @@ public sealed class SurfaceAxisOverlayTests
         {
             var metadata = SurfaceChartViewLifecycleTests.CreateMetadata();
             var source = new ScriptedSurfaceTileSource(metadata, defaultTileValue: 4f);
-            var view = new SurfaceChartView
+            var view = new VideraChartView
             {
                 OverlayOptions = SurfaceChartNumericLabelPresets.Fixed(2),
                 ColorMap = new SurfaceColorMap(
@@ -308,7 +308,7 @@ public sealed class SurfaceAxisOverlayTests
         {
             var metadata = SurfaceChartViewLifecycleTests.CreateMetadata();
             var source = new ScriptedSurfaceTileSource(metadata, defaultTileValue: 5f);
-            var view = new SurfaceChartView
+            var view = new VideraChartView
             {
                 OverlayOptions = new SurfaceChartOverlayOptions
                 {
@@ -368,12 +368,12 @@ public sealed class SurfaceAxisOverlayTests
         projectedPoint.Y.Should().BeApproximately(sharedMathPoint.Y, 0.001d);
     }
 
-    private static object GetAxisOverlayState(SurfaceChartView view)
+    private static object GetAxisOverlayState(VideraChartView view)
     {
         return SurfaceChartTestHelpers.GetOverlayCoordinator(view).AxisState;
     }
 
-    private static object GetLegendOverlayState(SurfaceChartView view)
+    private static object GetLegendOverlayState(VideraChartView view)
     {
         return SurfaceChartTestHelpers.GetOverlayCoordinator(view).LegendState;
     }
@@ -430,16 +430,16 @@ public sealed class SurfaceAxisOverlayTests
         return GetCollectionCount(axis, "MinorTicks");
     }
 
-    private static void AssertLegendMatchesColorMapRange(SurfaceChartView view, object legendOverlayState)
+    private static void AssertLegendMatchesColorMapRange(VideraChartView view, object legendOverlayState)
     {
         view.ColorMap.Should().NotBeNull();
         GetStringProperty(legendOverlayState, "MinimumText").Should().Be(view.ColorMap!.Range.Minimum.ToString("0.###", CultureInfo.InvariantCulture));
         GetStringProperty(legendOverlayState, "MaximumText").Should().Be(view.ColorMap.Range.Maximum.ToString("0.###", CultureInfo.InvariantCulture));
     }
 
-    private static void UpdateProjectionSettings(SurfaceChartView view, SurfaceChartProjectionSettings settings)
+    private static void UpdateProjectionSettings(VideraChartView view, SurfaceChartProjectionSettings settings)
     {
-        var method = typeof(SurfaceChartView).GetMethod(
+        var method = typeof(VideraChartView).GetMethod(
             "UpdateProjectionSettings",
             BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
 

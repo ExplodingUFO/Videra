@@ -14,7 +14,7 @@ namespace Videra.SurfaceCharts.Avalonia.Controls;
 /// Hosts still own the tile source and persisted <see cref="ViewState"/>, but the control now ships
 /// built-in orbit, pan, dolly, and focus interaction on top of the chart-local runtime contract.
 /// </remarks>
-public partial class SurfaceChartView : Decorator
+public partial class VideraChartView : Decorator
 {
     private readonly SurfaceChartRuntime _runtime;
     private readonly SurfaceChartRenderHost _renderHost;
@@ -52,19 +52,30 @@ public partial class SurfaceChartView : Decorator
     public SurfaceChartRenderingStatus RenderingStatus { get; private set; }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="SurfaceChartView"/> class.
+    /// Gets the chart plot model used to add surface, waterfall, and scatter series.
     /// </summary>
-    public SurfaceChartView()
+    public Plot3D Plot { get; }
+
+    /// <summary>
+    /// Gets the latest plot revision rendered or requested through <see cref="Refresh"/>.
+    /// </summary>
+    public int LastRefreshRevision { get; private set; }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="VideraChartView"/> class.
+    /// </summary>
+    public VideraChartView()
         : this(renderHost: null, nativeHostFactory: null)
     {
     }
 
-    internal SurfaceChartView(
+    internal VideraChartView(
         SurfaceChartRenderHost? renderHost,
         ISurfaceChartNativeHostFactory? nativeHostFactory)
     {
         _renderHost = renderHost ?? new SurfaceChartRenderHost();
         _nativeHostFactory = nativeHostFactory ?? new DefaultSurfaceChartNativeHostFactory();
+        Plot = new Plot3D(OnPlotChanged);
         RenderingStatus = _renderHost.RenderingStatus;
         _runtime = new SurfaceChartRuntime(
             ViewState,
@@ -151,5 +162,19 @@ public partial class SurfaceChartView : Decorator
     {
         _runtime.ZoomTo(dataWindow);
         SynchronizeViewStateProperties(_runtime.ViewState);
+    }
+
+    /// <summary>
+    /// Requests a visual refresh for the current plot model.
+    /// </summary>
+    public void Refresh()
+    {
+        LastRefreshRevision = Plot.Revision;
+        InvalidateRenderScene();
+    }
+
+    private void OnPlotChanged()
+    {
+        Refresh();
     }
 }

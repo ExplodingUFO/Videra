@@ -141,7 +141,7 @@ public sealed class SurfaceChartPinnedProbeTests
         });
     }
 
-    private static object GetOverlayState(SurfaceChartView view)
+    private static object GetOverlayState(VideraChartView view)
     {
         return SurfaceChartTestHelpers.GetOverlayCoordinator(view).ProbeState;
     }
@@ -199,9 +199,9 @@ public sealed class SurfaceChartPinnedProbeTests
             KeyModifiers.Shift);
     }
 
-    private static void UpdateProjectionSettings(SurfaceChartView view, SurfaceChartProjectionSettings settings)
+    private static void UpdateProjectionSettings(VideraChartView view, SurfaceChartProjectionSettings settings)
     {
-        var method = typeof(SurfaceChartView).GetMethod(
+        var method = typeof(VideraChartView).GetMethod(
             "UpdateProjectionSettings",
             BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
 
@@ -219,7 +219,7 @@ public sealed class SurfaceChartPinnedProbeTests
         return (bool)GetPropertyValue(instance, propertyName)!;
     }
 
-    private sealed class RoutedProbeTestView : SurfaceChartView
+    private sealed class RoutedProbeTestView : VideraChartView
     {
         public void RoutePointerPressed(
             Pointer pointer,

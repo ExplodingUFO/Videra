@@ -80,7 +80,7 @@ public sealed class SurfaceScenePainterTests
         {
             var metadata = CreateMetadata(width: 4, height: 4);
             var source = new ScriptedSurfaceTileSource(metadata, defaultTileValue: 6f);
-            var view = new SurfaceChartView();
+            var view = new VideraChartView();
 
             view.Measure(new Size(240, 160));
             view.Arrange(new Rect(0, 0, 240, 160));
@@ -102,7 +102,7 @@ public sealed class SurfaceScenePainterTests
         {
             var metadata = CreateMetadata(width: 4, height: 4);
             var source = new ScriptedSurfaceTileSource(metadata, defaultTileValue: 6f);
-            var view = new SurfaceChartView();
+            var view = new VideraChartView();
 
             view.Measure(new Size(240, 160));
             view.Arrange(new Rect(0, 0, 240, 160));
@@ -128,7 +128,7 @@ public sealed class SurfaceScenePainterTests
     {
         AvaloniaHeadlessTestSession.Run(() =>
         {
-            var view = new SurfaceChartView();
+            var view = new VideraChartView();
             using var drawingContext = new RecordingDrawingContext();
 
             view.Measure(new Size(240, 160));
@@ -155,9 +155,9 @@ public sealed class SurfaceScenePainterTests
         return new SurfaceColorMap(metadata.ValueRange, new SurfaceColorMapPalette(0xFF203040u, 0xFFE0F0FFu));
     }
 
-    private static SurfaceRenderScene? GetRenderScene(SurfaceChartView view)
+    private static SurfaceRenderScene? GetRenderScene(VideraChartView view)
     {
-        var field = typeof(SurfaceChartView).GetField("_renderScene", BindingFlags.Instance | BindingFlags.NonPublic);
+        var field = typeof(VideraChartView).GetField("_renderScene", BindingFlags.Instance | BindingFlags.NonPublic);
         field.Should().NotBeNull();
         return (SurfaceRenderScene?)field!.GetValue(view);
     }
@@ -179,7 +179,7 @@ public sealed class SurfaceScenePainterTests
         {
             var metadata = CreateMetadata(width: 1024, height: 1024);
             var source = new RecordingSurfaceTileSource(metadata);
-            var view = new SurfaceChartView();
+            var view = new VideraChartView();
 
             view.Measure(new Size(256, 256));
             view.Arrange(new Rect(0, 0, 256, 256));

@@ -7,7 +7,7 @@ using Videra.SurfaceCharts.Rendering;
 
 namespace Videra.SurfaceCharts.Avalonia.Controls;
 
-public partial class SurfaceChartView
+public partial class VideraChartView
 {
     private static readonly IBrush SelectionFillBrush = new SolidColorBrush(Color.FromArgb(40, 0x4D, 0xA3, 0xFF));
     private static readonly Pen SelectionBorderPen = new(new SolidColorBrush(Color.FromArgb(220, 0x4D, 0xA3, 0xFF)), thickness: 1.5d);

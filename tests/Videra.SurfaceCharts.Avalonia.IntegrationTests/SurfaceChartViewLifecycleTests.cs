@@ -20,16 +20,16 @@ public sealed class SurfaceChartViewLifecycleTests
     {
         AvaloniaHeadlessTestSession.Run(() =>
         {
-            var runtimeField = typeof(SurfaceChartView).GetField("_runtime", BindingFlags.Instance | BindingFlags.NonPublic);
+            var runtimeField = typeof(VideraChartView).GetField("_runtime", BindingFlags.Instance | BindingFlags.NonPublic);
             runtimeField.Should().NotBeNull();
             runtimeField!.FieldType.Should().Be(typeof(SurfaceChartRuntime));
-            typeof(SurfaceChartView).GetField("_tileCache", BindingFlags.Instance | BindingFlags.NonPublic).Should().BeNull();
+            typeof(VideraChartView).GetField("_tileCache", BindingFlags.Instance | BindingFlags.NonPublic).Should().BeNull();
 
-            var overlayCoordinatorField = typeof(SurfaceChartView).GetField("_overlayCoordinator", BindingFlags.Instance | BindingFlags.NonPublic);
+            var overlayCoordinatorField = typeof(VideraChartView).GetField("_overlayCoordinator", BindingFlags.Instance | BindingFlags.NonPublic);
             overlayCoordinatorField.Should().NotBeNull();
             overlayCoordinatorField!.FieldType.Should().Be(typeof(SurfaceChartOverlayCoordinator));
 
-            var view = new SurfaceChartView();
+            var view = new VideraChartView();
             var runtime = SurfaceChartTestHelpers.GetRuntime(view);
             var overlayCoordinator = SurfaceChartTestHelpers.GetOverlayCoordinator(view);
 
@@ -48,7 +48,7 @@ public sealed class SurfaceChartViewLifecycleTests
         {
             var act = () =>
             {
-                var view = new SurfaceChartView();
+                var view = new VideraChartView();
                 view.Measure(new Size(320, 180));
                 view.Arrange(new Rect(0, 0, 320, 180));
                 view.ViewState = new SurfaceViewState((new SurfaceViewport(0, 0, 128, 128)).ToDataWindow(), view.ViewState.Camera, view.ViewState.DisplaySpace);
@@ -63,7 +63,7 @@ public sealed class SurfaceChartViewLifecycleTests
     {
         return AvaloniaHeadlessTestSession.RunAsync(async () =>
         {
-            var view = new SurfaceChartView();
+            var view = new VideraChartView();
             var source = new RecordingSurfaceTileSource(CreateMetadata());
 
             view.Source = source;
@@ -80,7 +80,7 @@ public sealed class SurfaceChartViewLifecycleTests
     {
         return AvaloniaHeadlessTestSession.RunAsync(async () =>
         {
-            var view = new SurfaceChartView();
+            var view = new VideraChartView();
             var source = new RecordingSurfaceTileSource(CreateMetadata());
 
             view.Measure(new Size(256, 256));
@@ -107,7 +107,7 @@ public sealed class SurfaceChartViewLifecycleTests
             source.EnqueueSuccessResponse();
             source.EnqueueResponse(static (_, _) => Task.FromException<SurfaceTile?>(new InvalidOperationException("detail tile fault")));
 
-            var view = new SurfaceChartView();
+            var view = new VideraChartView();
             view.Measure(new Size(256, 256));
             view.Arrange(new Rect(0, 0, 256, 256));
             view.Source = source;
@@ -144,7 +144,7 @@ public sealed class SurfaceChartViewLifecycleTests
             var staleRequestStarted = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             var staleCompletion = new TaskCompletionSource<SurfaceTile?>(TaskCreationOptions.RunContinuationsAsynchronously);
             var overviewKey = new SurfaceTileKey(0, 0, 0, 0);
-            var view = new SurfaceChartView();
+            var view = new VideraChartView();
 
             staleSource.EnqueuePendingResponse(staleRequestStarted, staleCompletion, observeCancellation: false);
 
@@ -176,7 +176,7 @@ public sealed class SurfaceChartViewLifecycleTests
             var staleRequestStarted = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             var staleCompletion = new TaskCompletionSource<SurfaceTile?>(TaskCreationOptions.RunContinuationsAsynchronously);
             var overviewKey = new SurfaceTileKey(0, 0, 0, 0);
-            var view = new SurfaceChartView();
+            var view = new VideraChartView();
 
             staleSource.EnqueuePendingResponse(staleRequestStarted, staleCompletion, observeCancellation: false);
 
@@ -209,7 +209,7 @@ public sealed class SurfaceChartViewLifecycleTests
             var staleCompletion = new TaskCompletionSource<SurfaceTile?>(TaskCreationOptions.RunContinuationsAsynchronously);
             var staleRequestCompleted = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             var failureEvents = new List<SurfaceChartTileRequestFailedEventArgs>();
-            var view = new SurfaceChartView();
+            var view = new VideraChartView();
             view.TileRequestFailed += (_, args) => failureEvents.Add(args);
             view.Measure(new Size(256, 256));
             view.Arrange(new Rect(0, 0, 256, 256));
@@ -387,7 +387,7 @@ public sealed class SurfaceChartViewLifecycleTests
             var metadata = CreateMetadata();
             var source = new ScriptedSurfaceTileSource(metadata, defaultTileValue: 5);
             source.EnqueueResponse(static (_, _) => Task.FromException<SurfaceTile?>(new InvalidOperationException("tile fault")));
-            var view = new SurfaceChartView
+            var view = new VideraChartView
             {
                 Source = source
             };
@@ -403,7 +403,7 @@ public sealed class SurfaceChartViewLifecycleTests
     [Fact]
     public void FailureDiagnostics_AreNotExposedAsPublicControlApi()
     {
-        var members = typeof(SurfaceChartView)
+        var members = typeof(VideraChartView)
             .GetMembers(BindingFlags.Instance | BindingFlags.Public)
             .Select(static member => member.Name)
             .ToArray();
@@ -418,11 +418,11 @@ public sealed class SurfaceChartViewLifecycleTests
     {
         return AvaloniaHeadlessTestSession.RunAsync(async () =>
         {
-            var failureMethod = typeof(SurfaceChartView).GetMethod("OnTileRequestFailed", BindingFlags.Instance | BindingFlags.NonPublic);
+            var failureMethod = typeof(VideraChartView).GetMethod("OnTileRequestFailed", BindingFlags.Instance | BindingFlags.NonPublic);
             var eventRaised = new TaskCompletionSource<SurfaceChartTileRequestFailedEventArgs>(TaskCreationOptions.RunContinuationsAsynchronously);
             var uiThreadId = Environment.CurrentManagedThreadId;
             var callbackThreadId = -1;
-            var view = new SurfaceChartView();
+            var view = new VideraChartView();
             view.TileRequestFailed += (_, args) =>
             {
                 callbackThreadId = Environment.CurrentManagedThreadId;
@@ -453,7 +453,7 @@ public sealed class SurfaceChartViewLifecycleTests
             var source = new ScriptedSurfaceTileSource(metadata, defaultTileValue: 9);
             source.EnqueueResponse(static (_, _) => Task.FromException<SurfaceTile?>(new InvalidOperationException("tile fault")));
             source.EnqueueSuccessResponse();
-            var view = new SurfaceChartView
+            var view = new VideraChartView
             {
                 Source = source
             };
@@ -475,10 +475,10 @@ public sealed class SurfaceChartViewLifecycleTests
     {
         return AvaloniaHeadlessTestSession.RunAsync(async () =>
         {
-            var failureMethod = typeof(SurfaceChartView).GetMethod("OnTileRequestFailed", BindingFlags.Instance | BindingFlags.NonPublic);
-            var tilesChangedMethod = typeof(SurfaceChartView).GetMethod("NotifyTilesChanged", BindingFlags.Instance | BindingFlags.NonPublic);
+            var failureMethod = typeof(VideraChartView).GetMethod("OnTileRequestFailed", BindingFlags.Instance | BindingFlags.NonPublic);
+            var tilesChangedMethod = typeof(VideraChartView).GetMethod("NotifyTilesChanged", BindingFlags.Instance | BindingFlags.NonPublic);
             var failurePublished = new TaskCompletionSource<SurfaceChartTileRequestFailedEventArgs>(TaskCreationOptions.RunContinuationsAsynchronously);
-            var view = new SurfaceChartView();
+            var view = new VideraChartView();
             view.TileRequestFailed += (_, args) => failurePublished.TrySetResult(args);
 
             failureMethod.Should().NotBeNull();
@@ -505,7 +505,7 @@ public sealed class SurfaceChartViewLifecycleTests
             var metadata = CreateMetadata();
             var faultingSource = new ScriptedSurfaceTileSource(metadata, defaultTileValue: 3);
             faultingSource.EnqueueResponse(static (_, _) => Task.FromException<SurfaceTile?>(new InvalidOperationException("tile fault")));
-            var view = new SurfaceChartView
+            var view = new VideraChartView
             {
                 Source = faultingSource
             };
@@ -879,16 +879,16 @@ internal sealed class ScriptedSurfaceTileSource : ISurfaceTileSource
 
 internal static class SurfaceChartTestHelpers
 {
-    public static SurfaceChartRuntime GetRuntime(SurfaceChartView view)
+    public static SurfaceChartRuntime GetRuntime(VideraChartView view)
     {
-        var runtimeField = typeof(SurfaceChartView).GetField("_runtime", BindingFlags.Instance | BindingFlags.NonPublic);
+        var runtimeField = typeof(VideraChartView).GetField("_runtime", BindingFlags.Instance | BindingFlags.NonPublic);
         runtimeField.Should().NotBeNull();
         return (SurfaceChartRuntime)runtimeField!.GetValue(view)!;
     }
 
-    public static SurfaceChartOverlayCoordinator GetOverlayCoordinator(SurfaceChartView view)
+    public static SurfaceChartOverlayCoordinator GetOverlayCoordinator(VideraChartView view)
     {
-        var coordinatorField = typeof(SurfaceChartView).GetField("_overlayCoordinator", BindingFlags.Instance | BindingFlags.NonPublic);
+        var coordinatorField = typeof(VideraChartView).GetField("_overlayCoordinator", BindingFlags.Instance | BindingFlags.NonPublic);
         coordinatorField.Should().NotBeNull();
         return (SurfaceChartOverlayCoordinator)coordinatorField!.GetValue(view)!;
     }
@@ -909,13 +909,13 @@ internal static class SurfaceChartTestHelpers
         return new SurfaceTile(key, width, height, bounds, values, metadata.ValueRange);
     }
 
-    public static SurfaceTileKey[] GetLoadedTileKeys(SurfaceChartView view)
+    public static SurfaceTileKey[] GetLoadedTileKeys(VideraChartView view)
     {
         var tiles = GetRuntime(view).GetLoadedTiles();
         return tiles.Select(static tile => tile.Key).ToArray();
     }
 
-    public static SurfaceTileKey[] GetRenderSceneTileKeys(SurfaceChartView view)
+    public static SurfaceTileKey[] GetRenderSceneTileKeys(VideraChartView view)
     {
         var scene = GetRenderSceneFromView(view);
         if (scene is null)
@@ -930,7 +930,7 @@ internal static class SurfaceChartTestHelpers
         return tiles.Select(static tile => tile.Key).ToArray();
     }
 
-    public static async Task WaitForLoadedTileValuesAsync(SurfaceChartView view, float[] expectedValues, TimeSpan? timeout = null)
+    public static async Task WaitForLoadedTileValuesAsync(VideraChartView view, float[] expectedValues, TimeSpan? timeout = null)
     {
         timeout ??= TimeSpan.FromSeconds(2);
         var deadline = Stopwatch.GetTimestamp() + (long)(timeout.Value.TotalSeconds * Stopwatch.Frequency);
@@ -948,14 +948,14 @@ internal static class SurfaceChartTestHelpers
         GetLoadedTileValues(view).Should().Equal(expectedValues);
     }
 
-    public static async Task AssertLoadedTileValuesStayAsync(SurfaceChartView view, float[] expectedValues, TimeSpan? settlingDelay = null)
+    public static async Task AssertLoadedTileValuesStayAsync(VideraChartView view, float[] expectedValues, TimeSpan? settlingDelay = null)
     {
         settlingDelay ??= TimeSpan.FromMilliseconds(100);
         await Task.Delay(settlingDelay.Value).ConfigureAwait(false);
         GetLoadedTileValues(view).Should().Equal(expectedValues);
     }
 
-    public static async Task WaitForFailureAsync(SurfaceChartView view, TimeSpan? timeout = null)
+    public static async Task WaitForFailureAsync(VideraChartView view, TimeSpan? timeout = null)
     {
         timeout ??= TimeSpan.FromSeconds(2);
         var deadline = Stopwatch.GetTimestamp() + (long)(timeout.Value.TotalSeconds * Stopwatch.Frequency);
@@ -1042,15 +1042,15 @@ internal static class SurfaceChartTestHelpers
         }
     }
 
-    private static float[] GetLoadedTileValues(SurfaceChartView view)
+    private static float[] GetLoadedTileValues(VideraChartView view)
     {
         var tiles = GetRuntime(view).GetLoadedTiles();
         return tiles.SelectMany(static tile => tile.Values.Span.ToArray()).Distinct().ToArray();
     }
 
-    private static SurfaceRenderScene? GetRenderSceneFromView(SurfaceChartView view)
+    private static SurfaceRenderScene? GetRenderSceneFromView(VideraChartView view)
     {
-        var field = typeof(SurfaceChartView).GetField("_renderScene", BindingFlags.Instance | BindingFlags.NonPublic);
+        var field = typeof(VideraChartView).GetField("_renderScene", BindingFlags.Instance | BindingFlags.NonPublic);
         field.Should().NotBeNull();
         return (SurfaceRenderScene?)field!.GetValue(view);
     }

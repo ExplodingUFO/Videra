@@ -4,7 +4,7 @@ using Videra.SurfaceCharts.Core;
 
 namespace Videra.SurfaceCharts.Avalonia.Controls;
 
-public partial class SurfaceChartView
+public partial class VideraChartView
 {
     private static readonly SurfaceViewState DefaultViewState = CreateDefaultViewState();
     private bool _isSynchronizingViewStateProperties;
@@ -14,13 +14,13 @@ public partial class SurfaceChartView
     /// Identifies the <see cref="Source"/> property.
     /// </summary>
     public static readonly StyledProperty<ISurfaceTileSource?> SourceProperty =
-        AvaloniaProperty.Register<SurfaceChartView, ISurfaceTileSource?>(nameof(Source));
+        AvaloniaProperty.Register<VideraChartView, ISurfaceTileSource?>(nameof(Source));
 
     /// <summary>
     /// Identifies the <see cref="ViewState"/> property.
     /// </summary>
     public static readonly StyledProperty<SurfaceViewState> ViewStateProperty =
-        AvaloniaProperty.Register<SurfaceChartView, SurfaceViewState>(
+        AvaloniaProperty.Register<VideraChartView, SurfaceViewState>(
             nameof(ViewState),
             defaultValue: DefaultViewState);
 
@@ -28,25 +28,25 @@ public partial class SurfaceChartView
     /// Identifies the <see cref="ColorMap"/> property.
     /// </summary>
     public static readonly StyledProperty<SurfaceColorMap?> ColorMapProperty =
-        AvaloniaProperty.Register<SurfaceChartView, SurfaceColorMap?>(nameof(ColorMap));
+        AvaloniaProperty.Register<VideraChartView, SurfaceColorMap?>(nameof(ColorMap));
 
     /// <summary>
     /// Identifies the <see cref="OverlayOptions"/> property.
     /// </summary>
     public static readonly StyledProperty<SurfaceChartOverlayOptions> OverlayOptionsProperty =
-        AvaloniaProperty.Register<SurfaceChartView, SurfaceChartOverlayOptions>(
+        AvaloniaProperty.Register<VideraChartView, SurfaceChartOverlayOptions>(
             nameof(OverlayOptions),
             defaultValue: SurfaceChartOverlayOptions.Default);
 
-    static SurfaceChartView()
+    static VideraChartView()
     {
-        SourceProperty.Changed.AddClassHandler<SurfaceChartView>(
+        SourceProperty.Changed.AddClassHandler<VideraChartView>(
             static (view, args) => view.OnSourceChanged((ISurfaceTileSource?)args.NewValue));
-        ViewStateProperty.Changed.AddClassHandler<SurfaceChartView>(
+        ViewStateProperty.Changed.AddClassHandler<VideraChartView>(
             static (view, args) => view.OnViewStateChanged((SurfaceViewState)args.NewValue!));
-        ColorMapProperty.Changed.AddClassHandler<SurfaceChartView>(
+        ColorMapProperty.Changed.AddClassHandler<VideraChartView>(
             static (view, _) => view.InvalidateRenderScene());
-        OverlayOptionsProperty.Changed.AddClassHandler<SurfaceChartView>(
+        OverlayOptionsProperty.Changed.AddClassHandler<VideraChartView>(
             static (view, _) => view.InvalidateOverlay());
     }
 

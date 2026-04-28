@@ -83,7 +83,7 @@ public sealed class SurfaceChartViewGpuFallbackTests
     }
 
     private static async Task WaitForRenderingStatusAsync(
-        SurfaceChartView view,
+        VideraChartView view,
         Func<SurfaceChartRenderingStatus, bool> predicate,
         TimeSpan? timeout = null)
     {
@@ -130,7 +130,7 @@ public sealed class SurfaceChartViewGpuFallbackTests
         return ((System.Collections.ICollection)value!).Count;
     }
 
-    private sealed class TestSurfaceChartView : SurfaceChartView
+    private sealed class TestSurfaceChartView : VideraChartView
     {
         public TestSurfaceChartView(SurfaceChartRenderHost renderHost, ISurfaceChartNativeHostFactory nativeHostFactory)
             : base(renderHost, nativeHostFactory)

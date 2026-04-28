@@ -16,7 +16,7 @@ public sealed class SurfaceChartViewViewStateTests
     {
         AvaloniaHeadlessTestSession.Run(() =>
         {
-            var view = new SurfaceChartView();
+            var view = new VideraChartView();
             var viewport = new SurfaceViewport(64d, 32d, 128d, 96d);
 
             view.ViewState = new SurfaceViewState((viewport).ToDataWindow(), view.ViewState.Camera, view.ViewState.DisplaySpace);
@@ -30,7 +30,7 @@ public sealed class SurfaceChartViewViewStateTests
     {
         AvaloniaHeadlessTestSession.Run(() =>
         {
-            var view = new SurfaceChartView();
+            var view = new VideraChartView();
             var viewState = new SurfaceViewState(
                 new SurfaceDataWindow(10d, 20d, 30d, 40d),
                 new SurfaceCameraPose(new Vector3(1f, 2f, 3f), 210d, 15d, 24d, 45d));
@@ -47,7 +47,7 @@ public sealed class SurfaceChartViewViewStateTests
         AvaloniaHeadlessTestSession.Run(() =>
         {
             var source = new RecordingSurfaceTileSource(SurfaceChartViewLifecycleTests.CreateMetadata());
-            var view = new SurfaceChartView
+            var view = new VideraChartView
             {
                 Source = source,
                 ViewState = new SurfaceViewState(
@@ -69,7 +69,7 @@ public sealed class SurfaceChartViewViewStateTests
         {
             var source = new RecordingSurfaceTileSource(SurfaceChartViewLifecycleTests.CreateMetadata());
             var dataWindow = new SurfaceDataWindow(128d, 64d, 256d, 128d);
-            var view = new SurfaceChartView
+            var view = new VideraChartView
             {
                 Source = source,
                 ViewState = new SurfaceViewState(
@@ -91,7 +91,7 @@ public sealed class SurfaceChartViewViewStateTests
         AvaloniaHeadlessTestSession.Run(() =>
         {
             var source = new RecordingSurfaceTileSource(SurfaceChartViewLifecycleTests.CreateMetadata());
-            var view = new SurfaceChartView
+            var view = new VideraChartView
             {
                 Source = source
             };
@@ -109,7 +109,7 @@ public sealed class SurfaceChartViewViewStateTests
     {
         AvaloniaHeadlessTestSession.Run(() =>
         {
-            var view = new SurfaceChartView();
+            var view = new VideraChartView();
             var initialState = view.ViewState;
 
             view.FitToData();
@@ -170,7 +170,7 @@ public sealed class SurfaceChartViewViewStateTests
         });
     }
 
-    private sealed class RoutedInteractionTestView : SurfaceChartView
+    private sealed class RoutedInteractionTestView : VideraChartView
     {
         public void RoutePointerPressed(
             Pointer pointer,

@@ -42,8 +42,9 @@ public sealed class VideraChartViewPlotApiTests
     [Fact]
     public void VideraChartView_IsNotAnOldChartViewWrapper()
     {
-        typeof(VideraChartView).Should().NotBeAssignableTo<SurfaceChartView>();
-        typeof(VideraChartView).Should().NotBeAssignableTo<ScatterChartView>();
+        typeof(VideraChartView).Assembly.GetType("Videra.SurfaceCharts.Avalonia.Controls.SurfaceChartView").Should().BeNull();
+        typeof(VideraChartView).Assembly.GetType("Videra.SurfaceCharts.Avalonia.Controls.WaterfallChartView").Should().BeNull();
+        typeof(VideraChartView).Assembly.GetType("Videra.SurfaceCharts.Avalonia.Controls.ScatterChartView").Should().BeNull();
     }
 
     private static ScatterChartData CreateScatterData()

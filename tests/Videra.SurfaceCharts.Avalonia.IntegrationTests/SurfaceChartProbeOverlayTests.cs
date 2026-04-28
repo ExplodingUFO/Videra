@@ -19,7 +19,7 @@ public sealed class SurfaceChartProbeOverlayTests
         return AvaloniaHeadlessTestSession.RunAsync(async () =>
         {
             var source = new ScriptedSurfaceTileSource(SurfaceChartViewLifecycleTests.CreateMetadata(), defaultTileValue: 7f);
-            var view = new SurfaceChartView();
+            var view = new VideraChartView();
 
             view.Measure(new Size(256, 128));
             view.Arrange(new Rect(0, 0, 256, 128));
@@ -50,7 +50,7 @@ public sealed class SurfaceChartProbeOverlayTests
         return AvaloniaHeadlessTestSession.RunAsync(async () =>
         {
             var source = new ScriptedSurfaceTileSource(SurfaceChartViewLifecycleTests.CreateMetadata(), defaultTileValue: 7f);
-            var view = new SurfaceChartView();
+            var view = new VideraChartView();
 
             view.Measure(new Size(256, 128));
             view.Arrange(new Rect(0, 0, 256, 128));
@@ -77,7 +77,7 @@ public sealed class SurfaceChartProbeOverlayTests
             var started = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             var completion = new TaskCompletionSource<SurfaceTile?>(TaskCreationOptions.RunContinuationsAsynchronously);
             var source = new ScriptedSurfaceTileSource(SurfaceChartViewLifecycleTests.CreateMetadata(), defaultTileValue: 9f);
-            var view = new SurfaceChartView();
+            var view = new VideraChartView();
 
             source.EnqueuePendingResponse(started, completion, observeCancellation: true);
 
@@ -104,7 +104,7 @@ public sealed class SurfaceChartProbeOverlayTests
         return AvaloniaHeadlessTestSession.RunAsync(async () =>
         {
             var source = new ScriptedSurfaceTileSource(SurfaceChartViewLifecycleTests.CreateMetadata(), defaultTileValue: 5f);
-            var view = new SurfaceChartView();
+            var view = new VideraChartView();
 
             view.Measure(new Size(200, 100));
             view.Arrange(new Rect(0, 0, 200, 100));
@@ -450,7 +450,7 @@ public sealed class SurfaceChartProbeOverlayTests
                 new SurfaceAxisDescriptor("Frequency", "Hz", 100d, 200d),
                 new SurfaceValueRange(-2d, 2d));
             var source = new ScriptedSurfaceTileSource(metadata, defaultTileValue: 5f);
-            var view = new SurfaceChartView();
+            var view = new VideraChartView();
 
             view.Measure(new Size(200, 200));
             view.Arrange(new Rect(0, 0, 200, 200));
@@ -492,7 +492,7 @@ public sealed class SurfaceChartProbeOverlayTests
                 new SurfaceAxisDescriptor("Frequency", "Hz", 100d, 200d),
                 new SurfaceValueRange(-2d, 2d));
             var source = new ScriptedSurfaceTileSource(metadata, defaultTileValue: 5f);
-            var view = new SurfaceChartView();
+            var view = new VideraChartView();
 
             view.Measure(new Size(200, 200));
             view.Arrange(new Rect(0, 0, 200, 200));
@@ -780,9 +780,9 @@ public sealed class SurfaceChartProbeOverlayTests
         GetPropertyValue(state, "HoveredProbeScreenPosition").Should().BeNull();
     }
 
-    private static bool UpdateProbeScreenPosition(SurfaceChartView view, Point probeScreenPosition)
+    private static bool UpdateProbeScreenPosition(VideraChartView view, Point probeScreenPosition)
     {
-        var method = typeof(SurfaceChartView).GetMethod(
+        var method = typeof(VideraChartView).GetMethod(
             "UpdateProbeScreenPosition",
             BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
 
@@ -790,7 +790,7 @@ public sealed class SurfaceChartProbeOverlayTests
         return (bool)method!.Invoke(view, [probeScreenPosition])!;
     }
 
-    private static object GetOverlayState(SurfaceChartView view)
+    private static object GetOverlayState(VideraChartView view)
     {
         return SurfaceChartTestHelpers.GetOverlayCoordinator(view).ProbeState;
     }
