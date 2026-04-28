@@ -33,6 +33,12 @@ public sealed class BeadsPublicRoadmapTests
         after.Should().Contain("## Blocked");
         after.Should().Contain("## Backlog");
         after.Should().Contain("## Recently Closed");
+        after.Should().Contain("Videra-tyn");
+        after.Should().Contain("v2.47 Single Plot View for 3D Charts");
+        after.Should().Contain("Videra-hen");
+        after.Should().Contain("Phase 334: VideraChartView Plot API foundation");
+        after.Should().Contain("Videra-rhb");
+        after.Should().Contain("Phase 333: Breaking chart API deletion inventory");
         after.Should().Contain("Videra-53d");
         after.Should().Contain("v2.46 Professional Interaction Evidence");
         after.Should().Contain("Videra-7l7");
@@ -47,8 +53,6 @@ public sealed class BeadsPublicRoadmapTests
         after.Should().Contain("Phase 332: Professional interaction guardrails and docs closure");
         after.Should().Contain("Videra-j16");
         after.Should().Contain("v2.45 Professional Output and Scene Semantics");
-        after.Should().Contain("Videra-ct5");
-        after.Should().Contain("Phase 325: SurfaceCharts professional output evidence");
         after.Should().Contain("Videra-ki0");
         after.Should().Contain("Phase 326: Workbench professional output workflow");
         after.Should().Contain("Videra-422");

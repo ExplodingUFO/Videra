@@ -17,11 +17,10 @@ _No matching beads in the exported snapshot._
 ## Ready
 
 - **Videra-tyn** - v2.47 Single Plot View for 3D Charts (epic, P1, open)
-- **Videra-rhb** - Phase 333: Breaking chart API deletion inventory (task, P1, open)
+- **Videra-hen** - Phase 334: VideraChartView Plot API foundation (task, P1, open)
 
 ## Blocked
 
-- **Videra-hen** - Phase 334: VideraChartView Plot API foundation (task, P1, open)
 - **Videra-q7q** - Phase 335: Delete old SurfaceCharts View components (task, P1, open)
 - **Videra-0yn** - Phase 336: Migrate demos and smokes to VideraChartView (task, P1, open)
 - **Videra-v49** - Phase 337: Unified professional Plot presentation (task, P1, open)
@@ -33,6 +32,7 @@ _No matching beads in the exported snapshot._
 
 ## Recently Closed
 
+- **Videra-rhb** - Phase 333: Breaking chart API deletion inventory (task, P1, closed)
 - **Videra-53d** - v2.46 Professional Interaction Evidence (epic, P1, closed)
 - **Videra-m4z** - Phase 332: Professional interaction guardrails and docs closure (task, P1, closed)
 - **Videra-nll** - Phase 331: Workbench professional interaction report workflow (task, P1, closed)
@@ -42,5 +42,4 @@ _No matching beads in the exported snapshot._
 - **Videra-j16** - v2.45 Professional Output and Scene Semantics (epic, P1, closed)
 - **Videra-422** - Phase 327: Professional output guardrails and docs closure (task, P2, closed)
 - **Videra-ki0** - Phase 326: Workbench professional output workflow (task, P2, closed)
-- **Videra-ct5** - Phase 325: SurfaceCharts professional output evidence (task, P1, closed)
 
