@@ -12,12 +12,11 @@ pwsh -File ./scripts/Export-BeadsRoadmap.ps1
 
 ## Active
 
-_No matching beads in the exported snapshot._
+- **Videra-hen** - Phase 334: VideraChartView Plot API foundation (task, P1, in_progress)
 
 ## Ready
 
 - **Videra-tyn** - v2.47 Single Plot View for 3D Charts (epic, P1, open)
-- **Videra-hen** - Phase 334: VideraChartView Plot API foundation (task, P1, open)
 
 ## Blocked
 
