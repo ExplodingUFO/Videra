@@ -368,10 +368,15 @@ public sealed class VideraDoctorRepositoryTests
         supportReport.GetProperty("status").GetString().Should().Be("missing");
         supportReport.GetProperty("supportSummaryPath").GetString().Should().Be("artifacts/consumer-smoke/surfacecharts-support-summary.txt");
         supportReport.GetProperty("renderingStatusPresent").GetBoolean().Should().BeFalse();
+        supportReport.GetProperty("isStructuredComplete").GetBoolean().Should().BeFalse();
+        supportReport.GetProperty("missingFields").EnumerateArray()
+            .Select(field => field.GetString())
+            .Should().Contain("GeneratedUtc");
 
         var summary = File.ReadAllText(Path.Combine(outputRoot, "doctor-summary.txt"));
         summary.Should().Contain("SurfaceCharts support report:");
         summary.Should().Contain("status: missing");
+        summary.Should().Contain("structured complete: False");
     }
 
     [Fact]
@@ -409,14 +414,58 @@ public sealed class VideraDoctorRepositoryTests
         supportReport.GetProperty("assemblyIdentity").GetString().Should().Contain("ConsumerSmoke");
         supportReport.GetProperty("backendDisplayEnvironment").GetString().Should().Contain("VIDERA_BACKEND");
         supportReport.GetProperty("renderingStatusPresent").GetBoolean().Should().BeTrue();
+        supportReport.GetProperty("isStructuredComplete").GetBoolean().Should().BeTrue();
+        supportReport.GetProperty("missingFields").GetArrayLength().Should().Be(0);
 
         var summary = File.ReadAllText(Path.Combine(outputRoot, "doctor-summary.txt"));
         summary.Should().Contain("SurfaceCharts support report:");
         summary.Should().Contain("status: present");
+        summary.Should().Contain("structured complete: True");
         summary.Should().Contain("evidence kind: SurfaceChartsDatasetProof");
         summary.Should().Contain("chart control: SurfaceChartView");
         summary.Should().Contain("assembly identity: ConsumerSmoke");
         summary.Should().Contain("backend/display environment: VIDERA_BACKEND");
+    }
+
+    [Fact]
+    public void VideraDoctor_ShouldReportPartialSurfaceChartsSupportReport()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        using var supportScope = DefaultSurfaceChartsSupportDirectoryScope.Create(repositoryRoot);
+        supportScope.WriteSupportSummary(
+            "SurfaceCharts support summary",
+            "EvidenceKind: SurfaceChartsDatasetProof",
+            "RenderingStatus:",
+            "ActiveBackend: Software");
+
+        var scriptPath = Path.Combine(repositoryRoot, "scripts", "Invoke-VideraDoctor.ps1");
+        var outputRoot = Path.Combine(Path.GetTempPath(), "VideraDoctorTests", Guid.NewGuid().ToString("N"));
+
+        var result = RunPowerShell(scriptPath, outputRoot, repositoryRoot);
+
+        result.ExitCode.Should().Be(0, $"stdout: {result.Stdout}\nstderr: {result.Stderr}");
+
+        using var reportDocument = JsonDocument.Parse(File.ReadAllText(Path.Combine(outputRoot, "doctor-report.json")));
+        var supportReport = reportDocument.RootElement.GetProperty("evidencePacket").GetProperty("surfaceChartsSupportReport");
+        supportReport.GetProperty("status").GetString().Should().Be("present");
+        supportReport.GetProperty("isStructuredComplete").GetBoolean().Should().BeFalse();
+        supportReport.GetProperty("missingFields").EnumerateArray()
+            .Select(field => field.GetString())
+            .Should().Contain(new[]
+            {
+                "GeneratedUtc",
+                "EvidenceOnly",
+                "ChartControl",
+                "EnvironmentRuntime",
+                "AssemblyIdentity",
+                "BackendDisplayEnvironment"
+            });
+        supportReport.GetProperty("renderingStatusPresent").GetBoolean().Should().BeTrue();
+
+        var summary = File.ReadAllText(Path.Combine(outputRoot, "doctor-summary.txt"));
+        summary.Should().Contain("status: present");
+        summary.Should().Contain("structured complete: False");
+        summary.Should().Contain("missing fields: GeneratedUtc");
     }
 
     [Fact]

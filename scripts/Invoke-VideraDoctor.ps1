@@ -291,6 +291,8 @@ function Get-SurfaceChartsSupportReport
             assemblyIdentity = ""
             backendDisplayEnvironment = ""
             renderingStatusPresent = $false
+            isStructuredComplete = $false
+            missingFields = @("GeneratedUtc", "EvidenceKind", "EvidenceOnly", "ChartControl", "EnvironmentRuntime", "AssemblyIdentity", "BackendDisplayEnvironment", "RenderingStatus")
         }
     }
 
@@ -312,6 +314,8 @@ function Get-SurfaceChartsSupportReport
             assemblyIdentity = ""
             backendDisplayEnvironment = ""
             renderingStatusPresent = $false
+            isStructuredComplete = $false
+            missingFields = @("GeneratedUtc", "EvidenceKind", "EvidenceOnly", "ChartControl", "EnvironmentRuntime", "AssemblyIdentity", "BackendDisplayEnvironment", "RenderingStatus")
         }
     }
 
@@ -329,18 +333,37 @@ function Get-SurfaceChartsSupportReport
     }
 
     $evidenceOnlyText = Get-SurfaceChartsSupportValue -Prefix "EvidenceOnly:"
+    $generatedAtUtc = Get-SurfaceChartsSupportValue -Prefix "GeneratedUtc:"
+    $evidenceKind = Get-SurfaceChartsSupportValue -Prefix "EvidenceKind:"
+    $chartControl = Get-SurfaceChartsSupportValue -Prefix "ChartControl:"
+    $environmentRuntime = Get-SurfaceChartsSupportValue -Prefix "EnvironmentRuntime:"
+    $assemblyIdentity = Get-SurfaceChartsSupportValue -Prefix "AssemblyIdentity:"
+    $backendDisplayEnvironment = Get-SurfaceChartsSupportValue -Prefix "BackendDisplayEnvironment:"
+    $renderingStatusPresent = ($lines | Where-Object { $_.StartsWith("RenderingStatus", [System.StringComparison]::Ordinal) }).Count -gt 0
+    $missingFields = @()
+    if ([string]::IsNullOrWhiteSpace($generatedAtUtc)) { $missingFields += "GeneratedUtc" }
+    if ([string]::IsNullOrWhiteSpace($evidenceKind)) { $missingFields += "EvidenceKind" }
+    if ([string]::IsNullOrWhiteSpace($evidenceOnlyText)) { $missingFields += "EvidenceOnly" }
+    if ([string]::IsNullOrWhiteSpace($chartControl)) { $missingFields += "ChartControl" }
+    if ([string]::IsNullOrWhiteSpace($environmentRuntime)) { $missingFields += "EnvironmentRuntime" }
+    if ([string]::IsNullOrWhiteSpace($assemblyIdentity)) { $missingFields += "AssemblyIdentity" }
+    if ([string]::IsNullOrWhiteSpace($backendDisplayEnvironment)) { $missingFields += "BackendDisplayEnvironment" }
+    if (-not $renderingStatusPresent) { $missingFields += "RenderingStatus" }
+
     return [ordered]@{
         status = "present"
-        message = "SurfaceCharts support summary is present."
+        message = if ($missingFields.Count -eq 0) { "SurfaceCharts support summary is present." } else { "SurfaceCharts support summary is present but missing structured field(s): $($missingFields -join ', ')." }
         supportSummaryPath = $summaryPath
-        generatedAtUtc = Get-SurfaceChartsSupportValue -Prefix "GeneratedUtc:"
-        evidenceKind = Get-SurfaceChartsSupportValue -Prefix "EvidenceKind:"
+        generatedAtUtc = $generatedAtUtc
+        evidenceKind = $evidenceKind
         evidenceOnly = if ([string]::IsNullOrWhiteSpace($evidenceOnlyText)) { $null } else { $evidenceOnlyText.StartsWith("true", [System.StringComparison]::OrdinalIgnoreCase) }
-        chartControl = Get-SurfaceChartsSupportValue -Prefix "ChartControl:"
-        environmentRuntime = Get-SurfaceChartsSupportValue -Prefix "EnvironmentRuntime:"
-        assemblyIdentity = Get-SurfaceChartsSupportValue -Prefix "AssemblyIdentity:"
-        backendDisplayEnvironment = Get-SurfaceChartsSupportValue -Prefix "BackendDisplayEnvironment:"
-        renderingStatusPresent = ($lines | Where-Object { $_.StartsWith("RenderingStatus", [System.StringComparison]::Ordinal) }).Count -gt 0
+        chartControl = $chartControl
+        environmentRuntime = $environmentRuntime
+        assemblyIdentity = $assemblyIdentity
+        backendDisplayEnvironment = $backendDisplayEnvironment
+        renderingStatusPresent = $renderingStatusPresent
+        isStructuredComplete = $missingFields.Count -eq 0
+        missingFields = @($missingFields)
     }
 }
 
@@ -663,6 +686,11 @@ $summaryLines.Add("") | Out-Null
 $summaryLines.Add("SurfaceCharts support report:") | Out-Null
 $summaryLines.Add(("- status: {0} - {1}" -f $surfaceChartsSupportReport.status, $surfaceChartsSupportReport.message)) | Out-Null
 $summaryLines.Add(("- summary: {0}" -f $surfaceChartsSupportReport.supportSummaryPath)) | Out-Null
+$summaryLines.Add(("- structured complete: {0}" -f $surfaceChartsSupportReport.isStructuredComplete)) | Out-Null
+if ($surfaceChartsSupportReport.missingFields.Count -gt 0)
+{
+    $summaryLines.Add(("- missing fields: {0}" -f ($surfaceChartsSupportReport.missingFields -join ", "))) | Out-Null
+}
 if (-not [string]::IsNullOrWhiteSpace($surfaceChartsSupportReport.evidenceKind))
 {
     $summaryLines.Add(("- evidence kind: {0}" -f $surfaceChartsSupportReport.evidenceKind)) | Out-Null
