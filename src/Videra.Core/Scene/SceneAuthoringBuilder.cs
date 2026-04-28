@@ -96,6 +96,29 @@ public sealed class SceneAuthoringBuilder
         return AddMesh(name, SceneGeometry.Polyline(points, material.BaseColorFactor), material, transform, nodeId, primitiveId);
     }
 
+    public SceneAuthoringBuilder AddAxisTriad(
+        string name,
+        float length = 1f,
+        Matrix4x4? transform = null)
+    {
+        AddMesh(
+            $"{name}-x-axis",
+            SceneGeometry.AxisLine(Vector3.UnitX, length, RgbaFloat.Red),
+            SceneMaterials.Matte($"{name}-x-axis", RgbaFloat.Red),
+            transform);
+        AddMesh(
+            $"{name}-y-axis",
+            SceneGeometry.AxisLine(Vector3.UnitY, length, RgbaFloat.Green),
+            SceneMaterials.Matte($"{name}-y-axis", RgbaFloat.Green),
+            transform);
+        AddMesh(
+            $"{name}-z-axis",
+            SceneGeometry.AxisLine(Vector3.UnitZ, length, RgbaFloat.Blue),
+            SceneMaterials.Matte($"{name}-z-axis", RgbaFloat.Blue),
+            transform);
+        return this;
+    }
+
     public SceneAuthoringBuilder AddPointCloud(
         string name,
         MaterialInstance material,

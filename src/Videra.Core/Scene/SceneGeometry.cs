@@ -144,6 +144,28 @@ public static class SceneGeometry
         return Buffer(points, indices, colors: colors, topology: MeshTopology.Lines);
     }
 
+    public static MeshData AxisLine(Vector3 direction, float length = 1f, RgbaFloat? color = null)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(length);
+        if (!float.IsFinite(direction.X) || !float.IsFinite(direction.Y) || !float.IsFinite(direction.Z) || direction.LengthSquared() == 0f)
+        {
+            throw new ArgumentException("Axis line direction must be a finite non-zero vector.", nameof(direction));
+        }
+
+        var c = color ?? RgbaFloat.White;
+        var normal = Vector3.Normalize(direction);
+        return new MeshData
+        {
+            Vertices =
+            [
+                new VertexPositionNormalColor(Vector3.Zero, normal, c),
+                new VertexPositionNormalColor(normal * length, normal, c)
+            ],
+            Indices = [0, 1],
+            Topology = MeshTopology.Lines
+        };
+    }
+
     public static MeshData PointCloud(ReadOnlySpan<Vector3> points, ReadOnlySpan<RgbaFloat> colors = default)
     {
         if (points.IsEmpty)

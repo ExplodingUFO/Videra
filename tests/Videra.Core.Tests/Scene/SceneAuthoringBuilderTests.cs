@@ -151,6 +151,85 @@ public sealed class SceneAuthoringBuilderTests
     }
 
     [Fact]
+    public void AxisLine_CreatesBoundedLineTopologyWithColor()
+    {
+        var color = new RgbaFloat(0.8f, 0.2f, 0.1f, 1f);
+
+        var mesh = SceneGeometry.AxisLine(Vector3.UnitX, length: 2f, color);
+
+        mesh.Topology.Should().Be(MeshTopology.Lines);
+        mesh.Vertices.Should().HaveCount(2);
+        mesh.Indices.Should().Equal(0u, 1u);
+        mesh.Vertices[0].Position.Should().Be(Vector3.Zero);
+        mesh.Vertices[1].Position.Should().Be(new Vector3(2f, 0f, 0f));
+        mesh.Vertices.Select(vertex => vertex.Color).Should().OnlyContain(vertexColor => vertexColor == color);
+    }
+
+    [Fact]
+    public void Build_WithAxisTriad_CreatesRetainedAxisLinePrimitivesAndMaterials()
+    {
+        var document = SceneAuthoring.Create("axis-scene")
+            .AddAxisTriad("world", length: 3f, transform: Matrix4x4.CreateTranslation(1f, 2f, 3f))
+            .Build();
+
+        document.InstanceBatches.Should().BeEmpty();
+        var asset = document.Entries.Should().ContainSingle().Which.ImportedAsset;
+        asset.Should().NotBeNull();
+        asset!.Nodes.Should().HaveCount(3);
+        asset.Primitives.Should().HaveCount(3);
+        asset.Materials.Should().HaveCount(3);
+
+        asset.Nodes.Should().OnlyContain(node => node.LocalTransform == Matrix4x4.CreateTranslation(1f, 2f, 3f));
+        asset.Primitives.Should().Contain(primitive =>
+            primitive.Name == "world-x-axis" &&
+            primitive.MeshData.Topology == MeshTopology.Lines &&
+            primitive.MeshData.Vertices[1].Position == new Vector3(3f, 0f, 0f));
+        asset.Primitives.Should().Contain(primitive =>
+            primitive.Name == "world-y-axis" &&
+            primitive.MeshData.Topology == MeshTopology.Lines &&
+            primitive.MeshData.Vertices[1].Position == new Vector3(0f, 3f, 0f));
+        asset.Primitives.Should().Contain(primitive =>
+            primitive.Name == "world-z-axis" &&
+            primitive.MeshData.Topology == MeshTopology.Lines &&
+            primitive.MeshData.Vertices[1].Position == new Vector3(0f, 0f, 3f));
+
+        asset.Materials.Should().Contain(material => material.Name == "world-x-axis" && material.BaseColorFactor == RgbaFloat.Red);
+        asset.Materials.Should().Contain(material => material.Name == "world-y-axis" && material.BaseColorFactor == RgbaFloat.Green);
+        asset.Materials.Should().Contain(material => material.Name == "world-z-axis" && material.BaseColorFactor == RgbaFloat.Blue);
+    }
+
+    [Fact]
+    public void Validate_WithRepeatedAxisTriads_DoesNotReportGeneratedIdErrors()
+    {
+        var diagnostics = SceneAuthoring.Create("axis-scene")
+            .AddAxisTriad("world")
+            .AddAxisTriad("local", transform: Matrix4x4.CreateTranslation(1f, 0f, 0f))
+            .Validate();
+
+        diagnostics.Should().NotContain(diagnostic =>
+            diagnostic.Code == "node.id.duplicate" || diagnostic.Code == "mesh.id.duplicate");
+    }
+
+    [Fact]
+    public void Build_WithAxisTriadAndInstances_PreservesDocumentAndBatchTruth()
+    {
+        var material = SceneMaterials.Matte("marker", RgbaFloat.White);
+
+        var document = SceneAuthoring.Create("axis-and-markers")
+            .AddAxisTriad("world")
+            .AddInstances(
+                "markers",
+                SceneGeometry.Cube(size: 0.2f, material.BaseColorFactor),
+                material,
+                new[] { Matrix4x4.Identity, Matrix4x4.CreateTranslation(1f, 0f, 0f) })
+            .Build();
+
+        document.Entries.Should().ContainSingle();
+        document.Entries[0].ImportedAsset!.Primitives.Should().HaveCount(3);
+        document.InstanceBatches.Should().ContainSingle().Which.Name.Should().Be("markers");
+    }
+
+    [Fact]
     public void Sphere_CreatesIndexedTriangleMeshWithExpectedBoundsAndColor()
     {
         var color = new RgbaFloat(0.2f, 0.4f, 0.8f, 1f);
