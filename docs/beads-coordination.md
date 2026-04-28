@@ -102,6 +102,12 @@ bd vc commit -m "record coordination state"
 bd dolt push
 ```
 
+If Docker-hosted Dolt can write local Beads commits but the container cannot complete GitHub HTTPS TLS handshakes, use the host-relay push script. The script fetches the current `refs/dolt/data` on the host, lets Docker Dolt push into a temporary local Git remote, then fast-forwards `refs/dolt/data` to GitHub with the host Git client:
+
+```powershell
+pwsh -File ./scripts/Push-BeadsDoltViaHost.ps1
+```
+
 The tracked `.beads/issues.jsonl` file is an interoperability export of the current issue state. Regenerate it after meaningful issue lifecycle changes:
 
 ```powershell
