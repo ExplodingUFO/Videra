@@ -16,11 +16,16 @@ _No matching beads in the exported snapshot._
 
 ## Ready
 
-_No matching beads in the exported snapshot._
+- **Videra-tyn** - v2.47 Single Plot View for 3D Charts (epic, P1, open)
+- **Videra-rhb** - Phase 333: Breaking chart API deletion inventory (task, P1, open)
 
 ## Blocked
 
-_No matching beads in the exported snapshot._
+- **Videra-hen** - Phase 334: VideraChartView Plot API foundation (task, P1, open)
+- **Videra-q7q** - Phase 335: Delete old SurfaceCharts View components (task, P1, open)
+- **Videra-0yn** - Phase 336: Migrate demos and smokes to VideraChartView (task, P1, open)
+- **Videra-v49** - Phase 337: Unified professional Plot presentation (task, P1, open)
+- **Videra-k78** - Phase 338: Single Plot View docs and guardrails (task, P1, open)
 
 ## Backlog
 
