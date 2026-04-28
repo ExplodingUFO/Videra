@@ -120,6 +120,7 @@ var document = SceneAuthoring.Create("batched-markers")
 ```
 
 This produces a single `InstanceBatchEntry`, no expanded per-instance mesh entries, with stable pick IDs and deterministic bounds.
+Use `AddInstances(...)` when many authored objects share the same mesh and material, such as repeated cube markers, sensor glyphs, tiles, or other static copies that only vary by transform, optional color, or object id. Use repeated primitive calls such as `AddCube(...)` only when each object is genuinely separate scene truth with its own authored geometry/material entry.
 `AddAxisTriad(...)` expands to three retained line primitives and stays in the same static-scene authoring model; it does not introduce a runtime gizmo system or backend-specific helper.
 `AddScaleBar(...)` is also retained line-topology scene truth; it is a static scene semantic helper, not a UI overlay, text label, runtime manipulator, or fallback path.
 
