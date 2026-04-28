@@ -2,7 +2,7 @@
 
 [English](index.md) | [中文](zh-CN/index.md)
 
-This page maps the long-lived public documentation for Videra. Start with the repository README when you need the public package boundary, chart-package truth, or the current alpha support contract for the shipped `VideraChartView`, `VideraChartView`, and `VideraChartView` controls.
+This page maps the long-lived public documentation for Videra. Start with the repository README when you need the public package boundary, chart-package truth, or the current alpha support contract for the shipped `VideraChartView` with `Plot.Add.Surface`, `Plot.Add.Waterfall`, and `Plot.Add.Scatter` controls.
 
 ## Start Here
 

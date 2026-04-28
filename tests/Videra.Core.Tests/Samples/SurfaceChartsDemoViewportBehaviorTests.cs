@@ -209,10 +209,10 @@ public sealed class SurfaceChartsDemoViewportBehaviorTests
                 "the demo should project overlay customization truth into visible onboarding text.")
                 .ConfigureAwait(true);
 
-            chartView.OverlayOptions.ShowMinorTicks.Should().BeTrue();
-            chartView.OverlayOptions.MinorTickDivisions.Should().Be(4);
-            chartView.OverlayOptions.GridPlane.Should().Be(SurfaceChartGridPlane.XZ);
-            chartView.OverlayOptions.AxisSideMode.Should().Be(SurfaceChartAxisSideMode.Auto);
+            chartView.Plot.OverlayOptions.ShowMinorTicks.Should().BeTrue();
+            chartView.Plot.OverlayOptions.MinorTickDivisions.Should().Be(4);
+            chartView.Plot.OverlayOptions.GridPlane.Should().Be(SurfaceChartGridPlane.XZ);
+            chartView.Plot.OverlayOptions.AxisSideMode.Should().Be(SurfaceChartAxisSideMode.Auto);
             overlayOptionsText.Text.Should().Contain("OverlayOptions");
             overlayOptionsText.Text.Should().Contain("Minor ticks");
             overlayOptionsText.Text.Should().Contain("Grid plane");
@@ -379,7 +379,7 @@ public sealed class SurfaceChartsDemoViewportBehaviorTests
             supportSummaryText.Text.Should().Contain("SeriesCount");
             supportSummaryText.Text.Should().Contain("PointCount");
             supportSummaryText.Text.Should().Contain("InteractionQuality: Refine");
-            supportSummaryText.Text.Should().Contain("OverlayOptions: shared");
+            supportSummaryText.Text.Should().Contain("OverlayOptions: VideraChartView.Plot.OverlayOptions");
             supportSummaryText.Text.Should().NotContain("ViewState:");
         });
     }

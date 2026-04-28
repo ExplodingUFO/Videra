@@ -373,10 +373,11 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
         var repositoryRoot = GetRepositoryRoot();
         var viewApi = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.SurfaceCharts.Avalonia", "Controls", "VideraChartView.Core.cs"));
         var viewPropertiesApi = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.SurfaceCharts.Avalonia", "Controls", "VideraChartView.Properties.cs"));
+        var plotApi = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.SurfaceCharts.Avalonia", "Controls", "Plot", "Plot3D.cs"));
 
         AssertContainsAllTokens(viewApi, SurfaceChartsDocumentationTerms.SurfaceChartViewTypeXmlDocTokens);
         AssertContainsAllTokens(viewApi, SurfaceChartsDocumentationTerms.SurfaceChartRenderingStatusXmlDocTokens);
-        AssertContainsAllTokens(viewPropertiesApi, SurfaceChartsDocumentationTerms.SurfaceChartOverlayOptionsXmlDocTokens);
+        AssertContainsAllTokens(plotApi, SurfaceChartsDocumentationTerms.SurfaceChartOverlayOptionsXmlDocTokens);
         AssertContainsAllTokens(viewPropertiesApi, SurfaceChartsDocumentationTerms.SurfaceChartInteractionQualityXmlDocTokens);
     }
 

@@ -24,30 +24,12 @@ public partial class VideraChartView
             nameof(ViewState),
             defaultValue: DefaultViewState);
 
-    /// <summary>
-    /// Identifies the <see cref="ColorMap"/> property.
-    /// </summary>
-    public static readonly StyledProperty<SurfaceColorMap?> ColorMapProperty =
-        AvaloniaProperty.Register<VideraChartView, SurfaceColorMap?>(nameof(ColorMap));
-
-    /// <summary>
-    /// Identifies the <see cref="OverlayOptions"/> property.
-    /// </summary>
-    public static readonly StyledProperty<SurfaceChartOverlayOptions> OverlayOptionsProperty =
-        AvaloniaProperty.Register<VideraChartView, SurfaceChartOverlayOptions>(
-            nameof(OverlayOptions),
-            defaultValue: SurfaceChartOverlayOptions.Default);
-
     static VideraChartView()
     {
         SourceProperty.Changed.AddClassHandler<VideraChartView>(
             static (view, args) => view.OnSourceChanged((ISurfaceTileSource?)args.NewValue));
         ViewStateProperty.Changed.AddClassHandler<VideraChartView>(
             static (view, args) => view.OnViewStateChanged((SurfaceViewState)args.NewValue!));
-        ColorMapProperty.Changed.AddClassHandler<VideraChartView>(
-            static (view, _) => view.InvalidateRenderScene());
-        OverlayOptionsProperty.Changed.AddClassHandler<VideraChartView>(
-            static (view, _) => view.InvalidateOverlay());
     }
 
     /// <summary>
@@ -66,25 +48,6 @@ public partial class VideraChartView
     {
         get => GetValue(ViewStateProperty);
         set => SetValue(ViewStateProperty, value);
-    }
-
-    /// <summary>
-    /// Gets or sets the optional color map used when building the render scene.
-    /// </summary>
-    public SurfaceColorMap? ColorMap
-    {
-        get => GetValue(ColorMapProperty);
-        set => SetValue(ColorMapProperty, value);
-    }
-
-    /// <summary>
-    /// Gets or sets chart-local overlay layout and formatting options for formatter,
-    /// title/unit override, minor ticks, grid plane, and axis-side selection.
-    /// </summary>
-    public SurfaceChartOverlayOptions OverlayOptions
-    {
-        get => GetValue(OverlayOptionsProperty);
-        set => SetValue(OverlayOptionsProperty, value);
     }
 
     /// <summary>

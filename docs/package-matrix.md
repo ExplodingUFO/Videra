@@ -28,7 +28,7 @@ The canonical public SurfaceCharts stack is:
 | `Import` | `Videra.Import.Gltf`, `Videra.Import.Obj` | Public packages | Dedicated file-format ingestion layered on top of `Videra.Core` |
 | `Backend` | `Videra.Platform.Windows`, `Videra.Platform.Linux`, `Videra.Platform.macOS` | Public packages | Native graphics implementations |
 | `UI adapter` | `Videra.Avalonia` | Public package | Public host-framework shell |
-| `Charts` | `Videra.SurfaceCharts.Core`, `Videra.SurfaceCharts.Rendering`, `Videra.SurfaceCharts.Processing`, `Videra.SurfaceCharts.Avalonia` | Public packages | Dedicated chart product line with `VideraChartView`, `VideraChartView`, and `VideraChartView`, independent from `VideraView` |
+| `Charts` | `Videra.SurfaceCharts.Core`, `Videra.SurfaceCharts.Rendering`, `Videra.SurfaceCharts.Processing`, `Videra.SurfaceCharts.Avalonia` | Public packages | Dedicated chart product line with `VideraChartView` with `Plot.Add.Surface`, `Plot.Add.Waterfall`, and `Plot.Add.Scatter`, independent from `VideraView` |
 | `Chart demo` | `Videra.SurfaceCharts.Demo` | Repository-only | Support-ready chart reference app with `Start here`, `Explore next`, and `Try next` paths, not an installable package |
 
 ## Published packages
@@ -45,7 +45,7 @@ The canonical public SurfaceCharts stack is:
 | `Videra.SurfaceCharts.Core` | Yes, on public release tags | `nuget.org` | `GitHub Packages` preview/internal only | Chart-domain consumers and custom tile-source integrators | `alpha` | Chart-domain contracts, metadata, LOD, probe contracts |
 | `Videra.SurfaceCharts.Rendering` | Yes, on public release tags | `nuget.org` | `GitHub Packages` preview/internal only | Advanced chart-runtime consumers | `alpha` | Rendering-runtime layer used transitively by `Videra.SurfaceCharts.Avalonia` |
 | `Videra.SurfaceCharts.Processing` | Yes, on public release tags | `nuget.org` | `GitHub Packages` preview/internal only | Consumers that need pyramid/cache helpers | `alpha` | Add for the surface/cache-backed path |
-| `Videra.SurfaceCharts.Avalonia` | Yes, on public release tags | `nuget.org` | `GitHub Packages` preview/internal only | Avalonia desktop applications that host `VideraChartView`, `VideraChartView`, or `VideraChartView` | `alpha` | Main public chart control entry package |
+| `Videra.SurfaceCharts.Avalonia` | Yes, on public release tags | `nuget.org` | `GitHub Packages` preview/internal only | Avalonia desktop applications that host `VideraChartView` with `Plot.Add.*` | `alpha` | Main public chart control entry package |
 
 ## Repository-only entries
 

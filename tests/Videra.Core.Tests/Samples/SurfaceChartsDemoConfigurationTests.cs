@@ -108,9 +108,9 @@ public sealed class SurfaceChartsDemoConfigurationTests
         mainWindowCodeBehind.Should().Contain("Wheel dolly");
         mainWindowCodeBehind.Should().Contain("Ctrl + Left drag");
         mainWindowCodeBehind.Should().Contain("chartView.InteractionQuality");
-        mainWindowCodeBehind.Should().Contain("VideraChartView does not expose `OverlayOptions`");
+        mainWindowCodeBehind.Should().Contain("VideraChartView.Plot exposes `OverlayOptions`");
         mainWindowCodeBehind.Should().Contain("SurfaceChartOverlayOptions");
-        mainWindowCodeBehind.Should().Contain(".OverlayOptions");
+        mainWindowCodeBehind.Should().Contain(".Plot.OverlayOptions");
         mainWindowCodeBehind.Should().Contain("ShowMinorTicks");
         mainWindowCodeBehind.Should().Contain("SurfaceChartGridPlane");
         mainWindowCodeBehind.Should().Contain("CacheManifestFileName");

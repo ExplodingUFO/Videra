@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using Videra.SurfaceCharts.Core;
 
 namespace Videra.SurfaceCharts.Avalonia.Controls;
 
@@ -9,6 +10,8 @@ public sealed class Plot3D
 {
     private readonly List<Plot3DSeries> _series = [];
     private readonly ReadOnlyCollection<Plot3DSeries> _seriesView;
+    private SurfaceColorMap? _colorMap;
+    private SurfaceChartOverlayOptions _overlayOptions = SurfaceChartOverlayOptions.Default;
 
     internal Plot3D(Action changed)
     {
@@ -26,6 +29,44 @@ public sealed class Plot3D
     /// Gets the series attached to this plot in draw order.
     /// </summary>
     public IReadOnlyList<Plot3DSeries> Series => _seriesView;
+
+    /// <summary>
+    /// Gets or sets the optional color map used by surface and waterfall series.
+    /// </summary>
+    public SurfaceColorMap? ColorMap
+    {
+        get => _colorMap;
+        set
+        {
+            if (ReferenceEquals(_colorMap, value))
+            {
+                return;
+            }
+
+            _colorMap = value;
+            NotifyChanged();
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets plot-level axis, grid, legend, probe, and numeric-formatting options for
+    /// formatter, title/unit override, minor ticks, grid plane, and axis-side selection.
+    /// </summary>
+    public SurfaceChartOverlayOptions OverlayOptions
+    {
+        get => _overlayOptions;
+        set
+        {
+            ArgumentNullException.ThrowIfNull(value);
+            if (ReferenceEquals(_overlayOptions, value))
+            {
+                return;
+            }
+
+            _overlayOptions = value;
+            NotifyChanged();
+        }
+    }
 
     /// <summary>
     /// Gets a monotonically increasing revision that changes when the plot model changes.
