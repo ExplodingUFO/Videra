@@ -21,7 +21,7 @@
                    Text="Avalonia workbench first slice" />
         <TextBlock Foreground="#D1D5DB"
                    TextWrapping="Wrap"
-                   Text="Optional sample workflow for authored-scene evidence, model loading evidence, snapshot diagnostics, support capture, and chart-local precision proof." />
+                   Text="Optional sample workflow for authored-scene semantics, model loading evidence, snapshot diagnostics, support capture, and chart-local output proof." />
       </StackPanel>
     </Border>
 
@@ -112,7 +112,7 @@
             <TextBlock FontSize="16"
                        FontWeight="SemiBold"
                        Foreground="#F9FAFB"
-                       Text="Chart precision proof" />
+                       Text="Chart output proof" />
             <TextBlock x:Name="ChartPrecisionText"
                        Foreground="#D1D5DB"
                        TextWrapping="Wrap" />

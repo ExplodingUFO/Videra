@@ -1,4 +1,4 @@
-using System.Globalization;
+using Videra.SurfaceCharts.Core;
 
 namespace Videra.AvaloniaWorkbenchSample;
 
@@ -13,10 +13,7 @@ internal sealed record WorkbenchSceneEvidence(
     Guid? SelectedMarkerId);
 
 internal sealed record WorkbenchChartEvidence(
-    string PrecisionProfile,
-    string PaletteName,
-    IReadOnlyList<string> PaletteColors,
-    IReadOnlyList<string> Samples);
+    SurfaceChartOutputEvidence OutputEvidence);
 
 internal static class WorkbenchSupportCapture
 {
@@ -40,14 +37,16 @@ internal static class WorkbenchSupportCapture
     {
         ArgumentNullException.ThrowIfNull(evidence);
 
+        var output = evidence.OutputEvidence;
         var lines = new List<string>
         {
-            $"PrecisionProfile: {evidence.PrecisionProfile}",
-            $"PaletteName: {evidence.PaletteName}",
-            $"PaletteColorCount: {evidence.PaletteColors.Count}",
-            $"PaletteColors: {string.Join(", ", evidence.PaletteColors)}"
+            $"OutputEvidenceKind: {output.EvidenceKind}",
+            $"PrecisionProfile: {output.PrecisionProfile}",
+            $"PaletteName: {output.PaletteName}",
+            $"PaletteColorCount: {output.ColorStops.Count}",
+            $"PaletteColors: {string.Join(", ", output.ColorStops)}"
         };
-        lines.AddRange(evidence.Samples.Select(static sample => $"Sample: {sample}"));
+        lines.AddRange(output.SampleFormattedLabels.Select(static sample => $"Sample: {sample}"));
         return string.Join(Environment.NewLine, lines);
     }
 
@@ -67,20 +66,15 @@ internal static class WorkbenchSupportCapture
             $"GeneratedUtc: {generatedUtc:O}",
             "SceneEvidence:",
             FormatSceneEvidence(sceneEvidence),
-            "ChartPrecisionEvidence:",
+            "ChartOutputEvidence:",
             FormatChartEvidence(chartEvidence),
             $"DiagnosticsSnapshotStatus: {(hasDiagnostics ? "captured" : "empty")}",
             "DiagnosticsSnapshot:",
             diagnosticsSnapshot);
     }
 
-    public static string FormatPaletteColor(uint argb)
-    {
-        return "#" + argb.ToString("X8", CultureInfo.InvariantCulture);
-    }
-
     private static string FormatNullable(int? value)
     {
-        return value?.ToString(CultureInfo.InvariantCulture) ?? "unknown";
+        return value?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "unknown";
     }
 }

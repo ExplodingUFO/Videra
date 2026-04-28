@@ -328,6 +328,7 @@ public partial class MainWindow : Window
             .AddPlane("ground", ground, width: 4f, depth: 3f)
             .AddGrid("grid", SceneMaterials.Matte("grid", RgbaFloat.DarkGrey), width: 4f, depth: 3f, divisions: 4)
             .AddAxisTriad("origin-axis", length: 0.9f)
+            .AddScaleBar("one-meter-scale", SceneMaterials.Matte("scale-guide", RgbaFloat.White), length: 1f, tickHeight: 0.12f, transform: Matrix4x4.CreateTranslation(-1.8f, 0.03f, 1.25f))
             .AddSphere("focus", focus, radius: 0.35f, transform: Matrix4x4.CreateTranslation(0f, 0.35f, 0f))
             .AddInstances(
                 "marker-spheres",
@@ -342,21 +343,14 @@ public partial class MainWindow : Window
 
     private static WorkbenchChartEvidence CreateChartPrecisionEvidence()
     {
-        var engineering = SurfaceChartNumericLabelPresets.Engineering(precision: 2);
-        var scientific = SurfaceChartNumericLabelPresets.Scientific(precision: 3);
-        var fixedPoint = SurfaceChartNumericLabelPresets.Fixed(precision: 4);
         var palette = SurfaceColorMapPresets.CreateProfessional();
 
         return new WorkbenchChartEvidence(
-            "Engineering precision 2; Scientific precision 3; Fixed precision 4",
-            "SurfaceColorMapPresets.CreateProfessional()",
-            Enumerable.Range(0, palette.Count)
-                .Select(index => WorkbenchSupportCapture.FormatPaletteColor(palette[index]))
-                .ToArray(),
-            [
-                $"Engineering X 12345.6789 -> {engineering.FormatLabel("X", 12345.6789)}",
-                $"Scientific Legend 0.000456789 -> {scientific.FormatLabel("Legend", 0.000456789)}",
-                $"Fixed Value 12.3456789 -> {fixedPoint.FormatLabel("Y", 12.3456789)}"
-            ]);
+            SurfaceChartEvidenceFormatter.Create(
+                "SurfaceColorMapPresets.CreateProfessional()",
+                palette,
+                0.000456789d,
+                12.3456789d,
+                12345.6789d));
     }
 }
