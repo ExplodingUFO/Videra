@@ -30,6 +30,23 @@ public sealed class Plot3D
     /// </summary>
     public IReadOnlyList<Plot3DSeries> Series => _seriesView;
 
+    internal Plot3DSeries? ActiveSurfaceSeries
+    {
+        get
+        {
+            for (var index = _series.Count - 1; index >= 0; index--)
+            {
+                var series = _series[index];
+                if (series.Kind is Plot3DSeriesKind.Surface or Plot3DSeriesKind.Waterfall)
+                {
+                    return series;
+                }
+            }
+
+            return null;
+        }
+    }
+
     /// <summary>
     /// Gets or sets the optional color map used by surface and waterfall series.
     /// </summary>

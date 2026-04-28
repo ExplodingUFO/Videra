@@ -1,3 +1,4 @@
+using Avalonia;
 using FluentAssertions;
 using Videra.SurfaceCharts.Avalonia.Controls;
 using Videra.SurfaceCharts.Core;
@@ -78,6 +79,71 @@ public sealed class VideraChartViewPlotApiTests
     }
 
     [Fact]
+    public Task PlotAddSurface_ActivatesRuntimeSourceWithoutPublicSourceAssignment()
+    {
+        return AvaloniaHeadlessTestSession.RunAsync(async () =>
+        {
+            var view = new VideraChartView();
+            var source = new ScriptedSurfaceTileSource(VideraChartViewLifecycleTests.CreateMetadata(), defaultTileValue: 4f);
+
+            view.Measure(new Size(240, 160));
+            view.Arrange(new Rect(0, 0, 240, 160));
+            view.Plot.Add.Surface(source, "surface");
+            await SurfaceChartTestHelpers.WaitForLoadedTileValuesAsync(view, [4f]);
+            view.FitToData();
+
+            view.RenderingStatus.IsReady.Should().BeTrue();
+            view.RenderingStatus.VisibleTileCount.Should().BeGreaterThan(0);
+            view.Source.Should().BeNull();
+            view.ViewState.DataWindow.Should().Be(new SurfaceDataWindow(0d, 0d, source.Metadata.Width, source.Metadata.Height));
+        });
+    }
+
+    [Fact]
+    public Task PlotAddWaterfall_ReplacesActiveRuntimeSource()
+    {
+        return AvaloniaHeadlessTestSession.RunAsync(async () =>
+        {
+            var view = new VideraChartView();
+            var surface = new ScriptedSurfaceTileSource(VideraChartViewLifecycleTests.CreateMetadata(), defaultTileValue: 4f);
+            var waterfall = new ScriptedSurfaceTileSource(CreateWaterfallMetadata(), defaultTileValue: 7f);
+
+            view.Measure(new Size(240, 160));
+            view.Arrange(new Rect(0, 0, 240, 160));
+            view.Plot.Add.Surface(surface, "surface");
+            view.Plot.Add.Waterfall(waterfall, "waterfall");
+            await SurfaceChartTestHelpers.WaitForLoadedTileValuesAsync(view, [7f]);
+            view.FitToData();
+
+            view.RenderingStatus.IsReady.Should().BeTrue();
+            view.Source.Should().BeNull();
+            view.ViewState.DataWindow.Should().Be(new SurfaceDataWindow(0d, 0d, waterfall.Metadata.Width, waterfall.Metadata.Height));
+        });
+    }
+
+    [Fact]
+    public Task PlotClear_ClearsActiveRuntimeSource()
+    {
+        return AvaloniaHeadlessTestSession.RunAsync(async () =>
+        {
+            var view = new VideraChartView();
+            var source = new ScriptedSurfaceTileSource(VideraChartViewLifecycleTests.CreateMetadata(), defaultTileValue: 4f);
+
+            view.Measure(new Size(240, 160));
+            view.Arrange(new Rect(0, 0, 240, 160));
+            view.Plot.Add.Surface(source, "surface");
+            await SurfaceChartTestHelpers.WaitForLoadedTileValuesAsync(view, [4f]);
+            view.RenderingStatus.IsReady.Should().BeTrue();
+
+            view.Plot.Clear();
+
+            view.RenderingStatus.IsReady.Should().BeFalse();
+            view.RenderingStatus.VisibleTileCount.Should().Be(0);
+            view.Source.Should().BeNull();
+        });
+    }
+
+    [Fact]
     public void VideraChartView_IsNotAnOldChartViewWrapper()
     {
         typeof(VideraChartView).Assembly.GetType("Videra.SurfaceCharts.Avalonia.Controls.SurfaceChartView").Should().BeNull();
@@ -101,5 +167,16 @@ public sealed class VideraChartViewPlotApiTests
             "points");
 
         return new ScatterChartData(metadata, [series]);
+    }
+
+    private static SurfaceMetadata CreateWaterfallMetadata()
+    {
+        var horizontalCoordinates = new[] { 0d, 2d, 5d, 9d };
+        var verticalCoordinates = new[] { 0d, 0.15d, 0.3d, 1d, 1.15d, 1.3d };
+        return new SurfaceMetadata(
+            new SurfaceExplicitGrid(horizontalCoordinates, verticalCoordinates),
+            new SurfaceAxisDescriptor("Time", "s", 0d, 9d, SurfaceAxisScaleKind.ExplicitCoordinates),
+            new SurfaceAxisDescriptor("Sweep", null, 0d, 1.3d, SurfaceAxisScaleKind.ExplicitCoordinates),
+            new SurfaceValueRange(0d, 10d));
     }
 }

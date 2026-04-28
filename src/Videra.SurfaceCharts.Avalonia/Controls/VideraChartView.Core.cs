@@ -175,6 +175,13 @@ public partial class VideraChartView : Decorator
 
     private void OnPlotChanged()
     {
+        var activeSurfaceSeries = Plot.ActiveSurfaceSeries;
+        var activeSource = activeSurfaceSeries?.SurfaceSource;
+        if (!ReferenceEquals(_runtime.Source, activeSource))
+        {
+            OnSourceChanged(activeSource);
+        }
+
         Refresh();
     }
 }
