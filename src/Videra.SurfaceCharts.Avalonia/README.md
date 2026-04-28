@@ -108,7 +108,7 @@ var source = new SurfacePyramidBuilder(32, 32).Build(matrix);
 var chartView = new SurfaceChartView
 {
     Source = source,
-    ColorMap = new SurfaceColorMap(matrix.Metadata.ValueRange, SurfaceColorMapPresets.CreateCoolWarm()),
+    ColorMap = new SurfaceColorMap(matrix.Metadata.ValueRange, SurfaceColorMapPresets.CreateProfessional()),
     OverlayOptions = SurfaceChartOverlayPresets.Professional,
 };
 
@@ -118,7 +118,7 @@ chartView.OverlayOptions = SurfaceChartNumericLabelPresets.Fixed(precision: 1);
 chartView.OverlayOptions = SurfaceChartOverlayPresets.Compact;
 ```
 
-`SurfaceColorMapPresets` exposes `CreateDefault()`, `CreateCoolWarm()`, and `CreateGrayscale()` entry palettes for quick, proof-ready chart setups.
+`SurfaceColorMapPresets` exposes `CreateDefault()`, `CreateProfessional()`, `CreateCoolWarm()`, and `CreateGrayscale()` entry palettes for quick, proof-ready chart setups.
 `SurfaceChartNumericLabelPresets` keeps numeric precision explicit per overlay mode (`Engineering`, `Scientific`, `Fixed`) and `SurfaceChartOverlayPresets` provides tuned `Professional` and `Compact` chart profiles.
 
 `SurfaceMatrix` remains the simplest source-first regular-grid entrypoint. When you need richer analytics payloads, you can keep the same `SurfaceChartView` shell and switch the underlying source construction to `SurfaceScalarField`, an independent `ColorField`, and `SurfaceMask` without widening `SurfaceChartView` itself.

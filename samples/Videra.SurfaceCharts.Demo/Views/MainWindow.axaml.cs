@@ -796,12 +796,7 @@ public partial class MainWindow : Window
     {
         return new SurfaceColorMap(
             range,
-            new SurfaceColorMapPalette(
-                0xFF08111Fu,
-                0xFF154C79u,
-                0xFF2DD4BFu,
-                0xFFFDE68Au,
-                0xFFF97316u));
+            SurfaceColorMapPresets.CreateProfessional());
     }
 
     private static SurfaceChartOverlayOptions CreateOverlayOptions()

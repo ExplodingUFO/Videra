@@ -60,6 +60,14 @@ public class SurfaceColorMapTests
         var defaultMap = SurfaceColorMapPresets.CreateDefault();
         defaultMap[0].Should().Be(0xFF102030u);
         defaultMap[1].Should().Be(0xFFE6EEF5u);
+
+        var professional = SurfaceColorMapPresets.CreateProfessional();
+        professional.Count.Should().Be(5);
+        professional[0].Should().Be(0xFF08111Fu);
+        professional[1].Should().Be(0xFF154C79u);
+        professional[2].Should().Be(0xFF2DD4BFu);
+        professional[3].Should().Be(0xFFFDE68Au);
+        professional[4].Should().Be(0xFFF97316u);
     }
 
     [Fact]
@@ -76,6 +84,14 @@ public class SurfaceColorMapTests
         var grayscaleMap = new SurfaceColorMap(new SurfaceValueRange(0d, 1d), grayscale);
         grayscaleMap.Map(0d).Should().Be(grayscale[0]);
         grayscaleMap.Map(1d).Should().Be(grayscale[1]);
+
+        var professional = SurfaceColorMapPresets.CreateProfessional();
+        var professionalMap = new SurfaceColorMap(new SurfaceValueRange(0d, 1d), professional);
+        professionalMap.Map(0d).Should().Be(professional[0]);
+        professionalMap.Map(0.25d).Should().Be(professional[1]);
+        professionalMap.Map(0.5d).Should().Be(professional[2]);
+        professionalMap.Map(0.75d).Should().Be(professional[3]);
+        professionalMap.Map(1d).Should().Be(professional[^1]);
     }
 
     private static SurfaceColorMap CreateColorMap()
