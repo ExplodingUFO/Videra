@@ -50,7 +50,7 @@ public partial class VideraChartView
         var renderSize = _overlayViewSize.Width > 0d && _overlayViewSize.Height > 0d
             ? _overlayViewSize
             : Bounds.Size;
-        var colorMap = source is null ? null : ColorMap ?? CreateFallbackColorMap(source.Metadata.ValueRange);
+        var colorMap = source is null ? null : Plot.ColorMap ?? CreateFallbackColorMap(source.Metadata.ValueRange);
         if (ShouldAttemptNativeHost(renderSize))
         {
             EnsureNativeHost();

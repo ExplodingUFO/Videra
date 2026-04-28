@@ -100,7 +100,7 @@
                        TextWrapping="Wrap" />
             <TextBlock Foreground="#CBD5E1"
                        TextWrapping="Wrap"
-                       Text="`ViewState` remains the primary contract for `VideraChartView` and `VideraChartView`. `VideraChartView` uses camera pose truth instead, but `Fit to data` and `Reset camera` stay as deterministic host commands on the same proof surface." />
+                       Text="`ViewState` remains the primary contract for surface and waterfall series. Scatter uses direct plot truth instead, but `Fit to data` and `Reset camera` stay as deterministic host commands on the same proof surface." />
           </StackPanel>
         </Border>
 

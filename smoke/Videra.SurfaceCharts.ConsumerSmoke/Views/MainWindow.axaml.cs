@@ -83,8 +83,8 @@ public partial class MainWindow : Window
 
     private void ConfigureChart(SurfaceMetadata metadata)
     {
-        _chartView.ColorMap = _colorMap;
-        _chartView.OverlayOptions = _overlayOptions;
+        _chartView.Plot.ColorMap = _colorMap;
+        _chartView.Plot.OverlayOptions = _overlayOptions;
         _chartView.Source = _source;
         _chartView.ViewState = SurfaceViewState.CreateDefault(
             metadata,
@@ -413,7 +413,7 @@ public partial class MainWindow : Window
             $"ViewState: {CreateViewStateSummary()}\n" +
             $"InteractionQuality: {_chartView.InteractionQuality}\n" +
             $"RenderingStatus: ActiveBackend {status.ActiveBackend}; IsReady {status.IsReady}; IsFallback {status.IsFallback}; FallbackReason {status.FallbackReason ?? "none"}; UsesNativeSurface {status.UsesNativeSurface}; ResidentTileCount {status.ResidentTileCount}; VisibleTileCount {status.VisibleTileCount}; ResidentTileBytes {status.ResidentTileBytes}\n" +
-            $"OverlayOptions: {CreateOverlayOptionsSummary(_chartView.OverlayOptions)}\n" +
+            $"OverlayOptions: {CreateOverlayOptionsSummary(_chartView.Plot.OverlayOptions)}\n" +
             "Dataset: Generated 64x48 in-memory matrix for the packaged first-chart consumer proof.";
     }
 

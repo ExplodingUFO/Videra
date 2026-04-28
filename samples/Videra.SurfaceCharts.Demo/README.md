@@ -2,7 +2,7 @@
 
 `Videra.SurfaceCharts.Demo` is the independent demo application for the surface-chart module family.
 
-For the canonical surface/cache-backed chart story, start from `Videra.SurfaceCharts.Avalonia` plus `Videra.SurfaceCharts.Processing`, and use this demo as the repository reference app for the paths it actually exposes. `VideraChartView`, `VideraChartView`, and `VideraChartView` ship in `Videra.SurfaceCharts.Avalonia`, and this sample exercises a repo-owned scatter proof path for all three controls.
+For the canonical surface/cache-backed chart story, start from `Videra.SurfaceCharts.Avalonia` plus `Videra.SurfaceCharts.Processing`, and use this demo as the repository reference app for the paths it actually exposes. `VideraChartView` ships in `Videra.SurfaceCharts.Avalonia`, and this sample exercises `Plot.Add.Surface`, `Plot.Add.Waterfall`, and `Plot.Add.Scatter` on that one control.
 
 The shipped efficiency story is the same chart-local path used by the benchmark gate: tighter interactive residency under camera movement and lower probe-path churn.
 The scatter proof also exposes columnar streaming/FIFO truth from `ScatterColumnarSeries`: retained point count, append/replacement batch count, configured FIFO capacity, FIFO dropped point count, pickable point count, and direct scatter `InteractionQuality`. The demo source uses deterministic `ScatterStreamingScenarios` for replace, append, and FIFO-trim paths through `ReplaceRange(...)` / `AppendRange(...)`, optional `fifoCapacity`, and the high-volume default `Pickable=false`.
@@ -13,13 +13,13 @@ The sample stays separate from `Videra.Demo` and `VideraView`. It exercises the 
 - `Explore next: Cache-backed streaming`: loads manifest metadata from `Assets/sample-surface-cache/sample.surfacecache.json`, then uses lazy tile streaming from `Assets/sample-surface-cache/sample.surfacecache.json.bin` through `SurfaceCacheReader` and `SurfaceCacheTileSource`.
 - `Try next: Analytics proof`: exercises an explicit-coordinate `VideraChartView` path with independent scalar `ColorField` and pinned-probe workflow proof data.
 - `Try next: Waterfall proof`: exercises the thin `VideraChartView` proof on the same Avalonia shell.
-- `Try next: Scatter proof`: exercises the direct `VideraChartView` proof path on the same Avalonia shell with repo-owned point-object data plus selectable deterministic columnar replace, append, and FIFO-trim scenarios.
+- `Try next: Scatter proof`: exercises the repo-owned scatter proof path on the same Avalonia shell with direct point-object data plus selectable deterministic columnar replace, append, and FIFO-trim scenarios.
 
 VideraChartView exposes `ViewState` as the chart-view contract for persisted camera and data-window state.
 VideraChartView now ships built-in `left-drag orbit`, `right-drag pan`, `wheel dolly`, `Ctrl + left-drag` focus zoom, and `Shift + left-click` pinned probe on top of the `ViewState` runtime contract.
 The chart enters `Interactive` quality during motion and returns to `Refine` after input settles.
 The public interaction diagnostics are `InteractionQuality` + `InteractionQualityChanged` with `Interactive` / `Refine`.
-The public overlay configuration seam is `SurfaceChartOverlayOptions` through `OverlayOptions`; overlay state types remain internal.
+The public overlay configuration seam is `SurfaceChartOverlayOptions` through `Plot.OverlayOptions`; overlay state types remain internal.
 Hosts own `ISurfaceTileSource`, persisted `ViewState`, color-map selection, and chart-local product UI.
 `VideraChartView` owns chart-local built-in gestures, tile scheduling/cache, overlay presentation, native-host/render-host orchestration, and `RenderingStatus` projection.
 The public rendering truth is `RenderingStatus` + `RenderStatusChanged` with `ActiveBackend`, `IsReady`, `IsFallback`, `FallbackReason`, `UsesNativeSurface`, `ResidentTileCount`, `VisibleTileCount`, and `ResidentTileBytes`.
@@ -56,7 +56,7 @@ dotnet run --project samples/Videra.SurfaceCharts.Demo/Videra.SurfaceCharts.Demo
 - overview-first LOD behavior
 - lazy cache-backed tile reads through the committed `sample.surfacecache.json` and `.bin` sidecar
 - axis/legend overlays rendered by `VideraChartView`
-- an `Overlay options` panel that shows chart-local `OverlayOptions` for formatter, minor ticks, grid plane, and axis-side behavior
+- an `Overlay options` panel that shows chart-local `Plot.OverlayOptions` for formatter, minor ticks, grid plane, and axis-side behavior
 - hover readout and `Shift + left-click` pinned probes on the chart surface
 - the shipped `GPU-first` renderer path used by `VideraChartView`, with `software fallback` still available when native-host or GPU initialization is unavailable
 - a lightweight rendering-path panel driven by `RenderingStatus` / `RenderStatusChanged`

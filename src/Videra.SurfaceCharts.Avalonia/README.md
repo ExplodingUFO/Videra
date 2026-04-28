@@ -13,14 +13,15 @@ VideraChartView now ships built-in `left-drag orbit`, `right-drag pan`, `wheel d
 The chart enters `Interactive` quality during motion and returns to `Refine` after input settles.
 The public interaction diagnostics are `InteractionQuality` + `InteractionQualityChanged` with `Interactive` / `Refine`.
 `VideraChartView` follows the same chart-local terminology on the direct scatter path: left-drag navigation reports `Interactive`, release/capture loss returns to `Refine`, and `ScatterChartRenderingStatus` carries `InteractionQuality` alongside retained columnar streaming counters. Columnar scatter data still comes from `ScatterColumnarSeries` through `ReplaceRange(...)` / `AppendRange(...)`, optional `fifoCapacity`, and the high-volume default `Pickable=false`.
-Hosts can keep professional axis, grid, and legend behavior chart-local through `OverlayOptions` for formatter, title/unit override, minor ticks, grid plane, and axis-side selection.
-The public overlay configuration seam is `SurfaceChartOverlayOptions` through `OverlayOptions`; overlay state types remain internal.
+Hosts can keep professional axis, grid, and legend behavior chart-local through `VideraChartView.Plot.OverlayOptions` for formatter, title/unit override, minor ticks, grid plane, and axis-side selection.
+The public overlay configuration seam is `SurfaceChartOverlayOptions` through `Plot.OverlayOptions`; overlay state types remain internal.
 
 ## Current Scope
 
 `VideraChartView` currently provides:
 
 - a chart-local renderer seam through `SurfaceChartRenderHost`; it is not a `VideraView` mode
+- one Plot authoring surface with `Plot.Add.Surface`, `Plot.Add.Waterfall`, and `Plot.Add.Scatter`
 - a `GPU-first` renderer path with an explicit chart-local `software fallback` seam (no viewer/backend downshift)
 - control-visible `RenderingStatus` / `RenderStatusChanged` truth for `ActiveBackend`, `IsReady`, `IsFallback`, `FallbackReason`, `UsesNativeSurface`, `ResidentTileCount`, `VisibleTileCount`, and `ResidentTileBytes`
 - host-driven surface rendering from an `ISurfaceTileSource`
@@ -29,15 +30,15 @@ The public overlay configuration seam is `SurfaceChartOverlayOptions` through `O
 - built-in `left-drag orbit`, `right-drag pan`, `wheel dolly`, and `Ctrl + Left drag` focus zoom
 - explicit `InteractionQuality` / `InteractionQualityChanged` diagnostics with `Interactive` and `Refine` interaction-quality states
 - `VideraChartView` render-status diagnostics for `InteractionQuality`, columnar retained point count, append/replacement batch count, FIFO dropped points, configured FIFO capacity, and pickable point count
-- public overlay configuration through `SurfaceChartOverlayOptions` / `OverlayOptions`; overlay state types remain internal
-- chart-local `OverlayOptions` for formatter, title/unit override, minor ticks, grid plane, and axis-side selection
+- public overlay configuration through `SurfaceChartOverlayOptions` / `Plot.OverlayOptions`; overlay state types remain internal
+- chart-local `Plot.OverlayOptions` for formatter, title/unit override, minor ticks, grid plane, and axis-side selection
 - overview-first tile scheduling with lazy cache-backed reads
 - color-map driven surface rendering
 - chart-local axis/legend overlays and hover/pinned probe readout, including `Shift + LeftClick` pinning
 - `VideraChartView` owns chart-local built-in gestures, tile scheduling/cache, overlay presentation, native-host/render-host orchestration, and `RenderingStatus` projection
 
-`VideraChartView` is the second shipped control on top of the same chart shell, and `VideraChartView` ships in the same Avalonia control line.
-The scatter path is intentionally direct and chart-local: it does not introduce `ViewState`, `OverlayOptions`, or `VideraView` semantics, and its columnar streaming/FIFO diagnostics remain on `ScatterChartRenderingStatus`.
+`VideraChartView` is the single shipped chart control on top of the chart shell.
+The scatter path is intentionally direct and chart-local: it does not introduce `ViewState` or `VideraView` semantics, and its columnar streaming/FIFO diagnostics remain on `ScatterChartRenderingStatus`.
 
 This module is intentionally a thin UI shell. Tile decoding, preprocessing, cache generation, and LOD policy remain outside the control layer.
 
@@ -83,13 +84,15 @@ var chartView = new VideraChartView
     ViewState = SurfaceViewState.CreateDefault(
         matrix.Metadata,
         new SurfaceDataWindow(0d, 0d, matrix.Metadata.Width, matrix.Metadata.Height)),
-    ColorMap = colorMap,
-    OverlayOptions = new SurfaceChartOverlayOptions
-    {
-        ShowMinorTicks = true,
-        GridPlane = SurfaceChartGridPlane.XZ,
-        LabelFormatter = static (_, value) => value.ToString("0.##")
-    }
+};
+
+chartView.Plot.Add.Surface(chartView.Source, "Surface");
+chartView.Plot.ColorMap = colorMap;
+chartView.Plot.OverlayOptions = new SurfaceChartOverlayOptions
+{
+    ShowMinorTicks = true,
+    GridPlane = SurfaceChartGridPlane.XZ,
+    LabelFormatter = static (_, value) => value.ToString("0.##")
 };
 
 chartView.ZoomTo(new SurfaceDataWindow(64d, 32d, 128d, 96d));
@@ -105,17 +108,15 @@ using Videra.SurfaceCharts.Core;
 var matrix = ...;
 var source = new SurfacePyramidBuilder(32, 32).Build(matrix);
 
-var chartView = new VideraChartView
-{
-    Source = source,
-    ColorMap = new SurfaceColorMap(matrix.Metadata.ValueRange, SurfaceColorMapPresets.CreateProfessional()),
-    OverlayOptions = SurfaceChartOverlayPresets.Professional,
-};
+var chartView = new VideraChartView { Source = source };
+chartView.Plot.Add.Surface(source, "Surface");
+chartView.Plot.ColorMap = new SurfaceColorMap(matrix.Metadata.ValueRange, SurfaceColorMapPresets.CreateProfessional());
+chartView.Plot.OverlayOptions = SurfaceChartOverlayPresets.Professional;
 
-chartView.OverlayOptions = SurfaceChartNumericLabelPresets.Engineering(precision: 4);
-chartView.OverlayOptions = SurfaceChartNumericLabelPresets.Scientific(precision: 2);
-chartView.OverlayOptions = SurfaceChartNumericLabelPresets.Fixed(precision: 1);
-chartView.OverlayOptions = SurfaceChartOverlayPresets.Compact;
+chartView.Plot.OverlayOptions = SurfaceChartNumericLabelPresets.Engineering(precision: 4);
+chartView.Plot.OverlayOptions = SurfaceChartNumericLabelPresets.Scientific(precision: 2);
+chartView.Plot.OverlayOptions = SurfaceChartNumericLabelPresets.Fixed(precision: 1);
+chartView.Plot.OverlayOptions = SurfaceChartOverlayPresets.Compact;
 ```
 
 `SurfaceColorMapPresets` exposes `CreateDefault()`, `CreateProfessional()`, `CreateCoolWarm()`, and `CreateGrayscale()` entry palettes for quick, proof-ready chart setups.

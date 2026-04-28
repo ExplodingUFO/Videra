@@ -40,11 +40,45 @@ public sealed class VideraChartViewPlotApiTests
     }
 
     [Fact]
+    public void Plot3D_OwnsProfessionalPresentationOptions()
+    {
+        var view = new VideraChartView();
+        var colorMap = new SurfaceColorMap(
+            new SurfaceValueRange(-1d, 1d),
+            SurfaceColorMapPresets.CreateProfessional());
+        var overlayOptions = SurfaceChartNumericLabelPresets.Engineering(precision: 2);
+
+        view.Plot.ColorMap = colorMap;
+        view.Plot.OverlayOptions = overlayOptions;
+
+        view.Plot.ColorMap.Should().BeSameAs(colorMap);
+        view.Plot.OverlayOptions.Should().BeSameAs(overlayOptions);
+        view.Plot.Revision.Should().Be(2);
+        view.LastRefreshRevision.Should().Be(2);
+
+        view.Plot.ColorMap = colorMap;
+        view.Plot.OverlayOptions = overlayOptions;
+        view.Plot.Revision.Should().Be(2);
+        view.LastRefreshRevision.Should().Be(2);
+
+        view.Plot.Add.Surface(new ScriptedSurfaceTileSource(SurfaceChartViewLifecycleTests.CreateMetadata(), defaultTileValue: 4f));
+        view.Plot.Clear();
+        view.Plot.Series.Should().BeEmpty();
+        view.Plot.ColorMap.Should().BeSameAs(colorMap);
+        view.Plot.OverlayOptions.Should().BeSameAs(overlayOptions);
+
+        var action = () => view.Plot.OverlayOptions = null!;
+        action.Should().Throw<ArgumentNullException>();
+    }
+
+    [Fact]
     public void VideraChartView_IsNotAnOldChartViewWrapper()
     {
         typeof(VideraChartView).Assembly.GetType("Videra.SurfaceCharts.Avalonia.Controls.SurfaceChartView").Should().BeNull();
         typeof(VideraChartView).Assembly.GetType("Videra.SurfaceCharts.Avalonia.Controls.WaterfallChartView").Should().BeNull();
         typeof(VideraChartView).Assembly.GetType("Videra.SurfaceCharts.Avalonia.Controls.ScatterChartView").Should().BeNull();
+        typeof(VideraChartView).GetProperty("ColorMap").Should().BeNull();
+        typeof(VideraChartView).GetProperty("OverlayOptions").Should().BeNull();
     }
 
     private static ScatterChartData CreateScatterData()

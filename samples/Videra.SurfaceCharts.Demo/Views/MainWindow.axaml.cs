@@ -142,7 +142,7 @@ public partial class MainWindow : Window
 
     private void ConfigureSurfaceChartView(VideraChartView chartView)
     {
-        chartView.OverlayOptions = CreateOverlayOptions();
+        chartView.Plot.OverlayOptions = CreateOverlayOptions();
         chartView.RenderStatusChanged += OnRenderStatusChanged;
         chartView.InteractionQualityChanged += OnInteractionQualityChanged;
         chartView.PropertyChanged += OnChartViewPropertyChanged;
@@ -230,7 +230,7 @@ public partial class MainWindow : Window
         ApplyScatterSource(
             CreateScatterSource(scenario),
             "Try next: Scatter streaming proof",
-            $"Repo-owned scatter proof on the same Avalonia chart line. Scenario `{scenario.Id}` uses {scenario.UpdateMode} columnar streaming with direct camera pose truth and no `ViewState` or `OverlayOptions` seam on this path.",
+            $"Repo-owned scatter proof on the same Avalonia chart line. Scenario `{scenario.Id}` uses {scenario.UpdateMode} columnar streaming with direct camera pose truth and no `ViewState` seam on this path.",
             $"The scatter proof uses scenario `{scenario.Id}`: {scenario.InitialPointCount:N0} initial points, {scenario.UpdatePointCount:N0} update points, FIFO capacity {FormatFifoCapacity(scenario.FifoCapacity)}, Pickable {scenario.Pickable}.",
             "No additional assets are used on this path.");
     }
@@ -302,7 +302,7 @@ public partial class MainWindow : Window
             chartView.Plot.Add.Surface(source, heading);
         }
 
-        chartView.ColorMap = CreateColorMap(source.Metadata.ValueRange);
+        chartView.Plot.ColorMap = CreateColorMap(source.Metadata.ValueRange);
         chartView.Source = source;
         chartView.FitToData();
         _activeSourceHeading = heading;
@@ -505,12 +505,12 @@ public partial class MainWindow : Window
         if (IsScatterProofActive)
         {
             _overlayOptionsText.Text =
-                "VideraChartView does not expose `OverlayOptions`.\n" +
-                "This proof path stays direct-scatter only and keeps chart-local overlay configuration out of the scatter host.";
+                "VideraChartView.Plot exposes `OverlayOptions`.\n" +
+                "This proof path stays direct-scatter only; Plot-level presentation is shared API but scatter overlay rendering is not widened in this demo.";
             return;
         }
 
-        var overlayOptions = ActiveSurfaceChartView.OverlayOptions;
+        var overlayOptions = ActiveSurfaceChartView.Plot.OverlayOptions;
         _overlayOptionsText.Text =
             "Chart-local `OverlayOptions` keep formatter, minor ticks, grid plane, and axis-side behavior inside `VideraChartView` instead of pushing chart semantics into `VideraView`.\n" +
             $"Minor ticks: {(overlayOptions.ShowMinorTicks ? "enabled" : "disabled")} (divisions {overlayOptions.MinorTickDivisions})\n" +
@@ -843,7 +843,7 @@ public partial class MainWindow : Window
                 $"Plot: {CreateScatterCameraSummary(_activeScatterData, _scatterChartView)}\n" +
                 $"RenderingStatus:\n{CreateScatterRenderingDiagnosticsSummary(_activeScatterData, _scatterChartView)}\n" +
                 $"InteractionQuality: {_scatterChartView.InteractionQuality}\n" +
-                "OverlayOptions: shared by VideraChartView\n" +
+                "OverlayOptions: VideraChartView.Plot.OverlayOptions\n" +
                 $"Cache asset: {_activeAssetSummary}\n" +
                 $"Dataset: {_activeDatasetSummary}";
             return;
@@ -865,7 +865,7 @@ public partial class MainWindow : Window
             $"ViewState: {CreateViewStateSummary()}\n" +
             $"InteractionQuality: {ActiveSurfaceChartView.InteractionQuality}\n" +
             $"RenderingStatus:\n{CreateSurfaceRenderingDiagnosticsSummary(surfaceStatus)}\n" +
-            $"OverlayOptions: {CreateOverlayOptionsSummary(ActiveSurfaceChartView.OverlayOptions)}\n" +
+            $"OverlayOptions: {CreateOverlayOptionsSummary(ActiveSurfaceChartView.Plot.OverlayOptions)}\n" +
             $"Cache asset: {_activeAssetSummary}\n" +
             $"Dataset: {_activeDatasetSummary}";
     }

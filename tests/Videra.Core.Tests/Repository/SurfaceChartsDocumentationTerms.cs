@@ -12,13 +12,13 @@ internal static class SurfaceChartsDocumentationTerms
         "For the canonical SurfaceCharts story, start from `Videra.SurfaceCharts.Avalonia`, add `Videra.SurfaceCharts.Processing` only for the surface/cache-backed path, and use [Videra.SurfaceCharts.Demo](samples/Videra.SurfaceCharts.Demo/README.md) as the repository reference app for the same path.";
 
     public const string SurfaceChartsDemoFirstChartSentence =
-        "For the canonical surface/cache-backed chart story, start from `Videra.SurfaceCharts.Avalonia` plus `Videra.SurfaceCharts.Processing`, and use this demo as the repository reference app for that same path. `VideraChartView`, `VideraChartView`, and `VideraChartView` in `Videra.SurfaceCharts.Avalonia` are the current chart control entrypoints, and this demo includes repo-owned `Try next: Analytics proof` and `Try next: Scatter proof` paths.";
+        "For the canonical surface/cache-backed chart story, start from `Videra.SurfaceCharts.Avalonia` plus `Videra.SurfaceCharts.Processing`, and use this demo as the repository reference app for the paths it actually exposes. `VideraChartView` ships in `Videra.SurfaceCharts.Avalonia`, and this sample exercises `Plot.Add.Surface`, `Plot.Add.Waterfall`, and `Plot.Add.Scatter` on that one control.";
 
     public const string SurfaceChartsDemoSentence =
         "`Videra.SurfaceCharts.Demo` is the independent demo application for the surface-chart module family.";
 
     public const string SurfaceChartViewSentence =
-        "The dedicated `VideraChartView`, `VideraChartView`, and `VideraChartView` controls remain the public chart entrypoints in `Videra.SurfaceCharts.Avalonia`.";
+        "The dedicated `VideraChartView` with `Plot.Add.Surface`, `Plot.Add.Waterfall`, and `Plot.Add.Scatter` remains the public chart entrypoint in `Videra.SurfaceCharts.Avalonia`.";
 
     public const string SurfaceChartsRendererStatusSentence =
         "The shipped chart surface is `GPU-first` with explicit chart-local `software fallback`, and hosts can inspect `RenderingStatus` / `RenderStatusChanged` without implying any `VideraView` backend downshift.";
@@ -36,10 +36,10 @@ internal static class SurfaceChartsDocumentationTerms
         "The public interaction diagnostics are `InteractionQuality` + `InteractionQualityChanged` with `Interactive` / `Refine`.";
 
     public const string SurfaceChartsOverlayOptionsSentence =
-        "Hosts can keep professional axis, grid, and legend behavior chart-local through `OverlayOptions` for formatter, title/unit override, minor ticks, grid plane, and axis-side selection.";
+        "Hosts can keep professional axis, grid, and legend behavior chart-local through `Plot.OverlayOptions` for formatter, title/unit override, minor ticks, grid plane, and axis-side selection.";
 
     public const string SurfaceChartsOverlayBoundarySentence =
-        "The public overlay configuration seam is `SurfaceChartOverlayOptions` through `OverlayOptions`; overlay state types remain internal.";
+        "The public overlay configuration seam is `SurfaceChartOverlayOptions` through `Plot.OverlayOptions`; overlay state types remain internal.";
 
     public const string SurfaceChartsOwnershipSentence =
         "Hosts own `ISurfaceTileSource`, persisted `ViewState`, color-map selection, and chart-local product UI.";
@@ -75,10 +75,10 @@ internal static class SurfaceChartsDocumentationTerms
         "对外交互诊断是 `InteractionQuality` + `InteractionQualityChanged`，状态为 `Interactive` / `Refine`。";
 
     public const string ChineseSurfaceChartsOverlayOptionsSentence =
-        "VideraChartView 通过 chart-local `OverlayOptions` 提供 formatter、标题/单位覆盖、minor ticks、grid plane 与 axis-side 行为。";
+        "VideraChartView 通过 chart-local `Plot.OverlayOptions` 提供 formatter、标题/单位覆盖、minor ticks、grid plane 与 axis-side 行为。";
 
     public const string ChineseSurfaceChartsOverlayBoundarySentence =
-        "公开 overlay 配置入口是 `SurfaceChartOverlayOptions` / `OverlayOptions`，overlay state 类型继续保持 internal。";
+        "公开 overlay 配置入口是 `SurfaceChartOverlayOptions` / `Plot.OverlayOptions`，overlay state 类型继续保持 internal。";
 
     public const string ChineseSurfaceChartsOwnershipSentence =
         "宿主拥有 `ISurfaceTileSource`、持久化的 `ViewState`、color-map 选择，以及 chart-local 产品 UI。";
@@ -238,8 +238,9 @@ internal static class SurfaceChartsDocumentationTerms
         "`Videra.SurfaceCharts.Processing`",
         "repository reference app",
         "`VideraChartView`",
-        "`VideraChartView`",
-        "`VideraChartView`",
+        "`Plot.Add.Surface`",
+        "`Plot.Add.Waterfall`",
+        "`Plot.Add.Scatter`",
         "`Try next: Analytics proof`",
         "`Try next: Scatter proof`"
     ];
@@ -247,8 +248,9 @@ internal static class SurfaceChartsDocumentationTerms
     public static readonly string[] SurfaceChartsTriFamilyControlTokens =
     [
         "`VideraChartView`",
-        "`VideraChartView`",
-        "`VideraChartView`"
+        "`Plot.Add.Surface`",
+        "`Plot.Add.Waterfall`",
+        "`Plot.Add.Scatter`"
     ];
 
     public static readonly string[] SurfaceChartsInteractionDiagnosticsTokens =
@@ -262,13 +264,13 @@ internal static class SurfaceChartsDocumentationTerms
     public static readonly string[] SurfaceChartsOverlayBoundaryTokens =
     [
         "`SurfaceChartOverlayOptions`",
-        "`OverlayOptions`",
+        "`Plot.OverlayOptions`",
         "internal"
     ];
 
     public static readonly string[] SurfaceChartsOverlayOptionsTokens =
     [
-        "`OverlayOptions`",
+        "`Plot.OverlayOptions`",
         "formatter",
         "title/unit override",
         "minor ticks",
@@ -378,7 +380,7 @@ internal static class SurfaceChartsDocumentationTerms
         "`Interactive`",
         "`Refine`",
         "`SurfaceChartOverlayOptions`",
-        "`OverlayOptions`",
+        "`Plot.OverlayOptions`",
         "internal",
         "`ISurfaceTileSource`",
         "persisted `ViewState`",
@@ -422,7 +424,7 @@ internal static class SurfaceChartsDocumentationTerms
 
     public static readonly string[] SurfaceChartOverlayOptionsXmlDocTokens =
     [
-        "chart-local overlay layout and formatting options",
+        "plot-level axis, grid, legend, probe, and numeric-formatting options",
         "formatter",
         "title/unit override",
         "minor ticks",
@@ -527,14 +529,14 @@ internal static class SurfaceChartsDocumentationTerms
     public static readonly string[] ChineseSurfaceChartsOverlayBoundaryTokens =
     [
         "`SurfaceChartOverlayOptions`",
-        "`OverlayOptions`",
+        "`Plot.OverlayOptions`",
         "internal"
     ];
 
     public static readonly string[] ChineseSurfaceChartsOverlayOptionsTokens =
     [
         "VideraChartView",
-        "`OverlayOptions`",
+        "`Plot.OverlayOptions`",
         "formatter",
         "标题/单位覆盖",
         "minor ticks",

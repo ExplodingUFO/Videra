@@ -2,7 +2,7 @@
 
 [English](../../../src/Videra.SurfaceCharts.Avalonia/README.md) | [中文](videra-surfacecharts-avalonia.md)
 
-`Videra.SurfaceCharts.Avalonia` 提供专用的 `VideraChartView`、`VideraChartView` 和 `VideraChartView` 控件层。它独立于 `VideraView`，不承载 viewer 模式，也不耦合到 `VideraView` 的选择、标注或相机链路。
+`Videra.SurfaceCharts.Avalonia` 提供专用的 `VideraChartView` 以及 `Plot.Add.Surface`、`Plot.Add.Waterfall`、`Plot.Add.Scatter` 控件层。它独立于 `VideraView`，不承载 viewer 模式，也不耦合到 `VideraView` 的选择、标注或相机链路。
 `Videra.SurfaceCharts.Processing` 只在 surface/cache-backed 路径需要，不是每条 chart 路径都必须安装。
 独立 Demo 会先把 `Start here: In-memory first chart` 作为默认入口，等基线 first chart 跑通后，再切到 `Explore next: Cache-backed streaming`，需要 explicit/non-uniform 坐标、独立 `ColorField` 与 pinned-probe 分析级路径时再看 `Try next: Analytics proof`，需要第二个控件证明时再看 `Try next: Waterfall proof`，需要 scatter 路径证明时再看 repo-owned `Try next: Scatter proof`。
 
@@ -12,8 +12,8 @@ VideraChartView 现在以 `ViewState` 作为 chart-view 契约，持久化 camer
 图表在交互过程中进入 `Interactive` 质量模式，并在输入停稳后回到 `Refine`。
 对外交互诊断是 `InteractionQuality` + `InteractionQualityChanged`，状态为 `Interactive` / `Refine`。
 `VideraChartView` 在 direct scatter 路径上复用同一套 chart-local 术语：left-drag navigation 报告 `Interactive`，release/capture lost 后回到 `Refine`，`ScatterChartRenderingStatus` 同时携带 `InteractionQuality` 和 columnar streaming/FIFO diagnostics。Columnar scatter 数据仍来自 `ScatterColumnarSeries`，通过 `ReplaceRange(...)` / `AppendRange(...)`、可选 `fifoCapacity` 和高容量默认 `Pickable=false` 表达。
-VideraChartView 通过 chart-local `OverlayOptions` 提供 formatter、标题/单位覆盖、minor ticks、grid plane 与 axis-side 行为。
-公开 overlay 配置入口是 `SurfaceChartOverlayOptions` / `OverlayOptions`，overlay state 类型继续保持 internal。
+VideraChartView 通过 chart-local `Plot.OverlayOptions` 提供 formatter、标题/单位覆盖、minor ticks、grid plane 与 axis-side 行为。
+公开 overlay 配置入口是 `SurfaceChartOverlayOptions` / `Plot.OverlayOptions`，overlay state 类型继续保持 internal。
 宿主拥有 `ISurfaceTileSource`、持久化的 `ViewState`、color-map 选择，以及 chart-local 产品 UI。
 `VideraChartView` 拥有 chart-local built-in 手势、tile scheduling/cache、overlay presentation、native-host/render-host orchestration，以及 `RenderingStatus` 投影。
 对外渲染 truth 是 `RenderingStatus` + `RenderStatusChanged`，字段包括 `ActiveBackend`、`IsReady`、`IsFallback`、`FallbackReason`、`UsesNativeSurface`、`ResidentTileCount`、`VisibleTileCount` 和 `ResidentTileBytes`。
