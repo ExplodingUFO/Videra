@@ -119,6 +119,23 @@ public sealed class SceneAuthoringBuilder
         return AddMesh(name, SceneGeometry.Cube(size, material.BaseColorFactor), material, transform, nodeId, primitiveId);
     }
 
+    public SceneAuthoringBuilder AddInstances(
+        string name,
+        MeshData meshData,
+        MaterialInstance material,
+        ReadOnlyMemory<Matrix4x4> transforms,
+        ReadOnlyMemory<RgbaFloat> colors = default,
+        ReadOnlyMemory<Guid> objectIds = default,
+        bool pickable = true,
+        MeshPrimitiveId? primitiveId = null)
+    {
+        ArgumentNullException.ThrowIfNull(meshData);
+        ArgumentNullException.ThrowIfNull(material);
+
+        var mesh = new MeshPrimitive(primitiveId ?? MeshPrimitiveId.New(), name, meshData, material.Id);
+        return AddInstanceBatch(new InstanceBatchDescriptor(name, mesh, material, transforms, colors, objectIds, pickable));
+    }
+
     public SceneAuthoringBuilder AddInstanceBatch(InstanceBatchDescriptor descriptor)
     {
         ArgumentNullException.ThrowIfNull(descriptor);

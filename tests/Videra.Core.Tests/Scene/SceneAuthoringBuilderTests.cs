@@ -86,6 +86,40 @@ public sealed class SceneAuthoringBuilderTests
     }
 
     [Fact]
+    public void Build_WithAuthoredInstances_AddsSingleBatchWithPerformanceTruth()
+    {
+        var material = SceneMaterials.Matte("paint", RgbaFloat.White);
+        var transforms = new[]
+        {
+            Matrix4x4.Identity,
+            Matrix4x4.CreateTranslation(3f, 0f, 0f),
+            Matrix4x4.CreateTranslation(6f, 0f, 0f)
+        };
+        var objectIds = new[] { Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid() };
+
+        var document = SceneAuthoring.Create("markers")
+            .AddInstances(
+                "marker-cubes",
+                SceneGeometry.Cube(size: 1f, material.BaseColorFactor),
+                material,
+                transforms,
+                objectIds: objectIds,
+                pickable: true)
+            .Build();
+
+        document.Entries.Should().BeEmpty();
+        var batch = document.InstanceBatches.Should().ContainSingle().Which;
+        batch.Name.Should().Be("marker-cubes");
+        batch.Mesh.Name.Should().Be("marker-cubes");
+        batch.Material.Should().BeSameAs(material);
+        batch.InstanceCount.Should().Be(3);
+        batch.ObjectIds.ToArray().Should().Equal(objectIds);
+        batch.Pickable.Should().BeTrue();
+        batch.Bounds.Min.Should().Be(new Vector3(-0.5f, -0.5f, -0.5f));
+        batch.Bounds.Max.Should().Be(new Vector3(6.5f, 0.5f, 0.5f));
+    }
+
+    [Fact]
     public void Build_WithPlaneGridPolylineAndPointCloud_CreatesExpectedTopologies()
     {
         var material = SceneMaterials.Matte("paint", RgbaFloat.White);
