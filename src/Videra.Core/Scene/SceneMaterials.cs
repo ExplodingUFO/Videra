@@ -1,3 +1,4 @@
+using System.Numerics;
 using Videra.Core.Geometry;
 
 namespace Videra.Core.Scene;
@@ -20,6 +21,18 @@ public static class SceneMaterials
             name,
             color,
             metallicRoughness: new MaterialMetallicRoughness(1f, roughness));
+    }
+
+    public static MaterialInstance Emissive(string name, RgbaFloat color, float intensity = 1f)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegative(intensity);
+
+        return new MaterialInstance(
+            MaterialInstanceId.New(),
+            name,
+            color,
+            metallicRoughness: new MaterialMetallicRoughness(0f, 1f),
+            emissive: new MaterialEmissive(new Vector3(color.R, color.G, color.B) * intensity));
     }
 
     public static MaterialInstance AlphaMask(string name, RgbaFloat color, float cutoff = 0.5f, bool doubleSided = false)
