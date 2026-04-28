@@ -12,7 +12,7 @@ pwsh -File ./scripts/Export-BeadsRoadmap.ps1
 
 ## Active
 
-- **Videra-q7q** - Phase 335: Delete old SurfaceCharts View components (task, P1, in_progress)
+_No matching beads in the exported snapshot._
 
 ## Ready
 
@@ -21,7 +21,6 @@ pwsh -File ./scripts/Export-BeadsRoadmap.ps1
 
 ## Blocked
 
-- **Videra-0yn** - Phase 336: Migrate demos and smokes to VideraChartView (task, P1, open)
 - **Videra-k78** - Phase 338: Single Plot View docs and guardrails (task, P1, open)
 
 ## Backlog
@@ -30,6 +29,8 @@ _No matching beads in the exported snapshot._
 
 ## Recently Closed
 
+- **Videra-0yn** - Phase 336: Migrate demos and smokes to VideraChartView (task, P1, closed)
+- **Videra-q7q** - Phase 335: Delete old SurfaceCharts View components (task, P1, closed)
 - **Videra-hen** - Phase 334: VideraChartView Plot API foundation (task, P1, closed)
 - **Videra-rhb** - Phase 333: Breaking chart API deletion inventory (task, P1, closed)
 - **Videra-53d** - v2.46 Professional Interaction Evidence (epic, P1, closed)
@@ -38,6 +39,4 @@ _No matching beads in the exported snapshot._
 - **Videra-k38** - Phase 330: SurfaceCharts probe output evidence polish (task, P1, closed)
 - **Videra-6oi** - Phase 329: Viewer interaction evidence polish (task, P1, closed)
 - **Videra-7l7** - Phase 328: Professional interaction evidence inventory (task, P1, closed)
-- **Videra-j16** - v2.45 Professional Output and Scene Semantics (epic, P1, closed)
-- **Videra-422** - Phase 327: Professional output guardrails and docs closure (task, P2, closed)
 
