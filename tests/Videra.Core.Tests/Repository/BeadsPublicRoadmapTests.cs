@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Text.Json.Nodes;
 using FluentAssertions;
 using Xunit;
 
@@ -33,34 +34,89 @@ public sealed class BeadsPublicRoadmapTests
         after.Should().Contain("## Blocked");
         after.Should().Contain("## Backlog");
         after.Should().Contain("## Recently Closed");
-        after.Should().Contain("Videra-tyn");
-        after.Should().Contain("v2.47 Single Plot View for 3D Charts");
-        after.Should().Contain("Videra-hen");
-        after.Should().Contain("Phase 334: VideraChartView Plot API foundation");
-        after.Should().Contain("Videra-rhb");
-        after.Should().Contain("Phase 333: Breaking chart API deletion inventory");
-        after.Should().Contain("Videra-53d");
-        after.Should().Contain("v2.46 Professional Interaction Evidence");
-        after.Should().Contain("Videra-7l7");
-        after.Should().Contain("Phase 328: Professional interaction evidence inventory");
-        after.Should().Contain("Videra-6oi");
-        after.Should().Contain("Phase 329: Viewer interaction evidence polish");
-        after.Should().Contain("Videra-k38");
-        after.Should().Contain("Phase 330: SurfaceCharts probe output evidence polish");
-        after.Should().Contain("Videra-nll");
-        after.Should().Contain("Phase 331: Workbench professional interaction report workflow");
-        after.Should().Contain("Videra-m4z");
-        after.Should().Contain("Phase 332: Professional interaction guardrails and docs closure");
-        after.Should().Contain("Videra-j16");
-        after.Should().Contain("v2.45 Professional Output and Scene Semantics");
-        after.Should().Contain("Videra-ki0");
-        after.Should().Contain("Phase 326: Workbench professional output workflow");
-        after.Should().Contain("Videra-422");
-        after.Should().Contain("Phase 327: Professional output guardrails and docs closure");
+        var issues = ReadIssues(issuesPath);
+        var issuesById = issues.ToDictionary(static issue => GetString(issue, "id"), StringComparer.Ordinal);
+        var openIssues = issues.Where(static issue => GetString(issue, "status") != "closed").ToArray();
+        var readyIssues = openIssues
+            .Where(issue => GetString(issue, "status") == "open")
+            .Where(static issue => GetInt(issue, "priority") <= 2)
+            .Where(issue => !HasOpenBlockingDependency(issue, issuesById))
+            .ToArray();
+        var blockedIssues = openIssues
+            .Where(issue => GetString(issue, "status") == "open")
+            .Where(static issue => GetInt(issue, "priority") <= 2)
+            .Where(issue => HasOpenBlockingDependency(issue, issuesById))
+            .ToArray();
+        var recentlyClosed = issues
+            .Where(static issue => GetString(issue, "status") == "closed")
+            .OrderByDescending(static issue => GetString(issue, "closed_at"))
+            .ThenBy(static issue => GetString(issue, "id"), StringComparer.Ordinal)
+            .Take(10)
+            .ToArray();
+
+        readyIssues.Should().NotBeEmpty("the public roadmap should expose the next ready Beads work item");
+        foreach (var issue in readyIssues.Concat(blockedIssues).Concat(recentlyClosed))
+        {
+            after.Should().Contain(GetString(issue, "id"));
+            after.Should().Contain(GetString(issue, "title"));
+        }
 
         docsIndex.Should().Contain("ROADMAP.generated.md");
         beadsCoordination.Should().Contain("scripts/Export-BeadsRoadmap.ps1");
         beadsCoordination.Should().Contain("docs/ROADMAP.generated.md");
+    }
+
+    private static JsonObject[] ReadIssues(string issuesPath)
+    {
+        return File.ReadLines(issuesPath)
+            .Where(static line => !string.IsNullOrWhiteSpace(line))
+            .Select(static line => JsonNode.Parse(line)!.AsObject())
+            .Where(static issue => GetString(issue, "_type") == "issue")
+            .ToArray();
+    }
+
+    private static bool HasOpenBlockingDependency(JsonObject issue, IReadOnlyDictionary<string, JsonObject> issuesById)
+    {
+        if (issue["dependencies"] is not JsonArray dependencies)
+        {
+            return false;
+        }
+
+        foreach (var dependency in dependencies.OfType<JsonObject>())
+        {
+            if (GetString(dependency, "type") != "blocks")
+            {
+                continue;
+            }
+
+            var dependencyId = GetString(dependency, "depends_on_id");
+            if (string.IsNullOrWhiteSpace(dependencyId))
+            {
+                continue;
+            }
+
+            if (!issuesById.TryGetValue(dependencyId, out var dependencyIssue))
+            {
+                return true;
+            }
+
+            if (GetString(dependencyIssue, "status") != "closed")
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static string GetString(JsonObject issue, string propertyName)
+    {
+        return issue[propertyName]?.GetValue<string>() ?? "";
+    }
+
+    private static int GetInt(JsonObject issue, string propertyName)
+    {
+        return issue[propertyName]?.GetValue<int>() ?? 0;
     }
 
     private static void RunPowerShell(string workingDirectory, string scriptPath)
