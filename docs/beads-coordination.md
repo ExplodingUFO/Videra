@@ -109,3 +109,15 @@ bd export -o .beads/issues.jsonl
 ```
 
 Do not commit runtime files such as `.beads/export-state.json`, local locks, embedded Dolt data, credentials, logs, or per-machine redirect files.
+
+## Public Roadmap Export
+
+`docs/ROADMAP.generated.md` is a deterministic, read-only public summary generated from the checked-in `.beads/issues.jsonl` snapshot. It exists so external readers can see active and ready roadmap work without a local Beads service.
+
+Regenerate it after exporting Beads state:
+
+```powershell
+pwsh -File ./scripts/Export-BeadsRoadmap.ps1
+```
+
+Do not edit the generated roadmap by hand, and do not use it as a parallel tracker. Beads remains the single task authority.
