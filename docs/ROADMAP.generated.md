@@ -16,8 +16,7 @@ _No matching beads in the exported snapshot._
 
 ## Ready
 
-- **Videra-21d** - v2.43 Visual Workbench and Authoring Polish (epic, P1, open; labels: authoring, surfacecharts, v2.43, workbench)
-- **Videra-fnf** - Phase 316: Optional Avalonia workbench first slice (task, P2, open; labels: phase-316, v2.43, workbench)
+_No matching beads in the exported snapshot._
 
 ## Backlog
 
@@ -25,6 +24,8 @@ _No matching beads in the exported snapshot._
 
 ## Recently Closed
 
+- **Videra-21d** - v2.43 Visual Workbench and Authoring Polish (epic, P1, closed; labels: authoring, surfacecharts, v2.43, workbench)
+- **Videra-fnf** - Phase 316: Optional Avalonia workbench first slice (task, P2, closed; labels: phase-316, v2.43, workbench)
 - **Videra-bja** - Phase 314: Scene authoring polish and MinimalAuthoringSample (task, P1, closed; labels: authoring, phase-314, v2.43)
 - **Videra-dux** - Phase 315: SurfaceCharts numeric precision policy (task, P1, closed; labels: phase-315, surfacecharts, v2.43)
 - **Videra-9m7** - Phase 317: Beads public roadmap generation (task, P2, closed; labels: beads, docs, phase-317, v2.43)
@@ -33,6 +34,4 @@ _No matching beads in the exported snapshot._
 - **Videra-txk** - Phase 312: Visual authoring docs and proof closure (task, P2, closed)
 - **Videra-oc6** - Phase 310: Instance-aware authoring performance proof (task, P1, closed)
 - **Videra-sw5** - Phase 311: SurfaceCharts professional style and precision (task, P1, closed)
-- **Videra-9xg** - Phase 309: Scene authoring builder contracts (task, P1, closed)
-- **Videra-5f3** - Phase 308: Visual authoring and chart presentation inventory (task, P1, closed)
 
