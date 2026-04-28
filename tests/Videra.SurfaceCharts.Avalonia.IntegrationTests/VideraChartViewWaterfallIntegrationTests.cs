@@ -9,10 +9,10 @@ using Xunit;
 
 namespace Videra.SurfaceCharts.Avalonia.IntegrationTests;
 
-public sealed class WaterfallChartViewIntegrationTests
+public sealed class VideraChartViewWaterfallIntegrationTests
 {
     [Fact]
-    public Task WaterfallChartView_PublishesReadySoftwareSnapshot_AndUsesExplicitWaterfallSpacing()
+    public Task VideraChartViewWaterfall_PublishesReadySoftwareSnapshot_AndUsesExplicitWaterfallSpacing()
     {
         return AvaloniaHeadlessTestSession.RunAsync(async () =>
         {
@@ -39,7 +39,7 @@ public sealed class WaterfallChartViewIntegrationTests
     }
 
     [Fact]
-    public void WaterfallChartView_FitToData_And_ResetCamera_PreserveInheritedViewStateWorkflow()
+    public void VideraChartViewWaterfall_FitToData_And_ResetCamera_PreserveInheritedViewStateWorkflow()
     {
         AvaloniaHeadlessTestSession.Run(() =>
         {

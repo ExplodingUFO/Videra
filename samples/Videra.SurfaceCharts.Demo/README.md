@@ -33,7 +33,7 @@ The committed cache sample uses a tiled manifest+sidecar layout so panning, doll
 2. Confirm the baseline first chart renders, then try `FitToData()`, `ResetCamera()`, orbit, pan, dolly, and focus zoom.
 3. Move to `Explore next: Cache-backed streaming` only after the first chart path works and you want to validate lazy tile reads plus the broader demo surfaces.
 4. Use `Try next: Analytics proof` to validate explicit-coordinate sampling and independent color scalar flow while keeping `VideraChartView` as the proof host.
-5. Use `Try next: Waterfall proof` when you want the second control proof on the same Avalonia shell.
+5. Use `Try next: Waterfall proof` when you want the second chart-family proof on the same Avalonia shell.
 6. Use `Try next: Scatter proof` when you want the direct scatter proof and columnar data-path diagnostics on the same Avalonia shell. Use the `Scatter stream` selector to switch between replace, append, and FIFO-trim scenarios.
 
 ## Run

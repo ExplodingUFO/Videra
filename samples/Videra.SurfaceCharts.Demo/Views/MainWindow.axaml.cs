@@ -106,9 +106,9 @@ public partial class MainWindow : Window
         _inMemorySource = CreateInMemorySource();
         _analyticsProofSource = CreateAnalyticsProofSource();
         _waterfallSource = CreateWaterfallSource();
-        ConfigureSurfaceChartView(_surfaceChartView);
-        ConfigureSurfaceChartView(_waterfallChartView);
-        ConfigureScatterChartView(_scatterChartView);
+        ConfigureSurfaceFamilyChartView(_surfaceChartView);
+        ConfigureSurfaceFamilyChartView(_waterfallChartView);
+        ConfigureScatterFamilyChartView(_scatterChartView);
 
         _scatterScenarioSelector.ItemsSource = ScatterStreamingScenarios.All;
         _scatterScenarioSelector.SelectedIndex = 0;
@@ -131,7 +131,7 @@ public partial class MainWindow : Window
         RefreshActiveProofTexts();
     }
 
-    private VideraChartView ActiveSurfaceChartView => _waterfallChartView.IsVisible ? _waterfallChartView : _surfaceChartView;
+    private VideraChartView ActiveSurfaceFamilyChartView => _waterfallChartView.IsVisible ? _waterfallChartView : _surfaceChartView;
 
     private bool IsScatterProofActive => _scatterChartView.IsVisible;
 
@@ -140,7 +140,7 @@ public partial class MainWindow : Window
         AvaloniaXamlLoader.Load(this);
     }
 
-    private void ConfigureSurfaceChartView(VideraChartView chartView)
+    private void ConfigureSurfaceFamilyChartView(VideraChartView chartView)
     {
         chartView.Plot.OverlayOptions = CreateOverlayOptions();
         chartView.RenderStatusChanged += OnRenderStatusChanged;
@@ -148,7 +148,7 @@ public partial class MainWindow : Window
         chartView.PropertyChanged += OnChartViewPropertyChanged;
     }
 
-    private void ConfigureScatterChartView(VideraChartView chartView)
+    private void ConfigureScatterFamilyChartView(VideraChartView chartView)
     {
         chartView.RenderStatusChanged += OnRenderStatusChanged;
         chartView.InteractionQualityChanged += OnInteractionQualityChanged;
@@ -344,7 +344,7 @@ public partial class MainWindow : Window
     private void OnRenderStatusChanged(object? sender, EventArgs e)
     {
         _ = e;
-        if (!ReferenceEquals(sender, ActiveSurfaceChartView) && !ReferenceEquals(sender, _scatterChartView))
+        if (!ReferenceEquals(sender, ActiveSurfaceFamilyChartView) && !ReferenceEquals(sender, _scatterChartView))
         {
             return;
         }
@@ -355,7 +355,7 @@ public partial class MainWindow : Window
     private void OnInteractionQualityChanged(object? sender, EventArgs e)
     {
         _ = e;
-        if (!ReferenceEquals(sender, ActiveSurfaceChartView) && !ReferenceEquals(sender, _scatterChartView))
+        if (!ReferenceEquals(sender, ActiveSurfaceFamilyChartView) && !ReferenceEquals(sender, _scatterChartView))
         {
             return;
         }
@@ -365,7 +365,7 @@ public partial class MainWindow : Window
 
     private void OnChartViewPropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
     {
-        if (!ReferenceEquals(sender, ActiveSurfaceChartView) || e.Property != VideraChartView.ViewStateProperty)
+        if (!ReferenceEquals(sender, ActiveSurfaceFamilyChartView) || e.Property != VideraChartView.ViewStateProperty)
         {
             return;
         }
@@ -383,7 +383,7 @@ public partial class MainWindow : Window
         }
         else
         {
-            ActiveSurfaceChartView.FitToData();
+            ActiveSurfaceFamilyChartView.FitToData();
         }
 
         RefreshActiveProofTexts();
@@ -399,7 +399,7 @@ public partial class MainWindow : Window
         }
         else
         {
-            ActiveSurfaceChartView.ResetCamera();
+            ActiveSurfaceFamilyChartView.ResetCamera();
         }
 
         RefreshActiveProofTexts();
@@ -441,7 +441,7 @@ public partial class MainWindow : Window
         }
 
         _interactionQualityText.Text =
-            $"Current mode: {ActiveSurfaceChartView.InteractionQuality}\n" +
+            $"Current mode: {ActiveSurfaceFamilyChartView.InteractionQuality}\n" +
             "Interactive: lighter requests while orbit, pan, dolly, or focus input is in flight.\n" +
             "Refine: full settled requests for the current view.";
     }
@@ -461,7 +461,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        var dataWindow = ActiveSurfaceChartView.ViewState.DataWindow;
+        var dataWindow = ActiveSurfaceFamilyChartView.ViewState.DataWindow;
         _statusText.Text =
             $"{_activeSourceHeading}\n" +
             $"{_activeSourceDetails}\n" +
@@ -484,7 +484,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        var surfaceStatus = ActiveSurfaceChartView.RenderingStatus;
+        var surfaceStatus = ActiveSurfaceFamilyChartView.RenderingStatus;
         _renderingPathText.Text =
             $"Active backend: {surfaceStatus.ActiveBackend}\n" +
             $"Ready: {surfaceStatus.IsReady}\n" +
@@ -497,7 +497,7 @@ public partial class MainWindow : Window
     {
         _renderingDiagnosticsText.Text = IsScatterProofActive
             ? CreateScatterRenderingDiagnosticsSummary(_activeScatterData, _scatterChartView)
-            : CreateSurfaceRenderingDiagnosticsSummary(ActiveSurfaceChartView.RenderingStatus);
+            : CreateSurfaceRenderingDiagnosticsSummary(ActiveSurfaceFamilyChartView.RenderingStatus);
     }
 
     private void UpdateOverlayOptionsText()
@@ -510,7 +510,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        var overlayOptions = ActiveSurfaceChartView.Plot.OverlayOptions;
+        var overlayOptions = ActiveSurfaceFamilyChartView.Plot.OverlayOptions;
         _overlayOptionsText.Text =
             "Chart-local `OverlayOptions` keep formatter, minor ticks, grid plane, and axis-side behavior inside `VideraChartView` instead of pushing chart semantics into `VideraView`.\n" +
             $"Minor ticks: {(overlayOptions.ShowMinorTicks ? "enabled" : "disabled")} (divisions {overlayOptions.MinorTickDivisions})\n" +
@@ -849,7 +849,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        var surfaceStatus = ActiveSurfaceChartView.RenderingStatus;
+        var surfaceStatus = ActiveSurfaceFamilyChartView.RenderingStatus;
         _supportSummaryText.Text =
             "SurfaceCharts support summary\n" +
             $"GeneratedUtc: {DateTimeOffset.UtcNow:O}\n" +
@@ -863,9 +863,9 @@ public partial class MainWindow : Window
             $"Source path: {_activeSourceHeading}\n" +
             $"Source details: {_activeSourceDetails}\n" +
             $"ViewState: {CreateViewStateSummary()}\n" +
-            $"InteractionQuality: {ActiveSurfaceChartView.InteractionQuality}\n" +
+            $"InteractionQuality: {ActiveSurfaceFamilyChartView.InteractionQuality}\n" +
             $"RenderingStatus:\n{CreateSurfaceRenderingDiagnosticsSummary(surfaceStatus)}\n" +
-            $"OverlayOptions: {CreateOverlayOptionsSummary(ActiveSurfaceChartView.Plot.OverlayOptions)}\n" +
+            $"OverlayOptions: {CreateOverlayOptionsSummary(ActiveSurfaceFamilyChartView.Plot.OverlayOptions)}\n" +
             $"Cache asset: {_activeAssetSummary}\n" +
             $"Dataset: {_activeDatasetSummary}";
     }
@@ -874,7 +874,7 @@ public partial class MainWindow : Window
     {
         var chartType = IsScatterProofActive
             ? _scatterChartView.GetType()
-            : ActiveSurfaceChartView.GetType();
+            : ActiveSurfaceFamilyChartView.GetType();
 
         return $"{chartType.Name} ({chartType.FullName})";
     }
@@ -930,7 +930,7 @@ public partial class MainWindow : Window
             return CreateScatterCameraSummary(_activeScatterData, _scatterChartView);
         }
 
-        var viewState = ActiveSurfaceChartView.ViewState;
+        var viewState = ActiveSurfaceFamilyChartView.ViewState;
         var dataWindow = viewState.DataWindow;
         var camera = viewState.Camera;
         return

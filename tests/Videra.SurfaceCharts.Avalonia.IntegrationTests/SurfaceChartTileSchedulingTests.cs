@@ -16,7 +16,7 @@ public sealed class SurfaceChartTileSchedulingTests
     {
         return AvaloniaHeadlessTestSession.RunAsync(async () =>
         {
-            var metadata = SurfaceChartViewLifecycleTests.CreateMetadata();
+            var metadata = VideraChartViewLifecycleTests.CreateMetadata();
             var source = new RecordingSurfaceTileSource(metadata);
             var view = new VideraChartView();
             var expectedViewState = SurfaceViewState.CreateDefault(metadata, new SurfaceDataWindow(256, 128, 512, 256));
@@ -46,7 +46,7 @@ public sealed class SurfaceChartTileSchedulingTests
     {
         return AvaloniaHeadlessTestSession.RunAsync(async () =>
         {
-            var metadata = SurfaceChartViewLifecycleTests.CreateMetadata();
+            var metadata = VideraChartViewLifecycleTests.CreateMetadata();
             var source = new RecordingSurfaceTileSource(metadata);
             var view = new VideraChartView
             {
@@ -77,7 +77,7 @@ public sealed class SurfaceChartTileSchedulingTests
     {
         return AvaloniaHeadlessTestSession.RunAsync(async () =>
         {
-            var metadata = SurfaceChartViewLifecycleTests.CreateMetadata();
+            var metadata = VideraChartViewLifecycleTests.CreateMetadata();
             var source = new RecordingSurfaceTileSource(metadata);
             var view = new VideraChartView();
 
@@ -103,7 +103,7 @@ public sealed class SurfaceChartTileSchedulingTests
     {
         return AvaloniaHeadlessTestSession.RunAsync(async () =>
         {
-            var metadata = SurfaceChartViewLifecycleTests.CreateMetadata();
+            var metadata = VideraChartViewLifecycleTests.CreateMetadata();
             var source = new ConcurrencyTrackingSurfaceTileSource(
                 metadata,
                 defaultTileValue: 5,
@@ -137,7 +137,7 @@ public sealed class SurfaceChartTileSchedulingTests
     {
         return AvaloniaHeadlessTestSession.RunAsync(async () =>
         {
-            var metadata = SurfaceChartViewLifecycleTests.CreateMetadata();
+            var metadata = VideraChartViewLifecycleTests.CreateMetadata();
             var source = new ScriptedSurfaceTileSource(metadata, defaultTileValue: 7);
             var firstRequestStarted = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
@@ -190,7 +190,7 @@ public sealed class SurfaceChartTileSchedulingTests
     [Fact]
     public async Task ViewportChange_PrunesToCurrentPlanRetainedKeys()
     {
-        var metadata = SurfaceChartViewLifecycleTests.CreateMetadata();
+        var metadata = VideraChartViewLifecycleTests.CreateMetadata();
         var firstViewport = new SurfaceViewport(256, 256, 256, 256);
         var secondViewport = new SurfaceViewport(384, 256, 256, 256);
         var outputSize = new Size(64, 64);
@@ -273,7 +273,7 @@ public sealed class SurfaceChartTileSchedulingTests
     {
         return AvaloniaHeadlessTestSession.RunAsync(async () =>
         {
-            var metadata = SurfaceChartViewLifecycleTests.CreateMetadata();
+            var metadata = VideraChartViewLifecycleTests.CreateMetadata();
             var source = new RecordingSurfaceTileSource(metadata);
             var view = new VideraChartView();
 
@@ -314,7 +314,7 @@ public sealed class SurfaceChartTileSchedulingTests
     {
         return AvaloniaHeadlessTestSession.RunAsync(async () =>
         {
-            var metadata = SurfaceChartViewLifecycleTests.CreateMetadata();
+            var metadata = VideraChartViewLifecycleTests.CreateMetadata();
             var source = new RecordingSurfaceTileSource(metadata);
             var view = new VideraChartView();
 
@@ -356,7 +356,7 @@ public sealed class SurfaceChartTileSchedulingTests
     [Fact]
     public void ViewSizeChange_SameSize_IsNoOp()
     {
-        var metadata = SurfaceChartViewLifecycleTests.CreateMetadata();
+        var metadata = VideraChartViewLifecycleTests.CreateMetadata();
         var overviewKey = new SurfaceTileKey(0, 0, 0, 0);
         var detailKey = new SurfaceTileKey(1, 1, 0, 0);
         var tileCache = new SurfaceTileCache();
@@ -389,7 +389,7 @@ public sealed class SurfaceChartTileSchedulingTests
     [Fact]
     public void ViewSizeChange_ToZero_PrunesStaleDetailTiles_AndInvalidatesRenderScene()
     {
-        var metadata = SurfaceChartViewLifecycleTests.CreateMetadata();
+        var metadata = VideraChartViewLifecycleTests.CreateMetadata();
         var overviewKey = new SurfaceTileKey(0, 0, 0, 0);
         var detailKey = new SurfaceTileKey(1, 1, 0, 0);
         var tileCache = new SurfaceTileCache();
@@ -418,7 +418,7 @@ public sealed class SurfaceChartTileSchedulingTests
     [Fact]
     public async Task InteractiveQuality_RequestPlanUsesCoarserSelectionThanRefine()
     {
-        var metadata = SurfaceChartViewLifecycleTests.CreateMetadata();
+        var metadata = VideraChartViewLifecycleTests.CreateMetadata();
         var viewport = new SurfaceViewport(0d, 0d, metadata.Width, metadata.Height);
         var outputSize = new Size(256, 256);
         var refineSource = new RecordingSurfaceTileSource(metadata);
@@ -471,7 +471,7 @@ public sealed class SurfaceChartTileSchedulingTests
     {
         return AvaloniaHeadlessTestSession.RunAsync(async () =>
         {
-            var metadata = SurfaceChartViewLifecycleTests.CreateMetadata();
+            var metadata = VideraChartViewLifecycleTests.CreateMetadata();
             var source = new BatchRecordingSurfaceTileSource(metadata);
             var view = new VideraChartView();
 
@@ -495,7 +495,7 @@ public sealed class SurfaceChartTileSchedulingTests
     [Fact]
     public async Task BatchCapableSource_SplitsDetailRequestsToSchedulerBatchSize()
     {
-        var metadata = SurfaceChartViewLifecycleTests.CreateMetadata();
+        var metadata = VideraChartViewLifecycleTests.CreateMetadata();
         var viewport = new SurfaceViewport(0, 0, metadata.Width, metadata.Height);
         var outputSize = new Size(256, 256);
         var viewState = SurfaceViewState.CreateDefault(metadata, viewport.ToDataWindow());

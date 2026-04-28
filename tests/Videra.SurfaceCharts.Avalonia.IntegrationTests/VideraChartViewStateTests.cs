@@ -9,7 +9,7 @@ using Pointer = Avalonia.Input.Pointer;
 
 namespace Videra.SurfaceCharts.Avalonia.IntegrationTests;
 
-public sealed class SurfaceChartViewViewStateTests
+public sealed class VideraChartViewStateTests
 {
     [Fact]
     public void ViewState_UpdatePreservesDataWindow()
@@ -46,7 +46,7 @@ public sealed class SurfaceChartViewViewStateTests
     {
         AvaloniaHeadlessTestSession.Run(() =>
         {
-            var source = new RecordingSurfaceTileSource(SurfaceChartViewLifecycleTests.CreateMetadata());
+            var source = new RecordingSurfaceTileSource(VideraChartViewLifecycleTests.CreateMetadata());
             var view = new VideraChartView
             {
                 Source = source,
@@ -67,7 +67,7 @@ public sealed class SurfaceChartViewViewStateTests
     {
         AvaloniaHeadlessTestSession.Run(() =>
         {
-            var source = new RecordingSurfaceTileSource(SurfaceChartViewLifecycleTests.CreateMetadata());
+            var source = new RecordingSurfaceTileSource(VideraChartViewLifecycleTests.CreateMetadata());
             var dataWindow = new SurfaceDataWindow(128d, 64d, 256d, 128d);
             var view = new VideraChartView
             {
@@ -90,7 +90,7 @@ public sealed class SurfaceChartViewViewStateTests
     {
         AvaloniaHeadlessTestSession.Run(() =>
         {
-            var source = new RecordingSurfaceTileSource(SurfaceChartViewLifecycleTests.CreateMetadata());
+            var source = new RecordingSurfaceTileSource(VideraChartViewLifecycleTests.CreateMetadata());
             var view = new VideraChartView
             {
                 Source = source
@@ -126,7 +126,7 @@ public sealed class SurfaceChartViewViewStateTests
     {
         return AvaloniaHeadlessTestSession.RunAsync(async () =>
         {
-            var source = new ScriptedSurfaceTileSource(SurfaceChartViewLifecycleTests.CreateMetadata(), defaultTileValue: 11f);
+            var source = new ScriptedSurfaceTileSource(VideraChartViewLifecycleTests.CreateMetadata(), defaultTileValue: 11f);
             var view = new RoutedInteractionTestView
             {
                 Source = source

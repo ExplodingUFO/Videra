@@ -17,8 +17,8 @@ internal static class SurfaceChartsDocumentationTerms
     public const string SurfaceChartsDemoSentence =
         "`Videra.SurfaceCharts.Demo` is the independent demo application for the surface-chart module family.";
 
-    public const string SurfaceChartViewSentence =
-        "The dedicated `VideraChartView` with `Plot.Add.Surface`, `Plot.Add.Waterfall`, and `Plot.Add.Scatter` remains the public chart entrypoint in `Videra.SurfaceCharts.Avalonia`.";
+    public const string VideraChartViewSentence =
+        "The dedicated `VideraChartView` remains the public chart control in `Videra.SurfaceCharts.Avalonia`; `Plot.Add.Surface`, `Plot.Add.Waterfall`, and `Plot.Add.Scatter` are its chart authoring entrypoints.";
 
     public const string SurfaceChartsRendererStatusSentence =
         "The shipped chart surface is `GPU-first` with explicit chart-local `software fallback`, and hosts can inspect `RenderingStatus` / `RenderStatusChanged` without implying any `VideraView` backend downshift.";
@@ -126,6 +126,14 @@ internal static class SurfaceChartsDocumentationTerms
     public static readonly string[] GuardedSurfaceChartsEntryPointPaths =
     [
         "README.md",
+        "docs/index.md",
+        "docs/alpha-feedback.md",
+        "docs/troubleshooting.md",
+        "docs/capability-matrix.md",
+        "docs/hosting-boundary.md",
+        "docs/package-matrix.md",
+        "docs/support-matrix.md",
+        "src/Videra.SurfaceCharts.Avalonia/README.md",
         "samples/Videra.SurfaceCharts.Demo/README.md",
         "docs/zh-CN/README.md",
         "docs/zh-CN/modules/videra-surfacecharts-avalonia.md"
@@ -153,12 +161,11 @@ internal static class SurfaceChartsDocumentationTerms
         "surface-chart module family"
     ];
 
-    public static readonly string[] SurfaceChartViewEntryTokens =
+    public static readonly string[] VideraChartViewEntryTokens =
     [
         "`VideraChartView`",
-        "`VideraChartView`",
-        "`VideraChartView`",
-        "public chart entrypoints",
+        "public chart control",
+        "chart authoring entrypoints",
         "`Videra.SurfaceCharts.Avalonia`"
     ];
 
@@ -245,7 +252,7 @@ internal static class SurfaceChartsDocumentationTerms
         "`Try next: Scatter proof`"
     ];
 
-    public static readonly string[] SurfaceChartsTriFamilyControlTokens =
+    public static readonly string[] SurfaceChartsPlotEntryTokens =
     [
         "`VideraChartView`",
         "`Plot.Add.Surface`",
@@ -401,7 +408,7 @@ internal static class SurfaceChartsDocumentationTerms
         "`ResidentTileBytes`"
     ];
 
-    public static readonly string[] SurfaceChartViewTypeXmlDocTokens =
+    public static readonly string[] VideraChartViewTypeXmlDocTokens =
     [
         "persisted <see cref=\"ViewState\"/>",
         "built-in orbit, pan, dolly, and focus interaction"
@@ -642,9 +649,18 @@ internal static class SurfaceChartsDocumentationTerms
         "demo evidence paths do not include a scatter UI",
         "demo path set does not include a scatter UI",
         "do not claim the demo exposes a scatter path",
+        "current Avalonia controls",
+        "controls remain the public chart entrypoints",
+        "`Plot.Add.Surface`, `Plot.Add.Waterfall`, and `Plot.Add.Scatter` controls",
+        "second chart control",
+        "second control proof",
+        "scatter control path",
+        "direct scatter control path",
         "还没有完成坐标轴、刻度、标签与图例系统",
         "还没有交付完成态的 built-in orbit / pan / dolly 工作流",
         "由宿主驱动的 overview/detail 视口切换",
-        "Scatter 路径属于已发布控件层，但不在当前 Demo UI 中"
+        "Scatter 路径属于已发布控件层，但不在当前 Demo UI 中",
+        "三个 Avalonia 控件",
+        "第二个控件证明"
     ];
 }
