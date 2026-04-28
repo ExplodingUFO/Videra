@@ -116,7 +116,7 @@ public partial class MainWindow : Window
             CompleteAsync(
                 succeeded: false,
                 frameAllReturned: false,
-                failure: e.Exception.Message);
+                failure: GetInitializationFailureMessage(e.Exception));
         };
 
         Opened += _openedHandler;
@@ -344,6 +344,14 @@ public partial class MainWindow : Window
         {
             // Best-effort diagnostics only.
         }
+    }
+
+    private static string GetInitializationFailureMessage(Exception? exception)
+    {
+        var message = exception?.Message;
+        return string.IsNullOrWhiteSpace(message)
+            ? "Backend initialization failed: the view is not ready."
+            : $"Backend initialization did not complete. Not-ready state: {message}";
     }
 
     private sealed record ConsumerSmokeReport(

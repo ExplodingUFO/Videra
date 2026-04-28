@@ -11,7 +11,7 @@ Attach the smallest artifact set that explains the failure path:
 | Repository state or local setup | Attach `artifacts/doctor/doctor-report.json` and `artifacts/doctor/doctor-summary.txt` from `Videra Doctor`. |
 | Viewer issue | Reproduce with `Videra.MinimalSample` and attach the diagnostics snapshot from `VideraDiagnosticsSnapshotFormatter`. |
 | Import issue | Use `Videra.Demo` and attach the copied diagnostics bundle, import report, and smallest failing scene path. |
-| Backend issue | Attach `artifacts/doctor/doctor-report.json`, the diagnostics snapshot, and any backend fallback reason from `Videra.Demo`. |
+| Backend issue | Attach `artifacts/doctor/doctor-report.json`, the diagnostics snapshot, and `LastInitializationError` from copied diagnostics when startup is not-ready; include `FallbackReason` only if software fallback was explicitly enabled and actually selected. |
 | Visual rendering or Performance Lab issue | Attach `artifacts/doctor/doctor-report.json`, `artifacts/performance-lab-visual-evidence/performance-lab-visual-evidence-manifest.json`, `performance-lab-visual-evidence-summary.txt`, the relevant PNG files, and per-scenario diagnostics text. |
 | Package issue | Attach `release-dry-run-summary.json`, `release-candidate-evidence-index.json`, `package-size-evaluation.json`, and `package-size-summary.txt` when the report concerns package metadata, package size budgets, or package contract drift; the evidence index also carries optional Doctor/Performance Lab visual evidence status when visual output context is relevant. |
 | Release issue | Attach `public-release-preflight-summary.json`, `public-publish-before-summary.json`, `public-publish-after-summary.json`, and `public-release-notes.md`; include the Package matrix and Known alpha limitations section that shipped with the release. |
@@ -112,6 +112,7 @@ SurfaceCharts support summaries are support evidence, not benchmark results, pix
 - `Videra.SurfaceCharts.Demo` remains repository-only and is the support-ready repro/reference app for the `Start here`, `Explore next`, and `Try next` paths.
 - Performance Lab visual evidence is support/review evidence only. It is not a pixel-perfect visual-regression gate, stable benchmark guarantee, real GPU instancing proof, renderer parity proof, or new chart-family promise.
 - Release-candidate evidence index visual evidence fields are optional support context. Missing or unavailable visual evidence should be classified as environment residual or not-run context unless the specific release issue depends on visual output.
+- `FallbackReason` in diagnostics is fallback-specific evidence; default native startup failures without fallback should be framed as initialization/not-ready state via `IsReady = false` and `LastInitializationError`.
 
 ## Where to send feedback
 

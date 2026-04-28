@@ -39,6 +39,8 @@ Status values:
 - `skip`: Doctor did not invoke the validator, usually because the matching run switch was not supplied.
 - `unavailable`: a required script, artifact, host, or input path is missing.
 
+Diagnostics in this packet keep readiness and fallback evidence separate: default native startup failures are reported through not-ready state and `LastInitializationError`, while `FallbackReason` is an explicit fallback artifact only when software fallback was selected and used.
+
 Opt-in validation switches:
 
 - `RunPackageValidation` invokes `scripts/Validate-Packages.ps1` when `-PackageRoot` and `-ExpectedVersion` are supplied.
