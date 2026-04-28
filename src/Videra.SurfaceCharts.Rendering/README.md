@@ -11,7 +11,7 @@ That chart-local runtime split is also where the current efficiency story lives:
 ## Responsibilities
 
 - chart-local render-state orchestration
-- `GPU-first` / `software fallback` backend runtime
+- `GPU-first` / chart-local `software fallback` backend runtime
 - resident tile state and incremental render snapshots
 - shared rendering helpers used by `SurfaceChartView`
 
@@ -19,4 +19,5 @@ That chart-local runtime split is also where the current efficiency story lives:
 
 - This package remains independent from `VideraView`.
 - It does not define chart-domain contracts; those stay in `Videra.SurfaceCharts.Core`.
+- It keeps renderer fallback local to SurfaceCharts contracts and does not imply downshift to viewer/backend modes.
 - It is not the primary chart control entrypoint; use `Videra.SurfaceCharts.Avalonia` for that.

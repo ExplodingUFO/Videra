@@ -274,8 +274,8 @@ public partial class MainWindow : Window
     private void ApplyCacheLoadFailure(Exception exception)
     {
         _activeSourceHeading = "Explore next: Cache-backed streaming";
-        _activeSourceDetails = $"Cache-backed streaming failed to load: {exception.Message}";
-        _activeDatasetSummary = "Cache-backed source unavailable. The previous chart source remains active.";
+        _activeSourceDetails = $"Cache-backed streaming failed to load: {exception.Message}. No source switch was performed.";
+        _activeDatasetSummary = "Cache-backed source unavailable. The previous chart source remains active and there was no scenario/data-path fallback.";
         _activeAssetSummary = $"Manifest {_cachePath}; Payload sidecar {_cachePayloadPath}";
         _datasetText.Text = _activeDatasetSummary;
         RefreshActiveProofTexts();

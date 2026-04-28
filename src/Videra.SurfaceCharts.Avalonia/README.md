@@ -21,7 +21,7 @@ The public overlay configuration seam is `SurfaceChartOverlayOptions` through `O
 `SurfaceChartView` currently provides:
 
 - a chart-local renderer seam through `SurfaceChartRenderHost`; it is not a `VideraView` mode
-- a `GPU-first` renderer path with an explicit `software fallback`
+- a `GPU-first` renderer path with an explicit chart-local `software fallback` seam (no viewer/backend downshift)
 - control-visible `RenderingStatus` / `RenderStatusChanged` truth for `ActiveBackend`, `IsReady`, `IsFallback`, `FallbackReason`, `UsesNativeSurface`, `ResidentTileCount`, `VisibleTileCount`, and `ResidentTileBytes`
 - host-driven surface rendering from an `ISurfaceTileSource`
 - `ViewState` as the chart-view contract for persisted camera and data-window state
@@ -44,7 +44,7 @@ This module is intentionally a thin UI shell. Tile decoding, preprocessing, cach
 ## Renderer Truth
 
 - `SurfaceChartView` works through a chart-local renderer seam and stays independent from `VideraView`.
-- The renderer is `GPU-first`, but `software fallback` remains a shipped path for unsupported or fallback-triggering environments.
+- The renderer is `GPU-first`, but chart-local `software fallback` remains a shipped path for unsupported or fallback-triggering environments.
 - Hosts can inspect `RenderingStatus` and subscribe to `RenderStatusChanged` instead of relying on silent backend switches.
 - Linux native GPU hosting currently embeds through X11 handles. On Wayland sessions the chart host uses an `XWayland compatibility` path; compositor-native Wayland surface embedding is not available in this host shell today.
 

@@ -21,7 +21,7 @@ internal static class SurfaceChartsDocumentationTerms
         "The dedicated `SurfaceChartView`, `WaterfallChartView`, and `ScatterChartView` controls remain the public chart entrypoints in `Videra.SurfaceCharts.Avalonia`.";
 
     public const string SurfaceChartsRendererStatusSentence =
-        "The shipped chart surface is `GPU-first` with explicit `software fallback`, and hosts can inspect `RenderingStatus` / `RenderStatusChanged`.";
+        "The shipped chart surface is `GPU-first` with explicit chart-local `software fallback`, and hosts can inspect `RenderingStatus` / `RenderStatusChanged` without implying any `VideraView` backend downshift.";
 
     public const string SurfaceChartsViewStateSentence =
         "SurfaceChartView exposes `ViewState` as the chart-view contract for persisted camera and data-window state.";
@@ -52,6 +52,9 @@ internal static class SurfaceChartsDocumentationTerms
 
     public const string SurfaceChartsSourceFirstSentence =
         "The `Videra.SurfaceCharts.*` family is part of the current public package promise, while `Videra.SurfaceCharts.Demo` remains repository-only.";
+
+    public const string SurfaceChartsCacheLoadFailureSentence =
+        "Cache-backed source failures are surfaced as cache-load failure notes; there is no scenario/data-path fallback switch.";
 
     public const string ChineseSurfaceChartsFamilyBoundarySentence =
         "surface-chart 模块家族与 `VideraView` 相互独立。";
@@ -179,6 +182,7 @@ internal static class SurfaceChartsDocumentationTerms
     [
         "`SurfaceChartView`",
         "chart-local renderer seam",
+        "chart-local `software fallback`",
         "`VideraView`"
     ];
 
@@ -186,7 +190,8 @@ internal static class SurfaceChartsDocumentationTerms
     [
         "`GPU-first`",
         "`software fallback`",
-        "unsupported or fallback-triggering environments"
+        "unsupported or fallback-triggering environments",
+        "not a `VideraView` mode"
     ];
 
     public static readonly string[] SurfaceChartsDemoGpuFallbackTokens =
@@ -194,7 +199,10 @@ internal static class SurfaceChartsDocumentationTerms
         "`GPU-first`",
         "`software fallback`",
         "`SurfaceChartView`",
-        "native-host or GPU initialization"
+        "native-host or GPU initialization",
+        "no source switch",
+        "previous chart source remains active",
+        "cache-backed source unavailable"
     ];
 
     public static readonly string[] SurfaceChartsViewStateTokens =
