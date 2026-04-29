@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.55
 milestone_name: "ScottPlot-like Plot API"
 status: active
-stopped_at: "Phase 379 complete"
-last_updated: "2026-04-30T00:29:00+08:00"
+stopped_at: "Phase 381 complete"
+last_updated: "2026-04-30T00:58:00+08:00"
 last_activity: 2026-04-29
 progress:
   total_phases: 7
-  completed_phases: 4
+  completed_phases: 6
   total_plans: 7
-  completed_plans: 4
-  percent: 57
+  completed_plans: 6
+  percent: 86
 ---
 
 # Project State
@@ -26,12 +26,12 @@ See: `.planning/PROJECT.md`
 ## Current Position
 
 Milestone: `v2.55 ScottPlot-like Plot API`
-Phase: 379 of 382 (Live Scatter Helpers) — COMPLETE
-Plan: 377/378/379 implementation slices complete
-Status: Raw Plot.Add overloads, typed plottables, Plot.Axes, SavePngAsync, and DataLogger3D are integrated. Phases 380 and 381 are ready.
-Last activity: 2026-04-30 — Integrated parallel Phases 377-379
+Phase: 381 of 382 (Cookbook Demo and Docs) — COMPLETE
+Plan: 380/381 implementation slices complete
+Status: Same-type multi-series composition and cookbook demo/docs are integrated. Phase 382 is ready for final integration and guardrail closure.
+Last activity: 2026-04-30 — Integrated parallel Phases 380-381
 
-Progress: [█████░░░░░] 57%
+Progress: [█████████░] 86%
 
 ## Initial Scope Summary
 
@@ -72,8 +72,8 @@ The scope adds ScottPlot-like API ergonomics:
 ## Session Continuity
 
 Last session: `2026-04-29 +08:00`
-Stopped at: Phase 379 complete
-Next action: Claim and execute Phase 380 same-type multi-series composition and Phase 381 cookbook demo/docs. They can proceed in parallel if write sets remain disjoint.
+Stopped at: Phase 381 complete
+Next action: Execute Phase 382 integration, guardrails, beads export, generated roadmap, and clean workspace closure.
 
 ## Accumulated Context
 

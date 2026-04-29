@@ -13,8 +13,8 @@
 - [x] **Phase 377: Raw Add Overloads and Typed Plottables** - Add concise raw-array Plot.Add overloads and small typed plottable handles
 - [x] **Phase 378: Axes Facade and SavePng Convenience** - Add `Plot.Axes` and `Plot.SavePngAsync` on top of existing state/snapshot ownership
 - [x] **Phase 379: Live Scatter Helpers** - Add `DataLogger3D` / `ScatterStream` facade over existing columnar scatter append/FIFO semantics
-- [ ] **Phase 380: Same-Type Multi-Series Composition** - Make visible same-type series compose deterministically instead of relying only on active last-series rendering
-- [ ] **Phase 381: Cookbook Demo and Docs** - Refresh README/demo recipes around the new concise API without creating a workbench
+- [x] **Phase 380: Same-Type Multi-Series Composition** - Make visible same-type series compose deterministically instead of relying only on active last-series rendering
+- [x] **Phase 381: Cookbook Demo and Docs** - Refresh README/demo recipes around the new concise API without creating a workbench
 - [ ] **Phase 382: Integration, Guardrails, and Milestone Evidence** - Run focused regression, guardrails, beads export, and generated roadmap closure
 
 ## Phase Details
@@ -101,8 +101,8 @@
 | 377. Raw Add Overloads and Typed Plottables | 1/1 | Complete | 2026-04-30 |
 | 378. Axes Facade and SavePng Convenience | 1/1 | Complete | 2026-04-30 |
 | 379. Live Scatter Helpers | 1/1 | Complete | 2026-04-30 |
-| 380. Same-Type Multi-Series Composition | 0/1 | Pending | - |
-| 381. Cookbook Demo and Docs | 0/1 | Pending | - |
+| 380. Same-Type Multi-Series Composition | 1/1 | Complete | 2026-04-30 |
+| 381. Cookbook Demo and Docs | 1/1 | Complete | 2026-04-30 |
 | 382. Integration, Guardrails, and Milestone Evidence | 0/1 | Pending | - |
 
 ---

@@ -40,14 +40,14 @@ The milestone improves first-chart ergonomics so a new user can write short, Sco
 
 ### Multi-Series Composition
 
-- [ ] **MULTI-01**: Same-type series compose instead of relying only on last-series-wins active rendering.
-- [ ] **MULTI-02**: Legend, probe, snapshot, and evidence paths identify visible composed series deterministically.
-- [ ] **MULTI-03**: Multi-series support is scoped to existing series kinds and does not introduce new chart types.
+- [x] **MULTI-01**: Same-type series compose instead of relying only on last-series-wins active rendering.
+- [x] **MULTI-02**: Legend, probe, snapshot, and evidence paths identify visible composed series deterministically.
+- [x] **MULTI-03**: Multi-series support is scoped to existing series kinds and does not introduce new chart types.
 
 ### Cookbook, Demo, and Verification
 
-- [ ] **DOC-01**: Root README and SurfaceCharts demo README show cookbook-style recipes for first surface, scatter, axes, snapshot PNG, and live scatter.
-- [ ] **DEMO-01**: Demo exercises concise `Plot.Add.*`, `Plot.Axes`, `SavePngAsync`, and live scatter paths without turning into a general workbench.
+- [x] **DOC-01**: Root README and SurfaceCharts demo README show cookbook-style recipes for first surface, scatter, axes, snapshot PNG, and live scatter.
+- [x] **DEMO-01**: Demo exercises concise `Plot.Add.*`, `Plot.Axes`, `SavePngAsync`, and live scatter paths without turning into a general workbench.
 - [ ] **VER-01**: Focused tests cover new facade APIs and regression guardrails.
 - [ ] **VER-02**: Beads state, generated roadmap, and handoff notes stay synchronized with phase progress.
 - [ ] **VER-03**: Existing snapshot-export scope guardrail remains passing.
@@ -95,11 +95,11 @@ The milestone improves first-chart ergonomics so a new user can write short, Sco
 | LIVE-01 | Phase 379 | Complete |
 | LIVE-02 | Phase 379 | Complete |
 | LIVE-03 | Phase 379 | Complete |
-| MULTI-01 | Phase 380 | Pending |
-| MULTI-02 | Phase 380 | Pending |
-| MULTI-03 | Phase 380 | Pending |
-| DOC-01 | Phase 381 | Pending |
-| DEMO-01 | Phase 381 | Pending |
+| MULTI-01 | Phase 380 | Complete |
+| MULTI-02 | Phase 380 | Complete |
+| MULTI-03 | Phase 380 | Complete |
+| DOC-01 | Phase 381 | Complete |
+| DEMO-01 | Phase 381 | Complete |
 | VER-01 | Phase 382 | Pending |
 | VER-02 | Phase 382 | Pending |
 | VER-03 | Phase 382 | Pending |
