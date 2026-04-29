@@ -26,11 +26,11 @@
 
 ### Contour Plot
 
-- [ ] **CTR-01**: `Plot.Add.Contour(double[,] values)` adds a contour plot series from 2D scalar field data
-- [ ] **CTR-02**: Contour plot extracts iso-lines using marching squares algorithm
-- [ ] **CTR-03**: Contour lines render as 3D line geometry in scene space
-- [ ] **CTR-04**: Contour plot supports configurable iso-level count (number of contour lines)
-- [ ] **CTR-05**: Contour extraction caches results and only re-extracts when data changes
+- [x] **CTR-01**: `Plot.Add.Contour(double[,] values)` adds a contour plot series from 2D scalar field data
+- [x] **CTR-02**: Contour plot extracts iso-lines using marching squares algorithm
+- [x] **CTR-03**: Contour lines render as 3D line geometry in scene space
+- [x] **CTR-04**: Contour plot supports configurable iso-level count (number of contour lines)
+- [x] **CTR-05**: Contour extraction caches results and only re-extracts when data changes
 
 ### Integration
 
@@ -82,11 +82,11 @@
 | BAR-03 | Phase 368 | Complete |
 | BAR-04 | Phase 368 | Complete |
 | BAR-05 | Phase 368 | Complete |
-| CTR-01 | Phase 369 | Pending |
-| CTR-02 | Phase 369 | Pending |
-| CTR-03 | Phase 369 | Pending |
-| CTR-04 | Phase 369 | Pending |
-| CTR-05 | Phase 369 | Pending |
+| CTR-01 | Phase 369 | Complete |
+| CTR-02 | Phase 369 | Complete |
+| CTR-03 | Phase 369 | Complete |
+| CTR-04 | Phase 369 | Complete |
+| CTR-05 | Phase 369 | Complete |
 | INT-01 | Phase 370 | Pending |
 | INT-02 | Phase 370 | Pending |
 | INT-03 | Phase 370 | Pending |
