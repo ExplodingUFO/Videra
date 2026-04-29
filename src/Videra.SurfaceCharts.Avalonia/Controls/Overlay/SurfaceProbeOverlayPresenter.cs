@@ -218,6 +218,25 @@ internal static class SurfaceProbeOverlayPresenter
         }
     }
 
+    /// <summary>
+    /// Renders only pinned probe readouts, skipping the hovered probe bubble.
+    /// Used in snapshot mode to include intentional data markers while excluding transient interaction chrome.
+    /// </summary>
+    public static void RenderPinnedOnly(
+        DrawingContext context,
+        SurfaceProbeOverlayState overlayState,
+        Size viewSize,
+        SurfaceChartProjection? projection)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(overlayState);
+
+        if (projection is not null && overlayState.PinnedProbes.Count > 0)
+        {
+            DrawPinnedReadouts(context, overlayState.PinnedProbes, projection, viewSize, overlayState.OverlayOptions);
+        }
+    }
+
     private static IReadOnlyList<SurfaceProbeInfo> ResolvePinnedProbes(
         SurfaceMetadata metadata,
         IReadOnlyList<SurfaceTile> loadedTiles,

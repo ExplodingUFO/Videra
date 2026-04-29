@@ -22,6 +22,12 @@ internal sealed class SurfaceChartOverlayCoordinator
 
     public SurfaceChartToolbarOverlayState ToolbarState { get; private set; } = SurfaceChartToolbarOverlayState.Empty;
 
+    /// <summary>
+    /// Gets or sets a value indicating whether the coordinator is in snapshot mode.
+    /// When true, interaction chrome (crosshair, hovered probe, toolbar) is suppressed during rendering.
+    /// </summary>
+    public bool IsSnapshotMode { get; set; }
+
     public void ResetForSourceChange()
     {
         _pinnedProbeRequests.Clear();
@@ -132,9 +138,19 @@ internal sealed class SurfaceChartOverlayCoordinator
 
         SurfaceAxisOverlayPresenter.Render(context, AxisState);
         SurfaceLegendOverlayPresenter.Render(context, LegendState);
-        SurfaceProbeOverlayPresenter.Render(context, ProbeState, _viewSize, chartProjection);
-        SurfaceCrosshairOverlayPresenter.Render(context, CrosshairState);
-        SurfaceChartToolbarOverlayPresenter.Render(context, ToolbarState, _pointerScreenPosition);
+
+        if (IsSnapshotMode)
+        {
+            // In snapshot mode, render only pinned probes (intentional data markers).
+            // Skip hovered probe, crosshair, and toolbar (interaction chrome).
+            SurfaceProbeOverlayPresenter.RenderPinnedOnly(context, ProbeState, _viewSize, chartProjection);
+        }
+        else
+        {
+            SurfaceProbeOverlayPresenter.Render(context, ProbeState, _viewSize, chartProjection);
+            SurfaceCrosshairOverlayPresenter.Render(context, CrosshairState);
+            SurfaceChartToolbarOverlayPresenter.Render(context, ToolbarState, _pointerScreenPosition);
+        }
     }
 
     private static bool MatchesPinnedProbe(SurfaceProbeRequest request, SurfaceProbeInfo probe)
