@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.52
 milestone_name: "Professional Chart Snapshot Export"
 status: active
-stopped_at: "Completed Phase 362-01-PLAN.md"
-last_updated: "2026-04-29T16:08:00+08:00"
+stopped_at: "Completed Phase 365"
+last_updated: "2026-04-29T17:40:00+08:00"
 last_activity: 2026-04-29
 progress:
   total_phases: 5
-  completed_phases: 2
-  total_plans: 2
-  completed_plans: 2
-  percent: 40
+  completed_phases: 5
+  total_plans: 5
+  completed_plans: 5
+  percent: 100
 ---
 
 # Project State
@@ -26,21 +26,21 @@ See: `.planning/PROJECT.md`
 ## Current Position
 
 Milestone: `v2.52 Professional Chart Snapshot Export`
-Phase: 362 (complete)
-Plan: 362-01-PLAN.md (complete)
-Status: Phase 362 contract types complete. Ready for Phase 363.
-Last activity: 2026-04-29 - Completed Phase 362 Plot Snapshot Export Contract.
+Phase: 365 (complete)
+Plan: 365-01-PLAN.md (complete)
+Status: Phase 365 guardrails and docs complete. v2.52 milestone complete.
+Last activity: 2026-04-29 - Completed Phase 365 Snapshot Export Guardrails and Docs.
 
 ## Beads
 
 | Bead | Role | Status |
 |------|------|--------|
-| Videra-lu9 | v2.52 epic | open |
-| Videra-lu9.1 | Phase 361 Chart Snapshot Export Inventory | complete |
-| Videra-lu9.2 | Phase 362 Plot Snapshot Export Contract | complete |
-| Videra-lu9.3 | Phase 363 Chart Snapshot Capture Implementation | open |
-| Videra-lu9.4 | Phase 364 Demo Smoke Doctor Snapshot Evidence | open |
-| Videra-lu9.5 | Phase 365 Snapshot Export Guardrails and Docs | open |
+| Videra-lu9 | v2.52 epic | closed |
+| Videra-lu9.1 | Phase 361 Chart Snapshot Export Inventory | closed |
+| Videra-lu9.2 | Phase 362 Plot Snapshot Export Contract | closed |
+| Videra-lu9.3 | Phase 363 Chart Snapshot Capture Implementation | closed |
+| Videra-lu9.4 | Phase 364 Demo Smoke Doctor Snapshot Evidence | closed |
+| Videra-lu9.5 | Phase 365 Snapshot Export Guardrails and Docs | closed |
 
 ## Initial Scope Summary
 
@@ -75,5 +75,5 @@ The scope is a bounded chart-local bitmap snapshot export vertical slice:
 ## Session Continuity
 
 Last session: `2026-04-29 +08:00`
-Stopped at: Completed Phase 362-01-PLAN.md
-Next action: `$gsd-plan-phase 363` or `$gsd-execute-phase 363`
+Stopped at: Completed Phase 365-01-PLAN.md
+Next action: `$gsd-complete-milestone` to archive v2.52, or `$gsd-new-milestone` to start v2.53

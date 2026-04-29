@@ -27,30 +27,30 @@ This milestone starts from the v2.51 chart output and dataset evidence model. It
 
 ### Bitmap Capture
 
-- [ ] **CAP-01**: `VideraChartView` can produce a PNG/bitmap snapshot through the Plot-owned contract on the Avalonia chart path.
-- [ ] **CAP-02**: Snapshot capture validates dimensions, path/stream target, and chart readiness with explicit errors.
-- [ ] **CAP-03**: Snapshot capture remains chart-local and does not require backend expansion, renderer rewrite, or a new export subsystem.
-- [ ] **CAP-04**: Focused tests cover success, invalid request, unsupported format, and deterministic manifest behavior.
+- [x] **CAP-01**: `VideraChartView` can produce a PNG/bitmap snapshot through the Plot-owned contract on the Avalonia chart path.
+- [x] **CAP-02**: Snapshot capture validates dimensions, path/stream target, and chart readiness with explicit errors.
+- [x] **CAP-03**: Snapshot capture remains chart-local and does not require backend expansion, renderer rewrite, or a new export subsystem.
+- [x] **CAP-04**: Focused tests cover success, invalid request, unsupported format, and deterministic manifest behavior.
 
 ### Demo And Support Evidence
 
-- [ ] **DEMO-01**: SurfaceCharts demo exposes a bounded snapshot/export action and support summary fields for the generated artifact and manifest.
-- [ ] **DEMO-02**: Consumer smoke can produce or validate snapshot manifest evidence without becoming a broad chart editor.
-- [ ] **DEMO-03**: Doctor can parse snapshot artifact/manifest evidence from saved support output without launching a UI.
-- [ ] **DEMO-04**: Support evidence distinguishes present, missing, unavailable, and failed snapshot states explicitly.
+- [x] **DEMO-01**: SurfaceCharts demo exposes a bounded snapshot/export action and support summary fields for the generated artifact and manifest.
+- [x] **DEMO-02**: Consumer smoke can produce or validate snapshot manifest evidence without becoming a broad chart editor.
+- [x] **DEMO-03**: Doctor can parse snapshot artifact/manifest evidence from saved support output without launching a UI.
+- [x] **DEMO-04**: Support evidence distinguishes present, missing, unavailable, and failed snapshot states explicitly.
 
 ### Guardrails And Documentation
 
-- [ ] **GUARD-01**: Repository guardrails prevent old chart controls and direct public `Source` APIs from returning.
-- [ ] **GUARD-02**: Repository guardrails prevent snapshot export work from becoming PDF/vector export, backend expansion, generic plotting engine scope, compatibility shims, or hidden fallback/downshift behavior.
-- [ ] **GUARD-03**: Package/sample docs show concise Plot-owned snapshot export and manifest usage.
-- [ ] **GUARD-04**: Public roadmap and Beads state identify v2.52 phases, dependencies, and status.
+- [x] **GUARD-01**: Repository guardrails prevent old chart controls and direct public `Source` APIs from returning.
+- [x] **GUARD-02**: Repository guardrails prevent snapshot export work from becoming PDF/vector export, backend expansion, generic plotting engine scope, compatibility shims, or hidden fallback/downshift behavior.
+- [x] **GUARD-03**: Package/sample docs show concise Plot-owned snapshot export and manifest usage.
+- [x] **GUARD-04**: Public roadmap and Beads state identify v2.52 phases, dependencies, and status.
 
 ### Verification
 
-- [ ] **VER-01**: Each phase records Beads ownership, dependencies, status, and handoff notes.
-- [ ] **VER-02**: Implementation phases use isolated branch/worktree execution when they change code.
-- [ ] **VER-03**: Each phase ends with clean Beads status, branch/worktree cleanup, and pushed repository state.
+- [x] **VER-01**: Each phase records Beads ownership, dependencies, status, and handoff notes.
+- [x] **VER-02**: Implementation phases use isolated branch/worktree execution when they change code.
+- [x] **VER-03**: Each phase ends with clean Beads status, branch/worktree cleanup, and pushed repository state.
 
 ## Future Requirements
 
@@ -85,21 +85,21 @@ This milestone starts from the v2.51 chart output and dataset evidence model. It
 | SNAP-02 | Phase 362 | Complete |
 | SNAP-03 | Phase 362 | Complete |
 | SNAP-04 | Phase 362 | Complete |
-| CAP-01 | Phase 363 | Planned |
-| CAP-02 | Phase 363 | Planned |
-| CAP-03 | Phase 363 | Planned |
-| CAP-04 | Phase 363 | Planned |
-| DEMO-01 | Phase 364 | Planned |
-| DEMO-02 | Phase 364 | Planned |
-| DEMO-03 | Phase 364 | Planned |
-| DEMO-04 | Phase 364 | Planned |
-| GUARD-01 | Phase 365 | Planned |
-| GUARD-02 | Phase 365 | Planned |
-| GUARD-03 | Phase 365 | Planned |
-| GUARD-04 | Phase 365 | Planned |
-| VER-01 | Phases 361-365 | Planned |
-| VER-02 | Phases 362-365 | Planned |
-| VER-03 | Phases 361-365 | Planned |
+| CAP-01 | Phase 363 | Complete |
+| CAP-02 | Phase 363 | Complete |
+| CAP-03 | Phase 363 | Complete |
+| CAP-04 | Phase 363 | Complete |
+| DEMO-01 | Phase 364 | Complete |
+| DEMO-02 | Phase 364 | Complete |
+| DEMO-03 | Phase 364 | Complete |
+| DEMO-04 | Phase 364 | Complete |
+| GUARD-01 | Phase 365 | Complete |
+| GUARD-02 | Phase 365 | Complete |
+| GUARD-03 | Phase 365 | Complete |
+| GUARD-04 | Phase 365 | Complete |
+| VER-01 | Phases 361-365 | Complete |
+| VER-02 | Phases 362-365 | Complete |
+| VER-03 | Phases 361-365 | Complete |
 
 **Coverage:**
 - v2.52 requirements: 23 total
