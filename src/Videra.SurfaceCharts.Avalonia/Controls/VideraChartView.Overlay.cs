@@ -103,7 +103,8 @@ public partial class VideraChartView
             cameraFrame,
             _chartProjection,
             Plot.OverlayOptions,
-            Plot.Series);
+            Plot.Series,
+            _runtime.CanInteract);
         _overlayLayer.InvalidateVisual();
     }
 

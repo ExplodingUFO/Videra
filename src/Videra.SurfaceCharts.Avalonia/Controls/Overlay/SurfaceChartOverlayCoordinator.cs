@@ -9,6 +9,7 @@ internal sealed class SurfaceChartOverlayCoordinator
 {
     private readonly List<SurfaceProbeRequest> _pinnedProbeRequests = [];
     private Point? _probeScreenPosition;
+    private Point? _pointerScreenPosition;
     private Size _viewSize;
 
     public SurfaceProbeOverlayState ProbeState { get; private set; } = SurfaceProbeOverlayState.Empty;
@@ -19,14 +20,18 @@ internal sealed class SurfaceChartOverlayCoordinator
 
     public SurfaceCrosshairOverlayState CrosshairState { get; private set; } = SurfaceCrosshairOverlayState.Empty;
 
+    public SurfaceChartToolbarOverlayState ToolbarState { get; private set; } = SurfaceChartToolbarOverlayState.Empty;
+
     public void ResetForSourceChange()
     {
         _pinnedProbeRequests.Clear();
         _probeScreenPosition = null;
+        _pointerScreenPosition = null;
         ProbeState = SurfaceProbeOverlayState.Empty;
         AxisState = SurfaceAxisOverlayState.Empty;
         LegendState = SurfaceLegendOverlayState.Empty;
         CrosshairState = SurfaceCrosshairOverlayState.Empty;
+        ToolbarState = SurfaceChartToolbarOverlayState.Empty;
     }
 
     public void UpdateViewSize(Size viewSize)
@@ -42,7 +47,16 @@ internal sealed class SurfaceChartOverlayCoordinator
         }
 
         _probeScreenPosition = probeScreenPosition;
+        _pointerScreenPosition = probeScreenPosition;
         return true;
+    }
+
+    /// <summary>
+    /// Updates the pointer screen position for toolbar hover highlighting.
+    /// </summary>
+    public void UpdatePointerPosition(Point pointerScreenPosition)
+    {
+        _pointerScreenPosition = pointerScreenPosition;
     }
 
     public SurfaceProbeInfo? GetHoveredProbe() => ProbeState.HoveredProbe;
@@ -86,7 +100,8 @@ internal sealed class SurfaceChartOverlayCoordinator
         SurfaceCameraFrame? cameraFrame,
         SurfaceChartProjection? chartProjection,
         SurfaceChartOverlayOptions overlayOptions,
-        IReadOnlyList<Plot3DSeries>? series = null)
+        IReadOnlyList<Plot3DSeries>? series = null,
+        bool canInteract = false)
     {
         ArgumentNullException.ThrowIfNull(loadedTiles);
         ArgumentNullException.ThrowIfNull(overlayOptions);
@@ -105,6 +120,10 @@ internal sealed class SurfaceChartOverlayCoordinator
             _pinnedProbeRequests,
             overlayOptions,
             series);
+        ToolbarState = SurfaceChartToolbarOverlayPresenter.CreateState(
+            _viewSize,
+            _pointerScreenPosition,
+            canInteract);
     }
 
     public void Render(DrawingContext context, SurfaceChartProjection? chartProjection)
@@ -115,6 +134,7 @@ internal sealed class SurfaceChartOverlayCoordinator
         SurfaceLegendOverlayPresenter.Render(context, LegendState);
         SurfaceProbeOverlayPresenter.Render(context, ProbeState, _viewSize, chartProjection);
         SurfaceCrosshairOverlayPresenter.Render(context, CrosshairState);
+        SurfaceChartToolbarOverlayPresenter.Render(context, ToolbarState, _pointerScreenPosition);
     }
 
     private static bool MatchesPinnedProbe(SurfaceProbeRequest request, SurfaceProbeInfo probe)

@@ -3,6 +3,7 @@ using Avalonia;
 using Avalonia.Input;
 using Avalonia.Threading;
 using Videra.SurfaceCharts.Avalonia.Controls.Interaction;
+using Videra.SurfaceCharts.Avalonia.Controls.Overlay;
 using Videra.SurfaceCharts.Core;
 
 namespace Videra.SurfaceCharts.Avalonia.Controls;
@@ -69,6 +70,14 @@ public partial class VideraChartView
 
         var pointerPosition = e.GetPosition(this);
         UpdateProbeScreenPosition(pointerPosition);
+        _overlayCoordinator.UpdatePointerPosition(pointerPosition);
+
+        // Check toolbar button hit first
+        if (HandleToolbarClick(pointerPosition))
+        {
+            e.Handled = true;
+            return;
+        }
 
         if (_interactionController.HandlePointerPressed(
                 e.GetCurrentPoint(this).Properties.PointerUpdateKind,
@@ -76,6 +85,7 @@ public partial class VideraChartView
                 e.KeyModifiers))
         {
             e.Pointer.Capture(this);
+            UpdateCursorForGesture();
             e.Handled = true;
         }
     }
@@ -88,11 +98,15 @@ public partial class VideraChartView
 
         var pointerPosition = e.GetPosition(this);
         UpdateProbeScreenPosition(pointerPosition);
+        _overlayCoordinator.UpdatePointerPosition(pointerPosition);
 
         if (_interactionController.HandlePointerMoved(pointerPosition, _runtime))
         {
             e.Handled = true;
         }
+
+        // Update overlay for toolbar hover effect
+        _overlayLayer.InvalidateVisual();
     }
 
     /// <inheritdoc />
@@ -301,5 +315,34 @@ public partial class VideraChartView
             currentCamera.PitchDegrees,
             Math.Max(currentCamera.Distance * distanceScale, 1d),
             currentCamera.FieldOfViewDegrees);
+    }
+
+    private bool HandleToolbarClick(Point pointerPosition)
+    {
+        var action = SurfaceChartToolbarOverlayPresenter.HitTest(
+            _overlayCoordinator.ToolbarState,
+            pointerPosition);
+
+        if (action is null)
+        {
+            return false;
+        }
+
+        var handled = action.Value switch
+        {
+            SurfaceChartToolbarAction.ZoomIn => ApplyKeyboardZoom(1d),
+            SurfaceChartToolbarAction.ZoomOut => ApplyKeyboardZoom(-1d),
+            SurfaceChartToolbarAction.ResetCamera => ApplyKeyboardResetCamera(),
+            SurfaceChartToolbarAction.FitToData => ApplyKeyboardFitToData(),
+            _ => false,
+        };
+
+        if (handled)
+        {
+            SynchronizeViewStateProperties(_runtime.ViewState);
+            InvalidateOverlay();
+        }
+
+        return handled;
     }
 }
