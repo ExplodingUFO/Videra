@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v2.57
 milestone_name: "SurfaceCharts Release Readiness and Consumer Validation"
-status: active
-stopped_at: "Phase 393 and Phase 394 complete; Phase 395 ready for closure"
-last_updated: "2026-04-30T03:35:00+08:00"
+status: complete
+stopped_at: "v2.57 complete; ready for next milestone"
+last_updated: "2026-04-30T03:50:00+08:00"
 last_activity: 2026-04-30
 progress:
   total_phases: 6
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 6
-  completed_plans: 5
-  percent: 83
+  completed_plans: 6
+  percent: 100
 ---
 
 # Project State
@@ -26,12 +26,12 @@ See: `.planning/PROJECT.md`
 ## Current Position
 
 Milestone: `v2.57 SurfaceCharts Release Readiness and Consumer Validation`
-Phase: 395 of 395 (Integration, Guardrails, and Milestone Evidence) — READY
-Plan: Phases 393 and 394 complete
-Status: Phase 393 release validation and Phase 394 docs/support handoff are complete. Next step is Phase 395 closure with final evidence, Beads export, generated roadmap, and clean branch/worktree state.
-Last activity: 2026-04-30 — Completed Phase 393 release validation and Phase 394 docs/support handoff
+Phase: 395 of 395 (Integration, Guardrails, and Milestone Evidence) — COMPLETE
+Plan: v2.57 complete
+Status: v2.57 release-readiness evidence, Beads export, generated roadmap, milestone archive, and clean branch/worktree handoff are complete.
+Last activity: 2026-04-30 — Completed v2.57 SurfaceCharts release-readiness milestone
 
-Progress: [████████░░] 83%
+Progress: [██████████] 100%
 
 ## Initial Scope Summary
 
@@ -63,6 +63,7 @@ This milestone prepares a release-candidate evidence loop:
 - Phase 392 proved package-only SurfaceCharts consumer restore/build/run, deterministic support artifacts, and chart-local snapshot handoff.
 - Phase 393 added `scripts/Invoke-ReleaseReadinessValidation.ps1` as the single v2.57 readiness command and aligned the dry-run workflow.
 - Phase 394 added release-candidate package consumption, cookbook, migration, and support artifact handoff docs.
+- Phase 395 passed the final release-readiness command with full SurfaceCharts packaged consumer smoke and archived v2.57 evidence.
 
 ## Known Residuals
 
@@ -74,7 +75,7 @@ This milestone prepares a release-candidate evidence loop:
 
 Last session: `2026-04-30 +08:00`
 Stopped at: v2.57 milestone initialized
-Next action: execute Phase 395 integration, guardrails, Beads export, generated roadmap, and milestone evidence.
+Next action: start the next milestone when ready.
 
 ## Accumulated Context
 
