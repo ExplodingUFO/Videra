@@ -41,10 +41,10 @@ Reference basis:
 
 ### Axis Rules, Linked Views, and Live View Management
 
-- [ ] **AXIS-01**: Users can define axis limit rules for lock, min/max bounds, and autoscale constraints through `Plot.Axes` without moving axis truth into dataset metadata.
-- [ ] **AXIS-02**: Users can link axis/view limits across two `VideraChartView` instances with explicit lifetime and no global registry.
-- [ ] **LIVE-01**: `DataLogger3D` or related live helpers can manage latest-window or full-data view behavior explicitly.
-- [ ] **LIVE-02**: Live view management exposes deterministic counters/evidence for appended points, dropped points, visible window, and autoscale decisions.
+- [x] **AXIS-01**: Users can define axis limit rules for lock, min/max bounds, and autoscale constraints through `Plot.Axes` without moving axis truth into dataset metadata.
+- [x] **AXIS-02**: Users can link axis/view limits across two `VideraChartView` instances with explicit lifetime and no global registry.
+- [x] **LIVE-01**: `DataLogger3D` or related live helpers can manage latest-window or full-data view behavior explicitly.
+- [x] **LIVE-02**: Live view management exposes deterministic counters/evidence for appended points, dropped points, visible window, and autoscale decisions.
 
 ### Cookbook Demo and Documentation
 
@@ -101,10 +101,10 @@ Reference basis:
 | PICK-02 | Phase 386 | Pending |
 | PICK-03 | Phase 386 | Pending |
 | PICK-04 | Phase 386 | Pending |
-| AXIS-01 | Phase 387 | Pending |
-| AXIS-02 | Phase 387 | Pending |
-| LIVE-01 | Phase 387 | Pending |
-| LIVE-02 | Phase 387 | Pending |
+| AXIS-01 | Phase 387 | Complete |
+| AXIS-02 | Phase 387 | Complete |
+| LIVE-01 | Phase 387 | Complete |
+| LIVE-02 | Phase 387 | Complete |
 | COOK-01 | Phase 388 | Pending |
 | COOK-02 | Phase 388 | Pending |
 | COOK-03 | Phase 388 | Pending |

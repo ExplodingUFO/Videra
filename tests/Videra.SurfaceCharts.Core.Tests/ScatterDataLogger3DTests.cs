@@ -95,6 +95,47 @@ public class ScatterDataLogger3DTests
         stream.TotalDroppedPointCount.Should().Be(1);
     }
 
+    [Fact]
+    public void LiveViewEvidence_ReportsFullDataAndLatestWindowDecisions()
+    {
+        var stream = new DataLogger3D(0xFF102030u, fifoCapacity: 5);
+        stream.Append(new ScatterColumnarData(
+            new float[] { 10f, 20f, 30f },
+            new float[] { 30f, 40f, 50f },
+            new float[] { 80f, 90f, 100f }));
+
+        stream.LiveViewMode.Should().Be(DataLogger3DLiveViewMode.FullData);
+        stream.CreateLiveViewEvidence().Should().Be(new DataLogger3DLiveViewEvidence(
+            DataLogger3DLiveViewMode.FullData,
+            AppendedPointCount: 3,
+            DroppedPointCount: 0,
+            RetainedPointCount: 3,
+            VisibleStartIndex: 0,
+            VisiblePointCount: 3,
+            AutoscaleDecision: DataLogger3DAutoscaleDecision.FullData));
+
+        stream.UseLatestWindow(pointCount: 2);
+        stream.Append(new ScatterColumnarData(
+            new float[] { 40f, 50f, 60f, 70f },
+            new float[] { 60f, 70f, 80f, 90f },
+            new float[] { 110f, 120f, 130f, 140f }));
+
+        stream.CreateLiveViewEvidence().Should().Be(new DataLogger3DLiveViewEvidence(
+            DataLogger3DLiveViewMode.LatestWindow,
+            AppendedPointCount: 7,
+            DroppedPointCount: 2,
+            RetainedPointCount: 5,
+            VisibleStartIndex: 3,
+            VisiblePointCount: 2,
+            AutoscaleDecision: DataLogger3DAutoscaleDecision.LatestWindow));
+
+        stream.UseFullDataView();
+
+        stream.CreateLiveViewEvidence().VisibleStartIndex.Should().Be(0);
+        stream.CreateLiveViewEvidence().VisiblePointCount.Should().Be(5);
+        stream.CreateLiveViewEvidence().AutoscaleDecision.Should().Be(DataLogger3DAutoscaleDecision.FullData);
+    }
+
     private static ScatterChartMetadata CreateMetadata()
     {
         return new ScatterChartMetadata(

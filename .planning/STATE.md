@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.56
 milestone_name: "ScottPlot 5 Interaction and Cookbook Experience"
 status: active
-stopped_at: "Phase 384 and Phase 385 completed; Phase 386 and Phase 387 ready for parallel worktree execution"
-last_updated: "2026-04-30T02:45:00+08:00"
+stopped_at: "Phase 387 completed in v2.56-phase387 worktree; Phase 386 remains concurrent in separate worktree"
+last_updated: "2026-04-30T03:30:00+08:00"
 last_activity: 2026-04-30
 progress:
   total_phases: 7
-  completed_phases: 2
+  completed_phases: 4
   total_plans: 7
-  completed_plans: 2
-  percent: 29
+  completed_plans: 4
+  percent: 57
 ---
 
 # Project State
@@ -21,17 +21,17 @@ progress:
 See: `.planning/PROJECT.md`
 
 **Core value:** 跨平台 3D 渲染引擎的可靠性
-**Current focus:** v2.56 ScottPlot 5 Interaction and Cookbook Experience — Phases 384 and 385 complete
+**Current focus:** v2.56 ScottPlot 5 Interaction and Cookbook Experience — Phase 387 complete; Phase 386 concurrent
 
 ## Current Position
 
 Milestone: `v2.56 ScottPlot 5 Interaction and Cookbook Experience`
-Phase: 386 and 387 ready
-Plan: Phases 384 and 385 complete
-Status: Plot lifecycle/code-experience polish and interaction profile/command surface are implemented and verified. `bd ready --json` now exposes Phase 386 and Phase 387 for the next parallel execution wave.
-Last activity: 2026-04-30 — Integrated Phase 384 and Phase 385 parallel work
+Phase: 387 complete; 386 remains concurrent
+Plan: Phase 387 axis/live/linking complete
+Status: Axis rules, explicit two-chart view linking, and DataLogger3D live view evidence are implemented and verified in `v2.56-phase387`. Phase 386 is owned by another worker in a separate worktree.
+Last activity: 2026-04-30 — Completed Phase 387 axis rules, linked views, and live view management
 
-Progress: [███░░░░░░░] 29%
+Progress: [██████░░░░] 57%
 
 ## Initial Scope Summary
 
@@ -66,8 +66,8 @@ This milestone improves the next layer of ScottPlot-inspired experience:
 ## Session Continuity
 
 Last session: `2026-04-30 +08:00`
-Stopped at: Phases 384 and 385 complete
-Next action: Execute `Videra-v256.4` and `Videra-v256.5` in isolated worktrees if integration verification passes.
+Stopped at: Phase 387 complete
+Next action: Integrate Phase 386 after its separate worktree closes, then proceed to Phase 388 when dependencies are satisfied.
 
 ## Accumulated Context
 

@@ -13,7 +13,7 @@
 - [x] **Phase 384: Plot Lifecycle and Code Experience Polish** - Add concise clear/remove/reorder/list affordances and keep typed plottable handle tweaks simple.
 - [x] **Phase 385: Interaction Profile and Command Surface** - Add a small chart-local interaction profile plus bounded custom command/context-menu recipes.
 - [ ] **Phase 386: Selection, Probe, and Draggable Overlay Recipes** - Add pointer-to-probe helpers, host-owned selection, and bounded draggable marker/range overlay recipes.
-- [ ] **Phase 387: Axis Rules, Linked Views, and Live View Management** - Add axis limit rules, explicit view linking, and live latest-window/full-data behavior.
+- [x] **Phase 387: Axis Rules, Linked Views, and Live View Management** - Add axis limit rules, explicit view linking, and live latest-window/full-data behavior.
 - [ ] **Phase 388: Cookbook Demo Gallery and Docs** - Restructure demo/docs into recipe groups with isolated setup and copyable snippets.
 - [ ] **Phase 389: Integration, Guardrails, and Milestone Evidence** - Run focused regression, scope guardrails, Beads export, generated roadmap, and clean handoff.
 
@@ -103,7 +103,7 @@
 | 384. Plot Lifecycle and Code Experience Polish | 1/1 | Complete | 2026-04-30 |
 | 385. Interaction Profile and Command Surface | 1/1 | Complete | 2026-04-30 |
 | 386. Selection, Probe, and Draggable Overlay Recipes | 0/1 | Pending | - |
-| 387. Axis Rules, Linked Views, and Live View Management | 0/1 | Pending | - |
+| 387. Axis Rules, Linked Views, and Live View Management | 1/1 | Complete | 2026-04-30 |
 | 388. Cookbook Demo Gallery and Docs | 0/1 | Pending | - |
 | 389. Integration, Guardrails, and Milestone Evidence | 0/1 | Pending | - |
 

@@ -494,6 +494,76 @@ public sealed class VideraChartViewPlotApiTests
     }
 
     [Fact]
+    public void Plot3D_AxisRules_ClampAutoscaleAndRespectLocks()
+    {
+        AvaloniaHeadlessTestSession.Run(() =>
+        {
+            var metadata = VideraChartViewLifecycleTests.CreateMetadata();
+            var source = new RecordingSurfaceTileSource(metadata);
+            var view = new VideraChartView();
+            SurfaceChartTestHelpers.LoadSurface(view, source);
+            view.FitToData();
+
+            view.Plot.Axes.X.SetBounds(2d, 10d);
+            view.Plot.Axes.Z.SetBounds(4d, 12d);
+            view.Plot.Axes.Y.SetBounds(-6d, 18d);
+
+            view.Plot.Axes.X.SetLimits(0d, 20d);
+            view.Plot.Axes.Z.SetLimits(0d, 20d);
+            view.Plot.Axes.Y.SetLimits(-20d, 30d);
+
+            view.Plot.Axes.X.GetLimits().Should().Be(new PlotAxisLimits(2d, 10d));
+            view.Plot.Axes.Z.GetLimits().Should().Be(new PlotAxisLimits(4d, 12d));
+            view.Plot.Axes.Y.GetLimits().Should().Be(new PlotAxisLimits(-6d, 18d));
+
+            view.Plot.Axes.X.IsLocked = true;
+            view.Plot.Axes.X.SetLimits(3d, 6d);
+            view.Plot.Axes.X.AutoScale();
+            view.Plot.Axes.Y.AutoScale();
+
+            view.Plot.Axes.X.GetLimits().Should().Be(new PlotAxisLimits(2d, 10d));
+            view.Plot.Axes.Y.GetLimits().Should().Be(new PlotAxisLimits(0d, 18d));
+
+            view.Plot.Axes.X.IsLocked = false;
+            view.Plot.Axes.X.ClearBounds();
+            view.Plot.Axes.X.AutoScale();
+
+            view.Plot.Axes.X.Bounds.Should().BeNull();
+            view.Plot.Axes.X.GetLimits().Should().Be(new PlotAxisLimits(0d, metadata.Width));
+        });
+    }
+
+    [Fact]
+    public void VideraChartView_LinkViewWith_SynchronizesTwoChartsUntilDisposed()
+    {
+        AvaloniaHeadlessTestSession.Run(() =>
+        {
+            var metadata = VideraChartViewLifecycleTests.CreateMetadata();
+            var first = new VideraChartView();
+            var second = new VideraChartView();
+            SurfaceChartTestHelpers.LoadSurface(first, new RecordingSurfaceTileSource(metadata));
+            SurfaceChartTestHelpers.LoadSurface(second, new RecordingSurfaceTileSource(metadata));
+            first.FitToData();
+            second.FitToData();
+
+            using var link = first.LinkViewWith(second);
+
+            first.ZoomTo(new SurfaceDataWindow(2d, 3d, 8d, 9d));
+
+            second.ViewState.Should().Be(first.ViewState);
+
+            second.ZoomTo(new SurfaceDataWindow(4d, 5d, 6d, 7d));
+
+            first.ViewState.Should().Be(second.ViewState);
+
+            link.Dispose();
+            first.ZoomTo(new SurfaceDataWindow(1d, 1d, 5d, 5d));
+
+            second.ViewState.DataWindow.Should().Be(new SurfaceDataWindow(4d, 5d, 6d, 7d));
+        });
+    }
+
+    [Fact]
     public void Plot3D_CreateOutputEvidence_ReportsActiveSurfaceContract()
     {
         AvaloniaHeadlessTestSession.Run(() =>

@@ -6,6 +6,7 @@ namespace Videra.SurfaceCharts.Core;
 public sealed class DataLogger3D
 {
     private readonly ScatterColumnarSeries _series;
+    private int? _latestWindowPointCount;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DataLogger3D"/> class.
@@ -104,6 +105,17 @@ public sealed class DataLogger3D
     public int LastDroppedPointCount => _series.LastDroppedPointCount;
 
     /// <summary>
+    /// Gets the configured live-view behavior.
+    /// </summary>
+    public DataLogger3DLiveViewMode LiveViewMode =>
+        _latestWindowPointCount is null ? DataLogger3DLiveViewMode.FullData : DataLogger3DLiveViewMode.LatestWindow;
+
+    /// <summary>
+    /// Gets the latest-window point count, or <c>null</c> when full-data view is active.
+    /// </summary>
+    public int? LatestWindowPointCount => _latestWindowPointCount;
+
+    /// <summary>
     /// Replaces the retained columns with a new batch.
     /// </summary>
     /// <param name="data">The replacement data.</param>
@@ -120,4 +132,101 @@ public sealed class DataLogger3D
     {
         _series.AppendRange(data);
     }
+
+    /// <summary>
+    /// Configures live view evidence to report the full retained dataset as visible.
+    /// </summary>
+    public void UseFullDataView()
+    {
+        _latestWindowPointCount = null;
+    }
+
+    /// <summary>
+    /// Configures live view evidence to report only the latest retained points as visible.
+    /// </summary>
+    /// <param name="pointCount">The positive number of latest retained points to expose.</param>
+    public void UseLatestWindow(int pointCount)
+    {
+        if (pointCount <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(pointCount), "Latest-window point count must be positive.");
+        }
+
+        _latestWindowPointCount = pointCount;
+    }
+
+    /// <summary>
+    /// Creates deterministic evidence for live append/drop counters and the active visible window.
+    /// </summary>
+    public DataLogger3DLiveViewEvidence CreateLiveViewEvidence()
+    {
+        var retainedCount = Count;
+        var visibleCount = _latestWindowPointCount is { } latestCount
+            ? Math.Min(retainedCount, latestCount)
+            : retainedCount;
+        var visibleStart = retainedCount - visibleCount;
+        var decision = _latestWindowPointCount is null
+            ? DataLogger3DAutoscaleDecision.FullData
+            : DataLogger3DAutoscaleDecision.LatestWindow;
+
+        return new DataLogger3DLiveViewEvidence(
+            LiveViewMode,
+            TotalAppendedPointCount,
+            TotalDroppedPointCount,
+            retainedCount,
+            visibleStart,
+            visibleCount,
+            decision);
+    }
 }
+
+/// <summary>
+/// Describes which retained points are considered visible for a live <see cref="DataLogger3D"/>.
+/// </summary>
+public enum DataLogger3DLiveViewMode
+{
+    /// <summary>
+    /// The full retained dataset is visible.
+    /// </summary>
+    FullData,
+
+    /// <summary>
+    /// Only the latest retained points are visible.
+    /// </summary>
+    LatestWindow,
+}
+
+/// <summary>
+/// Describes the autoscale decision implied by a live <see cref="DataLogger3D"/> view.
+/// </summary>
+public enum DataLogger3DAutoscaleDecision
+{
+    /// <summary>
+    /// Autoscale uses the full retained dataset.
+    /// </summary>
+    FullData,
+
+    /// <summary>
+    /// Autoscale follows the latest visible window.
+    /// </summary>
+    LatestWindow,
+}
+
+/// <summary>
+/// Reports deterministic live-view counters and visible-window evidence for <see cref="DataLogger3D"/>.
+/// </summary>
+/// <param name="Mode">The configured live-view mode.</param>
+/// <param name="AppendedPointCount">The total number of points accepted through append batches.</param>
+/// <param name="DroppedPointCount">The total number of retained points dropped by FIFO trimming.</param>
+/// <param name="RetainedPointCount">The current retained point count.</param>
+/// <param name="VisibleStartIndex">The zero-based retained start index of the visible window.</param>
+/// <param name="VisiblePointCount">The number of retained points in the visible window.</param>
+/// <param name="AutoscaleDecision">The autoscale decision implied by the visible-window mode.</param>
+public readonly record struct DataLogger3DLiveViewEvidence(
+    DataLogger3DLiveViewMode Mode,
+    long AppendedPointCount,
+    long DroppedPointCount,
+    int RetainedPointCount,
+    int VisibleStartIndex,
+    int VisiblePointCount,
+    DataLogger3DAutoscaleDecision AutoscaleDecision);
