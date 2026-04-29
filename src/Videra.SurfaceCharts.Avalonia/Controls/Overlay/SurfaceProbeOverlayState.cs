@@ -19,7 +19,8 @@ internal sealed class SurfaceProbeOverlayState
         Point? hoveredProbeScreenPosition,
         SurfaceProbeInfo? hoveredProbe,
         IReadOnlyList<SurfaceProbeInfo> pinnedProbes,
-        SurfaceChartOverlayOptions? overlayOptions = null)
+        SurfaceChartOverlayOptions? overlayOptions = null,
+        SurfaceTooltipContent? tooltipContent = null)
     {
         ArgumentNullException.ThrowIfNull(pinnedProbes);
 
@@ -29,6 +30,7 @@ internal sealed class SurfaceProbeOverlayState
         HoveredProbe = hoveredProbe;
         PinnedProbes = pinnedProbes;
         OverlayOptions = overlayOptions ?? SurfaceChartOverlayOptions.Default;
+        TooltipContent = tooltipContent;
     }
 
     public bool HasNoData { get; }
@@ -42,6 +44,11 @@ internal sealed class SurfaceProbeOverlayState
     public IReadOnlyList<SurfaceProbeInfo> PinnedProbes { get; }
 
     internal SurfaceChartOverlayOptions OverlayOptions { get; }
+
+    /// <summary>
+    /// Gets the multi-series tooltip content when multiple series are probed at the same position.
+    /// </summary>
+    internal SurfaceTooltipContent? TooltipContent { get; }
 
     // Kept as a convenience projection for existing integration coverage.
     public string? ReadoutText => HoveredProbe is SurfaceProbeInfo hoveredProbe
