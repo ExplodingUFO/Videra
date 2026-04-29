@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using Avalonia.Media.Imaging;
 using Videra.SurfaceCharts.Core;
 using Videra.SurfaceCharts.Rendering;
 
@@ -13,6 +14,7 @@ public sealed class Plot3D
     private readonly ReadOnlyCollection<Plot3DSeries> _seriesView;
     private SurfaceColorMap? _colorMap;
     private SurfaceChartOverlayOptions _overlayOptions = SurfaceChartOverlayOptions.Default;
+    private Func<int, int, double, Task<RenderTargetBitmap>>? _renderOffscreen;
 
     internal Plot3D(Action changed)
     {
@@ -184,6 +186,105 @@ public sealed class Plot3D
             precisionProfile: SurfaceChartOverlayEvidenceFormatter.DescribePrecisionProfile(OverlayOptions),
             renderingEvidence: renderingEvidence,
             outputCapabilityDiagnostics: Plot3DOutputCapabilityDiagnostic.CreateUnsupportedExportDiagnostics());
+    }
+
+    /// <summary>
+    /// Sets the internal render offscreen delegate used by <see cref="CaptureSnapshotAsync"/> to render the chart.
+    /// </summary>
+    /// <param name="renderOffscreen">The delegate that renders the chart to a bitmap.</param>
+    internal void SetRenderOffscreen(Func<int, int, double, Task<RenderTargetBitmap>> renderOffscreen)
+    {
+        _renderOffscreen = renderOffscreen;
+    }
+
+    /// <summary>
+    /// Captures a chart-local PNG/bitmap snapshot through the Plot-owned contract.
+    /// </summary>
+    /// <param name="request">The snapshot request specifying dimensions, format, and background.</param>
+    /// <returns>A result containing the artifact path and manifest on success, or a diagnostic on failure.</returns>
+    public async Task<PlotSnapshotResult> CaptureSnapshotAsync(PlotSnapshotRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+
+        // Validate format
+        if (request.Format != PlotSnapshotFormat.Png)
+        {
+            return PlotSnapshotResult.Failed(
+                PlotSnapshotDiagnostic.Create("snapshot.format.unsupported", $"Format '{request.Format}' is not supported. Only Png is currently supported."),
+                stopwatch.Elapsed);
+        }
+
+        // Validate dimensions (defense-in-depth; PlotSnapshotRequest constructor also validates)
+        if (request.Width <= 0 || request.Height <= 0)
+        {
+            return PlotSnapshotResult.Failed(
+                PlotSnapshotDiagnostic.Create("snapshot.request.invalid-dimensions", $"Snapshot dimensions must be positive. Got {request.Width}x{request.Height}."),
+                stopwatch.Elapsed);
+        }
+
+        // Validate chart readiness
+        var activeSeries = ActiveSeries;
+        if (activeSeries is null)
+        {
+            return PlotSnapshotResult.Failed(
+                PlotSnapshotDiagnostic.Create("snapshot.chart.no-active-series", "Cannot capture snapshot: plot has no active series."),
+                stopwatch.Elapsed);
+        }
+
+        // Validate render bridge
+        if (_renderOffscreen is null)
+        {
+            return PlotSnapshotResult.Failed(
+                PlotSnapshotDiagnostic.Create("snapshot.render.no-host", "Cannot capture snapshot: no render host is attached to this plot."),
+                stopwatch.Elapsed);
+        }
+
+        try
+        {
+            // Render offscreen via bridge
+            var bitmap = await _renderOffscreen(request.Width, request.Height, request.Scale).ConfigureAwait(false);
+
+            // Encode to PNG and save
+            var outputPath = System.IO.Path.ChangeExtension(System.IO.Path.GetRandomFileName(), ".png");
+            await EncodeAndSavePng(bitmap, outputPath).ConfigureAwait(false);
+
+            // Build manifest
+            var outputEvidence = CreateOutputEvidence();
+            var datasetEvidence = CreateDatasetEvidence();
+            var activeSeriesIndex = _series.IndexOf(activeSeries);
+            var seriesIdentity = $"{activeSeries.Kind}:{activeSeries.Name ?? "<unnamed>"}:{activeSeriesIndex}";
+
+            var manifest = new PlotSnapshotManifest(
+                width: request.Width,
+                height: request.Height,
+                outputEvidenceKind: outputEvidence.EvidenceKind,
+                datasetEvidenceKind: datasetEvidence.EvidenceKind,
+                activeSeriesIdentity: seriesIdentity,
+                format: request.Format,
+                background: request.Background,
+                createdUtc: DateTime.UtcNow);
+
+            return PlotSnapshotResult.Success(outputPath, manifest, stopwatch.Elapsed);
+        }
+        catch (Exception ex)
+        {
+            return PlotSnapshotResult.Failed(
+                PlotSnapshotDiagnostic.Create("snapshot.capture.failed", $"Snapshot capture failed: {ex.Message}"),
+                stopwatch.Elapsed);
+        }
+    }
+
+    private static async Task EncodeAndSavePng(RenderTargetBitmap bitmap, string path)
+    {
+        var directory = System.IO.Path.GetDirectoryName(path);
+        if (!string.IsNullOrEmpty(directory))
+        {
+            System.IO.Directory.CreateDirectory(directory);
+        }
+
+        using var outputStream = System.IO.File.Create(path);
+        bitmap.Save(outputStream);
     }
 
     internal Plot3DSeries AddSeries(Plot3DSeries series)

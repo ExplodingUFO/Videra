@@ -153,10 +153,18 @@ public sealed class Plot3DOutputCapabilityDiagnostic
     {
         return
         [
-            Unsupported("ImageExport", "plot-output.export.image.unsupported", "Plot3D output evidence does not implement image export."),
+            Supported("ImageExport", "plot-output.export.image.supported", "Plot3D output evidence supports PNG image export via CaptureSnapshotAsync."),
             Unsupported("PdfExport", "plot-output.export.pdf.unsupported", "Plot3D output evidence does not implement PDF export."),
             Unsupported("VectorExport", "plot-output.export.vector.unsupported", "Plot3D output evidence does not implement vector export."),
         ];
+    }
+
+    private static Plot3DOutputCapabilityDiagnostic Supported(
+        string capability,
+        string diagnosticCode,
+        string message)
+    {
+        return new Plot3DOutputCapabilityDiagnostic(capability, isSupported: true, diagnosticCode, message);
     }
 
     private static Plot3DOutputCapabilityDiagnostic Unsupported(

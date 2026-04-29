@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
+using Avalonia.Media.Imaging;
 using Avalonia.Threading;
 using Videra.SurfaceCharts.Avalonia.Controls.Overlay;
 using Videra.SurfaceCharts.Core;
@@ -83,6 +84,37 @@ public partial class VideraChartView
         {
             ReleaseNativeHost();
         }
+    }
+
+    /// <summary>
+    /// Renders the chart view offscreen to a <see cref="RenderTargetBitmap"/> at the specified dimensions and scale.
+    /// </summary>
+    /// <param name="width">The target bitmap width in pixels.</param>
+    /// <param name="height">The target bitmap height in pixels.</param>
+    /// <param name="scale">The DPI scale factor.</param>
+    /// <returns>A rendered bitmap containing the chart visualization.</returns>
+    internal async Task<RenderTargetBitmap> RenderOffscreenAsync(int width, int height, double scale)
+    {
+        var pixelSize = new PixelSize(width, height);
+        var dpi = new Vector(96 * scale, 96 * scale);
+        var bitmap = new RenderTargetBitmap(pixelSize, dpi);
+
+        if (Dispatcher.UIThread.CheckAccess())
+        {
+            RenderToBitmap(bitmap);
+        }
+        else
+        {
+            await Dispatcher.UIThread.InvokeAsync(() => RenderToBitmap(bitmap));
+        }
+
+        return bitmap;
+    }
+
+    private void RenderToBitmap(RenderTargetBitmap bitmap)
+    {
+        SyncRenderHost();
+        bitmap.Render(this);
     }
 
     private static SurfaceColorMap CreateFallbackColorMap(SurfaceValueRange range)

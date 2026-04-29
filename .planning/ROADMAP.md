@@ -68,6 +68,11 @@ Plans:
 3. The implementation stays chart-local and does not widen backend/runtime contracts.
 4. Focused tests cover success, invalid request, unsupported format, and manifest determinism.
 
+**Plans:** 1 plan
+
+Plans:
+- [ ] 363-01-PLAN.md — Add CaptureSnapshotAsync, render bridge, update diagnostics, and capture tests
+
 **Output:** `.planning/phases/363-chart-snapshot-capture-implementation/SUMMARY.md`
 
 ### Phase 364: Demo Smoke Doctor Snapshot Evidence

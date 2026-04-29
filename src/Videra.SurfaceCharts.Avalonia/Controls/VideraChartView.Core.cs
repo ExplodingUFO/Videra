@@ -81,6 +81,7 @@ public partial class VideraChartView : Decorator
         _renderHost = renderHost ?? new SurfaceChartRenderHost();
         _nativeHostFactory = nativeHostFactory ?? new DefaultSurfaceChartNativeHostFactory();
         Plot = new Plot3D(OnPlotChanged);
+        Plot.SetRenderOffscreen(RenderOffscreenAsync);
         RenderingStatus = _renderHost.RenderingStatus;
         _runtime = new SurfaceChartRuntime(
             ViewState,
