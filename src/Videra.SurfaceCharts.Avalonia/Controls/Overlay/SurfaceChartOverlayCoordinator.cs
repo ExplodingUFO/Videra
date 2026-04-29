@@ -65,7 +65,8 @@ internal sealed class SurfaceChartOverlayCoordinator
         bool hasExplicitColorMap,
         SurfaceCameraFrame? cameraFrame,
         SurfaceChartProjection? chartProjection,
-        SurfaceChartOverlayOptions overlayOptions)
+        SurfaceChartOverlayOptions overlayOptions,
+        IReadOnlyList<Plot3DSeries>? series = null)
     {
         ArgumentNullException.ThrowIfNull(loadedTiles);
         ArgumentNullException.ThrowIfNull(overlayOptions);
@@ -73,8 +74,8 @@ internal sealed class SurfaceChartOverlayCoordinator
         AxisState = source is not null && loadedTiles.Count > 0
             ? SurfaceAxisOverlayPresenter.CreateState(source.Metadata, chartProjection, overlayOptions)
             : SurfaceAxisOverlayState.Empty;
-        LegendState = loadedTiles.Count > 0
-            ? SurfaceLegendOverlayPresenter.CreateState(source?.Metadata, colorMap, hasExplicitColorMap, chartProjection, overlayOptions)
+        LegendState = series is not null && series.Count > 0
+            ? SurfaceLegendOverlayPresenter.CreateState(series, chartProjection, overlayOptions)
             : SurfaceLegendOverlayState.Empty;
         ProbeState = SurfaceProbeOverlayPresenter.CreateState(
             source,

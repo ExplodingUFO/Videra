@@ -92,7 +92,8 @@ public partial class VideraChartView
             Plot.ColorMap is not null,
             cameraFrame,
             _chartProjection,
-            Plot.OverlayOptions);
+            Plot.OverlayOptions,
+            Plot.Series);
         _overlayLayer.InvalidateVisual();
     }
 
