@@ -52,6 +52,7 @@ public partial class MainWindow : Window
     private string _activeAssetSummary = "No additional assets are used on this path.";
     private string? _lastCacheLoadFailureMessage;
     private ScatterChartData? _activeScatterData;
+    private PlotSnapshotResult? _lastSnapshotResult;
 
     public MainWindow()
     {
@@ -419,6 +420,36 @@ public partial class MainWindow : Window
         }
 
         _supportSummaryStatusText.Text = "Clipboard is unavailable. The support summary remains visible below.";
+    }
+
+    private async void OnCaptureSnapshotClicked(object? sender, RoutedEventArgs e)
+    {
+        _ = sender;
+        _ = e;
+
+        try
+        {
+            var chartView = IsScatterProofActive ? _scatterChartView : ActiveSurfaceFamilyChartView;
+            var request = new PlotSnapshotRequest(1920, 1080, 1.0, PlotSnapshotBackground.Transparent, PlotSnapshotFormat.Png);
+            var result = await chartView.Plot.CaptureSnapshotAsync(request).ConfigureAwait(true);
+            _lastSnapshotResult = result;
+
+            if (result.Succeeded)
+            {
+                _statusText.Text = $"Snapshot captured: {result.Path}";
+                _supportSummaryStatusText.Text = $"Snapshot captured: {result.Path}";
+            }
+            else
+            {
+                _statusText.Text = $"Snapshot failed: {result.Failure?.Message}";
+                _supportSummaryStatusText.Text = $"Snapshot failed: {result.Failure?.Message}";
+            }
+        }
+        catch (Exception ex)
+        {
+            _statusText.Text = $"Snapshot failed: {ex.Message}";
+            _supportSummaryStatusText.Text = $"Snapshot failed: {ex.Message}";
+        }
     }
 
     private void UpdateViewStateText()
@@ -837,6 +868,16 @@ public partial class MainWindow : Window
                 $"PrecisionProfile: {CreatePrecisionProfileSummary(_scatterChartView)}\n" +
                 $"OutputEvidenceKind: {CreateOutputEvidenceKindSummary(_scatterChartView)}\n" +
                 $"OutputCapabilityDiagnostics: {CreateOutputCapabilityDiagnosticsSummary(_scatterChartView)}\n" +
+                $"SnapshotStatus: {CreateSnapshotStatusSummary()}\n" +
+                $"SnapshotPath: {CreateSnapshotPathSummary()}\n" +
+                $"SnapshotWidth: {CreateSnapshotWidthSummary()}\n" +
+                $"SnapshotHeight: {CreateSnapshotHeightSummary()}\n" +
+                $"SnapshotFormat: {CreateSnapshotFormatSummary()}\n" +
+                $"SnapshotBackground: {CreateSnapshotBackgroundSummary()}\n" +
+                $"SnapshotOutputEvidenceKind: {CreateSnapshotOutputEvidenceKindSummary()}\n" +
+                $"SnapshotDatasetEvidenceKind: {CreateSnapshotDatasetEvidenceKindSummary()}\n" +
+                $"SnapshotActiveSeriesIdentity: {CreateSnapshotActiveSeriesIdentitySummary()}\n" +
+                $"SnapshotCreatedUtc: {CreateSnapshotCreatedUtcSummary()}\n" +
                 $"DatasetEvidenceKind: {CreateDatasetEvidenceKindSummary(_scatterChartView)}\n" +
                 $"DatasetSeriesCount: {CreateDatasetSeriesCountSummary(_scatterChartView)}\n" +
                 $"DatasetActiveSeriesIndex: {CreateDatasetActiveSeriesIndexSummary(_scatterChartView)}\n" +
@@ -878,6 +919,16 @@ public partial class MainWindow : Window
             $"PrecisionProfile: {CreatePrecisionProfileSummary(ActiveSurfaceFamilyChartView)}\n" +
             $"OutputEvidenceKind: {CreateOutputEvidenceKindSummary(ActiveSurfaceFamilyChartView)}\n" +
             $"OutputCapabilityDiagnostics: {CreateOutputCapabilityDiagnosticsSummary(ActiveSurfaceFamilyChartView)}\n" +
+            $"SnapshotStatus: {CreateSnapshotStatusSummary()}\n" +
+            $"SnapshotPath: {CreateSnapshotPathSummary()}\n" +
+            $"SnapshotWidth: {CreateSnapshotWidthSummary()}\n" +
+            $"SnapshotHeight: {CreateSnapshotHeightSummary()}\n" +
+            $"SnapshotFormat: {CreateSnapshotFormatSummary()}\n" +
+            $"SnapshotBackground: {CreateSnapshotBackgroundSummary()}\n" +
+            $"SnapshotOutputEvidenceKind: {CreateSnapshotOutputEvidenceKindSummary()}\n" +
+            $"SnapshotDatasetEvidenceKind: {CreateSnapshotDatasetEvidenceKindSummary()}\n" +
+            $"SnapshotActiveSeriesIdentity: {CreateSnapshotActiveSeriesIdentitySummary()}\n" +
+            $"SnapshotCreatedUtc: {CreateSnapshotCreatedUtcSummary()}\n" +
             $"DatasetEvidenceKind: {CreateDatasetEvidenceKindSummary(ActiveSurfaceFamilyChartView)}\n" +
             $"DatasetSeriesCount: {CreateDatasetSeriesCountSummary(ActiveSurfaceFamilyChartView)}\n" +
             $"DatasetActiveSeriesIndex: {CreateDatasetActiveSeriesIndexSummary(ActiveSurfaceFamilyChartView)}\n" +
@@ -1131,5 +1182,60 @@ public partial class MainWindow : Window
         return status.UsesNativeSurface
             ? "native surface host is active"
             : "control-owned surface is active";
+    }
+
+    private string CreateSnapshotStatusSummary()
+    {
+        if (_lastSnapshotResult is null)
+        {
+            return "none";
+        }
+
+        return _lastSnapshotResult.Succeeded ? "present" : "failed";
+    }
+
+    private string CreateSnapshotPathSummary()
+    {
+        return _lastSnapshotResult?.Path ?? "none";
+    }
+
+    private string CreateSnapshotWidthSummary()
+    {
+        return _lastSnapshotResult?.Manifest?.Width.ToString(CultureInfo.InvariantCulture) ?? "none";
+    }
+
+    private string CreateSnapshotHeightSummary()
+    {
+        return _lastSnapshotResult?.Manifest?.Height.ToString(CultureInfo.InvariantCulture) ?? "none";
+    }
+
+    private string CreateSnapshotFormatSummary()
+    {
+        return _lastSnapshotResult?.Manifest?.Format.ToString() ?? "none";
+    }
+
+    private string CreateSnapshotBackgroundSummary()
+    {
+        return _lastSnapshotResult?.Manifest?.Background.ToString() ?? "none";
+    }
+
+    private string CreateSnapshotOutputEvidenceKindSummary()
+    {
+        return _lastSnapshotResult?.Manifest?.OutputEvidenceKind ?? "none";
+    }
+
+    private string CreateSnapshotDatasetEvidenceKindSummary()
+    {
+        return _lastSnapshotResult?.Manifest?.DatasetEvidenceKind ?? "none";
+    }
+
+    private string CreateSnapshotActiveSeriesIdentitySummary()
+    {
+        return _lastSnapshotResult?.Manifest?.ActiveSeriesIdentity ?? "none";
+    }
+
+    private string CreateSnapshotCreatedUtcSummary()
+    {
+        return _lastSnapshotResult?.Manifest?.CreatedUtc.ToString("O") ?? "none";
     }
 }

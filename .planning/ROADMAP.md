@@ -10,8 +10,8 @@ Add a bounded chart-local PNG/bitmap snapshot export path for Plot-authored Surf
 |-------|------|------|--------------|------|--------|
 | 361 | Chart Snapshot Export Inventory | Inventory current chart screenshot/export, output evidence, demo/support, Doctor, docs, tests, and guardrail surfaces before changing APIs. | INV-01, INV-02, INV-03, INV-04, VER-01, VER-03 | Videra-lu9.1 | Complete |
 | 362 | Plot Snapshot Export Contract | Add a bounded Plot-owned snapshot request/result contract for PNG/bitmap outputs. | SNAP-01, SNAP-02, SNAP-03, SNAP-04, VER-01, VER-02, VER-03 | Videra-lu9.2 | Complete |
-| 363 | Chart Snapshot Capture Implementation | Implement the minimal Avalonia-local bitmap snapshot path for `VideraChartView.Plot`. | CAP-01, CAP-02, CAP-03, CAP-04, VER-01, VER-02, VER-03 | Videra-lu9.3 | Planned |
-| 364 | Demo Smoke Doctor Snapshot Evidence | Refresh demo, consumer smoke, support artifacts, and Doctor parsing around snapshot artifacts and manifests. | DEMO-01, DEMO-02, DEMO-03, DEMO-04, VER-01, VER-02, VER-03 | Videra-lu9.4 | Planned |
+| 363 | Chart Snapshot Capture Implementation | Implement the minimal Avalonia-local bitmap snapshot path for `VideraChartView.Plot`. | CAP-01, CAP-02, CAP-03, CAP-04, VER-01, VER-02, VER-03 | Videra-lu9.3 | Complete |
+| 364 | Demo Smoke Doctor Snapshot Evidence | Refresh demo, consumer smoke, support artifacts, and Doctor parsing around snapshot artifacts and manifests. | DEMO-01, DEMO-02, DEMO-03, DEMO-04, VER-01, VER-02, VER-03 | Videra-lu9.4 | Planned (plan ready) |
 | 365 | Snapshot Export Guardrails and Docs | Close docs, public roadmap, guardrails, and Beads state around chart-local bitmap snapshot export scope. | GUARD-01, GUARD-02, GUARD-03, GUARD-04, VER-01, VER-02, VER-03 | Videra-lu9.5 | Planned |
 
 ## Phase Details
@@ -88,6 +88,11 @@ Plans:
 3. Doctor parses snapshot present/missing/unavailable/failed states without launching UI.
 4. Demo remains bounded and does not become a broad chart editor or workbench.
 
+**Plans:** 1 plan
+
+Plans:
+- [ ] 364-01-PLAN.md — Add snapshot capture to demo, consumer smoke, support summaries, and Doctor parsing
+
 **Output:** `.planning/phases/364-demo-smoke-doctor-snapshot-evidence/SUMMARY.md`
 
 ### Phase 365: Snapshot Export Guardrails and Docs
@@ -115,8 +120,8 @@ Plans:
 
 ## Next
 
-Phase 362 complete. Proceed to Phase 363:
+Phase 363 complete. Phase 364 planned. Proceed to execute Phase 364:
 
 ```bash
-$gsd-plan-phase 363
+$gsd-execute-phase 364
 ```

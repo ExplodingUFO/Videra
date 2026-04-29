@@ -277,6 +277,10 @@
             <Button x:Name="CopySupportSummaryButton"
                     HorizontalAlignment="Left"
                     Content="Copy support summary" />
+            <Button x:Name="CaptureSnapshotButton"
+                    Content="Capture Snapshot"
+                    Click="OnCaptureSnapshotClicked"
+                    HorizontalAlignment="Stretch" />
             <TextBlock x:Name="SupportSummaryStatusText"
                        Foreground="#94A3B8"
                        TextWrapping="Wrap"
