@@ -117,6 +117,13 @@ public sealed class SurfaceChartOverlayOptions
     public bool ShowCrosshair { get; init; } = true;
 
     /// <summary>
+    /// Gets the horizontal and vertical offset (in device-independent pixels) applied to the
+    /// hovered tooltip position relative to the cursor. Positive X moves the tooltip to the
+    /// right of the cursor; negative Y moves it above the cursor.
+    /// </summary>
+    public System.Numerics.Vector2 TooltipOffset { get; init; } = new(12f, -12f);
+
+    /// <summary>
     /// Gets the corner position for the legend overlay.
     /// </summary>
     public SurfaceChartLegendPosition LegendPosition { get; init; } = SurfaceChartLegendPosition.TopRight;
