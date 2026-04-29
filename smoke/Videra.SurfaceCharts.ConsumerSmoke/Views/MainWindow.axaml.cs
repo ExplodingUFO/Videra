@@ -35,6 +35,7 @@ public partial class MainWindow : Window
     private readonly int _lightingProofHoldSeconds;
     private bool _completed;
     private bool _completionQueued;
+    private PlotSnapshotResult? _snapshotResult;
 
     public MainWindow()
     {
@@ -163,6 +164,7 @@ public partial class MainWindow : Window
 
         try
         {
+            _snapshotResult = await CaptureSnapshotAsync().ConfigureAwait(true);
             await CompleteAsync(
                 succeeded: true,
                 firstChartRendered: true,
@@ -178,6 +180,20 @@ public partial class MainWindow : Window
     {
         var status = _chartView.RenderingStatus;
         return status.IsReady && status.ResidentTileCount > 0;
+    }
+
+    private async Task<PlotSnapshotResult?> CaptureSnapshotAsync()
+    {
+        try
+        {
+            var request = new PlotSnapshotRequest(1920, 1080, 1.0, PlotSnapshotBackground.Transparent, PlotSnapshotFormat.Png);
+            return await _chartView.Plot.CaptureSnapshotAsync(request).ConfigureAwait(true);
+        }
+        catch (Exception ex)
+        {
+            Trace($"Snapshot capture failed: {ex.Message}");
+            return null;
+        }
     }
 
     private static int ResolveLightingProofHoldSeconds()
@@ -394,7 +410,8 @@ public partial class MainWindow : Window
             $"VisibleTileCount: {status.VisibleTileCount}\n" +
             $"ResidentTileBytes: {status.ResidentTileBytes}\n" +
             $"InteractionQuality: {_chartView.InteractionQuality}\n" +
-            $"SupportSummaryPath: {_supportSummaryPath ?? "<unset>"}";
+            $"SupportSummaryPath: {_supportSummaryPath ?? "<unset>"}\n" +
+            $"SnapshotStatus: {CreateSnapshotStatusSummary()}";
     }
 
     private string CreateSupportSummary()
@@ -418,6 +435,16 @@ public partial class MainWindow : Window
             $"PrecisionProfile: {CreatePrecisionProfileSummary(_chartView)}\n" +
             $"OutputEvidenceKind: {CreateOutputEvidenceKindSummary(_chartView)}\n" +
             $"OutputCapabilityDiagnostics: {CreateOutputCapabilityDiagnosticsSummary(_chartView)}\n" +
+            $"SnapshotStatus: {CreateSnapshotStatusSummary()}\n" +
+            $"SnapshotPath: {_snapshotResult?.Path ?? "none"}\n" +
+            $"SnapshotWidth: {_snapshotResult?.Manifest?.Width.ToString(CultureInfo.InvariantCulture) ?? "none"}\n" +
+            $"SnapshotHeight: {_snapshotResult?.Manifest?.Height.ToString(CultureInfo.InvariantCulture) ?? "none"}\n" +
+            $"SnapshotFormat: {_snapshotResult?.Manifest?.Format.ToString() ?? "none"}\n" +
+            $"SnapshotBackground: {_snapshotResult?.Manifest?.Background.ToString() ?? "none"}\n" +
+            $"SnapshotOutputEvidenceKind: {_snapshotResult?.Manifest?.OutputEvidenceKind ?? "none"}\n" +
+            $"SnapshotDatasetEvidenceKind: {_snapshotResult?.Manifest?.DatasetEvidenceKind ?? "none"}\n" +
+            $"SnapshotActiveSeriesIdentity: {_snapshotResult?.Manifest?.ActiveSeriesIdentity ?? "none"}\n" +
+            $"SnapshotCreatedUtc: {_snapshotResult?.Manifest?.CreatedUtc.ToString("O") ?? "none"}\n" +
             $"DatasetEvidenceKind: {CreateDatasetEvidenceKindSummary(_chartView)}\n" +
             $"DatasetSeriesCount: {CreateDatasetSeriesCountSummary(_chartView)}\n" +
             $"DatasetActiveSeriesIndex: {CreateDatasetActiveSeriesIndexSummary(_chartView)}\n" +
@@ -650,6 +677,16 @@ public partial class MainWindow : Window
                 0xFF2DD4BFu,
                 0xFFFDE68Au,
                 0xFFF97316u));
+    }
+
+    private string CreateSnapshotStatusSummary()
+    {
+        if (_snapshotResult is null)
+        {
+            return "none";
+        }
+
+        return _snapshotResult.Succeeded ? "present" : "failed";
     }
 
     private void Trace(string message)

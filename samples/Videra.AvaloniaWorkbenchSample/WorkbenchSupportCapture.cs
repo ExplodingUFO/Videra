@@ -1,3 +1,4 @@
+using System.Globalization;
 using Videra.Avalonia.Controls;
 using Videra.SurfaceCharts.Avalonia.Controls;
 using Videra.SurfaceCharts.Core;
@@ -20,6 +21,18 @@ internal sealed record WorkbenchChartEvidence(
 
 internal sealed record WorkbenchInteractionEvidence(
     VideraInteractionEvidence InteractionEvidence);
+
+internal sealed record WorkbenchSnapshotEvidence(
+    string Status,
+    string? Path,
+    int? Width,
+    int? Height,
+    string? Format,
+    string? Background,
+    string? OutputEvidenceKind,
+    string? DatasetEvidenceKind,
+    string? ActiveSeriesIdentity,
+    string? CreatedUtc);
 
 internal static class WorkbenchSupportCapture
 {
@@ -65,20 +78,38 @@ internal static class WorkbenchSupportCapture
         return VideraInteractionEvidenceFormatter.Format(evidence.InteractionEvidence).TrimEnd();
     }
 
+    public static string FormatSnapshotEvidence(WorkbenchSnapshotEvidence evidence)
+    {
+        ArgumentNullException.ThrowIfNull(evidence);
+        return string.Join(
+            Environment.NewLine,
+            $"SnapshotStatus: {evidence.Status}",
+            $"SnapshotPath: {evidence.Path ?? "none"}",
+            $"SnapshotWidth: {evidence.Width?.ToString(CultureInfo.InvariantCulture) ?? "none"}",
+            $"SnapshotHeight: {evidence.Height?.ToString(CultureInfo.InvariantCulture) ?? "none"}",
+            $"SnapshotFormat: {evidence.Format ?? "none"}",
+            $"SnapshotBackground: {evidence.Background ?? "none"}",
+            $"SnapshotOutputEvidenceKind: {evidence.OutputEvidenceKind ?? "none"}",
+            $"SnapshotDatasetEvidenceKind: {evidence.DatasetEvidenceKind ?? "none"}",
+            $"SnapshotActiveSeriesIdentity: {evidence.ActiveSeriesIdentity ?? "none"}",
+            $"SnapshotCreatedUtc: {evidence.CreatedUtc ?? "none"}");
+    }
+
     public static string FormatSupportCapture(
         DateTimeOffset generatedUtc,
         WorkbenchSceneEvidence sceneEvidence,
         WorkbenchInteractionEvidence interactionEvidence,
         WorkbenchChartEvidence chartEvidence,
-        string diagnosticsSnapshot)
+        string diagnosticsSnapshot,
+        WorkbenchSnapshotEvidence? snapshotEvidence = null)
     {
         ArgumentNullException.ThrowIfNull(sceneEvidence);
         ArgumentNullException.ThrowIfNull(interactionEvidence);
         ArgumentNullException.ThrowIfNull(chartEvidence);
 
         var hasDiagnostics = !string.IsNullOrWhiteSpace(diagnosticsSnapshot);
-        return string.Join(
-            Environment.NewLine,
+        var lines = new List<string>
+        {
             "Videra Avalonia workbench support capture",
             $"GeneratedUtc: {generatedUtc:O}",
             "SceneEvidence:",
@@ -89,7 +120,16 @@ internal static class WorkbenchSupportCapture
             FormatChartEvidence(chartEvidence),
             $"DiagnosticsSnapshotStatus: {(hasDiagnostics ? "captured" : "empty")}",
             "DiagnosticsSnapshot:",
-            diagnosticsSnapshot);
+            diagnosticsSnapshot
+        };
+
+        if (snapshotEvidence is not null)
+        {
+            lines.Add("SnapshotEvidence:");
+            lines.Add(FormatSnapshotEvidence(snapshotEvidence));
+        }
+
+        return string.Join(Environment.NewLine, lines);
     }
 
     private static string FormatNullable(int? value)
