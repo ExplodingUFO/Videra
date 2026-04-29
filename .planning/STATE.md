@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.52
-milestone_name: "Professional Chart Snapshot Export"
+milestone: v2.53
+milestone_name: "Chart Type Expansion and Axis Semantics"
 status: active
-stopped_at: "Completed Phase 365"
-last_updated: "2026-04-29T17:40:00+08:00"
+stopped_at: "Roadmap created"
+last_updated: "2026-04-29T18:00:00+08:00"
 last_activity: 2026-04-29
 progress:
   total_phases: 5
-  completed_phases: 5
+  completed_phases: 0
   total_plans: 5
-  completed_plans: 5
-  percent: 100
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -21,59 +21,61 @@ progress:
 See: `.planning/PROJECT.md`
 
 **Core value:** 跨平台 3D 渲染引擎的可靠性
-**Current focus:** v2.52 Professional Chart Snapshot Export
+**Current focus:** v2.53 Chart Type Expansion and Axis Semantics
 
 ## Current Position
 
-Milestone: `v2.52 Professional Chart Snapshot Export`
-Phase: 365 (complete)
-Plan: 365-01-PLAN.md (complete)
-Status: Phase 365 guardrails and docs complete. v2.52 milestone complete.
-Last activity: 2026-04-29 - Completed Phase 365 Snapshot Export Guardrails and Docs.
+Milestone: `v2.53 Chart Type Expansion and Axis Semantics`
+Phase: 366 of 370 (Axis Foundation)
+Plan: Not started
+Status: Roadmap created. Ready to plan Phase 366.
+Last activity: 2026-04-29 - Created v2.53 roadmap with 5 phases.
+
+Progress: [░░░░░░░░░░] 0%
 
 ## Beads
 
 | Bead | Role | Status |
 |------|------|--------|
-| Videra-lu9 | v2.52 epic | closed |
-| Videra-lu9.1 | Phase 361 Chart Snapshot Export Inventory | closed |
-| Videra-lu9.2 | Phase 362 Plot Snapshot Export Contract | closed |
-| Videra-lu9.3 | Phase 363 Chart Snapshot Capture Implementation | closed |
-| Videra-lu9.4 | Phase 364 Demo Smoke Doctor Snapshot Evidence | closed |
-| Videra-lu9.5 | Phase 365 Snapshot Export Guardrails and Docs | closed |
+| — | — | — |
 
 ## Initial Scope Summary
 
-v2.52 starts from the v2.51 chart-local output and dataset evidence contract:
+v2.53 starts from the v2.52 chart-local snapshot export baseline:
 
 - `VideraChartView` is the single shipped chart control.
 - `VideraChartView.Plot.Add.Surface(...)`, `.Waterfall(...)`, and `.Scatter(...)` are the public runtime data-loading path.
-- `Plot3D.CreateOutputEvidence(...)` and `Plot3D.CreateDatasetEvidence()` provide deterministic text/metadata support evidence.
+- `Plot3DOutputEvidence` and `Plot3DDatasetEvidence` provide deterministic text/metadata support evidence.
+- Chart-local PNG/bitmap snapshot export via `Plot3D.CaptureSnapshotAsync`.
 
-The scope is a bounded chart-local bitmap snapshot export vertical slice:
+The scope expands chart types and axis semantics:
 
-- Plot-owned snapshot request/result contract
-- PNG/bitmap artifact and deterministic manifest evidence
-- demo/support/consumer-smoke evidence for snapshot artifacts
-- Doctor parsing and docs/guardrails that keep export scope bounded
+- Log scale Y axis (unblock existing `SurfaceAxisScaleKind.Log`)
+- DateTime X axis (`SurfaceAxisScaleKind.DateTime`)
+- Custom tick formatters per axis (`Func<double, string>`)
+- Enhanced multi-series legend with per-kind indicators
+- Bar chart series (`Plot.Add.Bar`) — grouped and stacked
+- Contour plot series (`Plot.Add.Contour`) — marching squares iso-lines
+- Integration evidence, demo, smoke, and guardrails for all new types
 
 ## Decisions
 
-- Phase 361 inventory confirms: chart-local Plot-owned snapshot export is the target model (not viewer-level VideraSnapshotExportService)
-- Plot3DOutputCapabilityDiagnostic.CreateUnsupportedExportDiagnostics() explicitly marks ImageExport as unsupported — primary gap for Phase 362-63
-- Doctor has no chart snapshot artifact parsing — gap for Phase 364
-- Consumer smoke records ImageExport=unsupported — gap for Phase 364
-- 6 implement gaps, 2 document gaps, 4 defer gaps, 8 reject gaps identified
+- Phase ordering follows dependency logic: Axis → Legend → Bar → Contour → Integration
+- Axis foundation first: everything depends on non-linear axis support
+- Legend before chart types: new types need legend entries
+- Bar before Contour: simpler (no algorithm), follows established pattern
+- Integration last: feature combinations are highest-risk interaction surface
+- No new dependencies needed — all features use .NET 8 built-in APIs
 
 ## Known Residuals
 
 - Full CI can lag; user often prioritizes fast local progress unless CI is explicitly requested.
 - `.planning` remains local-only unless specific files are already tracked.
 - Docker-backed Dolt SQL Server is the Beads remote path; use direct Docker Dolt push when needed.
-- v2.52 must not restore old chart view APIs, reintroduce direct public `Source`, add PDF/vector export, add compatibility wrappers, add hidden fallback/downshift behavior, expand backend/runtime scope, create a generic plotting engine, or create a god-code workbench.
+- v2.53 must not restore old chart view APIs, reintroduce direct public `Source`, add PDF/vector export, add compatibility wrappers, add hidden fallback/downshift behavior, expand backend/runtime scope, create a generic plotting engine, or create a god-code workbench.
 
 ## Session Continuity
 
 Last session: `2026-04-29 +08:00`
-Stopped at: Completed Phase 365-01-PLAN.md
-Next action: `$gsd-complete-milestone` to archive v2.52, or `$gsd-new-milestone` to start v2.53
+Stopped at: v2.53 roadmap created
+Next action: `$gsd-plan-phase 366` to plan Phase 366 Axis Foundation
