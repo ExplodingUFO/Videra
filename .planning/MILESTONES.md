@@ -1,5 +1,36 @@
 # Milestones
 
+## v2.56 ScottPlot 5 Interaction and Cookbook Experience
+
+**Shipped:** 2026-04-30
+**Phases:** 7 (`383-389`)
+**Plans:** 7
+**Timeline:** 1 day (`2026-04-29` -> `2026-04-30`)
+**Repo state:** completed on `master`; focused tests passed for Plot lifecycle/code experience, interaction profiles, selection/probe/draggable overlay recipes, axis rules, linked views, live view management, cookbook demo wiring, and snapshot scope guardrails; Beads ready queue clean at close
+
+### Key Accomplishments
+
+1. Inventoried current Plot, interaction, overlay, axis, live, demo, support evidence, and guardrail owners before implementation.
+2. Added concise Plot lifecycle/code-experience affordances for reorder and typed read-only series inspection.
+3. Added a chart-local interaction profile and bounded built-in chart command surface.
+4. Added selection, probe, and draggable overlay recipes with host-owned selection state and deterministic support evidence.
+5. Added axis rules, explicit linked chart views, and DataLogger3D live latest-window/full-data view evidence.
+6. Reworked the SurfaceCharts demo and docs into cookbook/gallery recipes while preserving Videra's 3D-specific boundaries.
+7. Closed the milestone with Beads export, generated public roadmap, phase evidence, branch/worktree cleanup, and pushed Git plus Dolt Beads state.
+
+### Archived Materials
+
+- `.planning/milestones/v2.56-ROADMAP.md`
+- `.planning/milestones/v2.56-REQUIREMENTS.md`
+- `.planning/milestones/v2.56-phases/`
+
+### Notes
+
+- v2.56 improves ScottPlot 5-inspired ergonomics but does not claim full ScottPlot API parity.
+- No old chart controls, direct public `Source`, compatibility wrappers, PDF/vector export, backend/runtime rewrite, hidden fallback/downshift behavior, generic plotting engine, or god-code workbench was introduced.
+
+---
+
 ## v2.55 ScottPlot-like Plot API
 
 **Shipped:** 2026-04-30
