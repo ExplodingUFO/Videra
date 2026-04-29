@@ -101,6 +101,48 @@ dotnet add package Videra.SurfaceCharts.Processing
 
 `Videra.SurfaceCharts.Avalonia` brings `Videra.SurfaceCharts.Core` and `Videra.SurfaceCharts.Rendering` transitively. Add `Videra.SurfaceCharts.Core` directly only when you are building chart-domain contracts or custom tile sources without the Avalonia shell. `Videra.SurfaceCharts.Processing` is only required for the surface/cache-backed path. `Videra.SurfaceCharts.Demo` remains repository-only.
 
+Minimal SurfaceCharts cookbook:
+
+```csharp
+using Videra.SurfaceCharts.Avalonia.Controls;
+using Videra.SurfaceCharts.Core;
+
+var chart = new VideraChartView();
+
+chart.Plot.Add.Surface(new double[,]
+{
+    { 0.0, 0.4, 0.8 },
+    { 0.2, 0.7, 1.0 },
+    { 0.1, 0.5, 0.9 },
+}, "First surface");
+
+chart.Plot.Axes.X.Label = "Time";
+chart.Plot.Axes.X.Unit = "s";
+chart.Plot.Axes.Y.Label = "Height";
+chart.Plot.Axes.Y.Unit = "mm";
+chart.Plot.Axes.Z.Label = "Band";
+chart.Plot.Axes.Z.Unit = "Hz";
+chart.FitToData();
+
+var scatter = new DataLogger3D(0xFF2F80EDu, label: "Live scatter", fifoCapacity: 10_000);
+scatter.Append(new ScatterColumnarData(
+    new float[] { 0f, 1f, 2f },
+    new float[] { 0.2f, 0.5f, 0.8f },
+    new float[] { 0f, 0.5f, 1f }));
+
+var scatterData = new ScatterChartData(
+    new ScatterChartMetadata(
+        new SurfaceAxisDescriptor("Time", "s", 0, 10),
+        new SurfaceAxisDescriptor("Band", "Hz", 0, 10),
+        new SurfaceValueRange(0, 1)),
+    [],
+    [scatter.Series]);
+
+chart.Plot.Clear();
+chart.Plot.Add.Scatter(scatterData, "Live scatter");
+await chart.Plot.SavePngAsync("surfacecharts-live-scatter.png", width: 1920, height: 1080);
+```
+
 The current SurfaceCharts efficiency story is tighter interactive residency under camera movement and lower probe-path churn on the existing chart-local path; the committed hard-gate names remain `SurfaceChartsRenderStateBenchmarks.ApplyResidencyChurnUnderCameraMovement` and `SurfaceChartsProbeBenchmarks.ProbeLatency`.
 Columnar scatter streaming is a chart-domain contract, not a viewer/runtime mode. `ScatterColumnarSeries` accepts `ReplaceRange(...)` and `AppendRange(...)`, can use an optional positive `fifoCapacity` to retain a bounded point window, defaults high-volume data to `Pickable=false`, and reports retained point count, append/replacement batch counts, dropped FIFO points, configured FIFO capacity, and scatter `InteractionQuality` through `ScatterChartRenderingStatus`.
 The streaming benchmarks `SurfaceChartsStreamingBenchmarks.AppendColumnarBatch`, `AppendColumnarBatch_WithFifoTrim`, and `StreamingDiagnosticsAggregation` are listed in `benchmark-contract.json` for `Mean` / `Allocated` evidence-only results. They are intentionally absent from `benchmark-thresholds.json` until CI history supports hard thresholds.

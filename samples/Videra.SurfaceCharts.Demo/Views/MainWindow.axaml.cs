@@ -523,14 +523,14 @@ public partial class MainWindow : Window
             else
                 chartView = ActiveSurfaceFamilyChartView;
 
-            var request = new PlotSnapshotRequest(1920, 1080, 1.0, PlotSnapshotBackground.Transparent, PlotSnapshotFormat.Png);
-            var result = await chartView.Plot.CaptureSnapshotAsync(request).ConfigureAwait(true);
+            var outputPath = Path.Combine(Path.GetTempPath(), $"videra-surfacecharts-{DateTime.UtcNow:yyyyMMdd-HHmmss}.png");
+            var result = await chartView.Plot.SavePngAsync(outputPath, width: 1920, height: 1080).ConfigureAwait(true);
             _lastSnapshotResult = result;
 
             if (result.Succeeded)
             {
-                _statusText.Text = $"Snapshot captured: {result.Path}";
-                _supportSummaryStatusText.Text = $"Snapshot captured: {result.Path}";
+                _statusText.Text = $"PNG saved with Plot.SavePngAsync: {result.Path}";
+                _supportSummaryStatusText.Text = $"PNG saved with Plot.SavePngAsync: {result.Path}";
             }
             else
             {

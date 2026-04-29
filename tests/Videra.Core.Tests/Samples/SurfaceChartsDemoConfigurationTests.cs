@@ -9,6 +9,7 @@ public sealed class SurfaceChartsDemoConfigurationTests
     public void SurfaceChartsDemo_ShouldExistAsAnIndependentSurfaceChartEntryPoint()
     {
         var repositoryRoot = GetRepositoryRoot();
+        var rootReadmePath = Path.Combine(repositoryRoot, "README.md");
         var demoRoot = Path.Combine(repositoryRoot, "samples", "Videra.SurfaceCharts.Demo");
         var demoProjectPath = Path.Combine(demoRoot, "Videra.SurfaceCharts.Demo.csproj");
         var demoReadmePath = Path.Combine(demoRoot, "README.md");
@@ -19,6 +20,7 @@ public sealed class SurfaceChartsDemoConfigurationTests
         var cachePayloadPath = Path.Combine(demoRoot, "Assets", "sample-surface-cache", "sample.surfacecache.json.bin");
 
         File.Exists(demoProjectPath).Should().BeTrue();
+        File.Exists(rootReadmePath).Should().BeTrue();
         File.Exists(demoReadmePath).Should().BeTrue();
         File.Exists(appXamlPath).Should().BeTrue();
         File.Exists(mainWindowXamlPath).Should().BeTrue();
@@ -29,6 +31,14 @@ public sealed class SurfaceChartsDemoConfigurationTests
         var project = File.ReadAllText(demoProjectPath);
         project.Should().Contain(@"..\..\src\Videra.SurfaceCharts.Avalonia\Videra.SurfaceCharts.Avalonia.csproj");
         project.Should().Contain(@"..\..\src\Videra.SurfaceCharts.Processing\Videra.SurfaceCharts.Processing.csproj");
+
+        var rootReadme = File.ReadAllText(rootReadmePath);
+        rootReadme.Should().Contain("Minimal SurfaceCharts cookbook");
+        rootReadme.Should().Contain("First surface");
+        rootReadme.Should().Contain("chart.Plot.Axes.X.Label");
+        rootReadme.Should().Contain("DataLogger3D");
+        rootReadme.Should().Contain("Live scatter");
+        rootReadme.Should().Contain("SavePngAsync");
 
         var readme = File.ReadAllText(demoReadmePath);
         readme.Should().Contain("Start here");
@@ -48,6 +58,13 @@ public sealed class SurfaceChartsDemoConfigurationTests
         readme.Should().Contain("not stable benchmark guarantees");
         readme.Should().Contain("Try next: Analytics proof");
         readme.Should().Contain("ColorField");
+        readme.Should().Contain("Cookbook Recipes");
+        readme.Should().Contain("First surface");
+        readme.Should().Contain("chart.Plot.Axes.X.Label");
+        readme.Should().Contain("First scatter");
+        readme.Should().Contain("SavePngAsync");
+        readme.Should().Contain("DataLogger3D");
+        readme.Should().Contain("Live scatter");
 
         var mainWindow = File.ReadAllText(mainWindowXamlPath);
         mainWindow.Should().Contain("Start here: In-memory first chart");
@@ -128,6 +145,7 @@ public sealed class SurfaceChartsDemoConfigurationTests
         mainWindowCodeBehind.Should().Contain("CachePayloadSuffix");
         mainWindowCodeBehind.Should().Contain("ScatterSourceIndex");
         mainWindowCodeBehind.Should().Contain("Plot.Add.Scatter");
+        mainWindowCodeBehind.Should().Contain("Plot.SavePngAsync");
         mainWindowCodeBehind.Should().Contain("ScatterChartData");
         mainWindowCodeBehind.Should().Contain("ScatterStreamingScenarios");
         mainWindowCodeBehind.Should().Contain("ApplySelectedScatterScenario");

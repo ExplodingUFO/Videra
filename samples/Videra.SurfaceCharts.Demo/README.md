@@ -42,6 +42,76 @@ The committed cache sample uses a tiled manifest+sidecar layout so panning, doll
 dotnet run --project samples/Videra.SurfaceCharts.Demo/Videra.SurfaceCharts.Demo.csproj
 ```
 
+## Cookbook Recipes
+
+First surface plus chart-local axes:
+
+```csharp
+var chart = new VideraChartView();
+
+chart.Plot.Add.Surface(new double[,]
+{
+    { 0.0, 0.4, 0.8 },
+    { 0.2, 0.7, 1.0 },
+    { 0.1, 0.5, 0.9 },
+}, "First surface");
+
+chart.Plot.Axes.X.Label = "Time";
+chart.Plot.Axes.X.Unit = "s";
+chart.Plot.Axes.Y.Label = "Height";
+chart.Plot.Axes.Y.Unit = "mm";
+chart.Plot.Axes.Z.Label = "Band";
+chart.Plot.Axes.Z.Unit = "Hz";
+chart.FitToData();
+```
+
+First scatter from coordinate arrays:
+
+```csharp
+chart.Plot.Clear();
+chart.Plot.Add.Scatter(
+    x: [0.0, 1.0, 2.0, 3.0],
+    y: [0.1, 0.5, 0.9, 0.4],
+    z: [0.0, 0.3, 0.6, 1.0],
+    name: "First scatter");
+chart.FitToData();
+```
+
+Save the active plot as PNG:
+
+```csharp
+var result = await chart.Plot.SavePngAsync(
+    "artifacts/surfacecharts/first-chart.png",
+    width: 1920,
+    height: 1080);
+
+if (!result.Succeeded)
+{
+    throw new InvalidOperationException(result.Failure?.Message);
+}
+```
+
+Live scatter through `DataLogger3D`:
+
+```csharp
+var live = new DataLogger3D(0xFF2F80EDu, label: "Live scatter", fifoCapacity: 10_000);
+live.Append(new ScatterColumnarData(
+    new float[] { 0f, 1f, 2f },
+    new float[] { 0.2f, 0.5f, 0.8f },
+    new float[] { 0f, 0.5f, 1f }));
+
+var liveData = new ScatterChartData(
+    new ScatterChartMetadata(
+        new SurfaceAxisDescriptor("Time", "s", 0, 10),
+        new SurfaceAxisDescriptor("Band", "Hz", 0, 10),
+        new SurfaceValueRange(0, 1)),
+    [],
+    [live.Series]);
+
+chart.Plot.Clear();
+chart.Plot.Add.Scatter(liveData, "Live scatter");
+```
+
 ## What The Demo Shows Today
 
 - an independent chart application boundary
