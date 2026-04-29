@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Media;
+using System.Numerics;
 using Videra.SurfaceCharts.Avalonia.Controls.Overlay;
 using Videra.SurfaceCharts.Core;
 
@@ -39,6 +40,73 @@ internal static class SurfaceScenePainter
 
             context.DrawGeometry(brush, null, CreateTriangleGeometry(triangle));
         }
+    }
+
+    /// <summary>
+    /// Draws contour lines from a contour render scene using the specified projection.
+    /// </summary>
+    internal static void DrawContourLines(
+        DrawingContext context,
+        ContourRenderScene? contourScene,
+        SurfaceChartProjection? projection,
+        IPen? pen = null)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+
+        if (contourScene is null || contourScene.Lines.Count == 0 || projection is null)
+        {
+            return;
+        }
+
+        pen ??= new Pen(Brushes.DarkGray, 1.0);
+
+        foreach (var line in contourScene.Lines)
+        {
+            if (line.Segments.Count == 0)
+            {
+                continue;
+            }
+
+            var geometry = new StreamGeometry();
+            using (var geometryContext = geometry.Open())
+            {
+                var first = true;
+                foreach (var segment in line.Segments)
+                {
+                    // Convert normalized coordinates to model coordinates
+                    var startModel = NormalizedToModel(segment.Start, contourScene.Metadata);
+                    var endModel = NormalizedToModel(segment.End, contourScene.Metadata);
+
+                    var startScreen = projection.Project(startModel);
+                    var endScreen = projection.Project(endModel);
+
+                    if (first)
+                    {
+                        geometryContext.BeginFigure(startScreen, isFilled: false);
+                        first = false;
+                    }
+
+                    geometryContext.LineTo(endScreen);
+                }
+
+                if (!first)
+                {
+                    geometryContext.EndFigure(isClosed: false);
+                }
+            }
+
+            context.DrawGeometry(null, pen, geometry);
+        }
+    }
+
+    private static Vector3 NormalizedToModel(Vector3 normalized, SurfaceMetadata metadata)
+    {
+        // Normalized coordinates are in grid space (0..width-1, 0..height-1)
+        // Model coordinates use the axis ranges
+        var x = (float)(metadata.HorizontalAxis.Minimum + normalized.X * (metadata.HorizontalAxis.Maximum - metadata.HorizontalAxis.Minimum) / (metadata.Width - 1));
+        var y = normalized.Y; // Y (height) stays as-is
+        var z = (float)(metadata.VerticalAxis.Minimum + normalized.Z * (metadata.VerticalAxis.Maximum - metadata.VerticalAxis.Minimum) / (metadata.Height - 1));
+        return new Vector3(x, y, z);
     }
 
     internal static IReadOnlyList<ProjectedSurfaceTriangle> ProjectTriangles(SurfaceRenderScene? scene, Size viewSize)

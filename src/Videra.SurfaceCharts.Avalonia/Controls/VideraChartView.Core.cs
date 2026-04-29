@@ -21,6 +21,7 @@ public partial class VideraChartView : Decorator
     private readonly ISurfaceChartNativeHostFactory _nativeHostFactory;
     private readonly Grid _hostContainer;
     private readonly SurfaceChartOverlayLayer _overlayLayer;
+    private readonly ContourSceneCache _contourSceneCache = new();
     private ISurfaceChartNativeHost? _nativeHost;
 
     internal event EventHandler<SurfaceChartTileRequestFailedEventArgs>? TileRequestFailed;
@@ -55,6 +56,16 @@ public partial class VideraChartView : Decorator
     /// Gets the latest Plot-owned scatter rendering and streaming diagnostics.
     /// </summary>
     public ScatterChartRenderingStatus ScatterRenderingStatus { get; private set; }
+
+    /// <summary>
+    /// Gets the latest Plot-owned bar chart rendering diagnostics.
+    /// </summary>
+    public BarChartRenderingStatus BarRenderingStatus { get; private set; }
+
+    /// <summary>
+    /// Gets the latest Plot-owned contour rendering diagnostics.
+    /// </summary>
+    public ContourChartRenderingStatus ContourRenderingStatus { get; private set; }
 
     /// <summary>
     /// Gets the chart plot model used to add surface, waterfall, and scatter series.
@@ -92,6 +103,8 @@ public partial class VideraChartView : Decorator
             InvalidateRenderScene,
             InvalidateOverlay);
         ScatterRenderingStatus = CreateScatterRenderingStatus();
+        ContourRenderingStatus = CreateContourRenderingStatus();
+        BarRenderingStatus = CreateBarRenderingStatus();
 
         _overlayLayer = new SurfaceChartOverlayLayer(this)
         {
@@ -112,6 +125,7 @@ public partial class VideraChartView : Decorator
         _runtime.UpdateViewSize(finalSize);
         UpdateOverlayViewSize(finalSize);
         UpdateScatterRenderingStatus();
+        UpdateBarRenderingStatus();
         return base.ArrangeOverride(finalSize);
     }
 
@@ -179,6 +193,7 @@ public partial class VideraChartView : Decorator
     {
         LastRefreshRevision = Plot.Revision;
         UpdateScatterRenderingStatus();
+        UpdateContourRenderingStatus();
         InvalidateRenderScene();
     }
 
@@ -205,6 +220,17 @@ public partial class VideraChartView : Decorator
         ScatterRenderingStatus = nextStatus;
     }
 
+    private void UpdateContourRenderingStatus()
+    {
+        var nextStatus = CreateContourRenderingStatus();
+        if (ContourRenderingStatus == nextStatus)
+        {
+            return;
+        }
+
+        ContourRenderingStatus = nextStatus;
+    }
+
     private ScatterChartRenderingStatus CreateScatterRenderingStatus()
     {
         var scatterData = Plot.ActiveScatterSeries?.ScatterData;
@@ -229,6 +255,66 @@ public partial class VideraChartView : Decorator
             ViewSize = _runtime.ViewSize,
             CameraTarget = ViewState.Camera.Target,
             CameraDistance = ViewState.Camera.Distance,
+        };
+    }
+
+    private void UpdateBarRenderingStatus()
+    {
+        var nextStatus = CreateBarRenderingStatus();
+        if (BarRenderingStatus == nextStatus)
+        {
+            return;
+        }
+
+        BarRenderingStatus = nextStatus;
+    }
+
+    private BarChartRenderingStatus CreateBarRenderingStatus()
+    {
+        var barData = Plot.ActiveBarSeries?.BarData;
+        var hasBarData = barData is not null;
+        return new BarChartRenderingStatus
+        {
+            HasSource = hasBarData,
+            IsReady = hasBarData,
+            BackendKind = SurfaceChartRenderBackendKind.Software,
+            IsInteracting = _interactionController.HasActiveGesture,
+            SeriesCount = barData?.SeriesCount ?? 0,
+            CategoryCount = barData?.CategoryCount ?? 0,
+            BarCount = barData is not null ? barData.SeriesCount * barData.CategoryCount : 0,
+            Layout = barData?.Layout ?? BarChartLayout.Grouped,
+            ViewSize = _runtime.ViewSize,
+        };
+    }
+
+    private ContourChartRenderingStatus CreateContourRenderingStatus()
+    {
+        var contourData = Plot.ActiveContourSeries?.ContourData;
+        var hasContourData = contourData is not null;
+
+        if (!hasContourData)
+        {
+            return new ContourChartRenderingStatus
+            {
+                HasSource = false,
+                IsReady = false,
+            };
+        }
+
+        var scene = _contourSceneCache.GetOrCompute(contourData!, Plot.Revision);
+        var totalSegments = 0;
+        foreach (var line in scene.Lines)
+        {
+            totalSegments += line.Segments.Count;
+        }
+
+        return new ContourChartRenderingStatus
+        {
+            HasSource = true,
+            IsReady = scene.Lines.Count > 0,
+            LevelCount = contourData!.LevelCount,
+            ExtractedLineCount = scene.Lines.Count,
+            TotalSegmentCount = totalSegments,
         };
     }
 }

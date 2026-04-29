@@ -23,6 +23,14 @@ public partial class VideraChartView
         if (RenderSnapshot.ActiveBackend == SurfaceChartRenderBackendKind.Software)
         {
             SurfaceScenePainter.DrawScene(context, _renderHost.SoftwareScene, projection);
+
+            // Draw contour lines on top of surface
+            var contourData = Plot.ActiveContourSeries?.ContourData;
+            if (contourData is not null)
+            {
+                var contourScene = _contourSceneCache.GetOrCompute(contourData, Plot.Revision);
+                SurfaceScenePainter.DrawContourLines(context, contourScene, projection);
+            }
         }
     }
 
