@@ -58,7 +58,7 @@ internal static class SurfaceCrosshairOverlayPresenter
         // For crosshair, we use the probe's actual world coordinates if available,
         // otherwise we approximate from the screen position by projecting onto the ground plane.
         var (probeX, probeZ) = ResolveProbeWorldCoordinates(
-            screenPos, projection, metadata, yMin, xMin, xMax, zMin, zMax);
+            screenPos, projection, yMin, xMin, xMax, zMin, zMax);
 
         // Project X guideline: horizontal line at probe Z, spanning X range
         var xLineStart = projection.Project(new Vector3(xMin, yMin, probeZ));
@@ -124,7 +124,6 @@ internal static class SurfaceCrosshairOverlayPresenter
     private static (float X, float Z) ResolveProbeWorldCoordinates(
         Point screenPos,
         SurfaceChartProjection projection,
-        SurfaceMetadata metadata,
         float yMin,
         float xMin,
         float xMax,
@@ -134,11 +133,6 @@ internal static class SurfaceCrosshairOverlayPresenter
         // Estimate world X/Z from screen position by projecting the four ground-plane corners
         // and finding the nearest match. This is an approximation — for exact values, the
         // hovered probe info should be used (available in the coordinator's probe state).
-        var centerWorld = new Vector3(
-            (xMin + xMax) * 0.5f,
-            yMin,
-            (zMin + zMax) * 0.5f);
-        var centerScreen = projection.Project(centerWorld);
 
         // Use the screen offset from center to estimate world position
         var screenBounds = projection.ScreenBounds;
