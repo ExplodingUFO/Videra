@@ -12,7 +12,7 @@ Add a bounded chart-local PNG/bitmap snapshot export path for Plot-authored Surf
 | 362 | Plot Snapshot Export Contract | Add a bounded Plot-owned snapshot request/result contract for PNG/bitmap outputs. | SNAP-01, SNAP-02, SNAP-03, SNAP-04, VER-01, VER-02, VER-03 | Videra-lu9.2 | Complete |
 | 363 | Chart Snapshot Capture Implementation | Implement the minimal Avalonia-local bitmap snapshot path for `VideraChartView.Plot`. | CAP-01, CAP-02, CAP-03, CAP-04, VER-01, VER-02, VER-03 | Videra-lu9.3 | Complete |
 | 364 | Demo Smoke Doctor Snapshot Evidence | Refresh demo, consumer smoke, support artifacts, and Doctor parsing around snapshot artifacts and manifests. | DEMO-01, DEMO-02, DEMO-03, DEMO-04, VER-01, VER-02, VER-03 | Videra-lu9.4 | Planned (plan ready) |
-| 365 | Snapshot Export Guardrails and Docs | Close docs, public roadmap, guardrails, and Beads state around chart-local bitmap snapshot export scope. | GUARD-01, GUARD-02, GUARD-03, GUARD-04, VER-01, VER-02, VER-03 | Videra-lu9.5 | Planned |
+| 365 | Snapshot Export Guardrails and Docs | Close docs, public roadmap, guardrails, and Beads state around chart-local bitmap snapshot export scope. | GUARD-01, GUARD-02, GUARD-03, GUARD-04, VER-01, VER-02, VER-03 | Videra-lu9.5 | Planned (plan ready) |
 
 ## Phase Details
 
@@ -97,7 +97,7 @@ Plans:
 
 ### Phase 365: Snapshot Export Guardrails and Docs
 
-**Status:** planned
+**Status:** planned (plan ready)
 **Bead:** Videra-lu9.5
 **Depends on:** Phase 364
 **Goal:** Align docs, public roadmap, repository guardrails, and Beads state around the chart-local bitmap snapshot export contract.
@@ -107,6 +107,11 @@ Plans:
 2. Guardrails keep snapshot export work out of PDF/vector export, backend expansion, generic plotting engine scope, compatibility wrappers, hidden fallback/downshift behavior, and god-code.
 3. Package/sample docs show concise Plot-owned snapshot export and manifest usage.
 4. Beads/public roadmap and local planning state are clean.
+
+**Plans:** 1 plan
+
+Plans:
+- [ ] 365-01-PLAN.md — Add scope guardrails, update docs, close Beads, mark milestone complete
 
 **Output:** `.planning/phases/365-snapshot-export-guardrails-and-docs/SUMMARY.md`
 

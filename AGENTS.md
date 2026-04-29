@@ -159,4 +159,31 @@ For more details, see README.md and docs/QUICKSTART.md.
 - NEVER say "ready to push when you are" - YOU must push
 - If push fails, resolve and retry until it succeeds
 
+## Snapshot Export Scope Boundaries (v2.52)
+
+Chart-local bitmap snapshot export is the shipped v2.52 capability. These boundaries prevent scope creep:
+
+### What Exists
+
+- `VideraChartView.Plot.CaptureSnapshotAsync(PlotSnapshotRequest)` — Plot-owned PNG capture
+- `PlotSnapshotRequest` / `PlotSnapshotResult` / `PlotSnapshotManifest` — contract types in `src/Videra.SurfaceCharts.Avalonia/Controls/Plot/`
+- `Plot3DOutputCapabilityDiagnostic` reports `ImageExport` as supported
+- Doctor parses snapshot status (present/failed/unavailable/missing)
+- Demo exposes bounded CaptureSnapshot button (1920x1080, no config UI)
+
+### Blocked — Do Not Reintroduce
+
+- **Old chart view controls**: `SurfaceChartView`, `WaterfallChartView`, `ScatterChartView` — `VideraChartView` is the single shipped control
+- **Direct public `Source` API**: `Plot.Add.Surface/Waterfall/Scatter` is the data-loading path
+- **PDF/vector export**: This milestone is PNG/bitmap only
+- **Backend expansion**: Snapshot stays chart-local via Avalonia `RenderTargetBitmap`
+- **Generic plotting engine**: Scoped to current 3D chart model
+- **Compatibility wrappers**: Removed alpha APIs stay removed
+- **Hidden fallback/downshift**: Unsupported output = explicit diagnostics
+- **God-code workbench**: Demo/support stays bounded and sample-first
+
+### Guardrail Verification
+
+Run `scripts/Test-SnapshotExportScope.ps1` to verify no scope violations exist.
+
 <!-- END BEADS INTEGRATION -->
