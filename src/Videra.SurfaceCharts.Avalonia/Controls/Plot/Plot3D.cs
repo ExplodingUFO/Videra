@@ -15,6 +15,7 @@ public sealed class Plot3D
     private SurfaceColorMap? _colorMap;
     private SurfaceChartOverlayOptions _overlayOptions = SurfaceChartOverlayOptions.Default;
     private Func<int, int, double, Task<RenderTargetBitmap>>? _renderOffscreen;
+    private Action<bool>? _setSnapshotMode;
 
     internal Plot3D(Action changed)
     {
@@ -233,6 +234,15 @@ public sealed class Plot3D
     }
 
     /// <summary>
+    /// Sets the snapshot mode callback used to suppress interaction chrome during snapshot capture.
+    /// </summary>
+    /// <param name="setSnapshotMode">The delegate that sets snapshot mode on the overlay coordinator.</param>
+    internal void SetSnapshotModeCallback(Action<bool> setSnapshotMode)
+    {
+        _setSnapshotMode = setSnapshotMode;
+    }
+
+    /// <summary>
     /// Captures a chart-local PNG/bitmap snapshot through the Plot-owned contract.
     /// </summary>
     /// <param name="request">The snapshot request specifying dimensions, format, and background.</param>
@@ -277,8 +287,14 @@ public sealed class Plot3D
 
         try
         {
+            // Enable snapshot mode to suppress interaction chrome (crosshair, hovered probe, toolbar)
+            _setSnapshotMode?.Invoke(true);
+
             // Render offscreen via bridge
             var bitmap = await _renderOffscreen(request.Width, request.Height, request.Scale).ConfigureAwait(false);
+
+            // Restore normal mode
+            _setSnapshotMode?.Invoke(false);
 
             // Encode to PNG and save
             var outputPath = System.IO.Path.ChangeExtension(System.IO.Path.GetRandomFileName(), ".png");
@@ -304,6 +320,9 @@ public sealed class Plot3D
         }
         catch (Exception ex)
         {
+            // Ensure snapshot mode is restored even on failure
+            _setSnapshotMode?.Invoke(false);
+
             return PlotSnapshotResult.Failed(
                 PlotSnapshotDiagnostic.Create("snapshot.capture.failed", $"Snapshot capture failed: {ex.Message}"),
                 stopwatch.Elapsed);

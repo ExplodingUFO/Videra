@@ -119,4 +119,12 @@ public partial class VideraChartView
 
         _overlayCoordinator.Render(context, _chartProjection);
     }
+
+    /// <summary>
+    /// Sets snapshot mode on the overlay coordinator to suppress interaction chrome during snapshot capture.
+    /// </summary>
+    internal void SetSnapshotMode(bool isSnapshotMode)
+    {
+        _overlayCoordinator.IsSnapshotMode = isSnapshotMode;
+    }
 }
