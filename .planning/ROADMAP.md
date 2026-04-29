@@ -79,7 +79,7 @@
 |-------|----------------|--------|-----------|
 | 371. Crosshair Overlay | 1/1 | Complete | 2026-04-29 |
 | 372. Enhanced Tooltips | 0/TBD | Not started | - |
-| 373. Series Probe Strategies | 0/TBD | Not started | - |
+| 373. Series Probe Strategies | 1/1 | Complete | 2026-04-29 |
 | 374. Keyboard & Toolbar Controls | 0/TBD | Not started | - |
 | 375. Integration and Verification | 0/TBD | Not started | - |
 
