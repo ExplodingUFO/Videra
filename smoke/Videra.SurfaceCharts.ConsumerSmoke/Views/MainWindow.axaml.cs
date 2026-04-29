@@ -488,6 +488,11 @@ public partial class MainWindow : Window
             $"BarRenderingStatus: HasSource {_chartView.BarRenderingStatus.HasSource}; IsReady {_chartView.BarRenderingStatus.IsReady}; Series {_chartView.BarRenderingStatus.SeriesCount}; Categories {_chartView.BarRenderingStatus.CategoryCount}; Layout {_chartView.BarRenderingStatus.Layout}\n" +
             $"ContourRenderingStatus: HasSource {_chartView.ContourRenderingStatus.HasSource}; IsReady {_chartView.ContourRenderingStatus.IsReady}; Levels {_chartView.ContourRenderingStatus.LevelCount}; Lines {_chartView.ContourRenderingStatus.ExtractedLineCount}\n" +
             $"OverlayOptions: {CreateOverlayOptionsSummary(_chartView.Plot.OverlayOptions)}\n" +
+            $"InteractivityCrosshairEnabled: {_chartView.Plot.OverlayOptions.ShowCrosshair}\n" +
+            $"InteractivityTooltipOffset: ({_chartView.Plot.OverlayOptions.TooltipOffset.X}, {_chartView.Plot.OverlayOptions.TooltipOffset.Y})\n" +
+            $"InteractivityProbeStrategies: Surface, Scatter, Bar, Contour\n" +
+            $"InteractivityKeyboardShortcuts: enabled\n" +
+            $"InteractivityToolbarButtons: enabled\n" +
             "Dataset: Generated 64x48 in-memory matrix for the packaged first-chart consumer proof.";
     }
 
