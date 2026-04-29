@@ -20,10 +20,14 @@ public partial class MainWindow : Window
     private const int AnalyticsSourceIndex = 2;
     private const int WaterfallSourceIndex = 3;
     private const int ScatterSourceIndex = 4;
+    private const int BarSourceIndex = 5;
+    private const int ContourSourceIndex = 6;
 
     private readonly VideraChartView _surfaceChartView;
     private readonly VideraChartView _waterfallChartView;
     private readonly VideraChartView _scatterChartView;
+    private readonly VideraChartView _barChartView;
+    private readonly VideraChartView _contourPlotView;
     private readonly ComboBox _sourceSelector;
     private readonly ComboBox _scatterScenarioSelector;
     private readonly Button _fitToDataButton;
@@ -64,6 +68,10 @@ public partial class MainWindow : Window
             ?? throw new InvalidOperationException("WaterfallPlotView is missing.");
         _scatterChartView = this.FindControl<VideraChartView>("ScatterPlotView")
             ?? throw new InvalidOperationException("ScatterPlotView is missing.");
+        _barChartView = this.FindControl<VideraChartView>("BarChartPlotView")
+            ?? throw new InvalidOperationException("BarChartPlotView is missing.");
+        _contourPlotView = this.FindControl<VideraChartView>("ContourPlotView")
+            ?? throw new InvalidOperationException("ContourPlotView is missing.");
         _sourceSelector = this.FindControl<ComboBox>("SourceSelector")
             ?? throw new InvalidOperationException("Source selector is missing.");
         _scatterScenarioSelector = this.FindControl<ComboBox>("ScatterScenarioSelector")
@@ -110,6 +118,8 @@ public partial class MainWindow : Window
         ConfigureSurfaceFamilyChartView(_surfaceChartView);
         ConfigureSurfaceFamilyChartView(_waterfallChartView);
         ConfigureScatterFamilyChartView(_scatterChartView);
+        ConfigureSurfaceFamilyChartView(_barChartView);
+        ConfigureSurfaceFamilyChartView(_contourPlotView);
 
         _scatterScenarioSelector.ItemsSource = ScatterStreamingScenarios.All;
         _scatterScenarioSelector.SelectedIndex = 0;
@@ -132,9 +142,14 @@ public partial class MainWindow : Window
         RefreshActiveProofTexts();
     }
 
-    private VideraChartView ActiveSurfaceFamilyChartView => _waterfallChartView.IsVisible ? _waterfallChartView : _surfaceChartView;
+    private VideraChartView ActiveSurfaceFamilyChartView =>
+        _waterfallChartView.IsVisible ? _waterfallChartView :
+        _barChartView.IsVisible ? _barChartView :
+        _surfaceChartView;
 
     private bool IsScatterProofActive => _scatterChartView.IsVisible;
+
+    private bool IsContourProofActive => _contourPlotView.IsVisible;
 
     private void InitializeComponent()
     {
@@ -206,6 +221,18 @@ public partial class MainWindow : Window
         if (requestedIndex == ScatterSourceIndex)
         {
             ApplySelectedScatterScenario();
+            return;
+        }
+
+        if (requestedIndex == BarSourceIndex)
+        {
+            ApplyBarSource();
+            return;
+        }
+
+        if (requestedIndex == ContourSourceIndex)
+        {
+            ApplyContourSource();
             return;
         }
 
@@ -333,17 +360,53 @@ public partial class MainWindow : Window
         RefreshActiveProofTexts();
     }
 
+    private void ApplyBarSource()
+    {
+        var data = CreateSampleBarData();
+        SetActiveChartView(_barChartView);
+        _activeScatterData = null;
+        _barChartView.Plot.Clear();
+        _barChartView.Plot.Add.Bar(data, "Try next: Bar chart proof");
+        _barChartView.FitToData();
+        _activePlotPathHeading = "Try next: Bar chart proof";
+        _activePlotPathDetails = "Grouped bar chart with 3 series and 5 categories. Demonstrates Plot.Add.Bar with configurable per-series colors.";
+        _activeDatasetSummary = "Bar chart proof uses BarChartData with 3 BarSeries of 5 values each in Grouped layout.";
+        _activeAssetSummary = "No additional assets are used on this path.";
+        _datasetText.Text = _activeDatasetSummary;
+        RefreshActiveProofTexts();
+    }
+
+    private void ApplyContourSource()
+    {
+        var field = CreateSampleContourField();
+        SetActiveChartView(_contourPlotView);
+        _activeScatterData = null;
+        _contourPlotView.Plot.Clear();
+        _contourPlotView.Plot.Add.Contour(field, "Try next: Contour plot proof");
+        _contourPlotView.FitToData();
+        _activePlotPathHeading = "Try next: Contour plot proof";
+        _activePlotPathDetails = "Contour plot with marching squares iso-line extraction from a radial scalar field. Demonstrates Plot.Add.Contour.";
+        _activeDatasetSummary = "Contour plot proof uses a 32x32 radial scalar field with 10 default contour levels.";
+        _activeAssetSummary = "No additional assets are used on this path.";
+        _datasetText.Text = _activeDatasetSummary;
+        RefreshActiveProofTexts();
+    }
+
     private void SetActiveChartView(VideraChartView chartView)
     {
         _surfaceChartView.IsVisible = ReferenceEquals(chartView, _surfaceChartView);
         _waterfallChartView.IsVisible = ReferenceEquals(chartView, _waterfallChartView);
         _scatterChartView.IsVisible = ReferenceEquals(chartView, _scatterChartView);
+        _barChartView.IsVisible = ReferenceEquals(chartView, _barChartView);
+        _contourPlotView.IsVisible = ReferenceEquals(chartView, _contourPlotView);
     }
 
     private void OnRenderStatusChanged(object? sender, EventArgs e)
     {
         _ = e;
-        if (!ReferenceEquals(sender, ActiveSurfaceFamilyChartView) && !ReferenceEquals(sender, _scatterChartView))
+        if (!ReferenceEquals(sender, ActiveSurfaceFamilyChartView) &&
+            !ReferenceEquals(sender, _scatterChartView) &&
+            !ReferenceEquals(sender, _contourPlotView))
         {
             return;
         }
@@ -354,7 +417,9 @@ public partial class MainWindow : Window
     private void OnInteractionQualityChanged(object? sender, EventArgs e)
     {
         _ = e;
-        if (!ReferenceEquals(sender, ActiveSurfaceFamilyChartView) && !ReferenceEquals(sender, _scatterChartView))
+        if (!ReferenceEquals(sender, ActiveSurfaceFamilyChartView) &&
+            !ReferenceEquals(sender, _scatterChartView) &&
+            !ReferenceEquals(sender, _contourPlotView))
         {
             return;
         }
@@ -364,7 +429,10 @@ public partial class MainWindow : Window
 
     private void OnChartViewPropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
     {
-        if (!ReferenceEquals(sender, ActiveSurfaceFamilyChartView) || e.Property != VideraChartView.ViewStateProperty)
+        if (!ReferenceEquals(sender, ActiveSurfaceFamilyChartView) &&
+            !ReferenceEquals(sender, _contourPlotView) &&
+            !ReferenceEquals(sender, _barChartView) ||
+            e.Property != VideraChartView.ViewStateProperty)
         {
             return;
         }
@@ -379,6 +447,14 @@ public partial class MainWindow : Window
         if (IsScatterProofActive)
         {
             _scatterChartView.FitToData();
+        }
+        else if (IsContourProofActive)
+        {
+            _contourPlotView.FitToData();
+        }
+        else if (_barChartView.IsVisible)
+        {
+            _barChartView.FitToData();
         }
         else
         {
@@ -395,6 +471,14 @@ public partial class MainWindow : Window
         if (IsScatterProofActive)
         {
             _scatterChartView.ResetCamera();
+        }
+        else if (IsContourProofActive)
+        {
+            _contourPlotView.ResetCamera();
+        }
+        else if (_barChartView.IsVisible)
+        {
+            _barChartView.ResetCamera();
         }
         else
         {
@@ -429,7 +513,16 @@ public partial class MainWindow : Window
 
         try
         {
-            var chartView = IsScatterProofActive ? _scatterChartView : ActiveSurfaceFamilyChartView;
+            VideraChartView chartView;
+            if (IsScatterProofActive)
+                chartView = _scatterChartView;
+            else if (IsContourProofActive)
+                chartView = _contourPlotView;
+            else if (_barChartView.IsVisible)
+                chartView = _barChartView;
+            else
+                chartView = ActiveSurfaceFamilyChartView;
+
             var request = new PlotSnapshotRequest(1920, 1080, 1.0, PlotSnapshotBackground.Transparent, PlotSnapshotFormat.Png);
             var result = await chartView.Plot.CaptureSnapshotAsync(request).ConfigureAwait(true);
             _lastSnapshotResult = result;
@@ -469,6 +562,26 @@ public partial class MainWindow : Window
             return;
         }
 
+        if (IsContourProofActive)
+        {
+            var contourStatus = _contourPlotView.ContourRenderingStatus;
+            _interactionQualityText.Text =
+                $"Current mode: {_contourPlotView.InteractionQuality}\n" +
+                "Interactive: pointer navigation is active on the unified plot path.\n" +
+                $"Refine: settled plot is ready for {contourStatus.ExtractedLineCount} contour lines.";
+            return;
+        }
+
+        if (_barChartView.IsVisible)
+        {
+            var barStatus = _barChartView.BarRenderingStatus;
+            _interactionQualityText.Text =
+                $"Current mode: {_barChartView.InteractionQuality}\n" +
+                "Interactive: pointer navigation is active on the unified plot path.\n" +
+                $"Refine: settled plot is ready for {barStatus.BarCount} bars.";
+            return;
+        }
+
         _interactionQualityText.Text =
             $"Current mode: {ActiveSurfaceFamilyChartView.InteractionQuality}\n" +
             "Interactive: lighter requests while orbit, pan, dolly, or focus input is in flight.\n" +
@@ -487,6 +600,28 @@ public partial class MainWindow : Window
                 $"Current scene: {scatter?.SeriesCount ?? 0} series, {scatter?.PointCount ?? 0} points.\n" +
                 $"Columnar series: {scatter?.ColumnarSeriesCount ?? 0}; Retained columnar points: {scatter?.ColumnarPointCount ?? 0}; Pickable points: {scatter?.PickablePointCount ?? 0}.\n" +
                 $"Streaming appends: {scatter?.StreamingAppendBatchCount ?? 0}; FIFO capacity: {FormatFifoCapacity(scatter?.ConfiguredFifoCapacity)}; Dropped points: {scatter?.StreamingDroppedPointCount ?? 0}.";
+            return;
+        }
+
+        if (IsContourProofActive)
+        {
+            var contourStatus = _contourPlotView.ContourRenderingStatus;
+            _statusText.Text =
+                $"{_activePlotPathHeading}\n" +
+                $"{_activePlotPathDetails}\n" +
+                "Contour proof is authored through VideraChartView.Plot.Add.Contour.\n" +
+                $"Current scene: {contourStatus.LevelCount} levels, {contourStatus.ExtractedLineCount} lines, {contourStatus.TotalSegmentCount} segments.";
+            return;
+        }
+
+        if (_barChartView.IsVisible)
+        {
+            var barStatus = _barChartView.BarRenderingStatus;
+            _statusText.Text =
+                $"{_activePlotPathHeading}\n" +
+                $"{_activePlotPathDetails}\n" +
+                "Bar proof is authored through VideraChartView.Plot.Add.Bar.\n" +
+                $"Current scene: {barStatus.SeriesCount} series, {barStatus.CategoryCount} categories, {barStatus.BarCount} bars, layout {barStatus.Layout}.";
             return;
         }
 
@@ -513,6 +648,30 @@ public partial class MainWindow : Window
             return;
         }
 
+        if (IsContourProofActive)
+        {
+            var contourStatus = _contourPlotView.ContourRenderingStatus;
+            _renderingPathText.Text =
+                "Plot path: VideraChartView.Plot.Add.Contour\n" +
+                $"Plot revision: {_contourPlotView.Plot.Revision}\n" +
+                $"Interaction quality: {_contourPlotView.InteractionQuality}\n" +
+                $"Has source: {contourStatus.HasSource}; Is ready: {contourStatus.IsReady}\n" +
+                $"Levels: {contourStatus.LevelCount}; Lines: {contourStatus.ExtractedLineCount}; Segments: {contourStatus.TotalSegmentCount}";
+            return;
+        }
+
+        if (_barChartView.IsVisible)
+        {
+            var barStatus = _barChartView.BarRenderingStatus;
+            _renderingPathText.Text =
+                "Plot path: VideraChartView.Plot.Add.Bar\n" +
+                $"Plot revision: {_barChartView.Plot.Revision}\n" +
+                $"Interaction quality: {_barChartView.InteractionQuality}\n" +
+                $"Has source: {barStatus.HasSource}; Is ready: {barStatus.IsReady}\n" +
+                $"Series: {barStatus.SeriesCount}; Categories: {barStatus.CategoryCount}; Bars: {barStatus.BarCount}; Layout: {barStatus.Layout}";
+            return;
+        }
+
         var surfaceStatus = ActiveSurfaceFamilyChartView.RenderingStatus;
         _renderingPathText.Text =
             $"Active backend: {surfaceStatus.ActiveBackend}\n" +
@@ -524,9 +683,39 @@ public partial class MainWindow : Window
 
     private void UpdateRenderingDiagnosticsText()
     {
-        _renderingDiagnosticsText.Text = IsScatterProofActive
-            ? CreateScatterRenderingDiagnosticsSummary(_activeScatterData, _scatterChartView)
-            : CreateSurfaceRenderingDiagnosticsSummary(ActiveSurfaceFamilyChartView.RenderingStatus);
+        if (IsScatterProofActive)
+        {
+            _renderingDiagnosticsText.Text = CreateScatterRenderingDiagnosticsSummary(_activeScatterData, _scatterChartView);
+            return;
+        }
+
+        if (IsContourProofActive)
+        {
+            var contourStatus = _contourPlotView.ContourRenderingStatus;
+            _renderingDiagnosticsText.Text =
+                $"HasSource: {contourStatus.HasSource}\n" +
+                $"IsReady: {contourStatus.IsReady}\n" +
+                $"LevelCount: {contourStatus.LevelCount}\n" +
+                $"ExtractedLineCount: {contourStatus.ExtractedLineCount}\n" +
+                $"TotalSegmentCount: {contourStatus.TotalSegmentCount}";
+            return;
+        }
+
+        if (_barChartView.IsVisible)
+        {
+            var barStatus = _barChartView.BarRenderingStatus;
+            _renderingDiagnosticsText.Text =
+                $"HasSource: {barStatus.HasSource}\n" +
+                $"IsReady: {barStatus.IsReady}\n" +
+                $"BackendKind: {barStatus.BackendKind}\n" +
+                $"SeriesCount: {barStatus.SeriesCount}\n" +
+                $"CategoryCount: {barStatus.CategoryCount}\n" +
+                $"BarCount: {barStatus.BarCount}\n" +
+                $"Layout: {barStatus.Layout}";
+            return;
+        }
+
+        _renderingDiagnosticsText.Text = CreateSurfaceRenderingDiagnosticsSummary(ActiveSurfaceFamilyChartView.RenderingStatus);
     }
 
     private void UpdateOverlayOptionsText()
@@ -536,6 +725,14 @@ public partial class MainWindow : Window
             _overlayOptionsText.Text =
                 "VideraChartView.Plot exposes `OverlayOptions`.\n" +
                 "This proof path stays direct-scatter only; Plot-level presentation is shared API but scatter overlay rendering is not widened in this demo.";
+            return;
+        }
+
+        if (IsContourProofActive)
+        {
+            _overlayOptionsText.Text =
+                "VideraChartView.Plot exposes `OverlayOptions`.\n" +
+                "This proof path stays direct-contour only; Plot-level presentation is shared API but contour overlay rendering is not widened in this demo.";
             return;
         }
 
@@ -564,6 +761,8 @@ public partial class MainWindow : Window
     {
         _builtInInteractionText.Text = IsScatterProofActive
             ? "Left drag orbit. Wheel dolly. Scatter proof does not expose right-drag pan or Ctrl + Left drag focus zoom."
+            : IsContourProofActive
+            ? "Left drag orbit. Right drag pan. Wheel dolly. Ctrl + Left drag focus zoom. Contour proof shares the same interaction contract."
             : "Left drag orbit. Right drag pan. Wheel dolly. Ctrl + Left drag focus zoom.";
     }
 
@@ -599,6 +798,35 @@ public partial class MainWindow : Window
             detailLevelX: 0,
             detailLevelY: 0,
             reductionKernel: new ManagedSurfaceTileReductionKernel());
+    }
+
+    private static BarChartData CreateSampleBarData()
+    {
+        return new BarChartData(
+        [
+            new BarSeries([12.0, 19.0, 3.0, 5.0, 8.0], 0xFF38BDF8u, "Series A"),
+            new BarSeries([7.0, 11.0, 15.0, 8.0, 13.0], 0xFFF97316u, "Series B"),
+            new BarSeries([5.0, 9.0, 12.0, 18.0, 6.0], 0xFF2DD4BFu, "Series C"),
+        ]);
+    }
+
+    private static ContourChartData CreateSampleContourField()
+    {
+        const int size = 32;
+        var values = new float[size * size];
+        for (var y = 0; y < size; y++)
+        {
+            for (var x = 0; x < size; x++)
+            {
+                var dx = (x - (size - 1) / 2.0) / ((size - 1) / 2.0);
+                var dy = (y - (size - 1) / 2.0) / ((size - 1) / 2.0);
+                values[y * size + x] = (float)Math.Sqrt(dx * dx + dy * dy);
+            }
+        }
+
+        var range = new SurfaceValueRange(values.Min(), values.Max());
+        var field = new SurfaceScalarField(size, size, values, range);
+        return new ContourChartData(field);
     }
 
     private static SurfaceMatrix CreateAnalyticsProofMatrix()
@@ -899,7 +1127,53 @@ public partial class MainWindow : Window
             return;
         }
 
-        var surfaceStatus = ActiveSurfaceFamilyChartView.RenderingStatus;
+        if (IsContourProofActive)
+        {
+            var contourStatus = _contourPlotView.ContourRenderingStatus;
+            _supportSummaryText.Text =
+                "SurfaceCharts support summary\n" +
+                $"GeneratedUtc: {DateTimeOffset.UtcNow:O}\n" +
+                "EvidenceKind: SurfaceChartsContourDatasetProof\n" +
+                "EvidenceOnly: true - values are support evidence, not stable benchmark guarantees.\n" +
+                $"ChartControl: {CreateActiveChartControlSummary()}\n" +
+                $"EnvironmentRuntime: {CreateEnvironmentRuntimeSummary()}\n" +
+                $"AssemblyIdentity: {CreateAssemblyIdentitySummary()}\n" +
+                $"BackendDisplayEnvironment: {CreateBackendDisplayEnvironmentSummary()}\n" +
+                $"CacheLoadFailure: {CreateCacheLoadFailureSummary()}\n" +
+                $"Plot path: {_activePlotPathHeading}\n" +
+                $"Plot details: {_activePlotPathDetails}\n" +
+                $"SeriesCount: {_contourPlotView.Plot.Series.Count}\n" +
+                $"ActiveSeries: {CreateActiveSeriesSummary(_contourPlotView)}\n" +
+                $"ChartKind: {CreateChartKindSummary(_contourPlotView)}\n" +
+                $"ColorMap: {CreateColorMapSummary(_contourPlotView.Plot.ColorMap)}\n" +
+                $"PrecisionProfile: {CreatePrecisionProfileSummary(_contourPlotView)}\n" +
+                $"OutputEvidenceKind: {CreateOutputEvidenceKindSummary(_contourPlotView)}\n" +
+                $"OutputCapabilityDiagnostics: {CreateOutputCapabilityDiagnosticsSummary(_contourPlotView)}\n" +
+                $"SnapshotStatus: {CreateSnapshotStatusSummary()}\n" +
+                $"SnapshotPath: {CreateSnapshotPathSummary()}\n" +
+                $"SnapshotWidth: {CreateSnapshotWidthSummary()}\n" +
+                $"SnapshotHeight: {CreateSnapshotHeightSummary()}\n" +
+                $"SnapshotFormat: {CreateSnapshotFormatSummary()}\n" +
+                $"SnapshotBackground: {CreateSnapshotBackgroundSummary()}\n" +
+                $"SnapshotOutputEvidenceKind: {CreateSnapshotOutputEvidenceKindSummary()}\n" +
+                $"SnapshotDatasetEvidenceKind: {CreateSnapshotDatasetEvidenceKindSummary()}\n" +
+                $"SnapshotActiveSeriesIdentity: {CreateSnapshotActiveSeriesIdentitySummary()}\n" +
+                $"SnapshotCreatedUtc: {CreateSnapshotCreatedUtcSummary()}\n" +
+                $"DatasetEvidenceKind: {CreateDatasetEvidenceKindSummary(_contourPlotView)}\n" +
+                $"DatasetSeriesCount: {CreateDatasetSeriesCountSummary(_contourPlotView)}\n" +
+                $"DatasetActiveSeriesIndex: {CreateDatasetActiveSeriesIndexSummary(_contourPlotView)}\n" +
+                $"DatasetActiveSeriesMetadata: {CreateDatasetActiveSeriesMetadataSummary(_contourPlotView)}\n" +
+                $"ContourRenderingStatus: HasSource {contourStatus.HasSource}; IsReady {contourStatus.IsReady}; Levels {contourStatus.LevelCount}; Lines {contourStatus.ExtractedLineCount}; Segments {contourStatus.TotalSegmentCount}\n" +
+                $"InteractionQuality: {_contourPlotView.InteractionQuality}\n" +
+                $"RenderingStatus:\nContour: HasSource={contourStatus.HasSource}; IsReady={contourStatus.IsReady}; Levels={contourStatus.LevelCount}; Lines={contourStatus.ExtractedLineCount}; Segments={contourStatus.TotalSegmentCount}\n" +
+                $"OverlayOptions: {CreateOverlayOptionsSummary(_contourPlotView.Plot.OverlayOptions)}\n" +
+                $"Cache asset: {_activeAssetSummary}\n" +
+                $"Dataset: {_activeDatasetSummary}";
+            return;
+        }
+
+        var activeChartView = ActiveSurfaceFamilyChartView;
+        var surfaceStatus = activeChartView.RenderingStatus;
         _supportSummaryText.Text =
             "SurfaceCharts support summary\n" +
             $"GeneratedUtc: {DateTimeOffset.UtcNow:O}\n" +
@@ -912,13 +1186,13 @@ public partial class MainWindow : Window
             $"CacheLoadFailure: {CreateCacheLoadFailureSummary()}\n" +
             $"Plot path: {_activePlotPathHeading}\n" +
             $"Plot details: {_activePlotPathDetails}\n" +
-            $"SeriesCount: {ActiveSurfaceFamilyChartView.Plot.Series.Count}\n" +
-            $"ActiveSeries: {CreateActiveSeriesSummary(ActiveSurfaceFamilyChartView)}\n" +
-            $"ChartKind: {CreateChartKindSummary(ActiveSurfaceFamilyChartView)}\n" +
-            $"ColorMap: {CreateColorMapSummary(ActiveSurfaceFamilyChartView.Plot.ColorMap)}\n" +
-            $"PrecisionProfile: {CreatePrecisionProfileSummary(ActiveSurfaceFamilyChartView)}\n" +
-            $"OutputEvidenceKind: {CreateOutputEvidenceKindSummary(ActiveSurfaceFamilyChartView)}\n" +
-            $"OutputCapabilityDiagnostics: {CreateOutputCapabilityDiagnosticsSummary(ActiveSurfaceFamilyChartView)}\n" +
+            $"SeriesCount: {activeChartView.Plot.Series.Count}\n" +
+            $"ActiveSeries: {CreateActiveSeriesSummary(activeChartView)}\n" +
+            $"ChartKind: {CreateChartKindSummary(activeChartView)}\n" +
+            $"ColorMap: {CreateColorMapSummary(activeChartView.Plot.ColorMap)}\n" +
+            $"PrecisionProfile: {CreatePrecisionProfileSummary(activeChartView)}\n" +
+            $"OutputEvidenceKind: {CreateOutputEvidenceKindSummary(activeChartView)}\n" +
+            $"OutputCapabilityDiagnostics: {CreateOutputCapabilityDiagnosticsSummary(activeChartView)}\n" +
             $"SnapshotStatus: {CreateSnapshotStatusSummary()}\n" +
             $"SnapshotPath: {CreateSnapshotPathSummary()}\n" +
             $"SnapshotWidth: {CreateSnapshotWidthSummary()}\n" +
@@ -929,25 +1203,32 @@ public partial class MainWindow : Window
             $"SnapshotDatasetEvidenceKind: {CreateSnapshotDatasetEvidenceKindSummary()}\n" +
             $"SnapshotActiveSeriesIdentity: {CreateSnapshotActiveSeriesIdentitySummary()}\n" +
             $"SnapshotCreatedUtc: {CreateSnapshotCreatedUtcSummary()}\n" +
-            $"DatasetEvidenceKind: {CreateDatasetEvidenceKindSummary(ActiveSurfaceFamilyChartView)}\n" +
-            $"DatasetSeriesCount: {CreateDatasetSeriesCountSummary(ActiveSurfaceFamilyChartView)}\n" +
-            $"DatasetActiveSeriesIndex: {CreateDatasetActiveSeriesIndexSummary(ActiveSurfaceFamilyChartView)}\n" +
-            $"DatasetActiveSeriesMetadata: {CreateDatasetActiveSeriesMetadataSummary(ActiveSurfaceFamilyChartView)}\n" +
+            $"DatasetEvidenceKind: {CreateDatasetEvidenceKindSummary(activeChartView)}\n" +
+            $"DatasetSeriesCount: {CreateDatasetSeriesCountSummary(activeChartView)}\n" +
+            $"DatasetActiveSeriesIndex: {CreateDatasetActiveSeriesIndexSummary(activeChartView)}\n" +
+            $"DatasetActiveSeriesMetadata: {CreateDatasetActiveSeriesMetadataSummary(activeChartView)}\n" +
             $"ViewState: {CreateViewStateSummary()}\n" +
-            $"InteractionQuality: {ActiveSurfaceFamilyChartView.InteractionQuality}\n" +
+            $"InteractionQuality: {activeChartView.InteractionQuality}\n" +
             $"RenderingStatus:\n{CreateSurfaceRenderingDiagnosticsSummary(surfaceStatus)}\n" +
-            $"OverlayOptions: {CreateOverlayOptionsSummary(ActiveSurfaceFamilyChartView.Plot.OverlayOptions)}\n" +
+            $"OverlayOptions: {CreateOverlayOptionsSummary(activeChartView.Plot.OverlayOptions)}\n" +
             $"Cache asset: {_activeAssetSummary}\n" +
             $"Dataset: {_activeDatasetSummary}";
     }
 
     private string CreateActiveChartControlSummary()
     {
-        var chartType = IsScatterProofActive
-            ? _scatterChartView.GetType()
-            : ActiveSurfaceFamilyChartView.GetType();
+        VideraChartView chartType;
+        if (IsScatterProofActive)
+            chartType = _scatterChartView;
+        else if (IsContourProofActive)
+            chartType = _contourPlotView;
+        else if (_barChartView.IsVisible)
+            chartType = _barChartView;
+        else
+            chartType = ActiveSurfaceFamilyChartView;
 
-        return $"{chartType.Name} ({chartType.FullName})";
+        var type = chartType.GetType();
+        return $"{type.Name} ({type.FullName})";
     }
 
     private static string CreateEnvironmentRuntimeSummary()
@@ -1078,13 +1359,19 @@ public partial class MainWindow : Window
                 $"{active.Identity}; Points {active.PointCount}; Series {active.SeriesCount}; " +
                 $"ColumnarSeries {active.ColumnarSeriesCount}; PickablePoints {active.PickablePointCount}; " +
                 $"FifoCapacity {FormatFifoCapacity(active.ConfiguredFifoCapacity == 0 ? null : active.ConfiguredFifoCapacity)}",
+            Plot3DSeriesKind.Bar =>
+                $"{active.Identity}; Categories {active.PointCount}; Series {active.SeriesCount}; " +
+                $"Sampling {active.SamplingProfile}",
+            Plot3DSeriesKind.Contour =>
+                $"{active.Identity}; Field {active.Width}x{active.Height}; Samples {active.SampleCount}; " +
+                $"Sampling {active.SamplingProfile}",
             _ => active.Identity,
         };
     }
 
     private static Plot3DOutputEvidence CreateOutputEvidence(VideraChartView chartView)
     {
-        return chartView.Plot.CreateOutputEvidence(chartView.RenderingStatus, chartView.ScatterRenderingStatus);
+        return chartView.Plot.CreateOutputEvidence(chartView.RenderingStatus, chartView.ScatterRenderingStatus, chartView.BarRenderingStatus, chartView.ContourRenderingStatus);
     }
 
     private static string FormatValueRange(SurfaceValueRangeDatasetEvidence? valueRange)
@@ -1104,6 +1391,12 @@ public partial class MainWindow : Window
         if (IsScatterProofActive)
         {
             return CreateScatterCameraSummary(_activeScatterData, _scatterChartView);
+        }
+
+        if (IsContourProofActive)
+        {
+            var contourStatus = _contourPlotView.ContourRenderingStatus;
+            return $"Contour: HasSource={contourStatus.HasSource}; Levels={contourStatus.LevelCount}; Lines={contourStatus.ExtractedLineCount}; Segments={contourStatus.TotalSegmentCount}";
         }
 
         var viewState = ActiveSurfaceFamilyChartView.ViewState;

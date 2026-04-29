@@ -38,6 +38,10 @@
                                 IsVisible="False" />
         <charts:VideraChartView x:Name="ScatterPlotView"
                                 IsVisible="False" />
+        <charts:VideraChartView x:Name="BarChartPlotView"
+                                IsVisible="False" />
+        <charts:VideraChartView x:Name="ContourPlotView"
+                                IsVisible="False" />
         </Grid>
     </Border>
 
@@ -62,6 +66,8 @@
               <ComboBoxItem Content="Try next: Analytics proof" />
               <ComboBoxItem Content="Try next: Waterfall proof" />
               <ComboBoxItem Content="Try next: Scatter proof" />
+              <ComboBoxItem Content="Try next: Bar chart proof" />
+              <ComboBoxItem Content="Try next: Contour plot proof" />
             </ComboBox>
             <Grid ColumnDefinitions="Auto,*"
                   ColumnSpacing="10">
