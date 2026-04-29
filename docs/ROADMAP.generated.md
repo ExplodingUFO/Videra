@@ -16,12 +16,11 @@ pwsh -File ./scripts/Export-BeadsRoadmap.ps1
 
 ## Ready
 
-- **Videra-v256.1** - Phase 383 ScottPlot 5 Interaction Inventory and Beads Coordination (task, P1, open; labels: coordination, inventory, phase-383, v2.56)
+- **Videra-v256.2** - Phase 384 Plot Lifecycle and Code Experience Polish (feature, P1, open; labels: code-experience, phase-384, plot-api, v2.56)
+- **Videra-v256.3** - Phase 385 Interaction Profile and Command Surface (feature, P1, open; labels: commands, interaction, phase-385, v2.56)
 
 ## Blocked
 
-- **Videra-v256.2** - Phase 384 Plot Lifecycle and Code Experience Polish (feature, P1, open; labels: code-experience, phase-384, plot-api, v2.56)
-- **Videra-v256.3** - Phase 385 Interaction Profile and Command Surface (feature, P1, open; labels: commands, interaction, phase-385, v2.56)
 - **Videra-v256.4** - Phase 386 Selection Probe and Draggable Overlay Recipes (feature, P1, open; labels: overlays, phase-386, probe, selection, v2.56)
 - **Videra-v256.5** - Phase 387 Axis Rules Linked Views and Live View Management (feature, P1, open; labels: axes, live, phase-387, v2.56)
 - **Videra-v256.6** - Phase 388 Cookbook Demo Gallery and Docs (task, P1, open; labels: cookbook, demo, docs, phase-388, v2.56)
@@ -33,6 +32,7 @@ _No matching beads in the exported snapshot._
 
 ## Recently Closed
 
+- **Videra-v256.1** - Phase 383 ScottPlot 5 Interaction Inventory and Beads Coordination (task, P1, closed; labels: coordination, inventory, phase-383, v2.56)
 - **Videra-v255** - v2.55 ScottPlot-like Plot API (epic, P1, closed; labels: plot-api, surfacecharts, v2.55)
 - **Videra-v255.7** - Phase 382 Integration Guardrails and Milestone Evidence (task, P1, closed; labels: guardrails, integration, phase-382, v2.55)
 - **Videra-v255.6** - Phase 381 Cookbook Demo and Docs (task, P1, closed; labels: demo, docs, phase-381, v2.55)
@@ -42,5 +42,4 @@ _No matching beads in the exported snapshot._
 - **Videra-v255.2** - Phase 377 Raw Add Overloads and Typed Plottables (feature, P1, closed; labels: phase-377, plot-add, plottable, v2.55)
 - **Videra-v255.1** - Phase 376 Plot API Inventory and Beads Coordination (task, P1, closed; labels: coordination, inventory, phase-376, v2.55)
 - **Videra-lu9** - v2.52 Professional Chart Snapshot Export (epic, P1, closed; labels: professional-charts, snapshot-export, v2.52)
-- **Videra-lu9.5** - Phase 365 Snapshot Export Guardrails and Docs (task, P1, closed; labels: docs, guardrails, professional-charts, snapshot-export, v2.52)
 

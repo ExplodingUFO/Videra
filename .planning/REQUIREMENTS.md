@@ -14,9 +14,9 @@ Reference basis:
 
 ### Inventory, Reference, and Coordination
 
-- [ ] **INV-01**: Inventory current `Plot3D`, plottable handle, interaction overlay, axis, live scatter, demo, support evidence, and guardrail surfaces before implementation.
-- [ ] **INV-02**: Record exact ScottPlot 5 reference patterns used for this milestone: interactive demo recipes, custom mouse actions, custom context menu, shared axes, axis rules, data logger/streamer view management, and cookbook organization.
-- [ ] **INV-03**: Create Beads issues for every phase with parent-child links, blocking dependencies, ownership boundaries, validation expectations, and safe worktree/branch handoff notes.
+- [x] **INV-01**: Inventory current `Plot3D`, plottable handle, interaction overlay, axis, live scatter, demo, support evidence, and guardrail surfaces before implementation.
+- [x] **INV-02**: Record exact ScottPlot 5 reference patterns used for this milestone: interactive demo recipes, custom mouse actions, custom context menu, shared axes, axis rules, data logger/streamer view management, and cookbook organization.
+- [x] **INV-03**: Create Beads issues for every phase with parent-child links, blocking dependencies, ownership boundaries, validation expectations, and safe worktree/branch handoff notes.
 
 ### Plot Code Experience
 
@@ -86,9 +86,9 @@ Reference basis:
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| INV-01 | Phase 383 | Pending |
-| INV-02 | Phase 383 | Pending |
-| INV-03 | Phase 383 | Pending |
+| INV-01 | Phase 383 | Complete |
+| INV-02 | Phase 383 | Complete |
+| INV-03 | Phase 383 | Complete |
 | CODE-01 | Phase 384 | Pending |
 | CODE-02 | Phase 384 | Pending |
 | CODE-03 | Phase 384 | Pending |

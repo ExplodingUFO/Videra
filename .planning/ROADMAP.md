@@ -9,7 +9,7 @@
 
 ## Phases
 
-- [ ] **Phase 383: ScottPlot 5 Interaction Inventory and Beads Coordination** - Confirm exact reference patterns, current implementation seams, non-goals, and bead/worktree boundaries.
+- [x] **Phase 383: ScottPlot 5 Interaction Inventory and Beads Coordination** - Confirm exact reference patterns, current implementation seams, non-goals, and bead/worktree boundaries.
 - [ ] **Phase 384: Plot Lifecycle and Code Experience Polish** - Add concise clear/remove/reorder/list affordances and keep typed plottable handle tweaks simple.
 - [ ] **Phase 385: Interaction Profile and Command Surface** - Add a small chart-local interaction profile plus bounded custom command/context-menu recipes.
 - [ ] **Phase 386: Selection, Probe, and Draggable Overlay Recipes** - Add pointer-to-probe helpers, host-owned selection, and bounded draggable marker/range overlay recipes.
@@ -99,7 +99,7 @@
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 383. ScottPlot 5 Interaction Inventory and Beads Coordination | 0/1 | Pending | - |
+| 383. ScottPlot 5 Interaction Inventory and Beads Coordination | 1/1 | Complete | 2026-04-30 |
 | 384. Plot Lifecycle and Code Experience Polish | 0/1 | Pending | - |
 | 385. Interaction Profile and Command Surface | 0/1 | Pending | - |
 | 386. Selection, Probe, and Draggable Overlay Recipes | 0/1 | Pending | - |
