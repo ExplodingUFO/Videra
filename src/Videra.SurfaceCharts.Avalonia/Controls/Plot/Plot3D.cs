@@ -44,6 +44,24 @@ public sealed class Plot3D
     public IReadOnlyList<Plot3DSeries> Series => _seriesView;
 
     /// <summary>
+    /// Gets a typed snapshot of the series attached to this plot in draw order.
+    /// </summary>
+    public IReadOnlyList<TSeries> GetSeries<TSeries>()
+        where TSeries : Plot3DSeries
+    {
+        var matches = new List<TSeries>();
+        foreach (var series in _series)
+        {
+            if (series is TSeries typedSeries)
+            {
+                matches.Add(typedSeries);
+            }
+        }
+
+        return matches.AsReadOnly();
+    }
+
+    /// <summary>
     /// Gets the series currently driving the chart view, or <c>null</c> when the plot is empty.
     /// </summary>
     public Plot3DSeries? ActiveSeries
@@ -221,6 +239,33 @@ public sealed class Plot3D
             return false;
         }
 
+        NotifyChanged();
+        return true;
+    }
+
+    /// <summary>
+    /// Moves an attached series to a draw-order index.
+    /// </summary>
+    /// <returns><c>true</c> when the series was attached; otherwise, <c>false</c>.</returns>
+    public bool Move(Plot3DSeries series, int index)
+    {
+        ArgumentNullException.ThrowIfNull(series);
+        ArgumentOutOfRangeException.ThrowIfNegative(index);
+        ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(index, _series.Count);
+
+        var currentIndex = _series.IndexOf(series);
+        if (currentIndex < 0)
+        {
+            return false;
+        }
+
+        if (currentIndex == index)
+        {
+            return true;
+        }
+
+        _series.RemoveAt(currentIndex);
+        _series.Insert(index, series);
         NotifyChanged();
         return true;
     }

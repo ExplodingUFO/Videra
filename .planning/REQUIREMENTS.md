@@ -20,10 +20,10 @@ Reference basis:
 
 ### Plot Code Experience
 
-- [ ] **CODE-01**: Users can clear, remove, and reorder Plot-owned plottables with concise `Plot` methods while preserving deterministic revision and evidence truth.
-- [ ] **CODE-02**: Users can inspect Plot-owned plottables through a typed read-only list or query API without exposing mutable runtime internals.
-- [ ] **CODE-03**: Common plottable tweaks already supported by the series model remain reachable from returned handles without compatibility wrapper types.
-- [ ] **CODE-04**: Code experience changes stay chart-local and do not widen backend/runtime ownership.
+- [x] **CODE-01**: Users can clear, remove, and reorder Plot-owned plottables with concise `Plot` methods while preserving deterministic revision and evidence truth.
+- [x] **CODE-02**: Users can inspect Plot-owned plottables through a typed read-only list or query API without exposing mutable runtime internals.
+- [x] **CODE-03**: Common plottable tweaks already supported by the series model remain reachable from returned handles without compatibility wrapper types.
+- [x] **CODE-04**: Code experience changes stay chart-local and do not widen backend/runtime ownership.
 
 ### Interaction Configuration and Commands
 
@@ -89,10 +89,10 @@ Reference basis:
 | INV-01 | Phase 383 | Complete |
 | INV-02 | Phase 383 | Complete |
 | INV-03 | Phase 383 | Complete |
-| CODE-01 | Phase 384 | Pending |
-| CODE-02 | Phase 384 | Pending |
-| CODE-03 | Phase 384 | Pending |
-| CODE-04 | Phase 384 | Pending |
+| CODE-01 | Phase 384 | Complete |
+| CODE-02 | Phase 384 | Complete |
+| CODE-03 | Phase 384 | Complete |
+| CODE-04 | Phase 384 | Complete |
 | INT-01 | Phase 385 | Pending |
 | INT-02 | Phase 385 | Pending |
 | INT-03 | Phase 385 | Pending |
