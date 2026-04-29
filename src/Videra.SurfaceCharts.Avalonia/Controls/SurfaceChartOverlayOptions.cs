@@ -112,6 +112,11 @@ public sealed class SurfaceChartOverlayOptions
     public string? LegendTitleOverride { get; init; }
 
     /// <summary>
+    /// Gets a value indicating whether the crosshair overlay is rendered.
+    /// </summary>
+    public bool ShowCrosshair { get; init; } = true;
+
+    /// <summary>
     /// Gets the corner position for the legend overlay.
     /// </summary>
     public SurfaceChartLegendPosition LegendPosition { get; init; } = SurfaceChartLegendPosition.TopRight;
