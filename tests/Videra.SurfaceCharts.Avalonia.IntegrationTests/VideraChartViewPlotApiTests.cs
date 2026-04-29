@@ -668,6 +668,71 @@ public sealed class VideraChartViewPlotApiTests
     }
 
     [Fact]
+    public Task PlotAddMultipleVisibleSurfaces_ComposesRuntimeSourceAndEvidence()
+    {
+        return AvaloniaHeadlessTestSession.RunAsync(async () =>
+        {
+            var view = new VideraChartView();
+            var metadata = VideraChartViewLifecycleTests.CreateMetadata();
+            var low = new ScriptedSurfaceTileSource(metadata, defaultTileValue: 2f);
+            var high = new ScriptedSurfaceTileSource(metadata, defaultTileValue: 8f);
+
+            view.Measure(new Size(240, 160));
+            view.Arrange(new Rect(0, 0, 240, 160));
+            view.Plot.Add.Surface(low, "low");
+            view.Plot.Add.Surface(high, "high");
+            await SurfaceChartTestHelpers.WaitForLoadedTileValuesAsync(view, [5f]);
+
+            SurfaceChartTestHelpers.GetRuntime(view).Source.Should().NotBeSameAs(high);
+            SurfaceChartTestHelpers.GetRuntime(view).Source!.Metadata.ValueRange.Should().Be(new SurfaceValueRange(0d, 100d));
+
+            var datasetEvidence = view.Plot.CreateDatasetEvidence();
+            datasetEvidence.ActiveSeriesIndex.Should().Be(1);
+            datasetEvidence.Series.Select(series => series.IsActive).Should().Equal(true, true);
+
+            var outputEvidence = view.Plot.CreateOutputEvidence(view.RenderingStatus, view.ScatterRenderingStatus, view.BarRenderingStatus, view.ContourRenderingStatus);
+            outputEvidence.ActiveSeriesIdentity.Should().Be("Composed:Surface:PlotSeries[0]:Surface:low|PlotSeries[1]:Surface:high");
+            outputEvidence.ComposedSeriesCount.Should().Be(2);
+            outputEvidence.ComposedSeriesIdentities.Should().Equal(
+                "PlotSeries[0]:Surface:low",
+                "PlotSeries[1]:Surface:high");
+        });
+    }
+
+    [Fact]
+    public void PlotAddMultipleVisibleScatterSeries_ComposesRenderingStatusAndEvidence()
+    {
+        AvaloniaHeadlessTestSession.Run(() =>
+        {
+            var view = new VideraChartView();
+            var first = new ScatterChartData(
+                new ScatterChartMetadata(
+                    new SurfaceAxisDescriptor("X", "m", 0d, 2d),
+                    new SurfaceAxisDescriptor("Z", "m", 0d, 2d),
+                    new SurfaceValueRange(0d, 2d)),
+                [new ScatterSeries([new ScatterPoint(0.5f, 0.5f, 0.5f)], 0xFF2F80ED, "a")]);
+            var second = new ScatterChartData(
+                new ScatterChartMetadata(
+                    new SurfaceAxisDescriptor("X", "m", 0d, 2d),
+                    new SurfaceAxisDescriptor("Z", "m", 0d, 2d),
+                    new SurfaceValueRange(0d, 2d)),
+                [new ScatterSeries([new ScatterPoint(1.5f, 1.5f, 1.5f)], 0xFFFF6B6B, "b")]);
+
+            view.Plot.Add.Scatter(first, "first");
+            view.Plot.Add.Scatter(second, "second");
+
+            view.ScatterRenderingStatus.HasSource.Should().BeTrue();
+            view.ScatterRenderingStatus.SeriesCount.Should().Be(2);
+            view.ScatterRenderingStatus.PointCount.Should().Be(2);
+
+            var outputEvidence = view.Plot.CreateOutputEvidence(view.RenderingStatus, view.ScatterRenderingStatus, view.BarRenderingStatus, view.ContourRenderingStatus);
+            outputEvidence.ActiveSeriesKind.Should().Be(Plot3DSeriesKind.Scatter);
+            outputEvidence.ActiveSeriesIdentity.Should().Be("Composed:Scatter:PlotSeries[0]:Scatter:first|PlotSeries[1]:Scatter:second");
+            outputEvidence.ComposedSeriesCount.Should().Be(2);
+        });
+    }
+
+    [Fact]
     public Task PlotClear_ClearsActiveRuntimeSource()
     {
         return AvaloniaHeadlessTestSession.RunAsync(async () =>

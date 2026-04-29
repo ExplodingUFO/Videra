@@ -49,18 +49,21 @@ public sealed class Plot3DDatasetEvidence
     internal static Plot3DDatasetEvidence Create(
         int plotRevision,
         IReadOnlyList<Plot3DSeries> series,
-        SurfaceChartOverlayOptions overlayOptions)
+        SurfaceChartOverlayOptions overlayOptions,
+        IReadOnlyList<Plot3DSeries> activeComposedSeries)
     {
         ArgumentNullException.ThrowIfNull(series);
         ArgumentNullException.ThrowIfNull(overlayOptions);
+        ArgumentNullException.ThrowIfNull(activeComposedSeries);
 
         var activeSeriesIndex = FindActiveSeriesIndex(series);
+        var activeSeries = activeComposedSeries.ToHashSet();
         var seriesEvidence = new Plot3DSeriesDatasetEvidence[series.Count];
         for (var index = 0; index < series.Count; index++)
         {
             seriesEvidence[index] = Plot3DSeriesDatasetEvidence.Create(
                 index,
-                index == activeSeriesIndex,
+                activeSeries.Contains(series[index]),
                 series[index]);
         }
 
@@ -418,8 +421,7 @@ public sealed class Plot3DSeriesDatasetEvidence
 
     private static string CreateIdentity(int index, Plot3DSeries series)
     {
-        var name = series.Name ?? "(unnamed)";
-        return string.Create(CultureInfo.InvariantCulture, $"PlotSeries[{index}]:{series.Kind}:{name}");
+        return Plot3D.CreateSeriesDatasetIdentity(index, series);
     }
 
     private static string CreateSurfaceSamplingProfile(SurfaceMetadata metadata)

@@ -38,11 +38,14 @@ internal static class SurfaceLegendOverlayPresenter
 
         overlayOptions ??= SurfaceChartOverlayOptions.Default;
 
-        // Filter to visible series and create entries
         var entries = new List<SurfaceLegendEntry>();
         foreach (var s in series)
         {
-            // For now, all series are visible. Future: add visibility property to Plot3DSeries
+            if (!s.IsVisible)
+            {
+                continue;
+            }
+
             var entry = CreateLegendEntry(s);
             entries.Add(entry);
         }
@@ -138,7 +141,7 @@ internal static class SurfaceLegendOverlayPresenter
         return new SurfaceLegendEntry(
             seriesName: name,
             seriesKind: series.Kind,
-            isVisible: true,
+            isVisible: series.IsVisible,
             color: color,
             indicatorKind: indicatorKind);
     }

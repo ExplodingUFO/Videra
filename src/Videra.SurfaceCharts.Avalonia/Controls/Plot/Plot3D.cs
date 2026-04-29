@@ -72,6 +72,46 @@ public sealed class Plot3D
         }
     }
 
+    internal IReadOnlyList<Plot3DSeries> ActiveComposedSeries
+    {
+        get
+        {
+            var activeSeries = ActiveSeries;
+            return activeSeries is null ? [] : GetVisibleSeries(activeSeries.Kind);
+        }
+    }
+
+    internal ISurfaceTileSource? ActiveSurfaceSource
+    {
+        get
+        {
+            var activeSeries = ActiveSeries;
+            return activeSeries?.Kind is Plot3DSeriesKind.Surface or Plot3DSeriesKind.Waterfall
+                ? Plot3DSeriesComposition.CreateSurfaceSource(GetVisibleSeries(activeSeries.Kind))
+                : null;
+        }
+    }
+
+    internal ScatterChartData? ActiveScatterData =>
+        ActiveSeries?.Kind == Plot3DSeriesKind.Scatter
+            ? Plot3DSeriesComposition.CreateScatterData(GetVisibleSeries(Plot3DSeriesKind.Scatter))
+            : null;
+
+    internal BarChartData? ActiveBarData =>
+        ActiveSeries?.Kind == Plot3DSeriesKind.Bar
+            ? Plot3DSeriesComposition.CreateBarData(GetVisibleSeries(Plot3DSeriesKind.Bar))
+            : null;
+
+    internal IReadOnlyList<ContourChartData> GetActiveContourData()
+    {
+        return ActiveSeries?.Kind == Plot3DSeriesKind.Contour
+            ? GetVisibleSeries(Plot3DSeriesKind.Contour)
+                .Select(static series => series.ContourData)
+                .OfType<ContourChartData>()
+                .ToArray()
+            : [];
+    }
+
     internal Plot3DSeries? ActiveScatterSeries
     {
         get
@@ -150,7 +190,7 @@ public sealed class Plot3D
     /// <returns>A snapshot of the current dataset evidence.</returns>
     public Plot3DDatasetEvidence CreateDatasetEvidence()
     {
-        return Plot3DDatasetEvidence.Create(Revision, _series, _overlayOptions);
+        return Plot3DDatasetEvidence.Create(Revision, _series, _overlayOptions, ActiveComposedSeries);
     }
 
     /// <summary>
@@ -232,6 +272,8 @@ public sealed class Plot3D
     {
         var activeSeries = ActiveSeries;
         var activeSeriesIndex = activeSeries is null ? -1 : _series.IndexOf(activeSeries);
+        var composedSeries = ActiveComposedSeries;
+        var composedSeriesIdentities = CreateSeriesIdentities(composedSeries);
         var colorMapEvidence = CreateColorMapEvidence(activeSeries);
         var renderingEvidence = CreateRenderingEvidence(activeSeries, renderingStatus, scatterRenderingStatus, barRenderingStatus, contourRenderingStatus);
 
@@ -240,7 +282,9 @@ public sealed class Plot3D
             activeSeriesIndex: activeSeriesIndex,
             activeSeriesName: activeSeries?.Name,
             activeSeriesKind: activeSeries?.Kind,
-            activeSeriesIdentity: CreateSeriesIdentity(activeSeries, activeSeriesIndex),
+            activeSeriesIdentity: CreateActiveOutputIdentity(activeSeries, activeSeriesIndex, composedSeriesIdentities),
+            composedSeriesCount: composedSeriesIdentities.Count,
+            composedSeriesIdentities: composedSeriesIdentities,
             colorMapStatus: CreateColorMapStatus(activeSeries, colorMapEvidence),
             colorMapEvidence: colorMapEvidence,
             precisionProfile: SurfaceChartOverlayEvidenceFormatter.DescribePrecisionProfile(OverlayOptions),
@@ -340,8 +384,7 @@ public sealed class Plot3D
             // Build manifest
             var outputEvidence = CreateOutputEvidence();
             var datasetEvidence = CreateDatasetEvidence();
-            var activeSeriesIndex = _series.IndexOf(activeSeries);
-            var seriesIdentity = $"{activeSeries.Kind}:{activeSeries.Name ?? "<unnamed>"}:{activeSeriesIndex}";
+            var seriesIdentity = outputEvidence.ActiveSeriesIdentity ?? $"{activeSeries.Kind}:{activeSeries.Name ?? "<unnamed>"}:{_series.IndexOf(activeSeries)}";
 
             var manifest = new PlotSnapshotManifest(
                 width: request.Width,
@@ -510,7 +553,7 @@ public sealed class Plot3D
 
     private void AutoScaleDataWindowAxis(bool updateHorizontal)
     {
-        var metadata = ActiveSurfaceSeries?.SurfaceSource?.Metadata;
+        var metadata = ActiveSurfaceSource?.Metadata;
         if (metadata is null)
         {
             return;
@@ -536,8 +579,8 @@ public sealed class Plot3D
             var activeSeries = ActiveSeries;
             return activeSeries?.Kind switch
             {
-                Plot3DSeriesKind.Surface or Plot3DSeriesKind.Waterfall => activeSeries.SurfaceSource?.Metadata.ValueRange,
-                Plot3DSeriesKind.Scatter => activeSeries.ScatterData?.Metadata.ValueRange,
+                Plot3DSeriesKind.Surface or Plot3DSeriesKind.Waterfall => ActiveSurfaceSource?.Metadata.ValueRange,
+                Plot3DSeriesKind.Scatter => ActiveScatterData?.Metadata.ValueRange,
                 _ => null,
             };
         }
@@ -591,6 +634,70 @@ public sealed class Plot3D
 
         var name = activeSeries.Name ?? "<unnamed>";
         return $"{activeSeries.Kind}:{name}:{activeSeriesIndex}";
+    }
+
+    internal string CreateSeriesDatasetIdentity(Plot3DSeries series)
+    {
+        var index = _series.IndexOf(series);
+        return index < 0 ? string.Empty : CreateSeriesDatasetIdentity(index, series);
+    }
+
+    internal IReadOnlyList<Plot3DSeries> GetVisibleSeries(Plot3DSeriesKind kind)
+    {
+        var visible = new List<Plot3DSeries>();
+        foreach (var series in _series)
+        {
+            if (series.Kind == kind && series.IsVisible)
+            {
+                visible.Add(series);
+            }
+        }
+
+        return visible;
+    }
+
+    private IReadOnlyList<string> CreateSeriesIdentities(IReadOnlyList<Plot3DSeries> series)
+    {
+        if (series.Count == 0)
+        {
+            return [];
+        }
+
+        var identities = new List<string>(series.Count);
+        foreach (var item in series)
+        {
+            var index = _series.IndexOf(item);
+            if (index >= 0)
+            {
+                identities.Add(CreateSeriesDatasetIdentity(index, item));
+            }
+        }
+
+        return identities;
+    }
+
+    private static string? CreateActiveOutputIdentity(
+        Plot3DSeries? activeSeries,
+        int activeSeriesIndex,
+        IReadOnlyList<string> composedSeriesIdentities)
+    {
+        if (activeSeries is null || activeSeriesIndex < 0)
+        {
+            return null;
+        }
+
+        if (composedSeriesIdentities.Count > 1)
+        {
+            return $"Composed:{activeSeries.Kind}:{string.Join("|", composedSeriesIdentities)}";
+        }
+
+        return CreateSeriesIdentity(activeSeries, activeSeriesIndex);
+    }
+
+    internal static string CreateSeriesDatasetIdentity(int index, Plot3DSeries series)
+    {
+        var name = series.Name ?? "(unnamed)";
+        return $"PlotSeries[{index}]:{series.Kind}:{name}";
     }
 
     private static Plot3DColorMapStatus CreateColorMapStatus(

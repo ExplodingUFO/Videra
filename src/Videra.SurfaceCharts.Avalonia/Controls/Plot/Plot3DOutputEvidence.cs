@@ -14,6 +14,8 @@ public sealed class Plot3DOutputEvidence
         string? activeSeriesName,
         Plot3DSeriesKind? activeSeriesKind,
         string? activeSeriesIdentity,
+        int composedSeriesCount,
+        IReadOnlyList<string> composedSeriesIdentities,
         Plot3DColorMapStatus colorMapStatus,
         SurfaceChartOutputEvidence? colorMapEvidence,
         string precisionProfile,
@@ -21,6 +23,8 @@ public sealed class Plot3DOutputEvidence
         IReadOnlyList<Plot3DOutputCapabilityDiagnostic> outputCapabilityDiagnostics)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(seriesCount);
+        ArgumentOutOfRangeException.ThrowIfNegative(composedSeriesCount);
+        ArgumentNullException.ThrowIfNull(composedSeriesIdentities);
         ArgumentException.ThrowIfNullOrWhiteSpace(precisionProfile);
         ArgumentNullException.ThrowIfNull(outputCapabilityDiagnostics);
 
@@ -30,6 +34,8 @@ public sealed class Plot3DOutputEvidence
         ActiveSeriesName = activeSeriesName;
         ActiveSeriesKind = activeSeriesKind;
         ActiveSeriesIdentity = activeSeriesIdentity;
+        ComposedSeriesCount = composedSeriesCount;
+        ComposedSeriesIdentities = composedSeriesIdentities.ToArray();
         ColorMapStatus = colorMapStatus;
         ColorMapEvidence = colorMapEvidence;
         PrecisionProfile = precisionProfile;
@@ -66,6 +72,16 @@ public sealed class Plot3DOutputEvidence
     /// Gets a deterministic active-series identity composed from kind, name, and draw-order index.
     /// </summary>
     public string? ActiveSeriesIdentity { get; }
+
+    /// <summary>
+    /// Gets the number of visible same-kind series composing the active output.
+    /// </summary>
+    public int ComposedSeriesCount { get; }
+
+    /// <summary>
+    /// Gets deterministic Plot-local identities for the visible series composing the active output.
+    /// </summary>
+    public IReadOnlyList<string> ComposedSeriesIdentities { get; }
 
     /// <summary>
     /// Gets whether color-map evidence applies to the active output.

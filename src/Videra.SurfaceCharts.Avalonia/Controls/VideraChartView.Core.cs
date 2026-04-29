@@ -207,8 +207,7 @@ public partial class VideraChartView : Decorator
 
     private void OnPlotChanged()
     {
-        var activeSurfaceSeries = Plot.ActiveSurfaceSeries;
-        var activeSource = activeSurfaceSeries?.SurfaceSource;
+        var activeSource = Plot.ActiveSurfaceSource;
         if (!ReferenceEquals(_runtime.Source, activeSource))
         {
             OnSourceChanged(activeSource);
@@ -241,7 +240,7 @@ public partial class VideraChartView : Decorator
 
     private ScatterChartRenderingStatus CreateScatterRenderingStatus()
     {
-        var scatterData = Plot.ActiveScatterSeries?.ScatterData;
+        var scatterData = Plot.ActiveScatterData;
         var hasScatterData = scatterData is not null;
         return new ScatterChartRenderingStatus
         {
@@ -279,7 +278,7 @@ public partial class VideraChartView : Decorator
 
     private BarChartRenderingStatus CreateBarRenderingStatus()
     {
-        var barData = Plot.ActiveBarSeries?.BarData;
+        var barData = Plot.ActiveBarData;
         var hasBarData = barData is not null;
         return new BarChartRenderingStatus
         {
@@ -297,8 +296,8 @@ public partial class VideraChartView : Decorator
 
     private ContourChartRenderingStatus CreateContourRenderingStatus()
     {
-        var contourData = Plot.ActiveContourSeries?.ContourData;
-        var hasContourData = contourData is not null;
+        var contourData = Plot.GetActiveContourData();
+        var hasContourData = contourData.Count > 0;
 
         if (!hasContourData)
         {
@@ -309,20 +308,34 @@ public partial class VideraChartView : Decorator
             };
         }
 
-        var scene = _contourSceneCache.GetOrCompute(contourData!, Plot.Revision);
         var totalSegments = 0;
-        foreach (var line in scene.Lines)
+        var totalLines = 0;
+        var levelCount = 0;
+        foreach (var data in contourData)
         {
-            totalSegments += line.Segments.Count;
+            var scene = CreateContourScene(data, contourData.Count);
+            levelCount += data.LevelCount;
+            totalLines += scene.Lines.Count;
+            foreach (var line in scene.Lines)
+            {
+                totalSegments += line.Segments.Count;
+            }
         }
 
         return new ContourChartRenderingStatus
         {
             HasSource = true,
-            IsReady = scene.Lines.Count > 0,
-            LevelCount = contourData!.LevelCount,
-            ExtractedLineCount = scene.Lines.Count,
+            IsReady = totalLines > 0,
+            LevelCount = levelCount,
+            ExtractedLineCount = totalLines,
             TotalSegmentCount = totalSegments,
         };
+    }
+
+    private ContourRenderScene CreateContourScene(ContourChartData data, int activeContourCount)
+    {
+        return activeContourCount == 1
+            ? _contourSceneCache.GetOrCompute(data, Plot.Revision)
+            : new ContourSceneCache().GetOrCompute(data, Plot.Revision);
     }
 }

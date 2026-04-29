@@ -25,10 +25,10 @@ public partial class VideraChartView
             SurfaceScenePainter.DrawScene(context, _renderHost.SoftwareScene, projection);
 
             // Draw contour lines on top of surface
-            var contourData = Plot.ActiveContourSeries?.ContourData;
-            if (contourData is not null)
+            var activeContourData = Plot.GetActiveContourData();
+            foreach (var contourData in activeContourData)
             {
-                var contourScene = _contourSceneCache.GetOrCompute(contourData, Plot.Revision);
+                var contourScene = CreateContourScene(contourData, activeContourData.Count);
                 SurfaceScenePainter.DrawContourLines(context, contourScene, projection);
             }
         }
