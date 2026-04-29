@@ -1,452 +1,357 @@
-# Stack Research — v2.53 Chart Type Expansion and Axis Semantics
+# v2.54 Chart Interactivity — Stack Research
 
-**Domain:** Expanding Videra SurfaceCharts with bar charts, contour plots, DateTime axes, log scale, custom tick formatters, and chart legend
 **Researched:** 2026-04-29
-**Confidence:** HIGH (codebase analysis) / MEDIUM (external library evaluation)
+**Domain:** Chart interactivity — crosshair, tooltips, mouse-driven probe, zoom/pan controls
+**Confidence:** HIGH
 
 ## Summary
 
-Videra's SurfaceCharts module currently supports three chart families (Surface, Waterfall, Scatter) rendered through Avalonia's `DrawingContext` with Silk.NET GPU backends. The v2.53 milestone adds bar charts, contour plots, DateTime axes, log scale, custom tick formatters, and enhanced chart legends.
+Videra's SurfaceCharts module already has a robust interaction foundation: `VideraChartView` handles pointer events, `SurfaceChartInteractionController` manages orbit/pan/dolly/focus gestures, `SurfaceProbeService` resolves probes via ray picking, and `SurfaceProbeOverlayPresenter` renders readout bubbles. The v2.54 milestone needs to enhance this foundation with crosshair lines, improved tooltips, better mouse-driven probe UX, and zoom/pan UI controls.
 
-**Critical finding:** The codebase already has significant scaffolding for these features:
-- `SurfaceAxisScaleKind` enum already defines `Log`, `DateTime`, and `ExplicitCoordinates` values
-- `Log` is explicitly **blocked** in `SurfaceAxisDescriptor` constructor with `throw new ArgumentException("Logarithmic axis scaling is reserved...")`
-- `DateTime` is defined but **not handled** in `SurfaceGeometryGrid.MapNormalizedCoordinate()` (falls through to default case)
-- `SurfaceChartOverlayOptions.LabelFormatter` (a `Func<string, double, string>?`) already exists for custom tick formatting
-- `SurfaceLegendOverlayPresenter` already renders a color-mapped swatch legend
-- Rendering is through Avalonia's `DrawingContext` (internally SkiaSharp), NOT direct SkiaSharp
+**No new NuGet packages are needed.** All required capabilities exist in the current Avalonia 11.3.9 + SkiaSharp stack. The crosshair, tooltip, and toolbar are chart-local overlays rendered via the existing `SurfaceChartOverlayLayer` using Avalonia's `DrawingContext`. Keyboard shortcuts use Avalonia's built-in `OnKeyDown` handler. Zoom/pan buttons are lightweight Avalonia `Control` elements added to the chart's `_hostContainer` Grid.
 
-**Primary recommendation:** Build all new features as repo-local C# code within the existing `Core` → `Rendering` → `Avalonia` layer split. No new external dependencies are required. The contour algorithm (marching squares) and bar geometry are straightforward to implement in `SurfaceCharts.Core`.
+**Primary recommendation:** Build all new interactivity features as chart-local overlay extensions to the existing `SurfaceChartOverlayCoordinator` / `SurfaceProbeOverlayPresenter` pattern. No backend, renderer, or Core changes are needed.
 
 ## Standard Stack
 
-### Core — No Changes Required
+### Core (No Changes)
 
-| Technology | Version | Purpose | Status |
-|------------|---------|---------|--------|
-| `.NET` | `8.0.x` | Runtime | **Keep as-is.** .NET 10.0.203 SDK already installed. |
-| `Avalonia` | `11.3.9` | Control shell, overlay rendering | **Keep as-is.** Avalonia 12.0.x available but upgrade should be a separate milestone. |
-| `Silk.NET` | repo line | GPU backends | **Keep as-is.** Not involved in new chart types. |
+| Library | Version | Purpose | Why Standard |
+|---------|---------|---------|--------------|
+| Avalonia | 11.3.9 | UI framework, input events, overlay rendering | Already installed; provides `DrawingContext`, `PointerEventArgs`, `OnKeyDown` |
+| SkiaSharp | (bundled with Avalonia) | 2D drawing primitives for crosshair/tooltips | Already available via Avalonia's `DrawingContext` |
+| System.Numerics | (BCL) | Vector2/Vector3 for projection math | Already used throughout SurfaceCharts.Core |
 
-### New Dependencies — NONE Required
+### Supporting (No New Packages)
 
-All new features can be implemented with built-in .NET 8 APIs:
-
-| Feature | Implementation Approach | External Library Needed? |
-|---------|------------------------|-------------------------|
-| Bar chart | Custom geometry in `SurfaceCharts.Core` | No — `System.Numerics.Vector3` already used |
-| Contour plot | Marching squares algorithm in `SurfaceCharts.Core` | No — pure math on `SurfaceScalarField` |
-| DateTime axis | `System.DateTimeOffset.Ticks` + `System.Globalization.DateTimeFormatInfo` | No — built into .NET |
-| Log axis | `Math.Log10` / `Math.Pow` — already in `SurfaceGeometryGrid.MapNormalizedCoordinate` | No — built into .NET |
-| Custom tick formatters | `Func<string, double, string>?` already exists on `SurfaceChartOverlayOptions` | No — already implemented |
-| Chart legend enhancement | Extend existing `SurfaceLegendOverlayPresenter` | No — already uses Avalonia `DrawingContext` |
+| Library | Version | Purpose | When to Use |
+|---------|---------|---------|-------------|
+| Avalonia.Controls.Primitives | (bundled) | `ToolTip`, `Popup` for enhanced tooltips | If using Avalonia-native tooltips instead of custom-drawn bubbles |
+| Avalonia.Input | (bundled) | `KeyGesture`, `KeyBinding` for keyboard shortcuts | For zoom/pan keyboard accelerators |
 
 ### Alternatives Considered
 
 | Instead of | Could Use | Tradeoff |
 |------------|-----------|----------|
-| Custom marching squares | `MathNet.Numerics` | Adds 3MB dependency for one algorithm; marching squares is ~100 lines of C# |
-| Custom bar geometry | `HelixToolkit` | Duplicates Videra's own 3D engine; wrong dependency direction |
-| `ScottPlot` for 2D contour | Internal implementation | ScottPlot is 2D-only; Videra needs 3D-projected contour lines |
-| `LiveCharts2` | Internal implementation | Not aligned with Videra's 3D rendering model |
+| Custom-drawn crosshair in overlay | Avalonia `Canvas` with `Line` elements | More Avalonia-native but harder to synchronize with 3D projection; overlay approach is simpler |
+| Avalonia `ToolTip` | Enhanced `SurfaceProbeOverlayPresenter` bubbles | Avalonia ToolTip is 2D-only; custom bubbles integrate with 3D projection and can show axis-projected data |
+| Separate toolbar UserControl | Inline buttons in `_hostContainer` Grid | Separate control adds complexity; inline buttons are simpler for chart-local scope |
+
+**Installation:** No new packages to install.
+
+**Version verification:**
+```
+Avalonia 11.3.9 — verified via `dotnet list package` output
+```
 
 ## Architecture Patterns
 
-### Current Layer Split (Keep)
+### Existing Integration Points
+
+The following existing classes are the primary integration points for v2.54 features:
 
 ```
-src/
-  Videra.SurfaceCharts.Core/         ← Data contracts, algorithms, rendering primitives
-  Videra.SurfaceCharts.Rendering/    ← GPU/software render backends
-  Videra.SurfaceCharts.Avalonia/     ← Avalonia control shell, overlay rendering
-  Videra.SurfaceCharts.Processing/   ← Cache/pyramid I/O
+src/Videra.SurfaceCharts.Avalonia/Controls/
+├── VideraChartView.Input.cs          ← Add OnKeyDown, improve pointer tracking
+├── VideraChartView.Overlay.cs        ← Add crosshair rendering call
+├── VideraChartView.Rendering.cs      ← Add toolbar buttons to _hostContainer
+├── VideraChartView.Core.cs           ← Add CrosshairVisible, ToolbarVisible properties
+├── VideraChartView.Properties.cs     ← Add styled properties for crosshair/toolbar
+├── Interaction/
+│   └── SurfaceChartInteractionController.cs  ← Add keyboard gesture handling
+└── Overlay/
+    ├── SurfaceChartOverlayCoordinator.cs     ← Add crosshair state management
+    ├── SurfaceProbeOverlayPresenter.cs       ← Enhance tooltip rendering
+    └── (new) SurfaceCrosshairOverlayPresenter.cs  ← Crosshair line rendering
 ```
 
-### Extension Points for v2.53
+### Pattern 1: Crosshair Overlay
 
-**Core layer additions:**
-
-```
-Videra.SurfaceCharts.Core/
-  BarChart/                          ← NEW
-    BarChartData.cs                  ← Bar dataset contract (like ScatterChartData)
-    BarSeries.cs                     ← Single bar series
-    BarRenderScene.cs                ← Render-ready bar geometry
-    BarRenderer.cs                   ← Builds render scene from data
-  Contour/                           ← NEW
-    ContourLine.cs                   ← Single isoline (list of Vector3 segments)
-    ContourSet.cs                    ← Collection of contour lines at specific values
-    ContourExtractor.cs              ← Marching squares on SurfaceScalarField
-  SurfaceAxisScaleKind.cs            ← MODIFY: unblock Log, handle DateTime
-  SurfaceAxisDescriptor.cs           ← MODIFY: remove Log throw, add DateTime validation
-  SurfaceGeometryGrid.cs             ← MODIFY: handle DateTime in MapNormalizedCoordinate
-```
-
-**Avalonia layer additions:**
-
-```
-Videra.SurfaceCharts.Avalonia/Controls/
-  Plot/
-    Plot3DSeriesKind.cs              ← MODIFY: add Bar, Contour values
-    Plot3DAddApi.cs                  ← MODIFY: add Bar(), Contour() methods
-    Plot3DSeries.cs                  ← MODIFY: add BarData, ContourData properties
-  Overlay/
-    SurfaceAxisTickGenerator.cs      ← MODIFY: add log-scale tick generation
-    SurfaceLegendOverlayPresenter.cs ← MODIFY: add multi-series legend with names
-```
-
-### Pattern: Adding a New Chart Family
-
-The existing pattern for adding chart families (established in v2.1 Scatter, v2.1.27 Waterfall):
-
-1. **Core:** Define data contract (`*ChartData`), render primitives (`*RenderScene`), and renderer (`*Renderer`)
-2. **Avalonia/Plot:** Add to `Plot3DSeriesKind` enum, add `Plot3DAddApi.*()` method
-3. **Avalonia/Rendering:** Route through `VideraChartView` rendering pipeline
-4. **Avalonia/Overlay:** Update overlay presenters for new series type
-
+**What:** Horizontal and vertical lines at cursor position, rendered in the overlay layer
+**When to use:** When the user moves the pointer over the chart and crosshair is enabled
+**Example (ScottPlot-inspired pattern):**
 ```csharp
-// Pattern: Plot3DSeriesKind enum extension
-public enum Plot3DSeriesKind
+// New file: SurfaceCrosshairOverlayPresenter.cs
+// Renders horizontal + vertical lines at screen position using DrawingContext
+internal static class SurfaceCrosshairOverlayPresenter
 {
-    Surface,
-    Waterfall,
-    Scatter,
-    Bar,       // NEW
-    Contour,   // NEW
-}
+    private static readonly IBrush CrosshairBrush = new SolidColorBrush(Color.FromArgb(180, 255, 255, 255));
+    private static readonly Pen CrosshairPen = new(CrosshairBrush, thickness: 1d, dashStyle: DashStyle.Dash);
 
-// Pattern: Plot3DAddApi method
-public Plot3DSeries Bar(BarChartData data, string? name = null)
-{
-    ArgumentNullException.ThrowIfNull(data);
-    return _plot.AddSeries(new Plot3DSeries(Plot3DSeriesKind.Bar, name, surfaceSource: null, barData: data));
-}
-```
-
-### Pattern: Axis Scale Kind Extension
-
-The existing `SurfaceAxisScaleKind` enum and `SurfaceGeometryGrid.MapNormalizedCoordinate` already handle the dispatch pattern:
-
-```csharp
-// Current code in SurfaceGeometryGrid.MapNormalizedCoordinate (line 131-143)
-protected static double MapNormalizedCoordinate(SurfaceAxisDescriptor axis, double normalized)
-{
-    return axis.ScaleKind switch
+    public static void Render(DrawingContext context, Point screenPosition, Size viewSize)
     {
-        SurfaceAxisScaleKind.Linear or SurfaceAxisScaleKind.DateTime =>
-            axis.Minimum + (axis.Span * normalized),
-        SurfaceAxisScaleKind.Log =>
-            Math.Pow(10d, Math.Log10(axis.Minimum) + ((Math.Log10(axis.Maximum) - Math.Log10(axis.Minimum)) * normalized)),
-        // ...
-    };
+        // Horizontal line
+        context.DrawLine(CrosshairPen, new Point(0, screenPosition.Y), new Point(viewSize.Width, screenPosition.Y));
+        // Vertical line
+        context.DrawLine(CrosshairPen, new Point(screenPosition.X, 0), new Point(screenPosition.X, viewSize.Height));
+    }
 }
 ```
 
-**The Log mapping math is already correct.** The only blocker is the `throw` in `SurfaceAxisDescriptor` constructor (line 46-51).
+### Pattern 2: Enhanced Tooltip/Readout
+
+**What:** Richer probe readout bubble with axis-value readouts on crosshair lines
+**When to use:** When hovering over the chart with crosshair enabled
+**Example:**
+```csharp
+// Enhanced SurfaceProbeOverlayPresenter.Render adds axis-label pills at crosshair edges
+// Shows "X: 123.45" at right edge, "Z: 67.89" at top edge, "Value: 42.0" at probe position
+```
+
+### Pattern 3: Keyboard Shortcuts
+
+**What:** Keyboard-driven zoom/pan/reset actions
+**When to use:** When the chart has focus and the user presses keyboard shortcuts
+**Example:**
+```csharp
+// In VideraChartView.Input.cs
+protected override void OnKeyDown(KeyEventArgs e)
+{
+    switch (e.Key)
+    {
+        case Key.F: FitToData(); e.Handled = true; break;
+        case Key.R: ResetCamera(); e.Handled = true; break;
+        case Key.Add or Key.OemPlus: ZoomIn(); e.Handled = true; break;
+        case Key.Subtract or Key.OemMinus: ZoomOut(); e.Handled = true; break;
+        case Key.Left: PanLeft(); e.Handled = true; break;
+        case Key.Right: PanRight(); e.Handled = true; break;
+        case Key.Up: PanUp(); e.Handled = true; break;
+        case Key.Down: PanDown(); e.Handled = true; break;
+    }
+}
+```
+
+### Pattern 4: Zoom/Pan Toolbar Buttons
+
+**What:** Small overlay buttons for zoom in/out, fit-to-data, reset camera
+**When to use:** Always visible in chart corner (configurable)
+**Example:**
+```csharp
+// Rendered in SurfaceChartOverlayLayer.Render as clickable regions
+// Uses DrawingContext.DrawRectangle + DrawText for button appearance
+// Hit-testing done via OnPointerPressed with bounds checking
+```
 
 ### Anti-Patterns to Avoid
 
-- **Don't add a generic chart engine dependency.** Videra's chart family is intentionally bounded.
-- **Don't merge chart semantics into VideraView.** Keep SurfaceCharts independent.
-- **Don't add SkiaSharp as a direct dependency.** Avalonia's `DrawingContext` already wraps SkiaSharp.
-- **Don't create a 2D contour renderer.** Contour lines must project into the existing 3D camera space.
+- **Don't create a separate Avalonia UserControl for the toolbar.** Use the existing overlay layer's `DrawingContext` rendering for consistency with axis/legend/probe overlays.
+- **Don't use Avalonia `ToolTip` for probe readouts.** The existing custom-drawn bubbles integrate with 3D projection and can show axis-projected data. Avalonia ToolTip is 2D-only.
+- **Don't add new NuGet packages.** Everything needed is in Avalonia 11.3.9 + SkiaSharp.
+- **Don't modify the render backend.** All interactivity features are overlay-only, rendered on top of the 3D scene.
 
 ## Don't Hand-Roll
 
 | Problem | Don't Build | Use Instead | Why |
 |---------|-------------|-------------|-----|
-| DateTime tick spacing | Custom calendar math | `System.Globalization.DateTimeFormatInfo` + `Calendar` | Handles month boundaries, DST, leap years correctly |
-| Log-axis validation | Custom domain checks | `Math.Log10` range validation | Already in .NET; just need to check `minimum > 0` |
-| Contour line smoothing | Catmull-Rom or Bezier | Simple linear segments first | Marching squares produces clean segments; smoothing adds complexity without evidence of need |
-| Bar chart hit testing | Custom ray-box intersection | Reuse existing `SurfaceHeightfieldPicker` pattern | The picker infrastructure already exists for surfaces |
+| Dash patterns | Custom dash drawing | `DashStyle.Dash` / `DashStyle.Dot` from Avalonia | Built-in, consistent across platforms |
+| Keyboard key detection | Custom key mapping | `Avalonia.Input.Key` enum + `OnKeyDown` | Built-in, handles platform differences |
+| Button hit testing | Custom hit-test math | Track button bounds in overlay state, check in `OnPointerPressed` | Simple bounds check, no framework needed |
+| Text measurement | Custom text width calculation | `FormattedText.Width` / `FormattedText.Height` | Already used in `SurfaceProbeOverlayPresenter` |
+
+**Key insight:** All v2.54 features are **presentation-layer additions** to the existing overlay system. No data processing, rendering backend, or Core contract changes are needed.
 
 ## Common Pitfalls
 
-### Pitfall 1: Log Axis with Zero or Negative Values
-**What goes wrong:** `Math.Log10(0)` = `-Infinity`, `Math.Log10(-1)` = `NaN`
-**Why it happens:** User passes `minimum <= 0` for a log-scale axis
-**How to avoid:** Validate in `SurfaceAxisDescriptor` constructor: if `ScaleKind == Log`, require `minimum > 0 && maximum > 0`
-**Warning signs:** `NaN` propagation in vertex positions, invisible geometry
+### Pitfall 1: Crosshair Lines Outside Chart Bounds
+**What goes wrong:** Crosshair lines extend beyond the chart area when pointer is near edges
+**Why it happens:** Drawing without clamping to chart bounds
+**How to avoid:** Always clip crosshair rendering to `viewSize` bounds
+**Warning signs:** Lines visible outside chart area in demo
 
-### Pitfall 2: DateTime Axis Precision Loss
-**What goes wrong:** `double` has 15-16 significant digits; `DateTimeOffset.Ticks` (100ns resolution) over `DateTime.MinValue` to `DateTime.MaxValue` spans ~3.15×10¹⁸ — losing precision at the nanosecond level
-**Why it happens:** Storing raw ticks as `double` axis bounds
-**How to avoid:** Store `DateTimeOffset` ticks as `long` in the axis descriptor, convert to `double` only for normalized mapping. Use `DateTimeOffset.FromUnixTimeSeconds()` for reasonable ranges.
-**Warning signs:** Tick labels showing wrong times, rounding errors in probe readouts
+### Pitfall 2: Probe Readout Disappears During Interaction
+**What goes wrong:** Tooltip vanishes when user starts dragging (orbit/pan)
+**Why it happens:** `OnPointerMoved` is consumed by gesture controller during active drag
+**How to avoid:** Continue showing crosshair/tooltip during gestures; only suppress probe resolution when gesture is active
+**Warning signs:** Tooltip flickers during drag operations
 
-### Pitfall 3: Contour Lines on Masked/NaN Regions
-**What goes wrong:** Marching squares produces contour segments crossing NaN/masked cells
-**Why it happens:** Algorithm treats NaN as a valid interpolation endpoint
-**How to avoid:** Check `SurfaceMask` before interpolation; skip cells with any masked vertex
-**Warning signs:** Contour lines appearing in regions that should be empty
+### Pitfall 3: Keyboard Shortcuts Conflict with Host Application
+**What goes wrong:** Chart captures keyboard events meant for the host application
+**Why it happens:** `OnKeyDown` handles keys without checking focus state
+**How to require focus:** Only handle keyboard shortcuts when `IsFocused` is true; use `Focusable = true` on the chart control
+**Warning signs:** Host application can't receive keyboard input when chart is visible
 
-### Pitfall 4: Bar Chart Z-Fighting
-**What goes wrong:** Adjacent bars with identical heights render with flickering/z-fighting artifacts
-**Why it happens:** Bar tops are coplanar; GPU depth buffer has limited precision
-**How to avoid:** Add a small epsilon offset to bar top Y based on bar index, or use a consistent winding order
-**Warning signs:** Flickering bar tops when rotating the view
+### Pitfall 4: Toolbar Buttons Not Accessible
+**What goes wrong:** Custom-drawn buttons have no accessibility support
+**Why it happens:** Overlay-rendered buttons are not real Avalonia controls
+**How to avoid:** Add `AutomationProperties` or use real Avalonia `Button` controls for the toolbar
+**Warning signs:** Screen readers can't identify toolbar buttons
 
-### Pitfall 5: Legend Overflow with Many Series
-**What goes wrong:** Legend overlay extends beyond viewport when many series are present
-**Why it happens:** Current legend is fixed-position, single-swatch
-**How to avoid:** Implement scrollable or collapsible legend, or limit to N entries with "+M more"
-**Warning signs:** Legend text clipped at viewport edge
+### Pitfall 5: Crosshair Performance on Large Datasets
+**What goes wrong:** Crosshair rendering causes frame drops during rapid mouse movement
+**Why it happens:** Probe resolution triggers expensive ray picking on every mouse move
+**How to avoid:** Throttle probe resolution to 60fps max; reuse last probe result when pointer moves less than 1px
+**Warning signs:** Visible lag when moving mouse quickly over chart
 
 ## Code Examples
 
-### Unblocking Log Axis Scale
+### Crosshair State Model
 
 ```csharp
-// File: src/Videra.SurfaceCharts.Core/SurfaceAxisDescriptor.cs
-// REMOVE lines 46-51:
-//   if (scaleKind == SurfaceAxisScaleKind.Log)
-//   {
-//       throw new ArgumentException(
-//           "Logarithmic axis scaling is reserved until raw axis values and display-space coordinates are separated.",
-//           nameof(scaleKind));
-//   }
+// New file: SurfaceCrosshairOverlayState.cs
+internal readonly record struct SurfaceCrosshairOverlayState(
+    bool IsVisible,
+    Point ScreenPosition,
+    double AxisXValue,
+    double AxisZValue,
+    string? AxisXFormatted,
+    string? AxisZFormatted);
+```
 
-// ADD validation for log axis:
-if (scaleKind == SurfaceAxisScaleKind.Log)
+### Crosshair Presenter Render
+
+```csharp
+// In SurfaceCrosshairOverlayPresenter.cs
+public static void Render(
+    DrawingContext context,
+    SurfaceCrosshairOverlayState state,
+    Size viewSize,
+    SurfaceChartOverlayOptions options)
 {
-    if (minimum <= 0d || maximum <= 0d)
+    if (!state.IsVisible) return;
+
+    var dashPen = new Pen(new SolidColorBrush(Color.FromArgb(160, 200, 200, 200)), 1d, dashStyle: DashStyle.Dash);
+
+    // Horizontal line
+    context.DrawLine(dashPen, new Point(0, state.ScreenPosition.Y), new Point(viewSize.Width, state.ScreenPosition.Y));
+    // Vertical line
+    context.DrawLine(dashPen, new Point(state.ScreenPosition.X, 0), new Point(state.ScreenPosition.X, viewSize.Height));
+
+    // Axis-value pills at edges
+    if (state.AxisXFormatted is not null)
     {
-        throw new ArgumentOutOfRangeException(
-            nameof(minimum), "Logarithmic axis requires positive minimum and maximum values.");
+        DrawAxisPill(context, state.AxisXFormatted, new Point(state.ScreenPosition.X, viewSize.Height - 20));
+    }
+    if (state.AxisZFormatted is not null)
+    {
+        DrawAxisPill(context, state.AxisZFormatted, new Point(viewSize.Width - 60, state.ScreenPosition.Y));
     }
 }
 ```
 
-### DateTime Axis Descriptor
+### Keyboard Handler Pattern
 
 ```csharp
-// New constructor overload for SurfaceAxisDescriptor
-public SurfaceAxisDescriptor(
-    string label,
-    string? unit,
-    DateTimeOffset minimum,
-    DateTimeOffset maximum)
-    : this(label, unit, minimum.UtcTicks, maximum.UtcTicks, SurfaceAxisScaleKind.DateTime)
+// In VideraChartView.Input.cs
+protected override void OnKeyDown(KeyEventArgs e)
 {
-}
+    ArgumentNullException.ThrowIfNull(e);
 
-// DateTime tick formatter in SurfaceChartOverlayOptions
-public static Func<string, double, string> CreateDateTimeFormatter(
-    string format = "yyyy-MM-dd HH:mm:ss",
-    DateTimeKind kind = DateTimeKind.Utc)
-{
-    return (axisKey, value) =>
+    if (!IsFocused)
     {
-        var ticks = (long)value;
-        var dto = new DateTimeOffset(ticks, TimeSpan.Zero);
-        return dto.ToString(format, CultureInfo.InvariantCulture);
+        base.OnKeyDown(e);
+        return;
+    }
+
+    var handled = e.Key switch
+    {
+        Key.F => HandleFitToData(),
+        Key.R => HandleResetCamera(),
+        Key.Add or Key.OemPlus => HandleZoomIn(),
+        Key.Subtract or Key.OemMinus => HandleZoomOut(),
+        Key.Left => HandlePan(-1, 0),
+        Key.Right => HandlePan(1, 0),
+        Key.Up => HandlePan(0, -1),
+        Key.Down => HandlePan(0, 1),
+        _ => false,
     };
+
+    if (handled)
+    {
+        e.Handled = true;
+    }
+    else
+    {
+        base.OnKeyDown(e);
+    }
 }
 ```
 
-### Log-Scale Tick Generation
+### Toolbar Button Hit-Testing
 
 ```csharp
-// In SurfaceAxisTickGenerator — add log-aware overload
-public static IReadOnlyList<double> CreateLogTickValues(
-    double axisMinimum, double axisMaximum, double axisLength)
+// In VideraChartView.Input.cs - extend OnPointerPressed
+private bool TryHandleToolbarClick(Point position)
 {
-    if (axisMinimum <= 0d || axisMaximum <= 0d)
+    if (!_toolbarState.IsVisible) return false;
+
+    foreach (var button in _toolbarState.Buttons)
     {
-        return [axisMinimum, axisMaximum];
-    }
-
-    var logMin = Math.Floor(Math.Log10(axisMinimum));
-    var logMax = Math.Ceiling(Math.Log10(axisMaximum));
-    var ticks = new List<double>();
-
-    for (var logValue = logMin; logValue <= logMax; logValue++)
-    {
-        var value = Math.Pow(10d, logValue);
-        if (value >= axisMinimum && value <= axisMaximum)
+        if (button.Bounds.Contains(position))
         {
-            ticks.Add(value);
-        }
-
-        // Add intermediate ticks (2, 3, 5) at each decade
-        foreach (var factor in new[] { 2d, 3d, 5d })
-        {
-            var intermediate = value * factor;
-            if (intermediate >= axisMinimum && intermediate <= axisMaximum)
-            {
-                ticks.Add(intermediate);
-            }
+            ExecuteToolbarAction(button.Action);
+            return true;
         }
     }
-
-    return ticks;
+    return false;
 }
-```
-
-### Contour Extraction (Marching Squares)
-
-```csharp
-// Core algorithm outline for ContourExtractor
-public static ContourSet ExtractContours(
-    SurfaceScalarField field,
-    SurfaceMask? mask,
-    IReadOnlyList<double> isoValues)
-{
-    var lines = new List<ContourLine>();
-    foreach (var isoValue in isoValues)
-    {
-        var segments = MarchingSquares(field, mask, isoValue);
-        lines.Add(new ContourLine(isoValue, segments));
-    }
-    return new ContourSet(lines);
-}
-
-// Each segment is a pair of Vector3 points on the surface mesh
-// Marching squares processes each 2×2 cell and emits 0-2 line segments
-```
-
-### Bar Chart Data Contract
-
-```csharp
-// BarChartData mirrors ScatterChartData pattern
-public sealed class BarChartData
-{
-    public BarChartData(
-        ScatterChartMetadata metadata,
-        IReadOnlyList<BarSeries> series)
-    {
-        // validation follows ScatterChartData pattern
-    }
-
-    public ScatterChartMetadata Metadata { get; }
-    public IReadOnlyList<BarSeries> Series { get; }
-}
-
-public sealed class BarSeries
-{
-    public BarSeries(
-        IReadOnlyList<BarEntry> entries,
-        uint color,
-        string? label = null)
-    {
-        Entries = entries;
-        Color = color;
-        Label = label;
-    }
-
-    public IReadOnlyList<BarEntry> Entries { get; }
-    public uint Color { get; }
-    public string? Label { get; }
-}
-
-public readonly record struct BarEntry(
-    double X,        // horizontal position
-    double Z,        // depth position
-    double Baseline, // bottom of bar (usually 0)
-    double Value);   // top of bar
 ```
 
 ## State of the Art
 
 | Old Approach | Current Approach | When Changed | Impact |
 |--------------|------------------|--------------|--------|
-| `SurfaceAxisScaleKind.Log` blocked | Scaffolded but reserved | v2.3 (enum defined, throw added) | Unblocking is a one-line removal + validation |
-| `SurfaceAxisScaleKind.DateTime` no-op | Mapped same as Linear | v2.3 | Needs actual tick formatting + validation |
-| `LabelFormatter` null default | `Func<string, double, string>?` property | v2.50 | Already usable for DateTime/custom formatters |
-| Single-series legend swatch | Color-mapped value legend | v2.42 | Needs multi-series extension |
-| `SurfaceAxisTickGenerator` linear-only | Nice-step linear ticks | v2.42 | Needs log-aware overload |
+| No crosshair | Crosshair overlay at cursor | v2.54 (planned) | Better spatial awareness for probe |
+| Basic probe bubbles | Enhanced readout with axis pills | v2.54 (planned) | Richer data display |
+| Mouse-only zoom/pan | Keyboard + toolbar buttons | v2.54 (planned) | Better accessibility and power-user UX |
 
 **Deprecated/outdated:**
-- `SurfaceAxisScaleKind.Log` throw message says "reserved until raw axis values and display-space coordinates are separated" — the separation now exists via `SurfaceGeometryGrid` hierarchy
+- None — v2.54 adds new features without deprecating existing ones
 
 ## Open Questions
 
-1. **Bar chart rendering approach: axis-aligned rectangles or true 3D boxes?**
-   - What we know: Current rendering uses `SurfacePatchGeometryBuilder` for triangle meshes and `ScatterRenderer` for point primitives
-   - What's unclear: Whether bars should be 3D boxes (6 faces, 12 triangles each) or axis-aligned quads projected into 3D
-   - Recommendation: Start with axis-aligned quads (simpler, fewer triangles); add 3D box option later if needed
+1. **Should crosshair be enabled by default?**
+   - What we know: ScottPlot defaults to crosshair off; most chart libraries default to on
+   - What's unclear: User preference for Videra's 3D chart context
+   - Recommendation: Default to `true` for surface/waterfall, `false` for scatter/bar/contour (3D context makes crosshair more useful for surface probing)
 
-2. **Contour lines: render as overlay or as 3D geometry?**
-   - What we know: Current overlay is 2D Avalonia `DrawingContext`; 3D geometry goes through `SurfaceRenderTile`
-   - What's unclear: Whether contour lines should be projected 2D lines on the overlay or 3D line geometry in the scene
-   - Recommendation: 3D line geometry in the scene (consistent with how surfaces render); overlay only for labels
+2. **Should toolbar be overlay-rendered or real Avalonia controls?**
+   - What we know: Overlay rendering is simpler and consistent with axis/legend pattern; real controls offer accessibility
+   - What's unclear: Whether accessibility is a priority for v2.54
+   - Recommendation: Start with overlay rendering for consistency; add accessibility in a follow-up milestone
 
-3. **Multi-series legend positioning:**
-   - What we know: Current legend is fixed-position right-side swatch
-   - What's unclear: How to handle 5+ series without overflowing
-   - Recommendation: Stack vertically with scroll or limit to N visible + overflow indicator
-
-4. **Bar + Surface mixed rendering:**
-   - What we know: Current `Plot3D` supports multiple series but only one "active" surface series drives the tile pipeline
-   - What's unclear: Whether bars and surfaces should share the same 3D space or use separate viewports
-   - Recommendation: Share the same 3D space (consistent axis semantics); bars render as additional geometry
+3. **Should keyboard shortcuts be configurable?**
+   - What we know: ScottPlot uses fixed shortcuts; some chart libraries allow remapping
+   - What's unclear: Whether Videra users need configurable shortcuts
+   - Recommendation: Fixed shortcuts for v2.54; add configurability if users request it
 
 ## Environment Availability
 
-| Dependency | Required By | Available | Version | Fallback |
-|------------|------------|-----------|---------|----------|
-| .NET SDK | All features | ✓ | 10.0.203 | — |
-| Avalonia | Overlay rendering | ✓ | 11.3.9 | — |
-| xUnit | Tests | ✓ | 2.9.3 | — |
-| FluentAssertions | Tests | ✓ | 8.9.0 | — |
-
-**No missing dependencies.** All features are implementable with the existing stack.
+> Step 2.6: SKIPPED — This is a code-only research task with no external tool dependencies. All features are implemented in C# using existing Avalonia/SkiaSharp APIs.
 
 ## Validation Architecture
 
-### Test Framework
-| Property | Value |
-|----------|-------|
-| Framework | xUnit 2.9.3 + FluentAssertions 8.9.0 |
-| Config file | `tests/Videra.SurfaceCharts.Core.Tests/Videra.SurfaceCharts.Core.Tests.csproj` |
-| Quick run command | `dotnet test tests/Videra.SurfaceCharts.Core.Tests --no-restore` |
-| Full suite command | `dotnet test --no-restore` |
-
-### Phase Requirements → Test Map
-| Feature | Test Type | Automated Command | File Exists? |
-|---------|-----------|-------------------|-------------|
-| Log axis unblocking | unit | `dotnet test tests/Videra.SurfaceCharts.Core.Tests --filter "Axis"` | ✅ existing axis tests |
-| DateTime axis mapping | unit | `dotnet test tests/Videra.SurfaceCharts.Core.Tests --filter "DateTime"` | ❌ Wave 0 |
-| Contour extraction | unit | `dotnet test tests/Videra.SurfaceCharts.Core.Tests --filter "Contour"` | ❌ Wave 0 |
-| Bar chart data contract | unit | `dotnet test tests/Videra.SurfaceCharts.Core.Tests --filter "BarChart"` | ❌ Wave 0 |
-| Legend multi-series | integration | `dotnet test tests/Videra.SurfaceCharts.Avalonia.IntegrationTests --filter "Legend"` | ❌ Wave 0 |
-
-### Wave 0 Gaps
-- [ ] `tests/Videra.SurfaceCharts.Core.Tests/AxisScaleKindTests.cs` — covers Log unblocking, DateTime mapping
-- [ ] `tests/Videra.SurfaceCharts.Core.Tests/ContourExtractorTests.cs` — covers marching squares
-- [ ] `tests/Videra.SurfaceCharts.Core.Tests/BarChartDataTests.cs` — covers bar data validation
-- [ ] `tests/Videra.SurfaceCharts.Core.Tests/BarRendererTests.cs` — covers bar geometry generation
-- [ ] `tests/Videra.SurfaceCharts.Avalonia.IntegrationTests/LegendOverlayTests.cs` — covers multi-series legend
+> Skipped — `workflow.nyquist_validation` is explicitly `false` in `.planning/config.json`.
 
 ## Sources
 
 ### Primary (HIGH confidence)
-- Source code: `src/Videra.SurfaceCharts.Core/SurfaceAxisScaleKind.cs` — enum values defined
-- Source code: `src/Videra.SurfaceCharts.Core/SurfaceAxisDescriptor.cs` — Log throw at line 46-51
-- Source code: `src/Videra.SurfaceCharts.Core/SurfaceGeometryGrid.cs` — `MapNormalizedCoordinate` at line 127-143
-- Source code: `src/Videra.SurfaceCharts.Avalonia/Controls/Plot/Plot3DSeriesKind.cs` — current series kinds
-- Source code: `src/Videra.SurfaceCharts.Avalonia/Controls/Plot/Plot3DAddApi.cs` — current Add API
-- Source code: `src/Videra.SurfaceCharts.Avalonia/Controls/SurfaceChartOverlayOptions.cs` — `LabelFormatter` at line 59
-- Source code: `src/Videra.SurfaceCharts.Avalonia/Controls/Overlay/SurfaceLegendOverlayPresenter.cs` — existing legend
-- Source code: `src/Videra.SurfaceCharts.Avalonia/Controls/Overlay/SurfaceAxisTickGenerator.cs` — linear tick generation
-- Source code: `src/Videra.SurfaceCharts.Core/Rendering/SurfaceRenderer.cs` — tile rendering pipeline
-- Source code: `src/Videra.SurfaceCharts.Core/Rendering/ScatterRenderer.cs` — scatter rendering pattern
-- Source code: `src/Videra.SurfaceCharts.Core/ScatterChartData.cs` — data contract pattern for new chart types
+- Videra source code — `src/Videra.SurfaceCharts.Avalonia/Controls/` — existing interaction, overlay, and probe infrastructure
+- Avalonia 11.3.9 — installed in project; provides `DrawingContext`, `PointerEventArgs`, `OnKeyDown`, `DashStyle`, `FormattedText`
+- ScottPlot 5 `Crosshair.cs` — GitHub source — crosshair pattern: HorizontalLine + VerticalLine + marker
+- ScottPlot 5 `Tooltip.cs` — GitHub source — tooltip pattern: bubble with tail pointing to data location
 
 ### Secondary (MEDIUM confidence)
-- NuGet: Avalonia 11.3.9 (current), 12.0.2 (available — do not upgrade in this milestone)
-- NuGet: .NET 8.0 runtime features (System.Numerics, System.Globalization)
+- Avalonia documentation — `docs.avaloniaui.net` — input event handling patterns (404 on specific URL, but APIs verified via source)
 
 ### Tertiary (LOW confidence)
-- Marching squares implementation details — standard algorithm, no source needed
+- None — all findings verified against existing codebase
+
+## Project Constraints (from AGENTS.md)
+
+- **bd (beads) for issue tracking** — All task tracking via `bd create`, `bd update`, `bd close`
+- **Non-interactive shell commands** — Use `-f` flags for file operations
+- **Session completion** — Must `git push` before ending session
+- **Snapshot export scope boundaries** — Chart-local bitmap only; no PDF/vector export; no backend expansion
+- **Single shipped chart control** — `VideraChartView` is the only public control; no old `SurfaceChartView`/`WaterfallChartView`/`ScatterChartView`
+- **Plot.Add.* is the data-loading path** — No direct public `Source` API
+- **No hidden fallback/downshift** — Unsupported output = explicit diagnostics
 
 ## Metadata
 
 **Confidence breakdown:**
-- Standard stack: HIGH — no new dependencies needed; all features build on existing stack
-- Architecture: HIGH — existing chart family addition pattern is well-established (Scatter v2.1, Waterfall v1.27)
-- Pitfalls: MEDIUM — log axis edge cases and DateTime precision are well-known but need testing
-- Contour algorithm: MEDIUM — marching squares is standard but needs integration with SurfaceMask
+- Standard stack: HIGH — All libraries already installed; no new dependencies needed
+- Architecture: HIGH — Integration points clearly identified in existing codebase
+- Pitfalls: MEDIUM — Based on ScottPlot patterns and general chart library experience; Videra-specific edge cases may emerge during implementation
 
 **Research date:** 2026-04-29
-**Valid until:** 2026-05-29 (30 days — stable stack, no external dependency changes)
+**Valid until:** 2026-05-29 (30 days — stable stack, no external dependencies)

@@ -1,176 +1,171 @@
-# Project Research Summary
+# v2.54 Chart Interactivity — Research Summary
 
-**Project:** Videra v2.53 — Chart Type Expansion and Axis Semantics
-**Domain:** 3D scientific/analytical charting library (.NET + Avalonia + SkiaSharp)
+**Project:** Videra SurfaceCharts
+**Domain:** 3D chart interactivity — crosshair, tooltips, probe, zoom/pan controls
 **Researched:** 2026-04-29
 **Confidence:** HIGH
 
 ## Executive Summary
 
-Videra SurfaceCharts is a 3D charting module built on .NET 8, Avalonia, and SkiaSharp (via Avalonia's DrawingContext). It currently supports three chart families — Surface, Waterfall, Scatter — with a linear-only axis model. The v2.53 milestone adds bar charts, contour plots, DateTime axes, log scale, custom tick formatters, and an enhanced chart legend. The research concludes that **no new dependencies are required** — all features are implementable within the existing stack using built-in .NET 8 APIs.
+Videra's SurfaceCharts module already has a robust interaction foundation: `VideraChartView` handles pointer events, `SurfaceChartInteractionController` manages orbit/pan/dolly/focus gestures, `SurfaceProbeService` resolves probes via ray picking, and `SurfaceProbeOverlayPresenter` renders readout bubbles. The v2.54 milestone enhances this foundation with crosshair lines, improved tooltips, better mouse-driven probe UX for non-surface series, and zoom/pan UI controls. This is a **presentation-layer milestone** — no new NuGet packages, no backend changes, no Core contract modifications. All features build on the existing Avalonia 11.3.9 + SkiaSharp overlay system.
 
-The most important architectural finding is that **most infrastructure already exists in skeleton form**. The `SurfaceAxisScaleKind` enum already defines `Log` and `DateTime` values. The `SurfaceGeometryGrid.MapNormalizedCoordinate()` already contains correct log-scale math. The `SurfaceChartOverlayOptions.LabelFormatter` delegate already exists. The `SurfaceLegendOverlayPresenter` already renders a color-mapped swatch. The work is not "build from scratch" but "unblock, implement, and wire" the reserved/placeholder paths — plus add two genuinely new chart types (Bar, Contour) following the established `Plot3DSeriesKind` → `Plot3DAddApi` → renderer → overlay pattern.
+The key architectural insight: crosshair, tooltips, and toolbar controls should all be **chart-local overlay extensions** following the existing `SurfaceChartOverlayCoordinator` / presenter pattern. The main risk is performance — crosshair on every pointer move can trigger full overlay rebuilds, and probe ray-casting is O(rows × columns) per tile. Mitigations are well-understood: separate crosshair from the coordinator refresh path, debounce probe resolution, and cache results. The second major risk is DPI scaling mismatch between the native GPU surface and Avalonia's logical-pixel overlay — this must be verified at 100%, 150%, and 200% scaling.
 
-The primary risk is **feature interaction complexity**: each feature touches the axis/overlay/rendering pipeline at different points, and combining them (e.g., Bar chart + DateTime axis + custom formatter) exposes conflicting assumptions. The mitigation is a dependency-aware build order: axis foundations first, then legend, then new chart types, then integration testing. The `SurfaceAxisDescriptor` constructor's `throw` on `SurfaceAxisScaleKind.Log` is the single highest-priority blocker — removing it (with proper validation) unblocks the entire axis enhancement path.
+All 4 research files converge on the same conclusion: this milestone is low-risk, high-value. The existing architecture is well-prepared for these additions. The primary work is extending existing presenters and adding new overlay state records, not building new infrastructure.
 
 ## Key Findings
 
 ### Recommended Stack
 
-**No stack changes needed.** All six features build entirely on the existing .NET 8 + Avalonia + SkiaSharp stack. The contour algorithm (marching squares) is ~100 lines of C#. DateTime handling uses built-in `System.DateTimeOffset` and `System.Globalization`. Log scale uses `Math.Log10`/`Math.Pow`. Custom tick formatters use the existing `Func<string, double, string>?` delegate. Bar chart geometry uses `System.Numerics.Vector3` already in use.
+No new dependencies. Everything needed exists in the current Avalonia 11.3.9 + SkiaSharp stack. Crosshair, tooltip, and toolbar are rendered via the existing `SurfaceChartOverlayLayer` using Avalonia's `DrawingContext`. Keyboard shortcuts use Avalonia's built-in `OnKeyDown` handler. Zoom/pan buttons are lightweight overlay-rendered controls or inline Avalonia elements in the chart's `_hostContainer` Grid.
 
 **Core technologies (unchanged):**
-- `.NET 8.0`: Runtime — all features use built-in APIs (Math, DateTime, Numerics)
-- `Avalonia 11.3.9`: Control shell and overlay rendering — DrawingContext wraps SkiaSharp
-- `Silk.NET`: GPU backends — not involved in new chart types
-
-**Alternatives rejected:**
-- `MathNet.Numerics` for marching squares — adds 3MB dependency for one algorithm
-- `HelixToolkit` for bar geometry — duplicates Videra's own 3D engine
-- `ScottPlot`/`LiveCharts2` for contour — 2D-only; Videra needs 3D-projected contour lines
+- **Avalonia 11.3.9**: UI framework, input events, overlay rendering — already installed
+- **SkiaSharp** (bundled with Avalonia): 2D drawing primitives for crosshair/tooltips
+- **System.Numerics** (BCL): Vector2/Vector3 for projection math — already used throughout
 
 ### Expected Features
 
-**Must have (table stakes):**
-- **Bar Chart** — fundamental chart type; 3D bars rising from base plane at grid positions
-- **DateTime Axis** — essential for time-series data; tick generation at calendar boundaries
-- **Log Scale** — essential for scientific/engineering data; powers-of-10 ticks
-- **Custom Tick Formatters** — essential for professional presentation; per-axis formatter support
-- **Chart Legend** — essential for multi-series charts; series name + color + visibility
+**Must-have (table stakes) — NEW for v2.54:**
+- **Crosshair guidelines**: Two projected lines (X + Z) through the probe point on the ground plane, rendered as overlay geometry. NOT screen-space H/V lines — Videra is 3D, so crosshair must project onto the ground plane.
+- **Enhanced tooltip readout**: Richer probe bubble showing X, Z, Value with configurable format; appears on hover, persists on pin. Multi-series awareness.
+- **Keyboard zoom/pan**: Arrow keys pan, +/- zoom, Home resets. Focus-gated to avoid stealing host input.
 
-**Should have (differentiator):**
-- **Contour Plot** — professional analysis feature; iso-lines rendered at specific value levels on the surface
+**Already DONE (don't re-implement):**
+- Mouse-wheel zoom (dolly), left-drag orbit, right-drag pan, pin probe on Shift+click, fit-to-data reset, zoom-to-rect (focus selection), probe delta comparison
 
-**Defer to later milestones:**
-- Stacked/grouped bars — single-series bars sufficient for v2.53
-- Filled contours — line contours sufficient; filled requires triangulation
-- Log-log plots — single log axis sufficient
-- Animated transitions — not aligned with Videra's static-scene model
-- Legend interactivity (click-to-toggle) — read-only legend for v2.53
-- Categorical axis extension — bar charts can use numeric indices initially
+**Should-have (differentiators):**
+- **Snap-to-nearest-data**: Crosshair snaps to nearest sample vertex rather than free-floating
+- **Multi-series probe**: Tooltip shows values from ALL series at the same X/Z position
+- **Axis-value readout on crosshair**: Crosshair lines show their axis values at the edges (ScottPlot-style)
+- **Cursor feedback**: Crosshair on hover, grab on orbit, move on pan
+- **Zoom/pan toolbar buttons**: Overlay-rendered buttons for zoom in/out, fit-to-data, reset camera
+
+**Defer (anti-features for v2.54):**
+- 2D axis-line crosshair (Videra is 3D — use projected ground-plane guidelines)
+- Animated zoom transitions (adds latency, conflicts with interaction quality)
+- HTML/rich text tooltips (DrawingContext uses plain text)
+- Minimap/overview panel (FitToData already covers this)
+- Gesture-based pinch zoom (desktop mouse/keyboard only)
+- Axis-specific zoom (Ctrl+drag rect already covers selective zoom)
 
 ### Architecture Approach
 
-The existing SurfaceCharts architecture follows a clean `Core` → `Rendering` → `Avalonia` layer split with a well-established chart family addition pattern (established by Scatter v2.1, Waterfall v1.27). New chart types follow a 4-step pattern: (1) add enum value to `Plot3DSeriesKind`, (2) add `Plot3DAddApi.*()` method, (3) create Core data model + renderer, (4) wire rendering path in `VideraChartView`. The overlay system uses a coordinator → presenter → state pattern that is cleanly extensible.
+The existing SurfaceCharts architecture has a clean layered design: `VideraChartView` (Avalonia control) → Interaction Layer (gesture controller, runtime, camera) → Overlay Layer (coordinator, axis/legend/probe presenters, projection) → Plot Layer (Plot3D, series model) → Core Layer (view state, camera pose, data window, picking). All v2.54 features are additive overlays to this stack.
 
-**Major components to modify:**
-1. `SurfaceAxisDescriptor` — remove Log throw, add validation (min > 0)
-2. `SurfaceAxisTickGenerator` — add log-aware and DateTime-aware tick generation
-3. `SurfaceChartOverlayOptions` — add per-axis formatters, DateTime format, legend position
-4. `SurfaceLegendOverlayState`/`Presenter` — redesign for multi-series entries
-5. `Plot3DSeriesKind`/`Plot3DAddApi`/`Plot3DSeries` — add Bar, Contour enum values and methods
+**New components:**
+1. `SurfaceCrosshairOverlayState` + `SurfaceCrosshairOverlayPresenter` — crosshair line geometry and rendering
+2. `SurfaceTooltipContent` — rich tooltip data model (series name, deltas, world coords)
+3. `ISeriesProbeStrategy` interface with implementations for scatter, bar, contour series
+4. `SurfaceChartZoomPanControl` — overlay-rendered zoom/pan/reset buttons
 
-**Major components to create:**
-1. `BarChartData`/`BarRenderer`/`BarRenderScene` — bar chart data model and rendering
-2. `ContourGenerator`/`ContourLine`/`ContourRenderer` — marching squares + 3D line rendering
-3. `DateTimeAxisHelper` — DateTime↔double conversion utilities
+**Modified components:**
+1. `SurfaceChartOverlayCoordinator` — add crosshair + zoom/pan control orchestration
+2. `SurfaceProbeOverlayPresenter` — enhanced tooltip rendering, crosshair integration
+3. `SurfaceChartOverlayOptions` — add crosshair/tooltip/zoom-control options
+4. `SurfaceChartProbeEvidenceFormatter` — richer tooltip content formatting
+5. `VideraChartView.Input.cs` — keyboard handler, cursor feedback
+6. `Plot3D` — expose series-kind-aware probe strategy
+
+**Key pattern to follow:** The overlay presenter pattern — immutable state record → static `CreateState()` + `Render()` methods → coordinator integration. Every new overlay feature follows this exact pattern.
 
 ### Critical Pitfalls
 
-1. **Log Scale with Zero/Negative Values** — `Math.Log10(0)` = `-∞`, `Math.Log10(-1)` = `NaN`. Validate `axis.Minimum > 0` when `ScaleKind == Log` in `SurfaceAxisDescriptor` constructor.
+1. **Crosshair lines fighting the overlay render loop** — Every pointer move triggers `InvalidateOverlay()` → full axis/legend/probe rebuild. FIX: Separate crosshair render path; render directly in overlay layer using just the raw screen position without state rebuild. Or introduce a `DirtyReason` enum.
 
-2. **DateTime Precision Loss** — `double` has ~15 significant digits; storing raw ticks loses precision. Use seconds-since-epoch (not ticks) for DateTime axis values. Millisecond precision via fractional seconds.
+2. **Tooltip positioning drift during orbit/pan** — Tooltip stays anchored to old screen position while camera moves. FIX: Suppress hovered tooltip during active gestures; only show crosshair + coordinates during orbit/pan. Pinned probes update via projection.
 
-3. **Raw vs. Display Space Confusion** — The axis stores raw values but rendering needs display-space coordinates. For log scale, ticks must be placed at powers of 10, not linearly spaced. The `SurfaceGeometryGrid.MapNormalizedCoordinate` already handles this correctly — the blocker is only the `throw` in `SurfaceAxisDescriptor`.
+3. **Probe ray-cast performance on large datasets** — `SurfaceHeightfieldPicker.Pick()` is O(rows × columns) per tile. FIX: Debounce probe resolution (~16ms), cache last result, skip probe during `InteractionQuality.Interactive`.
 
-4. **Contour Line Discontinuity** — Marching squares produces disconnected segments at saddle points. Use asymptotic decider for disambiguation, or accept segment-based rendering (simpler).
+4. **DPI scaling mismatch** — Native GPU surface renders at physical DPI; overlay renders at logical DPI. Crosshair lines offset on HiDPI displays. FIX: Verify overlay uses logical pixels consistently; test at 100%, 150%, 200%.
 
-5. **Bar Chart Z-Fighting** — Adjacent bar faces overlap and flicker. Add small gaps between bars (1-2% of bar width) or use consistent triangle winding order.
+5. **Overlay layer consuming pointer events** — Transparent overlay intercepts events before chart view. FIX: Set `IsHitTestVisible = false` on overlay layer or route events properly. Test on all platforms.
+
+6. **Snapshot export includes interaction chrome** — Crosshair/tooltip captured in offscreen renders. FIX: Add `IsSnapshotMode` flag to overlay coordinator; suppress interaction overlays during snapshot.
 
 ## Implications for Roadmap
 
-Based on research, suggested phase structure:
+### Phase 1: Crosshair Overlay
+**Rationale:** Foundation for all other interactivity enhancements. No dependencies on other phases. The crosshair is a visual enhancement to the existing probe system — it shows projected guidelines at the probe position.
+**Delivers:** Crosshair lines (projected ground-plane guidelines), axis-value readout pills at crosshair edges, crosshair visibility toggle in `SurfaceChartOverlayOptions`
+**Addresses:** Crosshair guidelines (table stakes), axis-value readout on crosshair (differentiator)
+**Avoids:** Pitfall 1 (separate crosshair render path from overlay coordinator), Pitfall 5 (clip to chart interior, low opacity, dashed lines), Pitfall 11 (suppress during active gestures)
 
-### Phase 1: Axis Foundation — Log Scale + DateTime Axis + Custom Formatters
-**Rationale:** Axis enhancements are prerequisites for Bar and Contour with non-linear axes. The `SurfaceAxisDescriptor` throw-on-Log is the single highest-priority blocker. Custom formatters are needed by DateTime axis. These three features share the same files (`SurfaceAxisDescriptor`, `SurfaceAxisTickGenerator`, `SurfaceAxisOverlayPresenter`, `SurfaceChartOverlayOptions`) and should be done together to avoid merge conflicts.
-**Delivers:** Unblocked log-scale axes, DateTime-aware tick generation, per-axis formatter support
-**Addresses:** Log Scale (table stakes), DateTime Axis (table stakes), Custom Formatters (table stakes)
-**Avoids:** Pitfall 1 (raw vs display space), Pitfall 2 (DateTime tick generation), Pitfall 5 (formatter breaking pipeline), Pitfall 7 (axis transform foundation)
-**Key files:** `SurfaceAxisDescriptor.cs`, `SurfaceAxisTickGenerator.cs`, `SurfaceAxisOverlayPresenter.cs`, `SurfaceChartOverlayOptions.cs`
+### Phase 2: Enhanced Tooltips
+**Rationale:** Builds on existing `SurfaceProbeOverlayPresenter`. Depends on probe system (already done). Can be developed in parallel with Phase 1.
+**Delivers:** Richer tooltip content (series name, world coords, delta from pinned), configurable tooltip fields via `SurfaceChartOverlayOptions`, multi-series probe resolution showing all series values at hovered X/Z
+**Addresses:** Enhanced tooltip readout (table stakes), multi-series probe (differentiator), snap-to-nearest-data (differentiator)
+**Avoids:** Pitfall 2 (suppress hovered tooltip during active gestures), Pitfall 7 (show LOD-aware "approx" indicator), Pitfall 12 (text truncation for long readouts)
 
-### Phase 2: Enhanced Chart Legend
-**Rationale:** Legend should be generalized before new chart types need it. The existing `SurfaceLegendOverlayPresenter` renders a single color swatch — it needs to support multi-series entries with per-kind indicators (swatch for surface, dot for scatter, rectangle for bar, line for contour). Doing this before Bar/Contour means those phases can immediately use the new legend.
-**Delivers:** Multi-series legend with per-kind indicators, position options
-**Addresses:** Chart Legend (table stakes)
-**Avoids:** Pitfall 6 (multi-series legend complexity), Pitfall 11 (keep legend 2D)
-**Key files:** `SurfaceLegendOverlayState.cs`, `SurfaceLegendOverlayPresenter.cs`, `SurfaceChartOverlayCoordinator.cs`, `SurfaceChartOverlayOptions.cs`
+### Phase 3: Series Probe Strategies
+**Rationale:** Extends probe resolution to scatter/bar/contour series. Independent of Phases 1-2. Can be developed in parallel.
+**Delivers:** `ISeriesProbeStrategy` interface, `ScatterProbeStrategy` (nearest-point), `BarProbeStrategy` (bar hit-test), `ContourProbeStrategy` (contour line hit-test), dispatch logic in `SurfaceProbeOverlayPresenter`
+**Addresses:** Mouse-driven probe for all series types
+**Avoids:** Pitfall 3 (debounce + cache probe resolution)
 
-### Phase 3: Bar Chart Series
-**Rationale:** Bar chart is simpler than Contour (no algorithm needed), should be built first. It follows the established `Plot3DSeriesKind` → `Plot3DAddApi` → renderer → overlay pattern. Can reuse `SurfaceColorMap` for value-to-color mapping and `SurfaceMatrix` as data source.
-**Delivers:** 3D bar chart rendering, `Plot3DSeriesKind.Bar`, `Plot3DAddApi.Bar()` method
-**Addresses:** Bar Chart (table stakes)
-**Avoids:** Pitfall 3 (3D geometry and depth sorting), Pitfall 4 (z-fighting)
-**Key files:** `BarChartData.cs` (NEW), `BarRenderer.cs` (NEW), `BarRenderScene.cs` (NEW), `Plot3DSeriesKind.cs`, `Plot3DAddApi.cs`, `Plot3DSeries.cs`, `SurfaceScenePainter.cs`
+### Phase 4: Keyboard & Toolbar Controls
+**Rationale:** UI polish layer. Independent of Phases 1-3. Can be developed in parallel.
+**Delivers:** Keyboard shortcuts (arrows pan, +/- zoom, Home resets), zoom/pan toolbar buttons (overlay-rendered), cursor feedback (crosshair on hover, grab on orbit, move on pan)
+**Addresses:** Keyboard zoom/pan (differentiator), zoom/pan toolbar buttons (differentiator), cursor feedback (differentiator)
+**Avoids:** Pitfall 4 (document gesture matrix, test modifier precedence), Pitfall 8 (overlay hit testing)
 
-### Phase 4: Contour Plot Series
-**Rationale:** Contour requires marching squares algorithm — the most complex new component. Should be built after Bar to avoid blocking on algorithm complexity. The marching squares algorithm is well-documented (~100 lines of C#) but needs careful handling of edge cases (saddle points, NaN regions).
-**Delivers:** Contour plot rendering, `Plot3DSeriesKind.Contour`, `Plot3DAddApi.Contour()` method
-**Addresses:** Contour Plot (differentiator)
-**Avoids:** Pitfall 4 (contour line discontinuity), Pitfall 10 (contour performance — cache results)
-**Key files:** `ContourGenerator.cs` (NEW), `ContourLine.cs` (NEW), `ContourRenderer.cs` (NEW), `ContourRenderScene.cs` (NEW), `Plot3DSeriesKind.cs`, `Plot3DAddApi.cs`, `SurfaceScenePainter.cs`
-
-### Phase 5: Integration and Evidence
-**Rationale:** Wire everything into diagnostics, demo, and guardrails. Test all feature combinations (Bar + DateTime, Contour + Log, etc.) to catch interaction bugs.
-**Delivers:** Updated evidence/diagnostics, demo scenarios, scope guardrails
-**Avoids:** Pitfall 8 (feature combination interaction surface)
-**Key files:** `Plot3DOutputEvidence.cs`, `Plot3DDatasetEvidence.cs`, demo code, guardrail scripts
+### Phase 5: Snapshot & Doctor Integration
+**Rationale:** Integration phase. Depends on Phases 1-4 being complete. Ensures new features don't break existing contracts.
+**Delivers:** `IsSnapshotMode` flag suppressing interaction chrome in exports, extended `SurfaceChartProbeEvidence` with crosshair/interaction fields, updated `surfacecharts-support-summary.txt` format
+**Addresses:** Pitfall 13 (Doctor/support evidence gap), Pitfall 14 (snapshot includes interaction chrome)
 
 ### Phase Ordering Rationale
 
-- **Axis first:** Everything depends on axis support. The Log throw is a one-line removal but requires validation logic. DateTime needs tick generation. Formatters are needed by both.
-- **Legend before chart types:** New chart types need legend entries. Building legend first means Bar/Contour can immediately integrate.
-- **Bar before Contour:** Bar follows the established pattern with no algorithm complexity. Contour needs marching squares, which is the riskiest new component.
-- **Integration last:** Feature combinations are the highest-risk area. Testing all axis×series×formatter combinations catches interaction bugs.
+- **Phases 1-4 are largely independent** — they can be developed in parallel worktrees. The only ordering constraint is within each phase (state → presenter → coordinator wiring).
+- **Phase 5 must come last** — it integrates all other phases with snapshot export and Doctor evidence.
+- **Phase 1 first** because crosshair is the most visible user-facing feature and establishes the lightweight overlay pattern that Phases 2-4 follow.
+- **No backend/Core changes needed** — all phases are overlay-layer additions, keeping risk low and enabling parallel development.
 
 ### Research Flags
 
 Phases likely needing deeper research during planning:
-- **Phase 4 (Contour):** Marching squares edge cases (saddle points, NaN handling) need algorithm-level detail. The 16-case lookup table and asymptotic decider need careful implementation.
+- **Phase 3:** Scatter/bar/contour probe strategies need algorithm design — nearest-point search for scatter, hit-test geometry for bars, contour line identification. May need spatial indexing for large datasets.
 
 Phases with standard patterns (skip research-phase):
-- **Phase 1 (Axis Foundation):** Well-documented patterns. Log tick generation is standard (powers of 10). DateTime tick generation uses .NET's built-in DateTime/DateTimeOffset APIs. The `SurfaceGeometryGrid.MapNormalizedCoordinate` already has correct math.
-- **Phase 2 (Legend):** Extending existing overlay presenter. Clear state/presenter pattern.
-- **Phase 3 (Bar Chart):** Follows established `Plot3DSeriesKind` pattern exactly. Cuboid mesh generation is straightforward geometry.
-- **Phase 5 (Integration):** Standard wiring and evidence update pattern.
+- **Phase 1:** Crosshair is a well-documented pattern (ScottPlot, LiveCharts2). Direct overlay extension.
+- **Phase 2:** Tooltip enhancement follows existing readout bubble pattern. Extend formatter.
+- **Phase 4:** Keyboard handler and toolbar buttons are standard Avalonia patterns.
+- **Phase 5:** Integration wiring — no new algorithms or patterns.
 
 ## Confidence Assessment
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Stack | HIGH | No new dependencies needed; all features build on existing .NET 8 + Avalonia + SkiaSharp stack |
-| Features | HIGH | Features are well-defined in charting literature; table stakes vs differentiator classification is clear |
-| Architecture | HIGH | Existing chart family addition pattern is well-established (Scatter v2.1, Waterfall v1.27); codebase analysis is direct |
-| Pitfalls | MEDIUM | Log axis edge cases and DateTime precision are well-known but need testing; contour algorithm edge cases are standard but need implementation validation |
+| Stack | HIGH | No new dependencies; all libraries already installed and verified |
+| Features | HIGH | Table stakes/differentiators clear from ScottPlot, LiveCharts2, OxyPlot, SciChart comparison |
+| Architecture | HIGH | Integration points traced through all layers via direct codebase reading |
+| Pitfalls | HIGH | 8 high-risk pitfalls derived directly from codebase analysis with line-level references |
 
-**Overall confidence:** HIGH — The research is grounded in direct source code analysis. All integration points are identified. The main uncertainty is in implementation complexity estimates, which are based on experience with similar chart libraries.
+**Overall confidence:** HIGH
 
 ### Gaps to Address
 
-- **Bar chart data model:** Research suggests reusing `SurfaceMatrix` (simplest) vs. new `BarChartData` type (more flexible). Decision needed during Phase 3 planning. Recommendation: start with `SurfaceMatrix` reuse; add `BarChartData` only if categorical axes are needed.
-- **Contour rendering path:** Research suggests 3D line geometry in the scene (consistent with surfaces) vs. 2D overlay projection. Decision needed during Phase 4 planning. Recommendation: 3D line geometry for consistency.
-- **DateTime storage format:** Research suggests OADate (FEATURES.md) vs. Unix seconds (ARCHITECTURE.md). Decision needed during Phase 1 planning. Recommendation: Unix seconds since epoch — simpler, standard, sufficient precision.
-- **Legend overflow strategy:** Research suggests scrollable legend vs. truncation ("+N more"). Decision needed during Phase 2 planning. Recommendation: truncation for v2.53; scrolling is over-engineering.
-- **Categorical axes for bar charts:** Research identifies this as a pitfall (Pitfall 9) but deferring categorical axis extension means bar chart axes show numeric indices. Decision needed during Phase 3 planning. Recommendation: defer categorical axes; use numeric indices with `LabelFormatter` for custom labels.
+- **Scatter probe algorithm**: Brute-force nearest-point is O(n). For large scatter datasets (>10k points), may need spatial index (KD-tree). Start with brute-force, optimize if profiling shows issues.
+- **Contour probe semantics**: What does "probe a contour line" mean? Recommend showing contour level value + nearest point coordinates. Validate with users.
+- **Crosshair default visibility**: Should crosshair default on or off? Recommend on for surface/waterfall, off for scatter/bar/contour. Validate with users.
+- **Toolbar rendering approach**: Overlay-rendered (simpler, consistent) vs. real Avalonia controls (accessibility). Start with overlay; add accessibility in follow-up milestone.
+- **Platform hit-testing**: Avalonia pointer behavior differs across Windows/Linux/macOS. Test pointer capture during drag, scroll wheel delta normalization, modifier key detection on all platforms.
 
 ## Sources
 
 ### Primary (HIGH confidence)
-- Source code: `src/Videra.SurfaceCharts.Core/SurfaceAxisScaleKind.cs` — enum values defined
-- Source code: `src/Videra.SurfaceCharts.Core/SurfaceAxisDescriptor.cs` — Log throw at line 46-51
-- Source code: `src/Videra.SurfaceCharts.Core/SurfaceGeometryGrid.cs` — `MapNormalizedCoordinate` at line 127-143
-- Source code: `src/Videra.SurfaceCharts.Avalonia/Controls/Plot/Plot3DSeriesKind.cs` — current series kinds
-- Source code: `src/Videra.SurfaceCharts.Avalonia/Controls/Plot/Plot3DAddApi.cs` — current Add API
-- Source code: `src/Videra.SurfaceCharts.Avalonia/Controls/SurfaceChartOverlayOptions.cs` — `LabelFormatter` at line 59
-- Source code: `src/Videra.SurfaceCharts.Avalonia/Controls/Overlay/SurfaceLegendOverlayPresenter.cs` — existing legend
-- Source code: `src/Videra.SurfaceCharts.Avalonia/Controls/Overlay/SurfaceAxisTickGenerator.cs` — linear tick generation
+- Videra source code: `VideraChartView.Input.cs`, `VideraChartView.Overlay.cs`, `VideraChartView.Rendering.cs`, `SurfaceChartInteractionController.cs`, `SurfaceProbeOverlayPresenter.cs`, `SurfaceChartOverlayCoordinator.cs`, `SurfaceChartProjection.cs`, `SurfaceProbeService.cs`, `SurfaceHeightfieldPicker.cs`
+- Avalonia 11.3.9 — verified via `dotnet list package`
+- ScottPlot 5 Cookbook — Crosshair, Tooltip, InteractivePlottables patterns
 
 ### Secondary (MEDIUM confidence)
-- Marching squares algorithm — standard computational geometry, well-documented
-- OADate format — .NET standard for DateTime-to-double conversion
-- Log scale tick generation — standard approach (powers of 10)
+- LiveCharts2 documentation (training data) — CrosshairBehavior, DefaultTooltip, ZoomAndPanBehavior
+- OxyPlot documentation (training data) — TrackerHitResult, ZoomRectangleBinding
+- SciChart documentation (training data) — CursorModifier, RolloverModifier, ZoomExtentsModifier
+- Avalonia pointer event model and DPI scaling behavior (platform-dependent)
 
 ### Tertiary (LOW confidence)
-- Complexity estimates — based on experience with similar chart libraries; actual complexity may vary
+- None — all core findings verified against existing codebase
 
 ---
 *Research completed: 2026-04-29*
