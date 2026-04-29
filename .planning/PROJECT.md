@@ -14,8 +14,21 @@ Videra 是一个基于 `.NET 8` 的跨平台 3D 渲染引擎，提供 Windows (`
 
 - 最新完整归档 milestone：`v2.54 Chart Interactivity`
 - 最近完成 milestone：`v2.54 Chart Interactivity`
-- 当前 active milestone：none (ready for next milestone)
-- 当前 focus：v2.54 已完成。Crosshair、Tooltip、Probe、Keyboard/Toolbar 已 shipped。
+- 当前 active milestone：`v2.55 ScottPlot-like Plot API`
+- 当前 focus：让 SurfaceCharts 的第一屏 API 匹配 ScottPlot 5 的使用体验——短代码、熟悉模式、不碰内部类型。
+
+## Current Milestone: v2.55 ScottPlot-like Plot API
+
+**Goal:** Make SurfaceCharts first-chart experience match ScottPlot 5 ergonomics — short code, familiar patterns, no internal types required.
+
+**Target features:**
+- Plot.Add overloads (Surface/Scatter/Waterfall/Bar/Contour from raw arrays)
+- Add.* returns typed plottable (IPlottable3D with Label, IsVisible, Color/ColorMap)
+- Plot.Axes facade (X/Y/Z.Label, SetLimits, AutoScale, SetLabels)
+- Plot.SavePngAsync convenience
+- DataLogger3D / ScatterStream for live data
+- Cookbook-style demo and README rewrite
+- Multi-series rendering (same-type series compose)
 
 ## Completed Milestones
 
@@ -759,6 +772,6 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-29 after starting v2.52 milestone*
+*Last updated: 2026-04-29 after starting v2.55 milestone*
 
 
