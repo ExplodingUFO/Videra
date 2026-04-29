@@ -21,7 +21,7 @@ public sealed class Plot3DAddApi
     public Plot3DSeries Surface(ISurfaceTileSource source, string? name = null)
     {
         ArgumentNullException.ThrowIfNull(source);
-        return _plot.AddSeries(new Plot3DSeries(Plot3DSeriesKind.Surface, name, source, scatterData: null, contourData: null));
+        return _plot.AddSeries(new Plot3DSeries(Plot3DSeriesKind.Surface, name, source, scatterData: null, barData: null, contourData: null));
     }
 
     /// <summary>
@@ -39,7 +39,7 @@ public sealed class Plot3DAddApi
     public Plot3DSeries Waterfall(ISurfaceTileSource source, string? name = null)
     {
         ArgumentNullException.ThrowIfNull(source);
-        return _plot.AddSeries(new Plot3DSeries(Plot3DSeriesKind.Waterfall, name, source, scatterData: null, contourData: null));
+        return _plot.AddSeries(new Plot3DSeries(Plot3DSeriesKind.Waterfall, name, source, scatterData: null, barData: null, contourData: null));
     }
 
     /// <summary>
@@ -57,7 +57,30 @@ public sealed class Plot3DAddApi
     public Plot3DSeries Scatter(ScatterChartData data, string? name = null)
     {
         ArgumentNullException.ThrowIfNull(data);
-        return _plot.AddSeries(new Plot3DSeries(Plot3DSeriesKind.Scatter, name, surfaceSource: null, data, contourData: null));
+        return _plot.AddSeries(new Plot3DSeries(Plot3DSeriesKind.Scatter, name, surfaceSource: null, data, barData: null, contourData: null));
+    }
+
+    /// <summary>
+    /// Adds a vertical bar chart series from an array of values.
+    /// </summary>
+    /// <param name="values">The bar values (one per category). Must not be empty and must not contain NaN.</param>
+    /// <param name="name">Optional series name.</param>
+    public Plot3DSeries Bar(double[] values, string? name = null)
+    {
+        ArgumentNullException.ThrowIfNull(values);
+        var series = new BarSeries(values, color: 0xFF4488CCu, label: name);
+        return Bar(new BarChartData([series]), name);
+    }
+
+    /// <summary>
+    /// Adds a bar chart series from a full bar dataset.
+    /// </summary>
+    /// <param name="data">The bar dataset.</param>
+    /// <param name="name">Optional series name.</param>
+    public Plot3DSeries Bar(BarChartData data, string? name = null)
+    {
+        ArgumentNullException.ThrowIfNull(data);
+        return _plot.AddSeries(new Plot3DSeries(Plot3DSeriesKind.Bar, name, surfaceSource: null, scatterData: null, data, contourData: null));
     }
 
     /// <summary>
@@ -119,6 +142,6 @@ public sealed class Plot3DAddApi
     public Plot3DSeries Contour(ContourChartData data, string? name = null)
     {
         ArgumentNullException.ThrowIfNull(data);
-        return _plot.AddSeries(new Plot3DSeries(Plot3DSeriesKind.Contour, name, surfaceSource: null, scatterData: null, data));
+        return _plot.AddSeries(new Plot3DSeries(Plot3DSeriesKind.Contour, name, surfaceSource: null, scatterData: null, barData: null, data));
     }
 }

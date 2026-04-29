@@ -12,12 +12,14 @@ public sealed class Plot3DSeries
         string? name,
         ISurfaceTileSource? surfaceSource,
         ScatterChartData? scatterData,
+        BarChartData? barData,
         ContourChartData? contourData)
     {
         Kind = kind;
         Name = string.IsNullOrWhiteSpace(name) ? null : name;
         SurfaceSource = surfaceSource;
         ScatterData = scatterData;
+        BarData = barData;
         ContourData = contourData;
     }
 
@@ -40,6 +42,11 @@ public sealed class Plot3DSeries
     /// Gets the scatter dataset for scatter series.
     /// </summary>
     public ScatterChartData? ScatterData { get; }
+
+    /// <summary>
+    /// Gets the bar dataset for bar chart series.
+    /// </summary>
+    public BarChartData? BarData { get; }
 
     /// <summary>
     /// Gets the contour dataset for contour series.
