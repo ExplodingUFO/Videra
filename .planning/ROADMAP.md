@@ -30,10 +30,10 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. User can assign a `Func<double, string>` formatter to any axis and see custom labels rendered in place of defaults
   4. User receives an explicit diagnostic when setting log scale with minimum <= 0 (zero or negative values rejected)
   5. DateTime axis values stored as UTC seconds (long) maintain full precision across zoom/pan without floating-point drift
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
-- [ ] 366-01: TBD
+- [ ] 366-01-PLAN.md — Unblock Log scale, implement DateTime/log tick generation, wire per-axis custom formatters
 
 ### Phase 367: Enhanced Chart Legend
 **Goal**: Chart displays a configurable, multi-series legend overlay with kind-specific visual indicators
@@ -98,7 +98,7 @@ Phases execute in numeric order: 366 → 367 → 368 → 369 → 370
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 366. Axis Foundation | 0/1 | Not started | - |
+| 366. Axis Foundation | 0/1 | Planned | - |
 | 367. Enhanced Chart Legend | 0/1 | Not started | - |
 | 368. Bar Chart Series | 0/1 | Not started | - |
 | 369. Contour Plot Series | 0/1 | Not started | - |
