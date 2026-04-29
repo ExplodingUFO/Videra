@@ -617,6 +617,24 @@ public sealed class Plot3D
         _setDataWindow(next);
     }
 
+    internal PlotAxisLimits? GetNaturalHorizontalAxisLimits()
+    {
+        var metadata = ActiveSurfaceSource?.Metadata;
+        return metadata is null ? null : new PlotAxisLimits(0d, metadata.Width);
+    }
+
+    internal PlotAxisLimits? GetNaturalDepthAxisLimits()
+    {
+        var metadata = ActiveSurfaceSource?.Metadata;
+        return metadata is null ? null : new PlotAxisLimits(0d, metadata.Height);
+    }
+
+    internal PlotAxisLimits? GetNaturalValueAxisLimits()
+    {
+        var range = ActiveValueRange;
+        return range is null ? null : new PlotAxisLimits(range.Value.Minimum, range.Value.Maximum);
+    }
+
     private SurfaceValueRange? ActiveValueRange
     {
         get

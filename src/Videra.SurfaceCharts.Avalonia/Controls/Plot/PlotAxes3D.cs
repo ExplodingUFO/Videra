@@ -47,6 +47,7 @@ public sealed class PlotAxis3D
 {
     private readonly Plot3D _owner;
     private readonly PlotAxisKind _kind;
+    private PlotAxisLimits? _bounds;
 
     internal PlotAxis3D(Plot3D owner, PlotAxisKind kind)
     {
@@ -83,6 +84,42 @@ public sealed class PlotAxis3D
     }
 
     /// <summary>
+    /// Gets or sets whether this axis preserves its current limits during Plot.Axes limit and autoscale calls.
+    /// </summary>
+    public bool IsLocked { get; set; }
+
+    /// <summary>
+    /// Gets the explicit minimum/maximum bounds applied to Plot.Axes limit and autoscale calls.
+    /// </summary>
+    public PlotAxisLimits? Bounds => _bounds;
+
+    /// <summary>
+    /// Sets explicit bounds used to clamp Plot.Axes limit and autoscale calls for this axis.
+    /// </summary>
+    /// <param name="minimum">The optional inclusive lower bound.</param>
+    /// <param name="maximum">The optional inclusive upper bound.</param>
+    public void SetBounds(double? minimum, double? maximum)
+    {
+        ValidateOptionalLimit(minimum, nameof(minimum));
+        ValidateOptionalLimit(maximum, nameof(maximum));
+
+        if (minimum is { } lower && maximum is { } upper && upper <= lower)
+        {
+            throw new ArgumentException("Axis maximum bound must be greater than axis minimum bound.", nameof(maximum));
+        }
+
+        _bounds = new PlotAxisLimits(minimum ?? double.NegativeInfinity, maximum ?? double.PositiveInfinity);
+    }
+
+    /// <summary>
+    /// Clears explicit bounds for this axis.
+    /// </summary>
+    public void ClearBounds()
+    {
+        _bounds = null;
+    }
+
+    /// <summary>
     /// Sets the visible limits for this axis.
     /// </summary>
     /// <param name="minimum">The inclusive minimum value.</param>
@@ -90,17 +127,23 @@ public sealed class PlotAxis3D
     public void SetLimits(double minimum, double maximum)
     {
         ValidateLimits(minimum, maximum);
+        if (IsLocked)
+        {
+            return;
+        }
+
+        var limits = ApplyBounds(new PlotAxisLimits(minimum, maximum));
 
         switch (_kind)
         {
             case PlotAxisKind.X:
-                _owner.SetHorizontalAxisLimits(minimum, maximum);
+                _owner.SetHorizontalAxisLimits(limits.Minimum, limits.Maximum);
                 break;
             case PlotAxisKind.Y:
-                _owner.SetValueAxisLimits(minimum, maximum);
+                _owner.SetValueAxisLimits(limits.Minimum, limits.Maximum);
                 break;
             case PlotAxisKind.Z:
-                _owner.SetDepthAxisLimits(minimum, maximum);
+                _owner.SetDepthAxisLimits(limits.Minimum, limits.Maximum);
                 break;
         }
     }
@@ -123,18 +166,40 @@ public sealed class PlotAxis3D
     /// </summary>
     public void AutoScale()
     {
-        switch (_kind)
+        if (IsLocked)
         {
-            case PlotAxisKind.X:
-                _owner.AutoScaleHorizontalAxis();
-                break;
-            case PlotAxisKind.Y:
-                _owner.AutoScaleValueAxis();
-                break;
-            case PlotAxisKind.Z:
-                _owner.AutoScaleDepthAxis();
-                break;
+            return;
         }
+
+        var limits = _kind switch
+        {
+            PlotAxisKind.X => _owner.GetNaturalHorizontalAxisLimits(),
+            PlotAxisKind.Y => _owner.GetNaturalValueAxisLimits(),
+            _ => _owner.GetNaturalDepthAxisLimits(),
+        };
+
+        if (limits is { } naturalLimits)
+        {
+            var boundedLimits = ApplyBounds(naturalLimits);
+            SetLimits(boundedLimits.Minimum, boundedLimits.Maximum);
+        }
+    }
+
+    private PlotAxisLimits ApplyBounds(PlotAxisLimits limits)
+    {
+        if (_bounds is not { } bounds)
+        {
+            return limits;
+        }
+
+        var minimum = Math.Max(limits.Minimum, bounds.Minimum);
+        var maximum = Math.Min(limits.Maximum, bounds.Maximum);
+        if (maximum <= minimum)
+        {
+            throw new InvalidOperationException("Axis bounds leave no visible limit span.");
+        }
+
+        return new PlotAxisLimits(minimum, maximum);
     }
 
     private SurfaceChartOverlayOptions CopyOverlayOptions(SurfaceChartOverlayOptions source, string? label, string? unit)
@@ -186,6 +251,14 @@ public sealed class PlotAxis3D
         if (maximum <= minimum)
         {
             throw new ArgumentException("Axis maximum must be greater than axis minimum.", nameof(maximum));
+        }
+    }
+
+    private static void ValidateOptionalLimit(double? value, string paramName)
+    {
+        if (value is { } actualValue && !double.IsFinite(actualValue))
+        {
+            throw new ArgumentOutOfRangeException(paramName, "Axis bounds must be finite when specified.");
         }
     }
 }

@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v2.56
 milestone_name: "ScottPlot 5 Interaction and Cookbook Experience"
 status: active
-stopped_at: "Phase 386 completed; Phase 387 remains in separate parallel worktree execution"
-last_updated: "2026-04-30T02:01:52+08:00"
+stopped_at: "Phase 386 and Phase 387 completed; Phase 388 ready"
+last_updated: "2026-04-30T03:30:00+08:00"
 last_activity: 2026-04-30
 progress:
   total_phases: 7
@@ -21,15 +21,15 @@ progress:
 See: `.planning/PROJECT.md`
 
 **Core value:** 跨平台 3D 渲染引擎的可靠性
-**Current focus:** v2.56 ScottPlot 5 Interaction and Cookbook Experience — Phase 386 complete; Phase 387 in parallel
+**Current focus:** v2.56 ScottPlot 5 Interaction and Cookbook Experience — Phases 386 and 387 complete
 
 ## Current Position
 
 Milestone: `v2.56 ScottPlot 5 Interaction and Cookbook Experience`
-Phase: 386 complete; 387 in progress in a separate worktree
-Plan: Phases 383 through 386 complete
-Status: Selection, probe, and draggable overlay recipes are implemented and verified. Phase 387 remains owned by its separate worktree/branch and should be merged without overwriting Phase 386 overlay changes.
-Last activity: 2026-04-30 — Completed Phase 386 selection/probe/draggable overlay recipes
+Phase: 388 ready
+Plan: Phases 383 through 387 complete
+Status: Selection/probe/draggable overlay recipes, axis rules, linked views, and DataLogger3D live view evidence are implemented and verified. `bd ready --json` should now expose Phase 388.
+Last activity: 2026-04-30 — Integrated Phase 386 and Phase 387 parallel work
 
 Progress: [██████░░░░] 57%
 
@@ -66,8 +66,8 @@ This milestone improves the next layer of ScottPlot-inspired experience:
 ## Session Continuity
 
 Last session: `2026-04-30 +08:00`
-Stopped at: Phase 386 complete
-Next action: Continue Phase 387 in its separate worktree, then coordinate Phase 388 after Phase 386 and Phase 387 merge cleanly.
+Stopped at: Phases 386 and 387 complete
+Next action: Execute `Videra-v256.6` in an isolated worktree if integration verification passes.
 
 ## Accumulated Context
 
