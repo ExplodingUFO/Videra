@@ -19,4 +19,9 @@ public enum Plot3DSeriesKind
     /// A 3D scatter dataset.
     /// </summary>
     Scatter,
+
+    /// <summary>
+    /// A vertical bar chart series.
+    /// </summary>
+    Bar,
 }
