@@ -94,6 +94,7 @@ public partial class VideraChartView : Decorator
         Plot = new Plot3D(OnPlotChanged);
         Plot.SetRenderOffscreen(RenderOffscreenAsync);
         Plot.SetSnapshotModeCallback(SetSnapshotMode);
+        Plot.SetViewStateBridge(() => ViewState.DataWindow, SetPlotDataWindow, FitToData);
         RenderingStatus = _renderHost.RenderingStatus;
         _runtime = new SurfaceChartRuntime(
             ViewState,
@@ -185,6 +186,11 @@ public partial class VideraChartView : Decorator
     {
         _runtime.ZoomTo(dataWindow);
         SynchronizeViewStateProperties(_runtime.ViewState);
+    }
+
+    private void SetPlotDataWindow(SurfaceDataWindow dataWindow)
+    {
+        ZoomTo(dataWindow);
     }
 
     /// <summary>

@@ -16,18 +16,27 @@ public sealed class Plot3D
     private SurfaceChartOverlayOptions _overlayOptions = SurfaceChartOverlayOptions.Default;
     private Func<int, int, double, Task<RenderTargetBitmap>>? _renderOffscreen;
     private Action<bool>? _setSnapshotMode;
+    private Func<SurfaceDataWindow>? _getDataWindow;
+    private Action<SurfaceDataWindow>? _setDataWindow;
+    private Action? _fitToData;
 
     internal Plot3D(Action changed)
     {
         Changed = changed ?? throw new ArgumentNullException(nameof(changed));
         _seriesView = new ReadOnlyCollection<Plot3DSeries>(_series);
         Add = new Plot3DAddApi(this);
+        Axes = new PlotAxes3D(this);
     }
 
     /// <summary>
     /// Gets the series authoring API.
     /// </summary>
     public Plot3DAddApi Add { get; }
+
+    /// <summary>
+    /// Gets the axis facade for X, Y, and Z labels, units, limits, and autoscale.
+    /// </summary>
+    public PlotAxes3D Axes { get; }
 
     /// <summary>
     /// Gets the series attached to this plot in draw order.
@@ -258,6 +267,19 @@ public sealed class Plot3D
     }
 
     /// <summary>
+    /// Sets the internal view-state bridge used by <see cref="Axes"/> to reuse chart-view ownership.
+    /// </summary>
+    internal void SetViewStateBridge(
+        Func<SurfaceDataWindow> getDataWindow,
+        Action<SurfaceDataWindow> setDataWindow,
+        Action fitToData)
+    {
+        _getDataWindow = getDataWindow ?? throw new ArgumentNullException(nameof(getDataWindow));
+        _setDataWindow = setDataWindow ?? throw new ArgumentNullException(nameof(setDataWindow));
+        _fitToData = fitToData ?? throw new ArgumentNullException(nameof(fitToData));
+    }
+
+    /// <summary>
     /// Captures a chart-local PNG/bitmap snapshot through the Plot-owned contract.
     /// </summary>
     /// <param name="request">The snapshot request specifying dimensions, format, and background.</param>
@@ -344,6 +366,49 @@ public sealed class Plot3D
         }
     }
 
+    /// <summary>
+    /// Captures a chart-local PNG snapshot and writes it to the caller-selected path.
+    /// </summary>
+    /// <param name="path">The caller-selected PNG output path.</param>
+    /// <param name="width">The target snapshot width in pixels.</param>
+    /// <param name="height">The target snapshot height in pixels.</param>
+    /// <param name="scale">The DPI scale factor.</param>
+    /// <param name="background">The background behavior for the snapshot.</param>
+    /// <returns>A result containing the caller-selected artifact path and manifest on success, or a diagnostic on failure.</returns>
+    public async Task<PlotSnapshotResult> SavePngAsync(
+        string path,
+        int width,
+        int height,
+        double scale = 1d,
+        PlotSnapshotBackground background = PlotSnapshotBackground.Transparent)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(path);
+
+        var request = new PlotSnapshotRequest(width, height, scale, background, PlotSnapshotFormat.Png);
+        var result = await CaptureSnapshotAsync(request).ConfigureAwait(false);
+        if (!result.Succeeded)
+        {
+            return result;
+        }
+
+        var directory = System.IO.Path.GetDirectoryName(path);
+        if (!string.IsNullOrEmpty(directory))
+        {
+            System.IO.Directory.CreateDirectory(directory);
+        }
+
+        try
+        {
+            System.IO.File.Copy(result.Path!, path, overwrite: true);
+        }
+        finally
+        {
+            System.IO.File.Delete(result.Path!);
+        }
+
+        return PlotSnapshotResult.Success(path, result.Manifest!, result.Duration);
+    }
+
     private static async Task EncodeAndSavePng(RenderTargetBitmap bitmap, string path)
     {
         var directory = System.IO.Path.GetDirectoryName(path);
@@ -364,6 +429,118 @@ public sealed class Plot3D
         _series.Add(series);
         NotifyChanged();
         return series;
+    }
+
+    internal void SetOverlayOptions(SurfaceChartOverlayOptions overlayOptions)
+    {
+        OverlayOptions = overlayOptions;
+    }
+
+    internal PlotAxisLimits? GetHorizontalAxisLimits()
+    {
+        var dataWindow = _getDataWindow?.Invoke();
+        return dataWindow is null
+            ? null
+            : new PlotAxisLimits(dataWindow.Value.StartX, dataWindow.Value.EndXExclusive);
+    }
+
+    internal PlotAxisLimits? GetDepthAxisLimits()
+    {
+        var dataWindow = _getDataWindow?.Invoke();
+        return dataWindow is null
+            ? null
+            : new PlotAxisLimits(dataWindow.Value.StartY, dataWindow.Value.EndYExclusive);
+    }
+
+    internal PlotAxisLimits? GetValueAxisLimits()
+    {
+        var range = ColorMap?.Range ?? ActiveValueRange;
+        return range is null ? null : new PlotAxisLimits(range.Value.Minimum, range.Value.Maximum);
+    }
+
+    internal void SetHorizontalAxisLimits(double minimum, double maximum)
+    {
+        if (_getDataWindow is null || _setDataWindow is null)
+        {
+            return;
+        }
+
+        var current = _getDataWindow();
+        _setDataWindow(new SurfaceDataWindow(minimum, current.StartY, maximum - minimum, current.Height));
+    }
+
+    internal void SetDepthAxisLimits(double minimum, double maximum)
+    {
+        if (_getDataWindow is null || _setDataWindow is null)
+        {
+            return;
+        }
+
+        var current = _getDataWindow();
+        _setDataWindow(new SurfaceDataWindow(current.StartX, minimum, current.Width, maximum - minimum));
+    }
+
+    internal void SetValueAxisLimits(double minimum, double maximum)
+    {
+        var palette = ColorMap?.Palette ?? SurfaceColorMapPresets.CreateDefault();
+        ColorMap = new SurfaceColorMap(new SurfaceValueRange(minimum, maximum), palette);
+    }
+
+    internal void AutoScaleHorizontalAxis()
+    {
+        AutoScaleDataWindowAxis(updateHorizontal: true);
+    }
+
+    internal void AutoScaleDepthAxis()
+    {
+        AutoScaleDataWindowAxis(updateHorizontal: false);
+    }
+
+    internal void AutoScaleValueAxis()
+    {
+        var range = ActiveValueRange;
+        if (range is null)
+        {
+            return;
+        }
+
+        var palette = ColorMap?.Palette ?? SurfaceColorMapPresets.CreateDefault();
+        ColorMap = new SurfaceColorMap(range.Value, palette);
+    }
+
+    private void AutoScaleDataWindowAxis(bool updateHorizontal)
+    {
+        var metadata = ActiveSurfaceSeries?.SurfaceSource?.Metadata;
+        if (metadata is null)
+        {
+            return;
+        }
+
+        if (_getDataWindow is null || _setDataWindow is null)
+        {
+            _fitToData?.Invoke();
+            return;
+        }
+
+        var current = _getDataWindow();
+        var next = updateHorizontal
+            ? new SurfaceDataWindow(0d, current.StartY, metadata.Width, current.Height)
+            : new SurfaceDataWindow(current.StartX, 0d, current.Width, metadata.Height);
+        _setDataWindow(next);
+    }
+
+    private SurfaceValueRange? ActiveValueRange
+    {
+        get
+        {
+            var activeSeries = ActiveSeries;
+            return activeSeries?.Kind switch
+            {
+                Plot3DSeriesKind.Surface or Plot3DSeriesKind.Waterfall => activeSeries.SurfaceSource?.Metadata.ValueRange,
+                Plot3DSeriesKind.Scatter => activeSeries.ScatterData?.Metadata.ValueRange,
+                _ => null,
+            };
+        }
     }
 
     private SurfaceChartOutputEvidence? CreateColorMapEvidence(Plot3DSeries? activeSeries)

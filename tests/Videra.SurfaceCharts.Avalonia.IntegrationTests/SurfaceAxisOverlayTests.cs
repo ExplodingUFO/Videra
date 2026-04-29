@@ -207,6 +207,30 @@ public sealed class SurfaceAxisOverlayTests
     }
 
     [Fact]
+    public Task AxisOverlay_UsesPlotAxesFacadeLabelsAndUnits()
+    {
+        return AvaloniaHeadlessTestSession.RunAsync(async () =>
+        {
+            var source = new ScriptedSurfaceTileSource(VideraChartViewLifecycleTests.CreateMetadata(), defaultTileValue: 7f);
+            var view = new VideraChartView();
+
+            view.Plot.Axes.X.Label = "Elapsed";
+            view.Plot.Axes.X.Unit = "ms";
+            view.Plot.Axes.Y.Label = "Amplitude";
+            view.Plot.Axes.Y.Unit = "dB";
+            view.Plot.Axes.Z.Label = "Band";
+            view.Plot.Axes.Z.Unit = "Hz";
+            view.Measure(new Size(320, 200));
+            view.Arrange(new Rect(0, 0, 320, 200));
+            SurfaceChartTestHelpers.LoadSurface(view, source);
+
+            await SurfaceChartTestHelpers.WaitForLoadedTileValuesAsync(view, [7f]);
+
+            GetAxisTitles(GetAxisOverlayState(view)).Should().Contain(["Elapsed (ms)", "Amplitude (dB)", "Band (Hz)"]);
+        });
+    }
+
+    [Fact]
     public Task AxisOverlay_CullsDenseLabels_WhenFormatterProducesLongLabels()
     {
         return AvaloniaHeadlessTestSession.RunAsync(async () =>

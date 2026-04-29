@@ -390,6 +390,52 @@ public sealed class VideraChartViewPlotApiTests
     }
 
     [Fact]
+    public void Plot3D_AxesFacade_IsDiscoverableAndUpdatesExistingStateOwners()
+    {
+        AvaloniaHeadlessTestSession.Run(() =>
+        {
+            var metadata = VideraChartViewLifecycleTests.CreateMetadata();
+            var source = new RecordingSurfaceTileSource(metadata);
+            var view = new VideraChartView();
+            SurfaceChartTestHelpers.LoadSurface(view, source);
+            view.FitToData();
+
+            view.Plot.Axes.X.Label = "Elapsed";
+            view.Plot.Axes.X.Unit = "ms";
+            view.Plot.Axes.Y.Label = "Amplitude";
+            view.Plot.Axes.Y.Unit = "dB";
+            view.Plot.Axes.Z.Label = "Band";
+            view.Plot.Axes.Z.Unit = "Hz";
+            view.Plot.Axes.X.SetLimits(4d, 20d);
+            view.Plot.Axes.Z.SetLimits(8d, 24d);
+            view.Plot.Axes.Y.SetLimits(-12d, 18d);
+
+            typeof(Plot3D).GetProperty(nameof(Plot3D.Axes)).Should().NotBeNull();
+            typeof(PlotAxes3D).GetProperty(nameof(PlotAxes3D.X)).Should().NotBeNull();
+            typeof(PlotAxes3D).GetProperty(nameof(PlotAxes3D.Y)).Should().NotBeNull();
+            typeof(PlotAxes3D).GetProperty(nameof(PlotAxes3D.Z)).Should().NotBeNull();
+            view.Plot.OverlayOptions.HorizontalAxisTitleOverride.Should().Be("Elapsed");
+            view.Plot.OverlayOptions.HorizontalAxisUnitOverride.Should().Be("ms");
+            view.Plot.OverlayOptions.ValueAxisTitleOverride.Should().Be("Amplitude");
+            view.Plot.OverlayOptions.ValueAxisUnitOverride.Should().Be("dB");
+            view.Plot.OverlayOptions.DepthAxisTitleOverride.Should().Be("Band");
+            view.Plot.OverlayOptions.DepthAxisUnitOverride.Should().Be("Hz");
+            view.ViewState.DataWindow.Should().Be(new SurfaceDataWindow(4d, 8d, 16d, 16d));
+            view.Plot.ColorMap!.Range.Should().Be(new SurfaceValueRange(-12d, 18d));
+            view.Plot.Axes.X.GetLimits().Should().Be(new PlotAxisLimits(4d, 20d));
+            view.Plot.Axes.Y.GetLimits().Should().Be(new PlotAxisLimits(-12d, 18d));
+            view.Plot.Axes.Z.GetLimits().Should().Be(new PlotAxisLimits(8d, 24d));
+
+            view.Plot.Axes.X.AutoScale();
+            view.Plot.Axes.Z.AutoScale();
+            view.Plot.Axes.Y.AutoScale();
+
+            view.ViewState.DataWindow.Should().Be(new SurfaceDataWindow(0d, 0d, metadata.Width, metadata.Height));
+            view.Plot.ColorMap.Range.Should().Be(metadata.ValueRange);
+        });
+    }
+
+    [Fact]
     public void Plot3D_CreateOutputEvidence_ReportsActiveSurfaceContract()
     {
         AvaloniaHeadlessTestSession.Run(() =>
@@ -435,6 +481,43 @@ public sealed class VideraChartViewPlotApiTests
                 "ImageExport",
                 "PdfExport",
                 "VectorExport");
+        });
+    }
+
+    [Fact]
+    public Task Plot3D_SavePngAsync_WritesCallerSelectedPngThroughSnapshotPath()
+    {
+        return AvaloniaHeadlessTestSession.RunAsync(async () =>
+        {
+            var view = new VideraChartView();
+            var source = new ScriptedSurfaceTileSource(VideraChartViewLifecycleTests.CreateMetadata(), defaultTileValue: 4f);
+            var outputPath = System.IO.Path.Combine(
+                System.IO.Path.GetTempPath(),
+                $"videra-savepng-{Guid.NewGuid():N}.png");
+
+            try
+            {
+                view.Measure(new Size(240, 160));
+                view.Arrange(new Rect(0, 0, 240, 160));
+                view.Plot.Add.Surface(source, "surface");
+                await SurfaceChartTestHelpers.WaitForLoadedTileValuesAsync(view, [4f]);
+
+                var result = await view.Plot.SavePngAsync(outputPath, width: 160, height: 90);
+
+                result.Succeeded.Should().BeTrue(result.Failure?.Message);
+                result.Path.Should().Be(outputPath);
+                result.Manifest!.Width.Should().Be(160);
+                result.Manifest.Height.Should().Be(90);
+                System.IO.File.Exists(outputPath).Should().BeTrue();
+                System.IO.File.ReadAllBytes(outputPath).Take(8).Should().Equal(137, 80, 78, 71, 13, 10, 26, 10);
+            }
+            finally
+            {
+                if (System.IO.File.Exists(outputPath))
+                {
+                    System.IO.File.Delete(outputPath);
+                }
+            }
         });
     }
 
