@@ -5,6 +5,7 @@
 The control layer remains separate from `VideraView` and only depends on the shared surface-chart contracts in `Videra.SurfaceCharts.Core`.
 
 `nuget.org` is the default public feed for this package. `GitHub Packages` remains `preview` / internal validation only. The current support level is `alpha`. Add `Videra.SurfaceCharts.Processing` only for the surface/cache-backed path.
+For release-candidate package consumption, cookbook routing, migration notes, and support artifacts, use [SurfaceCharts Release Candidate Handoff](../../docs/surfacecharts-release-candidate-handoff.md).
 
 The current shipped surface path is tighter under camera movement and churns less on probe work, without widening the existing chart-local path.
 
@@ -139,3 +140,4 @@ Hosts currently own:
 - Do not treat `VideraChartView` as a `VideraView` mode.
 - Do not push chart-specific semantics back into viewer selection, annotation, or camera contracts.
 - Keep input interpretation, tile scheduling, render-host orchestration, and overlay behavior separated.
+- Do not restore `SurfaceChartView`, `WaterfallChartView`, `ScatterChartView`, direct public `Source` loading, compatibility wrappers, PDF/vector export, or hidden chart-path fallback.

@@ -22,6 +22,7 @@ This page maps the long-lived public documentation for Videra. Start with the re
 - [Generated Public Roadmap](ROADMAP.generated.md) for the read-only public summary exported from `.beads/issues.jsonl`
 - [Videra Doctor](videra-doctor.md) for repo-only, non-mutating local support snapshots under `artifacts/doctor`
 - [Alpha Feedback](alpha-feedback.md) for bug-report diagnostics, consumer-path evidence, and support-boundary expectations
+- [SurfaceCharts Release Candidate Handoff](surfacecharts-release-candidate-handoff.md) for SurfaceCharts package consumption, cookbook, migration, non-goal, and support-artifact guidance
 - [Extensibility Contract](extensibility.md) for the `VideraView.Engine` flow, `samples/Videra.ExtensibilitySample`, the ready / disposed / fallback behavior matrix, and the boundary that keeps `package discovery` and `plugin loading` out of scope
 - [Troubleshooting](troubleshooting.md) for package installation, `VIDERA_BACKEND` preferences, explicit software fallback, and matching-host validation
 - [Native Validation](native-validation.md) for the GitHub Actions and local matching-host validation runbook
@@ -44,6 +45,7 @@ This page maps the long-lived public documentation for Videra. Start with the re
 - [Videra.SurfaceCharts.Rendering](../src/Videra.SurfaceCharts.Rendering/README.md)
 - [Videra.SurfaceCharts.Avalonia](../src/Videra.SurfaceCharts.Avalonia/README.md)
 - [Videra.SurfaceCharts.Processing](../src/Videra.SurfaceCharts.Processing/README.md)
+- [SurfaceCharts Release Candidate Handoff](surfacecharts-release-candidate-handoff.md)
 
 ## Repository-Only Samples and Demos
 
