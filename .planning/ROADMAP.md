@@ -77,7 +77,7 @@
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 371. Crosshair Overlay | 0/TBD | Not started | - |
+| 371. Crosshair Overlay | 1/1 | Complete | 2026-04-29 |
 | 372. Enhanced Tooltips | 0/TBD | Not started | - |
 | 373. Series Probe Strategies | 0/TBD | Not started | - |
 | 374. Keyboard & Toolbar Controls | 0/TBD | Not started | - |

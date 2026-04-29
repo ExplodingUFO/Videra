@@ -4,10 +4,10 @@
 
 ### Crosshair
 
-- [ ] **XHAIR-01**: Crosshair overlay follows mouse position showing projected ground-plane guidelines through the probe point
-- [ ] **XHAIR-02**: Crosshair displays axis coordinate values at the guideline endpoints (axis-value pills)
-- [ ] **XHAIR-03**: Crosshair visibility is configurable (on/off per chart instance)
-- [ ] **XHAIR-04**: Crosshair uses lightweight overlay path — bypasses full overlay rebuild on pointer move
+- [x] **XHAIR-01**: Crosshair overlay follows mouse position showing projected ground-plane guidelines through the probe point
+- [x] **XHAIR-02**: Crosshair displays axis coordinate values at the guideline endpoints (axis-value pills)
+- [x] **XHAIR-03**: Crosshair visibility is configurable (on/off per chart instance)
+- [x] **XHAIR-04**: Crosshair uses lightweight overlay path — bypasses full overlay rebuild on pointer move
 
 ### Tooltips
 
@@ -64,10 +64,10 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| XHAIR-01 | Phase 371 | Pending |
-| XHAIR-02 | Phase 371 | Pending |
-| XHAIR-03 | Phase 371 | Pending |
-| XHAIR-04 | Phase 371 | Pending |
+| XHAIR-01 | Phase 371 | Complete |
+| XHAIR-02 | Phase 371 | Complete |
+| XHAIR-03 | Phase 371 | Complete |
+| XHAIR-04 | Phase 371 | Complete |
 | TOOL-01 | Phase 372 | Pending |
 | TOOL-02 | Phase 372 | Pending |
 | TOOL-03 | Phase 372 | Pending |

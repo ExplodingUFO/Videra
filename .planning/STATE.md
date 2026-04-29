@@ -4,14 +4,14 @@ milestone: v2.54
 milestone_name: "Chart Interactivity"
 status: active
 stopped_at: "Roadmap created"
-last_updated: "2026-04-29T20:00:00+08:00"
+last_updated: "2026-04-29T21:53:00+08:00"
 last_activity: 2026-04-29
 progress:
   total_phases: 5
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  completed_phases: 1
+  total_plans: 1
+  completed_plans: 1
+  percent: 20
 ---
 
 # Project State
@@ -26,12 +26,12 @@ See: `.planning/PROJECT.md`
 ## Current Position
 
 Milestone: `v2.54 Chart Interactivity`
-Phase: 371 of 375 (Crosshair Overlay)
-Plan: Not started
-Status: Roadmap created. Ready to plan Phase 371.
-Last activity: 2026-04-29 - Created v2.54 roadmap with 5 phases.
+Phase: 372 of 375 (Enhanced Tooltips)
+Plan: 371-PLAN complete
+Status: Phase 371 Crosshair Overlay complete. Ready for Phase 372.
+Last activity: 2026-04-29 - Completed Phase 371 Crosshair Overlay with 6 tests.
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [██░░░░░░░░] 20%
 
 ## Initial Scope Summary
 
@@ -57,6 +57,9 @@ The scope adds interactivity:
 - Phase 371–374 are independent (all depend only on existing infrastructure) — can be parallelized
 - Phase 375 depends on all of 371–374 — integration and verification last
 - Crosshair uses separate lightweight render path (not full overlay coordinator rebuild)
+- Crosshair projects onto XZ ground plane (not screen-space H/V lines) because Videra is 3D
+- Axis-value pills positioned at outer endpoints following ScottPlot pattern
+- Default crosshair visibility is ON for immediate user feedback
 - Probe strategies use `ISeriesProbeStrategy` interface for extensibility
 - All features are presentation-layer overlays — no backend/Core changes
 - Start at Phase 371 (continuing from v2.53's Phase 370)
@@ -71,5 +74,5 @@ The scope adds interactivity:
 ## Session Continuity
 
 Last session: `2026-04-29 +08:00`
-Stopped at: Roadmap created for v2.54
-Next action: `$gsd-plan-phase 371` to plan Phase 371 Crosshair Overlay
+Stopped at: Completed Phase 371 Crosshair Overlay
+Next action: `$gsd-plan-phase 372` to plan Phase 372 Enhanced Tooltips
