@@ -59,6 +59,24 @@ public sealed class SurfaceChartOverlayOptions
     public Func<string, double, string>? LabelFormatter { get; init; }
 
     /// <summary>
+    /// Gets the optional custom formatter for the horizontal (X) axis tick labels.
+    /// When set, this takes priority over <see cref="LabelFormatter"/> for X axis values.
+    /// </summary>
+    public Func<double, string>? XAxisFormatter { get; init; }
+
+    /// <summary>
+    /// Gets the optional custom formatter for the value (Y) axis tick labels.
+    /// When set, this takes priority over <see cref="LabelFormatter"/> for Y axis values.
+    /// </summary>
+    public Func<double, string>? YAxisFormatter { get; init; }
+
+    /// <summary>
+    /// Gets the optional custom formatter for the depth (Z) axis tick labels.
+    /// When set, this takes priority over <see cref="LabelFormatter"/> for Z axis values.
+    /// </summary>
+    public Func<double, string>? ZAxisFormatter { get; init; }
+
+    /// <summary>
     /// Gets the optional horizontal-axis title override.
     /// </summary>
     public string? HorizontalAxisTitleOverride { get; init; }
@@ -103,6 +121,20 @@ public sealed class SurfaceChartOverlayOptions
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(axisKey);
 
+        // Per-axis formatters take priority
+        var perAxisFormatter = axisKey switch
+        {
+            "X" => XAxisFormatter,
+            "Y" => YAxisFormatter,
+            "Z" => ZAxisFormatter,
+            _ => null,
+        };
+
+        if (perAxisFormatter is not null)
+        {
+            return perAxisFormatter(value);
+        }
+
         if (LabelFormatter is not null)
         {
             return LabelFormatter(axisKey, value);
@@ -128,6 +160,24 @@ public sealed class SurfaceChartOverlayOptions
 
         var formattedValue = FormatLabel(axisKey, value);
         return value > 0d ? $"+{formattedValue}" : formattedValue;
+    }
+
+    /// <summary>
+    /// Formats a UTC-seconds value as a human-readable DateTime label.
+    /// </summary>
+    /// <param name="utcSeconds">The UTC time expressed as seconds since Unix epoch.</param>
+    /// <param name="axisSpanSeconds">The total axis span in seconds, used to select format granularity.</param>
+    /// <returns>A formatted date/time string.</returns>
+    internal static string FormatDateTimeLabel(double utcSeconds, double axisSpanSeconds)
+    {
+        var dto = DateTimeOffset.FromUnixTimeSeconds((long)utcSeconds);
+
+        return axisSpanSeconds switch
+        {
+            < 3600d => dto.ToString("HH:mm:ss", CultureInfo.InvariantCulture),
+            < 86400d => dto.ToString("MM-dd HH:mm", CultureInfo.InvariantCulture),
+            _ => dto.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
+        };
     }
 
     internal static string FormatNumericLabel(double value, SurfaceChartNumericLabelFormat format, int precision)

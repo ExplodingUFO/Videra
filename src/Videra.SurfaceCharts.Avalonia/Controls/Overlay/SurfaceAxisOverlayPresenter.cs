@@ -42,6 +42,7 @@ internal static class SurfaceAxisOverlayPresenter
                 overlayOptions.HorizontalAxisUnitOverride ?? metadata.HorizontalAxis.Unit),
             axisMinimum: metadata.HorizontalAxis.Minimum,
             axisMaximum: metadata.HorizontalAxis.Maximum,
+            scaleKind: metadata.HorizontalAxis.ScaleKind,
             start: projection.Project(new Vector3((float)metadata.HorizontalAxis.Minimum, (float)valueRange.Minimum, frontCorner.Z)),
             end: projection.Project(new Vector3((float)metadata.HorizontalAxis.Maximum, (float)valueRange.Minimum, frontCorner.Z)),
             projectedCenter,
@@ -54,6 +55,7 @@ internal static class SurfaceAxisOverlayPresenter
                 overlayOptions.ValueAxisUnitOverride),
             axisMinimum: valueRange.Minimum,
             axisMaximum: valueRange.Maximum,
+            scaleKind: SurfaceAxisScaleKind.Linear,
             start: projection.Project(new Vector3(frontCorner.X, (float)valueRange.Minimum, frontCorner.Z)),
             end: projection.Project(new Vector3(frontCorner.X, (float)valueRange.Maximum, frontCorner.Z)),
             projectedCenter,
@@ -66,6 +68,7 @@ internal static class SurfaceAxisOverlayPresenter
                 overlayOptions.DepthAxisUnitOverride ?? metadata.VerticalAxis.Unit),
             axisMinimum: metadata.VerticalAxis.Minimum,
             axisMaximum: metadata.VerticalAxis.Maximum,
+            scaleKind: metadata.VerticalAxis.ScaleKind,
             start: projection.Project(new Vector3(frontCorner.X, (float)valueRange.Minimum, (float)metadata.VerticalAxis.Minimum)),
             end: projection.Project(new Vector3(frontCorner.X, (float)valueRange.Minimum, (float)metadata.VerticalAxis.Maximum)),
             projectedCenter,
@@ -115,6 +118,7 @@ internal static class SurfaceAxisOverlayPresenter
         string titleText,
         double axisMinimum,
         double axisMaximum,
+        SurfaceAxisScaleKind scaleKind,
         Point start,
         Point end,
         Point projectedCenter,
@@ -123,8 +127,19 @@ internal static class SurfaceAxisOverlayPresenter
         var outwardNormal = GetOutwardNormal(start, end, projectedCenter);
         var titleAnchor = GetOuterEndpoint(start, end, projectedCenter);
         var titlePosition = titleAnchor + (outwardNormal * TitleOffset);
-        var majorTickValues = SurfaceAxisTickGenerator.CreateMajorTickValues(axisMinimum, axisMaximum, GetDistance(start, end));
-        var ticks = CreateTicks(axisKey, majorTickValues, start, end, outwardNormal, overlayOptions);
+
+        // Dispatch tick generation based on scale kind
+        var majorTickValues = scaleKind switch
+        {
+            SurfaceAxisScaleKind.Log =>
+                SurfaceAxisTickGenerator.CreateLogTickValues(axisMinimum, axisMaximum, GetDistance(start, end)),
+            SurfaceAxisScaleKind.DateTime =>
+                SurfaceAxisTickGenerator.CreateDateTimeTickValues(axisMinimum, axisMaximum, GetDistance(start, end)),
+            _ =>
+                SurfaceAxisTickGenerator.CreateMajorTickValues(axisMinimum, axisMaximum, GetDistance(start, end)),
+        };
+
+        var ticks = CreateTicks(axisKey, majorTickValues, start, end, outwardNormal, overlayOptions, scaleKind);
         var minorTicks = overlayOptions.ShowMinorTicks
             ? CreateMinorTicks(
                 SurfaceAxisTickGenerator.CreateMinorTickValues(majorTickValues, overlayOptions.MinorTickDivisions),
@@ -151,7 +166,8 @@ internal static class SurfaceAxisOverlayPresenter
         Point start,
         Point end,
         AvaVector outwardNormal,
-        SurfaceChartOverlayOptions overlayOptions)
+        SurfaceChartOverlayOptions overlayOptions,
+        SurfaceAxisScaleKind scaleKind)
     {
         List<SurfaceAxisTickState> ticks = [];
         if (tickValues.Count == 0)
@@ -172,10 +188,15 @@ internal static class SurfaceAxisOverlayPresenter
             var tickEnd = tickStart + (outwardNormal * TickLength);
             var labelPosition = tickEnd + (outwardNormal * LabelOffset);
 
+            // Format label: DateTime uses specialized formatter, others use overlay options
+            var labelText = scaleKind == SurfaceAxisScaleKind.DateTime
+                ? SurfaceChartOverlayOptions.FormatDateTimeLabel(tickValue, axisSpan)
+                : overlayOptions.FormatLabel(axisKey, tickValue);
+
             ticks.Add(
                 new SurfaceAxisTickState(
                     tickValue,
-                    overlayOptions.FormatLabel(axisKey, tickValue),
+                    labelText,
                     new SurfaceAxisLineGeometry(tickStart, tickEnd),
                     labelPosition));
         }
