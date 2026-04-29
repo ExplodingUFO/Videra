@@ -18,11 +18,11 @@
 
 ### Bar Chart
 
-- [ ] **BAR-01**: `Plot.Add.Bar(double[] values)` adds a vertical bar chart series to the plot
-- [ ] **BAR-02**: Bar chart renders as 3D rectangular prisms in scene space with configurable color
-- [ ] **BAR-03**: Bar chart supports grouped bars (multiple series side by side)
-- [ ] **BAR-04**: Bar chart supports stacked bars (multiple series stacked vertically)
-- [ ] **BAR-05**: Bar chart validates data (rejects empty arrays, NaN values)
+- [x] **BAR-01**: `Plot.Add.Bar(double[] values)` adds a vertical bar chart series to the plot
+- [x] **BAR-02**: Bar chart renders as 3D rectangular prisms in scene space with configurable color
+- [x] **BAR-03**: Bar chart supports grouped bars (multiple series side by side)
+- [x] **BAR-04**: Bar chart supports stacked bars (multiple series stacked vertically)
+- [x] **BAR-05**: Bar chart validates data (rejects empty arrays, NaN values)
 
 ### Contour Plot
 
@@ -77,11 +77,11 @@
 | LEG-01 | Phase 367 | Complete |
 | LEG-02 | Phase 367 | Complete |
 | LEG-03 | Phase 367 | Complete |
-| BAR-01 | Phase 368 | Pending |
-| BAR-02 | Phase 368 | Pending |
-| BAR-03 | Phase 368 | Pending |
-| BAR-04 | Phase 368 | Pending |
-| BAR-05 | Phase 368 | Pending |
+| BAR-01 | Phase 368 | Complete |
+| BAR-02 | Phase 368 | Complete |
+| BAR-03 | Phase 368 | Complete |
+| BAR-04 | Phase 368 | Complete |
+| BAR-05 | Phase 368 | Complete |
 | CTR-01 | Phase 369 | Pending |
 | CTR-02 | Phase 369 | Pending |
 | CTR-03 | Phase 369 | Pending |

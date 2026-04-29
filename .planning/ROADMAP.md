@@ -57,10 +57,10 @@ Plans:
   2. User can add multiple bar series and see them rendered side-by-side (grouped) or stacked vertically
   3. User can configure bar color per series
   4. User receives an explicit error when passing empty arrays or NaN values to Bar
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
-- [ ] 368-01: TBD
+- [x] 368-01-PLAN.md — Bar chart data model, renderer, Plot3DAddApi.Bar(), grouped/stacked layouts
 
 ### Phase 369: Contour Plot Series
 **Goal**: Users can add contour plot series from 2D scalar field data with configurable iso-lines
@@ -100,6 +100,6 @@ Phases execute in numeric order: 366 → 367 → 368 → 369 → 370
 |-------|----------------|--------|-----------|
 | 366. Axis Foundation | 0/1 | Planned | - |
 | 367. Enhanced Chart Legend | 1/1 | Complete | 2026-04-29 |
-| 368. Bar Chart Series | 0/1 | Not started | - |
+| 368. Bar Chart Series | 1/1 | Complete | 2026-04-29 |
 | 369. Contour Plot Series | 0/1 | Not started | - |
 | 370. Integration and Evidence | 0/1 | Not started | - |
