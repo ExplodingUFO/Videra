@@ -91,6 +91,55 @@ internal static class SurfaceProbeOverlayPresenter
             overlayOptions: overlayOptions);
     }
 
+    /// <summary>
+    /// Creates overlay state with multi-series tooltip awareness. Resolves probes across all
+    /// surface-based series at the hovered position and aggregates them into a tooltip content model.
+    /// </summary>
+    public static SurfaceProbeOverlayState CreateState(
+        ISurfaceTileSource? source,
+        SurfaceCameraFrame? cameraFrame,
+        IReadOnlyList<SurfaceTile> loadedTiles,
+        Point? probeScreenPosition,
+        IReadOnlyList<SurfaceProbeRequest>? pinnedProbeRequests,
+        SurfaceChartOverlayOptions overlayOptions,
+        IReadOnlyList<Plot3DSeries>? series)
+    {
+        ArgumentNullException.ThrowIfNull(loadedTiles);
+        overlayOptions ??= SurfaceChartOverlayOptions.Default;
+
+        if (source is null || loadedTiles.Count == 0)
+        {
+            return new SurfaceProbeOverlayState(
+                hasNoData: true,
+                noDataText: "No data",
+                hoveredProbeScreenPosition: null,
+                hoveredProbe: null,
+                pinnedProbes: [],
+                overlayOptions: overlayOptions);
+        }
+
+        var hoveredProbe = probeScreenPosition is Point hoveredProbeScreenPosition && cameraFrame is SurfaceCameraFrame resolvedCameraFrame
+            ? SurfaceProbeService.ResolveFromScreenPosition(source.Metadata, resolvedCameraFrame, loadedTiles, hoveredProbeScreenPosition)
+            : null;
+        var pinnedProbes = ResolvePinnedProbes(source.Metadata, loadedTiles, pinnedProbeRequests);
+
+        // Resolve multi-series tooltip content when multiple series are present
+        SurfaceTooltipContent? tooltipContent = null;
+        if (series is not null && series.Count > 1 && hoveredProbe is SurfaceProbeInfo resolvedHovered)
+        {
+            tooltipContent = ResolveMultiSeriesTooltip(series, source.Metadata, loadedTiles, resolvedHovered);
+        }
+
+        return new SurfaceProbeOverlayState(
+            hasNoData: false,
+            noDataText: null,
+            hoveredProbeScreenPosition: hoveredProbe is null ? null : probeScreenPosition,
+            hoveredProbe: hoveredProbe,
+            pinnedProbes: pinnedProbes,
+            overlayOptions: overlayOptions,
+            tooltipContent: tooltipContent);
+    }
+
     public static void Render(
         DrawingContext context,
         SurfaceProbeOverlayState overlayState,
@@ -144,6 +193,75 @@ internal static class SurfaceProbeOverlayPresenter
         }
 
         return pinnedProbes;
+    }
+
+    private static SurfaceTooltipContent? ResolveMultiSeriesTooltip(
+        IReadOnlyList<Plot3DSeries> series,
+        SurfaceMetadata metadata,
+        IReadOnlyList<SurfaceTile> loadedTiles,
+        SurfaceProbeInfo hoveredProbe)
+    {
+        var entries = new List<SurfaceTooltipSeriesEntry>();
+        var probeRequest = new SurfaceProbeRequest(hoveredProbe.SampleX, hoveredProbe.SampleY);
+
+        for (var i = 0; i < series.Count; i++)
+        {
+            var currentSeries = series[i];
+
+            // Only surface/waterfall series have tile-based probe resolution
+            if (currentSeries.SurfaceSource is not ISurfaceTileSource seriesSource)
+            {
+                continue;
+            }
+
+            // Resolve probe for this series using the same sample position
+            var seriesProbe = SurfaceProbeService.Resolve(seriesSource.Metadata, loadedTiles, probeRequest);
+            if (seriesProbe is not SurfaceProbeInfo resolvedProbe)
+            {
+                continue;
+            }
+
+            var seriesName = currentSeries.Name ?? $"Series {i + 1}";
+            entries.Add(new SurfaceTooltipSeriesEntry(seriesName, currentSeries.Kind, resolvedProbe));
+        }
+
+        return SurfaceTooltipContent.FromSeriesProbes(entries);
+    }
+
+    private static string CreateMultiSeriesTooltipText(
+        SurfaceTooltipContent tooltipContent,
+        SurfaceChartOverlayOptions overlayOptions)
+    {
+        var builder = new System.Text.StringBuilder();
+
+        // Header with world coordinates
+        builder.Append($"X {overlayOptions.FormatProbeAxisX(tooltipContent.WorldX)}");
+        builder.Append($"  Z {overlayOptions.FormatProbeAxisY(tooltipContent.WorldZ)}");
+        if (tooltipContent.IsApproximate)
+        {
+            builder.Append(" ~");
+        }
+        builder.AppendLine();
+
+        // Per-series values
+        for (var i = 0; i < tooltipContent.Entries.Count; i++)
+        {
+            var entry = tooltipContent.Entries[i];
+            if (i > 0)
+            {
+                builder.AppendLine();
+            }
+
+            builder.Append(entry.SeriesName);
+            builder.Append(": ");
+            builder.Append(overlayOptions.FormatProbeValue(entry.ProbeInfo.Value));
+            if (entry.ProbeInfo.IsApproximate)
+            {
+                builder.Append(" ~");
+            }
+        }
+
+        return builder.ToString();
     }
 
     private static void DrawCenteredText(DrawingContext context, string text, Size viewSize, IBrush foreground)
