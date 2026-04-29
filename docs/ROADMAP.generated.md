@@ -16,11 +16,16 @@ _No matching beads in the exported snapshot._
 
 ## Ready
 
-_No matching beads in the exported snapshot._
+- **Videra-v257** - v2.57 SurfaceCharts Release Readiness and Consumer Validation (epic, P1, open; labels: release-readiness, surfacecharts, v2.57)
+- **Videra-v257.1** - Phase 390 Release Readiness Inventory and Beads Coordination (task, P1, open; labels: coordination, inventory, phase-390, release-readiness, surfacecharts, v2.57)
 
 ## Blocked
 
-_No matching beads in the exported snapshot._
+- **Videra-v257.2** - Phase 391 Public API and Package Metadata Review (task, P1, open; labels: api, package, phase-391, release-readiness, surfacecharts, v2.57)
+- **Videra-v257.3** - Phase 392 Local Package Consumer Smoke (task, P1, open; labels: consumer-smoke, package, phase-392, release-readiness, surfacecharts, v2.57)
+- **Videra-v257.4** - Phase 393 Release Validation Script and CI Alignment (task, P1, open; labels: ci, phase-393, release-readiness, surfacecharts, v2.57, validation)
+- **Videra-v257.5** - Phase 394 Release Candidate Docs and Support Handoff (task, P1, open; labels: docs, phase-394, release-readiness, support, surfacecharts, v2.57)
+- **Videra-v257.6** - Phase 395 Integration Guardrails and Milestone Evidence (task, P1, open; labels: closure, integration, phase-395, release-readiness, surfacecharts, v2.57)
 
 ## Backlog
 

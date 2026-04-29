@@ -12,24 +12,36 @@ Videra 是一个基于 `.NET 8` 的跨平台 3D 渲染引擎，提供 Windows (`
 
 ## Current State
 
-- 最新完整归档 milestone：`v2.55 ScottPlot-like Plot API`
-- 最近完成 milestone：`v2.55 ScottPlot-like Plot API`
-- 当前 active milestone：`v2.56 ScottPlot 5 Interaction and Cookbook Experience`
-- 当前 focus：继续朝 ScottPlot 5 风格优化 SurfaceCharts 的交互配置、Plot 代码体验、live view 行为和 cookbook demo 发现路径。
+- 最新完整归档 milestone：`v2.56 ScottPlot 5 Interaction and Cookbook Experience`
+- 最近完成 milestone：`v2.56 ScottPlot 5 Interaction and Cookbook Experience`
+- 当前 active milestone：`v2.57 SurfaceCharts Release Readiness and Consumer Validation`
+- 当前 focus：把 v2.56 已收稳的 ScottPlot-like / cookbook SurfaceCharts 体验推进到 release-candidate readiness：包元数据、公有 API 边界、本地包消费、验证脚本、文档导航和支持交接证据。
 
-## Current Milestone: v2.56 ScottPlot 5 Interaction and Cookbook Experience
+## Current Milestone: v2.57 SurfaceCharts Release Readiness and Consumer Validation
 
-**Goal:** Make SurfaceCharts feel closer to ScottPlot 5 around interaction configuration, code ergonomics, live-view behavior, and cookbook-style demo discovery while preserving Videra's 3D chart boundaries.
+**Goal:** Prepare SurfaceCharts for a release-candidate decision by proving package metadata, public API boundaries, local package consumption, validation scripts, docs navigation, and support handoff without publishing a public package or tag.
 
 **Target features:**
-- Plot lifecycle/code experience polish: clear, remove, reorder, list/query plottables
-- Interaction profile configuration: pan, zoom, reset/autoscale, keyboard, focus, and explicit disablement
-- Bounded custom chart commands/context-menu recipes without generic plugin/workbench scope
-- Pointer-to-probe helpers, host-owned selection, and draggable marker/range overlay recipes
-- Axis rules, linked chart views, and live latest-window/full-data view management
-- Cookbook/gallery demo structure with isolated recipes and copyable snippets
+- Public API and package metadata review for the shipped `VideraChartView.Plot` model
+- Local package build and clean consumer smoke using package/public APIs only
+- Release-readiness validation script with explicit CI/manual boundaries
+- Release candidate docs, migration notes, and support artifact handoff
+- Milestone closure through Beads export, generated roadmap, guardrails, and clean branch/worktree state
 
 ## Completed Milestones
+
+### v2.56 ScottPlot 5 Interaction and Cookbook Experience (2026-04-30)
+
+Shipped ScottPlot 5-inspired interaction and cookbook ergonomics while preserving Videra's 3D chart boundaries:
+- Plot lifecycle/code experience polish for clear/remove/reorder/list/query workflows
+- interaction profile commands for pan, zoom, reset/autoscale, keyboard, focus, and explicit disablement
+- bounded custom chart command/context-menu recipes without generic plugin/workbench scope
+- pointer-to-probe helpers, host-owned selection, and draggable marker/range overlay recipes
+- axis rules, linked chart views, and live latest-window/full-data view management
+- cookbook/gallery demo structure with isolated recipes and copyable snippets
+- 7 phases, 27 requirements, all focused verification passed
+
+Archived: `.planning/milestones/v2.56-ROADMAP.md`, `.planning/milestones/v2.56-REQUIREMENTS.md`
 
 ### v2.55 ScottPlot-like Plot API (2026-04-30)
 
@@ -287,7 +299,7 @@ Archived: `.planning/milestones/v2.52-ROADMAP.md`, `.planning/milestones/v2.52-R
 
 ## Next Milestone Goals
 
-The current milestone should start with `$gsd-plan-phase 383`. Keep Beads as the task spine, split implementation by dependencies, and use isolated worktrees only for disjoint phases. Prioritize small chart-local UX/code-experience slices over broad API parity.
+The current milestone should start with `$gsd-plan-phase 390`. Keep Beads as the task spine, split implementation by dependencies, and use isolated Dolt worktrees only for disjoint phases. Prioritize release-candidate evidence and package-consumer validation over public publish/tag scope.
 
 ## Most Recently Completed Milestone: v2.36 Beads Remote Sync PR Closure
 
@@ -785,6 +797,6 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-30 after starting v2.56 milestone*
+*Last updated: 2026-04-30 after starting v2.57 milestone*
 
 
