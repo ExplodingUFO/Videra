@@ -37,7 +37,22 @@ public sealed class Plot3D
     /// <summary>
     /// Gets the series currently driving the chart view, or <c>null</c> when the plot is empty.
     /// </summary>
-    public Plot3DSeries? ActiveSeries => _series.Count == 0 ? null : _series[^1];
+    public Plot3DSeries? ActiveSeries
+    {
+        get
+        {
+            for (var index = _series.Count - 1; index >= 0; index--)
+            {
+                var series = _series[index];
+                if (series.IsVisible)
+                {
+                    return series;
+                }
+            }
+
+            return null;
+        }
+    }
 
     internal Plot3DSeries? ActiveSurfaceSeries
     {
@@ -345,6 +360,7 @@ public sealed class Plot3D
     {
         ArgumentNullException.ThrowIfNull(series);
 
+        series.Attach(NotifyChanged);
         _series.Add(series);
         NotifyChanged();
         return series;

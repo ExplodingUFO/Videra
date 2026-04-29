@@ -53,6 +53,90 @@ public sealed class VideraChartViewPlotApiTests
     }
 
     [Fact]
+    public void PlotAddRawArrays_ReturnsTypedPlottableHandles()
+    {
+        AvaloniaHeadlessTestSession.Run(() =>
+        {
+            var view = new VideraChartView();
+            var surfaceValues = new[,]
+            {
+                { 1d, 2d },
+                { 3d, 4d },
+                { 5d, 6d },
+            };
+            var waterfallValues = new[,]
+            {
+                { 10d, 20d },
+                { 30d, 40d },
+            };
+
+            Plot3DSeries surface = view.Plot.Add.Surface(surfaceValues, "surface");
+            Plot3DSeries waterfall = view.Plot.Add.Waterfall(waterfallValues, "waterfall");
+            Plot3DSeries scatter = view.Plot.Add.Scatter(
+                new[] { 0d, 1d, 2d },
+                new[] { 10d, 20d, 30d },
+                new[] { 100d, 110d, 120d },
+                "scatter",
+                0xFF123456u);
+
+            surface.Should().BeOfType<SurfacePlot3DSeries>();
+            waterfall.Should().BeOfType<WaterfallPlot3DSeries>();
+            scatter.Should().BeOfType<ScatterPlot3DSeries>();
+            surface.Should().BeAssignableTo<IPlottable3D>();
+            waterfall.Should().BeAssignableTo<IPlottable3D>();
+            scatter.Should().BeAssignableTo<IPlottable3D>();
+
+            surface.Kind.Should().Be(Plot3DSeriesKind.Surface);
+            surface.SurfaceSource!.Metadata.Width.Should().Be(3);
+            surface.SurfaceSource.Metadata.Height.Should().Be(2);
+            surface.SurfaceSource.Metadata.ValueRange.Should().Be(new SurfaceValueRange(1d, 6d));
+            waterfall.Kind.Should().Be(Plot3DSeriesKind.Waterfall);
+            waterfall.SurfaceSource!.Metadata.ValueRange.Should().Be(new SurfaceValueRange(10d, 40d));
+            scatter.Kind.Should().Be(Plot3DSeriesKind.Scatter);
+            scatter.ScatterData!.PointCount.Should().Be(3);
+            scatter.ScatterData.Metadata.HorizontalAxis.Maximum.Should().Be(2d);
+            scatter.ScatterData.Metadata.ValueRange.Maximum.Should().Be(30d);
+            scatter.ScatterData.Metadata.DepthAxis.Maximum.Should().Be(120d);
+            scatter.ScatterData.Series[0].Color.Should().Be(0xFF123456u);
+
+            view.Plot.Series.Should().Equal(surface, waterfall, scatter);
+            view.Plot.ActiveSeries.Should().BeSameAs(scatter);
+        });
+    }
+
+    [Fact]
+    public void PlotPlottableHandles_UpdateLabelAndVisibilityThroughPlotRevision()
+    {
+        AvaloniaHeadlessTestSession.Run(() =>
+        {
+            var view = new VideraChartView();
+            var surface = view.Plot.Add.Surface(new[,] { { 1d, 2d }, { 3d, 4d } }, "surface");
+            var scatter = view.Plot.Add.Scatter(
+                new[] { 0d, 1d },
+                new[] { 1d, 2d },
+                new[] { 2d, 3d },
+                "scatter");
+            IPlottable3D plottable = scatter;
+
+            plottable.Label.Should().Be("scatter");
+            plottable.IsVisible.Should().BeTrue();
+            view.Plot.ActiveSeries.Should().BeSameAs(scatter);
+            view.Plot.Revision.Should().Be(2);
+
+            plottable.Label = "points";
+            plottable.IsVisible = false;
+
+            scatter.Name.Should().Be("points");
+            view.Plot.ActiveSeries.Should().BeSameAs(surface);
+            view.Plot.Revision.Should().Be(4);
+            view.Plot.CreateDatasetEvidence().ActiveSeriesIndex.Should().Be(0);
+            view.Plot.CreateDatasetEvidence().Series.Select(series => series.Identity).Should().Equal(
+                "PlotSeries[0]:Surface:surface",
+                "PlotSeries[1]:Scatter:points");
+        });
+    }
+
+    [Fact]
     public void Plot3D_RemoveAndClear_UpdateLifecycleDeterministically()
     {
         AvaloniaHeadlessTestSession.Run(() =>

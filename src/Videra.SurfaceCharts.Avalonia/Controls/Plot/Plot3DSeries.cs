@@ -3,10 +3,14 @@ using Videra.SurfaceCharts.Core;
 namespace Videra.SurfaceCharts.Avalonia.Controls;
 
 /// <summary>
-/// Describes one immutable series attached to a <see cref="Plot3D"/>.
+/// Describes one series attached to a <see cref="Plot3D"/>.
 /// </summary>
-public sealed class Plot3DSeries
+public class Plot3DSeries : IPlottable3D
 {
+    private Action? _changed;
+    private bool _isVisible = true;
+    private string? _label;
+
     internal Plot3DSeries(
         Plot3DSeriesKind kind,
         string? name,
@@ -16,7 +20,7 @@ public sealed class Plot3DSeries
         ContourChartData? contourData)
     {
         Kind = kind;
-        Name = string.IsNullOrWhiteSpace(name) ? null : name;
+        _label = NormalizeLabel(name);
         SurfaceSource = surfaceSource;
         ScatterData = scatterData;
         BarData = barData;
@@ -31,7 +35,40 @@ public sealed class Plot3DSeries
     /// <summary>
     /// Gets the optional host-facing series name.
     /// </summary>
-    public string? Name { get; }
+    public string? Name => Label;
+
+    /// <inheritdoc />
+    public string? Label
+    {
+        get => _label;
+        set
+        {
+            var normalized = NormalizeLabel(value);
+            if (string.Equals(_label, normalized, StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            _label = normalized;
+            NotifyChanged();
+        }
+    }
+
+    /// <inheritdoc />
+    public bool IsVisible
+    {
+        get => _isVisible;
+        set
+        {
+            if (_isVisible == value)
+            {
+                return;
+            }
+
+            _isVisible = value;
+            NotifyChanged();
+        }
+    }
 
     /// <summary>
     /// Gets the tiled surface source for surface and waterfall series.
@@ -52,4 +89,19 @@ public sealed class Plot3DSeries
     /// Gets the contour dataset for contour series.
     /// </summary>
     public ContourChartData? ContourData { get; }
+
+    internal void Attach(Action changed)
+    {
+        _changed = changed ?? throw new ArgumentNullException(nameof(changed));
+    }
+
+    private void NotifyChanged()
+    {
+        _changed?.Invoke();
+    }
+
+    private static string? NormalizeLabel(string? label)
+    {
+        return string.IsNullOrWhiteSpace(label) ? null : label;
+    }
 }

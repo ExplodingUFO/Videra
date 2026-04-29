@@ -18,46 +18,70 @@ public sealed class Plot3DAddApi
     /// <summary>
     /// Adds a tiled heightfield surface from an existing tile source.
     /// </summary>
-    public Plot3DSeries Surface(ISurfaceTileSource source, string? name = null)
+    public SurfacePlot3DSeries Surface(ISurfaceTileSource source, string? name = null)
     {
         ArgumentNullException.ThrowIfNull(source);
-        return _plot.AddSeries(new Plot3DSeries(Plot3DSeriesKind.Surface, name, source, scatterData: null, barData: null, contourData: null));
+        return (SurfacePlot3DSeries)_plot.AddSeries(new SurfacePlot3DSeries(name, source));
     }
 
     /// <summary>
     /// Adds a tiled heightfield surface from an in-memory matrix.
     /// </summary>
-    public Plot3DSeries Surface(SurfaceMatrix matrix, string? name = null)
+    public SurfacePlot3DSeries Surface(SurfaceMatrix matrix, string? name = null)
     {
         ArgumentNullException.ThrowIfNull(matrix);
         return Surface(_surfacePyramidBuilder.Build(matrix), name);
     }
 
     /// <summary>
+    /// Adds a tiled heightfield surface from a 2D numeric array.
+    /// </summary>
+    public SurfacePlot3DSeries Surface(double[,] values, string? name = null)
+    {
+        return Surface(CreateSurfaceMatrix(values), name);
+    }
+
+    /// <summary>
     /// Adds a waterfall presentation from an existing tile source.
     /// </summary>
-    public Plot3DSeries Waterfall(ISurfaceTileSource source, string? name = null)
+    public WaterfallPlot3DSeries Waterfall(ISurfaceTileSource source, string? name = null)
     {
         ArgumentNullException.ThrowIfNull(source);
-        return _plot.AddSeries(new Plot3DSeries(Plot3DSeriesKind.Waterfall, name, source, scatterData: null, barData: null, contourData: null));
+        return (WaterfallPlot3DSeries)_plot.AddSeries(new WaterfallPlot3DSeries(name, source));
     }
 
     /// <summary>
     /// Adds a waterfall presentation from an in-memory matrix.
     /// </summary>
-    public Plot3DSeries Waterfall(SurfaceMatrix matrix, string? name = null)
+    public WaterfallPlot3DSeries Waterfall(SurfaceMatrix matrix, string? name = null)
     {
         ArgumentNullException.ThrowIfNull(matrix);
         return Waterfall(_surfacePyramidBuilder.Build(matrix), name);
     }
 
     /// <summary>
+    /// Adds a waterfall presentation from a 2D numeric array.
+    /// </summary>
+    public WaterfallPlot3DSeries Waterfall(double[,] values, string? name = null)
+    {
+        return Waterfall(CreateSurfaceMatrix(values), name);
+    }
+
+    /// <summary>
     /// Adds a 3D scatter dataset.
     /// </summary>
-    public Plot3DSeries Scatter(ScatterChartData data, string? name = null)
+    public ScatterPlot3DSeries Scatter(ScatterChartData data, string? name = null)
     {
         ArgumentNullException.ThrowIfNull(data);
-        return _plot.AddSeries(new Plot3DSeries(Plot3DSeriesKind.Scatter, name, surfaceSource: null, data, barData: null, contourData: null));
+        return (ScatterPlot3DSeries)_plot.AddSeries(new ScatterPlot3DSeries(name, data));
+    }
+
+    /// <summary>
+    /// Adds a 3D scatter dataset from coordinate arrays.
+    /// </summary>
+    public ScatterPlot3DSeries Scatter(double[] x, double[] y, double[] z, string? name = null, uint color = 0xFF2F80EDu)
+    {
+        return Scatter(CreateScatterData(x, y, z, name, color), name);
     }
 
     /// <summary>
@@ -143,5 +167,99 @@ public sealed class Plot3DAddApi
     {
         ArgumentNullException.ThrowIfNull(data);
         return _plot.AddSeries(new Plot3DSeries(Plot3DSeriesKind.Contour, name, surfaceSource: null, scatterData: null, barData: null, data));
+    }
+
+    private static SurfaceMatrix CreateSurfaceMatrix(double[,] values)
+    {
+        ArgumentNullException.ThrowIfNull(values);
+
+        var width = values.GetLength(0);
+        var height = values.GetLength(1);
+        var flatValues = new float[width * height];
+        var range = CreateSurfaceValues(values, flatValues, width, height);
+        var metadata = new SurfaceMetadata(
+            width,
+            height,
+            new SurfaceAxisDescriptor("X", null, 0d, width - 1),
+            new SurfaceAxisDescriptor("Y", null, 0d, height - 1),
+            range);
+
+        return new SurfaceMatrix(metadata, flatValues);
+    }
+
+    private static SurfaceValueRange CreateSurfaceValues(double[,] values, float[] flatValues, int width, int height)
+    {
+        var min = double.MaxValue;
+        var max = double.MinValue;
+
+        for (var y = 0; y < height; y++)
+        {
+            for (var x = 0; x < width; x++)
+            {
+                var value = values[x, y];
+                if (!double.IsFinite(value))
+                {
+                    throw new ArgumentOutOfRangeException(nameof(values), "Surface values must be finite.");
+                }
+
+                if (value < min)
+                {
+                    min = value;
+                }
+
+                if (value > max)
+                {
+                    max = value;
+                }
+
+                flatValues[y * width + x] = (float)value;
+            }
+        }
+
+        return new SurfaceValueRange(min, max);
+    }
+
+    private static ScatterChartData CreateScatterData(double[] x, double[] y, double[] z, string? name, uint color)
+    {
+        ArgumentNullException.ThrowIfNull(x);
+        ArgumentNullException.ThrowIfNull(y);
+        ArgumentNullException.ThrowIfNull(z);
+
+        if (x.Length == 0)
+        {
+            throw new ArgumentException("Scatter coordinate arrays must include at least one point.", nameof(x));
+        }
+
+        if (x.Length != y.Length || x.Length != z.Length)
+        {
+            throw new ArgumentException("Scatter coordinate arrays must have matching lengths.", nameof(x));
+        }
+
+        var points = new ScatterPoint[x.Length];
+        var xMin = double.MaxValue;
+        var xMax = double.MinValue;
+        var yMin = double.MaxValue;
+        var yMax = double.MinValue;
+        var zMin = double.MaxValue;
+        var zMax = double.MinValue;
+
+        for (var index = 0; index < x.Length; index++)
+        {
+            var point = new ScatterPoint(x[index], y[index], z[index]);
+            points[index] = point;
+            xMin = Math.Min(xMin, point.Horizontal);
+            xMax = Math.Max(xMax, point.Horizontal);
+            yMin = Math.Min(yMin, point.Value);
+            yMax = Math.Max(yMax, point.Value);
+            zMin = Math.Min(zMin, point.Depth);
+            zMax = Math.Max(zMax, point.Depth);
+        }
+
+        var metadata = new ScatterChartMetadata(
+            new SurfaceAxisDescriptor("X", null, xMin, xMax),
+            new SurfaceAxisDescriptor("Z", null, zMin, zMax),
+            new SurfaceValueRange(yMin, yMax));
+        var series = new ScatterSeries(points, color, name);
+        return new ScatterChartData(metadata, [series]);
     }
 }

@@ -54,7 +54,7 @@ public sealed class Plot3DDatasetEvidence
         ArgumentNullException.ThrowIfNull(series);
         ArgumentNullException.ThrowIfNull(overlayOptions);
 
-        var activeSeriesIndex = series.Count == 0 ? -1 : series.Count - 1;
+        var activeSeriesIndex = FindActiveSeriesIndex(series);
         var seriesEvidence = new Plot3DSeriesDatasetEvidence[series.Count];
         for (var index = 0; index < series.Count; index++)
         {
@@ -69,6 +69,19 @@ public sealed class Plot3DDatasetEvidence
             activeSeriesIndex,
             SurfaceChartOverlayEvidenceFormatter.DescribePrecisionProfile(overlayOptions),
             seriesEvidence);
+    }
+
+    private static int FindActiveSeriesIndex(IReadOnlyList<Plot3DSeries> series)
+    {
+        for (var index = series.Count - 1; index >= 0; index--)
+        {
+            if (series[index].IsVisible)
+            {
+                return index;
+            }
+        }
+
+        return -1;
     }
 }
 
