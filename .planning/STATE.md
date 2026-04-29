@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.57
 milestone_name: "SurfaceCharts Release Readiness and Consumer Validation"
 status: active
-stopped_at: "Milestone initialized; Phase 390 ready for planning"
-last_updated: "2026-04-30T02:35:00+08:00"
+stopped_at: "Phase 390 complete; Phase 391 ready for planning"
+last_updated: "2026-04-30T02:55:00+08:00"
 last_activity: 2026-04-30
 progress:
   total_phases: 6
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 6
-  completed_plans: 0
-  percent: 0
+  completed_plans: 1
+  percent: 17
 ---
 
 # Project State
@@ -26,12 +26,12 @@ See: `.planning/PROJECT.md`
 ## Current Position
 
 Milestone: `v2.57 SurfaceCharts Release Readiness and Consumer Validation`
-Phase: 390 of 395 (Release Readiness Inventory and Beads Coordination) — READY
+Phase: 391 of 395 (Public API and Package Metadata Review) — READY
 Plan: Not started
-Status: Requirements and roadmap are initialized. Next step is Phase 390 planning, then Beads-backed execution with worktree isolation where dependencies allow.
-Last activity: 2026-04-30 — Started v2.57 milestone
+Status: Phase 390 inventory and Beads coordination are complete. Next step is Phase 391 planning and execution.
+Last activity: 2026-04-30 — Completed Phase 390 release-readiness inventory
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [██░░░░░░░░] 17%
 
 ## Initial Scope Summary
 
@@ -57,6 +57,8 @@ This milestone prepares a release-candidate evidence loop:
 - Use Beads as the task spine for phase status, ownership, dependencies, and handoff.
 - Use isolated worktrees and branches only for disjoint implementation phases.
 - Do not restore old chart controls, public direct `Source`, compatibility wrappers, PDF/vector export, backend expansion, hidden fallback/downshift, full ScottPlot compatibility, or god-code demo editor behavior.
+- Phase 390 identified the first real parallelization point as Phase 393 and Phase 394 after Phase 392 closes and merges.
+- Phase 391 owns stale public API/package guardrail evidence; Phase 390 only recorded the issue.
 
 ## Known Residuals
 
@@ -68,7 +70,7 @@ This milestone prepares a release-candidate evidence loop:
 
 Last session: `2026-04-30 +08:00`
 Stopped at: v2.57 milestone initialized
-Next action: `$gsd-plan-phase 390` to plan the release readiness inventory and Beads coordination phase.
+Next action: `$gsd-plan-phase 391` to plan public API and package metadata review.
 
 ## Accumulated Context
 

@@ -15,9 +15,9 @@ repeatable evidence.
 
 ### Inventory and Coordination
 
-- [ ] **INV-01**: Inventory current SurfaceCharts package, sample, docs, smoke, CI, guardrail, and Beads release-readiness surfaces before implementation.
-- [ ] **INV-02**: Define release-candidate boundaries: what is validated locally, what remains unpublished, and what evidence is required before a public package/tag.
-- [ ] **INV-03**: Create Beads issues for every phase with dependencies, ownership boundaries, validation expectations, and branch/worktree handoff notes.
+- [x] **INV-01**: Inventory current SurfaceCharts package, sample, docs, smoke, CI, guardrail, and Beads release-readiness surfaces before implementation.
+- [x] **INV-02**: Define release-candidate boundaries: what is validated locally, what remains unpublished, and what evidence is required before a public package/tag.
+- [x] **INV-03**: Create Beads issues for every phase with dependencies, ownership boundaries, validation expectations, and branch/worktree handoff notes.
 
 ### Public API and Package Metadata
 
@@ -77,9 +77,9 @@ repeatable evidence.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| INV-01 | Phase 390 | Pending |
-| INV-02 | Phase 390 | Pending |
-| INV-03 | Phase 390 | Pending |
+| INV-01 | Phase 390 | Complete |
+| INV-02 | Phase 390 | Complete |
+| INV-03 | Phase 390 | Complete |
 | API-01 | Phase 391 | Pending |
 | API-02 | Phase 391 | Pending |
 | PKG-01 | Phase 391 | Pending |
