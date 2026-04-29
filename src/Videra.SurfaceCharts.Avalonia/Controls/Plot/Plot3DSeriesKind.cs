@@ -24,4 +24,9 @@ public enum Plot3DSeriesKind
     /// A vertical bar chart series.
     /// </summary>
     Bar,
+
+    /// <summary>
+    /// A contour plot with iso-lines extracted from a 2D scalar field.
+    /// </summary>
+    Contour,
 }
