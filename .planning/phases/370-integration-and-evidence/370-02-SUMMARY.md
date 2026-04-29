@@ -81,4 +81,15 @@ None — plan executed exactly as written.
 
 None — all data sources are wired to real sample data.
 
-## Self-Check: PENDING
+## Self-Check: PASSED
+
+- ✅ MainWindow.axaml has BarChartPlotView and ContourPlotView elements
+- ✅ MainWindow.axaml has Bar and Contour ComboBox entries
+- ✅ MainWindow.axaml.cs has ApplyBarSource and ApplyContourSource methods
+- ✅ MainWindow.axaml.cs has CreateSampleBarData and CreateSampleContourField factories
+- ✅ Smoke MainWindow.axaml.cs has AddBarSeries and AddContourSeries methods
+- ✅ Smoke CreateSupportSummary reports BarRenderingStatus and ContourRenderingStatus
+- ✅ REQUIREMENTS.md has INT-01 through INT-04 and VER-01 through VER-03 marked complete
+- ✅ Commit 3f77e79 exists
+- ✅ Commit 6a33974 exists
+- ✅ Commit 9fa9c99 exists

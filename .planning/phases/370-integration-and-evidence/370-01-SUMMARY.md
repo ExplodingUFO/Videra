@@ -80,4 +80,13 @@ Bar and Contour chart types wired into Plot3DOutputEvidence contract with FromBa
 - All 5 chart families produce correct dataset evidence
 - 3 previously failing tests now pass
 
-## Self-Check: PENDING
+## Self-Check: PASSED
+
+- ✅ Plot3DOutputEvidence.cs exists with FromBarStatus and FromContourStatus
+- ✅ Plot3D.cs has 4-param CreateOutputEvidence overload
+- ✅ VideraChartView.Core.cs has UpdateBarRenderingStatus in Refresh()
+- ✅ RegressionGuardrailTests.cs exists with 2 tests
+- ✅ VideraChartViewPlotApiTests.cs has Bar and Contour output evidence tests
+- ✅ All 7 tests pass (Plot3D_CreateOutputEvidence + RegressionGuardrail)
+- ✅ Commit e6e3993 exists
+- ✅ Commit e4f0381 exists
