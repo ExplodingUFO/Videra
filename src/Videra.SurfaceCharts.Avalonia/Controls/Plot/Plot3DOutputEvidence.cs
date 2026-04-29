@@ -263,4 +263,32 @@ public sealed class Plot3DRenderingEvidence
             viewWidth: status.ViewSize.Width,
             viewHeight: status.ViewSize.Height);
     }
+
+    internal static Plot3DRenderingEvidence FromBarStatus(BarChartRenderingStatus status)
+    {
+        ArgumentNullException.ThrowIfNull(status);
+
+        return new Plot3DRenderingEvidence(
+            "bar-rendering-status",
+            status.BackendKind,
+            status.IsReady,
+            isFallback: false,
+            fallbackReason: null,
+            viewWidth: status.ViewSize.Width,
+            viewHeight: status.ViewSize.Height);
+    }
+
+    internal static Plot3DRenderingEvidence FromContourStatus(ContourChartRenderingStatus status)
+    {
+        ArgumentNullException.ThrowIfNull(status);
+
+        return new Plot3DRenderingEvidence(
+            "contour-rendering-status",
+            SurfaceChartRenderBackendKind.Software,
+            status.IsReady,
+            isFallback: false,
+            fallbackReason: null,
+            viewWidth: 0d,
+            viewHeight: 0d);
+    }
 }

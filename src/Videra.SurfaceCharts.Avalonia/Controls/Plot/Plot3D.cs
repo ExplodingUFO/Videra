@@ -188,10 +188,27 @@ public sealed class Plot3D
         SurfaceChartRenderingStatus? renderingStatus,
         ScatterChartRenderingStatus? scatterRenderingStatus)
     {
+        return CreateOutputEvidence(renderingStatus, scatterRenderingStatus, barRenderingStatus: null, contourRenderingStatus: null);
+    }
+
+    /// <summary>
+    /// Creates deterministic chart-local output evidence for the current plot model and public rendering status projections.
+    /// </summary>
+    /// <param name="renderingStatus">The latest surface or waterfall rendering status, when available.</param>
+    /// <param name="scatterRenderingStatus">The latest scatter rendering status, when available.</param>
+    /// <param name="barRenderingStatus">The latest bar chart rendering status, when available.</param>
+    /// <param name="contourRenderingStatus">The latest contour rendering status, when available.</param>
+    /// <returns>The chart-local output evidence.</returns>
+    public Plot3DOutputEvidence CreateOutputEvidence(
+        SurfaceChartRenderingStatus? renderingStatus,
+        ScatterChartRenderingStatus? scatterRenderingStatus,
+        BarChartRenderingStatus? barRenderingStatus,
+        ContourChartRenderingStatus? contourRenderingStatus)
+    {
         var activeSeries = ActiveSeries;
         var activeSeriesIndex = activeSeries is null ? -1 : _series.IndexOf(activeSeries);
         var colorMapEvidence = CreateColorMapEvidence(activeSeries);
-        var renderingEvidence = CreateRenderingEvidence(activeSeries, renderingStatus, scatterRenderingStatus);
+        var renderingEvidence = CreateRenderingEvidence(activeSeries, renderingStatus, scatterRenderingStatus, barRenderingStatus, contourRenderingStatus);
 
         return new Plot3DOutputEvidence(
             seriesCount: _series.Count,
@@ -335,7 +352,9 @@ public sealed class Plot3D
     private static Plot3DRenderingEvidence? CreateRenderingEvidence(
         Plot3DSeries? activeSeries,
         SurfaceChartRenderingStatus? renderingStatus,
-        ScatterChartRenderingStatus? scatterRenderingStatus)
+        ScatterChartRenderingStatus? scatterRenderingStatus,
+        BarChartRenderingStatus? barRenderingStatus,
+        ContourChartRenderingStatus? contourRenderingStatus)
     {
         return activeSeries?.Kind switch
         {
@@ -343,6 +362,10 @@ public sealed class Plot3D
                 Plot3DRenderingEvidence.FromSurfaceStatus(renderingStatus),
             Plot3DSeriesKind.Scatter when scatterRenderingStatus is not null =>
                 Plot3DRenderingEvidence.FromScatterStatus(scatterRenderingStatus),
+            Plot3DSeriesKind.Bar when barRenderingStatus is not null =>
+                Plot3DRenderingEvidence.FromBarStatus(barRenderingStatus),
+            Plot3DSeriesKind.Contour when contourRenderingStatus is not null =>
+                Plot3DRenderingEvidence.FromContourStatus(contourRenderingStatus),
             _ => null,
         };
     }
