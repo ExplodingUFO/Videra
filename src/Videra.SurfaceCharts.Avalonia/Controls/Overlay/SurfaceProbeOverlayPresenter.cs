@@ -92,6 +92,46 @@ internal static class SurfaceProbeOverlayPresenter
     }
 
     /// <summary>
+    /// Creates overlay state for non-surface series (Scatter, Bar, Contour) using the strategy dispatcher.
+    /// </summary>
+    public static SurfaceProbeOverlayState CreateState(
+        Plot3DSeries? activeSeries,
+        SurfaceViewport viewport,
+        Size viewSize,
+        SurfaceMetadata metadata,
+        SeriesProbeStrategyDispatcher? strategyDispatcher,
+        Point? probeScreenPosition,
+        SurfaceChartOverlayOptions? overlayOptions = null)
+    {
+        ArgumentNullException.ThrowIfNull(metadata);
+        overlayOptions ??= SurfaceChartOverlayOptions.Default;
+
+        if (activeSeries is null || strategyDispatcher is null)
+        {
+            return new SurfaceProbeOverlayState(
+                hasNoData: activeSeries is null,
+                noDataText: activeSeries is null ? "No data" : null,
+                hoveredProbeScreenPosition: null,
+                hoveredProbe: null,
+                pinnedProbes: [],
+                overlayOptions: overlayOptions);
+        }
+
+        var hoveredProbe = probeScreenPosition is Point hoveredPos
+            ? SurfaceProbeService.ResolveFromScreenPosition(
+                metadata, viewport, viewSize, strategyDispatcher, activeSeries.Kind, hoveredPos)
+            : null;
+
+        return new SurfaceProbeOverlayState(
+            hasNoData: false,
+            noDataText: null,
+            hoveredProbeScreenPosition: hoveredProbe is null ? null : probeScreenPosition,
+            hoveredProbe: hoveredProbe,
+            pinnedProbes: [],
+            overlayOptions: overlayOptions);
+    }
+
+    /// <summary>
     /// Creates overlay state with multi-series tooltip awareness. Resolves probes across all
     /// surface-based series at the hovered position and aggregates them into a tooltip content model.
     /// </summary>
@@ -162,13 +202,19 @@ internal static class SurfaceProbeOverlayPresenter
         if (overlayState.HoveredProbe is SurfaceProbeInfo hoveredProbe &&
             overlayState.HoveredProbeScreenPosition is Point hoveredProbeScreenPosition)
         {
+            // Use multi-series tooltip when available, otherwise fall back to single-series readout
+            var readoutText = overlayState.TooltipContent is SurfaceTooltipContent tooltipContent
+                ? CreateMultiSeriesTooltipText(tooltipContent, overlayState.OverlayOptions)
+                : CreateHoveredReadoutText(hoveredProbe, overlayState.PinnedProbes, overlayState.OverlayOptions);
+
             DrawReadoutBubble(
                 context,
-                CreateHoveredReadoutText(hoveredProbe, overlayState.PinnedProbes, overlayState.OverlayOptions),
+                readoutText,
                 hoveredProbeScreenPosition,
                 viewSize,
                 bubbleIndex: 0,
-                markerPosition: null);
+                markerPosition: null,
+                overlayOptions: overlayState.OverlayOptions);
         }
     }
 
