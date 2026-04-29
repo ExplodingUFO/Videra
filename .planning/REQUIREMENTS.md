@@ -21,10 +21,10 @@ repeatable evidence.
 
 ### Public API and Package Metadata
 
-- [ ] **API-01**: Public SurfaceCharts API surface for `VideraChartView`, `Plot`, plottables, interactions, overlays, axes, live helpers, and snapshot export is cataloged in a reviewable artifact.
-- [ ] **API-02**: Release-readiness checks reject old chart controls, direct public `Source`, compatibility wrappers, hidden fallback/downshift behavior, and unexpected public API growth.
-- [ ] **PKG-01**: SurfaceCharts package metadata, assembly identity, README links, and dependency boundaries are explicit and consistent.
-- [ ] **PKG-02**: Local package build output can be inspected without requiring public publish credentials.
+- [x] **API-01**: Public SurfaceCharts API surface for `VideraChartView`, `Plot`, plottables, interactions, overlays, axes, live helpers, and snapshot export is cataloged in a reviewable artifact.
+- [x] **API-02**: Release-readiness checks reject old chart controls, direct public `Source`, compatibility wrappers, hidden fallback/downshift behavior, and unexpected public API growth.
+- [x] **PKG-01**: SurfaceCharts package metadata, assembly identity, README links, and dependency boundaries are explicit and consistent.
+- [x] **PKG-02**: Local package build output can be inspected without requiring public publish credentials.
 
 ### Consumer Validation
 
@@ -80,10 +80,10 @@ repeatable evidence.
 | INV-01 | Phase 390 | Complete |
 | INV-02 | Phase 390 | Complete |
 | INV-03 | Phase 390 | Complete |
-| API-01 | Phase 391 | Pending |
-| API-02 | Phase 391 | Pending |
-| PKG-01 | Phase 391 | Pending |
-| PKG-02 | Phase 391 | Pending |
+| API-01 | Phase 391 | Complete |
+| API-02 | Phase 391 | Complete |
+| PKG-01 | Phase 391 | Complete |
+| PKG-02 | Phase 391 | Complete |
 | CONSUME-01 | Phase 392 | Pending |
 | CONSUME-02 | Phase 392 | Pending |
 | CONSUME-03 | Phase 392 | Pending |

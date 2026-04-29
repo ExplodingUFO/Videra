@@ -399,7 +399,7 @@ public sealed class VideraDoctorRepositoryTests
             "ColorMap: PaletteStops 6, Range 0..1",
             "PrecisionProfile: SurfaceChartOverlayOptions:Tick=General(3);Legend=General(3);Formatter=Default",
             "OutputEvidenceKind: plot-3d-output",
-            "OutputCapabilityDiagnostics: ImageExport=plot-output.export.image.unsupported;Supported=False",
+            "OutputCapabilityDiagnostics: ImageExport=plot-output.export.image.supported;Supported=True",
             "DatasetEvidenceKind: Plot3DDatasetEvidence",
             "DatasetSeriesCount: 1",
             "DatasetActiveSeriesIndex: 0",

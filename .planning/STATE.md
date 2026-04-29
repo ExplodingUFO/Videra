@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.57
 milestone_name: "SurfaceCharts Release Readiness and Consumer Validation"
 status: active
-stopped_at: "Phase 390 complete; Phase 391 ready for planning"
-last_updated: "2026-04-30T02:55:00+08:00"
+stopped_at: "Phase 391 complete; Phase 392 ready for planning"
+last_updated: "2026-04-30T03:08:00+08:00"
 last_activity: 2026-04-30
 progress:
   total_phases: 6
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 6
-  completed_plans: 1
-  percent: 17
+  completed_plans: 2
+  percent: 33
 ---
 
 # Project State
@@ -26,12 +26,12 @@ See: `.planning/PROJECT.md`
 ## Current Position
 
 Milestone: `v2.57 SurfaceCharts Release Readiness and Consumer Validation`
-Phase: 391 of 395 (Public API and Package Metadata Review) — READY
+Phase: 392 of 395 (Local Package Consumer Smoke) — READY
 Plan: Not started
-Status: Phase 390 inventory and Beads coordination are complete. Next step is Phase 391 planning and execution.
-Last activity: 2026-04-30 — Completed Phase 390 release-readiness inventory
+Status: Phase 391 public API and package metadata review is complete. Next step is clean package consumer smoke.
+Last activity: 2026-04-30 — Completed Phase 391 public API and package metadata review
 
-Progress: [██░░░░░░░░] 17%
+Progress: [███░░░░░░░] 33%
 
 ## Initial Scope Summary
 
@@ -59,6 +59,7 @@ This milestone prepares a release-candidate evidence loop:
 - Do not restore old chart controls, public direct `Source`, compatibility wrappers, PDF/vector export, backend expansion, hidden fallback/downshift, full ScottPlot compatibility, or god-code demo editor behavior.
 - Phase 390 identified the first real parallelization point as Phase 393 and Phase 394 after Phase 392 closes and merges.
 - Phase 391 owns stale public API/package guardrail evidence; Phase 390 only recorded the issue.
+- Phase 391 refreshed the public API contract and corrected stale PNG image-export guardrail expectations without changing runtime behavior.
 
 ## Known Residuals
 
@@ -70,7 +71,7 @@ This milestone prepares a release-candidate evidence loop:
 
 Last session: `2026-04-30 +08:00`
 Stopped at: v2.57 milestone initialized
-Next action: `$gsd-plan-phase 391` to plan public API and package metadata review.
+Next action: `$gsd-plan-phase 392` to plan local package consumer smoke.
 
 ## Accumulated Context
 

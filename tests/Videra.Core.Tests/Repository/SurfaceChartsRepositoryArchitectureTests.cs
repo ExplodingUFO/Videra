@@ -417,7 +417,7 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
             "Controls",
             "Plot",
             "Plot3DOutputEvidence.cs"));
-        plotOutputEvidence.Should().Contain("plot-output.export.image.unsupported");
+        plotOutputEvidence.Should().Contain("plot-output.export.image.supported");
         plotOutputEvidence.Should().Contain("plot-output.export.pdf.unsupported");
         plotOutputEvidence.Should().Contain("plot-output.export.vector.unsupported");
     }
