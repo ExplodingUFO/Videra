@@ -257,7 +257,8 @@ public sealed class Plot3DSeriesDatasetEvidence
         {
             Plot3DSeriesKind.Surface or Plot3DSeriesKind.Waterfall => CreateSurfaceEvidence(index, isActive, series),
             Plot3DSeriesKind.Scatter => CreateScatterEvidence(index, isActive, series),
-            _ => throw new ArgumentOutOfRangeException(nameof(series), "Unsupported Plot series kind."),
+            Plot3DSeriesKind.Bar => CreateBarEvidence(index, isActive, series),
+            _ => throw new ArgumentOutOfRangeException(nameof(series), $"Unsupported Plot series kind: {series.Kind}"),
         };
     }
 
@@ -323,6 +324,38 @@ public sealed class Plot3DSeriesDatasetEvidence
             SurfaceValueRangeDatasetEvidence.Create(data.Metadata.ValueRange),
             "ScatterPoints",
             CreateColumnarSeriesEvidence(data.ColumnarSeries));
+    }
+
+    private static Plot3DSeriesDatasetEvidence CreateBarEvidence(int index, bool isActive, Plot3DSeries series)
+    {
+        var data = series.BarData
+            ?? throw new InvalidOperationException("Bar series require bar data.");
+
+        return new Plot3DSeriesDatasetEvidence(
+            index,
+            isActive,
+            CreateIdentity(index, series),
+            series.Name,
+            series.Kind,
+            width: 0,
+            height: 0,
+            sampleCount: 0,
+            seriesCount: data.SeriesCount,
+            pointCount: data.CategoryCount,
+            columnarSeriesCount: 0,
+            columnarPointCount: 0,
+            pickablePointCount: 0,
+            streamingAppendBatchCount: 0,
+            streamingReplaceBatchCount: 0,
+            streamingDroppedPointCount: 0,
+            lastStreamingDroppedPointCount: 0,
+            configuredFifoCapacity: 0,
+            horizontalAxis: null,
+            verticalAxis: null,
+            depthAxis: null,
+            valueRange: null,
+            samplingProfile: $"BarChart:Categories={data.CategoryCount};Series={data.SeriesCount};Layout={data.Layout}",
+            []);
     }
 
     private static IReadOnlyList<ScatterColumnarSeriesDatasetEvidence> CreateColumnarSeriesEvidence(
