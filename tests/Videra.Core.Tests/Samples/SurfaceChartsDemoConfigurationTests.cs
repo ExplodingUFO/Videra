@@ -34,10 +34,14 @@ public sealed class SurfaceChartsDemoConfigurationTests
 
         var rootReadme = File.ReadAllText(rootReadmePath);
         rootReadme.Should().Contain("Minimal SurfaceCharts cookbook");
+        rootReadme.Should().Contain("ScottPlot 5");
+        rootReadme.Should().Contain("not a compatibility or parity layer");
+        rootReadme.Should().Contain("recipe groups for first chart, styling, interactions, live data, linked axes, and export");
         rootReadme.Should().Contain("First surface");
         rootReadme.Should().Contain("chart.Plot.Axes.X.Label");
         rootReadme.Should().Contain("DataLogger3D");
         rootReadme.Should().Contain("Live scatter");
+        rootReadme.Should().Contain("linked-axis");
         rootReadme.Should().Contain("SavePngAsync");
 
         var readme = File.ReadAllText(demoReadmePath);
@@ -59,14 +63,35 @@ public sealed class SurfaceChartsDemoConfigurationTests
         readme.Should().Contain("Try next: Analytics proof");
         readme.Should().Contain("ColorField");
         readme.Should().Contain("Cookbook Recipes");
+        readme.Should().Contain("Cookbook gallery");
+        readme.Should().Contain("ScottPlot 5");
+        readme.Should().Contain("not a ScottPlot compatibility or parity layer");
+        readme.Should().Contain("### First Chart");
+        readme.Should().Contain("### Styling");
+        readme.Should().Contain("### Interactions");
+        readme.Should().Contain("### Live Data");
+        readme.Should().Contain("### Linked Axes");
+        readme.Should().Contain("### Export");
         readme.Should().Contain("First surface");
         readme.Should().Contain("chart.Plot.Axes.X.Label");
+        readme.Should().Contain("SurfaceColorMapPresets.CreateProfessional");
+        readme.Should().Contain("SurfaceChartInteractionProfile");
+        readme.Should().Contain("TryExecuteChartCommand");
+        readme.Should().Contain("TryResolveProbe");
         readme.Should().Contain("First scatter");
         readme.Should().Contain("SavePngAsync");
         readme.Should().Contain("DataLogger3D");
+        readme.Should().Contain("UseLatestWindow");
+        readme.Should().Contain("CreateLiveViewEvidence");
+        readme.Should().Contain("LinkViewWith");
         readme.Should().Contain("Live scatter");
 
         var mainWindow = File.ReadAllText(mainWindowXamlPath);
+        mainWindow.Should().Contain("Cookbook gallery");
+        mainWindow.Should().Contain("CookbookRecipeSelector");
+        mainWindow.Should().Contain("CookbookRecipeStatusText");
+        mainWindow.Should().Contain("Copy recipe snippet");
+        mainWindow.Should().Contain("CookbookRecipeSnippetText");
         mainWindow.Should().Contain("Start here: In-memory first chart");
         mainWindow.Should().Contain("Explore next: Cache-backed streaming");
         mainWindow.Should().Contain("Try next: Waterfall proof");
@@ -101,6 +126,20 @@ public sealed class SurfaceChartsDemoConfigurationTests
         mainWindow.Should().NotContain("Videra.Demo");
 
         var mainWindowCodeBehind = File.ReadAllText(mainWindowCodeBehindPath);
+        mainWindowCodeBehind.Should().Contain("CookbookRecipes");
+        mainWindowCodeBehind.Should().Contain("CookbookRecipe");
+        mainWindowCodeBehind.Should().Contain("First chart");
+        mainWindowCodeBehind.Should().Contain("Styling");
+        mainWindowCodeBehind.Should().Contain("Interactions");
+        mainWindowCodeBehind.Should().Contain("Live data");
+        mainWindowCodeBehind.Should().Contain("Linked axes");
+        mainWindowCodeBehind.Should().Contain("Export");
+        mainWindowCodeBehind.Should().Contain("OnCopyRecipeSnippetClicked");
+        mainWindowCodeBehind.Should().Contain("SurfaceChartInteractionProfile");
+        mainWindowCodeBehind.Should().Contain("TryExecuteChartCommand");
+        mainWindowCodeBehind.Should().Contain("UseLatestWindow");
+        mainWindowCodeBehind.Should().Contain("CreateLiveViewEvidence");
+        mainWindowCodeBehind.Should().Contain("LinkViewWith");
         mainWindowCodeBehind.Should().Contain("FitToDataButton");
         mainWindowCodeBehind.Should().Contain("ResetCameraButton");
         mainWindowCodeBehind.Should().Contain("ViewStateText");

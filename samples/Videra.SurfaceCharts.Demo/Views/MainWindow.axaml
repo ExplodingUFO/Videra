@@ -21,7 +21,7 @@
                    Text="Surface Charts Demo" />
         <TextBlock Foreground="#CBD5E1"
                    TextWrapping="Wrap"
-                   Text="Start with the in-memory first-chart path, then opt into cache-backed streaming and the secondary chart diagnostics once that happy path renders. The demo stays in its own sample app and only depends on the surface-chart module family." />
+                   Text="Use the cookbook gallery to try bounded SurfaceCharts recipes for first chart, styling, interaction, live data, linked axes, and PNG export. The demo stays in its own sample app and only depends on the surface-chart module family." />
       </StackPanel>
     </Border>
 
@@ -81,6 +81,31 @@
             <TextBlock Foreground="#CBD5E1"
                        TextWrapping="Wrap"
                        Text="Start here with the in-memory baseline first chart. Move to cache-backed streaming after that path renders. The waterfall and scatter options are thin proofs on the same Avalonia chart shell, not separate viewer stacks." />
+          </StackPanel>
+        </Border>
+
+        <Border Padding="18"
+                Background="#111A2B"
+                BorderBrush="#1F2B44"
+                BorderThickness="1"
+                CornerRadius="18">
+          <StackPanel Spacing="10">
+            <TextBlock FontSize="18"
+                       FontWeight="SemiBold"
+                       Foreground="#E2E8F0"
+                       Text="Cookbook gallery" />
+            <ComboBox x:Name="CookbookRecipeSelector" />
+            <TextBlock x:Name="CookbookRecipeStatusText"
+                       Foreground="#CBD5E1"
+                       TextWrapping="Wrap" />
+            <Button x:Name="CopyRecipeSnippetButton"
+                    HorizontalAlignment="Left"
+                    Content="Copy recipe snippet" />
+            <TextBlock x:Name="CookbookRecipeSnippetText"
+                       FontFamily="Consolas"
+                       FontSize="12"
+                       Foreground="#D1D5DB"
+                       TextWrapping="Wrap" />
           </StackPanel>
         </Border>
 

@@ -14,7 +14,7 @@
 - [x] **Phase 385: Interaction Profile and Command Surface** - Add a small chart-local interaction profile plus bounded custom command/context-menu recipes.
 - [x] **Phase 386: Selection, Probe, and Draggable Overlay Recipes** - Add pointer-to-probe helpers, host-owned selection, and bounded draggable marker/range overlay recipes.
 - [x] **Phase 387: Axis Rules, Linked Views, and Live View Management** - Add axis limit rules, explicit view linking, and live latest-window/full-data behavior.
-- [ ] **Phase 388: Cookbook Demo Gallery and Docs** - Restructure demo/docs into recipe groups with isolated setup and copyable snippets.
+- [x] **Phase 388: Cookbook Demo Gallery and Docs** - Restructure demo/docs into recipe groups with isolated setup and copyable snippets.
 - [ ] **Phase 389: Integration, Guardrails, and Milestone Evidence** - Run focused regression, scope guardrails, Beads export, generated roadmap, and clean handoff.
 
 ## Phase Details
@@ -104,7 +104,7 @@
 | 385. Interaction Profile and Command Surface | 1/1 | Complete | 2026-04-30 |
 | 386. Selection, Probe, and Draggable Overlay Recipes | 1/1 | Complete | 2026-04-30 |
 | 387. Axis Rules, Linked Views, and Live View Management | 1/1 | Complete | 2026-04-30 |
-| 388. Cookbook Demo Gallery and Docs | 0/1 | Pending | - |
+| 388. Cookbook Demo Gallery and Docs | 1/1 | Complete | 2026-04-30 |
 | 389. Integration, Guardrails, and Milestone Evidence | 0/1 | Pending | - |
 
 ---

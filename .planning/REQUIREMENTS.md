@@ -48,11 +48,11 @@ Reference basis:
 
 ### Cookbook Demo and Documentation
 
-- [ ] **COOK-01**: The SurfaceCharts demo provides a cookbook/gallery navigation model with recipe groups for first chart, styling, interactions, live data, linked axes, and export.
-- [ ] **COOK-02**: Each cookbook recipe has a small isolated setup path, visible result, and copyable code snippet or matching README snippet.
-- [ ] **COOK-03**: Cookbook recipes avoid shared hidden mutable state and do not turn the demo into a god-code chart editor.
-- [ ] **DOC-01**: Root README and SurfaceCharts demo README link to the cookbook recipes and explain the Videra-specific 3D boundaries.
-- [ ] **DOC-02**: Documentation names ScottPlot 5 as an ergonomics inspiration while explicitly rejecting full compatibility/parity.
+- [x] **COOK-01**: The SurfaceCharts demo provides a cookbook/gallery navigation model with recipe groups for first chart, styling, interactions, live data, linked axes, and export.
+- [x] **COOK-02**: Each cookbook recipe has a small isolated setup path, visible result, and copyable code snippet or matching README snippet.
+- [x] **COOK-03**: Cookbook recipes avoid shared hidden mutable state and do not turn the demo into a god-code chart editor.
+- [x] **DOC-01**: Root README and SurfaceCharts demo README link to the cookbook recipes and explain the Videra-specific 3D boundaries.
+- [x] **DOC-02**: Documentation names ScottPlot 5 as an ergonomics inspiration while explicitly rejecting full compatibility/parity.
 
 ### Verification and Closure
 
@@ -105,11 +105,11 @@ Reference basis:
 | AXIS-02 | Phase 387 | Complete |
 | LIVE-01 | Phase 387 | Complete |
 | LIVE-02 | Phase 387 | Complete |
-| COOK-01 | Phase 388 | Pending |
-| COOK-02 | Phase 388 | Pending |
-| COOK-03 | Phase 388 | Pending |
-| DOC-01 | Phase 388 | Pending |
-| DOC-02 | Phase 388 | Pending |
+| COOK-01 | Phase 388 | Complete |
+| COOK-02 | Phase 388 | Complete |
+| COOK-03 | Phase 388 | Complete |
+| DOC-01 | Phase 388 | Complete |
+| DOC-02 | Phase 388 | Complete |
 | VER-01 | Phase 389 | Pending |
 | VER-02 | Phase 389 | Pending |
 | VER-03 | Phase 389 | Pending |

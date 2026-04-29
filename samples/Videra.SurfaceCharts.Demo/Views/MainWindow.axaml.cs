@@ -5,6 +5,7 @@ using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Videra.SurfaceCharts.Avalonia.Controls;
+using Videra.SurfaceCharts.Avalonia.Controls.Interaction;
 using Videra.SurfaceCharts.Core;
 using Videra.SurfaceCharts.Demo.Services;
 using Videra.SurfaceCharts.Processing;
@@ -30,10 +31,14 @@ public partial class MainWindow : Window
     private readonly VideraChartView _contourPlotView;
     private readonly ComboBox _sourceSelector;
     private readonly ComboBox _scatterScenarioSelector;
+    private readonly ComboBox _cookbookRecipeSelector;
     private readonly Button _fitToDataButton;
     private readonly Button _resetCameraButton;
+    private readonly Button _copyRecipeSnippetButton;
     private readonly TextBlock _statusText;
     private readonly TextBlock _viewStateText;
+    private readonly TextBlock _cookbookRecipeStatusText;
+    private readonly TextBlock _cookbookRecipeSnippetText;
     private readonly TextBlock _interactionQualityText;
     private readonly TextBlock _builtInInteractionText;
     private readonly TextBlock _renderingPathText;
@@ -76,14 +81,22 @@ public partial class MainWindow : Window
             ?? throw new InvalidOperationException("Source selector is missing.");
         _scatterScenarioSelector = this.FindControl<ComboBox>("ScatterScenarioSelector")
             ?? throw new InvalidOperationException("Scatter scenario selector is missing.");
+        _cookbookRecipeSelector = this.FindControl<ComboBox>("CookbookRecipeSelector")
+            ?? throw new InvalidOperationException("CookbookRecipeSelector is missing.");
         _fitToDataButton = this.FindControl<Button>("FitToDataButton")
             ?? throw new InvalidOperationException("FitToDataButton is missing.");
         _resetCameraButton = this.FindControl<Button>("ResetCameraButton")
             ?? throw new InvalidOperationException("ResetCameraButton is missing.");
+        _copyRecipeSnippetButton = this.FindControl<Button>("CopyRecipeSnippetButton")
+            ?? throw new InvalidOperationException("CopyRecipeSnippetButton is missing.");
         _statusText = this.FindControl<TextBlock>("StatusText")
             ?? throw new InvalidOperationException("Status text control is missing.");
         _viewStateText = this.FindControl<TextBlock>("ViewStateText")
             ?? throw new InvalidOperationException("ViewStateText is missing.");
+        _cookbookRecipeStatusText = this.FindControl<TextBlock>("CookbookRecipeStatusText")
+            ?? throw new InvalidOperationException("CookbookRecipeStatusText is missing.");
+        _cookbookRecipeSnippetText = this.FindControl<TextBlock>("CookbookRecipeSnippetText")
+            ?? throw new InvalidOperationException("CookbookRecipeSnippetText is missing.");
         _interactionQualityText = this.FindControl<TextBlock>("InteractionQualityText")
             ?? throw new InvalidOperationException("InteractionQualityText is missing.");
         _builtInInteractionText = this.FindControl<TextBlock>("BuiltInInteractionText")
@@ -123,6 +136,8 @@ public partial class MainWindow : Window
 
         _scatterScenarioSelector.ItemsSource = ScatterStreamingScenarios.All;
         _scatterScenarioSelector.SelectedIndex = 0;
+        _cookbookRecipeSelector.ItemsSource = CookbookRecipes.All;
+        _cookbookRecipeSelector.SelectedIndex = 0;
         _sourceSelector.SelectedIndex = 0;
         ApplySource(
             _surfaceChartView,
@@ -134,11 +149,14 @@ public partial class MainWindow : Window
 
         _sourceSelector.SelectionChanged += OnSourceSelectionChanged;
         _scatterScenarioSelector.SelectionChanged += OnScatterScenarioSelectionChanged;
+        _cookbookRecipeSelector.SelectionChanged += OnCookbookRecipeSelectionChanged;
         _fitToDataButton.Click += OnFitToDataClicked;
         _resetCameraButton.Click += OnResetCameraClicked;
+        _copyRecipeSnippetButton.Click += OnCopyRecipeSnippetClicked;
         _copySupportSummaryButton.Click += OnCopySupportSummaryClicked;
 
         _cachePathText.Text = $"Manifest: {_cachePath}\nPayload sidecar: {_cachePayloadPath}";
+        ApplyCookbookRecipe(CookbookRecipes.All[0]);
         RefreshActiveProofTexts();
     }
 
@@ -249,6 +267,33 @@ public partial class MainWindow : Window
         }
 
         ApplySelectedScatterScenario();
+    }
+
+    private void OnCookbookRecipeSelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        _ = sender;
+        _ = e;
+
+        if (_cookbookRecipeSelector.SelectedItem is CookbookRecipe recipe)
+        {
+            ApplyCookbookRecipe(recipe);
+        }
+    }
+
+    private void ApplyCookbookRecipe(CookbookRecipe recipe)
+    {
+        _cookbookRecipeStatusText.Text = recipe.Description;
+        _cookbookRecipeSnippetText.Text = recipe.Snippet;
+
+        if (recipe.ScatterScenarioId is { } scenarioId)
+        {
+            _scatterScenarioSelector.SelectedItem = ScatterStreamingScenarios.Get(scenarioId);
+        }
+
+        if (_sourceSelector.SelectedIndex != recipe.SourceIndex)
+        {
+            _sourceSelector.SelectedIndex = recipe.SourceIndex;
+        }
     }
 
     private void ApplySelectedScatterScenario()
@@ -504,6 +549,22 @@ public partial class MainWindow : Window
         }
 
         _supportSummaryStatusText.Text = "Clipboard is unavailable. The support summary remains visible below.";
+    }
+
+    private async void OnCopyRecipeSnippetClicked(object? sender, RoutedEventArgs e)
+    {
+        _ = sender;
+        _ = e;
+
+        var topLevel = TopLevel.GetTopLevel(this);
+        if (topLevel?.Clipboard is { } clipboard)
+        {
+            await clipboard.SetTextAsync(_cookbookRecipeSnippetText.Text ?? string.Empty).ConfigureAwait(true);
+            _cookbookRecipeStatusText.Text = "Copied cookbook recipe snippet to the clipboard.";
+            return;
+        }
+
+        _cookbookRecipeStatusText.Text = "Clipboard is unavailable. The cookbook recipe snippet remains visible below.";
     }
 
     private async void OnCaptureSnapshotClicked(object? sender, RoutedEventArgs e)
@@ -1530,5 +1591,130 @@ public partial class MainWindow : Window
     private string CreateSnapshotCreatedUtcSummary()
     {
         return _lastSnapshotResult?.Manifest?.CreatedUtc.ToString("O") ?? "none";
+    }
+
+    private sealed record CookbookRecipe(
+        string Group,
+        string Title,
+        string Description,
+        int SourceIndex,
+        string? ScatterScenarioId,
+        string Snippet)
+    {
+        public override string ToString() => $"{Group}: {Title}";
+    }
+
+    private static class CookbookRecipes
+    {
+        public static IReadOnlyList<CookbookRecipe> All { get; } =
+        [
+            new(
+                "First chart",
+                "Surface from a matrix",
+                "Isolated setup path: selects the in-memory first-chart source and fits the camera to the generated surface.",
+                SourceIndex: 0,
+                ScatterScenarioId: null,
+                Snippet: """
+                    var chart = new VideraChartView();
+
+                    chart.Plot.Add.Surface(new double[,]
+                    {
+                        { 0.0, 0.4, 0.8 },
+                        { 0.2, 0.7, 1.0 },
+                        { 0.1, 0.5, 0.9 },
+                    }, "First surface");
+
+                    chart.FitToData();
+                    """),
+            new(
+                "Styling",
+                "Axes, color map, and overlay options",
+                "Isolated setup path: selects the analytics proof with explicit coordinates, a separate ColorField, and chart-local overlay options.",
+                SourceIndex: AnalyticsSourceIndex,
+                ScatterScenarioId: null,
+                Snippet: """
+                    chart.Plot.Axes.X.Label = "Time";
+                    chart.Plot.Axes.X.Unit = "s";
+                    chart.Plot.Axes.Y.Label = "Height";
+                    chart.Plot.Axes.Y.Unit = "mm";
+                    chart.Plot.Axes.Z.Label = "Band";
+                    chart.Plot.Axes.Z.Unit = "Hz";
+                    chart.Plot.ColorMap = new SurfaceColorMap(
+                        new SurfaceValueRange(0, 1),
+                        SurfaceColorMapPresets.CreateProfessional());
+                    chart.Plot.OverlayOptions = new SurfaceChartOverlayOptions
+                    {
+                        ShowMinorTicks = true,
+                    };
+                    """),
+            new(
+                "Interactions",
+                "Profile plus bounded commands",
+                "Isolated setup path: keeps the first chart visible while the snippet shows chart-local interaction switches and commands.",
+                SourceIndex: 0,
+                ScatterScenarioId: null,
+                Snippet: """
+                    chart.InteractionProfile = new SurfaceChartInteractionProfile
+                    {
+                        IsOrbitEnabled = true,
+                        IsPanEnabled = true,
+                        IsDollyEnabled = true,
+                        IsProbePinningEnabled = true,
+                    };
+
+                    chart.TryExecuteChartCommand(SurfaceChartCommand.FitToData);
+                    chart.TryResolveProbe(pointerPosition, out var probe);
+                    """),
+            new(
+                "Live data",
+                "Latest-window scatter stream",
+                "Isolated setup path: selects the FIFO-trim scatter scenario and shows retained-point counters through DataLogger3D-style live evidence.",
+                SourceIndex: ScatterSourceIndex,
+                ScatterScenarioId: "scatter-fifo-trim-100k",
+                Snippet: """
+                    var live = new DataLogger3D(0xFF2F80EDu, label: "Live scatter", fifoCapacity: 10_000);
+                    live.Append(new ScatterColumnarData(x, y, z));
+                    live.UseLatestWindow(2_000);
+
+                    var evidence = live.CreateLiveViewEvidence();
+                    chart.Plot.Clear();
+                    chart.Plot.Add.Scatter(scatterData, "Live scatter");
+                    chart.FitToData();
+                    """),
+            new(
+                "Linked axes",
+                "Explicit two-chart view link",
+                "Isolated setup path: selects the waterfall proof as a second chart-family result; the snippet shows the explicit disposable two-chart link.",
+                SourceIndex: WaterfallSourceIndex,
+                ScatterScenarioId: null,
+                Snippet: """
+                    var left = new VideraChartView();
+                    var right = new VideraChartView();
+
+                    left.Plot.Add.Surface(surfaceSource, "Left");
+                    right.Plot.Add.Surface(comparisonSource, "Right");
+
+                    using var link = left.LinkViewWith(right);
+                    left.Plot.Axes.X.SetBounds(0, 10);
+                    right.FitToData();
+                    """),
+            new(
+                "Export",
+                "Chart-local PNG snapshot",
+                "Isolated setup path: keeps the first chart visible and uses the bounded Capture Snapshot button for the same PNG-only export path.",
+                SourceIndex: 0,
+                ScatterScenarioId: null,
+                Snippet: """
+                    var result = await chart.Plot.SavePngAsync(
+                        "artifacts/surfacecharts/first-chart.png",
+                        width: 1920,
+                        height: 1080);
+
+                    if (!result.Succeeded)
+                    {
+                        throw new InvalidOperationException(result.Failure?.Message);
+                    }
+                    """),
+        ];
     }
 }

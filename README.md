@@ -103,6 +103,8 @@ dotnet add package Videra.SurfaceCharts.Processing
 
 Minimal SurfaceCharts cookbook:
 
+The cookbook follows ScottPlot 5's recipe-discovery ergonomics as inspiration, but it is not a compatibility or parity layer. SurfaceCharts remains a Videra 3D chart surface built around `VideraChartView`, `Plot.Add.*`, `Plot.Axes`, chart-local interaction/profile APIs, linked 3D views, `DataLogger3D`, and PNG-only chart snapshots. The repository demo includes a cookbook/gallery selector with recipe groups for first chart, styling, interactions, live data, linked axes, and export.
+
 ```csharp
 using Videra.SurfaceCharts.Avalonia.Controls;
 using Videra.SurfaceCharts.Core;
@@ -142,6 +144,8 @@ chart.Plot.Clear();
 chart.Plot.Add.Scatter(scatterData, "Live scatter");
 await chart.Plot.SavePngAsync("surfacecharts-live-scatter.png", width: 1920, height: 1080);
 ```
+
+More cookbook snippets live in [Videra.SurfaceCharts.Demo](samples/Videra.SurfaceCharts.Demo/README.md), including bounded styling, interaction profile, live latest-window, linked-axis, and export recipes.
 
 The current SurfaceCharts efficiency story is tighter interactive residency under camera movement and lower probe-path churn on the existing chart-local path; the committed hard-gate names remain `SurfaceChartsRenderStateBenchmarks.ApplyResidencyChurnUnderCameraMovement` and `SurfaceChartsProbeBenchmarks.ProbeLatency`.
 Columnar scatter streaming is a chart-domain contract, not a viewer/runtime mode. `ScatterColumnarSeries` accepts `ReplaceRange(...)` and `AppendRange(...)`, can use an optional positive `fifoCapacity` to retain a bounded point window, defaults high-volume data to `Pickable=false`, and reports retained point count, append/replacement batch counts, dropped FIFO points, configured FIFO capacity, and scatter `InteractionQuality` through `ScatterChartRenderingStatus`.
