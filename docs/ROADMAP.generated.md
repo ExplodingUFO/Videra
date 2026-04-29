@@ -12,15 +12,20 @@ pwsh -File ./scripts/Export-BeadsRoadmap.ps1
 
 ## Active
 
-_No matching beads in the exported snapshot._
+- **Videra-v256** - v2.56 ScottPlot 5 Interaction and Cookbook Experience (epic, P1, in_progress; labels: cookbook, interaction, scottplot5, surfacecharts, v2.56)
 
 ## Ready
 
-_No matching beads in the exported snapshot._
+- **Videra-v256.1** - Phase 383 ScottPlot 5 Interaction Inventory and Beads Coordination (task, P1, open; labels: coordination, inventory, phase-383, v2.56)
 
 ## Blocked
 
-_No matching beads in the exported snapshot._
+- **Videra-v256.2** - Phase 384 Plot Lifecycle and Code Experience Polish (feature, P1, open; labels: code-experience, phase-384, plot-api, v2.56)
+- **Videra-v256.3** - Phase 385 Interaction Profile and Command Surface (feature, P1, open; labels: commands, interaction, phase-385, v2.56)
+- **Videra-v256.4** - Phase 386 Selection Probe and Draggable Overlay Recipes (feature, P1, open; labels: overlays, phase-386, probe, selection, v2.56)
+- **Videra-v256.5** - Phase 387 Axis Rules Linked Views and Live View Management (feature, P1, open; labels: axes, live, phase-387, v2.56)
+- **Videra-v256.6** - Phase 388 Cookbook Demo Gallery and Docs (task, P1, open; labels: cookbook, demo, docs, phase-388, v2.56)
+- **Videra-v256.7** - Phase 389 Integration Guardrails and Milestone Evidence (task, P1, open; labels: guardrails, integration, phase-389, v2.56)
 
 ## Backlog
 

@@ -1,111 +1,120 @@
 # Roadmap
 
-## v2.55 ScottPlot-like Plot API - Complete
+## v2.56 ScottPlot 5 Interaction and Cookbook Experience - In Progress
 
-**Goal:** Make SurfaceCharts first-chart usage feel ScottPlot-like: short `Plot.Add.*` code, typed plottable handles, discoverable axes, PNG convenience, live scatter helpers, and cookbook docs without widening renderer/backend scope.
+**Goal:** Make SurfaceCharts feel closer to ScottPlot 5 around interaction configuration, code ergonomics, live-view behavior, and cookbook-style demo discovery while preserving Videra's 3D chart boundaries.
 
-**Phases:** 7 (376-382)
-**Requirements:** 26 (INV-01..03, ADD-01..04, PLOT-01..03, AXIS-01..03, PNG-01..02, LIVE-01..03, MULTI-01..03, DOC-01, DEMO-01, VER-01..03)
+**Phases:** 7 (383-389)
+**Requirements:** 27 (INV-01..03, CODE-01..04, INT-01..04, PICK-01..04, AXIS-01..02, LIVE-01..02, COOK-01..03, DOC-01..02, VER-01..03)
 
 ## Phases
 
-- [x] **Phase 376: Plot API Inventory and Beads Coordination** - Confirm exact API gaps, non-goals, dependency graph, and parallel worktree boundaries
-- [x] **Phase 377: Raw Add Overloads and Typed Plottables** - Add concise raw-array Plot.Add overloads and small typed plottable handles
-- [x] **Phase 378: Axes Facade and SavePng Convenience** - Add `Plot.Axes` and `Plot.SavePngAsync` on top of existing state/snapshot ownership
-- [x] **Phase 379: Live Scatter Helpers** - Add `DataLogger3D` / `ScatterStream` facade over existing columnar scatter append/FIFO semantics
-- [x] **Phase 380: Same-Type Multi-Series Composition** - Make visible same-type series compose deterministically instead of relying only on active last-series rendering
-- [x] **Phase 381: Cookbook Demo and Docs** - Refresh README/demo recipes around the new concise API without creating a workbench
-- [x] **Phase 382: Integration, Guardrails, and Milestone Evidence** - Run focused regression, guardrails, beads export, and generated roadmap closure
+- [ ] **Phase 383: ScottPlot 5 Interaction Inventory and Beads Coordination** - Confirm exact reference patterns, current implementation seams, non-goals, and bead/worktree boundaries.
+- [ ] **Phase 384: Plot Lifecycle and Code Experience Polish** - Add concise clear/remove/reorder/list affordances and keep typed plottable handle tweaks simple.
+- [ ] **Phase 385: Interaction Profile and Command Surface** - Add a small chart-local interaction profile plus bounded custom command/context-menu recipes.
+- [ ] **Phase 386: Selection, Probe, and Draggable Overlay Recipes** - Add pointer-to-probe helpers, host-owned selection, and bounded draggable marker/range overlay recipes.
+- [ ] **Phase 387: Axis Rules, Linked Views, and Live View Management** - Add axis limit rules, explicit view linking, and live latest-window/full-data behavior.
+- [ ] **Phase 388: Cookbook Demo Gallery and Docs** - Restructure demo/docs into recipe groups with isolated setup and copyable snippets.
+- [ ] **Phase 389: Integration, Guardrails, and Milestone Evidence** - Run focused regression, scope guardrails, Beads export, generated roadmap, and clean handoff.
 
 ## Phase Details
 
-### Phase 376: Plot API Inventory and Beads Coordination
-**Goal:** The milestone starts from evidence, with precise implementation seams, non-goals, and bead/worktree boundaries.
+### Phase 383: ScottPlot 5 Interaction Inventory and Beads Coordination
+**Goal:** The milestone starts from evidence, with precise ScottPlot 5 inspiration points, Videra-owned seams, non-goals, and dependency-aware Beads.
 **Depends on**: Nothing
 **Requirements**: INV-01, INV-02, INV-03
-**Success Criteria** (what must be TRUE):
-  1. `Plot3D`, `Plot3DAddApi`, series handle, axis, snapshot, demo, smoke, and guardrail owners are documented.
-  2. The milestone explicitly rejects old chart controls, public `Source`, compatibility wrappers, PDF/vector export, backend/runtime rewrite, hidden fallback/downshift, generic plotting-engine work, and god-code workbench scope.
-  3. Beads exist for every phase with parent/child links, blocking dependencies, verification notes, and safe parallelization boundaries.
-  4. `bd ready --json` shows only genuinely unblocked work.
-**Plans**: 376-PLAN.md
+**Success Criteria**:
+1. Current Plot, interaction, overlay, axis, live, demo, support evidence, and guardrail owners are documented.
+2. Official ScottPlot 5 reference patterns are recorded as inspiration, not compatibility commitments.
+3. Beads exist for every phase with parent-child links, blocking dependencies, validation notes, and safe parallelization boundaries.
+4. `bd ready --json` shows only genuinely unblocked work.
+**Plans**: 383-PLAN.md
 
-### Phase 377: Raw Add Overloads and Typed Plottables
-**Goal:** Users can add Surface, Waterfall, and Scatter data from raw arrays and receive typed plottable handles without constructing internal data models.
-**Depends on**: Phase 376
-**Requirements**: ADD-01, ADD-02, ADD-03, ADD-04, PLOT-01, PLOT-02, PLOT-03
-**Success Criteria** (what must be TRUE):
-  1. `Plot.Add.Surface(...)`, `Plot.Add.Waterfall(...)`, and `Plot.Add.Scatter(...)` expose concise raw numeric overloads.
-  2. Existing advanced overloads remain available as the advanced path.
-  3. Returned handles implement a small `IPlottable3D` contract with label and visibility.
-  4. Existing Plot API and repository guardrail tests pass.
-**Plans**: 377-PLAN.md
+### Phase 384: Plot Lifecycle and Code Experience Polish
+**Goal:** Users can manage Plot-owned plottables with short, predictable code without touching internals.
+**Depends on**: Phase 383
+**Requirements**: CODE-01, CODE-02, CODE-03, CODE-04
+**Success Criteria**:
+1. `Plot` exposes concise clear/remove/reorder/list operations over Plot-owned plottables.
+2. Returned handles and list/query APIs stay typed, read-only where appropriate, and deterministic.
+3. Revision, support evidence, legend/probe participation, and snapshot behavior remain coherent after lifecycle operations.
+4. No backend/runtime ownership expansion or compatibility wrapper types are introduced.
+**Plans**: 384-PLAN.md
 
-### Phase 378: Axes Facade and SavePng Convenience
-**Goal:** Users can discover common axis and PNG export operations from `Plot` without moving runtime ownership into the facade.
-**Depends on**: Phase 376
-**Requirements**: AXIS-01, AXIS-02, AXIS-03, PNG-01, PNG-02
-**Success Criteria** (what must be TRUE):
-  1. `Plot.Axes.X/Y/Z` exposes label and limit affordances without making dataset metadata mutable source of truth.
-  2. `SetLimits` and `AutoScale` bridge to existing `VideraChartView` viewport/runtime state.
-  3. `Plot.SavePngAsync(...)` wraps chart-local snapshot export and writes caller-selected PNG output.
-  4. Snapshot scope guardrails continue to reject PDF/vector export and backend expansion.
-**Plans**: 378-PLAN.md
+### Phase 385: Interaction Profile and Command Surface
+**Goal:** Users can configure common mouse/keyboard behavior and attach bounded chart commands through a small API.
+**Depends on**: Phase 383
+**Requirements**: INT-01, INT-02, INT-03, INT-04
+**Success Criteria**:
+1. Built-in pan, zoom, reset/autoscale, keyboard, and focus behavior can be enabled or disabled explicitly.
+2. Custom command/context-menu recipes reuse the same bounded command surface.
+3. Unsupported or disabled behavior is visible in state/evidence and never silently downshifts.
+4. Focused interaction tests cover default and customized behavior.
+**Plans**: 385-PLAN.md
 
-### Phase 379: Live Scatter Helpers
-**Goal:** Users can stream 3D scatter points through a named first-class helper while reusing existing columnar append/FIFO behavior.
-**Depends on**: Phase 376
-**Requirements**: LIVE-01, LIVE-02, LIVE-03
-**Success Criteria** (what must be TRUE):
-  1. `DataLogger3D` or `ScatterStream` provides a concise API over existing scatter columnar series.
-  2. Append, replace, FIFO trim, point count, batch count, and dropped-point evidence remain deterministic.
-  3. The implementation does not introduce a render loop, scheduler, background worker, or hidden fallback.
-**Plans**: 379-PLAN.md
+### Phase 386: Selection, Probe, and Draggable Overlay Recipes
+**Goal:** Users can implement common interactive recipes with concise chart-local helpers while keeping application state ownership clear.
+**Depends on**: Phase 385
+**Requirements**: PICK-01, PICK-02, PICK-03, PICK-04
+**Success Criteria**:
+1. Pointer positions can be converted into deterministic probe/coordinate results.
+2. Click or rectangle selection reports selected point, series, or range state without taking ownership from the host.
+3. Draggable marker/range overlay recipes update explicit chart-local marker or axis state.
+4. Selection and draggable overlay support evidence is deterministic and source data is not silently mutated.
+**Plans**: 386-PLAN.md
 
-### Phase 380: Same-Type Multi-Series Composition
-**Goal:** Same-type series compose visibly and in evidence paths, instead of only the last active series determining runtime output.
-**Depends on**: Phase 377
-**Requirements**: MULTI-01, MULTI-02, MULTI-03
-**Success Criteria** (what must be TRUE):
-  1. Multiple visible same-type series compose deterministically for supported existing chart kinds.
-  2. Legend, probe, snapshot, and support evidence identify visible composed series.
-  3. No new chart types or generic plotting engine are introduced.
-**Plans**: 380-PLAN.md
+### Phase 387: Axis Rules, Linked Views, and Live View Management
+**Goal:** Axis behavior and live data views become discoverable, explicit, and easy to compose across charts.
+**Depends on**: Phase 385
+**Requirements**: AXIS-01, AXIS-02, LIVE-01, LIVE-02
+**Success Criteria**:
+1. `Plot.Axes` supports limit rules for locks, min/max bounds, and autoscale constraints.
+2. Two `VideraChartView` instances can link axis/view limits with explicit lifetime and no global registry.
+3. Live helpers expose latest-window or full-data view behavior explicitly.
+4. Appended, dropped, visible-window, and autoscale-decision counters are deterministic.
+**Plans**: 387-PLAN.md
 
-### Phase 381: Cookbook Demo and Docs
-**Goal:** A new user can copy concise recipes for first chart, axes, snapshot PNG, and live scatter from repo docs/demo.
-**Depends on**: Phase 377, Phase 378, Phase 379
-**Requirements**: DOC-01, DEMO-01
-**Success Criteria** (what must be TRUE):
-  1. Root README and SurfaceCharts demo README show cookbook recipes using the new API.
-  2. Demo exercises concise Plot.Add, Plot.Axes, SavePngAsync, and live scatter paths.
-  3. Demo remains a bounded reference app, not a god-code workbench.
-**Plans**: 381-PLAN.md
+### Phase 388: Cookbook Demo Gallery and Docs
+**Goal:** The demo becomes a cookbook-style discovery surface for first chart, styling, interaction, live data, linked axes, and export recipes.
+**Depends on**: Phase 384, Phase 386, Phase 387
+**Requirements**: COOK-01, COOK-02, COOK-03, DOC-01, DOC-02
+**Success Criteria**:
+1. SurfaceCharts demo has recipe groups with isolated setup paths and visible results.
+2. Recipes include copyable or matching README snippets without shared hidden mutable state.
+3. Root README and demo README link the cookbook path and explain Videra's 3D-specific boundaries.
+4. Demo remains a bounded reference app, not a generic chart editor or god-code workbench.
+**Plans**: 388-PLAN.md
 
-### Phase 382: Integration, Guardrails, and Milestone Evidence
+### Phase 389: Integration, Guardrails, and Milestone Evidence
 **Goal:** The milestone closes with focused tests, guardrails, Beads export, generated roadmap, and clean handoff evidence.
-**Depends on**: Phase 380, Phase 381
+**Depends on**: Phase 386, Phase 387, Phase 388
 **Requirements**: VER-01, VER-02, VER-03
-**Success Criteria** (what must be TRUE):
-  1. Focused Plot API, demo/docs, snapshot, and repository guardrail tests pass.
-  2. `scripts/Test-SnapshotExportScope.ps1` passes.
-  3. Beads state and generated public roadmap are exported and synchronized.
-  4. Worktree, branch, and handoff state are clean or blockers are explicitly reported.
-**Plans**: 382-PLAN.md
+**Success Criteria**:
+1. Focused tests cover lifecycle/code experience, interaction profile, selection/probe/draggable overlays, axis/live helpers, cookbook demo wiring, and docs guardrails.
+2. Repository guardrails continue to reject old chart controls, direct public `Source`, compatibility wrappers, PDF/vector export, backend expansion, hidden fallback/downshift, and god-code workbench scope.
+3. Beads state, generated public roadmap, phase evidence, branches, worktrees, and handoff notes are clean or blockers are explicitly reported.
+**Plans**: 389-PLAN.md
 
 ## Progress
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 376. Plot API Inventory and Beads Coordination | 1/1 | Complete | 2026-04-29 |
-| 377. Raw Add Overloads and Typed Plottables | 1/1 | Complete | 2026-04-30 |
-| 378. Axes Facade and SavePng Convenience | 1/1 | Complete | 2026-04-30 |
-| 379. Live Scatter Helpers | 1/1 | Complete | 2026-04-30 |
-| 380. Same-Type Multi-Series Composition | 1/1 | Complete | 2026-04-30 |
-| 381. Cookbook Demo and Docs | 1/1 | Complete | 2026-04-30 |
-| 382. Integration, Guardrails, and Milestone Evidence | 1/1 | Complete | 2026-04-30 |
+| 383. ScottPlot 5 Interaction Inventory and Beads Coordination | 0/1 | Pending | - |
+| 384. Plot Lifecycle and Code Experience Polish | 0/1 | Pending | - |
+| 385. Interaction Profile and Command Surface | 0/1 | Pending | - |
+| 386. Selection, Probe, and Draggable Overlay Recipes | 0/1 | Pending | - |
+| 387. Axis Rules, Linked Views, and Live View Management | 0/1 | Pending | - |
+| 388. Cookbook Demo Gallery and Docs | 0/1 | Pending | - |
+| 389. Integration, Guardrails, and Milestone Evidence | 0/1 | Pending | - |
 
 ---
+
+<details>
+<summary>v2.55 ScottPlot-like Plot API - Complete (2026-04-30)</summary>
+
+Shipped raw `Plot.Add.*` overloads, typed plottables, `Plot.Axes`, `Plot.SavePngAsync`, `DataLogger3D`, same-type multi-series composition, cookbook seed docs, and closure guardrails. 7 phases, 27 requirements. Archived: `.planning/milestones/v2.55-ROADMAP.md`
+
+</details>
 
 <details>
 <summary>v2.54 Chart Interactivity - Complete (2026-04-29)</summary>

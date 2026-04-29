@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.55
-milestone_name: "ScottPlot-like Plot API"
-status: complete
-stopped_at: "v2.55 milestone complete"
-last_updated: "2026-04-30T00:48:29+08:00"
-last_activity: 2026-04-29
+milestone: v2.56
+milestone_name: "ScottPlot 5 Interaction and Cookbook Experience"
+status: active
+stopped_at: "Milestone initialized; Phase 383 ready for planning"
+last_updated: "2026-04-30T00:00:00+08:00"
+last_activity: 2026-04-30
 progress:
   total_phases: 7
-  completed_phases: 7
+  completed_phases: 0
   total_plans: 7
-  completed_plans: 7
-  percent: 100
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -21,60 +21,56 @@ progress:
 See: `.planning/PROJECT.md`
 
 **Core value:** 跨平台 3D 渲染引擎的可靠性
-**Current focus:** v2.55 ScottPlot-like Plot API — milestone complete
+**Current focus:** v2.56 ScottPlot 5 Interaction and Cookbook Experience — defining requirements and roadmap complete
 
 ## Current Position
 
-Milestone: `v2.55 ScottPlot-like Plot API`
-Phase: 382 of 382 (Integration, Guardrails, and Milestone Evidence) — COMPLETE
-Plan: All v2.55 implementation and closure slices complete
-Status: ScottPlot-like Plot API ergonomics, same-type composition, cookbook docs, and closure evidence are integrated.
-Last activity: 2026-04-30 — Completed Phase 382 integration, guardrails, beads export, and milestone evidence
+Milestone: `v2.56 ScottPlot 5 Interaction and Cookbook Experience`
+Phase: 383 of 389 (ScottPlot 5 Interaction Inventory and Beads Coordination) — READY
+Plan: Not started
+Status: Requirements and roadmap are initialized. Next step is Phase 383 planning, then Beads-backed execution with worktree isolation where dependencies allow.
+Last activity: 2026-04-30 — Started v2.56 milestone
 
-Progress: [██████████] 100%
+Progress: [░░░░░░░░░░] 0%
 
 ## Initial Scope Summary
 
-v2.55 starts from the v2.54 chart interactivity baseline:
+v2.56 starts from the completed v2.55 baseline:
 
-- `VideraChartView` is the single shipped chart control with Surface, Waterfall, Scatter, Bar, and Contour series.
-- Crosshair overlay, enhanced tooltips, series probe strategies, keyboard/toolbar controls are operational.
-- Snapshot export via `Plot3D.CaptureSnapshotAsync` is operational.
-- Log/DateTime axes, custom formatters, multi-series legend are shipped.
+- `VideraChartView` remains the single shipped chart control.
+- `Plot.Add.*` raw overloads, typed plottable handles, `Plot.Axes`, `Plot.SavePngAsync`, `DataLogger3D`, and same-type multi-series composition are available.
+- v2.54 chart interaction foundations are available: crosshair, enhanced tooltips, probe strategies, keyboard shortcuts, toolbar overlay, and snapshot chrome suppression.
 
-The scope adds ScottPlot-like API ergonomics:
+This milestone improves the next layer of ScottPlot-inspired experience:
 
-- Plot.Add overloads: Surface/Scatter/Waterfall/Bar/Contour from raw arrays without internal types
-- Typed plottable returns: IPlottable3D with Label, IsVisible, Color/ColorMap
-- Plot.Axes facade: X/Y/Z.Label, SetLimits, AutoScale, SetLabels
-- SavePngAsync convenience method
-- DataLogger3D / ScatterStream for live streaming data
-- Cookbook-style demo and README rewrite
-- Multi-series rendering (same-type series compose)
+- concise Plot lifecycle/code operations
+- configurable interaction profile and bounded chart commands
+- selection, probe, and draggable overlay recipes
+- axis rules, linked chart views, and live view management
+- cookbook-style demo/gallery and README recipes
 
 ## Decisions
 
-- Facade layer only — no renderer changes, no new chart types, no broad architecture rewrites
-- Internal types (SurfaceMatrix, ScatterChartData, etc.) stay as advanced path
-- P0: Plot.Add overloads + typed plottable returns + Plot.Axes facade
-- P1: SavePngAsync + DataLogger3D + cookbook/README rewrite
-- P2: Multi-series rendering (same-type series compose)
-- Phase 376 is the coordination gate; Phases 377, 378, and 379 can run in parallel after 376 if each uses its own worktree/branch and disjoint write set.
-- Phase 380 depends on Phase 377; Phase 381 depends on Phases 377-379; Phase 382 closes integration after 380 and 381.
+- ScottPlot 5 is an ergonomics reference, not a compatibility target.
+- Keep the implementation chart-local unless a small explicit bridge is required.
+- Use Beads as the task spine for phase status, ownership, dependencies, and handoff.
+- Use isolated worktrees and branches only for disjoint implementation phases.
+- Do not restore old chart controls, public direct `Source`, compatibility wrappers, PDF/vector export, backend expansion, hidden fallback/downshift, or god-code demo editor behavior.
 
 ## Known Residuals
 
-- Full CI can lag; user often prioritizes fast local progress unless CI is explicitly requested.
-- `.planning` remains local-only unless specific files are already tracked.
-- Docker-backed Dolt SQL Server is the Beads remote path; use direct Docker Dolt push when needed.
-- v2.55 must not restore old chart view APIs, reintroduce direct public `Source`, add PDF/vector export, add compatibility wrappers, add hidden fallback/downshift behavior, expand backend/runtime scope, or create a god-code workbench.
+- Full CI can lag; use focused local verification first unless CI is explicitly requested.
+- `.planning` phase artifacts are force-tracked only when needed because `.planning/` is ignored by default.
+- Docker-backed Dolt SQL Server is the Beads remote path; if `bd dolt push` hits host path issues, use `scripts/Push-BeadsDoltViaHost.ps1`.
 
 ## Session Continuity
 
-Last session: `2026-04-29 +08:00`
-Stopped at: Phase 381 complete
-Next action: Start the next milestone only after choosing new scope from beads or planning docs.
+Last session: `2026-04-30 +08:00`
+Stopped at: v2.56 milestone initialized
+Next action: `$gsd-plan-phase 383` to plan the inventory and Beads coordination phase.
 
 ## Accumulated Context
 
-From v2.54: 22 interactivity requirements delivered across 5 phases. Chart now has crosshair, tooltips, probe strategies, keyboard shortcuts, and toolbar. All 200 integration tests pass.
+From v2.55: 27 requirements delivered across 7 phases. SurfaceCharts now has short raw `Plot.Add.*` overloads, typed plottables, `Plot.Axes`, `Plot.SavePngAsync`, `DataLogger3D`, same-type multi-series composition, cookbook seed docs, and closure guardrails.
+
+From v2.54: 22 interactivity requirements delivered across 5 phases. Chart now has crosshair, tooltips, probe strategies, keyboard shortcuts, and toolbar.

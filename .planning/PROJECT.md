@@ -12,25 +12,38 @@ Videra 是一个基于 `.NET 8` 的跨平台 3D 渲染引擎，提供 Windows (`
 
 ## Current State
 
-- 最新完整归档 milestone：`v2.54 Chart Interactivity`
-- 最近完成 milestone：`v2.54 Chart Interactivity`
-- 当前 active milestone：`v2.55 ScottPlot-like Plot API`
-- 当前 focus：让 SurfaceCharts 的第一屏 API 匹配 ScottPlot 5 的使用体验——短代码、熟悉模式、不碰内部类型。
+- 最新完整归档 milestone：`v2.55 ScottPlot-like Plot API`
+- 最近完成 milestone：`v2.55 ScottPlot-like Plot API`
+- 当前 active milestone：`v2.56 ScottPlot 5 Interaction and Cookbook Experience`
+- 当前 focus：继续朝 ScottPlot 5 风格优化 SurfaceCharts 的交互配置、Plot 代码体验、live view 行为和 cookbook demo 发现路径。
 
-## Current Milestone: v2.55 ScottPlot-like Plot API
+## Current Milestone: v2.56 ScottPlot 5 Interaction and Cookbook Experience
 
-**Goal:** Make SurfaceCharts first-chart experience match ScottPlot 5 ergonomics — short code, familiar patterns, no internal types required.
+**Goal:** Make SurfaceCharts feel closer to ScottPlot 5 around interaction configuration, code ergonomics, live-view behavior, and cookbook-style demo discovery while preserving Videra's 3D chart boundaries.
 
 **Target features:**
-- Plot.Add overloads (Surface/Scatter/Waterfall/Bar/Contour from raw arrays)
-- Add.* returns typed plottable (IPlottable3D with Label, IsVisible, Color/ColorMap)
-- Plot.Axes facade (X/Y/Z.Label, SetLimits, AutoScale, SetLabels)
-- Plot.SavePngAsync convenience
-- DataLogger3D / ScatterStream for live data
-- Cookbook-style demo and README rewrite
-- Multi-series rendering (same-type series compose)
+- Plot lifecycle/code experience polish: clear, remove, reorder, list/query plottables
+- Interaction profile configuration: pan, zoom, reset/autoscale, keyboard, focus, and explicit disablement
+- Bounded custom chart commands/context-menu recipes without generic plugin/workbench scope
+- Pointer-to-probe helpers, host-owned selection, and draggable marker/range overlay recipes
+- Axis rules, linked chart views, and live latest-window/full-data view management
+- Cookbook/gallery demo structure with isolated recipes and copyable snippets
 
 ## Completed Milestones
+
+### v2.55 ScottPlot-like Plot API (2026-04-30)
+
+Shipped ScottPlot-like first-chart API ergonomics:
+- raw `Plot.Add.Surface(...)`, `Plot.Add.Waterfall(...)`, and `Plot.Add.Scatter(...)` overloads without requiring internal data model construction
+- typed `IPlottable3D` handles with label, visibility, and existing style/color affordances
+- `Plot.Axes` facade for labels, limits, and autoscale bridge behavior
+- `Plot.SavePngAsync(...)` convenience over chart-local PNG snapshot export
+- `DataLogger3D` live scatter helper over deterministic append/FIFO semantics
+- same-type visible series composition for supported existing chart kinds
+- cookbook seed docs/demo paths and final guardrail closure
+- 7 phases, 27 requirements, all focused verification passed
+
+Archived: `.planning/milestones/v2.55-ROADMAP.md`, `.planning/milestones/v2.55-REQUIREMENTS.md`
 
 ### v2.54 Chart Interactivity (2026-04-29)
 
@@ -274,7 +287,7 @@ Archived: `.planning/milestones/v2.52-ROADMAP.md`, `.planning/milestones/v2.52-R
 
 ## Next Milestone Goals
 
-The next milestone should start from `$gsd-new-milestone`. Recommended direction: return to product/quality work now that Beads coordination is operational, keep tasks small, and use Beads plus isolated worktrees only where dependencies allow parallel execution.
+The current milestone should start with `$gsd-plan-phase 383`. Keep Beads as the task spine, split implementation by dependencies, and use isolated worktrees only for disjoint phases. Prioritize small chart-local UX/code-experience slices over broad API parity.
 
 ## Most Recently Completed Milestone: v2.36 Beads Remote Sync PR Closure
 
@@ -772,6 +785,6 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-29 after starting v2.55 milestone*
+*Last updated: 2026-04-30 after starting v2.56 milestone*
 
 
