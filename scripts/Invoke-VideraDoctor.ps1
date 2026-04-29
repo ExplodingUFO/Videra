@@ -304,6 +304,16 @@ function Get-SurfaceChartsSupportReport
             renderingStatusPresent = $false
             isStructuredComplete = $false
             missingFields = @("GeneratedUtc", "EvidenceKind", "EvidenceOnly", "ChartControl", "EnvironmentRuntime", "AssemblyIdentity", "BackendDisplayEnvironment", "SeriesCount", "ActiveSeries", "ChartKind", "ColorMap", "PrecisionProfile", "OutputEvidenceKind", "OutputCapabilityDiagnostics", "DatasetEvidenceKind", "DatasetSeriesCount", "DatasetActiveSeriesIndex", "DatasetActiveSeriesMetadata", "RenderingStatus")
+            snapshotStatus = ""
+            snapshotPath = ""
+            snapshotWidth = ""
+            snapshotHeight = ""
+            snapshotFormat = ""
+            snapshotBackground = ""
+            snapshotOutputEvidenceKind = ""
+            snapshotDatasetEvidenceKind = ""
+            snapshotActiveSeriesIdentity = ""
+            snapshotCreatedUtc = ""
         }
     }
 
@@ -338,6 +348,16 @@ function Get-SurfaceChartsSupportReport
             renderingStatusPresent = $false
             isStructuredComplete = $false
             missingFields = @("GeneratedUtc", "EvidenceKind", "EvidenceOnly", "ChartControl", "EnvironmentRuntime", "AssemblyIdentity", "BackendDisplayEnvironment", "SeriesCount", "ActiveSeries", "ChartKind", "ColorMap", "PrecisionProfile", "OutputEvidenceKind", "OutputCapabilityDiagnostics", "DatasetEvidenceKind", "DatasetSeriesCount", "DatasetActiveSeriesIndex", "DatasetActiveSeriesMetadata", "RenderingStatus")
+            snapshotStatus = ""
+            snapshotPath = ""
+            snapshotWidth = ""
+            snapshotHeight = ""
+            snapshotFormat = ""
+            snapshotBackground = ""
+            snapshotOutputEvidenceKind = ""
+            snapshotDatasetEvidenceKind = ""
+            snapshotActiveSeriesIdentity = ""
+            snapshotCreatedUtc = ""
         }
     }
 
@@ -373,6 +393,16 @@ function Get-SurfaceChartsSupportReport
     $datasetActiveSeriesIndex = Get-SurfaceChartsSupportValue -Prefix "DatasetActiveSeriesIndex:"
     $datasetActiveSeriesMetadata = Get-SurfaceChartsSupportValue -Prefix "DatasetActiveSeriesMetadata:"
     $renderingStatusPresent = ($lines | Where-Object { $_.StartsWith("RenderingStatus", [System.StringComparison]::Ordinal) }).Count -gt 0
+    $snapshotStatus = Get-SurfaceChartsSupportValue -Prefix "SnapshotStatus:"
+    $snapshotPath = Get-SurfaceChartsSupportValue -Prefix "SnapshotPath:"
+    $snapshotWidth = Get-SurfaceChartsSupportValue -Prefix "SnapshotWidth:"
+    $snapshotHeight = Get-SurfaceChartsSupportValue -Prefix "SnapshotHeight:"
+    $snapshotFormat = Get-SurfaceChartsSupportValue -Prefix "SnapshotFormat:"
+    $snapshotBackground = Get-SurfaceChartsSupportValue -Prefix "SnapshotBackground:"
+    $snapshotOutputEvidenceKind = Get-SurfaceChartsSupportValue -Prefix "SnapshotOutputEvidenceKind:"
+    $snapshotDatasetEvidenceKind = Get-SurfaceChartsSupportValue -Prefix "SnapshotDatasetEvidenceKind:"
+    $snapshotActiveSeriesIdentity = Get-SurfaceChartsSupportValue -Prefix "SnapshotActiveSeriesIdentity:"
+    $snapshotCreatedUtc = Get-SurfaceChartsSupportValue -Prefix "SnapshotCreatedUtc:"
     $missingFields = @()
     if ([string]::IsNullOrWhiteSpace($generatedAtUtc)) { $missingFields += "GeneratedUtc" }
     if ([string]::IsNullOrWhiteSpace($evidenceKind)) { $missingFields += "EvidenceKind" }
@@ -419,6 +449,16 @@ function Get-SurfaceChartsSupportReport
         renderingStatusPresent = $renderingStatusPresent
         isStructuredComplete = $missingFields.Count -eq 0
         missingFields = @($missingFields)
+        snapshotStatus = $snapshotStatus
+        snapshotPath = $snapshotPath
+        snapshotWidth = $snapshotWidth
+        snapshotHeight = $snapshotHeight
+        snapshotFormat = $snapshotFormat
+        snapshotBackground = $snapshotBackground
+        snapshotOutputEvidenceKind = $snapshotOutputEvidenceKind
+        snapshotDatasetEvidenceKind = $snapshotDatasetEvidenceKind
+        snapshotActiveSeriesIdentity = $snapshotActiveSeriesIdentity
+        snapshotCreatedUtc = $snapshotCreatedUtc
     }
 }
 
@@ -656,6 +696,7 @@ $evidencePacket = [ordered]@{
         (New-EvidenceArtifact -Id "consumer-smoke-result" -Category "consumer-smoke" -Path "artifacts/consumer-smoke/consumer-smoke-result.json" -ProducedBy "scripts/Invoke-ConsumerSmoke.ps1"),
         (New-EvidenceArtifact -Id "consumer-smoke-diagnostics" -Category "consumer-smoke" -Path "artifacts/consumer-smoke/diagnostics-snapshot.txt" -ProducedBy "scripts/Invoke-ConsumerSmoke.ps1"),
         (New-EvidenceArtifact -Id "consumer-smoke-surfacecharts-support" -Category "consumer-smoke" -Path "artifacts/consumer-smoke/surfacecharts-support-summary.txt" -ProducedBy "scripts/Invoke-ConsumerSmoke.ps1"),
+        (New-EvidenceArtifact -Id "consumer-smoke-snapshot" -Category "consumer-smoke" -Path "artifacts/consumer-smoke/chart-snapshot.png" -ProducedBy "Videra.SurfaceCharts.ConsumerSmoke"),
         (New-EvidenceArtifact -Id "native-validation-root" -Category "native-validation" -Path "artifacts/native-validation" -ProducedBy "scripts/run-native-validation.ps1" -Kind "directory"),
         (New-EvidenceArtifact -Id "public-release-preflight-summary-json" -Category "public-release-preflight" -Path "artifacts/public-release-preflight/public-release-preflight-summary.json" -ProducedBy "scripts/Invoke-PublicReleasePreflight.ps1"),
         (New-EvidenceArtifact -Id "public-release-preflight-summary-text" -Category "public-release-preflight" -Path "artifacts/public-release-preflight/public-release-preflight-summary.txt" -ProducedBy "scripts/Invoke-PublicReleasePreflight.ps1"),
@@ -805,6 +846,17 @@ if (-not [string]::IsNullOrWhiteSpace($surfaceChartsSupportReport.assemblyIdenti
 if (-not [string]::IsNullOrWhiteSpace($surfaceChartsSupportReport.backendDisplayEnvironment))
 {
     $summaryLines.Add(("- backend/display environment: {0}" -f $surfaceChartsSupportReport.backendDisplayEnvironment)) | Out-Null
+}
+$summaryLines.Add("") | Out-Null
+$summaryLines.Add("Chart snapshot evidence:") | Out-Null
+$summaryLines.Add(("- status: {0}" -f $surfaceChartsSupportReport.snapshotStatus)) | Out-Null
+if (-not [string]::IsNullOrWhiteSpace($surfaceChartsSupportReport.snapshotPath))
+{
+    $summaryLines.Add(("- path: {0}" -f $surfaceChartsSupportReport.snapshotPath)) | Out-Null
+}
+if (-not [string]::IsNullOrWhiteSpace($surfaceChartsSupportReport.snapshotWidth) -and -not [string]::IsNullOrWhiteSpace($surfaceChartsSupportReport.snapshotHeight))
+{
+    $summaryLines.Add(("- dimensions: {0}x{1}" -f $surfaceChartsSupportReport.snapshotWidth, $surfaceChartsSupportReport.snapshotHeight)) | Out-Null
 }
 $summaryLines.Add("") | Out-Null
 $summaryLines.Add("Reports:") | Out-Null
