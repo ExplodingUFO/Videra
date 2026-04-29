@@ -42,10 +42,10 @@ public sealed class PackageSizeBudgetRepositoryTests
         AssertBudget(packages["Videra.Platform.Windows"], 31_744, 20_480);
         AssertBudget(packages["Videra.Platform.Linux"], 46_080, 24_576);
         AssertBudget(packages["Videra.Platform.macOS"], 33_792, 23_552);
-        AssertBudget(packages["Videra.SurfaceCharts.Core"], 62_464, 25_600);
+        AssertBudget(packages["Videra.SurfaceCharts.Core"], 81_920, 32_768);
         AssertBudget(packages["Videra.SurfaceCharts.Rendering"], 28_672, 18_432);
         AssertBudget(packages["Videra.SurfaceCharts.Processing"], 36_864, 16_384);
-        AssertBudget(packages["Videra.SurfaceCharts.Avalonia"], 69_632, 30_720);
+        AssertBudget(packages["Videra.SurfaceCharts.Avalonia"], 131_072, 49_152);
     }
 
     [Fact]

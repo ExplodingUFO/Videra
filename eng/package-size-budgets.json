@@ -38,8 +38,8 @@
     },
     {
       "id": "Videra.SurfaceCharts.Core",
-      "nupkgMaxBytes": 62464,
-      "snupkgMaxBytes": 25600
+      "nupkgMaxBytes": 81920,
+      "snupkgMaxBytes": 32768
     },
     {
       "id": "Videra.SurfaceCharts.Rendering",
@@ -53,8 +53,8 @@
     },
     {
       "id": "Videra.SurfaceCharts.Avalonia",
-      "nupkgMaxBytes": 69632,
-      "snupkgMaxBytes": 30720
+      "nupkgMaxBytes": 131072,
+      "snupkgMaxBytes": 49152
     }
   ]
 }

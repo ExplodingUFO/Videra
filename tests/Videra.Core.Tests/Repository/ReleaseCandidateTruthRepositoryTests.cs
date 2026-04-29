@@ -51,8 +51,8 @@ public sealed class ReleaseCandidateTruthRepositoryTests
 
         workflow.Should().Contain("permissions:");
         workflow.Should().Contain("contents: read");
-        workflow.Should().Contain("scripts/Invoke-ReleaseDryRun.ps1");
-        workflow.Should().Contain("release-dry-run-evidence");
+        workflow.Should().Contain("scripts/Invoke-ReleaseReadinessValidation.ps1");
+        workflow.Should().Contain("release-readiness-validation-evidence");
         workflow.Should().NotContain("dotnet nuget push");
         workflow.Should().NotContain("NUGET_API_KEY");
         workflow.Should().NotContain("softprops/action-gh-release");

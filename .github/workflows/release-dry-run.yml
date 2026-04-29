@@ -39,17 +39,17 @@ jobs:
 
           "version=$version" >> $env:GITHUB_OUTPUT
 
-      - name: Run release dry run
+      - name: Run release readiness validation
         shell: pwsh
         run: >
-          pwsh -File ./scripts/Invoke-ReleaseDryRun.ps1
+          pwsh -File ./scripts/Invoke-ReleaseReadinessValidation.ps1
           -ExpectedVersion ${{ steps.dry-run-version.outputs.version }}
           -Configuration Release
-          -OutputRoot ./artifacts/release-dry-run
+          -OutputRoot ./artifacts/release-readiness-validation
 
-      - name: Upload release dry-run evidence
+      - name: Upload release readiness validation evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: release-dry-run-evidence
-          path: ./artifacts/release-dry-run
+          name: release-readiness-validation-evidence
+          path: ./artifacts/release-readiness-validation

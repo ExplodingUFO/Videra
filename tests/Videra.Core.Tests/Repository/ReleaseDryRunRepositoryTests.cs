@@ -66,6 +66,34 @@ public sealed class ReleaseDryRunRepositoryTests
     }
 
     [Fact]
+    public void ReleaseReadinessValidationScript_ShouldComposeV257LocalGateAndStayNonPublishing()
+    {
+        var scriptPath = Path.Combine(GetRepositoryRoot(), "scripts", "Invoke-ReleaseReadinessValidation.ps1");
+
+        File.Exists(scriptPath).Should().BeTrue();
+
+        var script = File.ReadAllText(scriptPath);
+        script.Should().Contain("ExpectedVersion");
+        script.Should().Contain("Invoke-ReleaseDryRun.ps1");
+        script.Should().Contain("Invoke-ConsumerSmoke.ps1");
+        script.Should().Contain("-Scenario\", \"SurfaceCharts\"");
+        script.Should().Contain("SurfaceChartsConsumerSmokeConfigurationTests");
+        script.Should().Contain("SurfaceChartsDemoConfigurationTests");
+        script.Should().Contain("SurfaceChartsDemoViewportBehaviorTests");
+        script.Should().Contain("ReleaseDryRunRepositoryTests");
+        script.Should().Contain("Test-SnapshotExportScope.ps1");
+        script.Should().Contain("LOCAL ENVIRONMENT WARNINGS");
+        script.Should().Contain("SKIPPED PUBLIC PUBLISH/TAG STEPS");
+        script.Should().Contain("release-readiness-validation-summary.json");
+        script.Should().Contain("release-readiness-validation-summary.txt");
+        script.Should().Contain("ConsumerSmokeBuildOnly");
+        script.Should().Contain("dotnet nuget push");
+        script.Should().Contain("does not create or push git tags");
+        script.Should().NotContain("NUGET_API_KEY");
+        script.Should().NotContain("GITHUB_TOKEN");
+    }
+
+    [Fact]
     public void ReleaseCandidateEvidenceContract_ShouldNameRequiredReviewSignals()
     {
         var repositoryRoot = GetRepositoryRoot();
@@ -279,12 +307,12 @@ public sealed class ReleaseDryRunRepositoryTests
         workflow.Should().Contain("pull_request:");
         workflow.Should().Contain("permissions:");
         workflow.Should().Contain("contents: read");
-        workflow.Should().Contain("Invoke-ReleaseDryRun.ps1");
+        workflow.Should().Contain("Invoke-ReleaseReadinessValidation.ps1");
         workflow.Should().Contain($"default: {repositoryVersion}");
         workflow.Should().Contain($"$version = \"{repositoryVersion}\"");
         workflow.Should().NotContain("0.0.0-ci-dryrun");
         workflow.Should().Contain("actions/upload-artifact@v4");
-        workflow.Should().Contain("release-dry-run-evidence");
+        workflow.Should().Contain("release-readiness-validation-evidence");
         workflow.Should().NotContain("packages: write");
         workflow.Should().NotContain("dotnet nuget push");
         workflow.Should().NotContain("NUGET_API_KEY");
@@ -310,7 +338,7 @@ public sealed class ReleaseDryRunRepositoryTests
         previewWorkflow.Should().Contain("scripts/Validate-Packages.ps1");
         previewWorkflow.Should().Contain("GITHUB_TOKEN");
 
-        dryRunWorkflow.Should().Contain("Invoke-ReleaseDryRun.ps1");
+        dryRunWorkflow.Should().Contain("Invoke-ReleaseReadinessValidation.ps1");
         dryRunWorkflow.Should().NotContain("dotnet nuget push");
     }
 
