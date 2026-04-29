@@ -258,6 +258,7 @@ public sealed class Plot3DSeriesDatasetEvidence
             Plot3DSeriesKind.Surface or Plot3DSeriesKind.Waterfall => CreateSurfaceEvidence(index, isActive, series),
             Plot3DSeriesKind.Scatter => CreateScatterEvidence(index, isActive, series),
             Plot3DSeriesKind.Bar => CreateBarEvidence(index, isActive, series),
+            Plot3DSeriesKind.Contour => CreateContourEvidence(index, isActive, series),
             _ => throw new ArgumentOutOfRangeException(nameof(series), $"Unsupported Plot series kind: {series.Kind}"),
         };
     }
@@ -355,6 +356,38 @@ public sealed class Plot3DSeriesDatasetEvidence
             depthAxis: null,
             valueRange: null,
             samplingProfile: $"BarChart:Categories={data.CategoryCount};Series={data.SeriesCount};Layout={data.Layout}",
+            []);
+    }
+
+    private static Plot3DSeriesDatasetEvidence CreateContourEvidence(int index, bool isActive, Plot3DSeries series)
+    {
+        var data = series.ContourData
+            ?? throw new InvalidOperationException("Contour series require contour data.");
+
+        return new Plot3DSeriesDatasetEvidence(
+            index,
+            isActive,
+            CreateIdentity(index, series),
+            series.Name,
+            series.Kind,
+            data.Field.Width,
+            data.Field.Height,
+            data.Field.Width * data.Field.Height,
+            seriesCount: 1,
+            pointCount: 0,
+            columnarSeriesCount: 0,
+            columnarPointCount: 0,
+            pickablePointCount: 0,
+            streamingAppendBatchCount: 0,
+            streamingReplaceBatchCount: 0,
+            streamingDroppedPointCount: 0,
+            lastStreamingDroppedPointCount: 0,
+            configuredFifoCapacity: 0,
+            horizontalAxis: SurfaceAxisDatasetEvidence.Create(new SurfaceAxisDescriptor("X", null, 0d, data.Field.Width - 1)),
+            verticalAxis: null,
+            depthAxis: SurfaceAxisDatasetEvidence.Create(new SurfaceAxisDescriptor("Y", null, 0d, data.Field.Height - 1)),
+            valueRange: SurfaceValueRangeDatasetEvidence.Create(data.Field.Range),
+            samplingProfile: $"ContourPlot:Width={data.Field.Width};Height={data.Field.Height};Levels={data.LevelCount}",
             []);
     }
 
