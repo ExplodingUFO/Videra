@@ -3,6 +3,7 @@ using Avalonia.Input;
 using FluentAssertions;
 using FluentAssertions.Extensions;
 using Videra.SurfaceCharts.Avalonia.Controls;
+using Videra.SurfaceCharts.Avalonia.Controls.Interaction;
 using Videra.SurfaceCharts.Core;
 using Xunit;
 using Pointer = Avalonia.Input.Pointer;
@@ -295,6 +296,76 @@ public sealed class SurfaceChartInteractionTests
                     && observedQualities[^1] == SurfaceChartInteractionQuality.Refine,
                 "interaction diagnostics should report both the active and settled states.",
                 3.Seconds()).ConfigureAwait(true);
+        });
+    }
+
+    [Fact]
+    public Task DisabledOrbitProfile_LeftDrag_DoesNotChangeViewState()
+    {
+        return AvaloniaHeadlessTestSession.RunAsync(async () =>
+        {
+            var source = new ScriptedSurfaceTileSource(VideraChartViewLifecycleTests.CreateMetadata(), defaultTileValue: 11f);
+            var view = new RoutedInteractionTestView
+            {
+                InteractionProfile = new SurfaceChartInteractionProfile
+                {
+                    IsOrbitEnabled = false,
+                },
+            };
+            var pointer = new Pointer(1, PointerType.Mouse, isPrimary: true);
+
+            view.Measure(new Size(256, 192));
+            view.Arrange(new Rect(0, 0, 256, 192));
+            SurfaceChartTestHelpers.LoadSurface(view, source);
+
+            await SurfaceChartTestHelpers.WaitForLoadedTileValuesAsync(view, [11f]);
+
+            view.ZoomTo(new SurfaceDataWindow(128d, 128d, 256d, 256d));
+            view.ResetCamera();
+
+            var initialState = view.ViewState;
+            var start = new Point(128d, 96d);
+            var end = new Point(168d, 120d);
+
+            view.RoutePointerPressed(pointer, start, RawInputModifiers.LeftMouseButton, PointerUpdateKind.LeftButtonPressed);
+            view.RoutePointerMoved(pointer, end, RawInputModifiers.LeftMouseButton);
+            view.RoutePointerReleased(pointer, end, RawInputModifiers.None, PointerUpdateKind.LeftButtonReleased, MouseButton.Left);
+
+            view.ViewState.Should().Be(initialState);
+        });
+    }
+
+    [Fact]
+    public Task DisabledDollyProfile_MouseWheel_DoesNotChangeViewState()
+    {
+        return AvaloniaHeadlessTestSession.RunAsync(async () =>
+        {
+            var source = new ScriptedSurfaceTileSource(VideraChartViewLifecycleTests.CreateMetadata(), defaultTileValue: 11f);
+            var view = new RoutedInteractionTestView
+            {
+                InteractionProfile = new SurfaceChartInteractionProfile
+                {
+                    IsDollyEnabled = false,
+                },
+            };
+            var pointer = new Pointer(1, PointerType.Mouse, isPrimary: true);
+
+            view.Measure(new Size(256, 192));
+            view.Arrange(new Rect(0, 0, 256, 192));
+            SurfaceChartTestHelpers.LoadSurface(view, source);
+
+            await SurfaceChartTestHelpers.WaitForLoadedTileValuesAsync(view, [11f]);
+
+            view.ZoomTo(new SurfaceDataWindow(128d, 128d, 256d, 256d));
+            view.ResetCamera();
+
+            var initialState = view.ViewState;
+            var wheelPoint = new Point(192d, 48d);
+
+            view.RoutePointerMoved(pointer, wheelPoint, RawInputModifiers.None);
+            view.RoutePointerWheel(pointer, wheelPoint, RawInputModifiers.None, new Vector(0d, 1d));
+
+            view.ViewState.Should().Be(initialState);
         });
     }
 

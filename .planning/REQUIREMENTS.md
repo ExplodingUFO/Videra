@@ -27,10 +27,10 @@ Reference basis:
 
 ### Interaction Configuration and Commands
 
-- [ ] **INT-01**: Users can configure the built-in chart interaction profile from a small public API: pan, zoom, reset/autoscale, keyboard shortcuts, and focus behavior.
-- [ ] **INT-02**: Users can disable specific built-in interactions explicitly, with no hidden fallback/downshift behavior.
-- [ ] **INT-03**: Users can attach bounded custom commands for common chart actions without introducing a generic plugin/workbench command system.
-- [ ] **INT-04**: Context-menu or toolbar command recipes reuse the same command surface and remain optional.
+- [x] **INT-01**: Users can configure the built-in chart interaction profile from a small public API: pan, zoom, reset/autoscale, keyboard shortcuts, and focus behavior.
+- [x] **INT-02**: Users can disable specific built-in interactions explicitly, with no hidden fallback/downshift behavior.
+- [x] **INT-03**: Users can attach bounded custom commands for common chart actions without introducing a generic plugin/workbench command system.
+- [x] **INT-04**: Context-menu or toolbar command recipes reuse the same command surface and remain optional.
 
 ### Selection, Probe, and Draggable Overlay Recipes
 
@@ -93,10 +93,10 @@ Reference basis:
 | CODE-02 | Phase 384 | Complete |
 | CODE-03 | Phase 384 | Complete |
 | CODE-04 | Phase 384 | Complete |
-| INT-01 | Phase 385 | Pending |
-| INT-02 | Phase 385 | Pending |
-| INT-03 | Phase 385 | Pending |
-| INT-04 | Phase 385 | Pending |
+| INT-01 | Phase 385 | Complete |
+| INT-02 | Phase 385 | Complete |
+| INT-03 | Phase 385 | Complete |
+| INT-04 | Phase 385 | Complete |
 | PICK-01 | Phase 386 | Pending |
 | PICK-02 | Phase 386 | Pending |
 | PICK-03 | Phase 386 | Pending |

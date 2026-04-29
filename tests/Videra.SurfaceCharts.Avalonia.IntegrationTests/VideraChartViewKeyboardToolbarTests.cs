@@ -1,4 +1,3 @@
-using System.Reflection;
 using System.Numerics;
 using Avalonia;
 using Avalonia.Input;
@@ -8,6 +7,7 @@ using Videra.SurfaceCharts.Avalonia.Controls.Interaction;
 using Videra.SurfaceCharts.Avalonia.Controls.Overlay;
 using Videra.SurfaceCharts.Core;
 using Xunit;
+using Pointer = Avalonia.Input.Pointer;
 
 namespace Videra.SurfaceCharts.Avalonia.IntegrationTests;
 
@@ -99,25 +99,19 @@ public sealed class VideraChartViewKeyboardToolbarTests
         {
             var metadata = VideraChartViewLifecycleTests.CreateMetadata();
             var source = new RecordingSurfaceTileSource(metadata);
-            var view = new VideraChartView();
+            var view = new RoutedKeyboardTestView();
 
             view.Measure(new Size(256, 256));
             view.Arrange(new Rect(0, 0, 256, 256));
             SurfaceChartTestHelpers.LoadSurface(view, source);
+            view.ZoomTo(new SurfaceDataWindow(128d, 128d, 256d, 256d));
 
             var initialWindow = view.ViewState.DataWindow;
+            var args = view.RouteKeyDown(Key.Add);
 
-            // Invoke keyboard zoom via reflection (simulating + key)
-            var onKeyDown = typeof(VideraChartView).GetMethod("OnKeyDown", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-            onKeyDown.Should().NotBeNull();
-
-            // After zoom in, window should be smaller (zoomed in)
-            var initialWidth = initialWindow.Width;
-            var initialHeight = initialWindow.Height;
-
-            // Verify the runtime can interact
-            var runtime = SurfaceChartTestHelpers.GetRuntime(view);
-            runtime.CanInteract.Should().BeTrue();
+            args.Handled.Should().BeTrue();
+            view.ViewState.DataWindow.Width.Should().BeLessThan(initialWindow.Width);
+            view.ViewState.DataWindow.Height.Should().BeLessThan(initialWindow.Height);
         });
     }
 
@@ -144,7 +138,8 @@ public sealed class VideraChartViewKeyboardToolbarTests
             var handled = controller.HandlePointerPressed(
                 PointerUpdateKind.LeftButtonPressed,
                 new Point(100, 100),
-                KeyModifiers.None);
+                KeyModifiers.None,
+                SurfaceChartInteractionProfile.Default);
 
             handled.Should().BeTrue();
             controller.HasActiveGesture.Should().BeTrue();
@@ -163,7 +158,8 @@ public sealed class VideraChartViewKeyboardToolbarTests
             var handled = controller.HandlePointerPressed(
                 PointerUpdateKind.RightButtonPressed,
                 new Point(100, 100),
-                KeyModifiers.None);
+                KeyModifiers.None,
+                SurfaceChartInteractionProfile.Default);
 
             handled.Should().BeTrue();
             controller.HasActiveGesture.Should().BeTrue();
@@ -181,7 +177,8 @@ public sealed class VideraChartViewKeyboardToolbarTests
             controller.HandlePointerPressed(
                 PointerUpdateKind.LeftButtonPressed,
                 new Point(100, 100),
-                KeyModifiers.None);
+                KeyModifiers.None,
+                SurfaceChartInteractionProfile.Default);
 
             controller.ActiveGestureMode.Should().Be(SurfaceChartGestureMode.Orbit);
 
@@ -189,6 +186,149 @@ public sealed class VideraChartViewKeyboardToolbarTests
 
             controller.ActiveGestureMode.Should().Be(SurfaceChartGestureMode.None);
             controller.HasActiveGesture.Should().BeFalse();
+        });
+    }
+
+    [Fact]
+    public void InteractionController_DisabledProfile_RejectsBuiltInGestures()
+    {
+        AvaloniaHeadlessTestSession.Run(() =>
+        {
+            var controller = new SurfaceChartInteractionController();
+
+            controller.HandlePointerPressed(
+                    PointerUpdateKind.LeftButtonPressed,
+                    new Point(100, 100),
+                    KeyModifiers.None,
+                    SurfaceChartInteractionProfile.Disabled)
+                .Should()
+                .BeFalse();
+
+            controller.HandlePointerPressed(
+                    PointerUpdateKind.RightButtonPressed,
+                    new Point(100, 100),
+                    KeyModifiers.None,
+                    SurfaceChartInteractionProfile.Disabled)
+                .Should()
+                .BeFalse();
+
+            controller.HasActiveGesture.Should().BeFalse();
+        });
+    }
+
+    [Fact]
+    public void CommandSurface_DisabledZoom_ReturnsFalseAndKeepsViewState()
+    {
+        AvaloniaHeadlessTestSession.Run(() =>
+        {
+            var metadata = VideraChartViewLifecycleTests.CreateMetadata();
+            var source = new RecordingSurfaceTileSource(metadata);
+            var view = new VideraChartView
+            {
+                InteractionProfile = new SurfaceChartInteractionProfile
+                {
+                    IsDollyEnabled = false,
+                },
+            };
+
+            view.Measure(new Size(256, 256));
+            view.Arrange(new Rect(0, 0, 256, 256));
+            SurfaceChartTestHelpers.LoadSurface(view, source);
+            view.ZoomTo(new SurfaceDataWindow(128d, 128d, 256d, 256d));
+
+            var initialState = view.ViewState;
+
+            view.TryExecuteChartCommand(SurfaceChartCommand.ZoomIn).Should().BeFalse();
+            view.ViewState.Should().Be(initialState);
+        });
+    }
+
+    [Fact]
+    public void CommandSurface_DefaultZoom_ChangesDataWindow()
+    {
+        AvaloniaHeadlessTestSession.Run(() =>
+        {
+            var metadata = VideraChartViewLifecycleTests.CreateMetadata();
+            var source = new RecordingSurfaceTileSource(metadata);
+            var view = new VideraChartView();
+
+            view.Measure(new Size(256, 256));
+            view.Arrange(new Rect(0, 0, 256, 256));
+            SurfaceChartTestHelpers.LoadSurface(view, source);
+            view.ZoomTo(new SurfaceDataWindow(128d, 128d, 256d, 256d));
+
+            var initialWindow = view.ViewState.DataWindow;
+
+            view.TryExecuteChartCommand(SurfaceChartCommand.ZoomIn).Should().BeTrue();
+            view.ViewState.DataWindow.Width.Should().BeLessThan(initialWindow.Width);
+            view.ViewState.DataWindow.Height.Should().BeLessThan(initialWindow.Height);
+        });
+    }
+
+    [Fact]
+    public void KeyboardShortcuts_DisabledProfile_DoesNotHandleOrChangeViewState()
+    {
+        AvaloniaHeadlessTestSession.Run(() =>
+        {
+            var metadata = VideraChartViewLifecycleTests.CreateMetadata();
+            var source = new RecordingSurfaceTileSource(metadata);
+            var view = new RoutedKeyboardTestView
+            {
+                InteractionProfile = new SurfaceChartInteractionProfile
+                {
+                    IsKeyboardShortcutsEnabled = false,
+                },
+            };
+
+            view.Measure(new Size(256, 256));
+            view.Arrange(new Rect(0, 0, 256, 256));
+            SurfaceChartTestHelpers.LoadSurface(view, source);
+            view.ZoomTo(new SurfaceDataWindow(128d, 128d, 256d, 256d));
+
+            var initialState = view.ViewState;
+            var args = view.RouteKeyDown(Key.Add);
+
+            args.Handled.Should().BeFalse();
+            view.ViewState.Should().Be(initialState);
+        });
+    }
+
+    [Fact]
+    public void ToolbarCommands_DisabledProfile_ConsumesToolbarHitWithoutChangingViewState()
+    {
+        AvaloniaHeadlessTestSession.Run(() =>
+        {
+            var metadata = VideraChartViewLifecycleTests.CreateMetadata();
+            var source = new RecordingSurfaceTileSource(metadata);
+            var view = new RoutedKeyboardTestView
+            {
+                InteractionProfile = new SurfaceChartInteractionProfile
+                {
+                    IsToolbarEnabled = false,
+                },
+            };
+            var pointer = new Pointer(1, PointerType.Mouse, isPrimary: true);
+
+            view.Measure(new Size(400, 300));
+            view.Arrange(new Rect(0, 0, 400, 300));
+            SurfaceChartTestHelpers.LoadSurface(view, source);
+            view.ZoomTo(new SurfaceDataWindow(128d, 128d, 256d, 256d));
+
+            var coordinator = SurfaceChartTestHelpers.GetOverlayCoordinator(view);
+            var zoomInButton = coordinator.ToolbarState.Buttons.First(b => b.Action == SurfaceChartToolbarAction.ZoomIn);
+            var clickPoint = new Point(
+                zoomInButton.ScreenBounds.X + (zoomInButton.ScreenBounds.Width * 0.5d),
+                zoomInButton.ScreenBounds.Y + (zoomInButton.ScreenBounds.Height * 0.5d));
+            var initialState = view.ViewState;
+
+            var handled = view.RoutePointerPressed(
+                pointer,
+                clickPoint,
+                RawInputModifiers.LeftMouseButton,
+                PointerUpdateKind.LeftButtonPressed);
+
+            handled.Should().BeTrue();
+            view.ViewState.Should().Be(initialState);
         });
     }
 
@@ -228,5 +368,33 @@ public sealed class VideraChartViewKeyboardToolbarTests
                     "toolbar buttons should be in the bottom half");
             }
         });
+    }
+
+    private sealed class RoutedKeyboardTestView : VideraChartView
+    {
+        public KeyEventArgs RouteKeyDown(Key key)
+        {
+            var args = new KeyEventArgs
+            {
+                Key = key,
+                RoutedEvent = KeyDownEvent,
+                Source = this,
+            };
+            base.OnKeyDown(args);
+            return args;
+        }
+
+        public bool RoutePointerPressed(
+            Pointer pointer,
+            Point position,
+            RawInputModifiers rawModifiers,
+            PointerUpdateKind updateKind,
+            KeyModifiers keyModifiers = KeyModifiers.None)
+        {
+            var properties = new PointerPointProperties(rawModifiers, updateKind);
+            var args = new PointerPressedEventArgs(this, pointer, this, position, timestamp: 0, properties, keyModifiers, clickCount: 1);
+            base.OnPointerPressed(args);
+            return args.Handled;
+        }
     }
 }

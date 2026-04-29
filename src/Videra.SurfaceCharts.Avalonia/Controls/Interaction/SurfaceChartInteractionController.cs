@@ -28,12 +28,18 @@ internal sealed class SurfaceChartInteractionController
 
     public Rect? ActiveSelectionRect { get; private set; }
 
-    public bool HandlePointerPressed(PointerUpdateKind updateKind, Point position, KeyModifiers keyModifiers)
+    public bool HandlePointerPressed(
+        PointerUpdateKind updateKind,
+        Point position,
+        KeyModifiers keyModifiers,
+        SurfaceChartInteractionProfile interactionProfile)
     {
+        ArgumentNullException.ThrowIfNull(interactionProfile);
+
         var gestureMode = updateKind switch
         {
-            PointerUpdateKind.LeftButtonPressed => ResolveLeftButtonGestureMode(keyModifiers),
-            PointerUpdateKind.RightButtonPressed => SurfaceChartGestureMode.Pan,
+            PointerUpdateKind.LeftButtonPressed => ResolveLeftButtonGestureMode(keyModifiers, interactionProfile),
+            PointerUpdateKind.RightButtonPressed when interactionProfile.IsPanEnabled => SurfaceChartGestureMode.Pan,
             _ => SurfaceChartGestureMode.None,
         };
 
@@ -119,8 +125,16 @@ internal sealed class SurfaceChartInteractionController
     public static bool HandlePointerWheelChanged(
         Vector delta,
         SurfaceChartRuntime runtime,
-        SurfaceProbeInfo? hoveredProbe)
+        SurfaceProbeInfo? hoveredProbe,
+        SurfaceChartInteractionProfile interactionProfile)
     {
+        ArgumentNullException.ThrowIfNull(interactionProfile);
+
+        if (!interactionProfile.IsDollyEnabled)
+        {
+            return false;
+        }
+
         if (Math.Abs(delta.Y) <= double.Epsilon)
         {
             return false;
@@ -139,19 +153,27 @@ internal sealed class SurfaceChartInteractionController
         ActiveSelectionRect = null;
     }
 
-    private static SurfaceChartGestureMode ResolveLeftButtonGestureMode(KeyModifiers keyModifiers)
+    private static SurfaceChartGestureMode ResolveLeftButtonGestureMode(
+        KeyModifiers keyModifiers,
+        SurfaceChartInteractionProfile interactionProfile)
     {
         if (keyModifiers.HasFlag(KeyModifiers.Shift))
         {
-            return SurfaceChartGestureMode.PinToggle;
+            return interactionProfile.IsProbePinningEnabled
+                ? SurfaceChartGestureMode.PinToggle
+                : SurfaceChartGestureMode.None;
         }
 
         if (keyModifiers.HasFlag(KeyModifiers.Control))
         {
-            return SurfaceChartGestureMode.FocusSelection;
+            return interactionProfile.IsFocusSelectionEnabled
+                ? SurfaceChartGestureMode.FocusSelection
+                : SurfaceChartGestureMode.None;
         }
 
-        return SurfaceChartGestureMode.Orbit;
+        return interactionProfile.IsOrbitEnabled
+            ? SurfaceChartGestureMode.Orbit
+            : SurfaceChartGestureMode.None;
     }
 
     private static bool ApplyOrbit(SurfaceChartRuntime runtime, Point previousPosition, Point currentPosition)

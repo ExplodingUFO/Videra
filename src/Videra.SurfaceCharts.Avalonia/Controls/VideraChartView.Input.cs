@@ -14,27 +14,44 @@ public partial class VideraChartView
     private static readonly TimeSpan KeyboardCursorResetDelay = TimeSpan.FromMilliseconds(300);
     private CancellationTokenSource? _keyboardCursorCts;
 
+    /// <summary>
+    /// Identifies the <see cref="InteractionProfile"/> property.
+    /// </summary>
+    public static readonly StyledProperty<SurfaceChartInteractionProfile> InteractionProfileProperty =
+        AvaloniaProperty.Register<VideraChartView, SurfaceChartInteractionProfile>(
+            nameof(InteractionProfile),
+            defaultValue: SurfaceChartInteractionProfile.Default);
+
+    /// <summary>
+    /// Gets or sets the chart-local built-in interaction and command profile.
+    /// </summary>
+    public SurfaceChartInteractionProfile InteractionProfile
+    {
+        get => GetValue(InteractionProfileProperty) ?? SurfaceChartInteractionProfile.Default;
+        set => SetValue(InteractionProfileProperty, value ?? throw new ArgumentNullException(nameof(value)));
+    }
+
     /// <inheritdoc />
     protected override void OnKeyDown(KeyEventArgs e)
     {
         ArgumentNullException.ThrowIfNull(e);
         base.OnKeyDown(e);
 
-        if (!_runtime.CanInteract)
+        if (!_runtime.CanInteract || !InteractionProfile.IsKeyboardShortcutsEnabled)
         {
             return;
         }
 
         var handled = e.Key switch
         {
-            Key.OemPlus or Key.Add => ApplyKeyboardZoom(1d),
-            Key.OemMinus or Key.Subtract => ApplyKeyboardZoom(-1d),
-            Key.Left => ApplyKeyboardPan(-1d, 0d),
-            Key.Right => ApplyKeyboardPan(1d, 0d),
-            Key.Up => ApplyKeyboardPan(0d, -1d),
-            Key.Down => ApplyKeyboardPan(0d, 1d),
-            Key.Home => ApplyKeyboardResetCamera(),
-            Key.F => ApplyKeyboardFitToData(),
+            Key.OemPlus or Key.Add => ExecuteChartCommandCore(SurfaceChartCommand.ZoomIn),
+            Key.OemMinus or Key.Subtract => ExecuteChartCommandCore(SurfaceChartCommand.ZoomOut),
+            Key.Left => ExecuteChartCommandCore(SurfaceChartCommand.PanLeft),
+            Key.Right => ExecuteChartCommandCore(SurfaceChartCommand.PanRight),
+            Key.Up => ExecuteChartCommandCore(SurfaceChartCommand.PanUp),
+            Key.Down => ExecuteChartCommandCore(SurfaceChartCommand.PanDown),
+            Key.Home => ExecuteChartCommandCore(SurfaceChartCommand.ResetCamera),
+            Key.F => ExecuteChartCommandCore(SurfaceChartCommand.FitToData),
             _ => false,
         };
 
@@ -72,8 +89,18 @@ public partial class VideraChartView
         UpdateProbeScreenPosition(pointerPosition);
         _overlayCoordinator.UpdatePointerPosition(pointerPosition);
 
-        // Check toolbar button hit first
-        if (HandleToolbarClick(pointerPosition))
+        if (InteractionProfile.FocusOnPointerPressed)
+        {
+            Focus();
+        }
+
+        if (TryHandleToolbarClick(pointerPosition, out var toolbarHit))
+        {
+            e.Handled = true;
+            return;
+        }
+
+        if (toolbarHit)
         {
             e.Handled = true;
             return;
@@ -82,7 +109,8 @@ public partial class VideraChartView
         if (_interactionController.HandlePointerPressed(
                 e.GetCurrentPoint(this).Properties.PointerUpdateKind,
                 pointerPosition,
-                e.KeyModifiers))
+                e.KeyModifiers,
+                InteractionProfile))
         {
             e.Pointer.Capture(this);
             UpdateCursorForGesture();
@@ -153,7 +181,11 @@ public partial class VideraChartView
         var pointerPosition = e.GetPosition(this);
         UpdateProbeScreenPosition(pointerPosition);
 
-        if (SurfaceChartInteractionController.HandlePointerWheelChanged(e.Delta, _runtime, GetHoveredProbe()))
+        if (SurfaceChartInteractionController.HandlePointerWheelChanged(
+                e.Delta,
+                _runtime,
+                GetHoveredProbe(),
+                InteractionProfile))
         {
             e.Handled = true;
         }
@@ -169,8 +201,46 @@ public partial class VideraChartView
         base.OnPointerCaptureLost(e);
     }
 
-    private bool ApplyKeyboardZoom(double direction)
+    /// <summary>
+    /// Executes one built-in chart-local command if it is enabled and currently available.
+    /// </summary>
+    /// <param name="command">The command to execute.</param>
+    /// <returns><c>true</c> when the command changed chart state; otherwise, <c>false</c>.</returns>
+    public bool TryExecuteChartCommand(SurfaceChartCommand command)
     {
+        var handled = ExecuteChartCommandCore(command);
+        if (handled)
+        {
+            SynchronizeViewStateProperties(_runtime.ViewState);
+            InvalidateOverlay();
+        }
+
+        return handled;
+    }
+
+    private bool ExecuteChartCommandCore(SurfaceChartCommand command)
+    {
+        return command switch
+        {
+            SurfaceChartCommand.ZoomIn => ApplyCommandZoom(1d),
+            SurfaceChartCommand.ZoomOut => ApplyCommandZoom(-1d),
+            SurfaceChartCommand.PanLeft => ApplyCommandPan(-1d, 0d),
+            SurfaceChartCommand.PanRight => ApplyCommandPan(1d, 0d),
+            SurfaceChartCommand.PanUp => ApplyCommandPan(0d, -1d),
+            SurfaceChartCommand.PanDown => ApplyCommandPan(0d, 1d),
+            SurfaceChartCommand.ResetCamera => ApplyCommandResetCamera(),
+            SurfaceChartCommand.FitToData => ApplyCommandFitToData(),
+            _ => false,
+        };
+    }
+
+    private bool ApplyCommandZoom(double direction)
+    {
+        if (!InteractionProfile.IsDollyEnabled)
+        {
+            return false;
+        }
+
         if (_runtime.Metadata is not SurfaceMetadata metadata ||
             _runtime.ViewSize.Width <= 0d ||
             _runtime.ViewSize.Height <= 0d)
@@ -212,8 +282,13 @@ public partial class VideraChartView
         return true;
     }
 
-    private bool ApplyKeyboardPan(double horizontalDirection, double verticalDirection)
+    private bool ApplyCommandPan(double horizontalDirection, double verticalDirection)
     {
+        if (!InteractionProfile.IsPanEnabled)
+        {
+            return false;
+        }
+
         if (_runtime.Metadata is not SurfaceMetadata metadata ||
             _runtime.ViewSize.Width <= 0d ||
             _runtime.ViewSize.Height <= 0d)
@@ -246,14 +321,24 @@ public partial class VideraChartView
         return true;
     }
 
-    private bool ApplyKeyboardResetCamera()
+    private bool ApplyCommandResetCamera()
     {
+        if (!InteractionProfile.IsResetCameraEnabled)
+        {
+            return false;
+        }
+
         _runtime.ResetCamera();
         return true;
     }
 
-    private bool ApplyKeyboardFitToData()
+    private bool ApplyCommandFitToData()
     {
+        if (!InteractionProfile.IsFitToDataEnabled)
+        {
+            return false;
+        }
+
         _runtime.FitToData();
         return true;
     }
@@ -321,7 +406,7 @@ public partial class VideraChartView
             currentCamera.FieldOfViewDegrees);
     }
 
-    private bool HandleToolbarClick(Point pointerPosition)
+    private bool TryHandleToolbarClick(Point pointerPosition, out bool toolbarHit)
     {
         var action = SurfaceChartToolbarOverlayPresenter.HitTest(
             _overlayCoordinator.ToolbarState,
@@ -329,18 +414,26 @@ public partial class VideraChartView
 
         if (action is null)
         {
+            toolbarHit = false;
             return false;
         }
 
-        var handled = action.Value switch
+        toolbarHit = true;
+        if (!InteractionProfile.IsToolbarEnabled)
         {
-            SurfaceChartToolbarAction.ZoomIn => ApplyKeyboardZoom(1d),
-            SurfaceChartToolbarAction.ZoomOut => ApplyKeyboardZoom(-1d),
-            SurfaceChartToolbarAction.ResetCamera => ApplyKeyboardResetCamera(),
-            SurfaceChartToolbarAction.FitToData => ApplyKeyboardFitToData(),
-            _ => false,
+            return false;
+        }
+
+        var command = action.Value switch
+        {
+            SurfaceChartToolbarAction.ZoomIn => SurfaceChartCommand.ZoomIn,
+            SurfaceChartToolbarAction.ZoomOut => SurfaceChartCommand.ZoomOut,
+            SurfaceChartToolbarAction.ResetCamera => SurfaceChartCommand.ResetCamera,
+            SurfaceChartToolbarAction.FitToData => SurfaceChartCommand.FitToData,
+            _ => (SurfaceChartCommand?)null,
         };
 
+        var handled = command is SurfaceChartCommand chartCommand && ExecuteChartCommandCore(chartCommand);
         if (handled)
         {
             SynchronizeViewStateProperties(_runtime.ViewState);

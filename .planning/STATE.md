@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v2.56
 milestone_name: "ScottPlot 5 Interaction and Cookbook Experience"
 status: active
-stopped_at: "Phase 384 completed; Phase 385 remains in parallel worktree execution"
-last_updated: "2026-04-30T01:24:00+08:00"
+stopped_at: "Phase 384 and Phase 385 completed; Phase 386 and Phase 387 ready for parallel worktree execution"
+last_updated: "2026-04-30T02:45:00+08:00"
 last_activity: 2026-04-30
 progress:
   total_phases: 7
@@ -21,15 +21,15 @@ progress:
 See: `.planning/PROJECT.md`
 
 **Core value:** 跨平台 3D 渲染引擎的可靠性
-**Current focus:** v2.56 ScottPlot 5 Interaction and Cookbook Experience — Phase 384 lifecycle polish complete
+**Current focus:** v2.56 ScottPlot 5 Interaction and Cookbook Experience — Phases 384 and 385 complete
 
 ## Current Position
 
 Milestone: `v2.56 ScottPlot 5 Interaction and Cookbook Experience`
-Phase: 384 complete; 385 remains separate parallel work
-Plan: Phase 384 complete
-Status: Plot lifecycle/code-experience polish is implemented and verified for `Videra-v256.2`. Next dependent Phase 388 should wait for Phase 386 and Phase 387 as planned.
-Last activity: 2026-04-30 — Completed Phase 384 Plot lifecycle and code experience polish
+Phase: 386 and 387 ready
+Plan: Phases 384 and 385 complete
+Status: Plot lifecycle/code-experience polish and interaction profile/command surface are implemented and verified. `bd ready --json` now exposes Phase 386 and Phase 387 for the next parallel execution wave.
+Last activity: 2026-04-30 — Integrated Phase 384 and Phase 385 parallel work
 
 Progress: [███░░░░░░░] 29%
 
@@ -66,8 +66,8 @@ This milestone improves the next layer of ScottPlot-inspired experience:
 ## Session Continuity
 
 Last session: `2026-04-30 +08:00`
-Stopped at: Phase 384 complete
-Next action: Continue the remaining v2.56 phases through their assigned Beads dependencies and worktrees.
+Stopped at: Phases 384 and 385 complete
+Next action: Execute `Videra-v256.4` and `Videra-v256.5` in isolated worktrees if integration verification passes.
 
 ## Accumulated Context
 
