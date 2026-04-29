@@ -14,8 +14,19 @@ Videra 是一个基于 `.NET 8` 的跨平台 3D 渲染引擎，提供 Windows (`
 
 - 最新完整归档 milestone：`v2.53 Chart Type Expansion and Axis Semantics`
 - 最近完成 milestone：`v2.53 Chart Type Expansion and Axis Semantics`
-- 当前 active milestone：none (ready for next milestone)
-- 当前 focus：v2.53 已完成。Bar/Contour 图表类型、Log/DateTime 轴、Legend 已 shipped。
+- 当前 active milestone：`v2.54 Chart Interactivity`
+- 当前 focus：为 SurfaceCharts 添加交互能力 — crosshair、tooltip、probe、zoom/pan。
+
+## Current Milestone: v2.54 Chart Interactivity
+
+**Goal:** Add interactive capabilities to SurfaceCharts — crosshair, tooltips, mouse-driven probe, zoom/pan controls.
+
+**Target features:**
+- Crosshair overlay following mouse with axis coordinate display
+- Enhanced tooltips with multi-series awareness
+- Series probe strategies for Scatter/Bar/Contour
+- Keyboard shortcuts and toolbar controls for zoom/pan
+- Cursor feedback during interactions
 
 ## Completed Milestones
 

@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.53
-milestone_name: "Chart Type Expansion and Axis Semantics"
+milestone: v2.54
+milestone_name: "Chart Interactivity"
 status: active
-stopped_at: "Phase 367 complete"
-last_updated: "2026-04-29T19:35:00+08:00"
+stopped_at: "Roadmap created"
+last_updated: "2026-04-29T20:00:00+08:00"
 last_activity: 2026-04-29
 progress:
   total_phases: 5
-  completed_phases: 1
-  total_plans: 5
-  completed_plans: 1
-  percent: 20
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -21,61 +21,55 @@ progress:
 See: `.planning/PROJECT.md`
 
 **Core value:** 跨平台 3D 渲染引擎的可靠性
-**Current focus:** v2.53 Chart Type Expansion and Axis Semantics
+**Current focus:** v2.54 Chart Interactivity
 
 ## Current Position
 
-Milestone: `v2.53 Chart Type Expansion and Axis Semantics`
-Phase: 368 of 370 (Bar Chart Series)
+Milestone: `v2.54 Chart Interactivity`
+Phase: 371 of 375 (Crosshair Overlay)
 Plan: Not started
-Status: Phase 367 complete. Ready to plan Phase 368.
-Last activity: 2026-04-29 - Completed Phase 367 Enhanced Chart Legend.
+Status: Roadmap created. Ready to plan Phase 371.
+Last activity: 2026-04-29 - Created v2.54 roadmap with 5 phases.
 
-Progress: [██░░░░░░░░] 20%
-
-## Beads
-
-| Bead | Role | Status |
-|------|------|--------|
-| — | — | — |
+Progress: [░░░░░░░░░░] 0%
 
 ## Initial Scope Summary
 
-v2.53 starts from the v2.52 chart-local snapshot export baseline:
+v2.54 starts from the v2.53 chart type expansion baseline:
 
-- `VideraChartView` is the single shipped chart control.
-- `VideraChartView.Plot.Add.Surface(...)`, `.Waterfall(...)`, and `.Scatter(...)` are the public runtime data-loading path.
-- `Plot3DOutputEvidence` and `Plot3DDatasetEvidence` provide deterministic text/metadata support evidence.
-- Chart-local PNG/bitmap snapshot export via `Plot3D.CaptureSnapshotAsync`.
+- `VideraChartView` is the single shipped chart control with Surface, Waterfall, Scatter, Bar, and Contour series.
+- Log/DateTime axes with custom tick formatters are operational.
+- Multi-series legend overlay with kind-specific indicators is shipped.
+- Chart-local PNG/bitmap snapshot export via `Plot3D.CaptureSnapshotAsync` is operational.
 
-The scope expands chart types and axis semantics:
+The scope adds interactivity:
 
-- Log scale Y axis (unblock existing `SurfaceAxisScaleKind.Log`)
-- DateTime X axis (`SurfaceAxisScaleKind.DateTime`)
-- Custom tick formatters per axis (`Func<double, string>`)
-- Enhanced multi-series legend with per-kind indicators
-- Bar chart series (`Plot.Add.Bar`) — grouped and stacked
-- Contour plot series (`Plot.Add.Contour`) — marching squares iso-lines
-- Integration evidence, demo, smoke, and guardrails for all new types
+- Crosshair overlay: projected ground-plane guidelines with axis-value pills following mouse
+- Enhanced tooltips: multi-series-aware, edge-avoidance positioning, configurable offset
+- Series probe strategies: `ISeriesProbeStrategy` with scatter/bar/contour implementations
+- Keyboard shortcuts: +/- zoom, arrow pan, Home reset, F fit-to-data
+- Zoom/pan toolbar buttons as overlay controls
+- Cursor feedback during hover, drag, zoom operations
+- Integration with snapshot export and probe evidence contracts
 
 ## Decisions
 
-- Phase ordering follows dependency logic: Axis → Legend → Bar → Contour → Integration
-- Axis foundation first: everything depends on non-linear axis support
-- Legend before chart types: new types need legend entries
-- Bar before Contour: simpler (no algorithm), follows established pattern
-- Integration last: feature combinations are highest-risk interaction surface
-- No new dependencies needed — all features use .NET 8 built-in APIs
+- Phase 371–374 are independent (all depend only on existing infrastructure) — can be parallelized
+- Phase 375 depends on all of 371–374 — integration and verification last
+- Crosshair uses separate lightweight render path (not full overlay coordinator rebuild)
+- Probe strategies use `ISeriesProbeStrategy` interface for extensibility
+- All features are presentation-layer overlays — no backend/Core changes
+- Start at Phase 371 (continuing from v2.53's Phase 370)
 
 ## Known Residuals
 
 - Full CI can lag; user often prioritizes fast local progress unless CI is explicitly requested.
 - `.planning` remains local-only unless specific files are already tracked.
 - Docker-backed Dolt SQL Server is the Beads remote path; use direct Docker Dolt push when needed.
-- v2.53 must not restore old chart view APIs, reintroduce direct public `Source`, add PDF/vector export, add compatibility wrappers, add hidden fallback/downshift behavior, expand backend/runtime scope, create a generic plotting engine, or create a god-code workbench.
+- v2.54 must not restore old chart view APIs, reintroduce direct public `Source`, add PDF/vector export, add compatibility wrappers, add hidden fallback/downshift behavior, expand backend/runtime scope, create a generic plotting engine, or create a god-code workbench.
 
 ## Session Continuity
 
 Last session: `2026-04-29 +08:00`
-Stopped at: Phase 367 Enhanced Chart Legend complete
-Next action: `$gsd-plan-phase 368` to plan Phase 368 Bar Chart Series
+Stopped at: Roadmap created for v2.54
+Next action: `$gsd-plan-phase 371` to plan Phase 371 Crosshair Overlay
