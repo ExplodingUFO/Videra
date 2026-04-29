@@ -91,7 +91,40 @@ public partial class MainWindow : Window
         _chartView.ViewState = SurfaceViewState.CreateDefault(
             metadata,
             new SurfaceDataWindow(0d, 0d, metadata.Width, metadata.Height));
+
+        // Add Bar series for smoke validation
+        AddBarSeries();
+
+        // Add Contour series for smoke validation
+        AddContourSeries();
+
         _chartView.FitToData();
+    }
+
+    private void AddBarSeries()
+    {
+        var barData = new BarChartData(
+        [
+            new BarSeries([10.0, 20.0, 15.0, 25.0], 0xFF38BDF8u, "Smoke Bar A"),
+            new BarSeries([8.0, 14.0, 22.0, 18.0], 0xFFF97316u, "Smoke Bar B"),
+        ]);
+        _chartView.Plot.Add.Bar(barData, "Smoke bar chart");
+    }
+
+    private void AddContourSeries()
+    {
+        const int size = 16;
+        var values = new double[size, size];
+        for (var y = 0; y < size; y++)
+        {
+            for (var x = 0; x < size; x++)
+            {
+                var dx = x - (size - 1) / 2.0;
+                var dy = y - (size - 1) / 2.0;
+                values[x, y] = Math.Sqrt(dx * dx + dy * dy);
+            }
+        }
+        _chartView.Plot.Add.Contour(values, "Smoke contour plot");
     }
 
     private void OnOpened(object? sender, EventArgs e)
@@ -452,6 +485,8 @@ public partial class MainWindow : Window
             $"ViewState: {CreateViewStateSummary()}\n" +
             $"InteractionQuality: {_chartView.InteractionQuality}\n" +
             $"RenderingStatus: ActiveBackend {status.ActiveBackend}; IsReady {status.IsReady}; IsFallback {status.IsFallback}; FallbackReason {status.FallbackReason ?? "none"}; UsesNativeSurface {status.UsesNativeSurface}; ResidentTileCount {status.ResidentTileCount}; VisibleTileCount {status.VisibleTileCount}; ResidentTileBytes {status.ResidentTileBytes}\n" +
+            $"BarRenderingStatus: HasSource {_chartView.BarRenderingStatus.HasSource}; IsReady {_chartView.BarRenderingStatus.IsReady}; Series {_chartView.BarRenderingStatus.SeriesCount}; Categories {_chartView.BarRenderingStatus.CategoryCount}; Layout {_chartView.BarRenderingStatus.Layout}\n" +
+            $"ContourRenderingStatus: HasSource {_chartView.ContourRenderingStatus.HasSource}; IsReady {_chartView.ContourRenderingStatus.IsReady}; Levels {_chartView.ContourRenderingStatus.LevelCount}; Lines {_chartView.ContourRenderingStatus.ExtractedLineCount}\n" +
             $"OverlayOptions: {CreateOverlayOptionsSummary(_chartView.Plot.OverlayOptions)}\n" +
             "Dataset: Generated 64x48 in-memory matrix for the packaged first-chart consumer proof.";
     }
@@ -570,14 +605,32 @@ public partial class MainWindow : Window
             return "none";
         }
 
-        return
-            $"{active.Identity}; Samples {active.Width}x{active.Height}; Count {active.SampleCount}; " +
-            $"ValueRange {FormatValueRange(active.ValueRange)}; Sampling {active.SamplingProfile}";
+        return active.Kind switch
+        {
+            Plot3DSeriesKind.Surface or Plot3DSeriesKind.Waterfall =>
+                $"{active.Identity}; Samples {active.Width}x{active.Height}; Count {active.SampleCount}; " +
+                $"ValueRange {FormatValueRange(active.ValueRange)}; Sampling {active.SamplingProfile}",
+            Plot3DSeriesKind.Scatter =>
+                $"{active.Identity}; Points {active.PointCount}; Series {active.SeriesCount}; " +
+                $"ColumnarSeries {active.ColumnarSeriesCount}; PickablePoints {active.PickablePointCount}; " +
+                $"FifoCapacity {FormatFifoCapacity(active.ConfiguredFifoCapacity == 0 ? null : active.ConfiguredFifoCapacity)}",
+            Plot3DSeriesKind.Bar =>
+                $"{active.Identity}; Categories {active.PointCount}; Series {active.SeriesCount}; " +
+                $"Sampling {active.SamplingProfile}",
+            Plot3DSeriesKind.Contour =>
+                $"{active.Identity}; Field {active.Width}x{active.Height}; Samples {active.SampleCount}; " +
+                $"Sampling {active.SamplingProfile}",
+            _ => active.Identity,
+        };
     }
 
     private static Plot3DOutputEvidence CreateOutputEvidence(VideraChartView chartView)
     {
-        return chartView.Plot.CreateOutputEvidence(chartView.RenderingStatus, chartView.ScatterRenderingStatus);
+        return chartView.Plot.CreateOutputEvidence(
+            chartView.RenderingStatus,
+            chartView.ScatterRenderingStatus,
+            chartView.BarRenderingStatus,
+            chartView.ContourRenderingStatus);
     }
 
     private static string FormatValueRange(SurfaceValueRangeDatasetEvidence? valueRange)
