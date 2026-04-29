@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v2.55
 milestone_name: "ScottPlot-like Plot API"
-status: active
-stopped_at: "Phase 381 complete"
-last_updated: "2026-04-30T00:58:00+08:00"
+status: complete
+stopped_at: "v2.55 milestone complete"
+last_updated: "2026-04-30T00:48:29+08:00"
 last_activity: 2026-04-29
 progress:
   total_phases: 7
-  completed_phases: 6
+  completed_phases: 7
   total_plans: 7
-  completed_plans: 6
-  percent: 86
+  completed_plans: 7
+  percent: 100
 ---
 
 # Project State
@@ -21,17 +21,17 @@ progress:
 See: `.planning/PROJECT.md`
 
 **Core value:** 跨平台 3D 渲染引擎的可靠性
-**Current focus:** v2.55 ScottPlot-like Plot API — phase execution ready
+**Current focus:** v2.55 ScottPlot-like Plot API — milestone complete
 
 ## Current Position
 
 Milestone: `v2.55 ScottPlot-like Plot API`
-Phase: 381 of 382 (Cookbook Demo and Docs) — COMPLETE
-Plan: 380/381 implementation slices complete
-Status: Same-type multi-series composition and cookbook demo/docs are integrated. Phase 382 is ready for final integration and guardrail closure.
-Last activity: 2026-04-30 — Integrated parallel Phases 380-381
+Phase: 382 of 382 (Integration, Guardrails, and Milestone Evidence) — COMPLETE
+Plan: All v2.55 implementation and closure slices complete
+Status: ScottPlot-like Plot API ergonomics, same-type composition, cookbook docs, and closure evidence are integrated.
+Last activity: 2026-04-30 — Completed Phase 382 integration, guardrails, beads export, and milestone evidence
 
-Progress: [█████████░] 86%
+Progress: [██████████] 100%
 
 ## Initial Scope Summary
 
@@ -73,7 +73,7 @@ The scope adds ScottPlot-like API ergonomics:
 
 Last session: `2026-04-29 +08:00`
 Stopped at: Phase 381 complete
-Next action: Execute Phase 382 integration, guardrails, beads export, generated roadmap, and clean workspace closure.
+Next action: Start the next milestone only after choosing new scope from beads or planning docs.
 
 ## Accumulated Context
 

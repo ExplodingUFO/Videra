@@ -48,9 +48,9 @@ The milestone improves first-chart ergonomics so a new user can write short, Sco
 
 - [x] **DOC-01**: Root README and SurfaceCharts demo README show cookbook-style recipes for first surface, scatter, axes, snapshot PNG, and live scatter.
 - [x] **DEMO-01**: Demo exercises concise `Plot.Add.*`, `Plot.Axes`, `SavePngAsync`, and live scatter paths without turning into a general workbench.
-- [ ] **VER-01**: Focused tests cover new facade APIs and regression guardrails.
-- [ ] **VER-02**: Beads state, generated roadmap, and handoff notes stay synchronized with phase progress.
-- [ ] **VER-03**: Existing snapshot-export scope guardrail remains passing.
+- [x] **VER-01**: Focused tests cover new facade APIs and regression guardrails.
+- [x] **VER-02**: Beads state, generated roadmap, and handoff notes stay synchronized with phase progress.
+- [x] **VER-03**: Existing snapshot-export scope guardrail remains passing.
 
 ## Future Requirements
 
@@ -100,6 +100,6 @@ The milestone improves first-chart ergonomics so a new user can write short, Sco
 | MULTI-03 | Phase 380 | Complete |
 | DOC-01 | Phase 381 | Complete |
 | DEMO-01 | Phase 381 | Complete |
-| VER-01 | Phase 382 | Pending |
-| VER-02 | Phase 382 | Pending |
-| VER-03 | Phase 382 | Pending |
+| VER-01 | Phase 382 | Complete |
+| VER-02 | Phase 382 | Complete |
+| VER-03 | Phase 382 | Complete |

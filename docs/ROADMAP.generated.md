@@ -28,13 +28,14 @@ _No matching beads in the exported snapshot._
 
 ## Recently Closed
 
+- **Videra-v255** - v2.55 ScottPlot-like Plot API (epic, P1, closed; labels: plot-api, surfacecharts, v2.55)
+- **Videra-v255.7** - Phase 382 Integration Guardrails and Milestone Evidence (task, P1, closed; labels: guardrails, integration, phase-382, v2.55)
+- **Videra-v255.6** - Phase 381 Cookbook Demo and Docs (task, P1, closed; labels: demo, docs, phase-381, v2.55)
+- **Videra-v255.5** - Phase 380 Same-Type Multi-Series Composition (feature, P1, closed; labels: multi-series, phase-380, rendering, v2.55)
+- **Videra-v255.3** - Phase 378 Axes Facade and SavePng Convenience (feature, P1, closed; labels: axes, phase-378, snapshot, v2.55)
+- **Videra-v255.4** - Phase 379 Live Scatter Helpers (feature, P1, closed; labels: phase-379, scatter, streaming, v2.55)
+- **Videra-v255.2** - Phase 377 Raw Add Overloads and Typed Plottables (feature, P1, closed; labels: phase-377, plot-add, plottable, v2.55)
+- **Videra-v255.1** - Phase 376 Plot API Inventory and Beads Coordination (task, P1, closed; labels: coordination, inventory, phase-376, v2.55)
 - **Videra-lu9** - v2.52 Professional Chart Snapshot Export (epic, P1, closed; labels: professional-charts, snapshot-export, v2.52)
 - **Videra-lu9.5** - Phase 365 Snapshot Export Guardrails and Docs (task, P1, closed; labels: docs, guardrails, professional-charts, snapshot-export, v2.52)
-- **Videra-lu9.4** - Phase 364 Demo Smoke Doctor Snapshot Evidence (task, P1, closed; labels: demo, doctor, professional-charts, snapshot-export, v2.52)
-- **Videra-lu9.3** - Phase 363 Chart Snapshot Capture Implementation (task, P1, closed; labels: capture, professional-charts, snapshot-export, v2.52)
-- **Videra-lu9.2** - Phase 362 Plot Snapshot Export Contract (task, P1, closed; labels: contract, professional-charts, snapshot-export, v2.52)
-- **Videra-lu9.1** - Phase 361 Chart Snapshot Export Inventory (task, P1, closed; labels: inventory, professional-charts, snapshot-export, v2.52)
-- **Videra-779** - v2.51 Professional Chart Output and Dataset Evidence (epic, P1, closed; labels: evidence, output, professional-charts, v2.51)
-- **Videra-779.5** - Phase 360 Professional Chart Output Guardrails and Docs (task, P2, closed; labels: docs, evidence, guardrails, output, phase-360, professional-charts, v2.51)
-- **Videra-779.4** - Phase 359 Demo and Consumer Smoke Output Evidence (task, P2, closed; labels: consumer-smoke, demo, evidence, output, phase-359, professional-charts, v2.51)
-- **Videra-779.3** - Phase 358 Dataset Metadata and Reproducibility Evidence (feature, P1, closed; labels: dataset, evidence, output, phase-358, professional-charts, v2.51)
+

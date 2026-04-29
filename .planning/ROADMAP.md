@@ -1,6 +1,6 @@
 # Roadmap
 
-## v2.55 ScottPlot-like Plot API - In Progress
+## v2.55 ScottPlot-like Plot API - Complete
 
 **Goal:** Make SurfaceCharts first-chart usage feel ScottPlot-like: short `Plot.Add.*` code, typed plottable handles, discoverable axes, PNG convenience, live scatter helpers, and cookbook docs without widening renderer/backend scope.
 
@@ -15,7 +15,7 @@
 - [x] **Phase 379: Live Scatter Helpers** - Add `DataLogger3D` / `ScatterStream` facade over existing columnar scatter append/FIFO semantics
 - [x] **Phase 380: Same-Type Multi-Series Composition** - Make visible same-type series compose deterministically instead of relying only on active last-series rendering
 - [x] **Phase 381: Cookbook Demo and Docs** - Refresh README/demo recipes around the new concise API without creating a workbench
-- [ ] **Phase 382: Integration, Guardrails, and Milestone Evidence** - Run focused regression, guardrails, beads export, and generated roadmap closure
+- [x] **Phase 382: Integration, Guardrails, and Milestone Evidence** - Run focused regression, guardrails, beads export, and generated roadmap closure
 
 ## Phase Details
 
@@ -103,7 +103,7 @@
 | 379. Live Scatter Helpers | 1/1 | Complete | 2026-04-30 |
 | 380. Same-Type Multi-Series Composition | 1/1 | Complete | 2026-04-30 |
 | 381. Cookbook Demo and Docs | 1/1 | Complete | 2026-04-30 |
-| 382. Integration, Guardrails, and Milestone Evidence | 0/1 | Pending | - |
+| 382. Integration, Guardrails, and Milestone Evidence | 1/1 | Complete | 2026-04-30 |
 
 ---
 
