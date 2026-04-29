@@ -55,6 +55,54 @@ public sealed class SurfaceChartProbeEvidence
 }
 
 /// <summary>
+/// Describes deterministic support evidence for host-owned interaction overlay recipes.
+/// </summary>
+public sealed class SurfaceChartInteractionRecipeEvidence
+{
+    internal SurfaceChartInteractionRecipeEvidence(
+        bool supportsProbeResolution,
+        bool supportsSelectionReporting,
+        bool supportsDraggableMarkerOverlay,
+        bool supportsDraggableRangeOverlay)
+    {
+        SupportsProbeResolution = supportsProbeResolution;
+        SupportsSelectionReporting = supportsSelectionReporting;
+        SupportsDraggableMarkerOverlay = supportsDraggableMarkerOverlay;
+        SupportsDraggableRangeOverlay = supportsDraggableRangeOverlay;
+    }
+
+    /// <summary>
+    /// Gets the stable evidence kind for interaction overlay recipes.
+    /// </summary>
+    public string EvidenceKind { get; } = "surface-chart-interaction-recipes";
+
+    /// <summary>
+    /// Gets whether pointer-to-probe resolution is supported.
+    /// </summary>
+    public bool SupportsProbeResolution { get; }
+
+    /// <summary>
+    /// Gets whether click and rectangle selection reporting is supported.
+    /// </summary>
+    public bool SupportsSelectionReporting { get; }
+
+    /// <summary>
+    /// Gets whether bounded draggable marker overlay recipes are supported.
+    /// </summary>
+    public bool SupportsDraggableMarkerOverlay { get; }
+
+    /// <summary>
+    /// Gets whether bounded draggable range overlay recipes are supported.
+    /// </summary>
+    public bool SupportsDraggableRangeOverlay { get; }
+
+    /// <summary>
+    /// Gets the ownership model for selected and dragged overlay state.
+    /// </summary>
+    public string StateOwnership { get; } = "HostOwned";
+}
+
+/// <summary>
 /// Describes which probe evidence is present for a surface chart.
 /// </summary>
 public enum SurfaceChartProbeEvidenceStatus
@@ -136,6 +184,46 @@ public static class SurfaceChartOverlayEvidenceFormatter
             $"Tick={overlayOptions.TickLabelFormat}({SurfaceChartOverlayOptions.NormalizePrecision(overlayOptions.TickLabelPrecision)});" +
             $"Legend={overlayOptions.LegendLabelFormat}({SurfaceChartOverlayOptions.NormalizePrecision(overlayOptions.LegendLabelPrecision)});" +
             $"Formatter={formatterProfile}";
+    }
+}
+
+/// <summary>
+/// Creates deterministic evidence for chart-local interaction overlay recipes.
+/// </summary>
+public static class SurfaceChartInteractionRecipeEvidenceFormatter
+{
+    /// <summary>
+    /// Creates evidence for the shipped Phase 386 interaction overlay recipe support.
+    /// </summary>
+    public static SurfaceChartInteractionRecipeEvidence CreateSupported()
+    {
+        return new SurfaceChartInteractionRecipeEvidence(
+            supportsProbeResolution: true,
+            supportsSelectionReporting: true,
+            supportsDraggableMarkerOverlay: true,
+            supportsDraggableRangeOverlay: true);
+    }
+
+    /// <summary>
+    /// Formats interaction overlay recipe evidence as a deterministic text block.
+    /// </summary>
+    public static string Format(SurfaceChartInteractionRecipeEvidence evidence)
+    {
+        ArgumentNullException.ThrowIfNull(evidence);
+
+        StringBuilder builder = new();
+        builder.Append("EvidenceKind: ").Append(evidence.EvidenceKind).Append('\n');
+        builder.Append("ProbeResolution: ").Append(FormatSupport(evidence.SupportsProbeResolution)).Append('\n');
+        builder.Append("SelectionReporting: ").Append(FormatSupport(evidence.SupportsSelectionReporting)).Append('\n');
+        builder.Append("DraggableMarkerOverlay: ").Append(FormatSupport(evidence.SupportsDraggableMarkerOverlay)).Append('\n');
+        builder.Append("DraggableRangeOverlay: ").Append(FormatSupport(evidence.SupportsDraggableRangeOverlay)).Append('\n');
+        builder.Append("StateOwnership: ").Append(evidence.StateOwnership);
+        return builder.ToString();
+    }
+
+    private static string FormatSupport(bool isSupported)
+    {
+        return isSupported ? "Supported" : "Unavailable";
     }
 }
 

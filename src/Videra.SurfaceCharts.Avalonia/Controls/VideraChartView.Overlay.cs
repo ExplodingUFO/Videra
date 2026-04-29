@@ -47,6 +47,135 @@ public partial class VideraChartView
         return _overlayCoordinator.GetHoveredProbe();
     }
 
+    /// <summary>
+    /// Resolves a chart-local probe at the supplied screen position without changing hover or pinned probe state.
+    /// </summary>
+    /// <param name="screenPosition">The pointer position in chart-view screen coordinates.</param>
+    /// <param name="probe">The resolved probe when available.</param>
+    /// <returns><c>true</c> when a probe was resolved; otherwise, <c>false</c>.</returns>
+    public bool TryResolveProbe(Point screenPosition, out SurfaceProbeInfo probe)
+    {
+        probe = default;
+
+        var source = _runtime.Source;
+        if (source is null || _overlayViewSize.Width <= 0d || _overlayViewSize.Height <= 0d)
+        {
+            return false;
+        }
+
+        var cameraFrame = _runtime.CreateCameraFrame(_overlayViewSize, 1f);
+        if (cameraFrame is null)
+        {
+            return false;
+        }
+
+        var resolvedProbe = SurfaceProbeService.ResolveFromScreenPosition(
+            source.Metadata,
+            cameraFrame.Value,
+            _runtime.GetLoadedTiles(),
+            screenPosition);
+        if (resolvedProbe is not SurfaceProbeInfo resolved)
+        {
+            return false;
+        }
+
+        probe = resolved;
+        return true;
+    }
+
+    /// <summary>
+    /// Creates a host-owned click selection report at the supplied screen position.
+    /// </summary>
+    public bool TryCreateSelectionReport(Point screenPosition, out SurfaceChartSelectionReport selection)
+    {
+        return TryCreateSelectionReport(screenPosition, screenPosition, out selection);
+    }
+
+    /// <summary>
+    /// Creates a host-owned rectangle selection report between two screen positions.
+    /// </summary>
+    public bool TryCreateSelectionReport(
+        Point screenStart,
+        Point screenEnd,
+        out SurfaceChartSelectionReport selection)
+    {
+        selection = null!;
+
+        if (!TryMapScreenPointToSample(screenStart, out var start) ||
+            !TryMapScreenPointToSample(screenEnd, out var end) ||
+            _runtime.Metadata is not SurfaceMetadata metadata)
+        {
+            return false;
+        }
+
+        var isRectangle = Math.Abs(screenEnd.X - screenStart.X) > double.Epsilon &&
+            Math.Abs(screenEnd.Y - screenStart.Y) > double.Epsilon;
+        SurfaceDataWindow? dataWindow = null;
+        if (isRectangle)
+        {
+            dataWindow = new SurfaceDataWindow(
+                Math.Min(start.SampleX, end.SampleX),
+                Math.Min(start.SampleY, end.SampleY),
+                Math.Abs(end.SampleX - start.SampleX),
+                Math.Abs(end.SampleY - start.SampleY)).ClampTo(metadata);
+        }
+
+        selection = new SurfaceChartSelectionReport(
+            isRectangle ? SurfaceChartSelectionKind.Rectangle : SurfaceChartSelectionKind.Click,
+            screenStart,
+            screenEnd,
+            start.SampleX,
+            start.SampleY,
+            end.SampleX,
+            end.SampleY,
+            metadata.MapHorizontalCoordinate(start.SampleX),
+            metadata.MapVerticalCoordinate(start.SampleY),
+            metadata.MapHorizontalCoordinate(end.SampleX),
+            metadata.MapVerticalCoordinate(end.SampleY),
+            dataWindow);
+        return true;
+    }
+
+    /// <summary>
+    /// Creates a bounded marker overlay recipe at the supplied screen position.
+    /// </summary>
+    public bool TryCreateDraggableMarkerOverlay(
+        Point screenPosition,
+        out SurfaceChartDraggableMarkerOverlay marker)
+    {
+        marker = default;
+
+        if (!TryMapScreenPointToSample(screenPosition, out var sample) ||
+            _runtime.Metadata is not SurfaceMetadata metadata)
+        {
+            return false;
+        }
+
+        marker = SurfaceChartDraggableOverlayRecipes.CreateMarker(metadata, sample.SampleX, sample.SampleY);
+        return true;
+    }
+
+    /// <summary>
+    /// Creates a bounded range overlay recipe between two screen positions.
+    /// </summary>
+    public bool TryCreateDraggableRangeOverlay(
+        Point screenStart,
+        Point screenEnd,
+        out SurfaceChartDraggableRangeOverlay range)
+    {
+        range = default;
+
+        if (!TryCreateSelectionReport(screenStart, screenEnd, out var selection) ||
+            selection.DataWindow is not SurfaceDataWindow dataWindow ||
+            _runtime.Metadata is not SurfaceMetadata metadata)
+        {
+            return false;
+        }
+
+        range = SurfaceChartDraggableOverlayRecipes.CreateRange(metadata, dataWindow);
+        return true;
+    }
+
     internal void TogglePinnedProbe(SurfaceProbeInfo probe)
     {
         _overlayCoordinator.TogglePinnedProbe(probe);
@@ -127,4 +256,26 @@ public partial class VideraChartView
     {
         _overlayCoordinator.IsSnapshotMode = isSnapshotMode;
     }
+
+    private bool TryMapScreenPointToSample(Point screenPosition, out SurfaceChartScreenSample sample)
+    {
+        sample = default;
+
+        if (_runtime.Metadata is not SurfaceMetadata metadata ||
+            _overlayViewSize.Width <= 0d ||
+            _overlayViewSize.Height <= 0d)
+        {
+            return false;
+        }
+
+        var currentWindow = _runtime.ViewState.DataWindow.ClampTo(metadata);
+        var normalizedX = Math.Clamp(screenPosition.X / _overlayViewSize.Width, 0d, 1d);
+        var normalizedY = Math.Clamp(screenPosition.Y / _overlayViewSize.Height, 0d, 1d);
+        sample = new SurfaceChartScreenSample(
+            Math.Clamp(currentWindow.StartX + (normalizedX * currentWindow.Width), 0d, metadata.Width - 1d),
+            Math.Clamp(currentWindow.StartY + (normalizedY * currentWindow.Height), 0d, metadata.Height - 1d));
+        return true;
+    }
+
+    private readonly record struct SurfaceChartScreenSample(double SampleX, double SampleY);
 }

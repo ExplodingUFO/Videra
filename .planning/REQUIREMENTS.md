@@ -34,10 +34,10 @@ Reference basis:
 
 ### Selection, Probe, and Draggable Overlay Recipes
 
-- [ ] **PICK-01**: Users can convert pointer positions into chart-local probe/coordinate results through a concise, testable API.
-- [ ] **PICK-02**: Users can select points, series, or bounded ranges through click or rectangle gestures while keeping selected state host-owned.
-- [ ] **PICK-03**: Users can create bounded draggable marker/range overlay recipes that update chart-local axis or marker state explicitly.
-- [ ] **PICK-04**: Selection and draggable overlays produce deterministic support evidence and do not mutate source data silently.
+- [x] **PICK-01**: Users can convert pointer positions into chart-local probe/coordinate results through a concise, testable API.
+- [x] **PICK-02**: Users can select points, series, or bounded ranges through click or rectangle gestures while keeping selected state host-owned.
+- [x] **PICK-03**: Users can create bounded draggable marker/range overlay recipes that update chart-local axis or marker state explicitly.
+- [x] **PICK-04**: Selection and draggable overlays produce deterministic support evidence and do not mutate source data silently.
 
 ### Axis Rules, Linked Views, and Live View Management
 
@@ -97,10 +97,10 @@ Reference basis:
 | INT-02 | Phase 385 | Complete |
 | INT-03 | Phase 385 | Complete |
 | INT-04 | Phase 385 | Complete |
-| PICK-01 | Phase 386 | Pending |
-| PICK-02 | Phase 386 | Pending |
-| PICK-03 | Phase 386 | Pending |
-| PICK-04 | Phase 386 | Pending |
+| PICK-01 | Phase 386 | Complete |
+| PICK-02 | Phase 386 | Complete |
+| PICK-03 | Phase 386 | Complete |
+| PICK-04 | Phase 386 | Complete |
 | AXIS-01 | Phase 387 | Pending |
 | AXIS-02 | Phase 387 | Pending |
 | LIVE-01 | Phase 387 | Pending |
