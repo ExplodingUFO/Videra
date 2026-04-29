@@ -65,6 +65,15 @@ public sealed class Plot3D
         }
     }
 
+    internal Plot3DSeries? ActiveBarSeries
+    {
+        get
+        {
+            var activeSeries = ActiveSeries;
+            return activeSeries?.Kind == Plot3DSeriesKind.Bar ? activeSeries : null;
+        }
+    }
+
     /// <summary>
     /// Gets or sets the optional color map used by surface and waterfall series.
     /// </summary>
@@ -358,7 +367,7 @@ public sealed class Plot3D
             return Plot3DColorMapStatus.Applied;
         }
 
-        return activeSeries is null || activeSeries.Kind is Plot3DSeriesKind.Scatter or Plot3DSeriesKind.Contour
+        return activeSeries is null || activeSeries.Kind is Plot3DSeriesKind.Scatter or Plot3DSeriesKind.Contour or Plot3DSeriesKind.Bar
             ? Plot3DColorMapStatus.NotApplicable
             : Plot3DColorMapStatus.Unavailable;
     }
