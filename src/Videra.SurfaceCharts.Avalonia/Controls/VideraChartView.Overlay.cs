@@ -28,6 +28,16 @@ public partial class VideraChartView
             return false;
         }
 
+        // Lightweight crosshair update — bypasses full overlay coordinator rebuild.
+        // The crosshair state is updated directly without rebuilding axis/legend/probe state.
+        _overlayCoordinator.UpdateCrosshairPosition(
+            probeScreenPosition,
+            _chartProjection,
+            Plot.OverlayOptions,
+            _runtime.Source?.Metadata);
+
+        // Full rebuild for probe resolution (axis/legend/probe state).
+        // The crosshair state is already updated above and will be rendered correctly.
         InvalidateOverlay();
         return true;
     }
