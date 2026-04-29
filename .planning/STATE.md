@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.54
 milestone_name: "Chart Interactivity"
 status: active
-stopped_at: "Roadmap created"
-last_updated: "2026-04-29T21:53:00+08:00"
+stopped_at: "Completed Phase 373 Series Probe Strategies"
+last_updated: "2026-04-29T21:55:00+08:00"
 last_activity: 2026-04-29
 progress:
   total_phases: 5
-  completed_phases: 1
-  total_plans: 1
-  completed_plans: 1
-  percent: 20
+  completed_phases: 2
+  total_plans: 2
+  completed_plans: 2
+  percent: 40
 ---
 
 # Project State
@@ -26,12 +26,12 @@ See: `.planning/PROJECT.md`
 ## Current Position
 
 Milestone: `v2.54 Chart Interactivity`
-Phase: 372 of 375 (Enhanced Tooltips)
-Plan: 371-PLAN complete
-Status: Phase 371 Crosshair Overlay complete. Ready for Phase 372.
-Last activity: 2026-04-29 - Completed Phase 371 Crosshair Overlay with 6 tests.
+Phase: 373 of 375 (Series Probe Strategies) — COMPLETE
+Plan: 373-PLAN complete
+Status: Phase 373 Series Probe Strategies complete. Ready for Phase 374.
+Last activity: 2026-04-29 - Completed Phase 373 Series Probe Strategies with 12 tests.
 
-Progress: [██░░░░░░░░] 20%
+Progress: [████░░░░░░] 40%
 
 ## Initial Scope Summary
 
@@ -74,5 +74,5 @@ The scope adds interactivity:
 ## Session Continuity
 
 Last session: `2026-04-29 +08:00`
-Stopped at: Completed Phase 371 Crosshair Overlay
-Next action: `$gsd-plan-phase 372` to plan Phase 372 Enhanced Tooltips
+Stopped at: Completed Phase 373 Series Probe Strategies
+Next action: `$gsd-plan-phase 374` to plan Phase 374 Keyboard & Toolbar Controls
