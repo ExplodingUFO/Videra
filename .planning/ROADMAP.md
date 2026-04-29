@@ -86,10 +86,11 @@ Plans:
   3. Demo exposes sample data and UI controls for Bar and Contour chart types
   4. Consumer smoke validates Bar and Contour chart types render without error
   5. Existing surface/waterfall/scatter behavior shows no regression (guardrail tests pass)
-**Plans**: TBD
+**Plans:** 2 plans
 
 Plans:
-- [ ] 370-01: TBD
+- [ ] 370-01-PLAN.md — Wire Bar/Contour rendering evidence into Plot3DOutputEvidence, fix pre-existing test failures, add regression guardrail tests
+- [ ] 370-02-PLAN.md — Add Bar and Contour to demo app and consumer smoke, update requirements tracking
 
 ## Progress
 
@@ -102,4 +103,4 @@ Phases execute in numeric order: 366 → 367 → 368 → 369 → 370
 | 367. Enhanced Chart Legend | 1/1 | Complete | 2026-04-29 |
 | 368. Bar Chart Series | 1/1 | Complete | 2026-04-29 |
 | 369. Contour Plot Series | 1/1 | Complete | 2026-04-29 |
-| 370. Integration and Evidence | 0/1 | Not started | - |
+| 370. Integration and Evidence | 0/2 | Planned | - |
