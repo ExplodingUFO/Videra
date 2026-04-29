@@ -6,6 +6,36 @@ namespace Videra.SurfaceCharts.Avalonia.Controls.Overlay;
 
 internal static class SurfaceProbeService
 {
+    /// <summary>
+    /// Resolves a probe for non-surface series using the strategy dispatcher.
+    /// Maps screen position to chart-space coordinates and dispatches to the appropriate strategy.
+    /// </summary>
+    public static SurfaceProbeInfo? ResolveFromScreenPosition(
+        SurfaceMetadata metadata,
+        SurfaceViewport viewport,
+        Size viewSize,
+        SeriesProbeStrategyDispatcher dispatcher,
+        Plot3DSeriesKind seriesKind,
+        Point probeScreenPosition)
+    {
+        ArgumentNullException.ThrowIfNull(metadata);
+        ArgumentNullException.ThrowIfNull(dispatcher);
+
+        if (viewSize.Width <= 0d || viewSize.Height <= 0d)
+        {
+            return null;
+        }
+
+        var clampedViewport = viewport.ClampTo(metadata);
+        var normalizedX = Math.Clamp(probeScreenPosition.X / viewSize.Width, 0d, 1d);
+        var normalizedY = Math.Clamp(probeScreenPosition.Y / viewSize.Height, 0d, 1d);
+
+        var chartX = clampedViewport.StartX + (normalizedX * clampedViewport.Width);
+        var chartZ = clampedViewport.StartY + (normalizedY * clampedViewport.Height);
+
+        return dispatcher.TryResolve(seriesKind, chartX, chartZ, metadata);
+    }
+
     public static SurfaceProbeInfo? ResolveFromScreenPosition(
         SurfaceMetadata metadata,
         SurfaceCameraFrame cameraFrame,
