@@ -12,9 +12,9 @@
 
 ### Chart Legend
 
-- [ ] **LEG-01**: Chart displays a legend overlay showing all series with labels and kind-specific indicators (rectangles for surface/waterfall, dots for scatter, bars for bar chart, lines for contour)
-- [ ] **LEG-02**: Legend position is configurable (top-left, top-right, bottom-left, bottom-right)
-- [ ] **LEG-03**: Legend respects series visibility — hidden series are excluded from legend
+- [x] **LEG-01**: Chart displays a legend overlay showing all series with labels and kind-specific indicators (rectangles for surface/waterfall, dots for scatter, bars for bar chart, lines for contour)
+- [x] **LEG-02**: Legend position is configurable (top-left, top-right, bottom-left, bottom-right)
+- [x] **LEG-03**: Legend respects series visibility — hidden series are excluded from legend
 
 ### Bar Chart
 
@@ -74,9 +74,9 @@
 | AXIS-03 | Phase 366 | Pending |
 | AXIS-04 | Phase 366 | Pending |
 | AXIS-05 | Phase 366 | Pending |
-| LEG-01 | Phase 367 | Pending |
-| LEG-02 | Phase 367 | Pending |
-| LEG-03 | Phase 367 | Pending |
+| LEG-01 | Phase 367 | Complete |
+| LEG-02 | Phase 367 | Complete |
+| LEG-03 | Phase 367 | Complete |
 | BAR-01 | Phase 368 | Pending |
 | BAR-02 | Phase 368 | Pending |
 | BAR-03 | Phase 368 | Pending |
