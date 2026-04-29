@@ -348,12 +348,13 @@ internal static class SurfaceProbeOverlayPresenter
         Point anchorPosition,
         Size viewSize,
         int bubbleIndex,
-        Point? markerPosition)
+        Point? markerPosition,
+        SurfaceChartOverlayOptions? overlayOptions = null)
     {
         var text = CreateText(readoutText, BubbleForeground);
         var bubbleOrigin = markerPosition is not null
             ? CreatePinnedBubbleOrigin(text, viewSize, bubbleIndex)
-            : CreateHoveredBubbleOrigin(text, anchorPosition, viewSize);
+            : CreateHoveredBubbleOrigin(text, anchorPosition, viewSize, overlayOptions);
         var bubbleRect = new Rect(
             bubbleOrigin.X - 4d,
             bubbleOrigin.Y - 2d,
@@ -371,9 +372,12 @@ internal static class SurfaceProbeOverlayPresenter
         context.DrawText(text, bubbleOrigin);
     }
 
-    private static Point CreateHoveredBubbleOrigin(FormattedText text, Point anchorPosition, Size viewSize)
+    private static Point CreateHoveredBubbleOrigin(FormattedText text, Point anchorPosition, Size viewSize, SurfaceChartOverlayOptions? overlayOptions = null)
     {
-        var candidate = new Point(anchorPosition.X + BubbleMargin, anchorPosition.Y - text.Height - 6d);
+        var offset = overlayOptions?.TooltipOffset ?? new Vector2(12f, -12f);
+        var candidate = new Point(
+            anchorPosition.X + offset.X,
+            anchorPosition.Y + offset.Y - text.Height);
         return ClampBubbleOrigin(candidate, text, viewSize);
     }
 
