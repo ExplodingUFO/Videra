@@ -17,6 +17,8 @@ internal sealed class SurfaceChartOverlayCoordinator
 
     public SurfaceLegendOverlayState LegendState { get; private set; } = SurfaceLegendOverlayState.Empty;
 
+    public SurfaceCrosshairOverlayState CrosshairState { get; private set; } = SurfaceCrosshairOverlayState.Empty;
+
     public void ResetForSourceChange()
     {
         _pinnedProbeRequests.Clear();
@@ -24,6 +26,7 @@ internal sealed class SurfaceChartOverlayCoordinator
         ProbeState = SurfaceProbeOverlayState.Empty;
         AxisState = SurfaceAxisOverlayState.Empty;
         LegendState = SurfaceLegendOverlayState.Empty;
+        CrosshairState = SurfaceCrosshairOverlayState.Empty;
     }
 
     public void UpdateViewSize(Size viewSize)
@@ -56,6 +59,23 @@ internal sealed class SurfaceChartOverlayCoordinator
         }
 
         _pinnedProbeRequests.Add(new SurfaceProbeRequest(probe.SampleX, probe.SampleY));
+    }
+
+    /// <summary>
+    /// Lightweight crosshair position update — bypasses full overlay coordinator rebuild.
+    /// Only updates crosshair state without rebuilding axis/legend/probe state.
+    /// </summary>
+    public void UpdateCrosshairPosition(
+        Point probeScreenPosition,
+        SurfaceChartProjection? projection,
+        SurfaceChartOverlayOptions overlayOptions,
+        SurfaceMetadata? metadata)
+    {
+        CrosshairState = SurfaceCrosshairOverlayPresenter.CreateState(
+            probeScreenPosition,
+            projection,
+            overlayOptions,
+            metadata);
     }
 
     public void Refresh(
@@ -93,6 +113,7 @@ internal sealed class SurfaceChartOverlayCoordinator
         SurfaceAxisOverlayPresenter.Render(context, AxisState);
         SurfaceLegendOverlayPresenter.Render(context, LegendState);
         SurfaceProbeOverlayPresenter.Render(context, ProbeState, _viewSize, chartProjection);
+        SurfaceCrosshairOverlayPresenter.Render(context, CrosshairState);
     }
 
     private static bool MatchesPinnedProbe(SurfaceProbeRequest request, SurfaceProbeInfo probe)
