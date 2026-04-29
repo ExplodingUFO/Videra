@@ -34,16 +34,16 @@
 
 ### Integration
 
-- [ ] **INT-01**: All new chart types produce output evidence via existing `Plot3DOutputEvidence` contract
-- [ ] **INT-02**: All new chart types produce dataset evidence via existing `Plot3DDatasetEvidence` contract
-- [ ] **INT-03**: Demo exposes sample data and UI for each new chart type
-- [ ] **INT-04**: Consumer smoke validates new chart types render without error
+- [x] **INT-01**: All new chart types produce output evidence via existing `Plot3DOutputEvidence` contract
+- [x] **INT-02**: All new chart types produce dataset evidence via existing `Plot3DDatasetEvidence` contract
+- [x] **INT-03**: Demo exposes sample data and UI for each new chart type
+- [x] **INT-04**: Consumer smoke validates new chart types render without error
 
 ### Verification
 
-- [ ] **VER-01**: Beads state reflects milestone progress throughout
-- [ ] **VER-02**: Each phase has isolated execution with clean verification
-- [ ] **VER-03**: Guardrails prevent regression of existing surface/waterfall/scatter behavior
+- [x] **VER-01**: Beads state reflects milestone progress throughout
+- [x] **VER-02**: Each phase has isolated execution with clean verification
+- [x] **VER-03**: Guardrails prevent regression of existing surface/waterfall/scatter behavior
 
 ## Future Requirements
 
@@ -87,10 +87,10 @@
 | CTR-03 | Phase 369 | Complete |
 | CTR-04 | Phase 369 | Complete |
 | CTR-05 | Phase 369 | Complete |
-| INT-01 | Phase 370 | Pending |
-| INT-02 | Phase 370 | Pending |
-| INT-03 | Phase 370 | Pending |
-| INT-04 | Phase 370 | Pending |
-| VER-01 | Phase 370 | Pending |
-| VER-02 | Phase 370 | Pending |
-| VER-03 | Phase 370 | Pending |
+| INT-01 | Phase 370 | Complete |
+| INT-02 | Phase 370 | Complete |
+| INT-03 | Phase 370 | Complete |
+| INT-04 | Phase 370 | Complete |
+| VER-01 | Phase 370 | Complete |
+| VER-02 | Phase 370 | Complete |
+| VER-03 | Phase 370 | Complete |
