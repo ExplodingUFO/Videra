@@ -112,6 +112,11 @@ public sealed class SurfaceChartOverlayOptions
     public string? LegendTitleOverride { get; init; }
 
     /// <summary>
+    /// Gets the corner position for the legend overlay.
+    /// </summary>
+    public SurfaceChartLegendPosition LegendPosition { get; init; } = SurfaceChartLegendPosition.TopRight;
+
+    /// <summary>
     /// Formats a label for the specified axis key and numeric value.
     /// </summary>
     /// <param name="axisKey">The axis or legend key.</param>
@@ -382,5 +387,31 @@ public enum SurfaceChartAxisSideMode
     /// Pins the visible overlay corner to the maximum horizontal and depth bounds.
     /// </summary>
     MaximumBounds,
+}
+
+/// <summary>
+/// Selects the corner position for the chart legend overlay.
+/// </summary>
+public enum SurfaceChartLegendPosition
+{
+    /// <summary>
+    /// Positions the legend in the top-left corner of the chart.
+    /// </summary>
+    TopLeft,
+
+    /// <summary>
+    /// Positions the legend in the top-right corner of the chart.
+    /// </summary>
+    TopRight,
+
+    /// <summary>
+    /// Positions the legend in the bottom-left corner of the chart.
+    /// </summary>
+    BottomLeft,
+
+    /// <summary>
+    /// Positions the legend in the bottom-right corner of the chart.
+    /// </summary>
+    BottomRight,
 }
 
