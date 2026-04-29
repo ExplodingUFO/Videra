@@ -260,13 +260,17 @@ public partial class VideraChartView
 
     private void UpdateCursorForGesture()
     {
-        if (_interactionController.HasActiveGesture)
+        var cursor = _interactionController.ActiveGestureMode switch
         {
-            Cursor = new Cursor(StandardCursorType.SizeAll);
-            return;
-        }
+            SurfaceChartGestureMode.Orbit => StandardCursorType.DragCopy,
+            SurfaceChartGestureMode.Pan => StandardCursorType.SizeAll,
+            SurfaceChartGestureMode.FocusSelection => StandardCursorType.Cross,
+            _ => (StandardCursorType?)null,
+        };
 
-        Cursor = Cursor.Default;
+        Cursor = cursor is not null
+            ? new Cursor(cursor.Value)
+            : Cursor.Default;
     }
 
     private void FlashCursor(StandardCursorType cursorType)

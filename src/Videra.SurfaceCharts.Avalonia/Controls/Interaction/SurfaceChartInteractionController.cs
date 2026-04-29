@@ -21,6 +21,11 @@ internal sealed class SurfaceChartInteractionController
 
     public bool HasActiveGesture => _activeButton is not null;
 
+    /// <summary>
+    /// Gets the currently active gesture mode, or <see cref="SurfaceChartGestureMode.None"/> if no gesture is active.
+    /// </summary>
+    public SurfaceChartGestureMode ActiveGestureMode => HasActiveGesture ? _gestureMode : SurfaceChartGestureMode.None;
+
     public Rect? ActiveSelectionRect { get; private set; }
 
     public bool HandlePointerPressed(PointerUpdateKind updateKind, Point position, KeyModifiers keyModifiers)
