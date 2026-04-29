@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.55
 milestone_name: "ScottPlot-like Plot API"
 status: active
-stopped_at: "Phase 376 complete"
-last_updated: "2026-04-29T23:59:00+08:00"
+stopped_at: "Phase 379 complete"
+last_updated: "2026-04-30T00:29:00+08:00"
 last_activity: 2026-04-29
 progress:
   total_phases: 7
-  completed_phases: 1
+  completed_phases: 4
   total_plans: 7
-  completed_plans: 1
-  percent: 14
+  completed_plans: 4
+  percent: 57
 ---
 
 # Project State
@@ -26,12 +26,12 @@ See: `.planning/PROJECT.md`
 ## Current Position
 
 Milestone: `v2.55 ScottPlot-like Plot API`
-Phase: 376 of 382 (Plot API Inventory and Beads Coordination) — COMPLETE
-Plan: 376-PLAN complete
-Status: Requirements, roadmap, and beads chain prepared. Phases 377-379 ready for parallel execution.
-Last activity: 2026-04-29 — Completed Phase 376 coordination gate
+Phase: 379 of 382 (Live Scatter Helpers) — COMPLETE
+Plan: 377/378/379 implementation slices complete
+Status: Raw Plot.Add overloads, typed plottables, Plot.Axes, SavePngAsync, and DataLogger3D are integrated. Phases 380 and 381 are ready.
+Last activity: 2026-04-30 — Integrated parallel Phases 377-379
 
-Progress: [█░░░░░░░░░] 14%
+Progress: [█████░░░░░] 57%
 
 ## Initial Scope Summary
 
@@ -72,8 +72,8 @@ The scope adds ScottPlot-like API ergonomics:
 ## Session Continuity
 
 Last session: `2026-04-29 +08:00`
-Stopped at: Phase 376 complete
-Next action: Claim Phases 377-379 beads and dispatch them in isolated worktrees if the branch/worktree state can be made safe.
+Stopped at: Phase 379 complete
+Next action: Claim and execute Phase 380 same-type multi-series composition and Phase 381 cookbook demo/docs. They can proceed in parallel if write sets remain disjoint.
 
 ## Accumulated Context
 

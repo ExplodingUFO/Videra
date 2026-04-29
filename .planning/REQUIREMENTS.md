@@ -16,27 +16,27 @@ The milestone improves first-chart ergonomics so a new user can write short, Sco
 
 ### Plot.Add Ergonomics and Plottables
 
-- [ ] **ADD-01**: `Plot.Add.Surface(...)` accepts raw 2D numeric arrays without requiring callers to construct `SurfaceMetadata` or `SurfaceMatrix`.
-- [ ] **ADD-02**: `Plot.Add.Waterfall(...)` accepts raw 2D numeric arrays without requiring callers to construct `SurfaceMetadata` or `SurfaceMatrix`.
-- [ ] **ADD-03**: `Plot.Add.Scatter(...)` accepts raw X/Y/Z arrays or point-like numeric inputs without requiring callers to construct `ScatterChartData`.
-- [ ] **ADD-04**: Existing advanced overloads remain available without adding compatibility wrapper types.
-- [ ] **PLOT-01**: `Plot.Add.*` returns typed plottable handles through a small public `IPlottable3D` contract.
-- [ ] **PLOT-02**: Plottable handles expose `Label` and `IsVisible` consistently.
-- [ ] **PLOT-03**: Plottable handles expose existing color or color-map settings where the series kind already supports them.
+- [x] **ADD-01**: `Plot.Add.Surface(...)` accepts raw 2D numeric arrays without requiring callers to construct `SurfaceMetadata` or `SurfaceMatrix`.
+- [x] **ADD-02**: `Plot.Add.Waterfall(...)` accepts raw 2D numeric arrays without requiring callers to construct `SurfaceMetadata` or `SurfaceMatrix`.
+- [x] **ADD-03**: `Plot.Add.Scatter(...)` accepts raw X/Y/Z arrays or point-like numeric inputs without requiring callers to construct `ScatterChartData`.
+- [x] **ADD-04**: Existing advanced overloads remain available without adding compatibility wrapper types.
+- [x] **PLOT-01**: `Plot.Add.*` returns typed plottable handles through a small public `IPlottable3D` contract.
+- [x] **PLOT-02**: Plottable handles expose `Label` and `IsVisible` consistently.
+- [x] **PLOT-03**: Plottable handles expose existing color or color-map settings where the series kind already supports them.
 
 ### Axes and Snapshot Convenience
 
-- [ ] **AXIS-01**: `Plot.Axes` provides discoverable X/Y/Z axis facade objects.
-- [ ] **AXIS-02**: Axis facade supports labels without moving dataset metadata ownership into `Plot3D`.
-- [ ] **AXIS-03**: Axis facade supports `SetLimits` and `AutoScale` through the existing `VideraChartView` viewport/runtime ownership.
-- [ ] **PNG-01**: `Plot.SavePngAsync(...)` is a convenience wrapper over existing chart-local snapshot export.
-- [ ] **PNG-02**: PNG convenience keeps unsupported output explicit and does not introduce PDF/vector export.
+- [x] **AXIS-01**: `Plot.Axes` provides discoverable X/Y/Z axis facade objects.
+- [x] **AXIS-02**: Axis facade supports labels without moving dataset metadata ownership into `Plot3D`.
+- [x] **AXIS-03**: Axis facade supports `SetLimits` and `AutoScale` through the existing `VideraChartView` viewport/runtime ownership.
+- [x] **PNG-01**: `Plot.SavePngAsync(...)` is a convenience wrapper over existing chart-local snapshot export.
+- [x] **PNG-02**: PNG convenience keeps unsupported output explicit and does not introduce PDF/vector export.
 
 ### Live Scatter Data
 
-- [ ] **LIVE-01**: Add a first-class `DataLogger3D` or `ScatterStream` API that reuses existing scatter columnar append/replace/FIFO semantics.
-- [ ] **LIVE-02**: Live data API exposes deterministic counters/evidence already supported by scatter columnar series.
-- [ ] **LIVE-03**: Live data API avoids a new render loop, scheduler, or background worker abstraction.
+- [x] **LIVE-01**: Add a first-class `DataLogger3D` or `ScatterStream` API that reuses existing scatter columnar append/replace/FIFO semantics.
+- [x] **LIVE-02**: Live data API exposes deterministic counters/evidence already supported by scatter columnar series.
+- [x] **LIVE-03**: Live data API avoids a new render loop, scheduler, or background worker abstraction.
 
 ### Multi-Series Composition
 
@@ -80,21 +80,21 @@ The milestone improves first-chart ergonomics so a new user can write short, Sco
 | INV-01 | Phase 376 | Complete |
 | INV-02 | Phase 376 | Complete |
 | INV-03 | Phase 376 | Complete |
-| ADD-01 | Phase 377 | Pending |
-| ADD-02 | Phase 377 | Pending |
-| ADD-03 | Phase 377 | Pending |
-| ADD-04 | Phase 377 | Pending |
-| PLOT-01 | Phase 377 | Pending |
-| PLOT-02 | Phase 377 | Pending |
-| PLOT-03 | Phase 377 | Pending |
-| AXIS-01 | Phase 378 | Pending |
-| AXIS-02 | Phase 378 | Pending |
-| AXIS-03 | Phase 378 | Pending |
-| PNG-01 | Phase 378 | Pending |
-| PNG-02 | Phase 378 | Pending |
-| LIVE-01 | Phase 379 | Pending |
-| LIVE-02 | Phase 379 | Pending |
-| LIVE-03 | Phase 379 | Pending |
+| ADD-01 | Phase 377 | Complete |
+| ADD-02 | Phase 377 | Complete |
+| ADD-03 | Phase 377 | Complete |
+| ADD-04 | Phase 377 | Complete |
+| PLOT-01 | Phase 377 | Complete |
+| PLOT-02 | Phase 377 | Complete |
+| PLOT-03 | Phase 377 | Complete |
+| AXIS-01 | Phase 378 | Complete |
+| AXIS-02 | Phase 378 | Complete |
+| AXIS-03 | Phase 378 | Complete |
+| PNG-01 | Phase 378 | Complete |
+| PNG-02 | Phase 378 | Complete |
+| LIVE-01 | Phase 379 | Complete |
+| LIVE-02 | Phase 379 | Complete |
+| LIVE-03 | Phase 379 | Complete |
 | MULTI-01 | Phase 380 | Pending |
 | MULTI-02 | Phase 380 | Pending |
 | MULTI-03 | Phase 380 | Pending |

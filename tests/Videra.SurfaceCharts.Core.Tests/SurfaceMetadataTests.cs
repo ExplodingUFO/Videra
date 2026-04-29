@@ -217,12 +217,11 @@ public class SurfaceMetadataTests
     }
 
     [Fact]
-    public void AxisCtor_RejectsLogScaleUntilDisplaySpaceSupportLands()
+    public void AxisCtor_AcceptsLogScaleAfterDisplaySpaceSupportLands()
     {
-        var act = () => new SurfaceAxisDescriptor("Frequency", "Hz", 1d, 10d, SurfaceAxisScaleKind.Log);
+        var descriptor = new SurfaceAxisDescriptor("Frequency", "Hz", 1d, 10d, SurfaceAxisScaleKind.Log);
 
-        act.Should().Throw<ArgumentException>()
-            .Where(ex => ex.ParamName == "scaleKind");
+        descriptor.ScaleKind.Should().Be(SurfaceAxisScaleKind.Log);
     }
 
     [Fact]
