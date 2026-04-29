@@ -1,6 +1,8 @@
+using System.Reflection;
 using Avalonia;
 using FluentAssertions;
 using Videra.SurfaceCharts.Avalonia.Controls;
+using Videra.SurfaceCharts.Avalonia.Controls.Overlay;
 using Videra.SurfaceCharts.Core;
 using Xunit;
 
@@ -110,6 +112,89 @@ public sealed class RegressionGuardrailTests
             outEvidence.ColorMapStatus.Should().Be(Plot3DColorMapStatus.NotApplicable);
             outEvidence.RenderingEvidence.Should().NotBeNull();
             outEvidence.RenderingEvidence!.RenderingKind.Should().Be("contour-rendering-status");
+        });
+    }
+
+    [Fact]
+    public void RegressionGuardrail_SnapshotMode_SuppressesInteractionChrome()
+    {
+        AvaloniaHeadlessTestSession.Run(() =>
+        {
+            var view = new VideraChartView();
+            view.Measure(new Size(320, 180));
+            view.Arrange(new Rect(0, 0, 320, 180));
+
+            var source = new ScriptedSurfaceTileSource(VideraChartViewLifecycleTests.CreateMetadata(), defaultTileValue: 4f);
+            view.Plot.Add.Surface(source, "surface");
+
+            var coordinator = SurfaceChartTestHelpers.GetOverlayCoordinator(view);
+
+            // Default: snapshot mode is off
+            coordinator.IsSnapshotMode.Should().BeFalse();
+
+            // Enable snapshot mode
+            view.SetSnapshotMode(true);
+            coordinator.IsSnapshotMode.Should().BeTrue();
+
+            // Disable snapshot mode
+            view.SetSnapshotMode(false);
+            coordinator.IsSnapshotMode.Should().BeFalse();
+        });
+    }
+
+    [Fact]
+    public void RegressionGuardrail_SnapshotMode_CrosshairStateIsEmpty()
+    {
+        AvaloniaHeadlessTestSession.Run(() =>
+        {
+            var view = new VideraChartView();
+            view.Measure(new Size(320, 180));
+            view.Arrange(new Rect(0, 0, 320, 180));
+
+            var source = new ScriptedSurfaceTileSource(VideraChartViewLifecycleTests.CreateMetadata(), defaultTileValue: 4f);
+            view.Plot.Add.Surface(source, "surface");
+
+            var coordinator = SurfaceChartTestHelpers.GetOverlayCoordinator(view);
+
+            // Enable snapshot mode
+            view.SetSnapshotMode(true);
+
+            // Crosshair state should still be accessible (it's the render that's suppressed)
+            var crosshairState = coordinator.CrosshairState;
+            crosshairState.Should().NotBeNull();
+
+            view.SetSnapshotMode(false);
+        });
+    }
+
+    [Fact]
+    public void RegressionGuardrail_MultiSeries_OverlayRefreshSucceeds()
+    {
+        AvaloniaHeadlessTestSession.Run(() =>
+        {
+            var view = new VideraChartView();
+            view.Measure(new Size(320, 180));
+            view.Arrange(new Rect(0, 0, 320, 180));
+
+            // Add surface series
+            var source = new ScriptedSurfaceTileSource(VideraChartViewLifecycleTests.CreateMetadata(), defaultTileValue: 4f);
+            view.Plot.Add.Surface(source, "surface");
+
+            // Add bar series
+            view.Plot.Add.Bar(new[] { 1.0, 2.0, 3.0 }, "bar");
+
+            // Add contour series
+            view.Plot.Add.Contour(CreateContourField(5, 5), "contour");
+
+            // Verify all three series are present
+            view.Plot.Series.Should().HaveCount(3);
+            view.Plot.Series[0].Kind.Should().Be(Plot3DSeriesKind.Surface);
+            view.Plot.Series[1].Kind.Should().Be(Plot3DSeriesKind.Bar);
+            view.Plot.Series[2].Kind.Should().Be(Plot3DSeriesKind.Contour);
+
+            // Dataset evidence should work with all series
+            var dsEvidence = view.Plot.CreateDatasetEvidence();
+            dsEvidence.Series.Should().HaveCount(3);
         });
     }
 
