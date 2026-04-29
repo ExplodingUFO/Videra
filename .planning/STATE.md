@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.57
 milestone_name: "SurfaceCharts Release Readiness and Consumer Validation"
 status: active
-stopped_at: "Phase 392 complete; Phase 393 and Phase 394 ready for parallel planning/execution"
-last_updated: "2026-04-30T03:20:00+08:00"
+stopped_at: "Phase 393 and Phase 394 complete; Phase 395 ready for closure"
+last_updated: "2026-04-30T03:35:00+08:00"
 last_activity: 2026-04-30
 progress:
   total_phases: 6
-  completed_phases: 3
+  completed_phases: 5
   total_plans: 6
-  completed_plans: 3
-  percent: 50
+  completed_plans: 5
+  percent: 83
 ---
 
 # Project State
@@ -26,12 +26,12 @@ See: `.planning/PROJECT.md`
 ## Current Position
 
 Milestone: `v2.57 SurfaceCharts Release Readiness and Consumer Validation`
-Phase: 393/394 of 395 — READY IN PARALLEL
-Plan: Phase 392 complete
-Status: Phase 392 local package consumer smoke is complete. Phase 393 release validation and Phase 394 docs/support handoff are unblocked and can run in parallel with disjoint worktrees.
-Last activity: 2026-04-30 — Completed Phase 392 local package consumer smoke
+Phase: 395 of 395 (Integration, Guardrails, and Milestone Evidence) — READY
+Plan: Phases 393 and 394 complete
+Status: Phase 393 release validation and Phase 394 docs/support handoff are complete. Next step is Phase 395 closure with final evidence, Beads export, generated roadmap, and clean branch/worktree state.
+Last activity: 2026-04-30 — Completed Phase 393 release validation and Phase 394 docs/support handoff
 
-Progress: [█████░░░░░] 50%
+Progress: [████████░░] 83%
 
 ## Initial Scope Summary
 
@@ -61,6 +61,8 @@ This milestone prepares a release-candidate evidence loop:
 - Phase 391 owns stale public API/package guardrail evidence; Phase 390 only recorded the issue.
 - Phase 391 refreshed the public API contract and corrected stale PNG image-export guardrail expectations without changing runtime behavior.
 - Phase 392 proved package-only SurfaceCharts consumer restore/build/run, deterministic support artifacts, and chart-local snapshot handoff.
+- Phase 393 added `scripts/Invoke-ReleaseReadinessValidation.ps1` as the single v2.57 readiness command and aligned the dry-run workflow.
+- Phase 394 added release-candidate package consumption, cookbook, migration, and support artifact handoff docs.
 
 ## Known Residuals
 
@@ -72,7 +74,7 @@ This milestone prepares a release-candidate evidence loop:
 
 Last session: `2026-04-30 +08:00`
 Stopped at: v2.57 milestone initialized
-Next action: plan and execute Phase 393 and Phase 394 in parallel worktrees using beads `Videra-v257.4` and `Videra-v257.5`.
+Next action: execute Phase 395 integration, guardrails, Beads export, generated roadmap, and milestone evidence.
 
 ## Accumulated Context
 

@@ -35,17 +35,17 @@ repeatable evidence.
 
 ### Release Validation and CI
 
-- [ ] **CI-01**: A single release-readiness script runs package build, consumer smoke, focused SurfaceCharts tests, demo/docs tests, and scope guardrails.
-- [ ] **CI-02**: Release-readiness output clearly separates pass/fail, skipped external publish steps, and local environment warnings.
-- [ ] **CI-03**: CI documentation explains which checks are mandatory before public release and which are local/manual.
-- [ ] **CI-04**: Validation avoids broad solution-wide churn and does not hide failures behind fallback behavior.
+- [x] **CI-01**: A single release-readiness script runs package build, consumer smoke, focused SurfaceCharts tests, demo/docs tests, and scope guardrails.
+- [x] **CI-02**: Release-readiness output clearly separates pass/fail, skipped external publish steps, and local environment warnings.
+- [x] **CI-03**: CI documentation explains which checks are mandatory before public release and which are local/manual.
+- [x] **CI-04**: Validation avoids broad solution-wide churn and does not hide failures behind fallback behavior.
 
 ### Docs and Handoff
 
-- [ ] **DOC-01**: Root README and SurfaceCharts demo README expose a clear release-candidate path for package consumption and cookbook recipes.
-- [ ] **DOC-02**: Migration notes summarize the current `VideraChartView.Plot.Add.*` model, removed old controls, and non-goals.
-- [ ] **DOC-03**: Support handoff names the exact artifacts users should attach when package consumption or rendering evidence fails.
-- [ ] **DOC-04**: Documentation stays explicit that ScottPlot 5 is an ergonomics inspiration, not an API compatibility promise.
+- [x] **DOC-01**: Root README and SurfaceCharts demo README expose a clear release-candidate path for package consumption and cookbook recipes.
+- [x] **DOC-02**: Migration notes summarize the current `VideraChartView.Plot.Add.*` model, removed old controls, and non-goals.
+- [x] **DOC-03**: Support handoff names the exact artifacts users should attach when package consumption or rendering evidence fails.
+- [x] **DOC-04**: Documentation stays explicit that ScottPlot 5 is an ergonomics inspiration, not an API compatibility promise.
 
 ### Verification and Closure
 
@@ -88,14 +88,14 @@ repeatable evidence.
 | CONSUME-02 | Phase 392 | Complete |
 | CONSUME-03 | Phase 392 | Complete |
 | CONSUME-04 | Phase 392 | Complete |
-| CI-01 | Phase 393 | Pending |
-| CI-02 | Phase 393 | Pending |
-| CI-03 | Phase 393 | Pending |
-| CI-04 | Phase 393 | Pending |
-| DOC-01 | Phase 394 | Pending |
-| DOC-02 | Phase 394 | Pending |
-| DOC-03 | Phase 394 | Pending |
-| DOC-04 | Phase 394 | Pending |
+| CI-01 | Phase 393 | Complete |
+| CI-02 | Phase 393 | Complete |
+| CI-03 | Phase 393 | Complete |
+| CI-04 | Phase 393 | Complete |
+| DOC-01 | Phase 394 | Complete |
+| DOC-02 | Phase 394 | Complete |
+| DOC-03 | Phase 394 | Complete |
+| DOC-04 | Phase 394 | Complete |
 | VER-01 | Phase 395 | Pending |
 | VER-02 | Phase 395 | Pending |
 | VER-03 | Phase 395 | Pending |
