@@ -103,7 +103,8 @@ internal sealed class SurfaceChartOverlayCoordinator
             loadedTiles,
             _probeScreenPosition,
             _pinnedProbeRequests,
-            overlayOptions);
+            overlayOptions,
+            series);
     }
 
     public void Render(DrawingContext context, SurfaceChartProjection? chartProjection)
