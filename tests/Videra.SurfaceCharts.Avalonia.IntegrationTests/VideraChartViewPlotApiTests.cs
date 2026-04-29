@@ -193,6 +193,62 @@ public sealed class VideraChartViewPlotApiTests
     }
 
     [Fact]
+    public void Plot3D_MoveAndTypedSeriesQueries_UpdateLifecycleDeterministically()
+    {
+        AvaloniaHeadlessTestSession.Run(() =>
+        {
+            var view = new VideraChartView();
+            var detached = new VideraChartView().Plot.Add.Surface(new[,] { { 9d } }, "detached");
+            var surface = view.Plot.Add.Surface(new[,] { { 1d, 2d }, { 3d, 4d } }, "surface");
+            var waterfall = view.Plot.Add.Waterfall(new[,] { { 10d, 20d }, { 30d, 40d } }, "waterfall");
+            var scatter = view.Plot.Add.Scatter(
+                new[] { 0d, 1d },
+                new[] { 1d, 2d },
+                new[] { 2d, 3d },
+                "scatter");
+            var secondSurface = view.Plot.Add.Surface(new[,] { { 5d, 6d }, { 7d, 8d } }, "surface-2");
+
+            view.Plot.GetSeries<SurfacePlot3DSeries>().Should().Equal(surface, secondSurface);
+            view.Plot.GetSeries<WaterfallPlot3DSeries>().Should().Equal(waterfall);
+            view.Plot.GetSeries<ScatterPlot3DSeries>().Should().Equal(scatter);
+            view.Plot.Revision.Should().Be(4);
+            view.LastRefreshRevision.Should().Be(4);
+
+            view.Plot.Move(detached, 0).Should().BeFalse();
+            view.Plot.Move(scatter, 2).Should().BeTrue();
+            view.Plot.Revision.Should().Be(4);
+            view.LastRefreshRevision.Should().Be(4);
+
+            view.Plot.Move(surface, 3).Should().BeTrue();
+
+            view.Plot.Series.Should().Equal(waterfall, scatter, secondSurface, surface);
+            view.Plot.GetSeries<SurfacePlot3DSeries>().Should().Equal(secondSurface, surface);
+            view.Plot.IndexOf(surface).Should().Be(3);
+            view.Plot.ActiveSeries.Should().BeSameAs(surface);
+            view.Plot.Revision.Should().Be(5);
+            view.LastRefreshRevision.Should().Be(5);
+            view.Plot.CreateDatasetEvidence().Series.Select(series => series.Identity).Should().Equal(
+                "PlotSeries[0]:Waterfall:waterfall",
+                "PlotSeries[1]:Scatter:scatter",
+                "PlotSeries[2]:Surface:surface-2",
+                "PlotSeries[3]:Surface:surface");
+
+            var outputEvidence = view.Plot.CreateOutputEvidence(
+                view.RenderingStatus,
+                view.ScatterRenderingStatus,
+                view.BarRenderingStatus,
+                view.ContourRenderingStatus);
+            outputEvidence.ActiveSeriesIdentity.Should().Be(
+                "Composed:Surface:PlotSeries[2]:Surface:surface-2|PlotSeries[3]:Surface:surface");
+
+            var movePastEnd = () => view.Plot.Move(secondSurface, 4);
+            movePastEnd.Should().Throw<ArgumentOutOfRangeException>();
+            view.Plot.Revision.Should().Be(5);
+            view.LastRefreshRevision.Should().Be(5);
+        });
+    }
+
+    [Fact]
     public void Plot3D_DatasetEvidence_ReportsSurfaceMetadataFromCurrentSeries()
     {
         AvaloniaHeadlessTestSession.Run(() =>
@@ -346,9 +402,11 @@ public sealed class VideraChartViewPlotApiTests
 
             var removeNull = () => view.Plot.Remove(null!);
             var indexNull = () => view.Plot.IndexOf(null!);
+            var moveNull = () => view.Plot.Move(null!, 0);
 
             removeNull.Should().Throw<ArgumentNullException>();
             indexNull.Should().Throw<ArgumentNullException>();
+            moveNull.Should().Throw<ArgumentNullException>();
             view.Plot.Revision.Should().Be(1);
             view.LastRefreshRevision.Should().Be(1);
         });
