@@ -7,13 +7,16 @@ For the canonical surface/cache-backed chart story, start from `Videra.SurfaceCh
 The shipped efficiency story is the same chart-local path used by the benchmark gate: tighter interactive residency under camera movement and lower probe-path churn.
 The scatter proof also exposes columnar streaming/FIFO truth from `ScatterColumnarSeries`: retained point count, append/replacement batch count, configured FIFO capacity, FIFO dropped point count, pickable point count, and Plot.Add.Scatter `InteractionQuality`. The demo source uses deterministic `ScatterStreamingScenarios` for replace, append, and FIFO-trim paths through `ReplaceRange(...)` / `AppendRange(...)`, optional `fifoCapacity`, and the high-volume default `Pickable=false`.
 
-The sample stays separate from `Videra.Demo` and `VideraView`. It exercises the chart-local renderer seam shipped in `VideraChartView`, not a `VideraView` mode. It provides switchable sources and built-in chart interaction:
+The sample stays separate from `Videra.Demo` and `VideraView`. It exercises the chart-local renderer seam shipped in `VideraChartView`, not a `VideraView` mode. It provides switchable sources, built-in chart interaction, and a bounded cookbook gallery:
 
 - `Start here: In-memory first chart`: builds a sample surface matrix at startup and feeds it through `SurfacePyramidBuilder`.
 - `Explore next: Cache-backed streaming`: loads manifest metadata from `Assets/sample-surface-cache/sample.surfacecache.json`, then uses lazy tile streaming from `Assets/sample-surface-cache/sample.surfacecache.json.bin` through `SurfaceCacheReader` and `SurfaceCacheTileSource`.
 - `Try next: Analytics proof`: exercises an explicit-coordinate `VideraChartView` path with independent scalar `ColorField` and pinned-probe workflow proof data.
 - `Try next: Waterfall proof`: exercises the thin `VideraChartView` proof on the same Avalonia shell.
 - `Try next: Scatter proof`: exercises the repo-owned scatter proof path on the same Avalonia shell with direct point-object data plus selectable deterministic columnar replace, append, and FIFO-trim scenarios.
+- `Cookbook gallery`: maps first chart, styling, interactions, live data, linked axes, and export recipes to isolated setup paths and matching snippets without becoming a generic chart editor.
+
+The cookbook is inspired by ScottPlot 5's discoverable recipe ergonomics. It is not a ScottPlot compatibility or parity layer: the snippets use Videra's 3D `VideraChartView`, `Plot.Add.*`, `Plot.Axes`, `DataLogger3D`, linked-view, and chart-local PNG snapshot APIs.
 
 VideraChartView exposes `ViewState` as the chart-view contract for persisted camera and data-window state.
 VideraChartView now ships built-in `left-drag orbit`, `right-drag pan`, `wheel dolly`, `Ctrl + left-drag` focus zoom, and `Shift + left-click` pinned probe on top of the `ViewState` runtime contract.
@@ -44,7 +47,11 @@ dotnet run --project samples/Videra.SurfaceCharts.Demo/Videra.SurfaceCharts.Demo
 
 ## Cookbook Recipes
 
-First surface plus chart-local axes:
+The demo's `Cookbook gallery` selector groups recipes by intent. Selecting a recipe switches to a bounded visible result when the result already exists in the sample shell, and the visible snippet matches the documentation below.
+
+### First Chart
+
+First surface from a small matrix:
 
 ```csharp
 var chart = new VideraChartView();
@@ -65,6 +72,45 @@ chart.Plot.Axes.Z.Unit = "Hz";
 chart.FitToData();
 ```
 
+### Styling
+
+Axes, color map, and chart-local overlay options:
+
+```csharp
+chart.Plot.Axes.X.Label = "Time";
+chart.Plot.Axes.X.Unit = "s";
+chart.Plot.Axes.Y.Label = "Height";
+chart.Plot.Axes.Y.Unit = "mm";
+chart.Plot.Axes.Z.Label = "Band";
+chart.Plot.Axes.Z.Unit = "Hz";
+chart.Plot.ColorMap = new SurfaceColorMap(
+    new SurfaceValueRange(0, 1),
+    SurfaceColorMapPresets.CreateProfessional());
+chart.Plot.OverlayOptions = new SurfaceChartOverlayOptions
+{
+    ShowMinorTicks = true,
+};
+```
+
+### Interactions
+
+Bounded interaction profile and host command wiring:
+
+```csharp
+chart.InteractionProfile = new SurfaceChartInteractionProfile
+{
+    IsOrbitEnabled = true,
+    IsPanEnabled = true,
+    IsDollyEnabled = true,
+    IsProbePinningEnabled = true,
+};
+
+chart.TryExecuteChartCommand(SurfaceChartCommand.FitToData);
+chart.TryResolveProbe(pointerPosition, out var probe);
+```
+
+### Live Data
+
 First scatter from coordinate arrays:
 
 ```csharp
@@ -75,20 +121,6 @@ chart.Plot.Add.Scatter(
     z: [0.0, 0.3, 0.6, 1.0],
     name: "First scatter");
 chart.FitToData();
-```
-
-Save the active plot as PNG:
-
-```csharp
-var result = await chart.Plot.SavePngAsync(
-    "artifacts/surfacecharts/first-chart.png",
-    width: 1920,
-    height: 1080);
-
-if (!result.Succeeded)
-{
-    throw new InvalidOperationException(result.Failure?.Message);
-}
 ```
 
 Live scatter through `DataLogger3D`:
@@ -112,10 +144,50 @@ chart.Plot.Clear();
 chart.Plot.Add.Scatter(liveData, "Live scatter");
 ```
 
+Latest-window evidence for live views:
+
+```csharp
+live.UseLatestWindow(2_000);
+var evidence = live.CreateLiveViewEvidence();
+```
+
+### Linked Axes
+
+Explicit two-chart view linking with a disposable lifetime:
+
+```csharp
+var left = new VideraChartView();
+var right = new VideraChartView();
+
+left.Plot.Add.Surface(surfaceSource, "Left");
+right.Plot.Add.Surface(comparisonSource, "Right");
+
+using var link = left.LinkViewWith(right);
+left.Plot.Axes.X.SetBounds(0, 10);
+right.FitToData();
+```
+
+### Export
+
+Save the active plot as PNG:
+
+```csharp
+var result = await chart.Plot.SavePngAsync(
+    "artifacts/surfacecharts/first-chart.png",
+    width: 1920,
+    height: 1080);
+
+if (!result.Succeeded)
+{
+    throw new InvalidOperationException(result.Failure?.Message);
+}
+```
+
 ## What The Demo Shows Today
 
 - an independent chart application boundary
 - a `Start here` in-memory first chart path
+- a cookbook/gallery navigation model with first chart, styling, interactions, live data, linked axes, and export groups
 - an `Explore next` cache-backed streaming path
 - a `Try next` analytics proof with explicit/non-uniform coordinates and independent `ColorField` on `VideraChartView`
 - a `Try next` waterfall proof path

@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.56
 milestone_name: "ScottPlot 5 Interaction and Cookbook Experience"
 status: active
-stopped_at: "Phase 386 and Phase 387 completed; Phase 388 ready"
-last_updated: "2026-04-30T03:30:00+08:00"
+stopped_at: "Phase 388 completed; Phase 389 ready"
+last_updated: "2026-04-30T04:20:00+08:00"
 last_activity: 2026-04-30
 progress:
   total_phases: 7
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 7
-  completed_plans: 4
-  percent: 57
+  completed_plans: 5
+  percent: 71
 ---
 
 # Project State
@@ -21,17 +21,17 @@ progress:
 See: `.planning/PROJECT.md`
 
 **Core value:** 跨平台 3D 渲染引擎的可靠性
-**Current focus:** v2.56 ScottPlot 5 Interaction and Cookbook Experience — Phases 386 and 387 complete
+**Current focus:** v2.56 ScottPlot 5 Interaction and Cookbook Experience — Phase 388 complete
 
 ## Current Position
 
 Milestone: `v2.56 ScottPlot 5 Interaction and Cookbook Experience`
-Phase: 388 ready
-Plan: Phases 383 through 387 complete
-Status: Selection/probe/draggable overlay recipes, axis rules, linked views, and DataLogger3D live view evidence are implemented and verified. `bd ready --json` should now expose Phase 388.
-Last activity: 2026-04-30 — Integrated Phase 386 and Phase 387 parallel work
+Phase: 389 ready
+Plan: Phases 383 through 388 complete
+Status: Cookbook/gallery demo and docs are implemented and verified. `bd ready --json` should now expose Phase 389.
+Last activity: 2026-04-30 — Completed Phase 388 cookbook demo/gallery and docs
 
-Progress: [██████░░░░] 57%
+Progress: [███████░░░] 71%
 
 ## Initial Scope Summary
 
@@ -67,7 +67,7 @@ This milestone improves the next layer of ScottPlot-inspired experience:
 
 Last session: `2026-04-30 +08:00`
 Stopped at: Phases 386 and 387 complete
-Next action: Execute `Videra-v256.6` in an isolated worktree if integration verification passes.
+Next action: Execute `Videra-v256.7` for integration guardrails and milestone evidence.
 
 ## Accumulated Context
 
