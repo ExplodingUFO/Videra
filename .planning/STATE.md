@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.54
 milestone_name: "Chart Interactivity"
 status: active
-stopped_at: "Completed Phase 373 Series Probe Strategies"
-last_updated: "2026-04-29T21:55:00+08:00"
+stopped_at: "Completed Phase 375 Integration and Verification"
+last_updated: "2026-04-29T22:40:00+08:00"
 last_activity: 2026-04-29
 progress:
   total_phases: 5
-  completed_phases: 2
-  total_plans: 2
-  completed_plans: 2
-  percent: 40
+  completed_phases: 5
+  total_plans: 5
+  completed_plans: 5
+  percent: 100
 ---
 
 # Project State
@@ -21,17 +21,17 @@ progress:
 See: `.planning/PROJECT.md`
 
 **Core value:** 跨平台 3D 渲染引擎的可靠性
-**Current focus:** v2.54 Chart Interactivity
+**Current focus:** v2.54 Chart Interactivity — COMPLETE
 
 ## Current Position
 
 Milestone: `v2.54 Chart Interactivity`
-Phase: 373 of 375 (Series Probe Strategies) — COMPLETE
-Plan: 373-PLAN complete
-Status: Phase 373 Series Probe Strategies complete. Ready for Phase 374.
-Last activity: 2026-04-29 - Completed Phase 373 Series Probe Strategies with 12 tests.
+Phase: 375 of 375 (Integration and Verification) — COMPLETE
+Plan: 375-PLAN complete
+Status: v2.54 milestone complete. All 5 phases delivered, all 22 requirements met.
+Last activity: 2026-04-29 - Completed Phase 375 Integration and Verification with 13 tests.
 
-Progress: [████░░░░░░] 40%
+Progress: [██████████] 100%
 
 ## Initial Scope Summary
 
@@ -52,6 +52,20 @@ The scope adds interactivity:
 - Cursor feedback during hover, drag, zoom operations
 - Integration with snapshot export and probe evidence contracts
 
+## Milestone Completion
+
+All 5 phases complete:
+
+| Phase | Name | Requirements | Tests |
+|-------|------|--------------|-------|
+| 371 | Crosshair Overlay | XHAIR-01..04 | 6 |
+| 372 | Enhanced Tooltips | TOOL-01..04 | 11 |
+| 373 | Series Probe Strategies | PROBE-01..04 | 12 |
+| 374 | Keyboard & Toolbar Controls | KB-01..04 | 12 |
+| 375 | Integration and Verification | INT-01..03, VER-01..03 | 13 |
+
+Total: 22 requirements, 54 tests added, 200 integration tests pass.
+
 ## Decisions
 
 - Phase 371–374 are independent (all depend only on existing infrastructure) — can be parallelized
@@ -62,7 +76,8 @@ The scope adds interactivity:
 - Default crosshair visibility is ON for immediate user feedback
 - Probe strategies use `ISeriesProbeStrategy` interface for extensibility
 - All features are presentation-layer overlays — no backend/Core changes
-- Start at Phase 371 (continuing from v2.53's Phase 370)
+- IsSnapshotMode flag suppresses interaction chrome during snapshot export
+- RenderPinnedOnly renders only pinned probes in snapshot mode
 
 ## Known Residuals
 
@@ -74,5 +89,5 @@ The scope adds interactivity:
 ## Session Continuity
 
 Last session: `2026-04-29 +08:00`
-Stopped at: Completed Phase 373 Series Probe Strategies
-Next action: `$gsd-plan-phase 374` to plan Phase 374 Keyboard & Toolbar Controls
+Stopped at: Completed Phase 375 Integration and Verification
+Next action: Milestone v2.54 complete. Consider milestone closeout or next milestone planning.

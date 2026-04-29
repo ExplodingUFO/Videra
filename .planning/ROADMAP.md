@@ -26,7 +26,7 @@
   2. Axis coordinate values are displayed as pills at the guideline endpoints (chart edges)
   3. User can toggle crosshair visibility on/off per chart instance via `SurfaceChartOverlayOptions`
   4. Crosshair updates on pointer move without triggering a full overlay coordinator rebuild
-**Plans**: TBD
+**Plans**: 375-PLAN.md
 
 ### Phase 372: Enhanced Tooltips
 **Goal:** Users see detailed, multi-series-aware data tooltips when hovering over chart elements, positioned to avoid chart-edge clipping
@@ -37,7 +37,7 @@
   2. Tooltip shows values from all series at the same X/Z position (multi-series awareness)
   3. Tooltip repositions itself automatically to stay within chart bounds (no edge clipping)
   4. Tooltip follows the pointer with a configurable offset from the cursor
-**Plans**: TBD
+**Plans**: 375-PLAN.md
 
 ### Phase 373: Series Probe Strategies
 **Goal:** Each chart series type (scatter, bar, contour) supports mouse-driven probe with type-appropriate resolution via an extensible strategy interface
@@ -48,7 +48,7 @@
   2. Hovering over a bar chart shows the bar value and category
   3. Hovering over a contour chart shows the iso-line value at the cursor position
   4. Probe resolution dispatches through `ISeriesProbeStrategy` so new series kinds can add custom probe behavior
-**Plans**: TBD
+**Plans**: 375-PLAN.md
 
 ### Phase 374: Keyboard & Toolbar Controls
 **Goal:** Users can control zoom, pan, and camera reset via keyboard shortcuts and on-chart toolbar buttons, with cursor feedback during interactions
@@ -59,7 +59,7 @@
   2. User can pan the chart view using arrow keys (left/right/up/down)
   3. Zoom/pan toolbar buttons are rendered as overlay controls on the chart
   4. Cursor shape changes during hover, drag, and zoom operations to provide interaction feedback
-**Plans**: TBD
+**Plans**: 375-PLAN.md
 
 ### Phase 375: Integration and Verification
 **Goal:** All interactivity features coexist with existing snapshot export and probe evidence contracts, with no regression to existing chart rendering
@@ -71,7 +71,7 @@
   3. Existing `SurfaceChartProbeEvidence` contract works with the enhanced probe system
   4. Beads state reflects milestone progress throughout all phases
   5. Existing chart rendering (surface, waterfall, scatter, bar, contour) shows no visual regression
-**Plans**: TBD
+**Plans**: 375-PLAN.md
 
 ## Progress
 
@@ -81,7 +81,7 @@
 | 372. Enhanced Tooltips | 1/1 | Complete | 2026-04-29 |
 | 373. Series Probe Strategies | 1/1 | Complete | 2026-04-29 |
 | 374. Keyboard & Toolbar Controls | 1/1 | Complete | 2026-04-29 |
-| 375. Integration and Verification | 0/TBD | Not started | - |
+| 375. Integration and Verification | 1/1 | Complete | 2026-04-29 |
 
 ---
 
