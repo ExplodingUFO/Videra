@@ -11,7 +11,7 @@
 
 - [x] **Phase 390: Release Readiness Inventory and Beads Coordination** - Confirm package/docs/smoke/CI/guardrail surfaces, release-candidate boundaries, and Beads/worktree ownership.
 - [x] **Phase 391: Public API and Package Metadata Review** - Catalog public SurfaceCharts API and package metadata while tightening release-readiness guardrails.
-- [ ] **Phase 392: Local Package Consumer Smoke** - Prove a clean consumer can restore, compile, and exercise public package APIs for the cookbook path.
+- [x] **Phase 392: Local Package Consumer Smoke** - Prove a clean consumer can restore, compile, and exercise public package APIs for the cookbook path.
 - [ ] **Phase 393: Release Validation Script and CI Alignment** - Add a single release-readiness validation path with clear local/manual boundaries.
 - [ ] **Phase 394: Release Candidate Docs and Support Handoff** - Update README/demo docs, migration notes, and support artifact guidance for package consumers.
 - [ ] **Phase 395: Integration, Guardrails, and Milestone Evidence** - Close with focused tests, release-readiness script, Beads export, generated roadmap, and clean handoff.
@@ -89,7 +89,7 @@
 |-------|----------------|--------|-----------|
 | 390. Release Readiness Inventory and Beads Coordination | 1/1 | Complete | 2026-04-30 |
 | 391. Public API and Package Metadata Review | 1/1 | Complete | 2026-04-30 |
-| 392. Local Package Consumer Smoke | 0/1 | Pending | - |
+| 392. Local Package Consumer Smoke | 1/1 | Complete | 2026-04-30 |
 | 393. Release Validation Script and CI Alignment | 0/1 | Pending | - |
 | 394. Release Candidate Docs and Support Handoff | 0/1 | Pending | - |
 | 395. Integration, Guardrails, and Milestone Evidence | 0/1 | Pending | - |

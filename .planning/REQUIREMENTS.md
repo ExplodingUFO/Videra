@@ -28,10 +28,10 @@ repeatable evidence.
 
 ### Consumer Validation
 
-- [ ] **CONSUME-01**: A clean consumer project can restore and compile against the locally built SurfaceCharts package.
-- [ ] **CONSUME-02**: Consumer validation covers first chart, interaction profile, selection/probe recipe, axis/live view recipe, and snapshot export entry points.
-- [ ] **CONSUME-03**: Consumer validation uses package/public APIs only, not project-internal source references.
-- [ ] **CONSUME-04**: Consumer validation artifacts are deterministic and suitable for support/debug handoff.
+- [x] **CONSUME-01**: A clean consumer project can restore and compile against the locally built SurfaceCharts package.
+- [x] **CONSUME-02**: Consumer validation covers first chart, interaction profile, selection/probe recipe, axis/live view recipe, and snapshot export entry points.
+- [x] **CONSUME-03**: Consumer validation uses package/public APIs only, not project-internal source references.
+- [x] **CONSUME-04**: Consumer validation artifacts are deterministic and suitable for support/debug handoff.
 
 ### Release Validation and CI
 
@@ -84,10 +84,10 @@ repeatable evidence.
 | API-02 | Phase 391 | Complete |
 | PKG-01 | Phase 391 | Complete |
 | PKG-02 | Phase 391 | Complete |
-| CONSUME-01 | Phase 392 | Pending |
-| CONSUME-02 | Phase 392 | Pending |
-| CONSUME-03 | Phase 392 | Pending |
-| CONSUME-04 | Phase 392 | Pending |
+| CONSUME-01 | Phase 392 | Complete |
+| CONSUME-02 | Phase 392 | Complete |
+| CONSUME-03 | Phase 392 | Complete |
+| CONSUME-04 | Phase 392 | Complete |
 | CI-01 | Phase 393 | Pending |
 | CI-02 | Phase 393 | Pending |
 | CI-03 | Phase 393 | Pending |

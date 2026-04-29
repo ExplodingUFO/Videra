@@ -44,6 +44,7 @@ $snapshotPath = Join-Path $outputPath "diagnostics-snapshot.txt"
 $inspectionSnapshotPath = Join-Path $outputPath "inspection-snapshot.png"
 $inspectionBundlePath = Join-Path $outputPath "inspection-bundle"
 $surfaceChartsSupportSummaryPath = Join-Path $outputPath "surfacecharts-support-summary.txt"
+$surfaceChartsSnapshotPath = Join-Path $outputPath "chart-snapshot.png"
 $tracePath = Join-Path $outputPath "consumer-smoke-trace.log"
 $stdoutPath = Join-Path $outputPath "consumer-smoke-stdout.log"
 $stderrPath = Join-Path $outputPath "consumer-smoke-stderr.log"
@@ -197,6 +198,7 @@ function Write-FallbackConsumerSmokeArtifacts([string]$failure, [int]$processExi
             InspectionSnapshotPath = if (Test-Path -LiteralPath $script:inspectionSnapshotPath) { $script:inspectionSnapshotPath } else { $null }
             InspectionBundlePath = if (Test-Path -LiteralPath $script:inspectionBundlePath) { $script:inspectionBundlePath } else { $null }
             SupportSummaryPath = if (Test-Path -LiteralPath $script:surfaceChartsSupportSummaryPath) { $script:surfaceChartsSupportSummaryPath } else { $null }
+            ChartSnapshotPath = if (Test-Path -LiteralPath $script:surfaceChartsSnapshotPath) { $script:surfaceChartsSnapshotPath } else { $null }
             ProcessExitCode = $processExitCode
             Display = Format-ConsumerSmokeEnvironmentValue $script:sessionEnvironment.DISPLAY
             WaylandDisplay = Format-ConsumerSmokeEnvironmentValue $script:sessionEnvironment.WAYLAND_DISPLAY
@@ -247,6 +249,7 @@ function Set-ConsumerSmokeReportMetadata
         $script:inspectionSnapshotPath,
         $script:inspectionBundlePath,
         $script:surfaceChartsSupportSummaryPath,
+        $script:surfaceChartsSnapshotPath,
         $script:tracePath,
         $script:stdoutPath,
         $script:stderrPath,
@@ -280,6 +283,11 @@ function Test-SurfaceChartsSupportSummaryContract([string]$summaryPath)
         "PrecisionProfile:",
         "OutputEvidenceKind:",
         "OutputCapabilityDiagnostics:",
+        "SnapshotStatus:",
+        "SnapshotPath:",
+        "SnapshotWidth:",
+        "SnapshotHeight:",
+        "SnapshotFormat:",
         "DatasetEvidenceKind:",
         "DatasetSeriesCount:",
         "DatasetActiveSeriesIndex:",
@@ -309,6 +317,23 @@ function Test-SurfaceChartsSupportSummaryContract([string]$summaryPath)
     if ($missingPrefixes.Count -gt 0)
     {
         throw "SurfaceCharts support summary '$summaryPath' is missing required field(s): $($missingPrefixes -join ', ')."
+    }
+
+    $snapshotStatus = ($lines | Where-Object { $_.StartsWith("SnapshotStatus:", [System.StringComparison]::Ordinal) } | Select-Object -First 1)
+    $snapshotPath = ($lines | Where-Object { $_.StartsWith("SnapshotPath:", [System.StringComparison]::Ordinal) } | Select-Object -First 1)
+    if ($null -ne $snapshotStatus -and $null -ne $snapshotPath)
+    {
+        $statusValue = $snapshotStatus.Substring("SnapshotStatus:".Length).Trim()
+        $pathValue = $snapshotPath.Substring("SnapshotPath:".Length).Trim()
+        if ($statusValue -eq "present" -and ($pathValue -eq "none" -or -not (Test-Path -LiteralPath $pathValue)))
+        {
+            throw "SurfaceCharts support summary '$summaryPath' reports a present snapshot but '$pathValue' was not found."
+        }
+
+        if ($statusValue -ne "present" -and $pathValue -ne "none")
+        {
+            throw "SurfaceCharts support summary '$summaryPath' reports SnapshotStatus '$statusValue' with non-empty SnapshotPath '$pathValue'."
+        }
     }
 }
 
@@ -569,6 +594,14 @@ elseif ($Scenario -eq "SurfaceCharts")
     {
         $missingArtifactFailure = "Consumer smoke produced '$surfaceChartsSupportSummaryPath' but it was empty."
     }
+    elseif (-not (Test-Path -LiteralPath $surfaceChartsSnapshotPath))
+    {
+        $missingArtifactFailure = "Consumer smoke did not produce '$surfaceChartsSnapshotPath'."
+    }
+    elseif ((Get-Item -LiteralPath $surfaceChartsSnapshotPath).Length -le 0)
+    {
+        $missingArtifactFailure = "Consumer smoke produced '$surfaceChartsSnapshotPath' but it was empty."
+    }
     else
     {
         try
@@ -637,4 +670,5 @@ if ($isViewerScenario)
 else
 {
     Write-Host "Support summary: $surfaceChartsSupportSummaryPath"
+    Write-Host "Chart snapshot: $surfaceChartsSnapshotPath"
 }

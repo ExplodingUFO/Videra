@@ -26,6 +26,7 @@ public partial class MainWindow : Window
     private readonly string? _outputPath;
     private readonly string? _diagnosticsSnapshotPath;
     private readonly string? _supportSummaryPath;
+    private readonly string? _chartSnapshotPath;
     private readonly string? _tracePath;
     private readonly SurfaceMetadata _metadata;
     private readonly ISurfaceTileSource _source;
@@ -33,6 +34,7 @@ public partial class MainWindow : Window
     private readonly SurfaceColorMap _colorMap;
     private readonly DispatcherTimer _readinessPollTimer;
     private readonly int _lightingProofHoldSeconds;
+    private bool _openedChartApplied;
     private bool _completed;
     private bool _completionQueued;
     private PlotSnapshotResult? _snapshotResult;
@@ -52,6 +54,9 @@ public partial class MainWindow : Window
         _supportSummaryPath = string.IsNullOrWhiteSpace(_outputPath)
             ? null
             : Path.Combine(Path.GetDirectoryName(_outputPath!)!, "surfacecharts-support-summary.txt");
+        _chartSnapshotPath = string.IsNullOrWhiteSpace(_outputPath)
+            ? null
+            : Path.Combine(Path.GetDirectoryName(_outputPath!)!, "chart-snapshot.png");
         _tracePath = Environment.GetEnvironmentVariable("VIDERA_CONSUMER_SMOKE_TRACE");
         _lightingProofHoldSeconds = ResolveLightingProofHoldSeconds();
 
@@ -85,7 +90,7 @@ public partial class MainWindow : Window
     private void ConfigureChart(SurfaceMetadata metadata)
     {
         _chartView.Plot.Clear();
-        _chartView.Plot.Add.Surface(_source, "Start here: In-memory first chart");
+        var firstChartSeries = _chartView.Plot.Add.Surface(_source, "Start here: In-memory first chart");
         _chartView.Plot.ColorMap = _colorMap;
         _chartView.Plot.OverlayOptions = _overlayOptions;
         _chartView.ViewState = SurfaceViewState.CreateDefault(
@@ -98,6 +103,7 @@ public partial class MainWindow : Window
         // Add Contour series for smoke validation
         AddContourSeries();
 
+        _chartView.Plot.Move(firstChartSeries, _chartView.Plot.Series.Count - 1);
         _chartView.FitToData();
     }
 
@@ -133,6 +139,7 @@ public partial class MainWindow : Window
         _ = e;
         Trace("Window opened.");
         ReapplyChartAfterOpen();
+        _openedChartApplied = true;
         UpdateStatusText("Waiting for packaged first-chart readiness.");
         _readinessPollTimer.Start();
         _ = RunTimeoutGuardAsync();
@@ -179,13 +186,6 @@ public partial class MainWindow : Window
         _ = TryCompleteWhenReadyAsync();
     }
 
-    private void ReapplyChartAfterOpen()
-    {
-        _chartView.Plot.Clear();
-        ConfigureChart(_metadata);
-        Trace("Reapplied chart after window open.");
-    }
-
     private async Task TryCompleteWhenReadyAsync()
     {
         if (_completed || _completionQueued || !IsFirstChartReady())
@@ -203,6 +203,15 @@ public partial class MainWindow : Window
                 firstChartRendered: true,
                 failure: null).ConfigureAwait(true);
         }
+        catch (Exception ex)
+        {
+            Trace($"Snapshot capture failed: {ex.Message}");
+            await CompleteAsync(
+                succeeded: false,
+                firstChartRendered: true,
+                failure: $"SurfaceCharts consumer smoke snapshot capture failed: {ex.Message}")
+                .ConfigureAwait(true);
+        }
         finally
         {
             _completionQueued = false;
@@ -211,22 +220,26 @@ public partial class MainWindow : Window
 
     private bool IsFirstChartReady()
     {
+        return _openedChartApplied && IsRenderingStatusReady();
+    }
+
+    private bool IsRenderingStatusReady()
+    {
         var status = _chartView.RenderingStatus;
         return status.IsReady && status.ResidentTileCount > 0;
     }
 
+    private void ReapplyChartAfterOpen()
+    {
+        _chartView.Plot.Clear();
+        ConfigureChart(_metadata);
+        Trace("Reapplied chart after window open.");
+    }
+
     private async Task<PlotSnapshotResult?> CaptureSnapshotAsync()
     {
-        try
-        {
-            var request = new PlotSnapshotRequest(1920, 1080, 1.0, PlotSnapshotBackground.Transparent, PlotSnapshotFormat.Png);
-            return await _chartView.Plot.CaptureSnapshotAsync(request).ConfigureAwait(true);
-        }
-        catch (Exception ex)
-        {
-            Trace($"Snapshot capture failed: {ex.Message}");
-            return null;
-        }
+        var request = new PlotSnapshotRequest(1920, 1080, 1.0, PlotSnapshotBackground.Transparent, PlotSnapshotFormat.Png);
+        return await _chartView.Plot.CaptureSnapshotAsync(request).ConfigureAwait(true);
     }
 
     private static int ResolveLightingProofHoldSeconds()
@@ -314,6 +327,28 @@ public partial class MainWindow : Window
         _completed = true;
         _readinessPollTimer.Stop();
 
+        if (succeeded && _snapshotResult is null)
+        {
+            try
+            {
+                _snapshotResult = await CaptureSnapshotAsync().ConfigureAwait(true);
+            }
+            catch (Exception ex)
+            {
+                Trace($"Snapshot capture failed: {ex.Message}");
+                succeeded = false;
+                failure = $"SurfaceCharts consumer smoke snapshot capture failed: {ex.Message}";
+            }
+        }
+
+        if (succeeded && _snapshotResult is not { Succeeded: true })
+        {
+            succeeded = false;
+            failure = "SurfaceCharts consumer smoke snapshot capture did not succeed.";
+        }
+
+        await PersistChartSnapshotAsync(succeeded).ConfigureAwait(true);
+
         var diagnostics = CreateDiagnosticsSnapshot();
         var supportSummary = CreateSupportSummary();
         var report = CreateReport(succeeded, firstChartRendered, failure);
@@ -321,7 +356,7 @@ public partial class MainWindow : Window
 
         if (!succeeded)
         {
-            for (var attempt = 0; attempt < 40 && !IsFirstChartReady(); attempt++)
+            for (var attempt = 0; attempt < 80 && !IsFirstChartReady(); attempt++)
             {
                 await Task.Delay(TimeSpan.FromMilliseconds(100)).ConfigureAwait(true);
             }
@@ -332,6 +367,12 @@ public partial class MainWindow : Window
                 succeeded = true;
                 firstChartRendered = true;
                 failure = null;
+                if (_snapshotResult is not { Succeeded: true })
+                {
+                    _snapshotResult = await CaptureSnapshotAsync().ConfigureAwait(true);
+                }
+
+                await PersistChartSnapshotAsync(succeeded).ConfigureAwait(true);
                 diagnostics = CreateDiagnosticsSnapshot();
                 supportSummary = CreateSupportSummary();
                 report = CreateReport(succeeded, firstChartRendered, failure);
@@ -385,7 +426,42 @@ public partial class MainWindow : Window
             renderingStatus.ResidentTileBytes,
             _chartView.InteractionQuality.ToString(),
             _diagnosticsSnapshotPath,
-            _supportSummaryPath);
+            _supportSummaryPath,
+            CreateReportChartSnapshotPath());
+    }
+
+    private string? CreateReportChartSnapshotPath()
+    {
+        return HasPersistedChartSnapshot() ? _chartSnapshotPath : null;
+    }
+
+    private async Task PersistChartSnapshotAsync(bool succeeded)
+    {
+        if (string.IsNullOrWhiteSpace(_chartSnapshotPath))
+        {
+            return;
+        }
+
+        if (!succeeded)
+        {
+            return;
+        }
+
+        if (_snapshotResult is not { Succeeded: true } || string.IsNullOrWhiteSpace(_snapshotResult.Path))
+        {
+            throw new InvalidOperationException("SurfaceCharts consumer smoke did not produce a successful plot snapshot.");
+        }
+
+        if (!File.Exists(_snapshotResult.Path))
+        {
+            throw new FileNotFoundException("SurfaceCharts consumer smoke snapshot output was not found.", _snapshotResult.Path);
+        }
+
+        Directory.CreateDirectory(Path.GetDirectoryName(_chartSnapshotPath!)!);
+        using var source = File.OpenRead(_snapshotResult.Path);
+        using var destination = File.Create(_chartSnapshotPath!);
+        await source.CopyToAsync(destination).ConfigureAwait(true);
+        Trace($"Wrote chart snapshot: {_chartSnapshotPath}");
     }
 
     private async Task PersistArtifactsAsync(
@@ -469,7 +545,7 @@ public partial class MainWindow : Window
             $"OutputEvidenceKind: {CreateOutputEvidenceKindSummary(_chartView)}\n" +
             $"OutputCapabilityDiagnostics: {CreateOutputCapabilityDiagnosticsSummary(_chartView)}\n" +
             $"SnapshotStatus: {CreateSnapshotStatusSummary()}\n" +
-            $"SnapshotPath: {_snapshotResult?.Path ?? "none"}\n" +
+            $"SnapshotPath: {CreateSnapshotPathSummary()}\n" +
             $"SnapshotWidth: {_snapshotResult?.Manifest?.Width.ToString(CultureInfo.InvariantCulture) ?? "none"}\n" +
             $"SnapshotHeight: {_snapshotResult?.Manifest?.Height.ToString(CultureInfo.InvariantCulture) ?? "none"}\n" +
             $"SnapshotFormat: {_snapshotResult?.Manifest?.Format.ToString() ?? "none"}\n" +
@@ -645,6 +721,11 @@ public partial class MainWindow : Window
             : $"{valueRange.Minimum.ToString("G6", CultureInfo.InvariantCulture)}..{valueRange.Maximum.ToString("G6", CultureInfo.InvariantCulture)}";
     }
 
+    private static string FormatFifoCapacity(int? configuredFifoCapacity)
+    {
+        return configuredFifoCapacity is { } capacity ? capacity.ToString(CultureInfo.InvariantCulture) : "unbounded";
+    }
+
     private static string FormatSeriesName(string? name)
     {
         return string.IsNullOrWhiteSpace(name) ? "unnamed" : name;
@@ -747,6 +828,26 @@ public partial class MainWindow : Window
         return _snapshotResult.Succeeded ? "present" : "failed";
     }
 
+    private string CreateSnapshotPathSummary()
+    {
+        if (HasPersistedChartSnapshot())
+        {
+            return _chartSnapshotPath!;
+        }
+
+        if (_snapshotResult is { Succeeded: true } && !string.IsNullOrWhiteSpace(_snapshotResult.Path))
+        {
+            return _snapshotResult.Path;
+        }
+
+        return "none";
+    }
+
+    private bool HasPersistedChartSnapshot()
+    {
+        return !string.IsNullOrWhiteSpace(_chartSnapshotPath) && File.Exists(_chartSnapshotPath);
+    }
+
     private void Trace(string message)
     {
         if (string.IsNullOrWhiteSpace(_tracePath))
@@ -779,5 +880,6 @@ public partial class MainWindow : Window
         long ResidentTileBytes,
         string InteractionQuality,
         string? DiagnosticsSnapshotPath,
-        string? SupportSummaryPath);
+        string? SupportSummaryPath,
+        string? ChartSnapshotPath);
 }

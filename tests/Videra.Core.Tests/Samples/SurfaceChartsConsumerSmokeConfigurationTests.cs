@@ -38,6 +38,7 @@ public sealed class SurfaceChartsConsumerSmokeConfigurationTests
         var mainWindowCodeBehind = File.ReadAllText(mainWindowCodeBehindPath);
         mainWindowCodeBehind.Should().Contain("Start here: In-memory first chart");
         mainWindowCodeBehind.Should().Contain("surfacecharts-support-summary.txt");
+        mainWindowCodeBehind.Should().Contain("chart-snapshot.png");
         mainWindowCodeBehind.Should().Contain("SurfacePyramidBuilder");
         mainWindowCodeBehind.Should().Contain("SurfaceChartOverlayOptions");
         mainWindowCodeBehind.Should().Contain("InteractionQuality");
@@ -56,6 +57,14 @@ public sealed class SurfaceChartsConsumerSmokeConfigurationTests
         mainWindowCodeBehind.Should().Contain("PrecisionProfile:");
         mainWindowCodeBehind.Should().Contain("OutputEvidenceKind:");
         mainWindowCodeBehind.Should().Contain("OutputCapabilityDiagnostics:");
+        mainWindowCodeBehind.Should().Contain("PlotSnapshotRequest");
+        mainWindowCodeBehind.Should().Contain("CaptureSnapshotAsync");
+        mainWindowCodeBehind.Should().Contain("SnapshotStatus:");
+        mainWindowCodeBehind.Should().Contain("SnapshotPath:");
+        mainWindowCodeBehind.Should().Contain("ChartSnapshotPath");
+        mainWindowCodeBehind.Should().Contain("CreateSnapshotPathSummary");
+        mainWindowCodeBehind.Should().Contain("CreateReportChartSnapshotPath");
+        mainWindowCodeBehind.Should().Contain("HasPersistedChartSnapshot");
         mainWindowCodeBehind.Should().Contain("DatasetEvidenceKind:");
         mainWindowCodeBehind.Should().Contain("DatasetSeriesCount:");
         mainWindowCodeBehind.Should().Contain("DatasetActiveSeriesIndex:");
