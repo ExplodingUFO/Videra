@@ -12,24 +12,25 @@ Videra 是一个基于 `.NET 8` 的跨平台 3D 渲染引擎，提供 Windows (`
 
 ## Current State
 
-- 最新完整归档 milestone：`v2.52 Professional Chart Snapshot Export`
-- 最近完成 milestone：`v2.52 Professional Chart Snapshot Export`
-- 当前 active milestone：`v2.53 Chart Type Expansion and Axis Semantics`
-- 当前 focus：扩展 SurfaceCharts 图表类型 (Bar, Contour) 和轴语义 (Log, DateTime, Legend)。
-
-## Current Milestone: v2.53 Chart Type Expansion and Axis Semantics
-
-**Goal:** Add new chart types (Bar, Contour) and richer axis semantics (DateTime, log scale, custom formatters) to SurfaceCharts, with enhanced legend overlay.
-
-**Target features:**
-- Log scale Y axis and DateTime X axis support
-- Custom tick formatters per axis
-- Multi-series legend overlay with per-kind indicators
-- Bar chart series type (grouped/stacked, 3D rectangular prisms)
-- Contour plot series type (marching squares iso-lines)
-- Integration evidence for all new chart types
+- 最新完整归档 milestone：`v2.53 Chart Type Expansion and Axis Semantics`
+- 最近完成 milestone：`v2.53 Chart Type Expansion and Axis Semantics`
+- 当前 active milestone：none (ready for next milestone)
+- 当前 focus：v2.53 已完成。Bar/Contour 图表类型、Log/DateTime 轴、Legend 已 shipped。
 
 ## Completed Milestones
+
+### v2.53 Chart Type Expansion and Axis Semantics (2026-04-29)
+
+Shipped chart type expansion and axis semantics:
+- Log scale Y axis with powers-of-10 tick generation
+- DateTime X axis with UTC-seconds storage and auto-formatted ticks
+- Per-axis custom tick formatters
+- Multi-series legend overlay with kind-specific indicators
+- Bar chart series (grouped/stacked, 3D rectangular prisms)
+- Contour plot series (marching squares, 3D line geometry, caching)
+- Demo with Bar and Contour chart samples
+- Consumer smoke validation for all new chart types
+- 5 phases, 25 requirements, all verified passed
 
 ### v2.52 Professional Chart Snapshot Export (2026-04-29)
 
