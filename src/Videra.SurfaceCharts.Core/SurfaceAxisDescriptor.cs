@@ -28,7 +28,7 @@ public sealed class SurfaceAxisDescriptor
     /// <param name="maximum">The inclusive axis maximum.</param>
     /// <param name="scaleKind">The axis scale semantics.</param>
     /// <exception cref="ArgumentException">Thrown when <paramref name="label"/> is blank or <paramref name="maximum"/> is less than <paramref name="minimum"/>.</exception>
-    /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="minimum"/> or <paramref name="maximum"/> is not finite.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="minimum"/> or <paramref name="maximum"/> is not finite, or when <paramref name="scaleKind"/> is Log and <paramref name="minimum"/> or <paramref name="maximum"/> is not positive.</exception>
     public SurfaceAxisDescriptor(string label, string? unit, double minimum, double maximum, SurfaceAxisScaleKind scaleKind)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(label);
@@ -45,9 +45,19 @@ public sealed class SurfaceAxisDescriptor
 
         if (scaleKind == SurfaceAxisScaleKind.Log)
         {
-            throw new ArgumentException(
-                "Logarithmic axis scaling is reserved until raw axis values and display-space coordinates are separated.",
-                nameof(scaleKind));
+            if (minimum <= 0d)
+            {
+                throw new ArgumentOutOfRangeException(
+                    nameof(minimum),
+                    "Logarithmic axis minimum must be positive (greater than zero).");
+            }
+
+            if (maximum <= 0d)
+            {
+                throw new ArgumentOutOfRangeException(
+                    nameof(maximum),
+                    "Logarithmic axis maximum must be positive (greater than zero).");
+            }
         }
 
         if (maximum < minimum)
