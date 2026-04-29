@@ -344,7 +344,9 @@ public sealed class VideraChartViewPlotApiTests
             evidence.RenderingEvidence!.RenderingKind.Should().Be("surface-rendering-status");
             evidence.RenderingEvidence.BackendKind.Should().Be(view.RenderingStatus.ActiveBackend);
             evidence.OutputCapabilityDiagnostics.Should().HaveCount(3);
-            evidence.OutputCapabilityDiagnostics.Should().OnlyContain(diagnostic => !diagnostic.IsSupported);
+            evidence.OutputCapabilityDiagnostics.First(d => d.Capability == "ImageExport").IsSupported.Should().BeTrue();
+            evidence.OutputCapabilityDiagnostics.First(d => d.Capability == "PdfExport").IsSupported.Should().BeFalse();
+            evidence.OutputCapabilityDiagnostics.First(d => d.Capability == "VectorExport").IsSupported.Should().BeFalse();
             evidence.OutputCapabilityDiagnostics.Select(diagnostic => diagnostic.Capability).Should().Equal(
                 "ImageExport",
                 "PdfExport",
@@ -379,8 +381,8 @@ public sealed class VideraChartViewPlotApiTests
             evidence.RenderingEvidence.ViewHeight.Should().Be(180d);
             evidence.OutputCapabilityDiagnostics.Should().Contain(diagnostic =>
                 diagnostic.Capability == "ImageExport" &&
-                diagnostic.DiagnosticCode == "plot-output.export.image.unsupported" &&
-                !diagnostic.IsSupported);
+                diagnostic.DiagnosticCode == "plot-output.export.image.supported" &&
+                diagnostic.IsSupported);
         });
     }
 
@@ -403,7 +405,55 @@ public sealed class VideraChartViewPlotApiTests
             evidence.ColorMapEvidence.Should().BeNull();
             evidence.PrecisionProfile.Should().Be("SurfaceChartOverlayOptions:Tick=General(3);Legend=General(3);Formatter=Default");
             evidence.RenderingEvidence.Should().BeNull();
-            evidence.OutputCapabilityDiagnostics.Should().OnlyContain(diagnostic => !diagnostic.IsSupported);
+            evidence.OutputCapabilityDiagnostics.Should().HaveCount(3);
+            evidence.OutputCapabilityDiagnostics.First(d => d.Capability == "ImageExport").IsSupported.Should().BeTrue();
+        });
+    }
+
+    [Fact]
+    public void Plot3D_CreateOutputEvidence_ReportsBarChartContract()
+    {
+        AvaloniaHeadlessTestSession.Run(() =>
+        {
+            var view = new VideraChartView();
+            view.Measure(new Size(320, 180));
+            view.Arrange(new Rect(0, 0, 320, 180));
+            view.Plot.Add.Bar(new[] { 1.0, 2.0, 3.0 }, "bars");
+
+            var evidence = view.Plot.CreateOutputEvidence(view.RenderingStatus, view.ScatterRenderingStatus, view.BarRenderingStatus, view.ContourRenderingStatus);
+
+            evidence.SeriesCount.Should().Be(1);
+            evidence.ActiveSeriesIndex.Should().Be(0);
+            evidence.ActiveSeriesKind.Should().Be(Plot3DSeriesKind.Bar);
+            evidence.ActiveSeriesIdentity.Should().Be("Bar:bars:0");
+            evidence.ColorMapStatus.Should().Be(Plot3DColorMapStatus.NotApplicable);
+            evidence.ColorMapEvidence.Should().BeNull();
+            evidence.RenderingEvidence.Should().NotBeNull();
+            evidence.RenderingEvidence!.RenderingKind.Should().Be("bar-rendering-status");
+            evidence.RenderingEvidence.IsReady.Should().BeTrue();
+        });
+    }
+
+    [Fact]
+    public void Plot3D_CreateOutputEvidence_ReportsContourContract()
+    {
+        AvaloniaHeadlessTestSession.Run(() =>
+        {
+            var view = new VideraChartView();
+            var values = CreateContourField(5, 5);
+            view.Plot.Add.Contour(values, "contours");
+
+            var evidence = view.Plot.CreateOutputEvidence(view.RenderingStatus, view.ScatterRenderingStatus, view.BarRenderingStatus, view.ContourRenderingStatus);
+
+            evidence.SeriesCount.Should().Be(1);
+            evidence.ActiveSeriesIndex.Should().Be(0);
+            evidence.ActiveSeriesKind.Should().Be(Plot3DSeriesKind.Contour);
+            evidence.ActiveSeriesIdentity.Should().Be("Contour:contours:0");
+            evidence.ColorMapStatus.Should().Be(Plot3DColorMapStatus.NotApplicable);
+            evidence.ColorMapEvidence.Should().BeNull();
+            evidence.RenderingEvidence.Should().NotBeNull();
+            evidence.RenderingEvidence!.RenderingKind.Should().Be("contour-rendering-status");
+            evidence.RenderingEvidence.IsReady.Should().BeTrue();
         });
     }
 
@@ -566,5 +616,18 @@ public sealed class VideraChartViewPlotApiTests
             new SurfaceAxisDescriptor("Time", "s", 0d, 9d, SurfaceAxisScaleKind.ExplicitCoordinates),
             new SurfaceAxisDescriptor("Sweep", null, 0d, 1.3d, SurfaceAxisScaleKind.ExplicitCoordinates),
             new SurfaceValueRange(0d, 10d));
+    }
+
+    private static double[,] CreateContourField(int width, int height)
+    {
+        var values = new double[width, height];
+        for (var y = 0; y < height; y++)
+            for (var x = 0; x < width; x++)
+            {
+                var dx = x - (width - 1) / 2.0;
+                var dy = y - (height - 1) / 2.0;
+                values[x, y] = Math.Sqrt(dx * dx + dy * dy);
+            }
+        return values;
     }
 }

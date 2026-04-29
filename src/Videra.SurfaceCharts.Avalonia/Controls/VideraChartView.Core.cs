@@ -194,6 +194,7 @@ public partial class VideraChartView : Decorator
         LastRefreshRevision = Plot.Revision;
         UpdateScatterRenderingStatus();
         UpdateContourRenderingStatus();
+        UpdateBarRenderingStatus();
         InvalidateRenderScene();
     }
 
