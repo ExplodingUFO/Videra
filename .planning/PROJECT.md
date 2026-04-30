@@ -12,23 +12,33 @@ Videra 是一个基于 `.NET 8` 的跨平台 3D 渲染引擎，提供 Windows (`
 
 ## Current State
 
-- 最新完整归档 milestone：`v2.57 SurfaceCharts Release Readiness and Consumer Validation`
-- 最近完成 milestone：`v2.57 SurfaceCharts Release Readiness and Consumer Validation`
-- 当前 active milestone：`v2.58 SurfaceCharts Controlled Release Cutover`
-- 当前 focus：把 v2.57 已验证的 SurfaceCharts release-readiness 证据推进到受控 release cutover：approval packet、version/package contract、gated dry-run automation、release notes/docs/support handoff 和最终同步验证。
+- 最新完整归档 milestone：`v2.58 SurfaceCharts Controlled Release Cutover`
+- 最近完成 milestone：`v2.58 SurfaceCharts Controlled Release Cutover`
+- 当前 active milestone：`v2.59 ScottPlot5 Interaction and Cookbook Experience`
+- 当前 focus：继续围绕 SurfaceCharts 做 ScottPlot5-inspired interaction/code-experience polish，并把 demo/docs 收成 cookbook-style、copyable recipes；不引入 ScottPlot compatibility layer、旧 chart controls 或隐藏 fallback 行为。
 
-## Current Milestone: v2.58 SurfaceCharts Controlled Release Cutover
+## Current Milestone: v2.59 ScottPlot5 Interaction and Cookbook Experience
 
-**Goal:** Turn the completed v2.57 SurfaceCharts release-readiness evidence into a controlled release cutover package without public NuGet publish, public tag creation, or GitHub release publication unless separately approved.
+**Goal:** Continue SurfaceCharts toward ScottPlot5-inspired interaction and code-experience optimization while turning demos into cookbook-style, copyable recipes.
 
 **Target features:**
-- Release cutover approval packet and abort/hold criteria
-- Version/package metadata, package assets, README/package links, and public API/package guardrails
-- Gated release dry-run automation that fails closed before publish/tag/release actions
-- Release notes, changelog, cookbook, migration, and support cutover docs
-- Final verification through focused validation, Beads export, generated roadmap, archive, Git/Dolt push, and clean branch/worktree state
+- Inventory current SurfaceCharts interaction APIs, demo flows, cookbook docs, and scoped ergonomics gaps
+- Improve the first bounded set of interaction/code-experience surfaces where the inventory justifies it
+- Convert demo/docs entry points into cookbook-style, copyable recipes using current public APIs
+- Close with focused tests, docs checks, Beads export, generated roadmap, archive, Git/Dolt push, and clean branch/worktree state
 
 ## Completed Milestones
+
+### v2.58 SurfaceCharts Controlled Release Cutover (2026-04-30)
+
+Completed the controlled release cutover package for `0.1.0-alpha.7` without publishing a public package, public tag, or GitHub release:
+- produced the release cutover approval packet and abort/hold criteria
+- confirmed version/package metadata, assets, README/package links, and public API/package guardrails
+- hardened gated release dry-run automation with explicit `manual-gate` publish/tag/release states
+- added release cutover notes, package docs, cookbook/support guidance, and troubleshooting paths
+- closed with final release-readiness validation, Beads export, generated roadmap, phase archive, Git push, Dolt Beads push, and clean handoff
+
+Archived: `.planning/milestones/v2.58-phases`
 
 ### v2.57 SurfaceCharts Release Readiness and Consumer Validation (2026-04-30)
 
@@ -311,7 +321,7 @@ Archived: `.planning/milestones/v2.52-ROADMAP.md`, `.planning/milestones/v2.52-R
 
 ## Next Milestone Goals
 
-The current milestone should start with `$gsd-plan-phase 390`. Keep Beads as the task spine, split implementation by dependencies, and use isolated Dolt worktrees only for disjoint phases. Prioritize release-candidate evidence and package-consumer validation over public publish/tag scope.
+The current milestone should start with `$gsd-plan-phase 401`. Keep Beads as the task spine, split implementation by dependencies, and use isolated Dolt worktrees only for disjoint phases. Prioritize real SurfaceCharts interaction/API/demo evidence before implementation, and preserve the ScottPlot5 inspiration boundary without compatibility claims.
 
 ## Most Recently Completed Milestone: v2.36 Beads Remote Sync PR Closure
 
@@ -809,6 +819,6 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-30 after starting v2.58 milestone*
+*Last updated: 2026-04-30 after starting v2.59 milestone*
 
 

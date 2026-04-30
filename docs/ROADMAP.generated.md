@@ -17,13 +17,13 @@ _No matching beads in the exported snapshot._
 ## Ready
 
 - **Videra-v259** - v2.59 ScottPlot5 Interaction and Cookbook Experience (epic, P1, open; labels: cookbook, interaction, scottplot5-inspired, surfacecharts, v2.59)
-- **Videra-v259.4** - Phase 404 Interaction Cookbook Final Verification (task, P1, open; labels: cookbook, interaction, phase-404, surfacecharts, v2.59, verification)
+- **Videra-v259.1** - Phase 401 Interaction and Cookbook Experience Inventory (task, P1, open; labels: cookbook, interaction, inventory, phase-401, surfacecharts, v2.59)
 
 ## Blocked
 
-- **Videra-v259.1** - Phase 401 Interaction and Cookbook Experience Inventory (task, P1, open; labels: cookbook, interaction, inventory, phase-401, surfacecharts, v2.59)
 - **Videra-v259.2** - Phase 402 Interaction and Code Experience Polish (task, P1, open; labels: code-experience, interaction, phase-402, surfacecharts, v2.59)
 - **Videra-v259.3** - Phase 403 Cookbook Demo Conversion (task, P1, open; labels: cookbook, demo, docs, phase-403, surfacecharts, v2.59)
+- **Videra-v259.4** - Phase 404 Interaction Cookbook Final Verification (task, P1, open; labels: cookbook, interaction, phase-404, surfacecharts, v2.59, verification)
 
 ## Backlog
 

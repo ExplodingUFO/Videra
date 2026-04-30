@@ -1,5 +1,32 @@
 # Milestones
 
+## v2.58 SurfaceCharts Controlled Release Cutover
+
+**Shipped:** 2026-04-30
+**Phases:** 5 (`396-400`)
+**Plans:** 5
+**Timeline:** 1 day (`2026-04-30` -> `2026-04-30`)
+**Repo state:** completed on `master`; final release-readiness validation passed for `0.1.0-alpha.7`; public publish, public tag, and GitHub release actions remained manual-gated and unexecuted; Beads ready queue moved to v2.59 at close
+
+### Key Accomplishments
+
+1. Converted v2.57 release-readiness evidence into an approval packet with explicit abort/hold criteria.
+2. Confirmed version/package metadata, package assets, README/package links, and public API/package guardrails.
+3. Hardened release dry-run automation so publish/tag/GitHub release steps are visible, approval-gated, fail closed, and report `actionTaken=false`.
+4. Added release cutover notes, package docs, cookbook/support guidance, and troubleshooting paths for package consumers.
+5. Closed with final release-readiness validation, Beads export, generated public roadmap, archived phase evidence, branch/worktree cleanup, Git push, and Dolt Beads push.
+
+### Archived Materials
+
+- `.planning/milestones/v2.58-phases/`
+
+### Notes
+
+- v2.58 did not publish to NuGet, create a public tag, or publish a GitHub release.
+- No old chart controls, direct public `Source`, compatibility wrappers, PDF/vector export, backend/runtime expansion, hidden fallback/downshift behavior, full ScottPlot compatibility, or god-code workbench was introduced.
+
+---
+
 ## v2.57 SurfaceCharts Release Readiness and Consumer Validation
 
 **Shipped:** 2026-04-30
