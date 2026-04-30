@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.63
 milestone_name: "Native SurfaceCharts Feature and Demo Expansion"
 status: active
-stopped_at: "Phase 421 in progress"
-last_updated: "2026-04-30T18:38:00+08:00"
+stopped_at: "Phase 422 ready"
+last_updated: "2026-04-30T18:46:48+08:00"
 last_activity: 2026-04-30
 progress:
   total_phases: 6
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 6
   completed_plans: 3
-  percent: 33
+  percent: 50
 ---
 
 # Project State
@@ -26,12 +26,12 @@ See: `.planning/PROJECT.md`
 ## Current Position
 
 Milestone: `v2.63 Native SurfaceCharts Feature and Demo Expansion`
-Phase: 421 of 424 - IN PROGRESS
-Plan: Phase 421 annotation anchor DTOs are first because measurement helpers and selection events depend on the anchor contract.
-Status: `Videra-b5n` and `Videra-b5n.1` are claimed. `Videra-b5n.2` and `Videra-b5n.3` remain blocked until annotation anchors land.
-Last activity: 2026-04-30 - Planned Phase 421 and started 421A annotation anchor DTOs from existing probe/selection report surfaces.
+Phase: 422 of 424 - READY
+Plan: Phase 422 should start with demo scenario descriptors, then split bounded demo view, selector, support summary, and smoke-truth work by bead.
+Status: `Videra-b5n` and children are closed. `Videra-j3z` is unblocked and ready.
+Last activity: 2026-04-30 - Completed Phase 421 annotation anchors, measurement reports, and native selection report event delivery with focused interaction tests.
 
-Progress: [###-------] 33%
+Progress: [#####-----] 50%
 
 ## Initial Scope Summary
 
@@ -71,8 +71,8 @@ v2.63 focuses on:
 ## Session Continuity
 
 Last session: `2026-04-30 +08:00`
-Stopped at: Phase 421 in progress
-Next action: implement `Videra-b5n.1` annotation anchor DTOs and focused interaction recipe tests.
+Stopped at: Phase 422 ready
+Next action: claim `Videra-j3z` and start demo scenario descriptors before splitting downstream demo workflow beads.
 
 ## Accumulated Context
 

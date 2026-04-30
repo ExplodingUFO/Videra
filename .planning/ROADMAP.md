@@ -22,7 +22,7 @@ TRUTH-01..03, VERIFY-01..02)
 - [x] **Phase 420: Native 3D Feature Convenience APIs** - Add focused native
   feature affordances for common 3D chart construction, styling, and typed
   state inspection.
-- [ ] **Phase 421: Annotation and Measurement Workflows** - Add bounded
+- [x] **Phase 421: Annotation and Measurement Workflows** - Add bounded
   coordinate-attached labels, markers, references, and measurement evidence.
 - [ ] **Phase 422: Demo Gallery Workflow Upgrade** - Upgrade the SurfaceCharts
   demo into a richer recipe-first gallery without turning it into a generic
@@ -83,6 +83,7 @@ workflows.
    precision overclaims.
 3. APIs and rendering code stay bounded to chart-local responsibilities.
 **Plans:** 421-PLAN.md
+**Completed:** 2026-04-30
 
 ### Phase 422: Demo Gallery Workflow Upgrade
 
@@ -131,8 +132,8 @@ workflows.
 |-------|----------------|--------|-----------|
 | 419. Feature/Demo Surface Inventory | 1/1 | Complete | 2026-04-30 |
 | 420. Native 3D Feature Convenience APIs | 1/1 | Complete | 2026-04-30 |
-| 421. Annotation and Measurement Workflows | 1/1 | In Progress | |
-| 422. Demo Gallery Workflow Upgrade | 0/1 | Blocked on 421 | |
+| 421. Annotation and Measurement Workflows | 1/1 | Complete | 2026-04-30 |
+| 422. Demo Gallery Workflow Upgrade | 0/1 | Ready | |
 | 423. Feature Cookbook and Validation Truth | 0/1 | Blocked on 422 | |
 | 424. v2.63 Final Verification | 0/1 | Blocked on 423 | |
 
