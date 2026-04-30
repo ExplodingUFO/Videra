@@ -421,6 +421,7 @@
         "Videra.SurfaceCharts.Avalonia.Controls.Interaction.SurfaceChartInteractionProfile",
         "Videra.SurfaceCharts.Avalonia.Controls.LineChartRenderingStatus",
         "Videra.SurfaceCharts.Avalonia.Controls.LinePlot3DSeries",
+        "Videra.SurfaceCharts.Avalonia.Controls.MultiPlot3D",
         "Videra.SurfaceCharts.Avalonia.Controls.Plot3D",
         "Videra.SurfaceCharts.Avalonia.Controls.Plot3DAddApi",
         "Videra.SurfaceCharts.Avalonia.Controls.Plot3DColorMapStatus",
