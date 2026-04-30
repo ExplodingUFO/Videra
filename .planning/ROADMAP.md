@@ -69,7 +69,9 @@ SurfaceCharts panels.
    context, dataset scale, and rendering status.
 3. Demo/sample code keeps layout, scenario catalog, and support summary
    responsibilities separated.
-**Plans:** 426-PLAN.md
+Plans:
+- [ ] 426-01-PLAN.md — Workspace contracts and core registration
+- [ ] 426-02-PLAN.md — Link group, aggregate status, evidence, and demo integration
 
 ### Phase 427: Linked Interaction and Selection Propagation
 
@@ -151,7 +153,7 @@ consumer templates.
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 425. Analysis Workspace and Streaming Inventory | 1/1 | Complete | 2026-04-30 |
-| 426. Native Multi-Chart Analysis Workspace | 0/1 | Ready | |
+| 426. Native Multi-Chart Analysis Workspace | 0/2 | Ready | |
 | 427. Linked Interaction and Selection Propagation | 0/1 | Blocked | |
 | 428. High-Density and Streaming Data Evidence | 0/1 | Blocked | |
 | 429. Scenario Cookbook and Package Templates | 0/1 | Blocked | |
