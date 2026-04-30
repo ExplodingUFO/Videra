@@ -26,6 +26,8 @@ git status --short --branch
 | `pwsh -NoProfile -File scripts\Test-SnapshotExportScope.ps1` | Passed: all scope checks passed. |
 | `git diff --check` | Passed; Git reported LF-to-CRLF working-copy warnings for existing markdown files. |
 | `git status --short --branch` | Clean except for the Phase 406 changes before commit. |
+| Mainline merge rerun: `dotnet test tests\Videra.Core.Tests\Videra.Core.Tests.csproj --filter "SurfaceChartsDemoConfigurationTests\|SurfaceChartsCookbook" --no-restore` | Passed after merge: 3 tests, 0 failed. |
+| Mainline merge rerun: `pwsh -NoProfile -File scripts\Test-SnapshotExportScope.ps1` | Passed after merge: all scope checks passed. |
 
 ## Blockers
 

@@ -17,12 +17,11 @@ _No matching beads in the exported snapshot._
 ## Ready
 
 - **Videra-tqz** - v2.60 SurfaceCharts Cookbook QA and Interaction Handoff (epic, P1, open)
-- **Videra-1h1** - Phase 406 Cookbook QA Hardening (task, P2, open)
-- **Videra-xq1** - Phase 407 Interaction Handoff Polish (task, P2, open)
+- **Videra-448** - Phase 408 v2.60 Final Verification (task, P2, open)
 
 ## Blocked
 
-- **Videra-448** - Phase 408 v2.60 Final Verification (task, P2, open)
+_No matching beads in the exported snapshot._
 
 ## Backlog
 
@@ -30,14 +29,14 @@ _No matching beads in the exported snapshot._
 
 ## Recently Closed
 
+- **Videra-1h1** - Phase 406 Cookbook QA Hardening (task, P2, closed)
+- **Videra-xq1** - Phase 407 Interaction Handoff Polish (task, P2, closed)
+- **Videra-0yp** - Phase 407 interaction snippet parity and host wiring (task, P1, closed)
+- **Videra-14s** - Phase 406 structured cookbook coverage matrix (task, P1, closed)
+- **Videra-ffa** - Phase 406 current cutover naming handoff (task, P2, closed)
+- **Videra-ots** - Phase 407 probe selection draggable handoff (task, P1, closed)
 - **Videra-b53** - Phase 405 Cookbook QA and Interaction Handoff Inventory (task, P1, closed)
 - **Videra-0ji** - Phase 405 validation support and scope guardrail inventory (task, P1, closed)
 - **Videra-6iu** - Phase 405 cookbook QA surface inventory (task, P1, closed)
 - **Videra-9pc** - Phase 405 interaction handoff surface inventory (task, P1, closed)
-- **Videra-v259** - v2.59 ScottPlot5 Interaction and Cookbook Experience (epic, P1, closed; labels: cookbook, interaction, scottplot5-inspired, surfacecharts, v2.59)
-- **Videra-v259.4** - Phase 404 Interaction Cookbook Final Verification (task, P1, closed; labels: cookbook, interaction, phase-404, surfacecharts, v2.59, verification)
-- **Videra-v259.2** - Phase 402 Interaction and Code Experience Polish (task, P1, closed; labels: code-experience, interaction, phase-402, surfacecharts, v2.59)
-- **Videra-v259.3** - Phase 403 Cookbook Demo Conversion (task, P1, closed; labels: cookbook, demo, docs, phase-403, surfacecharts, v2.59)
-- **Videra-9bs** - Phase 402 typed Bar and Contour plot handles (task, P1, closed)
-- **Videra-b4w** - Phase 402 recipe-friendly interaction command catalog (task, P1, closed)
 

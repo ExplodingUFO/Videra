@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.60
 milestone_name: "SurfaceCharts Cookbook QA and Interaction Handoff"
 status: active
-stopped_at: "Phase 406 and Phase 407 ready for parallel execution"
-last_updated: "2026-04-30T15:55:00+08:00"
+stopped_at: "Phase 408 ready for final verification"
+last_updated: "2026-04-30T16:13:00+08:00"
 last_activity: 2026-04-30
 progress:
   total_phases: 4
-  completed_phases: 1
+  completed_phases: 3
   total_plans: 4
-  completed_plans: 1
-  percent: 25
+  completed_plans: 3
+  percent: 75
 ---
 
 # Project State
@@ -26,12 +26,12 @@ See: `.planning/PROJECT.md`
 ## Current Position
 
 Milestone: `v2.60 SurfaceCharts Cookbook QA and Interaction Handoff`
-Phase: 406 and 407 of 408 - READY FOR PARALLEL EXECUTION
-Plan: Phase 405 complete; Phase 406 and 407 planning/execution next
-Status: Phase 405 inventory is complete; Phase 406 cookbook QA hardening and Phase 407 interaction handoff polish can proceed in parallel with disjoint write sets.
-Last activity: 2026-04-30 - Completed Phase 405 inventory with Beads-backed worktree split.
+Phase: 408 of 408 (v2.60 Final Verification) - READY
+Plan: Phase 406 and Phase 407 complete; final verification/sync/archive next
+Status: Phase 406 cookbook QA hardening and Phase 407 interaction handoff polish are merged with focused validation passing.
+Last activity: 2026-04-30 - Completed and merged Phase 406/407 parallel workstreams.
 
-Progress: [##--------] 25%
+Progress: [########--] 75%
 
 ## Initial Scope Summary
 
@@ -54,7 +54,9 @@ This milestone focuses on:
 - Phase 405 must inventory real cookbook QA / interaction handoff surfaces before implementation.
 - Phase 406 and Phase 407 may run in parallel after Phase 405 if their write sets are disjoint.
 - Phase 406 should focus on structured cookbook coverage/copyability and cutover naming, while Phase 407 should focus on interaction snippet parity, minimal host wiring, probe evidence, selection, and draggable recipe handoff.
-- Shared Beads export, generated roadmap, final scope guardrails, archive, push, and cleanup are Phase 408 responsibilities after Phase 406 and Phase 407 complete.
+- Phase 406 added a structured cookbook coverage matrix and current consumer handoff wording.
+- Phase 407 added interaction host-wiring, probe evidence, selection report, and host-owned draggable recipe handoff coverage.
+- Shared Beads export, generated roadmap, final scope guardrails, archive, push, and cleanup are Phase 408 responsibilities.
 - Keep implementation simple and direct; do not add ScottPlot compatibility adapters, old chart controls, hidden fallback behavior, backend expansion, or broad demo frameworks.
 - v2.59 artifacts are archived under `.planning/milestones/v2.59-phases`.
 
@@ -67,8 +69,8 @@ This milestone focuses on:
 ## Session Continuity
 
 Last session: `2026-04-30 +08:00`
-Stopped at: Phase 405 complete
-Next action: plan and execute Phase 406 (`Videra-1h1`) and Phase 407 (`Videra-xq1`) in parallel if worktree write sets remain disjoint.
+Stopped at: Phase 406 and Phase 407 complete
+Next action: execute Phase 408 (`Videra-448`) final verification, Beads/generated roadmap synchronization, archive, and cleanup.
 
 ## Accumulated Context
 

@@ -25,6 +25,8 @@ git status --short --branch
 | `pwsh -NoProfile -File scripts\Test-SnapshotExportScope.ps1` | Passed: all scope checks passed. |
 | `git diff --check` | Passed; Git reported LF-to-CRLF normalization warnings for touched tracked files only. |
 | `git status --short --branch` | Checked before commit. |
+| Mainline merge rerun: `dotnet test tests\Videra.SurfaceCharts.Avalonia.IntegrationTests\Videra.SurfaceCharts.Avalonia.IntegrationTests.csproj --filter "FullyQualifiedName~SurfaceChartInteractionRecipeTests\|FullyQualifiedName~VideraChartViewKeyboardToolbarTests" --no-restore` | Passed after merge: 25 tests, 0 failed. |
+| Mainline merge rerun: `pwsh -NoProfile -File scripts\Test-SnapshotExportScope.ps1` | Passed after merge: all scope checks passed. |
 
 ## Blockers
 

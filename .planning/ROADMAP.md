@@ -12,8 +12,8 @@ fallbacks, backend expansion, or a generic chart workbench.
 ## Phases
 
 - [x] **Phase 405: Cookbook QA and Interaction Handoff Inventory** - Inventory v2.59 cookbook QA, interaction handoff docs, support artifacts, and validation gaps.
-- [ ] **Phase 406: Cookbook QA Hardening** - Implement bounded cookbook QA or docs/test hardening selected by Phase 405.
-- [ ] **Phase 407: Interaction Handoff Polish** - Implement bounded interaction handoff polish selected by Phase 405.
+- [x] **Phase 406: Cookbook QA Hardening** - Implement bounded cookbook QA or docs/test hardening selected by Phase 405.
+- [x] **Phase 407: Interaction Handoff Polish** - Implement bounded interaction handoff polish selected by Phase 405.
 - [ ] **Phase 408: v2.60 Final Verification** - Close v2.60 with focused validation, Beads export, generated roadmap, archive, and cleanup.
 
 ## Phase Details
@@ -43,6 +43,7 @@ fallbacks, backend expansion, or a generic chart workbench.
 2. Changes remain docs/demo/test/support oriented unless Phase 405 proves a narrow API need.
 3. No compatibility/fallback/backend expansion scope is introduced.
 **Plans:** 406-PLAN.md
+**Completed:** 2026-04-30
 
 ### Phase 407: Interaction Handoff Polish
 
@@ -55,11 +56,12 @@ fallbacks, backend expansion, or a generic chart workbench.
 2. Existing interaction APIs are documented or demonstrated without adding a command framework or mouse remapping scope.
 3. Support evidence remains explicit and chart-local.
 **Plans:** 407-PLAN.md
+**Completed:** 2026-04-30
 
 ### Phase 408: v2.60 Final Verification
 
 **Goal:** Close v2.60 with synchronized verification and handoff.
-**Depends on:** Phase 406, Phase 407
+**Depends on:** Phase 406 (complete), Phase 407 (complete)
 **Requirements:** VERIFY-01, VERIFY-02
 **Bead:** `Videra-448`
 **Success Criteria:**
@@ -72,9 +74,9 @@ fallbacks, backend expansion, or a generic chart workbench.
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 405. Cookbook QA and Interaction Handoff Inventory | 1/1 | Complete | 2026-04-30 |
-| 406. Cookbook QA Hardening | 0/1 | Ready | |
-| 407. Interaction Handoff Polish | 0/1 | Ready | |
-| 408. v2.60 Final Verification | 0/1 | Blocked by 406, 407 | |
+| 406. Cookbook QA Hardening | 1/1 | Complete | 2026-04-30 |
+| 407. Interaction Handoff Polish | 1/1 | Complete | 2026-04-30 |
+| 408. v2.60 Final Verification | 0/1 | Ready | |
 
 ---
 
