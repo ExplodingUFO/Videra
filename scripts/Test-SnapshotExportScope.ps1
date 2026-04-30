@@ -13,6 +13,22 @@ $root = Split-Path -Parent $PSScriptRoot
 $srcRoot = Join-Path $root "src"
 $allPass = $true
 
+function Get-SourceCodeFiles {
+    Get-ChildItem -Path $srcRoot -Recurse -Include "*.cs" |
+        Where-Object { $_.FullName -notlike "*\tests\*" -and $_.FullName -notlike "*\test\*" }
+}
+
+function Get-LineNumber([string]$content, [int]$index) {
+    return ([regex]::Matches($content.Substring(0, $index), "`n").Count + 1)
+}
+
+function Select-CodeMatches([System.IO.FileInfo]$file, [string]$pattern, [System.Text.RegularExpressions.RegexOptions]$options) {
+    $content = Get-Content -LiteralPath $file.FullName -Raw
+    foreach ($match in [regex]::Matches($content, $pattern, $options)) {
+        "$($file.FullName):$(Get-LineNumber $content $match.Index)"
+    }
+}
+
 function Write-Check([string]$title) {
     Write-Host ""
     Write-Host "--- $title ---" -ForegroundColor Cyan
@@ -32,17 +48,13 @@ function Write-Fail([string]$message, [string[]]$files) {
 
 # Check 1: No old chart view types as public class declarations
 Write-Check "Old chart view types (SurfaceChartView, WaterfallChartView, ScatterChartView)"
-$oldViewPatterns = @("SurfaceChartView", "WaterfallChartView", "ScatterChartView")
-$oldViewViolations = @()
-foreach ($pattern in $oldViewPatterns) {
-    # Search for public class declarations (not test references)
-    $matches = Get-ChildItem -Path $srcRoot -Recurse -Include "*.cs" |
-        Where-Object { $_.FullName -notlike "*\tests\*" -and $_.FullName -notlike "*\test\*" } |
-        Select-String -Pattern "public\s+(partial\s+)?class\s+$pattern\b"
-    if ($matches) {
-        $oldViewViolations += $matches | ForEach-Object { "$($_.Path):$($_.LineNumber)" }
-    }
-}
+$regexOptions = [System.Text.RegularExpressions.RegexOptions]::IgnoreCase -bor
+    [System.Text.RegularExpressions.RegexOptions]::Multiline -bor
+    [System.Text.RegularExpressions.RegexOptions]::Singleline
+$oldViewPattern = "\bpublic\s+(?:(?:new|partial|sealed|abstract|static|unsafe)\s+)*class\s+(?:SurfaceChartView|WaterfallChartView|ScatterChartView)\b"
+$oldViewViolations = Get-SourceCodeFiles |
+    ForEach-Object { Select-CodeMatches $_ $oldViewPattern $regexOptions }
+
 if ($oldViewViolations.Count -eq 0) {
     Write-Pass "No old chart view types found as public class declarations"
 } else {
@@ -52,15 +64,15 @@ if ($oldViewViolations.Count -eq 0) {
 # Check 2: No direct Source property as public API on public chart controls
 Write-Check "Direct Source property API"
 $sourceViolations = @()
-$chartFiles = Get-ChildItem -Path $srcRoot -Recurse -Include "*.cs" |
-    Where-Object { $_.FullName -notlike "*\tests\*" -and $_.FullName -notlike "*\test\*" -and ($_.FullName -like "*Chart*" -or $_.FullName -like "*Plot*") }
+$chartFiles = Get-SourceCodeFiles |
+    Where-Object { $_.FullName -like "*SurfaceCharts*" -and ($_.FullName -like "*Chart*" -or $_.FullName -like "*Plot*") }
+$chartControlPattern = "\bpublic\s+(?:(?:new|partial|sealed|abstract|static|unsafe)\s+)*class\s+(?:VideraChartView|[A-Za-z_][A-Za-z0-9_]*ChartView)\b"
+$sourcePropertyPattern = "\bpublic\s+(?!static\s+readonly\s+StyledProperty\b)[A-Za-z_][A-Za-z0-9_<>,\.\?\[\]\s]*\s+Source\s*\{[^}]*\bget\b[^}]*\bset\b[^}]*\}"
 foreach ($file in $chartFiles) {
     $content = Get-Content -LiteralPath $file.FullName -Raw
-    # Check if file contains a public class (not internal)
-    if ($content -match "public\s+(partial\s+)?class\s+") {
-        $matches = Select-String -Path $file.FullName -Pattern "public\s+.*\bSource\s*\{.*get.*set"
-        if ($matches) {
-            $sourceViolations += $matches | ForEach-Object { "$($_.Path):$($_.LineNumber)" }
+    if ([regex]::IsMatch($content, $chartControlPattern, $regexOptions)) {
+        foreach ($match in [regex]::Matches($content, $sourcePropertyPattern, $regexOptions)) {
+            $sourceViolations += "$($file.FullName):$(Get-LineNumber $content $match.Index)"
         }
     }
 }
@@ -75,15 +87,13 @@ Write-Check "PDF/vector export code"
 $pdfVectorPatterns = @("PdfExport", "VectorExport", "SvgExport")
 $pdfVectorViolations = @()
 foreach ($pattern in $pdfVectorPatterns) {
-    $matches = Get-ChildItem -Path $srcRoot -Recurse -Include "*.cs" |
-        Where-Object { $_.FullName -notlike "*\tests\*" -and $_.FullName -notlike "*\test\*" } |
+    $matches = Get-SourceCodeFiles |
         Select-String -Pattern "public\s+.*$pattern\b.*=\s*(true|enabled|implemented)" -CaseSensitive:$false
     if ($matches) {
         $pdfVectorViolations += $matches | ForEach-Object { "$($_.Path):$($_.LineNumber)" }
     }
     # Also check for class declarations implementing these features
-    $classMatches = Get-ChildItem -Path $srcRoot -Recurse -Include "*.cs" |
-        Where-Object { $_.FullName -notlike "*\tests\*" -and $_.FullName -notlike "*\test\*" } |
+    $classMatches = Get-SourceCodeFiles |
         Select-String -Pattern "public\s+(partial\s+)?class\s+.*$pattern"
     if ($classMatches) {
         $pdfVectorViolations += $classMatches | ForEach-Object { "$($_.Path):$($_.LineNumber)" }
@@ -97,7 +107,7 @@ if ($pdfVectorViolations.Count -eq 0) {
 
 # Check 4: No VideraSnapshotExportService references from chart-local code
 Write-Check "Viewer-level export service coupling"
-$exportServiceViolations = Get-ChildItem -Path $srcRoot -Recurse -Include "*.cs" |
+$exportServiceViolations = Get-SourceCodeFiles |
     Where-Object { $_.FullName -like "*SurfaceCharts*" -or $_.FullName -like "*Chart*" -or $_.FullName -like "*Plot*" } |
     Select-String -Pattern "VideraSnapshotExportService"
 if ($exportServiceViolations) {
@@ -106,15 +116,20 @@ if ($exportServiceViolations) {
     Write-Pass "No viewer-level export service coupling from chart-local code"
 }
 
-# Check 5: No hidden fallback patterns in snapshot paths
-Write-Check "Hidden fallback in snapshot paths"
-$fallbackViolations = Get-ChildItem -Path $srcRoot -Recurse -Include "*.cs" |
-    Select-String -Pattern "FallbackReason\s*=\s*""[^""]+""" |
-    Where-Object { $_.Path -like "*Snapshot*" -or $_.Path -like "*Plot*" }
-if ($fallbackViolations) {
-    Write-Fail "Hidden fallback patterns detected in snapshot paths" ($fallbackViolations | ForEach-Object { "$($_.Path):$($_.LineNumber)" })
+# Check 5: No hidden compatibility, fallback, or downshift paths in chart public API cleanup paths
+Write-Check "Hidden fallback/downshift in chart cleanup paths"
+$fallbackIdentifierPattern = "\b(?:Fallback|Downshift|Downgrade|Legacy|Compatibility)[A-Za-z0-9_]*(?:Source|Chart|Control|View|Series|Plot|Path)\b|\b(?:Source|Chart|Control|View|Series|Plot|Path)[A-Za-z0-9_]*(?:Fallback|Downshift|Downgrade|Legacy|Compatibility)\b"
+$fallbackScopeFiles = Get-SourceCodeFiles |
+    Where-Object {
+        $_.FullName -like "*Videra.SurfaceCharts.Avalonia\Controls\VideraChartView*" -or
+        $_.FullName -like "*Videra.SurfaceCharts.Avalonia\Controls\Plot\*"
+    }
+$fallbackViolations = $fallbackScopeFiles |
+    ForEach-Object { Select-CodeMatches $_ $fallbackIdentifierPattern $regexOptions }
+if ($fallbackViolations.Count -gt 0) {
+    Write-Fail "Hidden fallback/downshift patterns detected in chart cleanup paths" $fallbackViolations
 } else {
-    Write-Pass "No hidden fallback patterns in snapshot paths"
+    Write-Pass "No hidden fallback/downshift patterns in chart cleanup paths"
 }
 
 # Summary
