@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.64
 milestone_name: Native SurfaceCharts Analysis Workspace and Streaming Evidence
 status: executing
-stopped_at: Completed 427-01-PLAN.md
-last_updated: "2026-04-30T14:15:26.010Z"
-last_activity: 2026-04-30 - Completed Phase 425 inventory with four parallel child beads and merged inventory artifacts.
+stopped_at: Executing Phase 427 Wave 2
+last_updated: "2026-04-30T22:30:00.000Z"
+last_activity: 2026-04-30 - Phase 427 Wave 1 (CameraOnly/AxisOnly link policies) complete. Wave 2 (propagator + evidence + demo) executing.
 progress:
   total_phases: 7
   completed_phases: 2
-  total_plans: 5
-  completed_plans: 4
-  percent: 80
+  total_plans: 7
+  completed_plans: 5
+  percent: 71
 ---
 
 # Project State
@@ -26,12 +26,12 @@ See: `.planning/PROJECT.md`
 ## Current Position
 
 Milestone: `v2.64 Native SurfaceCharts Analysis Workspace and Streaming Evidence`
-Phase: 426 of 431 - READY
-Plan: Phase 426 should start from workspace state/contracts and aggregate status before demo UI wiring.
-Status: Phase 425 inventory is complete. v2.64 epic `Videra-7tqx` is in progress. `bd ready` should expose only `Videra-7tqx.2` after Beads sync.
-Last activity: 2026-04-30 - Completed Phase 425 inventory with four parallel child beads and merged inventory artifacts.
+Phase: 427 of 431 - EXECUTING
+Plan: 427-02 (interaction propagator + evidence + demo) executing.
+Status: Phase 426 complete. Phase 427 Wave 1 complete (CameraOnly/AxisOnly link policies). Wave 2 executing.
+Last activity: 2026-04-30 - Phase 427 Wave 1 complete with 3 commits.
 
-Progress: [████████░░] 80%
+Progress: [███████░░░] 71%
 
 ## Initial Scope Summary
 
@@ -85,9 +85,9 @@ v2.64 focuses on:
 
 ## Session Continuity
 
-Last session: 2026-04-30T14:15:25.994Z
-Stopped at: Completed 427-01-PLAN.md
-Next action: run `$gsd-plan-phase 426` or continue `$gsd-autonomous` to start the native multi-chart analysis workspace phase.
+Last session: 2026-04-30T22:30:00.000Z
+Stopped at: Executing Phase 427 Wave 2
+Next action: Complete 427-02 execution, then proceed to Phase 428 planning and execution.
 
 ## Accumulated Context
 

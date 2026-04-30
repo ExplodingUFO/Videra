@@ -87,8 +87,8 @@ ownership.
 3. Support summaries describe linked panels, active interaction surfaces, and
    evidence boundaries truthfully.
 Plans:
-- [ ] 427-01-PLAN.md — Filtered link classes and link group policy implementation
-- [ ] 427-02-PLAN.md — Interaction propagator, linked interaction evidence, and demo scenario
+- [x] 427-01-PLAN.md — Filtered link classes and link group policy implementation
+- [x] 427-02-PLAN.md — Interaction propagator, linked interaction evidence, and demo scenario
 
 ### Phase 428: High-Density and Streaming Data Evidence
 
@@ -156,8 +156,8 @@ consumer templates.
 |-------|----------------|--------|-----------|
 | 425. Analysis Workspace and Streaming Inventory | 1/1 | Complete | 2026-04-30 |
 | 426. Native Multi-Chart Analysis Workspace | 2/2 | Complete | 2026-04-30 |
-| 427. Linked Interaction and Selection Propagation | 0/2 | Ready | |
-| 428. High-Density and Streaming Data Evidence | 0/1 | Blocked | |
+| 427. Linked Interaction and Selection Propagation | 2/2 | Complete | 2026-04-30 |
+| 428. High-Density and Streaming Data Evidence | 0/1 | Ready | |
 | 429. Scenario Cookbook and Package Templates | 0/1 | Blocked | |
 | 430. CI Performance and Release-Readiness Truth | 0/1 | Blocked | |
 | 431. v2.64 Final Verification | 0/1 | Blocked | |
