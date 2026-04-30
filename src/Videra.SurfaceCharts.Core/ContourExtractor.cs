@@ -18,6 +18,22 @@ public static class ContourExtractor
         var range = field.Range;
         var levelCount = data.LevelCount;
 
+        if (data.HasExplicitLevels)
+        {
+            var explicitLines = new List<ContourLine>(data.ExplicitLevels.Count);
+            foreach (var isoValue in data.ExplicitLevels)
+            {
+                var segments = MarchingSquaresExtractor.Extract(field, isoValue, data.Mask);
+
+                if (segments.Count > 0)
+                {
+                    explicitLines.Add(new ContourLine(isoValue, segments));
+                }
+            }
+
+            return explicitLines;
+        }
+
         // If range is zero (flat field), return empty
         if (Math.Abs(range.Maximum - range.Minimum) < 1e-10f)
         {

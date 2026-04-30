@@ -25,6 +25,22 @@ public sealed class ContourChartDataTests
         var data = new ContourChartData(field, levelCount: 5);
 
         data.LevelCount.Should().Be(5);
+        data.HasExplicitLevels.Should().BeFalse();
+        data.ExplicitLevels.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void Constructor_WithExplicitLevels_PreservesOrderAndCopiesLevels()
+    {
+        var field = CreateField(3, 3, [1f, 2f, 3f, 4f, 5f, 6f, 7f, 8f, 9f]);
+        var levels = new[] { 6f, 2f, 4f };
+
+        var data = new ContourChartData(field, levels);
+        levels[0] = 100f;
+
+        data.LevelCount.Should().Be(3);
+        data.HasExplicitLevels.Should().BeTrue();
+        data.ExplicitLevels.Should().Equal(6f, 2f, 4f);
     }
 
     [Fact]
@@ -60,6 +76,24 @@ public sealed class ContourChartDataTests
         var field = CreateField(3, 3, [1f, 2f, 3f, 4f, 5f, 6f, 7f, 8f, 9f]);
 
         var action = () => new ContourChartData(field, levelCount: -1);
+        action.Should().Throw<ArgumentOutOfRangeException>();
+    }
+
+    [Fact]
+    public void Constructor_WithEmptyExplicitLevels_ThrowsArgumentException()
+    {
+        var field = CreateField(3, 3, [1f, 2f, 3f, 4f, 5f, 6f, 7f, 8f, 9f]);
+
+        var action = () => new ContourChartData(field, Array.Empty<float>());
+        action.Should().Throw<ArgumentException>();
+    }
+
+    [Fact]
+    public void Constructor_WithNonFiniteExplicitLevels_ThrowsArgumentOutOfRangeException()
+    {
+        var field = CreateField(3, 3, [1f, 2f, 3f, 4f, 5f, 6f, 7f, 8f, 9f]);
+
+        var action = () => new ContourChartData(field, [1f, float.NaN]);
         action.Should().Throw<ArgumentOutOfRangeException>();
     }
 

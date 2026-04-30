@@ -130,35 +130,19 @@ public sealed class Plot3DAddApi
     {
         ArgumentNullException.ThrowIfNull(values);
 
-        var width = values.GetLength(0);
-        var height = values.GetLength(1);
-        var flatValues = new float[width * height];
-        var min = double.MaxValue;
-        var max = double.MinValue;
+        return Contour(CreateContourField(values), name);
+    }
 
-        for (var y = 0; y < height; y++)
-        {
-            for (var x = 0; x < width; x++)
-            {
-                var val = values[x, y];
-                if (double.IsFinite(val))
-                {
-                    if (val < min) min = val;
-                    if (val > max) max = val;
-                }
-                flatValues[y * width + x] = (float)val;
-            }
-        }
-
-        if (min == double.MaxValue)
-        {
-            min = 0;
-            max = 0;
-        }
-
-        var range = new SurfaceValueRange(min, max);
-        var field = new SurfaceScalarField(width, height, flatValues, range);
-        return Contour(field, name);
+    /// <summary>
+    /// Adds a contour plot from a 2D scalar field with explicit iso-levels.
+    /// </summary>
+    /// <param name="values">The 2D scalar field values in row-major order.</param>
+    /// <param name="explicitLevels">The finite contour levels to extract, in deterministic extraction order.</param>
+    /// <param name="name">Optional series name.</param>
+    public ContourPlot3DSeries Contour(double[,] values, IReadOnlyList<float> explicitLevels, string? name = null)
+    {
+        ArgumentNullException.ThrowIfNull(values);
+        return Contour(CreateContourField(values), explicitLevels, name);
     }
 
     /// <summary>
@@ -170,6 +154,18 @@ public sealed class Plot3DAddApi
     {
         ArgumentNullException.ThrowIfNull(field);
         return Contour(new ContourChartData(field), name);
+    }
+
+    /// <summary>
+    /// Adds a contour plot from a scalar field with explicit iso-levels.
+    /// </summary>
+    /// <param name="field">The scalar field to extract contours from.</param>
+    /// <param name="explicitLevels">The finite contour levels to extract, in deterministic extraction order.</param>
+    /// <param name="name">Optional series name.</param>
+    public ContourPlot3DSeries Contour(SurfaceScalarField field, IReadOnlyList<float> explicitLevels, string? name = null)
+    {
+        ArgumentNullException.ThrowIfNull(field);
+        return Contour(new ContourChartData(field, explicitLevels), name);
     }
 
     /// <summary>
@@ -199,6 +195,38 @@ public sealed class Plot3DAddApi
             range);
 
         return new SurfaceMatrix(metadata, flatValues);
+    }
+
+    private static SurfaceScalarField CreateContourField(double[,] values)
+    {
+        var width = values.GetLength(0);
+        var height = values.GetLength(1);
+        var flatValues = new float[width * height];
+        var min = double.MaxValue;
+        var max = double.MinValue;
+
+        for (var y = 0; y < height; y++)
+        {
+            for (var x = 0; x < width; x++)
+            {
+                var val = values[x, y];
+                if (double.IsFinite(val))
+                {
+                    if (val < min) min = val;
+                    if (val > max) max = val;
+                }
+                flatValues[y * width + x] = (float)val;
+            }
+        }
+
+        if (min == double.MaxValue)
+        {
+            min = 0;
+            max = 0;
+        }
+
+        var range = new SurfaceValueRange(min, max);
+        return new SurfaceScalarField(width, height, flatValues, range);
     }
 
     private static SurfaceValueRange CreateSurfaceValues(double[,] values, float[] flatValues, int width, int height)

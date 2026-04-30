@@ -66,6 +66,40 @@ public sealed class ContourExtractorTests
     }
 
     [Fact]
+    public void ExtractAll_WithExplicitLevels_UsesLevelsInOrder()
+    {
+        var field = CreateField(5, 5, [
+            0f, 1f, 2f, 3f, 4f,
+            1f, 2f, 3f, 4f, 5f,
+            2f, 3f, 4f, 5f, 6f,
+            3f, 4f, 5f, 6f, 7f,
+            4f, 5f, 6f, 7f, 8f
+        ]);
+        var data = new ContourChartData(field, [6f, 2f, 4f]);
+
+        var lines = ContourExtractor.ExtractAll(data);
+
+        lines.Select(l => l.IsoValue).Should().Equal(6f, 2f, 4f);
+    }
+
+    [Fact]
+    public void ExtractAll_WithExplicitLevels_PreservesDuplicateLevels()
+    {
+        var field = CreateField(5, 5, [
+            0f, 1f, 2f, 3f, 4f,
+            1f, 2f, 3f, 4f, 5f,
+            2f, 3f, 4f, 5f, 6f,
+            3f, 4f, 5f, 6f, 7f,
+            4f, 5f, 6f, 7f, 8f
+        ]);
+        var data = new ContourChartData(field, [4f, 2f, 4f]);
+
+        var lines = ContourExtractor.ExtractAll(data);
+
+        lines.Select(l => l.IsoValue).Should().Equal(4f, 2f, 4f);
+    }
+
+    [Fact]
     public void ExtractAll_WithMask_RespectsMask()
     {
         var field = CreateField(5, 5, [

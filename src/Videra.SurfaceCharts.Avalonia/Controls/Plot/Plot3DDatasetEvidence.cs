@@ -413,9 +413,26 @@ public sealed class Plot3DSeriesDatasetEvidence
             verticalAxis: null,
             depthAxis: SurfaceAxisDatasetEvidence.Create(new SurfaceAxisDescriptor("Y", null, 0d, data.Field.Height - 1)),
             valueRange: SurfaceValueRangeDatasetEvidence.Create(data.Field.Range),
-            samplingProfile: $"ContourPlot:Width={data.Field.Width};Height={data.Field.Height};Levels={data.LevelCount}",
+            samplingProfile: CreateContourSamplingProfile(data),
             categoryLabels: [],
             []);
+    }
+
+    private static string CreateContourSamplingProfile(ContourChartData data)
+    {
+        if (!data.HasExplicitLevels)
+        {
+            return string.Create(
+                CultureInfo.InvariantCulture,
+                $"ContourPlot:Width={data.Field.Width};Height={data.Field.Height};LevelMode=Generated;Levels={data.LevelCount}");
+        }
+
+        var levels = string.Join(
+            ",",
+            data.ExplicitLevels.Select(static level => level.ToString("G9", CultureInfo.InvariantCulture)));
+        return string.Create(
+            CultureInfo.InvariantCulture,
+            $"ContourPlot:Width={data.Field.Width};Height={data.Field.Height};LevelMode=Explicit;Levels={levels}");
     }
 
     private static IReadOnlyList<ScatterColumnarSeriesDatasetEvidence> CreateColumnarSeriesEvidence(

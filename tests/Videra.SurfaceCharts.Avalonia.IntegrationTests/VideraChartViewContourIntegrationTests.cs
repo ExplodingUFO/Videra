@@ -76,6 +76,39 @@ public sealed class VideraChartViewContourIntegrationTests
     }
 
     [Fact]
+    public void PlotAddContour_WithExplicitLevelsOnArray_UsesExplicitLevelMode()
+    {
+        AvaloniaHeadlessTestSession.Run(() =>
+        {
+            var view = new VideraChartView();
+            var values = CreateRadialField(5, 5);
+
+            var contour = view.Plot.Add.Contour(values, [2f, 1f], "contour");
+
+            contour.ContourData.Should().NotBeNull();
+            contour.ContourData!.LevelCount.Should().Be(2);
+            contour.ContourData.ExplicitLevels.Should().Equal(2f, 1f);
+            view.ContourRenderingStatus.LevelCount.Should().Be(2);
+        });
+    }
+
+    [Fact]
+    public void PlotAddContour_WithExplicitLevelsOnField_UsesExplicitLevelMode()
+    {
+        AvaloniaHeadlessTestSession.Run(() =>
+        {
+            var view = new VideraChartView();
+            var field = CreateScalarField(5, 5);
+
+            var contour = view.Plot.Add.Contour(field, [2f, 1f], "contour");
+
+            contour.ContourData.Should().NotBeNull();
+            contour.ContourData!.Field.Should().BeSameAs(field);
+            contour.ContourData.ExplicitLevels.Should().Equal(2f, 1f);
+        });
+    }
+
+    [Fact]
     public void PlotRemoveContour_ClearsContourRenderingStatus()
     {
         AvaloniaHeadlessTestSession.Run(() =>
@@ -144,6 +177,22 @@ public sealed class VideraChartViewContourIntegrationTests
             series.Height.Should().Be(5);
             series.SampleCount.Should().Be(25);
             series.SamplingProfile.Should().Contain("ContourPlot");
+        });
+    }
+
+    [Fact]
+    public void PlotAddContour_DatasetEvidence_ReportsExplicitLevelMode()
+    {
+        AvaloniaHeadlessTestSession.Run(() =>
+        {
+            var view = new VideraChartView();
+            var values = CreateRadialField(5, 5);
+
+            view.Plot.Add.Contour(values, [2f, 1f], "contour");
+
+            var series = view.Plot.CreateDatasetEvidence().Series.Should().ContainSingle().Subject;
+            series.SamplingProfile.Should().Contain("LevelMode=Explicit");
+            series.SamplingProfile.Should().Contain("Levels=2,1");
         });
     }
 
