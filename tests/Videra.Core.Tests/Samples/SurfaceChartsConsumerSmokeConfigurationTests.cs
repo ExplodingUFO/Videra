@@ -1,3 +1,5 @@
+using System.Diagnostics;
+using System.Text.Json;
 using FluentAssertions;
 using Xunit;
 
@@ -83,6 +85,149 @@ public sealed class SurfaceChartsConsumerSmokeConfigurationTests
         mainWindowCodeBehind.Should().Contain("InteractivityToolbarButtons:");
         mainWindowCodeBehind.Should().NotContain("FrameAll");
         mainWindowCodeBehind.Should().NotContain("VideraView");
+    }
+
+    [Fact]
+    public void ConsumerSmokeScript_ShouldOnlyListExistingScenarioSupportArtifacts()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var scriptPath = Path.Combine(repositoryRoot, "scripts", "Invoke-ConsumerSmoke.ps1");
+        var helperPath = Path.Combine(repositoryRoot, "scripts", "ConsumerSmokeSupportArtifacts.ps1");
+        var script = File.ReadAllText(scriptPath);
+
+        File.Exists(helperPath).Should().BeTrue();
+        script.Should().Contain("ConsumerSmokeSupportArtifacts.ps1");
+        script.Should().Contain("Get-ConsumerSmokeSupportArtifactPaths");
+        script.Should().Contain("SupportArtifactPaths");
+    }
+
+    [Fact]
+    public void ConsumerSmokeSupportArtifactHelper_ShouldReturnOnlyExistingScenarioArtifacts()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var helperPath = Path.Combine(repositoryRoot, "scripts", "ConsumerSmokeSupportArtifacts.ps1");
+        var tempRoot = Path.Combine(Path.GetTempPath(), "videra-consumer-smoke-artifacts-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(tempRoot);
+
+        try
+        {
+            var diagnostics = Touch(Path.Combine(tempRoot, "diagnostics-snapshot.txt"));
+            var trace = Touch(Path.Combine(tempRoot, "consumer-smoke-trace.log"));
+            var stdout = Touch(Path.Combine(tempRoot, "consumer-smoke-stdout.log"));
+            var stderr = Touch(Path.Combine(tempRoot, "consumer-smoke-stderr.log"));
+            var environment = Touch(Path.Combine(tempRoot, "consumer-smoke-environment.txt"));
+            var surfaceSummary = Touch(Path.Combine(tempRoot, "surfacecharts-support-summary.txt"));
+            var chartSnapshot = Touch(Path.Combine(tempRoot, "chart-snapshot.png"));
+            var inspectionSnapshot = Touch(Path.Combine(tempRoot, "inspection-snapshot.png"));
+            var inspectionBundle = Directory.CreateDirectory(Path.Combine(tempRoot, "inspection-bundle")).FullName;
+
+            var surfaceChartsPaths = InvokeSupportArtifactHelper(
+                helperPath,
+                "SurfaceCharts",
+                diagnostics,
+                inspectionSnapshot,
+                inspectionBundle,
+                surfaceSummary,
+                chartSnapshot,
+                trace,
+                stdout,
+                stderr,
+                environment);
+
+            surfaceChartsPaths.Should().Contain(surfaceSummary);
+            surfaceChartsPaths.Should().Contain(chartSnapshot);
+            surfaceChartsPaths.Should().NotContain(inspectionSnapshot);
+            surfaceChartsPaths.Should().NotContain(inspectionBundle);
+            surfaceChartsPaths.Should().OnlyContain(path => File.Exists(path));
+
+            var viewerPaths = InvokeSupportArtifactHelper(
+                helperPath,
+                "ViewerObj",
+                diagnostics,
+                inspectionSnapshot,
+                inspectionBundle,
+                surfaceSummary,
+                chartSnapshot,
+                trace,
+                stdout,
+                stderr,
+                environment);
+
+            viewerPaths.Should().Contain(inspectionSnapshot);
+            viewerPaths.Should().Contain(inspectionBundle);
+            viewerPaths.Should().NotContain(surfaceSummary);
+            viewerPaths.Should().NotContain(chartSnapshot);
+            viewerPaths.Should().OnlyContain(path => File.Exists(path) || Directory.Exists(path));
+        }
+        finally
+        {
+            if (Directory.Exists(tempRoot))
+            {
+                Directory.Delete(tempRoot, recursive: true);
+            }
+        }
+    }
+
+    private static string Touch(string path)
+    {
+        File.WriteAllText(path, "artifact");
+        return path;
+    }
+
+    private static string[] InvokeSupportArtifactHelper(
+        string helperPath,
+        string scenario,
+        string diagnostics,
+        string inspectionSnapshot,
+        string inspectionBundle,
+        string surfaceSummary,
+        string chartSnapshot,
+        string trace,
+        string stdout,
+        string stderr,
+        string environment)
+    {
+        var script = string.Join(
+            Environment.NewLine,
+            $". '{EscapePowerShellSingleQuotedString(helperPath)}'",
+            "$paths = Get-ConsumerSmokeSupportArtifactPaths " +
+            $"-Scenario '{scenario}' " +
+            $"-DiagnosticsSnapshotPath '{EscapePowerShellSingleQuotedString(diagnostics)}' " +
+            $"-InspectionSnapshotPath '{EscapePowerShellSingleQuotedString(inspectionSnapshot)}' " +
+            $"-InspectionBundlePath '{EscapePowerShellSingleQuotedString(inspectionBundle)}' " +
+            $"-SurfaceChartsSupportSummaryPath '{EscapePowerShellSingleQuotedString(surfaceSummary)}' " +
+            $"-SurfaceChartsSnapshotPath '{EscapePowerShellSingleQuotedString(chartSnapshot)}' " +
+            $"-TracePath '{EscapePowerShellSingleQuotedString(trace)}' " +
+            $"-StdoutPath '{EscapePowerShellSingleQuotedString(stdout)}' " +
+            $"-StderrPath '{EscapePowerShellSingleQuotedString(stderr)}' " +
+            $"-EnvironmentPath '{EscapePowerShellSingleQuotedString(environment)}'",
+            "$paths | ConvertTo-Json -Compress");
+
+        var startInfo = new ProcessStartInfo
+        {
+            FileName = "pwsh",
+            RedirectStandardError = true,
+            RedirectStandardOutput = true,
+            UseShellExecute = false
+        };
+        startInfo.ArgumentList.Add("-NoProfile");
+        startInfo.ArgumentList.Add("-Command");
+        startInfo.ArgumentList.Add(script);
+
+        using var process = Process.Start(startInfo) ?? throw new InvalidOperationException("Failed to start pwsh.");
+        var output = process.StandardOutput.ReadToEnd();
+        var error = process.StandardError.ReadToEnd();
+        process.WaitForExit();
+
+        process.ExitCode.Should().Be(0, output + error);
+        var paths = JsonSerializer.Deserialize<string[]>(output.Trim());
+        paths.Should().NotBeNull();
+        return paths!;
+    }
+
+    private static string EscapePowerShellSingleQuotedString(string value)
+    {
+        return value.Replace("'", "''", StringComparison.Ordinal);
     }
 
     private static string GetRepositoryRoot()

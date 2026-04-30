@@ -19,6 +19,7 @@ param(
 
 $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent $PSScriptRoot
+. (Join-Path $PSScriptRoot "ConsumerSmokeSupportArtifacts.ps1")
 $defaultViewerProject = "smoke/Videra.ConsumerSmoke/Videra.ConsumerSmoke.csproj"
 $defaultSurfaceChartsProject = "smoke/Videra.SurfaceCharts.ConsumerSmoke/Videra.SurfaceCharts.ConsumerSmoke.csproj"
 $resolvedProject =
@@ -244,17 +245,17 @@ function Set-ConsumerSmokeReportMetadata
     }
 
     $report = Get-Content -Raw $script:jsonPath | ConvertFrom-Json
-    $supportArtifactPaths = @(
-        $script:snapshotPath,
-        $script:inspectionSnapshotPath,
-        $script:inspectionBundlePath,
-        $script:surfaceChartsSupportSummaryPath,
-        $script:surfaceChartsSnapshotPath,
-        $script:tracePath,
-        $script:stdoutPath,
-        $script:stderrPath,
-        $script:environmentPath
-    ) | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
+    $supportArtifactPaths = Get-ConsumerSmokeSupportArtifactPaths `
+        -Scenario $Scenario `
+        -DiagnosticsSnapshotPath $script:snapshotPath `
+        -InspectionSnapshotPath $script:inspectionSnapshotPath `
+        -InspectionBundlePath $script:inspectionBundlePath `
+        -SurfaceChartsSupportSummaryPath $script:surfaceChartsSupportSummaryPath `
+        -SurfaceChartsSnapshotPath $script:surfaceChartsSnapshotPath `
+        -TracePath $script:tracePath `
+        -StdoutPath $script:stdoutPath `
+        -StderrPath $script:stderrPath `
+        -EnvironmentPath $script:environmentPath
 
     $report | Add-Member -NotePropertyName Scenario -NotePropertyValue $Scenario -Force
     $report | Add-Member -NotePropertyName PackageVersion -NotePropertyValue $script:packageVersion -Force
