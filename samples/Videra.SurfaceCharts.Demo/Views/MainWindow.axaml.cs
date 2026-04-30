@@ -1,6 +1,7 @@
 using System.Globalization;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Videra.SurfaceCharts.Avalonia.Controls;
@@ -74,6 +75,23 @@ public partial class MainWindow : Window
     private string? _lastCacheLoadFailureMessage;
     private ScatterChartData? _activeScatterData;
     private PlotSnapshotResult? _lastSnapshotResult;
+
+    // Recipe parameter controls
+    private readonly Border _recipeParameterPanel;
+    private readonly StackPanel _lineParamGroup;
+    private readonly StackPanel _ribbonParamGroup;
+    private readonly StackPanel _vectorFieldParamGroup;
+    private readonly StackPanel _heatmapParamGroup;
+
+    // Active series for live parameter updates
+    private LinePlot3DSeries? _activeLineSeries;
+    private RibbonPlot3DSeries? _activeRibbonSeries;
+    private VectorFieldPlot3DSeries? _activeVectorFieldSeries;
+    private HeatmapSlicePlot3DSeries? _activeHeatmapSliceSeries;
+    private readonly TextBlock _lineWidthText;
+    private readonly TextBlock _ribbonRadiusText;
+    private readonly TextBlock _vectorFieldScaleText;
+    private readonly TextBlock _heatmapPositionText;
 
     public MainWindow()
     {
@@ -159,6 +177,24 @@ public partial class MainWindow : Window
             ?? throw new InvalidOperationException("SupportSummaryStatusText is missing.");
         _supportSummaryText = this.FindControl<TextBlock>("SupportSummaryText")
             ?? throw new InvalidOperationException("SupportSummaryText is missing.");
+        _recipeParameterPanel = this.FindControl<Border>("RecipeParameterPanel")
+            ?? throw new InvalidOperationException("RecipeParameterPanel is missing.");
+        _lineParamGroup = this.FindControl<StackPanel>("LineParamGroup")
+            ?? throw new InvalidOperationException("LineParamGroup is missing.");
+        _ribbonParamGroup = this.FindControl<StackPanel>("RibbonParamGroup")
+            ?? throw new InvalidOperationException("RibbonParamGroup is missing.");
+        _vectorFieldParamGroup = this.FindControl<StackPanel>("VectorFieldParamGroup")
+            ?? throw new InvalidOperationException("VectorFieldParamGroup is missing.");
+        _heatmapParamGroup = this.FindControl<StackPanel>("HeatmapParamGroup")
+            ?? throw new InvalidOperationException("HeatmapParamGroup is missing.");
+        _lineWidthText = this.FindControl<TextBlock>("LineWidthText")
+            ?? throw new InvalidOperationException("LineWidthText is missing.");
+        _ribbonRadiusText = this.FindControl<TextBlock>("RibbonRadiusText")
+            ?? throw new InvalidOperationException("RibbonRadiusText is missing.");
+        _vectorFieldScaleText = this.FindControl<TextBlock>("VectorFieldScaleText")
+            ?? throw new InvalidOperationException("VectorFieldScaleText is missing.");
+        _heatmapPositionText = this.FindControl<TextBlock>("HeatmapPositionText")
+            ?? throw new InvalidOperationException("HeatmapPositionText is missing.");
 
         _cachePath = Path.Combine(
             AppContext.BaseDirectory,
@@ -255,6 +291,8 @@ public partial class MainWindow : Window
         {
             return;
         }
+
+        UpdateParameterPanel(scenario.Id);
 
         if (scenario.Id == SurfaceDemoScenarios.StartId)
         {
@@ -575,7 +613,7 @@ public partial class MainWindow : Window
         SetActiveChartView(_linePlotView);
         _activeScatterData = null;
         _linePlotView.Plot.Clear();
-        _linePlotView.Plot.Add.Line(
+        _activeLineSeries = _linePlotView.Plot.Add.Line(
             CreateSampleLineXs(),
             CreateSampleLineYs(),
             CreateSampleLineZs(),
@@ -594,7 +632,7 @@ public partial class MainWindow : Window
         SetActiveChartView(_ribbonPlotView);
         _activeScatterData = null;
         _ribbonPlotView.Plot.Clear();
-        _ribbonPlotView.Plot.Add.Ribbon(
+        _activeRibbonSeries = _ribbonPlotView.Plot.Add.Ribbon(
             CreateSampleLineXs(),
             CreateSampleLineYs(),
             CreateSampleLineZs(),
@@ -614,7 +652,7 @@ public partial class MainWindow : Window
         SetActiveChartView(_vectorFieldPlotView);
         _activeScatterData = null;
         _vectorFieldPlotView.Plot.Clear();
-        _vectorFieldPlotView.Plot.Add.VectorField(
+        _activeVectorFieldSeries = _vectorFieldPlotView.Plot.Add.VectorField(
             CreateSampleVectorFieldXs(),
             CreateSampleVectorFieldYs(),
             CreateSampleVectorFieldZs(),
@@ -636,7 +674,7 @@ public partial class MainWindow : Window
         SetActiveChartView(_heatmapSlicePlotView);
         _activeScatterData = null;
         _heatmapSlicePlotView.Plot.Clear();
-        _heatmapSlicePlotView.Plot.Add.HeatmapSlice(
+        _activeHeatmapSliceSeries = _heatmapSlicePlotView.Plot.Add.HeatmapSlice(
             CreateSampleHeatmapValues(),
             HeatmapSliceAxis.Z,
             0.5,
@@ -1636,5 +1674,82 @@ public partial class MainWindow : Window
         return
             $"Data window StartX {dataWindow.StartX:0.###}, StartY {dataWindow.StartY:0.###}, Width {dataWindow.Width:0.###}, Height {dataWindow.Height:0.###}; " +
             $"Camera target ({camera.Target.X:0.###}, {camera.Target.Y:0.###}, {camera.Target.Z:0.###}), Yaw {camera.YawDegrees:0.###}, Pitch {camera.PitchDegrees:0.###}, Distance {camera.Distance:0.###}";
+    }
+
+    private void UpdateParameterPanel(string scenarioId)
+    {
+        // Reset all active series references
+        _activeLineSeries = null;
+        _activeRibbonSeries = null;
+        _activeVectorFieldSeries = null;
+        _activeHeatmapSliceSeries = null;
+
+        _lineParamGroup.IsVisible = false;
+        _ribbonParamGroup.IsVisible = false;
+        _vectorFieldParamGroup.IsVisible = false;
+        _heatmapParamGroup.IsVisible = false;
+
+        var hasParams = scenarioId switch
+        {
+            _ when scenarioId == SurfaceDemoScenarios.LineId => ShowLineParams(),
+            _ when scenarioId == SurfaceDemoScenarios.RibbonId => ShowRibbonParams(),
+            _ when scenarioId == SurfaceDemoScenarios.VectorFieldId => ShowVectorFieldParams(),
+            _ when scenarioId == SurfaceDemoScenarios.HeatmapSliceId => ShowHeatmapParams(),
+            _ => false,
+        };
+
+        _recipeParameterPanel.IsVisible = hasParams;
+    }
+
+    private bool ShowLineParams()
+    {
+        _lineParamGroup.IsVisible = true;
+        return true;
+    }
+
+    private bool ShowRibbonParams()
+    {
+        _ribbonParamGroup.IsVisible = true;
+        return true;
+    }
+
+    private bool ShowVectorFieldParams()
+    {
+        _vectorFieldParamGroup.IsVisible = true;
+        return true;
+    }
+
+    private bool ShowHeatmapParams()
+    {
+        _heatmapParamGroup.IsVisible = true;
+        return true;
+    }
+
+    private void OnLineWidthChanged(object? sender, RangeBaseValueChangedEventArgs e)
+    {
+        if (_activeLineSeries is null) return;
+        _activeLineSeries.SetWidth((float)e.NewValue);
+        _lineWidthText.Text = e.NewValue.ToString("0");
+    }
+
+    private void OnRibbonRadiusChanged(object? sender, RangeBaseValueChangedEventArgs e)
+    {
+        if (_activeRibbonSeries is null) return;
+        _activeRibbonSeries.SetRadius((float)e.NewValue);
+        _ribbonRadiusText.Text = e.NewValue.ToString("0.00");
+    }
+
+    private void OnVectorFieldScaleChanged(object? sender, RangeBaseValueChangedEventArgs e)
+    {
+        if (_activeVectorFieldSeries is null) return;
+        _activeVectorFieldSeries.SetScale((float)e.NewValue);
+        _vectorFieldScaleText.Text = e.NewValue.ToString("0.0");
+    }
+
+    private void OnHeatmapPositionChanged(object? sender, RangeBaseValueChangedEventArgs e)
+    {
+        if (_activeHeatmapSliceSeries is null) return;
+        _activeHeatmapSliceSeries.SetPosition(e.NewValue);
+        _heatmapPositionText.Text = e.NewValue.ToString("0.0");
     }
 }

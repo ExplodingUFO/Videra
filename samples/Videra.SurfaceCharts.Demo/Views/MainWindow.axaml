@@ -123,6 +123,49 @@
           </StackPanel>
         </Border>
 
+        <Border x:Name="RecipeParameterPanel"
+                Padding="18"
+                Background="#111A2B"
+                BorderBrush="#1F2B44"
+                BorderThickness="1"
+                CornerRadius="18"
+                IsVisible="False">
+          <StackPanel Spacing="10">
+            <TextBlock FontSize="18"
+                       FontWeight="SemiBold"
+                       Foreground="#E2E8F0"
+                       Text="Recipe parameters" />
+            <StackPanel x:Name="LineParamGroup" IsVisible="False" Spacing="4">
+              <TextBlock Foreground="#CBD5E1" Text="Line width" />
+              <Slider x:Name="LineWidthSlider" Minimum="1" Maximum="8" Value="2"
+                      TickFrequency="1" IsSnapToTickEnabled="True"
+                      ValueChanged="OnLineWidthChanged" />
+              <TextBlock x:Name="LineWidthText" Foreground="#94A3B8" FontSize="12" Text="2" />
+            </StackPanel>
+            <StackPanel x:Name="RibbonParamGroup" IsVisible="False" Spacing="4">
+              <TextBlock Foreground="#CBD5E1" Text="Ribbon radius" />
+              <Slider x:Name="RibbonRadiusSlider" Minimum="0.05" Maximum="0.5" Value="0.15"
+                      TickFrequency="0.05" IsSnapToTickEnabled="True"
+                      ValueChanged="OnRibbonRadiusChanged" />
+              <TextBlock x:Name="RibbonRadiusText" Foreground="#94A3B8" FontSize="12" Text="0.15" />
+            </StackPanel>
+            <StackPanel x:Name="VectorFieldParamGroup" IsVisible="False" Spacing="4">
+              <TextBlock Foreground="#CBD5E1" Text="Arrow scale" />
+              <Slider x:Name="VectorFieldScaleSlider" Minimum="0.5" Maximum="3.0" Value="1.0"
+                      TickFrequency="0.5" IsSnapToTickEnabled="True"
+                      ValueChanged="OnVectorFieldScaleChanged" />
+              <TextBlock x:Name="VectorFieldScaleText" Foreground="#94A3B8" FontSize="12" Text="1.0" />
+            </StackPanel>
+            <StackPanel x:Name="HeatmapParamGroup" IsVisible="False" Spacing="4">
+              <TextBlock Foreground="#CBD5E1" Text="Slice position" />
+              <Slider x:Name="HeatmapPositionSlider" Minimum="0" Maximum="1" Value="0.5"
+                      TickFrequency="0.1" IsSnapToTickEnabled="True"
+                      ValueChanged="OnHeatmapPositionChanged" />
+              <TextBlock x:Name="HeatmapPositionText" Foreground="#94A3B8" FontSize="12" Text="0.5" />
+            </StackPanel>
+          </StackPanel>
+        </Border>
+
         <Border Padding="18"
                 Background="#111A2B"
                 BorderBrush="#1F2B44"
