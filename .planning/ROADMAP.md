@@ -24,7 +24,7 @@ TRUTH-01..03, VERIFY-01..02)
   state inspection.
 - [x] **Phase 421: Annotation and Measurement Workflows** - Add bounded
   coordinate-attached labels, markers, references, and measurement evidence.
-- [ ] **Phase 422: Demo Gallery Workflow Upgrade** - Upgrade the SurfaceCharts
+- [x] **Phase 422: Demo Gallery Workflow Upgrade** - Upgrade the SurfaceCharts
   demo into a richer recipe-first gallery without turning it into a generic
   workbench.
 - [ ] **Phase 423: Feature Cookbook and Validation Truth** - Align cookbook,
@@ -99,6 +99,7 @@ workflows.
 3. Demo code remains split into bounded catalog/support responsibilities rather
    than a broad workbench shell.
 **Plans:** 422-PLAN.md
+**Completed:** 2026-04-30
 
 ### Phase 423: Feature Cookbook and Validation Truth
 
@@ -133,8 +134,8 @@ workflows.
 | 419. Feature/Demo Surface Inventory | 1/1 | Complete | 2026-04-30 |
 | 420. Native 3D Feature Convenience APIs | 1/1 | Complete | 2026-04-30 |
 | 421. Annotation and Measurement Workflows | 1/1 | Complete | 2026-04-30 |
-| 422. Demo Gallery Workflow Upgrade | 1/1 | In Progress | |
-| 423. Feature Cookbook and Validation Truth | 0/1 | Blocked on 422 | |
+| 422. Demo Gallery Workflow Upgrade | 1/1 | Complete | 2026-04-30 |
+| 423. Feature Cookbook and Validation Truth | 0/1 | Ready | |
 | 424. v2.63 Final Verification | 0/1 | Blocked on 423 | |
 
 ---
