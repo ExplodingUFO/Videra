@@ -77,6 +77,53 @@ public sealed class SurfaceChartsCookbookCoverageMatrixTests
         }
     }
 
+    [Fact]
+    public void SurfaceChartsCookbookCoverageMatrix_ShouldIncludeV264WorkflowRecipes()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var catalog = Read(repositoryRoot, "samples", "Videra.SurfaceCharts.Demo", "Services", "CookbookRecipeCatalog.cs");
+
+        // Multi-chart analysis workspace recipe
+        catalog.Should().Contain("\"Multi-chart\"");
+        catalog.Should().Contain("\"Analysis workspace\"");
+        catalog.Should().Contain("SurfaceChartWorkspace");
+        catalog.Should().Contain("SurfaceChartPanelInfo");
+        catalog.Should().Contain("CreateWorkspaceEvidence");
+
+        // Linked interaction recipe
+        catalog.Should().Contain("\"Linked interaction\"");
+        catalog.Should().Contain("SurfaceChartLinkGroup");
+        catalog.Should().Contain("SurfaceChartInteractionPropagator");
+        catalog.Should().Contain("PropagateProbe");
+
+        // Streaming workspace recipe
+        catalog.Should().Contain("\"Streaming\"");
+        catalog.Should().Contain("\"Streaming workspace with evidence\"");
+        catalog.Should().Contain("DataLogger3D");
+        catalog.Should().Contain("RegisterStreamingStatus");
+        catalog.Should().Contain("SurfaceChartStreamingStatus");
+        catalog.Should().Contain("EvidenceOnly");
+    }
+
+    [Fact]
+    public void SurfaceChartsCookbookCoverageMatrix_ShouldHaveV264RecipeFiles()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+
+        foreach (var recipe in V264RecipeFiles)
+        {
+            File.Exists(Path.Combine(repositoryRoot, "samples", "Videra.SurfaceCharts.Demo", "Recipes", recipe))
+                .Should().BeTrue($"Recipe file {recipe} should exist");
+        }
+    }
+
+    private static readonly IReadOnlyList<string> V264RecipeFiles =
+    [
+        "multi-chart-analysis.md",
+        "linked-interaction.md",
+        "streaming-workspace.md",
+    ];
+
     private static readonly IReadOnlyList<CookbookCoverageRow> CookbookCoverageRows =
     [
         new(

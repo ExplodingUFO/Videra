@@ -203,6 +203,25 @@ internal static class CookbookRecipes
                 propagator.PropagateProbe(chartA, screenPosition);
                 """),
         new(
+            "Streaming",
+            "Streaming workspace with evidence",
+            "Multiple charts with different streaming modes and workspace evidence tracking.",
+            ScenarioId: SurfaceDemoScenarios.StreamingWorkspaceId,
+            ScatterScenarioId: "scatter-fifo-trim-100k",
+            Snippet: """
+                var live = new DataLogger3D(0xFF2F80EDu, label: "Live", fifoCapacity: 10_000);
+                live.Append(data);
+                live.UseLatestWindow(2_000);
+
+                workspace.RegisterStreamingStatus("live", new SurfaceChartStreamingStatus
+                {
+                    UpdateMode = "Append",
+                    RetainedPointCount = live.Count,
+                    FifoCapacity = live.FifoCapacity,
+                    EvidenceOnly = true,
+                });
+                """),
+        new(
             "Export",
             "Chart-local PNG snapshot",
             "Isolated setup path: keeps the first chart visible and uses the bounded Capture Snapshot button for the same PNG-only export path.",
