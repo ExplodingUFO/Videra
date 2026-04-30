@@ -54,7 +54,12 @@ public sealed class BeadsPublicRoadmapTests
             .Take(10)
             .ToArray();
 
-        readyIssues.Should().NotBeEmpty("the public roadmap should expose the next ready Beads work item");
+        if (readyIssues.Length == 0)
+        {
+            after.Should().Contain("## Ready");
+            after.Should().Contain("_No matching beads in the exported snapshot._");
+        }
+
         foreach (var issue in readyIssues.Concat(blockedIssues).Concat(recentlyClosed))
         {
             after.Should().Contain(GetString(issue, "id"));

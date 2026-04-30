@@ -22,7 +22,7 @@ CI-01..02, VERIFY-01..02, SCOPE-01)
 - [x] **Phase 410: Detailed 3D Cookbook Demo Recipes** - Expand the demo/docs cookbook into detailed runnable recipes for the shipped 3D chart model.
 - [x] **Phase 411: Native High-Performance Demo Paths** - Tighten cookbook/demo examples around native Videra data paths and performance evidence without downshift/fallback behavior.
 - [x] **Phase 412: CI Truth and Validation Hardening** - Ensure focused CI/test design is reasonable, deterministic, and catches docs/demo/support drift.
-- [ ] **Phase 413: v2.61 Final Verification** - Close v2.61 with composed validation, Beads export, generated roadmap, archive, push, and cleanup.
+- [x] **Phase 413: v2.61 Final Verification** - Close v2.61 with composed validation, Beads export, generated roadmap, archive, push, and cleanup.
 
 ## Phase Details
 
@@ -90,6 +90,7 @@ CI-01..02, VERIFY-01..02, SCOPE-01)
 2. Beads state, generated public roadmap, phase archive, branch/worktree
    cleanup, Git push, and Dolt Beads push are synchronized.
 **Plans:** 413-PLAN.md
+**Completed:** 2026-04-30
 
 ## Progress
 
@@ -99,9 +100,23 @@ CI-01..02, VERIFY-01..02, SCOPE-01)
 | 410. Detailed 3D Cookbook Demo Recipes | 1/1 | Complete | 2026-04-30 |
 | 411. Native High-Performance Demo Paths | 1/1 | Complete | 2026-04-30 |
 | 412. CI Truth and Validation Hardening | 1/1 | Complete | 2026-04-30 |
-| 413. v2.61 Final Verification | 0/1 | Ready | |
+| 413. v2.61 Final Verification | 1/1 | Complete | 2026-04-30 |
 
 ---
+
+<details>
+<summary>v2.61 Native SurfaceCharts Cookbook and CI Truth - Complete (2026-04-30)</summary>
+
+Archived phase artifacts: `.planning/milestones/v2.61-phases`
+
+v2.61 pushed SurfaceCharts toward ScottPlot5-style cookbook usability while
+staying Videra-native. It added detailed 3D cookbook/demo recipes, native
+high-performance demo evidence, focused CI truth gates, Beads/generated-roadmap
+sync, scope guardrails, and final clean handoff. It did not add ScottPlot
+compatibility, old chart controls, hidden fallback/downshift behavior, backend
+expansion, or fake validation evidence.
+
+</details>
 
 <details>
 <summary>v2.60 SurfaceCharts Cookbook QA and Interaction Handoff - Complete (2026-04-30)</summary>

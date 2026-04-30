@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v2.61
 milestone_name: "Native SurfaceCharts Cookbook and CI Truth"
-status: active
-stopped_at: "Phase 413 ready for final verification"
-last_updated: "2026-04-30T16:58:00+08:00"
+status: completed
+stopped_at: "v2.61 milestone complete"
+last_updated: "2026-04-30T17:10:00+08:00"
 last_activity: 2026-04-30
 progress:
   total_phases: 5
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 5
-  completed_plans: 4
-  percent: 80
+  completed_plans: 5
+  percent: 100
 ---
 
 # Project State
@@ -26,12 +26,12 @@ See: `.planning/PROJECT.md`
 ## Current Position
 
 Milestone: `v2.61 Native SurfaceCharts Cookbook and CI Truth`
-Phase: 413 of 413 - READY
-Plan: Phase 413 final verification next
-Status: Phase 409 inventory, Phase 410 detailed cookbook recipes, Phase 411 native high-performance demo evidence, and Phase 412 CI truth hardening are complete.
-Last activity: 2026-04-30 - Completed Phase 412 CI truth hardening with focused workflow guards and scope checks.
+Phase: 413 of 413 - COMPLETE
+Plan: v2.61 complete
+Status: Phase 409 inventory, Phase 410 detailed cookbook recipes, Phase 411 native high-performance demo evidence, Phase 412 CI truth hardening, and Phase 413 final verification are complete.
+Last activity: 2026-04-30 - Completed v2.61 final verification, Beads/generated-roadmap sync, archive, and handoff.
 
-Progress: [########--] 80%
+Progress: [##########] 100%
 
 ## Initial Scope Summary
 
@@ -59,6 +59,7 @@ v2.61 focuses on:
 - Shared Beads export, generated roadmap, final scope guardrails, archive, push, and cleanup are Phase 413 responsibilities.
 - Keep implementation simple and direct; do not add ScottPlot compatibility adapters, old chart controls, hidden fallback behavior, backend expansion, broad demo frameworks, or fake validation evidence.
 - v2.60 artifacts are archived under `.planning/milestones/v2.60-phases`.
+- v2.61 artifacts are archived under `.planning/milestones/v2.61-phases`.
 
 ## Known Residuals
 
@@ -69,8 +70,8 @@ v2.61 focuses on:
 ## Session Continuity
 
 Last session: `2026-04-30 +08:00`
-Stopped at: Phase 413 ready
-Next action: execute Phase 413 (`Videra-q10`) final verification, Beads/generated-roadmap sync, archive, push, and cleanup.
+Stopped at: v2.61 complete
+Next action: start the next milestone from the completed v2.61 state.
 
 ## Accumulated Context
 
