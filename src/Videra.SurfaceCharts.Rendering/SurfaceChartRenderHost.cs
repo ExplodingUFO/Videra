@@ -8,19 +8,19 @@ public sealed class SurfaceChartRenderHost
 {
     private readonly ISurfaceChartRenderBackend _softwareBackend;
     private readonly ISurfaceChartRenderBackend? _gpuBackend;
-    private readonly bool _allowSoftwareFallback;
+    private readonly string? _gpuBackendResolutionFailure;
     private readonly SurfaceChartRenderState _renderState;
 
     public SurfaceChartRenderHost(
         SurfaceChartRenderState renderState,
         ISurfaceChartRenderBackend? softwareBackend = null,
-        ISurfaceChartRenderBackend? gpuBackend = null,
-        bool allowSoftwareFallback = true)
+        ISurfaceChartRenderBackend? gpuBackend = null)
     {
         _renderState = renderState ?? throw new ArgumentNullException(nameof(renderState));
+        var defaultGpuBackend = gpuBackend is null ? CreateDefaultGpuBackend() : default;
         _softwareBackend = softwareBackend ?? new SurfaceChartSoftwareRenderBackend(_renderState.Renderer);
-        _gpuBackend = gpuBackend ?? CreateDefaultGpuBackend();
-        _allowSoftwareFallback = allowSoftwareFallback;
+        _gpuBackend = gpuBackend ?? defaultGpuBackend.Backend;
+        _gpuBackendResolutionFailure = gpuBackend is null ? defaultGpuBackend.Diagnostic : null;
         Inputs = new SurfaceChartRenderInputs();
         LastChangeSet = new SurfaceChartRenderChangeSet();
         Snapshot = new SurfaceChartRenderSnapshot
@@ -39,13 +39,11 @@ public sealed class SurfaceChartRenderHost
 
     public SurfaceChartRenderHost(
         ISurfaceChartRenderBackend? softwareBackend = null,
-        ISurfaceChartRenderBackend? gpuBackend = null,
-        bool allowSoftwareFallback = true)
+        ISurfaceChartRenderBackend? gpuBackend = null)
         : this(
             new SurfaceChartRenderState(),
             softwareBackend,
-            gpuBackend,
-            allowSoftwareFallback)
+            gpuBackend)
     {
     }
 
@@ -84,25 +82,15 @@ public sealed class SurfaceChartRenderHost
             {
                 return _gpuBackend.Render(inputs, _renderState, LastChangeSet);
             }
-            catch (Exception ex) when (_allowSoftwareFallback)
+            catch (Exception ex)
             {
-                var fallbackSnapshot = _softwareBackend.Render(
-                    inputs with
-                    {
-                        NativeHandle = IntPtr.Zero,
-                        HandleBound = false,
-                    },
-                    _renderState,
-                    LastChangeSet);
-
-                return fallbackSnapshot with
-                {
-                    ActiveBackend = SurfaceChartRenderBackendKind.Software,
-                    IsFallback = true,
-                    FallbackReason = ex.Message,
-                    UsesNativeSurface = false,
-                };
+                return CreateGpuNotReadySnapshot(ex.Message);
             }
+        }
+
+        if (inputs.HandleBound && _gpuBackendResolutionFailure is not null)
+        {
+            return CreateGpuNotReadySnapshot(_gpuBackendResolutionFailure, usesNativeSurface: false);
         }
 
         return _softwareBackend.Render(
@@ -115,7 +103,22 @@ public sealed class SurfaceChartRenderHost
             LastChangeSet);
     }
 
-    private static ISurfaceChartRenderBackend? CreateDefaultGpuBackend()
+    private SurfaceChartRenderSnapshot CreateGpuNotReadySnapshot(string diagnostic, bool usesNativeSurface = true)
+    {
+        return new SurfaceChartRenderSnapshot
+        {
+            ActiveBackend = SurfaceChartRenderBackendKind.Gpu,
+            IsReady = false,
+            IsFallback = false,
+            FallbackReason = diagnostic,
+            UsesNativeSurface = usesNativeSurface,
+            ResidentTileCount = _renderState.ResidentTileCount,
+            VisibleTileCount = 0,
+            ResidentTileBytes = _renderState.EstimatedResidentTileBytes,
+        };
+    }
+
+    private static (ISurfaceChartRenderBackend? Backend, string? Diagnostic) CreateDefaultGpuBackend()
     {
         try
         {
@@ -126,12 +129,12 @@ public sealed class SurfaceChartRenderHost
                     AllowSoftwareFallback: false));
 
             return resolution.ResolvedPreference == GraphicsBackendPreference.Software
-                ? null
-                : new SurfaceChartGpuRenderBackend(resolution.Backend);
+                ? (null, "Resolved graphics backend is software; native SurfaceCharts rendering is unavailable.")
+                : (new SurfaceChartGpuRenderBackend(resolution.Backend), null);
         }
-        catch
+        catch (Exception ex)
         {
-            return null;
+            return (null, ex.Message);
         }
     }
 }

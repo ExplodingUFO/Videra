@@ -6,10 +6,10 @@ using Xunit;
 namespace Videra.SurfaceCharts.Avalonia.IntegrationTests;
 
 /// <summary>
-/// Verifies that the existing <see cref="SurfaceChartProbeEvidenceFormatter"/> works unchanged
-/// with <see cref="SurfaceProbeInfo"/> from all probe strategy types (surface, scatter, bar, contour).
+/// Verifies that <see cref="SurfaceChartProbeEvidenceFormatter"/> accepts the shared
+/// <see cref="SurfaceProbeInfo"/> shape used by surface, scatter, bar, and contour probes.
 /// </summary>
-public sealed class SurfaceChartProbeEvidenceCompatibilityTests
+public sealed class SurfaceChartProbeEvidenceSharedInputTests
 {
     [Fact]
     public void SurfaceProbeInfo_CreatesValidEvidence()
@@ -30,7 +30,6 @@ public sealed class SurfaceChartProbeEvidenceCompatibilityTests
     [Fact]
     public void ScatterProbeInfo_CreatesValidEvidence()
     {
-        // Scatter probes use the same SurfaceProbeInfo struct
         var probe = CreateSurfaceProbe(sampleX: 100, sampleY: 200, axisX: 15.5, axisY: 25.5, value: 42.0);
 
         var evidence = SurfaceChartProbeEvidenceFormatter.Create(probe, []);
@@ -46,7 +45,6 @@ public sealed class SurfaceChartProbeEvidenceCompatibilityTests
     [Fact]
     public void BarProbeInfo_CreatesValidEvidence()
     {
-        // Bar probes use the same SurfaceProbeInfo struct with bar center coordinates
         var probe = CreateSurfaceProbe(sampleX: 50, sampleY: 50, axisX: 2, axisY: 0, value: 25.0);
 
         var evidence = SurfaceChartProbeEvidenceFormatter.Create(probe, []);
@@ -61,7 +59,6 @@ public sealed class SurfaceChartProbeEvidenceCompatibilityTests
     [Fact]
     public void ContourProbeInfo_CreatesValidEvidence()
     {
-        // Contour probes use the same SurfaceProbeInfo struct with iso-line value
         var probe = CreateSurfaceProbe(sampleX: 80, sampleY: 60, axisX: 5.0, axisY: 3.0, value: 10.0);
 
         var evidence = SurfaceChartProbeEvidenceFormatter.Create(probe, []);

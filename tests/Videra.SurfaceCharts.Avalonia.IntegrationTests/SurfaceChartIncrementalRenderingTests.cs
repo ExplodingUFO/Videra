@@ -13,8 +13,7 @@ public sealed class SurfaceChartIncrementalRenderingTests
         var backend = new CountingRenderBackend(SurfaceChartRenderBackendKind.Software, usesNativeSurface: false);
         var host = new SurfaceChartRenderHost(
             softwareBackend: backend,
-            gpuBackend: null,
-            allowSoftwareFallback: true);
+            gpuBackend: null);
         var metadata = CreateMetadata(width: 8, height: 8);
         var residentTile = SurfaceChartTestHelpers.CreateTile(metadata, new SurfaceTileKey(0, 0, 0, 0), tileValue: 12f);
         var colorMap = CreateColorMap(metadata);
@@ -40,8 +39,7 @@ public sealed class SurfaceChartIncrementalRenderingTests
         var backend = new CountingRenderBackend(SurfaceChartRenderBackendKind.Software, usesNativeSurface: false);
         var host = new SurfaceChartRenderHost(
             softwareBackend: backend,
-            gpuBackend: null,
-            allowSoftwareFallback: true);
+            gpuBackend: null);
         var metadata = CreateMetadata(width: 8, height: 8);
         var overviewTile = SurfaceChartTestHelpers.CreateTile(metadata, new SurfaceTileKey(0, 0, 0, 0), tileValue: 4f);
         var detailTile = SurfaceChartTestHelpers.CreateTile(metadata, new SurfaceTileKey(1, 1, 0, 0), tileValue: 9f);
@@ -64,12 +62,10 @@ public sealed class SurfaceChartIncrementalRenderingTests
         var gpuBackend = new CountingRenderBackend(SurfaceChartRenderBackendKind.Gpu, usesNativeSurface: true);
         var softwareHost = new SurfaceChartRenderHost(
             softwareBackend: softwareBackend,
-            gpuBackend: null,
-            allowSoftwareFallback: true);
+            gpuBackend: null);
         var gpuHost = new SurfaceChartRenderHost(
             softwareBackend: new CountingRenderBackend(SurfaceChartRenderBackendKind.Software, usesNativeSurface: false),
-            gpuBackend: gpuBackend,
-            allowSoftwareFallback: true);
+            gpuBackend: gpuBackend);
         var metadata = CreateMetadata(width: 8, height: 8);
         var tile = SurfaceChartTestHelpers.CreateTile(metadata, new SurfaceTileKey(0, 0, 0, 0), tileValue: 7f);
         var initialColorMap = CreateColorMap(metadata);

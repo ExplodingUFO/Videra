@@ -59,7 +59,7 @@ public partial class VideraChartView
         var renderSize = _overlayViewSize.Width > 0d && _overlayViewSize.Height > 0d
             ? _overlayViewSize
             : Bounds.Size;
-        var colorMap = source is null ? null : Plot.ColorMap ?? CreateFallbackColorMap(source.Metadata.ValueRange);
+        var colorMap = source is null ? null : Plot.ColorMap ?? CreateDefaultColorMap(source.Metadata.ValueRange);
         if (ShouldAttemptNativeHost(renderSize))
         {
             EnsureNativeHost();
@@ -125,7 +125,7 @@ public partial class VideraChartView
         bitmap.Render(this);
     }
 
-    private static SurfaceColorMap CreateFallbackColorMap(SurfaceValueRange range)
+    private static SurfaceColorMap CreateDefaultColorMap(SurfaceValueRange range)
     {
         return new SurfaceColorMap(range, SurfaceColorMapPresets.CreateDefault());
     }
@@ -163,8 +163,7 @@ public partial class VideraChartView
         return _renderHost.HasGpuBackend
             && _runtime.Source is not null
             && renderSize.Width > 0d
-            && renderSize.Height > 0d
-            && !RenderingStatus.IsFallback;
+            && renderSize.Height > 0d;
     }
 
     private void EnsureNativeHost()

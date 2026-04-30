@@ -198,7 +198,7 @@ public partial class VideraChartView
     {
         var loadedTiles = _runtime.GetLoadedTiles();
         var source = _runtime.Source;
-        var activeColorMap = source is null ? null : Plot.ColorMap ?? CreateFallbackColorMap(source.Metadata.ValueRange);
+        var activeColorMap = source is null ? null : Plot.ColorMap ?? CreateDefaultColorMap(source.Metadata.ValueRange);
         var cameraFrame = source is not null
             ? _runtime.CreateCameraFrame(_overlayViewSize, 1f)
             : null;

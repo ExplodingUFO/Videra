@@ -1,12 +1,9 @@
 using Videra.SurfaceCharts.Core;
 using Videra.SurfaceCharts.Core.Rendering;
-
 namespace Videra.SurfaceCharts.Rendering;
 
 public sealed record SurfaceChartRenderInputs
 {
-    private SurfaceCameraFrame? _cameraFrame;
-
     public SurfaceMetadata? Metadata { get; init; }
 
     public IReadOnlyList<SurfaceTile> LoadedTiles { get; init; } = Array.Empty<SurfaceTile>();
@@ -15,11 +12,7 @@ public sealed record SurfaceChartRenderInputs
 
     public SurfaceViewState ViewState { get; init; }
 
-    public SurfaceCameraFrame? CameraFrame
-    {
-        get => _cameraFrame ?? CreateCompatibilityCameraFrame();
-        init => _cameraFrame = value;
-    }
+    public SurfaceCameraFrame? CameraFrame { get; init; }
 
     public double ViewWidth { get; init; }
 
@@ -30,14 +23,4 @@ public sealed record SurfaceChartRenderInputs
     public bool HandleBound { get; init; }
 
     public float RenderScale { get; init; } = 1f;
-
-    private SurfaceCameraFrame? CreateCompatibilityCameraFrame()
-    {
-        if (Metadata is null || ViewWidth <= 0d || ViewHeight <= 0d || !float.IsFinite(RenderScale) || RenderScale <= 0f)
-        {
-            return null;
-        }
-
-        return SurfaceProjectionMath.CreateCameraFrame(Metadata, ViewState, ViewWidth, ViewHeight, RenderScale);
-    }
 }

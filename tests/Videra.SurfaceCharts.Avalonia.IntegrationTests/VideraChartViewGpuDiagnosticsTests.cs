@@ -13,7 +13,7 @@ using Xunit;
 
 namespace Videra.SurfaceCharts.Avalonia.IntegrationTests;
 
-public sealed class VideraChartViewGpuFallbackTests
+public sealed class VideraChartViewGpuDiagnosticsTests
 {
     [Fact]
     public Task VideraChartView_CreatesChartLocalNativeHostOnlyForGpuStatus()
@@ -22,8 +22,7 @@ public sealed class VideraChartViewGpuFallbackTests
         {
             var renderHost = new SurfaceChartRenderHost(
                 softwareBackend: new SurfaceChartSoftwareRenderBackend(),
-                gpuBackend: new SurfaceChartGpuRenderBackend(new FakeGraphicsBackend()),
-                allowSoftwareFallback: true);
+                gpuBackend: new SurfaceChartGpuRenderBackend(new FakeGraphicsBackend()));
             var nativeHostFactory = new RecordingSurfaceChartNativeHostFactory(new IntPtr(0x4321));
             var view = new TestVideraChartView(renderHost, nativeHostFactory);
             var source = new ScriptedSurfaceTileSource(VideraChartViewLifecycleTests.CreateMetadata(), defaultTileValue: 6f);
@@ -46,15 +45,14 @@ public sealed class VideraChartViewGpuFallbackTests
     }
 
     [Fact]
-    public Task VideraChartView_ExposesFallbackTruth_AndKeepsChartLocalOverlayPath_WhenGpuFallsBack()
+    public Task VideraChartView_ExposesGpuNotReadyDiagnostic_AndKeepsChartLocalOverlayPath_WhenGpuFails()
     {
         return AvaloniaHeadlessTestSession.RunAsync(async () =>
         {
             var renderHost = new SurfaceChartRenderHost(
                 softwareBackend: new SurfaceChartSoftwareRenderBackend(),
                 gpuBackend: new SurfaceChartGpuRenderBackend(
-                    new FakeGraphicsBackend(initializeException: new InvalidOperationException("gpu init failed"))),
-                allowSoftwareFallback: true);
+                    new FakeGraphicsBackend(initializeException: new InvalidOperationException("gpu init failed"))));
             var nativeHostFactory = new RecordingSurfaceChartNativeHostFactory(new IntPtr(0x4321));
             var view = new TestVideraChartView(renderHost, nativeHostFactory);
             var source = new ScriptedSurfaceTileSource(VideraChartViewLifecycleTests.CreateMetadata(), defaultTileValue: 8f);
@@ -67,14 +65,17 @@ public sealed class VideraChartViewGpuFallbackTests
 
             await WaitForRenderingStatusAsync(
                 view,
-                static status => status.ActiveBackend == SurfaceChartRenderBackendKind.Software && status.IsFallback);
+                static status => status.ActiveBackend == SurfaceChartRenderBackendKind.Gpu
+                    && !status.IsReady
+                    && status.FallbackReason is not null);
 
-            view.RenderingStatus.ActiveBackend.Should().Be(SurfaceChartRenderBackendKind.Software);
-            view.RenderingStatus.IsFallback.Should().BeTrue();
+            view.RenderingStatus.ActiveBackend.Should().Be(SurfaceChartRenderBackendKind.Gpu);
+            view.RenderingStatus.IsReady.Should().BeFalse();
+            view.RenderingStatus.IsFallback.Should().BeFalse();
             view.RenderingStatus.FallbackReason.Should().Contain("gpu init failed");
-            view.RenderingStatus.UsesNativeSurface.Should().BeFalse();
+            view.RenderingStatus.UsesNativeSurface.Should().BeTrue();
             statusChangedCount.Should().BeGreaterThan(0);
-            GetPrivateField(view, "_nativeHost").Should().BeNull();
+            GetPrivateField(view, "_nativeHost").Should().NotBeNull();
 
             var overlayCoordinator = SurfaceChartTestHelpers.GetOverlayCoordinator(view);
             GetCollectionCount(overlayCoordinator.AxisState, "Axes").Should().BeGreaterThan(0);

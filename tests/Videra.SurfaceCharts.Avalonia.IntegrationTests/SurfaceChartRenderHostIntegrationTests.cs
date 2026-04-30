@@ -5,6 +5,7 @@ using Videra.SurfaceCharts.Avalonia.Controls;
 using Videra.SurfaceCharts.Core;
 using Videra.SurfaceCharts.Core.Rendering;
 using Videra.SurfaceCharts.Rendering;
+using Videra.SurfaceCharts.Rendering.Software;
 using Xunit;
 
 namespace Videra.SurfaceCharts.Avalonia.IntegrationTests;
@@ -99,5 +100,35 @@ public sealed class SurfaceChartRenderHostIntegrationTests
             renderHost.Inputs.CameraFrame.Should().NotBeNull();
             renderHost.Inputs.CameraFrame!.Value.ProjectionSettings.Should().Be(runtime.ViewState.Camera.ToProjectionSettings());
         });
+    }
+
+    [Fact]
+    public void SurfaceChartRenderHost_GpuResolutionFailure_PublishesNotReadyDiagnosticInsteadOfSoftwareDownshift()
+    {
+        var metadata = VideraChartViewLifecycleTests.CreateMetadata();
+        var tile = SurfaceChartTestHelpers.CreateTile(metadata, new SurfaceTileKey(0, 0, 0, 0), tileValue: 6f);
+        var host = new SurfaceChartRenderHost(
+            softwareBackend: new SurfaceChartSoftwareRenderBackend(),
+            gpuBackend: null);
+
+        var snapshot = host.UpdateInputs(new SurfaceChartRenderInputs
+        {
+            Metadata = metadata,
+            LoadedTiles = [tile],
+            ColorMap = new SurfaceColorMap(metadata.ValueRange, SurfaceColorMapPresets.CreateDefault()),
+            ViewState = SurfaceViewState.CreateDefault(metadata, new SurfaceViewport(0, 0, metadata.Width, metadata.Height).ToDataWindow()),
+            ViewWidth = 240d,
+            ViewHeight = 160d,
+            NativeHandle = new IntPtr(0x1234),
+            HandleBound = true,
+            RenderScale = 1f,
+        });
+
+        snapshot.ActiveBackend.Should().Be(SurfaceChartRenderBackendKind.Gpu);
+        snapshot.IsReady.Should().BeFalse();
+        snapshot.IsFallback.Should().BeFalse();
+        snapshot.FallbackReason.Should().NotBeNullOrWhiteSpace();
+        snapshot.UsesNativeSurface.Should().BeFalse();
+        host.SoftwareScene.Should().BeNull();
     }
 }
