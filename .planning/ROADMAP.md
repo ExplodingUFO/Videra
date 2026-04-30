@@ -19,8 +19,8 @@ CI-01..02, VERIFY-01..02, SCOPE-01)
 ## Phases
 
 - [x] **Phase 409: Native Cookbook and CI Inventory** - Inventory current demo cookbook, native 3D chart API surfaces, performance-sensitive paths, CI gates, and anti-fake validation gaps.
-- [ ] **Phase 410: Detailed 3D Cookbook Demo Recipes** - Expand the demo/docs cookbook into detailed runnable recipes for the shipped 3D chart model.
-- [ ] **Phase 411: Native High-Performance Demo Paths** - Tighten cookbook/demo examples around native Videra data paths and performance evidence without downshift/fallback behavior.
+- [x] **Phase 410: Detailed 3D Cookbook Demo Recipes** - Expand the demo/docs cookbook into detailed runnable recipes for the shipped 3D chart model.
+- [x] **Phase 411: Native High-Performance Demo Paths** - Tighten cookbook/demo examples around native Videra data paths and performance evidence without downshift/fallback behavior.
 - [ ] **Phase 412: CI Truth and Validation Hardening** - Ensure focused CI/test design is reasonable, deterministic, and catches docs/demo/support drift.
 - [ ] **Phase 413: v2.61 Final Verification** - Close v2.61 with composed validation, Beads export, generated roadmap, archive, push, and cleanup.
 
@@ -51,6 +51,7 @@ CI-01..02, VERIFY-01..02, SCOPE-01)
 2. Recipes expose Videra-native setup, imports, host wiring, and support evidence without pretending to be ScottPlot.
 3. Demo/docs snippets stay aligned through focused tests.
 **Plans:** 410-PLAN.md
+**Completed:** 2026-04-30
 
 ### Phase 411: Native High-Performance Demo Paths
 
@@ -63,6 +64,7 @@ CI-01..02, VERIFY-01..02, SCOPE-01)
 2. Performance evidence is truthful: no fake benchmark claims, no hidden fallback, and no unsupported backend promises.
 3. Any added tests validate behavior/evidence instead of synthetic success text.
 **Plans:** 411-PLAN.md
+**Completed:** 2026-04-30
 
 ### Phase 412: CI Truth and Validation Hardening
 
@@ -93,9 +95,9 @@ CI-01..02, VERIFY-01..02, SCOPE-01)
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 409. Native Cookbook and CI Inventory | 1/1 | Complete | 2026-04-30 |
-| 410. Detailed 3D Cookbook Demo Recipes | 0/1 | Ready | |
-| 411. Native High-Performance Demo Paths | 0/1 | Ready | |
-| 412. CI Truth and Validation Hardening | 0/1 | Blocked by 410, 411 | |
+| 410. Detailed 3D Cookbook Demo Recipes | 1/1 | Complete | 2026-04-30 |
+| 411. Native High-Performance Demo Paths | 1/1 | Complete | 2026-04-30 |
+| 412. CI Truth and Validation Hardening | 0/1 | Ready | |
 | 413. v2.61 Final Verification | 0/1 | Blocked by 412 | |
 
 ---
