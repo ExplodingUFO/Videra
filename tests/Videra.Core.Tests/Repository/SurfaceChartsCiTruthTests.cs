@@ -6,12 +6,17 @@ namespace Videra.Core.Tests.Repository;
 public sealed class SurfaceChartsCiTruthTests
 {
     [Fact]
-    public void CiWorkflow_ShouldRunFocusedSurfaceChartsCookbookEvidence()
+    public void CiWorkflow_ShouldRunFocusedSurfaceChartsSampleEvidenceWithoutFakeGreen()
     {
         var workflow = ReadWorkflow();
-
-        AssertContainsAll(workflow,
+        var sampleEvidenceStepIndex = workflow.IndexOf(
             "Run SurfaceCharts sample evidence",
+            StringComparison.Ordinal);
+
+        sampleEvidenceStepIndex.Should().BeGreaterThanOrEqualTo(0);
+        var sampleEvidenceStep = GetWorkflowStep(workflow, sampleEvidenceStepIndex);
+
+        AssertContainsAll(sampleEvidenceStep,
             "SurfaceChartsDemoConfigurationTests",
             "SurfaceChartsDemoViewportBehaviorTests",
             "SurfaceChartsCookbookCoverageMatrixTests",
@@ -22,6 +27,32 @@ public sealed class SurfaceChartsCiTruthTests
             "SurfaceChartsHighPerformancePathTests",
             "ScatterStreamingScenarioEvidenceTests",
             "SurfaceChartsPerformanceTruthTests");
+
+        AssertDoesNotMaskValidationFailure(sampleEvidenceStep);
+    }
+
+    [Fact]
+    public void CiWorkflow_ShouldReserveAlwaysConditionForArtifactUploads()
+    {
+        var workflow = ReadWorkflow();
+        var searchIndex = 0;
+
+        while (true)
+        {
+            var alwaysIndex = workflow.IndexOf("if: always()", searchIndex, StringComparison.Ordinal);
+            if (alwaysIndex < 0)
+            {
+                break;
+            }
+
+            var stepStartIndex = workflow.LastIndexOf("\n      - ", alwaysIndex, StringComparison.Ordinal);
+            stepStartIndex.Should().BeGreaterThanOrEqualTo(0);
+
+            var step = GetWorkflowStep(workflow, stepStartIndex);
+            step.Should().Contain("uses: actions/upload-artifact");
+
+            searchIndex = alwaysIndex + "if: always()".Length;
+        }
     }
 
     [Fact]
@@ -39,9 +70,7 @@ public sealed class SurfaceChartsCiTruthTests
             "scripts/Test-SnapshotExportScope.ps1",
             "BeadsPublicRoadmapTests");
 
-        surfaceChartsEvidenceStep.Should().NotContain("continue-on-error: true");
-        surfaceChartsEvidenceStep.Should().NotContain("|| true");
-        surfaceChartsEvidenceStep.Should().NotContain("if: always()");
+        AssertDoesNotMaskValidationFailure(surfaceChartsEvidenceStep);
     }
 
     [Fact]
@@ -63,9 +92,7 @@ public sealed class SurfaceChartsCiTruthTests
             "VideraChartViewWaterfallIntegrationTests",
             "VideraChartViewPlotApiTests");
 
-        runtimeStep.Should().NotContain("continue-on-error: true");
-        runtimeStep.Should().NotContain("|| true");
-        runtimeStep.Should().NotContain("if: always()");
+        AssertDoesNotMaskValidationFailure(runtimeStep);
     }
 
     [Fact]
@@ -90,9 +117,7 @@ public sealed class SurfaceChartsCiTruthTests
             "-TreatWarningsAsErrors");
 
         smokeStep.Should().NotContain("-BuildOnly");
-        smokeStep.Should().NotContain("continue-on-error: true");
-        smokeStep.Should().NotContain("|| true");
-        smokeStep.Should().NotContain("if: always()");
+        AssertDoesNotMaskValidationFailure(smokeStep);
 
         var validationStep = GetWorkflowStep(workflow, validationStepIndex);
         AssertContainsAll(validationStep,
@@ -100,9 +125,7 @@ public sealed class SurfaceChartsCiTruthTests
             "artifacts/surfacecharts-consumer-smoke-quality/packages",
             "consumer-smoke-version.outputs.package_version");
 
-        validationStep.Should().NotContain("continue-on-error: true");
-        validationStep.Should().NotContain("|| true");
-        validationStep.Should().NotContain("if: always()");
+        AssertDoesNotMaskValidationFailure(validationStep);
     }
 
     private static string ReadWorkflow()
@@ -116,6 +139,13 @@ public sealed class SurfaceChartsCiTruthTests
         {
             text.Should().Contain(token);
         }
+    }
+
+    private static void AssertDoesNotMaskValidationFailure(string workflowStep)
+    {
+        workflowStep.Should().NotContain("continue-on-error");
+        workflowStep.Should().NotContain("|| true");
+        workflowStep.Should().NotContain("if: always()");
     }
 
     private static string GetWorkflowStep(string workflow, int stepNameIndex)
