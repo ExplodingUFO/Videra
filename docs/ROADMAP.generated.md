@@ -17,11 +17,14 @@ pwsh -File ./scripts/Export-BeadsRoadmap.ps1
 - **Videra-3hr** - Phase 410 runnable first-chart and cache-backed surface cookbook (task, P1, in_progress)
 - **Videra-4qk** - Phase 410 scatter live-data cookbook hardening (task, P1, in_progress)
 - **Videra-zcd** - Phase 410 waterfall axes and linked-view cookbook (task, P1, in_progress)
+- **Videra-s6h** - Phase 411 Native high-performance demo paths (task, P1, in_progress)
+- **Videra-lyj** - Phase 411 performance evidence anti-fake guard (task, P1, in_progress)
+- **Videra-x85** - Phase 411 scatter streaming FIFO evidence (task, P1, in_progress)
+- **Videra-wuu** - Phase 411 surface cache data-path evidence (task, P1, in_progress)
 
 ## Ready
 
 - **Videra-uqv** - v2.61 Native SurfaceCharts Cookbook and CI Truth (epic, P1, open)
-- **Videra-s6h** - Phase 411 Native high-performance demo paths (task, P1, open)
 
 ## Blocked
 
