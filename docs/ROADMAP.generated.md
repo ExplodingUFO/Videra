@@ -13,6 +13,7 @@ pwsh -File ./scripts/Export-BeadsRoadmap.ps1
 ## Active
 
 - **Videra-d29** - Phase 410 bounded bar contour and snapshot cookbook (task, P1, in_progress)
+- **Videra-012** - Phase 410 cookbook index and handoff sync (task, P1, in_progress)
 - **Videra-2de** - Phase 410 Detailed 3D cookbook demo recipes (task, P1, in_progress)
 - **Videra-3hr** - Phase 410 runnable first-chart and cache-backed surface cookbook (task, P1, in_progress)
 - **Videra-4qk** - Phase 410 scatter live-data cookbook hardening (task, P1, in_progress)
