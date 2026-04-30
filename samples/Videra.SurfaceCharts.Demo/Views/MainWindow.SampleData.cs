@@ -226,6 +226,154 @@ public partial class MainWindow
         return new SurfaceMatrix(metadata, values);
     }
 
+    private static double[] CreateSampleLineXs()
+    {
+        const int count = 30;
+        var xs = new double[count];
+        for (var i = 0; i < count; i++)
+        {
+            xs[i] = i * 0.5;
+        }
+        return xs;
+    }
+
+    private static double[] CreateSampleLineYs()
+    {
+        const int count = 30;
+        var ys = new double[count];
+        for (var i = 0; i < count; i++)
+        {
+            ys[i] = Math.Sin(i * 0.3) * 2.0 + 1.0;
+        }
+        return ys;
+    }
+
+    private static double[] CreateSampleLineZs()
+    {
+        const int count = 30;
+        var zs = new double[count];
+        for (var i = 0; i < count; i++)
+        {
+            zs[i] = i * 0.4;
+        }
+        return zs;
+    }
+
+    private static double[] CreateSampleVectorFieldXs()
+    {
+        const int gridSize = 6;
+        var xs = new double[gridSize * gridSize];
+        for (var z = 0; z < gridSize; z++)
+        {
+            for (var x = 0; x < gridSize; x++)
+            {
+                xs[z * gridSize + x] = x;
+            }
+        }
+        return xs;
+    }
+
+    private static double[] CreateSampleVectorFieldYs()
+    {
+        const int gridSize = 6;
+        var ys = new double[gridSize * gridSize];
+        for (var z = 0; z < gridSize; z++)
+        {
+            for (var x = 0; x < gridSize; x++)
+            {
+                ys[z * gridSize + x] = 0;
+            }
+        }
+        return ys;
+    }
+
+    private static double[] CreateSampleVectorFieldZs()
+    {
+        const int gridSize = 6;
+        var zs = new double[gridSize * gridSize];
+        for (var z = 0; z < gridSize; z++)
+        {
+            for (var x = 0; x < gridSize; x++)
+            {
+                zs[z * gridSize + x] = z;
+            }
+        }
+        return zs;
+    }
+
+    private static double[] CreateSampleVectorFieldDxs()
+    {
+        const int gridSize = 6;
+        var dxs = new double[gridSize * gridSize];
+        for (var z = 0; z < gridSize; z++)
+        {
+            for (var x = 0; x < gridSize; x++)
+            {
+                var cx = x - (gridSize - 1) / 2.0;
+                var cz = z - (gridSize - 1) / 2.0;
+                dxs[z * gridSize + x] = -cz * 0.3;
+            }
+        }
+        return dxs;
+    }
+
+    private static double[] CreateSampleVectorFieldDys()
+    {
+        const int gridSize = 6;
+        var dys = new double[gridSize * gridSize];
+        for (var z = 0; z < gridSize; z++)
+        {
+            for (var x = 0; x < gridSize; x++)
+            {
+                dys[z * gridSize + x] = 0.5;
+            }
+        }
+        return dys;
+    }
+
+    private static double[] CreateSampleVectorFieldDzs()
+    {
+        const int gridSize = 6;
+        var dzs = new double[gridSize * gridSize];
+        for (var z = 0; z < gridSize; z++)
+        {
+            for (var x = 0; x < gridSize; x++)
+            {
+                var cx = x - (gridSize - 1) / 2.0;
+                var cz = z - (gridSize - 1) / 2.0;
+                dzs[z * gridSize + x] = cx * 0.3;
+            }
+        }
+        return dzs;
+    }
+
+    private static double[,] CreateSampleHeatmapValues()
+    {
+        const int size = 24;
+        var values = new double[size, size];
+        for (var y = 0; y < size; y++)
+        {
+            for (var x = 0; x < size; x++)
+            {
+                var nx = (x - size / 2.0) / (size / 2.0);
+                var ny = (y - size / 2.0) / (size / 2.0);
+                values[x, y] = Math.Sin(nx * 3.0) * Math.Cos(ny * 2.5) *
+                               Math.Exp(-(nx * nx + ny * ny) * 0.8);
+            }
+        }
+        return values;
+    }
+
+    private static BoxPlotData CreateSampleBoxPlotData()
+    {
+        return new BoxPlotData([
+            new BoxPlotCategory("Algorithm A", min: 12, q1: 18, median: 24, q3: 31, max: 42, outliers: [8, 48]),
+            new BoxPlotCategory("Algorithm B", min: 15, q1: 22, median: 28, q3: 35, max: 45),
+            new BoxPlotCategory("Algorithm C", min: 8, q1: 14, median: 19, q3: 26, max: 38, outliers: [3, 42]),
+            new BoxPlotCategory("Algorithm D", min: 20, q1: 27, median: 33, q3: 40, max: 52, outliers: [15, 58]),
+        ]);
+    }
+
     private static SurfaceMatrix CreateWaterfallMatrix()
     {
         const int width = 72;

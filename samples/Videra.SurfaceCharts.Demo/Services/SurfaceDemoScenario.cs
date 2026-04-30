@@ -19,6 +19,11 @@ internal static class SurfaceDemoScenarios
     public const string ScatterId = "scatter-proof";
     public const string BarId = "bar-proof";
     public const string ContourId = "contour-proof";
+    public const string LineId = "line-proof";
+    public const string RibbonId = "ribbon-proof";
+    public const string VectorFieldId = "vector-field-proof";
+    public const string HeatmapSliceId = "heatmap-slice-proof";
+    public const string BoxPlotId = "box-plot-proof";
     public const string AnalysisWorkspaceId = "analysis-workspace";
     public const string LinkedInteractionId = "linked-interaction";
     public const string StreamingWorkspaceId = "streaming-workspace";
@@ -67,6 +72,36 @@ internal static class SurfaceDemoScenarios
             "Contour",
             "Contour",
             "Uses a radial scalar field with explicit contour levels."),
+        new(
+            LineId,
+            "Try next: Line chart proof",
+            "Line",
+            "Line",
+            "Uses 3D polyline with configurable color, width, and markers."),
+        new(
+            RibbonId,
+            "Try next: Ribbon chart proof",
+            "Ribbon",
+            "Ribbon",
+            "Uses tube/pipe geometry with configurable radius and colormap."),
+        new(
+            VectorFieldId,
+            "Try next: Vector field proof",
+            "VectorField",
+            "Vector field",
+            "Uses 3D arrows with magnitude-based coloring and scale control."),
+        new(
+            HeatmapSliceId,
+            "Try next: Heatmap slice proof",
+            "HeatmapSlice",
+            "Heatmap slice",
+            "Uses volumetric slice visualization with axis/position control."),
+        new(
+            BoxPlotId,
+            "Try next: Box plot proof",
+            "BoxPlot",
+            "Box plot",
+            "Uses statistical distribution visualization with grouped layout."),
         new(
             AnalysisWorkspaceId,
             "Try next: Analysis workspace",

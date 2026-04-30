@@ -42,6 +42,16 @@
                                 IsVisible="False" />
         <charts:VideraChartView x:Name="ContourPlotView"
                                 IsVisible="False" />
+        <charts:VideraChartView x:Name="LinePlotView"
+                                IsVisible="False" />
+        <charts:VideraChartView x:Name="RibbonPlotView"
+                                IsVisible="False" />
+        <charts:VideraChartView x:Name="VectorFieldPlotView"
+                                IsVisible="False" />
+        <charts:VideraChartView x:Name="HeatmapSlicePlotView"
+                                IsVisible="False" />
+        <charts:VideraChartView x:Name="BoxPlotView"
+                                IsVisible="False" />
         <Grid x:Name="AnalysisWorkspacePanel"
               IsVisible="False"
               RowDefinitions="*,*"

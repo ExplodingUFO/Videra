@@ -1,3 +1,4 @@
+using System.Numerics;
 using Videra.SurfaceCharts.Core;
 
 namespace Videra.SurfaceCharts.Avalonia.Controls;

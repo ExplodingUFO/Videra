@@ -170,6 +170,87 @@ internal static class CookbookRecipes
                 chart.FitToData();
                 """),
         new(
+            "Line",
+            "3D polyline",
+            "Isolated setup path: creates a 3D polyline from coordinate arrays with configurable color and width.",
+            ScenarioId: SurfaceDemoScenarios.LineId,
+            ScatterScenarioId: null,
+            Snippet: """
+                var xs = new double[] { 0, 1, 2, 3, 4, 5, 6, 7, 8 };
+                var ys = new double[] { 0, 1.5, 0.5, 2.0, 1.0, 2.5, 1.5, 3.0, 2.0 };
+                var zs = new double[] { 0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0 };
+
+                chart.Plot.Clear();
+                chart.Plot.Add.Line(xs, ys, zs, "Sine wave");
+                chart.FitToData();
+                """),
+        new(
+            "Ribbon",
+            "Tube geometry",
+            "Isolated setup path: creates a 3D ribbon/tube from coordinate arrays with configurable radius.",
+            ScenarioId: SurfaceDemoScenarios.RibbonId,
+            ScatterScenarioId: null,
+            Snippet: """
+                var xs = new double[] { 0, 1, 2, 3, 4, 5 };
+                var ys = new double[] { 0, 1.0, 0.5, 1.5, 0.8, 2.0 };
+                var zs = new double[] { 0, 0.5, 1.0, 1.5, 2.0, 2.5 };
+
+                chart.Plot.Clear();
+                chart.Plot.Add.Ribbon(xs, ys, zs, radius: 0.15f, "Helix ribbon");
+                chart.FitToData();
+                """),
+        new(
+            "Vector field",
+            "Arrow field",
+            "Isolated setup path: creates a 3D vector field from position and direction arrays with magnitude-based coloring.",
+            ScenarioId: SurfaceDemoScenarios.VectorFieldId,
+            ScatterScenarioId: null,
+            Snippet: """
+                var xs = new double[] { 0, 1, 2, 0, 1, 2, 0, 1, 2 };
+                var ys = new double[] { 0, 0, 0, 1, 1, 1, 2, 2, 2 };
+                var zs = new double[] { 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+                var dxs = new double[] { 0.5, 0, -0.5, 0.5, 0, -0.5, 0.5, 0, -0.5 };
+                var dys = new double[] { 0, 0.5, 0, 0, 0.5, 0, 0, 0.5, 0 };
+                var dzs = new double[] { 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3 };
+
+                chart.Plot.Clear();
+                chart.Plot.Add.VectorField(xs, ys, zs, dxs, dys, dzs, "Wind field");
+                chart.FitToData();
+                """),
+        new(
+            "Heatmap slice",
+            "Volumetric slice",
+            "Isolated setup path: creates a heatmap slice from a 2D scalar field at a specified axis position.",
+            ScenarioId: SurfaceDemoScenarios.HeatmapSliceId,
+            ScatterScenarioId: null,
+            Snippet: """
+                var values = new double[16, 16];
+                for (int y = 0; y < 16; y++)
+                    for (int x = 0; x < 16; x++)
+                        values[x, y] = Math.Sin(x * 0.4) * Math.Cos(y * 0.3);
+
+                chart.Plot.Clear();
+                chart.Plot.Add.HeatmapSlice(values, HeatmapSliceAxis.Z, 0.5, "XY slice");
+                chart.FitToData();
+                """),
+        new(
+            "Box plot",
+            "Statistical distribution",
+            "Isolated setup path: creates a 3D box plot showing statistical distributions with grouped layout.",
+            ScenarioId: SurfaceDemoScenarios.BoxPlotId,
+            ScatterScenarioId: null,
+            Snippet: """
+                var data = new BoxPlotData([
+                    new BoxPlotCategory("Group A", min: 2, q1: 5, median: 8, q3: 12, max: 18, outliers: [1, 20]),
+                    new BoxPlotCategory("Group B", min: 4, q1: 7, median: 10, q3: 14, max: 19),
+                    new BoxPlotCategory("Group C", min: 1, q1: 3, median: 6, q3: 9, max: 15, outliers: [0, 17]),
+                ]);
+
+                chart.Plot.Clear();
+                chart.Plot.Add.BoxPlot(data, "Distribution comparison");
+                chart.FitToData();
+                """),
+        new(
             "Multi-chart",
             "Analysis workspace",
             "Host-owned workspace coordinating multiple VideraChartView instances for comparison.",

@@ -22,6 +22,11 @@ public partial class MainWindow : Window
     private readonly VideraChartView _scatterChartView;
     private readonly VideraChartView _barChartView;
     private readonly VideraChartView _contourPlotView;
+    private readonly VideraChartView _linePlotView;
+    private readonly VideraChartView _ribbonPlotView;
+    private readonly VideraChartView _vectorFieldPlotView;
+    private readonly VideraChartView _heatmapSlicePlotView;
+    private readonly VideraChartView _boxPlotView;
     private readonly VideraChartView _workspaceChartA;
     private readonly VideraChartView _workspaceChartB;
     private readonly VideraChartView _workspaceChartC;
@@ -82,6 +87,16 @@ public partial class MainWindow : Window
             ?? throw new InvalidOperationException("BarChartPlotView is missing.");
         _contourPlotView = this.FindControl<VideraChartView>("ContourPlotView")
             ?? throw new InvalidOperationException("ContourPlotView is missing.");
+        _linePlotView = this.FindControl<VideraChartView>("LinePlotView")
+            ?? throw new InvalidOperationException("LinePlotView is missing.");
+        _ribbonPlotView = this.FindControl<VideraChartView>("RibbonPlotView")
+            ?? throw new InvalidOperationException("RibbonPlotView is missing.");
+        _vectorFieldPlotView = this.FindControl<VideraChartView>("VectorFieldPlotView")
+            ?? throw new InvalidOperationException("VectorFieldPlotView is missing.");
+        _heatmapSlicePlotView = this.FindControl<VideraChartView>("HeatmapSlicePlotView")
+            ?? throw new InvalidOperationException("HeatmapSlicePlotView is missing.");
+        _boxPlotView = this.FindControl<VideraChartView>("BoxPlotView")
+            ?? throw new InvalidOperationException("BoxPlotView is missing.");
         _workspaceChartA = this.FindControl<VideraChartView>("WorkspaceChartA")
             ?? throw new InvalidOperationException("WorkspaceChartA is missing.");
         _workspaceChartB = this.FindControl<VideraChartView>("WorkspaceChartB")
@@ -156,6 +171,11 @@ public partial class MainWindow : Window
         ConfigureScatterFamilyChartView(_scatterChartView);
         ConfigureSurfaceFamilyChartView(_barChartView);
         ConfigureSurfaceFamilyChartView(_contourPlotView);
+        ConfigureSurfaceFamilyChartView(_linePlotView);
+        ConfigureSurfaceFamilyChartView(_ribbonPlotView);
+        ConfigureSurfaceFamilyChartView(_vectorFieldPlotView);
+        ConfigureSurfaceFamilyChartView(_heatmapSlicePlotView);
+        ConfigureSurfaceFamilyChartView(_boxPlotView);
         ConfigureSurfaceFamilyChartView(_workspaceChartA);
         ConfigureSurfaceFamilyChartView(_workspaceChartB);
         ConfigureSurfaceFamilyChartView(_workspaceChartC);
@@ -193,6 +213,11 @@ public partial class MainWindow : Window
     private VideraChartView ActiveSurfaceFamilyChartView =>
         _waterfallChartView.IsVisible ? _waterfallChartView :
         _barChartView.IsVisible ? _barChartView :
+        _linePlotView.IsVisible ? _linePlotView :
+        _ribbonPlotView.IsVisible ? _ribbonPlotView :
+        _vectorFieldPlotView.IsVisible ? _vectorFieldPlotView :
+        _heatmapSlicePlotView.IsVisible ? _heatmapSlicePlotView :
+        _boxPlotView.IsVisible ? _boxPlotView :
         _surfaceChartView;
 
     private bool IsScatterProofActive => _scatterChartView.IsVisible;
@@ -284,6 +309,36 @@ public partial class MainWindow : Window
         if (scenario.Id == SurfaceDemoScenarios.ContourId)
         {
             ApplyContourSource(scenario);
+            return;
+        }
+
+        if (scenario.Id == SurfaceDemoScenarios.LineId)
+        {
+            ApplyLineSource(scenario);
+            return;
+        }
+
+        if (scenario.Id == SurfaceDemoScenarios.RibbonId)
+        {
+            ApplyRibbonSource(scenario);
+            return;
+        }
+
+        if (scenario.Id == SurfaceDemoScenarios.VectorFieldId)
+        {
+            ApplyVectorFieldSource(scenario);
+            return;
+        }
+
+        if (scenario.Id == SurfaceDemoScenarios.HeatmapSliceId)
+        {
+            ApplyHeatmapSliceSource(scenario);
+            return;
+        }
+
+        if (scenario.Id == SurfaceDemoScenarios.BoxPlotId)
+        {
+            ApplyBoxPlotSource(scenario);
             return;
         }
 
@@ -487,6 +542,101 @@ public partial class MainWindow : Window
         RefreshActiveProofTexts();
     }
 
+    private void ApplyLineSource(SurfaceDemoScenario scenario)
+    {
+        SetActiveChartView(_linePlotView);
+        _activeScatterData = null;
+        _linePlotView.Plot.Clear();
+        _linePlotView.Plot.Add.Line(
+            CreateSampleLineXs(),
+            CreateSampleLineYs(),
+            CreateSampleLineZs(),
+            scenario.Label);
+        _linePlotView.FitToData();
+        _activePlotPathHeading = scenario.Label;
+        _activePlotPathDetails = "3D polyline from coordinate arrays. Demonstrates Plot.Add.Line with configurable color and width.";
+        _activeDatasetSummary = "Line chart proof uses 30-point helix polyline with sinusoidal Y values.";
+        _activeAssetSummary = "No additional assets are used on this path.";
+        _datasetText.Text = _activeDatasetSummary;
+        RefreshActiveProofTexts();
+    }
+
+    private void ApplyRibbonSource(SurfaceDemoScenario scenario)
+    {
+        SetActiveChartView(_ribbonPlotView);
+        _activeScatterData = null;
+        _ribbonPlotView.Plot.Clear();
+        _ribbonPlotView.Plot.Add.Ribbon(
+            CreateSampleLineXs(),
+            CreateSampleLineYs(),
+            CreateSampleLineZs(),
+            radius: 0.15f,
+            scenario.Label);
+        _ribbonPlotView.FitToData();
+        _activePlotPathHeading = scenario.Label;
+        _activePlotPathDetails = "3D ribbon/tube geometry from coordinate arrays. Demonstrates Plot.Add.Ribbon with configurable radius.";
+        _activeDatasetSummary = "Ribbon chart proof uses 30-point helix path with 0.15 tube radius.";
+        _activeAssetSummary = "No additional assets are used on this path.";
+        _datasetText.Text = _activeDatasetSummary;
+        RefreshActiveProofTexts();
+    }
+
+    private void ApplyVectorFieldSource(SurfaceDemoScenario scenario)
+    {
+        SetActiveChartView(_vectorFieldPlotView);
+        _activeScatterData = null;
+        _vectorFieldPlotView.Plot.Clear();
+        _vectorFieldPlotView.Plot.Add.VectorField(
+            CreateSampleVectorFieldXs(),
+            CreateSampleVectorFieldYs(),
+            CreateSampleVectorFieldZs(),
+            CreateSampleVectorFieldDxs(),
+            CreateSampleVectorFieldDys(),
+            CreateSampleVectorFieldDzs(),
+            scenario.Label);
+        _vectorFieldPlotView.FitToData();
+        _activePlotPathHeading = scenario.Label;
+        _activePlotPathDetails = "3D vector field with arrow rendering. Demonstrates Plot.Add.VectorField with magnitude-based coloring.";
+        _activeDatasetSummary = "Vector field proof uses 6x6 grid of arrows with radial direction pattern.";
+        _activeAssetSummary = "No additional assets are used on this path.";
+        _datasetText.Text = _activeDatasetSummary;
+        RefreshActiveProofTexts();
+    }
+
+    private void ApplyHeatmapSliceSource(SurfaceDemoScenario scenario)
+    {
+        SetActiveChartView(_heatmapSlicePlotView);
+        _activeScatterData = null;
+        _heatmapSlicePlotView.Plot.Clear();
+        _heatmapSlicePlotView.Plot.Add.HeatmapSlice(
+            CreateSampleHeatmapValues(),
+            HeatmapSliceAxis.Z,
+            0.5,
+            scenario.Label);
+        _heatmapSlicePlotView.FitToData();
+        _activePlotPathHeading = scenario.Label;
+        _activePlotPathDetails = "Heatmap slice from 2D scalar field. Demonstrates Plot.Add.HeatmapSlice with axis/position control.";
+        _activeDatasetSummary = "Heatmap slice proof uses 24x24 sinusoidal scalar field at Z=0.5.";
+        _activeAssetSummary = "No additional assets are used on this path.";
+        _datasetText.Text = _activeDatasetSummary;
+        RefreshActiveProofTexts();
+    }
+
+    private void ApplyBoxPlotSource(SurfaceDemoScenario scenario)
+    {
+        SetActiveChartView(_boxPlotView);
+        _activeScatterData = null;
+        _boxPlotView.Plot.Clear();
+        _boxPlotView.Plot.Add.BoxPlot(CreateSampleBoxPlotData(), scenario.Label);
+        _boxPlotView.FitToData();
+        _activePlotPathHeading = scenario.Label;
+        _activePlotPathDetails = "3D box plot with statistical distribution. Demonstrates Plot.Add.BoxPlot with grouped layout and outlier display.";
+        _activeDatasetSummary = "Box plot proof uses 4 categories with min/Q1/median/Q3/max and optional outliers.";
+        _activeAssetSummary = "No additional assets are used on this path.";
+        _datasetText.Text = _activeDatasetSummary;
+        RefreshActiveProofTexts();
+    }
+
     private void SetActiveChartView(VideraChartView chartView)
     {
         _surfaceChartView.IsVisible = ReferenceEquals(chartView, _surfaceChartView);
@@ -494,6 +644,11 @@ public partial class MainWindow : Window
         _scatterChartView.IsVisible = ReferenceEquals(chartView, _scatterChartView);
         _barChartView.IsVisible = ReferenceEquals(chartView, _barChartView);
         _contourPlotView.IsVisible = ReferenceEquals(chartView, _contourPlotView);
+        _linePlotView.IsVisible = ReferenceEquals(chartView, _linePlotView);
+        _ribbonPlotView.IsVisible = ReferenceEquals(chartView, _ribbonPlotView);
+        _vectorFieldPlotView.IsVisible = ReferenceEquals(chartView, _vectorFieldPlotView);
+        _heatmapSlicePlotView.IsVisible = ReferenceEquals(chartView, _heatmapSlicePlotView);
+        _boxPlotView.IsVisible = ReferenceEquals(chartView, _boxPlotView);
         _analysisWorkspacePanel.IsVisible = false;
         _workspaceToolbarPanel.IsVisible = false;
     }
@@ -506,6 +661,11 @@ public partial class MainWindow : Window
         _scatterChartView.IsVisible = false;
         _barChartView.IsVisible = false;
         _contourPlotView.IsVisible = false;
+        _linePlotView.IsVisible = false;
+        _ribbonPlotView.IsVisible = false;
+        _vectorFieldPlotView.IsVisible = false;
+        _heatmapSlicePlotView.IsVisible = false;
+        _boxPlotView.IsVisible = false;
         _analysisWorkspacePanel.IsVisible = true;
         _workspaceToolbarPanel.IsVisible = true;
 
@@ -579,6 +739,11 @@ public partial class MainWindow : Window
         _scatterChartView.IsVisible = false;
         _barChartView.IsVisible = false;
         _contourPlotView.IsVisible = false;
+        _linePlotView.IsVisible = false;
+        _ribbonPlotView.IsVisible = false;
+        _vectorFieldPlotView.IsVisible = false;
+        _heatmapSlicePlotView.IsVisible = false;
+        _boxPlotView.IsVisible = false;
         _analysisWorkspacePanel.IsVisible = true;
         _workspaceToolbarPanel.IsVisible = true;
 
@@ -660,6 +825,11 @@ public partial class MainWindow : Window
         _scatterChartView.IsVisible = false;
         _barChartView.IsVisible = false;
         _contourPlotView.IsVisible = false;
+        _linePlotView.IsVisible = false;
+        _ribbonPlotView.IsVisible = false;
+        _vectorFieldPlotView.IsVisible = false;
+        _heatmapSlicePlotView.IsVisible = false;
+        _boxPlotView.IsVisible = false;
         _analysisWorkspacePanel.IsVisible = true;
         _workspaceToolbarPanel.IsVisible = true;
 
@@ -1241,6 +1411,11 @@ public partial class MainWindow : Window
 
         return ActiveSurfaceFamilyChartView;
     }
+
+    private bool IsNewChartTypeActive =>
+        _linePlotView.IsVisible || _ribbonPlotView.IsVisible ||
+        _vectorFieldPlotView.IsVisible || _heatmapSlicePlotView.IsVisible ||
+        _boxPlotView.IsVisible;
 
     private string CreateViewStateSummary()
     {
