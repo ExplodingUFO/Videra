@@ -117,6 +117,7 @@ public sealed class Plot3DSeriesDatasetEvidence
         SurfaceAxisDatasetEvidence? depthAxis,
         SurfaceValueRangeDatasetEvidence? valueRange,
         string samplingProfile,
+        IReadOnlyList<string> categoryLabels,
         IReadOnlyList<ScatterColumnarSeriesDatasetEvidence> columnarSeries)
     {
         Index = index;
@@ -142,6 +143,7 @@ public sealed class Plot3DSeriesDatasetEvidence
         DepthAxis = depthAxis;
         ValueRange = valueRange;
         SamplingProfile = samplingProfile;
+        CategoryLabels = new ReadOnlyCollection<string>(categoryLabels.ToArray());
         ColumnarSeries = new ReadOnlyCollection<ScatterColumnarSeriesDatasetEvidence>(columnarSeries.ToArray());
     }
 
@@ -261,6 +263,11 @@ public sealed class Plot3DSeriesDatasetEvidence
     public string SamplingProfile { get; }
 
     /// <summary>
+    /// Gets bar category labels, or an empty collection when the dataset does not declare labels.
+    /// </summary>
+    public IReadOnlyList<string> CategoryLabels { get; }
+
+    /// <summary>
     /// Gets high-volume scatter series evidence.
     /// </summary>
     public IReadOnlyList<ScatterColumnarSeriesDatasetEvidence> ColumnarSeries { get; }
@@ -308,6 +315,7 @@ public sealed class Plot3DSeriesDatasetEvidence
             depthAxis: null,
             SurfaceValueRangeDatasetEvidence.Create(metadata.ValueRange),
             CreateSurfaceSamplingProfile(metadata),
+            categoryLabels: [],
             []);
     }
 
@@ -340,6 +348,7 @@ public sealed class Plot3DSeriesDatasetEvidence
             SurfaceAxisDatasetEvidence.Create(data.Metadata.DepthAxis),
             SurfaceValueRangeDatasetEvidence.Create(data.Metadata.ValueRange),
             "ScatterPoints",
+            categoryLabels: [],
             CreateColumnarSeriesEvidence(data.ColumnarSeries));
     }
 
@@ -371,7 +380,8 @@ public sealed class Plot3DSeriesDatasetEvidence
             verticalAxis: null,
             depthAxis: null,
             valueRange: null,
-            samplingProfile: $"BarChart:Categories={data.CategoryCount};Series={data.SeriesCount};Layout={data.Layout}",
+            samplingProfile: CreateBarSamplingProfile(data),
+            data.CategoryLabels,
             []);
     }
 
@@ -404,6 +414,7 @@ public sealed class Plot3DSeriesDatasetEvidence
             depthAxis: SurfaceAxisDatasetEvidence.Create(new SurfaceAxisDescriptor("Y", null, 0d, data.Field.Height - 1)),
             valueRange: SurfaceValueRangeDatasetEvidence.Create(data.Field.Range),
             samplingProfile: $"ContourPlot:Width={data.Field.Width};Height={data.Field.Height};Levels={data.LevelCount}",
+            categoryLabels: [],
             []);
     }
 
@@ -436,6 +447,14 @@ public sealed class Plot3DSeriesDatasetEvidence
         return string.Create(
             CultureInfo.InvariantCulture,
             $"RegularGrid:XSpacing={horizontalSpacing:G17};YSpacing={verticalSpacing:G17}");
+    }
+
+    private static string CreateBarSamplingProfile(BarChartData data)
+    {
+        var profile = $"BarChart:Categories={data.CategoryCount};Series={data.SeriesCount};Layout={data.Layout}";
+        return data.CategoryLabels.Count > 0
+            ? $"{profile};CategoryLabels={data.CategoryLabels.Count}"
+            : profile;
     }
 }
 

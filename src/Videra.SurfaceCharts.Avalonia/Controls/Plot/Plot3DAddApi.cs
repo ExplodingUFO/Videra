@@ -97,6 +97,20 @@ public sealed class Plot3DAddApi
     }
 
     /// <summary>
+    /// Adds a vertical bar chart series from an array of values with category labels.
+    /// </summary>
+    /// <param name="values">The bar values (one per category). Must not be empty and must not contain NaN.</param>
+    /// <param name="categoryLabels">The category labels. Count must match the value count.</param>
+    /// <param name="name">Optional series name.</param>
+    public BarPlot3DSeries Bar(double[] values, IReadOnlyList<string> categoryLabels, string? name = null)
+    {
+        ArgumentNullException.ThrowIfNull(values);
+        ArgumentNullException.ThrowIfNull(categoryLabels);
+        var series = new BarSeries(values, color: 0xFF4488CCu, label: name);
+        return Bar(new BarChartData([series], categoryLabels), name);
+    }
+
+    /// <summary>
     /// Adds a bar chart series from a full bar dataset.
     /// </summary>
     /// <param name="data">The bar dataset.</param>

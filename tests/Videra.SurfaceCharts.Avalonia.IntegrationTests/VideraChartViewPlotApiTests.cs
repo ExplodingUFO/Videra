@@ -110,6 +110,7 @@ public sealed class VideraChartViewPlotApiTests
             scatter.ScatterData.Series[0].Color.Should().Be(0xFF123456u);
             bar.Kind.Should().Be(Plot3DSeriesKind.Bar);
             bar.BarData!.SeriesCount.Should().Be(1);
+            bar.BarData.CategoryLabels.Should().BeEmpty();
             contour.Kind.Should().Be(Plot3DSeriesKind.Contour);
             contour.ContourData!.Field.Width.Should().Be(2);
 
@@ -360,6 +361,26 @@ public sealed class VideraChartViewPlotApiTests
             columnar.TotalAppendedPointCount.Should().Be(3);
             columnar.TotalDroppedPointCount.Should().Be(2);
             columnar.LastDroppedPointCount.Should().Be(2);
+        });
+    }
+
+    [Fact]
+    public void Plot3D_DatasetEvidence_ReportsBarCategoryLabelsWhenPresent()
+    {
+        AvaloniaHeadlessTestSession.Run(() =>
+        {
+            var view = new VideraChartView();
+
+            var bar = view.Plot.Add.Bar([10.0, 20.0, 30.0], ["Q1", "Q2", "Q3"], "revenue");
+
+            bar.BarData!.CategoryLabels.Should().Equal("Q1", "Q2", "Q3");
+            var series = view.Plot.CreateDatasetEvidence().Series.Should().ContainSingle().Subject;
+            series.Identity.Should().Be("PlotSeries[0]:Bar:revenue");
+            series.Kind.Should().Be(Plot3DSeriesKind.Bar);
+            series.SeriesCount.Should().Be(1);
+            series.PointCount.Should().Be(3);
+            series.CategoryLabels.Should().Equal("Q1", "Q2", "Q3");
+            series.SamplingProfile.Should().Be("BarChart:Categories=3;Series=1;Layout=Grouped;CategoryLabels=3");
         });
     }
 

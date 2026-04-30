@@ -82,6 +82,39 @@ public class BarRendererTests
     }
 
     [Fact]
+    public void BarChartDataCtor_AcceptsMatchingCategoryLabels()
+    {
+        var series = new BarSeries([10.0, 20.0, 30.0], 0xFF102030u);
+
+        var data = new BarChartData([series], ["Q1", "Q2", "Q3"]);
+
+        data.CategoryLabels.Should().Equal("Q1", "Q2", "Q3");
+    }
+
+    [Fact]
+    public void BarChartDataCtor_RejectsMismatchedCategoryLabels()
+    {
+        var series = new BarSeries([10.0, 20.0, 30.0], 0xFF102030u);
+
+        var act = () => new BarChartData([series], ["Q1", "Q2"]);
+
+        act.Should().Throw<ArgumentException>()
+            .WithMessage("*Category label count*");
+    }
+
+    [Fact]
+    public void BarChartDataCtor_CategoryLabelImmutabilityEnforced()
+    {
+        var series = new BarSeries([10.0, 20.0], 0xFF102030u);
+        var data = new BarChartData([series], ["Q1", "Q2"]);
+
+        var act = () => ((IList<string>)data.CategoryLabels)[0] = "Changed";
+
+        act.Should().Throw<NotSupportedException>();
+        data.CategoryLabels[0].Should().Be("Q1");
+    }
+
+    [Fact]
     public void BarChartDataCtor_SupportsStackedLayout()
     {
         var series = new BarSeries([10.0, 20.0], 0xFF102030u);
