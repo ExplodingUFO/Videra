@@ -1,87 +1,90 @@
-# Roadmap: v2.59 ScottPlot5 Interaction and Cookbook Experience
+# Roadmap: v2.60 SurfaceCharts Cookbook QA and Interaction Handoff
 
-**Goal:** Continue SurfaceCharts toward ScottPlot5-inspired interaction and code-experience optimization while turning demos into cookbook-style, copyable recipes. This milestone improves ergonomics and discoverability without claiming ScottPlot compatibility or adding compatibility layers.
+**Goal:** Audit and harden the v2.59 cookbook/interaction handoff with focused
+QA, docs, support, and validation work. This milestone remains a Videra
+SurfaceCharts workflow and does not add ScottPlot compatibility, hidden
+fallbacks, backend expansion, or a generic chart workbench.
 
-**Phases:** 4 (401-404)
-**Requirements:** 12 (INT-01..03, CODE-01..03, COOK-01..03, VERIFY-01..03)
-**Beads epic:** `Videra-v259`
+**Phases:** 4 (405-408)
+**Requirements:** 8 (QA-01..02, HANDOFF-01..02, VERIFY-01..02, SCOPE-01..02)
+**Beads epic:** `Videra-tqz`
 
 ## Phases
 
-- [x] **Phase 401: Interaction and Cookbook Experience Inventory** - Inventory current interaction APIs, demo flows, cookbook docs, and scoped ScottPlot5-inspired ergonomics gaps.
-- [x] **Phase 402: Interaction and Code Experience Polish** - Implement the first bounded interaction/code-experience improvements without compatibility layers or broad rewrites.
-- [x] **Phase 403: Cookbook Demo Conversion** - Restructure SurfaceCharts demos and docs toward cookbook-style, copyable recipes.
-- [ ] **Phase 404: Interaction Cookbook Final Verification** - Close with cross-phase validation, docs checks, Beads export, generated roadmap, and clean handoff.
+- [ ] **Phase 405: Cookbook QA and Interaction Handoff Inventory** - Inventory v2.59 cookbook QA, interaction handoff docs, support artifacts, and validation gaps.
+- [ ] **Phase 406: Cookbook QA Hardening** - Implement bounded cookbook QA or docs/test hardening selected by Phase 405.
+- [ ] **Phase 407: Interaction Handoff Polish** - Implement bounded interaction handoff polish selected by Phase 405.
+- [ ] **Phase 408: v2.60 Final Verification** - Close v2.60 with focused validation, Beads export, generated roadmap, archive, and cleanup.
 
 ## Phase Details
 
-### Phase 401: Interaction and Cookbook Experience Inventory
+### Phase 405: Cookbook QA and Interaction Handoff Inventory
 
-**Goal:** Establish the bounded implementation plan from real SurfaceCharts API/demo/doc surfaces.
+**Goal:** Establish a real-surface plan before any v2.60 changes.
 **Depends on:** Nothing
-**Requirements:** INT-01, CODE-01, COOK-01
-**Bead:** `Videra-v259.1`
+**Requirements:** QA-01, HANDOFF-01, SCOPE-01
+**Bead:** `Videra-b53`
 **Success Criteria:**
-1. Current interaction APIs, demo flows, docs, and cookbook entry points are mapped with file-level evidence.
-2. ScottPlot5 remains an inspiration boundary, not a compatibility or parity claim.
-3. Dependencies identify whether Phase 402 and Phase 403 can run in parallel.
-4. Validation commands and handoff expectations are recorded.
-**Plans:** 401-PLAN.md
+1. Current cookbook docs/demo/tests/support handoff surfaces are mapped with file-level evidence.
+2. Residual QA and interaction-handoff gaps are scoped to minimal implementation slices.
+3. Phase 406 and Phase 407 dependency/write-set boundaries are recorded.
+4. Validation commands and non-goals are recorded.
+**Plans:** 405-PLAN.md
 
-### Phase 402: Interaction and Code Experience Polish
+### Phase 406: Cookbook QA Hardening
 
-**Goal:** Improve the first scoped set of SurfaceCharts interaction/code-experience surfaces.
-**Depends on:** Phase 401
-**Requirements:** INT-02, INT-03, CODE-02, CODE-03
-**Bead:** `Videra-v259.2`
+**Goal:** Implement bounded cookbook QA hardening selected by Phase 405.
+**Depends on:** Phase 405
+**Requirements:** QA-02, VERIFY-01, SCOPE-02
+**Bead:** `Videra-1h1`
 **Success Criteria:**
-1. Changes are minimal, direct, and covered by focused tests.
-2. Public API ergonomics improve without compatibility wrappers or hidden fallback behavior.
-3. Existing chart boundaries remain intact.
-4. Handoff records the exact changed API/demo paths.
-**Plans:** 402-PLAN.md
+1. Cookbook QA/docs/test hardening is implemented with focused tests.
+2. Changes remain docs/demo/test/support oriented unless Phase 405 proves a narrow API need.
+3. No compatibility/fallback/backend expansion scope is introduced.
+**Plans:** 406-PLAN.md
 
-### Phase 403: Cookbook Demo Conversion
+### Phase 407: Interaction Handoff Polish
 
-**Goal:** Make SurfaceCharts demos and docs feel like a cookbook with copyable recipes.
-**Depends on:** Phase 401
-**Requirements:** COOK-02, COOK-03, CODE-03
-**Bead:** `Videra-v259.3`
+**Goal:** Implement bounded interaction handoff polish selected by Phase 405.
+**Depends on:** Phase 405
+**Requirements:** HANDOFF-02, VERIFY-01, SCOPE-02
+**Bead:** `Videra-xq1`
 **Success Criteria:**
-1. Cookbook entry points are discoverable from docs and demo README files.
-2. Recipes use current public APIs and avoid obsolete chart controls or compatibility claims.
-3. Demo/docs tests or grep checks cover the new cookbook structure.
-4. Support handoff explains how to validate cookbook examples.
-**Plans:** 403-PLAN.md
+1. Interaction handoff polish is implemented with focused validation.
+2. Existing interaction APIs are documented or demonstrated without adding a command framework or mouse remapping scope.
+3. Support evidence remains explicit and chart-local.
+**Plans:** 407-PLAN.md
 
-### Phase 404: Interaction Cookbook Final Verification
+### Phase 408: v2.60 Final Verification
 
-**Goal:** Close v2.59 with integrated verification and synchronized planning state.
-**Depends on:** Phase 402, Phase 403
-**Requirements:** VERIFY-01, VERIFY-02, VERIFY-03
-**Bead:** `Videra-v259.4`
+**Goal:** Close v2.60 with synchronized verification and handoff.
+**Depends on:** Phase 406, Phase 407
+**Requirements:** VERIFY-01, VERIFY-02
+**Bead:** `Videra-448`
 **Success Criteria:**
-1. Focused tests and docs checks pass or are explicitly reported.
-2. Beads state, generated public roadmap, phase artifacts, archive, branch/worktree cleanup, Git push, and Dolt Beads push are synchronized.
-3. Remaining public release actions from v2.58 stay outside this milestone unless separately approved.
-**Plans:** 404-PLAN.md
+1. Focused checks pass or are explicitly reported.
+2. Beads state, generated public roadmap, phase archive, branch/worktree cleanup, Git push, and Dolt Beads push are synchronized.
+**Plans:** 408-PLAN.md
 
 ## Progress
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 401. Interaction and Cookbook Experience Inventory | 1/1 | Complete | 2026-04-30 |
-| 402. Interaction and Code Experience Polish | 1/1 | Complete | 2026-04-30 |
-| 403. Cookbook Demo Conversion | 1/1 | Complete | 2026-04-30 |
-| 404. Interaction Cookbook Final Verification | 0/1 | Ready | |
+| 405. Cookbook QA and Interaction Handoff Inventory | 0/1 | Ready | |
+| 406. Cookbook QA Hardening | 0/1 | Blocked by 405 | |
+| 407. Interaction Handoff Polish | 0/1 | Blocked by 405 | |
+| 408. v2.60 Final Verification | 0/1 | Blocked by 406, 407 | |
 
 ---
 
 <details>
-<summary>v2.58 SurfaceCharts Controlled Release Cutover - Complete (2026-04-30)</summary>
+<summary>v2.59 ScottPlot5 Interaction and Cookbook Experience - Complete (2026-04-30)</summary>
 
-Archived phase artifacts: `.planning/milestones/v2.58-phases`
+Archived phase artifacts: `.planning/milestones/v2.59-phases`
 
-v2.58 completed the controlled release cutover package for `0.1.0-alpha.7`: approval packet, package contracts, gated dry-run automation, release notes/support docs, final release-readiness validation, Beads export, generated roadmap, and clean Git/Dolt handoff. Public NuGet publish, public tags, and GitHub releases remain manual-gated and were not executed.
+v2.59 completed SurfaceCharts interaction/code-experience and cookbook polish:
+typed Bar/Contour plot handles, recipe-friendly enabled command discovery,
+Bar/Contour cookbook recipes, docs alignment, text-contract coverage, Beads
+export, generated roadmap, and clean handoff.
 
 </details>

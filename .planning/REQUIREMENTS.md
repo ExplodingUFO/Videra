@@ -1,40 +1,50 @@
-# Requirements: v2.59 ScottPlot5 Interaction and Cookbook Experience
+# Requirements: v2.60 SurfaceCharts Cookbook QA and Interaction Handoff
 
 ## Goal
 
-Continue SurfaceCharts toward ScottPlot5-inspired interaction and code-experience optimization while turning demos into cookbook-style, copyable recipes. This milestone improves ergonomics and discoverability without claiming ScottPlot compatibility or adding compatibility layers.
+Audit and harden the v2.59 cookbook/interaction handoff with focused QA, docs,
+support, and validation work. This milestone keeps the SurfaceCharts workflow
+simple and direct without introducing ScottPlot compatibility, hidden fallbacks,
+backend expansion, or a generic chart workbench.
 
 ## Active Requirements
 
-### Interaction Experience
+### Cookbook QA
 
-- **INT-01**: Inventory current SurfaceCharts interaction APIs, overlays, commands, demo flows, docs, and support evidence before selecting implementation slices.
-- **INT-02**: Users can exercise the selected interaction improvements through simple, direct public APIs or demo-owned recipes without hidden fallback/downshift behavior.
-- **INT-03**: Users can understand the selected interaction behavior through deterministic evidence, focused tests, and docs that preserve Videra's 3D chart boundaries.
+- **QA-01**: Inventory current cookbook docs, demo recipes, text-contract tests,
+  support routes, and drift risks before selecting implementation slices.
+- **QA-02**: Users can rely on cookbook docs/demo recipes that match current
+  public APIs and are covered by focused validation.
 
-### Code Experience
+### Interaction Handoff
 
-- **CODE-01**: Inventory the current `VideraChartView`, `Plot.Add.*`, plottable, axis, snapshot, and helper surfaces for code-experience friction.
-- **CODE-02**: Users can write the selected first-chart or interaction code with less ceremony while staying on current public APIs.
-- **CODE-03**: Repository tests and docs checks prevent obsolete chart controls, direct public `Source`, compatibility wrappers, or ScottPlot parity claims from re-entering the public surface.
+- **HANDOFF-01**: Inventory current interaction profile, command, probe,
+  selection, draggable overlay, and support-summary handoff surfaces.
+- **HANDOFF-02**: Users can understand the selected interaction handoff through
+  concise docs/demo/support evidence without a new command framework or mouse
+  remapping surface.
 
-### Cookbook Demo Experience
+### Verification
 
-- **COOK-01**: Inventory current SurfaceCharts demo, README, docs index, cookbook, gallery, and support entry points.
-- **COOK-02**: Users can discover cookbook-style SurfaceCharts recipes from public docs and demo README files.
-- **COOK-03**: Users can copy current-public-API recipes for representative chart/interaction workflows without depending on internal demo-only infrastructure.
+- **VERIFY-01**: Run focused tests and docs checks covering selected cookbook QA
+  and interaction handoff changes.
+- **VERIFY-02**: Synchronize Beads state, generated public roadmap, phase
+  archive, branch/worktree cleanup, Git push, and Dolt Beads push.
 
-### Final Verification and Handoff
+### Scope Control
 
-- **VERIFY-01**: Run focused tests and docs checks covering interaction/code-experience changes and cookbook/demo entry points.
-- **VERIFY-02**: Synchronize Beads state, generated public roadmap, phase evidence, milestone archive, branch/worktree cleanup, Git push, and Dolt Beads push.
-- **VERIFY-03**: Record any deferred ScottPlot-inspired ideas as future work without adding compatibility, parity, fallback, renderer/backend, or god-workbench scope.
+- **SCOPE-01**: Phase 405 must state non-goals and dependency boundaries before
+  implementation.
+- **SCOPE-02**: Implementation phases must avoid ScottPlot compatibility,
+  fallback/downshift behavior, old chart controls, backend expansion, PDF/vector
+  export, and generic workbench scope.
 
 ## Future Requirements
 
 - Broader chart-family expansion beyond current SurfaceCharts families.
 - Full ScottPlot API parity or adapter behavior.
-- Additional release/publication automation beyond the manual-gated v2.58 release boundary.
+- Additional release/publication automation beyond existing manual-gated release
+  boundaries.
 
 ## Out of Scope
 
@@ -46,11 +56,10 @@ Continue SurfaceCharts toward ScottPlot5-inspired interaction and code-experienc
 - Renderer/backend/platform expansion.
 - Hidden fallback/downshift behavior.
 - Generic plotting-engine or god-code demo/workbench expansion.
-- Public NuGet publish, public tag creation, or GitHub release publication unless separately approved.
 
 ## Traceability
 
-- **Phase 401**: INT-01, CODE-01, COOK-01
-- **Phase 402**: INT-02, INT-03, CODE-02, CODE-03
-- **Phase 403**: COOK-02, COOK-03, CODE-03
-- **Phase 404**: VERIFY-01, VERIFY-02, VERIFY-03
+- **Phase 405**: QA-01, HANDOFF-01, SCOPE-01
+- **Phase 406**: QA-02, VERIFY-01, SCOPE-02
+- **Phase 407**: HANDOFF-02, VERIFY-01, SCOPE-02
+- **Phase 408**: VERIFY-01, VERIFY-02

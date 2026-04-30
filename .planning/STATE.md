@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.59
-milestone_name: "ScottPlot5 Interaction and Cookbook Experience"
+milestone: v2.60
+milestone_name: "SurfaceCharts Cookbook QA and Interaction Handoff"
 status: active
-stopped_at: "Phase 404 ready for final verification"
-last_updated: "2026-04-30T15:23:07+08:00"
+stopped_at: "Phase 405 ready for planning"
+last_updated: "2026-04-30T15:25:39+08:00"
 last_activity: 2026-04-30
 progress:
   total_phases: 4
-  completed_phases: 3
+  completed_phases: 0
   total_plans: 4
-  completed_plans: 3
-  percent: 75
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -21,43 +21,40 @@ progress:
 See: `.planning/PROJECT.md`
 
 **Core value:** 跨平台 3D 渲染引擎的可靠性
-**Current focus:** v2.59 ScottPlot5 Interaction and Cookbook Experience
+**Current focus:** v2.60 SurfaceCharts Cookbook QA and Interaction Handoff
 
 ## Current Position
 
-Milestone: `v2.59 ScottPlot5 Interaction and Cookbook Experience`
-Phase: 404 of 404 (Interaction Cookbook Final Verification) - READY
-Plan: Phase 402 and Phase 403 implementation complete
-Status: v2.59 interaction/code-experience and cookbook implementation slices are complete; final integrated verification and cleanup remain.
-Last activity: 2026-04-30 - Completed Phase 402 typed Bar/Contour handles and command discovery plus Phase 403 Bar/Contour cookbook conversion.
+Milestone: `v2.60 SurfaceCharts Cookbook QA and Interaction Handoff`
+Phase: 405 of 408 (Cookbook QA and Interaction Handoff Inventory) - READY
+Plan: none yet
+Status: v2.59 is complete and archived; v2.60 is initialized with Beads as the task spine.
+Last activity: 2026-04-30 - Completed v2.59 and opened v2.60 cookbook QA / interaction handoff milestone.
 
-Progress: [########--] 75%
+Progress: [----------] 0%
 
 ## Initial Scope Summary
 
-v2.59 continues from the completed v2.58 controlled release cutover:
+v2.60 continues from the completed v2.59 interaction/cookbook milestone:
 
-- SurfaceCharts package/release evidence is validated for `0.1.0-alpha.7`.
-- Public publish, public tag, and GitHub release actions remain manual-gated and outside this milestone unless separately approved.
-- SurfaceCharts docs now expose package consumption, release cutover, troubleshooting, and cookbook entry points.
+- SurfaceCharts has typed Bar/Contour plot handles and recipe-friendly enabled command discovery.
+- SurfaceCharts demo/docs include Bar/Contour cookbook recipes and text-contract coverage.
+- Beads and generated roadmap state are synchronized through v2.59 closure.
 
 This milestone focuses on:
 
-- ScottPlot5-inspired interaction ergonomics and code experience, without compatibility or parity claims
-- direct `VideraChartView` / `Plot.Add.*` public API improvements where justified by inventory
-- demo/cookbook conversion into discoverable, copyable recipes
+- cookbook QA and docs/demo/support handoff inventory
+- bounded cookbook QA hardening selected by inventory
+- bounded interaction handoff polish selected by inventory
 - final integrated validation and clean Beads/Git/Dolt handoff
 
 ## Decisions
 
 - Beads remain the single task spine for phase status, dependencies, ownership, and handoff.
-- Phase 401 must inventory real API/demo/doc surfaces before implementation.
-- Phase 402 and Phase 403 may run in parallel after Phase 401 if their write sets are disjoint.
-- Keep implementation simple and direct; do not add ScottPlot compatibility adapters, old chart controls, hidden fallback behavior, or broad demo frameworks.
-- v2.58 artifacts are archived under `.planning/milestones/v2.58-phases`.
-- Phase 401 confirmed Phase 402 and Phase 403 can run in parallel after inventory because API/interaction and demo/docs write sets are separable.
-- Phase 402 completed typed Bar/Contour Plot handles and recipe-friendly enabled command discovery.
-- Phase 403 completed Bar/Contour cookbook recipes, docs alignment, and demo/docs text-contract coverage.
+- Phase 405 must inventory real cookbook QA / interaction handoff surfaces before implementation.
+- Phase 406 and Phase 407 may run in parallel after Phase 405 if their write sets are disjoint.
+- Keep implementation simple and direct; do not add ScottPlot compatibility adapters, old chart controls, hidden fallback behavior, backend expansion, or broad demo frameworks.
+- v2.59 artifacts are archived under `.planning/milestones/v2.59-phases`.
 
 ## Known Residuals
 
@@ -68,8 +65,8 @@ This milestone focuses on:
 ## Session Continuity
 
 Last session: `2026-04-30 +08:00`
-Stopped at: Phase 402 and Phase 403 complete
-Next action: execute Phase 404 (`Videra-v259.4`) final verification, Beads export, generated roadmap, cleanup, and push.
+Stopped at: v2.60 initialized
+Next action: plan and execute Phase 405 (`Videra-b53`).
 
 ## Accumulated Context
 
