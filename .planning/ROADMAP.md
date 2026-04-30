@@ -19,10 +19,10 @@ DEMO-01..02, GUARD-01..02, VERIFY-01..02)
 - [x] **Phase 414: Native Cleanup and Old-Code Inventory** - Classify residual
   SurfaceCharts old-code, compatibility, fallback/downshift, docs/demo/test, and
   guardrail surfaces before deletion.
-- [ ] **Phase 415: Delete Stale SurfaceCharts Old-Code Paths** - Remove true
+- [x] **Phase 415: Delete Stale SurfaceCharts Old-Code Paths** - Remove true
   stale old-code and misleading user-facing leftovers without wrappers, bridges,
   or migration shims.
-- [ ] **Phase 416: Native Cookbook and Demo Code Simplification** - Keep recipes
+- [x] **Phase 416: Native Cookbook and Demo Code Simplification** - Keep recipes
   copyable and native while reducing demo coupling only where it directly serves
   recipe ownership and verification.
 - [ ] **Phase 417: No-Compat Guardrails and CI Truth** - Harden tests/scripts/CI
@@ -63,6 +63,7 @@ DEMO-01..02, GUARD-01..02, VERIFY-01..02)
 3. Focused tests prove old public chart controls and direct public `Source`
    loading remain absent.
 **Plans:** 415-PLAN.md
+**Completed:** 2026-04-30
 
 ### Phase 416: Native Cookbook and Demo Code Simplification
 
@@ -77,6 +78,7 @@ DEMO-01..02, GUARD-01..02, VERIFY-01..02)
    coupling or verification friction.
 3. The demo does not become a generic plotting workbench or compatibility layer.
 **Plans:** 416-PLAN.md
+**Completed:** 2026-04-30
 
 ### Phase 417: No-Compat Guardrails and CI Truth
 
@@ -110,9 +112,9 @@ DEMO-01..02, GUARD-01..02, VERIFY-01..02)
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 414. Native Cleanup and Old-Code Inventory | 1/1 | Complete | 2026-04-30 |
-| 415. Delete Stale SurfaceCharts Old-Code Paths | 0/1 | Ready | |
-| 416. Native Cookbook and Demo Code Simplification | 0/1 | Ready | |
-| 417. No-Compat Guardrails and CI Truth | 0/1 | Blocked on 415, 416 | |
+| 415. Delete Stale SurfaceCharts Old-Code Paths | 1/1 | Complete | 2026-04-30 |
+| 416. Native Cookbook and Demo Code Simplification | 1/1 | Complete | 2026-04-30 |
+| 417. No-Compat Guardrails and CI Truth | 0/1 | Ready | |
 | 418. v2.62 Final Verification | 0/1 | Blocked on 417 | |
 
 ---
