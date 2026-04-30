@@ -12,12 +12,14 @@ pwsh -File ./scripts/Export-BeadsRoadmap.ps1
 
 ## Active
 
-_No matching beads in the exported snapshot._
+- **Videra-79n** - Phase 412 CI truth and validation hardening (task, P1, in_progress)
 
 ## Ready
 
 - **Videra-uqv** - v2.61 Native SurfaceCharts Cookbook and CI Truth (epic, P1, open)
-- **Videra-79n** - Phase 412 CI truth and validation hardening (task, P1, open)
+- **Videra-ucu** - Phase 412 focused cookbook demo CI gate (task, P1, open)
+- **Videra-wtx** - Phase 412 generated roadmap and scope truth gate (task, P1, open)
+- **Videra-7x9** - Phase 412 support evidence anti-fake CI gate (task, P1, open)
 
 ## Blocked
 
