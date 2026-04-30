@@ -1,3 +1,5 @@
+using System;
+using System.IO;
 using Avalonia;
 using FluentAssertions;
 using Videra.SurfaceCharts.Avalonia.Controls;
@@ -141,5 +143,75 @@ public sealed class SurfaceChartInteractionRecipeTests
             "DraggableMarkerOverlay: Supported\n" +
             "DraggableRangeOverlay: Supported\n" +
             "StateOwnership: HostOwned");
+    }
+
+    [Fact]
+    public void SurfaceChartsReadme_DocumentsMinimalInteractionHostWiring()
+    {
+        var readme = ReadSurfaceChartsReadme();
+        var section = ExtractInteractionHandoffSection(readme);
+
+        section.Should().Contain("using Videra.SurfaceCharts.Avalonia.Controls;");
+        section.Should().Contain("using Videra.SurfaceCharts.Avalonia.Controls.Interaction;");
+        section.Should().Contain("SurfaceChartInteractionProfile");
+        section.Should().Contain("SurfaceChartCommand.ZoomIn");
+        section.Should().Contain("TryExecuteChartCommand(SurfaceChartCommand.ResetCamera)");
+        section.Should().Contain("host-owned buttons and context-menu items");
+        section.Should().Contain("EnabledCommands");
+    }
+
+    [Fact]
+    public void SurfaceChartsReadme_DocumentsProbeSelectionAndDraggableHostOwnership()
+    {
+        var readme = ReadSurfaceChartsReadme();
+        var section = ExtractInteractionHandoffSection(readme);
+
+        section.Should().Contain("TryResolveProbe");
+        section.Should().Contain("SurfaceChartProbeEvidenceFormatter.Create");
+        section.Should().Contain("EvidenceKind: surface-chart-probe");
+        section.Should().Contain("ProbeStatus");
+        section.Should().Contain("PinnedCount");
+        section.Should().Contain("TryCreateSelectionReport");
+        section.Should().Contain("TryCreateDraggableMarkerOverlay");
+        section.Should().Contain("TryCreateDraggableRangeOverlay");
+        section.Should().Contain("SurfaceChartInteractionRecipeEvidenceFormatter");
+        section.Should().Contain("StateOwnership: HostOwned");
+        section.Should().Contain("host-owned");
+        section.Should().Contain("do not add chart-owned product selection");
+        section.Should().Contain("built-in drag editor");
+        section.Should().NotContain("chart owns product selection");
+        section.Should().NotContain("chart-owned selection state");
+        section.Should().NotContain("provides a built-in drag editor");
+    }
+
+    private static string ReadSurfaceChartsReadme()
+    {
+        var directory = new DirectoryInfo(AppContext.BaseDirectory);
+        while (directory is not null)
+        {
+            var candidate = Path.Combine(directory.FullName, "src", "Videra.SurfaceCharts.Avalonia", "README.md");
+            if (File.Exists(candidate))
+            {
+                return File.ReadAllText(candidate);
+            }
+
+            directory = directory.Parent;
+        }
+
+        throw new FileNotFoundException("Could not locate src/Videra.SurfaceCharts.Avalonia/README.md from the test output directory.");
+    }
+
+    private static string ExtractInteractionHandoffSection(string readme)
+    {
+        const string heading = "### Interaction Handoff Recipes";
+        const string nextHeading = "Hosts currently own:";
+
+        var start = readme.IndexOf(heading, StringComparison.Ordinal);
+        start.Should().BeGreaterThanOrEqualTo(0);
+
+        var end = readme.IndexOf(nextHeading, start, StringComparison.Ordinal);
+        end.Should().BeGreaterThan(start);
+
+        return readme[start..end];
     }
 }

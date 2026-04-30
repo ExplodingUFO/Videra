@@ -127,6 +127,84 @@ chartView.Plot.OverlayOptions = SurfaceChartOverlayPresets.Compact;
 
 `SurfaceMatrix` remains the simplest source-first regular-grid entrypoint. When you need richer analytics payloads, you can keep the same `VideraChartView` shell and switch the underlying source construction to `SurfaceScalarField`, an independent `ColorField`, and `SurfaceMask` without widening `VideraChartView` itself.
 
+### Interaction Handoff Recipes
+
+```csharp
+using Avalonia;
+using Videra.SurfaceCharts.Avalonia.Controls;
+using Videra.SurfaceCharts.Avalonia.Controls.Interaction;
+using Videra.SurfaceCharts.Core;
+```
+
+Hosts can keep built-in interaction behavior small and explicit by assigning a
+`SurfaceChartInteractionProfile` and routing product buttons or context-menu
+items through `TryExecuteChartCommand(...)`:
+
+```csharp
+var chartView = new VideraChartView
+{
+    InteractionProfile = new SurfaceChartInteractionProfile
+    {
+        IsOrbitEnabled = true,
+        IsPanEnabled = true,
+        IsDollyEnabled = true,
+        IsKeyboardShortcutsEnabled = true,
+        IsFocusSelectionEnabled = true,
+        IsProbePinningEnabled = true,
+        IsToolbarEnabled = true,
+    },
+};
+
+zoomInButton.Click += (_, _) => chartView.TryExecuteChartCommand(SurfaceChartCommand.ZoomIn);
+resetMenuItem.Click += (_, _) => chartView.TryExecuteChartCommand(SurfaceChartCommand.ResetCamera);
+```
+
+The command surface is the same one used by keyboard shortcuts and the built-in
+toolbar. `SurfaceChartInteractionProfile.EnabledCommands` is the host-readable
+list of commands implied by the current profile; it is suitable for enabling or
+disabling host-owned buttons and context-menu items.
+
+Probe and support surfaces stay evidence-first. Use `TryResolveProbe(...)` for a
+pointer location, then format support text with
+`SurfaceChartProbeEvidenceFormatter.Create(...)` and
+`SurfaceChartProbeEvidenceFormatter.Format(...)`. Reports use
+`EvidenceKind: surface-chart-probe`, `ProbeStatus`, and `PinnedCount` terms; the
+chart keeps hover and pinned overlay state internal.
+
+Selection handoff is host-owned. `TryCreateSelectionReport(...)` returns click
+or rectangle reports with screen, sample, axis, and optional `SurfaceDataWindow`
+coordinates so the host can update its own selected-domain state:
+
+```csharp
+if (chartView.TryCreateSelectionReport(startPoint, endPoint, out var selectionReport))
+{
+    hostSelection = selectionReport.DataWindow;
+}
+```
+
+Draggable handoff is also host-owned. The chart creates bounded marker and range
+overlay recipes from screen positions, and the host stores and redraws the
+product state it wants to expose:
+
+```csharp
+if (chartView.TryCreateDraggableMarkerOverlay(pointerPoint, out var marker))
+{
+    hostMarker = marker;
+}
+
+if (chartView.TryCreateDraggableRangeOverlay(startPoint, endPoint, out var range))
+{
+    hostRange = range;
+}
+
+var recipeEvidence = SurfaceChartInteractionRecipeEvidenceFormatter.Format(
+    SurfaceChartInteractionRecipeEvidenceFormatter.CreateSupported());
+```
+
+`SurfaceChartInteractionRecipeEvidenceFormatter` reports deterministic support
+terms for `ProbeResolution`, `SelectionReporting`, `DraggableMarkerOverlay`,
+`DraggableRangeOverlay`, and `StateOwnership: HostOwned`. These recipes do not add chart-owned product selection; they also do not add mutable draggable state or a built-in drag editor.
+
 Hosts currently own:
 
 - `ISurfaceTileSource` creation
