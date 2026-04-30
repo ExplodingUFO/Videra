@@ -12,12 +12,15 @@ pwsh -File ./scripts/Export-BeadsRoadmap.ps1
 
 ## Active
 
-_No matching beads in the exported snapshot._
+- **Videra-d29** - Phase 410 bounded bar contour and snapshot cookbook (task, P1, in_progress)
+- **Videra-2de** - Phase 410 Detailed 3D cookbook demo recipes (task, P1, in_progress)
+- **Videra-3hr** - Phase 410 runnable first-chart and cache-backed surface cookbook (task, P1, in_progress)
+- **Videra-4qk** - Phase 410 scatter live-data cookbook hardening (task, P1, in_progress)
+- **Videra-zcd** - Phase 410 waterfall axes and linked-view cookbook (task, P1, in_progress)
 
 ## Ready
 
 - **Videra-uqv** - v2.61 Native SurfaceCharts Cookbook and CI Truth (epic, P1, open)
-- **Videra-2de** - Phase 410 Detailed 3D cookbook demo recipes (task, P1, open)
 - **Videra-s6h** - Phase 411 Native high-performance demo paths (task, P1, open)
 
 ## Blocked
