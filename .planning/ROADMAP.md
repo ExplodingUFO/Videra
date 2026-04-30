@@ -17,9 +17,9 @@ PDF/vector export, or fake validation evidence.
 - [ ] **Phase 440: Demo Framework Architecture Refactor** - Refactor
   MainWindow code-behind into recipe-driven architecture with self-contained
   recipe classes and group navigation.
-- [ ] **Phase 441: Line/Ribbon/VectorField Cookbook Recipes** - Add cookbook
+- [x] **Phase 441: Line/Ribbon/VectorField Cookbook Recipes** - Add cookbook
   recipes for Line, Ribbon, and VectorField chart types with live demo.
-- [ ] **Phase 442: HeatmapSlice/BoxPlot Cookbook Recipes** - Add cookbook
+- [x] **Phase 442: HeatmapSlice/BoxPlot Cookbook Recipes** - Add cookbook
   recipes for HeatmapSlice and BoxPlot chart types with live demo.
 - [ ] **Phase 443: MultiPlot3D Cookbook Recipes** - Add MultiPlot3D subplot
   grid cookbook recipes with linked camera/axis and grid snapshot.
@@ -142,8 +142,8 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 440. Demo Framework Architecture Refactor | 0/1 | Not started | — |
-| 441. Line/Ribbon/VectorField Cookbook Recipes | 0/1 | Not started | — |
-| 442. HeatmapSlice/BoxPlot Cookbook Recipes | 0/1 | Not started | — |
+| 441. Line/Ribbon/VectorField Cookbook Recipes | 1/1 | Complete    | 2026-04-30 |
+| 442. HeatmapSlice/BoxPlot Cookbook Recipes | 1/1 | Complete    | 2026-04-30 |
 | 443. MultiPlot3D Cookbook Recipes | 0/1 | Not started | — |
 | 444. DataLogger3D Streaming Cookbook Recipes | 0/1 | Not started | — |
 | 445. Interactive Parameter Controls and Live Preview | 0/1 | Not started | — |
