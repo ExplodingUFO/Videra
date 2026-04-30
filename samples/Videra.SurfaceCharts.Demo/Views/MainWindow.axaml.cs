@@ -30,6 +30,7 @@ public partial class MainWindow : Window
     private readonly VideraChartView _boxPlotView;
     private readonly VideraChartView _histogramPlotView;
     private readonly VideraChartView _functionPlotView;
+    private readonly VideraChartView _piePlotView;
     private readonly VideraChartView _workspaceChartA;
     private readonly VideraChartView _workspaceChartB;
     private readonly VideraChartView _workspaceChartC;
@@ -123,6 +124,8 @@ public partial class MainWindow : Window
             ?? throw new InvalidOperationException("HistogramPlotView is missing.");
         _functionPlotView = this.FindControl<VideraChartView>("FunctionPlotView")
             ?? throw new InvalidOperationException("FunctionPlotView is missing.");
+        _piePlotView = this.FindControl<VideraChartView>("PiePlotView")
+            ?? throw new InvalidOperationException("PiePlotView is missing.");
         _workspaceChartA = this.FindControl<VideraChartView>("WorkspaceChartA")
             ?? throw new InvalidOperationException("WorkspaceChartA is missing.");
         _workspaceChartB = this.FindControl<VideraChartView>("WorkspaceChartB")
@@ -224,6 +227,7 @@ public partial class MainWindow : Window
         ConfigureSurfaceFamilyChartView(_boxPlotView);
         ConfigureSurfaceFamilyChartView(_histogramPlotView);
         ConfigureSurfaceFamilyChartView(_functionPlotView);
+        ConfigureSurfaceFamilyChartView(_piePlotView);
         ConfigureSurfaceFamilyChartView(_workspaceChartA);
         ConfigureSurfaceFamilyChartView(_workspaceChartB);
         ConfigureSurfaceFamilyChartView(_workspaceChartC);
@@ -268,6 +272,7 @@ public partial class MainWindow : Window
         _boxPlotView.IsVisible ? _boxPlotView :
         _histogramPlotView.IsVisible ? _histogramPlotView :
         _functionPlotView.IsVisible ? _functionPlotView :
+        _piePlotView.IsVisible ? _piePlotView :
         _surfaceChartView;
 
     private bool IsScatterProofActive => _scatterChartView.IsVisible;
@@ -403,6 +408,12 @@ public partial class MainWindow : Window
         if (scenario.Id == SurfaceDemoScenarios.FunctionPlotId)
         {
             ApplyFunctionPlotSource(scenario);
+            return;
+        }
+
+        if (scenario.Id == SurfaceDemoScenarios.PieId)
+        {
+            ApplyPieSource(scenario);
             return;
         }
 
@@ -758,6 +769,31 @@ public partial class MainWindow : Window
         RefreshActiveProofTexts();
     }
 
+    private void ApplyPieSource(SurfaceDemoScenario scenario)
+    {
+        SetActiveChartView(_piePlotView);
+        _activeScatterData = null;
+        _piePlotView.Plot.Clear();
+        _piePlotView.Plot.Add.Pie(
+            new[]
+            {
+                new PieSlice(35, 0xFF38BDF8u, "Engineering"),
+                new PieSlice(25, 0xFFF97316u, "Design"),
+                new PieSlice(20, 0xFF2DD4BFu, "Marketing"),
+                new PieSlice(15, 0xFF8B5CF6u, "Sales"),
+                new PieSlice(5, 0xFFFF6B6B, "Other"),
+            },
+            holeRatio: 0.4,
+            name: scenario.Label);
+        _piePlotView.FitToData();
+        _activePlotPathHeading = scenario.Label;
+        _activePlotPathDetails = "Donut chart with 5 labeled slices, custom colors, and 40% hole ratio. Demonstrates Plot.Add.Pie with PieSlice and holeRatio.";
+        _activeDatasetSummary = "Pie chart proof shows department budget distribution across 5 categories with donut mode.";
+        _activeAssetSummary = "No additional assets are used on this path.";
+        _datasetText.Text = _activeDatasetSummary;
+        RefreshActiveProofTexts();
+    }
+
     private void SetupMultiPlot3DScenario(SurfaceDemoScenario scenario)
     {
         // Hide all single-chart panels
@@ -773,6 +809,7 @@ public partial class MainWindow : Window
         _boxPlotView.IsVisible = false;
         _histogramPlotView.IsVisible = false;
         _functionPlotView.IsVisible = false;
+        _piePlotView.IsVisible = false;
         _analysisWorkspacePanel.IsVisible = false;
         _workspaceToolbarPanel.IsVisible = false;
 
@@ -946,6 +983,7 @@ public partial class MainWindow : Window
         _boxPlotView.IsVisible = ReferenceEquals(chartView, _boxPlotView);
         _histogramPlotView.IsVisible = ReferenceEquals(chartView, _histogramPlotView);
         _functionPlotView.IsVisible = ReferenceEquals(chartView, _functionPlotView);
+        _piePlotView.IsVisible = ReferenceEquals(chartView, _piePlotView);
         _analysisWorkspacePanel.IsVisible = false;
         _workspaceToolbarPanel.IsVisible = false;
     }
@@ -965,8 +1003,7 @@ public partial class MainWindow : Window
         _boxPlotView.IsVisible = false;
         _histogramPlotView.IsVisible = false;
         _functionPlotView.IsVisible = false;
-        _histogramPlotView.IsVisible = false;
-        _functionPlotView.IsVisible = false;
+        _piePlotView.IsVisible = false;
         _analysisWorkspacePanel.IsVisible = true;
         _workspaceToolbarPanel.IsVisible = true;
 
@@ -1047,6 +1084,7 @@ public partial class MainWindow : Window
         _boxPlotView.IsVisible = false;
         _histogramPlotView.IsVisible = false;
         _functionPlotView.IsVisible = false;
+        _piePlotView.IsVisible = false;
         _analysisWorkspacePanel.IsVisible = true;
         _workspaceToolbarPanel.IsVisible = true;
 
@@ -1135,6 +1173,7 @@ public partial class MainWindow : Window
         _boxPlotView.IsVisible = false;
         _histogramPlotView.IsVisible = false;
         _functionPlotView.IsVisible = false;
+        _piePlotView.IsVisible = false;
         _analysisWorkspacePanel.IsVisible = true;
         _workspaceToolbarPanel.IsVisible = true;
 
@@ -1721,7 +1760,7 @@ public partial class MainWindow : Window
         _linePlotView.IsVisible || _ribbonPlotView.IsVisible ||
         _vectorFieldPlotView.IsVisible || _heatmapSlicePlotView.IsVisible ||
         _boxPlotView.IsVisible || _histogramPlotView.IsVisible ||
-        _functionPlotView.IsVisible;
+        _functionPlotView.IsVisible || _piePlotView.IsVisible;
 
     private string CreateViewStateSummary()
     {

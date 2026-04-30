@@ -405,4 +405,18 @@ public sealed class Plot3DRenderingEvidence
             viewWidth: status.ViewSize.Width,
             viewHeight: status.ViewSize.Height);
     }
+
+    internal static Plot3DRenderingEvidence FromPieStatus(PieChartRenderingStatus status)
+    {
+        ArgumentNullException.ThrowIfNull(status);
+
+        return new Plot3DRenderingEvidence(
+            "pie-rendering-status",
+            status.BackendKind,
+            status.IsReady,
+            isFallback: false,
+            fallbackReason: null,
+            viewWidth: status.ViewSize.Width,
+            viewHeight: status.ViewSize.Height);
+    }
 }

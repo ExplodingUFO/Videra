@@ -439,6 +439,24 @@ public sealed class Plot3DAddApi
         return (FunctionPlot3DSeries)_plot.AddSeries(new FunctionPlot3DSeries(name, data));
     }
 
+    /// <summary>
+    /// Adds a pie chart from slices with optional donut hole ratio.
+    /// </summary>
+    public PiePlot3DSeries Pie(IReadOnlyList<PieSlice> slices, double holeRatio = 0d, string? name = null)
+    {
+        ArgumentNullException.ThrowIfNull(slices);
+        return Pie(new PieChartData(slices, holeRatio), name);
+    }
+
+    /// <summary>
+    /// Adds a pie chart from a full pie chart dataset.
+    /// </summary>
+    public PiePlot3DSeries Pie(PieChartData data, string? name = null)
+    {
+        ArgumentNullException.ThrowIfNull(data);
+        return (PiePlot3DSeries)_plot.AddSeries(new PiePlot3DSeries(name, data));
+    }
+
     private static SurfaceMatrix CreateSurfaceMatrix(double[,] values)
     {
         ArgumentNullException.ThrowIfNull(values);

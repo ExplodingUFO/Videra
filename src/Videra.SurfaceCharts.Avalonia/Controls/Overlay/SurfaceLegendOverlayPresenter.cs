@@ -133,6 +133,7 @@ internal static class SurfaceLegendOverlayPresenter
             Plot3DSeriesKind.BoxPlot => LegendIndicatorKind.Swatch,
             Plot3DSeriesKind.Histogram => LegendIndicatorKind.Swatch,
             Plot3DSeriesKind.FunctionPlot => LegendIndicatorKind.Line,
+            Plot3DSeriesKind.Pie => LegendIndicatorKind.Swatch,
             _ => LegendIndicatorKind.Swatch,
         };
 
@@ -151,6 +152,7 @@ internal static class SurfaceLegendOverlayPresenter
             Plot3DSeriesKind.BoxPlot => 0xFF4488CC, // Steel blue
             Plot3DSeriesKind.Histogram => 0xFF38BDF8, // Sky blue
             Plot3DSeriesKind.FunctionPlot => 0xFF4DA3FF, // Blue
+            Plot3DSeriesKind.Pie => 0xFF8B5CF6, // Violet
             _ => 0xFFCCCCCC, // Gray
         };
 

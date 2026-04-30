@@ -213,6 +213,22 @@ internal static class Plot3DSeriesComposition
         return datasets[0];
     }
 
+    public static PieChartData? CreatePieData(IReadOnlyList<Plot3DSeries> series)
+    {
+        var datasets = series
+            .Select(static item => item.PieData)
+            .OfType<PieChartData>()
+            .ToArray();
+
+        if (datasets.Length == 0)
+        {
+            return null;
+        }
+
+        // Pie charts are independent — return the first one
+        return datasets[0];
+    }
+
     private static ScatterChartMetadata CreateScatterMetadata(IReadOnlyList<ScatterChartData> datasets)
     {
         var first = datasets[0].Metadata;

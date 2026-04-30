@@ -24,7 +24,8 @@ public class Plot3DSeries : IPlottable3D
         HeatmapSliceData? heatmapSliceData,
         BoxPlotData? boxPlotData,
         HistogramData? histogramData = null,
-        FunctionPlotData? functionPlotData = null)
+        FunctionPlotData? functionPlotData = null,
+        PieChartData? pieData = null)
     {
         Kind = kind;
         _label = NormalizeLabel(name);
@@ -39,6 +40,7 @@ public class Plot3DSeries : IPlottable3D
         BoxPlotData = boxPlotData;
         HistogramData = histogramData;
         FunctionPlotData = functionPlotData;
+        PieData = pieData;
     }
 
     /// <summary>
@@ -138,6 +140,11 @@ public class Plot3DSeries : IPlottable3D
     /// Gets the function plot dataset for function plot series.
     /// </summary>
     public FunctionPlotData? FunctionPlotData { get; private set; }
+
+    /// <summary>
+    /// Gets the pie chart dataset for pie series.
+    /// </summary>
+    public PieChartData? PieData { get; private set; }
 
     internal void Attach(Action changed)
     {

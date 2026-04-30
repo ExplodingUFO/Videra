@@ -251,6 +251,18 @@ public sealed class Plot3D
         }
     }
 
+    internal PieChartData? ActivePieData =>
+        ActiveSeries?.Kind == Plot3DSeriesKind.Pie ? ActiveSeries.PieData : null;
+
+    internal Plot3DSeries? ActivePieSeries
+    {
+        get
+        {
+            var activeSeries = ActiveSeries;
+            return activeSeries?.Kind == Plot3DSeriesKind.Pie ? activeSeries : null;
+        }
+    }
+
     /// <summary>
     /// Gets or sets the optional color map used by surface and waterfall series.
     /// </summary>
@@ -433,14 +445,15 @@ public sealed class Plot3D
         HeatmapSliceChartRenderingStatus? heatmapSliceRenderingStatus = null,
         BoxPlotChartRenderingStatus? boxPlotRenderingStatus = null,
         HistogramChartRenderingStatus? histogramRenderingStatus = null,
-        FunctionPlotChartRenderingStatus? functionPlotRenderingStatus = null)
+        FunctionPlotChartRenderingStatus? functionPlotRenderingStatus = null,
+        PieChartRenderingStatus? pieRenderingStatus = null)
     {
         var activeSeries = ActiveSeries;
         var activeSeriesIndex = activeSeries is null ? -1 : _series.IndexOf(activeSeries);
         var composedSeries = ActiveComposedSeries;
         var composedSeriesIdentities = CreateSeriesIdentities(composedSeries);
         var colorMapEvidence = CreateColorMapEvidence(activeSeries);
-        var renderingEvidence = CreateRenderingEvidence(activeSeries, renderingStatus, scatterRenderingStatus, barRenderingStatus, contourRenderingStatus, lineRenderingStatus, ribbonRenderingStatus, vectorFieldRenderingStatus, heatmapSliceRenderingStatus, boxPlotRenderingStatus, histogramRenderingStatus, functionPlotRenderingStatus);
+        var renderingEvidence = CreateRenderingEvidence(activeSeries, renderingStatus, scatterRenderingStatus, barRenderingStatus, contourRenderingStatus, lineRenderingStatus, ribbonRenderingStatus, vectorFieldRenderingStatus, heatmapSliceRenderingStatus, boxPlotRenderingStatus, histogramRenderingStatus, functionPlotRenderingStatus, pieRenderingStatus);
 
         return new Plot3DOutputEvidence(
             seriesCount: _series.Count,
@@ -803,7 +816,8 @@ public sealed class Plot3D
         HeatmapSliceChartRenderingStatus? heatmapSliceRenderingStatus,
         BoxPlotChartRenderingStatus? boxPlotRenderingStatus,
         HistogramChartRenderingStatus? histogramRenderingStatus,
-        FunctionPlotChartRenderingStatus? functionPlotRenderingStatus)
+        FunctionPlotChartRenderingStatus? functionPlotRenderingStatus,
+        PieChartRenderingStatus? pieRenderingStatus)
     {
         return activeSeries?.Kind switch
         {
@@ -829,6 +843,8 @@ public sealed class Plot3D
                 Plot3DRenderingEvidence.FromHistogramStatus(histogramRenderingStatus),
             Plot3DSeriesKind.FunctionPlot when functionPlotRenderingStatus is not null =>
                 Plot3DRenderingEvidence.FromFunctionPlotStatus(functionPlotRenderingStatus),
+            Plot3DSeriesKind.Pie when pieRenderingStatus is not null =>
+                Plot3DRenderingEvidence.FromPieStatus(pieRenderingStatus),
             _ => null,
         };
     }
@@ -917,7 +933,7 @@ public sealed class Plot3D
             return Plot3DColorMapStatus.Applied;
         }
 
-        return activeSeries is null || activeSeries.Kind is Plot3DSeriesKind.Scatter or Plot3DSeriesKind.Contour or Plot3DSeriesKind.Bar or Plot3DSeriesKind.VectorField or Plot3DSeriesKind.HeatmapSlice or Plot3DSeriesKind.BoxPlot or Plot3DSeriesKind.Histogram or Plot3DSeriesKind.FunctionPlot
+        return activeSeries is null || activeSeries.Kind is Plot3DSeriesKind.Scatter or Plot3DSeriesKind.Contour or Plot3DSeriesKind.Bar or Plot3DSeriesKind.VectorField or Plot3DSeriesKind.HeatmapSlice or Plot3DSeriesKind.BoxPlot or Plot3DSeriesKind.Histogram or Plot3DSeriesKind.FunctionPlot or Plot3DSeriesKind.Pie
             ? Plot3DColorMapStatus.NotApplicable
             : Plot3DColorMapStatus.Unavailable;
     }

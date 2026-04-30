@@ -33,6 +33,7 @@ internal static class SurfaceDemoScenarios
     public const string StreamingWorkspaceId = "streaming-workspace";
     public const string HistogramId = "histogram-proof";
     public const string FunctionPlotId = "function-plot-proof";
+    public const string PieId = "pie-proof";
 
     public static IReadOnlyList<SurfaceDemoScenario> All { get; } =
     [
@@ -162,6 +163,12 @@ internal static class SurfaceDemoScenarios
             "FunctionPlot",
             "Function plot",
             "Evaluates a mathematical function over a domain with configurable sample count."),
+        new(
+            PieId,
+            "Try next: Pie chart proof",
+            "Pie",
+            "Pie",
+            "Uses configurable slices with labels, colors, explode offset, and donut hole ratio."),
     ];
 
     public static SurfaceDemoScenario Get(string id)

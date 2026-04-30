@@ -425,5 +425,25 @@ internal static class CookbookRecipes
                     name: "Damped sine");
                 chart.FitToData();
                 """),
+        new(
+            "Pie",
+            "Donut chart",
+            "Isolated setup path: creates a donut chart with labeled slices, custom colors, and explode offset.",
+            ScenarioId: SurfaceDemoScenarios.PieId,
+            ScatterScenarioId: null,
+            Snippet: """
+                var slices = new[]
+                {
+                    new PieSlice(35, 0xFF38BDF8u, "Engineering"),
+                    new PieSlice(25, 0xFFF97316u, "Design"),
+                    new PieSlice(20, 0xFF2DD4BFu, "Marketing"),
+                    new PieSlice(15, 0xFF8B5CF6u, "Sales"),
+                    new PieSlice(5, 0xFFFF6B6B, "Other"),
+                };
+
+                chart.Plot.Clear();
+                chart.Plot.Add.Pie(slices, holeRatio: 0.4, name: "Department budget");
+                chart.FitToData();
+                """),
     ];
 }

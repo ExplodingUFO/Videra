@@ -64,4 +64,9 @@ public enum Plot3DSeriesKind
     /// A function plot evaluating y = f(x) over a domain.
     /// </summary>
     FunctionPlot,
+
+    /// <summary>
+    /// A pie or donut chart with configurable slices.
+    /// </summary>
+    Pie,
 }
