@@ -13,6 +13,7 @@ public sealed class SurfaceChartsDemoConfigurationTests
         var demoReadme = File.ReadAllText(Path.Combine(repositoryRoot, "samples", "Videra.SurfaceCharts.Demo", "README.md"));
         var cutover = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "surfacecharts-release-cutover.md"));
         var mainWindowCodeBehind = File.ReadAllText(Path.Combine(repositoryRoot, "samples", "Videra.SurfaceCharts.Demo", "Views", "MainWindow.axaml.cs"));
+        var sampleData = File.ReadAllText(Path.Combine(repositoryRoot, "samples", "Videra.SurfaceCharts.Demo", "Views", "MainWindow.SampleData.cs"));
         var cookbookRecipeCatalog = File.ReadAllText(Path.Combine(repositoryRoot, "samples", "Videra.SurfaceCharts.Demo", "Services", "CookbookRecipeCatalog.cs"));
         var scenarioCatalog = File.ReadAllText(Path.Combine(repositoryRoot, "samples", "Videra.SurfaceCharts.Demo", "Services", "SurfaceDemoScenario.cs"));
 
@@ -33,7 +34,7 @@ public sealed class SurfaceChartsDemoConfigurationTests
         cookbookRecipeCatalog.Should().Contain("\"Bar\"");
         cookbookRecipeCatalog.Should().Contain("\"Contour\"");
         mainWindowCodeBehind.Should().NotContain("new ScatterColumnarData(x, y, z)");
-        mainWindowCodeBehind.Should().Contain("new ScatterChartData");
+        sampleData.Should().Contain("new ScatterChartData");
     }
 
     [Fact]
@@ -46,6 +47,7 @@ public sealed class SurfaceChartsDemoConfigurationTests
         var demoReadmePath = Path.Combine(demoRoot, "README.md");
         var mainWindowXamlPath = Path.Combine(demoRoot, "Views", "MainWindow.axaml");
         var mainWindowCodeBehindPath = Path.Combine(demoRoot, "Views", "MainWindow.axaml.cs");
+        var mainWindowSampleDataPath = Path.Combine(demoRoot, "Views", "MainWindow.SampleData.cs");
         var cookbookRecipeCatalogPath = Path.Combine(demoRoot, "Services", "CookbookRecipeCatalog.cs");
         var scenarioCatalogPath = Path.Combine(demoRoot, "Services", "SurfaceDemoScenario.cs");
         var supportSummaryPath = Path.Combine(demoRoot, "Services", "SurfaceDemoSupportSummary.cs");
@@ -59,6 +61,7 @@ public sealed class SurfaceChartsDemoConfigurationTests
         File.Exists(appXamlPath).Should().BeTrue();
         File.Exists(mainWindowXamlPath).Should().BeTrue();
         File.Exists(mainWindowCodeBehindPath).Should().BeTrue();
+        File.Exists(mainWindowSampleDataPath).Should().BeTrue();
         File.Exists(cookbookRecipeCatalogPath).Should().BeTrue();
         File.Exists(scenarioCatalogPath).Should().BeTrue();
         File.Exists(supportSummaryPath).Should().BeTrue();
@@ -187,6 +190,7 @@ public sealed class SurfaceChartsDemoConfigurationTests
         mainWindow.Should().NotContain("Videra.Demo");
 
         var mainWindowCodeBehind = File.ReadAllText(mainWindowCodeBehindPath);
+        var sampleData = File.ReadAllText(mainWindowSampleDataPath);
         var cookbookRecipeCatalog = File.ReadAllText(cookbookRecipeCatalogPath);
         var supportSummary = File.ReadAllText(supportSummaryPath);
         mainWindowCodeBehind.Should().Contain("CookbookRecipes");
@@ -269,19 +273,19 @@ public sealed class SurfaceChartsDemoConfigurationTests
         mainWindowCodeBehind.Should().Contain("Plot.Add.Bar");
         mainWindowCodeBehind.Should().Contain("Plot.Add.Contour");
         cookbookRecipeCatalog.Should().Contain("Plot.SavePngAsync");
-        mainWindowCodeBehind.Should().Contain("ScatterChartData");
+        sampleData.Should().Contain("ScatterChartData");
         mainWindowCodeBehind.Should().Contain("ScatterStreamingScenarios");
         mainWindowCodeBehind.Should().Contain("ApplySelectedScatterScenario");
-        mainWindowCodeBehind.Should().Contain("ScatterSeries");
-        mainWindowCodeBehind.Should().Contain("ScatterPoint");
-        mainWindowCodeBehind.Should().Contain("ScatterChartMetadata");
-        mainWindowCodeBehind.Should().Contain("CreateScatterSource");
-        mainWindowCodeBehind.Should().Contain("CreateSampleBarData");
-        mainWindowCodeBehind.Should().Contain("CreateSampleContourField");
-        mainWindowCodeBehind.Should().Contain("CreateAnalyticsProofSource");
-        mainWindowCodeBehind.Should().Contain("CreateAnalyticsProofMatrix");
-        mainWindowCodeBehind.Should().Contain("SurfaceExplicitGrid");
-        mainWindowCodeBehind.Should().Contain("SurfaceScalarField");
+        sampleData.Should().Contain("ScatterSeries");
+        sampleData.Should().Contain("ScatterPoint");
+        sampleData.Should().Contain("ScatterChartMetadata");
+        sampleData.Should().Contain("CreateScatterSource");
+        sampleData.Should().Contain("CreateSampleBarData");
+        sampleData.Should().Contain("CreateSampleContourField");
+        sampleData.Should().Contain("CreateAnalyticsProofSource");
+        sampleData.Should().Contain("CreateAnalyticsProofMatrix");
+        sampleData.Should().Contain("SurfaceExplicitGrid");
+        sampleData.Should().Contain("SurfaceScalarField");
         mainWindowCodeBehind.Should().Contain("ColorField");
         mainWindowCodeBehind.Should().Contain("CreateScatterCameraSummary");
         mainWindowCodeBehind.Should().Contain("Scatter proof");
