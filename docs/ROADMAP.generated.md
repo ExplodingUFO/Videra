@@ -17,12 +17,11 @@ _No matching beads in the exported snapshot._
 ## Ready
 
 - **Videra-v259** - v2.59 ScottPlot5 Interaction and Cookbook Experience (epic, P1, open; labels: cookbook, interaction, scottplot5-inspired, surfacecharts, v2.59)
-- **Videra-v259.2** - Phase 402 Interaction and Code Experience Polish (task, P1, open; labels: code-experience, interaction, phase-402, surfacecharts, v2.59)
-- **Videra-v259.3** - Phase 403 Cookbook Demo Conversion (task, P1, open; labels: cookbook, demo, docs, phase-403, surfacecharts, v2.59)
+- **Videra-v259.4** - Phase 404 Interaction Cookbook Final Verification (task, P1, open; labels: cookbook, interaction, phase-404, surfacecharts, v2.59, verification)
 
 ## Blocked
 
-- **Videra-v259.4** - Phase 404 Interaction Cookbook Final Verification (task, P1, open; labels: cookbook, interaction, phase-404, surfacecharts, v2.59, verification)
+_No matching beads in the exported snapshot._
 
 ## Backlog
 
@@ -30,14 +29,14 @@ _No matching beads in the exported snapshot._
 
 ## Recently Closed
 
+- **Videra-v259.2** - Phase 402 Interaction and Code Experience Polish (task, P1, closed; labels: code-experience, interaction, phase-402, surfacecharts, v2.59)
+- **Videra-v259.3** - Phase 403 Cookbook Demo Conversion (task, P1, closed; labels: cookbook, demo, docs, phase-403, surfacecharts, v2.59)
+- **Videra-9bs** - Phase 402 typed Bar and Contour plot handles (task, P1, closed)
+- **Videra-b4w** - Phase 402 recipe-friendly interaction command catalog (task, P1, closed)
+- **Videra-uft** - Phase 403 Bar and Contour cookbook alignment (task, P1, closed)
 - **Videra-v259.1** - Phase 401 Interaction and Cookbook Experience Inventory (task, P1, closed; labels: cookbook, interaction, inventory, phase-401, surfacecharts, v2.59)
 - **Videra-2ly** - Phase 401 validation and guardrail inventory (task, P1, closed)
 - **Videra-imn** - Phase 401 interaction API inventory (task, P1, closed)
 - **Videra-nye** - Phase 401 cookbook demo inventory (task, P1, closed)
 - **Videra-v258** - v2.58 SurfaceCharts Controlled Release Cutover (epic, P1, closed; labels: release-cutover, surfacecharts, v2.58)
-- **Videra-v258.5** - Phase 400 Final Cutover Verification and Handoff (task, P1, closed; labels: closure, phase-400, release-cutover, surfacecharts, v2.58, verification)
-- **Videra-v258.3** - Phase 398 Gated Publish and Tag Dry-Run Automation (task, P1, closed; labels: automation, dry-run, phase-398, release-cutover, surfacecharts, v2.58)
-- **Videra-v258.4** - Phase 399 Release Notes Docs and Support Cutover (task, P1, closed; labels: docs, phase-399, release-cutover, support, surfacecharts, v2.58)
-- **Videra-v258.2** - Phase 397 Version and Package Cutover Contracts (task, P1, closed; labels: package, phase-397, release-cutover, surfacecharts, v2.58, version)
-- **Videra-v258.1** - Phase 396 Release Cutover Inventory and Approval Packet (task, P1, closed; labels: approval, inventory, phase-396, release-cutover, surfacecharts, v2.58)
 
