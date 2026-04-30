@@ -1,109 +1,87 @@
-# Roadmap
+# Roadmap: v2.59 ScottPlot5 Interaction and Cookbook Experience
 
-## v2.58 SurfaceCharts Controlled Release Cutover - Active
+**Goal:** Continue SurfaceCharts toward ScottPlot5-inspired interaction and code-experience optimization while turning demos into cookbook-style, copyable recipes. This milestone improves ergonomics and discoverability without claiming ScottPlot compatibility or adding compatibility layers.
 
-**Goal:** Turn the completed v2.57 SurfaceCharts release-readiness evidence into a controlled release cutover package: approval packet, version/package contract finalization, gated dry-run automation, release notes/support docs, and final handoff without public publish/tag/release actions unless separately approved.
-
-**Phases:** 5 (396-400)
-**Requirements:** 19 (APPROVAL-01..04, PKG-01..04, GATE-01..04, DOC-01..04, VERIFY-01..03)
-**Beads epic:** `Videra-v258`
+**Phases:** 4 (401-404)
+**Requirements:** 12 (INT-01..03, CODE-01..03, COOK-01..03, VERIFY-01..03)
+**Beads epic:** `Videra-v259`
 
 ## Phases
 
-- [x] **Phase 396: Release Cutover Inventory and Approval Packet** - Convert v2.57 evidence into an approval packet, abort/hold criteria, and Beads/worktree coordination map.
-- [x] **Phase 397: Version and Package Cutover Contracts** - Finalize version/package metadata, package asset evidence, README/package links, and public API/package guardrails.
-- [x] **Phase 398: Gated Publish and Tag Dry-Run Automation** - Harden the non-interactive release dry-run path while keeping publish/tag/GitHub release actions manual-gated and fail-closed.
-- [x] **Phase 399: Release Notes Docs and Support Cutover** - Prepare consumer-facing release notes, cookbook/migration paths, and support artifact guidance.
-- [ ] **Phase 400: Final Cutover Verification and Handoff** - Close with validation, Beads export, generated roadmap, archive, pushed state, and clean branch/worktree handoff.
+- [ ] **Phase 401: Interaction and Cookbook Experience Inventory** - Inventory current interaction APIs, demo flows, cookbook docs, and scoped ScottPlot5-inspired ergonomics gaps.
+- [ ] **Phase 402: Interaction and Code Experience Polish** - Implement the first bounded interaction/code-experience improvements without compatibility layers or broad rewrites.
+- [ ] **Phase 403: Cookbook Demo Conversion** - Restructure SurfaceCharts demos and docs toward cookbook-style, copyable recipes.
+- [ ] **Phase 404: Interaction Cookbook Final Verification** - Close with cross-phase validation, docs checks, Beads export, generated roadmap, and clean handoff.
 
 ## Phase Details
 
-### Phase 396: Release Cutover Inventory and Approval Packet
+### Phase 401: Interaction and Cookbook Experience Inventory
 
-**Goal:** The milestone starts from evidence, with explicit cutover gates and dependency-aware Beads.
+**Goal:** Establish the bounded implementation plan from real SurfaceCharts API/demo/doc surfaces.
 **Depends on:** Nothing
-**Requirements:** APPROVAL-01, APPROVAL-02, APPROVAL-03, APPROVAL-04
-**Bead:** `Videra-v258.1`
+**Requirements:** INT-01, CODE-01, COOK-01
+**Bead:** `Videra-v259.1`
 **Success Criteria:**
-1. v2.57 validation, package-consumer, docs/support, Beads, generated-roadmap, and archive artifacts are inventoried.
-2. Approval packet distinguishes proven evidence from gated publish/tag/release actions.
-3. Abort/hold criteria cover package, docs, validation, Beads, Git, Dolt, and remote-state failures.
-4. Beads record ownership, dependencies, validation commands, and safe worktree/branch handoff expectations.
-**Plans:** 396-PLAN.md
+1. Current interaction APIs, demo flows, docs, and cookbook entry points are mapped with file-level evidence.
+2. ScottPlot5 remains an inspiration boundary, not a compatibility or parity claim.
+3. Dependencies identify whether Phase 402 and Phase 403 can run in parallel.
+4. Validation commands and handoff expectations are recorded.
+**Plans:** 401-PLAN.md
 
-### Phase 397: Version and Package Cutover Contracts
+### Phase 402: Interaction and Code Experience Polish
 
-**Goal:** SurfaceCharts package version, metadata, assets, and public API boundaries are reviewable before gated dry-run automation.
-**Depends on:** Phase 396
-**Requirements:** PKG-01, PKG-02, PKG-03, PKG-04
-**Bead:** `Videra-v258.2`
+**Goal:** Improve the first scoped set of SurfaceCharts interaction/code-experience surfaces.
+**Depends on:** Phase 401
+**Requirements:** INT-02, INT-03, CODE-02, CODE-03
+**Bead:** `Videra-v259.2`
 **Success Criteria:**
-1. Package version, metadata, dependency surface, symbols/assets, and README/package links are confirmed.
-2. Local package assets build and inspect without public-feed mutation.
-3. Public API guardrails reject unexpected API/package-scope drift.
-4. `VideraChartView` and `Plot.Add.*` remain the shipped chart control/data-loading contract.
-**Plans:** 397-PLAN.md
+1. Changes are minimal, direct, and covered by focused tests.
+2. Public API ergonomics improve without compatibility wrappers or hidden fallback behavior.
+3. Existing chart boundaries remain intact.
+4. Handoff records the exact changed API/demo paths.
+**Plans:** 402-PLAN.md
 
-### Phase 398: Gated Publish and Tag Dry-Run Automation
+### Phase 403: Cookbook Demo Conversion
 
-**Goal:** Release automation can prove the cutover path without publishing, tagging, or creating a GitHub release.
-**Depends on:** Phase 397
-**Requirements:** GATE-01, GATE-02, GATE-03, GATE-04
-**Bead:** `Videra-v258.3`
+**Goal:** Make SurfaceCharts demos and docs feel like a cookbook with copyable recipes.
+**Depends on:** Phase 401
+**Requirements:** COOK-02, COOK-03, CODE-03
+**Bead:** `Videra-v259.3`
 **Success Criteria:**
-1. One non-interactive dry-run path exercises package build, package inspection, consumer smoke, focused tests, docs checks, and scope guardrails.
-2. Publish, tag, and GitHub release actions require explicit approval inputs and fail closed by default.
-3. Output and evidence separate pass, fail, skipped, and manual-gate states.
-4. Validation keeps unsupported or blocked actions explicit and does not hide failures behind fallback behavior.
-**Plans:** 398-PLAN.md
+1. Cookbook entry points are discoverable from docs and demo README files.
+2. Recipes use current public APIs and avoid obsolete chart controls or compatibility claims.
+3. Demo/docs tests or grep checks cover the new cookbook structure.
+4. Support handoff explains how to validate cookbook examples.
+**Plans:** 403-PLAN.md
 
-### Phase 399: Release Notes Docs and Support Cutover
+### Phase 404: Interaction Cookbook Final Verification
 
-**Goal:** Package consumers can understand the cutover surface and attach useful support evidence.
-**Depends on:** Phase 397
-**Requirements:** DOC-01, DOC-02, DOC-03, DOC-04
-**Bead:** `Videra-v258.4`
-**Success Criteria:**
-1. Release notes/changelog content reflects the current package surface and v2.55-v2.57 SurfaceCharts outcomes.
-2. Public-facing docs expose package consumption, cookbook, migration, and support paths.
-3. Support guidance names exact artifacts and commands for package restore, rendering, snapshot, and cookbook smoke failures.
-4. Docs preserve the ScottPlot inspiration boundary without compatibility claims.
-**Plans:** 399-PLAN.md
-
-### Phase 400: Final Cutover Verification and Handoff
-
-**Goal:** The milestone closes with validated gated-release evidence, synchronized Beads/docs, and clean handoff.
-**Depends on:** Phase 398, Phase 399
+**Goal:** Close v2.59 with integrated verification and synchronized planning state.
+**Depends on:** Phase 402, Phase 403
 **Requirements:** VERIFY-01, VERIFY-02, VERIFY-03
-**Bead:** `Videra-v258.5`
+**Bead:** `Videra-v259.4`
 **Success Criteria:**
-1. Focused validation covers package build/inspection, consumer smoke, public API guardrails, cookbook/demo docs, snapshot scope, and support artifacts.
-2. Beads state, generated public roadmap, phase evidence, milestone archive, branch/worktree cleanup, Git push, and Dolt Beads push are synchronized.
-3. Public publish/tag/GitHub release steps remain recorded as gated follow-up unless separately approved.
-**Plans:** 400-PLAN.md
+1. Focused tests and docs checks pass or are explicitly reported.
+2. Beads state, generated public roadmap, phase artifacts, archive, branch/worktree cleanup, Git push, and Dolt Beads push are synchronized.
+3. Remaining public release actions from v2.58 stay outside this milestone unless separately approved.
+**Plans:** 404-PLAN.md
 
 ## Progress
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 396. Release Cutover Inventory and Approval Packet | 1/1 | Complete | 2026-04-30 |
-| 397. Version and Package Cutover Contracts | 1/1 | Complete | 2026-04-30 |
-| 398. Gated Publish and Tag Dry-Run Automation | 1/1 | Complete | 2026-04-30 |
-| 399. Release Notes Docs and Support Cutover | 1/1 | Complete | 2026-04-30 |
-| 400. Final Cutover Verification and Handoff | 0/1 | Ready | |
+| 401. Interaction and Cookbook Experience Inventory | 0/1 | Ready | |
+| 402. Interaction and Code Experience Polish | 0/1 | Blocked by 401 | |
+| 403. Cookbook Demo Conversion | 0/1 | Blocked by 401 | |
+| 404. Interaction Cookbook Final Verification | 0/1 | Blocked by 402, 403 | |
 
 ---
 
 <details>
-<summary>v2.57 SurfaceCharts Release Readiness and Consumer Validation - Complete (2026-04-30)</summary>
+<summary>v2.58 SurfaceCharts Controlled Release Cutover - Complete (2026-04-30)</summary>
 
-Prepared SurfaceCharts release-candidate evidence without public publish/tag scope: release-readiness inventory, public API/package metadata review, package-only consumer smoke, single validation script, release-candidate docs/support handoff, and final validation/archive evidence. 6 phases, 22 requirements. Archived: `.planning/milestones/v2.57-ROADMAP.md`
+Archived phase artifacts: `.planning/milestones/v2.58-phases`
 
-</details>
-
-<details>
-<summary>v2.56 ScottPlot 5 Interaction and Cookbook Experience - Complete (2026-04-30)</summary>
-
-Shipped Plot lifecycle/code polish, interaction profile commands, selection/probe/draggable overlay recipes, axis rules, linked views, live view management, cookbook demo/gallery docs, and closure guardrails. 7 phases, 27 requirements. Archived: `.planning/milestones/v2.56-ROADMAP.md`
+v2.58 completed the controlled release cutover package for `0.1.0-alpha.7`: approval packet, package contracts, gated dry-run automation, release notes/support docs, final release-readiness validation, Beads export, generated roadmap, and clean Git/Dolt handoff. Public NuGet publish, public tags, and GitHub releases remain manual-gated and were not executed.
 
 </details>
