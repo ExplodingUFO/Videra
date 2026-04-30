@@ -343,12 +343,33 @@ public sealed class Plot3D
         BarChartRenderingStatus? barRenderingStatus,
         ContourChartRenderingStatus? contourRenderingStatus)
     {
+        return CreateOutputEvidence(renderingStatus, scatterRenderingStatus, barRenderingStatus, contourRenderingStatus, lineRenderingStatus: null, ribbonRenderingStatus: null);
+    }
+
+    /// <summary>
+    /// Creates deterministic chart-local output evidence for the current plot model and public rendering status projections.
+    /// </summary>
+    /// <param name="renderingStatus">The latest surface or waterfall rendering status, when available.</param>
+    /// <param name="scatterRenderingStatus">The latest scatter rendering status, when available.</param>
+    /// <param name="barRenderingStatus">The latest bar chart rendering status, when available.</param>
+    /// <param name="contourRenderingStatus">The latest contour rendering status, when available.</param>
+    /// <param name="lineRenderingStatus">The latest line rendering status, when available.</param>
+    /// <param name="ribbonRenderingStatus">The latest ribbon rendering status, when available.</param>
+    /// <returns>The chart-local output evidence.</returns>
+    public Plot3DOutputEvidence CreateOutputEvidence(
+        SurfaceChartRenderingStatus? renderingStatus,
+        ScatterChartRenderingStatus? scatterRenderingStatus,
+        BarChartRenderingStatus? barRenderingStatus,
+        ContourChartRenderingStatus? contourRenderingStatus,
+        LineChartRenderingStatus? lineRenderingStatus,
+        RibbonChartRenderingStatus? ribbonRenderingStatus)
+    {
         var activeSeries = ActiveSeries;
         var activeSeriesIndex = activeSeries is null ? -1 : _series.IndexOf(activeSeries);
         var composedSeries = ActiveComposedSeries;
         var composedSeriesIdentities = CreateSeriesIdentities(composedSeries);
         var colorMapEvidence = CreateColorMapEvidence(activeSeries);
-        var renderingEvidence = CreateRenderingEvidence(activeSeries, renderingStatus, scatterRenderingStatus, barRenderingStatus, contourRenderingStatus);
+        var renderingEvidence = CreateRenderingEvidence(activeSeries, renderingStatus, scatterRenderingStatus, barRenderingStatus, contourRenderingStatus, lineRenderingStatus, ribbonRenderingStatus);
 
         return new Plot3DOutputEvidence(
             seriesCount: _series.Count,
@@ -700,7 +721,9 @@ public sealed class Plot3D
         SurfaceChartRenderingStatus? renderingStatus,
         ScatterChartRenderingStatus? scatterRenderingStatus,
         BarChartRenderingStatus? barRenderingStatus,
-        ContourChartRenderingStatus? contourRenderingStatus)
+        ContourChartRenderingStatus? contourRenderingStatus,
+        LineChartRenderingStatus? lineRenderingStatus,
+        RibbonChartRenderingStatus? ribbonRenderingStatus)
     {
         return activeSeries?.Kind switch
         {
@@ -712,6 +735,10 @@ public sealed class Plot3D
                 Plot3DRenderingEvidence.FromBarStatus(barRenderingStatus),
             Plot3DSeriesKind.Contour when contourRenderingStatus is not null =>
                 Plot3DRenderingEvidence.FromContourStatus(contourRenderingStatus),
+            Plot3DSeriesKind.Line when lineRenderingStatus is not null =>
+                Plot3DRenderingEvidence.FromLineStatus(lineRenderingStatus),
+            Plot3DSeriesKind.Ribbon when ribbonRenderingStatus is not null =>
+                Plot3DRenderingEvidence.FromRibbonStatus(ribbonRenderingStatus),
             _ => null,
         };
     }
@@ -800,7 +827,7 @@ public sealed class Plot3D
             return Plot3DColorMapStatus.Applied;
         }
 
-        return activeSeries is null || activeSeries.Kind is Plot3DSeriesKind.Scatter or Plot3DSeriesKind.Contour or Plot3DSeriesKind.Bar
+        return activeSeries is null || activeSeries.Kind is Plot3DSeriesKind.Scatter or Plot3DSeriesKind.Contour or Plot3DSeriesKind.Bar or Plot3DSeriesKind.Line or Plot3DSeriesKind.Ribbon
             ? Plot3DColorMapStatus.NotApplicable
             : Plot3DColorMapStatus.Unavailable;
     }

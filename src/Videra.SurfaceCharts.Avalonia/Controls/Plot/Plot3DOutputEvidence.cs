@@ -307,4 +307,32 @@ public sealed class Plot3DRenderingEvidence
             viewWidth: 0d,
             viewHeight: 0d);
     }
+
+    internal static Plot3DRenderingEvidence FromLineStatus(LineChartRenderingStatus status)
+    {
+        ArgumentNullException.ThrowIfNull(status);
+
+        return new Plot3DRenderingEvidence(
+            "line-rendering-status",
+            status.BackendKind,
+            status.IsReady,
+            isFallback: false,
+            fallbackReason: null,
+            viewWidth: status.ViewSize.Width,
+            viewHeight: status.ViewSize.Height);
+    }
+
+    internal static Plot3DRenderingEvidence FromRibbonStatus(RibbonChartRenderingStatus status)
+    {
+        ArgumentNullException.ThrowIfNull(status);
+
+        return new Plot3DRenderingEvidence(
+            "ribbon-rendering-status",
+            status.BackendKind,
+            status.IsReady,
+            isFallback: false,
+            fallbackReason: null,
+            viewWidth: status.ViewSize.Width,
+            viewHeight: status.ViewSize.Height);
+    }
 }

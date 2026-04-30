@@ -282,6 +282,8 @@ public sealed class Plot3DSeriesDatasetEvidence
             Plot3DSeriesKind.Scatter => CreateScatterEvidence(index, isActive, series),
             Plot3DSeriesKind.Bar => CreateBarEvidence(index, isActive, series),
             Plot3DSeriesKind.Contour => CreateContourEvidence(index, isActive, series),
+            Plot3DSeriesKind.Line => CreateLineEvidence(index, isActive, series),
+            Plot3DSeriesKind.Ribbon => CreateRibbonEvidence(index, isActive, series),
             _ => throw new ArgumentOutOfRangeException(nameof(series), $"Unsupported Plot series kind: {series.Kind}"),
         };
     }
@@ -414,6 +416,72 @@ public sealed class Plot3DSeriesDatasetEvidence
             depthAxis: SurfaceAxisDatasetEvidence.Create(new SurfaceAxisDescriptor("Y", null, 0d, data.Field.Height - 1)),
             valueRange: SurfaceValueRangeDatasetEvidence.Create(data.Field.Range),
             samplingProfile: CreateContourSamplingProfile(data),
+            categoryLabels: [],
+            []);
+    }
+
+    private static Plot3DSeriesDatasetEvidence CreateLineEvidence(int index, bool isActive, Plot3DSeries series)
+    {
+        var data = series.LineData
+            ?? throw new InvalidOperationException("Line series require line data.");
+
+        return new Plot3DSeriesDatasetEvidence(
+            index,
+            isActive,
+            CreateIdentity(index, series),
+            series.Name,
+            series.Kind,
+            width: 0,
+            height: 0,
+            sampleCount: 0,
+            seriesCount: data.SeriesCount,
+            pointCount: data.PointCount,
+            columnarSeriesCount: 0,
+            columnarPointCount: 0,
+            pickablePointCount: 0,
+            streamingAppendBatchCount: 0,
+            streamingReplaceBatchCount: 0,
+            streamingDroppedPointCount: 0,
+            lastStreamingDroppedPointCount: 0,
+            configuredFifoCapacity: 0,
+            SurfaceAxisDatasetEvidence.Create(data.Metadata.HorizontalAxis),
+            verticalAxis: null,
+            SurfaceAxisDatasetEvidence.Create(data.Metadata.DepthAxis),
+            SurfaceValueRangeDatasetEvidence.Create(data.Metadata.ValueRange),
+            "LineSegments",
+            categoryLabels: [],
+            []);
+    }
+
+    private static Plot3DSeriesDatasetEvidence CreateRibbonEvidence(int index, bool isActive, Plot3DSeries series)
+    {
+        var data = series.RibbonData
+            ?? throw new InvalidOperationException("Ribbon series require ribbon data.");
+
+        return new Plot3DSeriesDatasetEvidence(
+            index,
+            isActive,
+            CreateIdentity(index, series),
+            series.Name,
+            series.Kind,
+            width: 0,
+            height: 0,
+            sampleCount: 0,
+            seriesCount: data.SeriesCount,
+            pointCount: 0,
+            columnarSeriesCount: 0,
+            columnarPointCount: 0,
+            pickablePointCount: 0,
+            streamingAppendBatchCount: 0,
+            streamingReplaceBatchCount: 0,
+            streamingDroppedPointCount: 0,
+            lastStreamingDroppedPointCount: 0,
+            configuredFifoCapacity: 0,
+            SurfaceAxisDatasetEvidence.Create(data.Metadata.HorizontalAxis),
+            verticalAxis: null,
+            SurfaceAxisDatasetEvidence.Create(data.Metadata.DepthAxis),
+            SurfaceValueRangeDatasetEvidence.Create(data.Metadata.ValueRange),
+            "RibbonSegments",
             categoryLabels: [],
             []);
     }

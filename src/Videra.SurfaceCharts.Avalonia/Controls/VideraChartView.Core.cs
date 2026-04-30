@@ -68,6 +68,16 @@ public partial class VideraChartView : Decorator
     public ContourChartRenderingStatus ContourRenderingStatus { get; private set; }
 
     /// <summary>
+    /// Gets the latest Plot-owned line chart rendering diagnostics.
+    /// </summary>
+    public LineChartRenderingStatus LineRenderingStatus { get; private set; }
+
+    /// <summary>
+    /// Gets the latest Plot-owned ribbon chart rendering diagnostics.
+    /// </summary>
+    public RibbonChartRenderingStatus RibbonRenderingStatus { get; private set; }
+
+    /// <summary>
     /// Gets the chart plot model used to add surface, waterfall, and scatter series.
     /// </summary>
     public Plot3D Plot { get; }
@@ -107,6 +117,8 @@ public partial class VideraChartView : Decorator
         ScatterRenderingStatus = CreateScatterRenderingStatus();
         ContourRenderingStatus = CreateContourRenderingStatus();
         BarRenderingStatus = CreateBarRenderingStatus();
+        LineRenderingStatus = CreateLineRenderingStatus();
+        RibbonRenderingStatus = CreateRibbonRenderingStatus();
 
         _overlayLayer = new SurfaceChartOverlayLayer(this)
         {
@@ -128,6 +140,8 @@ public partial class VideraChartView : Decorator
         UpdateOverlayViewSize(finalSize);
         UpdateScatterRenderingStatus();
         UpdateBarRenderingStatus();
+        UpdateLineRenderingStatus();
+        UpdateRibbonRenderingStatus();
         return base.ArrangeOverride(finalSize);
     }
 
@@ -202,6 +216,8 @@ public partial class VideraChartView : Decorator
         UpdateScatterRenderingStatus();
         UpdateContourRenderingStatus();
         UpdateBarRenderingStatus();
+        UpdateLineRenderingStatus();
+        UpdateRibbonRenderingStatus();
         InvalidateRenderScene();
     }
 
@@ -329,6 +345,60 @@ public partial class VideraChartView : Decorator
             LevelCount = levelCount,
             ExtractedLineCount = totalLines,
             TotalSegmentCount = totalSegments,
+        };
+    }
+
+    private void UpdateLineRenderingStatus()
+    {
+        var nextStatus = CreateLineRenderingStatus();
+        if (LineRenderingStatus == nextStatus)
+        {
+            return;
+        }
+
+        LineRenderingStatus = nextStatus;
+    }
+
+    private LineChartRenderingStatus CreateLineRenderingStatus()
+    {
+        var lineData = Plot.ActiveLineData;
+        var hasLineData = lineData is not null;
+        return new LineChartRenderingStatus
+        {
+            HasSource = hasLineData,
+            IsReady = hasLineData,
+            BackendKind = SurfaceChartRenderBackendKind.Software,
+            IsInteracting = _interactionController.HasActiveGesture,
+            SeriesCount = lineData?.SeriesCount ?? 0,
+            SegmentCount = lineData?.PointCount ?? 0,
+            ViewSize = _runtime.ViewSize,
+        };
+    }
+
+    private void UpdateRibbonRenderingStatus()
+    {
+        var nextStatus = CreateRibbonRenderingStatus();
+        if (RibbonRenderingStatus == nextStatus)
+        {
+            return;
+        }
+
+        RibbonRenderingStatus = nextStatus;
+    }
+
+    private RibbonChartRenderingStatus CreateRibbonRenderingStatus()
+    {
+        var ribbonData = Plot.ActiveRibbonData;
+        var hasRibbonData = ribbonData is not null;
+        return new RibbonChartRenderingStatus
+        {
+            HasSource = hasRibbonData,
+            IsReady = hasRibbonData,
+            BackendKind = SurfaceChartRenderBackendKind.Software,
+            IsInteracting = _interactionController.HasActiveGesture,
+            SeriesCount = ribbonData?.SeriesCount ?? 0,
+            SegmentCount = 0,
+            ViewSize = _runtime.ViewSize,
         };
     }
 
