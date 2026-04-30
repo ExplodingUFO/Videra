@@ -48,14 +48,17 @@ Do not install `Videra.SurfaceCharts.Demo` or `smoke/Videra.SurfaceCharts.Consum
 
 Start with the root README "Minimal SurfaceCharts cookbook", then use [Videra.SurfaceCharts.Demo](../samples/Videra.SurfaceCharts.Demo/README.md) for copyable recipes:
 
-- `First Chart` for the smallest `VideraChartView` plus `Plot.Add.Surface` setup.
+- `First Chart` for the smallest `VideraChartView` plus `Plot.Add.Surface` setup. See [`first-chart.md`](../samples/Videra.SurfaceCharts.Demo/Recipes/first-chart.md).
+- `Surface/cache-backed` for `SurfaceMatrix` -> `SurfacePyramidBuilder` and committed cache asset usage; see [`surface-cache-backed.md`](../samples/Videra.SurfaceCharts.Demo/Recipes/surface-cache-backed.md).
 - `Styling` for axes, color maps, precision, and `Plot.OverlayOptions`.
 - `Interactions` for built-in commands and probe resolution.
-- `Live Data` for `Plot.Add.Scatter`, `DataLogger3D`, FIFO windows, and live-view evidence.
-- `Linked Axes` for explicit two-chart view linking with a disposable lifetime.
-- `Bar` for the bounded grouped-bar proof path in the demo gallery.
-- `Contour` for the bounded radial scalar-field contour proof path in the demo gallery.
-- `Export` for PNG-only chart snapshots.
+- `Waterfall` for the thin second chart-family proof; see [`waterfall.md`](../samples/Videra.SurfaceCharts.Demo/Recipes/waterfall.md).
+- `Live Data` for `Plot.Add.Scatter`, `DataLogger3D`, FIFO windows, and live-view evidence. See [`scatter-and-live-data.md`](../samples/Videra.SurfaceCharts.Demo/Recipes/scatter-and-live-data.md).
+- `Linked Axes` for explicit two-chart view linking with a disposable lifetime. See [`axes-and-linked-views.md`](../samples/Videra.SurfaceCharts.Demo/Recipes/axes-and-linked-views.md).
+- `Bar` for the bounded grouped-bar proof path in the demo gallery. See [`bar.md`](../samples/Videra.SurfaceCharts.Demo/Recipes/bar.md).
+- `Contour` for the bounded radial scalar-field contour proof path in the demo gallery. See [`contour.md`](../samples/Videra.SurfaceCharts.Demo/Recipes/contour.md).
+- `Support evidence` for copyable chart-local support summaries; see [`support-evidence.md`](../samples/Videra.SurfaceCharts.Demo/Recipes/support-evidence.md).
+- `Export` for PNG-only chart snapshots. See [`png-snapshot.md`](../samples/Videra.SurfaceCharts.Demo/Recipes/png-snapshot.md).
 
 The cookbook follows ScottPlot 5's discoverable recipe ergonomics as inspiration only. It is not a ScottPlot API compatibility, parity, adapter, or migration layer.
 

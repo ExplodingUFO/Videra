@@ -54,6 +54,14 @@ public sealed class SurfaceChartsCookbookCoverageMatrixTests
         cutover.Should().NotContain("SurfaceChartView` is the shipped");
         cutover.Should().NotContain("WaterfallChartView` is the shipped");
         cutover.Should().NotContain("ScatterChartView` is the shipped");
+
+        foreach (var recipe in DetailedRecipeFiles)
+        {
+            File.Exists(Path.Combine(repositoryRoot, "samples", "Videra.SurfaceCharts.Demo", "Recipes", recipe)).Should().BeTrue();
+            demoReadme.Should().Contain($"Recipes/{recipe}");
+            rootReadme.Should().Contain($"samples/Videra.SurfaceCharts.Demo/Recipes/{recipe}");
+            cutover.Should().Contain($"../samples/Videra.SurfaceCharts.Demo/Recipes/{recipe}");
+        }
     }
 
     private static readonly IReadOnlyList<CookbookCoverageRow> CookbookCoverageRows =
@@ -114,6 +122,19 @@ public sealed class SurfaceChartsCookbookCoverageMatrixTests
             CutoverEntry: "`Export` for PNG-only chart snapshots.",
             VisibleProofLabel: null,
             SnippetToken: "Plot.SavePngAsync"),
+    ];
+
+    private static readonly IReadOnlyList<string> DetailedRecipeFiles =
+    [
+        "first-chart.md",
+        "surface-cache-backed.md",
+        "waterfall.md",
+        "axes-and-linked-views.md",
+        "scatter-and-live-data.md",
+        "bar.md",
+        "contour.md",
+        "support-evidence.md",
+        "png-snapshot.md",
     ];
 
     private static string Read(string repositoryRoot, params string[] pathParts)

@@ -108,6 +108,15 @@ public sealed class SurfaceChartsDemoConfigurationTests
         readme.Should().Contain("### Bar");
         readme.Should().Contain("### Contour");
         readme.Should().Contain("### Export");
+        readme.Should().Contain("Recipes/first-chart.md");
+        readme.Should().Contain("Recipes/surface-cache-backed.md");
+        readme.Should().Contain("Recipes/waterfall.md");
+        readme.Should().Contain("Recipes/axes-and-linked-views.md");
+        readme.Should().Contain("Recipes/scatter-and-live-data.md");
+        readme.Should().Contain("Recipes/bar.md");
+        readme.Should().Contain("Recipes/contour.md");
+        readme.Should().Contain("Recipes/support-evidence.md");
+        readme.Should().Contain("Recipes/png-snapshot.md");
         readme.Should().Contain("First surface");
         readme.Should().Contain("chart.Plot.Axes.X.Label");
         readme.Should().Contain("SurfaceColorMapPresets.CreateProfessional");

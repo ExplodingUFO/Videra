@@ -54,6 +54,18 @@ dotnet run --project samples/Videra.SurfaceCharts.Demo/Videra.SurfaceCharts.Demo
 
 The demo's `Cookbook gallery` selector groups recipes by intent. Selecting a recipe switches to a bounded visible result when the result already exists in the sample shell, and the visible snippet matches the documentation below.
 
+Detailed copy-adapt recipes live beside this README:
+
+- [First chart](Recipes/first-chart.md)
+- [Surface and cache-backed data](Recipes/surface-cache-backed.md)
+- [Waterfall](Recipes/waterfall.md)
+- [Axes and linked views](Recipes/axes-and-linked-views.md)
+- [Scatter and live data](Recipes/scatter-and-live-data.md)
+- [Bar](Recipes/bar.md)
+- [Contour](Recipes/contour.md)
+- [Support evidence](Recipes/support-evidence.md)
+- [PNG snapshot](Recipes/png-snapshot.md)
+
 ### First Chart
 
 First surface from a small matrix:
