@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.63
 milestone_name: "Native SurfaceCharts Feature and Demo Expansion"
 status: active
-stopped_at: "Phase 420 in progress"
-last_updated: "2026-04-30T18:18:00+08:00"
+stopped_at: "Phase 421 ready"
+last_updated: "2026-04-30T18:34:00+08:00"
 last_activity: 2026-04-30
 progress:
   total_phases: 6
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 6
   completed_plans: 2
-  percent: 17
+  percent: 33
 ---
 
 # Project State
@@ -26,12 +26,12 @@ See: `.planning/PROJECT.md`
 ## Current Position
 
 Milestone: `v2.63 Native SurfaceCharts Feature and Demo Expansion`
-Phase: 420 of 424 - IN PROGRESS
-Plan: Phase 420 bar labels and contour explicit levels are split for parallel execution.
-Status: Phase 420 is claimed. `Videra-kyy.1` owns bar category labels and `Videra-kyy.2` owns contour explicit levels; `Videra-kyy.3` remains deferred until shared API/evidence edits settle.
-Last activity: 2026-04-30 - Planned Phase 420, claimed `Videra-kyy`, `Videra-kyy.1`, and `Videra-kyy.2`, and prepared isolated worker scopes for native feature implementation.
+Phase: 421 of 424 - READY
+Plan: Phase 421 annotation and measurement workflows are next.
+Status: Phase 420 completed bar category labels, explicit contour levels, and a minimal bar series color handle with focused Core/Avalonia validation.
+Last activity: 2026-04-30 - Completed and integrated `Videra-kyy.1`, `Videra-kyy.2`, and `Videra-kyy.3`; removed stale software fallback test assertions that blocked Core validation.
 
-Progress: [##--------] 17%
+Progress: [###-------] 33%
 
 ## Initial Scope Summary
 
@@ -71,8 +71,8 @@ v2.63 focuses on:
 ## Session Continuity
 
 Last session: `2026-04-30 +08:00`
-Stopped at: Phase 420 in progress
-Next action: execute `Videra-kyy.1` and `Videra-kyy.2` in isolated worktrees, then integrate shared `Plot3DAddApi` and `Plot3DDatasetEvidence` changes carefully.
+Stopped at: Phase 421 ready
+Next action: plan and execute Phase 421 (`Videra-b5n`) annotation and measurement workflows.
 
 ## Accumulated Context
 

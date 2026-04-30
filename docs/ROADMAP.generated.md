@@ -14,11 +14,9 @@ pwsh -File ./scripts/Export-BeadsRoadmap.ps1
 
 - **Videra-zn7** - v2.63 Native SurfaceCharts Feature and Demo Expansion (epic, P1, in_progress)
 - **Videra-kyy** - Phase 420 native 3D feature convenience APIs (task, P1, in_progress)
-- **Videra-kyy.2** - Phase 420B add contour explicit levels (task, P1, in_progress)
 
 ## Ready
 
-- **Videra-kyy.3** - Phase 420C add minimal series style handles (task, P1, open)
 - **Videra-b5n.1** - Phase 421A add annotation anchor DTOs (task, P1, open)
 - **Videra-j3z.1** - Phase 422A add demo scenario descriptors (task, P1, open)
 
@@ -47,6 +45,8 @@ _No matching beads in the exported snapshot._
 
 ## Recently Closed
 
+- **Videra-kyy.3** - Phase 420C add minimal series style handles (task, P1, closed)
+- **Videra-kyy.2** - Phase 420B add contour explicit levels (task, P1, closed)
 - **Videra-kyy.1** - Phase 420A add bar category labels (task, P1, closed)
 - **Videra-dwf** - Phase 419 feature/demo surface inventory (task, P1, closed)
 - **Videra-i8zb** - Phase 419C inventory cookbook CI validation truth (task, P1, closed)
@@ -55,6 +55,4 @@ _No matching beads in the exported snapshot._
 - **Videra-6zx** - v2.62 Native SurfaceCharts Cleanup and Old-Code Removal (epic, P1, closed)
 - **Videra-73a** - Phase 418 v2.62 final verification (task, P2, closed)
 - **Videra-r9q** - Phase 417 No-compat guardrails and CI truth (task, P1, closed)
-- **Videra-raj** - Phase 417B pin CI runtime/smoke/release truth (task, P1, closed)
-- **Videra-5j5** - Phase 417A harden no-compat scope script (task, P1, closed)
 
