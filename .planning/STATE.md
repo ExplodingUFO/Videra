@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.62
 milestone_name: "Native SurfaceCharts Cleanup and Old-Code Removal"
 status: active
-stopped_at: "Phase 414 ready for planning"
-last_updated: "2026-04-30T17:08:00+08:00"
+stopped_at: "Phase 415 and Phase 416 ready for parallel execution"
+last_updated: "2026-04-30T17:18:00+08:00"
 last_activity: 2026-04-30
 progress:
   total_phases: 5
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 5
-  completed_plans: 0
-  percent: 0
+  completed_plans: 1
+  percent: 20
 ---
 
 # Project State
@@ -26,12 +26,12 @@ See: `.planning/PROJECT.md`
 ## Current Position
 
 Milestone: `v2.62 Native SurfaceCharts Cleanup and Old-Code Removal`
-Phase: 414 of 418 - READY
-Plan: Phase 414 planning next
-Status: v2.62 requirements, roadmap, and Beads phase chain are initialized. The first phase inventories residual SurfaceCharts old-code, compatibility, fallback/downshift, docs/demo/test, and guardrail surfaces before deletion.
-Last activity: 2026-04-30 - Started v2.62 milestone and created Beads epic `Videra-6zx` with phase beads `Videra-2wb`, `Videra-9vg`, `Videra-w2t`, `Videra-r9q`, and `Videra-73a`.
+Phase: 415/416 of 418 - READY
+Plan: Phase 415 and Phase 416 can run in parallel
+Status: Phase 414 read-only inventory is complete. True cleanup candidates are split into Phase 415 code/API work, Phase 416 demo/cookbook simplification, and Phase 417 guardrail/CI hardening.
+Last activity: 2026-04-30 - Completed Phase 414 inventory, created child beads, corrected dependencies, and prepared Phase 415/416 parallel handoff.
 
-Progress: [----------] 0%
+Progress: [##--------] 20%
 
 ## Initial Scope Summary
 
@@ -71,8 +71,8 @@ v2.62 focuses on:
 ## Session Continuity
 
 Last session: `2026-04-30 +08:00`
-Stopped at: Phase 414 ready
-Next action: plan Phase 414 (`Videra-2wb`) native cleanup and old-code inventory.
+Stopped at: Phase 415/416 ready
+Next action: execute Phase 415 (`Videra-9vg`) and Phase 416 (`Videra-w2t`) in isolated worktrees with their child beads.
 
 ## Accumulated Context
 

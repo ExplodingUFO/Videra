@@ -16,7 +16,7 @@ DEMO-01..02, GUARD-01..02, VERIFY-01..02)
 
 ## Phases
 
-- [ ] **Phase 414: Native Cleanup and Old-Code Inventory** - Classify residual
+- [x] **Phase 414: Native Cleanup and Old-Code Inventory** - Classify residual
   SurfaceCharts old-code, compatibility, fallback/downshift, docs/demo/test, and
   guardrail surfaces before deletion.
 - [ ] **Phase 415: Delete Stale SurfaceCharts Old-Code Paths** - Remove true
@@ -47,6 +47,7 @@ DEMO-01..02, GUARD-01..02, VERIFY-01..02)
 3. Phase 415, 416, and 417 write sets and validation commands are identified so
    independent beads can run in isolated worktrees where safe.
 **Plans:** 414-PLAN.md
+**Completed:** 2026-04-30
 
 ### Phase 415: Delete Stale SurfaceCharts Old-Code Paths
 
@@ -108,9 +109,9 @@ DEMO-01..02, GUARD-01..02, VERIFY-01..02)
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 414. Native Cleanup and Old-Code Inventory | 0/1 | Ready | |
-| 415. Delete Stale SurfaceCharts Old-Code Paths | 0/1 | Blocked on 414 | |
-| 416. Native Cookbook and Demo Code Simplification | 0/1 | Blocked on 414 | |
+| 414. Native Cleanup and Old-Code Inventory | 1/1 | Complete | 2026-04-30 |
+| 415. Delete Stale SurfaceCharts Old-Code Paths | 0/1 | Ready | |
+| 416. Native Cookbook and Demo Code Simplification | 0/1 | Ready | |
 | 417. No-Compat Guardrails and CI Truth | 0/1 | Blocked on 415, 416 | |
 | 418. v2.62 Final Verification | 0/1 | Blocked on 417 | |
 
