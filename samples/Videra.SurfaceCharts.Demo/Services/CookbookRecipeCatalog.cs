@@ -284,6 +284,60 @@ internal static class CookbookRecipes
                 propagator.PropagateProbe(chartA, screenPosition);
                 """),
         new(
+            "Surface streaming",
+            "SurfaceDataLogger3D",
+            "Isolated setup path: demonstrates SurfaceDataLogger3D with append (new rows), replace (full swap), and FIFO (row-cap) semantics.",
+            ScenarioId: SurfaceDemoScenarios.SurfaceStreamingId,
+            ScatterScenarioId: null,
+            Snippet: """
+                var matrix = new SurfaceMatrix(metadata, initialValues);
+                var logger = new SurfaceDataLogger3D(matrix, fifoRowCapacity: 100);
+
+                // Append new rows
+                logger.Append(newRows);
+                Console.WriteLine($"Rows: {logger.RowCount}, Appended: {logger.TotalAppendedRowCount}");
+
+                // Replace entire matrix
+                logger.Replace(newMatrix);
+
+                // FIFO: oldest rows auto-trimmed when capacity exceeded
+                logger.Append(moreRows);
+                Console.WriteLine($"Dropped: {logger.LastDroppedRowCount}");
+                """),
+        new(
+            "Waterfall streaming",
+            "WaterfallDataLogger3D",
+            "Isolated setup path: demonstrates WaterfallDataLogger3D delegating to SurfaceDataLogger3D for row streaming.",
+            ScenarioId: SurfaceDemoScenarios.WaterfallStreamingId,
+            ScatterScenarioId: null,
+            Snippet: """
+                var matrix = new SurfaceMatrix(metadata, initialValues);
+                var logger = new WaterfallDataLogger3D(matrix, fifoRowCapacity: 50);
+
+                // Same API as SurfaceDataLogger3D
+                logger.Append(newRows);
+                logger.Replace(newMatrix);
+                Console.WriteLine($"Rows: {logger.RowCount}");
+                """),
+        new(
+            "Bar streaming",
+            "BarDataLogger3D",
+            "Isolated setup path: demonstrates BarDataLogger3D with append (new series), replace (full swap), and series count tracking.",
+            ScenarioId: SurfaceDemoScenarios.BarStreamingId,
+            ScatterScenarioId: null,
+            Snippet: """
+                var data = new BarChartData(initialSeries);
+                var logger = new BarDataLogger3D(data);
+
+                // Append new series
+                logger.Append(newSeries);
+                Console.WriteLine($"Series: {logger.SeriesCount}, Appended: {logger.TotalAppendedSeriesCount}");
+
+                // Replace entire data
+                logger.Replace(newData);
+                Console.WriteLine($"Replaced: {logger.ReplaceBatchCount}");
+                """),
+        new(
             "Streaming",
             "Streaming workspace with evidence",
             "Multiple charts with different streaming modes and workspace evidence tracking.",

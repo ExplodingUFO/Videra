@@ -24,6 +24,9 @@ internal static class SurfaceDemoScenarios
     public const string VectorFieldId = "vector-field-proof";
     public const string HeatmapSliceId = "heatmap-slice-proof";
     public const string BoxPlotId = "box-plot-proof";
+    public const string SurfaceStreamingId = "surface-streaming";
+    public const string WaterfallStreamingId = "waterfall-streaming";
+    public const string BarStreamingId = "bar-streaming";
     public const string AnalysisWorkspaceId = "analysis-workspace";
     public const string LinkedInteractionId = "linked-interaction";
     public const string StreamingWorkspaceId = "streaming-workspace";
@@ -102,6 +105,24 @@ internal static class SurfaceDemoScenarios
             "BoxPlot",
             "Box plot",
             "Uses statistical distribution visualization with grouped layout."),
+        new(
+            SurfaceStreamingId,
+            "Try next: Surface streaming",
+            "Surface",
+            "Surface streaming",
+            "SurfaceDataLogger3D with append/replace/FIFO semantics and live counters."),
+        new(
+            WaterfallStreamingId,
+            "Try next: Waterfall streaming",
+            "Waterfall",
+            "Waterfall streaming",
+            "WaterfallDataLogger3D delegating to SurfaceDataLogger3D for row streaming."),
+        new(
+            BarStreamingId,
+            "Try next: Bar streaming",
+            "Bar",
+            "Bar streaming",
+            "BarDataLogger3D appending new series with live series count tracking."),
         new(
             AnalysisWorkspaceId,
             "Try next: Analysis workspace",

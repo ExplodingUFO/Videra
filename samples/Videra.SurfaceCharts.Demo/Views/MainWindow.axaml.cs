@@ -342,6 +342,24 @@ public partial class MainWindow : Window
             return;
         }
 
+        if (scenario.Id == SurfaceDemoScenarios.SurfaceStreamingId)
+        {
+            SetupSurfaceStreamingScenario(scenario);
+            return;
+        }
+
+        if (scenario.Id == SurfaceDemoScenarios.WaterfallStreamingId)
+        {
+            SetupWaterfallStreamingScenario(scenario);
+            return;
+        }
+
+        if (scenario.Id == SurfaceDemoScenarios.BarStreamingId)
+        {
+            SetupBarStreamingScenario(scenario);
+            return;
+        }
+
         if (scenario.Id == SurfaceDemoScenarios.AnalysisWorkspaceId)
         {
             ApplyAnalysisWorkspace(scenario);
@@ -635,6 +653,120 @@ public partial class MainWindow : Window
         _activeAssetSummary = "No additional assets are used on this path.";
         _datasetText.Text = _activeDatasetSummary;
         RefreshActiveProofTexts();
+    }
+
+    private void SetupSurfaceStreamingScenario(SurfaceDemoScenario scenario)
+    {
+        SetActiveChartView(_surfaceChartView);
+        _activeScatterData = null;
+
+        var matrix = CreateSampleMatrix();
+        var logger = new SurfaceDataLogger3D(matrix, fifoRowCapacity: 200);
+
+        // Simulate streaming: append 3 batches of new rows
+        for (var batch = 0; batch < 3; batch++)
+        {
+            var newRows = CreateStreamingRows(matrix.Metadata.Width, 10, batch);
+            logger.Append(newRows);
+        }
+
+        _surfaceChartView.Plot.Clear();
+        _surfaceChartView.Plot.Add.Surface(logger.Matrix, scenario.Label);
+        _surfaceChartView.Plot.ColorMap = CreateColorMap(logger.Matrix.Metadata.ValueRange);
+        _surfaceChartView.FitToData();
+        _activePlotPathHeading = scenario.Label;
+        _activePlotPathDetails =
+            $"SurfaceDataLogger3D streaming demo. " +
+            $"Appended {logger.AppendBatchCount} batches, {logger.TotalAppendedRowCount} total rows. " +
+            $"FIFO capacity: {logger.FifoRowCapacity?.ToString() ?? "unlimited"}. " +
+            $"Dropped rows: {logger.LastDroppedRowCount}.";
+        _activeDatasetSummary =
+            $"Surface streaming uses SurfaceDataLogger3D with {logger.RowCount} rows, " +
+            $"{logger.ColumnCount} columns. Append batches: {logger.AppendBatchCount}.";
+        _activeAssetSummary = "No additional assets are used on this path.";
+        _datasetText.Text = _activeDatasetSummary;
+        RefreshActiveProofTexts();
+    }
+
+    private void SetupWaterfallStreamingScenario(SurfaceDemoScenario scenario)
+    {
+        SetActiveChartView(_waterfallChartView);
+        _activeScatterData = null;
+
+        var matrix = CreateWaterfallMatrix();
+        var logger = new WaterfallDataLogger3D(matrix, fifoRowCapacity: 100);
+
+        // Simulate streaming: append 2 batches
+        for (var batch = 0; batch < 2; batch++)
+        {
+            var newRows = CreateStreamingRows(matrix.Metadata.Width, 6, batch);
+            logger.Append(newRows);
+        }
+
+        _waterfallChartView.Plot.Clear();
+        _waterfallChartView.Plot.Add.Waterfall(logger.Matrix, scenario.Label);
+        _waterfallChartView.Plot.ColorMap = CreateColorMap(logger.Matrix.Metadata.ValueRange);
+        _waterfallChartView.FitToData();
+        _activePlotPathHeading = scenario.Label;
+        _activePlotPathDetails =
+            $"WaterfallDataLogger3D streaming demo. " +
+            $"Delegates to SurfaceDataLogger3D internally. " +
+            $"Appended {logger.AppendBatchCount} batches, {logger.TotalAppendedRowCount} total rows.";
+        _activeDatasetSummary =
+            $"Waterfall streaming uses WaterfallDataLogger3D with {logger.RowCount} rows, " +
+            $"{logger.ColumnCount} columns. FIFO capacity: {logger.FifoRowCapacity?.ToString() ?? "unlimited"}.";
+        _activeAssetSummary = "No additional assets are used on this path.";
+        _datasetText.Text = _activeDatasetSummary;
+        RefreshActiveProofTexts();
+    }
+
+    private void SetupBarStreamingScenario(SurfaceDemoScenario scenario)
+    {
+        SetActiveChartView(_barChartView);
+        _activeScatterData = null;
+
+        var data = CreateSampleBarData();
+        var logger = new BarDataLogger3D(data);
+
+        // Simulate streaming: append 2 batches of new series
+        logger.Append(
+            new BarSeries([9.0, 14.0, 7.0, 11.0, 5.0], 0xFFE74C3Cu, "Series D"),
+            new BarSeries([6.0, 10.0, 13.0, 9.0, 16.0], 0xFF9B59B6u, "Series E"));
+
+        _barChartView.Plot.Clear();
+        _barChartView.Plot.Add.Bar(logger.Data, scenario.Label);
+        _barChartView.FitToData();
+        _activePlotPathHeading = scenario.Label;
+        _activePlotPathDetails =
+            $"BarDataLogger3D streaming demo. " +
+            $"Appended {logger.AppendBatchCount} batches, {logger.TotalAppendedSeriesCount} total series. " +
+            $"Current series count: {logger.SeriesCount}.";
+        _activeDatasetSummary =
+            $"Bar streaming uses BarDataLogger3D with {logger.SeriesCount} series, " +
+            $"{logger.CategoryCount} categories. Append batches: {logger.AppendBatchCount}.";
+        _activeAssetSummary = "No additional assets are used on this path.";
+        _datasetText.Text = _activeDatasetSummary;
+        RefreshActiveProofTexts();
+    }
+
+    private static SurfaceMatrix CreateStreamingRows(int width, int rowCount, int batchIndex)
+    {
+        var values = new float[width * rowCount];
+        for (var r = 0; r < rowCount; r++)
+        {
+            for (var c = 0; c < width; c++)
+            {
+                values[r * width + c] = (float)(Math.Sin((batchIndex * rowCount + r) * 0.2 + c * 0.1) * 0.5);
+            }
+        }
+
+        var metadata = new SurfaceMetadata(
+            width,
+            rowCount,
+            new SurfaceAxisDescriptor("Time", "s", 0d, width - 1),
+            new SurfaceAxisDescriptor("Stream", "batch", batchIndex * rowCount, (batchIndex + 1) * rowCount - 1),
+            new SurfaceValueRange(-0.5, 0.5));
+        return new SurfaceMatrix(metadata, values);
     }
 
     private void SetActiveChartView(VideraChartView chartView)
