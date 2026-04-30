@@ -5,7 +5,7 @@
 The control layer remains separate from `VideraView` and only depends on the shared surface-chart contracts in `Videra.SurfaceCharts.Core`.
 
 `nuget.org` is the default public feed for this package. `GitHub Packages` remains `preview` / internal validation only. The current support level is `alpha`. Add `Videra.SurfaceCharts.Processing` only for the surface/cache-backed path.
-For release-candidate package consumption, cookbook routing, migration notes, and support artifacts, use [SurfaceCharts Release Candidate Handoff](../../docs/surfacecharts-release-candidate-handoff.md).
+For current release cutover package consumption, cookbook routing, migration notes, support artifacts, and troubleshooting, use [SurfaceCharts v2.58 Release Cutover](../../docs/surfacecharts-release-cutover.md). The older [SurfaceCharts Release Candidate Handoff](../../docs/surfacecharts-release-candidate-handoff.md) remains release-candidate background.
 
 The current shipped surface path is tighter under camera movement and churns less on probe work, without widening the existing chart-local path.
 

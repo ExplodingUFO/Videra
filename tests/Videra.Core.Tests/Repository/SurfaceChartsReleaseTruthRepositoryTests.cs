@@ -46,6 +46,41 @@ public sealed class SurfaceChartsReleaseTruthRepositoryTests
         hostingBoundary.Should().NotContain("Source-first analytics sibling");
     }
 
+    [Fact]
+    public void SurfaceChartsReleaseCutoverDocs_ShouldDescribeConsumerSupportBoundary()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var cutover = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "surfacecharts-release-cutover.md"));
+        var readme = File.ReadAllText(Path.Combine(repositoryRoot, "README.md"));
+        var docsIndex = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "index.md"));
+        var avaloniaReadme = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.SurfaceCharts.Avalonia", "README.md"));
+        var demoReadme = File.ReadAllText(Path.Combine(repositoryRoot, "samples", "Videra.SurfaceCharts.Demo", "README.md"));
+
+        cutover.Should().Contain("SurfaceCharts v2.58 Release Cutover");
+        cutover.Should().Contain("explicit maintainer approval");
+        cutover.Should().Contain("Videra.SurfaceCharts.Avalonia");
+        cutover.Should().Contain("Videra.SurfaceCharts.Processing");
+        cutover.Should().Contain("Plot.Add.Surface");
+        cutover.Should().Contain("Plot.Add.Waterfall");
+        cutover.Should().Contain("Plot.Add.Scatter");
+        cutover.Should().Contain("surfacecharts-support-summary.txt");
+        cutover.Should().Contain("chart-snapshot.png");
+        cutover.Should().Contain("public-release-notes.md");
+        cutover.Should().Contain("ScottPlot 5's discoverable recipe ergonomics as inspiration only");
+        cutover.Should().Contain("not a ScottPlot API compatibility, parity, adapter, or migration layer");
+        cutover.Should().Contain("no hidden scenario/data-path fallback");
+        cutover.Should().Contain("no PDF/vector export");
+        cutover.Should().Contain("no OpenGL/WebGL/backend expansion");
+        cutover.Should().Contain("repository-only");
+        cutover.Should().Contain("support evidence, not benchmark truth");
+
+        foreach (var document in new[] { readme, docsIndex, avaloniaReadme, demoReadme })
+        {
+            document.Should().Contain("SurfaceCharts v2.58 Release Cutover");
+            document.Should().Contain("surfacecharts-release-cutover.md");
+        }
+    }
+
     private static string GetRepositoryRoot()
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);

@@ -4,6 +4,8 @@ This runbook describes how public and preview package publication works.
 
 Use [Package Matrix](package-matrix.md) as the authoritative public package table and [Hosting Boundary](hosting-boundary.md) when you need to verify that release notes and package assets still describe the same canonical viewer stack.
 
+For the controlled SurfaceCharts release cutover consumer handoff, use [SurfaceCharts v2.58 Release Cutover](surfacecharts-release-cutover.md). It keeps the release notes, package consumption, cookbook, migration, support artifact, and troubleshooting route aligned with this runbook.
+
 ## Release readiness sequence
 
 Use this sequence for release-candidate review, support triage, and local validation before any publishing path is involved:

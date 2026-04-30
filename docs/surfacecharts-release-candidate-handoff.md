@@ -4,6 +4,8 @@
 
 This page is the release-candidate handoff for package consumers and support triage. It keeps the public install path, cookbook path, migration notes, and support artifacts in one place so consumers do not need to read internal planning files.
 
+For the v2.58 controlled release cutover entry point, use [SurfaceCharts v2.58 Release Cutover](surfacecharts-release-cutover.md). This older handoff remains the release-candidate background page.
+
 ## Package Consumption
 
 Use `nuget.org` as the default public package feed after an approved public release. `GitHub Packages` remains the preview/internal validation feed.

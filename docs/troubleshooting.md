@@ -30,6 +30,8 @@ If you need a matching-host runbook or the hosted GitHub Actions entrypoint, use
 
 ## SurfaceCharts package and demo triage
 
+For the controlled SurfaceCharts release cutover, start with [SurfaceCharts v2.58 Release Cutover](surfacecharts-release-cutover.md) when you need the current release notes, package install path, cookbook route, migration boundary, support artifact set, and chart-specific troubleshooting sequence in one place.
+
 For `area: surfacecharts`, start from `smoke/Videra.SurfaceCharts.ConsumerSmoke` for the packaged surface/cache-backed path on the supported host path, then move to `Videra.SurfaceCharts.Demo` only when you need the broader repository reference surface:
 
 - `smoke/Videra.SurfaceCharts.ConsumerSmoke` should produce `surfacecharts-support-summary.txt` for the packaged surface/cache-backed proof.

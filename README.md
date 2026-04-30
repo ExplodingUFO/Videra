@@ -272,7 +272,7 @@ For the canonical SurfaceCharts story, start from `Videra.SurfaceCharts.Avalonia
 Inside that demo, keep the default `Start here: In-memory first chart` path for the baseline repro, then move to `Explore next: Cache-backed streaming` when you want to validate lazy tile reads and the broader chart diagnostics surface, use `Try next: Analytics proof` for the explicit-coordinate, independent-`ColorField`, analysis-grade pinned-probe workflow on the same shell, use `Try next: Waterfall proof` for the thin second chart proof on the same Avalonia shell, and use `Try next: Scatter proof` for the repo-owned scatter proof path on the same shell. `VideraChartView` ships in the Avalonia control line, and the demo exercises it through that repo-owned path.
 Use `Copy support summary` when you need the chart support artifact that matches the docs and bug template. Public release workflows publish the `Videra.SurfaceCharts.*` package assets after explicit approval, while `Videra.SurfaceCharts.Demo` remains repository-only and keeps the support-summary repro workflow.
 The packaged SurfaceCharts proof lives separately in `smoke/Videra.SurfaceCharts.ConsumerSmoke`, which writes `consumer-smoke-result.json`, `diagnostics-snapshot.txt`, `surfacecharts-support-summary.txt`, `chart-snapshot.png`, and trace/stdout/stderr/environment logs on the packaged install path without turning the broader demo into a public install story.
-Use [SurfaceCharts Release Candidate Handoff](docs/surfacecharts-release-candidate-handoff.md) when you need the package-consumption, cookbook, migration, and support-artifact path in one consumer-facing page.
+Use [SurfaceCharts v2.58 Release Cutover](docs/surfacecharts-release-cutover.md) when you need the current package-consumption, release-notes, cookbook, migration, support-artifact, and troubleshooting path in one consumer-facing page. The older [SurfaceCharts Release Candidate Handoff](docs/surfacecharts-release-candidate-handoff.md) remains background for release-candidate review.
 
 Contract highlights:
 
@@ -313,6 +313,7 @@ Contract highlights:
 - [Support Matrix](docs/support-matrix.md)
 - [Release Policy](docs/release-policy.md)
 - [Releasing Runbook](docs/releasing.md)
+- [SurfaceCharts v2.58 Release Cutover](docs/surfacecharts-release-cutover.md)
 - [Benchmark Gates](docs/benchmark-gates.md)
 - [Alpha Feedback](docs/alpha-feedback.md)
 - [Extensibility Contract](docs/extensibility.md)

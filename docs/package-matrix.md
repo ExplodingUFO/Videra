@@ -20,6 +20,8 @@ The canonical public SurfaceCharts stack is:
 
 `Videra.SurfaceCharts.Avalonia` brings `Videra.SurfaceCharts.Core` and `Videra.SurfaceCharts.Rendering` transitively. `Videra.SurfaceCharts.Rendering` is a real public package because the current chart assembly split depends on it, but most consumers should not install it first.
 
+Use [SurfaceCharts v2.58 Release Cutover](surfacecharts-release-cutover.md) for the current consumer-facing release notes, package consumption, cookbook, migration, support, and troubleshooting handoff for the controlled SurfaceCharts cutover.
+
 ## Package-layer matrix
 
 | Layer | Current mapping | Public status | Notes |
