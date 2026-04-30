@@ -178,6 +178,25 @@ public partial class VideraChartView
     }
 
     /// <summary>
+    /// Creates a host-owned rectangle measurement report between two screen positions.
+    /// </summary>
+    public bool TryCreateSelectionMeasurementReport(
+        Point screenStart,
+        Point screenEnd,
+        out SurfaceChartMeasurementReport measurement)
+    {
+        measurement = null!;
+
+        if (!TryCreateSelectionReport(screenStart, screenEnd, out var selection))
+        {
+            return false;
+        }
+
+        measurement = SurfaceChartMeasurementReport.FromSelection(selection);
+        return true;
+    }
+
+    /// <summary>
     /// Creates a bounded marker overlay recipe at the supplied screen position.
     /// </summary>
     public bool TryCreateDraggableMarkerOverlay(

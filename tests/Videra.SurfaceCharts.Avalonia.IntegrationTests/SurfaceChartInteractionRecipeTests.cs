@@ -118,6 +118,54 @@ public sealed class SurfaceChartInteractionRecipeTests
     }
 
     [Fact]
+    public Task MeasurementReports_ComputeAnchorDeltasAndSelectionExtents()
+    {
+        return AvaloniaHeadlessTestSession.RunAsync(async () =>
+        {
+            var metadata = new SurfaceMetadata(
+                width: 5,
+                height: 5,
+                new SurfaceAxisDescriptor("Time", "s", 10d, 20d),
+                new SurfaceAxisDescriptor("Frequency", "Hz", 100d, 200d),
+                new SurfaceValueRange(-2d, 2d));
+            var source = new ScriptedSurfaceTileSource(metadata, defaultTileValue: 5f);
+            var view = new VideraChartView();
+
+            view.Measure(new Size(200, 200));
+            view.Arrange(new Rect(0, 0, 200, 200));
+            view.ViewState = new SurfaceViewState((new SurfaceViewport(0, 0, 4, 4)).ToDataWindow(), view.ViewState.Camera, view.ViewState.DisplaySpace);
+            SurfaceChartTestHelpers.LoadSurface(view, source);
+
+            await SurfaceChartTestHelpers.WaitForLoadedTileValuesAsync(view, [5f]);
+
+            view.TryCreateSelectionAnnotationAnchors(
+                new Point(50d, 50d),
+                new Point(150d, 100d),
+                out var startAnchor,
+                out var endAnchor).Should().BeTrue();
+
+            var pointMeasurement = SurfaceChartMeasurementReport.Between(startAnchor, endAnchor);
+            pointMeasurement.Kind.Should().Be(SurfaceChartMeasurementKind.PointToPoint);
+            pointMeasurement.SampleDeltaX.Should().BeApproximately(2d, 0.0001d);
+            pointMeasurement.SampleDeltaY.Should().BeApproximately(1d, 0.0001d);
+            pointMeasurement.AxisDeltaX.Should().BeApproximately(5d, 0.0001d);
+            pointMeasurement.AxisDeltaY.Should().BeApproximately(25d, 0.0001d);
+            pointMeasurement.ValueDelta.Should().BeNull();
+            pointMeasurement.SampleDistance.Should().BeApproximately(Math.Sqrt(5d), 0.0001d);
+
+            view.TryCreateSelectionMeasurementReport(
+                new Point(50d, 50d),
+                new Point(150d, 100d),
+                out var rectangleMeasurement).Should().BeTrue();
+
+            rectangleMeasurement.Kind.Should().Be(SurfaceChartMeasurementKind.RectangleExtent);
+            rectangleMeasurement.DataWindow.Should().NotBeNull();
+            rectangleMeasurement.DataWindow!.Value.Width.Should().BeApproximately(2d, 0.0001d);
+            rectangleMeasurement.DataWindow.Value.Height.Should().BeApproximately(1d, 0.0001d);
+        });
+    }
+
+    [Fact]
     public void DraggableOverlayRecipes_ClampMarkerAndRangeWithoutMutatingInput()
     {
         var metadata = new SurfaceMetadata(
