@@ -29,4 +29,14 @@ public enum Plot3DSeriesKind
     /// A contour plot with iso-lines extracted from a 2D scalar field.
     /// </summary>
     Contour,
+
+    /// <summary>
+    /// A 3D polyline series with per-segment color and width.
+    /// </summary>
+    Line,
+
+    /// <summary>
+    /// A 3D tube/ribbon series with configurable radius and per-segment color.
+    /// </summary>
+    Ribbon,
 }

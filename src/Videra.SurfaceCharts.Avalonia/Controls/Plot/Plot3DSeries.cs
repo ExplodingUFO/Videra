@@ -17,7 +17,9 @@ public class Plot3DSeries : IPlottable3D
         ISurfaceTileSource? surfaceSource,
         ScatterChartData? scatterData,
         BarChartData? barData,
-        ContourChartData? contourData)
+        ContourChartData? contourData,
+        LineChartData? lineData,
+        RibbonChartData? ribbonData)
     {
         Kind = kind;
         _label = NormalizeLabel(name);
@@ -25,6 +27,8 @@ public class Plot3DSeries : IPlottable3D
         ScatterData = scatterData;
         BarData = barData;
         ContourData = contourData;
+        LineData = lineData;
+        RibbonData = ribbonData;
     }
 
     /// <summary>
@@ -90,6 +94,16 @@ public class Plot3DSeries : IPlottable3D
     /// </summary>
     public ContourChartData? ContourData { get; }
 
+    /// <summary>
+    /// Gets the line dataset for line series.
+    /// </summary>
+    public LineChartData? LineData { get; private set; }
+
+    /// <summary>
+    /// Gets the ribbon dataset for ribbon series.
+    /// </summary>
+    public RibbonChartData? RibbonData { get; private set; }
+
     internal void Attach(Action changed)
     {
         _changed = changed ?? throw new ArgumentNullException(nameof(changed));
@@ -114,6 +128,40 @@ public class Plot3DSeries : IPlottable3D
         }
 
         BarData = data;
+        NotifyChanged();
+    }
+
+    private protected void ReplaceLineData(LineChartData data)
+    {
+        ArgumentNullException.ThrowIfNull(data);
+        if (Kind != Plot3DSeriesKind.Line)
+        {
+            throw new InvalidOperationException("Only line series can update line data.");
+        }
+
+        if (ReferenceEquals(LineData, data))
+        {
+            return;
+        }
+
+        LineData = data;
+        NotifyChanged();
+    }
+
+    private protected void ReplaceRibbonData(RibbonChartData data)
+    {
+        ArgumentNullException.ThrowIfNull(data);
+        if (Kind != Plot3DSeriesKind.Ribbon)
+        {
+            throw new InvalidOperationException("Only ribbon series can update ribbon data.");
+        }
+
+        if (ReferenceEquals(RibbonData, data))
+        {
+            return;
+        }
+
+        RibbonData = data;
         NotifyChanged();
     }
 

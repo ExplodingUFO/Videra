@@ -213,7 +213,9 @@ public sealed class SurfaceTooltipOverlayTests
             new StaticTileSource(metadata),
             scatterData: null,
             barData: null,
-            contourData: null);
+            contourData: null,
+            lineData: null,
+            ribbonData: null);
     }
 
     private static List<Plot3DSeries> CreateMultiSeries(SurfaceMetadata metadata)
