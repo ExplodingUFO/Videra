@@ -25,7 +25,8 @@ public class Plot3DSeries : IPlottable3D
         BoxPlotData? boxPlotData,
         HistogramData? histogramData = null,
         FunctionPlotData? functionPlotData = null,
-        PieChartData? pieData = null)
+        PieChartData? pieData = null,
+        OHLCData? ohlcData = null)
     {
         Kind = kind;
         _label = NormalizeLabel(name);
@@ -41,6 +42,7 @@ public class Plot3DSeries : IPlottable3D
         HistogramData = histogramData;
         FunctionPlotData = functionPlotData;
         PieData = pieData;
+        OHLCData = ohlcData;
     }
 
     /// <summary>
@@ -145,6 +147,11 @@ public class Plot3DSeries : IPlottable3D
     /// Gets the pie chart dataset for pie series.
     /// </summary>
     public PieChartData? PieData { get; private set; }
+
+    /// <summary>
+    /// Gets the OHLC dataset for OHLC/Candlestick series.
+    /// </summary>
+    public OHLCData? OHLCData { get; private set; }
 
     internal void Attach(Action changed)
     {

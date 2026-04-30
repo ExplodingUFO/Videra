@@ -229,6 +229,22 @@ internal static class Plot3DSeriesComposition
         return datasets[0];
     }
 
+    public static OHLCData? CreateOHLCData(IReadOnlyList<Plot3DSeries> series)
+    {
+        var datasets = series
+            .Select(static item => item.OHLCData)
+            .OfType<OHLCData>()
+            .ToArray();
+
+        if (datasets.Length == 0)
+        {
+            return null;
+        }
+
+        // OHLC charts are independent — return the first one
+        return datasets[0];
+    }
+
     private static ScatterChartMetadata CreateScatterMetadata(IReadOnlyList<ScatterChartData> datasets)
     {
         var first = datasets[0].Metadata;

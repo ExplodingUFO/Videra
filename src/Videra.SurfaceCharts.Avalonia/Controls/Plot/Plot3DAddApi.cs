@@ -471,6 +471,24 @@ public sealed class Plot3DAddApi
         return scatterSeries;
     }
 
+    /// <summary>
+    /// Adds an OHLC/Candlestick chart from bars.
+    /// </summary>
+    public OHLCPlot3DSeries OHLC(IReadOnlyList<OHLCBar> bars, OHLCStyle style = OHLCStyle.Candlestick, string? name = null)
+    {
+        ArgumentNullException.ThrowIfNull(bars);
+        return OHLC(new OHLCData(bars, style), name);
+    }
+
+    /// <summary>
+    /// Adds an OHLC/Candlestick chart from a full OHLC dataset.
+    /// </summary>
+    public OHLCPlot3DSeries OHLC(OHLCData data, string? name = null)
+    {
+        ArgumentNullException.ThrowIfNull(data);
+        return (OHLCPlot3DSeries)_plot.AddSeries(new OHLCPlot3DSeries(name, data));
+    }
+
     private static SurfaceMatrix CreateSurfaceMatrix(double[,] values)
     {
         ArgumentNullException.ThrowIfNull(values);

@@ -419,4 +419,18 @@ public sealed class Plot3DRenderingEvidence
             viewWidth: status.ViewSize.Width,
             viewHeight: status.ViewSize.Height);
     }
+
+    internal static Plot3DRenderingEvidence FromOHLCStatus(OHLCChartRenderingStatus status)
+    {
+        ArgumentNullException.ThrowIfNull(status);
+
+        return new Plot3DRenderingEvidence(
+            "ohlc-rendering-status",
+            status.BackendKind,
+            status.IsReady,
+            isFallback: false,
+            fallbackReason: null,
+            viewWidth: status.ViewSize.Width,
+            viewHeight: status.ViewSize.Height);
+    }
 }

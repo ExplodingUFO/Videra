@@ -478,5 +478,25 @@ internal static class CookbookRecipes
                 chart.Plot.Add.ErrorBar(errors);
                 chart.FitToData();
                 """),
+        new(
+            "OHLC",
+            "Candlestick chart",
+            "Isolated setup path: creates candlestick bars with up/down colors from OHLC data.",
+            ScenarioId: SurfaceDemoScenarios.OHLCId,
+            ScatterScenarioId: null,
+            Snippet: """
+                var bars = new[]
+                {
+                    new OHLCBar(100, 105, 98, 103, 0),
+                    new OHLCBar(103, 108, 101, 106, 1),
+                    new OHLCBar(106, 107, 100, 101, 2),
+                    new OHLCBar(101, 104, 99, 103, 3),
+                    new OHLCBar(103, 110, 102, 108, 4),
+                };
+
+                chart.Plot.Clear();
+                chart.Plot.Add.OHLC(bars, OHLCStyle.Candlestick, name: "AAPL");
+                chart.FitToData();
+                """),
     ];
 }

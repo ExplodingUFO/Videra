@@ -31,6 +31,7 @@ public partial class MainWindow : Window
     private readonly VideraChartView _histogramPlotView;
     private readonly VideraChartView _functionPlotView;
     private readonly VideraChartView _piePlotView;
+    private readonly VideraChartView _ohlcPlotView;
     private readonly VideraChartView _workspaceChartA;
     private readonly VideraChartView _workspaceChartB;
     private readonly VideraChartView _workspaceChartC;
@@ -126,6 +127,8 @@ public partial class MainWindow : Window
             ?? throw new InvalidOperationException("FunctionPlotView is missing.");
         _piePlotView = this.FindControl<VideraChartView>("PiePlotView")
             ?? throw new InvalidOperationException("PiePlotView is missing.");
+        _ohlcPlotView = this.FindControl<VideraChartView>("OHLCPlotView")
+            ?? throw new InvalidOperationException("OHLCPlotView is missing.");
         _workspaceChartA = this.FindControl<VideraChartView>("WorkspaceChartA")
             ?? throw new InvalidOperationException("WorkspaceChartA is missing.");
         _workspaceChartB = this.FindControl<VideraChartView>("WorkspaceChartB")
@@ -228,6 +231,7 @@ public partial class MainWindow : Window
         ConfigureSurfaceFamilyChartView(_histogramPlotView);
         ConfigureSurfaceFamilyChartView(_functionPlotView);
         ConfigureSurfaceFamilyChartView(_piePlotView);
+        ConfigureSurfaceFamilyChartView(_ohlcPlotView);
         ConfigureSurfaceFamilyChartView(_workspaceChartA);
         ConfigureSurfaceFamilyChartView(_workspaceChartB);
         ConfigureSurfaceFamilyChartView(_workspaceChartC);
@@ -273,6 +277,7 @@ public partial class MainWindow : Window
         _histogramPlotView.IsVisible ? _histogramPlotView :
         _functionPlotView.IsVisible ? _functionPlotView :
         _piePlotView.IsVisible ? _piePlotView :
+        _ohlcPlotView.IsVisible ? _ohlcPlotView :
         _surfaceChartView;
 
     private bool IsScatterProofActive => _scatterChartView.IsVisible;
@@ -420,6 +425,12 @@ public partial class MainWindow : Window
         if (scenario.Id == SurfaceDemoScenarios.ErrorBarId)
         {
             ApplyErrorBarSource(scenario);
+            return;
+        }
+
+        if (scenario.Id == SurfaceDemoScenarios.OHLCId)
+        {
+            ApplyOHLCSource(scenario);
             return;
         }
 
@@ -838,6 +849,36 @@ public partial class MainWindow : Window
         RefreshActiveProofTexts();
     }
 
+    private void ApplyOHLCSource(SurfaceDemoScenario scenario)
+    {
+        SetActiveChartView(_ohlcPlotView);
+        _activeScatterData = null;
+        _ohlcPlotView.Plot.Clear();
+
+        var rng = new Random(42);
+        var bars = new OHLCBar[20];
+        var price = 100d;
+        for (var i = 0; i < bars.Length; i++)
+        {
+            var open = price;
+            var change = (rng.NextDouble() - 0.48) * 6;
+            var close = open + change;
+            var high = Math.Max(open, close) + (rng.NextDouble() * 3);
+            var low = Math.Min(open, close) - (rng.NextDouble() * 3);
+            bars[i] = new OHLCBar(open, high, low, close, i);
+            price = close;
+        }
+
+        _ohlcPlotView.Plot.Add.OHLC(bars, OHLCStyle.Candlestick, name: scenario.Label);
+        _ohlcPlotView.FitToData();
+        _activePlotPathHeading = scenario.Label;
+        _activePlotPathDetails = "Candlestick chart with 20 random bars. Demonstrates Plot.Add.OHLC with OHLCStyle.Candlestick, up/down colors, and wick rendering.";
+        _activeDatasetSummary = "OHLC proof shows 20 generated candlestick bars with random walk price movement.";
+        _activeAssetSummary = "No additional assets are used on this path.";
+        _datasetText.Text = _activeDatasetSummary;
+        RefreshActiveProofTexts();
+    }
+
     private void SetupMultiPlot3DScenario(SurfaceDemoScenario scenario)
     {
         // Hide all single-chart panels
@@ -854,6 +895,7 @@ public partial class MainWindow : Window
         _histogramPlotView.IsVisible = false;
         _functionPlotView.IsVisible = false;
         _piePlotView.IsVisible = false;
+        _ohlcPlotView.IsVisible = false;
         _analysisWorkspacePanel.IsVisible = false;
         _workspaceToolbarPanel.IsVisible = false;
 
@@ -1028,6 +1070,7 @@ public partial class MainWindow : Window
         _histogramPlotView.IsVisible = ReferenceEquals(chartView, _histogramPlotView);
         _functionPlotView.IsVisible = ReferenceEquals(chartView, _functionPlotView);
         _piePlotView.IsVisible = ReferenceEquals(chartView, _piePlotView);
+        _ohlcPlotView.IsVisible = ReferenceEquals(chartView, _ohlcPlotView);
         _analysisWorkspacePanel.IsVisible = false;
         _workspaceToolbarPanel.IsVisible = false;
     }
@@ -1048,6 +1091,7 @@ public partial class MainWindow : Window
         _histogramPlotView.IsVisible = false;
         _functionPlotView.IsVisible = false;
         _piePlotView.IsVisible = false;
+        _ohlcPlotView.IsVisible = false;
         _analysisWorkspacePanel.IsVisible = true;
         _workspaceToolbarPanel.IsVisible = true;
 
@@ -1129,6 +1173,7 @@ public partial class MainWindow : Window
         _histogramPlotView.IsVisible = false;
         _functionPlotView.IsVisible = false;
         _piePlotView.IsVisible = false;
+        _ohlcPlotView.IsVisible = false;
         _analysisWorkspacePanel.IsVisible = true;
         _workspaceToolbarPanel.IsVisible = true;
 
@@ -1218,6 +1263,7 @@ public partial class MainWindow : Window
         _histogramPlotView.IsVisible = false;
         _functionPlotView.IsVisible = false;
         _piePlotView.IsVisible = false;
+        _ohlcPlotView.IsVisible = false;
         _analysisWorkspacePanel.IsVisible = true;
         _workspaceToolbarPanel.IsVisible = true;
 
@@ -1804,7 +1850,8 @@ public partial class MainWindow : Window
         _linePlotView.IsVisible || _ribbonPlotView.IsVisible ||
         _vectorFieldPlotView.IsVisible || _heatmapSlicePlotView.IsVisible ||
         _boxPlotView.IsVisible || _histogramPlotView.IsVisible ||
-        _functionPlotView.IsVisible || _piePlotView.IsVisible;
+        _functionPlotView.IsVisible || _piePlotView.IsVisible ||
+        _ohlcPlotView.IsVisible;
 
     private string CreateViewStateSummary()
     {

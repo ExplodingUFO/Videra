@@ -35,6 +35,7 @@ internal static class SurfaceDemoScenarios
     public const string FunctionPlotId = "function-plot-proof";
     public const string PieId = "pie-proof";
     public const string ErrorBarId = "error-bar-proof";
+    public const string OHLCId = "ohlc-proof";
 
     public static IReadOnlyList<SurfaceDemoScenario> All { get; } =
     [
@@ -176,6 +177,12 @@ internal static class SurfaceDemoScenarios
             "Scatter",
             "Error bar",
             "Uses symmetric and asymmetric X/Y error bars on scatter points with configurable cap size and color."),
+        new(
+            OHLCId,
+            "Try next: OHLC proof",
+            "OHLC",
+            "OHLC",
+            "Uses OHLC/Candlestick bars with up/down colors for financial data visualization."),
     ];
 
     public static SurfaceDemoScenario Get(string id)

@@ -69,4 +69,9 @@ public enum Plot3DSeriesKind
     /// A pie or donut chart with configurable slices.
     /// </summary>
     Pie,
+
+    /// <summary>
+    /// An OHLC/Candlestick chart for financial data.
+    /// </summary>
+    OHLC,
 }
