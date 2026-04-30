@@ -74,7 +74,7 @@ public sealed class ReleaseDryRunRepositoryTests
     }
 
     [Fact]
-    public void ReleaseReadinessValidationScript_ShouldComposeV257LocalGateAndStayNonPublishing()
+    public void ReleaseReadinessValidationScript_ShouldComposeV263LocalGateAndStayNonPublishing()
     {
         var scriptPath = Path.Combine(GetRepositoryRoot(), "scripts", "Invoke-ReleaseReadinessValidation.ps1");
 
@@ -111,6 +111,34 @@ public sealed class ReleaseDryRunRepositoryTests
         script.Should().Contain("does not create or push git tags");
         script.Should().NotContain("NUGET_API_KEY");
         script.Should().NotContain("GITHUB_TOKEN");
+    }
+
+    [Fact]
+    public void ReleaseReadinessValidationScript_ShouldUseFocusedV263SurfaceChartsTruthFilter()
+    {
+        var script = File.ReadAllText(Path.Combine(GetRepositoryRoot(), "scripts", "Invoke-ReleaseReadinessValidation.ps1"));
+        var filter = ExtractFocusedSurfaceChartsTestFilter(script);
+
+        filter.Should().Contain("SurfaceChartsConsumerSmokeConfigurationTests");
+        filter.Should().Contain("SurfaceChartsDemoConfigurationTests");
+        filter.Should().Contain("SurfaceChartsDemoViewportBehaviorTests");
+        filter.Should().Contain("SurfaceChartsCookbookCoverageMatrixTests");
+        filter.Should().Contain("SurfaceChartsCookbookFirstSurfaceRecipeTests");
+        filter.Should().Contain("SurfaceChartsCookbookWaterfallLinkedRecipeTests");
+        filter.Should().Contain("SurfaceChartsCookbookScatterLiveRecipeTests");
+        filter.Should().Contain("SurfaceChartsCookbookBarContourSnapshotRecipeTests");
+        filter.Should().Contain("SurfaceChartsHighPerformancePathTests");
+        filter.Should().Contain("ScatterStreamingScenarioEvidenceTests");
+        filter.Should().Contain("SurfaceChartsPerformanceTruthTests");
+        filter.Should().Contain("BeadsPublicRoadmapTests");
+        filter.Should().Contain("SurfaceChartsCiTruthTests");
+        filter.Should().Contain("ReleaseDryRunRepositoryTests");
+        filter.Should().Contain("SurfaceChartsReleaseTruthRepositoryTests");
+
+        filter.Should().NotContain("FullyQualifiedName~SurfaceCharts|");
+        filter.Should().NotContain("FullyQualifiedName~SurfaceCharts\"");
+        filter.Should().NotContain("|| true");
+        filter.Should().NotContain("continue-on-error");
     }
 
     [Fact]
@@ -588,6 +616,23 @@ public sealed class ReleaseDryRunRepositoryTests
         }
 
         throw new DirectoryNotFoundException("Could not locate repository root containing Videra.slnx.");
+    }
+
+    private static string ExtractFocusedSurfaceChartsTestFilter(string script)
+    {
+        const string stepId = "-Id \"surfacecharts-focused-tests\"";
+        var stepIndex = script.IndexOf(stepId, StringComparison.Ordinal);
+        stepIndex.Should().BeGreaterThanOrEqualTo(0);
+
+        var filterPrefix = "\"--filter\", \"";
+        var filterStart = script.IndexOf(filterPrefix, stepIndex, StringComparison.Ordinal);
+        filterStart.Should().BeGreaterThanOrEqualTo(0);
+        filterStart += filterPrefix.Length;
+
+        var filterEnd = script.IndexOf("\")", filterStart, StringComparison.Ordinal);
+        filterEnd.Should().BeGreaterThan(filterStart);
+
+        return script[filterStart..filterEnd];
     }
 
     private static string GetRepositoryVersion()

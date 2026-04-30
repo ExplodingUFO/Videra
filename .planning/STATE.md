@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.63
 milestone_name: "Native SurfaceCharts Feature and Demo Expansion"
 status: active
-stopped_at: "Phase 423 in progress"
-last_updated: "2026-04-30T19:20:00+08:00"
+stopped_at: "Phase 424 ready"
+last_updated: "2026-04-30T19:29:00+08:00"
 last_activity: 2026-04-30
 progress:
   total_phases: 6
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 6
   completed_plans: 5
-  percent: 67
+  percent: 83
 ---
 
 # Project State
@@ -26,12 +26,12 @@ See: `.planning/PROJECT.md`
 ## Current Position
 
 Milestone: `v2.63 Native SurfaceCharts Feature and Demo Expansion`
-Phase: 423 of 424 - IN PROGRESS
-Plan: Phase 423 aligns cookbook/docs tests, demo/CI truth checks, and release-readiness filters now that Phase 422 demo behavior exists.
-Status: `Videra-64g`, `Videra-64g.1`, and `Videra-64g.2` are claimed. `Videra-64g.3` remains blocked until cookbook/demo CI truth exists.
-Last activity: 2026-04-30 - Started Phase 423 and split cookbook matrix truth from demo support/CI truth so 423A and 423B can proceed with isolated write scopes.
+Phase: 424 of 424 - READY
+Plan: Phase 424 should close v2.63 with generated roadmap sync, composed verification, Beads/Dolt push, git push, archive, and clean worktree handoff.
+Status: `Videra-64g` and children are closed. `Videra-7ip` is unblocked and ready.
+Last activity: 2026-04-30 - Completed Phase 423 cookbook matrix truth, CI truth tightening, and release-readiness focused filter guardrails.
 
-Progress: [#######---] 67%
+Progress: [########--] 83%
 
 ## Initial Scope Summary
 
@@ -71,8 +71,8 @@ v2.63 focuses on:
 ## Session Continuity
 
 Last session: `2026-04-30 +08:00`
-Stopped at: Phase 423 in progress
-Next action: complete 423A cookbook truth in the main workspace and 423B demo/CI truth in an isolated worktree, then update the release-readiness focused filter in 423C.
+Stopped at: Phase 424 ready
+Next action: claim `Videra-7ip` and run final generated-roadmap, scope, release-readiness, push, archive, and cleanup closeout.
 
 ## Accumulated Context
 

@@ -27,7 +27,7 @@ TRUTH-01..03, VERIFY-01..02)
 - [x] **Phase 422: Demo Gallery Workflow Upgrade** - Upgrade the SurfaceCharts
   demo into a richer recipe-first gallery without turning it into a generic
   workbench.
-- [ ] **Phase 423: Feature Cookbook and Validation Truth** - Align cookbook,
+- [x] **Phase 423: Feature Cookbook and Validation Truth** - Align cookbook,
   repository tests, CI, release-readiness filters, generated roadmap, and
   no-fake-evidence guardrails.
 - [ ] **Phase 424: v2.63 Final Verification** - Close v2.63 with composed
@@ -113,6 +113,7 @@ workflows.
 3. Guardrails continue to reject compatibility claims, hidden fallback/downshift,
    old chart paths, and fake evidence.
 **Plans:** 423-PLAN.md
+**Completed:** 2026-04-30
 
 ### Phase 424: v2.63 Final Verification
 
@@ -135,8 +136,8 @@ workflows.
 | 420. Native 3D Feature Convenience APIs | 1/1 | Complete | 2026-04-30 |
 | 421. Annotation and Measurement Workflows | 1/1 | Complete | 2026-04-30 |
 | 422. Demo Gallery Workflow Upgrade | 1/1 | Complete | 2026-04-30 |
-| 423. Feature Cookbook and Validation Truth | 1/1 | In Progress | |
-| 424. v2.63 Final Verification | 0/1 | Blocked on 423 | |
+| 423. Feature Cookbook and Validation Truth | 1/1 | Complete | 2026-04-30 |
+| 424. v2.63 Final Verification | 0/1 | Ready | |
 
 ---
 
