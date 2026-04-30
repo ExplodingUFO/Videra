@@ -17,6 +17,22 @@ Videra 是一个基于 `.NET 8` 的跨平台 3D 渲染引擎，提供 Windows (`
 - 当前 active milestone：`v2.65 3D ScottPlot5 Analytics Chart Expansion`
 - 当前 focus：把 Videra 的 3D 图表词汇量向 ScottPlot5 看齐——添加分析型图表族（Line/Ribbon、Vector Field、Heatmap Slice、Box Plot）、MultiPlot3D 子图网格、通用流式数据、以及把 Bar+Contour 从 proof 提升到正式 API；继续 `VideraChartView` + `Plot.Add.*` 单一路线，不引入兼容层、旧控件、隐藏 fallback/downshift、泛化平台或造假验证。
 
+## Recently Completed Milestone: v2.65 3D ScottPlot5 Analytics Chart Expansion
+
+**Status:** completed on 2026-04-30.
+
+**Goal:** Expand Videra's 3D chart vocabulary toward ScottPlot5 parity with
+analytics-focused chart types, MultiPlot3D subplot grids, universal streaming,
+and promote Bar+Contour from proof to production.
+
+**Delivered outcomes:**
+- added 5 new chart families: Line/Ribbon, VectorField, HeatmapSlice, BoxPlot
+- added MultiPlot3D N×M subplot grid container with linked camera/axis
+- extended DataLogger3D streaming to Surface/Waterfall/Bar chart types
+- promoted Bar+Contour from proof-path to public package API contract
+- added all new types to public API contract and NuGet package surface
+- closed with all v2.65 phases complete, 40 commits pushed to origin/master
+
 ## Recently Completed Milestone: v2.64 Native SurfaceCharts Analysis Workspace and Streaming Evidence
 
 **Status:** completed on 2026-04-30.
@@ -93,23 +109,20 @@ boundary.
 
 Archived: `.planning/milestones/v2.62-phases`
 
-## Current Milestone: v2.65 3D ScottPlot5 Analytics Chart Expansion
+## Current Milestone: v2.66 Complete Cookbook Demo Gallery
 
-**Goal:** Expand Videra's 3D chart vocabulary toward ScottPlot5 parity with
-analytics-focused chart types, MultiPlot3D subplot grids, universal streaming,
-and promote Bar+Contour from proof to production.
+**Goal:** Make the SurfaceCharts Demo into a truly complete cookbook gallery
+covering all 10 chart types, MultiPlot3D, streaming data, and upgraded demo
+framework experience.
 
 **Target features:**
-- Inventory current chart type surface and design API contracts for new chart
-  families.
-- Promote Bar+Contour from proof-path to public package API contract.
-- Add Line/Ribbon chart family with colormap support and probe integration.
-- Add Vector Field chart family with arrow rendering and magnitude scaling.
-- Add 3D Heatmap Slice chart family for volumetric data visualization.
-- Add Box Plot chart family for statistical distribution visualization.
-- Add MultiPlot3D container for N×M subplot arrangements with shared axis.
-- Extend DataLogger3D streaming to Surface/Waterfall/Bar chart types.
-- Add cookbook recipes, CI truth, and release-readiness for all new surfaces.
+- Complete cookbook recipes for all 10 chart types (add Line, Ribbon,
+  VectorField, HeatmapSlice, BoxPlot recipes).
+- MultiPlot3D subplot grid demo recipe with linked camera/axis showcase.
+- DataLogger3D streaming demo for Surface/Waterfall/Bar (append/replace/FIFO).
+- Demo framework upgrade for better recipe switching, parameter config, and
+  live preview.
+- Unified cookbook gallery that showcases every shipped SurfaceCharts feature.
 
 ## Completed Milestones
 
@@ -416,7 +429,7 @@ Archived: `.planning/milestones/v2.52-ROADMAP.md`, `.planning/milestones/v2.52-R
 
 ## Next Milestone Goals
 
-The current milestone should start with `$gsd-plan-phase 432`. Keep Beads as the task spine, split implementation by dependencies, and use isolated Dolt worktrees only for disjoint phases. Prioritize real chart type API/demo evidence before implementation, and preserve the ScottPlot5 inspiration boundary without compatibility claims.
+The current milestone should start with `/gsd-plan-phase 440`. Focus on making the demo into a complete cookbook gallery that showcases every shipped SurfaceCharts feature. Prioritize recipe completeness, demo framework upgrade, and real runnable evidence over new chart type implementation.
 
 ## Most Recently Completed Milestone: v2.36 Beads Remote Sync PR Closure
 
@@ -914,6 +927,6 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-30 after starting v2.64 milestone*
+*Last updated: 2026-04-30 after starting v2.66 milestone*
 
 

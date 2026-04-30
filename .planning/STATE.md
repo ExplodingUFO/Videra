@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.65
-milestone_name: 3D ScottPlot5 Analytics Chart Expansion
-status: complete
-stopped_at: v2.65 milestone complete — all 8 phases delivered
-last_updated: "2026-04-30T18:30:00.000Z"
-last_activity: 2026-04-30 — Phase 439 complete, milestone closed
+milestone: v2.66
+milestone_name: Complete Cookbook Demo Gallery
+status: active
+stopped_at: null
+last_updated: "2026-04-30T19:00:00.000Z"
+last_activity: 2026-04-30 — v2.66 milestone started
 progress:
-  total_phases: 8
-  completed_phases: 8
-  total_plans: 8
-  completed_plans: 8
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -21,39 +21,38 @@ progress:
 See: `.planning/PROJECT.md`
 
 **Core value:** 跨平台 3D 渲染引擎的可靠性
-**Current focus:** Phase --phase — 432
+**Current focus:** v2.66 Complete Cookbook Demo Gallery
 
 ## Current Position
 
-Milestone: `v2.65 3D ScottPlot5 Analytics Chart Expansion`
-Phase: 434
-Plan: Not started
-Status: Ready to plan
-Last activity: 2026-04-30
+Milestone: `v2.66 Complete Cookbook Demo Gallery`
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-04-30 — Milestone v2.66 started
 
 Progress: [░░░░░░░░░░] 0%
 
 ## Initial Scope Summary
 
-v2.65 continues from the completed v2.64 analysis workspace milestone:
+v2.66 continues from the completed v2.65 chart expansion milestone:
 
-- SurfaceCharts has a cleaned native `VideraChartView` + `Plot.Add.*` route.
-- SurfaceCharts has richer feature affordances, annotation/measurement support,
-  recipe-first demo behavior, and release-readiness truth.
+- SurfaceCharts now has 10 chart types: Surface, Waterfall, Scatter, Bar,
+  Contour, Line, Ribbon, VectorField, HeatmapSlice, BoxPlot.
+- MultiPlot3D N×M subplot grid container is available.
+- DataLogger3D streaming works for Surface, Waterfall, and Bar.
+- Bar+Contour are promoted to public API contract.
 
-- v2.64 should take a larger step into analysis workflows: multi-chart
-  composition, linked interaction, high-density/streaming runtime evidence,
-  scenario cookbook templates, package-consumer templates, and CI truth.
+- The demo currently has 12 cookbook recipes but is missing recipes for 5 new
+  chart types, MultiPlot3D, and streaming loggers.
 
-v2.64 focuses on:
+v2.66 focuses on:
 
-- analysis workspace and streaming inventory
-- native multi-chart analysis workspace affordances
-- linked camera/axis/probe/selection propagation
-- high-density and streaming data evidence
-- scenario cookbook and package-consumer templates
-- CI, release-readiness, generated roadmap, and no-fake-evidence truth
-- final verification, Beads export, archive, push, and clean handoff
+- complete cookbook recipes for all 10 chart types
+- MultiPlot3D subplot grid demo recipe with linked camera/axis
+- DataLogger3D streaming demo for Surface/Waterfall/Bar
+- demo framework upgrade for better recipe switching and live preview
+- making the demo into a truly complete cookbook gallery
 
 ## Decisions
 
@@ -88,9 +87,9 @@ v2.64 focuses on:
 
 ## Session Continuity
 
-Last session: 2026-04-30T15:10:00.000Z
-Stopped at: v2.65 milestone initialized
-Next action: Run `/gsd-plan-phase 432` to start chart type inventory and API design.
+Last session: 2026-04-30T19:00:00.000Z
+Stopped at: v2.66 milestone initialized
+Next action: Run `/gsd-plan-phase 440` to start cookbook demo gallery work.
 
 ## Accumulated Context
 
