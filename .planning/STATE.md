@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v2.64
 milestone_name: Native SurfaceCharts Analysis Workspace and Streaming Evidence
-status: executing
-stopped_at: Executing Phase 427 Wave 2
-last_updated: "2026-04-30T22:30:00.000Z"
-last_activity: 2026-04-30 - Phase 427 Wave 1 (CameraOnly/AxisOnly link policies) complete. Wave 2 (propagator + evidence + demo) executing.
+status: completed
+stopped_at: Phase 429 complete
+last_updated: "2026-04-30T14:54:03.313Z"
+last_activity: 2026-04-30 - Phase 429 complete with three cookbook recipes.
 progress:
   total_phases: 7
-  completed_phases: 2
-  total_plans: 7
-  completed_plans: 5
-  percent: 71
+  completed_phases: 5
+  total_plans: 9
+  completed_plans: 7
+  percent: 78
 ---
 
 # Project State
@@ -26,12 +26,12 @@ See: `.planning/PROJECT.md`
 ## Current Position
 
 Milestone: `v2.64 Native SurfaceCharts Analysis Workspace and Streaming Evidence`
-Phase: 427 of 431 - EXECUTING
-Plan: 427-02 (interaction propagator + evidence + demo) executing.
-Status: Phase 426 complete. Phase 427 Wave 1 complete (CameraOnly/AxisOnly link policies). Wave 2 executing.
-Last activity: 2026-04-30 - Phase 427 Wave 1 complete with 3 commits.
+Phase: 429 of 431 - COMPLETE
+Plan: 429-01 (cookbook recipes) complete.
+Status: Phases 425-429 complete. Phase 430 next.
+Last activity: 2026-04-30 - Phase 429 complete with three cookbook recipes.
 
-Progress: [███████░░░] 71%
+Progress: [█████████░] 89%
 
 ## Initial Scope Summary
 
@@ -76,6 +76,7 @@ v2.64 focuses on:
 
 - Used _isSentrancy re-entrancy guard pattern from VideraChartViewLink for both filtered link classes
 - Filtered links check field equality before setting _isSentrancy to avoid unnecessary PropertyChanged cycles
+- Added focused test methods for v2.64 recipes instead of extending CookbookCoverageRows
 
 ## Known Residuals
 
@@ -85,9 +86,9 @@ v2.64 focuses on:
 
 ## Session Continuity
 
-Last session: 2026-04-30T22:30:00.000Z
-Stopped at: Executing Phase 427 Wave 2
-Next action: Complete 427-02 execution, then proceed to Phase 428 planning and execution.
+Last session: 2026-04-30T14:54:03.293Z
+Stopped at: Phase 429 complete
+Next action: Proceed to Phase 430 (CI truth) and 431 (final verification).
 
 ## Accumulated Context
 

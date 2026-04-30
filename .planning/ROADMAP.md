@@ -21,12 +21,12 @@ STREAM-01..03, COOK-01..03, TRUTH-01..03, VERIFY-01..02)
   package-smoke, and CI truth surfaces before implementation.
 - [x] **Phase 426: Native Multi-Chart Analysis Workspace** - Add bounded native
   multi-chart layout/workspace affordances without creating a generic workbench.
-- [ ] **Phase 427: Linked Interaction and Selection Propagation** - Add linked
+- [x] **Phase 427: Linked Interaction and Selection Propagation** - Add linked
   camera/axis/probe/selection workflows with host-owned state and explicit
   support evidence.
-- [ ] **Phase 428: High-Density and Streaming Data Evidence** - Strengthen
+- [x] **Phase 428: High-Density and Streaming Data Evidence** - Strengthen
   streaming and large-data workflows with real ingestion/window/cache evidence.
-- [ ] **Phase 429: Scenario Cookbook and Package Templates** - Turn the richer
+- [x] **Phase 429: Scenario Cookbook and Package Templates** - Turn the richer
   workflows into detailed native cookbook scenarios and package-consumer
   templates.
 - [ ] **Phase 430: CI Performance and Release-Readiness Truth** - Align focused
@@ -158,7 +158,7 @@ consumer templates.
 | 426. Native Multi-Chart Analysis Workspace | 2/2 | Complete | 2026-04-30 |
 | 427. Linked Interaction and Selection Propagation | 2/2 | Complete | 2026-04-30 |
 | 428. High-Density and Streaming Data Evidence | 1/1 | Complete | 2026-04-30 |
-| 429. Scenario Cookbook and Package Templates | 0/1 | Blocked | |
+| 429. Scenario Cookbook and Package Templates | 1/1 | Complete | 2026-04-30 |
 | 430. CI Performance and Release-Readiness Truth | 0/1 | Blocked | |
 | 431. v2.64 Final Verification | 0/1 | Blocked | |
 
