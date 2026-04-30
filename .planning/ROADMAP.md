@@ -29,10 +29,10 @@ STREAM-01..03, COOK-01..03, TRUTH-01..03, VERIFY-01..02)
 - [x] **Phase 429: Scenario Cookbook and Package Templates** - Turn the richer
   workflows into detailed native cookbook scenarios and package-consumer
   templates.
-- [ ] **Phase 430: CI Performance and Release-Readiness Truth** - Align focused
+- [x] **Phase 430: CI Performance and Release-Readiness Truth** - Align focused
   tests, CI, consumer smoke, release-readiness filters, generated roadmap, and
   no-fake-evidence guardrails.
-- [ ] **Phase 431: v2.64 Final Verification** - Close v2.64 with composed
+- [x] **Phase 431: v2.64 Final Verification** - Close v2.64 with composed
   validation, Beads export, generated roadmap sync, phase archive, push, and
   cleanup.
 
@@ -70,8 +70,8 @@ SurfaceCharts panels.
 3. Demo/sample code keeps layout, scenario catalog, and support summary
    responsibilities separated.
 Plans:
-- [ ] 426-01-PLAN.md — Workspace contracts and core registration
-- [ ] 426-02-PLAN.md — Link group, aggregate status, evidence, and demo integration
+- [x] 426-01-PLAN.md — Workspace contracts and core registration
+- [x] 426-02-PLAN.md — Link group, aggregate status, evidence, and demo integration
 
 ### Phase 427: Linked Interaction and Selection Propagation
 
@@ -159,8 +159,8 @@ consumer templates.
 | 427. Linked Interaction and Selection Propagation | 2/2 | Complete | 2026-04-30 |
 | 428. High-Density and Streaming Data Evidence | 1/1 | Complete | 2026-04-30 |
 | 429. Scenario Cookbook and Package Templates | 1/1 | Complete | 2026-04-30 |
-| 430. CI Performance and Release-Readiness Truth | 0/1 | Blocked | |
-| 431. v2.64 Final Verification | 0/1 | Blocked | |
+| 430. CI Performance and Release-Readiness Truth | 1/1 | Complete | 2026-04-30 |
+| 431. v2.64 Final Verification | 1/1 | Complete | 2026-04-30 |
 
 ---
 
