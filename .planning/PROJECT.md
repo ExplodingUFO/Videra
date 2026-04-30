@@ -12,34 +12,35 @@ Videra 是一个基于 `.NET 8` 的跨平台 3D 渲染引擎，提供 Windows (`
 
 ## Current State
 
-- 最新完整归档 milestone：`v2.60 SurfaceCharts Cookbook QA and Interaction Handoff`
-- 最近完成 milestone：`v2.60 SurfaceCharts Cookbook QA and Interaction Handoff`
-- 当前 active milestone：`v2.61 Native SurfaceCharts Cookbook and CI Truth`
-- 当前 focus：继续朝 ScottPlot5-style cookbook 用法推进，把 3D 图表 Demo 做成详细、可运行、Videra-native 的 cookbook；同时保持高性能路径和 CI 真实通过，不引入 ScottPlot compatibility layer、旧 chart controls、隐藏 fallback、backend expansion、generic workbench 或造假验证。
+- 最新完整归档 milestone：`v2.61 Native SurfaceCharts Cookbook and CI Truth`
+- 最近完成 milestone：`v2.61 Native SurfaceCharts Cookbook and CI Truth`
+- 当前 active milestone：`v2.62 Native SurfaceCharts Cleanup and Old-Code Removal`
+- 当前 focus：继续收紧 SurfaceCharts 的 native cookbook/API 体验，删除或直接替换真实旧代码路径，确保不引入 ScottPlot compatibility layer、旧 chart controls、direct Source、migration shim、隐藏 fallback/downshift、backend expansion、generic workbench 或造假验证。
 
-## Recently Completed Milestone: v2.60 SurfaceCharts Cookbook QA and Interaction Handoff
+## Recently Completed Milestone: v2.61 Native SurfaceCharts Cookbook and CI Truth
 
 **Status:** completed on 2026-04-30.
 
-**Goal:** Audit and harden the v2.59 cookbook/interaction handoff with focused QA, docs, support, and validation work.
-
-**Delivered outcomes:**
-- inventoried v2.59 cookbook QA, interaction handoff docs, support artifacts, and validation gaps
-- added structured cookbook coverage matrix tests and current consumer handoff wording
-- added interaction host-wiring, probe evidence, selection report, and host-owned draggable recipe handoff docs/tests
-- closed with focused validation, Beads export, generated roadmap, archive, Git/Dolt push, and clean branch/worktree state
-
-Archived: `.planning/milestones/v2.60-phases`
-
-## Current Milestone: v2.61 Native SurfaceCharts Cookbook and CI Truth
-
 **Goal:** Push SurfaceCharts toward ScottPlot5-style cookbook usability while staying native to Videra's 3D chart model, with detailed runnable demo recipes, high-performance data paths, and truthful CI.
 
+**Delivered outcomes:**
+- inventoried current SurfaceCharts cookbook/demo, native 3D chart API, performance-sensitive paths, and CI/test truth gaps
+- added detailed Videra-native 3D cookbook/demo recipes for shipped chart families and workflows
+- added native high-performance demo/data evidence without fallback/downshift behavior or fake benchmark claims
+- hardened focused CI/test gates for cookbook docs, demo runtime, support evidence, Beads export, generated roadmap, and scope guardrails
+- closed with focused validation, Beads export, generated roadmap, archive, Git/Dolt push, and clean branch/worktree state
+
+Archived: `.planning/milestones/v2.61-phases`
+
+## Current Milestone: v2.62 Native SurfaceCharts Cleanup and Old-Code Removal
+
+**Goal:** Continue SurfaceCharts toward a native, cookbook-first 3D chart experience by removing stale old-code paths and tightening the no-compatibility boundary.
+
 **Target features:**
-- Inventory current SurfaceCharts cookbook/demo, native 3D chart API, performance-sensitive paths, and CI/test truth gaps
-- Expand the 3D chart demo into detailed cookbook recipes for shipped Videra chart families and workflows
-- Tighten native high-performance demo/data paths and support evidence without fallback/downshift behavior
-- Harden focused CI/tests so cookbook docs, demo runtime, interaction handoff, Beads export, generated roadmap, and scope guardrails pass honestly
+- Inventory residual SurfaceCharts old-code, compatibility, fallback/downshift, docs/demo/test, and guardrail surfaces
+- Delete or directly replace true stale old-code paths without wrappers, bridges, migration shims, or hidden fallback behavior
+- Keep cookbook/demo code Videra-native, copyable, and bounded without generic workbench or god-code expansion
+- Harden no-compat/no-old-code guardrails and CI truth checks
 - Close with focused validation, Beads export, generated roadmap, archive, Git/Dolt push, and clean branch/worktree state
 
 ## Completed Milestones
@@ -845,6 +846,6 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-30 after starting v2.60 milestone*
+*Last updated: 2026-04-30 after starting v2.62 milestone*
 
 

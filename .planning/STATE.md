@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.61
-milestone_name: "Native SurfaceCharts Cookbook and CI Truth"
-status: completed
-stopped_at: "v2.61 milestone complete"
-last_updated: "2026-04-30T17:10:00+08:00"
+milestone: v2.62
+milestone_name: "Native SurfaceCharts Cleanup and Old-Code Removal"
+status: active
+stopped_at: "Phase 414 ready for planning"
+last_updated: "2026-04-30T17:08:00+08:00"
 last_activity: 2026-04-30
 progress:
   total_phases: 5
-  completed_phases: 5
+  completed_phases: 0
   total_plans: 5
-  completed_plans: 5
-  percent: 100
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -21,43 +21,44 @@ progress:
 See: `.planning/PROJECT.md`
 
 **Core value:** 跨平台 3D 渲染引擎的可靠性
-**Current focus:** v2.61 Native SurfaceCharts Cookbook and CI Truth
+**Current focus:** v2.62 Native SurfaceCharts Cleanup and Old-Code Removal
 
 ## Current Position
 
-Milestone: `v2.61 Native SurfaceCharts Cookbook and CI Truth`
-Phase: 413 of 413 - COMPLETE
-Plan: v2.61 complete
-Status: Phase 409 inventory, Phase 410 detailed cookbook recipes, Phase 411 native high-performance demo evidence, Phase 412 CI truth hardening, and Phase 413 final verification are complete.
-Last activity: 2026-04-30 - Completed v2.61 final verification, Beads/generated-roadmap sync, archive, and handoff.
+Milestone: `v2.62 Native SurfaceCharts Cleanup and Old-Code Removal`
+Phase: 414 of 418 - READY
+Plan: Phase 414 planning next
+Status: v2.62 requirements, roadmap, and Beads phase chain are initialized. The first phase inventories residual SurfaceCharts old-code, compatibility, fallback/downshift, docs/demo/test, and guardrail surfaces before deletion.
+Last activity: 2026-04-30 - Started v2.62 milestone and created Beads epic `Videra-6zx` with phase beads `Videra-2wb`, `Videra-9vg`, `Videra-w2t`, `Videra-r9q`, and `Videra-73a`.
 
-Progress: [##########] 100%
+Progress: [----------] 0%
 
 ## Initial Scope Summary
 
-v2.60 continues from the completed v2.59 interaction/cookbook milestone:
+v2.62 continues from the completed v2.61 native cookbook and CI truth milestone:
 
-- SurfaceCharts has typed Bar/Contour plot handles and recipe-friendly enabled command discovery.
-- SurfaceCharts demo/docs include Bar/Contour cookbook recipes and text-contract coverage.
-- Beads and generated roadmap state are synchronized through v2.59 closure.
+- SurfaceCharts has detailed Videra-native cookbook recipes for shipped 3D chart families and workflows.
+- SurfaceCharts has focused native performance evidence and CI truth gates for cookbook/demo/support drift.
+- Beads and generated roadmap state are synchronized through v2.61 closure.
 
-v2.61 focuses on:
+v2.62 focuses on:
 
-- native cookbook and CI inventory
-- detailed 3D cookbook demo recipes
-- native high-performance demo/data paths
-- focused CI truth and validation hardening
+- native cleanup and old-code inventory
+- deletion or direct replacement of true stale SurfaceCharts old-code paths
+- bounded cookbook/demo simplification without god-code workbench expansion
+- no-compat/no-old-code guardrails and CI truth hardening
 - final integrated validation and clean Beads/Git/Dolt handoff
 
 ## Decisions
 
 - Beads remain the single task spine for phase status, dependencies, ownership, and handoff.
-- Phase 409 must inventory real cookbook/demo, native 3D chart API, performance-sensitive paths, CI gates, and anti-fake validation gaps before implementation.
-- Phase 410 and Phase 411 may run in parallel after Phase 409 if their write sets are disjoint.
-- Phase 410 should focus on detailed runnable cookbook/demo recipes, while Phase 411 should focus on native high-performance data paths and performance-truth wording/tests.
-- Phase 412 owns CI truth and validation hardening after Phase 410/411.
-- Shared Beads export, generated roadmap, final scope guardrails, archive, push, and cleanup are Phase 413 responsibilities.
-- Keep implementation simple and direct; do not add ScottPlot compatibility adapters, old chart controls, hidden fallback behavior, backend expansion, broad demo frameworks, or fake validation evidence.
+- Phase 414 must classify residual old-code/compat/fallback/downshift hits before deletion.
+- Phase 415 and Phase 416 may run in parallel after Phase 414 if their write sets are disjoint.
+- Phase 415 owns true stale old-code deletion or direct replacement.
+- Phase 416 owns bounded cookbook/demo simplification and must avoid god-code workbench expansion.
+- Phase 417 owns no-compat/no-old-code guardrails and focused CI truth after Phase 415/416.
+- Shared Beads export, generated roadmap, final scope guardrails, archive, push, and cleanup are Phase 418 responsibilities.
+- Keep implementation simple and direct; do not add ScottPlot compatibility adapters, migration shims, old chart controls, hidden fallback/downshift behavior, backend expansion, broad demo frameworks, or fake validation evidence.
 - v2.60 artifacts are archived under `.planning/milestones/v2.60-phases`.
 - v2.61 artifacts are archived under `.planning/milestones/v2.61-phases`.
 
@@ -70,8 +71,8 @@ v2.61 focuses on:
 ## Session Continuity
 
 Last session: `2026-04-30 +08:00`
-Stopped at: v2.61 complete
-Next action: start the next milestone from the completed v2.61 state.
+Stopped at: Phase 414 ready
+Next action: plan Phase 414 (`Videra-2wb`) native cleanup and old-code inventory.
 
 ## Accumulated Context
 

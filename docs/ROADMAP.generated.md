@@ -12,15 +12,18 @@ pwsh -File ./scripts/Export-BeadsRoadmap.ps1
 
 ## Active
 
-_No matching beads in the exported snapshot._
+- **Videra-6zx** - v2.62 Native SurfaceCharts Cleanup and Old-Code Removal (epic, P1, in_progress)
 
 ## Ready
 
-_No matching beads in the exported snapshot._
+- **Videra-2wb** - Phase 414 Native cleanup and old-code inventory (task, P1, open)
 
 ## Blocked
 
-_No matching beads in the exported snapshot._
+- **Videra-9vg** - Phase 415 Delete stale SurfaceCharts old-code paths (task, P1, open)
+- **Videra-w2t** - Phase 416 Native cookbook and demo code simplification (task, P1, open)
+- **Videra-r9q** - Phase 417 No-compat guardrails and CI truth (task, P1, open)
+- **Videra-73a** - Phase 418 v2.62 final verification (task, P2, open)
 
 ## Backlog
 

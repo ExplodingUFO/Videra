@@ -1,5 +1,45 @@
 # Milestones
 
+## v2.61 Native SurfaceCharts Cookbook and CI Truth
+
+**Shipped:** 2026-04-30
+**Phases:** 5 (`409-413`)
+**Plans:** 5
+**Timeline:** 1 day (`2026-04-30` -> `2026-04-30`)
+**Repo state:** completed on `master`; detailed cookbook recipes, native
+performance evidence, focused CI truth, snapshot scope guardrails, Beads export,
+generated roadmap, branch/worktree cleanup, Git push, and Dolt Beads push
+completed
+
+### Key Accomplishments
+
+1. Inventoried current SurfaceCharts cookbook/demo, native 3D chart API,
+   performance-sensitive paths, CI gates, and anti-fake validation gaps.
+2. Added detailed Videra-native 3D cookbook/demo recipes for shipped chart
+   families and workflows.
+3. Added truthful native high-performance demo/data evidence without hidden
+   fallback/downshift behavior or fake benchmark claims.
+4. Hardened focused CI/test gates for cookbook docs, demo runtime, support
+   evidence, Beads export, generated roadmap, and scope guardrails.
+5. Closed with composed validation, Beads export, generated public roadmap,
+   phase archive, branch/worktree cleanup, Git push, and Dolt Beads push.
+
+### Archived Materials
+
+- `.planning/milestones/v2.61-ROADMAP.md`
+- `.planning/milestones/v2.61-REQUIREMENTS.md`
+- `.planning/milestones/v2.61-phases/`
+
+### Notes
+
+- v2.61 improved ScottPlot5-style cookbook usability as inspiration only, not
+  API compatibility or parity.
+- No ScottPlot compatibility layer, old chart controls, direct public `Source`,
+  compatibility wrappers, hidden fallback/downshift behavior, backend expansion,
+  generic plotting workbench, or fake validation evidence was introduced.
+
+---
+
 ## v2.60 SurfaceCharts Cookbook QA and Interaction Handoff
 
 **Shipped:** 2026-04-30
