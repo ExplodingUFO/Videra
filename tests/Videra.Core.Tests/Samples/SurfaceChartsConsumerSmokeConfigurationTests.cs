@@ -82,6 +82,10 @@ public sealed class SurfaceChartsConsumerSmokeConfigurationTests
         mainWindowCodeBehind.Should().Contain("InteractivityTooltipOffset:");
         mainWindowCodeBehind.Should().Contain("InteractivityProbeStrategies: Surface, Bar, Contour");
         mainWindowCodeBehind.Should().NotContain("InteractivityProbeStrategies: Surface, Scatter, Bar, Contour");
+        mainWindowCodeBehind.Should().Contain("_barRenderingStatusEvidence = _chartView.BarRenderingStatus;");
+        mainWindowCodeBehind.Should().Contain("_contourRenderingStatusEvidence = _chartView.ContourRenderingStatus;");
+        mainWindowCodeBehind.Should().Contain("BarRenderingStatus: HasSource {_barRenderingStatusEvidence.HasSource}");
+        mainWindowCodeBehind.Should().Contain("ContourRenderingStatus: HasSource {_contourRenderingStatusEvidence.HasSource}");
         mainWindowCodeBehind.Should().Contain("InteractivityKeyboardShortcuts:");
         mainWindowCodeBehind.Should().Contain("InteractivityToolbarButtons: not included in packaged consumer smoke");
         mainWindowCodeBehind.Should().NotContain("InteractivityToolbarButtons: enabled");

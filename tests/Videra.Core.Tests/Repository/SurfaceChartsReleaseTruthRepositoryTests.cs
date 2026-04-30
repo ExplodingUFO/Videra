@@ -66,8 +66,9 @@ public sealed class SurfaceChartsReleaseTruthRepositoryTests
         cutover.Should().Contain("surfacecharts-support-summary.txt");
         cutover.Should().Contain("chart-snapshot.png");
         cutover.Should().Contain("public-release-notes.md");
-        cutover.Should().Contain("ScottPlot 5's discoverable recipe ergonomics as inspiration only");
-        cutover.Should().Contain("not a ScottPlot API compatibility, parity, adapter, or migration layer");
+        cutover.Should().Contain("The cookbook is native to Videra's 3D chart model");
+        cutover.Should().Contain("not an API compatibility, parity, adapter, or migration layer");
+        cutover.Should().NotContain("ScottPlot");
         cutover.Should().Contain("no hidden scenario/data-path fallback");
         cutover.Should().Contain("no PDF/vector export");
         cutover.Should().Contain("no OpenGL/WebGL/backend expansion");

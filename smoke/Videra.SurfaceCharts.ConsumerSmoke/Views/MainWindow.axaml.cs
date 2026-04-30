@@ -34,6 +34,8 @@ public partial class MainWindow : Window
     private readonly SurfaceColorMap _colorMap;
     private readonly DispatcherTimer _readinessPollTimer;
     private readonly int _lightingProofHoldSeconds;
+    private BarChartRenderingStatus _barRenderingStatusEvidence = new();
+    private ContourChartRenderingStatus _contourRenderingStatusEvidence = new();
     private bool _openedChartApplied;
     private bool _completed;
     private bool _completionQueued;
@@ -99,9 +101,11 @@ public partial class MainWindow : Window
 
         // Add Bar series for smoke validation
         AddBarSeries();
+        _barRenderingStatusEvidence = _chartView.BarRenderingStatus;
 
         // Add Contour series for smoke validation
         AddContourSeries();
+        _contourRenderingStatusEvidence = _chartView.ContourRenderingStatus;
 
         _chartView.Plot.Move(firstChartSeries, _chartView.Plot.Series.Count - 1);
         _chartView.FitToData();
@@ -561,8 +565,8 @@ public partial class MainWindow : Window
             $"ViewState: {CreateViewStateSummary()}\n" +
             $"InteractionQuality: {_chartView.InteractionQuality}\n" +
             $"RenderingStatus: ActiveBackend {status.ActiveBackend}; IsReady {status.IsReady}; IsFallback {status.IsFallback}; FallbackReason {status.FallbackReason ?? "none"}; UsesNativeSurface {status.UsesNativeSurface}; ResidentTileCount {status.ResidentTileCount}; VisibleTileCount {status.VisibleTileCount}; ResidentTileBytes {status.ResidentTileBytes}\n" +
-            $"BarRenderingStatus: HasSource {_chartView.BarRenderingStatus.HasSource}; IsReady {_chartView.BarRenderingStatus.IsReady}; Series {_chartView.BarRenderingStatus.SeriesCount}; Categories {_chartView.BarRenderingStatus.CategoryCount}; Layout {_chartView.BarRenderingStatus.Layout}\n" +
-            $"ContourRenderingStatus: HasSource {_chartView.ContourRenderingStatus.HasSource}; IsReady {_chartView.ContourRenderingStatus.IsReady}; Levels {_chartView.ContourRenderingStatus.LevelCount}; Lines {_chartView.ContourRenderingStatus.ExtractedLineCount}\n" +
+            $"BarRenderingStatus: HasSource {_barRenderingStatusEvidence.HasSource}; IsReady {_barRenderingStatusEvidence.IsReady}; Series {_barRenderingStatusEvidence.SeriesCount}; Categories {_barRenderingStatusEvidence.CategoryCount}; Layout {_barRenderingStatusEvidence.Layout}\n" +
+            $"ContourRenderingStatus: HasSource {_contourRenderingStatusEvidence.HasSource}; IsReady {_contourRenderingStatusEvidence.IsReady}; Levels {_contourRenderingStatusEvidence.LevelCount}; Lines {_contourRenderingStatusEvidence.ExtractedLineCount}\n" +
             $"OverlayOptions: {CreateOverlayOptionsSummary(_chartView.Plot.OverlayOptions)}\n" +
             $"InteractivityCrosshairEnabled: {_chartView.Plot.OverlayOptions.ShowCrosshair}\n" +
             $"InteractivityTooltipOffset: ({_chartView.Plot.OverlayOptions.TooltipOffset.X}, {_chartView.Plot.OverlayOptions.TooltipOffset.Y})\n" +

@@ -1,5 +1,45 @@
 # Milestones
 
+## v2.63 Native SurfaceCharts Feature and Demo Expansion
+
+**Shipped:** 2026-04-30
+**Phases:** 6 (`419-424`)
+**Plans:** 6
+**Timeline:** 1 day (`2026-04-30` -> `2026-04-30`)
+**Repo state:** completed on `master`; native 3D chart feature affordances,
+annotation/measurement workflows, recipe-first demo upgrades, cookbook truth,
+focused CI/release-readiness evidence, Beads export, generated roadmap,
+worktree cleanup, Git push, and Dolt Beads push completed
+
+### Key Accomplishments
+
+1. Inventoried the real SurfaceCharts feature/demo surface before widening APIs.
+2. Added focused native Bar/Contour/styling/data-shaping affordances through
+   direct `VideraChartView.Plot` paths.
+3. Added bounded annotation, marker, reference, selection, and measurement
+   workflows with support evidence.
+4. Upgraded the demo into a richer recipe-first native gallery while keeping
+   catalog/support responsibilities split out of the window code-behind.
+5. Hardened cookbook, CI, release-readiness, public-roadmap, and scope
+   guardrails with real package-consumer evidence.
+6. Closed the milestone with all v2.63 Beads closed and `bd ready` empty.
+
+### Archived Materials
+
+- `.planning/milestones/v2.63-ROADMAP.md`
+- `.planning/milestones/v2.63-REQUIREMENTS.md`
+- `.planning/milestones/v2.63-phases/`
+
+### Notes
+
+- v2.63 kept SurfaceCharts as a Videra-native 3D chart model and did not add
+  external plotting compatibility, parity, adapter, or migration behavior.
+- No old chart controls, direct public `Source`, hidden fallback/downshift,
+  backend expansion, broad workbench shell, or fake validation evidence was
+  introduced.
+
+---
+
 ## v2.62 Native SurfaceCharts Cleanup and Old-Code Removal
 
 **Shipped:** 2026-04-30
