@@ -1,181 +1,163 @@
-# Roadmap: v2.65 3D ScottPlot5 Analytics Chart Expansion
+# Roadmap: v2.66 Complete Cookbook Demo Gallery
 
-**Goal:** Expand Videra's 3D chart vocabulary toward ScottPlot5 parity with
-analytics-focused chart types (Line/Ribbon, Vector Field, Heatmap Slice, Box
-Plot), MultiPlot3D subplot grids, universal streaming, and promote Bar+Contour
-from proof to production — while preserving the single `VideraChartView` +
-`Plot.Add.*` route.
+**Goal:** Make the SurfaceCharts Demo into a truly complete cookbook gallery
+covering all 10 chart types, MultiPlot3D, streaming data, and upgraded demo
+framework experience.
 
-**Boundary:** This milestone does not add 2D chart families, compatibility
-adapters, generic plotting platform scope, renderer/backend expansion, hidden
-fallback/downshift behavior, PDF/vector export, or fake validation evidence.
+**Boundary:** This milestone does not add new chart types beyond the 10 shipped
+in v2.65, 2D chart families, compatibility adapters, backend/renderer expansion,
+PDF/vector export, or fake validation evidence.
 
-**Phases:** 8 (432-439)
-**Requirements:** 30 (LINE-01..04, VEC-01..04, HEAT-01..04, BOX-01..03,
-PROMO-01..03, MULTI-01..05, STREAM-01..04, COOK-01..04, TRUTH-01..04)
-**Beads epic:** `Videra-8krt`
+**Phases:** 7 (440-446)
+**Requirements:** 20 (RECIPE-01..05, MULTI-01..03, STREAM-01..04, FRAMEWORK-01..04, COOK-01..04)
+**Beads epic:** TBD
 
 ## Phases
 
-- [ ] **Phase 432: Chart Type Inventory and API Design** - Map current chart
-  type surface, API patterns, and rendering seams before adding new chart
-  families. Design the API contracts for Line, Ribbon, Vector Field, Heatmap
-  Slice, and Box Plot.
-- [ ] **Phase 433: Promote Bar+Contour to Production** - Move Bar and Contour
-  chart families from proof-path to the public package API contract.
-- [ ] **Phase 434: Line/Ribbon Chart Family** - Add 3D line plots and
-  ribbon/pipe plots with colormap support and probe integration.
-- [ ] **Phase 435: Vector Field Chart Family** - Add 3D vector field plots with
-  arrow rendering, magnitude scaling, and probe integration.
-- [ ] **Phase 436: 3D Heatmap Slice Chart Family** - Add heatmap slice plots
-  for volumetric data visualization with interactive slice positioning.
-- [ ] **Phase 437: Box Plot Chart Family** - Add 3D box plots for statistical
-  distribution visualization with grouped layout.
-- [ ] **Phase 438: MultiPlot3D Subplot Grid** - Add MultiPlot3D container for
-  N×M subplot arrangements with optional shared camera/axis.
-- [ ] **Phase 439: Extended DataLogger3D and v2.65 Verification** - Extend
-  DataLogger3D streaming to Surface/Waterfall/Bar, add cookbook recipes, CI
-  truth, and close v2.65 with verification.
+- [ ] **Phase 440: Demo Framework Architecture Refactor** - Refactor
+  MainWindow code-behind into recipe-driven architecture with self-contained
+  recipe classes and group navigation.
+- [ ] **Phase 441: Line/Ribbon/VectorField Cookbook Recipes** - Add cookbook
+  recipes for Line, Ribbon, and VectorField chart types with live demo.
+- [ ] **Phase 442: HeatmapSlice/BoxPlot Cookbook Recipes** - Add cookbook
+  recipes for HeatmapSlice and BoxPlot chart types with live demo.
+- [ ] **Phase 443: MultiPlot3D Cookbook Recipes** - Add MultiPlot3D subplot
+  grid cookbook recipes with linked camera/axis and grid snapshot.
+- [ ] **Phase 444: DataLogger3D Streaming Cookbook Recipes** - Add streaming
+  cookbook recipes for Surface/Waterfall/Bar DataLogger3D with live counters.
+- [ ] **Phase 445: Interactive Parameter Controls and Live Preview** - Add
+  per-recipe parameter controls and real-time preview for chart properties.
+- [ ] **Phase 446: Cookbook Catalog Integration and Completeness** - Integrate
+  all recipes into catalog, verify completeness, and close milestone.
 
 ## Phase Details
 
-### Phase 432: Chart Type Inventory and API Design
+### Phase 440: Demo Framework Architecture Refactor
 
-**Goal:** Map the current chart type surface, API patterns, rendering seams,
-and probe/overlay infrastructure before adding new chart families.
+**Goal:** Refactor the 1200+ line MainWindow code-behind into a recipe-driven
+architecture where each recipe is a self-contained class.
 **Depends on:** Nothing
-**Requirements:** (inventory phase — no specific REQ)
+**Requirements:** FRAMEWORK-01, FRAMEWORK-02
 **Success Criteria:**
-1. Current chart type API surface (Plot.Add.*, IPlottable3D, Plot3DSeriesKind)
-   is mapped.
-2. Rendering seams for each chart kind (kernel, geometry, overlay) are
-   identified.
-3. Probe/selection/overlay infrastructure integration points for new chart types
-   are documented.
-4. API contracts for Line, Ribbon, Vector Field, Heatmap Slice, and Box Plot
-   are designed with type signatures and data models.
-
+1. Each cookbook recipe is a self-contained class with setup, teardown, and UI
+   panel configuration.
+2. Recipe group navigation (Basics, Analytics, Composition, Streaming) works
+   in the sidebar.
+3. MainWindow code-behind is reduced to recipe dispatch and shared infrastructure.
+4. All existing recipes continue to work after refactor.
 
 **Plans:** 1 plan
 Plans:
-- [x] 432-01-PLAN.md — Inventory current chart type API surface and design API contracts for new chart families
+- [ ] 440-01-PLAN.md — Refactor demo into recipe-driven architecture
 
-### Phase 433: Promote Bar+Contour to Production
+### Phase 441: Line/Ribbon/VectorField Cookbook Recipes
 
-**Goal:** Move Bar and Contour chart families from proof-path to the public
-package API contract.
-**Depends on:** Phase 432
-**Requirements:** PROMO-01, PROMO-02, PROMO-03
+**Goal:** Add cookbook recipes for Line, Ribbon, and VectorField chart types.
+**Depends on:** Phase 440
+**Requirements:** RECIPE-01, RECIPE-02, RECIPE-03
 **Success Criteria:**
-1. `Plot.Add.Bar(...)` is in the public API contract and NuGet package surface.
-2. `Plot.Add.Contour(...)` is in the public API contract and NuGet package
-   surface.
-3. Existing Bar and Contour tests, demo scenarios, and cookbook recipes pass
-   without modification.
-4. Package validation scripts confirm Bar+Contour are in the public surface.
+1. Line chart recipe shows polyline with configurable color/width/markers.
+2. Ribbon chart recipe shows tube geometry with configurable radius.
+3. VectorField chart recipe shows arrows with magnitude-based coloring.
+4. All three recipes have code snippets and live demo.
 
 **Plans:** 1 plan
 Plans:
-- [x] 433-01-PLAN.md — Add BarPlot3DSeries and ContourPlot3DSeries to public API contract and verify existing tests pass
+- [ ] 441-01-PLAN.md — Add Line/Ribbon/VectorField cookbook recipes
 
-### Phase 434: Line/Ribbon Chart Family
+### Phase 442: HeatmapSlice/BoxPlot Cookbook Recipes
 
-**Goal:** Add 3D line plots and ribbon/pipe plots with colormap support.
-**Depends on:** Phase 433
-**Requirements:** LINE-01, LINE-02, LINE-03, LINE-04
+**Goal:** Add cookbook recipes for HeatmapSlice and BoxPlot chart types.
+**Depends on:** Phase 440
+**Requirements:** RECIPE-04, RECIPE-05
 **Success Criteria:**
-1. `Plot.Add.Line(xs, ys, zs, label)` renders 3D polyline with configurable
-   color, width, and markers.
-2. `Plot.Add.Ribbon(xs, ys, zs, radius, label)` renders tube/pipe geometry.
-3. Per-segment colormap coloring works for both line and ribbon.
-4. Line/ribbon plots participate in probe, selection, overlay, and legend.
+1. HeatmapSlice recipe shows volumetric slice with axis/position control.
+2. BoxPlot recipe shows statistical distribution with grouped layout.
+3. Both recipes have code snippets and live demo.
 
-**Plans:** 4 plans
+**Plans:** 1 plan
 Plans:
-- [x] 434-01-PLAN.md — Create Core data models, renderers, render scenes, and probe strategies for Line and Ribbon
-- [x] 434-02-PLAN.md — Wire Line and Ribbon into Avalonia integration layer (series, API, composition, legend, diagnostics)
-- [ ] 434-03-PLAN.md — Close per-segment colormap coloring gap (LINE-03): per-point color in renderers, SetColormap on series subclasses
-- [ ] 434-04-PLAN.md — Close marker options gap (SC1): MarkerShape enum, marker properties, MarkerRenderSegment, SetMarker API
+- [ ] 442-01-PLAN.md — Add HeatmapSlice/BoxPlot cookbook recipes
 
-### Phase 435: Vector Field Chart Family
+### Phase 443: MultiPlot3D Cookbook Recipes
 
-**Goal:** Add 3D vector field plots with arrow rendering.
-**Depends on:** Phase 433
-**Requirements:** VEC-01, VEC-02, VEC-03, VEC-04
+**Goal:** Add MultiPlot3D subplot grid cookbook recipes.
+**Depends on:** Phase 441, Phase 442
+**Requirements:** MULTI-01, MULTI-02, MULTI-03, COOK-02
 **Success Criteria:**
-1. `Plot.Add.VectorField(xs, ys, zs, dxs, dys, dzs, label)` renders 3D arrows.
-2. Arrow length proportional to magnitude with configurable scaling.
-3. Colormap coloring by magnitude works.
-4. Probe shows vector value and magnitude at probed point.
+1. MultiPlot3D recipe shows NxM grid with mixed chart types.
+2. Linked camera/axis demo shows LinkAll/LinkRow/LinkColumn.
+3. Grid snapshot recipe renders entire grid as single PNG.
 
-### Phase 436: 3D Heatmap Slice Chart Family
+**Plans:** 1 plan
+Plans:
+- [ ] 443-01-PLAN.md — Add MultiPlot3D cookbook recipes
 
-**Goal:** Add heatmap slice plots for volumetric data visualization.
-**Depends on:** Phase 433
-**Requirements:** HEAT-01, HEAT-02, HEAT-03, HEAT-04
+### Phase 444: DataLogger3D Streaming Cookbook Recipes
+
+**Goal:** Add streaming cookbook recipes for all DataLogger3D types.
+**Depends on:** Phase 440
+**Requirements:** STREAM-01, STREAM-02, STREAM-03, STREAM-04, COOK-03
 **Success Criteria:**
-1. `Plot.Add.HeatmapSlice(values, axis, position, label)` renders colored plane.
-2. Configurable colormap, value range, and opacity work.
-3. Interactive slice positioning (slider/drag) works.
-4. Probe shows interpolated value on slice.
+1. SurfaceDataLogger3D recipe shows append/replace/FIFO with live counters.
+2. WaterfallDataLogger3D recipe shows delegated streaming patterns.
+3. BarDataLogger3D recipe shows append/replace with series tracking.
+4. Unified streaming dashboard shows all three in MultiPlot3D grid.
 
-### Phase 437: Box Plot Chart Family
+**Plans:** 1 plan
+Plans:
+- [ ] 444-01-PLAN.md — Add DataLogger3D streaming cookbook recipes
 
-**Goal:** Add 3D box plots for statistical distribution visualization.
-**Depends on:** Phase 433
-**Requirements:** BOX-01, BOX-02, BOX-03
+### Phase 445: Interactive Parameter Controls and Live Preview
+
+**Goal:** Add per-recipe parameter controls and real-time preview.
+**Depends on:** Phase 441, Phase 442, Phase 443, Phase 444
+**Requirements:** FRAMEWORK-03, FRAMEWORK-04
 **Success Criteria:**
-1. `Plot.Add.BoxPlot(data, label)` renders 3D box with whiskers.
-2. Grouped/clustered layout works for multi-category comparison.
-3. Probe shows statistical summary (min, Q1, median, Q3, max).
+1. Slider controls for numeric parameters (radius, position, scale).
+2. Dropdown controls for enum parameters (axis, colormap, layout).
+3. Chart updates in real-time as parameters change.
 
-### Phase 438: MultiPlot3D Subplot Grid
+**Plans:** 1 plan
+Plans:
+- [ ] 445-01-PLAN.md — Add interactive parameter controls and live preview
 
-**Goal:** Add MultiPlot3D container for N×M subplot arrangements.
-**Depends on:** Phase 437
-**Requirements:** MULTI-01, MULTI-02, MULTI-03, MULTI-04, MULTI-05
+### Phase 446: Cookbook Catalog Integration and Completeness
+
+**Goal:** Integrate all recipes into catalog and verify completeness.
+**Depends on:** Phase 445
+**Requirements:** COOK-01, COOK-04
 **Success Criteria:**
-1. `MultiPlot3D(rows, cols)` creates grid layout with independent charts.
-2. Optional shared camera/axis via link groups works.
-3. `CaptureSnapshotAsync()` renders entire grid as single PNG.
-4. Demo shows 2×2 grid with different chart types.
+1. All 10 chart types have at least one runnable cookbook recipe.
+2. Cookbook recipe catalog is updated with all new recipes.
+3. All recipes are properly grouped and described.
+4. Demo builds and runs cleanly.
 
-### Phase 439: Extended DataLogger3D and v2.65 Verification
-
-**Goal:** Extend streaming to all chart types, add cookbook recipes, and close
-v2.65 with verification.
-**Depends on:** Phase 438
-**Requirements:** STREAM-01..04, COOK-01..04, TRUTH-01..04
-**Success Criteria:**
-1. DataLogger3D pattern works for Surface, Waterfall, and Bar charts.
-2. Cookbook recipes cover all new chart types, MultiPlot3D, and streaming.
-3. CI truth tests cover new chart type filters.
-4. Release-readiness confirms Bar+Contour in public package contract.
-5. All tests pass, beads closed, roadmap synced, git pushed.
+**Plans:** 1 plan
+Plans:
+- [ ] 446-01-PLAN.md — Final cookbook catalog integration and verification
 
 ## Progress
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 432. Chart Type Inventory and API Design | 1/1 | Complete    | 2026-04-30 |
-| 433. Promote Bar+Contour to Production | 1/1 | Complete    | 2026-04-30 |
-| 434. Line/Ribbon Chart Family | 4/4 | Complete    | 2026-04-30 |
-| 435. Vector Field Chart Family | 1/1 | Complete    | 2026-04-30 |
-| 436. 3D Heatmap Slice Chart Family | 1/1 | Complete    | 2026-04-30 |
-| 437. Box Plot Chart Family | 1/1 | Complete    | 2026-04-30 |
-| 438. MultiPlot3D Subplot Grid | 1/1 | Complete    | 2026-04-30 |
-| 439. Extended DataLogger3D and v2.65 Verification | 1/1 | Complete | 2026-04-30 |
+| 440. Demo Framework Architecture Refactor | 0/1 | Not started | — |
+| 441. Line/Ribbon/VectorField Cookbook Recipes | 0/1 | Not started | — |
+| 442. HeatmapSlice/BoxPlot Cookbook Recipes | 0/1 | Not started | — |
+| 443. MultiPlot3D Cookbook Recipes | 0/1 | Not started | — |
+| 444. DataLogger3D Streaming Cookbook Recipes | 0/1 | Not started | — |
+| 445. Interactive Parameter Controls and Live Preview | 0/1 | Not started | — |
+| 446. Cookbook Catalog Integration and Completeness | 0/1 | Not started | — |
 
 ---
 
 <details>
-<summary>v2.64 Native SurfaceCharts Analysis Workspace and Streaming Evidence - Complete (2026-04-30)</summary>
+<summary>v2.65 3D ScottPlot5 Analytics Chart Expansion - Complete (2026-04-30)</summary>
 
-Archived phase artifacts: `.planning/milestones/v2.64-phases`
+Archived phase artifacts: `.planning/milestones/v2.65-phases`
 
-v2.64 added native multi-chart analysis workspace, linked interaction with
-CameraOnly/AxisOnly policies, interaction propagation, streaming evidence
-tracking, cookbook recipes, CI truth tests, and release-readiness guardrails
-while preserving the single native `VideraChartView` + `Plot.Add.*` route.
+v2.65 added 5 new chart families (Line/Ribbon, VectorField, HeatmapSlice,
+BoxPlot), MultiPlot3D subplot grid, DataLogger3D streaming for
+Surface/Waterfall/Bar, and promoted Bar+Contour to public API contract.
 
 </details>
