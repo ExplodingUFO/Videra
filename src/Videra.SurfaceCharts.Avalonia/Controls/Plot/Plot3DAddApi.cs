@@ -179,6 +179,132 @@ public sealed class Plot3DAddApi
         return (ContourPlot3DSeries)_plot.AddSeries(new ContourPlot3DSeries(name, data));
     }
 
+    /// <summary>
+    /// Adds a 3D line series from coordinate arrays.
+    /// </summary>
+    /// <param name="xs">The X coordinates. Must not be empty.</param>
+    /// <param name="ys">The Y (value) coordinates. Length must match xs.</param>
+    /// <param name="zs">The Z (depth) coordinates. Length must match xs.</param>
+    /// <param name="name">Optional series name.</param>
+    public LinePlot3DSeries Line(double[] xs, double[] ys, double[] zs, string? name = null)
+    {
+        ArgumentNullException.ThrowIfNull(xs);
+        ArgumentNullException.ThrowIfNull(ys);
+        ArgumentNullException.ThrowIfNull(zs);
+        if (xs.Length == 0)
+        {
+            throw new ArgumentException("Line coordinate arrays must include at least one point.", nameof(xs));
+        }
+
+        if (xs.Length != ys.Length || xs.Length != zs.Length)
+        {
+            throw new ArgumentException("Line coordinate arrays must have matching lengths.", nameof(xs));
+        }
+
+        var points = new ScatterPoint[xs.Length];
+        var xMin = double.MaxValue;
+        var xMax = double.MinValue;
+        var yMin = double.MaxValue;
+        var yMax = double.MinValue;
+        var zMin = double.MaxValue;
+        var zMax = double.MinValue;
+        for (var i = 0; i < xs.Length; i++)
+        {
+            var pt = new ScatterPoint(xs[i], ys[i], zs[i]);
+            points[i] = pt;
+            xMin = Math.Min(xMin, pt.Horizontal);
+            xMax = Math.Max(xMax, pt.Horizontal);
+            yMin = Math.Min(yMin, pt.Value);
+            yMax = Math.Max(yMax, pt.Value);
+            zMin = Math.Min(zMin, pt.Depth);
+            zMax = Math.Max(zMax, pt.Depth);
+        }
+
+        var metadata = new ScatterChartMetadata(
+            new SurfaceAxisDescriptor("X", null, xMin, xMax),
+            new SurfaceAxisDescriptor("Z", null, zMin, zMax),
+            new SurfaceValueRange(yMin, yMax));
+        var series = new LineSeries(points, color: 0xFF4DA3FFu, label: name);
+        return Line(new LineChartData([series], metadata), name);
+    }
+
+    /// <summary>
+    /// Adds a 3D line series from a full line dataset.
+    /// </summary>
+    /// <param name="data">The line dataset.</param>
+    /// <param name="name">Optional series name.</param>
+    public LinePlot3DSeries Line(LineChartData data, string? name = null)
+    {
+        ArgumentNullException.ThrowIfNull(data);
+        return (LinePlot3DSeries)_plot.AddSeries(new LinePlot3DSeries(name, data));
+    }
+
+    /// <summary>
+    /// Adds a 3D ribbon series from coordinate arrays with a tube radius.
+    /// </summary>
+    /// <param name="xs">The X coordinates. Must not be empty.</param>
+    /// <param name="ys">The Y (value) coordinates. Length must match xs.</param>
+    /// <param name="zs">The Z (depth) coordinates. Length must match xs.</param>
+    /// <param name="radius">The tube radius. Must be positive.</param>
+    /// <param name="name">Optional series name.</param>
+    public RibbonPlot3DSeries Ribbon(double[] xs, double[] ys, double[] zs, float radius, string? name = null)
+    {
+        ArgumentNullException.ThrowIfNull(xs);
+        ArgumentNullException.ThrowIfNull(ys);
+        ArgumentNullException.ThrowIfNull(zs);
+        if (xs.Length == 0)
+        {
+            throw new ArgumentException("Ribbon coordinate arrays must include at least one point.", nameof(xs));
+        }
+
+        if (xs.Length != ys.Length || xs.Length != zs.Length)
+        {
+            throw new ArgumentException("Ribbon coordinate arrays must have matching lengths.", nameof(xs));
+        }
+
+        if (radius <= 0f)
+        {
+            throw new ArgumentOutOfRangeException(nameof(radius), "Ribbon radius must be positive.");
+        }
+
+        var points = new ScatterPoint[xs.Length];
+        var xMin = double.MaxValue;
+        var xMax = double.MinValue;
+        var yMin = double.MaxValue;
+        var yMax = double.MinValue;
+        var zMin = double.MaxValue;
+        var zMax = double.MinValue;
+        for (var i = 0; i < xs.Length; i++)
+        {
+            var pt = new ScatterPoint(xs[i], ys[i], zs[i]);
+            points[i] = pt;
+            xMin = Math.Min(xMin, pt.Horizontal);
+            xMax = Math.Max(xMax, pt.Horizontal);
+            yMin = Math.Min(yMin, pt.Value);
+            yMax = Math.Max(yMax, pt.Value);
+            zMin = Math.Min(zMin, pt.Depth);
+            zMax = Math.Max(zMax, pt.Depth);
+        }
+
+        var metadata = new ScatterChartMetadata(
+            new SurfaceAxisDescriptor("X", null, xMin, xMax),
+            new SurfaceAxisDescriptor("Z", null, zMin, zMax),
+            new SurfaceValueRange(yMin, yMax));
+        var series = new RibbonSeries(points, radius, color: 0xFF9B59B6u, label: name);
+        return Ribbon(new RibbonChartData([series], metadata), name);
+    }
+
+    /// <summary>
+    /// Adds a 3D ribbon series from a full ribbon dataset.
+    /// </summary>
+    /// <param name="data">The ribbon dataset.</param>
+    /// <param name="name">Optional series name.</param>
+    public RibbonPlot3DSeries Ribbon(RibbonChartData data, string? name = null)
+    {
+        ArgumentNullException.ThrowIfNull(data);
+        return (RibbonPlot3DSeries)_plot.AddSeries(new RibbonPlot3DSeries(name, data));
+    }
+
     private static SurfaceMatrix CreateSurfaceMatrix(double[,] values)
     {
         ArgumentNullException.ThrowIfNull(values);

@@ -72,6 +72,50 @@ internal static class Plot3DSeriesComposition
         return new BarChartData(datasets.SelectMany(static data => data.Series).ToArray(), first.Layout);
     }
 
+    public static LineChartData? CreateLineData(IReadOnlyList<Plot3DSeries> series)
+    {
+        var datasets = series
+            .Select(static item => item.LineData)
+            .OfType<LineChartData>()
+            .ToArray();
+
+        if (datasets.Length == 0)
+        {
+            return null;
+        }
+
+        if (datasets.Length == 1)
+        {
+            return datasets[0];
+        }
+
+        var allSeries = datasets.SelectMany(static data => data.Series).ToArray();
+        var metadata = CreateScatterMetadata(datasets.Select(static d => d.Metadata).ToArray());
+        return new LineChartData(allSeries, metadata);
+    }
+
+    public static RibbonChartData? CreateRibbonData(IReadOnlyList<Plot3DSeries> series)
+    {
+        var datasets = series
+            .Select(static item => item.RibbonData)
+            .OfType<RibbonChartData>()
+            .ToArray();
+
+        if (datasets.Length == 0)
+        {
+            return null;
+        }
+
+        if (datasets.Length == 1)
+        {
+            return datasets[0];
+        }
+
+        var allSeries = datasets.SelectMany(static data => data.Series).ToArray();
+        var metadata = CreateScatterMetadata(datasets.Select(static d => d.Metadata).ToArray());
+        return new RibbonChartData(allSeries, metadata);
+    }
+
     private static ScatterChartMetadata CreateScatterMetadata(IReadOnlyList<ScatterChartData> datasets)
     {
         var first = datasets[0].Metadata;
@@ -79,6 +123,15 @@ internal static class Plot3DSeriesComposition
             CreateAxisUnion(first.HorizontalAxis, datasets.Select(static data => data.Metadata.HorizontalAxis)),
             CreateAxisUnion(first.DepthAxis, datasets.Select(static data => data.Metadata.DepthAxis)),
             CreateValueRangeUnion(datasets.Select(static data => data.Metadata.ValueRange)));
+    }
+
+    private static ScatterChartMetadata CreateScatterMetadata(IReadOnlyList<ScatterChartMetadata> metadatas)
+    {
+        var first = metadatas[0];
+        return new ScatterChartMetadata(
+            CreateAxisUnion(first.HorizontalAxis, metadatas.Select(static m => m.HorizontalAxis)),
+            CreateAxisUnion(first.DepthAxis, metadatas.Select(static m => m.DepthAxis)),
+            CreateValueRangeUnion(metadatas.Select(static m => m.ValueRange)));
     }
 
     private static SurfaceAxisDescriptor CreateAxisUnion(

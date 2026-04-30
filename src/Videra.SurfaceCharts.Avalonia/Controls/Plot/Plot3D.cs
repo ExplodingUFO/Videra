@@ -157,6 +157,34 @@ public sealed class Plot3D
         }
     }
 
+    internal LineChartData? ActiveLineData =>
+        ActiveSeries?.Kind == Plot3DSeriesKind.Line
+            ? Plot3DSeriesComposition.CreateLineData(GetVisibleSeries(Plot3DSeriesKind.Line))
+            : null;
+
+    internal Plot3DSeries? ActiveLineSeries
+    {
+        get
+        {
+            var activeSeries = ActiveSeries;
+            return activeSeries?.Kind == Plot3DSeriesKind.Line ? activeSeries : null;
+        }
+    }
+
+    internal RibbonChartData? ActiveRibbonData =>
+        ActiveSeries?.Kind == Plot3DSeriesKind.Ribbon
+            ? Plot3DSeriesComposition.CreateRibbonData(GetVisibleSeries(Plot3DSeriesKind.Ribbon))
+            : null;
+
+    internal Plot3DSeries? ActiveRibbonSeries
+    {
+        get
+        {
+            var activeSeries = ActiveSeries;
+            return activeSeries?.Kind == Plot3DSeriesKind.Ribbon ? activeSeries : null;
+        }
+    }
+
     /// <summary>
     /// Gets or sets the optional color map used by surface and waterfall series.
     /// </summary>
