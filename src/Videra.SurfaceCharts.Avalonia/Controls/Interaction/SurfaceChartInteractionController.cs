@@ -110,16 +110,18 @@ internal sealed class SurfaceChartInteractionController
                 !_hasExceededDragThreshold &&
                 GetTravelDistance(pressPosition, position) < DragThreshold;
         }
-        else if (handled &&
-                 _gestureMode == SurfaceChartGestureMode.FocusSelection &&
-                 _hasExceededDragThreshold &&
-                 ActiveSelectionRect is Rect selectionRect)
+        Rect? completedSelectionRect = null;
+        if (handled &&
+            _gestureMode == SurfaceChartGestureMode.FocusSelection &&
+            _hasExceededDragThreshold &&
+            ActiveSelectionRect is Rect selectionRect)
         {
+            completedSelectionRect = selectionRect;
             CompleteFocusSelection(runtime, selectionRect);
         }
 
         Reset();
-        return new SurfaceChartPointerReleaseResult(handled, shouldTogglePin);
+        return new SurfaceChartPointerReleaseResult(handled, shouldTogglePin, completedSelectionRect);
     }
 
     public static bool HandlePointerWheelChanged(
@@ -387,7 +389,7 @@ internal sealed class SurfaceChartInteractionController
     }
 }
 
-internal readonly record struct SurfaceChartPointerReleaseResult(bool Handled, bool TogglePinnedProbe);
+internal readonly record struct SurfaceChartPointerReleaseResult(bool Handled, bool TogglePinnedProbe, Rect? SelectionRect = null);
 
 internal enum SurfaceChartGestureMode
 {

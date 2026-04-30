@@ -113,6 +113,25 @@ public sealed class SurfaceChartSelectionReport
 }
 
 /// <summary>
+/// Provides event data for a host-owned chart selection report.
+/// </summary>
+public sealed class SurfaceChartSelectionReportedEventArgs : EventArgs
+{
+    /// <summary>
+    /// Initializes a new instance of the <see cref="SurfaceChartSelectionReportedEventArgs"/> class.
+    /// </summary>
+    public SurfaceChartSelectionReportedEventArgs(SurfaceChartSelectionReport report)
+    {
+        Report = report ?? throw new ArgumentNullException(nameof(report));
+    }
+
+    /// <summary>
+    /// Gets the immutable selection report.
+    /// </summary>
+    public SurfaceChartSelectionReport Report { get; }
+}
+
+/// <summary>
 /// Describes the shape of a host-owned chart selection report.
 /// </summary>
 public enum SurfaceChartSelectionKind

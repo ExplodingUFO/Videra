@@ -194,6 +194,55 @@ public sealed class SurfaceChartInteractionTests
     }
 
     [Fact]
+    public Task CtrlLeftDrag_BoxZoom_RaisesSelectionReported()
+    {
+        return AvaloniaHeadlessTestSession.RunAsync(async () =>
+        {
+            var source = new ScriptedSurfaceTileSource(VideraChartViewLifecycleTests.CreateMetadata(), defaultTileValue: 11f);
+            var view = new RoutedInteractionTestView();
+            var pointer = new Pointer(1, PointerType.Mouse, isPrimary: true);
+            var reports = new List<SurfaceChartSelectionReport>();
+
+            view.SelectionReported += (_, args) => reports.Add(args.Report);
+            view.Measure(new Size(256, 192));
+            view.Arrange(new Rect(0, 0, 256, 192));
+            SurfaceChartTestHelpers.LoadSurface(view, source);
+
+            await SurfaceChartTestHelpers.WaitForLoadedTileValuesAsync(view, [11f]);
+
+            view.ZoomTo(new SurfaceDataWindow(128d, 128d, 256d, 256d));
+            view.ResetCamera();
+
+            var start = new Point(64d, 48d);
+            var end = new Point(192d, 144d);
+
+            view.RoutePointerPressed(
+                pointer,
+                start,
+                RawInputModifiers.LeftMouseButton | RawInputModifiers.Control,
+                PointerUpdateKind.LeftButtonPressed,
+                KeyModifiers.Control);
+            view.RoutePointerMoved(pointer, end, RawInputModifiers.LeftMouseButton | RawInputModifiers.Control, KeyModifiers.Control);
+            view.RoutePointerReleased(
+                pointer,
+                end,
+                RawInputModifiers.Control,
+                PointerUpdateKind.LeftButtonReleased,
+                MouseButton.Left,
+                KeyModifiers.Control);
+
+            reports.Should().ContainSingle();
+            reports[0].Kind.Should().Be(SurfaceChartSelectionKind.Rectangle);
+            reports[0].DataWindow.HasValue.Should().BeTrue();
+            var dataWindow = reports[0].DataWindow.GetValueOrDefault();
+            dataWindow.StartX.Should().BeApproximately(192d, 0.0001d);
+            dataWindow.StartY.Should().BeApproximately(192d, 0.0001d);
+            dataWindow.Width.Should().BeApproximately(128d, 0.0001d);
+            dataWindow.Height.Should().BeApproximately(128d, 0.0001d);
+        });
+    }
+
+    [Fact]
     public Task BoxZoom_BelowThreshold_DoesNotCreateDegenerateWindow()
     {
         return AvaloniaHeadlessTestSession.RunAsync(async () =>

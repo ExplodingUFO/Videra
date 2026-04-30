@@ -23,6 +23,11 @@ public partial class VideraChartView
             defaultValue: SurfaceChartInteractionProfile.Default);
 
     /// <summary>
+    /// Raised when a built-in focus-selection gesture produces an immutable selection report.
+    /// </summary>
+    public event EventHandler<SurfaceChartSelectionReportedEventArgs>? SelectionReported;
+
+    /// <summary>
     /// Gets or sets the chart-local built-in interaction and command profile.
     /// </summary>
     public SurfaceChartInteractionProfile InteractionProfile
@@ -145,6 +150,11 @@ public partial class VideraChartView
 
         var pointerPosition = e.GetPosition(this);
         UpdateProbeScreenPosition(pointerPosition);
+        SurfaceChartSelectionReport? pendingSelectionReport = null;
+        if (_interactionController.ActiveSelectionRect is Rect selectionRect)
+        {
+            TryCreateSelectionReport(selectionRect.TopLeft, selectionRect.BottomRight, out pendingSelectionReport);
+        }
 
         var releaseResult = _interactionController.HandlePointerReleased(
             e.InitialPressMouseButton,
@@ -156,6 +166,11 @@ public partial class VideraChartView
             GetHoveredProbe() is SurfaceProbeInfo hoveredProbe)
         {
             TogglePinnedProbe(hoveredProbe);
+        }
+
+        if (releaseResult.SelectionRect is not null && pendingSelectionReport is not null)
+        {
+            SelectionReported?.Invoke(this, new SurfaceChartSelectionReportedEventArgs(pendingSelectionReport));
         }
 
         if (releaseResult.Handled)
