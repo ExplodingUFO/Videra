@@ -1027,6 +1027,27 @@ public sealed class RepositoryReleaseReadinessTests
         policy.Should().Contain("within 5 business days");
     }
 
+    [Fact]
+    public void SurfaceChartsScopeDocs_ShouldNotClaimGenericWorkbenchOrCompatibilityAdapters()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var cutover = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "surfacecharts-release-cutover.md"));
+        var handoff = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "surfacecharts-release-candidate-handoff.md"));
+        var supportMatrix = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "support-matrix.md"));
+
+        cutover.Should().NotContain("generic workbench");
+        cutover.Should().NotContain("compatibility adapter");
+        cutover.Should().NotContain("hidden fallback");
+
+        handoff.Should().NotContain("generic workbench");
+        handoff.Should().NotContain("compatibility adapter");
+        handoff.Should().NotContain("hidden fallback");
+
+        supportMatrix.Should().NotContain("generic workbench");
+        supportMatrix.Should().NotContain("compatibility adapter");
+        supportMatrix.Should().NotContain("hidden fallback");
+    }
+
     private static string GetRepositoryRoot()
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);
