@@ -21,6 +21,15 @@ public partial class MainWindow : Window
     private readonly VideraChartView _scatterChartView;
     private readonly VideraChartView _barChartView;
     private readonly VideraChartView _contourPlotView;
+    private readonly VideraChartView _workspaceChartA;
+    private readonly VideraChartView _workspaceChartB;
+    private readonly VideraChartView _workspaceChartC;
+    private readonly VideraChartView _workspaceChartD;
+    private readonly Grid _analysisWorkspacePanel;
+    private readonly Border _workspaceToolbarPanel;
+    private readonly TextBlock _workspaceStatusText;
+    private readonly Button _copyWorkspaceEvidenceButton;
+    private SurfaceChartWorkspaceService? _workspaceService;
     private readonly ComboBox _sourceSelector;
     private readonly Grid _scatterScenarioPanel;
     private readonly ComboBox _scatterScenarioSelector;
@@ -70,6 +79,22 @@ public partial class MainWindow : Window
             ?? throw new InvalidOperationException("BarChartPlotView is missing.");
         _contourPlotView = this.FindControl<VideraChartView>("ContourPlotView")
             ?? throw new InvalidOperationException("ContourPlotView is missing.");
+        _workspaceChartA = this.FindControl<VideraChartView>("WorkspaceChartA")
+            ?? throw new InvalidOperationException("WorkspaceChartA is missing.");
+        _workspaceChartB = this.FindControl<VideraChartView>("WorkspaceChartB")
+            ?? throw new InvalidOperationException("WorkspaceChartB is missing.");
+        _workspaceChartC = this.FindControl<VideraChartView>("WorkspaceChartC")
+            ?? throw new InvalidOperationException("WorkspaceChartC is missing.");
+        _workspaceChartD = this.FindControl<VideraChartView>("WorkspaceChartD")
+            ?? throw new InvalidOperationException("WorkspaceChartD is missing.");
+        _analysisWorkspacePanel = this.FindControl<Grid>("AnalysisWorkspacePanel")
+            ?? throw new InvalidOperationException("AnalysisWorkspacePanel is missing.");
+        _workspaceToolbarPanel = this.FindControl<Border>("WorkspaceToolbarPanel")
+            ?? throw new InvalidOperationException("WorkspaceToolbarPanel is missing.");
+        _workspaceStatusText = this.FindControl<TextBlock>("WorkspaceStatusText")
+            ?? throw new InvalidOperationException("WorkspaceStatusText is missing.");
+        _copyWorkspaceEvidenceButton = this.FindControl<Button>("CopyWorkspaceEvidenceButton")
+            ?? throw new InvalidOperationException("CopyWorkspaceEvidenceButton is missing.");
         _sourceSelector = this.FindControl<ComboBox>("SourceSelector")
             ?? throw new InvalidOperationException("Source selector is missing.");
         _scatterScenarioPanel = this.FindControl<Grid>("ScatterScenarioPanel")
@@ -128,6 +153,10 @@ public partial class MainWindow : Window
         ConfigureScatterFamilyChartView(_scatterChartView);
         ConfigureSurfaceFamilyChartView(_barChartView);
         ConfigureSurfaceFamilyChartView(_contourPlotView);
+        ConfigureSurfaceFamilyChartView(_workspaceChartA);
+        ConfigureSurfaceFamilyChartView(_workspaceChartB);
+        ConfigureSurfaceFamilyChartView(_workspaceChartC);
+        ConfigureSurfaceFamilyChartView(_workspaceChartD);
 
         _sourceSelector.ItemsSource = SurfaceDemoScenarios.All;
         _scatterScenarioSelector.ItemsSource = ScatterStreamingScenarios.All;
@@ -151,6 +180,7 @@ public partial class MainWindow : Window
         _resetCameraButton.Click += OnResetCameraClicked;
         _copyRecipeSnippetButton.Click += OnCopyRecipeSnippetClicked;
         _copySupportSummaryButton.Click += OnCopySupportSummaryClicked;
+        _copyWorkspaceEvidenceButton.Click += OnCopyWorkspaceEvidenceClicked;
 
         _cachePathText.Text = $"Manifest: {_cachePath}\nPayload sidecar: {_cachePayloadPath}";
         ApplyCookbookRecipe(CookbookRecipes.All[0]);
@@ -251,6 +281,12 @@ public partial class MainWindow : Window
         if (scenario.Id == SurfaceDemoScenarios.ContourId)
         {
             ApplyContourSource(scenario);
+            return;
+        }
+
+        if (scenario.Id == SurfaceDemoScenarios.AnalysisWorkspaceId)
+        {
+            ApplyAnalysisWorkspace(scenario);
             return;
         }
     }
@@ -443,6 +479,96 @@ public partial class MainWindow : Window
         _scatterChartView.IsVisible = ReferenceEquals(chartView, _scatterChartView);
         _barChartView.IsVisible = ReferenceEquals(chartView, _barChartView);
         _contourPlotView.IsVisible = ReferenceEquals(chartView, _contourPlotView);
+        _analysisWorkspacePanel.IsVisible = false;
+        _workspaceToolbarPanel.IsVisible = false;
+    }
+
+    private void ApplyAnalysisWorkspace(SurfaceDemoScenario scenario)
+    {
+        // Hide all single-chart panels, show workspace panel.
+        _surfaceChartView.IsVisible = false;
+        _waterfallChartView.IsVisible = false;
+        _scatterChartView.IsVisible = false;
+        _barChartView.IsVisible = false;
+        _contourPlotView.IsVisible = false;
+        _analysisWorkspacePanel.IsVisible = true;
+        _workspaceToolbarPanel.IsVisible = true;
+
+        // Dispose old workspace service if any.
+        _workspaceService?.Dispose();
+
+        // Create new workspace service and register 4 charts with different kinds.
+        var service = new SurfaceChartWorkspaceService();
+        service.RegisterCharts(new List<(VideraChartView, string, Plot3DSeriesKind)>
+        {
+            (_workspaceChartA, "Surface A", Plot3DSeriesKind.Surface),
+            (_workspaceChartB, "Bar B", Plot3DSeriesKind.Bar),
+            (_workspaceChartC, "Scatter C", Plot3DSeriesKind.Scatter),
+            (_workspaceChartD, "Contour D", Plot3DSeriesKind.Contour),
+        });
+
+        // Load data into each workspace chart.
+        _workspaceChartA.Plot.Clear();
+        _workspaceChartA.Plot.Add.Surface(_inMemorySource, "Surface A");
+        _workspaceChartA.Plot.ColorMap = CreateColorMap(_inMemorySource.Metadata.ValueRange);
+        _workspaceChartA.FitToData();
+
+        var barData = CreateSampleBarData();
+        _workspaceChartB.Plot.Clear();
+        _workspaceChartB.Plot.Add.Bar(barData, "Bar B");
+        _workspaceChartB.FitToData();
+
+        var scatterScenario = ScatterStreamingScenarios.Get("scatter-replace-100k");
+        var scatterData = CreateScatterSource(scatterScenario);
+        _workspaceChartC.Plot.Clear();
+        _workspaceChartC.Plot.Add.Scatter(scatterData, "Scatter C");
+        _workspaceChartC.FitToData();
+
+        var contourField = CreateSampleContourField();
+        _workspaceChartD.Plot.Clear();
+        _workspaceChartD.Plot.Add.Contour(contourField, "Contour D");
+        _workspaceChartD.FitToData();
+
+        // Set active chart and update workspace status display.
+        service.SetActiveChart(service.GetWorkspaceStatus().Panels[0].ChartId);
+        _workspaceService = service;
+
+        var status = service.GetWorkspaceStatus();
+        _workspaceStatusText.Text =
+            $"Charts: {status.ChartCount} | Active: {status.ActiveChartId ?? "none"} | " +
+            $"Link groups: {status.LinkGroupCount} | All ready: {status.AllReady}\n" +
+            string.Join("\n", status.Panels.Select(p =>
+                $"  {p.Label} ({p.ChartKind}): Ready={p.IsReady}, Series={p.SeriesCount}, Points={p.PointCount}"));
+
+        _activePlotPathHeading = scenario.Label;
+        _activePlotPathDetails = "Multi-chart analysis workspace with 4 charts in a 2x2 grid. Delegates workspace state to SurfaceChartWorkspaceService.";
+        _activeDatasetSummary = "Analysis workspace contains Surface, Bar, Scatter, and Contour charts registered in a SurfaceChartWorkspace.";
+        _activeAssetSummary = "No additional assets are used on this path.";
+        _datasetText.Text = _activeDatasetSummary;
+        RefreshActiveProofTexts();
+    }
+
+    private async void OnCopyWorkspaceEvidenceClicked(object? sender, RoutedEventArgs e)
+    {
+        _ = sender;
+        _ = e;
+
+        if (_workspaceService is null)
+        {
+            _workspaceStatusText.Text = "No workspace is active.";
+            return;
+        }
+
+        var evidence = _workspaceService.GetWorkspaceEvidence();
+        var topLevel = TopLevel.GetTopLevel(this);
+        if (topLevel?.Clipboard is { } clipboard)
+        {
+            await clipboard.SetTextAsync(evidence).ConfigureAwait(true);
+            _workspaceStatusText.Text = "Copied workspace evidence to clipboard.";
+            return;
+        }
+
+        _workspaceStatusText.Text = "Clipboard is unavailable. Workspace evidence remains in memory.";
     }
 
     private bool IsSelectedScenario(string scenarioId)

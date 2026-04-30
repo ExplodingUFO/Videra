@@ -42,6 +42,15 @@
                                 IsVisible="False" />
         <charts:VideraChartView x:Name="ContourPlotView"
                                 IsVisible="False" />
+        <Grid x:Name="AnalysisWorkspacePanel"
+              IsVisible="False"
+              RowDefinitions="*,*"
+              ColumnDefinitions="*,*">
+          <charts:VideraChartView x:Name="WorkspaceChartA" Grid.Row="0" Grid.Column="0" Margin="2" />
+          <charts:VideraChartView x:Name="WorkspaceChartB" Grid.Row="0" Grid.Column="1" Margin="2" />
+          <charts:VideraChartView x:Name="WorkspaceChartC" Grid.Row="1" Grid.Column="0" Margin="2" />
+          <charts:VideraChartView x:Name="WorkspaceChartD" Grid.Row="1" Grid.Column="1" Margin="2" />
+        </Grid>
         </Grid>
     </Border>
 
@@ -285,6 +294,27 @@
             <TextBlock x:Name="DatasetText"
                        Foreground="#CBD5E1"
                        TextWrapping="Wrap" />
+          </StackPanel>
+        </Border>
+
+        <Border x:Name="WorkspaceToolbarPanel"
+                Padding="18"
+                Background="#111A2B"
+                BorderBrush="#1F2B44"
+                BorderThickness="1"
+                CornerRadius="18"
+                IsVisible="False">
+          <StackPanel Spacing="8">
+            <TextBlock FontSize="16"
+                       FontWeight="SemiBold"
+                       Foreground="#E2E8F0"
+                       Text="Analysis workspace" />
+            <TextBlock x:Name="WorkspaceStatusText"
+                       Foreground="#CBD5E1"
+                       TextWrapping="Wrap" />
+            <Button x:Name="CopyWorkspaceEvidenceButton"
+                    HorizontalAlignment="Left"
+                    Content="Copy workspace evidence" />
           </StackPanel>
         </Border>
 

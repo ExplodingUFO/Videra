@@ -19,6 +19,7 @@ internal static class SurfaceDemoScenarios
     public const string ScatterId = "scatter-proof";
     public const string BarId = "bar-proof";
     public const string ContourId = "contour-proof";
+    public const string AnalysisWorkspaceId = "analysis-workspace";
 
     public static IReadOnlyList<SurfaceDemoScenario> All { get; } =
     [
@@ -64,6 +65,12 @@ internal static class SurfaceDemoScenarios
             "Contour",
             "Contour",
             "Uses a radial scalar field with explicit contour levels."),
+        new(
+            AnalysisWorkspaceId,
+            "Try next: Analysis workspace",
+            "Multi-chart",
+            "Analysis workspace",
+            "Shows four VideraChartView instances in a bounded 2x2 grid with workspace status and evidence."),
     ];
 
     public static SurfaceDemoScenario Get(string id)
