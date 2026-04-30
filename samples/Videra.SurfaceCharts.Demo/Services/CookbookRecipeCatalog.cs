@@ -445,5 +445,38 @@ internal static class CookbookRecipes
                 chart.Plot.Add.Pie(slices, holeRatio: 0.4, name: "Department budget");
                 chart.FitToData();
                 """),
+        new(
+            "Error bar",
+            "Scatter with error bars",
+            "Isolated setup path: adds symmetric and asymmetric X/Y error bars to a scatter plot.",
+            ScenarioId: SurfaceDemoScenarios.ErrorBarId,
+            ScatterScenarioId: null,
+            Snippet: """
+                var scatterData = new ScatterChartData(
+                    new ScatterChartMetadata(
+                        new SurfaceAxisDescriptor("X", "u", 0, 10),
+                        new SurfaceAxisDescriptor("Y", "u", 0, 10),
+                        new SurfaceValueRange(0, 10)),
+                    [new ScatterSeries([
+                        new ScatterPoint(1, 2, 0),
+                        new ScatterPoint(3, 5, 0),
+                        new ScatterPoint(5, 4, 0),
+                        new ScatterPoint(7, 8, 0),
+                        new ScatterPoint(9, 6, 0),
+                    ], 0xFF38BDF8u, "Measurements")]);
+
+                chart.Plot.Clear();
+                chart.Plot.Add.Scatter(scatterData, "Scatter");
+
+                var errors = new ErrorBarData([
+                    new ErrorBarEntry(0.3, 0.5),   // symmetric
+                    new ErrorBarEntry(0.2, 0.4, 0.6, 0.3), // asymmetric
+                    new ErrorBarEntry(0.4, 0.4),
+                    new ErrorBarEntry(0.5, 0.2, 0.3, 0.7),
+                    new ErrorBarEntry(0.3, 0.5),
+                ], color: 0xFFFFFFFFu, capSize: 6);
+                chart.Plot.Add.ErrorBar(errors);
+                chart.FitToData();
+                """),
     ];
 }

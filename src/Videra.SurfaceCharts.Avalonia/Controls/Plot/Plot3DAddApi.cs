@@ -457,6 +457,20 @@ public sealed class Plot3DAddApi
         return (PiePlot3DSeries)_plot.AddSeries(new PiePlot3DSeries(name, data));
     }
 
+    /// <summary>
+    /// Attaches error bar data to the most recently added scatter series.
+    /// </summary>
+    public ScatterPlot3DSeries ErrorBar(ErrorBarData errorBarData)
+    {
+        ArgumentNullException.ThrowIfNull(errorBarData);
+
+        var scatterSeries = _plot.ActiveSeries as ScatterPlot3DSeries
+            ?? throw new InvalidOperationException("ErrorBar requires an active scatter series. Add a scatter series first.");
+
+        scatterSeries.ErrorBarData = errorBarData;
+        return scatterSeries;
+    }
+
     private static SurfaceMatrix CreateSurfaceMatrix(double[,] values)
     {
         ArgumentNullException.ThrowIfNull(values);

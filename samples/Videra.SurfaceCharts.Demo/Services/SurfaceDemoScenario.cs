@@ -34,6 +34,7 @@ internal static class SurfaceDemoScenarios
     public const string HistogramId = "histogram-proof";
     public const string FunctionPlotId = "function-plot-proof";
     public const string PieId = "pie-proof";
+    public const string ErrorBarId = "error-bar-proof";
 
     public static IReadOnlyList<SurfaceDemoScenario> All { get; } =
     [
@@ -169,6 +170,12 @@ internal static class SurfaceDemoScenarios
             "Pie",
             "Pie",
             "Uses configurable slices with labels, colors, explode offset, and donut hole ratio."),
+        new(
+            ErrorBarId,
+            "Try next: Error bar proof",
+            "Scatter",
+            "Error bar",
+            "Uses symmetric and asymmetric X/Y error bars on scatter points with configurable cap size and color."),
     ];
 
     public static SurfaceDemoScenario Get(string id)

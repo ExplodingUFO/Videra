@@ -417,6 +417,12 @@ public partial class MainWindow : Window
             return;
         }
 
+        if (scenario.Id == SurfaceDemoScenarios.ErrorBarId)
+        {
+            ApplyErrorBarSource(scenario);
+            return;
+        }
+
         if (scenario.Id == SurfaceDemoScenarios.MultiPlot3DId)
         {
             SetupMultiPlot3DScenario(scenario);
@@ -789,6 +795,44 @@ public partial class MainWindow : Window
         _activePlotPathHeading = scenario.Label;
         _activePlotPathDetails = "Donut chart with 5 labeled slices, custom colors, and 40% hole ratio. Demonstrates Plot.Add.Pie with PieSlice and holeRatio.";
         _activeDatasetSummary = "Pie chart proof shows department budget distribution across 5 categories with donut mode.";
+        _activeAssetSummary = "No additional assets are used on this path.";
+        _datasetText.Text = _activeDatasetSummary;
+        RefreshActiveProofTexts();
+    }
+
+    private void ApplyErrorBarSource(SurfaceDemoScenario scenario)
+    {
+        SetActiveChartView(_scatterChartView);
+        _scatterChartView.Plot.Clear();
+
+        var xs = new double[] { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        var ys = new double[] { 2.1, 3.8, 4.6, 5.0, 4.2, 6.5, 7.8, 8.6, 6.2 };
+        var scatterPoints = xs.Select((x, i) => new ScatterPoint(x, ys[i], 0d)).ToArray();
+        var scatterData = new ScatterChartData(
+            new ScatterChartMetadata(
+                new SurfaceAxisDescriptor("X", "u", 0d, 10d),
+                new SurfaceAxisDescriptor("Y", "u", 0d, 10d),
+                new SurfaceValueRange(0d, 10d)),
+            [new ScatterSeries(scatterPoints, 0xFF38BDF8u, "Measurements")]);
+
+        var scatter = _scatterChartView.Plot.Add.Scatter(scatterData, scenario.Label);
+
+        var rng = new Random(42);
+        var errors = new ErrorBarData(
+            scatterPoints.Select(_ => new ErrorBarEntry(
+                xErrorLow: 0.2 + (rng.NextDouble() * 0.3),
+                xErrorHigh: 0.2 + (rng.NextDouble() * 0.3),
+                yErrorLow: 0.3 + (rng.NextDouble() * 0.4),
+                yErrorHigh: 0.3 + (rng.NextDouble() * 0.4))).ToArray(),
+            color: 0xCCFFFFFFu,
+            capSize: 6d,
+            lineWidth: 1.5d);
+        _scatterChartView.Plot.Add.ErrorBar(errors);
+
+        _scatterChartView.FitToData();
+        _activePlotPathHeading = scenario.Label;
+        _activePlotPathDetails = "Scatter plot with asymmetric X/Y error bars. Demonstrates ErrorBarData with per-point error values, configurable cap size, and color.";
+        _activeDatasetSummary = "Error bar proof shows 9 scatter points with random asymmetric errors in both X and Y dimensions.";
         _activeAssetSummary = "No additional assets are used on this path.";
         _datasetText.Text = _activeDatasetSummary;
         RefreshActiveProofTexts();

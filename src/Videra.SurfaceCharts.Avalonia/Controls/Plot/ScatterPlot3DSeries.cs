@@ -11,4 +11,9 @@ public sealed class ScatterPlot3DSeries : Plot3DSeries
         : base(Plot3DSeriesKind.Scatter, name, surfaceSource: null, data, barData: null, contourData: null, lineData: null, ribbonData: null, vectorFieldData: null, heatmapSliceData: null, boxPlotData: null)
     {
     }
+
+    /// <summary>
+    /// Gets or sets the optional error bar overlay data.
+    /// </summary>
+    public ErrorBarData? ErrorBarData { get; set; }
 }
