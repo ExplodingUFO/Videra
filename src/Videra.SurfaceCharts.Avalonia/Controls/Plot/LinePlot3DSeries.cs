@@ -52,4 +52,28 @@ public sealed class LinePlot3DSeries : Plot3DSeries
 
         ReplaceLineData(new LineChartData(series, data.Metadata));
     }
+
+    /// <summary>
+    /// Applies a color map to each point in the line series, setting per-point colors
+    /// based on the point's value (Y coordinate) mapped through the color map.
+    /// </summary>
+    /// <param name="colorMap">The color map to apply. Must not be null.</param>
+    public void SetColormap(SurfaceColorMap colorMap)
+    {
+        ArgumentNullException.ThrowIfNull(colorMap);
+        var data = LineData ?? throw new InvalidOperationException("Line series requires line data.");
+        var series = data.Series.ToArray();
+        for (var i = 0; i < series.Length; i++)
+        {
+            var s = series[i];
+            var coloredPoints = new ScatterPoint[s.Points.Count];
+            for (var j = 0; j < s.Points.Count; j++)
+            {
+                var pt = s.Points[j];
+                coloredPoints[j] = new ScatterPoint(pt.Horizontal, pt.Value, pt.Depth, colorMap.Map(pt.Value));
+            }
+            series[i] = new LineSeries(coloredPoints, s.Color, s.Width, s.Label);
+        }
+        ReplaceLineData(new LineChartData(series, data.Metadata));
+    }
 }

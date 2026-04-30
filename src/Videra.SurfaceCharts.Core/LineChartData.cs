@@ -62,6 +62,21 @@ public sealed class LineChartData
 }
 
 /// <summary>
+/// Defines the shape of markers rendered at each point of a line series.
+/// </summary>
+public enum MarkerShape
+{
+    /// <summary>No markers are rendered.</summary>
+    None,
+    /// <summary>Circular markers.</summary>
+    Circle,
+    /// <summary>Square markers.</summary>
+    Square,
+    /// <summary>Diamond-shaped markers.</summary>
+    Diamond
+}
+
+/// <summary>
 /// Represents one immutable line series defined by an array of polyline vertices.
 /// </summary>
 public sealed class LineSeries
@@ -75,14 +90,31 @@ public sealed class LineSeries
     /// <param name="color">The ARGB series color.</param>
     /// <param name="width">The line width in pixels. Defaults to 1.5.</param>
     /// <param name="label">The optional series label.</param>
-    public LineSeries(IReadOnlyList<ScatterPoint> points, uint color, float width = 1.5f, string? label = null)
+    /// <param name="markerShape">The marker shape. Defaults to <see cref="MarkerShape.None"/>.</param>
+    /// <param name="markerSize">The marker size in pixels. Must be positive. Defaults to 4.</param>
+    /// <param name="markerColor">Optional marker ARGB color. When null, uses the series <paramref name="color"/>.</param>
+    public LineSeries(
+        IReadOnlyList<ScatterPoint> points,
+        uint color,
+        float width = 1.5f,
+        string? label = null,
+        MarkerShape markerShape = MarkerShape.None,
+        float markerSize = 4f,
+        uint? markerColor = null)
     {
         ArgumentNullException.ThrowIfNull(points);
+        if (markerSize <= 0f)
+        {
+            throw new ArgumentOutOfRangeException(nameof(markerSize), "Marker size must be positive.");
+        }
 
         _pointsView = Array.AsReadOnly(points.ToArray());
         Color = color;
         Width = width;
         Label = label;
+        MarkerShape = markerShape;
+        MarkerSize = markerSize;
+        MarkerColor = markerColor;
     }
 
     /// <summary>
@@ -104,4 +136,15 @@ public sealed class LineSeries
     /// Gets the optional series label.
     /// </summary>
     public string? Label { get; }
+
+    /// <summary>Gets the marker shape. Defaults to <see cref="MarkerShape.None"/>.</summary>
+    public MarkerShape MarkerShape { get; }
+
+    /// <summary>Gets the marker size in pixels. Defaults to 4.</summary>
+    public float MarkerSize { get; }
+
+    /// <summary>
+    /// Gets the optional marker ARGB color. When null, uses the series <see cref="Color"/>.
+    /// </summary>
+    public uint? MarkerColor { get; }
 }
