@@ -10,7 +10,8 @@ public sealed class LinePlot3DSeries : Plot3DSeries
     internal LinePlot3DSeries(string? name, LineChartData data)
         : base(Plot3DSeriesKind.Line, name,
             surfaceSource: null, scatterData: null, barData: null, contourData: null,
-            lineData: data, ribbonData: null)
+            lineData: data, ribbonData: null,
+            vectorFieldData: null, heatmapSliceData: null, boxPlotData: null)
     {
     }
 

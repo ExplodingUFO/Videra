@@ -19,7 +19,10 @@ public class Plot3DSeries : IPlottable3D
         BarChartData? barData,
         ContourChartData? contourData,
         LineChartData? lineData,
-        RibbonChartData? ribbonData)
+        RibbonChartData? ribbonData,
+        VectorFieldChartData? vectorFieldData,
+        HeatmapSliceData? heatmapSliceData,
+        BoxPlotData? boxPlotData)
     {
         Kind = kind;
         _label = NormalizeLabel(name);
@@ -29,6 +32,9 @@ public class Plot3DSeries : IPlottable3D
         ContourData = contourData;
         LineData = lineData;
         RibbonData = ribbonData;
+        VectorFieldData = vectorFieldData;
+        HeatmapSliceData = heatmapSliceData;
+        BoxPlotData = boxPlotData;
     }
 
     /// <summary>
@@ -104,6 +110,21 @@ public class Plot3DSeries : IPlottable3D
     /// </summary>
     public RibbonChartData? RibbonData { get; private set; }
 
+    /// <summary>
+    /// Gets the vector field dataset for vector field series.
+    /// </summary>
+    public VectorFieldChartData? VectorFieldData { get; private set; }
+
+    /// <summary>
+    /// Gets the heatmap slice dataset for heatmap slice series.
+    /// </summary>
+    public HeatmapSliceData? HeatmapSliceData { get; private set; }
+
+    /// <summary>
+    /// Gets the box plot dataset for box plot series.
+    /// </summary>
+    public BoxPlotData? BoxPlotData { get; private set; }
+
     internal void Attach(Action changed)
     {
         _changed = changed ?? throw new ArgumentNullException(nameof(changed));
@@ -162,6 +183,57 @@ public class Plot3DSeries : IPlottable3D
         }
 
         RibbonData = data;
+        NotifyChanged();
+    }
+
+    private protected void ReplaceVectorFieldData(VectorFieldChartData data)
+    {
+        ArgumentNullException.ThrowIfNull(data);
+        if (Kind != Plot3DSeriesKind.VectorField)
+        {
+            throw new InvalidOperationException("Only vector field series can update vector field data.");
+        }
+
+        if (ReferenceEquals(VectorFieldData, data))
+        {
+            return;
+        }
+
+        VectorFieldData = data;
+        NotifyChanged();
+    }
+
+    private protected void ReplaceHeatmapSliceData(HeatmapSliceData data)
+    {
+        ArgumentNullException.ThrowIfNull(data);
+        if (Kind != Plot3DSeriesKind.HeatmapSlice)
+        {
+            throw new InvalidOperationException("Only heatmap slice series can update heatmap slice data.");
+        }
+
+        if (ReferenceEquals(HeatmapSliceData, data))
+        {
+            return;
+        }
+
+        HeatmapSliceData = data;
+        NotifyChanged();
+    }
+
+    private protected void ReplaceBoxPlotData(BoxPlotData data)
+    {
+        ArgumentNullException.ThrowIfNull(data);
+        if (Kind != Plot3DSeriesKind.BoxPlot)
+        {
+            throw new InvalidOperationException("Only box plot series can update box plot data.");
+        }
+
+        if (ReferenceEquals(BoxPlotData, data))
+        {
+            return;
+        }
+
+        BoxPlotData = data;
         NotifyChanged();
     }
 

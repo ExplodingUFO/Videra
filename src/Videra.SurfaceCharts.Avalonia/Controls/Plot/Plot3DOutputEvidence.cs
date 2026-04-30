@@ -335,4 +335,46 @@ public sealed class Plot3DRenderingEvidence
             viewWidth: status.ViewSize.Width,
             viewHeight: status.ViewSize.Height);
     }
+
+    internal static Plot3DRenderingEvidence FromVectorFieldStatus(VectorFieldChartRenderingStatus status)
+    {
+        ArgumentNullException.ThrowIfNull(status);
+
+        return new Plot3DRenderingEvidence(
+            "vector-field-rendering-status",
+            status.BackendKind,
+            status.IsReady,
+            isFallback: false,
+            fallbackReason: null,
+            viewWidth: status.ViewSize.Width,
+            viewHeight: status.ViewSize.Height);
+    }
+
+    internal static Plot3DRenderingEvidence FromHeatmapSliceStatus(HeatmapSliceChartRenderingStatus status)
+    {
+        ArgumentNullException.ThrowIfNull(status);
+
+        return new Plot3DRenderingEvidence(
+            "heatmap-slice-rendering-status",
+            status.BackendKind,
+            status.IsReady,
+            isFallback: false,
+            fallbackReason: null,
+            viewWidth: status.ViewSize.Width,
+            viewHeight: status.ViewSize.Height);
+    }
+
+    internal static Plot3DRenderingEvidence FromBoxPlotStatus(BoxPlotChartRenderingStatus status)
+    {
+        ArgumentNullException.ThrowIfNull(status);
+
+        return new Plot3DRenderingEvidence(
+            "box-plot-rendering-status",
+            status.BackendKind,
+            status.IsReady,
+            isFallback: false,
+            fallbackReason: null,
+            viewWidth: status.ViewSize.Width,
+            viewHeight: status.ViewSize.Height);
+    }
 }

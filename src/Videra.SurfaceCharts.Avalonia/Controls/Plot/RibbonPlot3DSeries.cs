@@ -10,7 +10,8 @@ public sealed class RibbonPlot3DSeries : Plot3DSeries
     internal RibbonPlot3DSeries(string? name, RibbonChartData data)
         : base(Plot3DSeriesKind.Ribbon, name,
             surfaceSource: null, scatterData: null, barData: null, contourData: null,
-            lineData: null, ribbonData: data)
+            lineData: null, ribbonData: data,
+            vectorFieldData: null, heatmapSliceData: null, boxPlotData: null)
     {
     }
 

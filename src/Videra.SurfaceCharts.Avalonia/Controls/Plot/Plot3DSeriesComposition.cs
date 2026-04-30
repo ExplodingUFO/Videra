@@ -116,6 +116,64 @@ internal static class Plot3DSeriesComposition
         return new RibbonChartData(allSeries, metadata);
     }
 
+    public static VectorFieldChartData? CreateVectorFieldData(IReadOnlyList<Plot3DSeries> series)
+    {
+        var datasets = series
+            .Select(static item => item.VectorFieldData)
+            .OfType<VectorFieldChartData>()
+            .ToArray();
+
+        if (datasets.Length == 0)
+        {
+            return null;
+        }
+
+        if (datasets.Length == 1)
+        {
+            return datasets[0];
+        }
+
+        var allPoints = datasets.SelectMany(static data => data.Points).ToArray();
+        var first = datasets[0];
+        return new VectorFieldChartData(allPoints, first.HorizontalAxis, first.DepthAxis, first.MagnitudeRange);
+    }
+
+    public static HeatmapSliceData? CreateHeatmapSliceData(IReadOnlyList<Plot3DSeries> series)
+    {
+        var datasets = series
+            .Select(static item => item.HeatmapSliceData)
+            .OfType<HeatmapSliceData>()
+            .ToArray();
+
+        if (datasets.Length == 0)
+        {
+            return null;
+        }
+
+        return datasets[^1];
+    }
+
+    public static BoxPlotData? CreateBoxPlotData(IReadOnlyList<Plot3DSeries> series)
+    {
+        var datasets = series
+            .Select(static item => item.BoxPlotData)
+            .OfType<BoxPlotData>()
+            .ToArray();
+
+        if (datasets.Length == 0)
+        {
+            return null;
+        }
+
+        if (datasets.Length == 1)
+        {
+            return datasets[0];
+        }
+
+        var allCategories = datasets.SelectMany(static data => data.Categories).ToArray();
+        return new BoxPlotData(allCategories);
+    }
+
     private static ScatterChartMetadata CreateScatterMetadata(IReadOnlyList<ScatterChartData> datasets)
     {
         var first = datasets[0].Metadata;

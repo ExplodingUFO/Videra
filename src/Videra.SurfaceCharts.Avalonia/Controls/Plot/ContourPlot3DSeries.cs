@@ -8,7 +8,7 @@ namespace Videra.SurfaceCharts.Avalonia.Controls;
 public sealed class ContourPlot3DSeries : Plot3DSeries
 {
     internal ContourPlot3DSeries(string? name, ContourChartData data)
-        : base(Plot3DSeriesKind.Contour, name, surfaceSource: null, scatterData: null, barData: null, data, lineData: null, ribbonData: null)
+        : base(Plot3DSeriesKind.Contour, name, surfaceSource: null, scatterData: null, barData: null, data, lineData: null, ribbonData: null, vectorFieldData: null, heatmapSliceData: null, boxPlotData: null)
     {
     }
 }

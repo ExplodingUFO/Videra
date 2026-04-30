@@ -284,6 +284,9 @@ public sealed class Plot3DSeriesDatasetEvidence
             Plot3DSeriesKind.Contour => CreateContourEvidence(index, isActive, series),
             Plot3DSeriesKind.Line => CreateLineEvidence(index, isActive, series),
             Plot3DSeriesKind.Ribbon => CreateRibbonEvidence(index, isActive, series),
+            Plot3DSeriesKind.VectorField => CreateVectorFieldEvidence(index, isActive, series),
+            Plot3DSeriesKind.HeatmapSlice => CreateHeatmapSliceEvidence(index, isActive, series),
+            Plot3DSeriesKind.BoxPlot => CreateBoxPlotEvidence(index, isActive, series),
             _ => throw new ArgumentOutOfRangeException(nameof(series), $"Unsupported Plot series kind: {series.Kind}"),
         };
     }
@@ -483,6 +486,107 @@ public sealed class Plot3DSeriesDatasetEvidence
             SurfaceValueRangeDatasetEvidence.Create(data.Metadata.ValueRange),
             "RibbonSegments",
             categoryLabels: [],
+            []);
+    }
+
+    private static Plot3DSeriesDatasetEvidence CreateVectorFieldEvidence(int index, bool isActive, Plot3DSeries series)
+    {
+        var data = series.VectorFieldData
+            ?? throw new InvalidOperationException("Vector field series require vector field data.");
+
+        return new Plot3DSeriesDatasetEvidence(
+            index,
+            isActive,
+            CreateIdentity(index, series),
+            series.Name,
+            series.Kind,
+            width: 0,
+            height: 0,
+            sampleCount: 0,
+            seriesCount: 1,
+            pointCount: data.PointCount,
+            columnarSeriesCount: 0,
+            columnarPointCount: 0,
+            pickablePointCount: 0,
+            streamingAppendBatchCount: 0,
+            streamingReplaceBatchCount: 0,
+            streamingDroppedPointCount: 0,
+            lastStreamingDroppedPointCount: 0,
+            configuredFifoCapacity: 0,
+            SurfaceAxisDatasetEvidence.Create(data.HorizontalAxis),
+            verticalAxis: null,
+            SurfaceAxisDatasetEvidence.Create(data.DepthAxis),
+            SurfaceValueRangeDatasetEvidence.Create(data.MagnitudeRange),
+            "VectorFieldArrows",
+            categoryLabels: [],
+            []);
+    }
+
+    private static Plot3DSeriesDatasetEvidence CreateHeatmapSliceEvidence(int index, bool isActive, Plot3DSeries series)
+    {
+        var data = series.HeatmapSliceData
+            ?? throw new InvalidOperationException("Heatmap slice series require heatmap slice data.");
+
+        return new Plot3DSeriesDatasetEvidence(
+            index,
+            isActive,
+            CreateIdentity(index, series),
+            series.Name,
+            series.Kind,
+            width: data.Field.Width,
+            height: data.Field.Height,
+            sampleCount: data.Field.Width * data.Field.Height,
+            seriesCount: 1,
+            pointCount: 0,
+            columnarSeriesCount: 0,
+            columnarPointCount: 0,
+            pickablePointCount: 0,
+            streamingAppendBatchCount: 0,
+            streamingReplaceBatchCount: 0,
+            streamingDroppedPointCount: 0,
+            lastStreamingDroppedPointCount: 0,
+            configuredFifoCapacity: 0,
+            SurfaceAxisDatasetEvidence.Create(new SurfaceAxisDescriptor("X", null, 0d, data.Field.Width - 1)),
+            verticalAxis: null,
+            SurfaceAxisDatasetEvidence.Create(new SurfaceAxisDescriptor("Y", null, 0d, data.Field.Height - 1)),
+            SurfaceValueRangeDatasetEvidence.Create(data.Field.Range),
+            $"HeatmapSlice:Axis={data.Axis};Position={data.Position:G17}",
+            categoryLabels: [],
+            []);
+    }
+
+    private static Plot3DSeriesDatasetEvidence CreateBoxPlotEvidence(int index, bool isActive, Plot3DSeries series)
+    {
+        var data = series.BoxPlotData
+            ?? throw new InvalidOperationException("Box plot series require box plot data.");
+
+        var labels = data.Categories.Select(static c => c.Label).ToArray();
+
+        return new Plot3DSeriesDatasetEvidence(
+            index,
+            isActive,
+            CreateIdentity(index, series),
+            series.Name,
+            series.Kind,
+            width: 0,
+            height: 0,
+            sampleCount: 0,
+            seriesCount: 1,
+            pointCount: 0,
+            columnarSeriesCount: 0,
+            columnarPointCount: 0,
+            pickablePointCount: 0,
+            streamingAppendBatchCount: 0,
+            streamingReplaceBatchCount: 0,
+            streamingDroppedPointCount: 0,
+            lastStreamingDroppedPointCount: 0,
+            configuredFifoCapacity: 0,
+            horizontalAxis: null,
+            verticalAxis: null,
+            depthAxis: null,
+            valueRange: null,
+            "BoxPlot",
+            categoryLabels: labels,
             []);
     }
 

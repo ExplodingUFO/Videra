@@ -39,4 +39,19 @@ public enum Plot3DSeriesKind
     /// A 3D tube/ribbon series with configurable radius and per-segment color.
     /// </summary>
     Ribbon,
+
+    /// <summary>
+    /// A 3D vector field with arrows showing direction and magnitude.
+    /// </summary>
+    VectorField,
+
+    /// <summary>
+    /// A heatmap slice from a 3D scalar field at a fixed axis position.
+    /// </summary>
+    HeatmapSlice,
+
+    /// <summary>
+    /// A 3D box plot for statistical distribution visualization.
+    /// </summary>
+    BoxPlot,
 }

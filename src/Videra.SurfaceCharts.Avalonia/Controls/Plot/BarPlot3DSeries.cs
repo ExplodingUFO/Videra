@@ -8,7 +8,7 @@ namespace Videra.SurfaceCharts.Avalonia.Controls;
 public sealed class BarPlot3DSeries : Plot3DSeries
 {
     internal BarPlot3DSeries(string? name, BarChartData data)
-        : base(Plot3DSeriesKind.Bar, name, surfaceSource: null, scatterData: null, data, contourData: null, lineData: null, ribbonData: null)
+        : base(Plot3DSeriesKind.Bar, name, surfaceSource: null, scatterData: null, data, contourData: null, lineData: null, ribbonData: null, vectorFieldData: null, heatmapSliceData: null, boxPlotData: null)
     {
     }
 
