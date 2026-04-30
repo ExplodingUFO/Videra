@@ -12,19 +12,33 @@ Videra 是一个基于 `.NET 8` 的跨平台 3D 渲染引擎，提供 Windows (`
 
 ## Current State
 
-- 最新完整归档 milestone：`v2.59 ScottPlot5 Interaction and Cookbook Experience`
-- 最近完成 milestone：`v2.59 ScottPlot5 Interaction and Cookbook Experience`
-- 当前 active milestone：`v2.60 SurfaceCharts Cookbook QA and Interaction Handoff`
-- 当前 focus：审计并收紧 v2.59 后的 SurfaceCharts cookbook QA、interaction handoff docs/support evidence 和验证路径；不引入 ScottPlot compatibility layer、旧 chart controls、隐藏 fallback、backend expansion 或 generic workbench。
+- 最新完整归档 milestone：`v2.60 SurfaceCharts Cookbook QA and Interaction Handoff`
+- 最近完成 milestone：`v2.60 SurfaceCharts Cookbook QA and Interaction Handoff`
+- 当前 active milestone：`v2.61 SurfaceCharts Cookbook Demo Runtime Continuity`
+- 当前 focus：继续收紧 SurfaceCharts cookbook demo runtime continuity 和 interaction recipe runtime handoff；不引入 ScottPlot compatibility layer、旧 chart controls、隐藏 fallback、backend expansion 或 generic workbench。
 
-## Current Milestone: v2.60 SurfaceCharts Cookbook QA and Interaction Handoff
+## Recently Completed Milestone: v2.60 SurfaceCharts Cookbook QA and Interaction Handoff
+
+**Status:** completed on 2026-04-30.
 
 **Goal:** Audit and harden the v2.59 cookbook/interaction handoff with focused QA, docs, support, and validation work.
 
+**Delivered outcomes:**
+- inventoried v2.59 cookbook QA, interaction handoff docs, support artifacts, and validation gaps
+- added structured cookbook coverage matrix tests and current consumer handoff wording
+- added interaction host-wiring, probe evidence, selection report, and host-owned draggable recipe handoff docs/tests
+- closed with focused validation, Beads export, generated roadmap, archive, Git/Dolt push, and clean branch/worktree state
+
+Archived: `.planning/milestones/v2.60-phases`
+
+## Current Milestone: v2.61 SurfaceCharts Cookbook Demo Runtime Continuity
+
+**Goal:** Keep the SurfaceCharts cookbook demo and interaction handoff usable as runtime examples after v2.60.
+
 **Target features:**
-- Inventory v2.59 cookbook QA, interaction handoff docs, support artifacts, and validation gaps
-- Implement bounded cookbook QA/docs/test hardening selected by inventory
-- Implement bounded interaction handoff polish selected by inventory
+- Inventory current SurfaceCharts cookbook demo launch/build/runtime flows and interaction recipe discoverability
+- Implement bounded demo runtime QA selected by inventory
+- Implement bounded interaction recipe runtime handoff selected by inventory
 - Close with focused validation, Beads export, generated roadmap, archive, Git/Dolt push, and clean branch/worktree state
 
 ## Completed Milestones

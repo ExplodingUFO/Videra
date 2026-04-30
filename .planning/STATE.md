@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.60
-milestone_name: "SurfaceCharts Cookbook QA and Interaction Handoff"
+milestone: v2.61
+milestone_name: "SurfaceCharts Cookbook Demo Runtime Continuity"
 status: active
-stopped_at: "Phase 408 ready for final verification"
-last_updated: "2026-04-30T16:13:00+08:00"
+stopped_at: "Phase 409 ready for planning"
+last_updated: "2026-04-30T16:28:00+08:00"
 last_activity: 2026-04-30
 progress:
   total_phases: 4
-  completed_phases: 3
+  completed_phases: 0
   total_plans: 4
-  completed_plans: 3
-  percent: 75
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -21,17 +21,17 @@ progress:
 See: `.planning/PROJECT.md`
 
 **Core value:** 跨平台 3D 渲染引擎的可靠性
-**Current focus:** v2.60 SurfaceCharts Cookbook QA and Interaction Handoff
+**Current focus:** v2.61 SurfaceCharts Cookbook Demo Runtime Continuity
 
 ## Current Position
 
-Milestone: `v2.60 SurfaceCharts Cookbook QA and Interaction Handoff`
-Phase: 408 of 408 (v2.60 Final Verification) - READY
-Plan: Phase 406 and Phase 407 complete; final verification/sync/archive next
-Status: Phase 406 cookbook QA hardening and Phase 407 interaction handoff polish are merged with focused validation passing.
-Last activity: 2026-04-30 - Completed and merged Phase 406/407 parallel workstreams.
+Milestone: `v2.61 SurfaceCharts Cookbook Demo Runtime Continuity`
+Phase: 409 of 412 (Cookbook Demo Runtime Continuity Inventory) - READY
+Plan: none yet
+Status: v2.60 is complete and archived; v2.61 is initialized with Beads as the task spine.
+Last activity: 2026-04-30 - Completed v2.60 and opened v2.61 cookbook demo runtime continuity milestone.
 
-Progress: [########--] 75%
+Progress: [----------] 0%
 
 ## Initial Scope Summary
 
@@ -41,24 +41,21 @@ v2.60 continues from the completed v2.59 interaction/cookbook milestone:
 - SurfaceCharts demo/docs include Bar/Contour cookbook recipes and text-contract coverage.
 - Beads and generated roadmap state are synchronized through v2.59 closure.
 
-This milestone focuses on:
+v2.61 focuses on:
 
-- cookbook QA and docs/demo/support handoff inventory
-- bounded cookbook QA hardening selected by inventory
-- bounded interaction handoff polish selected by inventory
+- cookbook demo runtime continuity inventory
+- bounded demo runtime QA selected by inventory
+- bounded interaction recipe runtime handoff selected by inventory
 - final integrated validation and clean Beads/Git/Dolt handoff
 
 ## Decisions
 
 - Beads remain the single task spine for phase status, dependencies, ownership, and handoff.
-- Phase 405 must inventory real cookbook QA / interaction handoff surfaces before implementation.
-- Phase 406 and Phase 407 may run in parallel after Phase 405 if their write sets are disjoint.
-- Phase 406 should focus on structured cookbook coverage/copyability and cutover naming, while Phase 407 should focus on interaction snippet parity, minimal host wiring, probe evidence, selection, and draggable recipe handoff.
-- Phase 406 added a structured cookbook coverage matrix and current consumer handoff wording.
-- Phase 407 added interaction host-wiring, probe evidence, selection report, and host-owned draggable recipe handoff coverage.
-- Shared Beads export, generated roadmap, final scope guardrails, archive, push, and cleanup are Phase 408 responsibilities.
+- Phase 409 must inventory real cookbook demo runtime and interaction recipe runtime handoff surfaces before implementation.
+- Phase 410 and Phase 411 may run in parallel after Phase 409 if their write sets are disjoint.
+- Shared Beads export, generated roadmap, final scope guardrails, archive, push, and cleanup are Phase 412 responsibilities.
 - Keep implementation simple and direct; do not add ScottPlot compatibility adapters, old chart controls, hidden fallback behavior, backend expansion, or broad demo frameworks.
-- v2.59 artifacts are archived under `.planning/milestones/v2.59-phases`.
+- v2.60 artifacts are archived under `.planning/milestones/v2.60-phases`.
 
 ## Known Residuals
 
@@ -69,8 +66,8 @@ This milestone focuses on:
 ## Session Continuity
 
 Last session: `2026-04-30 +08:00`
-Stopped at: Phase 406 and Phase 407 complete
-Next action: execute Phase 408 (`Videra-448`) final verification, Beads/generated roadmap synchronization, archive, and cleanup.
+Stopped at: v2.61 initialized
+Next action: plan and execute Phase 409 (`Videra-63e`).
 
 ## Accumulated Context
 

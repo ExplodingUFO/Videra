@@ -1,5 +1,42 @@
 # Milestones
 
+## v2.60 SurfaceCharts Cookbook QA and Interaction Handoff
+
+**Shipped:** 2026-04-30
+**Phases:** 4 (`405-408`)
+**Plans:** 4
+**Timeline:** 1 day (`2026-04-30` -> `2026-04-30`)
+**Repo state:** completed on `master`; focused cookbook QA, interaction
+handoff, snapshot scope, Beads export, generated roadmap, branch/worktree
+cleanup, Git push, and Dolt Beads push completed
+
+### Key Accomplishments
+
+1. Inventoried cookbook QA, interaction handoff, support, validation, and scope
+   guardrail surfaces before implementation.
+2. Added a structured cookbook coverage matrix and current consumer handoff
+   wording so docs/demo/cutover surfaces drift less silently.
+3. Added bounded interaction handoff docs/tests for minimal host wiring, probe
+   evidence, selection reports, and host-owned draggable overlay recipes.
+4. Closed with focused cookbook and interaction tests, snapshot scope guardrail,
+   Beads export, generated public roadmap, phase archive, branch/worktree
+   cleanup, Git push, and Dolt Beads push.
+
+### Archived Materials
+
+- `.planning/milestones/v2.60-ROADMAP.md`
+- `.planning/milestones/v2.60-REQUIREMENTS.md`
+- `.planning/milestones/v2.60-phases/`
+
+### Notes
+
+- v2.60 hardens the v2.59 cookbook/interaction handoff without adding
+  ScottPlot compatibility, old chart controls, hidden fallback/downshift,
+  backend expansion, PDF/vector export, generic plotting engine, or god-code
+  workbench scope.
+
+---
+
 ## v2.59 ScottPlot5 Interaction and Cookbook Experience
 
 **Shipped:** 2026-04-30

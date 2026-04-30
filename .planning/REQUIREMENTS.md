@@ -1,39 +1,39 @@
-# Requirements: v2.60 SurfaceCharts Cookbook QA and Interaction Handoff
+# Requirements: v2.61 SurfaceCharts Cookbook Demo Runtime Continuity
 
 ## Goal
 
-Audit and harden the v2.59 cookbook/interaction handoff with focused QA, docs,
-support, and validation work. This milestone keeps the SurfaceCharts workflow
-simple and direct without introducing ScottPlot compatibility, hidden fallbacks,
-backend expansion, or a generic chart workbench.
+Keep the SurfaceCharts cookbook demo and interaction handoff usable as runtime
+examples after v2.60. The milestone remains bounded to demo/docs/tests/support
+evidence unless a narrow API need is proven by inventory.
 
 ## Active Requirements
 
-### Cookbook QA
+### Demo Runtime
 
-- **QA-01**: Inventory current cookbook docs, demo recipes, text-contract tests,
-  support routes, and drift risks before selecting implementation slices.
-- **QA-02**: Users can rely on cookbook docs/demo recipes that match current
+- **DEMO-01**: Inventory current demo launch/build/runtime flows, recipe
+  selector behavior, support-summary route, and drift risks before selecting
+  implementation slices.
+- **DEMO-02**: Users can rely on cookbook demo runtime paths that match current
   public APIs and are covered by focused validation.
 
-### Interaction Handoff
+### Interaction Runtime Handoff
 
-- **HANDOFF-01**: Inventory current interaction profile, command, probe,
-  selection, draggable overlay, and support-summary handoff surfaces.
-- **HANDOFF-02**: Users can understand the selected interaction handoff through
-  concise docs/demo/support evidence without a new command framework or mouse
-  remapping surface.
+- **HANDOFF-01**: Inventory current runtime discoverability for interaction
+  profile, command, probe, selection, draggable overlay, and support evidence.
+- **HANDOFF-02**: Users can understand selected interaction recipes through
+  concise runtime docs/demo/support evidence without new command framework,
+  mouse-remapping, or chart-owned selection state.
 
 ### Verification
 
-- **VERIFY-01**: Run focused tests and docs checks covering selected cookbook QA
-  and interaction handoff changes.
+- **VERIFY-01**: Run focused tests and docs checks covering selected demo runtime
+  QA and interaction handoff changes.
 - **VERIFY-02**: Synchronize Beads state, generated public roadmap, phase
   archive, branch/worktree cleanup, Git push, and Dolt Beads push.
 
 ### Scope Control
 
-- **SCOPE-01**: Phase 405 must state non-goals and dependency boundaries before
+- **SCOPE-01**: Phase 409 must state non-goals and dependency boundaries before
   implementation.
 - **SCOPE-02**: Implementation phases must avoid ScottPlot compatibility,
   fallback/downshift behavior, old chart controls, backend expansion, PDF/vector
@@ -59,7 +59,7 @@ backend expansion, or a generic chart workbench.
 
 ## Traceability
 
-- **Phase 405**: QA-01, HANDOFF-01, SCOPE-01
-- **Phase 406**: QA-02, VERIFY-01, SCOPE-02
-- **Phase 407**: HANDOFF-02, VERIFY-01, SCOPE-02
-- **Phase 408**: VERIFY-01, VERIFY-02
+- **Phase 409**: DEMO-01, HANDOFF-01, SCOPE-01
+- **Phase 410**: DEMO-02, VERIFY-01, SCOPE-02
+- **Phase 411**: HANDOFF-02, VERIFY-01, SCOPE-02
+- **Phase 412**: VERIFY-01, VERIFY-02
