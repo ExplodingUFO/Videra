@@ -44,6 +44,67 @@ public sealed class SurfaceChartsCiTruthTests
         surfaceChartsEvidenceStep.Should().NotContain("if: always()");
     }
 
+    [Fact]
+    public void CiWorkflow_ShouldRunSurfaceChartsRuntimeEvidenceWithoutFakeGreen()
+    {
+        var workflow = ReadWorkflow();
+        var runtimeStepIndex = workflow.IndexOf(
+            "Run SurfaceCharts runtime evidence",
+            StringComparison.Ordinal);
+
+        runtimeStepIndex.Should().BeGreaterThanOrEqualTo(0);
+        var runtimeStep = GetWorkflowStep(workflow, runtimeStepIndex);
+
+        AssertContainsAll(runtimeStep,
+            "Videra.SurfaceCharts.Avalonia.IntegrationTests.csproj",
+            "VideraChartViewStateTests",
+            "SurfaceChartInteractionTests",
+            "VideraChartViewGpuFallbackTests",
+            "VideraChartViewWaterfallIntegrationTests",
+            "VideraChartViewPlotApiTests");
+
+        runtimeStep.Should().NotContain("continue-on-error: true");
+        runtimeStep.Should().NotContain("|| true");
+        runtimeStep.Should().NotContain("if: always()");
+    }
+
+    [Fact]
+    public void CiWorkflow_ShouldRunAndValidatePackagedSurfaceChartsSmokeWithoutFakeGreen()
+    {
+        var workflow = ReadWorkflow();
+        var smokeStepIndex = workflow.IndexOf(
+            "Run packaged SurfaceCharts consumer smoke with warnings as errors",
+            StringComparison.Ordinal);
+        var validationStepIndex = workflow.IndexOf(
+            "Validate packaged SurfaceCharts consumer smoke artifacts",
+            StringComparison.Ordinal);
+
+        smokeStepIndex.Should().BeGreaterThanOrEqualTo(0);
+        validationStepIndex.Should().BeGreaterThan(smokeStepIndex);
+
+        var smokeStep = GetWorkflowStep(workflow, smokeStepIndex);
+        AssertContainsAll(smokeStep,
+            "scripts/Invoke-ConsumerSmoke.ps1",
+            "-Scenario SurfaceCharts",
+            "artifacts/surfacecharts-consumer-smoke-quality",
+            "-TreatWarningsAsErrors");
+
+        smokeStep.Should().NotContain("-BuildOnly");
+        smokeStep.Should().NotContain("continue-on-error: true");
+        smokeStep.Should().NotContain("|| true");
+        smokeStep.Should().NotContain("if: always()");
+
+        var validationStep = GetWorkflowStep(workflow, validationStepIndex);
+        AssertContainsAll(validationStep,
+            "scripts/Validate-Packages.ps1",
+            "artifacts/surfacecharts-consumer-smoke-quality/packages",
+            "consumer-smoke-version.outputs.package_version");
+
+        validationStep.Should().NotContain("continue-on-error: true");
+        validationStep.Should().NotContain("|| true");
+        validationStep.Should().NotContain("if: always()");
+    }
+
     private static string ReadWorkflow()
     {
         return File.ReadAllText(Path.Combine(GetRepositoryRoot(), ".github", "workflows", "ci.yml"));

@@ -6,9 +6,7 @@ param(
     [ValidateSet("Debug", "Release")]
     [string]$Configuration = "Release",
 
-    [string]$OutputRoot = "artifacts/release-readiness-validation",
-
-    [switch]$ConsumerSmokeBuildOnly
+    [string]$OutputRoot = "artifacts/release-readiness-validation"
 )
 
 $ErrorActionPreference = "Stop"
@@ -159,11 +157,6 @@ try
         "-Configuration", $Configuration,
         "-Scenario", "SurfaceCharts",
         "-OutputRoot", $consumerSmokeRoot)
-    if ($ConsumerSmokeBuildOnly)
-    {
-        $consumerSmokeArguments += "-BuildOnly"
-    }
-
     Invoke-ValidationStep `
         -Id "surfacecharts-consumer-smoke" `
         -Description "SurfaceCharts packaged consumer smoke" `
@@ -178,7 +171,7 @@ try
             "test",
             (Join-Path $root "tests/Videra.Core.Tests/Videra.Core.Tests.csproj"),
             "-c", $Configuration,
-            "--filter", "FullyQualifiedName~SurfaceChartsConsumerSmokeConfigurationTests|FullyQualifiedName~SurfaceChartsDemoConfigurationTests|FullyQualifiedName~SurfaceChartsDemoViewportBehaviorTests|FullyQualifiedName~ReleaseDryRunRepositoryTests")
+            "--filter", "FullyQualifiedName~SurfaceChartsConsumerSmokeConfigurationTests|FullyQualifiedName~SurfaceChartsDemoConfigurationTests|FullyQualifiedName~SurfaceChartsDemoViewportBehaviorTests|FullyQualifiedName~SurfaceChartsCookbookCoverageMatrixTests|FullyQualifiedName~SurfaceChartsCookbookFirstSurfaceRecipeTests|FullyQualifiedName~SurfaceChartsCookbookWaterfallLinkedRecipeTests|FullyQualifiedName~SurfaceChartsCookbookScatterLiveRecipeTests|FullyQualifiedName~SurfaceChartsCookbookBarContourSnapshotRecipeTests|FullyQualifiedName~SurfaceChartsHighPerformancePathTests|FullyQualifiedName~ScatterStreamingScenarioEvidenceTests|FullyQualifiedName~SurfaceChartsPerformanceTruthTests|FullyQualifiedName~BeadsPublicRoadmapTests|FullyQualifiedName~SurfaceChartsCiTruthTests|FullyQualifiedName~ReleaseDryRunRepositoryTests|FullyQualifiedName~SurfaceChartsReleaseTruthRepositoryTests")
 
     Invoke-ValidationStep `
         -Id "snapshot-scope-guardrails" `
@@ -202,7 +195,6 @@ finally
         expectedVersion = $ExpectedVersion
         configuration = $Configuration
         outputRoot = $outputRootFull
-        consumerSmokeBuildOnly = [bool]$ConsumerSmokeBuildOnly
         results = @($results)
         artifactPaths = [ordered]@{
             summaryJson = $summaryJsonPath
@@ -219,7 +211,6 @@ finally
         "Status: $summaryStatus"
         "Version: $ExpectedVersion"
         "Configuration: $Configuration"
-        "Consumer smoke build-only: $([bool]$ConsumerSmokeBuildOnly)"
         "",
         "Pass/fail checks:"
     )

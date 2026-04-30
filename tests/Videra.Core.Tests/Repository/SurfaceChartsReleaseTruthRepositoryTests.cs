@@ -56,7 +56,7 @@ public sealed class SurfaceChartsReleaseTruthRepositoryTests
         var avaloniaReadme = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Videra.SurfaceCharts.Avalonia", "README.md"));
         var demoReadme = File.ReadAllText(Path.Combine(repositoryRoot, "samples", "Videra.SurfaceCharts.Demo", "README.md"));
 
-        cutover.Should().Contain("SurfaceCharts v2.58 Release Cutover");
+        cutover.Should().Contain("SurfaceCharts Current Consumer Handoff");
         cutover.Should().Contain("explicit maintainer approval");
         cutover.Should().Contain("Videra.SurfaceCharts.Avalonia");
         cutover.Should().Contain("Videra.SurfaceCharts.Processing");
@@ -76,8 +76,12 @@ public sealed class SurfaceChartsReleaseTruthRepositoryTests
 
         foreach (var document in new[] { readme, docsIndex, avaloniaReadme, demoReadme })
         {
-            document.Should().Contain("SurfaceCharts v2.58 Release Cutover");
             document.Should().Contain("surfacecharts-release-cutover.md");
+        }
+
+        foreach (var document in new[] { readme, docsIndex, demoReadme })
+        {
+            document.Should().Contain("SurfaceCharts Current Consumer Handoff");
         }
     }
 
