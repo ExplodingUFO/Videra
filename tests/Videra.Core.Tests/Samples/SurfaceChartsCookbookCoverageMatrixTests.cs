@@ -44,6 +44,13 @@ public sealed class SurfaceChartsCookbookCoverageMatrixTests
         }
 
         demoReadme.Should().Contain("copyable evidence-only support summary");
+        demoReadme.Should().Contain("## Demo Coverage Map");
+        demoReadme.Should().Contain("Visible scenario");
+        demoReadme.Should().Contain("SurfaceChartsDemoViewportBehaviorTests");
+        demoReadme.Should().Contain("PlotSnapshotCaptureTests");
+        cutover.Should().Contain("## Demo Coverage Map");
+        cutover.Should().Contain("Visible demo path");
+        cutover.Should().Contain("Evidence owner");
         mainWindowXaml.Should().Contain("Copy support summary");
         cookbookRecipeCatalog.Should().Contain("ScenarioId");
         cookbookRecipeCatalog.Should().NotContain("SourceIndex");

@@ -66,6 +66,19 @@ Detailed copy-adapt recipes live beside this README:
 - [Support evidence](Recipes/support-evidence.md)
 - [PNG snapshot](Recipes/png-snapshot.md)
 
+## Demo Coverage Map
+
+| Visible scenario | Native path | Recipe evidence | Focused tests |
+| --- | --- | --- | --- |
+| `Start here: In-memory first chart` | `Plot.Add.Surface` with generated matrix data | `Recipes/first-chart.md` | `SurfaceChartsDemoViewportBehaviorTests`, `SurfaceChartsCookbookFirstSurfaceRecipeTests` |
+| `Explore next: Cache-backed streaming` | `Plot.Add.Surface` with committed cache manifest and tile payload | `Recipes/surface-cache-backed.md` | `SurfaceChartsDemoViewportBehaviorTests`, `SurfaceChartsHighPerformancePathTests` |
+| `Try next: Analytics proof` | `Plot.Add.Surface` with explicit coordinates and `ColorField` | `Recipes/first-chart.md` | `SurfaceChartsDemoViewportBehaviorTests` |
+| `Try next: Waterfall proof` | `Plot.Add.Waterfall` with explicit strip spacing | `Recipes/waterfall.md`, `Recipes/axes-and-linked-views.md` | `SurfaceChartsDemoViewportBehaviorTests`, `SurfaceChartsCookbookWaterfallLinkedRecipeTests` |
+| `Try next: Scatter proof` | `Plot.Add.Scatter` with descriptor-scoped streaming scenarios | `Recipes/scatter-and-live-data.md` | `SurfaceChartsDemoViewportBehaviorTests`, `ScatterStreamingScenarioEvidenceTests` |
+| `Try next: Bar chart proof` | `Plot.Add.Bar` with grouped series and category labels | `Recipes/bar.md` | `SurfaceChartsCookbookBarContourSnapshotRecipeTests` |
+| `Try next: Contour plot proof` | `Plot.Add.Contour` with radial scalar-field levels | `Recipes/contour.md` | `SurfaceChartsCookbookBarContourSnapshotRecipeTests` |
+| `Capture Snapshot` | `Plot.SavePngAsync` / `CaptureSnapshotAsync` PNG manifest evidence | `Recipes/png-snapshot.md`, `Recipes/support-evidence.md` | `PlotSnapshotContractTests`, `PlotSnapshotCaptureTests`, `SurfaceChartsDemoViewportBehaviorTests` |
+
 ### First Chart
 
 First surface from a small matrix:
