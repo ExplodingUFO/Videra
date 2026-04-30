@@ -1,5 +1,34 @@
 # Milestones
 
+## v2.59 ScottPlot5 Interaction and Cookbook Experience
+
+**Shipped:** 2026-04-30
+**Phases:** 4 (`401-404`)
+**Plans:** 4
+**Timeline:** 1 day (`2026-04-30` -> `2026-04-30`)
+**Repo state:** completed on `master`; focused interaction/code-experience and cookbook validation passed; Beads ready queue moved to v2.60 at close
+
+### Key Accomplishments
+
+1. Inventoried SurfaceCharts interaction APIs, Plot/code-experience surfaces, cookbook docs/demo paths, support evidence, validation commands, and guardrails.
+2. Added typed `BarPlot3DSeries` and `ContourPlot3DSeries` handles for Bar/Contour add paths.
+3. Added `SurfaceChartInteractionProfile.EnabledCommands` for recipe-friendly built-in command discovery.
+4. Added Bar and Contour cookbook demo recipes with root/demo/cutover docs alignment and text-contract coverage.
+5. Closed with focused tests, demo build, snapshot scope guardrails, Beads export, generated public roadmap, archived phase evidence, branch/worktree cleanup, Git push, and Dolt Beads push.
+
+### Archived Materials
+
+- `.planning/milestones/v2.59-ROADMAP.md`
+- `.planning/milestones/v2.59-REQUIREMENTS.md`
+- `.planning/milestones/v2.59-phases/`
+
+### Notes
+
+- v2.59 improves ScottPlot5-inspired ergonomics but does not claim ScottPlot API compatibility or parity.
+- No old chart controls, direct public `Source`, compatibility wrappers, PDF/vector export, backend/runtime expansion, hidden fallback/downshift behavior, generic plotting engine, or god-code workbench was introduced.
+
+---
+
 ## v2.58 SurfaceCharts Controlled Release Cutover
 
 **Shipped:** 2026-04-30

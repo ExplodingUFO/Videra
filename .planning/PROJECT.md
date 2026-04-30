@@ -12,22 +12,33 @@ Videra 是一个基于 `.NET 8` 的跨平台 3D 渲染引擎，提供 Windows (`
 
 ## Current State
 
-- 最新完整归档 milestone：`v2.58 SurfaceCharts Controlled Release Cutover`
-- 最近完成 milestone：`v2.58 SurfaceCharts Controlled Release Cutover`
-- 当前 active milestone：`v2.59 ScottPlot5 Interaction and Cookbook Experience`
-- 当前 focus：继续围绕 SurfaceCharts 做 ScottPlot5-inspired interaction/code-experience polish，并把 demo/docs 收成 cookbook-style、copyable recipes；不引入 ScottPlot compatibility layer、旧 chart controls 或隐藏 fallback 行为。
+- 最新完整归档 milestone：`v2.59 ScottPlot5 Interaction and Cookbook Experience`
+- 最近完成 milestone：`v2.59 ScottPlot5 Interaction and Cookbook Experience`
+- 当前 active milestone：`v2.60 SurfaceCharts Cookbook QA and Interaction Handoff`
+- 当前 focus：审计并收紧 v2.59 后的 SurfaceCharts cookbook QA、interaction handoff docs/support evidence 和验证路径；不引入 ScottPlot compatibility layer、旧 chart controls、隐藏 fallback、backend expansion 或 generic workbench。
 
-## Current Milestone: v2.59 ScottPlot5 Interaction and Cookbook Experience
+## Current Milestone: v2.60 SurfaceCharts Cookbook QA and Interaction Handoff
 
-**Goal:** Continue SurfaceCharts toward ScottPlot5-inspired interaction and code-experience optimization while turning demos into cookbook-style, copyable recipes.
+**Goal:** Audit and harden the v2.59 cookbook/interaction handoff with focused QA, docs, support, and validation work.
 
 **Target features:**
-- Inventory current SurfaceCharts interaction APIs, demo flows, cookbook docs, and scoped ergonomics gaps
-- Improve the first bounded set of interaction/code-experience surfaces where the inventory justifies it
-- Convert demo/docs entry points into cookbook-style, copyable recipes using current public APIs
-- Close with focused tests, docs checks, Beads export, generated roadmap, archive, Git/Dolt push, and clean branch/worktree state
+- Inventory v2.59 cookbook QA, interaction handoff docs, support artifacts, and validation gaps
+- Implement bounded cookbook QA/docs/test hardening selected by inventory
+- Implement bounded interaction handoff polish selected by inventory
+- Close with focused validation, Beads export, generated roadmap, archive, Git/Dolt push, and clean branch/worktree state
 
 ## Completed Milestones
+
+### v2.59 ScottPlot5 Interaction and Cookbook Experience (2026-04-30)
+
+Completed the SurfaceCharts interaction/code-experience and cookbook polish milestone:
+- inventoried real interaction APIs, cookbook docs/demo paths, support evidence, guardrails, dependencies, and validation commands
+- added typed `BarPlot3DSeries` / `ContourPlot3DSeries` returns for `Plot.Add.Bar(...)` and `Plot.Add.Contour(...)`
+- added recipe-friendly `SurfaceChartInteractionProfile.EnabledCommands`
+- added Bar and Contour cookbook demo recipes, docs alignment, and text-contract coverage
+- closed with focused interaction/demo tests, demo build, snapshot scope guardrails, Beads export, generated roadmap, phase archive, Git push, Dolt Beads push, and clean handoff
+
+Archived: `.planning/milestones/v2.59-phases`
 
 ### v2.58 SurfaceCharts Controlled Release Cutover (2026-04-30)
 
@@ -819,6 +830,6 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-30 after starting v2.59 milestone*
+*Last updated: 2026-04-30 after starting v2.60 milestone*
 
 
