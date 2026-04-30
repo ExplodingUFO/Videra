@@ -1,5 +1,35 @@
 # Milestones
 
+## v2.57 SurfaceCharts Release Readiness and Consumer Validation
+
+**Shipped:** 2026-04-30
+**Phases:** 6 (`390-395`)
+**Plans:** 6
+**Timeline:** 1 day (`2026-04-30` -> `2026-04-30`)
+**Repo state:** completed on `master`; release-readiness validation passed with package build, package-only SurfaceCharts consumer smoke, focused tests, demo/docs checks, snapshot scope guardrails, and archived evidence; Beads ready queue clean at close
+
+### Key Accomplishments
+
+1. Inventoried package, sample, docs, smoke, CI, guardrail, and Beads surfaces before release-readiness work.
+2. Refreshed public API/package metadata evidence and release-readiness guardrails.
+3. Proved clean package-only consumer restore/build/run using public APIs and deterministic support artifacts.
+4. Added `scripts/Invoke-ReleaseReadinessValidation.ps1` as the single local release-readiness command.
+5. Updated release-candidate package consumption, cookbook, migration, and support handoff docs.
+6. Closed the milestone with full release-readiness validation, Beads export, generated public roadmap, milestone archive, and clean branch/worktree state.
+
+### Archived Materials
+
+- `.planning/milestones/v2.57-ROADMAP.md`
+- `.planning/milestones/v2.57-REQUIREMENTS.md`
+- `.planning/milestones/v2.57-phases/`
+
+### Notes
+
+- v2.57 prepared release-candidate evidence but did not publish a public package, create a public release tag, or publish a GitHub release.
+- No old chart controls, direct public `Source`, compatibility wrappers, PDF/vector export, backend/runtime expansion, hidden fallback/downshift behavior, full ScottPlot compatibility, or god-code workbench was introduced.
+
+---
+
 ## v2.56 ScottPlot 5 Interaction and Cookbook Experience
 
 **Shipped:** 2026-04-30

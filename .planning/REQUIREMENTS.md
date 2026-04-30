@@ -1,101 +1,61 @@
-# Requirements: v2.57 SurfaceCharts Release Readiness and Consumer Validation
+# Requirements: v2.58 SurfaceCharts Controlled Release Cutover
 
-## Scope
+## Goal
 
-v2.57 follows the v2.56 SurfaceCharts cookbook and interaction work. The focus
-is release-candidate readiness: public API stability evidence, package metadata,
-local package consumption, validation scripts, docs navigation, and handoff
-material that downstream users can rely on.
+Turn the completed v2.57 SurfaceCharts release-readiness evidence into a controlled release cutover package: approval packet, version/package contract finalization, gated dry-run automation, release notes/support docs, and final handoff. Actual public NuGet publish, public tag creation, and GitHub release publication remain out of scope unless separately approved by a human.
 
-This milestone does not publish a public package or create a public release tag.
-It prepares the repository so a later release/publish decision can be made from
-repeatable evidence.
+## Active Requirements
 
-## v1 Requirements
+### Approval and Evidence Packet
 
-### Inventory and Coordination
+- **APPROVAL-01**: Inventory the v2.57 final validation artifacts, release-readiness script output, consumer smoke evidence, docs handoff, Beads state, generated roadmap, and archive locations.
+- **APPROVAL-02**: Produce a release cutover approval packet that distinguishes evidence already proven from actions still requiring human approval.
+- **APPROVAL-03**: Define the release abort/hold criteria for package, docs, validation, Beads, Git, Dolt, and remote-state failures.
+- **APPROVAL-04**: Keep Beads as the source of task status, ownership, dependencies, validation expectations, and handoff notes.
 
-- [x] **INV-01**: Inventory current SurfaceCharts package, sample, docs, smoke, CI, guardrail, and Beads release-readiness surfaces before implementation.
-- [x] **INV-02**: Define release-candidate boundaries: what is validated locally, what remains unpublished, and what evidence is required before a public package/tag.
-- [x] **INV-03**: Create Beads issues for every phase with dependencies, ownership boundaries, validation expectations, and branch/worktree handoff notes.
+### Version and Package Contracts
 
-### Public API and Package Metadata
+- **PKG-01**: Confirm the SurfaceCharts package version, package metadata, dependency surface, symbols/assets, and README/package links before any cutover.
+- **PKG-02**: Build and inspect local package assets without mutating public feeds or credentials.
+- **PKG-03**: Keep the public API contract aligned with the shipped `VideraChartView.Plot` model and reject unexpected public API or package-scope drift.
+- **PKG-04**: Preserve the single shipped `VideraChartView` control and `Plot.Add.*` data-loading path.
 
-- [x] **API-01**: Public SurfaceCharts API surface for `VideraChartView`, `Plot`, plottables, interactions, overlays, axes, live helpers, and snapshot export is cataloged in a reviewable artifact.
-- [x] **API-02**: Release-readiness checks reject old chart controls, direct public `Source`, compatibility wrappers, hidden fallback/downshift behavior, and unexpected public API growth.
-- [x] **PKG-01**: SurfaceCharts package metadata, assembly identity, README links, and dependency boundaries are explicit and consistent.
-- [x] **PKG-02**: Local package build output can be inspected without requiring public publish credentials.
+### Gated Release Automation
 
-### Consumer Validation
+- **GATE-01**: Provide a single non-interactive release dry-run path that exercises package build, package inspection, consumer smoke, focused tests, docs checks, and scope guardrails.
+- **GATE-02**: Make public publish, tag creation, and GitHub release steps explicit manual gates that fail closed by default.
+- **GATE-03**: Separate pass/fail/skipped/manual-gate states in command output and generated evidence.
+- **GATE-04**: Avoid hidden fallback/downshift behavior in release validation; unsupported or blocked release actions must be explicit.
 
-- [x] **CONSUME-01**: A clean consumer project can restore and compile against the locally built SurfaceCharts package.
-- [x] **CONSUME-02**: Consumer validation covers first chart, interaction profile, selection/probe recipe, axis/live view recipe, and snapshot export entry points.
-- [x] **CONSUME-03**: Consumer validation uses package/public APIs only, not project-internal source references.
-- [x] **CONSUME-04**: Consumer validation artifacts are deterministic and suitable for support/debug handoff.
+### Consumer Docs and Support
 
-### Release Validation and CI
+- **DOC-01**: Prepare release notes/changelog content from the current package surface and v2.55-v2.57 SurfaceCharts outcomes.
+- **DOC-02**: Keep package-consumption, cookbook, migration, and support paths discoverable from public-facing docs.
+- **DOC-03**: Name exact support artifacts and commands package consumers should attach when package restore, rendering, snapshot, or cookbook smoke fails.
+- **DOC-04**: Preserve the ScottPlot inspiration boundary without claiming ScottPlot API compatibility.
 
-- [x] **CI-01**: A single release-readiness script runs package build, consumer smoke, focused SurfaceCharts tests, demo/docs tests, and scope guardrails.
-- [x] **CI-02**: Release-readiness output clearly separates pass/fail, skipped external publish steps, and local environment warnings.
-- [x] **CI-03**: CI documentation explains which checks are mandatory before public release and which are local/manual.
-- [x] **CI-04**: Validation avoids broad solution-wide churn and does not hide failures behind fallback behavior.
+### Final Verification and Handoff
 
-### Docs and Handoff
-
-- [x] **DOC-01**: Root README and SurfaceCharts demo README expose a clear release-candidate path for package consumption and cookbook recipes.
-- [x] **DOC-02**: Migration notes summarize the current `VideraChartView.Plot.Add.*` model, removed old controls, and non-goals.
-- [x] **DOC-03**: Support handoff names the exact artifacts users should attach when package consumption or rendering evidence fails.
-- [x] **DOC-04**: Documentation stays explicit that ScottPlot 5 is an ergonomics inspiration, not an API compatibility promise.
-
-### Verification and Closure
-
-- [x] **VER-01**: Focused tests and release-readiness script cover public API guardrails, package consumer smoke, cookbook/demo docs, snapshot scope, and support artifacts.
-- [x] **VER-02**: Beads export, generated public roadmap, phase evidence, branch/worktree state, and milestone archive are synchronized.
-- [x] **VER-03**: Public publish/tag/package-release steps remain out of scope unless separately approved.
-
-## Future Requirements
-
-- Public NuGet publish.
-- Public release tag and release notes.
-- Cross-platform native validation for release artifacts in CI-hosted runners.
-- Visual regression screenshots for cookbook recipes.
-- Full API diff tooling against a published previous version.
+- **VERIFY-01**: Run focused validation for package build/inspection, consumer smoke, public API guardrails, cookbook/demo docs, snapshot scope, and support artifacts.
+- **VERIFY-02**: Synchronize Beads state, generated public roadmap, phase evidence, milestone archive, branch/worktree cleanup, Git push, and Dolt Beads push.
+- **VERIFY-03**: Record any blocked publish/tag/GitHub release actions as gated follow-up, not as completed release work.
 
 ## Out of Scope
 
-| Exclusion | Reason |
-|-----------|--------|
-| Public NuGet publish | v2.57 prepares evidence; publishing needs explicit release approval. |
-| Public release tag | Avoid creating externally visible release state before readiness is reviewed. |
-| Full ScottPlot compatibility | SurfaceCharts remains a Videra 3D charting API inspired by ScottPlot ergonomics. |
-| Old chart controls or public direct `Source` | `VideraChartView.Plot.Add.*` remains the public data-loading path. |
-| Backend/runtime rewrite | Release readiness must validate current boundaries, not expand renderer ownership. |
-| Hidden fallback/downshift | Unsupported behavior must remain explicit. |
-| Generic chart editor | Demo and consumer validation stay cookbook/support focused. |
+- Public NuGet publish, public tag creation, or GitHub release publication without explicit human approval.
+- Full ScottPlot compatibility or a ScottPlot API compatibility layer.
+- Restoring `SurfaceChartView`, `WaterfallChartView`, or `ScatterChartView`.
+- Restoring a public direct `Source` API.
+- Compatibility wrappers for removed alpha APIs.
+- PDF/vector export or broad export-format expansion.
+- Renderer/backend/platform expansion.
+- Hidden fallback/downshift behavior.
+- Generic plotting-engine or god-code demo/workbench expansion.
 
 ## Traceability
 
-| Requirement | Phase | Status |
-|-------------|-------|--------|
-| INV-01 | Phase 390 | Complete |
-| INV-02 | Phase 390 | Complete |
-| INV-03 | Phase 390 | Complete |
-| API-01 | Phase 391 | Complete |
-| API-02 | Phase 391 | Complete |
-| PKG-01 | Phase 391 | Complete |
-| PKG-02 | Phase 391 | Complete |
-| CONSUME-01 | Phase 392 | Complete |
-| CONSUME-02 | Phase 392 | Complete |
-| CONSUME-03 | Phase 392 | Complete |
-| CONSUME-04 | Phase 392 | Complete |
-| CI-01 | Phase 393 | Complete |
-| CI-02 | Phase 393 | Complete |
-| CI-03 | Phase 393 | Complete |
-| CI-04 | Phase 393 | Complete |
-| DOC-01 | Phase 394 | Complete |
-| DOC-02 | Phase 394 | Complete |
-| DOC-03 | Phase 394 | Complete |
-| DOC-04 | Phase 394 | Complete |
-| VER-01 | Phase 395 | Complete |
-| VER-02 | Phase 395 | Complete |
-| VER-03 | Phase 395 | Complete |
+- **Phase 396**: APPROVAL-01, APPROVAL-02, APPROVAL-03, APPROVAL-04
+- **Phase 397**: PKG-01, PKG-02, PKG-03, PKG-04
+- **Phase 398**: GATE-01, GATE-02, GATE-03, GATE-04
+- **Phase 399**: DOC-01, DOC-02, DOC-03, DOC-04
+- **Phase 400**: VERIFY-01, VERIFY-02, VERIFY-03

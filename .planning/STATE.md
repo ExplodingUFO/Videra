@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.57
-milestone_name: "SurfaceCharts Release Readiness and Consumer Validation"
-status: complete
-stopped_at: "v2.57 complete; ready for next milestone"
-last_updated: "2026-04-30T03:50:00+08:00"
+milestone: v2.58
+milestone_name: "SurfaceCharts Controlled Release Cutover"
+status: active
+stopped_at: "Phase 396 ready for planning"
+last_updated: "2026-04-30T10:56:00+08:00"
 last_activity: 2026-04-30
 progress:
-  total_phases: 6
-  completed_phases: 6
-  total_plans: 6
-  completed_plans: 6
-  percent: 100
+  total_phases: 5
+  completed_phases: 0
+  total_plans: 5
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -21,49 +21,42 @@ progress:
 See: `.planning/PROJECT.md`
 
 **Core value:** 跨平台 3D 渲染引擎的可靠性
-**Current focus:** v2.57 SurfaceCharts Release Readiness and Consumer Validation
+**Current focus:** v2.58 SurfaceCharts Controlled Release Cutover
 
 ## Current Position
 
-Milestone: `v2.57 SurfaceCharts Release Readiness and Consumer Validation`
-Phase: 395 of 395 (Integration, Guardrails, and Milestone Evidence) — COMPLETE
-Plan: v2.57 complete
-Status: v2.57 release-readiness evidence, Beads export, generated roadmap, milestone archive, and clean branch/worktree handoff are complete.
-Last activity: 2026-04-30 — Completed v2.57 SurfaceCharts release-readiness milestone
+Milestone: `v2.58 SurfaceCharts Controlled Release Cutover`
+Phase: 396 of 400 (Release Cutover Inventory and Approval Packet) - READY
+Plan: none yet
+Status: v2.58 milestone initialized with requirements, roadmap, and Beads epic/phase graph. Next action is to plan Phase 396.
+Last activity: 2026-04-30 - Started v2.58 SurfaceCharts controlled release cutover milestone
 
-Progress: [██████████] 100%
+Progress: [----------] 0%
 
 ## Initial Scope Summary
 
-v2.57 starts from the completed v2.56 SurfaceCharts baseline:
+v2.58 starts from the completed v2.57 SurfaceCharts release-readiness baseline:
 
-- `VideraChartView` remains the single shipped chart control.
-- `Plot.Add.*`, typed plottables, lifecycle/query helpers, `Plot.Axes`, axis rules, linked views, interaction profiles, selection/probe/draggable overlay recipes, `Plot.SavePngAsync`, `DataLogger3D`, and cookbook demo/gallery recipes are available.
-- Snapshot/export scope guardrails remain active.
+- `scripts/Invoke-ReleaseReadinessValidation.ps1` exists as the single v2.57 validation command.
+- Package-only SurfaceCharts consumer smoke passed using public APIs.
+- Release-candidate docs, migration notes, cookbook paths, and support handoff guidance exist.
+- v2.57 final evidence is archived under `.planning/milestones/v2.57-*`.
 
-This milestone prepares a release-candidate evidence loop:
+This milestone turns that evidence into a controlled release cutover package:
 
-- public API and package metadata review
-- local package build and clean consumer smoke
-- single release-readiness validation script
-- CI/manual boundary documentation
-- release-candidate docs, migration notes, and support handoff
+- approval packet and abort/hold criteria
+- version/package metadata and asset contract finalization
+- gated release dry-run automation
+- release notes, changelog, cookbook, migration, and support cutover docs
+- final verification and clean Beads/Git/Dolt handoff
 
 ## Decisions
 
-- v2.57 prepares release readiness evidence; it does not publish a public package or create a public release tag.
-- Consumer validation must use package/public APIs only.
-- Keep implementation chart-local/package-local unless a small explicit validation bridge is required.
-- Use Beads as the task spine for phase status, ownership, dependencies, and handoff.
-- Use isolated worktrees and branches only for disjoint implementation phases.
-- Do not restore old chart controls, public direct `Source`, compatibility wrappers, PDF/vector export, backend expansion, hidden fallback/downshift, full ScottPlot compatibility, or god-code demo editor behavior.
-- Phase 390 identified the first real parallelization point as Phase 393 and Phase 394 after Phase 392 closes and merges.
-- Phase 391 owns stale public API/package guardrail evidence; Phase 390 only recorded the issue.
-- Phase 391 refreshed the public API contract and corrected stale PNG image-export guardrail expectations without changing runtime behavior.
-- Phase 392 proved package-only SurfaceCharts consumer restore/build/run, deterministic support artifacts, and chart-local snapshot handoff.
-- Phase 393 added `scripts/Invoke-ReleaseReadinessValidation.ps1` as the single v2.57 readiness command and aligned the dry-run workflow.
-- Phase 394 added release-candidate package consumption, cookbook, migration, and support artifact handoff docs.
-- Phase 395 passed the final release-readiness command with full SurfaceCharts packaged consumer smoke and archived v2.57 evidence.
+- v2.58 prepares a controlled cutover and fail-closed gated release path; it does not publish to NuGet, create a public tag, or publish a GitHub release without explicit human approval.
+- Beads remain the task spine for phase status, ownership, dependencies, validation, and handoff.
+- Use isolated Dolt worktrees/branches only for disjoint implementation phases; Phase 398 and Phase 399 are the first likely parallelization point after Phase 397 closes.
+- Keep implementation simple and direct; do not add compatibility layers, downgrade behavior, or broad release framework abstractions.
+- Preserve v2.57 boundaries: no old chart controls, direct public `Source`, compatibility wrappers, PDF/vector export, backend expansion, hidden fallback/downshift, full ScottPlot compatibility, or god-code demo/workbench behavior.
 
 ## Known Residuals
 
@@ -74,11 +67,13 @@ This milestone prepares a release-candidate evidence loop:
 ## Session Continuity
 
 Last session: `2026-04-30 +08:00`
-Stopped at: v2.57 milestone initialized
-Next action: start the next milestone when ready.
+Stopped at: v2.58 milestone initialized
+Next action: plan and execute Phase 396 (`Videra-v258.1`).
 
 ## Accumulated Context
 
-From v2.56: 27 requirements delivered across 7 phases. SurfaceCharts now has Plot lifecycle/code polish, interaction profile commands, selection/probe/draggable overlay recipes, axis rules, linked views, live view management, cookbook demo/gallery docs, and closure guardrails.
+From v2.57: 22 requirements delivered across 6 phases. SurfaceCharts release-readiness evidence now covers release inventory, public API/package metadata, package-only consumer smoke, release-readiness validation script, release-candidate docs/support handoff, final guardrails, archive evidence, and clean Beads state.
+
+From v2.56: 27 requirements delivered across 7 phases. SurfaceCharts has Plot lifecycle/code polish, interaction profile commands, selection/probe/draggable overlay recipes, axis rules, linked views, live view management, cookbook demo/gallery docs, and closure guardrails.
 
 From v2.55: SurfaceCharts has short raw `Plot.Add.*` overloads, typed plottables, `Plot.Axes`, `Plot.SavePngAsync`, `DataLogger3D`, same-type multi-series composition, cookbook seed docs, and closure guardrails.

@@ -12,23 +12,35 @@ Videra 是一个基于 `.NET 8` 的跨平台 3D 渲染引擎，提供 Windows (`
 
 ## Current State
 
-- 最新完整归档 milestone：`v2.56 ScottPlot 5 Interaction and Cookbook Experience`
-- 最近完成 milestone：`v2.56 ScottPlot 5 Interaction and Cookbook Experience`
-- 当前 active milestone：`v2.57 SurfaceCharts Release Readiness and Consumer Validation`
-- 当前 focus：把 v2.56 已收稳的 ScottPlot-like / cookbook SurfaceCharts 体验推进到 release-candidate readiness：包元数据、公有 API 边界、本地包消费、验证脚本、文档导航和支持交接证据。
+- 最新完整归档 milestone：`v2.57 SurfaceCharts Release Readiness and Consumer Validation`
+- 最近完成 milestone：`v2.57 SurfaceCharts Release Readiness and Consumer Validation`
+- 当前 active milestone：`v2.58 SurfaceCharts Controlled Release Cutover`
+- 当前 focus：把 v2.57 已验证的 SurfaceCharts release-readiness 证据推进到受控 release cutover：approval packet、version/package contract、gated dry-run automation、release notes/docs/support handoff 和最终同步验证。
 
-## Current Milestone: v2.57 SurfaceCharts Release Readiness and Consumer Validation
+## Current Milestone: v2.58 SurfaceCharts Controlled Release Cutover
 
-**Goal:** Prepare SurfaceCharts for a release-candidate decision by proving package metadata, public API boundaries, local package consumption, validation scripts, docs navigation, and support handoff without publishing a public package or tag.
+**Goal:** Turn the completed v2.57 SurfaceCharts release-readiness evidence into a controlled release cutover package without public NuGet publish, public tag creation, or GitHub release publication unless separately approved.
 
 **Target features:**
-- Public API and package metadata review for the shipped `VideraChartView.Plot` model
-- Local package build and clean consumer smoke using package/public APIs only
-- Release-readiness validation script with explicit CI/manual boundaries
-- Release candidate docs, migration notes, and support artifact handoff
-- Milestone closure through Beads export, generated roadmap, guardrails, and clean branch/worktree state
+- Release cutover approval packet and abort/hold criteria
+- Version/package metadata, package assets, README/package links, and public API/package guardrails
+- Gated release dry-run automation that fails closed before publish/tag/release actions
+- Release notes, changelog, cookbook, migration, and support cutover docs
+- Final verification through focused validation, Beads export, generated roadmap, archive, Git/Dolt push, and clean branch/worktree state
 
 ## Completed Milestones
+
+### v2.57 SurfaceCharts Release Readiness and Consumer Validation (2026-04-30)
+
+Prepared SurfaceCharts for a release-candidate decision without publishing a public package or tag:
+- inventoried package, sample, docs, smoke, CI, guardrail, and Beads surfaces
+- refreshed public API/package metadata evidence and release-readiness guardrails
+- proved clean package-only consumer restore/build/run using public APIs and deterministic artifacts
+- added the single `scripts/Invoke-ReleaseReadinessValidation.ps1` validation path
+- updated release-candidate package consumption, cookbook, migration, and support handoff docs
+- closed with full release-readiness validation, final evidence archive, Beads export, generated roadmap, and clean handoff
+
+Archived: `.planning/milestones/v2.57-ROADMAP.md`, `.planning/milestones/v2.57-REQUIREMENTS.md`
 
 ### v2.56 ScottPlot 5 Interaction and Cookbook Experience (2026-04-30)
 
@@ -797,6 +809,6 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-30 after starting v2.57 milestone*
+*Last updated: 2026-04-30 after starting v2.58 milestone*
 
 
