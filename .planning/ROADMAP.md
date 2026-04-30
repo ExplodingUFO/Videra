@@ -133,7 +133,7 @@ workflows.
 | 419. Feature/Demo Surface Inventory | 1/1 | Complete | 2026-04-30 |
 | 420. Native 3D Feature Convenience APIs | 1/1 | Complete | 2026-04-30 |
 | 421. Annotation and Measurement Workflows | 1/1 | Complete | 2026-04-30 |
-| 422. Demo Gallery Workflow Upgrade | 0/1 | Ready | |
+| 422. Demo Gallery Workflow Upgrade | 1/1 | In Progress | |
 | 423. Feature Cookbook and Validation Truth | 0/1 | Blocked on 422 | |
 | 424. v2.63 Final Verification | 0/1 | Blocked on 423 | |
 

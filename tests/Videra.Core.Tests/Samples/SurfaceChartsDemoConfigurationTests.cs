@@ -12,9 +12,9 @@ public sealed class SurfaceChartsDemoConfigurationTests
         var rootReadme = File.ReadAllText(Path.Combine(repositoryRoot, "README.md"));
         var demoReadme = File.ReadAllText(Path.Combine(repositoryRoot, "samples", "Videra.SurfaceCharts.Demo", "README.md"));
         var cutover = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "surfacecharts-release-cutover.md"));
-        var mainWindowXaml = File.ReadAllText(Path.Combine(repositoryRoot, "samples", "Videra.SurfaceCharts.Demo", "Views", "MainWindow.axaml"));
         var mainWindowCodeBehind = File.ReadAllText(Path.Combine(repositoryRoot, "samples", "Videra.SurfaceCharts.Demo", "Views", "MainWindow.axaml.cs"));
         var cookbookRecipeCatalog = File.ReadAllText(Path.Combine(repositoryRoot, "samples", "Videra.SurfaceCharts.Demo", "Services", "CookbookRecipeCatalog.cs"));
+        var scenarioCatalog = File.ReadAllText(Path.Combine(repositoryRoot, "samples", "Videra.SurfaceCharts.Demo", "Services", "SurfaceDemoScenario.cs"));
 
         foreach (var document in new[] { rootReadme, demoReadme, cutover })
         {
@@ -22,7 +22,7 @@ public sealed class SurfaceChartsDemoConfigurationTests
             document.Should().Contain("Plot.Add.Contour");
         }
 
-        foreach (var document in new[] { demoReadme, cutover, mainWindowXaml, mainWindowCodeBehind })
+        foreach (var document in new[] { demoReadme, cutover, scenarioCatalog })
         {
             document.Should().Contain("Try next: Bar chart proof");
             document.Should().Contain("Try next: Contour plot proof");
@@ -47,6 +47,7 @@ public sealed class SurfaceChartsDemoConfigurationTests
         var mainWindowXamlPath = Path.Combine(demoRoot, "Views", "MainWindow.axaml");
         var mainWindowCodeBehindPath = Path.Combine(demoRoot, "Views", "MainWindow.axaml.cs");
         var cookbookRecipeCatalogPath = Path.Combine(demoRoot, "Services", "CookbookRecipeCatalog.cs");
+        var scenarioCatalogPath = Path.Combine(demoRoot, "Services", "SurfaceDemoScenario.cs");
         var supportSummaryPath = Path.Combine(demoRoot, "Services", "SurfaceDemoSupportSummary.cs");
         var appXamlPath = Path.Combine(demoRoot, "App.axaml");
         var cacheAssetPath = Path.Combine(demoRoot, "Assets", "sample-surface-cache", "sample.surfacecache.json");
@@ -59,6 +60,7 @@ public sealed class SurfaceChartsDemoConfigurationTests
         File.Exists(mainWindowXamlPath).Should().BeTrue();
         File.Exists(mainWindowCodeBehindPath).Should().BeTrue();
         File.Exists(cookbookRecipeCatalogPath).Should().BeTrue();
+        File.Exists(scenarioCatalogPath).Should().BeTrue();
         File.Exists(supportSummaryPath).Should().BeTrue();
         File.Exists(cacheAssetPath).Should().BeTrue();
         File.Exists(cachePayloadPath).Should().BeTrue();
@@ -141,18 +143,21 @@ public sealed class SurfaceChartsDemoConfigurationTests
         readme.Should().Contain("SurfaceScalarField");
 
         var mainWindow = File.ReadAllText(mainWindowXamlPath);
+        var scenarioCatalog = File.ReadAllText(scenarioCatalogPath);
         mainWindow.Should().Contain("Cookbook gallery");
         mainWindow.Should().Contain("CookbookRecipeSelector");
         mainWindow.Should().Contain("CookbookRecipeStatusText");
         mainWindow.Should().Contain("Copy recipe snippet");
         mainWindow.Should().Contain("CookbookRecipeSnippetText");
-        mainWindow.Should().Contain("Start here: In-memory first chart");
-        mainWindow.Should().Contain("Explore next: Cache-backed streaming");
-        mainWindow.Should().Contain("Try next: Waterfall proof");
-        mainWindow.Should().Contain("Try next: Analytics proof");
-        mainWindow.Should().Contain("Try next: Scatter proof");
-        mainWindow.Should().Contain("Try next: Bar chart proof");
-        mainWindow.Should().Contain("Try next: Contour plot proof");
+        mainWindow.Should().Contain("SourceSelector");
+        scenarioCatalog.Should().Contain("SurfaceDemoScenario");
+        scenarioCatalog.Should().Contain("Start here: In-memory first chart");
+        scenarioCatalog.Should().Contain("Explore next: Cache-backed streaming");
+        scenarioCatalog.Should().Contain("Try next: Waterfall proof");
+        scenarioCatalog.Should().Contain("Try next: Analytics proof");
+        scenarioCatalog.Should().Contain("Try next: Scatter proof");
+        scenarioCatalog.Should().Contain("Try next: Bar chart proof");
+        scenarioCatalog.Should().Contain("Try next: Contour plot proof");
         mainWindow.Should().Contain("Scatter stream");
         mainWindow.Should().Contain("ScatterScenarioSelector");
         mainWindow.Should().Contain("First-chart Plot path");
@@ -186,8 +191,11 @@ public sealed class SurfaceChartsDemoConfigurationTests
         var supportSummary = File.ReadAllText(supportSummaryPath);
         mainWindowCodeBehind.Should().Contain("CookbookRecipes");
         mainWindowCodeBehind.Should().Contain("CookbookRecipe");
+        mainWindowCodeBehind.Should().Contain("SurfaceDemoScenarios");
         mainWindowCodeBehind.Should().NotContain("private sealed record CookbookRecipe");
         mainWindowCodeBehind.Should().NotContain("private static class CookbookRecipes");
+        cookbookRecipeCatalog.Should().Contain("ScenarioId");
+        cookbookRecipeCatalog.Should().NotContain("SourceIndex");
         cookbookRecipeCatalog.Should().Contain("First chart");
         cookbookRecipeCatalog.Should().Contain("Styling");
         cookbookRecipeCatalog.Should().Contain("Interactions");
@@ -254,9 +262,9 @@ public sealed class SurfaceChartsDemoConfigurationTests
         mainWindowCodeBehind.Should().Contain("SurfaceChartGridPlane");
         mainWindowCodeBehind.Should().Contain("CacheManifestFileName");
         mainWindowCodeBehind.Should().Contain("CachePayloadSuffix");
-        mainWindowCodeBehind.Should().Contain("ScatterSourceIndex");
-        mainWindowCodeBehind.Should().Contain("BarSourceIndex");
-        mainWindowCodeBehind.Should().Contain("ContourSourceIndex");
+        mainWindowCodeBehind.Should().Contain("SurfaceDemoScenarios.ScatterId");
+        mainWindowCodeBehind.Should().Contain("SurfaceDemoScenarios.BarId");
+        mainWindowCodeBehind.Should().Contain("SurfaceDemoScenarios.ContourId");
         mainWindowCodeBehind.Should().Contain("Plot.Add.Scatter");
         mainWindowCodeBehind.Should().Contain("Plot.Add.Bar");
         mainWindowCodeBehind.Should().Contain("Plot.Add.Contour");
@@ -298,8 +306,8 @@ public sealed class SurfaceChartsDemoConfigurationTests
         mainWindowCodeBehind.Should().Contain("Refine: settled plot is ready for");
         mainWindowCodeBehind.Should().Contain("OnCopySupportSummaryClicked");
         mainWindowCodeBehind.Should().Contain("Clipboard");
-        mainWindowCodeBehind.Should().Contain("Start here: In-memory first chart");
-        mainWindowCodeBehind.Should().Contain("Explore next: Cache-backed streaming");
+        scenarioCatalog.Should().Contain("Start here: In-memory first chart");
+        scenarioCatalog.Should().Contain("Explore next: Cache-backed streaming");
         mainWindowCodeBehind.Should().NotContain("ViewportSelector");
         mainWindowCodeBehind.Should().NotContain("CreateOverviewViewport");
         mainWindowCodeBehind.Should().NotContain("CreateZoomedDetailViewport");

@@ -584,22 +584,25 @@ public sealed class SurfaceChartsDemoViewportBehaviorTests
         });
     }
 
-    private static ComboBoxItem GetComboBoxItemByContent(ComboBox selector, string content)
+    private static object GetComboBoxItemByContent(ComboBox selector, string content)
     {
         var item = selector.Items
             .Cast<object?>()
-            .OfType<ComboBoxItem>()
-            .SingleOrDefault(candidate => string.Equals(candidate.Content as string, content, StringComparison.Ordinal));
+            .SingleOrDefault(candidate => string.Equals(GetComboBoxItemText(candidate), content, StringComparison.Ordinal));
 
-        item.Should().NotBeNull($"Expected a ComboBoxItem with content '{content}'.");
+        item.Should().NotBeNull($"Expected a source selector item with content '{content}'.");
         return item!;
     }
 
-    private static void SelectItem(ComboBox selector, ComboBoxItem item)
+    private static string? GetComboBoxItemText(object? item)
+    {
+        return item is ComboBoxItem comboBoxItem ? comboBoxItem.Content as string : item?.ToString();
+    }
+
+    private static void SelectItem(ComboBox selector, object item)
     {
         var items = selector.Items
             .Cast<object?>()
-            .OfType<ComboBoxItem>()
             .ToArray();
         var itemIndex = Array.IndexOf(items, item);
 

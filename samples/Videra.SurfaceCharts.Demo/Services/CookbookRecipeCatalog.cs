@@ -4,7 +4,7 @@ internal sealed record CookbookRecipe(
     string Group,
     string Title,
     string Description,
-    int SourceIndex,
+    string ScenarioId,
     string? ScatterScenarioId,
     string Snippet)
 {
@@ -13,19 +13,13 @@ internal sealed record CookbookRecipe(
 
 internal static class CookbookRecipes
 {
-    private const int AnalyticsSourceIndex = 2;
-    private const int WaterfallSourceIndex = 3;
-    private const int ScatterSourceIndex = 4;
-    private const int BarSourceIndex = 5;
-    private const int ContourSourceIndex = 6;
-
     public static IReadOnlyList<CookbookRecipe> All { get; } =
     [
         new(
             "First chart",
             "Surface from a matrix",
             "Isolated setup path: selects the in-memory first-chart source and fits the camera to the generated surface.",
-            SourceIndex: 0,
+            ScenarioId: SurfaceDemoScenarios.StartId,
             ScatterScenarioId: null,
             Snippet: """
                 var chart = new VideraChartView();
@@ -43,7 +37,7 @@ internal static class CookbookRecipes
             "Styling",
             "Axes, color map, and overlay options",
             "Isolated setup path: selects the analytics proof with explicit coordinates, a separate ColorField, and chart-local overlay options.",
-            SourceIndex: AnalyticsSourceIndex,
+            ScenarioId: SurfaceDemoScenarios.AnalyticsId,
             ScatterScenarioId: null,
             Snippet: """
                 chart.Plot.Axes.X.Label = "Time";
@@ -64,7 +58,7 @@ internal static class CookbookRecipes
             "Interactions",
             "Profile plus bounded commands",
             "Isolated setup path: keeps the first chart visible while the snippet shows chart-local interaction switches and commands.",
-            SourceIndex: 0,
+            ScenarioId: SurfaceDemoScenarios.StartId,
             ScatterScenarioId: null,
             Snippet: """
                 chart.InteractionProfile = new SurfaceChartInteractionProfile
@@ -82,7 +76,7 @@ internal static class CookbookRecipes
             "Live data",
             "Latest-window scatter stream",
             "Isolated setup path: selects the FIFO-trim scatter scenario and shows retained-point counters through DataLogger3D-style live evidence.",
-            SourceIndex: ScatterSourceIndex,
+            ScenarioId: SurfaceDemoScenarios.ScatterId,
             ScatterScenarioId: "scatter-fifo-trim-100k",
             Snippet: """
                 var live = new DataLogger3D(0xFF2F80EDu, label: "Live scatter", fifoCapacity: 10_000);
@@ -108,7 +102,7 @@ internal static class CookbookRecipes
             "Linked axes",
             "Explicit two-chart view link",
             "Isolated setup path: selects the waterfall proof as a second chart-family result; the snippet shows the explicit disposable two-chart link.",
-            SourceIndex: WaterfallSourceIndex,
+            ScenarioId: SurfaceDemoScenarios.WaterfallId,
             ScatterScenarioId: null,
             Snippet: """
                 var left = new VideraChartView();
@@ -135,7 +129,7 @@ internal static class CookbookRecipes
             "Bar",
             "Grouped bars",
             "Isolated setup path: selects the bounded Bar chart proof with three named series and five categories.",
-            SourceIndex: BarSourceIndex,
+            ScenarioId: SurfaceDemoScenarios.BarId,
             ScatterScenarioId: null,
             Snippet: """
                 var data = new BarChartData(
@@ -153,7 +147,7 @@ internal static class CookbookRecipes
             "Contour",
             "Radial scalar field",
             "Isolated setup path: selects the bounded Contour plot proof generated from a small radial scalar field.",
-            SourceIndex: ContourSourceIndex,
+            ScenarioId: SurfaceDemoScenarios.ContourId,
             ScatterScenarioId: null,
             Snippet: """
                 const int size = 32;
@@ -178,7 +172,7 @@ internal static class CookbookRecipes
             "Export",
             "Chart-local PNG snapshot",
             "Isolated setup path: keeps the first chart visible and uses the bounded Capture Snapshot button for the same PNG-only export path.",
-            SourceIndex: 0,
+            ScenarioId: SurfaceDemoScenarios.StartId,
             ScatterScenarioId: null,
             Snippet: """
                 var result = await chart.Plot.SavePngAsync(

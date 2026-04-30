@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.63
 milestone_name: "Native SurfaceCharts Feature and Demo Expansion"
 status: active
-stopped_at: "Phase 422 ready"
-last_updated: "2026-04-30T18:46:48+08:00"
+stopped_at: "Phase 422 in progress"
+last_updated: "2026-04-30T18:56:38+08:00"
 last_activity: 2026-04-30
 progress:
   total_phases: 6
   completed_phases: 3
   total_plans: 6
-  completed_plans: 3
+  completed_plans: 4
   percent: 50
 ---
 
@@ -26,10 +26,10 @@ See: `.planning/PROJECT.md`
 ## Current Position
 
 Milestone: `v2.63 Native SurfaceCharts Feature and Demo Expansion`
-Phase: 422 of 424 - READY
-Plan: Phase 422 should start with demo scenario descriptors, then split bounded demo view, selector, support summary, and smoke-truth work by bead.
-Status: `Videra-b5n` and children are closed. `Videra-j3z` is unblocked and ready.
-Last activity: 2026-04-30 - Completed Phase 421 annotation anchors, measurement reports, and native selection report event delivery with focused interaction tests.
+Phase: 422 of 424 - IN PROGRESS
+Plan: Phase 422 starts with descriptor-driven demo scenarios, then splits bounded demo view, selector, support summary, and smoke-truth work by bead.
+Status: `Videra-j3z` is claimed. `Videra-j3z.1` is closed; `Videra-j3z.2`, `.3`, `.4`, and `.6` are unblocked.
+Last activity: 2026-04-30 - Completed 422A demo scenario descriptors so source selection and cookbook routing no longer depend on duplicated integer indexes.
 
 Progress: [#####-----] 50%
 
@@ -71,8 +71,8 @@ v2.63 focuses on:
 ## Session Continuity
 
 Last session: `2026-04-30 +08:00`
-Stopped at: Phase 422 ready
-Next action: claim `Videra-j3z` and start demo scenario descriptors before splitting downstream demo workflow beads.
+Stopped at: Phase 422 in progress
+Next action: split unblocked Phase 422 beads into isolated worktrees: MainWindow responsibility split, scatter selector affordance, support snapshot state, and consumer smoke truth.
 
 ## Accumulated Context
 

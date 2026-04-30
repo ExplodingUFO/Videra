@@ -60,15 +60,7 @@
                        FontWeight="SemiBold"
                        Foreground="#E2E8F0"
                        Text="First-chart Plot path" />
-            <ComboBox x:Name="SourceSelector">
-              <ComboBoxItem Content="Start here: In-memory first chart" />
-              <ComboBoxItem Content="Explore next: Cache-backed streaming" />
-              <ComboBoxItem Content="Try next: Analytics proof" />
-              <ComboBoxItem Content="Try next: Waterfall proof" />
-              <ComboBoxItem Content="Try next: Scatter proof" />
-              <ComboBoxItem Content="Try next: Bar chart proof" />
-              <ComboBoxItem Content="Try next: Contour plot proof" />
-            </ComboBox>
+            <ComboBox x:Name="SourceSelector" />
             <Grid ColumnDefinitions="Auto,*"
                   ColumnSpacing="10">
               <TextBlock Text="Scatter stream"

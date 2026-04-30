@@ -15,12 +15,6 @@ public partial class MainWindow : Window
 {
     private const string CacheManifestFileName = "sample.surfacecache.json";
     private const string CachePayloadSuffix = ".bin";
-    private const int CacheSourceIndex = 1;
-    private const int AnalyticsSourceIndex = 2;
-    private const int WaterfallSourceIndex = 3;
-    private const int ScatterSourceIndex = 4;
-    private const int BarSourceIndex = 5;
-    private const int ContourSourceIndex = 6;
 
     private readonly VideraChartView _surfaceChartView;
     private readonly VideraChartView _waterfallChartView;
@@ -132,16 +126,18 @@ public partial class MainWindow : Window
         ConfigureSurfaceFamilyChartView(_barChartView);
         ConfigureSurfaceFamilyChartView(_contourPlotView);
 
+        _sourceSelector.ItemsSource = SurfaceDemoScenarios.All;
         _scatterScenarioSelector.ItemsSource = ScatterStreamingScenarios.All;
         _scatterScenarioSelector.SelectedIndex = 0;
         _cookbookRecipeSelector.ItemsSource = CookbookRecipes.All;
         _cookbookRecipeSelector.SelectedIndex = 0;
-        _sourceSelector.SelectedIndex = 0;
+        var startScenario = SurfaceDemoScenarios.Get(SurfaceDemoScenarios.StartId);
+        _sourceSelector.SelectedItem = startScenario;
         ApplySource(
             _surfaceChartView,
             _inMemorySource,
-            "Start here: In-memory first chart",
-            "Start here first. Generated at runtime from a dense matrix, built with SurfacePyramidBuilder, and kept as the baseline chart path inside this demo.",
+            startScenario.Label,
+            $"Start here first. {startScenario.Description}",
             "The start-here in-memory path uses a generated 64x48 matrix with an overview-first pyramid.",
             "No additional assets are used on this path.");
 
@@ -190,81 +186,82 @@ public partial class MainWindow : Window
     {
         _ = sender;
         _ = e;
-        var requestedIndex = _sourceSelector.SelectedIndex;
+        if (_sourceSelector.SelectedItem is not SurfaceDemoScenario scenario)
+        {
+            return;
+        }
 
-        if (requestedIndex == 0)
+        if (scenario.Id == SurfaceDemoScenarios.StartId)
         {
             ApplySource(
                 _surfaceChartView,
                 _inMemorySource,
-                "Start here: In-memory first chart",
-                "Start here first. Generated at runtime from a dense matrix, built with SurfacePyramidBuilder, and kept as the baseline chart path inside this demo.",
+                scenario.Label,
+                $"Start here first. {scenario.Description}",
                 "The start-here in-memory path uses a generated 64x48 matrix with an overview-first pyramid.",
                 "No additional assets are used on this path.");
             return;
         }
 
-        if (requestedIndex == CacheSourceIndex)
+        if (scenario.Id == SurfaceDemoScenarios.CacheId)
         {
-            await LoadAndApplyCacheSourceAsync(requestedIndex).ConfigureAwait(false);
+            await LoadAndApplyCacheSourceAsync(scenario).ConfigureAwait(false);
             return;
         }
 
-        if (requestedIndex == AnalyticsSourceIndex)
+        if (scenario.Id == SurfaceDemoScenarios.AnalyticsId)
         {
             ApplySource(
                 _surfaceChartView,
                 _analyticsProofSource,
-                "Try next: Analytics proof",
+                scenario.Label,
                 "Repo-owned analytics proof on the same Avalonia shell. Uses explicit/non-uniform coordinates with an independent `ColorField`, keeps pinned-probe workflow (`Shift + LeftClick`), and keeps the built-in `ViewState` + `InteractionQuality` camera truth contract.",
                 "The analytics proof uses a 19x13 explicit grid with non-uniform axis spacing and separate height and color scalar fields, while preserving the same VideraChartView interaction contracts.",
                 "No additional assets are used on this path.");
             return;
         }
 
-        if (requestedIndex == WaterfallSourceIndex)
+        if (scenario.Id == SurfaceDemoScenarios.WaterfallId)
         {
             ApplySource(
                 _waterfallChartView,
                 _waterfallSource,
-                "Try next: Waterfall proof",
+                scenario.Label,
                 "Thin proof on the same Avalonia chart shell. Uses explicit strip spacing while keeping the inherited ViewState, interaction, overlay, and rendering-status workflow aligned to the rendered geometry.",
                 "The waterfall proof expands each logical strip into baseline-data-baseline rows and assigns explicit sweep coordinates so camera, picking, and overlays stay on the same geometry truth.",
                 "No additional assets are used on this path.");
             return;
         }
 
-        if (requestedIndex == ScatterSourceIndex)
+        if (scenario.Id == SurfaceDemoScenarios.ScatterId)
         {
-            ApplySelectedScatterScenario();
+            ApplySelectedScatterScenario(scenario);
             return;
         }
 
-        if (requestedIndex == BarSourceIndex)
+        if (scenario.Id == SurfaceDemoScenarios.BarId)
         {
-            ApplyBarSource();
+            ApplyBarSource(scenario);
             return;
         }
 
-        if (requestedIndex == ContourSourceIndex)
+        if (scenario.Id == SurfaceDemoScenarios.ContourId)
         {
-            ApplyContourSource();
+            ApplyContourSource(scenario);
             return;
         }
-
-        await LoadAndApplyCacheSourceAsync(requestedIndex).ConfigureAwait(false);
     }
 
     private void OnScatterScenarioSelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
         _ = sender;
         _ = e;
-        if (_sourceSelector.SelectedIndex != ScatterSourceIndex)
+        if (!IsSelectedScenario(SurfaceDemoScenarios.ScatterId))
         {
             return;
         }
 
-        ApplySelectedScatterScenario();
+        ApplySelectedScatterScenario(SurfaceDemoScenarios.Get(SurfaceDemoScenarios.ScatterId));
     }
 
     private void OnCookbookRecipeSelectionChanged(object? sender, SelectionChangedEventArgs e)
@@ -288,19 +285,20 @@ public partial class MainWindow : Window
             _scatterScenarioSelector.SelectedItem = ScatterStreamingScenarios.Get(scenarioId);
         }
 
-        if (_sourceSelector.SelectedIndex != recipe.SourceIndex)
+        var scenario = SurfaceDemoScenarios.Get(recipe.ScenarioId);
+        if (!ReferenceEquals(_sourceSelector.SelectedItem, scenario))
         {
-            _sourceSelector.SelectedIndex = recipe.SourceIndex;
+            _sourceSelector.SelectedItem = scenario;
         }
     }
 
-    private void ApplySelectedScatterScenario()
+    private void ApplySelectedScatterScenario(SurfaceDemoScenario demoScenario)
     {
         var scenario = GetSelectedScatterScenario();
 
         ApplyScatterSource(
             CreateScatterSource(scenario),
-            "Try next: Scatter streaming proof",
+            demoScenario.Label.Replace("Scatter proof", "Scatter streaming proof", StringComparison.Ordinal),
             $"Repo-owned scatter proof on the same Avalonia chart line. Scenario `{scenario.Id}` uses {scenario.UpdateMode} columnar streaming with direct camera pose truth and no `ViewState` seam on this path.",
             $"The scatter proof uses scenario `{scenario.Id}`: {scenario.InitialPointCount:N0} initial points, {scenario.UpdatePointCount:N0} update points, FIFO capacity {SurfaceDemoSupportSummary.FormatFifoCapacity(scenario.FifoCapacity)}, Pickable {scenario.Pickable}.",
             "No additional assets are used on this path.");
@@ -312,12 +310,12 @@ public partial class MainWindow : Window
             ?? ScatterStreamingScenarios.Get("scatter-replace-100k");
     }
 
-    private async Task LoadAndApplyCacheSourceAsync(int requestedIndex)
+    private async Task LoadAndApplyCacheSourceAsync(SurfaceDemoScenario scenario)
     {
         try
         {
             var cacheSource = await GetOrCreateCacheSourceAsync().ConfigureAwait(true);
-            if (_sourceSelector.SelectedIndex != requestedIndex)
+            if (!IsSelectedScenario(scenario.Id))
             {
                 return;
             }
@@ -326,26 +324,26 @@ public partial class MainWindow : Window
             ApplySource(
                 _surfaceChartView,
                 cacheSource,
-                "Explore next: Cache-backed streaming",
+                scenario.Label,
                 $"Advanced follow-up after the first chart renders. Loads manifest metadata from {_cachePath} and uses lazy viewport tile streaming from {_cachePayloadPath}.",
                 "The cache-backed path reads a committed manifest plus binary sidecar and only requests the tiles needed for the current view.",
                 $"Manifest {_cachePath}; Payload sidecar {_cachePayloadPath}");
         }
         catch (Exception exception)
         {
-            if (_sourceSelector.SelectedIndex != requestedIndex)
+            if (!IsSelectedScenario(scenario.Id))
             {
                 return;
             }
 
             _lastCacheLoadFailureMessage = $"{exception.GetType().Name}: {exception.Message}";
-            ApplyCacheLoadFailure(exception);
+            ApplyCacheLoadFailure(scenario, exception);
         }
     }
 
-    private void ApplyCacheLoadFailure(Exception exception)
+    private void ApplyCacheLoadFailure(SurfaceDemoScenario scenario, Exception exception)
     {
-        _activePlotPathHeading = "Explore next: Cache-backed streaming";
+        _activePlotPathHeading = scenario.Label;
         _activePlotPathDetails = $"Cache-backed streaming failed to load: {exception.Message}. No Plot path switch was performed.";
         _activeDatasetSummary = "Cache-backed data path unavailable. The previous chart Plot path remains active and there was no scenario/data-path fallback.";
         _activeAssetSummary = $"Manifest {_cachePath}; Payload sidecar {_cachePayloadPath}";
@@ -403,15 +401,15 @@ public partial class MainWindow : Window
         RefreshActiveProofTexts();
     }
 
-    private void ApplyBarSource()
+    private void ApplyBarSource(SurfaceDemoScenario scenario)
     {
         var data = CreateSampleBarData();
         SetActiveChartView(_barChartView);
         _activeScatterData = null;
         _barChartView.Plot.Clear();
-        _barChartView.Plot.Add.Bar(data, "Try next: Bar chart proof");
+        _barChartView.Plot.Add.Bar(data, scenario.Label);
         _barChartView.FitToData();
-        _activePlotPathHeading = "Try next: Bar chart proof";
+        _activePlotPathHeading = scenario.Label;
         _activePlotPathDetails = "Grouped bar chart with 3 series and 5 categories. Demonstrates Plot.Add.Bar with configurable per-series colors.";
         _activeDatasetSummary = "Bar chart proof uses BarChartData with 3 BarSeries of 5 values each in Grouped layout.";
         _activeAssetSummary = "No additional assets are used on this path.";
@@ -419,15 +417,15 @@ public partial class MainWindow : Window
         RefreshActiveProofTexts();
     }
 
-    private void ApplyContourSource()
+    private void ApplyContourSource(SurfaceDemoScenario scenario)
     {
         var field = CreateSampleContourField();
         SetActiveChartView(_contourPlotView);
         _activeScatterData = null;
         _contourPlotView.Plot.Clear();
-        _contourPlotView.Plot.Add.Contour(field, "Try next: Contour plot proof");
+        _contourPlotView.Plot.Add.Contour(field, scenario.Label);
         _contourPlotView.FitToData();
-        _activePlotPathHeading = "Try next: Contour plot proof";
+        _activePlotPathHeading = scenario.Label;
         _activePlotPathDetails = "Contour plot with marching squares iso-line extraction from a radial scalar field. Demonstrates Plot.Add.Contour.";
         _activeDatasetSummary = "Contour plot proof uses a 32x32 radial scalar field with 10 default contour levels.";
         _activeAssetSummary = "No additional assets are used on this path.";
@@ -442,6 +440,12 @@ public partial class MainWindow : Window
         _scatterChartView.IsVisible = ReferenceEquals(chartView, _scatterChartView);
         _barChartView.IsVisible = ReferenceEquals(chartView, _barChartView);
         _contourPlotView.IsVisible = ReferenceEquals(chartView, _contourPlotView);
+    }
+
+    private bool IsSelectedScenario(string scenarioId)
+    {
+        return _sourceSelector.SelectedItem is SurfaceDemoScenario scenario &&
+            string.Equals(scenario.Id, scenarioId, StringComparison.Ordinal);
     }
 
     private void OnRenderStatusChanged(object? sender, EventArgs e)

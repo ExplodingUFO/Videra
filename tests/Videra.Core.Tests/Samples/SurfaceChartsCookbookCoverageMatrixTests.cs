@@ -14,7 +14,8 @@ public sealed class SurfaceChartsCookbookCoverageMatrixTests
         var demoReadme = Read(repositoryRoot, "samples", "Videra.SurfaceCharts.Demo", "README.md");
         var cutover = Read(repositoryRoot, "docs", "surfacecharts-release-cutover.md");
         var mainWindowXaml = Read(repositoryRoot, "samples", "Videra.SurfaceCharts.Demo", "Views", "MainWindow.axaml");
-        var mainWindowCodeBehind = Read(repositoryRoot, "samples", "Videra.SurfaceCharts.Demo", "Views", "MainWindow.axaml.cs");
+        var cookbookRecipeCatalog = Read(repositoryRoot, "samples", "Videra.SurfaceCharts.Demo", "Services", "CookbookRecipeCatalog.cs");
+        var scenarioCatalog = Read(repositoryRoot, "samples", "Videra.SurfaceCharts.Demo", "Services", "SurfaceDemoScenario.cs");
 
         foreach (var document in new[] { rootReadme, docsIndex, demoReadme })
         {
@@ -31,19 +32,21 @@ public sealed class SurfaceChartsCookbookCoverageMatrixTests
             rootReadme.Should().Contain(row.RootReadmeToken);
             demoReadme.Should().Contain(row.DemoReadmeHeading);
             cutover.Should().Contain(row.CutoverEntry);
-            mainWindowCodeBehind.Should().Contain($@"""{row.CodeBehindGroup}""");
-            mainWindowCodeBehind.Should().Contain(row.SnippetToken);
+            cookbookRecipeCatalog.Should().Contain($@"""{row.CodeBehindGroup}""");
+            cookbookRecipeCatalog.Should().Contain(row.SnippetToken);
 
             if (row.VisibleProofLabel is not null)
             {
                 demoReadme.Should().Contain(row.VisibleProofLabel);
                 cutover.Should().Contain(row.VisibleProofLabel);
-                mainWindowXaml.Should().Contain(row.VisibleProofLabel);
+                scenarioCatalog.Should().Contain(row.VisibleProofLabel);
             }
         }
 
         demoReadme.Should().Contain("copyable evidence-only support summary");
         mainWindowXaml.Should().Contain("Copy support summary");
+        cookbookRecipeCatalog.Should().Contain("ScenarioId");
+        cookbookRecipeCatalog.Should().NotContain("SourceIndex");
         cutover.Should().Contain("For repository-only repros, use `Videra.SurfaceCharts.Demo`.");
         cutover.Should().Contain("For packaged SurfaceCharts issues, first run or attach evidence from `smoke/Videra.SurfaceCharts.ConsumerSmoke`");
         cutover.Should().Contain("not a ScottPlot API compatibility, parity, adapter, or migration layer");
