@@ -152,6 +152,32 @@ public sealed class VideraChartViewPlotApiTests
     }
 
     [Fact]
+    public void BarPlot3DSeries_SetSeriesColor_UpdatesDataAndPlotRevision()
+    {
+        AvaloniaHeadlessTestSession.Run(() =>
+        {
+            var view = new VideraChartView();
+            var data = new BarChartData(
+                [
+                    new BarSeries([1d, 2d], 0xFF102030u, "A"),
+                    new BarSeries([3d, 4d], 0xFF405060u, "B"),
+                ],
+                ["Q1", "Q2"]);
+            var bar = view.Plot.Add.Bar(data, "bars");
+
+            bar.SetSeriesColor(1, 0xFFABCDEFu);
+
+            view.Plot.Revision.Should().Be(2);
+            view.LastRefreshRevision.Should().Be(2);
+            bar.BarData!.Series[0].Color.Should().Be(0xFF102030u);
+            bar.BarData.Series[1].Color.Should().Be(0xFFABCDEFu);
+            bar.BarData.CategoryLabels.Should().Equal("Q1", "Q2");
+            view.Plot.CreateDatasetEvidence().Series.Single().SamplingProfile
+                .Should().Be("BarChart:Categories=2;Series=2;Layout=Grouped;CategoryLabels=2");
+        });
+    }
+
+    [Fact]
     public void Plot3D_RemoveAndClear_UpdateLifecycleDeterministically()
     {
         AvaloniaHeadlessTestSession.Run(() =>

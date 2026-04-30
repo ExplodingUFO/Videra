@@ -83,7 +83,7 @@ public class Plot3DSeries : IPlottable3D
     /// <summary>
     /// Gets the bar dataset for bar chart series.
     /// </summary>
-    public BarChartData? BarData { get; }
+    public BarChartData? BarData { get; private set; }
 
     /// <summary>
     /// Gets the contour dataset for contour series.
@@ -95,9 +95,26 @@ public class Plot3DSeries : IPlottable3D
         _changed = changed ?? throw new ArgumentNullException(nameof(changed));
     }
 
-    private void NotifyChanged()
+    private protected void NotifyChanged()
     {
         _changed?.Invoke();
+    }
+
+    private protected void ReplaceBarData(BarChartData data)
+    {
+        ArgumentNullException.ThrowIfNull(data);
+        if (Kind != Plot3DSeriesKind.Bar)
+        {
+            throw new InvalidOperationException("Only bar series can update bar data.");
+        }
+
+        if (ReferenceEquals(BarData, data))
+        {
+            return;
+        }
+
+        BarData = data;
+        NotifyChanged();
     }
 
     private static string? NormalizeLabel(string? label)
