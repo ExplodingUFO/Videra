@@ -298,6 +298,12 @@ public partial class MainWindow : Window
             SetupLinkedInteractionScenario(scenario);
             return;
         }
+
+        if (scenario.Id == SurfaceDemoScenarios.StreamingWorkspaceId)
+        {
+            SetupStreamingWorkspaceScenario(scenario);
+            return;
+        }
     }
 
     private void OnScatterScenarioSelectionChanged(object? sender, SelectionChangedEventArgs e)
@@ -641,6 +647,105 @@ public partial class MainWindow : Window
             "Two linked VideraChartView instances with FullViewState synchronization and probe propagation. " +
             "Orbit/zoom on one chart mirrors to the other. Hover probe forwards across linked charts.";
         _activeDatasetSummary = "Linked interaction workspace contains two Surface charts sharing the same data, linked via FullViewState policy.";
+        _activeAssetSummary = "No additional assets are used on this path.";
+        _datasetText.Text = _activeDatasetSummary;
+        RefreshActiveProofTexts();
+    }
+
+    private void SetupStreamingWorkspaceScenario(SurfaceDemoScenario scenario)
+    {
+        // Hide all single-chart panels, show workspace panel with 2 charts.
+        _surfaceChartView.IsVisible = false;
+        _waterfallChartView.IsVisible = false;
+        _scatterChartView.IsVisible = false;
+        _barChartView.IsVisible = false;
+        _contourPlotView.IsVisible = false;
+        _analysisWorkspacePanel.IsVisible = true;
+        _workspaceToolbarPanel.IsVisible = true;
+
+        // Dispose old workspace service, link group, and propagator if any.
+        _workspaceService?.Dispose();
+        _activeLinkGroup?.Dispose();
+        _activePropagator?.Dispose();
+
+        // Create new workspace service with 2 scatter charts.
+        var service = new SurfaceChartWorkspaceService();
+        service.RegisterCharts(new List<(VideraChartView, string, Plot3DSeriesKind)>
+        {
+            (_workspaceChartA, "Replace Scatter", Plot3DSeriesKind.Scatter),
+            (_workspaceChartB, "Append+FIFO Scatter", Plot3DSeriesKind.Scatter),
+        });
+
+        // Create scatter data for chart A: replace mode, 100k points.
+        var replaceScenario = ScatterStreamingScenarios.Get("scatter-replace-100k");
+        var replaceData = CreateScatterSource(replaceScenario);
+        var replaceColumnarSeries = replaceData.ColumnarSeries.Count > 0 ? replaceData.ColumnarSeries[0] : null;
+        _workspaceChartA.Plot.Clear();
+        _workspaceChartA.Plot.Add.Scatter(replaceData, "Replace Scatter");
+        _workspaceChartA.FitToData();
+
+        // Create scatter data for chart B: append+FIFO mode, 100k points, FIFO=100k.
+        var fifoScenario = ScatterStreamingScenarios.Get("scatter-fifo-trim-100k");
+        var fifoData = CreateScatterSource(fifoScenario);
+        var fifoColumnarSeries = fifoData.ColumnarSeries.Count > 0 ? fifoData.ColumnarSeries[0] : null;
+        _workspaceChartB.Plot.Clear();
+        _workspaceChartB.Plot.Add.Scatter(fifoData, "Append+FIFO Scatter");
+        _workspaceChartB.FitToData();
+
+        // Hide unused workspace charts.
+        _workspaceChartC.IsVisible = false;
+        _workspaceChartD.IsVisible = false;
+
+        // Register streaming status for each chart.
+        var chartAId = service.GetWorkspaceStatus().Panels[0].ChartId;
+        var chartBId = service.GetWorkspaceStatus().Panels[1].ChartId;
+
+        if (replaceColumnarSeries is not null)
+        {
+            service.RegisterStreamingStatus(chartAId, new SurfaceChartStreamingStatus
+            {
+                UpdateMode = replaceScenario.UpdateMode.ToString(),
+                RetainedPointCount = replaceColumnarSeries.Count,
+                PickablePointCount = replaceColumnarSeries.Pickable ? replaceColumnarSeries.Count : 0,
+                AppendBatchCount = replaceColumnarSeries.AppendBatchCount,
+                ReplaceBatchCount = replaceColumnarSeries.ReplaceBatchCount,
+                DroppedFifoPointCount = replaceColumnarSeries.TotalDroppedPointCount,
+                EvidenceOnly = true,
+            });
+        }
+
+        if (fifoColumnarSeries is not null)
+        {
+            service.RegisterStreamingStatus(chartBId, new SurfaceChartStreamingStatus
+            {
+                UpdateMode = fifoScenario.UpdateMode.ToString(),
+                RetainedPointCount = fifoColumnarSeries.Count,
+                FifoCapacity = fifoColumnarSeries.FifoCapacity,
+                PickablePointCount = fifoColumnarSeries.Pickable ? fifoColumnarSeries.Count : 0,
+                AppendBatchCount = fifoColumnarSeries.AppendBatchCount,
+                ReplaceBatchCount = fifoColumnarSeries.ReplaceBatchCount,
+                DroppedFifoPointCount = fifoColumnarSeries.TotalDroppedPointCount,
+                EvidenceOnly = true,
+            });
+        }
+
+        service.SetActiveChart(chartAId);
+        _workspaceService = service;
+
+        // Display streaming info in the toolbar.
+        var status = service.GetWorkspaceStatus();
+        _workspaceStatusText.Text =
+            $"Charts: {status.ChartCount} | Active: {status.ActiveChartId ?? "none"} | All ready: {status.AllReady}\n" +
+            string.Join("\n", status.Panels.Select(p =>
+                $"  {p.Label} ({p.ChartKind}): Ready={p.IsReady}, Series={p.SeriesCount}, Points={p.PointCount}"));
+
+        _activePlotPathHeading = scenario.Label;
+        _activePlotPathDetails =
+            "Two VideraChartView instances with different streaming modes (replace and append+FIFO). " +
+            "Workspace tracks per-chart streaming status. Copy streaming evidence to see the full report.";
+        _activeDatasetSummary =
+            "Streaming workspace contains two Scatter charts: one using replace mode (100k points) " +
+            "and one using append+FIFO mode (100k points, FIFO=100k).";
         _activeAssetSummary = "No additional assets are used on this path.";
         _datasetText.Text = _activeDatasetSummary;
         RefreshActiveProofTexts();

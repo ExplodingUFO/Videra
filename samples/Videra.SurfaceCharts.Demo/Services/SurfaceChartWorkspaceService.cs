@@ -37,6 +37,14 @@ internal sealed class SurfaceChartWorkspaceService : IDisposable
     }
 
     /// <summary>
+    /// Registers streaming status for a chart in the workspace.
+    /// </summary>
+    public void RegisterStreamingStatus(string chartId, SurfaceChartStreamingStatus status)
+    {
+        _workspace.RegisterStreamingStatus(chartId, status);
+    }
+
+    /// <summary>
     /// Sets the active (focused) chart in the workspace.
     /// </summary>
     public void SetActiveChart(string chartId) => _workspace.SetActiveChart(chartId);
