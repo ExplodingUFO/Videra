@@ -8,7 +8,7 @@
 
 ## Phases
 
-- [ ] **Phase 401: Interaction and Cookbook Experience Inventory** - Inventory current interaction APIs, demo flows, cookbook docs, and scoped ScottPlot5-inspired ergonomics gaps.
+- [x] **Phase 401: Interaction and Cookbook Experience Inventory** - Inventory current interaction APIs, demo flows, cookbook docs, and scoped ScottPlot5-inspired ergonomics gaps.
 - [ ] **Phase 402: Interaction and Code Experience Polish** - Implement the first bounded interaction/code-experience improvements without compatibility layers or broad rewrites.
 - [ ] **Phase 403: Cookbook Demo Conversion** - Restructure SurfaceCharts demos and docs toward cookbook-style, copyable recipes.
 - [ ] **Phase 404: Interaction Cookbook Final Verification** - Close with cross-phase validation, docs checks, Beads export, generated roadmap, and clean handoff.
@@ -70,9 +70,9 @@
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 401. Interaction and Cookbook Experience Inventory | 0/1 | Ready | |
-| 402. Interaction and Code Experience Polish | 0/1 | Blocked by 401 | |
-| 403. Cookbook Demo Conversion | 0/1 | Blocked by 401 | |
+| 401. Interaction and Cookbook Experience Inventory | 1/1 | Complete | 2026-04-30 |
+| 402. Interaction and Code Experience Polish | 0/1 | Ready | |
+| 403. Cookbook Demo Conversion | 0/1 | Ready | |
 | 404. Interaction Cookbook Final Verification | 0/1 | Blocked by 402, 403 | |
 
 ---
