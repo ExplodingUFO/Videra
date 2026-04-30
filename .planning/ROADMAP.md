@@ -90,10 +90,12 @@ Plans:
 3. Per-segment colormap coloring works for both line and ribbon.
 4. Line/ribbon plots participate in probe, selection, overlay, and legend.
 
-**Plans:** 2 plans
+**Plans:** 4 plans
 Plans:
-- [ ] 434-01-PLAN.md — Create Core data models, renderers, render scenes, and probe strategies for Line and Ribbon
-- [ ] 434-02-PLAN.md — Wire Line and Ribbon into Avalonia integration layer (series, API, composition, legend, diagnostics)
+- [x] 434-01-PLAN.md — Create Core data models, renderers, render scenes, and probe strategies for Line and Ribbon
+- [x] 434-02-PLAN.md — Wire Line and Ribbon into Avalonia integration layer (series, API, composition, legend, diagnostics)
+- [ ] 434-03-PLAN.md — Close per-segment colormap coloring gap (LINE-03): per-point color in renderers, SetColormap on series subclasses
+- [ ] 434-04-PLAN.md — Close marker options gap (SC1): MarkerShape enum, marker properties, MarkerRenderSegment, SetMarker API
 
 ### Phase 435: Vector Field Chart Family
 
@@ -157,7 +159,7 @@ v2.65 with verification.
 |-------|----------------|--------|-----------|
 | 432. Chart Type Inventory and API Design | 1/1 | Complete    | 2026-04-30 |
 | 433. Promote Bar+Contour to Production | 1/1 | Complete    | 2026-04-30 |
-| 434. Line/Ribbon Chart Family | 0/2 | Planning | |
+| 434. Line/Ribbon Chart Family | 2/4 | Gap Closure | |
 | 435. Vector Field Chart Family | 0/1 | Blocked | |
 | 436. 3D Heatmap Slice Chart Family | 0/1 | Blocked | |
 | 437. Box Plot Chart Family | 0/1 | Blocked | |
