@@ -135,7 +135,7 @@ workflows.
 | 420. Native 3D Feature Convenience APIs | 1/1 | Complete | 2026-04-30 |
 | 421. Annotation and Measurement Workflows | 1/1 | Complete | 2026-04-30 |
 | 422. Demo Gallery Workflow Upgrade | 1/1 | Complete | 2026-04-30 |
-| 423. Feature Cookbook and Validation Truth | 0/1 | Ready | |
+| 423. Feature Cookbook and Validation Truth | 1/1 | In Progress | |
 | 424. v2.63 Final Verification | 0/1 | Blocked on 423 | |
 
 ---

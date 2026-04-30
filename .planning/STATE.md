@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.63
 milestone_name: "Native SurfaceCharts Feature and Demo Expansion"
 status: active
-stopped_at: "Phase 423 ready"
-last_updated: "2026-04-30T19:12:01+08:00"
+stopped_at: "Phase 423 in progress"
+last_updated: "2026-04-30T19:20:00+08:00"
 last_activity: 2026-04-30
 progress:
   total_phases: 6
   completed_phases: 4
   total_plans: 6
-  completed_plans: 4
+  completed_plans: 5
   percent: 67
 ---
 
@@ -26,10 +26,10 @@ See: `.planning/PROJECT.md`
 ## Current Position
 
 Milestone: `v2.63 Native SurfaceCharts Feature and Demo Expansion`
-Phase: 423 of 424 - READY
-Plan: Phase 423 should align cookbook, CI truth, generated roadmap, and no-fake-evidence checks now that Phase 422 demo behavior exists.
-Status: `Videra-j3z` and children are closed. `Videra-64g` is unblocked and ready.
-Last activity: 2026-04-30 - Completed Phase 422 descriptor-driven demo gallery, MainWindow sample-data split, scatter selector scoping, snapshot-state support workflow, coverage map, and packaged smoke truth alignment.
+Phase: 423 of 424 - IN PROGRESS
+Plan: Phase 423 aligns cookbook/docs tests, demo/CI truth checks, and release-readiness filters now that Phase 422 demo behavior exists.
+Status: `Videra-64g`, `Videra-64g.1`, and `Videra-64g.2` are claimed. `Videra-64g.3` remains blocked until cookbook/demo CI truth exists.
+Last activity: 2026-04-30 - Started Phase 423 and split cookbook matrix truth from demo support/CI truth so 423A and 423B can proceed with isolated write scopes.
 
 Progress: [#######---] 67%
 
@@ -71,8 +71,8 @@ v2.63 focuses on:
 ## Session Continuity
 
 Last session: `2026-04-30 +08:00`
-Stopped at: Phase 423 ready
-Next action: claim `Videra-64g` and start cookbook/CI validation truth alignment.
+Stopped at: Phase 423 in progress
+Next action: complete 423A cookbook truth in the main workspace and 423B demo/CI truth in an isolated worktree, then update the release-readiness focused filter in 423C.
 
 ## Accumulated Context
 
