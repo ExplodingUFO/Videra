@@ -27,7 +27,7 @@ DEMO-01..02, GUARD-01..02, VERIFY-01..02)
   recipe ownership and verification.
 - [x] **Phase 417: No-Compat Guardrails and CI Truth** - Harden tests/scripts/CI
   so forbidden SurfaceCharts old paths and fake evidence cannot drift back.
-- [ ] **Phase 418: v2.62 Final Verification** - Close v2.62 with composed
+- [x] **Phase 418: v2.62 Final Verification** - Close v2.62 with composed
   validation, Beads export, generated roadmap, archive, push, and cleanup.
 
 ## Phase Details
@@ -107,6 +107,7 @@ DEMO-01..02, GUARD-01..02, VERIFY-01..02)
 2. Beads state, generated public roadmap, phase archive, branch/worktree
    cleanup, Git push, and Dolt Beads push are synchronized.
 **Plans:** 418-PLAN.md
+**Completed:** 2026-04-30
 
 ## Progress
 
@@ -116,7 +117,7 @@ DEMO-01..02, GUARD-01..02, VERIFY-01..02)
 | 415. Delete Stale SurfaceCharts Old-Code Paths | 1/1 | Complete | 2026-04-30 |
 | 416. Native Cookbook and Demo Code Simplification | 1/1 | Complete | 2026-04-30 |
 | 417. No-Compat Guardrails and CI Truth | 1/1 | Complete | 2026-04-30 |
-| 418. v2.62 Final Verification | 0/1 | Ready | |
+| 418. v2.62 Final Verification | 1/1 | Complete | 2026-04-30 |
 
 ---
 
