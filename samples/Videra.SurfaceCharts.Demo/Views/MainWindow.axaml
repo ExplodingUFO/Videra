@@ -21,7 +21,7 @@
                    Text="Surface Charts Demo" />
         <TextBlock Foreground="#CBD5E1"
                    TextWrapping="Wrap"
-                   Text="Use the cookbook gallery to try bounded SurfaceCharts recipes for first chart, styling, interaction, live data, linked axes, and PNG export. The demo stays in its own sample app and only depends on the surface-chart module family." />
+                   Text="Use the cookbook gallery to try bounded SurfaceCharts recipes for first chart, styling, interaction, live data, linked axes, Bar, Contour, and PNG export. The demo stays in its own sample app and only depends on the surface-chart module family." />
       </StackPanel>
     </Border>
 
@@ -80,7 +80,7 @@
             </Grid>
             <TextBlock Foreground="#CBD5E1"
                        TextWrapping="Wrap"
-                       Text="Start here with the in-memory baseline first chart. Move to cache-backed streaming after that path renders. The waterfall and scatter options are thin proofs on the same Avalonia chart shell, not separate viewer stacks." />
+                       Text="Start here with the in-memory baseline first chart. Move to cache-backed streaming after that path renders. The waterfall, scatter, Bar, and Contour options are bounded proofs on the same Avalonia chart shell, not separate viewer stacks." />
           </StackPanel>
         </Border>
 

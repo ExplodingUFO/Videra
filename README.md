@@ -33,7 +33,7 @@ Explicit exclusions remain: animation, skeletons, morph targets, mixers, broader
 - Current repository baseline: `0.1.0-alpha.7`
 - Public release tags are intended to publish the consumer packages on `nuget.org`
 - `GitHub Packages` remains the `preview` / internal feed for contributors and pre-release validation
-- `Videra.SurfaceCharts.*` now ships as a public `alpha` package line, `VideraChartView` is the current Avalonia chart control, `Plot.Add.Surface`, `Plot.Add.Waterfall`, and `Plot.Add.Scatter` are its chart authoring and runtime data-loading entrypoints, `Videra.SurfaceCharts.Processing` is needed for the surface/cache-backed path, and `Videra.SurfaceCharts.Demo` remains repository-only
+- `Videra.SurfaceCharts.*` now ships as a public `alpha` package line, `VideraChartView` is the current Avalonia chart control, `Plot.Add.Surface`, `Plot.Add.Waterfall`, and `Plot.Add.Scatter` are its primary chart authoring and runtime data-loading entrypoints, the repository-only demo also exposes bounded `Plot.Add.Bar` and `Plot.Add.Contour` proof paths, `Videra.SurfaceCharts.Processing` is needed for the surface/cache-backed path, and `Videra.SurfaceCharts.Demo` remains repository-only
 - `smoke/Videra.WpfSmoke` remains a repository-only Windows WPF smoke proof for validation and support evidence on the Avalonia-first public viewer path; it is not a second public UI package or release path
 - Linux native rendering remains `X11`-hosted, and Wayland sessions stay on the documented `XWayland` bridge
 - GitHub Actions runs matching-host native validation, packaged viewer consumer smoke, packaged SurfaceCharts first-chart consumer smoke, and explicit sample-contract evidence on pull requests, and the [Native Validation runbook](docs/native-validation.md) documents how to use `Run workflow` for targeted reruns
@@ -103,7 +103,7 @@ dotnet add package Videra.SurfaceCharts.Processing
 
 Minimal SurfaceCharts cookbook:
 
-The cookbook follows ScottPlot 5's recipe-discovery ergonomics as inspiration, but it is not a compatibility or parity layer. SurfaceCharts remains a Videra 3D chart surface built around `VideraChartView`, `Plot.Add.*`, `Plot.Axes`, chart-local interaction/profile APIs, linked 3D views, `DataLogger3D`, and PNG-only chart snapshots. The repository demo includes a cookbook/gallery selector with recipe groups for first chart, styling, interactions, live data, linked axes, and export.
+The cookbook follows ScottPlot 5's recipe-discovery ergonomics as inspiration, but it is not a compatibility or parity layer. SurfaceCharts remains a Videra 3D chart surface built around `VideraChartView`, `Plot.Add.*`, `Plot.Axes`, chart-local interaction/profile APIs, linked 3D views, `DataLogger3D`, and PNG-only chart snapshots. The repository demo includes a cookbook/gallery selector with recipe groups for first chart, styling, interactions, live data, linked axes, Bar, Contour, and export.
 
 ```csharp
 using Videra.SurfaceCharts.Avalonia.Controls;
@@ -145,7 +145,32 @@ chart.Plot.Add.Scatter(scatterData, "Live scatter");
 await chart.Plot.SavePngAsync("surfacecharts-live-scatter.png", width: 1920, height: 1080);
 ```
 
-More cookbook snippets live in [Videra.SurfaceCharts.Demo](samples/Videra.SurfaceCharts.Demo/README.md), including bounded styling, interaction profile, live latest-window, linked-axis, and export recipes.
+For bounded Bar and Contour cookbook paths, keep them in the repository demo instead of treating them as a generic chart editor:
+
+```csharp
+chart.Plot.Clear();
+chart.Plot.Add.Bar(new BarChartData(
+[
+    new BarSeries([12.0, 19.0, 3.0, 5.0, 8.0], 0xFF38BDF8u, "Series A"),
+    new BarSeries([7.0, 11.0, 15.0, 8.0, 13.0], 0xFFF97316u, "Series B"),
+]), "Grouped bars");
+
+var contourValues = new float[]
+{
+    0.9f, 0.5f, 0.9f,
+    0.5f, 0.0f, 0.5f,
+    0.9f, 0.5f, 0.9f,
+};
+var contourField = new SurfaceScalarField(
+    width: 3,
+    height: 3,
+    values: contourValues,
+    range: new SurfaceValueRange(0, 1));
+chart.Plot.Add.Contour(new ContourChartData(contourField), "Radial contours");
+chart.FitToData();
+```
+
+More cookbook snippets live in [Videra.SurfaceCharts.Demo](samples/Videra.SurfaceCharts.Demo/README.md), including bounded styling, interaction profile, live latest-window, linked-axis, Bar, Contour, and export recipes.
 
 The current SurfaceCharts efficiency story is tighter interactive residency under camera movement and lower probe-path churn on the existing chart-local path; the committed hard-gate names remain `SurfaceChartsRenderStateBenchmarks.ApplyResidencyChurnUnderCameraMovement` and `SurfaceChartsProbeBenchmarks.ProbeLatency`.
 Columnar scatter streaming is a chart-domain contract, not a viewer/runtime mode. `ScatterColumnarSeries` accepts `ReplaceRange(...)` and `AppendRange(...)`, can use an optional positive `fifoCapacity` to retain a bounded point window, defaults high-volume data to `Pickable=false`, and reports retained point count, append/replacement batch counts, dropped FIFO points, configured FIFO capacity, and scatter `InteractionQuality` through `ScatterChartRenderingStatus`.
@@ -269,7 +294,7 @@ Contract highlights:
 ## Surface Charts Onboarding
 
 For the canonical SurfaceCharts story, start from `Videra.SurfaceCharts.Avalonia`, add `Videra.SurfaceCharts.Processing` only for the surface/cache-backed path, and use [Videra.SurfaceCharts.Demo](samples/Videra.SurfaceCharts.Demo/README.md) as the repository reference app for the paths it actually exposes.
-Inside that demo, keep the default `Start here: In-memory first chart` path for the baseline repro, then move to `Explore next: Cache-backed streaming` when you want to validate lazy tile reads and the broader chart diagnostics surface, use `Try next: Analytics proof` for the explicit-coordinate, independent-`ColorField`, analysis-grade pinned-probe workflow on the same shell, use `Try next: Waterfall proof` for the thin second chart proof on the same Avalonia shell, and use `Try next: Scatter proof` for the repo-owned scatter proof path on the same shell. `VideraChartView` ships in the Avalonia control line, and the demo exercises it through that repo-owned path.
+Inside that demo, keep the default `Start here: In-memory first chart` path for the baseline repro, then move to `Explore next: Cache-backed streaming` when you want to validate lazy tile reads and the broader chart diagnostics surface, use `Try next: Analytics proof` for the explicit-coordinate, independent-`ColorField`, analysis-grade pinned-probe workflow on the same shell, use `Try next: Waterfall proof` for the thin second chart proof on the same Avalonia shell, use `Try next: Scatter proof` for the repo-owned scatter proof path on the same shell, and use `Try next: Bar chart proof` / `Try next: Contour plot proof` for bounded current-demo proof paths. `VideraChartView` ships in the Avalonia control line, and the demo exercises it through that repo-owned path.
 Use `Copy support summary` when you need the chart support artifact that matches the docs and bug template. Public release workflows publish the `Videra.SurfaceCharts.*` package assets after explicit approval, while `Videra.SurfaceCharts.Demo` remains repository-only and keeps the support-summary repro workflow.
 The packaged SurfaceCharts proof lives separately in `smoke/Videra.SurfaceCharts.ConsumerSmoke`, which writes `consumer-smoke-result.json`, `diagnostics-snapshot.txt`, `surfacecharts-support-summary.txt`, `chart-snapshot.png`, and trace/stdout/stderr/environment logs on the packaged install path without turning the broader demo into a public install story.
 Use [SurfaceCharts v2.58 Release Cutover](docs/surfacecharts-release-cutover.md) when you need the current package-consumption, release-notes, cookbook, migration, support-artifact, and troubleshooting path in one consumer-facing page. The older [SurfaceCharts Release Candidate Handoff](docs/surfacecharts-release-candidate-handoff.md) remains background for release-candidate review.
@@ -277,7 +302,7 @@ Use [SurfaceCharts v2.58 Release Cutover](docs/surfacecharts-release-cutover.md)
 Contract highlights:
 
 - The surface-chart module family is a sibling product area, independent from `VideraView`.
-- The dedicated `VideraChartView` remains the public chart control in `Videra.SurfaceCharts.Avalonia`; `Plot.Add.Surface`, `Plot.Add.Waterfall`, and `Plot.Add.Scatter` are its chart authoring and runtime data-loading entrypoints.
+- The dedicated `VideraChartView` remains the public chart control in `Videra.SurfaceCharts.Avalonia`; `Plot.Add.Surface`, `Plot.Add.Waterfall`, and `Plot.Add.Scatter` are its primary chart authoring and runtime data-loading entrypoints, with bounded demo cookbook proofs for `Plot.Add.Bar` and `Plot.Add.Contour`.
 - `Videra.SurfaceCharts.Demo` is the independent demo application for the surface-chart module family.
 - `Videra.SurfaceCharts.Core` owns chart-domain models, tile identities, probe contracts, and LOD selection.
 - `Videra.SurfaceCharts.Rendering` owns chart render-state orchestration and the chart-local backend runtime.

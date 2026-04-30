@@ -6,6 +6,36 @@ namespace Videra.Core.Tests.Samples;
 public sealed class SurfaceChartsDemoConfigurationTests
 {
     [Fact]
+    public void SurfaceChartsCookbookDocs_ShouldStayAlignedWithVisibleDemoProofs()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var rootReadme = File.ReadAllText(Path.Combine(repositoryRoot, "README.md"));
+        var demoReadme = File.ReadAllText(Path.Combine(repositoryRoot, "samples", "Videra.SurfaceCharts.Demo", "README.md"));
+        var cutover = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "surfacecharts-release-cutover.md"));
+        var mainWindowXaml = File.ReadAllText(Path.Combine(repositoryRoot, "samples", "Videra.SurfaceCharts.Demo", "Views", "MainWindow.axaml"));
+        var mainWindowCodeBehind = File.ReadAllText(Path.Combine(repositoryRoot, "samples", "Videra.SurfaceCharts.Demo", "Views", "MainWindow.axaml.cs"));
+
+        foreach (var document in new[] { rootReadme, demoReadme, cutover })
+        {
+            document.Should().Contain("Plot.Add.Bar");
+            document.Should().Contain("Plot.Add.Contour");
+        }
+
+        foreach (var document in new[] { demoReadme, cutover, mainWindowXaml, mainWindowCodeBehind })
+        {
+            document.Should().Contain("Try next: Bar chart proof");
+            document.Should().Contain("Try next: Contour plot proof");
+        }
+
+        demoReadme.Should().Contain("### Bar");
+        demoReadme.Should().Contain("### Contour");
+        mainWindowCodeBehind.Should().Contain("\"Bar\"");
+        mainWindowCodeBehind.Should().Contain("\"Contour\"");
+        mainWindowCodeBehind.Should().NotContain("new ScatterColumnarData(x, y, z)");
+        mainWindowCodeBehind.Should().Contain("new ScatterChartData");
+    }
+
+    [Fact]
     public void SurfaceChartsDemo_ShouldExistAsAnIndependentSurfaceChartEntryPoint()
     {
         var repositoryRoot = GetRepositoryRoot();
@@ -36,12 +66,14 @@ public sealed class SurfaceChartsDemoConfigurationTests
         rootReadme.Should().Contain("Minimal SurfaceCharts cookbook");
         rootReadme.Should().Contain("ScottPlot 5");
         rootReadme.Should().Contain("not a compatibility or parity layer");
-        rootReadme.Should().Contain("recipe groups for first chart, styling, interactions, live data, linked axes, and export");
+        rootReadme.Should().Contain("recipe groups for first chart, styling, interactions, live data, linked axes, Bar, Contour, and export");
         rootReadme.Should().Contain("First surface");
         rootReadme.Should().Contain("chart.Plot.Axes.X.Label");
         rootReadme.Should().Contain("DataLogger3D");
         rootReadme.Should().Contain("Live scatter");
         rootReadme.Should().Contain("linked-axis");
+        rootReadme.Should().Contain("Plot.Add.Bar");
+        rootReadme.Should().Contain("Plot.Add.Contour");
         rootReadme.Should().Contain("SavePngAsync");
 
         var readme = File.ReadAllText(demoReadmePath);
@@ -62,6 +94,8 @@ public sealed class SurfaceChartsDemoConfigurationTests
         readme.Should().Contain("not stable benchmark guarantees");
         readme.Should().Contain("Try next: Analytics proof");
         readme.Should().Contain("ColorField");
+        readme.Should().Contain("Try next: Bar chart proof");
+        readme.Should().Contain("Try next: Contour plot proof");
         readme.Should().Contain("Cookbook Recipes");
         readme.Should().Contain("Cookbook gallery");
         readme.Should().Contain("ScottPlot 5");
@@ -71,6 +105,8 @@ public sealed class SurfaceChartsDemoConfigurationTests
         readme.Should().Contain("### Interactions");
         readme.Should().Contain("### Live Data");
         readme.Should().Contain("### Linked Axes");
+        readme.Should().Contain("### Bar");
+        readme.Should().Contain("### Contour");
         readme.Should().Contain("### Export");
         readme.Should().Contain("First surface");
         readme.Should().Contain("chart.Plot.Axes.X.Label");
@@ -85,6 +121,10 @@ public sealed class SurfaceChartsDemoConfigurationTests
         readme.Should().Contain("CreateLiveViewEvidence");
         readme.Should().Contain("LinkViewWith");
         readme.Should().Contain("Live scatter");
+        readme.Should().Contain("BarChartData");
+        readme.Should().Contain("BarSeries");
+        readme.Should().Contain("ContourChartData");
+        readme.Should().Contain("SurfaceScalarField");
 
         var mainWindow = File.ReadAllText(mainWindowXamlPath);
         mainWindow.Should().Contain("Cookbook gallery");
@@ -97,6 +137,8 @@ public sealed class SurfaceChartsDemoConfigurationTests
         mainWindow.Should().Contain("Try next: Waterfall proof");
         mainWindow.Should().Contain("Try next: Analytics proof");
         mainWindow.Should().Contain("Try next: Scatter proof");
+        mainWindow.Should().Contain("Try next: Bar chart proof");
+        mainWindow.Should().Contain("Try next: Contour plot proof");
         mainWindow.Should().Contain("Scatter stream");
         mainWindow.Should().Contain("ScatterScenarioSelector");
         mainWindow.Should().Contain("First-chart Plot path");
@@ -133,6 +175,8 @@ public sealed class SurfaceChartsDemoConfigurationTests
         mainWindowCodeBehind.Should().Contain("Interactions");
         mainWindowCodeBehind.Should().Contain("Live data");
         mainWindowCodeBehind.Should().Contain("Linked axes");
+        mainWindowCodeBehind.Should().Contain("Bar");
+        mainWindowCodeBehind.Should().Contain("Contour");
         mainWindowCodeBehind.Should().Contain("Export");
         mainWindowCodeBehind.Should().Contain("OnCopyRecipeSnippetClicked");
         mainWindowCodeBehind.Should().Contain("SurfaceChartInteractionProfile");
@@ -183,7 +227,11 @@ public sealed class SurfaceChartsDemoConfigurationTests
         mainWindowCodeBehind.Should().Contain("CacheManifestFileName");
         mainWindowCodeBehind.Should().Contain("CachePayloadSuffix");
         mainWindowCodeBehind.Should().Contain("ScatterSourceIndex");
+        mainWindowCodeBehind.Should().Contain("BarSourceIndex");
+        mainWindowCodeBehind.Should().Contain("ContourSourceIndex");
         mainWindowCodeBehind.Should().Contain("Plot.Add.Scatter");
+        mainWindowCodeBehind.Should().Contain("Plot.Add.Bar");
+        mainWindowCodeBehind.Should().Contain("Plot.Add.Contour");
         mainWindowCodeBehind.Should().Contain("Plot.SavePngAsync");
         mainWindowCodeBehind.Should().Contain("ScatterChartData");
         mainWindowCodeBehind.Should().Contain("ScatterStreamingScenarios");
@@ -192,6 +240,8 @@ public sealed class SurfaceChartsDemoConfigurationTests
         mainWindowCodeBehind.Should().Contain("ScatterPoint");
         mainWindowCodeBehind.Should().Contain("ScatterChartMetadata");
         mainWindowCodeBehind.Should().Contain("CreateScatterSource");
+        mainWindowCodeBehind.Should().Contain("CreateSampleBarData");
+        mainWindowCodeBehind.Should().Contain("CreateSampleContourField");
         mainWindowCodeBehind.Should().Contain("CreateAnalyticsProofSource");
         mainWindowCodeBehind.Should().Contain("CreateAnalyticsProofMatrix");
         mainWindowCodeBehind.Should().Contain("SurfaceExplicitGrid");

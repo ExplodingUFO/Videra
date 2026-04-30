@@ -2,7 +2,7 @@
 
 `Videra.SurfaceCharts.Demo` is the independent demo application for the surface-chart module family.
 
-For the canonical surface/cache-backed chart story, start from `Videra.SurfaceCharts.Avalonia` plus `Videra.SurfaceCharts.Processing`, and use this demo as the repository reference app for the paths it actually exposes. `VideraChartView` ships in `Videra.SurfaceCharts.Avalonia`, and this sample exercises `Plot.Add.Surface`, `Plot.Add.Waterfall`, and `Plot.Add.Scatter` on that one control.
+For the canonical surface/cache-backed chart story, start from `Videra.SurfaceCharts.Avalonia` plus `Videra.SurfaceCharts.Processing`, and use this demo as the repository reference app for the paths it actually exposes. `VideraChartView` ships in `Videra.SurfaceCharts.Avalonia`, and this sample exercises `Plot.Add.Surface`, `Plot.Add.Waterfall`, `Plot.Add.Scatter`, `Plot.Add.Bar`, and `Plot.Add.Contour` on that one control.
 
 The shipped efficiency story is the same chart-local path used by the benchmark gate: tighter interactive residency under camera movement and lower probe-path churn.
 The scatter proof also exposes columnar streaming/FIFO truth from `ScatterColumnarSeries`: retained point count, append/replacement batch count, configured FIFO capacity, FIFO dropped point count, pickable point count, and Plot.Add.Scatter `InteractionQuality`. The demo source uses deterministic `ScatterStreamingScenarios` for replace, append, and FIFO-trim paths through `ReplaceRange(...)` / `AppendRange(...)`, optional `fifoCapacity`, and the high-volume default `Pickable=false`.
@@ -14,7 +14,9 @@ The sample stays separate from `Videra.Demo` and `VideraView`. It exercises the 
 - `Try next: Analytics proof`: exercises an explicit-coordinate `VideraChartView` path with independent scalar `ColorField` and pinned-probe workflow proof data.
 - `Try next: Waterfall proof`: exercises the thin `VideraChartView` proof on the same Avalonia shell.
 - `Try next: Scatter proof`: exercises the repo-owned scatter proof path on the same Avalonia shell with direct point-object data plus selectable deterministic columnar replace, append, and FIFO-trim scenarios.
-- `Cookbook gallery`: maps first chart, styling, interactions, live data, linked axes, and export recipes to isolated setup paths and matching snippets without becoming a generic chart editor.
+- `Try next: Bar chart proof`: exercises the bounded grouped-bar proof path on the same Avalonia shell.
+- `Try next: Contour plot proof`: exercises the bounded contour proof path on the same Avalonia shell.
+- `Cookbook gallery`: maps first chart, styling, interactions, live data, linked axes, Bar, Contour, and export recipes to isolated setup paths and matching snippets without becoming a generic chart editor.
 
 The cookbook is inspired by ScottPlot 5's discoverable recipe ergonomics. It is not a ScottPlot compatibility or parity layer: the snippets use Videra's 3D `VideraChartView`, `Plot.Add.*`, `Plot.Axes`, `DataLogger3D`, linked-view, and chart-local PNG snapshot APIs.
 For current release cutover package consumption, migration notes, non-goals, support artifacts, and troubleshooting, use [SurfaceCharts v2.58 Release Cutover](../../docs/surfacecharts-release-cutover.md). The older [SurfaceCharts Release Candidate Handoff](../../docs/surfacecharts-release-candidate-handoff.md) remains release-candidate background.
@@ -39,6 +41,8 @@ The committed cache sample uses a tiled manifest+sidecar layout so panning, doll
 4. Use `Try next: Analytics proof` to validate explicit-coordinate sampling and independent color scalar flow while keeping `VideraChartView` as the proof host.
 5. Use `Try next: Waterfall proof` when you want the second chart-family proof on the same Avalonia shell.
 6. Use `Try next: Scatter proof` when you want the Plot.Add.Scatter proof and columnar data-path diagnostics on the same Avalonia shell. Use the `Scatter stream` selector to switch between replace, append, and FIFO-trim scenarios.
+7. Use `Try next: Bar chart proof` when you want the grouped-bar proof path without opening a generic editor.
+8. Use `Try next: Contour plot proof` when you want the radial scalar-field contour proof path without opening a generic editor.
 
 ## Run
 
@@ -160,12 +164,64 @@ Explicit two-chart view linking with a disposable lifetime:
 var left = new VideraChartView();
 var right = new VideraChartView();
 
-left.Plot.Add.Surface(surfaceSource, "Left");
-right.Plot.Add.Surface(comparisonSource, "Right");
+left.Plot.Add.Surface(new double[,]
+{
+    { 0.0, 0.4, 0.8 },
+    { 0.2, 0.7, 1.0 },
+    { 0.1, 0.5, 0.9 },
+}, "Left");
+right.Plot.Add.Surface(new double[,]
+{
+    { 0.1, 0.5, 0.9 },
+    { 0.3, 0.8, 1.1 },
+    { 0.2, 0.6, 1.0 },
+}, "Right");
 
 using var link = left.LinkViewWith(right);
 left.Plot.Axes.X.SetBounds(0, 10);
 right.FitToData();
+```
+
+### Bar
+
+Grouped bars from three named series:
+
+```csharp
+var data = new BarChartData(
+[
+    new BarSeries([12.0, 19.0, 3.0, 5.0, 8.0], 0xFF38BDF8u, "Series A"),
+    new BarSeries([7.0, 11.0, 15.0, 8.0, 13.0], 0xFFF97316u, "Series B"),
+    new BarSeries([5.0, 9.0, 12.0, 18.0, 6.0], 0xFF2DD4BFu, "Series C"),
+]);
+
+chart.Plot.Clear();
+chart.Plot.Add.Bar(data, "Grouped bars");
+chart.FitToData();
+```
+
+### Contour
+
+Contour lines from a small radial scalar field:
+
+```csharp
+const int size = 32;
+var values = new float[size * size];
+for (var y = 0; y < size; y++)
+{
+    for (var x = 0; x < size; x++)
+    {
+        var dx = (x - (size - 1) / 2.0) / ((size - 1) / 2.0);
+        var dy = (y - (size - 1) / 2.0) / ((size - 1) / 2.0);
+        values[y * size + x] = (float)Math.Sqrt(dx * dx + dy * dy);
+    }
+}
+
+var range = new SurfaceValueRange(values.Min(), values.Max());
+var field = new SurfaceScalarField(size, size, values, range);
+
+chart.Plot.Clear();
+chart.Plot.Add.Contour(new ContourChartData(field), "Radial contours");
+chart.FitToData();
 ```
 
 ### Export
@@ -193,6 +249,8 @@ if (!result.Succeeded)
 - a `Try next` analytics proof with explicit/non-uniform coordinates and independent `ColorField` on `VideraChartView`
 - a `Try next` waterfall proof path
 - a `Try next` scatter proof path with direct point-object data and deterministic columnar replace, append, and FIFO-trim scenarios
+- a `Try next` bar chart proof path with grouped `BarChartData`
+- a `Try next` contour plot proof path with radial `ContourChartData`
 - built-in `left-drag orbit`, `right-drag pan`, `wheel dolly`, and `Ctrl + left-drag` focus zoom on the surface and waterfall proof paths; the scatter proof keeps left-drag orbit and wheel dolly only
 - a `View-state contract` panel that projects `ViewState`, `FitToData()`, `ResetCamera()`, and `ZoomTo(...)`
 - an `Interaction quality` panel that projects `Interactive` and `Refine`

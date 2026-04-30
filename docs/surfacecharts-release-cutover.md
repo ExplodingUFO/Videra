@@ -11,7 +11,7 @@ SurfaceCharts is a public alpha package family in the Videra release set. The co
 The v2.58 cutover notes should tell consumers:
 
 - `VideraChartView` is the shipped Avalonia chart control.
-- `Plot.Add.Surface`, `Plot.Add.Waterfall`, and `Plot.Add.Scatter` are the chart authoring and runtime data-loading entrypoints.
+- `Plot.Add.Surface`, `Plot.Add.Waterfall`, `Plot.Add.Scatter`, `Plot.Add.Bar`, and `Plot.Add.Contour` are the current demo cookbook entrypoints exercised by the bounded visible proofs.
 - `Plot.Axes`, `Plot.OverlayOptions`, chart-local interaction/profile APIs, linked views, `DataLogger3D`, and PNG-only `Plot.SavePngAsync(...)` / `Plot.CaptureSnapshotAsync(...)` are the supported cookbook surfaces.
 - `smoke/Videra.SurfaceCharts.ConsumerSmoke` is the packaged support proof; `Videra.SurfaceCharts.Demo` is repository-only.
 - `surfacecharts-support-summary.txt`, `consumer-smoke-result.json`, `diagnostics-snapshot.txt`, `chart-snapshot.png`, trace logs, stdout logs, stderr logs, and environment logs are the first support artifact set for packaged chart issues.
@@ -53,6 +53,8 @@ Start with the root README "Minimal SurfaceCharts cookbook", then use [Videra.Su
 - `Interactions` for built-in commands and probe resolution.
 - `Live Data` for `Plot.Add.Scatter`, `DataLogger3D`, FIFO windows, and live-view evidence.
 - `Linked Axes` for explicit two-chart view linking with a disposable lifetime.
+- `Bar` for the bounded grouped-bar proof path in the demo gallery.
+- `Contour` for the bounded radial scalar-field contour proof path in the demo gallery.
 - `Export` for PNG-only chart snapshots.
 
 The cookbook follows ScottPlot 5's discoverable recipe ergonomics as inspiration only. It is not a ScottPlot API compatibility, parity, adapter, or migration layer.
@@ -62,7 +64,7 @@ The cookbook follows ScottPlot 5's discoverable recipe ergonomics as inspiration
 Use the Plot-owned chart model:
 
 - Create charts with `VideraChartView`.
-- Load chart data through `chart.Plot.Add.Surface(...)`, `chart.Plot.Add.Waterfall(...)`, or `chart.Plot.Add.Scatter(...)`.
+- Load chart data through `chart.Plot.Add.Surface(...)`, `chart.Plot.Add.Waterfall(...)`, `chart.Plot.Add.Scatter(...)`, `chart.Plot.Add.Bar(...)`, or `chart.Plot.Add.Contour(...)` on the bounded paths shown by the current demo.
 - Configure axes through `chart.Plot.Axes`.
 - Configure overlay presentation through `chart.Plot.OverlayOptions`.
 - Capture PNG output through `chart.Plot.SavePngAsync(...)` or `chart.Plot.CaptureSnapshotAsync(...)`.
@@ -96,7 +98,7 @@ Attach:
 - stderr logs
 - environment logs
 
-For repository-only repros, use `Videra.SurfaceCharts.Demo`. Reproduce `Start here: In-memory first chart` before moving to `Explore next: Cache-backed streaming`, `Try next: Analytics proof`, `Try next: Waterfall proof`, or `Try next: Scatter proof`, then use `Copy support summary`.
+For repository-only repros, use `Videra.SurfaceCharts.Demo`. Reproduce `Start here: In-memory first chart` before moving to `Explore next: Cache-backed streaming`, `Try next: Analytics proof`, `Try next: Waterfall proof`, `Try next: Scatter proof`, `Try next: Bar chart proof`, or `Try next: Contour plot proof`, then use `Copy support summary`.
 
 Keep SurfaceCharts support summaries separate from `VideraDiagnosticsSnapshotFormatter` viewer snapshots. The chart summary is support evidence, not benchmark truth, pixel-perfect visual-regression evidence, GPU performance guarantee, backend fallback proof, replay state, PDF/vector export, or a promise that the demo is an installable package.
 
