@@ -1,14 +1,14 @@
-# SurfaceCharts v2.58 Release Cutover
+# SurfaceCharts Current Consumer Handoff
 
-This page is the consumer-facing release cutover handoff for the controlled SurfaceCharts alpha release. It summarizes the package install path, release-note evidence, cookbook entry points, migration boundary, support artifacts, and troubleshooting route for consumers who should not need to read internal planning files.
+This page is the current consumer-facing SurfaceCharts handoff for the controlled alpha package line. It summarizes the package install path, release-note evidence, cookbook entry points, migration boundary, support artifacts, and troubleshooting route for consumers who should not need to read internal planning files.
 
-The release remains controlled: public package publishing, public tags, and GitHub Release publication require explicit maintainer approval through the documented public release workflow.
+This page is documentation only. Public package publishing, public tags, and GitHub Release publication still require explicit maintainer approval through the documented public release workflow.
 
 ## Release Notes
 
 SurfaceCharts is a public alpha package family in the Videra release set. The consumer entry package is `Videra.SurfaceCharts.Avalonia`; add `Videra.SurfaceCharts.Processing` only when the app uses the surface/cache-backed path.
 
-The v2.58 cutover notes should tell consumers:
+The current handoff notes should tell consumers:
 
 - `VideraChartView` is the shipped Avalonia chart control.
 - `Plot.Add.Surface`, `Plot.Add.Waterfall`, `Plot.Add.Scatter`, `Plot.Add.Bar`, and `Plot.Add.Contour` are the current demo cookbook entrypoints exercised by the bounded visible proofs.

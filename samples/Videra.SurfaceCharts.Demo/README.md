@@ -19,7 +19,7 @@ The sample stays separate from `Videra.Demo` and `VideraView`. It exercises the 
 - `Cookbook gallery`: maps first chart, styling, interactions, live data, linked axes, Bar, Contour, and export recipes to isolated setup paths and matching snippets without becoming a generic chart editor.
 
 The cookbook is inspired by ScottPlot 5's discoverable recipe ergonomics. It is not a ScottPlot compatibility or parity layer: the snippets use Videra's 3D `VideraChartView`, `Plot.Add.*`, `Plot.Axes`, `DataLogger3D`, linked-view, and chart-local PNG snapshot APIs.
-For current release cutover package consumption, migration notes, non-goals, support artifacts, and troubleshooting, use [SurfaceCharts v2.58 Release Cutover](../../docs/surfacecharts-release-cutover.md). The older [SurfaceCharts Release Candidate Handoff](../../docs/surfacecharts-release-candidate-handoff.md) remains release-candidate background.
+For current package consumption, migration notes, non-goals, support artifacts, and troubleshooting, use [SurfaceCharts Current Consumer Handoff](../../docs/surfacecharts-release-cutover.md). The handoff is documentation only and does not approve publishing, tagging, or GitHub Release publication. The older [SurfaceCharts Release Candidate Handoff](../../docs/surfacecharts-release-candidate-handoff.md) remains release-candidate background.
 
 VideraChartView exposes `ViewState` as the chart-view contract for persisted camera and data-window state.
 VideraChartView now ships built-in `left-drag orbit`, `right-drag pan`, `wheel dolly`, `Ctrl + left-drag` focus zoom, and `Shift + left-click` pinned probe on top of the `ViewState` runtime contract.

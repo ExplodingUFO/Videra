@@ -14,7 +14,7 @@ This page maps the long-lived public documentation for Videra. Start with the re
 - [Release Policy](release-policy.md) for public-vs-preview feed rules, versioning scope, and what is or is not published
 - [Releasing Runbook](releasing.md) for tag, asset, release-page workflow, and read-only release-candidate dry-run evidence
 - [Release Candidate Abort and Cutover Runbook](release-candidate-cutover.md) for final candidate abort criteria and human cutover boundaries
-- [SurfaceCharts v2.58 Release Cutover](surfacecharts-release-cutover.md) for consumer-facing release notes, package consumption, cookbook, migration, support, and troubleshooting guidance for the controlled SurfaceCharts cutover
+- [SurfaceCharts Current Consumer Handoff](surfacecharts-release-cutover.md) for consumer-facing release notes, package consumption, cookbook, migration, support, and troubleshooting guidance without implying publish, tag, or GitHub Release approval
 - [Benchmark Gates](benchmark-gates.md) for automatic pull-request runtime thresholds and manual benchmark evidence runs
 - [Analyzer Policy](analyzer-policy.md) for .NET analyzer major-version triage, rule policy, and quality-gate boundaries
 - [Dependency Update Policy](dependency-update-policy.md) for Dependabot triage and shared test-tooling drift checks
@@ -46,7 +46,7 @@ This page maps the long-lived public documentation for Videra. Start with the re
 - [Videra.SurfaceCharts.Rendering](../src/Videra.SurfaceCharts.Rendering/README.md)
 - [Videra.SurfaceCharts.Avalonia](../src/Videra.SurfaceCharts.Avalonia/README.md)
 - [Videra.SurfaceCharts.Processing](../src/Videra.SurfaceCharts.Processing/README.md)
-- [SurfaceCharts v2.58 Release Cutover](surfacecharts-release-cutover.md)
+- [SurfaceCharts Current Consumer Handoff](surfacecharts-release-cutover.md)
 - [SurfaceCharts Release Candidate Handoff](surfacecharts-release-candidate-handoff.md)
 
 ## Repository-Only Samples and Demos
