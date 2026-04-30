@@ -115,6 +115,62 @@ function Assert-RecursiveFile([string]$Id, [string]$RootPath, [string]$FileName)
     return $true
 }
 
+function Add-ReleaseActionGateChecks($Summary)
+{
+    $requiredGateIds = @(
+        "public-nuget-publish",
+        "preview-github-packages-publish",
+        "release-tag",
+        "github-release"
+    )
+
+    $allowedStatuses = @($Summary.allowedStatuses)
+    foreach ($requiredStatus in @("pass", "fail", "skipped", "manual-gate"))
+    {
+        if (-not ($allowedStatuses -contains $requiredStatus))
+        {
+            Add-Check -Id "release-status-$requiredStatus" -Status "fail" -Message "Release dry-run summary does not declare allowed status '$requiredStatus'."
+        }
+    }
+
+    $releaseActionGates = @($Summary.releaseActionGates)
+    if ($releaseActionGates.Count -eq 0)
+    {
+        Add-Check -Id "release-action-gates" -Status "fail" -Message "Release dry-run summary does not list manual-gated release actions."
+        return
+    }
+
+    foreach ($gateId in $requiredGateIds)
+    {
+        $gate = $releaseActionGates | Where-Object { [string]$_.id -eq $gateId } | Select-Object -First 1
+        if ($null -eq $gate)
+        {
+            Add-Check -Id "release-action-gate-$gateId" -Status "fail" -Message "Release dry-run summary is missing release action gate '$gateId'."
+            continue
+        }
+
+        if ([string]$gate.status -ne "manual-gate")
+        {
+            Add-Check -Id "release-action-gate-$gateId" -Status "fail" -Message "Release action gate '$gateId' must default to manual-gate."
+            continue
+        }
+
+        if (-not [bool]$gate.approvalRequired -or -not [bool]$gate.failClosedDefault -or [bool]$gate.actionTaken)
+        {
+            Add-Check -Id "release-action-gate-$gateId" -Status "fail" -Message "Release action gate '$gateId' must require approval, fail closed, and report actionTaken=false."
+            continue
+        }
+
+        if ([string]::IsNullOrWhiteSpace([string]$gate.approvalInput) -or [string]::IsNullOrWhiteSpace([string]$gate.command))
+        {
+            Add-Check -Id "release-action-gate-$gateId" -Status "fail" -Message "Release action gate '$gateId' must include approval input and visible command text."
+            continue
+        }
+
+        Add-Check -Id "release-action-gate-$gateId" -Status "manual-gate" -Message "Release action is visible, approval-gated, and not executed."
+    }
+}
+
 if ([string]::IsNullOrWhiteSpace($ExpectedVersion))
 {
     throw "ExpectedVersion is required."
@@ -218,6 +274,8 @@ if ($null -ne $summary)
     {
         Add-Check -Id "release-dry-run-freshness" -Status "fail" -Message "Release dry-run summary is missing generatedAtUtc."
     }
+
+    Add-ReleaseActionGateChecks -Summary $summary
 }
 
 $evidenceIndex = Read-JsonFile -Path $evidenceIndexJsonPath -Description "release-candidate-evidence-index.json"
@@ -252,7 +310,7 @@ foreach ($requiredFile in @(
     Assert-File -Id $requiredFile -Path (Join-Path $root $requiredFile) | Out-Null
 }
 
-$failedChecks = @($checks | Where-Object { $_.status -ne "pass" })
+$failedChecks = @($checks | Where-Object { $_.status -eq "fail" })
 $status = if ($failedChecks.Count -eq 0) { "pass" } else { "fail" }
 $summaryDocument = [ordered]@{
     schemaVersion = 1
@@ -266,6 +324,8 @@ $summaryDocument = [ordered]@{
     benchmarkRoot = $benchmarkRootFull
     consumerSmokeRoot = $consumerSmokeRootFull
     nativeValidationRoot = $nativeValidationRootFull
+    allowedStatuses = @("pass", "fail", "skipped", "manual-gate")
+    releaseActionGates = @($checks | Where-Object { [string]$_.id -like "release-action-gate-*" })
     artifactPaths = [ordered]@{
         summaryJson = Join-Path $outputRootFull "public-release-preflight-summary.json"
         summaryText = Join-Path $outputRootFull "public-release-preflight-summary.txt"
@@ -289,6 +349,9 @@ foreach ($check in $checks)
 {
     $lines += "- [$($check.status.ToUpperInvariant())] $($check.id): $($check.message)"
 }
+$lines += ""
+$lines += "Manual-gated release actions:"
+$lines += @($checks | Where-Object { [string]$_.id -like "release-action-gate-*" } | ForEach-Object { "- [$($_.status.ToUpperInvariant())] $($_.id): $($_.message)" })
 $lines | Set-Content -LiteralPath $summaryTextPath
 
 if ($failedChecks.Count -gt 0)

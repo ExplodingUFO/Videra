@@ -237,6 +237,8 @@ $index = [ordered]@{
     packageValidationScript = $packageValidationScript
     validationArtifacts = $summary.validationArtifacts
     dryRunArtifacts = $summary.artifactPaths
+    allowedStatuses = @($summary.allowedStatuses)
+    releaseActionGates = @($summary.releaseActionGates)
     visualEvidence = [ordered]@{
         evidenceOnly = $true
         publishBlocker = $false
@@ -284,6 +286,14 @@ $lines += "- Performance Lab visual evidence: $($performanceLabVisualEvidence.st
 $lines += "- Doctor visual evidence status: $($doctorVisualEvidence.status) ($($doctorVisualEvidence.reportPath))"
 $lines += "- Evidence only: true"
 $lines += "- Publish blocker: false"
+
+$lines += ""
+$lines += "Manual-gated release actions:"
+foreach ($gate in @($summary.releaseActionGates))
+{
+    $lines += "- [$(([string]$gate.status).ToUpperInvariant())] $($gate.id): approval required: $($gate.approvalRequired); action taken: $($gate.actionTaken)"
+    $lines += "  Command: $($gate.command)"
+}
 
 $lines += ""
 $lines += "Required artifacts:"

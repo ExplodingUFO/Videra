@@ -57,6 +57,20 @@ function Assert-CommandSucceeded([bool]$Succeeded, $ExitCode, [string]$Descripti
     }
 }
 
+function New-ManualReleaseActionGate([string]$Id, [string]$Description, [string]$ApprovalInput, [string]$Command)
+{
+    return [ordered]@{
+        id = $Id
+        status = "manual-gate"
+        description = $Description
+        approvalRequired = $true
+        approvalInput = $ApprovalInput
+        failClosedDefault = $true
+        actionTaken = $false
+        command = $Command
+    }
+}
+
 if ([string]::IsNullOrWhiteSpace($ExpectedVersion))
 {
     throw "ExpectedVersion is required."
@@ -123,10 +137,34 @@ $packageSizeSummaryPath = Join-Path $validationRoot "package-size-summary.txt"
 $doctorReportPath = "artifacts/doctor/doctor-report.json"
 $performanceLabVisualEvidenceManifestPath = "artifacts/performance-lab-visual-evidence/performance-lab-visual-evidence-manifest.json"
 $performanceLabVisualEvidenceSummaryPath = "artifacts/performance-lab-visual-evidence/performance-lab-visual-evidence-summary.txt"
+$releaseTag = "v$ExpectedVersion"
+$releaseActionGates = @(
+    (New-ManualReleaseActionGate `
+        -Id "public-nuget-publish" `
+        -Description "Publish package assets to nuget.org." `
+        -ApprovalInput "Manual GitHub environment approval plus explicit tag, version, and expected_commit workflow inputs." `
+        -Command "dotnet nuget push <package> --source https://api.nuget.org/v3/index.json --api-key <NUGET_API_KEY> --skip-duplicate"),
+    (New-ManualReleaseActionGate `
+        -Id "preview-github-packages-publish" `
+        -Description "Publish preview package assets to GitHub Packages." `
+        -ApprovalInput "Manual GitHub environment approval for preview-packages plus explicit version workflow input." `
+        -Command "dotnet nuget push <package> --source https://nuget.pkg.github.com/ExplodingUFO/index.json --api-key <GITHUB_TOKEN> --skip-duplicate"),
+    (New-ManualReleaseActionGate `
+        -Id "release-tag" `
+        -Description "Create and push the public release tag." `
+        -ApprovalInput "Human release approval naming the source commit and release tag '$releaseTag'." `
+        -Command "git tag -a $releaseTag <source-commit> && git push origin $releaseTag"),
+    (New-ManualReleaseActionGate `
+        -Id "github-release" `
+        -Description "Create or update the GitHub release and attach package assets." `
+        -ApprovalInput "Manual GitHub environment approval after package validation and tag verification." `
+        -Command "softprops/action-gh-release@v2 with package assets")
+)
 
 $summary = [ordered]@{
     schemaVersion = 1
     status = "pass"
+    allowedStatuses = @("pass", "fail", "skipped", "manual-gate")
     generatedAtUtc = [DateTimeOffset]::UtcNow.ToString("O")
     expectedVersion = $ExpectedVersion
     configuration = $Configuration
@@ -159,6 +197,7 @@ $summary = [ordered]@{
         performanceLabVisualEvidenceManifestPath = $performanceLabVisualEvidenceManifestPath
         performanceLabVisualEvidenceSummaryPath = $performanceLabVisualEvidenceSummaryPath
     }
+    releaseActionGates = $releaseActionGates
     steps = @(
         [ordered]@{
             id = "version-simulation-prepack"
@@ -217,6 +256,9 @@ $summary | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $summaryPath
     "Optional visual evidence: evidence-only; publish blocker: false"
     "Doctor visual evidence status path: $doctorReportPath"
     "Performance Lab visual evidence manifest: $performanceLabVisualEvidenceManifestPath"
+    ""
+    "Manual-gated release actions:"
+    ($releaseActionGates | ForEach-Object { "- [$($_.status.ToUpperInvariant())] $($_.id): approval required; action taken: $($_.actionTaken); command: $($_.command)" })
 ) | Set-Content -LiteralPath $textSummaryPath
 
 & (Join-Path $root "scripts/Test-ReleaseCandidateVersion.ps1") -ExpectedVersion $ExpectedVersion -CandidateTag "v$ExpectedVersion" -ReleaseDryRunSummaryPath $summaryPath

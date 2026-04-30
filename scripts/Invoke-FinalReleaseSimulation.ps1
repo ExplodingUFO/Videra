@@ -104,6 +104,16 @@ else
     Add-Check -Id "public-release-preflight" -Status "fail" -Message ($preflightOutput -join "`n") -Path $preflightOutputRoot
 }
 
+$preflightSummaryPath = Join-Path $preflightOutputRoot "public-release-preflight-summary.json"
+if (Test-Path -LiteralPath $preflightSummaryPath -PathType Leaf)
+{
+    $preflightSummary = Get-Content -LiteralPath $preflightSummaryPath -Raw | ConvertFrom-Json
+    foreach ($gate in @($preflightSummary.releaseActionGates))
+    {
+        Add-Check -Id ([string]$gate.id) -Status ([string]$gate.status) -Message ([string]$gate.message) -Path $preflightSummaryPath
+    }
+}
+
 $publicWorkflowPath = Join-Path $root ".github/workflows/publish-public.yml"
 $existingPublicWorkflowPath = Join-Path $root ".github/workflows/publish-existing-public-release.yml"
 $previewWorkflowPath = Join-Path $root ".github/workflows/publish-github-packages.yml"
@@ -138,7 +148,7 @@ Assert-Contains -Id "releasing-final-simulation" -Content $releasing -Expected "
 Assert-Contains -Id "cutover-before-state" -Content $cutover -Expected "## Before-publish state" -Path $cutoverPath
 Assert-Contains -Id "cutover-after-state" -Content $cutover -Expected "## After-publish state" -Path $cutoverPath
 
-$failedChecks = @($checks | Where-Object { $_.status -ne "pass" })
+$failedChecks = @($checks | Where-Object { $_.status -eq "fail" })
 $status = if ($failedChecks.Count -eq 0) { "pass" } else { "fail" }
 $summary = [ordered]@{
     schemaVersion = 1

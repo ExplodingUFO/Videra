@@ -28,10 +28,18 @@ public sealed class ReleaseDryRunRepositoryTests
         script.Should().Contain("status = \"pass\"");
         script.Should().Contain("artifactPaths");
         script.Should().Contain("steps");
+        script.Should().Contain("allowedStatuses = @(\"pass\", \"fail\", \"skipped\", \"manual-gate\")");
+        script.Should().Contain("releaseActionGates");
+        script.Should().Contain("status = \"manual-gate\"");
+        script.Should().Contain("failClosedDefault = $true");
+        script.Should().Contain("actionTaken = $false");
+        script.Should().Contain("dotnet nuget push <package> --source https://api.nuget.org/v3/index.json");
+        script.Should().Contain("git tag -a $releaseTag <source-commit> && git push origin $releaseTag");
+        script.Should().Contain("softprops/action-gh-release@v2");
         script.Should().Contain("New-ReleaseCandidateEvidenceIndex.ps1");
         script.Should().Contain("package-size-evaluation.json");
         script.Should().Contain("package-size-summary.txt");
-        script.Should().NotContain("dotnet nuget push");
+        script.Should().NotContain("& dotnet nuget push");
     }
 
     [Fact]
@@ -137,9 +145,11 @@ public sealed class ReleaseDryRunRepositoryTests
         script.Should().Contain("PerformanceLabVisualEvidenceManifestPath");
         script.Should().Contain("DoctorReportPath");
         script.Should().Contain("validationSteps");
+        script.Should().Contain("releaseActionGates");
+        script.Should().Contain("Manual-gated release actions:");
         script.Should().Contain("Assert-ExistingFile");
         script.Should().Contain("Package size evaluation artifact");
-        script.Should().NotContain("dotnet nuget push");
+        script.Should().NotContain("& dotnet nuget push");
     }
 
     [Fact]
@@ -263,6 +273,7 @@ public sealed class ReleaseDryRunRepositoryTests
         {
             schemaVersion = 1,
             status = "pass",
+            generatedAtUtc = DateTimeOffset.UtcNow.ToString("O"),
             expectedVersion = "0.1.0-alpha.7",
             packageContractPath = "eng/public-api-contract.json",
             packageValidationScript = "scripts/Validate-Packages.ps1",
@@ -363,7 +374,14 @@ public sealed class ReleaseDryRunRepositoryTests
         script.Should().Contain("git status --porcelain");
         script.Should().Contain("public-release-preflight-summary.json");
         script.Should().Contain("public-release-preflight-summary.txt");
-        script.Should().NotContain("dotnet nuget push");
+        script.Should().Contain("Add-ReleaseActionGateChecks");
+        script.Should().Contain("releaseActionGates");
+        script.Should().Contain("\"public-nuget-publish\"");
+        script.Should().Contain("\"preview-github-packages-publish\"");
+        script.Should().Contain("\"release-tag\"");
+        script.Should().Contain("\"github-release\"");
+        script.Should().Contain("Status \"manual-gate\"");
+        script.Should().NotContain("& dotnet nuget push");
         script.Should().NotContain("git tag");
         script.Should().NotContain("NUGET_API_KEY");
         script.Should().NotContain("GITHUB_TOKEN");
@@ -392,6 +410,78 @@ public sealed class ReleaseDryRunRepositoryTests
         $"{result.Stdout}{result.Stderr}".Should().Contain("release-dry-run-summary.json");
         File.Exists(Path.Combine(outputRoot, "public-release-preflight-summary.json")).Should().BeTrue();
         File.Exists(Path.Combine(outputRoot, "public-release-preflight-summary.txt")).Should().BeTrue();
+    }
+
+    [Fact]
+    public void PublicReleasePreflightScript_ShouldAcceptManualGatedReleaseActionsAsExplicitNonMutatingState()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var scriptPath = Path.Combine(repositoryRoot, "scripts", "Invoke-PublicReleasePreflight.ps1");
+        var evidenceRoot = Path.Combine(Path.GetTempPath(), "VideraPublicReleasePreflightTests", Guid.NewGuid().ToString("N"));
+        var releaseDryRunRoot = Path.Combine(evidenceRoot, "release-dry-run");
+        var packageValidationRoot = Path.Combine(releaseDryRunRoot, "packages", ".validation");
+        var benchmarkViewerRoot = Path.Combine(evidenceRoot, "benchmarks", "viewer");
+        var benchmarkSurfaceChartsRoot = Path.Combine(evidenceRoot, "benchmarks", "surfacecharts");
+        var nativeValidationRoot = Path.Combine(evidenceRoot, "native-validation");
+        var consumerSmokeRoot = Path.Combine(evidenceRoot, "consumer-smoke", "surfacecharts");
+        var outputRoot = Path.Combine(evidenceRoot, "preflight");
+
+        Directory.CreateDirectory(packageValidationRoot);
+        Directory.CreateDirectory(benchmarkViewerRoot);
+        Directory.CreateDirectory(benchmarkSurfaceChartsRoot);
+        Directory.CreateDirectory(nativeValidationRoot);
+        Directory.CreateDirectory(consumerSmokeRoot);
+
+        var packageSizeEvaluation = Path.Combine(packageValidationRoot, "package-size-evaluation.json");
+        var packageSizeSummary = Path.Combine(packageValidationRoot, "package-size-summary.txt");
+        File.WriteAllText(packageSizeEvaluation, "{}");
+        File.WriteAllText(packageSizeSummary, "ok");
+        File.WriteAllText(Path.Combine(benchmarkViewerRoot, "benchmark-threshold-evaluation.json"), "{}");
+        File.WriteAllText(Path.Combine(benchmarkSurfaceChartsRoot, "benchmark-threshold-evaluation.json"), "{}");
+        File.WriteAllText(Path.Combine(nativeValidationRoot, "native-validation.txt"), "ok");
+        File.WriteAllText(Path.Combine(consumerSmokeRoot, "consumer-smoke-result.json"), "{}");
+        File.WriteAllText(Path.Combine(consumerSmokeRoot, "surfacecharts-support-summary.txt"), "ok");
+
+        var summaryPath = Path.Combine(releaseDryRunRoot, "release-dry-run-summary.json");
+        WriteValidDryRunSummary(summaryPath, packageSizeEvaluation, packageSizeSummary);
+        File.WriteAllText(Path.Combine(releaseDryRunRoot, "release-candidate-evidence-index.json"), JsonSerializer.Serialize(new
+        {
+            expectedVersion = "0.1.0-alpha.7",
+            dryRunStatus = "pass"
+        }, IndentedJsonOptions));
+        File.WriteAllText(Path.Combine(releaseDryRunRoot, "release-candidate-evidence-index.txt"), "ok");
+
+        var result = RunPowerShell(
+            scriptPath,
+            repositoryRoot,
+            "-ExpectedVersion",
+            "0.1.0-alpha.7",
+            "-EvidenceRoot",
+            evidenceRoot,
+            "-OutputRoot",
+            outputRoot,
+            "-SkipRepositoryStateCheck");
+
+        result.ExitCode.Should().Be(0, $"stdout: {result.Stdout}\nstderr: {result.Stderr}");
+
+        using var preflightDocument = JsonDocument.Parse(File.ReadAllText(Path.Combine(outputRoot, "public-release-preflight-summary.json")));
+        preflightDocument.RootElement.GetProperty("status").GetString().Should().Be("pass");
+        preflightDocument.RootElement.GetProperty("allowedStatuses").EnumerateArray().Select(static value => value.GetString())
+            .Should().Contain(["pass", "fail", "skipped", "manual-gate"]);
+
+        var gateStatuses = preflightDocument.RootElement.GetProperty("releaseActionGates")
+            .EnumerateArray()
+            .ToDictionary(
+                static gate => gate.GetProperty("id").GetString()!,
+                static gate => gate.GetProperty("status").GetString()!);
+
+        gateStatuses["release-action-gate-public-nuget-publish"].Should().Be("manual-gate");
+        gateStatuses["release-action-gate-preview-github-packages-publish"].Should().Be("manual-gate");
+        gateStatuses["release-action-gate-release-tag"].Should().Be("manual-gate");
+        gateStatuses["release-action-gate-github-release"].Should().Be("manual-gate");
+
+        var textSummary = File.ReadAllText(Path.Combine(outputRoot, "public-release-preflight-summary.txt"));
+        textSummary.Should().Contain("Manual-gated release actions:");
     }
 
     [Fact]
@@ -501,15 +591,18 @@ public sealed class ReleaseDryRunRepositoryTests
         {
             schemaVersion = 1,
             status = "pass",
+            generatedAtUtc = DateTimeOffset.UtcNow.ToString("O"),
             expectedVersion = "0.1.0-alpha.7",
             packageContractPath = "eng/public-api-contract.json",
             packageValidationScript = "scripts/Validate-Packages.ps1",
+            allowedStatuses = new[] { "pass", "fail", "skipped", "manual-gate" },
             validationArtifacts = new
             {
                 packageSizeEvaluation,
                 packageSizeSummary
             },
             artifactPaths = new { },
+            releaseActionGates = NewManualReleaseActionGates(),
             steps = new[]
             {
                 new { id = "version-simulation-prepack", status = "pass" },
@@ -521,6 +614,53 @@ public sealed class ReleaseDryRunRepositoryTests
         };
 
         File.WriteAllText(summaryPath, JsonSerializer.Serialize(summary, IndentedJsonOptions));
+    }
+
+    private static object[] NewManualReleaseActionGates()
+    {
+        return
+        [
+            new
+            {
+                id = "public-nuget-publish",
+                status = "manual-gate",
+                approvalRequired = true,
+                approvalInput = "manual approval",
+                failClosedDefault = true,
+                actionTaken = false,
+                command = "dotnet nuget push <package> --source https://api.nuget.org/v3/index.json"
+            },
+            new
+            {
+                id = "preview-github-packages-publish",
+                status = "manual-gate",
+                approvalRequired = true,
+                approvalInput = "manual approval",
+                failClosedDefault = true,
+                actionTaken = false,
+                command = "dotnet nuget push <package> --source https://nuget.pkg.github.com/ExplodingUFO/index.json"
+            },
+            new
+            {
+                id = "release-tag",
+                status = "manual-gate",
+                approvalRequired = true,
+                approvalInput = "manual approval",
+                failClosedDefault = true,
+                actionTaken = false,
+                command = "git tag -a v0.1.0-alpha.7 <source-commit> && git push origin v0.1.0-alpha.7"
+            },
+            new
+            {
+                id = "github-release",
+                status = "manual-gate",
+                approvalRequired = true,
+                approvalInput = "manual approval",
+                failClosedDefault = true,
+                actionTaken = false,
+                command = "softprops/action-gh-release@v2"
+            }
+        ];
     }
 
     private static PowerShellResult RunPowerShell(string scriptPath, string workingDirectory, params string[] arguments)
