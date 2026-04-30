@@ -5,6 +5,8 @@ namespace Videra.SurfaceCharts.Avalonia.Controls.Interaction;
 /// </summary>
 public sealed class SurfaceChartInteractionProfile
 {
+    private static readonly SurfaceChartCommand[] EmptyCommands = [];
+
     /// <summary>
     /// Gets the default profile that preserves all built-in interactions.
     /// </summary>
@@ -76,4 +78,46 @@ public sealed class SurfaceChartInteractionProfile
     /// Gets a value indicating whether pointer presses request keyboard focus for the chart.
     /// </summary>
     public bool FocusOnPointerPressed { get; init; } = true;
+
+    /// <summary>
+    /// Gets the built-in chart commands enabled by this profile.
+    /// </summary>
+    public IReadOnlyList<SurfaceChartCommand> EnabledCommands
+    {
+        get
+        {
+            if (!IsDollyEnabled && !IsPanEnabled && !IsResetCameraEnabled && !IsFitToDataEnabled)
+            {
+                return EmptyCommands;
+            }
+
+            var commands = new List<SurfaceChartCommand>(8);
+
+            if (IsDollyEnabled)
+            {
+                commands.Add(SurfaceChartCommand.ZoomIn);
+                commands.Add(SurfaceChartCommand.ZoomOut);
+            }
+
+            if (IsPanEnabled)
+            {
+                commands.Add(SurfaceChartCommand.PanLeft);
+                commands.Add(SurfaceChartCommand.PanRight);
+                commands.Add(SurfaceChartCommand.PanUp);
+                commands.Add(SurfaceChartCommand.PanDown);
+            }
+
+            if (IsResetCameraEnabled)
+            {
+                commands.Add(SurfaceChartCommand.ResetCamera);
+            }
+
+            if (IsFitToDataEnabled)
+            {
+                commands.Add(SurfaceChartCommand.FitToData);
+            }
+
+            return commands;
+        }
+    }
 }

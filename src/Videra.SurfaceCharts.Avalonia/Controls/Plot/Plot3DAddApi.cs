@@ -89,7 +89,7 @@ public sealed class Plot3DAddApi
     /// </summary>
     /// <param name="values">The bar values (one per category). Must not be empty and must not contain NaN.</param>
     /// <param name="name">Optional series name.</param>
-    public Plot3DSeries Bar(double[] values, string? name = null)
+    public BarPlot3DSeries Bar(double[] values, string? name = null)
     {
         ArgumentNullException.ThrowIfNull(values);
         var series = new BarSeries(values, color: 0xFF4488CCu, label: name);
@@ -101,10 +101,10 @@ public sealed class Plot3DAddApi
     /// </summary>
     /// <param name="data">The bar dataset.</param>
     /// <param name="name">Optional series name.</param>
-    public Plot3DSeries Bar(BarChartData data, string? name = null)
+    public BarPlot3DSeries Bar(BarChartData data, string? name = null)
     {
         ArgumentNullException.ThrowIfNull(data);
-        return _plot.AddSeries(new Plot3DSeries(Plot3DSeriesKind.Bar, name, surfaceSource: null, scatterData: null, data, contourData: null));
+        return (BarPlot3DSeries)_plot.AddSeries(new BarPlot3DSeries(name, data));
     }
 
     /// <summary>
@@ -112,7 +112,7 @@ public sealed class Plot3DAddApi
     /// </summary>
     /// <param name="values">The 2D scalar field values in row-major order.</param>
     /// <param name="name">Optional series name.</param>
-    public Plot3DSeries Contour(double[,] values, string? name = null)
+    public ContourPlot3DSeries Contour(double[,] values, string? name = null)
     {
         ArgumentNullException.ThrowIfNull(values);
 
@@ -152,7 +152,7 @@ public sealed class Plot3DAddApi
     /// </summary>
     /// <param name="field">The scalar field to extract contours from.</param>
     /// <param name="name">Optional series name.</param>
-    public Plot3DSeries Contour(SurfaceScalarField field, string? name = null)
+    public ContourPlot3DSeries Contour(SurfaceScalarField field, string? name = null)
     {
         ArgumentNullException.ThrowIfNull(field);
         return Contour(new ContourChartData(field), name);
@@ -163,10 +163,10 @@ public sealed class Plot3DAddApi
     /// </summary>
     /// <param name="data">The contour dataset.</param>
     /// <param name="name">Optional series name.</param>
-    public Plot3DSeries Contour(ContourChartData data, string? name = null)
+    public ContourPlot3DSeries Contour(ContourChartData data, string? name = null)
     {
         ArgumentNullException.ThrowIfNull(data);
-        return _plot.AddSeries(new Plot3DSeries(Plot3DSeriesKind.Contour, name, surfaceSource: null, scatterData: null, barData: null, data));
+        return (ContourPlot3DSeries)_plot.AddSeries(new ContourPlot3DSeries(name, data));
     }
 
     private static SurfaceMatrix CreateSurfaceMatrix(double[,] values)

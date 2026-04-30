@@ -78,13 +78,23 @@ public sealed class VideraChartViewPlotApiTests
                 new[] { 100d, 110d, 120d },
                 "scatter",
                 0xFF123456u);
+            BarPlot3DSeries bar = view.Plot.Add.Bar(new[] { 3d, 6d, 9d }, "bar");
+            ContourPlot3DSeries contour = view.Plot.Add.Contour(new[,] { { 1d, 2d }, { 3d, 4d } }, "contour");
+            Plot3DSeries baseBar = bar;
+            Plot3DSeries baseContour = contour;
 
             surface.Should().BeOfType<SurfacePlot3DSeries>();
             waterfall.Should().BeOfType<WaterfallPlot3DSeries>();
             scatter.Should().BeOfType<ScatterPlot3DSeries>();
+            bar.Should().BeOfType<BarPlot3DSeries>();
+            contour.Should().BeOfType<ContourPlot3DSeries>();
             surface.Should().BeAssignableTo<IPlottable3D>();
             waterfall.Should().BeAssignableTo<IPlottable3D>();
             scatter.Should().BeAssignableTo<IPlottable3D>();
+            bar.Should().BeAssignableTo<IPlottable3D>();
+            contour.Should().BeAssignableTo<IPlottable3D>();
+            baseBar.Should().BeSameAs(bar);
+            baseContour.Should().BeSameAs(contour);
 
             surface.Kind.Should().Be(Plot3DSeriesKind.Surface);
             surface.SurfaceSource!.Metadata.Width.Should().Be(3);
@@ -98,9 +108,13 @@ public sealed class VideraChartViewPlotApiTests
             scatter.ScatterData.Metadata.ValueRange.Maximum.Should().Be(30d);
             scatter.ScatterData.Metadata.DepthAxis.Maximum.Should().Be(120d);
             scatter.ScatterData.Series[0].Color.Should().Be(0xFF123456u);
+            bar.Kind.Should().Be(Plot3DSeriesKind.Bar);
+            bar.BarData!.SeriesCount.Should().Be(1);
+            contour.Kind.Should().Be(Plot3DSeriesKind.Contour);
+            contour.ContourData!.Field.Width.Should().Be(2);
 
-            view.Plot.Series.Should().Equal(surface, waterfall, scatter);
-            view.Plot.ActiveSeries.Should().BeSameAs(scatter);
+            view.Plot.Series.Should().Equal(surface, waterfall, scatter, bar, contour);
+            view.Plot.ActiveSeries.Should().BeSameAs(contour);
         });
     }
 
@@ -211,6 +225,8 @@ public sealed class VideraChartViewPlotApiTests
             view.Plot.GetSeries<SurfacePlot3DSeries>().Should().Equal(surface, secondSurface);
             view.Plot.GetSeries<WaterfallPlot3DSeries>().Should().Equal(waterfall);
             view.Plot.GetSeries<ScatterPlot3DSeries>().Should().Equal(scatter);
+            view.Plot.GetSeries<BarPlot3DSeries>().Should().BeEmpty();
+            view.Plot.GetSeries<ContourPlot3DSeries>().Should().BeEmpty();
             view.Plot.Revision.Should().Be(4);
             view.LastRefreshRevision.Should().Be(4);
 

@@ -244,6 +244,38 @@ public sealed class VideraChartViewKeyboardToolbarTests
     }
 
     [Fact]
+    public void InteractionProfile_EnabledCommands_ReflectsCommandSwitches()
+    {
+        AvaloniaHeadlessTestSession.Run(() =>
+        {
+            SurfaceChartInteractionProfile.Default.EnabledCommands.Should().Equal(
+                SurfaceChartCommand.ZoomIn,
+                SurfaceChartCommand.ZoomOut,
+                SurfaceChartCommand.PanLeft,
+                SurfaceChartCommand.PanRight,
+                SurfaceChartCommand.PanUp,
+                SurfaceChartCommand.PanDown,
+                SurfaceChartCommand.ResetCamera,
+                SurfaceChartCommand.FitToData);
+
+            SurfaceChartInteractionProfile.Disabled.EnabledCommands.Should().BeEmpty();
+
+            var profile = new SurfaceChartInteractionProfile
+            {
+                IsDollyEnabled = false,
+                IsFitToDataEnabled = false,
+            };
+
+            profile.EnabledCommands.Should().Equal(
+                SurfaceChartCommand.PanLeft,
+                SurfaceChartCommand.PanRight,
+                SurfaceChartCommand.PanUp,
+                SurfaceChartCommand.PanDown,
+                SurfaceChartCommand.ResetCamera);
+        });
+    }
+
+    [Fact]
     public void CommandSurface_DefaultZoom_ChangesDataWindow()
     {
         AvaloniaHeadlessTestSession.Run(() =>
