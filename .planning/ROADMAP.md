@@ -19,7 +19,7 @@ STREAM-01..03, COOK-01..03, TRUTH-01..03, VERIFY-01..02)
 - [x] **Phase 425: Analysis Workspace and Streaming Inventory** - Map current
   multi-chart, linked interaction, streaming/high-density, cookbook,
   package-smoke, and CI truth surfaces before implementation.
-- [ ] **Phase 426: Native Multi-Chart Analysis Workspace** - Add bounded native
+- [x] **Phase 426: Native Multi-Chart Analysis Workspace** - Add bounded native
   multi-chart layout/workspace affordances without creating a generic workbench.
 - [ ] **Phase 427: Linked Interaction and Selection Propagation** - Add linked
   camera/axis/probe/selection workflows with host-owned state and explicit
@@ -153,8 +153,8 @@ consumer templates.
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 425. Analysis Workspace and Streaming Inventory | 1/1 | Complete | 2026-04-30 |
-| 426. Native Multi-Chart Analysis Workspace | 0/2 | Ready | |
-| 427. Linked Interaction and Selection Propagation | 0/1 | Blocked | |
+| 426. Native Multi-Chart Analysis Workspace | 2/2 | Complete | 2026-04-30 |
+| 427. Linked Interaction and Selection Propagation | 0/1 | Ready | |
 | 428. High-Density and Streaming Data Evidence | 0/1 | Blocked | |
 | 429. Scenario Cookbook and Package Templates | 0/1 | Blocked | |
 | 430. CI Performance and Release-Readiness Truth | 0/1 | Blocked | |
