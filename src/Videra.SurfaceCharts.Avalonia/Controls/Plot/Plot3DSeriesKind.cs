@@ -54,4 +54,14 @@ public enum Plot3DSeriesKind
     /// A 3D box plot for statistical distribution visualization.
     /// </summary>
     BoxPlot,
+
+    /// <summary>
+    /// A histogram with configurable bins and mode.
+    /// </summary>
+    Histogram,
+
+    /// <summary>
+    /// A function plot evaluating y = f(x) over a domain.
+    /// </summary>
+    FunctionPlot,
 }

@@ -52,6 +52,10 @@
                                 IsVisible="False" />
         <charts:VideraChartView x:Name="BoxPlotView"
                                 IsVisible="False" />
+        <charts:VideraChartView x:Name="HistogramPlotView"
+                                IsVisible="False" />
+        <charts:VideraChartView x:Name="FunctionPlotView"
+                                IsVisible="False" />
         <Grid x:Name="MultiPlot3DPanel"
               IsVisible="False" />
         <Grid x:Name="AnalysisWorkspacePanel"

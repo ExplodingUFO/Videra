@@ -28,6 +28,8 @@ public partial class MainWindow : Window
     private readonly VideraChartView _vectorFieldPlotView;
     private readonly VideraChartView _heatmapSlicePlotView;
     private readonly VideraChartView _boxPlotView;
+    private readonly VideraChartView _histogramPlotView;
+    private readonly VideraChartView _functionPlotView;
     private readonly VideraChartView _workspaceChartA;
     private readonly VideraChartView _workspaceChartB;
     private readonly VideraChartView _workspaceChartC;
@@ -117,6 +119,10 @@ public partial class MainWindow : Window
             ?? throw new InvalidOperationException("HeatmapSlicePlotView is missing.");
         _boxPlotView = this.FindControl<VideraChartView>("BoxPlotView")
             ?? throw new InvalidOperationException("BoxPlotView is missing.");
+        _histogramPlotView = this.FindControl<VideraChartView>("HistogramPlotView")
+            ?? throw new InvalidOperationException("HistogramPlotView is missing.");
+        _functionPlotView = this.FindControl<VideraChartView>("FunctionPlotView")
+            ?? throw new InvalidOperationException("FunctionPlotView is missing.");
         _workspaceChartA = this.FindControl<VideraChartView>("WorkspaceChartA")
             ?? throw new InvalidOperationException("WorkspaceChartA is missing.");
         _workspaceChartB = this.FindControl<VideraChartView>("WorkspaceChartB")
@@ -216,6 +222,8 @@ public partial class MainWindow : Window
         ConfigureSurfaceFamilyChartView(_vectorFieldPlotView);
         ConfigureSurfaceFamilyChartView(_heatmapSlicePlotView);
         ConfigureSurfaceFamilyChartView(_boxPlotView);
+        ConfigureSurfaceFamilyChartView(_histogramPlotView);
+        ConfigureSurfaceFamilyChartView(_functionPlotView);
         ConfigureSurfaceFamilyChartView(_workspaceChartA);
         ConfigureSurfaceFamilyChartView(_workspaceChartB);
         ConfigureSurfaceFamilyChartView(_workspaceChartC);
@@ -258,6 +266,8 @@ public partial class MainWindow : Window
         _vectorFieldPlotView.IsVisible ? _vectorFieldPlotView :
         _heatmapSlicePlotView.IsVisible ? _heatmapSlicePlotView :
         _boxPlotView.IsVisible ? _boxPlotView :
+        _histogramPlotView.IsVisible ? _histogramPlotView :
+        _functionPlotView.IsVisible ? _functionPlotView :
         _surfaceChartView;
 
     private bool IsScatterProofActive => _scatterChartView.IsVisible;
@@ -381,6 +391,18 @@ public partial class MainWindow : Window
         if (scenario.Id == SurfaceDemoScenarios.BoxPlotId)
         {
             ApplyBoxPlotSource(scenario);
+            return;
+        }
+
+        if (scenario.Id == SurfaceDemoScenarios.HistogramId)
+        {
+            ApplyHistogramSource(scenario);
+            return;
+        }
+
+        if (scenario.Id == SurfaceDemoScenarios.FunctionPlotId)
+        {
+            ApplyFunctionPlotSource(scenario);
             return;
         }
 
@@ -703,6 +725,39 @@ public partial class MainWindow : Window
         RefreshActiveProofTexts();
     }
 
+    private void ApplyHistogramSource(SurfaceDemoScenario scenario)
+    {
+        SetActiveChartView(_histogramPlotView);
+        _activeScatterData = null;
+        _histogramPlotView.Plot.Clear();
+        _histogramPlotView.Plot.Add.Histogram(CreateSampleHistogramValues(), binCount: 25, mode: HistogramMode.Count, name: scenario.Label);
+        _histogramPlotView.FitToData();
+        _activePlotPathHeading = scenario.Label;
+        _activePlotPathDetails = "Histogram with configurable bins and mode. Demonstrates Plot.Add.Histogram with count/density/cumulative modes.";
+        _activeDatasetSummary = "Histogram proof uses 500 Box-Muller normal samples with 25 bins.";
+        _activeAssetSummary = "No additional assets are used on this path.";
+        _datasetText.Text = _activeDatasetSummary;
+        RefreshActiveProofTexts();
+    }
+
+    private void ApplyFunctionPlotSource(SurfaceDemoScenario scenario)
+    {
+        SetActiveChartView(_functionPlotView);
+        _activeScatterData = null;
+        _functionPlotView.Plot.Clear();
+        _functionPlotView.Plot.Add.Function(
+            x => Math.Sin(x) * Math.Exp(-x * 0.1),
+            xMin: 0, xMax: 20, sampleCount: 300,
+            name: scenario.Label);
+        _functionPlotView.FitToData();
+        _activePlotPathHeading = scenario.Label;
+        _activePlotPathDetails = "Function plot evaluating y = sin(x) * exp(-0.1x). Demonstrates Plot.Add.Function with configurable domain and sample count.";
+        _activeDatasetSummary = "Function plot proof evaluates damped sine over [0, 20] with 300 samples.";
+        _activeAssetSummary = "No additional assets are used on this path.";
+        _datasetText.Text = _activeDatasetSummary;
+        RefreshActiveProofTexts();
+    }
+
     private void SetupMultiPlot3DScenario(SurfaceDemoScenario scenario)
     {
         // Hide all single-chart panels
@@ -716,6 +771,8 @@ public partial class MainWindow : Window
         _vectorFieldPlotView.IsVisible = false;
         _heatmapSlicePlotView.IsVisible = false;
         _boxPlotView.IsVisible = false;
+        _histogramPlotView.IsVisible = false;
+        _functionPlotView.IsVisible = false;
         _analysisWorkspacePanel.IsVisible = false;
         _workspaceToolbarPanel.IsVisible = false;
 
@@ -887,6 +944,8 @@ public partial class MainWindow : Window
         _vectorFieldPlotView.IsVisible = ReferenceEquals(chartView, _vectorFieldPlotView);
         _heatmapSlicePlotView.IsVisible = ReferenceEquals(chartView, _heatmapSlicePlotView);
         _boxPlotView.IsVisible = ReferenceEquals(chartView, _boxPlotView);
+        _histogramPlotView.IsVisible = ReferenceEquals(chartView, _histogramPlotView);
+        _functionPlotView.IsVisible = ReferenceEquals(chartView, _functionPlotView);
         _analysisWorkspacePanel.IsVisible = false;
         _workspaceToolbarPanel.IsVisible = false;
     }
@@ -904,6 +963,10 @@ public partial class MainWindow : Window
         _vectorFieldPlotView.IsVisible = false;
         _heatmapSlicePlotView.IsVisible = false;
         _boxPlotView.IsVisible = false;
+        _histogramPlotView.IsVisible = false;
+        _functionPlotView.IsVisible = false;
+        _histogramPlotView.IsVisible = false;
+        _functionPlotView.IsVisible = false;
         _analysisWorkspacePanel.IsVisible = true;
         _workspaceToolbarPanel.IsVisible = true;
 
@@ -982,6 +1045,8 @@ public partial class MainWindow : Window
         _vectorFieldPlotView.IsVisible = false;
         _heatmapSlicePlotView.IsVisible = false;
         _boxPlotView.IsVisible = false;
+        _histogramPlotView.IsVisible = false;
+        _functionPlotView.IsVisible = false;
         _analysisWorkspacePanel.IsVisible = true;
         _workspaceToolbarPanel.IsVisible = true;
 
@@ -1068,6 +1133,8 @@ public partial class MainWindow : Window
         _vectorFieldPlotView.IsVisible = false;
         _heatmapSlicePlotView.IsVisible = false;
         _boxPlotView.IsVisible = false;
+        _histogramPlotView.IsVisible = false;
+        _functionPlotView.IsVisible = false;
         _analysisWorkspacePanel.IsVisible = true;
         _workspaceToolbarPanel.IsVisible = true;
 
@@ -1653,7 +1720,8 @@ public partial class MainWindow : Window
     private bool IsNewChartTypeActive =>
         _linePlotView.IsVisible || _ribbonPlotView.IsVisible ||
         _vectorFieldPlotView.IsVisible || _heatmapSlicePlotView.IsVisible ||
-        _boxPlotView.IsVisible;
+        _boxPlotView.IsVisible || _histogramPlotView.IsVisible ||
+        _functionPlotView.IsVisible;
 
     private string CreateViewStateSummary()
     {

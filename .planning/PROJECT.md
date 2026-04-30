@@ -12,10 +12,28 @@ Videra 是一个基于 `.NET 8` 的跨平台 3D 渲染引擎，提供 Windows (`
 
 ## Current State
 
-- 最新完整归档 milestone：`v2.64 Native SurfaceCharts Analysis Workspace and Streaming Evidence`
-- 最近完成 milestone：`v2.64 Native SurfaceCharts Analysis Workspace and Streaming Evidence`
-- 当前 active milestone：`v2.65 3D ScottPlot5 Analytics Chart Expansion`
-- 当前 focus：把 Videra 的 3D 图表词汇量向 ScottPlot5 看齐——添加分析型图表族（Line/Ribbon、Vector Field、Heatmap Slice、Box Plot）、MultiPlot3D 子图网格、通用流式数据、以及把 Bar+Contour 从 proof 提升到正式 API；继续 `VideraChartView` + `Plot.Add.*` 单一路线，不引入兼容层、旧控件、隐藏 fallback/downshift、泛化平台或造假验证。
+- 最新完整归档 milestone：`v2.66 Complete Cookbook Demo Gallery`
+- 最近完成 milestone：`v2.66 Complete Cookbook Demo Gallery`
+- 当前 active milestone：`v2.67 ScottPlot5 Feature Parity — Charts, Axes, Annotations, Export`
+- 当前 focus：向 ScottPlot5 功能看齐——添加 7 种新图表类型（Histogram、Error Bar、Pie、Candlestick、Violin、Function、Polygon）、轴系统升级（DateTime、对数轴、多 Y 轴）、标注系统（文本、箭头、参考线、区域、形状）、SVG+批量导出、以及 Demo 框架架构重构。12 个 phase，30 个需求。
+
+## Recently Completed Milestone: v2.66 Complete Cookbook Demo Gallery
+
+**Status:** completed on 2026-04-30.
+
+**Goal:** Make the SurfaceCharts Demo into a truly complete cookbook gallery
+covering all 10 chart types, MultiPlot3D, streaming data, and upgraded demo
+framework experience.
+
+**Delivered outcomes:**
+- added 20 cookbook recipes covering all 10 chart types (Surface, Waterfall, Scatter, Bar, Contour, Line, Ribbon, VectorField, HeatmapSlice, BoxPlot)
+- added MultiPlot3D 2x2 subplot grid recipe with linked camera
+- added DataLogger3D streaming recipes for Surface/Waterfall/Bar
+- added multi-chart workspace, linked interaction, and streaming workspace recipes
+- added interactive parameter controls (slider live preview) for Line/Ribbon/VectorField/HeatmapSlice
+- verified all 20 requirements (RECIPE-01..05, MULTI-01..03, STREAM-01..04, FRAMEWORK-01..04, COOK-01..04) met
+- Phase 440 (framework refactor) deferred — can wrap existing recipes in a future milestone
+- closed with 6/7 phases complete, all commits pushed to origin/master
 
 ## Recently Completed Milestone: v2.65 3D ScottPlot5 Analytics Chart Expansion
 

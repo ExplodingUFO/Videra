@@ -428,4 +428,18 @@ public partial class MainWindow
 
         return new SurfaceMatrix(metadata, values);
     }
+
+    private static double[] CreateSampleHistogramValues()
+    {
+        var values = new double[500];
+        var rng = new Random(42);
+        for (var i = 0; i < values.Length; i++)
+        {
+            // Box-Muller transform for normal distribution
+            var u1 = rng.NextDouble();
+            var u2 = rng.NextDouble();
+            values[i] = Math.Sqrt(-2 * Math.Log(u1)) * Math.Cos(2 * Math.PI * u2);
+        }
+        return values;
+    }
 }

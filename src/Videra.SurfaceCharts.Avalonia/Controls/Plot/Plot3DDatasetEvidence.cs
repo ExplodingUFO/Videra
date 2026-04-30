@@ -287,6 +287,8 @@ public sealed class Plot3DSeriesDatasetEvidence
             Plot3DSeriesKind.VectorField => CreateVectorFieldEvidence(index, isActive, series),
             Plot3DSeriesKind.HeatmapSlice => CreateHeatmapSliceEvidence(index, isActive, series),
             Plot3DSeriesKind.BoxPlot => CreateBoxPlotEvidence(index, isActive, series),
+            Plot3DSeriesKind.Histogram => CreateHistogramEvidence(index, isActive, series),
+            Plot3DSeriesKind.FunctionPlot => CreateFunctionPlotEvidence(index, isActive, series),
             _ => throw new ArgumentOutOfRangeException(nameof(series), $"Unsupported Plot series kind: {series.Kind}"),
         };
     }
@@ -587,6 +589,72 @@ public sealed class Plot3DSeriesDatasetEvidence
             valueRange: null,
             "BoxPlot",
             categoryLabels: labels,
+            []);
+    }
+
+    private static Plot3DSeriesDatasetEvidence CreateHistogramEvidence(int index, bool isActive, Plot3DSeries series)
+    {
+        var data = series.HistogramData
+            ?? throw new InvalidOperationException("Histogram series require histogram data.");
+
+        return new Plot3DSeriesDatasetEvidence(
+            index,
+            isActive,
+            CreateIdentity(index, series),
+            series.Name,
+            series.Kind,
+            width: 0,
+            height: 0,
+            sampleCount: data.BinCount,
+            seriesCount: 1,
+            pointCount: 0,
+            columnarSeriesCount: 0,
+            columnarPointCount: 0,
+            pickablePointCount: 0,
+            streamingAppendBatchCount: 0,
+            streamingReplaceBatchCount: 0,
+            streamingDroppedPointCount: 0,
+            lastStreamingDroppedPointCount: 0,
+            configuredFifoCapacity: 0,
+            horizontalAxis: SurfaceAxisDatasetEvidence.Create(new SurfaceAxisDescriptor("Value", null, data.RangeMin, data.RangeMax)),
+            verticalAxis: null,
+            depthAxis: null,
+            valueRange: null,
+            $"Histogram:Bins={data.BinCount};Mode={data.Mode};Values={data.Values.Count}",
+            categoryLabels: [],
+            []);
+    }
+
+    private static Plot3DSeriesDatasetEvidence CreateFunctionPlotEvidence(int index, bool isActive, Plot3DSeries series)
+    {
+        var data = series.FunctionPlotData
+            ?? throw new InvalidOperationException("Function plot series require function plot data.");
+
+        return new Plot3DSeriesDatasetEvidence(
+            index,
+            isActive,
+            CreateIdentity(index, series),
+            series.Name,
+            series.Kind,
+            width: 0,
+            height: 0,
+            sampleCount: data.SampleCount,
+            seriesCount: 1,
+            pointCount: 0,
+            columnarSeriesCount: 0,
+            columnarPointCount: 0,
+            pickablePointCount: 0,
+            streamingAppendBatchCount: 0,
+            streamingReplaceBatchCount: 0,
+            streamingDroppedPointCount: 0,
+            lastStreamingDroppedPointCount: 0,
+            configuredFifoCapacity: 0,
+            SurfaceAxisDatasetEvidence.Create(new SurfaceAxisDescriptor("X", null, data.XMin, data.XMax)),
+            verticalAxis: null,
+            depthAxis: null,
+            valueRange: null,
+            $"FunctionPlot:Samples={data.SampleCount};XMin={data.XMin:G17};XMax={data.XMax:G17}",
+            categoryLabels: [],
             []);
     }
 

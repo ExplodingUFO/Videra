@@ -22,7 +22,9 @@ public class Plot3DSeries : IPlottable3D
         RibbonChartData? ribbonData,
         VectorFieldChartData? vectorFieldData,
         HeatmapSliceData? heatmapSliceData,
-        BoxPlotData? boxPlotData)
+        BoxPlotData? boxPlotData,
+        HistogramData? histogramData = null,
+        FunctionPlotData? functionPlotData = null)
     {
         Kind = kind;
         _label = NormalizeLabel(name);
@@ -35,6 +37,8 @@ public class Plot3DSeries : IPlottable3D
         VectorFieldData = vectorFieldData;
         HeatmapSliceData = heatmapSliceData;
         BoxPlotData = boxPlotData;
+        HistogramData = histogramData;
+        FunctionPlotData = functionPlotData;
     }
 
     /// <summary>
@@ -124,6 +128,16 @@ public class Plot3DSeries : IPlottable3D
     /// Gets the box plot dataset for box plot series.
     /// </summary>
     public BoxPlotData? BoxPlotData { get; private set; }
+
+    /// <summary>
+    /// Gets the histogram dataset for histogram series.
+    /// </summary>
+    public HistogramData? HistogramData { get; private set; }
+
+    /// <summary>
+    /// Gets the function plot dataset for function plot series.
+    /// </summary>
+    public FunctionPlotData? FunctionPlotData { get; private set; }
 
     internal void Attach(Action changed)
     {

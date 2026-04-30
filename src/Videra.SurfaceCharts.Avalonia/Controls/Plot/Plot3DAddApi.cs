@@ -403,6 +403,42 @@ public sealed class Plot3DAddApi
         return (BoxPlotPlot3DSeries)_plot.AddSeries(new BoxPlotPlot3DSeries(name, data));
     }
 
+    /// <summary>
+    /// Adds a histogram from raw values with configurable bin count and mode.
+    /// </summary>
+    public HistogramPlot3DSeries Histogram(IReadOnlyList<double> values, int binCount = 20, HistogramMode mode = HistogramMode.Count, string? name = null)
+    {
+        ArgumentNullException.ThrowIfNull(values);
+        return Histogram(new HistogramData(values, binCount, mode), name);
+    }
+
+    /// <summary>
+    /// Adds a histogram from a full histogram dataset.
+    /// </summary>
+    public HistogramPlot3DSeries Histogram(HistogramData data, string? name = null)
+    {
+        ArgumentNullException.ThrowIfNull(data);
+        return (HistogramPlot3DSeries)_plot.AddSeries(new HistogramPlot3DSeries(name, data));
+    }
+
+    /// <summary>
+    /// Adds a function plot that evaluates y = f(x) over the specified domain.
+    /// </summary>
+    public FunctionPlot3DSeries Function(Func<double, double> function, double xMin, double xMax, int sampleCount = 200, string? name = null)
+    {
+        ArgumentNullException.ThrowIfNull(function);
+        return Function(new FunctionPlotData(function, xMin, xMax, sampleCount), name);
+    }
+
+    /// <summary>
+    /// Adds a function plot from a full function plot dataset.
+    /// </summary>
+    public FunctionPlot3DSeries Function(FunctionPlotData data, string? name = null)
+    {
+        ArgumentNullException.ThrowIfNull(data);
+        return (FunctionPlot3DSeries)_plot.AddSeries(new FunctionPlot3DSeries(name, data));
+    }
+
     private static SurfaceMatrix CreateSurfaceMatrix(double[,] values)
     {
         ArgumentNullException.ThrowIfNull(values);

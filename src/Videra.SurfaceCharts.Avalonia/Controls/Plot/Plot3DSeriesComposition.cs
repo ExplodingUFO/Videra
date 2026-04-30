@@ -174,6 +174,45 @@ internal static class Plot3DSeriesComposition
         return new BoxPlotData(allCategories);
     }
 
+    public static HistogramData? CreateHistogramData(IReadOnlyList<Plot3DSeries> series)
+    {
+        var datasets = series
+            .Select(static item => item.HistogramData)
+            .OfType<HistogramData>()
+            .ToArray();
+
+        if (datasets.Length == 0)
+        {
+            return null;
+        }
+
+        if (datasets.Length == 1)
+        {
+            return datasets[0];
+        }
+
+        // Merge all values from multiple histogram datasets
+        var allValues = datasets.SelectMany(static data => data.Values).ToArray();
+        var first = datasets[0];
+        return new HistogramData(allValues, first.BinCount, first.Mode);
+    }
+
+    public static FunctionPlotData? CreateFunctionPlotData(IReadOnlyList<Plot3DSeries> series)
+    {
+        var datasets = series
+            .Select(static item => item.FunctionPlotData)
+            .OfType<FunctionPlotData>()
+            .ToArray();
+
+        if (datasets.Length == 0)
+        {
+            return null;
+        }
+
+        // Function plots are independent — return the first one
+        return datasets[0];
+    }
+
     private static ScatterChartMetadata CreateScatterMetadata(IReadOnlyList<ScatterChartData> datasets)
     {
         var first = datasets[0].Metadata;

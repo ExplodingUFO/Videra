@@ -31,6 +31,8 @@ internal static class SurfaceDemoScenarios
     public const string AnalysisWorkspaceId = "analysis-workspace";
     public const string LinkedInteractionId = "linked-interaction";
     public const string StreamingWorkspaceId = "streaming-workspace";
+    public const string HistogramId = "histogram-proof";
+    public const string FunctionPlotId = "function-plot-proof";
 
     public static IReadOnlyList<SurfaceDemoScenario> All { get; } =
     [
@@ -148,6 +150,18 @@ internal static class SurfaceDemoScenarios
             "Multi-chart",
             "Streaming workspace",
             "Shows two VideraChartView instances with different streaming modes (replace and append+FIFO), workspace tracking, and streaming evidence."),
+        new(
+            HistogramId,
+            "Try next: Histogram proof",
+            "Histogram",
+            "Histogram",
+            "Uses configurable bin count with count/density/cumulative modes."),
+        new(
+            FunctionPlotId,
+            "Try next: Function plot proof",
+            "FunctionPlot",
+            "Function plot",
+            "Evaluates a mathematical function over a domain with configurable sample count."),
     ];
 
     public static SurfaceDemoScenario Get(string id)

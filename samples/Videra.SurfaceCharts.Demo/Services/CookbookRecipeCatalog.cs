@@ -390,5 +390,40 @@ internal static class CookbookRecipes
                     throw new InvalidOperationException(result.Failure?.Message);
                 }
                 """),
+        new(
+            "Histogram",
+            "Distribution histogram",
+            "Isolated setup path: creates a histogram from raw values with configurable bin count and mode.",
+            ScenarioId: SurfaceDemoScenarios.HistogramId,
+            ScatterScenarioId: null,
+            Snippet: """
+                var values = new double[500];
+                var rng = new Random(42);
+                for (var i = 0; i < values.Length; i++)
+                {
+                    // Box-Muller transform for normal distribution
+                    var u1 = rng.NextDouble();
+                    var u2 = rng.NextDouble();
+                    values[i] = Math.Sqrt(-2 * Math.Log(u1)) * Math.Cos(2 * Math.PI * u2);
+                }
+
+                chart.Plot.Clear();
+                chart.Plot.Add.Histogram(values, binCount: 25, mode: HistogramMode.Count, name: "Normal distribution");
+                chart.FitToData();
+                """),
+        new(
+            "Function",
+            "Mathematical function",
+            "Isolated setup path: evaluates a function over a domain with configurable sample count.",
+            ScenarioId: SurfaceDemoScenarios.FunctionPlotId,
+            ScatterScenarioId: null,
+            Snippet: """
+                chart.Plot.Clear();
+                chart.Plot.Add.Function(
+                    x => Math.Sin(x) * Math.Exp(-x * 0.1),
+                    xMin: 0, xMax: 20, sampleCount: 300,
+                    name: "Damped sine");
+                chart.FitToData();
+                """),
     ];
 }
