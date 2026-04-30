@@ -16,12 +16,15 @@ _No matching beads in the exported snapshot._
 
 ## Ready
 
-- **Videra-uqv** - v2.61 SurfaceCharts Cookbook Demo Runtime Continuity (epic, P1, open)
-- **Videra-63e** - Phase 409 Cookbook demo runtime continuity inventory (task, P1, open)
+- **Videra-uqv** - v2.61 Native SurfaceCharts Cookbook and CI Truth (epic, P1, open)
+- **Videra-63e** - Phase 409 Native cookbook and CI inventory (task, P1, open)
 
 ## Blocked
 
-_No matching beads in the exported snapshot._
+- **Videra-2de** - Phase 410 Detailed 3D cookbook demo recipes (task, P1, open)
+- **Videra-s6h** - Phase 411 Native high-performance demo paths (task, P1, open)
+- **Videra-79n** - Phase 412 CI truth and validation hardening (task, P1, open)
+- **Videra-q10** - Phase 413 v2.61 final verification (task, P2, open)
 
 ## Backlog
 

@@ -1,80 +1,101 @@
-# Roadmap: v2.61 SurfaceCharts Cookbook Demo Runtime Continuity
+# Roadmap: v2.61 Native SurfaceCharts Cookbook and CI Truth
 
-**Goal:** Keep the SurfaceCharts cookbook demo and interaction handoff usable as
-runtime examples after v2.60, with bounded validation and no compatibility,
-fallback, backend, export, or generic workbench expansion.
+**Goal:** Push SurfaceCharts toward ScottPlot5-style cookbook usability while
+staying native to Videra's 3D chart model: detailed runnable demo recipes,
+high-performance data paths, truthful CI, and no compatibility or fallback
+layers.
 
-**Phases:** 4 (409-412)
-**Requirements:** 8 (DEMO-01..02, HANDOFF-01..02, VERIFY-01..02, SCOPE-01..02)
+**External reference:** ScottPlot 5's cookbook emphasizes short `Plot.Add.*`
+recipes, returned plottable handles for customization, axis/export examples,
+and high-performance data shapes such as Signal/SignalXY for large ordered
+datasets. v2.61 uses those cookbook ergonomics as inspiration only, not API
+compatibility or parity.
+
+**Phases:** 5 (409-413)
+**Requirements:** 12 (COOKBOOK-01..03, NATIVE-01..02, PERF-01..02,
+CI-01..02, VERIFY-01..02, SCOPE-01)
 **Beads epic:** `Videra-uqv`
 
 ## Phases
 
-- [ ] **Phase 409: Cookbook Demo Runtime Continuity Inventory** - Inventory demo runtime flows, launch/build expectations, interaction recipe discoverability, support evidence, and validation gaps.
-- [ ] **Phase 410: Cookbook Demo Runtime QA** - Implement bounded runtime/demo QA hardening selected by Phase 409.
-- [ ] **Phase 411: Interaction Recipe Runtime Handoff** - Implement bounded interaction recipe runtime handoff selected by Phase 409.
-- [ ] **Phase 412: v2.61 Final Verification** - Close v2.61 with focused validation, Beads export, generated roadmap, archive, and cleanup.
+- [ ] **Phase 409: Native Cookbook and CI Inventory** - Inventory current demo cookbook, native 3D chart API surfaces, performance-sensitive paths, CI gates, and anti-fake validation gaps.
+- [ ] **Phase 410: Detailed 3D Cookbook Demo Recipes** - Expand the demo/docs cookbook into detailed runnable recipes for the shipped 3D chart model.
+- [ ] **Phase 411: Native High-Performance Demo Paths** - Tighten cookbook/demo examples around native Videra data paths and performance evidence without downshift/fallback behavior.
+- [ ] **Phase 412: CI Truth and Validation Hardening** - Ensure focused CI/test design is reasonable, deterministic, and catches docs/demo/support drift.
+- [ ] **Phase 413: v2.61 Final Verification** - Close v2.61 with composed validation, Beads export, generated roadmap, archive, push, and cleanup.
 
 ## Phase Details
 
-### Phase 409: Cookbook Demo Runtime Continuity Inventory
+### Phase 409: Native Cookbook and CI Inventory
 
-**Goal:** Establish real demo/runtime evidence before implementation.
+**Goal:** Establish real surfaces and validation boundaries before implementation.
 **Depends on:** Nothing
-**Requirements:** DEMO-01, HANDOFF-01, SCOPE-01
+**Requirements:** COOKBOOK-01, NATIVE-01, PERF-01, CI-01, SCOPE-01
 **Bead:** `Videra-63e`
 **Success Criteria:**
-1. Current SurfaceCharts cookbook demo launch/build/runtime flows are mapped.
-2. Interaction recipe discoverability and support evidence gaps are scoped.
-3. Phase 410 and Phase 411 dependency/write-set boundaries are recorded.
-4. Validation commands and non-goals are recorded.
+1. Current SurfaceCharts demo cookbook recipes are mapped against shipped 3D chart APIs.
+2. ScottPlot5-inspired ergonomics are translated into Videra-native concepts without compatibility claims.
+3. Performance-sensitive demo/data paths and current evidence gaps are identified.
+4. CI/test gaps are scoped with anti-fake validation rules.
 **Plans:** 409-PLAN.md
 
-### Phase 410: Cookbook Demo Runtime QA
+### Phase 410: Detailed 3D Cookbook Demo Recipes
 
-**Goal:** Implement bounded demo/runtime QA hardening selected by Phase 409.
+**Goal:** Make the demo cookbook detailed enough for users to copy and adapt real 3D chart recipes.
 **Depends on:** Phase 409
-**Requirements:** DEMO-02, VERIFY-01, SCOPE-02
-**Bead:** to be created by Phase 409
+**Requirements:** COOKBOOK-02, COOKBOOK-03, NATIVE-02, VERIFY-01, SCOPE-01
+**Bead:** `Videra-2de`
 **Success Criteria:**
-1. Demo runtime QA/docs/test hardening is implemented with focused validation.
-2. Changes remain demo/test/support oriented unless Phase 409 proves a narrow API need.
-3. No compatibility/fallback/backend/export/workbench scope is introduced.
+1. Cookbook recipes cover first chart, surface, waterfall, scatter, bar, contour, axes, styling, interaction, live data, linked views, and PNG snapshot routes.
+2. Recipes expose Videra-native setup, imports, host wiring, and support evidence without pretending to be ScottPlot.
+3. Demo/docs snippets stay aligned through focused tests.
 **Plans:** 410-PLAN.md
 
-### Phase 411: Interaction Recipe Runtime Handoff
+### Phase 411: Native High-Performance Demo Paths
 
-**Goal:** Implement bounded interaction recipe runtime handoff selected by Phase 409.
+**Goal:** Keep cookbook examples high-performance and native to Videra's 3D chart architecture.
 **Depends on:** Phase 409
-**Requirements:** HANDOFF-02, VERIFY-01, SCOPE-02
-**Bead:** to be created by Phase 409
+**Requirements:** PERF-02, NATIVE-02, VERIFY-01, SCOPE-01
+**Bead:** `Videra-s6h`
 **Success Criteria:**
-1. Runtime handoff polish is implemented with focused validation.
-2. Existing interaction APIs are demonstrated without adding command framework,
-   mouse remapping, chart-owned selection, or generic workbench scope.
-3. Support evidence remains explicit and chart-local.
+1. Demo recipes use existing efficient chart-local APIs and data builders.
+2. Performance evidence is truthful: no fake benchmark claims, no hidden fallback, and no unsupported backend promises.
+3. Any added tests validate behavior/evidence instead of synthetic success text.
 **Plans:** 411-PLAN.md
 
-### Phase 412: v2.61 Final Verification
+### Phase 412: CI Truth and Validation Hardening
+
+**Goal:** Ensure CI/test design is reasonable, targeted, and able to pass honestly.
+**Depends on:** Phase 410, Phase 411
+**Requirements:** CI-02, VERIFY-01, VERIFY-02, SCOPE-01
+**Bead:** `Videra-79n`
+**Success Criteria:**
+1. Cookbook/demo/interaction CI checks are focused and deterministic.
+2. Validation covers generated roadmap, Beads export, snapshot scope guardrails, and docs/demo drift.
+3. No CI check is weakened, skipped, or faked to make the milestone appear green.
+**Plans:** 412-PLAN.md
+
+### Phase 413: v2.61 Final Verification
 
 **Goal:** Close v2.61 with synchronized verification and handoff.
-**Depends on:** Phase 410, Phase 411
-**Requirements:** VERIFY-01, VERIFY-02
-**Bead:** to be created by Phase 409
+**Depends on:** Phase 412
+**Requirements:** VERIFY-02
+**Bead:** `Videra-q10`
 **Success Criteria:**
 1. Focused checks pass or are explicitly reported.
 2. Beads state, generated public roadmap, phase archive, branch/worktree
    cleanup, Git push, and Dolt Beads push are synchronized.
-**Plans:** 412-PLAN.md
+**Plans:** 413-PLAN.md
 
 ## Progress
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 409. Cookbook Demo Runtime Continuity Inventory | 0/1 | Ready | |
-| 410. Cookbook Demo Runtime QA | 0/1 | Blocked by 409 | |
-| 411. Interaction Recipe Runtime Handoff | 0/1 | Blocked by 409 | |
-| 412. v2.61 Final Verification | 0/1 | Blocked by 410, 411 | |
+| 409. Native Cookbook and CI Inventory | 0/1 | Ready | |
+| 410. Detailed 3D Cookbook Demo Recipes | 0/1 | Blocked by 409 | |
+| 411. Native High-Performance Demo Paths | 0/1 | Blocked by 409 | |
+| 412. CI Truth and Validation Hardening | 0/1 | Blocked by 410, 411 | |
+| 413. v2.61 Final Verification | 0/1 | Blocked by 412 | |
 
 ---
 

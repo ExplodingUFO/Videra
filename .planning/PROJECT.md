@@ -14,8 +14,8 @@ Videra 是一个基于 `.NET 8` 的跨平台 3D 渲染引擎，提供 Windows (`
 
 - 最新完整归档 milestone：`v2.60 SurfaceCharts Cookbook QA and Interaction Handoff`
 - 最近完成 milestone：`v2.60 SurfaceCharts Cookbook QA and Interaction Handoff`
-- 当前 active milestone：`v2.61 SurfaceCharts Cookbook Demo Runtime Continuity`
-- 当前 focus：继续收紧 SurfaceCharts cookbook demo runtime continuity 和 interaction recipe runtime handoff；不引入 ScottPlot compatibility layer、旧 chart controls、隐藏 fallback、backend expansion 或 generic workbench。
+- 当前 active milestone：`v2.61 Native SurfaceCharts Cookbook and CI Truth`
+- 当前 focus：继续朝 ScottPlot5-style cookbook 用法推进，把 3D 图表 Demo 做成详细、可运行、Videra-native 的 cookbook；同时保持高性能路径和 CI 真实通过，不引入 ScottPlot compatibility layer、旧 chart controls、隐藏 fallback、backend expansion、generic workbench 或造假验证。
 
 ## Recently Completed Milestone: v2.60 SurfaceCharts Cookbook QA and Interaction Handoff
 
@@ -31,14 +31,15 @@ Videra 是一个基于 `.NET 8` 的跨平台 3D 渲染引擎，提供 Windows (`
 
 Archived: `.planning/milestones/v2.60-phases`
 
-## Current Milestone: v2.61 SurfaceCharts Cookbook Demo Runtime Continuity
+## Current Milestone: v2.61 Native SurfaceCharts Cookbook and CI Truth
 
-**Goal:** Keep the SurfaceCharts cookbook demo and interaction handoff usable as runtime examples after v2.60.
+**Goal:** Push SurfaceCharts toward ScottPlot5-style cookbook usability while staying native to Videra's 3D chart model, with detailed runnable demo recipes, high-performance data paths, and truthful CI.
 
 **Target features:**
-- Inventory current SurfaceCharts cookbook demo launch/build/runtime flows and interaction recipe discoverability
-- Implement bounded demo runtime QA selected by inventory
-- Implement bounded interaction recipe runtime handoff selected by inventory
+- Inventory current SurfaceCharts cookbook/demo, native 3D chart API, performance-sensitive paths, and CI/test truth gaps
+- Expand the 3D chart demo into detailed cookbook recipes for shipped Videra chart families and workflows
+- Tighten native high-performance demo/data paths and support evidence without fallback/downshift behavior
+- Harden focused CI/tests so cookbook docs, demo runtime, interaction handoff, Beads export, generated roadmap, and scope guardrails pass honestly
 - Close with focused validation, Beads export, generated roadmap, archive, Git/Dolt push, and clean branch/worktree state
 
 ## Completed Milestones

@@ -1,15 +1,15 @@
 ---
 gsd_state_version: 1.0
 milestone: v2.61
-milestone_name: "SurfaceCharts Cookbook Demo Runtime Continuity"
+milestone_name: "Native SurfaceCharts Cookbook and CI Truth"
 status: active
 stopped_at: "Phase 409 ready for planning"
 last_updated: "2026-04-30T16:28:00+08:00"
 last_activity: 2026-04-30
 progress:
-  total_phases: 4
+  total_phases: 5
   completed_phases: 0
-  total_plans: 4
+  total_plans: 5
   completed_plans: 0
   percent: 0
 ---
@@ -21,15 +21,15 @@ progress:
 See: `.planning/PROJECT.md`
 
 **Core value:** 跨平台 3D 渲染引擎的可靠性
-**Current focus:** v2.61 SurfaceCharts Cookbook Demo Runtime Continuity
+**Current focus:** v2.61 Native SurfaceCharts Cookbook and CI Truth
 
 ## Current Position
 
-Milestone: `v2.61 SurfaceCharts Cookbook Demo Runtime Continuity`
-Phase: 409 of 412 (Cookbook Demo Runtime Continuity Inventory) - READY
+Milestone: `v2.61 Native SurfaceCharts Cookbook and CI Truth`
+Phase: 409 of 413 (Native Cookbook and CI Inventory) - READY
 Plan: none yet
 Status: v2.60 is complete and archived; v2.61 is initialized with Beads as the task spine.
-Last activity: 2026-04-30 - Completed v2.60 and opened v2.61 cookbook demo runtime continuity milestone.
+Last activity: 2026-04-30 - Refined v2.61 toward ScottPlot5-style native cookbook, high-performance demo paths, and truthful CI.
 
 Progress: [----------] 0%
 
@@ -43,18 +43,20 @@ v2.60 continues from the completed v2.59 interaction/cookbook milestone:
 
 v2.61 focuses on:
 
-- cookbook demo runtime continuity inventory
-- bounded demo runtime QA selected by inventory
-- bounded interaction recipe runtime handoff selected by inventory
+- native cookbook and CI inventory
+- detailed 3D cookbook demo recipes
+- native high-performance demo/data paths
+- focused CI truth and validation hardening
 - final integrated validation and clean Beads/Git/Dolt handoff
 
 ## Decisions
 
 - Beads remain the single task spine for phase status, dependencies, ownership, and handoff.
-- Phase 409 must inventory real cookbook demo runtime and interaction recipe runtime handoff surfaces before implementation.
+- Phase 409 must inventory real cookbook/demo, native 3D chart API, performance-sensitive paths, CI gates, and anti-fake validation gaps before implementation.
 - Phase 410 and Phase 411 may run in parallel after Phase 409 if their write sets are disjoint.
-- Shared Beads export, generated roadmap, final scope guardrails, archive, push, and cleanup are Phase 412 responsibilities.
-- Keep implementation simple and direct; do not add ScottPlot compatibility adapters, old chart controls, hidden fallback behavior, backend expansion, or broad demo frameworks.
+- Phase 412 owns CI truth and validation hardening after Phase 410/411.
+- Shared Beads export, generated roadmap, final scope guardrails, archive, push, and cleanup are Phase 413 responsibilities.
+- Keep implementation simple and direct; do not add ScottPlot compatibility adapters, old chart controls, hidden fallback behavior, backend expansion, broad demo frameworks, or fake validation evidence.
 - v2.60 artifacts are archived under `.planning/milestones/v2.60-phases`.
 
 ## Known Residuals
