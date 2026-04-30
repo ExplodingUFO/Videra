@@ -81,7 +81,13 @@ jobs:
         shell: pwsh
         run: >
           dotnet test tests/Videra.Core.Tests/Videra.Core.Tests.csproj -c Release
-          --filter "FullyQualifiedName~SurfaceChartsDemoConfigurationTests|FullyQualifiedName~SurfaceChartsDemoViewportBehaviorTests"
+          --filter "FullyQualifiedName~SurfaceChartsDemoConfigurationTests|FullyQualifiedName~SurfaceChartsDemoViewportBehaviorTests|FullyQualifiedName~SurfaceChartsCookbookCoverageMatrixTests|FullyQualifiedName~SurfaceChartsCookbookFirstSurfaceRecipeTests|FullyQualifiedName~SurfaceChartsCookbookWaterfallLinkedRecipeTests|FullyQualifiedName~SurfaceChartsCookbookScatterLiveRecipeTests|FullyQualifiedName~SurfaceChartsCookbookBarContourSnapshotRecipeTests|FullyQualifiedName~SurfaceChartsHighPerformancePathTests|FullyQualifiedName~ScatterStreamingScenarioEvidenceTests|FullyQualifiedName~SurfaceChartsPerformanceTruthTests"
+
+      - name: Run SurfaceCharts generated roadmap and scope evidence
+        shell: pwsh
+        run: |
+          pwsh -File ./scripts/Test-SnapshotExportScope.ps1
+          dotnet test tests/Videra.Core.Tests/Videra.Core.Tests.csproj -c Release --filter "FullyQualifiedName~BeadsPublicRoadmapTests"
 
       - name: Run sample runtime evidence
         shell: pwsh
