@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.62
-milestone_name: "Native SurfaceCharts Cleanup and Old-Code Removal"
+milestone: v2.63
+milestone_name: "Native SurfaceCharts Feature and Demo Expansion"
 status: complete
-stopped_at: "v2.62 complete"
-last_updated: "2026-04-30T17:48:00+08:00"
+stopped_at: "Phase 419 ready"
+last_updated: "2026-04-30T17:55:00+08:00"
 last_activity: 2026-04-30
 progress:
-  total_phases: 5
-  completed_phases: 5
-  total_plans: 5
-  completed_plans: 5
-  percent: 100
+  total_phases: 6
+  completed_phases: 0
+  total_plans: 6
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -21,33 +21,33 @@ progress:
 See: `.planning/PROJECT.md`
 
 **Core value:** 跨平台 3D 渲染引擎的可靠性
-**Current focus:** v2.62 Native SurfaceCharts Cleanup and Old-Code Removal
+**Current focus:** v2.63 Native SurfaceCharts Feature and Demo Expansion
 
 ## Current Position
 
-Milestone: `v2.62 Native SurfaceCharts Cleanup and Old-Code Removal`
-Phase: 418 of 418 - COMPLETE
-Plan: v2.62 complete; next action is a new milestone.
-Status: v2.62 completed native SurfaceCharts cleanup, cookbook/demo simplification, guardrail/CI truth hardening, final validation, Beads/public-roadmap sync, and worktree cleanup.
-Last activity: 2026-04-30 - Completed Phase 418 final verification, closed `Videra-73a` and epic `Videra-6zx`, regenerated public roadmap, and cleaned Phase 417 worktrees.
+Milestone: `v2.63 Native SurfaceCharts Feature and Demo Expansion`
+Phase: 419 of 424 - READY
+Plan: Phase 419 feature/demo surface inventory is next.
+Status: v2.63 has been scoped around larger native 3D chart feature usage, annotation/measurement workflows, demo gallery expansion, cookbook/CI truth, and final clean handoff.
+Last activity: 2026-04-30 - Started v2.63, created phase beads `Videra-dwf`, `Videra-kyy`, `Videra-b5n`, `Videra-j3z`, `Videra-64g`, and `Videra-7ip`, archived v2.62 phase artifacts, and prepared roadmap/requirements.
 
-Progress: [##########] 100%
+Progress: [----------] 0%
 
 ## Initial Scope Summary
 
-v2.62 continues from the completed v2.61 native cookbook and CI truth milestone:
+v2.63 continues from the completed v2.62 cleanup milestone:
 
-- SurfaceCharts has detailed Videra-native cookbook recipes for shipped 3D chart families and workflows.
-- SurfaceCharts has focused native performance evidence and CI truth gates for cookbook/demo/support drift.
-- Beads and generated roadmap state are synchronized through v2.61 closure.
+- SurfaceCharts has a cleaned native `VideraChartView` + `Plot.Add.*` route.
+- SurfaceCharts has detailed Videra-native cookbook recipes and focused CI truth gates.
+- Stale compatibility/downshift paths and misleading fallback vocabulary have been removed or guarded.
 
-v2.62 focuses on:
+v2.63 focuses on:
 
-- native cleanup and old-code inventory
-- deletion or direct replacement of true stale SurfaceCharts old-code paths
-- bounded cookbook/demo simplification without god-code workbench expansion
-- no-compat/no-old-code guardrails and CI truth hardening
-- final integrated validation and clean Beads/Git/Dolt handoff
+- native feature/API and demo gap inventory
+- focused convenience APIs for common 3D chart construction and styling
+- bounded annotation, marker, reference, and measurement workflows
+- richer recipe-first demo gallery without generic workbench scope
+- cookbook, CI, generated roadmap, and final validation truth
 
 ## Decisions
 
@@ -58,7 +58,7 @@ v2.62 focuses on:
 - Phase 416 owns bounded cookbook/demo simplification and must avoid god-code workbench expansion.
 - Phase 417 owns no-compat/no-old-code guardrails and focused CI truth after Phase 415/416.
 - Shared Beads export, generated roadmap, final scope guardrails, archive, push, and cleanup are Phase 418 responsibilities.
-- Keep implementation simple and direct; do not add ScottPlot compatibility adapters, migration shims, old chart controls, hidden fallback/downshift behavior, backend expansion, broad demo frameworks, or fake validation evidence.
+- Keep implementation simple and direct; do not add external plotting compatibility adapters, migration shims, old chart controls, hidden fallback/downshift behavior, backend expansion, broad demo frameworks, or fake validation evidence.
 - v2.60 artifacts are archived under `.planning/milestones/v2.60-phases`.
 - v2.61 artifacts are archived under `.planning/milestones/v2.61-phases`.
 
@@ -71,8 +71,8 @@ v2.62 focuses on:
 ## Session Continuity
 
 Last session: `2026-04-30 +08:00`
-Stopped at: v2.62 complete
-Next action: start the next milestone when requested.
+Stopped at: Phase 419 ready
+Next action: execute Phase 419 (`Videra-dwf`) feature/demo surface inventory.
 
 ## Accumulated Context
 

@@ -1,136 +1,149 @@
-# Roadmap: v2.62 Native SurfaceCharts Cleanup and Old-Code Removal
+# Roadmap: v2.63 Native SurfaceCharts Feature and Demo Expansion
 
-**Goal:** Continue SurfaceCharts toward a native, cookbook-first 3D chart
-experience by deleting stale old-code paths and tightening the no-compatibility
-boundary around the shipped `VideraChartView` + `Plot.Add.*` model.
+**Goal:** Make SurfaceCharts feel like a richer native 3D plotting surface by
+adding focused feature affordances and a stronger recipe-first demo without
+widening into compatibility or broad workbench scope.
 
-**Boundary:** This milestone does not add ScottPlot compatibility, old chart
-controls, direct public `Source` loading, compatibility wrappers, migration
-shims, hidden fallback/downshift behavior, backend expansion, generic workbench
-scope, or fake validation evidence.
+**Boundary:** This milestone does not add compatibility adapters, parity claims,
+old chart controls, direct public `Source` loading, hidden fallback/downshift
+behavior, renderer/backend expansion, generic workbench scope, or fake
+validation evidence.
 
-**Phases:** 5 (414-418)
-**Requirements:** 12 (CLEAN-01..02, NATIVE-01..02, REMOVE-01..02,
-DEMO-01..02, GUARD-01..02, VERIFY-01..02)
-**Beads epic:** `Videra-6zx`
+**Phases:** 6 (419-424)
+**Requirements:** 15 (INV-01..02, FEAT-01..03, MARK-01..02, DEMO-01..03,
+TRUTH-01..03, VERIFY-01..02)
+**Beads epic:** `Videra-zn7`
 
 ## Phases
 
-- [x] **Phase 414: Native Cleanup and Old-Code Inventory** - Classify residual
-  SurfaceCharts old-code, compatibility, fallback/downshift, docs/demo/test, and
-  guardrail surfaces before deletion.
-- [x] **Phase 415: Delete Stale SurfaceCharts Old-Code Paths** - Remove true
-  stale old-code and misleading user-facing leftovers without wrappers, bridges,
-  or migration shims.
-- [x] **Phase 416: Native Cookbook and Demo Code Simplification** - Keep recipes
-  copyable and native while reducing demo coupling only where it directly serves
-  recipe ownership and verification.
-- [x] **Phase 417: No-Compat Guardrails and CI Truth** - Harden tests/scripts/CI
-  so forbidden SurfaceCharts old paths and fake evidence cannot drift back.
-- [x] **Phase 418: v2.62 Final Verification** - Close v2.62 with composed
-  validation, Beads export, generated roadmap, archive, push, and cleanup.
+- [ ] **Phase 419: Feature/Demo Surface Inventory** - Map current native feature
+  APIs, demo gaps, recipe coverage, support evidence, and validation surfaces
+  before implementation.
+- [ ] **Phase 420: Native 3D Feature Convenience APIs** - Add focused native
+  feature affordances for common 3D chart construction, styling, and typed
+  state inspection.
+- [ ] **Phase 421: Annotation and Measurement Workflows** - Add bounded
+  coordinate-attached labels, markers, references, and measurement evidence.
+- [ ] **Phase 422: Demo Gallery Workflow Upgrade** - Upgrade the SurfaceCharts
+  demo into a richer recipe-first gallery without turning it into a generic
+  workbench.
+- [ ] **Phase 423: Feature Cookbook and Validation Truth** - Align cookbook,
+  repository tests, CI, release-readiness filters, generated roadmap, and
+  no-fake-evidence guardrails.
+- [ ] **Phase 424: v2.63 Final Verification** - Close v2.63 with composed
+  validation, Beads export, generated roadmap sync, phase archive, push, and
+  cleanup.
 
 ## Phase Details
 
-### Phase 414: Native Cleanup and Old-Code Inventory
+### Phase 419: Feature/Demo Surface Inventory
 
-**Goal:** Establish the real cleanup surface before deleting or renaming code.
+**Goal:** Establish the real feature/demo expansion surface before changing
+APIs or demo behavior.
 **Depends on:** Nothing
-**Requirements:** CLEAN-01, CLEAN-02, NATIVE-01, NATIVE-02, GUARD-01
-**Bead:** `Videra-2wb`
+**Requirements:** INV-01, INV-02, FEAT-01, MARK-01, DEMO-01, TRUTH-01
+**Bead:** `Videra-dwf`
 **Success Criteria:**
-1. Residual old-code/compat/downshift/fallback hits are mapped by owner and
-   classified as true cleanup, intentional negative guardrail, test fixture,
-   stale docs, or product truth outside this milestone.
-2. SurfaceCharts user-facing docs/demo/API risks are separated from historical
-   planning docs and viewer/runtime fallback truth.
-3. Phase 415, 416, and 417 write sets and validation commands are identified so
-   independent beads can run in isolated worktrees where safe.
-**Plans:** 414-PLAN.md
-**Completed:** 2026-04-30
+1. Current feature APIs, demo recipes, support summaries, docs, and tests are
+   mapped by owner and risk.
+2. Candidate improvements are classified as native feature, demo-only workflow,
+   validation truth, or out-of-scope broadening.
+3. Phase 420-423 write sets and validation commands are identified so later
+   work can split into small beads.
+**Plans:** 419-PLAN.md
 
-### Phase 415: Delete Stale SurfaceCharts Old-Code Paths
+### Phase 420: Native 3D Feature Convenience APIs
 
-**Goal:** Remove true stale old-code paths without compatibility scaffolding.
-**Depends on:** Phase 414
-**Requirements:** REMOVE-01, REMOVE-02, NATIVE-01, GUARD-01
-**Bead:** `Videra-9vg`
+**Goal:** Add concise native feature affordances for common 3D chart usage.
+**Depends on:** Phase 419
+**Requirements:** FEAT-01, FEAT-02, FEAT-03
+**Bead:** `Videra-kyy`
 **Success Criteria:**
-1. True stale SurfaceCharts old-view/direct-Source/compat leftovers are deleted
-   or directly replaced with current native `VideraChartView.Plot` usage.
-2. No wrapper, adapter, migration shim, hidden fallback, or downshift path is
-   introduced to preserve removed behavior.
-3. Focused tests prove old public chart controls and direct public `Source`
-   loading remain absent.
-**Plans:** 415-PLAN.md
-**Completed:** 2026-04-30
+1. Users can author selected common 3D chart scenarios through direct
+   `VideraChartView.Plot` APIs.
+2. New styling/data-shaping affordances remain chart-local, explicit, and
+   backed by focused tests.
+3. Returned handles/results expose only the state users need to inspect or
+   update, without compatibility wrappers.
+**Plans:** 420-PLAN.md
 
-### Phase 416: Native Cookbook and Demo Code Simplification
+### Phase 421: Annotation and Measurement Workflows
 
-**Goal:** Keep the cookbook/demo native and maintainable after cleanup.
-**Depends on:** Phase 414
-**Requirements:** DEMO-01, DEMO-02, NATIVE-02, REMOVE-02
-**Bead:** `Videra-w2t`
+**Goal:** Improve chart reading with bounded native annotation and measurement
+workflows.
+**Depends on:** Phase 420
+**Requirements:** MARK-01, MARK-02, FEAT-03
+**Bead:** `Videra-b5n`
 **Success Criteria:**
-1. Cookbook/demo code remains traceable from recipe to `VideraChartView.Plot`
-   ownership.
-2. Any extracted demo support code has bounded responsibility and removes real
-   coupling or verification friction.
-3. The demo does not become a generic plotting workbench or compatibility layer.
-**Plans:** 416-PLAN.md
-**Completed:** 2026-04-30
+1. Users can add coordinate-attached labels, markers, or reference elements that
+   render consistently under camera/projection changes.
+2. Measurement/support evidence is explicit and useful without benchmark or
+   precision overclaims.
+3. APIs and rendering code stay bounded to chart-local responsibilities.
+**Plans:** 421-PLAN.md
 
-### Phase 417: No-Compat Guardrails and CI Truth
+### Phase 422: Demo Gallery Workflow Upgrade
 
-**Goal:** Make the no-compat/no-old-code boundary durable.
-**Depends on:** Phase 415, Phase 416
-**Requirements:** GUARD-01, GUARD-02, VERIFY-01, REMOVE-02
-**Bead:** `Videra-r9q`
+**Goal:** Make the demo a stronger recipe-first native feature experience.
+**Depends on:** Phase 421
+**Requirements:** DEMO-01, DEMO-02, DEMO-03
+**Bead:** `Videra-j3z`
 **Success Criteria:**
-1. Tests/scripts distinguish forbidden shipped behavior from intentional
-   negative guardrail wording.
-2. CI covers the focused cleanup/cookbook/support drift risks without broad fake
-   checks.
-3. Generated roadmap and Beads export truth still pass after all cleanup.
-**Plans:** 417-PLAN.md
-**Completed:** 2026-04-30
+1. Demo users can browse feature/recipe categories and switch scenarios without
+   losing clear chart/support context.
+2. Copyable snippets and visible chart outcomes stay aligned with the native API
+   paths implemented in this milestone.
+3. Demo code remains split into bounded catalog/support responsibilities rather
+   than a broad workbench shell.
+**Plans:** 422-PLAN.md
 
-### Phase 418: v2.62 Final Verification
+### Phase 423: Feature Cookbook and Validation Truth
 
-**Goal:** Close v2.62 with synchronized verification and handoff.
-**Depends on:** Phase 417
+**Goal:** Keep the expanded feature/demo surface honest and durable.
+**Depends on:** Phase 422
+**Requirements:** TRUTH-01, TRUTH-02, TRUTH-03, VERIFY-01
+**Bead:** `Videra-64g`
+**Success Criteria:**
+1. Cookbook docs and repository tests cover the new feature/demo workflows.
+2. CI and release-readiness filters include the new focused validation gates.
+3. Guardrails continue to reject compatibility claims, hidden fallback/downshift,
+   old chart paths, and fake evidence.
+**Plans:** 423-PLAN.md
+
+### Phase 424: v2.63 Final Verification
+
+**Goal:** Close v2.63 with synchronized verification and handoff.
+**Depends on:** Phase 423
 **Requirements:** VERIFY-01, VERIFY-02
-**Bead:** `Videra-73a`
+**Bead:** `Videra-7ip`
 **Success Criteria:**
-1. Focused cleanup, cookbook/demo, guardrail, generated-roadmap, and scope
+1. Focused feature, annotation, demo, cookbook, CI, generated-roadmap, and scope
    checks pass or are explicitly reported.
 2. Beads state, generated public roadmap, phase archive, branch/worktree
    cleanup, Git push, and Dolt Beads push are synchronized.
-**Plans:** 418-PLAN.md
-**Completed:** 2026-04-30
+**Plans:** 424-PLAN.md
 
 ## Progress
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 414. Native Cleanup and Old-Code Inventory | 1/1 | Complete | 2026-04-30 |
-| 415. Delete Stale SurfaceCharts Old-Code Paths | 1/1 | Complete | 2026-04-30 |
-| 416. Native Cookbook and Demo Code Simplification | 1/1 | Complete | 2026-04-30 |
-| 417. No-Compat Guardrails and CI Truth | 1/1 | Complete | 2026-04-30 |
-| 418. v2.62 Final Verification | 1/1 | Complete | 2026-04-30 |
+| 419. Feature/Demo Surface Inventory | 0/1 | Ready | |
+| 420. Native 3D Feature Convenience APIs | 0/1 | Blocked on 419 | |
+| 421. Annotation and Measurement Workflows | 0/1 | Blocked on 420 | |
+| 422. Demo Gallery Workflow Upgrade | 0/1 | Blocked on 421 | |
+| 423. Feature Cookbook and Validation Truth | 0/1 | Blocked on 422 | |
+| 424. v2.63 Final Verification | 0/1 | Blocked on 423 | |
 
 ---
 
 <details>
-<summary>v2.61 Native SurfaceCharts Cookbook and CI Truth - Complete (2026-04-30)</summary>
+<summary>v2.62 Native SurfaceCharts Cleanup and Old-Code Removal - Complete (2026-04-30)</summary>
 
-Archived phase artifacts: `.planning/milestones/v2.61-phases`
+Archived phase artifacts: `.planning/milestones/v2.62-phases`
 
-v2.61 pushed SurfaceCharts toward ScottPlot5-style cookbook usability while
-staying Videra-native. It added detailed 3D cookbook/demo recipes, native
-high-performance demo evidence, focused CI truth gates, Beads/generated-roadmap
-sync, scope guardrails, and final clean handoff. It did not add ScottPlot
-compatibility, old chart controls, hidden fallback/downshift behavior, backend
-expansion, or fake validation evidence.
+v2.62 removed stale SurfaceCharts old-code paths, chart-local fallback/downshift
+behavior, compatibility backfill vocabulary, and demo code-behind coupling. It
+also hardened no-compat guardrails and CI/release truth before final clean
+handoff.
 
 </details>

@@ -12,10 +12,10 @@ Videra 是一个基于 `.NET 8` 的跨平台 3D 渲染引擎，提供 Windows (`
 
 ## Current State
 
-- 最新完整归档 milestone：`v2.61 Native SurfaceCharts Cookbook and CI Truth`
-- 最近完成 milestone：`v2.61 Native SurfaceCharts Cookbook and CI Truth`
-- 当前 active milestone：`v2.62 Native SurfaceCharts Cleanup and Old-Code Removal`
-- 当前 focus：继续收紧 SurfaceCharts 的 native cookbook/API 体验，删除或直接替换真实旧代码路径，确保不引入 ScottPlot compatibility layer、旧 chart controls、direct Source、migration shim、隐藏 fallback/downshift、backend expansion、generic workbench 或造假验证。
+- 最新完整归档 milestone：`v2.62 Native SurfaceCharts Cleanup and Old-Code Removal`
+- 最近完成 milestone：`v2.62 Native SurfaceCharts Cleanup and Old-Code Removal`
+- 当前 active milestone：`v2.63 Native SurfaceCharts Feature and Demo Expansion`
+- 当前 focus：继续扩大 SurfaceCharts 的原生 3D 图表功能用法和 demo 体验，在保持 `VideraChartView` + `Plot.Add.*` 单一路线的前提下补齐更常见的构图、交互标注、测量、场景化 demo 和验证闭环；不引入兼容层、旧控件、隐藏 fallback/downshift、泛化 workbench 或造假验证。
 
 ## Recently Completed Milestone: v2.61 Native SurfaceCharts Cookbook and CI Truth
 
@@ -32,16 +32,40 @@ Videra 是一个基于 `.NET 8` 的跨平台 3D 渲染引擎，提供 Windows (`
 
 Archived: `.planning/milestones/v2.61-phases`
 
-## Current Milestone: v2.62 Native SurfaceCharts Cleanup and Old-Code Removal
+## Recently Completed Milestone: v2.62 Native SurfaceCharts Cleanup and Old-Code Removal
 
-**Goal:** Continue SurfaceCharts toward a native, cookbook-first 3D chart experience by removing stale old-code paths and tightening the no-compatibility boundary.
+**Status:** completed on 2026-04-30.
+
+**Goal:** Continue SurfaceCharts toward a native, cookbook-first 3D chart
+experience by removing stale old-code paths and tightening the no-compatibility
+boundary.
+
+**Delivered outcomes:**
+- inventoried residual old-code, compatibility, fallback/downshift, docs/demo,
+  tests, and guardrail surfaces
+- removed chart-local GPU fallback/downshift and stale compatibility camera
+  backfill
+- extracted bounded cookbook catalog and support summary responsibilities from
+  the demo code-behind
+- hardened no-compat scope guardrails and CI/release truth checks
+- closed with focused validation, Beads export, generated roadmap sync,
+  worktree cleanup, Git push, and Dolt Beads push
+
+Archived: `.planning/milestones/v2.62-phases`
+
+## Current Milestone: v2.63 Native SurfaceCharts Feature and Demo Expansion
+
+**Goal:** Make SurfaceCharts feel like a richer native 3D plotting surface by
+adding focused feature affordances and a stronger recipe-first demo without
+widening into compatibility or broad workbench scope.
 
 **Target features:**
-- Inventory residual SurfaceCharts old-code, compatibility, fallback/downshift, docs/demo/test, and guardrail surfaces
-- Delete or directly replace true stale old-code paths without wrappers, bridges, migration shims, or hidden fallback behavior
-- Keep cookbook/demo code Videra-native, copyable, and bounded without generic workbench or god-code expansion
-- Harden no-compat/no-old-code guardrails and CI truth checks
-- Close with focused validation, Beads export, generated roadmap, archive, Git/Dolt push, and clean branch/worktree state
+- Inventory current feature API, demo, cookbook, interaction, and validation gaps before expanding behavior
+- Add focused native 3D feature convenience APIs for common chart construction and styling workflows
+- Add bounded annotation, marker, reference, and measurement workflows for chart reading
+- Upgrade the demo into a richer recipe-first gallery with better navigation, snippets, scenarios, and support evidence
+- Align cookbook docs, repository tests, CI, and generated roadmap truth around the expanded native feature set
+- Close with composed validation, Beads export, phase archive, Dolt/Git push, and clean worktree state
 
 ## Completed Milestones
 
@@ -846,6 +870,6 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-30 after starting v2.62 milestone*
+*Last updated: 2026-04-30 after starting v2.63 milestone*
 
 

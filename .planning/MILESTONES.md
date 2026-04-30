@@ -1,5 +1,42 @@
 # Milestones
 
+## v2.62 Native SurfaceCharts Cleanup and Old-Code Removal
+
+**Shipped:** 2026-04-30
+**Phases:** 5 (`414-418`)
+**Plans:** 5
+**Timeline:** 1 day (`2026-04-30` -> `2026-04-30`)
+**Repo state:** completed on `master`; old-code cleanup, demo simplification,
+no-compat guardrails, CI truth, Beads export, generated roadmap, worktree
+cleanup, Git push, and Dolt Beads push completed
+
+### Key Accomplishments
+
+1. Inventoried residual SurfaceCharts old-code, compatibility, fallback,
+   downshift, docs/demo/test, and guardrail surfaces.
+2. Removed chart-local GPU fallback/downshift and stale compatibility camera
+   backfill.
+3. Renamed stale fallback/compatibility vocabulary in code and tests.
+4. Extracted bounded cookbook catalog and support summary helpers from the demo
+   code-behind.
+5. Hardened no-compat scope guardrails and CI/release truth before final clean
+   handoff.
+
+### Archived Materials
+
+- `.planning/milestones/v2.62-ROADMAP.md`
+- `.planning/milestones/v2.62-REQUIREMENTS.md`
+- `.planning/milestones/v2.62-phases/`
+
+### Notes
+
+- v2.62 kept the single native `VideraChartView` + `Plot.Add.*` route.
+- No compatibility adapters, old chart controls, direct public `Source`, hidden
+  fallback/downshift behavior, backend expansion, generic workbench, or fake
+  validation evidence was introduced.
+
+---
+
 ## v2.61 Native SurfaceCharts Cookbook and CI Truth
 
 **Shipped:** 2026-04-30
