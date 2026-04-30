@@ -159,12 +159,12 @@ v2.65 with verification.
 |-------|----------------|--------|-----------|
 | 432. Chart Type Inventory and API Design | 1/1 | Complete    | 2026-04-30 |
 | 433. Promote Bar+Contour to Production | 1/1 | Complete    | 2026-04-30 |
-| 434. Line/Ribbon Chart Family | 2/4 | Gap Closure | |
-| 435. Vector Field Chart Family | 0/1 | Blocked | |
-| 436. 3D Heatmap Slice Chart Family | 0/1 | Blocked | |
-| 437. Box Plot Chart Family | 0/1 | Blocked | |
-| 438. MultiPlot3D Subplot Grid | 0/1 | Blocked | |
-| 439. Extended DataLogger3D and v2.65 Verification | 0/1 | Blocked | |
+| 434. Line/Ribbon Chart Family | 4/4 | Complete    | 2026-04-30 |
+| 435. Vector Field Chart Family | 1/1 | Complete    | 2026-04-30 |
+| 436. 3D Heatmap Slice Chart Family | 1/1 | Complete    | 2026-04-30 |
+| 437. Box Plot Chart Family | 1/1 | Complete    | 2026-04-30 |
+| 438. MultiPlot3D Subplot Grid | 1/1 | Complete    | 2026-04-30 |
+| 439. Extended DataLogger3D and v2.65 Verification | 1/1 | Complete | 2026-04-30 |
 
 ---
 

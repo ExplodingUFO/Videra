@@ -255,6 +255,7 @@
       "publicTypes": [
         "Videra.SurfaceCharts.Core.BarChartData",
         "Videra.SurfaceCharts.Core.BarChartLayout",
+        "Videra.SurfaceCharts.Core.BarDataLogger3D",
         "Videra.SurfaceCharts.Core.BarProbeStrategy",
         "Videra.SurfaceCharts.Core.BarRenderBar",
         "Videra.SurfaceCharts.Core.BarRenderScene",
@@ -328,6 +329,7 @@
         "Videra.SurfaceCharts.Core.SurfaceColorMap",
         "Videra.SurfaceCharts.Core.SurfaceColorMapPalette",
         "Videra.SurfaceCharts.Core.SurfaceColorMapPresets",
+        "Videra.SurfaceCharts.Core.SurfaceDataLogger3D",
         "Videra.SurfaceCharts.Core.SurfaceDataWindow",
         "Videra.SurfaceCharts.Core.SurfaceDisplaySpace",
         "Videra.SurfaceCharts.Core.SurfaceExplicitGrid",
@@ -371,6 +373,7 @@
         "Videra.SurfaceCharts.Core.VectorFieldRenderArrow",
         "Videra.SurfaceCharts.Core.VectorFieldRenderScene",
         "Videra.SurfaceCharts.Core.VectorFieldRenderer",
+        "Videra.SurfaceCharts.Core.WaterfallDataLogger3D",
         "Videra.SurfaceCharts.Rendering.SurfaceChartProjectionSettings"
       ]
     },
