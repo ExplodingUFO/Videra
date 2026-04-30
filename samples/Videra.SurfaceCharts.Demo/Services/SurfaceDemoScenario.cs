@@ -20,6 +20,7 @@ internal static class SurfaceDemoScenarios
     public const string BarId = "bar-proof";
     public const string ContourId = "contour-proof";
     public const string AnalysisWorkspaceId = "analysis-workspace";
+    public const string LinkedInteractionId = "linked-interaction";
 
     public static IReadOnlyList<SurfaceDemoScenario> All { get; } =
     [
@@ -71,6 +72,12 @@ internal static class SurfaceDemoScenarios
             "Multi-chart",
             "Analysis workspace",
             "Shows four VideraChartView instances in a bounded 2x2 grid with workspace status and evidence."),
+        new(
+            LinkedInteractionId,
+            "Try next: Linked interaction",
+            "Multi-chart",
+            "Linked interaction",
+            "Shows two linked VideraChartView instances with FullViewState sync and probe propagation across the link group."),
     ];
 
     public static SurfaceDemoScenario Get(string id)

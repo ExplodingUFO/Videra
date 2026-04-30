@@ -6,7 +6,7 @@ namespace Videra.SurfaceCharts.Demo.Services;
 
 /// <summary>
 /// Demo-owned workspace state helper that manages chart registration, status, and evidence
-/// for the AnalysisWorkspace scenario. Keeps workspace logic out of MainWindow code-behind.
+/// for the AnalysisWorkspace and LinkedInteraction scenarios.
 /// </summary>
 internal sealed class SurfaceChartWorkspaceService : IDisposable
 {
@@ -29,6 +29,14 @@ internal sealed class SurfaceChartWorkspaceService : IDisposable
     }
 
     /// <summary>
+    /// Registers a link group and optional propagator with the workspace.
+    /// </summary>
+    public void RegisterLinkGroup(SurfaceChartLinkGroup group, SurfaceChartInteractionPropagator? propagator = null)
+    {
+        _workspace.RegisterLinkGroup(group, propagator);
+    }
+
+    /// <summary>
     /// Sets the active (focused) chart in the workspace.
     /// </summary>
     public void SetActiveChart(string chartId) => _workspace.SetActiveChart(chartId);
@@ -37,6 +45,12 @@ internal sealed class SurfaceChartWorkspaceService : IDisposable
     /// Captures a point-in-time snapshot of workspace status.
     /// </summary>
     public SurfaceChartWorkspaceStatus GetWorkspaceStatus() => _workspace.CaptureWorkspaceStatus();
+
+    /// <summary>
+    /// Captures linked interaction states from all registered propagators.
+    /// </summary>
+    public IReadOnlyList<SurfaceChartLinkedInteractionState> GetLinkedInteractionStates() =>
+        _workspace.CaptureLinkedInteractionStates();
 
     /// <summary>
     /// Creates bounded diagnostic text describing the workspace state.

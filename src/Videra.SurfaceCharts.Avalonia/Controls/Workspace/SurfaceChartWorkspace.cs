@@ -11,6 +11,7 @@ namespace Videra.SurfaceCharts.Avalonia.Controls.Workspace;
 public sealed class SurfaceChartWorkspace : IDisposable
 {
     private readonly Dictionary<string, (VideraChartView Chart, SurfaceChartPanelInfo Info)> _panels = new();
+    private readonly List<(SurfaceChartLinkGroup Group, SurfaceChartInteractionPropagator? Propagator)> _linkGroups = [];
     private string? _activeChartId;
     private bool _disposed;
 
@@ -102,6 +103,60 @@ public sealed class SurfaceChartWorkspace : IDisposable
     }
 
     /// <summary>
+    /// Registers a link group and optional interaction propagator with the workspace.
+    /// </summary>
+    /// <param name="group">The link group to register.</param>
+    /// <param name="propagator">Optional propagator associated with this link group.</param>
+    public void RegisterLinkGroup(SurfaceChartLinkGroup group, SurfaceChartInteractionPropagator? propagator = null)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        ArgumentNullException.ThrowIfNull(group);
+        _linkGroups.Add((group, propagator));
+    }
+
+    /// <summary>
+    /// Removes a link group from the workspace.
+    /// </summary>
+    /// <param name="group">The link group to unregister.</param>
+    public void UnregisterLinkGroup(SurfaceChartLinkGroup group)
+    {
+        var index = _linkGroups.FindIndex(entry => ReferenceEquals(entry.Group, group));
+        if (index >= 0)
+        {
+            _linkGroups.RemoveAt(index);
+        }
+    }
+
+    /// <summary>
+    /// Captures the linked interaction state for all registered propagators.
+    /// </summary>
+    /// <returns>A list of linked interaction states.</returns>
+    public IReadOnlyList<SurfaceChartLinkedInteractionState> CaptureLinkedInteractionStates()
+    {
+        var states = new List<SurfaceChartLinkedInteractionState>(_linkGroups.Count);
+        foreach (var (group, propagator) in _linkGroups)
+        {
+            if (propagator is not null)
+            {
+                states.Add(propagator.CaptureInteractionState());
+            }
+            else
+            {
+                states.Add(new SurfaceChartLinkedInteractionState
+                {
+                    Policy = group.Policy,
+                    MemberCount = group.Members.Count,
+                    PropagateSelection = false,
+                    PropagateProbe = false,
+                    PropagateMeasurement = false,
+                });
+            }
+        }
+
+        return states;
+    }
+
+    /// <summary>
     /// Returns a snapshot of the current workspace status, including per-chart rendering readiness,
     /// dataset scale, and overall workspace health.
     /// </summary>
@@ -132,7 +187,7 @@ public sealed class SurfaceChartWorkspace : IDisposable
             _panels.Count,
             _activeChartId,
             panels,
-            LinkGroupCount: 0,
+            LinkGroupCount: _linkGroups.Count,
             allReady);
     }
 
@@ -145,7 +200,8 @@ public sealed class SurfaceChartWorkspace : IDisposable
     {
         var status = CaptureWorkspaceStatus();
         var activeInfo = _activeChartId is { } id && _panels.TryGetValue(id, out var entry) ? entry.Info : null;
-        return SurfaceChartWorkspaceEvidence.Create(status, activeInfo?.RecipeContext);
+        var linkedStates = _linkGroups.Count > 0 ? CaptureLinkedInteractionStates() : null;
+        return SurfaceChartWorkspaceEvidence.Create(status, activeInfo?.RecipeContext, linkedStates);
     }
 
     /// <inheritdoc />
@@ -157,6 +213,7 @@ public sealed class SurfaceChartWorkspace : IDisposable
         }
 
         _panels.Clear();
+        _linkGroups.Clear();
         _activeChartId = null;
         _disposed = true;
     }

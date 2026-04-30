@@ -5,6 +5,7 @@ using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Videra.SurfaceCharts.Avalonia.Controls;
 using Videra.SurfaceCharts.Avalonia.Controls.Interaction;
+using Videra.SurfaceCharts.Avalonia.Controls.Workspace;
 using Videra.SurfaceCharts.Core;
 using Videra.SurfaceCharts.Demo.Services;
 using Videra.SurfaceCharts.Processing;
@@ -30,6 +31,8 @@ public partial class MainWindow : Window
     private readonly TextBlock _workspaceStatusText;
     private readonly Button _copyWorkspaceEvidenceButton;
     private SurfaceChartWorkspaceService? _workspaceService;
+    private SurfaceChartLinkGroup? _activeLinkGroup;
+    private SurfaceChartInteractionPropagator? _activePropagator;
     private readonly ComboBox _sourceSelector;
     private readonly Grid _scatterScenarioPanel;
     private readonly ComboBox _scatterScenarioSelector;
@@ -289,6 +292,12 @@ public partial class MainWindow : Window
             ApplyAnalysisWorkspace(scenario);
             return;
         }
+
+        if (scenario.Id == SurfaceDemoScenarios.LinkedInteractionId)
+        {
+            SetupLinkedInteractionScenario(scenario);
+            return;
+        }
     }
 
     private void OnScatterScenarioSelectionChanged(object? sender, SelectionChangedEventArgs e)
@@ -494,8 +503,16 @@ public partial class MainWindow : Window
         _analysisWorkspacePanel.IsVisible = true;
         _workspaceToolbarPanel.IsVisible = true;
 
-        // Dispose old workspace service if any.
+        // Dispose old workspace service, link group, and propagator if any.
         _workspaceService?.Dispose();
+        _activeLinkGroup?.Dispose();
+        _activePropagator?.Dispose();
+        _activeLinkGroup = null;
+        _activePropagator = null;
+
+        // Restore hidden workspace charts.
+        _workspaceChartC.IsVisible = true;
+        _workspaceChartD.IsVisible = true;
 
         // Create new workspace service and register 4 charts with different kinds.
         var service = new SurfaceChartWorkspaceService();
@@ -543,6 +560,87 @@ public partial class MainWindow : Window
         _activePlotPathHeading = scenario.Label;
         _activePlotPathDetails = "Multi-chart analysis workspace with 4 charts in a 2x2 grid. Delegates workspace state to SurfaceChartWorkspaceService.";
         _activeDatasetSummary = "Analysis workspace contains Surface, Bar, Scatter, and Contour charts registered in a SurfaceChartWorkspace.";
+        _activeAssetSummary = "No additional assets are used on this path.";
+        _datasetText.Text = _activeDatasetSummary;
+        RefreshActiveProofTexts();
+    }
+
+    private void SetupLinkedInteractionScenario(SurfaceDemoScenario scenario)
+    {
+        // Hide all single-chart panels, show workspace panel with 2 charts.
+        _surfaceChartView.IsVisible = false;
+        _waterfallChartView.IsVisible = false;
+        _scatterChartView.IsVisible = false;
+        _barChartView.IsVisible = false;
+        _contourPlotView.IsVisible = false;
+        _analysisWorkspacePanel.IsVisible = true;
+        _workspaceToolbarPanel.IsVisible = true;
+
+        // Dispose old workspace service, link group, and propagator if any.
+        _workspaceService?.Dispose();
+        _activeLinkGroup?.Dispose();
+        _activePropagator?.Dispose();
+
+        // Create new workspace service with 2 surface charts.
+        var service = new SurfaceChartWorkspaceService();
+        service.RegisterCharts(new List<(VideraChartView, string, Plot3DSeriesKind)>
+        {
+            (_workspaceChartA, "Linked Surface A", Plot3DSeriesKind.Surface),
+            (_workspaceChartB, "Linked Surface B", Plot3DSeriesKind.Surface),
+        });
+
+        // Load the same data into both charts.
+        _workspaceChartA.Plot.Clear();
+        _workspaceChartA.Plot.Add.Surface(_inMemorySource, "Linked Surface A");
+        _workspaceChartA.Plot.ColorMap = CreateColorMap(_inMemorySource.Metadata.ValueRange);
+        _workspaceChartA.FitToData();
+
+        _workspaceChartB.Plot.Clear();
+        _workspaceChartB.Plot.Add.Surface(_inMemorySource, "Linked Surface B");
+        _workspaceChartB.Plot.ColorMap = CreateColorMap(_inMemorySource.Metadata.ValueRange);
+        _workspaceChartB.FitToData();
+
+        // Hide unused workspace charts.
+        _workspaceChartC.IsVisible = false;
+        _workspaceChartD.IsVisible = false;
+
+        // Create link group with FullViewState policy and probe propagation.
+        var linkGroup = new SurfaceChartLinkGroup(SurfaceChartLinkPolicy.FullViewState);
+        linkGroup.Add(_workspaceChartA);
+        linkGroup.Add(_workspaceChartB);
+
+        var propagator = new SurfaceChartInteractionPropagator(
+            linkGroup,
+            propagateProbe: true);
+
+        // Register link group with workspace.
+        service.RegisterLinkGroup(linkGroup, propagator);
+        service.SetActiveChart(service.GetWorkspaceStatus().Panels[0].ChartId);
+
+        _activeLinkGroup = linkGroup;
+        _activePropagator = propagator;
+        _workspaceService = service;
+
+        // Display link group info in the toolbar.
+        var status = service.GetWorkspaceStatus();
+        var linkedStates = service.GetLinkedInteractionStates();
+        var stateText = linkedStates.Count > 0
+            ? $"Policy: {linkedStates[0].Policy} | Members: {linkedStates[0].MemberCount} | " +
+              $"Probe: {(linkedStates[0].PropagateProbe ? "active" : "inactive")}"
+            : "No link groups";
+
+        _workspaceStatusText.Text =
+            $"Charts: {status.ChartCount} | Active: {status.ActiveChartId ?? "none"} | " +
+            $"Link groups: {status.LinkGroupCount} | All ready: {status.AllReady}\n" +
+            $"Link: {stateText}\n" +
+            string.Join("\n", status.Panels.Select(p =>
+                $"  {p.Label} ({p.ChartKind}): Ready={p.IsReady}, Series={p.SeriesCount}, Points={p.PointCount}"));
+
+        _activePlotPathHeading = scenario.Label;
+        _activePlotPathDetails =
+            "Two linked VideraChartView instances with FullViewState synchronization and probe propagation. " +
+            "Orbit/zoom on one chart mirrors to the other. Hover probe forwards across linked charts.";
+        _activeDatasetSummary = "Linked interaction workspace contains two Surface charts sharing the same data, linked via FullViewState policy.";
         _activeAssetSummary = "No additional assets are used on this path.";
         _datasetText.Text = _activeDatasetSummary;
         RefreshActiveProofTexts();
