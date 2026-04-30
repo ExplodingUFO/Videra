@@ -42,10 +42,11 @@ public sealed class VectorFieldProbeStrategy : ISeriesProbeStrategy
 
         var hit = nearest.Value;
         return new SurfaceProbeInfo(
-            hit.Position.X,
-            hit.Position.Y,
-            hit.Position.Z,
-            hit.Magnitude,
-            $"Vector: ({hit.Direction.X:F2}, {hit.Direction.Y:F2}, {hit.Direction.Z:F2}) | Magnitude: {hit.Magnitude:F2}");
+            sampleX: hit.Position.X,
+            sampleY: hit.Position.Z,
+            axisX: hit.Position.X,
+            axisY: hit.Position.Z,
+            value: hit.Magnitude,
+            isApproximate: false);
     }
 }

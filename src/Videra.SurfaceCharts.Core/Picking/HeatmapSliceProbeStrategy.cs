@@ -41,10 +41,11 @@ public sealed class HeatmapSliceProbeStrategy : ISeriesProbeStrategy
 
         var hit = nearest.Value;
         return new SurfaceProbeInfo(
-            hit.Position.X,
-            hit.Position.Y,
-            hit.Position.Z,
-            0d,
-            $"Slice @ ({hit.Position.X:F2}, {hit.Position.Y:F2}, {hit.Position.Z:F2})");
+            sampleX: hit.Position.X,
+            sampleY: hit.Position.Z,
+            axisX: hit.Position.X,
+            axisY: hit.Position.Z,
+            value: hit.Position.Y,
+            isApproximate: false);
     }
 }
