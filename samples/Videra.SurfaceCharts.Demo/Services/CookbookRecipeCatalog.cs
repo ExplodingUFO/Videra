@@ -251,6 +251,23 @@ internal static class CookbookRecipes
                 chart.FitToData();
                 """),
         new(
+            "MultiPlot3D",
+            "2x2 subplot grid",
+            "Isolated setup path: creates a MultiPlot3D 2x2 grid with mixed chart types and linked camera.",
+            ScenarioId: SurfaceDemoScenarios.MultiPlot3DId,
+            ScatterScenarioId: null,
+            Snippet: """
+                var grid = new MultiPlot3D(2, 2);
+
+                grid.GetPlot(0, 0).Add.Surface(surfaceMatrix, "Surface");
+                grid.GetPlot(0, 1).Add.Bar(barData, "Bar");
+                grid.GetPlot(1, 0).Add.Line(xs, ys, zs, "Line");
+                grid.GetPlot(1, 1).Add.Contour(contourField, "Contour");
+
+                grid.FitAllToData();
+                using var link = grid.LinkAll(SurfaceChartLinkPolicy.CameraOnly);
+                """),
+        new(
             "Multi-chart",
             "Analysis workspace",
             "Host-owned workspace coordinating multiple VideraChartView instances for comparison.",

@@ -27,6 +27,7 @@ internal static class SurfaceDemoScenarios
     public const string SurfaceStreamingId = "surface-streaming";
     public const string WaterfallStreamingId = "waterfall-streaming";
     public const string BarStreamingId = "bar-streaming";
+    public const string MultiPlot3DId = "multiplot3d";
     public const string AnalysisWorkspaceId = "analysis-workspace";
     public const string LinkedInteractionId = "linked-interaction";
     public const string StreamingWorkspaceId = "streaming-workspace";
@@ -123,6 +124,12 @@ internal static class SurfaceDemoScenarios
             "Bar",
             "Bar streaming",
             "BarDataLogger3D appending new series with live series count tracking."),
+        new(
+            MultiPlot3DId,
+            "Try next: MultiPlot3D grid",
+            "MultiPlot3D",
+            "MultiPlot3D",
+            "MultiPlot3D 2x2 subplot grid with mixed chart types and linked camera."),
         new(
             AnalysisWorkspaceId,
             "Try next: Analysis workspace",

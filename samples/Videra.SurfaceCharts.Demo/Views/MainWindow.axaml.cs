@@ -32,6 +32,8 @@ public partial class MainWindow : Window
     private readonly VideraChartView _workspaceChartC;
     private readonly VideraChartView _workspaceChartD;
     private readonly Grid _analysisWorkspacePanel;
+    private readonly Grid _multiPlot3DPanel;
+    private MultiPlot3D? _activeMultiPlot3D;
     private readonly Border _workspaceToolbarPanel;
     private readonly TextBlock _workspaceStatusText;
     private readonly Button _copyWorkspaceEvidenceButton;
@@ -107,6 +109,8 @@ public partial class MainWindow : Window
             ?? throw new InvalidOperationException("WorkspaceChartD is missing.");
         _analysisWorkspacePanel = this.FindControl<Grid>("AnalysisWorkspacePanel")
             ?? throw new InvalidOperationException("AnalysisWorkspacePanel is missing.");
+        _multiPlot3DPanel = this.FindControl<Grid>("MultiPlot3DPanel")
+            ?? throw new InvalidOperationException("MultiPlot3DPanel is missing.");
         _workspaceToolbarPanel = this.FindControl<Border>("WorkspaceToolbarPanel")
             ?? throw new InvalidOperationException("WorkspaceToolbarPanel is missing.");
         _workspaceStatusText = this.FindControl<TextBlock>("WorkspaceStatusText")
@@ -339,6 +343,12 @@ public partial class MainWindow : Window
         if (scenario.Id == SurfaceDemoScenarios.BoxPlotId)
         {
             ApplyBoxPlotSource(scenario);
+            return;
+        }
+
+        if (scenario.Id == SurfaceDemoScenarios.MultiPlot3DId)
+        {
+            SetupMultiPlot3DScenario(scenario);
             return;
         }
 
@@ -650,6 +660,64 @@ public partial class MainWindow : Window
         _activePlotPathHeading = scenario.Label;
         _activePlotPathDetails = "3D box plot with statistical distribution. Demonstrates Plot.Add.BoxPlot with grouped layout and outlier display.";
         _activeDatasetSummary = "Box plot proof uses 4 categories with min/Q1/median/Q3/max and optional outliers.";
+        _activeAssetSummary = "No additional assets are used on this path.";
+        _datasetText.Text = _activeDatasetSummary;
+        RefreshActiveProofTexts();
+    }
+
+    private void SetupMultiPlot3DScenario(SurfaceDemoScenario scenario)
+    {
+        // Hide all single-chart panels
+        _surfaceChartView.IsVisible = false;
+        _waterfallChartView.IsVisible = false;
+        _scatterChartView.IsVisible = false;
+        _barChartView.IsVisible = false;
+        _contourPlotView.IsVisible = false;
+        _linePlotView.IsVisible = false;
+        _ribbonPlotView.IsVisible = false;
+        _vectorFieldPlotView.IsVisible = false;
+        _heatmapSlicePlotView.IsVisible = false;
+        _boxPlotView.IsVisible = false;
+        _analysisWorkspacePanel.IsVisible = false;
+        _workspaceToolbarPanel.IsVisible = false;
+
+        // Dispose old MultiPlot3D if any
+        _activeMultiPlot3D?.Dispose();
+        _multiPlot3DPanel.Children.Clear();
+        _multiPlot3DPanel.IsVisible = true;
+
+        // Create 2x2 MultiPlot3D grid
+        var grid = new MultiPlot3D(2, 2);
+
+        // Fill with different chart types
+        grid.GetPlot(0, 0).Add.Surface(_inMemorySource, "Surface");
+        grid.GetPlot(0, 0).ColorMap = CreateColorMap(_inMemorySource.Metadata.ValueRange);
+
+        var barData = CreateSampleBarData();
+        grid.GetPlot(0, 1).Add.Bar(barData, "Bar");
+
+        var lineXs = CreateSampleLineXs();
+        var lineYs = CreateSampleLineYs();
+        var lineZs = CreateSampleLineZs();
+        grid.GetPlot(1, 0).Add.Line(lineXs, lineYs, lineZs, "Line");
+
+        var contourField = CreateSampleContourField();
+        grid.GetPlot(1, 1).Add.Contour(contourField, "Contour");
+
+        grid.FitAllToData();
+
+        // Link all cells with camera-only policy
+        grid.LinkAll(SurfaceChartLinkPolicy.CameraOnly);
+
+        _multiPlot3DPanel.Children.Add(grid);
+        _activeMultiPlot3D = grid;
+
+        _activePlotPathHeading = scenario.Label;
+        _activePlotPathDetails =
+            "MultiPlot3D 2x2 subplot grid with 4 different chart types (Surface, Bar, Line, Contour). " +
+            "All cells linked with CameraOnly policy — orbit/zoom on one mirrors to all.";
+        _activeDatasetSummary =
+            $"MultiPlot3D grid: {grid.Rows}x{grid.Columns} = {grid.CellCount} cells.";
         _activeAssetSummary = "No additional assets are used on this path.";
         _datasetText.Text = _activeDatasetSummary;
         RefreshActiveProofTexts();

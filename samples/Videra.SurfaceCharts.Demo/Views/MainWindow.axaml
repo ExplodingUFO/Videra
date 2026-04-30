@@ -52,6 +52,8 @@
                                 IsVisible="False" />
         <charts:VideraChartView x:Name="BoxPlotView"
                                 IsVisible="False" />
+        <Grid x:Name="MultiPlot3DPanel"
+              IsVisible="False" />
         <Grid x:Name="AnalysisWorkspacePanel"
               IsVisible="False"
               RowDefinitions="*,*"
