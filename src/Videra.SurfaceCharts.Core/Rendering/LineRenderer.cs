@@ -30,7 +30,7 @@ public static class LineRenderer
                     new Vector3((float)start.Horizontal, (float)start.Value, (float)start.Depth),
                     new Vector3((float)end.Horizontal, (float)end.Value, (float)end.Depth),
                     series.Width,
-                    series.Color));
+                    start.Color ?? series.Color));
             }
         }
 

@@ -36,7 +36,7 @@ public static class RibbonRenderer
                     new Vector3((float)end.Horizontal, (float)end.Value, (float)end.Depth),
                     series.Radius,
                     DefaultSides,
-                    series.Color));
+                    start.Color ?? series.Color));
             }
         }
 
