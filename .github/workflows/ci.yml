@@ -81,7 +81,7 @@ jobs:
         shell: pwsh
         run: >
           dotnet test tests/Videra.Core.Tests/Videra.Core.Tests.csproj -c Release
-          --filter "FullyQualifiedName~SurfaceChartsDemoConfigurationTests|FullyQualifiedName~SurfaceChartsDemoViewportBehaviorTests|FullyQualifiedName~SurfaceChartsCookbookCoverageMatrixTests|FullyQualifiedName~SurfaceChartsCookbookFirstSurfaceRecipeTests|FullyQualifiedName~SurfaceChartsCookbookWaterfallLinkedRecipeTests|FullyQualifiedName~SurfaceChartsCookbookScatterLiveRecipeTests|FullyQualifiedName~SurfaceChartsCookbookBarContourSnapshotRecipeTests|FullyQualifiedName~SurfaceChartsHighPerformancePathTests|FullyQualifiedName~ScatterStreamingScenarioEvidenceTests|FullyQualifiedName~SurfaceChartsPerformanceTruthTests"
+          --filter "FullyQualifiedName~SurfaceChartsDemoConfigurationTests|FullyQualifiedName~SurfaceChartsDemoViewportBehaviorTests|FullyQualifiedName~SurfaceChartsCookbookCoverageMatrixTests|FullyQualifiedName~SurfaceChartsCookbookFirstSurfaceRecipeTests|FullyQualifiedName~SurfaceChartsCookbookWaterfallLinkedRecipeTests|FullyQualifiedName~SurfaceChartsCookbookScatterLiveRecipeTests|FullyQualifiedName~SurfaceChartsCookbookBarContourSnapshotRecipeTests|FullyQualifiedName~SurfaceChartsHighPerformancePathTests|FullyQualifiedName~ScatterStreamingScenarioEvidenceTests|FullyQualifiedName~SurfaceChartsPerformanceTruthTests|FullyQualifiedName~SurfaceChartWorkspaceTests|FullyQualifiedName~SurfaceChartLinkGroupTests|FullyQualifiedName~SurfaceChartInteractionPropagatorTests|FullyQualifiedName~SurfaceChartStreamingEvidenceTests"
 
       - name: Run SurfaceCharts generated roadmap and scope evidence
         shell: pwsh
@@ -99,7 +99,7 @@ jobs:
         shell: pwsh
         run: >
           dotnet test tests/Videra.SurfaceCharts.Avalonia.IntegrationTests/Videra.SurfaceCharts.Avalonia.IntegrationTests.csproj -c Release
-          --filter "FullyQualifiedName~VideraChartViewStateTests|FullyQualifiedName~SurfaceChartInteractionTests|FullyQualifiedName~VideraChartViewGpuFallbackTests|FullyQualifiedName~VideraChartViewWaterfallIntegrationTests|FullyQualifiedName~VideraChartViewPlotApiTests"
+          --filter "FullyQualifiedName~VideraChartViewStateTests|FullyQualifiedName~SurfaceChartInteractionTests|FullyQualifiedName~VideraChartViewGpuFallbackTests|FullyQualifiedName~VideraChartViewWaterfallIntegrationTests|FullyQualifiedName~VideraChartViewPlotApiTests|FullyQualifiedName~SurfaceChartWorkspaceTests|FullyQualifiedName~SurfaceChartLinkGroupTests"
 
   performance-lab-visual-evidence:
     runs-on: windows-latest

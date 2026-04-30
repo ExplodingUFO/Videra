@@ -26,7 +26,11 @@ public sealed class SurfaceChartsCiTruthTests
             "SurfaceChartsCookbookBarContourSnapshotRecipeTests",
             "SurfaceChartsHighPerformancePathTests",
             "ScatterStreamingScenarioEvidenceTests",
-            "SurfaceChartsPerformanceTruthTests");
+            "SurfaceChartsPerformanceTruthTests",
+            "SurfaceChartWorkspaceTests",
+            "SurfaceChartLinkGroupTests",
+            "SurfaceChartInteractionPropagatorTests",
+            "SurfaceChartStreamingEvidenceTests");
 
         AssertDoesNotMaskValidationFailure(sampleEvidenceStep);
     }
@@ -90,7 +94,9 @@ public sealed class SurfaceChartsCiTruthTests
             "SurfaceChartInteractionTests",
             "VideraChartViewGpuFallbackTests",
             "VideraChartViewWaterfallIntegrationTests",
-            "VideraChartViewPlotApiTests");
+            "VideraChartViewPlotApiTests",
+            "SurfaceChartWorkspaceTests",
+            "SurfaceChartLinkGroupTests");
 
         AssertDoesNotMaskValidationFailure(runtimeStep);
     }
