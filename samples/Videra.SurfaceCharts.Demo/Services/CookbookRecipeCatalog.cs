@@ -188,6 +188,21 @@ internal static class CookbookRecipes
                 var evidence = workspace.CreateWorkspaceEvidence();
                 """),
         new(
+            "Linked interaction",
+            "Link group with probe propagation",
+            "Host-owned link group synchronizing view state and propagating probes across charts.",
+            ScenarioId: SurfaceDemoScenarios.LinkedInteractionId,
+            ScatterScenarioId: null,
+            Snippet: """
+                using var linkGroup = new SurfaceChartLinkGroup(SurfaceChartLinkPolicy.FullViewState);
+                linkGroup.Add(chartA);
+                linkGroup.Add(chartB);
+
+                var propagator = new SurfaceChartInteractionPropagator(
+                    linkGroup, propagateProbe: true);
+                propagator.PropagateProbe(chartA, screenPosition);
+                """),
+        new(
             "Export",
             "Chart-local PNG snapshot",
             "Isolated setup path: keeps the first chart visible and uses the bounded Capture Snapshot button for the same PNG-only export path.",
