@@ -16,7 +16,7 @@ STREAM-01..03, COOK-01..03, TRUTH-01..03, VERIFY-01..02)
 
 ## Phases
 
-- [ ] **Phase 425: Analysis Workspace and Streaming Inventory** - Map current
+- [x] **Phase 425: Analysis Workspace and Streaming Inventory** - Map current
   multi-chart, linked interaction, streaming/high-density, cookbook,
   package-smoke, and CI truth surfaces before implementation.
 - [ ] **Phase 426: Native Multi-Chart Analysis Workspace** - Add bounded native
@@ -53,6 +53,7 @@ or validation behavior.
 3. Phase 426-430 write sets, dependencies, validation commands, and safe
    worktree split points are identified.
 **Plans:** 425-PLAN.md
+**Completed:** 2026-04-30
 
 ### Phase 426: Native Multi-Chart Analysis Workspace
 
@@ -149,8 +150,8 @@ consumer templates.
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 425. Analysis Workspace and Streaming Inventory | 0/1 | Ready | |
-| 426. Native Multi-Chart Analysis Workspace | 0/1 | Blocked | |
+| 425. Analysis Workspace and Streaming Inventory | 1/1 | Complete | 2026-04-30 |
+| 426. Native Multi-Chart Analysis Workspace | 0/1 | Ready | |
 | 427. Linked Interaction and Selection Propagation | 0/1 | Blocked | |
 | 428. High-Density and Streaming Data Evidence | 0/1 | Blocked | |
 | 429. Scenario Cookbook and Package Templates | 0/1 | Blocked | |

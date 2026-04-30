@@ -16,11 +16,10 @@ pwsh -File ./scripts/Export-BeadsRoadmap.ps1
 
 ## Ready
 
-- **Videra-7tqx.1** - Phase 425 analysis workspace and streaming inventory (task, P1, open)
+- **Videra-7tqx.2** - Phase 426 native multi-chart analysis workspace (task, P1, open)
 
 ## Blocked
 
-- **Videra-7tqx.2** - Phase 426 native multi-chart analysis workspace (task, P1, open)
 - **Videra-7tqx.3** - Phase 427 linked interaction and selection propagation (task, P1, open)
 - **Videra-7tqx.4** - Phase 428 high-density and streaming data evidence (task, P1, open)
 - **Videra-7tqx.5** - Phase 429 scenario cookbook and package templates (task, P1, open)
@@ -33,14 +32,14 @@ _No matching beads in the exported snapshot._
 
 ## Recently Closed
 
+- **Videra-7tqx.1** - Phase 425 analysis workspace and streaming inventory (task, P1, closed)
+- **Videra-7tqx.1.4** - Phase 425D inventory CI release-readiness and guardrails (task, P1, closed)
+- **Videra-7tqx.1.2** - Phase 425B inventory demo cookbook and package templates (task, P1, closed)
+- **Videra-7tqx.1.3** - Phase 425C inventory streaming high-density and performance truth (task, P1, closed)
+- **Videra-7tqx.1.1** - Phase 425A inventory chart APIs and workspace seams (task, P1, closed)
 - **Videra-zn7** - v2.63 Native SurfaceCharts Feature and Demo Expansion (epic, P1, closed)
 - **Videra-7ip** - Phase 424 v2.63 final verification (task, P1, closed)
 - **Videra-7ip.2** - Phase 424B run final release readiness evidence (task, P1, closed)
 - **Videra-7ip.1** - Phase 424A close roadmap and scope evidence (task, P1, closed)
 - **Videra-64g** - Phase 423 feature cookbook and validation truth (task, P1, closed)
-- **Videra-64g.3** - Phase 423C update release readiness focused filter (task, P1, closed)
-- **Videra-64g.2** - Phase 423B align demo support and CI truth (task, P1, closed)
-- **Videra-64g.1** - Phase 423A add cookbook matrix recipe truth (task, P1, closed)
-- **Videra-j3z** - Phase 422 demo gallery workflow upgrade (task, P1, closed)
-- **Videra-j3z.5** - Phase 422E document demo coverage map (task, P1, closed)
 
