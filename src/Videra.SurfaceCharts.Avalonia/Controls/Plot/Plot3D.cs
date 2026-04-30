@@ -275,6 +275,30 @@ public sealed class Plot3D
         }
     }
 
+    internal ViolinData? ActiveViolinData =>
+        ActiveSeries?.Kind == Plot3DSeriesKind.Violin ? ActiveSeries.ViolinData : null;
+
+    internal Plot3DSeries? ActiveViolinSeries
+    {
+        get
+        {
+            var activeSeries = ActiveSeries;
+            return activeSeries?.Kind == Plot3DSeriesKind.Violin ? activeSeries : null;
+        }
+    }
+
+    internal PolygonData? ActivePolygonData =>
+        ActiveSeries?.Kind == Plot3DSeriesKind.Polygon ? ActiveSeries.PolygonData : null;
+
+    internal Plot3DSeries? ActivePolygonSeries
+    {
+        get
+        {
+            var activeSeries = ActiveSeries;
+            return activeSeries?.Kind == Plot3DSeriesKind.Polygon ? activeSeries : null;
+        }
+    }
+
     /// <summary>
     /// Gets or sets the optional color map used by surface and waterfall series.
     /// </summary>
@@ -459,14 +483,16 @@ public sealed class Plot3D
         HistogramChartRenderingStatus? histogramRenderingStatus = null,
         FunctionPlotChartRenderingStatus? functionPlotRenderingStatus = null,
         PieChartRenderingStatus? pieRenderingStatus = null,
-        OHLCChartRenderingStatus? ohlcRenderingStatus = null)
+        OHLCChartRenderingStatus? ohlcRenderingStatus = null,
+        ViolinChartRenderingStatus? violinRenderingStatus = null,
+        PolygonChartRenderingStatus? polygonRenderingStatus = null)
     {
         var activeSeries = ActiveSeries;
         var activeSeriesIndex = activeSeries is null ? -1 : _series.IndexOf(activeSeries);
         var composedSeries = ActiveComposedSeries;
         var composedSeriesIdentities = CreateSeriesIdentities(composedSeries);
         var colorMapEvidence = CreateColorMapEvidence(activeSeries);
-        var renderingEvidence = CreateRenderingEvidence(activeSeries, renderingStatus, scatterRenderingStatus, barRenderingStatus, contourRenderingStatus, lineRenderingStatus, ribbonRenderingStatus, vectorFieldRenderingStatus, heatmapSliceRenderingStatus, boxPlotRenderingStatus, histogramRenderingStatus, functionPlotRenderingStatus, pieRenderingStatus, ohlcRenderingStatus);
+        var renderingEvidence = CreateRenderingEvidence(activeSeries, renderingStatus, scatterRenderingStatus, barRenderingStatus, contourRenderingStatus, lineRenderingStatus, ribbonRenderingStatus, vectorFieldRenderingStatus, heatmapSliceRenderingStatus, boxPlotRenderingStatus, histogramRenderingStatus, functionPlotRenderingStatus, pieRenderingStatus, ohlcRenderingStatus, violinRenderingStatus, polygonRenderingStatus);
 
         return new Plot3DOutputEvidence(
             seriesCount: _series.Count,
@@ -831,7 +857,9 @@ public sealed class Plot3D
         HistogramChartRenderingStatus? histogramRenderingStatus,
         FunctionPlotChartRenderingStatus? functionPlotRenderingStatus,
         PieChartRenderingStatus? pieRenderingStatus,
-        OHLCChartRenderingStatus? ohlcRenderingStatus)
+        OHLCChartRenderingStatus? ohlcRenderingStatus,
+        ViolinChartRenderingStatus? violinRenderingStatus,
+        PolygonChartRenderingStatus? polygonRenderingStatus)
     {
         return activeSeries?.Kind switch
         {
@@ -861,6 +889,10 @@ public sealed class Plot3D
                 Plot3DRenderingEvidence.FromPieStatus(pieRenderingStatus),
             Plot3DSeriesKind.OHLC when ohlcRenderingStatus is not null =>
                 Plot3DRenderingEvidence.FromOHLCStatus(ohlcRenderingStatus),
+            Plot3DSeriesKind.Violin when violinRenderingStatus is not null =>
+                Plot3DRenderingEvidence.FromViolinStatus(violinRenderingStatus),
+            Plot3DSeriesKind.Polygon when polygonRenderingStatus is not null =>
+                Plot3DRenderingEvidence.FromPolygonStatus(polygonRenderingStatus),
             _ => null,
         };
     }
@@ -949,7 +981,7 @@ public sealed class Plot3D
             return Plot3DColorMapStatus.Applied;
         }
 
-        return activeSeries is null || activeSeries.Kind is Plot3DSeriesKind.Scatter or Plot3DSeriesKind.Contour or Plot3DSeriesKind.Bar or Plot3DSeriesKind.VectorField or Plot3DSeriesKind.HeatmapSlice or Plot3DSeriesKind.BoxPlot or Plot3DSeriesKind.Histogram or Plot3DSeriesKind.FunctionPlot or Plot3DSeriesKind.Pie or Plot3DSeriesKind.OHLC
+        return activeSeries is null || activeSeries.Kind is Plot3DSeriesKind.Scatter or Plot3DSeriesKind.Contour or Plot3DSeriesKind.Bar or Plot3DSeriesKind.VectorField or Plot3DSeriesKind.HeatmapSlice or Plot3DSeriesKind.BoxPlot or Plot3DSeriesKind.Histogram or Plot3DSeriesKind.FunctionPlot or Plot3DSeriesKind.Pie or Plot3DSeriesKind.OHLC or Plot3DSeriesKind.Violin or Plot3DSeriesKind.Polygon
             ? Plot3DColorMapStatus.NotApplicable
             : Plot3DColorMapStatus.Unavailable;
     }

@@ -498,5 +498,39 @@ internal static class CookbookRecipes
                 chart.Plot.Add.OHLC(bars, OHLCStyle.Candlestick, name: "AAPL");
                 chart.FitToData();
                 """),
+        new(
+            "Violin",
+            "Violin plot",
+            "Isolated setup path: creates a violin plot with grouped distributions and KDE bandwidth control.",
+            ScenarioId: SurfaceDemoScenarios.ViolinId,
+            ScatterScenarioId: null,
+            Snippet: """
+                var groups = new[]
+                {
+                    new ViolinGroup(new[] { 1.2, 1.5, 1.8, 2.1, 2.3, 2.5, 2.8, 3.0 }, 0xFF38BDF8u, "Group A"),
+                    new ViolinGroup(new[] { 2.0, 2.3, 2.6, 2.9, 3.1, 3.4, 3.7, 4.0 }, 0xFFF97316u, "Group B"),
+                };
+
+                chart.Plot.Clear();
+                chart.Plot.Add.Violin(groups, name: "Distribution");
+                chart.FitToData();
+                """),
+        new(
+            "Polygon",
+            "Filled polygon",
+            "Isolated setup path: creates a filled polygon with configurable vertices, fill color, and stroke.",
+            ScenarioId: SurfaceDemoScenarios.PolygonId,
+            ScatterScenarioId: null,
+            Snippet: """
+                var vertices = new Vector3[]
+                {
+                    new(0, 0, 0), new(4, 0, 0), new(4, 0, 4),
+                    new(2, 0, 6), new(0, 0, 4),
+                };
+
+                chart.Plot.Clear();
+                chart.Plot.Add.Polygon(vertices, fillColor: 0x8038BDF8u, name: "Pentagon");
+                chart.FitToData();
+                """),
     ];
 }

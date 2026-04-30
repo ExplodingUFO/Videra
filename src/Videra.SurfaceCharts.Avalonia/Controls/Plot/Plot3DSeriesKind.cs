@@ -74,4 +74,14 @@ public enum Plot3DSeriesKind
     /// An OHLC/Candlestick chart for financial data.
     /// </summary>
     OHLC,
+
+    /// <summary>
+    /// A violin plot showing distribution via KDE.
+    /// </summary>
+    Violin,
+
+    /// <summary>
+    /// A filled polygon in 3D space.
+    /// </summary>
+    Polygon,
 }

@@ -60,6 +60,10 @@
                                 IsVisible="False" />
         <charts:VideraChartView x:Name="OHLCPlotView"
                                 IsVisible="False" />
+        <charts:VideraChartView x:Name="ViolinPlotView"
+                                IsVisible="False" />
+        <charts:VideraChartView x:Name="PolygonPlotView"
+                                IsVisible="False" />
         <Grid x:Name="MultiPlot3DPanel"
               IsVisible="False" />
         <Grid x:Name="AnalysisWorkspacePanel"

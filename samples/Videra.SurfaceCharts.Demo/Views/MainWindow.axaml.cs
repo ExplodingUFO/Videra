@@ -32,6 +32,8 @@ public partial class MainWindow : Window
     private readonly VideraChartView _functionPlotView;
     private readonly VideraChartView _piePlotView;
     private readonly VideraChartView _ohlcPlotView;
+    private readonly VideraChartView _violinPlotView;
+    private readonly VideraChartView _polygonPlotView;
     private readonly VideraChartView _workspaceChartA;
     private readonly VideraChartView _workspaceChartB;
     private readonly VideraChartView _workspaceChartC;
@@ -129,6 +131,10 @@ public partial class MainWindow : Window
             ?? throw new InvalidOperationException("PiePlotView is missing.");
         _ohlcPlotView = this.FindControl<VideraChartView>("OHLCPlotView")
             ?? throw new InvalidOperationException("OHLCPlotView is missing.");
+        _violinPlotView = this.FindControl<VideraChartView>("ViolinPlotView")
+            ?? throw new InvalidOperationException("ViolinPlotView is missing.");
+        _polygonPlotView = this.FindControl<VideraChartView>("PolygonPlotView")
+            ?? throw new InvalidOperationException("PolygonPlotView is missing.");
         _workspaceChartA = this.FindControl<VideraChartView>("WorkspaceChartA")
             ?? throw new InvalidOperationException("WorkspaceChartA is missing.");
         _workspaceChartB = this.FindControl<VideraChartView>("WorkspaceChartB")
@@ -232,6 +238,8 @@ public partial class MainWindow : Window
         ConfigureSurfaceFamilyChartView(_functionPlotView);
         ConfigureSurfaceFamilyChartView(_piePlotView);
         ConfigureSurfaceFamilyChartView(_ohlcPlotView);
+        ConfigureSurfaceFamilyChartView(_violinPlotView);
+        ConfigureSurfaceFamilyChartView(_polygonPlotView);
         ConfigureSurfaceFamilyChartView(_workspaceChartA);
         ConfigureSurfaceFamilyChartView(_workspaceChartB);
         ConfigureSurfaceFamilyChartView(_workspaceChartC);
@@ -278,6 +286,8 @@ public partial class MainWindow : Window
         _functionPlotView.IsVisible ? _functionPlotView :
         _piePlotView.IsVisible ? _piePlotView :
         _ohlcPlotView.IsVisible ? _ohlcPlotView :
+        _violinPlotView.IsVisible ? _violinPlotView :
+        _polygonPlotView.IsVisible ? _polygonPlotView :
         _surfaceChartView;
 
     private bool IsScatterProofActive => _scatterChartView.IsVisible;
@@ -431,6 +441,18 @@ public partial class MainWindow : Window
         if (scenario.Id == SurfaceDemoScenarios.OHLCId)
         {
             ApplyOHLCSource(scenario);
+            return;
+        }
+
+        if (scenario.Id == SurfaceDemoScenarios.ViolinId)
+        {
+            ApplyViolinSource(scenario);
+            return;
+        }
+
+        if (scenario.Id == SurfaceDemoScenarios.PolygonId)
+        {
+            ApplyPolygonSource(scenario);
             return;
         }
 
@@ -879,6 +901,51 @@ public partial class MainWindow : Window
         RefreshActiveProofTexts();
     }
 
+    private void ApplyViolinSource(SurfaceDemoScenario scenario)
+    {
+        SetActiveChartView(_violinPlotView);
+        _activeScatterData = null;
+        _violinPlotView.Plot.Clear();
+
+        var groups = new[]
+        {
+            new ViolinGroup(new[] { 1.2, 1.5, 1.8, 2.1, 2.3, 2.5, 2.8, 3.0, 3.2, 3.5 }, 0xFF38BDF8u, "Group A"),
+            new ViolinGroup(new[] { 2.0, 2.3, 2.6, 2.9, 3.1, 3.4, 3.7, 4.0, 4.2, 4.5 }, 0xFFF97316u, "Group B"),
+            new ViolinGroup(new[] { 0.8, 1.0, 1.3, 1.6, 1.9, 2.2, 2.5, 2.8, 3.1, 3.4 }, 0xFF2DD4BFu, "Group C"),
+        };
+
+        _violinPlotView.Plot.Add.Violin(groups, name: scenario.Label);
+        _violinPlotView.FitToData();
+        _activePlotPathHeading = scenario.Label;
+        _activePlotPathDetails = "Violin plot with 3 groups. Demonstrates Plot.Add.Violin with KDE-based distribution visualization.";
+        _activeDatasetSummary = "Violin proof shows 3 groups with 10 samples each, rendered as symmetric KDE shapes.";
+        _activeAssetSummary = "No additional assets are used on this path.";
+        _datasetText.Text = _activeDatasetSummary;
+        RefreshActiveProofTexts();
+    }
+
+    private void ApplyPolygonSource(SurfaceDemoScenario scenario)
+    {
+        SetActiveChartView(_polygonPlotView);
+        _activeScatterData = null;
+        _polygonPlotView.Plot.Clear();
+
+        var vertices = new System.Numerics.Vector3[]
+        {
+            new(0, 0, 0), new(4, 0, 0), new(4, 0, 4),
+            new(2, 0, 6), new(0, 0, 4),
+        };
+
+        _polygonPlotView.Plot.Add.Polygon(vertices, fillColor: 0x8038BDF8u, name: scenario.Label);
+        _polygonPlotView.FitToData();
+        _activePlotPathHeading = scenario.Label;
+        _activePlotPathDetails = "Filled polygon with 5 vertices. Demonstrates Plot.Add.Polygon with fill and stroke colors.";
+        _activeDatasetSummary = "Polygon proof shows a pentagon shape with configurable fill and stroke.";
+        _activeAssetSummary = "No additional assets are used on this path.";
+        _datasetText.Text = _activeDatasetSummary;
+        RefreshActiveProofTexts();
+    }
+
     private void SetupMultiPlot3DScenario(SurfaceDemoScenario scenario)
     {
         // Hide all single-chart panels
@@ -896,6 +963,8 @@ public partial class MainWindow : Window
         _functionPlotView.IsVisible = false;
         _piePlotView.IsVisible = false;
         _ohlcPlotView.IsVisible = false;
+        _violinPlotView.IsVisible = false;
+        _polygonPlotView.IsVisible = false;
         _analysisWorkspacePanel.IsVisible = false;
         _workspaceToolbarPanel.IsVisible = false;
 
@@ -1071,6 +1140,8 @@ public partial class MainWindow : Window
         _functionPlotView.IsVisible = ReferenceEquals(chartView, _functionPlotView);
         _piePlotView.IsVisible = ReferenceEquals(chartView, _piePlotView);
         _ohlcPlotView.IsVisible = ReferenceEquals(chartView, _ohlcPlotView);
+        _violinPlotView.IsVisible = ReferenceEquals(chartView, _violinPlotView);
+        _polygonPlotView.IsVisible = ReferenceEquals(chartView, _polygonPlotView);
         _analysisWorkspacePanel.IsVisible = false;
         _workspaceToolbarPanel.IsVisible = false;
     }
@@ -1092,6 +1163,8 @@ public partial class MainWindow : Window
         _functionPlotView.IsVisible = false;
         _piePlotView.IsVisible = false;
         _ohlcPlotView.IsVisible = false;
+        _violinPlotView.IsVisible = false;
+        _polygonPlotView.IsVisible = false;
         _analysisWorkspacePanel.IsVisible = true;
         _workspaceToolbarPanel.IsVisible = true;
 
@@ -1174,6 +1247,8 @@ public partial class MainWindow : Window
         _functionPlotView.IsVisible = false;
         _piePlotView.IsVisible = false;
         _ohlcPlotView.IsVisible = false;
+        _violinPlotView.IsVisible = false;
+        _polygonPlotView.IsVisible = false;
         _analysisWorkspacePanel.IsVisible = true;
         _workspaceToolbarPanel.IsVisible = true;
 
@@ -1264,6 +1339,8 @@ public partial class MainWindow : Window
         _functionPlotView.IsVisible = false;
         _piePlotView.IsVisible = false;
         _ohlcPlotView.IsVisible = false;
+        _violinPlotView.IsVisible = false;
+        _polygonPlotView.IsVisible = false;
         _analysisWorkspacePanel.IsVisible = true;
         _workspaceToolbarPanel.IsVisible = true;
 
@@ -1851,7 +1928,8 @@ public partial class MainWindow : Window
         _vectorFieldPlotView.IsVisible || _heatmapSlicePlotView.IsVisible ||
         _boxPlotView.IsVisible || _histogramPlotView.IsVisible ||
         _functionPlotView.IsVisible || _piePlotView.IsVisible ||
-        _ohlcPlotView.IsVisible;
+        _ohlcPlotView.IsVisible || _violinPlotView.IsVisible ||
+        _polygonPlotView.IsVisible;
 
     private string CreateViewStateSummary()
     {

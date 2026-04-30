@@ -245,6 +245,38 @@ internal static class Plot3DSeriesComposition
         return datasets[0];
     }
 
+    public static ViolinData? CreateViolinData(IReadOnlyList<Plot3DSeries> series)
+    {
+        var datasets = series
+            .Select(static item => item.ViolinData)
+            .OfType<ViolinData>()
+            .ToArray();
+
+        if (datasets.Length == 0)
+        {
+            return null;
+        }
+
+        // Violin plots are independent — return the first one
+        return datasets[0];
+    }
+
+    public static PolygonData? CreatePolygonData(IReadOnlyList<Plot3DSeries> series)
+    {
+        var datasets = series
+            .Select(static item => item.PolygonData)
+            .OfType<PolygonData>()
+            .ToArray();
+
+        if (datasets.Length == 0)
+        {
+            return null;
+        }
+
+        // Polygon charts are independent — return the first one
+        return datasets[0];
+    }
+
     private static ScatterChartMetadata CreateScatterMetadata(IReadOnlyList<ScatterChartData> datasets)
     {
         var first = datasets[0].Metadata;

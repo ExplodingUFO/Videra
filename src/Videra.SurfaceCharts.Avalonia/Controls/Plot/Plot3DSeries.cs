@@ -26,7 +26,9 @@ public class Plot3DSeries : IPlottable3D
         HistogramData? histogramData = null,
         FunctionPlotData? functionPlotData = null,
         PieChartData? pieData = null,
-        OHLCData? ohlcData = null)
+        OHLCData? ohlcData = null,
+        ViolinData? violinData = null,
+        PolygonData? polygonData = null)
     {
         Kind = kind;
         _label = NormalizeLabel(name);
@@ -43,6 +45,8 @@ public class Plot3DSeries : IPlottable3D
         FunctionPlotData = functionPlotData;
         PieData = pieData;
         OHLCData = ohlcData;
+        ViolinData = violinData;
+        PolygonData = polygonData;
     }
 
     /// <summary>
@@ -152,6 +156,16 @@ public class Plot3DSeries : IPlottable3D
     /// Gets the OHLC dataset for OHLC/Candlestick series.
     /// </summary>
     public OHLCData? OHLCData { get; private set; }
+
+    /// <summary>
+    /// Gets the violin dataset for violin series.
+    /// </summary>
+    public ViolinData? ViolinData { get; private set; }
+
+    /// <summary>
+    /// Gets the polygon dataset for polygon series.
+    /// </summary>
+    public PolygonData? PolygonData { get; private set; }
 
     internal void Attach(Action changed)
     {

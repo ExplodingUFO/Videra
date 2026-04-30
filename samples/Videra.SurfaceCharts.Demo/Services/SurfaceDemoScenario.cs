@@ -36,6 +36,8 @@ internal static class SurfaceDemoScenarios
     public const string PieId = "pie-proof";
     public const string ErrorBarId = "error-bar-proof";
     public const string OHLCId = "ohlc-proof";
+    public const string ViolinId = "violin-proof";
+    public const string PolygonId = "polygon-proof";
 
     public static IReadOnlyList<SurfaceDemoScenario> All { get; } =
     [
@@ -183,6 +185,18 @@ internal static class SurfaceDemoScenarios
             "OHLC",
             "OHLC",
             "Uses OHLC/Candlestick bars with up/down colors for financial data visualization."),
+        new(
+            ViolinId,
+            "Try next: Violin proof",
+            "Violin",
+            "Violin",
+            "Uses kernel density estimation to show distribution shape for grouped datasets."),
+        new(
+            PolygonId,
+            "Try next: Polygon proof",
+            "Polygon",
+            "Polygon",
+            "Uses filled polygon geometry with configurable vertices, fill color, and stroke."),
     ];
 
     public static SurfaceDemoScenario Get(string id)

@@ -135,6 +135,8 @@ internal static class SurfaceLegendOverlayPresenter
             Plot3DSeriesKind.FunctionPlot => LegendIndicatorKind.Line,
             Plot3DSeriesKind.Pie => LegendIndicatorKind.Swatch,
             Plot3DSeriesKind.OHLC => LegendIndicatorKind.Swatch,
+            Plot3DSeriesKind.Violin => LegendIndicatorKind.Swatch,
+            Plot3DSeriesKind.Polygon => LegendIndicatorKind.Swatch,
             _ => LegendIndicatorKind.Swatch,
         };
 
@@ -155,6 +157,8 @@ internal static class SurfaceLegendOverlayPresenter
             Plot3DSeriesKind.FunctionPlot => 0xFF4DA3FF, // Blue
             Plot3DSeriesKind.Pie => 0xFF8B5CF6, // Violet
             Plot3DSeriesKind.OHLC => 0xFF2DD4BF, // Teal
+            Plot3DSeriesKind.Violin => 0xFFF472B6, // Pink
+            Plot3DSeriesKind.Polygon => 0xFFA3E635, // Lime
             _ => 0xFFCCCCCC, // Gray
         };
 

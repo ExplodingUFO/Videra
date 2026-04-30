@@ -489,6 +489,42 @@ public sealed class Plot3DAddApi
         return (OHLCPlot3DSeries)_plot.AddSeries(new OHLCPlot3DSeries(name, data));
     }
 
+    /// <summary>
+    /// Adds a violin plot from groups.
+    /// </summary>
+    public ViolinPlot3DSeries Violin(IReadOnlyList<ViolinGroup> groups, string? name = null)
+    {
+        ArgumentNullException.ThrowIfNull(groups);
+        return Violin(new ViolinData(groups), name);
+    }
+
+    /// <summary>
+    /// Adds a violin plot from a full violin dataset.
+    /// </summary>
+    public ViolinPlot3DSeries Violin(ViolinData data, string? name = null)
+    {
+        ArgumentNullException.ThrowIfNull(data);
+        return (ViolinPlot3DSeries)_plot.AddSeries(new ViolinPlot3DSeries(name, data));
+    }
+
+    /// <summary>
+    /// Adds a polygon from vertices.
+    /// </summary>
+    public PolygonPlot3DSeries Polygon(IReadOnlyList<System.Numerics.Vector3> vertices, uint fillColor = 0x404DA3FFu, string? name = null)
+    {
+        ArgumentNullException.ThrowIfNull(vertices);
+        return Polygon(new PolygonData(vertices, fillColor), name);
+    }
+
+    /// <summary>
+    /// Adds a polygon from a full polygon dataset.
+    /// </summary>
+    public PolygonPlot3DSeries Polygon(PolygonData data, string? name = null)
+    {
+        ArgumentNullException.ThrowIfNull(data);
+        return (PolygonPlot3DSeries)_plot.AddSeries(new PolygonPlot3DSeries(name, data));
+    }
+
     private static SurfaceMatrix CreateSurfaceMatrix(double[,] values)
     {
         ArgumentNullException.ThrowIfNull(values);

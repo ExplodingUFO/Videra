@@ -291,6 +291,8 @@ public sealed class Plot3DSeriesDatasetEvidence
             Plot3DSeriesKind.FunctionPlot => CreateFunctionPlotEvidence(index, isActive, series),
             Plot3DSeriesKind.Pie => CreatePieEvidence(index, isActive, series),
             Plot3DSeriesKind.OHLC => CreateOHLCEvidence(index, isActive, series),
+            Plot3DSeriesKind.Violin => CreateViolinEvidence(index, isActive, series),
+            Plot3DSeriesKind.Polygon => CreatePolygonEvidence(index, isActive, series),
             _ => throw new ArgumentOutOfRangeException(nameof(series), $"Unsupported Plot series kind: {series.Kind}"),
         };
     }
@@ -726,6 +728,78 @@ public sealed class Plot3DSeriesDatasetEvidence
             depthAxis: null,
             valueRange: null,
             $"OHLC:Bars={data.BarCount};Style={data.Style}",
+            categoryLabels: [],
+            []);
+    }
+
+    private static Plot3DSeriesDatasetEvidence CreateViolinEvidence(int index, bool isActive, Plot3DSeries series)
+    {
+        var data = series.ViolinData
+            ?? throw new InvalidOperationException("Violin series require violin data.");
+
+        var labels = data.Groups
+            .Select(static g => g.Label ?? string.Empty)
+            .ToArray();
+
+        var totalValues = data.Groups.Sum(static g => g.Values.Count);
+
+        return new Plot3DSeriesDatasetEvidence(
+            index,
+            isActive,
+            CreateIdentity(index, series),
+            series.Name,
+            series.Kind,
+            width: 0,
+            height: 0,
+            sampleCount: totalValues,
+            seriesCount: 1,
+            pointCount: 0,
+            columnarSeriesCount: 0,
+            columnarPointCount: 0,
+            pickablePointCount: 0,
+            streamingAppendBatchCount: 0,
+            streamingReplaceBatchCount: 0,
+            streamingDroppedPointCount: 0,
+            lastStreamingDroppedPointCount: 0,
+            configuredFifoCapacity: 0,
+            horizontalAxis: null,
+            verticalAxis: null,
+            depthAxis: null,
+            valueRange: null,
+            $"Violin:Groups={data.Groups.Count};TotalValues={totalValues}",
+            categoryLabels: Array.AsReadOnly(labels),
+            []);
+    }
+
+    private static Plot3DSeriesDatasetEvidence CreatePolygonEvidence(int index, bool isActive, Plot3DSeries series)
+    {
+        var data = series.PolygonData
+            ?? throw new InvalidOperationException("Polygon series require polygon data.");
+
+        return new Plot3DSeriesDatasetEvidence(
+            index,
+            isActive,
+            CreateIdentity(index, series),
+            series.Name,
+            series.Kind,
+            width: 0,
+            height: 0,
+            sampleCount: 0,
+            seriesCount: 1,
+            pointCount: data.Vertices.Count,
+            columnarSeriesCount: 0,
+            columnarPointCount: 0,
+            pickablePointCount: 0,
+            streamingAppendBatchCount: 0,
+            streamingReplaceBatchCount: 0,
+            streamingDroppedPointCount: 0,
+            lastStreamingDroppedPointCount: 0,
+            configuredFifoCapacity: 0,
+            horizontalAxis: null,
+            verticalAxis: null,
+            depthAxis: null,
+            valueRange: null,
+            $"Polygon:Vertices={data.Vertices.Count}",
             categoryLabels: [],
             []);
     }

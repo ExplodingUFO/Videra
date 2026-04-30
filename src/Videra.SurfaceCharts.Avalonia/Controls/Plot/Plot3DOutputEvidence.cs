@@ -433,4 +433,32 @@ public sealed class Plot3DRenderingEvidence
             viewWidth: status.ViewSize.Width,
             viewHeight: status.ViewSize.Height);
     }
+
+    internal static Plot3DRenderingEvidence FromViolinStatus(ViolinChartRenderingStatus status)
+    {
+        ArgumentNullException.ThrowIfNull(status);
+
+        return new Plot3DRenderingEvidence(
+            "violin-rendering-status",
+            status.BackendKind,
+            status.IsReady,
+            isFallback: false,
+            fallbackReason: null,
+            viewWidth: status.ViewSize.Width,
+            viewHeight: status.ViewSize.Height);
+    }
+
+    internal static Plot3DRenderingEvidence FromPolygonStatus(PolygonChartRenderingStatus status)
+    {
+        ArgumentNullException.ThrowIfNull(status);
+
+        return new Plot3DRenderingEvidence(
+            "polygon-rendering-status",
+            status.BackendKind,
+            status.IsReady,
+            isFallback: false,
+            fallbackReason: null,
+            viewWidth: status.ViewSize.Width,
+            viewHeight: status.ViewSize.Height);
+    }
 }
