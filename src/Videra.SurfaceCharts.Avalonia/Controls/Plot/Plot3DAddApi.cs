@@ -305,6 +305,103 @@ public sealed class Plot3DAddApi
         return (RibbonPlot3DSeries)_plot.AddSeries(new RibbonPlot3DSeries(name, data));
     }
 
+    /// <summary>
+    /// Adds a 3D vector field from position and direction arrays.
+    /// </summary>
+    public VectorFieldPlot3DSeries VectorField(
+        double[] xs, double[] ys, double[] zs,
+        double[] dxs, double[] dys, double[] dzs,
+        string? name = null)
+    {
+        ArgumentNullException.ThrowIfNull(xs);
+        ArgumentNullException.ThrowIfNull(ys);
+        ArgumentNullException.ThrowIfNull(zs);
+        ArgumentNullException.ThrowIfNull(dxs);
+        ArgumentNullException.ThrowIfNull(dys);
+        ArgumentNullException.ThrowIfNull(dzs);
+
+        if (xs.Length == 0)
+        {
+            throw new ArgumentException("Vector field arrays must include at least one point.", nameof(xs));
+        }
+
+        if (xs.Length != ys.Length || xs.Length != zs.Length || xs.Length != dxs.Length || xs.Length != dys.Length || xs.Length != dzs.Length)
+        {
+            throw new ArgumentException("Vector field coordinate and direction arrays must have matching lengths.", nameof(xs));
+        }
+
+        var points = new VectorFieldPoint[xs.Length];
+        var xMin = double.MaxValue;
+        var xMax = double.MinValue;
+        var zMin = double.MaxValue;
+        var zMax = double.MinValue;
+        var magMin = double.MaxValue;
+        var magMax = double.MinValue;
+
+        for (var i = 0; i < xs.Length; i++)
+        {
+            var pos = new Vector3((float)xs[i], (float)ys[i], (float)zs[i]);
+            var dir = new Vector3((float)dxs[i], (float)dys[i], (float)dzs[i]);
+            var mag = dir.Length();
+            points[i] = new VectorFieldPoint(pos, dir, mag);
+            xMin = Math.Min(xMin, xs[i]);
+            xMax = Math.Max(xMax, xs[i]);
+            zMin = Math.Min(zMin, zs[i]);
+            zMax = Math.Max(zMax, zs[i]);
+            magMin = Math.Min(magMin, mag);
+            magMax = Math.Max(magMax, mag);
+        }
+
+        var data = new VectorFieldChartData(
+            points,
+            new SurfaceAxisDescriptor("X", null, xMin, xMax),
+            new SurfaceAxisDescriptor("Z", null, zMin, zMax),
+            new SurfaceValueRange(magMin, magMax));
+        return VectorField(data, name);
+    }
+
+    /// <summary>
+    /// Adds a 3D vector field from a full vector field dataset.
+    /// </summary>
+    public VectorFieldPlot3DSeries VectorField(VectorFieldChartData data, string? name = null)
+    {
+        ArgumentNullException.ThrowIfNull(data);
+        return (VectorFieldPlot3DSeries)_plot.AddSeries(new VectorFieldPlot3DSeries(name, data));
+    }
+
+    /// <summary>
+    /// Adds a heatmap slice from a 2D scalar field at the specified axis position.
+    /// </summary>
+    public HeatmapSlicePlot3DSeries HeatmapSlice(
+        double[,] values,
+        HeatmapSliceAxis axis,
+        double position,
+        string? name = null)
+    {
+        ArgumentNullException.ThrowIfNull(values);
+        var field = CreateContourField(values);
+        var data = new HeatmapSliceData(field, axis, position);
+        return HeatmapSlice(data, name);
+    }
+
+    /// <summary>
+    /// Adds a heatmap slice from a full heatmap slice dataset.
+    /// </summary>
+    public HeatmapSlicePlot3DSeries HeatmapSlice(HeatmapSliceData data, string? name = null)
+    {
+        ArgumentNullException.ThrowIfNull(data);
+        return (HeatmapSlicePlot3DSeries)_plot.AddSeries(new HeatmapSlicePlot3DSeries(name, data));
+    }
+
+    /// <summary>
+    /// Adds a box plot from a full box plot dataset.
+    /// </summary>
+    public BoxPlotPlot3DSeries BoxPlot(BoxPlotData data, string? name = null)
+    {
+        ArgumentNullException.ThrowIfNull(data);
+        return (BoxPlotPlot3DSeries)_plot.AddSeries(new BoxPlotPlot3DSeries(name, data));
+    }
+
     private static SurfaceMatrix CreateSurfaceMatrix(double[,] values)
     {
         ArgumentNullException.ThrowIfNull(values);
