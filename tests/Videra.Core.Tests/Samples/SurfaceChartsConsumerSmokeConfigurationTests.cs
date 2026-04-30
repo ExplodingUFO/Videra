@@ -80,9 +80,12 @@ public sealed class SurfaceChartsConsumerSmokeConfigurationTests
         mainWindowCodeBehind.Should().Contain("await Task.Delay(TimeSpan.FromSeconds(_lightingProofHoldSeconds)).ConfigureAwait(true);");
         mainWindowCodeBehind.Should().Contain("InteractivityCrosshairEnabled:");
         mainWindowCodeBehind.Should().Contain("InteractivityTooltipOffset:");
-        mainWindowCodeBehind.Should().Contain("InteractivityProbeStrategies:");
+        mainWindowCodeBehind.Should().Contain("InteractivityProbeStrategies: Surface, Bar, Contour");
+        mainWindowCodeBehind.Should().NotContain("InteractivityProbeStrategies: Surface, Scatter, Bar, Contour");
         mainWindowCodeBehind.Should().Contain("InteractivityKeyboardShortcuts:");
-        mainWindowCodeBehind.Should().Contain("InteractivityToolbarButtons:");
+        mainWindowCodeBehind.Should().Contain("InteractivityToolbarButtons: not included in packaged consumer smoke");
+        mainWindowCodeBehind.Should().NotContain("InteractivityToolbarButtons: enabled");
+        mainWindowCodeBehind.Should().Contain("SmokeCoverage: packaged first-chart readiness plus PNG snapshot evidence; repository demo UX and scatter/live-data scenarios are out of scope");
         mainWindowCodeBehind.Should().NotContain("FrameAll");
         mainWindowCodeBehind.Should().NotContain("VideraView");
     }
@@ -99,6 +102,11 @@ public sealed class SurfaceChartsConsumerSmokeConfigurationTests
         script.Should().Contain("ConsumerSmokeSupportArtifacts.ps1");
         script.Should().Contain("Get-ConsumerSmokeSupportArtifactPaths");
         script.Should().Contain("SupportArtifactPaths");
+        script.Should().Contain("SnapshotStatus '$snapshotStatusValue'; packaged smoke success requires a present PNG snapshot.");
+        script.Should().Contain("SnapshotFormat '$($valuesByPrefix[\"SnapshotFormat:\"])'; packaged smoke success requires PNG snapshot evidence.");
+        script.Should().Contain("packaged smoke success must not count unavailable chart paths as covered.");
+        script.Should().Contain("claims Scatter probing, but packaged consumer smoke does not construct a scatter series.");
+        script.Should().Contain("claims toolbar buttons, but packaged consumer smoke has no demo toolbar.");
     }
 
     [Fact]

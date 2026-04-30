@@ -289,14 +289,24 @@ function Test-SurfaceChartsSupportSummaryContract([string]$summaryPath)
         "SnapshotWidth:",
         "SnapshotHeight:",
         "SnapshotFormat:",
+        "SnapshotOutputEvidenceKind:",
+        "SnapshotDatasetEvidenceKind:",
+        "SnapshotActiveSeriesIdentity:",
+        "SnapshotCreatedUtc:",
         "DatasetEvidenceKind:",
         "DatasetSeriesCount:",
         "DatasetActiveSeriesIndex:",
         "DatasetActiveSeriesMetadata:",
-        "RenderingStatus"
+        "RenderingStatus:",
+        "BarRenderingStatus:",
+        "ContourRenderingStatus:",
+        "InteractivityProbeStrategies:",
+        "InteractivityToolbarButtons:",
+        "SmokeCoverage:"
     )
 
     $lines = @(Get-Content -LiteralPath $summaryPath)
+    $valuesByPrefix = @{}
     $missingPrefixes = foreach ($prefix in $requiredPrefixes)
     {
         $hasPrefix = $false
@@ -305,6 +315,10 @@ function Test-SurfaceChartsSupportSummaryContract([string]$summaryPath)
             if ($line.StartsWith($prefix, [System.StringComparison]::Ordinal))
             {
                 $hasPrefix = $true
+                if (-not $valuesByPrefix.ContainsKey($prefix))
+                {
+                    $valuesByPrefix[$prefix] = $line.Substring($prefix.Length).Trim()
+                }
                 break
             }
         }
@@ -320,21 +334,70 @@ function Test-SurfaceChartsSupportSummaryContract([string]$summaryPath)
         throw "SurfaceCharts support summary '$summaryPath' is missing required field(s): $($missingPrefixes -join ', ')."
     }
 
-    $snapshotStatus = ($lines | Where-Object { $_.StartsWith("SnapshotStatus:", [System.StringComparison]::Ordinal) } | Select-Object -First 1)
-    $snapshotPath = ($lines | Where-Object { $_.StartsWith("SnapshotPath:", [System.StringComparison]::Ordinal) } | Select-Object -First 1)
-    if ($null -ne $snapshotStatus -and $null -ne $snapshotPath)
+    $snapshotStatusValue = $valuesByPrefix["SnapshotStatus:"]
+    $snapshotPathValue = $valuesByPrefix["SnapshotPath:"]
+    if ($snapshotStatusValue -ne "present")
     {
-        $statusValue = $snapshotStatus.Substring("SnapshotStatus:".Length).Trim()
-        $pathValue = $snapshotPath.Substring("SnapshotPath:".Length).Trim()
-        if ($statusValue -eq "present" -and ($pathValue -eq "none" -or -not (Test-Path -LiteralPath $pathValue)))
-        {
-            throw "SurfaceCharts support summary '$summaryPath' reports a present snapshot but '$pathValue' was not found."
-        }
+        throw "SurfaceCharts support summary '$summaryPath' reports SnapshotStatus '$snapshotStatusValue'; packaged smoke success requires a present PNG snapshot."
+    }
 
-        if ($statusValue -ne "present" -and $pathValue -ne "none")
+    if ($snapshotPathValue -eq "none" -or -not (Test-Path -LiteralPath $snapshotPathValue))
+    {
+        throw "SurfaceCharts support summary '$summaryPath' reports a present snapshot but '$snapshotPathValue' was not found."
+    }
+
+    if ($valuesByPrefix["SnapshotFormat:"] -ne "Png")
+    {
+        throw "SurfaceCharts support summary '$summaryPath' reports SnapshotFormat '$($valuesByPrefix["SnapshotFormat:"])'; packaged smoke success requires PNG snapshot evidence."
+    }
+
+    foreach ($prefix in @("SnapshotWidth:", "SnapshotHeight:"))
+    {
+        $dimensionValue = 0
+        if (-not [int]::TryParse($valuesByPrefix[$prefix], [ref]$dimensionValue) -or $dimensionValue -le 0)
         {
-            throw "SurfaceCharts support summary '$summaryPath' reports SnapshotStatus '$statusValue' with non-empty SnapshotPath '$pathValue'."
+            throw "SurfaceCharts support summary '$summaryPath' reports $prefix '$($valuesByPrefix[$prefix])'; packaged smoke success requires positive snapshot dimensions."
         }
+    }
+
+    foreach ($prefix in @("SnapshotOutputEvidenceKind:", "SnapshotDatasetEvidenceKind:", "SnapshotActiveSeriesIdentity:", "SnapshotCreatedUtc:"))
+    {
+        if ($valuesByPrefix[$prefix] -eq "none")
+        {
+            throw "SurfaceCharts support summary '$summaryPath' reports $prefix none; packaged smoke success requires manifest-backed snapshot truth."
+        }
+    }
+
+    $renderingStatus = $valuesByPrefix["RenderingStatus:"]
+    if (-not $renderingStatus.Contains("IsReady True", [System.StringComparison]::Ordinal))
+    {
+        throw "SurfaceCharts support summary '$summaryPath' does not report a ready RenderingStatus."
+    }
+
+    if ($renderingStatus -match "ResidentTileCount\s+0(\D|$)")
+    {
+        throw "SurfaceCharts support summary '$summaryPath' reports zero resident tiles."
+    }
+
+    foreach ($prefix in @("BarRenderingStatus:", "ContourRenderingStatus:"))
+    {
+        $statusValue = $valuesByPrefix[$prefix]
+        if (-not $statusValue.Contains("HasSource True", [System.StringComparison]::Ordinal) -or
+            -not $statusValue.Contains("IsReady True", [System.StringComparison]::Ordinal))
+        {
+            throw "SurfaceCharts support summary '$summaryPath' reports $prefix '$statusValue'; packaged smoke success must not count unavailable chart paths as covered."
+        }
+    }
+
+    $probeStrategies = $valuesByPrefix["InteractivityProbeStrategies:"]
+    if ($probeStrategies.Contains("Scatter", [System.StringComparison]::Ordinal))
+    {
+        throw "SurfaceCharts support summary '$summaryPath' claims Scatter probing, but packaged consumer smoke does not construct a scatter series."
+    }
+
+    if ($valuesByPrefix["InteractivityToolbarButtons:"] -eq "enabled")
+    {
+        throw "SurfaceCharts support summary '$summaryPath' claims toolbar buttons, but packaged consumer smoke has no demo toolbar."
     }
 }
 

@@ -566,9 +566,10 @@ public partial class MainWindow : Window
             $"OverlayOptions: {CreateOverlayOptionsSummary(_chartView.Plot.OverlayOptions)}\n" +
             $"InteractivityCrosshairEnabled: {_chartView.Plot.OverlayOptions.ShowCrosshair}\n" +
             $"InteractivityTooltipOffset: ({_chartView.Plot.OverlayOptions.TooltipOffset.X}, {_chartView.Plot.OverlayOptions.TooltipOffset.Y})\n" +
-            $"InteractivityProbeStrategies: Surface, Scatter, Bar, Contour\n" +
+            $"InteractivityProbeStrategies: Surface, Bar, Contour\n" +
             $"InteractivityKeyboardShortcuts: enabled\n" +
-            $"InteractivityToolbarButtons: enabled\n" +
+            $"InteractivityToolbarButtons: not included in packaged consumer smoke\n" +
+            $"SmokeCoverage: packaged first-chart readiness plus PNG snapshot evidence; repository demo UX and scatter/live-data scenarios are out of scope\n" +
             "Dataset: Generated 64x48 in-memory matrix for the packaged first-chart consumer proof.";
     }
 
