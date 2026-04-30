@@ -102,21 +102,50 @@ public sealed class SurfaceChartWorkspace : IDisposable
     }
 
     /// <summary>
-    /// Returns a snapshot of the workspace status. Deferred to Plan 02.
+    /// Returns a snapshot of the current workspace status, including per-chart rendering readiness,
+    /// dataset scale, and overall workspace health.
     /// </summary>
-    /// <exception cref="NotImplementedException">Always thrown — status layer is deferred.</exception>
+    /// <returns>A point-in-time snapshot of the workspace.</returns>
     public SurfaceChartWorkspaceStatus CaptureWorkspaceStatus()
     {
-        throw new NotImplementedException("Deferred to Plan 02: workspace status and evidence layer.");
+        var panels = new List<SurfaceChartPanelStatus>(_panels.Count);
+
+        foreach (var (chart, info) in _panels.Values)
+        {
+            var datasetEvidence = chart.Plot.CreateDatasetEvidence();
+            var isReady = chart.RenderingStatus.IsReady;
+            var seriesCount = datasetEvidence.Series.Count;
+            var pointCount = datasetEvidence.Series.Sum(s => s.SampleCount + s.PointCount);
+
+            panels.Add(new SurfaceChartPanelStatus(
+                info.ChartId,
+                info.Label,
+                info.ChartKind,
+                isReady,
+                seriesCount,
+                pointCount));
+        }
+
+        var allReady = panels.Count > 0 && panels.All(p => p.IsReady);
+
+        return new SurfaceChartWorkspaceStatus(
+            _panels.Count,
+            _activeChartId,
+            panels,
+            LinkGroupCount: 0,
+            allReady);
     }
 
     /// <summary>
-    /// Returns a bounded text block describing workspace state. Deferred to Plan 02.
+    /// Returns a bounded text block describing workspace state, including active panel,
+    /// per-chart rendering status, and dataset scale.
     /// </summary>
-    /// <exception cref="NotImplementedException">Always thrown — evidence formatter is deferred.</exception>
+    /// <returns>A bounded diagnostic text block.</returns>
     public string CreateWorkspaceEvidence()
     {
-        throw new NotImplementedException("Deferred to Plan 02: workspace evidence formatter.");
+        var status = CaptureWorkspaceStatus();
+        var activeInfo = _activeChartId is { } id && _panels.TryGetValue(id, out var entry) ? entry.Info : null;
+        return SurfaceChartWorkspaceEvidence.Create(status, activeInfo?.RecipeContext);
     }
 
     /// <inheritdoc />

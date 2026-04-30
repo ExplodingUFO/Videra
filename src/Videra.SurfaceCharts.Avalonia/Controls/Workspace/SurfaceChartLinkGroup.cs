@@ -42,6 +42,12 @@ public sealed class SurfaceChartLinkGroup : IDisposable
     /// <exception cref="NotSupportedException">The policy is not <see cref="SurfaceChartLinkPolicy.FullViewState"/>.</exception>
     public SurfaceChartLinkGroup(SurfaceChartLinkPolicy policy = SurfaceChartLinkPolicy.FullViewState)
     {
+        if (policy != SurfaceChartLinkPolicy.FullViewState)
+        {
+            throw new NotSupportedException(
+                $"Only FullViewState link policy is supported in Phase 426. {policy} will be added in Phase 427.");
+        }
+
         _policy = policy;
     }
 
@@ -59,7 +65,20 @@ public sealed class SurfaceChartLinkGroup : IDisposable
     /// <exception cref="InvalidOperationException">The chart is already a member of this group.</exception>
     public void Add(VideraChartView chart)
     {
-        throw new NotImplementedException("Stub for RED phase");
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        ArgumentNullException.ThrowIfNull(chart);
+
+        if (_members.Any(m => ReferenceEquals(m, chart)))
+        {
+            throw new InvalidOperationException("Chart is already a member of this link group.");
+        }
+
+        foreach (var existing in _members)
+        {
+            _pairwiseLinks.Add(existing.LinkViewWith(chart));
+        }
+
+        _members.Add(chart);
     }
 
     /// <summary>
@@ -68,12 +87,44 @@ public sealed class SurfaceChartLinkGroup : IDisposable
     /// <param name="chart">The chart view to remove.</param>
     public void Remove(VideraChartView chart)
     {
-        throw new NotImplementedException("Stub for RED phase");
+        var index = _members.FindIndex(m => ReferenceEquals(m, chart));
+        if (index < 0)
+        {
+            return;
+        }
+
+        // Dispose all existing links, remove chart, and rebuild links among remaining members.
+        var remaining = _members.Where(m => !ReferenceEquals(m, chart)).ToList();
+        foreach (var link in _pairwiseLinks)
+        {
+            link.Dispose();
+        }
+
+        _pairwiseLinks.Clear();
+        _members.Clear();
+
+        // Re-add remaining members one at a time to rebuild pairwise links.
+        foreach (var m in remaining)
+        {
+            Add(m);
+        }
     }
 
     /// <inheritdoc />
     public void Dispose()
     {
-        throw new NotImplementedException("Stub for RED phase");
+        if (_disposed)
+        {
+            return;
+        }
+
+        foreach (var link in _pairwiseLinks)
+        {
+            link.Dispose();
+        }
+
+        _pairwiseLinks.Clear();
+        _members.Clear();
+        _disposed = true;
     }
 }
