@@ -55,6 +55,11 @@ and probe/overlay infrastructure before adding new chart families.
 4. API contracts for Line, Ribbon, Vector Field, Heatmap Slice, and Box Plot
    are designed with type signatures and data models.
 
+
+**Plans:** 1 plan
+Plans:
+- [ ] 432-01-PLAN.md — Inventory current chart type API surface and design API contracts for new chart families
+
 ### Phase 433: Promote Bar+Contour to Production
 
 **Goal:** Move Bar and Contour chart families from proof-path to the public
