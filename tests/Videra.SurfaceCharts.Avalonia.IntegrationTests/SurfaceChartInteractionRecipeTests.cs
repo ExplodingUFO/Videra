@@ -71,6 +71,53 @@ public sealed class SurfaceChartInteractionRecipeTests
     }
 
     [Fact]
+    public Task AnnotationAnchors_CanBeCreatedFromProbeAndSelectionReports()
+    {
+        return AvaloniaHeadlessTestSession.RunAsync(async () =>
+        {
+            var metadata = new SurfaceMetadata(
+                width: 5,
+                height: 5,
+                new SurfaceAxisDescriptor("Time", "s", 10d, 20d),
+                new SurfaceAxisDescriptor("Frequency", "Hz", 100d, 200d),
+                new SurfaceValueRange(-2d, 2d));
+            var source = new ScriptedSurfaceTileSource(metadata, defaultTileValue: 7f);
+            var view = new VideraChartView();
+
+            view.Measure(new Size(200, 200));
+            view.Arrange(new Rect(0, 0, 200, 200));
+            view.ViewState = new SurfaceViewState((new SurfaceViewport(0, 0, 4, 4)).ToDataWindow(), view.ViewState.Camera, view.ViewState.DisplaySpace);
+            SurfaceChartTestHelpers.LoadSurface(view, source);
+
+            await SurfaceChartTestHelpers.WaitForLoadedTileValuesAsync(view, [7f]);
+
+            view.TryCreateProbeAnnotationAnchor(new Point(100d, 100d), out var probeAnchor, "peak").Should().BeTrue();
+            probeAnchor.Kind.Should().Be(SurfaceChartAnnotationAnchorKind.Probe);
+            probeAnchor.AxisX.Should().BeApproximately(15d, 0.0001d);
+            probeAnchor.AxisY.Should().BeApproximately(150d, 0.0001d);
+            probeAnchor.Value.Should().Be(7d);
+            probeAnchor.Label.Should().Be("peak");
+
+            view.TryCreateSelectionAnnotationAnchors(
+                new Point(50d, 50d),
+                new Point(150d, 100d),
+                out var startAnchor,
+                out var endAnchor).Should().BeTrue();
+
+            startAnchor.Kind.Should().Be(SurfaceChartAnnotationAnchorKind.SelectionStart);
+            startAnchor.ScreenPosition.Should().Be(new Point(50d, 50d));
+            startAnchor.AxisX.Should().BeApproximately(12.5d, 0.0001d);
+            startAnchor.AxisY.Should().BeApproximately(125d, 0.0001d);
+            startAnchor.Value.Should().BeNull();
+
+            endAnchor.Kind.Should().Be(SurfaceChartAnnotationAnchorKind.SelectionEnd);
+            endAnchor.ScreenPosition.Should().Be(new Point(150d, 100d));
+            endAnchor.AxisX.Should().BeApproximately(17.5d, 0.0001d);
+            endAnchor.AxisY.Should().BeApproximately(150d, 0.0001d);
+        });
+    }
+
+    [Fact]
     public void DraggableOverlayRecipes_ClampMarkerAndRangeWithoutMutatingInput()
     {
         var metadata = new SurfaceMetadata(

@@ -13,18 +13,16 @@ pwsh -File ./scripts/Export-BeadsRoadmap.ps1
 ## Active
 
 - **Videra-zn7** - v2.63 Native SurfaceCharts Feature and Demo Expansion (epic, P1, in_progress)
-- **Videra-kyy** - Phase 420 native 3D feature convenience APIs (task, P1, in_progress)
+- **Videra-b5n** - Phase 421 annotation and measurement workflows (task, P1, in_progress)
 
 ## Ready
 
-- **Videra-b5n.1** - Phase 421A add annotation anchor DTOs (task, P1, open)
+- **Videra-b5n.2** - Phase 421B add measurement report helpers (task, P1, open)
+- **Videra-b5n.3** - Phase 421C expose selection report event (task, P1, open)
 - **Videra-j3z.1** - Phase 422A add demo scenario descriptors (task, P1, open)
 
 ## Blocked
 
-- **Videra-b5n** - Phase 421 annotation and measurement workflows (task, P1, open)
-- **Videra-b5n.2** - Phase 421B add measurement report helpers (task, P1, open)
-- **Videra-b5n.3** - Phase 421C expose selection report event (task, P1, open)
 - **Videra-j3z** - Phase 422 demo gallery workflow upgrade (task, P1, open)
 - **Videra-j3z.2** - Phase 422B split demo MainWindow responsibilities (task, P1, open)
 - **Videra-j3z.3** - Phase 422C clarify scatter selector affordance (task, P1, open)
@@ -45,6 +43,8 @@ _No matching beads in the exported snapshot._
 
 ## Recently Closed
 
+- **Videra-b5n.1** - Phase 421A add annotation anchor DTOs (task, P1, closed)
+- **Videra-kyy** - Phase 420 native 3D feature convenience APIs (task, P1, closed)
 - **Videra-kyy.3** - Phase 420C add minimal series style handles (task, P1, closed)
 - **Videra-kyy.2** - Phase 420B add contour explicit levels (task, P1, closed)
 - **Videra-kyy.1** - Phase 420A add bar category labels (task, P1, closed)
@@ -53,6 +53,4 @@ _No matching beads in the exported snapshot._
 - **Videra-mula** - Phase 419A inventory native feature API surface (task, P1, closed)
 - **Videra-jyrv** - Phase 419B inventory demo gallery and support workflows (task, P1, closed)
 - **Videra-6zx** - v2.62 Native SurfaceCharts Cleanup and Old-Code Removal (epic, P1, closed)
-- **Videra-73a** - Phase 418 v2.62 final verification (task, P2, closed)
-- **Videra-r9q** - Phase 417 No-compat guardrails and CI truth (task, P1, closed)
 

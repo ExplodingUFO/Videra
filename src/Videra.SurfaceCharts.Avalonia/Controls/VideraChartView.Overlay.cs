@@ -137,6 +137,47 @@ public partial class VideraChartView
     }
 
     /// <summary>
+    /// Creates a host-owned annotation anchor from a resolved probe at the supplied screen position.
+    /// </summary>
+    public bool TryCreateProbeAnnotationAnchor(
+        Point screenPosition,
+        out SurfaceChartAnnotationAnchor anchor,
+        string? label = null)
+    {
+        anchor = default;
+
+        if (!TryResolveProbe(screenPosition, out var probe))
+        {
+            return false;
+        }
+
+        anchor = SurfaceChartAnnotationAnchor.FromProbe(probe, label);
+        return true;
+    }
+
+    /// <summary>
+    /// Creates host-owned annotation anchors from a selection report between two screen positions.
+    /// </summary>
+    public bool TryCreateSelectionAnnotationAnchors(
+        Point screenStart,
+        Point screenEnd,
+        out SurfaceChartAnnotationAnchor startAnchor,
+        out SurfaceChartAnnotationAnchor endAnchor)
+    {
+        startAnchor = default;
+        endAnchor = default;
+
+        if (!TryCreateSelectionReport(screenStart, screenEnd, out var selection))
+        {
+            return false;
+        }
+
+        startAnchor = SurfaceChartAnnotationAnchor.FromSelectionStart(selection);
+        endAnchor = SurfaceChartAnnotationAnchor.FromSelectionEnd(selection);
+        return true;
+    }
+
+    /// <summary>
     /// Creates a bounded marker overlay recipe at the supplied screen position.
     /// </summary>
     public bool TryCreateDraggableMarkerOverlay(
