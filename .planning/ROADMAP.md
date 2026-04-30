@@ -58,7 +58,7 @@ and probe/overlay infrastructure before adding new chart families.
 
 **Plans:** 1 plan
 Plans:
-- [ ] 432-01-PLAN.md — Inventory current chart type API surface and design API contracts for new chart families
+- [x] 432-01-PLAN.md — Inventory current chart type API surface and design API contracts for new chart families
 
 ### Phase 433: Promote Bar+Contour to Production
 
@@ -73,6 +73,10 @@ package API contract.
 3. Existing Bar and Contour tests, demo scenarios, and cookbook recipes pass
    without modification.
 4. Package validation scripts confirm Bar+Contour are in the public surface.
+
+**Plans:** 1 plan
+Plans:
+- [ ] 433-01-PLAN.md — Add BarPlot3DSeries and ContourPlot3DSeries to public API contract and verify existing tests pass
 
 ### Phase 434: Line/Ribbon Chart Family
 
@@ -146,8 +150,8 @@ v2.65 with verification.
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 432. Chart Type Inventory and API Design | 0/1 | Ready | |
-| 433. Promote Bar+Contour to Production | 0/1 | Blocked | |
+| 432. Chart Type Inventory and API Design | 1/1 | Complete    | 2026-04-30 |
+| 433. Promote Bar+Contour to Production | 0/1 | Ready | |
 | 434. Line/Ribbon Chart Family | 0/1 | Blocked | |
 | 435. Vector Field Chart Family | 0/1 | Blocked | |
 | 436. 3D Heatmap Slice Chart Family | 0/1 | Blocked | |
