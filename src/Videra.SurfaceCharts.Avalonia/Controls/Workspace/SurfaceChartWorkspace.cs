@@ -11,6 +11,7 @@ namespace Videra.SurfaceCharts.Avalonia.Controls.Workspace;
 public sealed class SurfaceChartWorkspace : IDisposable
 {
     private readonly Dictionary<string, (VideraChartView Chart, SurfaceChartPanelInfo Info)> _panels = new();
+    private readonly Dictionary<string, SurfaceChartStreamingStatus> _streamingStatuses = new();
     private readonly List<(SurfaceChartLinkGroup Group, SurfaceChartInteractionPropagator? Propagator)> _linkGroups = [];
     private string? _activeChartId;
     private bool _disposed;
@@ -46,11 +47,37 @@ public sealed class SurfaceChartWorkspace : IDisposable
     public void Unregister(string chartId)
     {
         _panels.Remove(chartId);
+        _streamingStatuses.Remove(chartId);
 
         if (_activeChartId == chartId)
         {
             _activeChartId = _panels.Keys.FirstOrDefault();
         }
+    }
+
+    /// <summary>
+    /// Registers or updates the streaming status for a chart.
+    /// </summary>
+    /// <param name="chartId">The chart id to associate the streaming status with.</param>
+    /// <param name="status">The streaming status to store.</param>
+    /// <exception cref="ObjectDisposedException">The workspace has been disposed.</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="status"/> is null.</exception>
+    public void RegisterStreamingStatus(string chartId, SurfaceChartStreamingStatus status)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        ArgumentNullException.ThrowIfNull(status);
+
+        _streamingStatuses[chartId] = status;
+    }
+
+    /// <summary>
+    /// Returns the streaming status for a specific chart, or null if not registered.
+    /// </summary>
+    /// <param name="chartId">The chart id to look up.</param>
+    /// <returns>The streaming status, or null if no streaming status has been registered for this chart.</returns>
+    public SurfaceChartStreamingStatus? GetStreamingStatus(string chartId)
+    {
+        return _streamingStatuses.TryGetValue(chartId, out var status) ? status : null;
     }
 
     /// <summary>
@@ -213,6 +240,7 @@ public sealed class SurfaceChartWorkspace : IDisposable
         }
 
         _panels.Clear();
+        _streamingStatuses.Clear();
         _linkGroups.Clear();
         _activeChartId = null;
         _disposed = true;
