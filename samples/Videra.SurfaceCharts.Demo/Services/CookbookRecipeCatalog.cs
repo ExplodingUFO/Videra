@@ -170,6 +170,24 @@ internal static class CookbookRecipes
                 chart.FitToData();
                 """),
         new(
+            "Multi-chart",
+            "Analysis workspace",
+            "Host-owned workspace coordinating multiple VideraChartView instances for comparison.",
+            ScenarioId: SurfaceDemoScenarios.AnalysisWorkspaceId,
+            ScatterScenarioId: null,
+            Snippet: """
+                var workspace = new SurfaceChartWorkspace();
+                workspace.Register(chartA, new SurfaceChartPanelInfo(
+                    ChartId: "chart-a",
+                    Label: "Surface A",
+                    ChartKind: Plot3DSeriesKind.Surface));
+                workspace.Register(chartB, new SurfaceChartPanelInfo(
+                    ChartId: "chart-b",
+                    Label: "Contour B",
+                    ChartKind: Plot3DSeriesKind.Contour));
+                var evidence = workspace.CreateWorkspaceEvidence();
+                """),
+        new(
             "Export",
             "Chart-local PNG snapshot",
             "Isolated setup path: keeps the first chart visible and uses the bounded Capture Snapshot button for the same PNG-only export path.",
