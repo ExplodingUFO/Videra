@@ -12,12 +12,11 @@ pwsh -File ./scripts/Export-BeadsRoadmap.ps1
 
 ## Active
 
-_No matching beads in the exported snapshot._
+- **Videra-q10** - Phase 413 v2.61 final verification (task, P2, in_progress)
 
 ## Ready
 
 - **Videra-uqv** - v2.61 Native SurfaceCharts Cookbook and CI Truth (epic, P1, open)
-- **Videra-q10** - Phase 413 v2.61 final verification (task, P2, open)
 
 ## Blocked
 
