@@ -76,7 +76,7 @@ package API contract.
 
 **Plans:** 1 plan
 Plans:
-- [ ] 433-01-PLAN.md — Add BarPlot3DSeries and ContourPlot3DSeries to public API contract and verify existing tests pass
+- [x] 433-01-PLAN.md — Add BarPlot3DSeries and ContourPlot3DSeries to public API contract and verify existing tests pass
 
 ### Phase 434: Line/Ribbon Chart Family
 
@@ -151,7 +151,7 @@ v2.65 with verification.
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 432. Chart Type Inventory and API Design | 1/1 | Complete    | 2026-04-30 |
-| 433. Promote Bar+Contour to Production | 0/1 | Ready | |
+| 433. Promote Bar+Contour to Production | 1/1 | Complete    | 2026-04-30 |
 | 434. Line/Ribbon Chart Family | 0/1 | Blocked | |
 | 435. Vector Field Chart Family | 0/1 | Blocked | |
 | 436. 3D Heatmap Slice Chart Family | 0/1 | Blocked | |
