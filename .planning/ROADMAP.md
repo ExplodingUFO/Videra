@@ -1,155 +1,172 @@
-# Roadmap: v2.63 Native SurfaceCharts Feature and Demo Expansion
+# Roadmap: v2.64 Native SurfaceCharts Analysis Workspace and Streaming Evidence
 
-**Goal:** Make SurfaceCharts feel like a richer native 3D plotting surface by
-adding focused feature affordances and a stronger recipe-first demo without
-widening into compatibility or broad workbench scope.
+**Goal:** Move SurfaceCharts from isolated chart recipes into native analysis
+workflows with multi-chart composition, linked interaction, high-density and
+streaming evidence, scenario cookbook templates, and CI/release-readiness truth.
 
 **Boundary:** This milestone does not add compatibility adapters, parity claims,
 old chart controls, direct public `Source` loading, hidden fallback/downshift
-behavior, renderer/backend expansion, generic workbench scope, or fake
-validation evidence.
+behavior, renderer/backend expansion, generic workbench scope, package
+publication, or fake validation evidence.
 
-**Phases:** 6 (419-424)
-**Requirements:** 15 (INV-01..02, FEAT-01..03, MARK-01..02, DEMO-01..03,
-TRUTH-01..03, VERIFY-01..02)
-**Beads epic:** `Videra-zn7`
+**Phases:** 7 (425-431)
+**Requirements:** 20 (INV-01..03, WORK-01..03, LINK-01..03,
+STREAM-01..03, COOK-01..03, TRUTH-01..03, VERIFY-01..02)
+**Beads epic:** `Videra-7tqx`
 
 ## Phases
 
-- [x] **Phase 419: Feature/Demo Surface Inventory** - Map current native feature
-  APIs, demo gaps, recipe coverage, support evidence, and validation surfaces
-  before implementation.
-- [x] **Phase 420: Native 3D Feature Convenience APIs** - Add focused native
-  feature affordances for common 3D chart construction, styling, and typed
-  state inspection.
-- [x] **Phase 421: Annotation and Measurement Workflows** - Add bounded
-  coordinate-attached labels, markers, references, and measurement evidence.
-- [x] **Phase 422: Demo Gallery Workflow Upgrade** - Upgrade the SurfaceCharts
-  demo into a richer recipe-first gallery without turning it into a generic
-  workbench.
-- [x] **Phase 423: Feature Cookbook and Validation Truth** - Align cookbook,
-  repository tests, CI, release-readiness filters, generated roadmap, and
+- [ ] **Phase 425: Analysis Workspace and Streaming Inventory** - Map current
+  multi-chart, linked interaction, streaming/high-density, cookbook,
+  package-smoke, and CI truth surfaces before implementation.
+- [ ] **Phase 426: Native Multi-Chart Analysis Workspace** - Add bounded native
+  multi-chart layout/workspace affordances without creating a generic workbench.
+- [ ] **Phase 427: Linked Interaction and Selection Propagation** - Add linked
+  camera/axis/probe/selection workflows with host-owned state and explicit
+  support evidence.
+- [ ] **Phase 428: High-Density and Streaming Data Evidence** - Strengthen
+  streaming and large-data workflows with real ingestion/window/cache evidence.
+- [ ] **Phase 429: Scenario Cookbook and Package Templates** - Turn the richer
+  workflows into detailed native cookbook scenarios and package-consumer
+  templates.
+- [ ] **Phase 430: CI Performance and Release-Readiness Truth** - Align focused
+  tests, CI, consumer smoke, release-readiness filters, generated roadmap, and
   no-fake-evidence guardrails.
-- [x] **Phase 424: v2.63 Final Verification** - Close v2.63 with composed
+- [ ] **Phase 431: v2.64 Final Verification** - Close v2.64 with composed
   validation, Beads export, generated roadmap sync, phase archive, push, and
   cleanup.
 
 ## Phase Details
 
-### Phase 419: Feature/Demo Surface Inventory
+### Phase 425: Analysis Workspace and Streaming Inventory
 
-**Goal:** Establish the real feature/demo expansion surface before changing
-APIs or demo behavior.
+**Goal:** Establish the real v2.64 workflow surface before changing APIs, demo,
+or validation behavior.
 **Depends on:** Nothing
-**Requirements:** INV-01, INV-02, FEAT-01, MARK-01, DEMO-01, TRUTH-01
-**Bead:** `Videra-dwf`
+**Requirements:** INV-01, INV-02, INV-03
+**Bead:** `Videra-7tqx.1`
 **Success Criteria:**
-1. Current feature APIs, demo recipes, support summaries, docs, and tests are
-   mapped by owner and risk.
-2. Candidate improvements are classified as native feature, demo-only workflow,
-   validation truth, or out-of-scope broadening.
-3. Phase 420-423 write sets and validation commands are identified so later
-   work can split into small beads.
-**Plans:** 419-PLAN.md
-**Completed:** 2026-04-30
+1. Current multi-chart, linked interaction, streaming/high-density, cookbook,
+   package-smoke, CI, and release-readiness owners are mapped.
+2. Candidate work is classified as native workflow API, demo/sample scenario,
+   performance evidence, CI/release truth, or out-of-scope expansion.
+3. Phase 426-430 write sets, dependencies, validation commands, and safe
+   worktree split points are identified.
+**Plans:** 425-PLAN.md
 
-### Phase 420: Native 3D Feature Convenience APIs
+### Phase 426: Native Multi-Chart Analysis Workspace
 
-**Goal:** Add concise native feature affordances for common 3D chart usage.
-**Depends on:** Phase 419
-**Requirements:** FEAT-01, FEAT-02, FEAT-03
-**Bead:** `Videra-kyy`
+**Goal:** Add bounded native analysis layout affordances for comparing multiple
+SurfaceCharts panels.
+**Depends on:** Phase 425
+**Requirements:** WORK-01, WORK-02, WORK-03
+**Bead:** `Videra-7tqx.2`
 **Success Criteria:**
-1. Users can author selected common 3D chart scenarios through direct
-   `VideraChartView.Plot` APIs.
-2. New styling/data-shaping affordances remain chart-local, explicit, and
-   backed by focused tests.
-3. Returned handles/results expose only the state users need to inspect or
-   update, without compatibility wrappers.
-**Plans:** 420-PLAN.md
-**Completed:** 2026-04-30
+1. Users can compose selected SurfaceCharts panels into a bounded analysis
+   layout using native APIs and demo paths.
+2. Workspace evidence reports active panel identity, chart kinds, recipe
+   context, dataset scale, and rendering status.
+3. Demo/sample code keeps layout, scenario catalog, and support summary
+   responsibilities separated.
+**Plans:** 426-PLAN.md
 
-### Phase 421: Annotation and Measurement Workflows
+### Phase 427: Linked Interaction and Selection Propagation
 
-**Goal:** Improve chart reading with bounded native annotation and measurement
-workflows.
-**Depends on:** Phase 420
-**Requirements:** MARK-01, MARK-02, FEAT-03
-**Bead:** `Videra-b5n`
+**Goal:** Make linked panel interaction useful and explicit without hiding state
+ownership.
+**Depends on:** Phase 426
+**Requirements:** LINK-01, LINK-02, LINK-03
+**Bead:** `Videra-7tqx.3`
 **Success Criteria:**
-1. Users can add coordinate-attached labels, markers, or reference elements that
-   render consistently under camera/projection changes.
-2. Measurement/support evidence is explicit and useful without benchmark or
-   precision overclaims.
-3. APIs and rendering code stay bounded to chart-local responsibilities.
-**Plans:** 421-PLAN.md
-**Completed:** 2026-04-30
+1. Users can link camera, axis, or view-state behavior across selected panels.
+2. Probe, selection, and measurement context can propagate across linked panels
+   while host-owned state remains explicit.
+3. Support summaries describe linked panels, active interaction surfaces, and
+   evidence boundaries truthfully.
+**Plans:** 427-PLAN.md
 
-### Phase 422: Demo Gallery Workflow Upgrade
+### Phase 428: High-Density and Streaming Data Evidence
 
-**Goal:** Make the demo a stronger recipe-first native feature experience.
-**Depends on:** Phase 421
-**Requirements:** DEMO-01, DEMO-02, DEMO-03
-**Bead:** `Videra-j3z`
+**Goal:** Prove streaming and high-density workflows with real runtime evidence.
+**Depends on:** Phase 427
+**Requirements:** STREAM-01, STREAM-02, STREAM-03
+**Bead:** `Videra-7tqx.4`
 **Success Criteria:**
-1. Demo users can browse feature/recipe categories and switch scenarios without
-   losing clear chart/support context.
-2. Copyable snippets and visible chart outcomes stay aligned with the native API
-   paths implemented in this milestone.
-3. Demo code remains split into bounded catalog/support responsibilities rather
-   than a broad workbench shell.
-**Plans:** 422-PLAN.md
-**Completed:** 2026-04-30
+1. A high-density or streaming SurfaceCharts scenario runs with explicit
+   ingestion/window/cache evidence.
+2. Update, retention, and visible-window behavior stay bounded and do not
+   perform hidden data-path substitution.
+3. Performance evidence reports real scenario scope, dataset size, limits, and
+   non-goals without benchmark overclaims.
+**Plans:** 428-PLAN.md
 
-### Phase 423: Feature Cookbook and Validation Truth
+### Phase 429: Scenario Cookbook and Package Templates
 
-**Goal:** Keep the expanded feature/demo surface honest and durable.
-**Depends on:** Phase 422
+**Goal:** Convert the v2.64 workflows into copyable native recipes and package
+consumer templates.
+**Depends on:** Phase 428
+**Requirements:** COOK-01, COOK-02, COOK-03
+**Bead:** `Videra-7tqx.5`
+**Success Criteria:**
+1. Cookbook docs cover multi-chart analysis, linked interaction, high-density
+   data, streaming updates, and support evidence.
+2. Package-consumer templates demonstrate supported public package workflows
+   with copyable code.
+3. Repository tests verify snippets, template claims, support wording, and
+   scope boundaries.
+**Plans:** 429-PLAN.md
+
+### Phase 430: CI Performance and Release-Readiness Truth
+
+**Goal:** Keep the larger workflow surface honest in CI and release-readiness.
+**Depends on:** Phase 429
 **Requirements:** TRUTH-01, TRUTH-02, TRUTH-03, VERIFY-01
-**Bead:** `Videra-64g`
+**Bead:** `Videra-7tqx.6`
 **Success Criteria:**
-1. Cookbook docs and repository tests cover the new feature/demo workflows.
-2. CI and release-readiness filters include the new focused validation gates.
-3. Guardrails continue to reject compatibility claims, hidden fallback/downshift,
-   old chart paths, and fake evidence.
-**Plans:** 423-PLAN.md
-**Completed:** 2026-04-30
+1. Focused tests and CI filters cover workspace, linked interaction, streaming,
+   cookbook, package templates, and generated roadmap checks.
+2. Release-readiness validation includes the new package-consumer evidence
+   without counting skipped or unavailable checks as success.
+3. Guardrails continue to reject compatibility claims, old chart paths, hidden
+   fallback/downshift, broad workbench scope, backend expansion, and fake
+   evidence.
+**Plans:** 430-PLAN.md
 
-### Phase 424: v2.63 Final Verification
+### Phase 431: v2.64 Final Verification
 
-**Goal:** Close v2.63 with synchronized verification and handoff.
-**Depends on:** Phase 423
+**Goal:** Close v2.64 with synchronized verification and handoff.
+**Depends on:** Phase 430
 **Requirements:** VERIFY-01, VERIFY-02
-**Bead:** `Videra-7ip`
+**Bead:** `Videra-7tqx.7`
 **Success Criteria:**
-1. Focused feature, annotation, demo, cookbook, CI, generated-roadmap, and scope
-   checks pass or are explicitly reported.
+1. Focused workflow, streaming, cookbook, CI, generated-roadmap, release
+   readiness, and scope checks pass or are explicitly reported.
 2. Beads state, generated public roadmap, phase archive, branch/worktree
    cleanup, Git push, and Dolt Beads push are synchronized.
-**Plans:** 424-PLAN.md
-**Completed:** 2026-04-30
+**Plans:** 431-PLAN.md
 
 ## Progress
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 419. Feature/Demo Surface Inventory | 1/1 | Complete | 2026-04-30 |
-| 420. Native 3D Feature Convenience APIs | 1/1 | Complete | 2026-04-30 |
-| 421. Annotation and Measurement Workflows | 1/1 | Complete | 2026-04-30 |
-| 422. Demo Gallery Workflow Upgrade | 1/1 | Complete | 2026-04-30 |
-| 423. Feature Cookbook and Validation Truth | 1/1 | Complete | 2026-04-30 |
-| 424. v2.63 Final Verification | 1/1 | Complete | 2026-04-30 |
+| 425. Analysis Workspace and Streaming Inventory | 0/1 | Ready | |
+| 426. Native Multi-Chart Analysis Workspace | 0/1 | Blocked | |
+| 427. Linked Interaction and Selection Propagation | 0/1 | Blocked | |
+| 428. High-Density and Streaming Data Evidence | 0/1 | Blocked | |
+| 429. Scenario Cookbook and Package Templates | 0/1 | Blocked | |
+| 430. CI Performance and Release-Readiness Truth | 0/1 | Blocked | |
+| 431. v2.64 Final Verification | 0/1 | Blocked | |
 
 ---
 
 <details>
-<summary>v2.62 Native SurfaceCharts Cleanup and Old-Code Removal - Complete (2026-04-30)</summary>
+<summary>v2.63 Native SurfaceCharts Feature and Demo Expansion - Complete (2026-04-30)</summary>
 
-Archived phase artifacts: `.planning/milestones/v2.62-phases`
+Archived phase artifacts: `.planning/milestones/v2.63-phases`
 
-v2.62 removed stale SurfaceCharts old-code paths, chart-local fallback/downshift
-behavior, compatibility backfill vocabulary, and demo code-behind coupling. It
-also hardened no-compat guardrails and CI/release truth before final clean
-handoff.
+v2.63 added focused native Bar/Contour/styling/data-shaping affordances,
+bounded annotation/measurement workflows, richer recipe-first demo behavior,
+and real package-consumer release-readiness truth while preserving the single
+native `VideraChartView` + `Plot.Add.*` route.
 
 </details>

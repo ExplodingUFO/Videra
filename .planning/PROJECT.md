@@ -12,10 +12,32 @@ Videra 是一个基于 `.NET 8` 的跨平台 3D 渲染引擎，提供 Windows (`
 
 ## Current State
 
-- 最新完整归档 milestone：`v2.62 Native SurfaceCharts Cleanup and Old-Code Removal`
-- 最近完成 milestone：`v2.62 Native SurfaceCharts Cleanup and Old-Code Removal`
-- 当前 active milestone：`v2.63 Native SurfaceCharts Feature and Demo Expansion`
-- 当前 focus：继续扩大 SurfaceCharts 的原生 3D 图表功能用法和 demo 体验，在保持 `VideraChartView` + `Plot.Add.*` 单一路线的前提下补齐更常见的构图、交互标注、测量、场景化 demo 和验证闭环；不引入兼容层、旧控件、隐藏 fallback/downshift、泛化 workbench 或造假验证。
+- 最新完整归档 milestone：`v2.63 Native SurfaceCharts Feature and Demo Expansion`
+- 最近完成 milestone：`v2.63 Native SurfaceCharts Feature and Demo Expansion`
+- 当前 active milestone：`v2.64 Native SurfaceCharts Analysis Workspace and Streaming Evidence`
+- 当前 focus：把 SurfaceCharts 从单图表/单 cookbook 场景推进到更完整的原生分析工作流：多图表布局、联动交互、高密度/流式数据证据、场景化 cookbook、包消费模板和 CI/release-readiness 真值；继续保持 `VideraChartView` + `Plot.Add.*` 单一路线，不引入兼容层、旧控件、隐藏 fallback/downshift、泛化 workbench 或造假验证。
+
+## Recently Completed Milestone: v2.63 Native SurfaceCharts Feature and Demo Expansion
+
+**Status:** completed on 2026-04-30.
+
+**Goal:** Make SurfaceCharts feel like a richer native 3D plotting surface by
+adding focused feature affordances and a stronger recipe-first demo without
+widening into compatibility or broad workbench scope.
+
+**Delivered outcomes:**
+- inventoried the real SurfaceCharts feature/demo surface before widening APIs
+- added focused native Bar/Contour/styling/data-shaping affordances through
+  direct `VideraChartView.Plot` paths
+- added bounded annotation, marker, reference, selection, and measurement
+  workflows with support evidence
+- upgraded the demo into a richer recipe-first native gallery while keeping
+  catalog/support responsibilities split out of the window code-behind
+- hardened cookbook, CI, release-readiness, public-roadmap, and scope guardrails
+  with real package-consumer evidence
+- closed with all v2.63 Beads closed and `bd ready` empty
+
+Archived: `.planning/milestones/v2.63-phases`
 
 ## Recently Completed Milestone: v2.61 Native SurfaceCharts Cookbook and CI Truth
 
@@ -53,19 +75,25 @@ boundary.
 
 Archived: `.planning/milestones/v2.62-phases`
 
-## Current Milestone: v2.63 Native SurfaceCharts Feature and Demo Expansion
+## Current Milestone: v2.64 Native SurfaceCharts Analysis Workspace and Streaming Evidence
 
-**Goal:** Make SurfaceCharts feel like a richer native 3D plotting surface by
-adding focused feature affordances and a stronger recipe-first demo without
-widening into compatibility or broad workbench scope.
+**Goal:** Move SurfaceCharts from isolated chart recipes into native analysis
+workflows with multi-chart composition, linked interaction, high-density and
+streaming evidence, scenario cookbook templates, and CI/release-readiness truth.
 
 **Target features:**
-- Inventory current feature API, demo, cookbook, interaction, and validation gaps before expanding behavior
-- Add focused native 3D feature convenience APIs for common chart construction and styling workflows
-- Add bounded annotation, marker, reference, and measurement workflows for chart reading
-- Upgrade the demo into a richer recipe-first gallery with better navigation, snippets, scenarios, and support evidence
-- Align cookbook docs, repository tests, CI, and generated roadmap truth around the expanded native feature set
-- Close with composed validation, Beads export, phase archive, Dolt/Git push, and clean worktree state
+- Inventory current multi-chart, linked interaction, streaming/high-density,
+  cookbook, package-smoke, and CI surfaces before implementation.
+- Add bounded native multi-chart analysis workspace affordances without creating
+  a generic workbench shell.
+- Add linked camera/axis/probe/selection workflows with host-owned state and
+  explicit support evidence.
+- Strengthen high-density and streaming chart workflows with real ingestion,
+  window/cache, and performance evidence.
+- Turn analysis and streaming workflows into detailed native cookbook scenarios
+  plus package-consumer templates.
+- Align CI, release-readiness, generated roadmap, and scope guardrails around
+  the new workflows, then close with clean Beads/Dolt/Git state.
 
 ## Completed Milestones
 
@@ -870,6 +898,6 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-30 after starting v2.63 milestone*
+*Last updated: 2026-04-30 after starting v2.64 milestone*
 
 

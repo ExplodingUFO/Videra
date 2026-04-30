@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.63
-milestone_name: "Native SurfaceCharts Feature and Demo Expansion"
-status: completed
-stopped_at: "v2.63 complete"
-last_updated: "2026-04-30T19:42:00+08:00"
+milestone: v2.64
+milestone_name: "Native SurfaceCharts Analysis Workspace and Streaming Evidence"
+status: active
+stopped_at: "Phase 425 ready"
+last_updated: "2026-04-30T20:04:00+08:00"
 last_activity: 2026-04-30
 progress:
-  total_phases: 6
-  completed_phases: 6
-  total_plans: 6
-  completed_plans: 6
-  percent: 100
+  total_phases: 7
+  completed_phases: 0
+  total_plans: 7
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -21,46 +21,53 @@ progress:
 See: `.planning/PROJECT.md`
 
 **Core value:** 跨平台 3D 渲染引擎的可靠性
-**Current focus:** v2.63 Native SurfaceCharts Feature and Demo Expansion
+**Current focus:** v2.64 Native SurfaceCharts Analysis Workspace and Streaming Evidence
 
 ## Current Position
 
-Milestone: `v2.63 Native SurfaceCharts Feature and Demo Expansion`
-Phase: 424 of 424 - COMPLETE
-Plan: v2.63 is closed; generated roadmap, release-readiness evidence, scope guardrails, Beads state, and archive handoff are synchronized.
-Status: `Videra-zn7`, `Videra-7ip`, and all v2.63 child beads are closed. `bd ready` is empty.
-Last activity: 2026-04-30 - Completed Phase 424 final verification and v2.63 milestone closeout.
+Milestone: `v2.64 Native SurfaceCharts Analysis Workspace and Streaming Evidence`
+Phase: 425 of 431 - READY
+Plan: Phase 425 should inventory multi-chart, linked interaction, streaming/high-density, cookbook, package-smoke, CI, and release-readiness surfaces before implementation.
+Status: v2.64 epic `Videra-7tqx` is in progress. `bd ready` should expose only `Videra-7tqx.1`.
+Last activity: 2026-04-30 - Started v2.64 milestone, seeded Beads epic and ordered phase beads, and reset planning docs.
 
-Progress: [##########] 100%
+Progress: [----------] 0%
 
 ## Initial Scope Summary
 
-v2.63 continues from the completed v2.62 cleanup milestone:
+v2.64 continues from the completed v2.63 feature/demo milestone:
 
 - SurfaceCharts has a cleaned native `VideraChartView` + `Plot.Add.*` route.
-- SurfaceCharts has detailed Videra-native cookbook recipes and focused CI truth gates.
-- Stale compatibility/downshift paths and misleading fallback vocabulary have been removed or guarded.
+- SurfaceCharts has richer feature affordances, annotation/measurement support,
+  recipe-first demo behavior, and release-readiness truth.
+- v2.64 should take a larger step into analysis workflows: multi-chart
+  composition, linked interaction, high-density/streaming runtime evidence,
+  scenario cookbook templates, package-consumer templates, and CI truth.
 
-v2.63 focuses on:
+v2.64 focuses on:
 
-- native feature/API and demo gap inventory
-- focused convenience APIs for common 3D chart construction and styling
-- bounded annotation, marker, reference, and measurement workflows
-- richer recipe-first demo gallery without generic workbench scope
-- cookbook, CI, generated roadmap, and final validation truth
+- analysis workspace and streaming inventory
+- native multi-chart analysis workspace affordances
+- linked camera/axis/probe/selection propagation
+- high-density and streaming data evidence
+- scenario cookbook and package-consumer templates
+- CI, release-readiness, generated roadmap, and no-fake-evidence truth
+- final verification, Beads export, archive, push, and clean handoff
 
 ## Decisions
 
-- Beads remain the single task spine for phase status, dependencies, ownership, and handoff.
-- Phase 419 inventory is complete and is the source for Phase 420-424 child bead write scopes.
-- Phase 420 may split bar label and contour level work into parallel branches because their write sets are mostly disjoint.
-- Phase 421 depends on Phase 420 and should keep annotation, measurement, and selection-event contracts bounded to native interaction workflows.
-- Phase 422 depends on Phase 421 and should start with demo scenario descriptors before splitting MainWindow/support-summary cleanup.
-- Phase 423 owns cookbook, CI truth, and release-readiness filter alignment after real implementation exists.
-- Phase 424 owns final Beads export, generated roadmap sync, scope guardrails, archive, push, and cleanup.
-- Keep implementation simple and direct; do not add external plotting compatibility adapters, migration shims, old chart controls, hidden fallback/downshift behavior, backend expansion, broad demo frameworks, or fake validation evidence.
-- v2.60 artifacts are archived under `.planning/milestones/v2.60-phases`.
-- v2.61 artifacts are archived under `.planning/milestones/v2.61-phases`.
+- Beads remain the single task spine for phase status, dependencies, ownership,
+  and handoff.
+- Phase numbering continues from v2.63: `425-431`.
+- Phase 425 is the only ready phase at milestone start.
+- Later phases are ordered by blocking dependencies in Beads:
+  `425 -> 426 -> 427 -> 428 -> 429 -> 430 -> 431`.
+- Keep implementation simple and direct; do not add external plotting
+  compatibility adapters, migration shims, old chart controls, hidden
+  fallback/downshift behavior, backend expansion, broad demo frameworks, or fake
+  validation evidence.
+- Use isolated worktrees only after Phase 425 identifies genuinely disjoint
+  write scopes.
 
 ## Known Residuals
 
@@ -71,15 +78,20 @@ v2.63 focuses on:
 ## Session Continuity
 
 Last session: `2026-04-30 +08:00`
-Stopped at: v2.63 complete
-Next action: start the next milestone only after confirming the desired scope; current v2.63 Beads state is closed.
+Stopped at: Phase 425 ready
+Next action: run `$gsd-plan-phase 425` or `$gsd-autonomous` to start the v2.64 inventory phase.
 
 ## Accumulated Context
 
-From v2.58: controlled release cutover package completed with release-readiness validation, manual-gated release actions, support docs, and archive.
+From v2.63: SurfaceCharts has native Bar/Contour/styling/data-shaping
+affordances, annotation/measurement workflows, richer recipe-first demo
+behavior, and release-readiness truth for the package consumer smoke.
 
-From v2.57: SurfaceCharts release-readiness evidence covers package-only consumer smoke, public API/package metadata, validation scripts, release-candidate docs/support handoff, final guardrails, and clean Beads state.
+From v2.62: stale old-code paths, chart-local fallback/downshift paths, stale
+compatibility wording, and demo code-behind coupling were removed or guarded.
 
-From v2.56: SurfaceCharts has Plot lifecycle/code polish, interaction profile commands, selection/probe/draggable overlay recipes, axis rules, linked views, live view management, cookbook demo/gallery docs, and closure guardrails.
+From v2.61: SurfaceCharts has detailed Videra-native cookbook recipes and
+focused CI truth gates.
 
-From v2.55: SurfaceCharts has short raw `Plot.Add.*` overloads, typed plottables, `Plot.Axes`, `Plot.SavePngAsync`, `DataLogger3D`, same-type multi-series composition, cookbook seed docs, and closure guardrails.
+From v2.58: controlled release cutover package completed with release-readiness
+validation, manual-gated release actions, support docs, and archive.
