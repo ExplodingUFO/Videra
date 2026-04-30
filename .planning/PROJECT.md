@@ -12,10 +12,28 @@ Videra 是一个基于 `.NET 8` 的跨平台 3D 渲染引擎，提供 Windows (`
 
 ## Current State
 
-- 最新完整归档 milestone：`v2.63 Native SurfaceCharts Feature and Demo Expansion`
-- 最近完成 milestone：`v2.63 Native SurfaceCharts Feature and Demo Expansion`
-- 当前 active milestone：`v2.64 Native SurfaceCharts Analysis Workspace and Streaming Evidence`
-- 当前 focus：把 SurfaceCharts 从单图表/单 cookbook 场景推进到更完整的原生分析工作流：多图表布局、联动交互、高密度/流式数据证据、场景化 cookbook、包消费模板和 CI/release-readiness 真值；继续保持 `VideraChartView` + `Plot.Add.*` 单一路线，不引入兼容层、旧控件、隐藏 fallback/downshift、泛化 workbench 或造假验证。
+- 最新完整归档 milestone：`v2.64 Native SurfaceCharts Analysis Workspace and Streaming Evidence`
+- 最近完成 milestone：`v2.64 Native SurfaceCharts Analysis Workspace and Streaming Evidence`
+- 当前 active milestone：`v2.65 3D ScottPlot5 Analytics Chart Expansion`
+- 当前 focus：把 Videra 的 3D 图表词汇量向 ScottPlot5 看齐——添加分析型图表族（Line/Ribbon、Vector Field、Heatmap Slice、Box Plot）、MultiPlot3D 子图网格、通用流式数据、以及把 Bar+Contour 从 proof 提升到正式 API；继续 `VideraChartView` + `Plot.Add.*` 单一路线，不引入兼容层、旧控件、隐藏 fallback/downshift、泛化平台或造假验证。
+
+## Recently Completed Milestone: v2.64 Native SurfaceCharts Analysis Workspace and Streaming Evidence
+
+**Status:** completed on 2026-04-30.
+
+**Goal:** Move SurfaceCharts from isolated chart recipes into native analysis
+workflows with multi-chart composition, linked interaction, high-density and
+streaming evidence, scenario cookbook templates, and CI/release-readiness truth.
+
+**Delivered outcomes:**
+- added native multi-chart analysis workspace with SurfaceChartWorkspace, panel info, and link groups
+- added linked interaction with CameraOnly/AxisOnly policies and host-owned interaction propagation
+- added streaming evidence tracking with per-chart SurfaceChartStreamingStatus
+- added cookbook recipes for multi-chart analysis, linked interaction, and streaming workspace
+- added CI truth tests for v2.64 surfaces and release-readiness scope guardrails
+- closed with all v2.64 Beads closed, 47 tests passing, and clean Git/Dolt state
+
+Archived: `.planning/milestones/v2.64-phases`
 
 ## Recently Completed Milestone: v2.63 Native SurfaceCharts Feature and Demo Expansion
 
@@ -75,25 +93,23 @@ boundary.
 
 Archived: `.planning/milestones/v2.62-phases`
 
-## Current Milestone: v2.64 Native SurfaceCharts Analysis Workspace and Streaming Evidence
+## Current Milestone: v2.65 3D ScottPlot5 Analytics Chart Expansion
 
-**Goal:** Move SurfaceCharts from isolated chart recipes into native analysis
-workflows with multi-chart composition, linked interaction, high-density and
-streaming evidence, scenario cookbook templates, and CI/release-readiness truth.
+**Goal:** Expand Videra's 3D chart vocabulary toward ScottPlot5 parity with
+analytics-focused chart types, MultiPlot3D subplot grids, universal streaming,
+and promote Bar+Contour from proof to production.
 
 **Target features:**
-- Inventory current multi-chart, linked interaction, streaming/high-density,
-  cookbook, package-smoke, and CI surfaces before implementation.
-- Add bounded native multi-chart analysis workspace affordances without creating
-  a generic workbench shell.
-- Add linked camera/axis/probe/selection workflows with host-owned state and
-  explicit support evidence.
-- Strengthen high-density and streaming chart workflows with real ingestion,
-  window/cache, and performance evidence.
-- Turn analysis and streaming workflows into detailed native cookbook scenarios
-  plus package-consumer templates.
-- Align CI, release-readiness, generated roadmap, and scope guardrails around
-  the new workflows, then close with clean Beads/Dolt/Git state.
+- Inventory current chart type surface and design API contracts for new chart
+  families.
+- Promote Bar+Contour from proof-path to public package API contract.
+- Add Line/Ribbon chart family with colormap support and probe integration.
+- Add Vector Field chart family with arrow rendering and magnitude scaling.
+- Add 3D Heatmap Slice chart family for volumetric data visualization.
+- Add Box Plot chart family for statistical distribution visualization.
+- Add MultiPlot3D container for N×M subplot arrangements with shared axis.
+- Extend DataLogger3D streaming to Surface/Waterfall/Bar chart types.
+- Add cookbook recipes, CI truth, and release-readiness for all new surfaces.
 
 ## Completed Milestones
 
@@ -400,7 +416,7 @@ Archived: `.planning/milestones/v2.52-ROADMAP.md`, `.planning/milestones/v2.52-R
 
 ## Next Milestone Goals
 
-The current milestone should start with `$gsd-plan-phase 401`. Keep Beads as the task spine, split implementation by dependencies, and use isolated Dolt worktrees only for disjoint phases. Prioritize real SurfaceCharts interaction/API/demo evidence before implementation, and preserve the ScottPlot5 inspiration boundary without compatibility claims.
+The current milestone should start with `$gsd-plan-phase 432`. Keep Beads as the task spine, split implementation by dependencies, and use isolated Dolt worktrees only for disjoint phases. Prioritize real chart type API/demo evidence before implementation, and preserve the ScottPlot5 inspiration boundary without compatibility claims.
 
 ## Most Recently Completed Milestone: v2.36 Beads Remote Sync PR Closure
 

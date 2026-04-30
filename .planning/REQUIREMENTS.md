@@ -1,116 +1,155 @@
-# Requirements: v2.64 Native SurfaceCharts Analysis Workspace and Streaming Evidence
+# Requirements: v2.65 3D ScottPlot5 Analytics Chart Expansion
 
-## Goal
+**Milestone:** v2.65
+**Scope:** Expand Videra's 3D chart vocabulary toward ScottPlot5 parity with
+analytics-focused chart types, MultiPlot3D subplot grids, and universal
+streaming — while preserving the single `VideraChartView` + `Plot.Add.*` route
+and no-compatibility/no-fallback boundary.
 
-Move SurfaceCharts from isolated chart recipes into native analysis workflows
-with multi-chart composition, linked interaction, high-density and streaming
-evidence, scenario cookbook templates, and CI/release-readiness truth. This
-milestone must keep the single `VideraChartView` + `Plot.Add.*` route and must
-not add compatibility adapters, old chart controls, hidden fallback/downshift
-behavior, broad workbench scope, backend expansion, or external-library parity
-claims.
+## Validated Requirements
 
-## Active Requirements
+### Line/Ribbon Chart Family (LINE-01..04)
 
-### Inventory
+**REQ-LINE-01:** Users can add 3D line plots via `Plot.Add.Line(xs, ys, zs, label)`.
+Line plots render as connected 3D polylines with configurable color, width, and
+marker options.
 
-- **INV-01**: Inventory current multi-chart, linked interaction, streaming,
-  high-density, cookbook, package-smoke, CI, and release-readiness surfaces
-  before implementation.
-- **INV-02**: Classify desired improvements as native workflow API, demo/sample
-  scenario, performance/evidence truth, CI/release truth, or out-of-scope
-  workbench/runtime expansion.
-- **INV-03**: Identify phase write sets, dependency order, and parallelizable
-  child beads so implementation can use isolated worktrees safely.
+**REQ-LINE-02:** Users can add ribbon/pipe plots via
+`Plot.Add.Ribbon(xs, ys, zs, radius, label)`. Ribbon plots render as tube/pipe
+geometry around the polyline path with configurable cross-section.
 
-### Analysis Workspace
+**REQ-LINE-03:** Line and ribbon plots support per-segment color mapping via
+colormap + value array, enabling trajectory coloring by time, speed, or other
+scalar.
 
-- **WORK-01**: Users can compose a bounded multi-chart analysis layout from
-  native SurfaceCharts panels without introducing a generic workbench shell.
-- **WORK-02**: Users can inspect active panel identity, chart kind, recipe
-  context, dataset scale, and rendering status through explicit workspace
-  evidence.
-- **WORK-03**: Demo/sample code keeps layout, scenario catalog, and support
-  summary responsibilities separated rather than accumulating god-code in a
-  window code-behind.
+**REQ-LINE-04:** Line and ribbon plots participate in the existing probe,
+selection, and overlay infrastructure (crosshair, tooltip, legend).
 
-### Linked Interaction
+### Vector Field Chart Family (VEC-01..04)
 
-- **LINK-01**: Users can link camera, axis, or view-state behavior across
-  selected SurfaceCharts panels through bounded native contracts.
-- **LINK-02**: Users can propagate probe, selection, or measurement context
-  across linked panels while keeping selection ownership explicit in the host.
-- **LINK-03**: Linked interaction support summaries explain which panels are
-  linked, which interaction surfaces are active, and which evidence is runtime
-  truth rather than benchmark truth.
+**REQ-VEC-01:** Users can add 3D vector fields via
+`Plot.Add.VectorField(xs, ys, zs, dxs, dys, dzs, label)`. Vector fields render
+as 3D arrows at each grid point showing direction and magnitude.
 
-### High-Density and Streaming
+**REQ-VEC-02:** Arrow length is proportional to vector magnitude, with
+configurable scaling factor. Arrow color can be mapped by magnitude via colormap.
 
-- **STREAM-01**: Users can run a high-density or streaming SurfaceCharts
-  scenario with explicit ingestion/window/cache state and deterministic support
-  evidence.
-- **STREAM-02**: Streaming and large-data workflows expose bounded update,
-  retention, and visible-window behavior without hidden data-path substitution.
-- **STREAM-03**: Performance evidence uses real runnable scenarios and reports
-  scope, dataset size, and limitations without fake benchmark claims.
+**REQ-VEC-03:** Vector fields support both regular-grid and irregular-point
+layouts. For regular grids, the grid spacing is inferred from the coordinate
+arrays.
 
-### Cookbook and Package Templates
+**REQ-VEC-04:** Vector fields participate in the existing probe infrastructure
+— probing shows the vector value (dx, dy, dz) and magnitude at the probed point.
 
-- **COOK-01**: Cookbook docs include native scenario recipes for multi-chart
-  analysis, linked interaction, high-density data, streaming updates, and
-  support evidence.
-- **COOK-02**: Package-consumer templates demonstrate the supported workflow
-  surface using public packages and copyable code paths.
-- **COOK-03**: Repository tests verify cookbook snippets, package template
-  claims, support artifact wording, and scope boundaries.
+### 3D Heatmap Slice Chart Family (HEAT-01..04)
 
-### CI and Release Truth
+**REQ-HEAT-01:** Users can add 3D heatmap slices via
+`Plot.Add.HeatmapSlice(values, axis, position, label)`. Heatmap slices render
+as a colored plane at the specified position along the specified axis (X, Y, or Z).
 
-- **TRUTH-01**: Focused tests and CI filters include the new workspace, linked
-  interaction, streaming, cookbook, package-template, and generated-roadmap
-  checks.
-- **TRUTH-02**: Release-readiness validation includes the new package-consumer
-  evidence without counting skipped, unavailable, or unsupported checks as
-  success.
-- **TRUTH-03**: Guardrails reject old chart controls, direct public `Source`,
-  hidden fallback/downshift, broad workbench scope, backend expansion,
-  external-library compatibility/parity claims, and fake evidence.
+**REQ-HEAT-02:** Heatmap slices support configurable colormap, value range, and
+opacity. Multiple slices can be composed to show volumetric data.
 
-### Verification
+**REQ-HEAT-03:** Users can interactively move the slice position via a slider or
+drag gesture, enabling "slicing through" volumetric data.
 
-- **VERIFY-01**: Focused validation proves all v2.64 workflow, cookbook, CI, and
-  release-readiness requirements before milestone closeout.
-- **VERIFY-02**: Beads state, generated public roadmap, phase archive,
-  branch/worktree cleanup, Git push, and Dolt Beads push are synchronized.
+**REQ-HEAT-04:** Heatmap slices participate in the probe infrastructure —
+probing shows the interpolated value at the probed point on the slice.
 
-## Future Requirements
+### Box Plot Chart Family (BOX-01..03)
 
-- Actual public package publication, public tag creation, or GitHub Release.
-- Broad renderer/backend/platform expansion.
-- Generic dashboard/workbench/plugin editor.
-- New chart families beyond workflows needed by the selected analysis and
-  streaming scenarios.
-- Deep benchmark-driven renderer rewrites not justified by v2.64 evidence.
+**REQ-BOX-01:** Users can add 3D box plots via
+`Plot.Add.BoxPlot(data, label)` where `data` contains min, Q1, median, Q3, max,
+and optional outliers for each category. Box plots render as 3D rectangular prisms
+with whiskers.
 
-## Out of Scope
+**REQ-BOX-02:** Box plots support grouped/clustered layout for comparing
+distributions across categories. Each box can have a distinct color.
 
-- Compatibility adapters, parity claims, wrappers, or migration shims for any
-  external plotting library.
-- Restoring old chart controls or direct public `Source` loading.
-- Hidden fallback/downshift behavior or automatic data-path substitution.
-- Generic chart-engine scope, broad workbench scope, plugin editor, or god-code
-  demo shell.
-- Backend expansion, OpenGL/WebGL work, or platform-hosting expansion.
-- PDF/vector export or broad export-format expansion.
-- Fake benchmark claims, fake CI success, skipped checks used as evidence, or
-  synthetic support data presented as real runtime truth.
+**REQ-BOX-03:** Box plots participate in the probe infrastructure — probing
+shows the statistical summary (min, Q1, median, Q3, max) for the probed box.
 
-## Traceability
+### Promote Bar+Contour to Production (PROMO-01..03)
 
-- **Phase 425**: INV-01, INV-02, INV-03
-- **Phase 426**: WORK-01, WORK-02, WORK-03
-- **Phase 427**: LINK-01, LINK-02, LINK-03
-- **Phase 428**: STREAM-01, STREAM-02, STREAM-03
-- **Phase 429**: COOK-01, COOK-02, COOK-03
-- **Phase 430**: TRUTH-01, TRUTH-02, TRUTH-03, VERIFY-01
-- **Phase 431**: VERIFY-01, VERIFY-02
+**REQ-PROMO-01:** `Plot.Add.Bar(...)` moves from proof-path to the public
+package API contract. The Bar chart family is included in the public NuGet
+package surface.
+
+**REQ-PROMO-02:** `Plot.Add.Contour(...)` moves from proof-path to the public
+package API contract. The Contour chart family is included in the public NuGet
+package surface.
+
+**REQ-PROMO-03:** Existing Bar and Contour cookbook recipes, demo scenarios, and
+tests continue to pass without modification after promotion.
+
+### MultiPlot3D Subplot Grid (MULTI-01..05)
+
+**REQ-MULTI-01:** Users can create a `MultiPlot3D(rows, cols)` container that
+arranges multiple `VideraChartView` instances in a grid layout.
+
+**REQ-MULTI-02:** Each cell in the grid can hold an independent chart with its
+own data, chart type, axes, and styling.
+
+**REQ-MULTI-03:** Users can optionally share camera/axis state across selected
+rows, columns, or the entire grid via link groups.
+
+**REQ-MULTI-04:** `MultiPlot3D` provides a `CaptureSnapshotAsync()` method that
+renders the entire grid as a single PNG image.
+
+**REQ-MULTI-05:** The demo includes a MultiPlot3D scenario showing a 2×2 grid
+with different chart types.
+
+### Extended DataLogger3D Streaming (STREAM-01..04)
+
+**REQ-STREAM-01:** `DataLogger3D` pattern extends to Surface charts —
+`Plot.Add.Surface(logger, label)` where logger provides append/replace/FIFO
+semantics for surface matrix data.
+
+**REQ-STREAM-02:** `DataLogger3D` pattern extends to Waterfall charts —
+`Plot.Add.Waterfall(logger, label)` with row-level append/FIFO.
+
+**REQ-STREAM-03:** `DataLogger3D` pattern extends to Bar charts —
+`Plot.Add.Bar(logger, label)` with category-level append/replace.
+
+**REQ-STREAM-04:** Extended streaming charts participate in workspace streaming
+status tracking from Phase 428.
+
+### Cookbook and Demo (COOK-01..04)
+
+**REQ-COOK-01:** Cookbook recipes cover all new chart types (Line, Ribbon, Vector
+Field, Heatmap Slice, Box Plot) with copyable code snippets.
+
+**REQ-COOK-02:** Cookbook recipes cover MultiPlot3D with shared-axis examples.
+
+**REQ-COOK-03:** Cookbook recipes cover extended streaming (Surface/Waterfall/Bar
+DataLogger3D).
+
+**REQ-COOK-04:** Demo scenarios include all new chart types and MultiPlot3D.
+
+### CI and Release Readiness (TRUTH-01..04)
+
+**REQ-TRUTH-01:** CI truth tests cover new chart type test filters.
+
+**REQ-TRUTH-02:** Release-readiness tests verify Bar+Contour are in the public
+package contract after promotion.
+
+**REQ-TRUTH-03:** Generated roadmap reflects v2.65 phases.
+
+**REQ-TRUTH-04:** Scope guardrails reject: 2D chart family, generic plotting
+platform, renderer/backend expansion, compatibility layers, hidden fallback.
+
+## Deferred
+
+- 2D chart family (ScottPlot5 is 2D; Videra is 3D-native)
+- Animation/skeletal/morph
+- Shadows/environment maps on chart geometry
+- Wayland-native rendering
+- OpenGL/WebGL backends
+- PDF/vector export (bitmap-only)
+- Generic plugin/workbench architecture
+- Public package publication (stays repo-only alpha)
+
+---
+
+*Requirements gathered: 2026-04-30*
+*Milestone: v2.65 3D ScottPlot5 Analytics Chart Expansion*

@@ -1,177 +1,165 @@
-# Roadmap: v2.64 Native SurfaceCharts Analysis Workspace and Streaming Evidence
+# Roadmap: v2.65 3D ScottPlot5 Analytics Chart Expansion
 
-**Goal:** Move SurfaceCharts from isolated chart recipes into native analysis
-workflows with multi-chart composition, linked interaction, high-density and
-streaming evidence, scenario cookbook templates, and CI/release-readiness truth.
+**Goal:** Expand Videra's 3D chart vocabulary toward ScottPlot5 parity with
+analytics-focused chart types (Line/Ribbon, Vector Field, Heatmap Slice, Box
+Plot), MultiPlot3D subplot grids, universal streaming, and promote Bar+Contour
+from proof to production — while preserving the single `VideraChartView` +
+`Plot.Add.*` route.
 
-**Boundary:** This milestone does not add compatibility adapters, parity claims,
-old chart controls, direct public `Source` loading, hidden fallback/downshift
-behavior, renderer/backend expansion, generic workbench scope, package
-publication, or fake validation evidence.
+**Boundary:** This milestone does not add 2D chart families, compatibility
+adapters, generic plotting platform scope, renderer/backend expansion, hidden
+fallback/downshift behavior, PDF/vector export, or fake validation evidence.
 
-**Phases:** 7 (425-431)
-**Requirements:** 20 (INV-01..03, WORK-01..03, LINK-01..03,
-STREAM-01..03, COOK-01..03, TRUTH-01..03, VERIFY-01..02)
-**Beads epic:** `Videra-7tqx`
+**Phases:** 8 (432-439)
+**Requirements:** 30 (LINE-01..04, VEC-01..04, HEAT-01..04, BOX-01..03,
+PROMO-01..03, MULTI-01..05, STREAM-01..04, COOK-01..04, TRUTH-01..04)
+**Beads epic:** `Videra-8krt`
 
 ## Phases
 
-- [x] **Phase 425: Analysis Workspace and Streaming Inventory** - Map current
-  multi-chart, linked interaction, streaming/high-density, cookbook,
-  package-smoke, and CI truth surfaces before implementation.
-- [x] **Phase 426: Native Multi-Chart Analysis Workspace** - Add bounded native
-  multi-chart layout/workspace affordances without creating a generic workbench.
-- [x] **Phase 427: Linked Interaction and Selection Propagation** - Add linked
-  camera/axis/probe/selection workflows with host-owned state and explicit
-  support evidence.
-- [x] **Phase 428: High-Density and Streaming Data Evidence** - Strengthen
-  streaming and large-data workflows with real ingestion/window/cache evidence.
-- [x] **Phase 429: Scenario Cookbook and Package Templates** - Turn the richer
-  workflows into detailed native cookbook scenarios and package-consumer
-  templates.
-- [x] **Phase 430: CI Performance and Release-Readiness Truth** - Align focused
-  tests, CI, consumer smoke, release-readiness filters, generated roadmap, and
-  no-fake-evidence guardrails.
-- [x] **Phase 431: v2.64 Final Verification** - Close v2.64 with composed
-  validation, Beads export, generated roadmap sync, phase archive, push, and
-  cleanup.
+- [ ] **Phase 432: Chart Type Inventory and API Design** - Map current chart
+  type surface, API patterns, and rendering seams before adding new chart
+  families. Design the API contracts for Line, Ribbon, Vector Field, Heatmap
+  Slice, and Box Plot.
+- [ ] **Phase 433: Promote Bar+Contour to Production** - Move Bar and Contour
+  chart families from proof-path to the public package API contract.
+- [ ] **Phase 434: Line/Ribbon Chart Family** - Add 3D line plots and
+  ribbon/pipe plots with colormap support and probe integration.
+- [ ] **Phase 435: Vector Field Chart Family** - Add 3D vector field plots with
+  arrow rendering, magnitude scaling, and probe integration.
+- [ ] **Phase 436: 3D Heatmap Slice Chart Family** - Add heatmap slice plots
+  for volumetric data visualization with interactive slice positioning.
+- [ ] **Phase 437: Box Plot Chart Family** - Add 3D box plots for statistical
+  distribution visualization with grouped layout.
+- [ ] **Phase 438: MultiPlot3D Subplot Grid** - Add MultiPlot3D container for
+  N×M subplot arrangements with optional shared camera/axis.
+- [ ] **Phase 439: Extended DataLogger3D and v2.65 Verification** - Extend
+  DataLogger3D streaming to Surface/Waterfall/Bar, add cookbook recipes, CI
+  truth, and close v2.65 with verification.
 
 ## Phase Details
 
-### Phase 425: Analysis Workspace and Streaming Inventory
+### Phase 432: Chart Type Inventory and API Design
 
-**Goal:** Establish the real v2.64 workflow surface before changing APIs, demo,
-or validation behavior.
+**Goal:** Map the current chart type surface, API patterns, rendering seams,
+and probe/overlay infrastructure before adding new chart families.
 **Depends on:** Nothing
-**Requirements:** INV-01, INV-02, INV-03
-**Bead:** `Videra-7tqx.1`
+**Requirements:** (inventory phase — no specific REQ)
 **Success Criteria:**
-1. Current multi-chart, linked interaction, streaming/high-density, cookbook,
-   package-smoke, CI, and release-readiness owners are mapped.
-2. Candidate work is classified as native workflow API, demo/sample scenario,
-   performance evidence, CI/release truth, or out-of-scope expansion.
-3. Phase 426-430 write sets, dependencies, validation commands, and safe
-   worktree split points are identified.
-**Plans:** 425-PLAN.md
-**Completed:** 2026-04-30
+1. Current chart type API surface (Plot.Add.*, IPlottable3D, Plot3DSeriesKind)
+   is mapped.
+2. Rendering seams for each chart kind (kernel, geometry, overlay) are
+   identified.
+3. Probe/selection/overlay infrastructure integration points for new chart types
+   are documented.
+4. API contracts for Line, Ribbon, Vector Field, Heatmap Slice, and Box Plot
+   are designed with type signatures and data models.
 
-### Phase 426: Native Multi-Chart Analysis Workspace
+### Phase 433: Promote Bar+Contour to Production
 
-**Goal:** Add bounded native analysis layout affordances for comparing multiple
-SurfaceCharts panels.
-**Depends on:** Phase 425
-**Requirements:** WORK-01, WORK-02, WORK-03
-**Bead:** `Videra-7tqx.2`
+**Goal:** Move Bar and Contour chart families from proof-path to the public
+package API contract.
+**Depends on:** Phase 432
+**Requirements:** PROMO-01, PROMO-02, PROMO-03
 **Success Criteria:**
-1. Users can compose selected SurfaceCharts panels into a bounded analysis
-   layout using native APIs and demo paths.
-2. Workspace evidence reports active panel identity, chart kinds, recipe
-   context, dataset scale, and rendering status.
-3. Demo/sample code keeps layout, scenario catalog, and support summary
-   responsibilities separated.
-Plans:
-- [x] 426-01-PLAN.md — Workspace contracts and core registration
-- [x] 426-02-PLAN.md — Link group, aggregate status, evidence, and demo integration
+1. `Plot.Add.Bar(...)` is in the public API contract and NuGet package surface.
+2. `Plot.Add.Contour(...)` is in the public API contract and NuGet package
+   surface.
+3. Existing Bar and Contour tests, demo scenarios, and cookbook recipes pass
+   without modification.
+4. Package validation scripts confirm Bar+Contour are in the public surface.
 
-### Phase 427: Linked Interaction and Selection Propagation
+### Phase 434: Line/Ribbon Chart Family
 
-**Goal:** Make linked panel interaction useful and explicit without hiding state
-ownership.
-**Depends on:** Phase 426
-**Requirements:** LINK-01, LINK-02, LINK-03
-**Bead:** `Videra-7tqx.3`
+**Goal:** Add 3D line plots and ribbon/pipe plots with colormap support.
+**Depends on:** Phase 433
+**Requirements:** LINE-01, LINE-02, LINE-03, LINE-04
 **Success Criteria:**
-1. Users can link camera, axis, or view-state behavior across selected panels.
-2. Probe, selection, and measurement context can propagate across linked panels
-   while host-owned state remains explicit.
-3. Support summaries describe linked panels, active interaction surfaces, and
-   evidence boundaries truthfully.
-Plans:
-- [x] 427-01-PLAN.md — Filtered link classes and link group policy implementation
-- [x] 427-02-PLAN.md — Interaction propagator, linked interaction evidence, and demo scenario
+1. `Plot.Add.Line(xs, ys, zs, label)` renders 3D polyline with configurable
+   color, width, and markers.
+2. `Plot.Add.Ribbon(xs, ys, zs, radius, label)` renders tube/pipe geometry.
+3. Per-segment colormap coloring works for both line and ribbon.
+4. Line/ribbon plots participate in probe, selection, overlay, and legend.
 
-### Phase 428: High-Density and Streaming Data Evidence
+### Phase 435: Vector Field Chart Family
 
-**Goal:** Prove streaming and high-density workflows with real runtime evidence.
-**Depends on:** Phase 427
-**Requirements:** STREAM-01, STREAM-02, STREAM-03
-**Bead:** `Videra-7tqx.4`
+**Goal:** Add 3D vector field plots with arrow rendering.
+**Depends on:** Phase 433
+**Requirements:** VEC-01, VEC-02, VEC-03, VEC-04
 **Success Criteria:**
-1. A high-density or streaming SurfaceCharts scenario runs with explicit
-   ingestion/window/cache evidence.
-2. Update, retention, and visible-window behavior stay bounded and do not
-   perform hidden data-path substitution.
-3. Performance evidence reports real scenario scope, dataset size, limits, and
-   non-goals without benchmark overclaims.
-**Plans:** 428-PLAN.md
+1. `Plot.Add.VectorField(xs, ys, zs, dxs, dys, dzs, label)` renders 3D arrows.
+2. Arrow length proportional to magnitude with configurable scaling.
+3. Colormap coloring by magnitude works.
+4. Probe shows vector value and magnitude at probed point.
 
-### Phase 429: Scenario Cookbook and Package Templates
+### Phase 436: 3D Heatmap Slice Chart Family
 
-**Goal:** Convert the v2.64 workflows into copyable native recipes and package
-consumer templates.
-**Depends on:** Phase 428
-**Requirements:** COOK-01, COOK-02, COOK-03
-**Bead:** `Videra-7tqx.5`
+**Goal:** Add heatmap slice plots for volumetric data visualization.
+**Depends on:** Phase 433
+**Requirements:** HEAT-01, HEAT-02, HEAT-03, HEAT-04
 **Success Criteria:**
-1. Cookbook docs cover multi-chart analysis, linked interaction, high-density
-   data, streaming updates, and support evidence.
-2. Package-consumer templates demonstrate supported public package workflows
-   with copyable code.
-3. Repository tests verify snippets, template claims, support wording, and
-   scope boundaries.
-**Plans:** 429-PLAN.md
+1. `Plot.Add.HeatmapSlice(values, axis, position, label)` renders colored plane.
+2. Configurable colormap, value range, and opacity work.
+3. Interactive slice positioning (slider/drag) works.
+4. Probe shows interpolated value on slice.
 
-### Phase 430: CI Performance and Release-Readiness Truth
+### Phase 437: Box Plot Chart Family
 
-**Goal:** Keep the larger workflow surface honest in CI and release-readiness.
-**Depends on:** Phase 429
-**Requirements:** TRUTH-01, TRUTH-02, TRUTH-03, VERIFY-01
-**Bead:** `Videra-7tqx.6`
+**Goal:** Add 3D box plots for statistical distribution visualization.
+**Depends on:** Phase 433
+**Requirements:** BOX-01, BOX-02, BOX-03
 **Success Criteria:**
-1. Focused tests and CI filters cover workspace, linked interaction, streaming,
-   cookbook, package templates, and generated roadmap checks.
-2. Release-readiness validation includes the new package-consumer evidence
-   without counting skipped or unavailable checks as success.
-3. Guardrails continue to reject compatibility claims, old chart paths, hidden
-   fallback/downshift, broad workbench scope, backend expansion, and fake
-   evidence.
-**Plans:** 430-PLAN.md
+1. `Plot.Add.BoxPlot(data, label)` renders 3D box with whiskers.
+2. Grouped/clustered layout works for multi-category comparison.
+3. Probe shows statistical summary (min, Q1, median, Q3, max).
 
-### Phase 431: v2.64 Final Verification
+### Phase 438: MultiPlot3D Subplot Grid
 
-**Goal:** Close v2.64 with synchronized verification and handoff.
-**Depends on:** Phase 430
-**Requirements:** VERIFY-01, VERIFY-02
-**Bead:** `Videra-7tqx.7`
+**Goal:** Add MultiPlot3D container for N×M subplot arrangements.
+**Depends on:** Phase 437
+**Requirements:** MULTI-01, MULTI-02, MULTI-03, MULTI-04, MULTI-05
 **Success Criteria:**
-1. Focused workflow, streaming, cookbook, CI, generated-roadmap, release
-   readiness, and scope checks pass or are explicitly reported.
-2. Beads state, generated public roadmap, phase archive, branch/worktree
-   cleanup, Git push, and Dolt Beads push are synchronized.
-**Plans:** 431-PLAN.md
+1. `MultiPlot3D(rows, cols)` creates grid layout with independent charts.
+2. Optional shared camera/axis via link groups works.
+3. `CaptureSnapshotAsync()` renders entire grid as single PNG.
+4. Demo shows 2×2 grid with different chart types.
+
+### Phase 439: Extended DataLogger3D and v2.65 Verification
+
+**Goal:** Extend streaming to all chart types, add cookbook recipes, and close
+v2.65 with verification.
+**Depends on:** Phase 438
+**Requirements:** STREAM-01..04, COOK-01..04, TRUTH-01..04
+**Success Criteria:**
+1. DataLogger3D pattern works for Surface, Waterfall, and Bar charts.
+2. Cookbook recipes cover all new chart types, MultiPlot3D, and streaming.
+3. CI truth tests cover new chart type filters.
+4. Release-readiness confirms Bar+Contour in public package contract.
+5. All tests pass, beads closed, roadmap synced, git pushed.
 
 ## Progress
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 425. Analysis Workspace and Streaming Inventory | 1/1 | Complete | 2026-04-30 |
-| 426. Native Multi-Chart Analysis Workspace | 2/2 | Complete | 2026-04-30 |
-| 427. Linked Interaction and Selection Propagation | 2/2 | Complete | 2026-04-30 |
-| 428. High-Density and Streaming Data Evidence | 1/1 | Complete | 2026-04-30 |
-| 429. Scenario Cookbook and Package Templates | 1/1 | Complete | 2026-04-30 |
-| 430. CI Performance and Release-Readiness Truth | 1/1 | Complete | 2026-04-30 |
-| 431. v2.64 Final Verification | 1/1 | Complete | 2026-04-30 |
+| 432. Chart Type Inventory and API Design | 0/1 | Ready | |
+| 433. Promote Bar+Contour to Production | 0/1 | Blocked | |
+| 434. Line/Ribbon Chart Family | 0/1 | Blocked | |
+| 435. Vector Field Chart Family | 0/1 | Blocked | |
+| 436. 3D Heatmap Slice Chart Family | 0/1 | Blocked | |
+| 437. Box Plot Chart Family | 0/1 | Blocked | |
+| 438. MultiPlot3D Subplot Grid | 0/1 | Blocked | |
+| 439. Extended DataLogger3D and v2.65 Verification | 0/1 | Blocked | |
 
 ---
 
 <details>
-<summary>v2.63 Native SurfaceCharts Feature and Demo Expansion - Complete (2026-04-30)</summary>
+<summary>v2.64 Native SurfaceCharts Analysis Workspace and Streaming Evidence - Complete (2026-04-30)</summary>
 
-Archived phase artifacts: `.planning/milestones/v2.63-phases`
+Archived phase artifacts: `.planning/milestones/v2.64-phases`
 
-v2.63 added focused native Bar/Contour/styling/data-shaping affordances,
-bounded annotation/measurement workflows, richer recipe-first demo behavior,
-and real package-consumer release-readiness truth while preserving the single
-native `VideraChartView` + `Plot.Add.*` route.
+v2.64 added native multi-chart analysis workspace, linked interaction with
+CameraOnly/AxisOnly policies, interaction propagation, streaming evidence
+tracking, cookbook recipes, CI truth tests, and release-readiness guardrails
+while preserving the single native `VideraChartView` + `Plot.Add.*` route.
 
 </details>

@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.64
-milestone_name: Native SurfaceCharts Analysis Workspace and Streaming Evidence
-status: complete
-stopped_at: Completed 431-01-PLAN.md - v2.64 milestone closed
-last_updated: "2026-04-30T15:05:09.384Z"
-last_activity: 2026-04-30 - Phase 431 complete. All builds green, 47 tests pass.
+milestone: v2.65
+milestone_name: 3D ScottPlot5 Analytics Chart Expansion
+status: ready
+stopped_at: Milestone initialized
+last_updated: "2026-04-30T15:10:00.000Z"
+last_activity: 2026-04-30 - v2.65 milestone created with 8 phases, 30 requirements.
 progress:
-  total_phases: 7
-  completed_phases: 7
-  total_plans: 9
-  completed_plans: 9
-  percent: 100
+  total_phases: 8
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -21,21 +21,21 @@ progress:
 See: `.planning/PROJECT.md`
 
 **Core value:** 跨平台 3D 渲染引擎的可靠性
-**Current focus:** v2.64 Native SurfaceCharts Analysis Workspace and Streaming Evidence
+**Current focus:** v2.65 3D ScottPlot5 Analytics Chart Expansion
 
 ## Current Position
 
-Milestone: `v2.64 Native SurfaceCharts Analysis Workspace and Streaming Evidence`
-Phase: 431 of 431 - COMPLETE
-Plan: 431-01 (final verification) complete.
-Status: All phases 425-431 complete. v2.64 milestone closed.
-Last activity: 2026-04-30 - Phase 431 complete. All builds green, 47 tests pass.
+Milestone: `v2.65 3D ScottPlot5 Analytics Chart Expansion`
+Phase: 432 - READY
+Plan: Phase 432 (Chart Type Inventory and API Design) is the starting phase.
+Status: v2.65 milestone initialized with 8 phases and 30 requirements.
+Last activity: 2026-04-30 - v2.65 milestone created.
 
-Progress: [██████████] 100%
+Progress: [░░░░░░░░░░] 0%
 
 ## Initial Scope Summary
 
-v2.64 continues from the completed v2.63 feature/demo milestone:
+v2.65 continues from the completed v2.64 analysis workspace milestone:
 
 - SurfaceCharts has a cleaned native `VideraChartView` + `Plot.Add.*` route.
 - SurfaceCharts has richer feature affordances, annotation/measurement support,
@@ -60,26 +60,25 @@ v2.64 focuses on:
 - Beads remain the single task spine for phase status, dependencies, ownership,
   and handoff.
 
-- Phase numbering continues from v2.63: `425-431`.
-- Phase 425 completed with four parallel inventory child beads.
-- Phase 426 is the next ready phase.
+- Phase numbering continues from v2.64: `432-439`.
+- Phase 432 is the inventory/design starting phase.
 - Later phases are ordered by blocking dependencies in Beads:
-  `425 -> 426 -> 427 -> 428 -> 429 -> 430 -> 431`.
+  `432 -> 433 -> 434/435/436/437 (parallel) -> 438 -> 439`.
+
+- Analytics vertical chosen over broad vocabulary: Line/Ribbon, Vector Field,
+  Heatmap Slice, Box Plot — focused on scientific/engineering 3D data analysis.
+
+- Bar+Contour promotion is a prerequisite for Phase 434+ because it establishes
+  the pattern for adding chart types to the public package contract.
+
+- MultiPlot3D extends the v2.64 workspace concept to subplot grids.
+
+- DataLogger3D streaming extends from scatter-only to all chart types.
 
 - Keep implementation simple and direct; do not add external plotting
   compatibility adapters, migration shims, old chart controls, hidden
   fallback/downshift behavior, backend expansion, broad demo frameworks, or fake
   validation evidence.
-
-- Use isolated worktrees only after Phase 425 identifies genuinely disjoint
-  write scopes.
-
-- Used _isSentrancy re-entrancy guard pattern from VideraChartViewLink for both filtered link classes
-- Filtered links check field equality before setting _isSentrancy to avoid unnecessary PropertyChanged cycles
-- Added focused test methods for v2.64 recipes instead of extending CookbookCoverageRows
-- Updated CI workflow with v2.64 test filters alongside test assertions
-- Scope guardrail tests check v2.64-specific docs for forbidden scope claims
-- All v2.64 phases verified with 47 tests passing across workspace, CI truth, and cookbook coverage suites
 
 ## Known Residuals
 
@@ -89,9 +88,9 @@ v2.64 focuses on:
 
 ## Session Continuity
 
-Last session: 2026-04-30T15:05:09.365Z
-Stopped at: Completed 431-01-PLAN.md - v2.64 milestone closed
-Next action: None - milestone complete. Ready for next milestone.
+Last session: 2026-04-30T15:10:00.000Z
+Stopped at: v2.65 milestone initialized
+Next action: Run `/gsd-plan-phase 432` to start chart type inventory and API design.
 
 ## Accumulated Context
 
