@@ -74,7 +74,6 @@ public sealed class SurfaceChartsDemoConfigurationTests
 
         var rootReadme = File.ReadAllText(rootReadmePath);
         rootReadme.Should().Contain("Minimal SurfaceCharts cookbook");
-        rootReadme.Should().Contain("ScottPlot 5");
         rootReadme.Should().Contain("not a compatibility or parity layer");
         rootReadme.Should().Contain("recipe groups for first chart, styling, interactions, live data, linked axes, Bar, Contour, and export");
         rootReadme.Should().Contain("First surface");
@@ -108,8 +107,7 @@ public sealed class SurfaceChartsDemoConfigurationTests
         readme.Should().Contain("Try next: Contour plot proof");
         readme.Should().Contain("Cookbook Recipes");
         readme.Should().Contain("Cookbook gallery");
-        readme.Should().Contain("ScottPlot 5");
-        readme.Should().Contain("not a ScottPlot compatibility or parity layer");
+        readme.Should().Contain("not a compatibility or parity layer");
         readme.Should().Contain("### First Chart");
         readme.Should().Contain("### Styling");
         readme.Should().Contain("### Interactions");
@@ -142,8 +140,14 @@ public sealed class SurfaceChartsDemoConfigurationTests
         readme.Should().Contain("Live scatter");
         readme.Should().Contain("BarChartData");
         readme.Should().Contain("BarSeries");
+        readme.Should().Contain("SetSeriesColor");
         readme.Should().Contain("ContourChartData");
         readme.Should().Contain("SurfaceScalarField");
+        readme.Should().Contain("explicitLevels");
+        readme.Should().Contain("SelectionReported");
+
+        rootReadme.Should().NotContain("ScottPlot");
+        readme.Should().NotContain("ScottPlot");
 
         var mainWindow = File.ReadAllText(mainWindowXamlPath);
         var scenarioCatalog = File.ReadAllText(scenarioCatalogPath);

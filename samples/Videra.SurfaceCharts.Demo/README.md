@@ -18,7 +18,7 @@ The sample stays separate from `Videra.Demo` and `VideraView`. It exercises the 
 - `Try next: Contour plot proof`: exercises the bounded contour proof path on the same Avalonia shell.
 - `Cookbook gallery`: maps first chart, styling, interactions, live data, linked axes, Bar, Contour, and export recipes to isolated setup paths and matching snippets without becoming a generic chart editor.
 
-The cookbook is inspired by ScottPlot 5's discoverable recipe ergonomics. It is not a ScottPlot compatibility or parity layer: the snippets use Videra's 3D `VideraChartView`, `Plot.Add.*`, `Plot.Axes`, `DataLogger3D`, linked-view, and chart-local PNG snapshot APIs.
+The cookbook is recipe-first and native to Videra. It is not a compatibility or parity layer: the snippets use Videra's 3D `VideraChartView`, `Plot.Add.*`, `Plot.Axes`, `DataLogger3D`, linked-view, and chart-local PNG snapshot APIs.
 For current package consumption, migration notes, non-goals, support artifacts, and troubleshooting, use [SurfaceCharts Current Consumer Handoff](../../docs/surfacecharts-release-cutover.md). The handoff is documentation only and does not approve publishing, tagging, or GitHub Release publication. The older [SurfaceCharts Release Candidate Handoff](../../docs/surfacecharts-release-candidate-handoff.md) remains release-candidate background.
 
 VideraChartView exposes `ViewState` as the chart-view contract for persisted camera and data-window state.
@@ -75,8 +75,9 @@ Detailed copy-adapt recipes live beside this README:
 | `Try next: Analytics proof` | `Plot.Add.Surface` with explicit coordinates and `ColorField` | `Recipes/first-chart.md` | `SurfaceChartsDemoViewportBehaviorTests` |
 | `Try next: Waterfall proof` | `Plot.Add.Waterfall` with explicit strip spacing | `Recipes/waterfall.md`, `Recipes/axes-and-linked-views.md` | `SurfaceChartsDemoViewportBehaviorTests`, `SurfaceChartsCookbookWaterfallLinkedRecipeTests` |
 | `Try next: Scatter proof` | `Plot.Add.Scatter` with descriptor-scoped streaming scenarios | `Recipes/scatter-and-live-data.md` | `SurfaceChartsDemoViewportBehaviorTests`, `ScatterStreamingScenarioEvidenceTests` |
-| `Try next: Bar chart proof` | `Plot.Add.Bar` with grouped series and category labels | `Recipes/bar.md` | `SurfaceChartsCookbookBarContourSnapshotRecipeTests` |
-| `Try next: Contour plot proof` | `Plot.Add.Contour` with radial scalar-field levels | `Recipes/contour.md` | `SurfaceChartsCookbookBarContourSnapshotRecipeTests` |
+| `Try next: Bar chart proof` | `Plot.Add.Bar` with grouped series, category labels, and `SetSeriesColor` | `Recipes/bar.md` | `SurfaceChartsCookbookBarContourSnapshotRecipeTests`, `VideraChartViewPlotApiTests` |
+| `Try next: Contour plot proof` | `Plot.Add.Contour` with radial scalar-field levels and explicit level overloads | `Recipes/contour.md` | `SurfaceChartsCookbookBarContourSnapshotRecipeTests`, `VideraChartViewPlotApiTests` |
+| `Built-in interaction` | `TryCreateProbeAnnotationAnchor`, `TryCreateSelectionMeasurementReport`, and `SelectionReported` report surfaces | `Recipes/axes-and-linked-views.md` | `SurfaceChartInteractionRecipeTests`, `SurfaceChartInteractionTests` |
 | `Capture Snapshot` | `Plot.SavePngAsync` / `CaptureSnapshotAsync` PNG manifest evidence | `Recipes/png-snapshot.md`, `Recipes/support-evidence.md` | `PlotSnapshotContractTests`, `PlotSnapshotCaptureTests`, `SurfaceChartsDemoViewportBehaviorTests` |
 
 ### First Chart
@@ -217,10 +218,11 @@ var data = new BarChartData(
     new BarSeries([12.0, 19.0, 3.0, 5.0, 8.0], 0xFF38BDF8u, "Series A"),
     new BarSeries([7.0, 11.0, 15.0, 8.0, 13.0], 0xFFF97316u, "Series B"),
     new BarSeries([5.0, 9.0, 12.0, 18.0, 6.0], 0xFF2DD4BFu, "Series C"),
-]);
+], categoryLabels: ["Q1", "Q2", "Q3", "Q4", "Q5"]);
 
 chart.Plot.Clear();
-chart.Plot.Add.Bar(data, "Grouped bars");
+var bars = chart.Plot.Add.Bar(data, "Grouped bars");
+bars.SetSeriesColor(seriesIndex: 1, color: 0xFFABCDEFu);
 chart.FitToData();
 ```
 
@@ -245,7 +247,7 @@ var range = new SurfaceValueRange(values.Min(), values.Max());
 var field = new SurfaceScalarField(size, size, values, range);
 
 chart.Plot.Clear();
-chart.Plot.Add.Contour(new ContourChartData(field), "Radial contours");
+chart.Plot.Add.Contour(field, explicitLevels: [0.25f, 0.5f, 0.75f], name: "Radial contours");
 chart.FitToData();
 ```
 

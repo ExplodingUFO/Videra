@@ -14,6 +14,7 @@ public sealed class SurfaceChartsPerformanceTruthTests
         var cutover = Read(repositoryRoot, "docs", "surfacecharts-release-cutover.md");
         var benchmarkGates = Read(repositoryRoot, "docs", "benchmark-gates.md");
         var mainWindowCodeBehind = Read(repositoryRoot, "samples", "Videra.SurfaceCharts.Demo", "Views", "MainWindow.axaml.cs");
+        var supportSummary = Read(repositoryRoot, "samples", "Videra.SurfaceCharts.Demo", "Services", "SurfaceDemoSupportSummary.cs");
 
         demoReadme.Should().Contain("support evidence, not stable benchmark guarantees");
         demoReadme.Should().Contain("evidence-only, not a pixel-perfect visual-regression gate");
@@ -22,14 +23,14 @@ public sealed class SurfaceChartsPerformanceTruthTests
         demoReadme.Should().Contain("benchmark thresholds remain in the dedicated benchmark gate files");
         demoReadme.Should().Contain("no GPU-driven culling");
         demoReadme.Should().Contain("no scenario/data-path fallback");
-        demoReadme.Should().Contain("not a ScottPlot compatibility or parity layer");
+        demoReadme.Should().Contain("not a compatibility or parity layer");
         demoReadme.Should().Contain("image/PDF/vector export");
 
         cutover.Should().Contain("not benchmark truth");
         cutover.Should().Contain("GPU performance guarantee");
         cutover.Should().Contain("backend fallback proof");
         cutover.Should().Contain("PDF/vector export");
-        cutover.Should().Contain("not a ScottPlot API compatibility, parity, adapter, or migration layer");
+        cutover.Should().Contain("not an API compatibility, parity, adapter, or migration layer");
 
         rootReadme.Should().Contain("evidence-only results");
         rootReadme.Should().Contain("intentionally absent from `benchmark-thresholds.json` until CI history supports hard thresholds");
@@ -40,9 +41,9 @@ public sealed class SurfaceChartsPerformanceTruthTests
         benchmarkGates.Should().Contain("not hard gates");
         benchmarkGates.Should().Contain("hard numeric blocker for the committed threshold slice");
 
-        mainWindowCodeBehind.Should().Contain("EvidenceOnly: true - values are support evidence, not stable benchmark guarantees.");
+        supportSummary.Should().Contain("EvidenceOnly: true - values are support evidence, not stable benchmark guarantees.");
         mainWindowCodeBehind.Should().Contain("there was no scenario/data-path fallback");
-        mainWindowCodeBehind.Should().Contain("no fallback active");
+        supportSummary.Should().Contain("no fallback active");
     }
 
     [Fact]

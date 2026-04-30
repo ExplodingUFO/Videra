@@ -56,7 +56,7 @@ public sealed class SurfaceChartsCookbookCoverageMatrixTests
         cookbookRecipeCatalog.Should().NotContain("SourceIndex");
         cutover.Should().Contain("For repository-only repros, use `Videra.SurfaceCharts.Demo`.");
         cutover.Should().Contain("For packaged SurfaceCharts issues, first run or attach evidence from `smoke/Videra.SurfaceCharts.ConsumerSmoke`");
-        cutover.Should().Contain("not a ScottPlot API compatibility, parity, adapter, or migration layer");
+        cutover.Should().Contain("not an API compatibility, parity, adapter, or migration layer");
         cutover.Should().Contain("no direct public `VideraChartView.Source` data-loading API");
         cutover.Should().Contain("no hidden scenario/data-path fallback");
         cutover.Should().Contain("no PDF/vector export and no image export beyond bounded PNG chart snapshots");
@@ -64,6 +64,9 @@ public sealed class SurfaceChartsCookbookCoverageMatrixTests
         cutover.Should().NotContain("SurfaceChartView` is the shipped");
         cutover.Should().NotContain("WaterfallChartView` is the shipped");
         cutover.Should().NotContain("ScatterChartView` is the shipped");
+        rootReadme.Should().NotContain("ScottPlot");
+        demoReadme.Should().NotContain("ScottPlot");
+        cutover.Should().NotContain("ScottPlot");
 
         foreach (var recipe in DetailedRecipeFiles)
         {
@@ -117,14 +120,14 @@ public sealed class SurfaceChartsCookbookCoverageMatrixTests
             RootReadmeToken: "Plot.Add.Bar",
             CutoverEntry: "`Bar` for the bounded grouped-bar proof path in the demo gallery.",
             VisibleProofLabel: "Try next: Bar chart proof",
-            SnippetToken: "BarChartData"),
+            SnippetToken: "SetSeriesColor"),
         new(
             CodeBehindGroup: "Contour",
             DemoReadmeHeading: "### Contour",
             RootReadmeToken: "Plot.Add.Contour",
             CutoverEntry: "`Contour` for the bounded radial scalar-field contour proof path in the demo gallery.",
             VisibleProofLabel: "Try next: Contour plot proof",
-            SnippetToken: "ContourChartData"),
+            SnippetToken: "explicitLevels"),
         new(
             CodeBehindGroup: "Export",
             DemoReadmeHeading: "### Export",

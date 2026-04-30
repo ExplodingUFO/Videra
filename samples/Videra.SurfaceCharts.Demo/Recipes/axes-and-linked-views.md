@@ -128,3 +128,30 @@ right.FitToData();
 ```
 
 For linked comparisons, make this choice explicit in the host UI: restore a saved `ViewState` to keep the comparison pose, or call `FitToData()` to reframe both charts through the active link.
+
+## Annotation, Measurement, And Selection Reports
+
+SurfaceCharts reports interaction facts to the host; it does not store host
+annotations or become a generic editor. Use the report helpers when a host wants
+to create its own labels, measurement rows, or selection records:
+
+```csharp
+if (chart.TryCreateProbeAnnotationAnchor(pointerPosition, out var probeAnchor, "Peak"))
+{
+    SaveHostAnnotation(probeAnchor);
+}
+
+if (chart.TryCreateSelectionMeasurementReport(selectionStart, selectionEnd, out var measurement))
+{
+    SaveHostMeasurement(measurement);
+}
+
+chart.SelectionReported += (_, args) =>
+{
+    SaveHostSelection(args.Report);
+};
+```
+
+`SurfaceChartAnnotationAnchor`, `SurfaceChartMeasurementReport`, and
+`SurfaceChartSelectionReport` are immutable evidence values. Persist host-owned
+annotation or measurement state outside the chart.

@@ -69,11 +69,12 @@ Start with the root README "Minimal SurfaceCharts cookbook", then use [Videra.Su
 | `Try next: Analytics proof` | `Plot.Add.Surface` with explicit coordinates and `ColorField` | `SurfaceChartsDemoViewportBehaviorTests` and [`first-chart.md`](../samples/Videra.SurfaceCharts.Demo/Recipes/first-chart.md) |
 | `Try next: Waterfall proof` | `Plot.Add.Waterfall` | `SurfaceChartsCookbookWaterfallLinkedRecipeTests` and [`waterfall.md`](../samples/Videra.SurfaceCharts.Demo/Recipes/waterfall.md) |
 | `Try next: Scatter proof` | `Plot.Add.Scatter` | `ScatterStreamingScenarioEvidenceTests` and [`scatter-and-live-data.md`](../samples/Videra.SurfaceCharts.Demo/Recipes/scatter-and-live-data.md) |
-| `Try next: Bar chart proof` | `Plot.Add.Bar` | `SurfaceChartsCookbookBarContourSnapshotRecipeTests` and [`bar.md`](../samples/Videra.SurfaceCharts.Demo/Recipes/bar.md) |
-| `Try next: Contour plot proof` | `Plot.Add.Contour` | `SurfaceChartsCookbookBarContourSnapshotRecipeTests` and [`contour.md`](../samples/Videra.SurfaceCharts.Demo/Recipes/contour.md) |
+| `Try next: Bar chart proof` | `Plot.Add.Bar`, category labels, and `SetSeriesColor` | `SurfaceChartsCookbookBarContourSnapshotRecipeTests`, `VideraChartViewPlotApiTests`, and [`bar.md`](../samples/Videra.SurfaceCharts.Demo/Recipes/bar.md) |
+| `Try next: Contour plot proof` | `Plot.Add.Contour` with explicit level overloads | `SurfaceChartsCookbookBarContourSnapshotRecipeTests`, `VideraChartViewPlotApiTests`, and [`contour.md`](../samples/Videra.SurfaceCharts.Demo/Recipes/contour.md) |
 | `Capture Snapshot` | `Plot.SavePngAsync` / `CaptureSnapshotAsync` | `PlotSnapshotContractTests`, `PlotSnapshotCaptureTests`, and [`png-snapshot.md`](../samples/Videra.SurfaceCharts.Demo/Recipes/png-snapshot.md) |
+| `Built-in interaction` | `TryCreateProbeAnnotationAnchor`, `TryCreateSelectionMeasurementReport`, and `SelectionReported` report surfaces | `SurfaceChartInteractionRecipeTests` and `SurfaceChartInteractionTests` |
 
-The cookbook follows ScottPlot 5's discoverable recipe ergonomics as inspiration only. It is not a ScottPlot API compatibility, parity, adapter, or migration layer.
+The cookbook is native to Videra's 3D chart model. It is not an API compatibility, parity, adapter, or migration layer.
 
 ## Migration Boundary
 

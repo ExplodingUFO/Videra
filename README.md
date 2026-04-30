@@ -103,7 +103,7 @@ dotnet add package Videra.SurfaceCharts.Processing
 
 Minimal SurfaceCharts cookbook:
 
-The cookbook follows ScottPlot 5's recipe-discovery ergonomics as inspiration, but it is not a compatibility or parity layer. SurfaceCharts remains a Videra 3D chart surface built around `VideraChartView`, `Plot.Add.*`, `Plot.Axes`, chart-local interaction/profile APIs, linked 3D views, `DataLogger3D`, and PNG-only chart snapshots. The repository demo includes a cookbook/gallery selector with recipe groups for first chart, styling, interactions, live data, linked axes, Bar, Contour, and export.
+The cookbook is recipe-first, but it is not a compatibility or parity layer. SurfaceCharts remains a Videra 3D chart surface built around `VideraChartView`, `Plot.Add.*`, `Plot.Axes`, chart-local interaction/profile APIs, linked 3D views, `DataLogger3D`, and PNG-only chart snapshots. The repository demo includes a cookbook/gallery selector with recipe groups for first chart, styling, interactions, live data, linked axes, Bar, Contour, and export.
 
 ```csharp
 using Videra.SurfaceCharts.Avalonia.Controls;
@@ -149,11 +149,11 @@ For bounded Bar and Contour cookbook paths, keep them in the repository demo ins
 
 ```csharp
 chart.Plot.Clear();
-chart.Plot.Add.Bar(new BarChartData(
-[
-    new BarSeries([12.0, 19.0, 3.0, 5.0, 8.0], 0xFF38BDF8u, "Series A"),
-    new BarSeries([7.0, 11.0, 15.0, 8.0, 13.0], 0xFFF97316u, "Series B"),
-]), "Grouped bars");
+var bars = chart.Plot.Add.Bar(
+    values: [12.0, 19.0, 3.0, 5.0, 8.0],
+    categoryLabels: ["Q1", "Q2", "Q3", "Q4", "Q5"],
+    name: "Series A");
+bars.SetSeriesColor(seriesIndex: 0, color: 0xFF38BDF8u);
 
 var contourValues = new float[]
 {
@@ -166,11 +166,11 @@ var contourField = new SurfaceScalarField(
     height: 3,
     values: contourValues,
     range: new SurfaceValueRange(0, 1));
-chart.Plot.Add.Contour(new ContourChartData(contourField), "Radial contours");
+chart.Plot.Add.Contour(contourField, explicitLevels: [0.25f, 0.5f, 0.75f], name: "Radial contours");
 chart.FitToData();
 ```
 
-More cookbook snippets live in [Videra.SurfaceCharts.Demo](samples/Videra.SurfaceCharts.Demo/README.md), including detailed [first chart](samples/Videra.SurfaceCharts.Demo/Recipes/first-chart.md), [surface/cache-backed](samples/Videra.SurfaceCharts.Demo/Recipes/surface-cache-backed.md), [waterfall](samples/Videra.SurfaceCharts.Demo/Recipes/waterfall.md), [axes and linked views](samples/Videra.SurfaceCharts.Demo/Recipes/axes-and-linked-views.md), linked-axis, [scatter and live data](samples/Videra.SurfaceCharts.Demo/Recipes/scatter-and-live-data.md), [Bar](samples/Videra.SurfaceCharts.Demo/Recipes/bar.md), [Contour](samples/Videra.SurfaceCharts.Demo/Recipes/contour.md), [support evidence](samples/Videra.SurfaceCharts.Demo/Recipes/support-evidence.md), and [PNG snapshot](samples/Videra.SurfaceCharts.Demo/Recipes/png-snapshot.md) recipes.
+More cookbook snippets live in [Videra.SurfaceCharts.Demo](samples/Videra.SurfaceCharts.Demo/README.md), including detailed [first chart](samples/Videra.SurfaceCharts.Demo/Recipes/first-chart.md), [surface/cache-backed](samples/Videra.SurfaceCharts.Demo/Recipes/surface-cache-backed.md), [waterfall](samples/Videra.SurfaceCharts.Demo/Recipes/waterfall.md), [axes and linked views](samples/Videra.SurfaceCharts.Demo/Recipes/axes-and-linked-views.md), linked-axis, [scatter and live data](samples/Videra.SurfaceCharts.Demo/Recipes/scatter-and-live-data.md), [Bar](samples/Videra.SurfaceCharts.Demo/Recipes/bar.md), [Contour](samples/Videra.SurfaceCharts.Demo/Recipes/contour.md), [support evidence](samples/Videra.SurfaceCharts.Demo/Recipes/support-evidence.md), and [PNG snapshot](samples/Videra.SurfaceCharts.Demo/Recipes/png-snapshot.md) recipes. The interaction recipes also pin `TryCreateProbeAnnotationAnchor`, `TryCreateSelectionMeasurementReport`, and `SelectionReported` as host-owned report surfaces, not chart-owned annotation storage.
 
 The current SurfaceCharts efficiency story is tighter interactive residency under camera movement and lower probe-path churn on the existing chart-local path; the committed hard-gate names remain `SurfaceChartsRenderStateBenchmarks.ApplyResidencyChurnUnderCameraMovement` and `SurfaceChartsProbeBenchmarks.ProbeLatency`.
 Columnar scatter streaming is a chart-domain contract, not a viewer/runtime mode. `ScatterColumnarSeries` accepts `ReplaceRange(...)` and `AppendRange(...)`, can use an optional positive `fifoCapacity` to retain a bounded point window, defaults high-volume data to `Pickable=false`, and reports retained point count, append/replacement batch counts, dropped FIFO points, configured FIFO capacity, and scatter `InteractionQuality` through `ScatterChartRenderingStatus`.

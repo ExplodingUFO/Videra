@@ -58,6 +58,12 @@ public sealed class SurfaceChartsCookbookWaterfallLinkedRecipeTests
             "right.FitToData();",
             "left.ViewState",
             "right.ViewState",
+            "TryCreateProbeAnnotationAnchor",
+            "TryCreateSelectionMeasurementReport",
+            "SelectionReported",
+            "SurfaceChartAnnotationAnchor",
+            "SurfaceChartMeasurementReport",
+            "SurfaceChartSelectionReport",
         ]);
     }
 

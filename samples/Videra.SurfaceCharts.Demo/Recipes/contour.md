@@ -33,11 +33,18 @@ for (var y = 0; y < size; y++)
 
 var range = new SurfaceValueRange(values.Min(), values.Max());
 var field = new SurfaceScalarField(size, size, values, range);
-var contour = new ContourChartData(field, levelCount: 10);
+var contour = new ContourChartData(field, explicitLevels: [0.25f, 0.5f, 0.75f]);
 
 chart.Plot.Clear();
 chart.Plot.Add.Contour(contour, "Radial contours");
 chart.FitToData();
+```
+
+When a host already has the scalar field and only needs explicit iso-values, use
+the direct overload:
+
+```csharp
+chart.Plot.Add.Contour(field, explicitLevels: [0.25f, 0.5f, 0.75f], name: "Radial contours");
 ```
 
 ## Demo Proof
@@ -52,6 +59,8 @@ The support summary for this proof includes:
 - `Plot path: Try next: Contour plot proof`
 - `ContourRenderingStatus: HasSource`, `IsReady`, `Levels`, `Lines`, and
   `Segments`
+- `ContourChartData.HasExplicitLevels` and the explicit `ContourChartData.ExplicitLevels`
+  sequence when the host supplies fixed iso-values
 - `DatasetEvidenceKind`, `DatasetSeriesCount`, `DatasetActiveSeriesIndex`, and
   `DatasetActiveSeriesMetadata`
 - `OutputCapabilityDiagnostics` from the Plot output evidence path

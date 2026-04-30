@@ -140,7 +140,8 @@ internal static class CookbookRecipes
                 ]);
 
                 chart.Plot.Clear();
-                chart.Plot.Add.Bar(data, "Grouped bars");
+                var bars = chart.Plot.Add.Bar(data, "Grouped bars");
+                bars.SetSeriesColor(seriesIndex: 1, color: 0xFFABCDEFu);
                 chart.FitToData();
                 """),
         new(
@@ -165,7 +166,7 @@ internal static class CookbookRecipes
                 var range = new SurfaceValueRange(values.Min(), values.Max());
                 var field = new SurfaceScalarField(size, size, values, range);
                 chart.Plot.Clear();
-                chart.Plot.Add.Contour(new ContourChartData(field), "Radial contours");
+                chart.Plot.Add.Contour(field, explicitLevels: [0.25f, 0.5f, 0.75f], name: "Radial contours");
                 chart.FitToData();
                 """),
         new(
