@@ -102,4 +102,47 @@ public sealed class SurfaceChartStreamingEvidenceTests
             retrieved.EvidenceOnly.Should().BeFalse();
         });
     }
+
+    [Fact]
+    public void WorkspaceEvidence_includes_streaming_section_when_statuses_exist()
+    {
+        AvaloniaHeadlessTestSession.Run(() =>
+        {
+            using var workspace = new SurfaceChartWorkspace();
+            var chartA = new VideraChartView();
+            workspace.Register(chartA, new SurfaceChartPanelInfo("chart-a", "Scatter A", Plot3DSeriesKind.Scatter));
+
+            workspace.RegisterStreamingStatus("chart-a", new SurfaceChartStreamingStatus
+            {
+                UpdateMode = "Replace",
+                RetainedPointCount = 100_000,
+                ReplaceBatchCount = 5,
+                EvidenceOnly = true,
+            });
+
+            var evidence = workspace.CreateWorkspaceEvidence();
+
+            evidence.Should().Contain("StreamingChartCount: 1");
+            evidence.Should().Contain("Streaming[chart-a]");
+            evidence.Should().Contain("Mode=Replace");
+            evidence.Should().Contain("Retained=100000");
+            evidence.Should().Contain("StreamingBoundary:");
+        });
+    }
+
+    [Fact]
+    public void WorkspaceEvidence_no_streaming_section_when_no_statuses()
+    {
+        AvaloniaHeadlessTestSession.Run(() =>
+        {
+            using var workspace = new SurfaceChartWorkspace();
+            var chartA = new VideraChartView();
+            workspace.Register(chartA, new SurfaceChartPanelInfo("chart-a", "Surface A", Plot3DSeriesKind.Surface));
+
+            var evidence = workspace.CreateWorkspaceEvidence();
+
+            evidence.Should().NotContain("StreamingChartCount");
+            evidence.Should().NotContain("StreamingBoundary");
+        });
+    }
 }

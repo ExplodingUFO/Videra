@@ -19,7 +19,7 @@ public static class SurfaceChartWorkspaceEvidence
     /// <returns>A bounded diagnostic text block.</returns>
     public static string Create(SurfaceChartWorkspaceStatus status, string? activeRecipeContext)
     {
-        return Create(status, activeRecipeContext, null);
+        return Create(status, activeRecipeContext, null, null);
     }
 
     /// <summary>
@@ -33,6 +33,24 @@ public static class SurfaceChartWorkspaceEvidence
         SurfaceChartWorkspaceStatus status,
         string? activeRecipeContext,
         IReadOnlyList<SurfaceChartLinkedInteractionState>? linkedInteractionStates)
+    {
+        return Create(status, activeRecipeContext, linkedInteractionStates, null);
+    }
+
+    /// <summary>
+    /// Creates a bounded text block describing the workspace state, including linked interaction details
+    /// and optional streaming status.
+    /// </summary>
+    /// <param name="status">The workspace status snapshot.</param>
+    /// <param name="activeRecipeContext">The recipe context of the active chart, or null.</param>
+    /// <param name="linkedInteractionStates">Optional linked interaction states for each registered link group.</param>
+    /// <param name="streamingStatuses">Optional per-chart streaming statuses.</param>
+    /// <returns>A bounded diagnostic text block.</returns>
+    public static string Create(
+        SurfaceChartWorkspaceStatus status,
+        string? activeRecipeContext,
+        IReadOnlyList<SurfaceChartLinkedInteractionState>? linkedInteractionStates,
+        IReadOnlyDictionary<string, SurfaceChartStreamingStatus>? streamingStatuses)
     {
         ArgumentNullException.ThrowIfNull(status);
 
@@ -76,6 +94,20 @@ public static class SurfaceChartWorkspaceEvidence
                 $"Measurement={(anyMeasurement ? "active" : "inactive")}");
 
             sb.AppendLine("EvidenceBoundary: Propagation is runtime truth; linked chart data presence is runtime truth.");
+        }
+
+        if (streamingStatuses is { Count: > 0 })
+        {
+            sb.AppendLine($"StreamingChartCount: {streamingStatuses.Count}");
+
+            foreach (var (chartId, streaming) in streamingStatuses)
+            {
+                var fifoText = streaming.FifoCapacity is { } fifo ? fifo.ToString() : "none";
+                sb.AppendLine(
+                    $"Streaming[{chartId}]: Mode={streaming.UpdateMode} | Retained={streaming.RetainedPointCount} | FIFO={fifoText} | Dropped={streaming.DroppedFifoPointCount}");
+            }
+
+            sb.AppendLine("StreamingBoundary: Streaming evidence is runtime truth; benchmark thresholds are separate.");
         }
 
         sb.Append($"AllReady: {status.AllReady}");

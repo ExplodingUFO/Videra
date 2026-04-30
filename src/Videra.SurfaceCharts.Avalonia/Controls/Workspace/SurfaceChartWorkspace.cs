@@ -228,7 +228,10 @@ public sealed class SurfaceChartWorkspace : IDisposable
         var status = CaptureWorkspaceStatus();
         var activeInfo = _activeChartId is { } id && _panels.TryGetValue(id, out var entry) ? entry.Info : null;
         var linkedStates = _linkGroups.Count > 0 ? CaptureLinkedInteractionStates() : null;
-        return SurfaceChartWorkspaceEvidence.Create(status, activeInfo?.RecipeContext, linkedStates);
+        var streamingStatuses = _streamingStatuses.Count > 0
+            ? (IReadOnlyDictionary<string, SurfaceChartStreamingStatus>)_streamingStatuses
+            : null;
+        return SurfaceChartWorkspaceEvidence.Create(status, activeInfo?.RecipeContext, linkedStates, streamingStatuses);
     }
 
     /// <inheritdoc />
