@@ -162,6 +162,7 @@ public sealed class SurfaceChartsDemoConfigurationTests
         scenarioCatalog.Should().Contain("Try next: Bar chart proof");
         scenarioCatalog.Should().Contain("Try next: Contour plot proof");
         mainWindow.Should().Contain("Scatter stream");
+        mainWindow.Should().Contain("ScatterScenarioPanel");
         mainWindow.Should().Contain("ScatterScenarioSelector");
         mainWindow.Should().Contain("First-chart Plot path");
         mainWindow.Should().Contain("Start here status");
@@ -276,6 +277,8 @@ public sealed class SurfaceChartsDemoConfigurationTests
         sampleData.Should().Contain("ScatterChartData");
         mainWindowCodeBehind.Should().Contain("ScatterStreamingScenarios");
         mainWindowCodeBehind.Should().Contain("ApplySelectedScatterScenario");
+        mainWindowCodeBehind.Should().Contain("UpdateScatterScenarioSelectorState");
+        mainWindowCodeBehind.Should().Contain("_scatterScenarioSelector.IsEnabled");
         sampleData.Should().Contain("ScatterSeries");
         sampleData.Should().Contain("ScatterPoint");
         sampleData.Should().Contain("ScatterChartMetadata");

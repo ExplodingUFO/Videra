@@ -61,7 +61,8 @@
                        Foreground="#E2E8F0"
                        Text="First-chart Plot path" />
             <ComboBox x:Name="SourceSelector" />
-            <Grid ColumnDefinitions="Auto,*"
+            <Grid x:Name="ScatterScenarioPanel"
+                  ColumnDefinitions="Auto,*"
                   ColumnSpacing="10">
               <TextBlock Text="Scatter stream"
                          Foreground="#CBD5E1"

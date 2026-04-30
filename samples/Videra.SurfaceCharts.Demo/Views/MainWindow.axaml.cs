@@ -22,6 +22,7 @@ public partial class MainWindow : Window
     private readonly VideraChartView _barChartView;
     private readonly VideraChartView _contourPlotView;
     private readonly ComboBox _sourceSelector;
+    private readonly Grid _scatterScenarioPanel;
     private readonly ComboBox _scatterScenarioSelector;
     private readonly ComboBox _cookbookRecipeSelector;
     private readonly Button _fitToDataButton;
@@ -71,6 +72,8 @@ public partial class MainWindow : Window
             ?? throw new InvalidOperationException("ContourPlotView is missing.");
         _sourceSelector = this.FindControl<ComboBox>("SourceSelector")
             ?? throw new InvalidOperationException("Source selector is missing.");
+        _scatterScenarioPanel = this.FindControl<Grid>("ScatterScenarioPanel")
+            ?? throw new InvalidOperationException("Scatter scenario panel is missing.");
         _scatterScenarioSelector = this.FindControl<ComboBox>("ScatterScenarioSelector")
             ?? throw new InvalidOperationException("Scatter scenario selector is missing.");
         _cookbookRecipeSelector = this.FindControl<ComboBox>("CookbookRecipeSelector")
@@ -810,6 +813,7 @@ public partial class MainWindow : Window
 
     private void RefreshActiveProofTexts()
     {
+        UpdateScatterScenarioSelectorState();
         UpdateBuiltInInteractionText();
         UpdateViewStateText();
         UpdateInteractionQualityText();
@@ -818,6 +822,13 @@ public partial class MainWindow : Window
         UpdateOverlayOptionsText();
         UpdateStatusText();
         UpdateSupportSummaryText();
+    }
+
+    private void UpdateScatterScenarioSelectorState()
+    {
+        var isScatterActive = IsScatterProofActive;
+        _scatterScenarioPanel.Opacity = isScatterActive ? 1d : 0.45d;
+        _scatterScenarioSelector.IsEnabled = isScatterActive;
     }
 
     private void UpdateBuiltInInteractionText()
