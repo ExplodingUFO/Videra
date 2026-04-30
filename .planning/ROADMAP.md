@@ -16,7 +16,7 @@ TRUTH-01..03, VERIFY-01..02)
 
 ## Phases
 
-- [ ] **Phase 419: Feature/Demo Surface Inventory** - Map current native feature
+- [x] **Phase 419: Feature/Demo Surface Inventory** - Map current native feature
   APIs, demo gaps, recipe coverage, support evidence, and validation surfaces
   before implementation.
 - [ ] **Phase 420: Native 3D Feature Convenience APIs** - Add focused native
@@ -51,6 +51,7 @@ APIs or demo behavior.
 3. Phase 420-423 write sets and validation commands are identified so later
    work can split into small beads.
 **Plans:** 419-PLAN.md
+**Completed:** 2026-04-30
 
 ### Phase 420: Native 3D Feature Convenience APIs
 
@@ -127,8 +128,8 @@ workflows.
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 419. Feature/Demo Surface Inventory | 0/1 | Ready | |
-| 420. Native 3D Feature Convenience APIs | 0/1 | Blocked on 419 | |
+| 419. Feature/Demo Surface Inventory | 1/1 | Complete | 2026-04-30 |
+| 420. Native 3D Feature Convenience APIs | 0/1 | Ready | |
 | 421. Annotation and Measurement Workflows | 0/1 | Blocked on 420 | |
 | 422. Demo Gallery Workflow Upgrade | 0/1 | Blocked on 421 | |
 | 423. Feature Cookbook and Validation Truth | 0/1 | Blocked on 422 | |

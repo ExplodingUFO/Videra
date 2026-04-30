@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v2.63
 milestone_name: "Native SurfaceCharts Feature and Demo Expansion"
-status: complete
-stopped_at: "Phase 419 ready"
-last_updated: "2026-04-30T17:55:00+08:00"
+status: active
+stopped_at: "Phase 420 ready"
+last_updated: "2026-04-30T18:12:00+08:00"
 last_activity: 2026-04-30
 progress:
   total_phases: 6
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 6
-  completed_plans: 0
-  percent: 0
+  completed_plans: 1
+  percent: 17
 ---
 
 # Project State
@@ -26,12 +26,12 @@ See: `.planning/PROJECT.md`
 ## Current Position
 
 Milestone: `v2.63 Native SurfaceCharts Feature and Demo Expansion`
-Phase: 419 of 424 - READY
-Plan: Phase 419 feature/demo surface inventory is next.
-Status: v2.63 has been scoped around larger native 3D chart feature usage, annotation/measurement workflows, demo gallery expansion, cookbook/CI truth, and final clean handoff.
-Last activity: 2026-04-30 - Started v2.63, created phase beads `Videra-dwf`, `Videra-kyy`, `Videra-b5n`, `Videra-j3z`, `Videra-64g`, and `Videra-7ip`, archived v2.62 phase artifacts, and prepared roadmap/requirements.
+Phase: 420 of 424 - READY
+Plan: Phase 420 native 3D feature convenience APIs is next.
+Status: Phase 419 completed the real feature/API, demo workflow, cookbook, CI, and validation inventory needed to split the remaining milestone into small Beads-backed work items.
+Last activity: 2026-04-30 - Completed Phase 419 inventory docs, created child beads for Phase 420-424 work, and identified direct native implementation tracks without compatibility, downshift, fallback, or fake-evidence scope.
 
-Progress: [----------] 0%
+Progress: [##--------] 17%
 
 ## Initial Scope Summary
 
@@ -52,12 +52,12 @@ v2.63 focuses on:
 ## Decisions
 
 - Beads remain the single task spine for phase status, dependencies, ownership, and handoff.
-- Phase 414 must classify residual old-code/compat/fallback/downshift hits before deletion.
-- Phase 415 and Phase 416 may run in parallel after Phase 414 if their write sets are disjoint.
-- Phase 415 owns true stale old-code deletion or direct replacement.
-- Phase 416 owns bounded cookbook/demo simplification and must avoid god-code workbench expansion.
-- Phase 417 owns no-compat/no-old-code guardrails and focused CI truth after Phase 415/416.
-- Shared Beads export, generated roadmap, final scope guardrails, archive, push, and cleanup are Phase 418 responsibilities.
+- Phase 419 inventory is complete and is the source for Phase 420-424 child bead write scopes.
+- Phase 420 may split bar label and contour level work into parallel branches because their write sets are mostly disjoint.
+- Phase 421 depends on Phase 420 and should keep annotation, measurement, and selection-event contracts bounded to native interaction workflows.
+- Phase 422 depends on Phase 421 and should start with demo scenario descriptors before splitting MainWindow/support-summary cleanup.
+- Phase 423 owns cookbook, CI truth, and release-readiness filter alignment after real implementation exists.
+- Phase 424 owns final Beads export, generated roadmap sync, scope guardrails, archive, push, and cleanup.
 - Keep implementation simple and direct; do not add external plotting compatibility adapters, migration shims, old chart controls, hidden fallback/downshift behavior, backend expansion, broad demo frameworks, or fake validation evidence.
 - v2.60 artifacts are archived under `.planning/milestones/v2.60-phases`.
 - v2.61 artifacts are archived under `.planning/milestones/v2.61-phases`.
@@ -71,8 +71,8 @@ v2.63 focuses on:
 ## Session Continuity
 
 Last session: `2026-04-30 +08:00`
-Stopped at: Phase 419 ready
-Next action: execute Phase 419 (`Videra-dwf`) feature/demo surface inventory.
+Stopped at: Phase 420 ready
+Next action: plan and execute Phase 420 (`Videra-kyy`) native 3D feature convenience APIs using child beads `Videra-kyy.1`, `Videra-kyy.2`, and `Videra-kyy.3`.
 
 ## Accumulated Context
 
