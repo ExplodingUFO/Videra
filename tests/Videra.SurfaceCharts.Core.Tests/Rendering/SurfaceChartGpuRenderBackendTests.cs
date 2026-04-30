@@ -11,7 +11,7 @@ using Xunit;
 
 namespace Videra.SurfaceCharts.Core.Tests.Rendering;
 
-public sealed class SurfaceChartGpuFallbackTests
+public sealed class SurfaceChartGpuRenderBackendTests
 {
     [Fact]
     public void HandleBoundInputs_WithAvailableGpuBackend_SelectsGpu()
@@ -19,8 +19,7 @@ public sealed class SurfaceChartGpuFallbackTests
         var graphicsBackend = new FakeGraphicsBackend();
         var host = new SurfaceChartRenderHost(
             softwareBackend: new SurfaceChartSoftwareRenderBackend(),
-            gpuBackend: new SurfaceChartGpuRenderBackend(graphicsBackend),
-            allowSoftwareFallback: true);
+            gpuBackend: new SurfaceChartGpuRenderBackend(graphicsBackend));
 
         host.UpdateInputs(CreateInputs(handleBound: true));
 
@@ -40,8 +39,7 @@ public sealed class SurfaceChartGpuFallbackTests
         var graphicsBackend = new FakeGraphicsBackend(resourceFactory: resourceFactory);
         var host = new SurfaceChartRenderHost(
             softwareBackend: new SurfaceChartSoftwareRenderBackend(),
-            gpuBackend: new SurfaceChartGpuRenderBackend(graphicsBackend),
-            allowSoftwareFallback: true);
+            gpuBackend: new SurfaceChartGpuRenderBackend(graphicsBackend));
         var metadata = CreateMetadata(width: 8, height: 8);
         var leftTile = CreateTile(metadata, new SurfaceTileKey(1, 1, 0, 0), tileValue: 12f);
         var rightTile = CreateTile(metadata, new SurfaceTileKey(1, 1, 1, 0), tileValue: 24f);
@@ -64,8 +62,7 @@ public sealed class SurfaceChartGpuFallbackTests
         var graphicsBackend = new FakeGraphicsBackend(resourceFactory: resourceFactory);
         var host = new SurfaceChartRenderHost(
             softwareBackend: new SurfaceChartSoftwareRenderBackend(),
-            gpuBackend: new SurfaceChartGpuRenderBackend(graphicsBackend),
-            allowSoftwareFallback: true);
+            gpuBackend: new SurfaceChartGpuRenderBackend(graphicsBackend));
         var metadata = CreateMetadata(width: 4, height: 4);
         var tile = CreateTile(metadata, new SurfaceTileKey(0, 0, 0, 0), tileValue: 18f);
         var initialColorMap = CreateColorMap(metadata);
@@ -111,8 +108,7 @@ public sealed class SurfaceChartGpuFallbackTests
         var graphicsBackend = new FakeGraphicsBackend(resourceFactory: resourceFactory);
         var host = new SurfaceChartRenderHost(
             softwareBackend: new SurfaceChartSoftwareRenderBackend(),
-            gpuBackend: new SurfaceChartGpuRenderBackend(graphicsBackend),
-            allowSoftwareFallback: true);
+            gpuBackend: new SurfaceChartGpuRenderBackend(graphicsBackend));
         var metadata = CreateMetadata(width: 2, height: 2);
         var tile = new SurfaceTile(
             new SurfaceTileKey(0, 0, 0, 0),
@@ -179,8 +175,7 @@ public sealed class SurfaceChartGpuFallbackTests
         var graphicsBackend = new FakeGraphicsBackend(resourceFactory: resourceFactory);
         var host = new SurfaceChartRenderHost(
             softwareBackend: new SurfaceChartSoftwareRenderBackend(),
-            gpuBackend: new SurfaceChartGpuRenderBackend(graphicsBackend),
-            allowSoftwareFallback: true);
+            gpuBackend: new SurfaceChartGpuRenderBackend(graphicsBackend));
         var metadata = CreateMetadata(width: 2, height: 2);
         var tile = CreateTile(metadata, new SurfaceTileKey(0, 0, 0, 0), tileValue: 25f);
 
@@ -204,8 +199,7 @@ public sealed class SurfaceChartGpuFallbackTests
         var graphicsBackend = new FakeGraphicsBackend(resourceFactory: resourceFactory);
         var host = new SurfaceChartRenderHost(
             softwareBackend: new SurfaceChartSoftwareRenderBackend(),
-            gpuBackend: new SurfaceChartGpuRenderBackend(graphicsBackend),
-            allowSoftwareFallback: true);
+            gpuBackend: new SurfaceChartGpuRenderBackend(graphicsBackend));
         var metadata = CreateMetadata(width: 4, height: 4);
         var tile = CreateTile(metadata, new SurfaceTileKey(0, 0, 0, 0), tileValue: 42f);
         var oversizedPalette = Enumerable.Range(0, 300)
@@ -233,8 +227,7 @@ public sealed class SurfaceChartGpuFallbackTests
         var graphicsBackend = new FakeGraphicsBackend(resourceFactory: resourceFactory);
         var host = new SurfaceChartRenderHost(
             softwareBackend: new SurfaceChartSoftwareRenderBackend(),
-            gpuBackend: new SurfaceChartGpuRenderBackend(graphicsBackend),
-            allowSoftwareFallback: true);
+            gpuBackend: new SurfaceChartGpuRenderBackend(graphicsBackend));
         var metadata = CreateMetadata(width: 3, height: 3);
         var tile = CreateTile(
             new SurfaceTileKey(0, 0, 0, 0),
@@ -272,8 +265,7 @@ public sealed class SurfaceChartGpuFallbackTests
         var graphicsBackend = new FakeGraphicsBackend(resourceFactory: resourceFactory);
         var host = new SurfaceChartRenderHost(
             softwareBackend: new SurfaceChartSoftwareRenderBackend(),
-            gpuBackend: new SurfaceChartGpuRenderBackend(graphicsBackend),
-            allowSoftwareFallback: true);
+            gpuBackend: new SurfaceChartGpuRenderBackend(graphicsBackend));
         var metadata = CreateMetadata(width: 4, height: 3);
         var leftTile = CreateTile(
             new SurfaceTileKey(1, 0, 0, 0),
@@ -336,39 +328,41 @@ public sealed class SurfaceChartGpuFallbackTests
     }
 
     [Fact]
-    public void GpuInitializationFailure_WithFallbackAllowed_SwitchesToSoftware()
+    public void GpuInitializationFailure_ReportsGpuNotReadyWithoutSoftwareFallback()
     {
         var graphicsBackend = new FakeGraphicsBackend(
             initializeException: new InvalidOperationException("gpu init failed"));
         var host = new SurfaceChartRenderHost(
             softwareBackend: new SurfaceChartSoftwareRenderBackend(),
-            gpuBackend: new SurfaceChartGpuRenderBackend(graphicsBackend),
-            allowSoftwareFallback: true);
+            gpuBackend: new SurfaceChartGpuRenderBackend(graphicsBackend));
 
         host.UpdateInputs(CreateInputs(handleBound: true));
 
-        host.Snapshot.ActiveBackend.Should().Be(SurfaceChartRenderBackendKind.Software);
-        host.Snapshot.IsFallback.Should().BeTrue();
-        host.Snapshot.UsesNativeSurface.Should().BeFalse();
-        host.RenderingStatus.ActiveBackend.Should().Be(SurfaceChartRenderBackendKind.Software);
-        host.RenderingStatus.IsFallback.Should().BeTrue();
-        host.SoftwareScene.Should().NotBeNull();
+        host.Snapshot.ActiveBackend.Should().Be(SurfaceChartRenderBackendKind.Gpu);
+        host.Snapshot.IsReady.Should().BeFalse();
+        host.Snapshot.IsFallback.Should().BeFalse();
+        host.Snapshot.UsesNativeSurface.Should().BeTrue();
+        host.Snapshot.FallbackReason.Should().Contain("gpu init failed");
+        host.RenderingStatus.ActiveBackend.Should().Be(SurfaceChartRenderBackendKind.Gpu);
+        host.RenderingStatus.IsFallback.Should().BeFalse();
+        host.SoftwareScene.Should().BeNull();
     }
 
     [Fact]
-    public void GpuFramePreparationFailure_RetainsFallbackReason()
+    public void GpuFramePreparationFailure_ReportsGpuNotReadyDiagnostic()
     {
         var graphicsBackend = new FakeGraphicsBackend(
             beginFrameException: new InvalidOperationException("gpu frame prep failed"));
         var host = new SurfaceChartRenderHost(
             softwareBackend: new SurfaceChartSoftwareRenderBackend(),
-            gpuBackend: new SurfaceChartGpuRenderBackend(graphicsBackend),
-            allowSoftwareFallback: true);
+            gpuBackend: new SurfaceChartGpuRenderBackend(graphicsBackend));
 
         host.UpdateInputs(CreateInputs(handleBound: true));
 
-        host.RenderingStatus.ActiveBackend.Should().Be(SurfaceChartRenderBackendKind.Software);
-        host.RenderingStatus.IsFallback.Should().BeTrue();
+        host.RenderingStatus.ActiveBackend.Should().Be(SurfaceChartRenderBackendKind.Gpu);
+        host.RenderingStatus.IsReady.Should().BeFalse();
+        host.RenderingStatus.IsFallback.Should().BeFalse();
+        host.RenderingStatus.UsesNativeSurface.Should().BeTrue();
         host.RenderingStatus.FallbackReason.Should().Contain("gpu frame prep failed");
         host.Snapshot.FallbackReason.Should().Contain("gpu frame prep failed");
     }
@@ -380,8 +374,7 @@ public sealed class SurfaceChartGpuFallbackTests
         var graphicsBackend = new FakeGraphicsBackend(resourceFactory: resourceFactory);
         var host = new SurfaceChartRenderHost(
             softwareBackend: new SurfaceChartSoftwareRenderBackend(),
-            gpuBackend: new SurfaceChartGpuRenderBackend(graphicsBackend),
-            allowSoftwareFallback: true);
+            gpuBackend: new SurfaceChartGpuRenderBackend(graphicsBackend));
         var inputs = CreateInputs(handleBound: false);
 
         host.UpdateInputs(inputs);
@@ -409,8 +402,7 @@ public sealed class SurfaceChartGpuFallbackTests
         var graphicsBackend = new FakeGraphicsBackend(resourceFactory: resourceFactory);
         var host = new SurfaceChartRenderHost(
             softwareBackend: new SurfaceChartSoftwareRenderBackend(),
-            gpuBackend: new SurfaceChartGpuRenderBackend(graphicsBackend),
-            allowSoftwareFallback: true);
+            gpuBackend: new SurfaceChartGpuRenderBackend(graphicsBackend));
         var metadata = CreateMetadata(width: 4, height: 4);
         var firstTile = CreateTile(metadata, new SurfaceTileKey(0, 0, 0, 0), tileValue: 12f);
         var secondTile = CreateTile(metadata, new SurfaceTileKey(0, 0, 0, 0), tileValue: 36f);
@@ -444,8 +436,7 @@ public sealed class SurfaceChartGpuFallbackTests
         var graphicsBackend = new FakeGraphicsBackend(resourceFactory: resourceFactory);
         var host = new SurfaceChartRenderHost(
             softwareBackend: new SurfaceChartSoftwareRenderBackend(),
-            gpuBackend: new SurfaceChartGpuRenderBackend(graphicsBackend),
-            allowSoftwareFallback: true);
+            gpuBackend: new SurfaceChartGpuRenderBackend(graphicsBackend));
         var metadata = CreateMetadata(width: 4, height: 4);
         var tile = CreateTile(metadata, new SurfaceTileKey(0, 0, 0, 0), tileValue: 12f);
         var initialColorMap = CreateColorMap(metadata);
