@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.58
 milestone_name: "SurfaceCharts Controlled Release Cutover"
 status: active
-stopped_at: "Phase 398 and Phase 399 ready for parallel planning"
-last_updated: "2026-04-30T11:20:48+08:00"
+stopped_at: "Phase 400 ready for final cutover verification and handoff"
+last_updated: "2026-04-30T11:34:13+08:00"
 last_activity: 2026-04-30
 progress:
   total_phases: 5
-  completed_phases: 2
+  completed_phases: 4
   total_plans: 5
-  completed_plans: 2
-  percent: 40
+  completed_plans: 4
+  percent: 80
 ---
 
 # Project State
@@ -26,12 +26,12 @@ See: `.planning/PROJECT.md`
 ## Current Position
 
 Milestone: `v2.58 SurfaceCharts Controlled Release Cutover`
-Phase: 398/399 of 400 - READY FOR PARALLEL PLANNING
-Plan: Phase 398 and Phase 399 can proceed in isolated worktrees after Phase 397 closure.
-Status: Phase 397 completed package contract validation and fixed SurfaceCharts smoke support artifact reporting so generated reports only list existing scenario-relevant artifacts.
-Last activity: 2026-04-30 - Completed Phase 397 version and package cutover contracts
+Phase: 400 of 400 (Final Cutover Verification and Handoff) - READY
+Plan: Final verification can now consume Phase 398 gated release evidence and Phase 399 release/support docs.
+Status: Phase 398 and Phase 399 completed in parallel isolated worktrees, then merged back to master with integrated validation.
+Last activity: 2026-04-30 - Completed Phase 398 gated release dry-run automation and Phase 399 release docs/support cutover
 
-Progress: [████------] 40%
+Progress: [████████--] 80%
 
 ## Initial Scope Summary
 
@@ -60,6 +60,8 @@ This milestone turns that evidence into a controlled release cutover package:
 - Phase 396 split inventory into child beads `Videra-v258.1a`, `Videra-v258.1b`, and `Videra-v258.1c`, synthesized the v2.58 approval packet, and recorded abort/hold criteria plus the first true parallelization point after Phase 397.
 - Phase 396 found one weak evidence note: the v2.57 SurfaceCharts consumer-smoke result lists optional `inspection-snapshot.png` and `inspection-bundle` support paths that were not present in the inspected artifact folder. Phase 397/398 should either fix producer output, clarify optionality, or keep final dry-run evidence from listing missing support artifacts as present.
 - Phase 397 fixed the support artifact producer path by extracting `Get-ConsumerSmokeSupportArtifactPaths` and making successful `SupportArtifactPaths` scenario-specific and existence-filtered. SurfaceCharts package smoke evidence now lists only diagnostics, support summary, chart snapshot, trace/stdout/stderr, and environment files that exist.
+- Phase 398 added fail-closed release dry-run gate evidence for publish, tag, and GitHub release steps. These actions now report `MANUAL-GATE` with `actionTaken=False` unless separately approved.
+- Phase 399 added the consumer-facing SurfaceCharts release cutover page and aligned release, package, cookbook, troubleshooting, and package README docs around the current package/cookbook/support paths while preserving ScottPlot as inspiration, not compatibility.
 
 ## Known Residuals
 
@@ -70,8 +72,8 @@ This milestone turns that evidence into a controlled release cutover package:
 ## Session Continuity
 
 Last session: `2026-04-30 +08:00`
-Stopped at: Phase 397 complete
-Next action: plan and execute Phase 398 (`Videra-v258.3`) and Phase 399 (`Videra-v258.4`) in parallel isolated worktrees.
+Stopped at: Phase 398 and Phase 399 complete
+Next action: plan and execute Phase 400 (`Videra-v258.5`) for final verification, Beads export, branch/worktree cleanup, push, and handoff.
 
 ## Accumulated Context
 

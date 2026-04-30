@@ -12,8 +12,8 @@
 
 - [x] **Phase 396: Release Cutover Inventory and Approval Packet** - Convert v2.57 evidence into an approval packet, abort/hold criteria, and Beads/worktree coordination map.
 - [x] **Phase 397: Version and Package Cutover Contracts** - Finalize version/package metadata, package asset evidence, README/package links, and public API/package guardrails.
-- [ ] **Phase 398: Gated Publish and Tag Dry-Run Automation** - Harden the non-interactive release dry-run path while keeping publish/tag/GitHub release actions manual-gated and fail-closed.
-- [ ] **Phase 399: Release Notes Docs and Support Cutover** - Prepare consumer-facing release notes, cookbook/migration paths, and support artifact guidance.
+- [x] **Phase 398: Gated Publish and Tag Dry-Run Automation** - Harden the non-interactive release dry-run path while keeping publish/tag/GitHub release actions manual-gated and fail-closed.
+- [x] **Phase 399: Release Notes Docs and Support Cutover** - Prepare consumer-facing release notes, cookbook/migration paths, and support artifact guidance.
 - [ ] **Phase 400: Final Cutover Verification and Handoff** - Close with validation, Beads export, generated roadmap, archive, pushed state, and clean branch/worktree handoff.
 
 ## Phase Details
@@ -88,9 +88,9 @@
 |-------|----------------|--------|-----------|
 | 396. Release Cutover Inventory and Approval Packet | 1/1 | Complete | 2026-04-30 |
 | 397. Version and Package Cutover Contracts | 1/1 | Complete | 2026-04-30 |
-| 398. Gated Publish and Tag Dry-Run Automation | 0/1 | Ready | |
-| 399. Release Notes Docs and Support Cutover | 0/1 | Ready | |
-| 400. Final Cutover Verification and Handoff | 0/1 | Blocked by 398, 399 | |
+| 398. Gated Publish and Tag Dry-Run Automation | 1/1 | Complete | 2026-04-30 |
+| 399. Release Notes Docs and Support Cutover | 1/1 | Complete | 2026-04-30 |
+| 400. Final Cutover Verification and Handoff | 0/1 | Ready | |
 
 ---
 
