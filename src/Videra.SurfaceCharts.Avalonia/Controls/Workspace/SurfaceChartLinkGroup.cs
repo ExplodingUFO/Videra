@@ -11,12 +11,12 @@ public enum SurfaceChartLinkPolicy
     FullViewState,
 
     /// <summary>
-    /// Synchronize only the camera pose across linked charts. Not yet supported in Phase 426.
+    /// Synchronize only the camera pose across linked charts.
     /// </summary>
     CameraOnly,
 
     /// <summary>
-    /// Synchronize only the axis limits across linked charts. Not yet supported in Phase 426.
+    /// Synchronize only the axis limits (data window) across linked charts.
     /// </summary>
     AxisOnly,
 }
@@ -38,18 +38,16 @@ public sealed class SurfaceChartLinkGroup : IDisposable
     /// <summary>
     /// Initializes a new link group with the specified policy.
     /// </summary>
-    /// <param name="policy">The link policy. Only <see cref="SurfaceChartLinkPolicy.FullViewState"/> is supported in Phase 426.</param>
-    /// <exception cref="NotSupportedException">The policy is not <see cref="SurfaceChartLinkPolicy.FullViewState"/>.</exception>
+    /// <param name="policy">The link policy.</param>
     public SurfaceChartLinkGroup(SurfaceChartLinkPolicy policy = SurfaceChartLinkPolicy.FullViewState)
     {
-        if (policy != SurfaceChartLinkPolicy.FullViewState)
-        {
-            throw new NotSupportedException(
-                $"Only FullViewState link policy is supported in Phase 426. {policy} will be added in Phase 427.");
-        }
-
         _policy = policy;
     }
+
+    /// <summary>
+    /// Gets the configured link policy for this group.
+    /// </summary>
+    public SurfaceChartLinkPolicy Policy => _policy;
 
     /// <summary>
     /// Gets the current member charts in this link group.
@@ -75,7 +73,13 @@ public sealed class SurfaceChartLinkGroup : IDisposable
 
         foreach (var existing in _members)
         {
-            _pairwiseLinks.Add(existing.LinkViewWith(chart));
+            _pairwiseLinks.Add(_policy switch
+            {
+                SurfaceChartLinkPolicy.FullViewState => existing.LinkViewWith(chart),
+                SurfaceChartLinkPolicy.CameraOnly => new VideraChartViewCameraOnlyLink(existing, chart),
+                SurfaceChartLinkPolicy.AxisOnly => new VideraChartViewAxisOnlyLink(existing, chart),
+                _ => throw new ArgumentOutOfRangeException(nameof(_policy)),
+            });
         }
 
         _members.Add(chart);

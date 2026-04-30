@@ -1,6 +1,8 @@
+using System.Numerics;
 using FluentAssertions;
 using Videra.SurfaceCharts.Avalonia.Controls;
 using Videra.SurfaceCharts.Avalonia.Controls.Workspace;
+using Videra.SurfaceCharts.Core;
 using Xunit;
 
 namespace Videra.SurfaceCharts.Avalonia.IntegrationTests.Workspace;
@@ -116,24 +118,131 @@ public sealed class SurfaceChartLinkGroupTests
     }
 
     [Fact]
-    public void CameraOnly_policy_throws_NotSupported()
+    public void CameraOnly_policy_creates_camera_only_links()
     {
         AvaloniaHeadlessTestSession.Run(() =>
         {
-            var act = () => new SurfaceChartLinkGroup(SurfaceChartLinkPolicy.CameraOnly);
+            using var group = new SurfaceChartLinkGroup(SurfaceChartLinkPolicy.CameraOnly);
+            var chartA = new VideraChartView();
+            var chartB = new VideraChartView();
 
-            act.Should().Throw<NotSupportedException>();
+            var originalDataWindow = new SurfaceDataWindow(0, 0, 100, 100);
+            var originalCamera = new SurfaceCameraPose(Vector3.Zero, 0d, 0d, 10d, 45d);
+            var modifiedCamera = new SurfaceCameraPose(Vector3.Zero, 45d, 30d, 10d, 45d);
+
+            chartA.ViewState = new SurfaceViewState(originalDataWindow, originalCamera);
+            chartB.ViewState = new SurfaceViewState(originalDataWindow, originalCamera);
+
+            group.Add(chartA);
+            group.Add(chartB);
+
+            // Change chartA's camera
+            chartA.ViewState = new SurfaceViewState(originalDataWindow, modifiedCamera);
+
+            // chartB's camera should match chartA's
+            chartB.ViewState.Camera.Should().Be(modifiedCamera);
+
+            // chartB's DataWindow should remain unchanged
+            chartB.ViewState.DataWindow.Should().Be(originalDataWindow);
         });
     }
 
     [Fact]
-    public void AxisOnly_policy_throws_NotSupported()
+    public void AxisOnly_policy_creates_axis_only_links()
     {
         AvaloniaHeadlessTestSession.Run(() =>
         {
-            var act = () => new SurfaceChartLinkGroup(SurfaceChartLinkPolicy.AxisOnly);
+            using var group = new SurfaceChartLinkGroup(SurfaceChartLinkPolicy.AxisOnly);
+            var chartA = new VideraChartView();
+            var chartB = new VideraChartView();
 
-            act.Should().Throw<NotSupportedException>();
+            var originalDataWindow = new SurfaceDataWindow(0, 0, 100, 100);
+            var modifiedDataWindow = new SurfaceDataWindow(10, 10, 200, 200);
+            var originalCamera = new SurfaceCameraPose(Vector3.Zero, 0d, 0d, 10d, 45d);
+
+            chartA.ViewState = new SurfaceViewState(originalDataWindow, originalCamera);
+            chartB.ViewState = new SurfaceViewState(originalDataWindow, originalCamera);
+
+            group.Add(chartA);
+            group.Add(chartB);
+
+            // Change chartA's data window
+            chartA.ViewState = new SurfaceViewState(modifiedDataWindow, originalCamera);
+
+            // chartB's DataWindow should match chartA's
+            chartB.ViewState.DataWindow.Should().Be(modifiedDataWindow);
+
+            // chartB's Camera should remain unchanged
+            chartB.ViewState.Camera.Should().Be(originalCamera);
+        });
+    }
+
+    [Fact]
+    public void CameraOnly_policy_does_not_sync_data_window()
+    {
+        AvaloniaHeadlessTestSession.Run(() =>
+        {
+            using var group = new SurfaceChartLinkGroup(SurfaceChartLinkPolicy.CameraOnly);
+            var chartA = new VideraChartView();
+            var chartB = new VideraChartView();
+
+            var originalDataWindow = new SurfaceDataWindow(0, 0, 100, 100);
+            var modifiedDataWindow = new SurfaceDataWindow(10, 10, 200, 200);
+            var originalCamera = new SurfaceCameraPose(Vector3.Zero, 0d, 0d, 10d, 45d);
+
+            chartA.ViewState = new SurfaceViewState(originalDataWindow, originalCamera);
+            chartB.ViewState = new SurfaceViewState(originalDataWindow, originalCamera);
+
+            group.Add(chartA);
+            group.Add(chartB);
+
+            // Change only chartA's data window (camera stays same)
+            chartA.ViewState = new SurfaceViewState(modifiedDataWindow, originalCamera);
+
+            // chartB's DataWindow should NOT change because CameraOnly policy
+            chartB.ViewState.DataWindow.Should().Be(originalDataWindow);
+        });
+    }
+
+    [Fact]
+    public void AxisOnly_policy_does_not_sync_camera()
+    {
+        AvaloniaHeadlessTestSession.Run(() =>
+        {
+            using var group = new SurfaceChartLinkGroup(SurfaceChartLinkPolicy.AxisOnly);
+            var chartA = new VideraChartView();
+            var chartB = new VideraChartView();
+
+            var originalDataWindow = new SurfaceDataWindow(0, 0, 100, 100);
+            var originalCamera = new SurfaceCameraPose(Vector3.Zero, 0d, 0d, 10d, 45d);
+            var modifiedCamera = new SurfaceCameraPose(Vector3.Zero, 45d, 30d, 10d, 45d);
+
+            chartA.ViewState = new SurfaceViewState(originalDataWindow, originalCamera);
+            chartB.ViewState = new SurfaceViewState(originalDataWindow, originalCamera);
+
+            group.Add(chartA);
+            group.Add(chartB);
+
+            // Change only chartA's camera (data window stays same)
+            chartA.ViewState = new SurfaceViewState(originalDataWindow, modifiedCamera);
+
+            // chartB's Camera should NOT change because AxisOnly policy
+            chartB.ViewState.Camera.Should().Be(originalCamera);
+        });
+    }
+
+    [Fact]
+    public void Policy_property_returns_configured_policy()
+    {
+        AvaloniaHeadlessTestSession.Run(() =>
+        {
+            using var cameraOnly = new SurfaceChartLinkGroup(SurfaceChartLinkPolicy.CameraOnly);
+            using var axisOnly = new SurfaceChartLinkGroup(SurfaceChartLinkPolicy.AxisOnly);
+            using var fullView = new SurfaceChartLinkGroup();
+
+            cameraOnly.Policy.Should().Be(SurfaceChartLinkPolicy.CameraOnly);
+            axisOnly.Policy.Should().Be(SurfaceChartLinkPolicy.AxisOnly);
+            fullView.Policy.Should().Be(SurfaceChartLinkPolicy.FullViewState);
         });
     }
 }
