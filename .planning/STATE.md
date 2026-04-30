@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.58
 milestone_name: "SurfaceCharts Controlled Release Cutover"
 status: active
-stopped_at: "Phase 396 ready for planning"
-last_updated: "2026-04-30T10:56:00+08:00"
+stopped_at: "Phase 397 ready for planning"
+last_updated: "2026-04-30T11:20:00+08:00"
 last_activity: 2026-04-30
 progress:
   total_phases: 5
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 5
-  completed_plans: 0
-  percent: 0
+  completed_plans: 1
+  percent: 20
 ---
 
 # Project State
@@ -26,12 +26,12 @@ See: `.planning/PROJECT.md`
 ## Current Position
 
 Milestone: `v2.58 SurfaceCharts Controlled Release Cutover`
-Phase: 396 of 400 (Release Cutover Inventory and Approval Packet) - READY
+Phase: 397 of 400 (Version and Package Cutover Contracts) - READY
 Plan: none yet
-Status: v2.58 milestone initialized with requirements, roadmap, and Beads epic/phase graph. Next action is to plan Phase 396.
-Last activity: 2026-04-30 - Started v2.58 SurfaceCharts controlled release cutover milestone
+Status: Phase 396 completed with approval packet, abort/hold criteria, Beads child-task inventory, and parallelization map. Next action is to plan Phase 397.
+Last activity: 2026-04-30 - Completed Phase 396 release cutover inventory and approval packet
 
-Progress: [----------] 0%
+Progress: [██--------] 20%
 
 ## Initial Scope Summary
 
@@ -57,6 +57,8 @@ This milestone turns that evidence into a controlled release cutover package:
 - Use isolated Dolt worktrees/branches only for disjoint implementation phases; Phase 398 and Phase 399 are the first likely parallelization point after Phase 397 closes.
 - Keep implementation simple and direct; do not add compatibility layers, downgrade behavior, or broad release framework abstractions.
 - Preserve v2.57 boundaries: no old chart controls, direct public `Source`, compatibility wrappers, PDF/vector export, backend expansion, hidden fallback/downshift, full ScottPlot compatibility, or god-code demo/workbench behavior.
+- Phase 396 split inventory into child beads `Videra-v258.1a`, `Videra-v258.1b`, and `Videra-v258.1c`, synthesized the v2.58 approval packet, and recorded abort/hold criteria plus the first true parallelization point after Phase 397.
+- Phase 396 found one weak evidence note: the v2.57 SurfaceCharts consumer-smoke result lists optional `inspection-snapshot.png` and `inspection-bundle` support paths that were not present in the inspected artifact folder. Phase 397/398 should either fix producer output, clarify optionality, or keep final dry-run evidence from listing missing support artifacts as present.
 
 ## Known Residuals
 
@@ -67,8 +69,8 @@ This milestone turns that evidence into a controlled release cutover package:
 ## Session Continuity
 
 Last session: `2026-04-30 +08:00`
-Stopped at: v2.58 milestone initialized
-Next action: plan and execute Phase 396 (`Videra-v258.1`).
+Stopped at: Phase 396 complete
+Next action: plan and execute Phase 397 (`Videra-v258.2`).
 
 ## Accumulated Context
 

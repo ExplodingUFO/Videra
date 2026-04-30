@@ -10,7 +10,7 @@
 
 ## Phases
 
-- [ ] **Phase 396: Release Cutover Inventory and Approval Packet** - Convert v2.57 evidence into an approval packet, abort/hold criteria, and Beads/worktree coordination map.
+- [x] **Phase 396: Release Cutover Inventory and Approval Packet** - Convert v2.57 evidence into an approval packet, abort/hold criteria, and Beads/worktree coordination map.
 - [ ] **Phase 397: Version and Package Cutover Contracts** - Finalize version/package metadata, package asset evidence, README/package links, and public API/package guardrails.
 - [ ] **Phase 398: Gated Publish and Tag Dry-Run Automation** - Harden the non-interactive release dry-run path while keeping publish/tag/GitHub release actions manual-gated and fail-closed.
 - [ ] **Phase 399: Release Notes Docs and Support Cutover** - Prepare consumer-facing release notes, cookbook/migration paths, and support artifact guidance.
@@ -86,8 +86,8 @@
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 396. Release Cutover Inventory and Approval Packet | 0/1 | Ready | |
-| 397. Version and Package Cutover Contracts | 0/1 | Blocked by 396 | |
+| 396. Release Cutover Inventory and Approval Packet | 1/1 | Complete | 2026-04-30 |
+| 397. Version and Package Cutover Contracts | 0/1 | Ready | |
 | 398. Gated Publish and Tag Dry-Run Automation | 0/1 | Blocked by 397 | |
 | 399. Release Notes Docs and Support Cutover | 0/1 | Blocked by 397 | |
 | 400. Final Cutover Verification and Handoff | 0/1 | Blocked by 398, 399 | |
