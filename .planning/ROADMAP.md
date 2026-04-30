@@ -25,7 +25,7 @@ DEMO-01..02, GUARD-01..02, VERIFY-01..02)
 - [x] **Phase 416: Native Cookbook and Demo Code Simplification** - Keep recipes
   copyable and native while reducing demo coupling only where it directly serves
   recipe ownership and verification.
-- [ ] **Phase 417: No-Compat Guardrails and CI Truth** - Harden tests/scripts/CI
+- [x] **Phase 417: No-Compat Guardrails and CI Truth** - Harden tests/scripts/CI
   so forbidden SurfaceCharts old paths and fake evidence cannot drift back.
 - [ ] **Phase 418: v2.62 Final Verification** - Close v2.62 with composed
   validation, Beads export, generated roadmap, archive, push, and cleanup.
@@ -93,6 +93,7 @@ DEMO-01..02, GUARD-01..02, VERIFY-01..02)
    checks.
 3. Generated roadmap and Beads export truth still pass after all cleanup.
 **Plans:** 417-PLAN.md
+**Completed:** 2026-04-30
 
 ### Phase 418: v2.62 Final Verification
 
@@ -114,8 +115,8 @@ DEMO-01..02, GUARD-01..02, VERIFY-01..02)
 | 414. Native Cleanup and Old-Code Inventory | 1/1 | Complete | 2026-04-30 |
 | 415. Delete Stale SurfaceCharts Old-Code Paths | 1/1 | Complete | 2026-04-30 |
 | 416. Native Cookbook and Demo Code Simplification | 1/1 | Complete | 2026-04-30 |
-| 417. No-Compat Guardrails and CI Truth | 0/1 | Ready | |
-| 418. v2.62 Final Verification | 0/1 | Blocked on 417 | |
+| 417. No-Compat Guardrails and CI Truth | 1/1 | Complete | 2026-04-30 |
+| 418. v2.62 Final Verification | 0/1 | Ready | |
 
 ---
 
