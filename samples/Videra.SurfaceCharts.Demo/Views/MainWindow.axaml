@@ -308,7 +308,7 @@
             <TextBlock x:Name="SupportSummaryStatusText"
                        Foreground="#94A3B8"
                        TextWrapping="Wrap"
-                       Text="Reproduce with Start here first. Continue to Explore next only if needed, then copy this block into the issue." />
+                       Text="Snapshot state: no PNG captured yet. Capture Snapshot first when image evidence is needed, then copy the support summary so SnapshotStatus and SnapshotPath match the visible chart." />
             <TextBlock x:Name="SupportSummaryText"
                        Foreground="#CBD5E1"
                        TextWrapping="Wrap" />

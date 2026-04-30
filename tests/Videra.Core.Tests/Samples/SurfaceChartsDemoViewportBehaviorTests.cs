@@ -507,6 +507,7 @@ public sealed class SurfaceChartsDemoViewportBehaviorTests
                 "the demo should project a support-ready chart summary into visible text.")
                 .ConfigureAwait(true);
 
+            supportSummaryStatusText.Text.Should().Contain("Snapshot state:");
             ClickButton(copySupportSummaryButton);
 
             await WaitForConditionAsync(
@@ -543,6 +544,8 @@ public sealed class SurfaceChartsDemoViewportBehaviorTests
             supportSummaryText.Text.Should().Contain("OverlayOptions:");
             supportSummaryText.Text.Should().Contain("Cache asset:");
             supportSummaryText.Text.Should().Contain("Dataset:");
+            supportSummaryText.Text.Should().Contain("SnapshotStatus: none");
+            supportSummaryText.Text.Should().Contain("SnapshotPath: none");
             supportSummaryStatusText.Text.Should().MatchRegex("Copied support summary to the clipboard\\.|Clipboard is unavailable\\. The support summary remains visible below\\.");
         });
     }

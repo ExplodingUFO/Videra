@@ -117,7 +117,8 @@ public sealed class SurfaceChartsCookbookBarContourSnapshotRecipeTests
     {
         var summary = Read(Path.Combine(
             ".planning",
-            "phases",
+            "milestones",
+            "v2.61-phases",
             "410-detailed-3d-cookbook-demo-recipes",
             "410D-SUMMARY.md"));
 

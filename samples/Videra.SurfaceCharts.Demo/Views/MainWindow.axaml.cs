@@ -596,18 +596,21 @@ public partial class MainWindow : Window
             if (result.Succeeded)
             {
                 _statusText.Text = $"PNG saved with Plot.SavePngAsync: {result.Path}";
-                _supportSummaryStatusText.Text = $"PNG saved with Plot.SavePngAsync: {result.Path}";
+                _supportSummaryStatusText.Text = $"Snapshot state: PNG captured at {result.Path}. The support summary now includes SnapshotStatus and SnapshotPath.";
             }
             else
             {
                 _statusText.Text = $"Snapshot failed: {result.Failure?.Message}";
-                _supportSummaryStatusText.Text = $"Snapshot failed: {result.Failure?.Message}";
+                _supportSummaryStatusText.Text = $"Snapshot state: capture failed. SnapshotStatus remains failed in the support summary.";
             }
+
+            UpdateSupportSummaryText();
         }
         catch (Exception ex)
         {
             _statusText.Text = $"Snapshot failed: {ex.Message}";
-            _supportSummaryStatusText.Text = $"Snapshot failed: {ex.Message}";
+            _supportSummaryStatusText.Text = $"Snapshot state: capture failed before a snapshot result was created. {ex.Message}";
+            UpdateSupportSummaryText();
         }
     }
 

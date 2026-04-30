@@ -179,6 +179,7 @@ public sealed class SurfaceChartsDemoConfigurationTests
         mainWindow.Should().Contain("Advanced: cache asset");
         mainWindow.Should().Contain("Support summary");
         mainWindow.Should().Contain("Copy support summary");
+        mainWindow.Should().Contain("Snapshot state: no PNG captured yet");
         mainWindow.Should().Contain("View-state contract");
         mainWindow.Should().Contain("Fit to data");
         mainWindow.Should().Contain("Reset camera");
