@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.61
 milestone_name: "Native SurfaceCharts Cookbook and CI Truth"
 status: active
-stopped_at: "Phase 409 ready for planning"
-last_updated: "2026-04-30T16:28:00+08:00"
+stopped_at: "Phase 410 and Phase 411 ready for parallel execution"
+last_updated: "2026-04-30T16:34:00+08:00"
 last_activity: 2026-04-30
 progress:
   total_phases: 5
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 5
-  completed_plans: 0
-  percent: 0
+  completed_plans: 1
+  percent: 20
 ---
 
 # Project State
@@ -26,12 +26,12 @@ See: `.planning/PROJECT.md`
 ## Current Position
 
 Milestone: `v2.61 Native SurfaceCharts Cookbook and CI Truth`
-Phase: 409 of 413 (Native Cookbook and CI Inventory) - READY
-Plan: none yet
-Status: v2.60 is complete and archived; v2.61 is initialized with Beads as the task spine.
-Last activity: 2026-04-30 - Refined v2.61 toward ScottPlot5-style native cookbook, high-performance demo paths, and truthful CI.
+Phase: 410 and 411 of 413 - READY FOR PARALLEL EXECUTION
+Plan: Phase 409 complete; Phase 410 and 411 planning/execution next
+Status: Phase 409 inventory is complete; Phase 410 detailed cookbook recipes and Phase 411 native high-performance demo paths can proceed in parallel if write sets stay disjoint.
+Last activity: 2026-04-30 - Completed Phase 409 inventory with Beads-backed worktree split.
 
-Progress: [----------] 0%
+Progress: [##--------] 20%
 
 ## Initial Scope Summary
 
@@ -54,6 +54,7 @@ v2.61 focuses on:
 - Beads remain the single task spine for phase status, dependencies, ownership, and handoff.
 - Phase 409 must inventory real cookbook/demo, native 3D chart API, performance-sensitive paths, CI gates, and anti-fake validation gaps before implementation.
 - Phase 410 and Phase 411 may run in parallel after Phase 409 if their write sets are disjoint.
+- Phase 410 should focus on detailed runnable cookbook/demo recipes, while Phase 411 should focus on native high-performance data paths and performance-truth wording/tests.
 - Phase 412 owns CI truth and validation hardening after Phase 410/411.
 - Shared Beads export, generated roadmap, final scope guardrails, archive, push, and cleanup are Phase 413 responsibilities.
 - Keep implementation simple and direct; do not add ScottPlot compatibility adapters, old chart controls, hidden fallback behavior, backend expansion, broad demo frameworks, or fake validation evidence.
@@ -68,8 +69,8 @@ v2.61 focuses on:
 ## Session Continuity
 
 Last session: `2026-04-30 +08:00`
-Stopped at: v2.61 initialized
-Next action: plan and execute Phase 409 (`Videra-63e`).
+Stopped at: Phase 409 complete
+Next action: plan and execute Phase 410 (`Videra-2de`) and Phase 411 (`Videra-s6h`) in parallel if worktree write sets remain disjoint.
 
 ## Accumulated Context
 

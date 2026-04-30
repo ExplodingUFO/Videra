@@ -18,7 +18,7 @@ CI-01..02, VERIFY-01..02, SCOPE-01)
 
 ## Phases
 
-- [ ] **Phase 409: Native Cookbook and CI Inventory** - Inventory current demo cookbook, native 3D chart API surfaces, performance-sensitive paths, CI gates, and anti-fake validation gaps.
+- [x] **Phase 409: Native Cookbook and CI Inventory** - Inventory current demo cookbook, native 3D chart API surfaces, performance-sensitive paths, CI gates, and anti-fake validation gaps.
 - [ ] **Phase 410: Detailed 3D Cookbook Demo Recipes** - Expand the demo/docs cookbook into detailed runnable recipes for the shipped 3D chart model.
 - [ ] **Phase 411: Native High-Performance Demo Paths** - Tighten cookbook/demo examples around native Videra data paths and performance evidence without downshift/fallback behavior.
 - [ ] **Phase 412: CI Truth and Validation Hardening** - Ensure focused CI/test design is reasonable, deterministic, and catches docs/demo/support drift.
@@ -38,11 +38,12 @@ CI-01..02, VERIFY-01..02, SCOPE-01)
 3. Performance-sensitive demo/data paths and current evidence gaps are identified.
 4. CI/test gaps are scoped with anti-fake validation rules.
 **Plans:** 409-PLAN.md
+**Completed:** 2026-04-30
 
 ### Phase 410: Detailed 3D Cookbook Demo Recipes
 
 **Goal:** Make the demo cookbook detailed enough for users to copy and adapt real 3D chart recipes.
-**Depends on:** Phase 409
+**Depends on:** Phase 409 (complete)
 **Requirements:** COOKBOOK-02, COOKBOOK-03, NATIVE-02, VERIFY-01, SCOPE-01
 **Bead:** `Videra-2de`
 **Success Criteria:**
@@ -54,7 +55,7 @@ CI-01..02, VERIFY-01..02, SCOPE-01)
 ### Phase 411: Native High-Performance Demo Paths
 
 **Goal:** Keep cookbook examples high-performance and native to Videra's 3D chart architecture.
-**Depends on:** Phase 409
+**Depends on:** Phase 409 (complete)
 **Requirements:** PERF-02, NATIVE-02, VERIFY-01, SCOPE-01
 **Bead:** `Videra-s6h`
 **Success Criteria:**
@@ -91,9 +92,9 @@ CI-01..02, VERIFY-01..02, SCOPE-01)
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 409. Native Cookbook and CI Inventory | 0/1 | Ready | |
-| 410. Detailed 3D Cookbook Demo Recipes | 0/1 | Blocked by 409 | |
-| 411. Native High-Performance Demo Paths | 0/1 | Blocked by 409 | |
+| 409. Native Cookbook and CI Inventory | 1/1 | Complete | 2026-04-30 |
+| 410. Detailed 3D Cookbook Demo Recipes | 0/1 | Ready | |
+| 411. Native High-Performance Demo Paths | 0/1 | Ready | |
 | 412. CI Truth and Validation Hardening | 0/1 | Blocked by 410, 411 | |
 | 413. v2.61 Final Verification | 0/1 | Blocked by 412 | |
 
