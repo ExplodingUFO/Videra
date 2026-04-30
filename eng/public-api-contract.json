@@ -375,7 +375,9 @@
       "sourceRoot": "src/Videra.SurfaceCharts.Avalonia",
       "publicTypes": [
         "Videra.SurfaceCharts.Avalonia.Controls.BarChartRenderingStatus",
+        "Videra.SurfaceCharts.Avalonia.Controls.BarPlot3DSeries",
         "Videra.SurfaceCharts.Avalonia.Controls.ContourChartRenderingStatus",
+        "Videra.SurfaceCharts.Avalonia.Controls.ContourPlot3DSeries",
         "Videra.SurfaceCharts.Avalonia.Controls.IPlottable3D",
         "Videra.SurfaceCharts.Avalonia.Controls.Interaction.SurfaceChartCommand",
         "Videra.SurfaceCharts.Avalonia.Controls.Interaction.SurfaceChartInteractionProfile",
