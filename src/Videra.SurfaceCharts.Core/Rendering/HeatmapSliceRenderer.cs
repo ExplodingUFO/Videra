@@ -15,12 +15,13 @@ public static class HeatmapSliceRenderer
         var cellWidth = field.Width > 1 ? 1f / (field.Width - 1) : 1f;
         var cellHeight = field.Height > 1 ? 1f / (field.Height - 1) : 1f;
         var colorMap = data.ColorMap;
+        var values = field.Values.Span;
 
         for (var y = 0; y < field.Height; y++)
         {
             for (var x = 0; x < field.Width; x++)
             {
-                var value = field.GetValue(x, y);
+                var value = (double)values[y * field.Width + x];
                 var color = colorMap is not null
                     ? colorMap.Map(value)
                     : MapValueToColor(value, field.Range);
