@@ -5,9 +5,6 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <!-- CS1573/CS1591: many chart-status types lack complete XML docs; tracked separately. -->
-    <!-- SonarAnalyzer + CA style rules: pre-existing chart code, suppress to unblock TreatWarningsAsErrors. -->
-    <NoWarn>$(NoWarn);CS1573;CS1591;S101;S1172;S1244;S1481;S2368;S3267;S3358;S3928;CA1512;CA1869;CA2007;CA2208</NoWarn>
     <PackageId>Videra.SurfaceCharts.Avalonia</PackageId>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <Description>Avalonia shell for the shipped SurfaceCharts Plot API and VideraChartView control.</Description>

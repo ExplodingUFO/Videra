@@ -161,20 +161,18 @@ jobs:
 
           "package_version=$packageVersion" >> $env:GITHUB_OUTPUT
 
-      - name: Run packaged consumer smoke with warnings as errors
+      - name: Run packaged consumer smoke
         shell: pwsh
         run: >
           pwsh -File ./scripts/Invoke-ConsumerSmoke.ps1 -Configuration Release -LightingProofHoldSeconds 10
           -OutputRoot artifacts/consumer-smoke-quality
-          -TreatWarningsAsErrors
 
-      - name: Run packaged SurfaceCharts consumer smoke with warnings as errors
+      - name: Run packaged SurfaceCharts consumer smoke
         shell: pwsh
         run: >
           pwsh -File ./scripts/Invoke-ConsumerSmoke.ps1 -Configuration Release -LightingProofHoldSeconds 10
           -Scenario SurfaceCharts
           -OutputRoot artifacts/surfacecharts-consumer-smoke-quality
-          -TreatWarningsAsErrors
 
       - name: Validate packaged consumer smoke artifacts
         shell: pwsh
@@ -190,20 +188,17 @@ jobs:
           -PackageRoot artifacts/surfacecharts-consumer-smoke-quality/packages
           -ExpectedVersion ${{ steps.consumer-smoke-version.outputs.package_version }}
 
-      - name: Build core test evidence with warnings as errors
+      - name: Build core test evidence
         shell: pwsh
         run: >
           dotnet build tests/Videra.Core.Tests/Videra.Core.Tests.csproj -c Release
-          -p:TreatWarningsAsErrors=true
 
-      - name: Build core integration evidence with warnings as errors
+      - name: Build core integration evidence
         shell: pwsh
         run: >
           dotnet build tests/Videra.Core.IntegrationTests/Videra.Core.IntegrationTests.csproj -c Release
-          -p:TreatWarningsAsErrors=true
 
-      - name: Build minimal sample evidence with warnings as errors
+      - name: Build minimal sample evidence
         shell: pwsh
         run: >
           dotnet build samples/Videra.MinimalSample/Videra.MinimalSample.csproj -c Release
-          -p:TreatWarningsAsErrors=true

@@ -923,6 +923,7 @@ public sealed class VideraViewSceneIntegrationTests : IDisposable
         try
         {
             sessionSwap = NativeTrackingSessionSwap.Install(view);
+            view.Options.Backend.EnvironmentOverrideMode = BackendEnvironmentOverrideMode.Disabled;
             view.PreferredBackend = GraphicsBackendPreference.D3D11;
 
             var onNativeHandleCreated = VideraViewRuntimeTestAccess.ReadRuntimeMethod(view, "OnNativeHandleCreated");
@@ -1022,6 +1023,7 @@ public sealed class VideraViewSceneIntegrationTests : IDisposable
         try
         {
             sessionSwap = NativeTrackingSessionSwap.Install(view);
+            view.Options.Backend.EnvironmentOverrideMode = BackendEnvironmentOverrideMode.Disabled;
             view.PreferredBackend = GraphicsBackendPreference.D3D11;
             view.Measure(new Size(200, 200));
             view.Arrange(new Rect(0, 0, 200, 200));
