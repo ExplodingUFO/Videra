@@ -246,6 +246,28 @@ Plans:
 
 ---
 
+## v2.68: Cleanup, Benchmark & Hardening
+
+**Goal:** Fix failing test, reduce MainWindow to <500 lines, add benchmark coverage.
+**Phases:** 5 (459-463)
+
+| Phase | Status | Completed |
+|-------|--------|-----------|
+| 459. Fix Test & Delete Dead Code | Complete | 1f9573a |
+| 460. Extract Complex Scenarios | Complete | 6ddef81 |
+| 461. Consolidate Status & Parameter Panel | Complete | c673a9e |
+| 462. Benchmark Coverage | Complete | 1f9573a |
+| 463. Verification & Closure | Complete | — |
+
+**Results:**
+- All 625 tests pass (352 Core + 273 Avalonia)
+- MainWindow: 1682 → 499 lines
+- 6 new benchmarks for v2.67 chart types
+- Pre-existing test failure fixed (VectorExport diagnostics)
+- Dead code deleted (MainWindow.SampleData.cs, 445 lines)
+
+---
+
 <details>
 <summary>v2.66 Complete Cookbook Demo Gallery - Complete (2026-04-30)</summary>
 

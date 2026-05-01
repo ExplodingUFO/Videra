@@ -18,8 +18,7 @@ public class SurfaceChartsRenderHostContractBenchmarks : SurfaceChartsBenchmarkB
         _graphicsBackend = new BenchmarkGraphicsBackend();
         _host = new SurfaceChartRenderHost(
             softwareBackend: new SurfaceChartSoftwareRenderBackend(),
-            gpuBackend: new SurfaceChartGpuRenderBackend(_graphicsBackend),
-            allowSoftwareFallback: false);
+            gpuBackend: new SurfaceChartGpuRenderBackend(_graphicsBackend));
         EnsureGpuContractSnapshot(_host.UpdateInputs(Context.GpuRenderInputs), nameof(Context.GpuRenderInputs));
     }
 
