@@ -666,12 +666,12 @@ public sealed class VideraChartViewPlotApiTests
             evidence.RenderingEvidence.BackendKind.Should().Be(view.RenderingStatus.ActiveBackend);
             evidence.OutputCapabilityDiagnostics.Should().HaveCount(3);
             evidence.OutputCapabilityDiagnostics.First(d => d.Capability == "ImageExport").IsSupported.Should().BeTrue();
+            evidence.OutputCapabilityDiagnostics.First(d => d.Capability == "VectorExport").IsSupported.Should().BeTrue();
             evidence.OutputCapabilityDiagnostics.First(d => d.Capability == "PdfExport").IsSupported.Should().BeFalse();
-            evidence.OutputCapabilityDiagnostics.First(d => d.Capability == "VectorExport").IsSupported.Should().BeFalse();
             evidence.OutputCapabilityDiagnostics.Select(diagnostic => diagnostic.Capability).Should().Equal(
                 "ImageExport",
-                "PdfExport",
-                "VectorExport");
+                "VectorExport",
+                "PdfExport");
         });
     }
 

@@ -455,7 +455,7 @@ public partial class MainWindow : Window
         var scenario = GetSelectedScatterScenario();
 
         ApplyScatterSource(
-            CreateScatterSource(scenario),
+            SampleDataFactory.CreateScatterSource(scenario),
             demoScenario.Label.Replace("Scatter proof", "Scatter streaming proof", StringComparison.Ordinal),
             $"Repo-owned scatter proof on the same Avalonia chart line. Scenario `{scenario.Id}` uses {scenario.UpdateMode} columnar streaming with direct camera pose truth and no `ViewState` seam on this path.",
             $"The scatter proof uses scenario `{scenario.Id}`: {scenario.InitialPointCount:N0} initial points, {scenario.UpdatePointCount:N0} update points, FIFO capacity {SurfaceDemoSupportSummary.FormatFifoCapacity(scenario.FifoCapacity)}, Pickable {scenario.Pickable}.",
@@ -631,15 +631,15 @@ public partial class MainWindow : Window
         grid.GetPlot(0, 0).Add.Surface(_inMemorySource, "Surface");
         grid.GetPlot(0, 0).ColorMap = CreateColorMap(_inMemorySource.Metadata.ValueRange);
 
-        var barData = CreateSampleBarData();
+        var barData = SampleDataFactory.CreateSampleBarData();
         grid.GetPlot(0, 1).Add.Bar(barData, "Bar");
 
-        var lineXs = CreateSampleLineXs();
-        var lineYs = CreateSampleLineYs();
-        var lineZs = CreateSampleLineZs();
+        var lineXs = SampleDataFactory.CreateSampleLineXs();
+        var lineYs = SampleDataFactory.CreateSampleLineYs();
+        var lineZs = SampleDataFactory.CreateSampleLineZs();
         grid.GetPlot(1, 0).Add.Line(lineXs, lineYs, lineZs, "Line");
 
-        var contourField = CreateSampleContourField();
+        var contourField = SampleDataFactory.CreateSampleContourField();
         grid.GetPlot(1, 1).Add.Contour(contourField, "Contour");
 
         grid.FitAllToData();
@@ -666,13 +666,13 @@ public partial class MainWindow : Window
         SetActiveChartView(_surfaceChartView);
         _activeScatterData = null;
 
-        var matrix = CreateSampleMatrix();
+        var matrix = SampleDataFactory.CreateSampleMatrix();
         var logger = new SurfaceDataLogger3D(matrix, fifoRowCapacity: 200);
 
         // Simulate streaming: append 3 batches of new rows
         for (var batch = 0; batch < 3; batch++)
         {
-            var newRows = CreateStreamingRows(matrix.Metadata.Width, 10, batch);
+            var newRows = SampleDataFactory.CreateStreamingRows(matrix.Metadata.Width, 10, batch);
             logger.Append(newRows);
         }
 
@@ -699,13 +699,13 @@ public partial class MainWindow : Window
         SetActiveChartView(_waterfallChartView);
         _activeScatterData = null;
 
-        var matrix = CreateWaterfallMatrix();
+        var matrix = SampleDataFactory.CreateWaterfallMatrix();
         var logger = new WaterfallDataLogger3D(matrix, fifoRowCapacity: 100);
 
         // Simulate streaming: append 2 batches
         for (var batch = 0; batch < 2; batch++)
         {
-            var newRows = CreateStreamingRows(matrix.Metadata.Width, 6, batch);
+            var newRows = SampleDataFactory.CreateStreamingRows(matrix.Metadata.Width, 6, batch);
             logger.Append(newRows);
         }
 
@@ -731,7 +731,7 @@ public partial class MainWindow : Window
         SetActiveChartView(_barChartView);
         _activeScatterData = null;
 
-        var data = CreateSampleBarData();
+        var data = SampleDataFactory.CreateSampleBarData();
         var logger = new BarDataLogger3D(data);
 
         // Simulate streaming: append 2 batches of new series
@@ -753,26 +753,6 @@ public partial class MainWindow : Window
         _activeAssetSummary = "No additional assets are used on this path.";
         _datasetText.Text = _activeDatasetSummary;
         RefreshActiveProofTexts();
-    }
-
-    private static SurfaceMatrix CreateStreamingRows(int width, int rowCount, int batchIndex)
-    {
-        var values = new float[width * rowCount];
-        for (var r = 0; r < rowCount; r++)
-        {
-            for (var c = 0; c < width; c++)
-            {
-                values[r * width + c] = (float)(Math.Sin((batchIndex * rowCount + r) * 0.2 + c * 0.1) * 0.5);
-            }
-        }
-
-        var metadata = new SurfaceMetadata(
-            width,
-            rowCount,
-            new SurfaceAxisDescriptor("Time", "s", 0d, width - 1),
-            new SurfaceAxisDescriptor("Stream", "batch", batchIndex * rowCount, (batchIndex + 1) * rowCount - 1),
-            new SurfaceValueRange(-0.5, 0.5));
-        return new SurfaceMatrix(metadata, values);
     }
 
     private void SetActiveChartView(VideraChartView chartView)
@@ -846,18 +826,18 @@ public partial class MainWindow : Window
         _workspaceChartA.Plot.ColorMap = CreateColorMap(_inMemorySource.Metadata.ValueRange);
         _workspaceChartA.FitToData();
 
-        var barData = CreateSampleBarData();
+        var barData = SampleDataFactory.CreateSampleBarData();
         _workspaceChartB.Plot.Clear();
         _workspaceChartB.Plot.Add.Bar(barData, "Bar B");
         _workspaceChartB.FitToData();
 
         var scatterScenario = ScatterStreamingScenarios.Get("scatter-replace-100k");
-        var scatterData = CreateScatterSource(scatterScenario);
+        var scatterData = SampleDataFactory.CreateScatterSource(scatterScenario);
         _workspaceChartC.Plot.Clear();
         _workspaceChartC.Plot.Add.Scatter(scatterData, "Scatter C");
         _workspaceChartC.FitToData();
 
-        var contourField = CreateSampleContourField();
+        var contourField = SampleDataFactory.CreateSampleContourField();
         _workspaceChartD.Plot.Clear();
         _workspaceChartD.Plot.Add.Contour(contourField, "Contour D");
         _workspaceChartD.FitToData();
@@ -1010,7 +990,7 @@ public partial class MainWindow : Window
 
         // Create scatter data for chart A: replace mode, 100k points.
         var replaceScenario = ScatterStreamingScenarios.Get("scatter-replace-100k");
-        var replaceData = CreateScatterSource(replaceScenario);
+        var replaceData = SampleDataFactory.CreateScatterSource(replaceScenario);
         var replaceColumnarSeries = replaceData.ColumnarSeries.Count > 0 ? replaceData.ColumnarSeries[0] : null;
         _workspaceChartA.Plot.Clear();
         _workspaceChartA.Plot.Add.Scatter(replaceData, "Replace Scatter");
@@ -1018,7 +998,7 @@ public partial class MainWindow : Window
 
         // Create scatter data for chart B: append+FIFO mode, 100k points, FIFO=100k.
         var fifoScenario = ScatterStreamingScenarios.Get("scatter-fifo-trim-100k");
-        var fifoData = CreateScatterSource(fifoScenario);
+        var fifoData = SampleDataFactory.CreateScatterSource(fifoScenario);
         var fifoColumnarSeries = fifoData.ColumnarSeries.Count > 0 ? fifoData.ColumnarSeries[0] : null;
         _workspaceChartB.Plot.Clear();
         _workspaceChartB.Plot.Add.Scatter(fifoData, "Append+FIFO Scatter");

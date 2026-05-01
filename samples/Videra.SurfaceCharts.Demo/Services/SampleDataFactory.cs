@@ -294,7 +294,7 @@ public static class SampleDataFactory
         return new ScatterChartData(metadata, series, [ScatterStreamingScenarios.CreateSeries(scenario)]);
     }
 
-    private static SurfaceMatrix CreateSampleMatrix()
+    public static SurfaceMatrix CreateSampleMatrix()
     {
         const int width = 64;
         const int height = 48;
@@ -384,7 +384,7 @@ public static class SampleDataFactory
         return new SurfaceMatrix(metadata, heightField, colorField);
     }
 
-    private static SurfaceMatrix CreateWaterfallMatrix()
+    public static SurfaceMatrix CreateWaterfallMatrix()
     {
         const int width = 72;
         const int stripCount = 12;
@@ -436,6 +436,26 @@ public static class SampleDataFactory
             new SurfaceAxisDescriptor("Sweep", unit: null, minimum: verticalCoordinates[0], maximum: verticalCoordinates[^1], SurfaceAxisScaleKind.ExplicitCoordinates),
             new SurfaceValueRange(0d, maximum));
 
+        return new SurfaceMatrix(metadata, values);
+    }
+
+    public static SurfaceMatrix CreateStreamingRows(int width, int rowCount, int batchIndex)
+    {
+        var values = new float[width * rowCount];
+        for (var r = 0; r < rowCount; r++)
+        {
+            for (var c = 0; c < width; c++)
+            {
+                values[r * width + c] = (float)(Math.Sin((batchIndex * rowCount + r) * 0.2 + c * 0.1) * 0.5);
+            }
+        }
+
+        var metadata = new SurfaceMetadata(
+            width,
+            rowCount,
+            new SurfaceAxisDescriptor("Time", "s", 0d, width - 1),
+            new SurfaceAxisDescriptor("Stream", "batch", batchIndex * rowCount, (batchIndex + 1) * rowCount - 1),
+            new SurfaceValueRange(-0.5, 0.5));
         return new SurfaceMatrix(metadata, values);
     }
 }
