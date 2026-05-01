@@ -93,43 +93,73 @@ public sealed class GraphicsBackendFactoryTests
     [Fact]
     public void CreateBackend_D3D11PreferenceWithoutResolver_ThrowsInsteadOfFallingBackToSoftware()
     {
+        var original = Environment.GetEnvironmentVariable("VIDERA_BACKEND");
         GraphicsBackendFactory.ConfigureResolver(null);
-
-        var act = () =>
+        try
         {
-            using var backend = GraphicsBackendFactory.CreateBackend(GraphicsBackendPreference.D3D11);
-        };
+            Environment.SetEnvironmentVariable("VIDERA_BACKEND", null);
 
-        act.Should().Throw<InvalidOperationException>()
-            .WithMessage("No native resolver configured for backend preference D3D11.");
+            var act = () =>
+            {
+                using var backend = GraphicsBackendFactory.CreateBackend(GraphicsBackendPreference.D3D11);
+            };
+
+            act.Should().Throw<InvalidOperationException>()
+                .WithMessage("No native resolver configured for backend preference D3D11.");
+        }
+        finally
+        {
+            GraphicsBackendFactory.ConfigureResolver(null);
+            Environment.SetEnvironmentVariable("VIDERA_BACKEND", original);
+        }
     }
 
     [Fact]
     public void CreateBackend_VulkanPreferenceWithoutResolver_ThrowsInsteadOfFallingBackToSoftware()
     {
+        var original = Environment.GetEnvironmentVariable("VIDERA_BACKEND");
         GraphicsBackendFactory.ConfigureResolver(null);
-
-        var act = () =>
+        try
         {
-            using var backend = GraphicsBackendFactory.CreateBackend(GraphicsBackendPreference.Vulkan);
-        };
+            Environment.SetEnvironmentVariable("VIDERA_BACKEND", null);
 
-        act.Should().Throw<InvalidOperationException>()
-            .WithMessage("No native resolver configured for backend preference Vulkan.");
+            var act = () =>
+            {
+                using var backend = GraphicsBackendFactory.CreateBackend(GraphicsBackendPreference.Vulkan);
+            };
+
+            act.Should().Throw<InvalidOperationException>()
+                .WithMessage("No native resolver configured for backend preference Vulkan.");
+        }
+        finally
+        {
+            GraphicsBackendFactory.ConfigureResolver(null);
+            Environment.SetEnvironmentVariable("VIDERA_BACKEND", original);
+        }
     }
 
     [Fact]
     public void CreateBackend_MetalPreferenceWithoutResolver_ThrowsInsteadOfFallingBackToSoftware()
     {
+        var original = Environment.GetEnvironmentVariable("VIDERA_BACKEND");
         GraphicsBackendFactory.ConfigureResolver(null);
-
-        var act = () =>
+        try
         {
-            using var backend = GraphicsBackendFactory.CreateBackend(GraphicsBackendPreference.Metal);
-        };
+            Environment.SetEnvironmentVariable("VIDERA_BACKEND", null);
 
-        act.Should().Throw<InvalidOperationException>()
-            .WithMessage("No native resolver configured for backend preference Metal.");
+            var act = () =>
+            {
+                using var backend = GraphicsBackendFactory.CreateBackend(GraphicsBackendPreference.Metal);
+            };
+
+            act.Should().Throw<InvalidOperationException>()
+                .WithMessage("No native resolver configured for backend preference Metal.");
+        }
+        finally
+        {
+            GraphicsBackendFactory.ConfigureResolver(null);
+            Environment.SetEnvironmentVariable("VIDERA_BACKEND", original);
+        }
     }
 
     [Theory]
@@ -201,10 +231,13 @@ public sealed class GraphicsBackendFactoryTests
     public void CreateBackend_WithConfiguredResolver_UsesResolverForNativePreference()
     {
         var resolver = new TestGraphicsBackendResolver();
+        var original = Environment.GetEnvironmentVariable("VIDERA_BACKEND");
         GraphicsBackendFactory.ConfigureResolver(resolver);
 
         try
         {
+            Environment.SetEnvironmentVariable("VIDERA_BACKEND", null);
+
             using var backend = GraphicsBackendFactory.CreateBackend(GraphicsBackendPreference.D3D11);
 
             backend.Should().BeSameAs(resolver.LastBackend);
@@ -213,18 +246,29 @@ public sealed class GraphicsBackendFactoryTests
         finally
         {
             GraphicsBackendFactory.ConfigureResolver(null);
+            Environment.SetEnvironmentVariable("VIDERA_BACKEND", original);
         }
     }
 
     [Fact]
     public void CreateBackend_WithoutResolver_ThrowsForNativePreference()
     {
+        var original = Environment.GetEnvironmentVariable("VIDERA_BACKEND");
         GraphicsBackendFactory.ConfigureResolver(null);
+        try
+        {
+            Environment.SetEnvironmentVariable("VIDERA_BACKEND", null);
 
-        var act = () => GraphicsBackendFactory.CreateBackend(GraphicsBackendPreference.D3D11);
+            var act = () => GraphicsBackendFactory.CreateBackend(GraphicsBackendPreference.D3D11);
 
-        act.Should().Throw<InvalidOperationException>()
-            .WithMessage("No native resolver configured for backend preference D3D11.");
+            act.Should().Throw<InvalidOperationException>()
+                .WithMessage("No native resolver configured for backend preference D3D11.");
+        }
+        finally
+        {
+            GraphicsBackendFactory.ConfigureResolver(null);
+            Environment.SetEnvironmentVariable("VIDERA_BACKEND", original);
+        }
     }
 
     [Fact]

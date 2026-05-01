@@ -15,6 +15,9 @@ public sealed class VectorFieldChartData
 {
     private readonly ReadOnlyCollection<VectorFieldPoint> _pointsView;
 
+    /// <summary>
+    /// Initializes a new vector-field dataset.
+    /// </summary>
     public VectorFieldChartData(
         IReadOnlyList<VectorFieldPoint> points,
         SurfaceAxisDescriptor horizontalAxis,
@@ -30,9 +33,27 @@ public sealed class VectorFieldChartData
         MagnitudeRange = magnitudeRange;
     }
 
+    /// <summary>
+    /// Gets the vector field sample points.
+    /// </summary>
     public IReadOnlyList<VectorFieldPoint> Points => _pointsView;
+
+    /// <summary>
+    /// Gets the horizontal axis descriptor.
+    /// </summary>
     public SurfaceAxisDescriptor HorizontalAxis { get; }
+
+    /// <summary>
+    /// Gets the depth axis descriptor.
+    /// </summary>
     public SurfaceAxisDescriptor DepthAxis { get; }
+    /// <summary>
+    /// Gets the magnitude value range across all vector field points.
+    /// </summary>
     public SurfaceValueRange MagnitudeRange { get; }
+
+    /// <summary>
+    /// Gets the number of vector field sample points.
+    /// </summary>
     public int PointCount => _pointsView.Count;
 }

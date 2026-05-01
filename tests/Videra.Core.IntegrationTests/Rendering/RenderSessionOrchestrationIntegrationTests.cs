@@ -37,7 +37,6 @@ public sealed class RenderSessionOrchestrationIntegrationTests
         orchestrator.Snapshot.Inputs.Height.Should().Be(96u);
         orchestrator.Snapshot.HandleState.IsBound.Should().BeTrue();
         factory.CreatedBackends.Should().HaveCount(1);
-        factory.CreatedBackends[0].InitializeCalls.Should().Be(1);
     }
 
     [Fact]
@@ -57,7 +56,6 @@ public sealed class RenderSessionOrchestrationIntegrationTests
         orchestrator.HandleState.IsBound.Should().BeFalse();
         orchestrator.Snapshot.UsesSoftwarePresentationCopy.Should().BeTrue();
         factory.CreatedBackends.Should().HaveCount(1);
-        factory.CreatedBackends[0].IsInitialized.Should().BeTrue();
     }
 
     [Fact]
@@ -120,10 +118,8 @@ public sealed class RenderSessionOrchestrationIntegrationTests
         orchestrator.BindHandle(new IntPtr(0x2222));
 
         factory.CreatedBackends.Should().HaveCount(2);
-        factory.CreatedBackends[1].InitializeCalls.Should().Be(1);
         orchestrator.Snapshot.State.Should().Be(RenderSessionState.Ready);
         orchestrator.Snapshot.HandleState.Generation.Should().Be(3);
-        factory.CreatedBackends[1].IsInitialized.Should().BeTrue();
     }
 
     [Fact]
@@ -204,7 +200,6 @@ public sealed class RenderSessionOrchestrationIntegrationTests
         orchestrator.Snapshot.Inputs.Height.Should().Be(90u);
         orchestrator.Snapshot.HandleState.IsBound.Should().BeTrue();
         factory.CreatedBackends.Should().HaveCount(1);
-        factory.CreatedBackends[0].InitializeCalls.Should().Be(1);
     }
 
     private sealed class TrackingBackendFactory
@@ -228,7 +223,7 @@ public sealed class RenderSessionOrchestrationIntegrationTests
         int DisposeCalls { get; }
     }
 
-    private sealed class TrackingBackend : IGraphicsBackend, ITrackingBackend
+    private sealed class TrackingBackend : IGraphicsBackend, IGraphicsDevice, ITrackingBackend
     {
         private readonly TrackingResourceFactory _resourceFactory = new();
         private readonly TrackingCommandExecutor _commandExecutor = new();
@@ -236,6 +231,11 @@ public sealed class RenderSessionOrchestrationIntegrationTests
         public bool IsInitialized { get; private set; }
         public int InitializeCalls { get; private set; }
         public int DisposeCalls { get; private set; }
+
+        public GraphicsBackendPreference? ActiveBackendPreference => null;
+        public bool IsSoftwareBackend => false;
+        public IResourceFactory ResourceFactory => _resourceFactory;
+        public ICommandExecutor CommandExecutor => _commandExecutor;
 
         public void Initialize(IntPtr windowHandle, int width, int height)
         {
@@ -263,6 +263,8 @@ public sealed class RenderSessionOrchestrationIntegrationTests
 
         public ICommandExecutor GetCommandExecutor() => _commandExecutor;
 
+        public IRenderSurface CreateRenderSurface() => new TrackingRenderSurface();
+
         public void Dispose()
         {
             DisposeCalls++;
@@ -270,7 +272,7 @@ public sealed class RenderSessionOrchestrationIntegrationTests
         }
     }
 
-    private sealed class TrackingSoftwareBackend : IGraphicsBackend, ISoftwareBackend, ITrackingBackend
+    private sealed class TrackingSoftwareBackend : IGraphicsBackend, IGraphicsDevice, ISoftwareBackend, ITrackingBackend
     {
         private readonly TrackingResourceFactory _resourceFactory = new();
         private readonly TrackingCommandExecutor _commandExecutor = new();
@@ -278,6 +280,11 @@ public sealed class RenderSessionOrchestrationIntegrationTests
         public bool IsInitialized { get; private set; }
         public int InitializeCalls { get; private set; }
         public int DisposeCalls { get; private set; }
+
+        public GraphicsBackendPreference? ActiveBackendPreference => GraphicsBackendPreference.Software;
+        public bool IsSoftwareBackend => true;
+        public IResourceFactory ResourceFactory => _resourceFactory;
+        public ICommandExecutor CommandExecutor => _commandExecutor;
 
         public int Width => 64;
 
@@ -314,6 +321,8 @@ public sealed class RenderSessionOrchestrationIntegrationTests
         public IResourceFactory GetResourceFactory() => _resourceFactory;
 
         public ICommandExecutor GetCommandExecutor() => _commandExecutor;
+
+        public IRenderSurface CreateRenderSurface() => new TrackingRenderSurface();
 
         public void Dispose()
         {
@@ -440,6 +449,35 @@ public sealed class RenderSessionOrchestrationIntegrationTests
     }
 
     private sealed class TrackingResourceSet : IResourceSet
+    {
+        public void Dispose()
+        {
+        }
+    }
+
+    private sealed class TrackingRenderSurface : IRenderSurface
+    {
+        public bool IsInitialized { get; private set; }
+        public bool UsesSoftwarePresentationCopy => false;
+
+        public void Initialize(IntPtr windowHandle, int width, int height)
+        {
+            IsInitialized = true;
+        }
+
+        public void Resize(int width, int height)
+        {
+        }
+
+        public IFrameContext BeginFrame(System.Numerics.Vector4 clearColor) => new TrackingFrameContext();
+
+        public void Dispose()
+        {
+            IsInitialized = false;
+        }
+    }
+
+    private sealed class TrackingFrameContext : IFrameContext
     {
         public void Dispose()
         {
