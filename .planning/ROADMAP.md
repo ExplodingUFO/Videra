@@ -28,7 +28,7 @@ compatibility adapters, or fake validation evidence.
   formatting, minor ticks, axis inversion, and multiple Y axes.
 - [x] **Phase 453: Text & Arrow Annotations** - Add text annotation and arrow
   annotation anchored to data coordinates.
-- [ ] **Phase 454: Reference Lines, Spans & Shapes** - Add reference lines,
+- [x] **Phase 454: Reference Lines, Spans & Shapes** - Add reference lines,
   reference regions, and shape annotations.
 - [x] **Phase 455: SVG & Batch Export** - Add SVG export and batch export API
   with JSON manifest for CI integration.

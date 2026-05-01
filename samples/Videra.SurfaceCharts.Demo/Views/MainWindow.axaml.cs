@@ -94,6 +94,7 @@ public partial class MainWindow : Window
     private RibbonPlot3DSeries? _activeRibbonSeries;
     private VectorFieldPlot3DSeries? _activeVectorFieldSeries;
     private HeatmapSlicePlot3DSeries? _activeHeatmapSliceSeries;
+    private RecipeContext? _recipeContext;
     private readonly TextBlock _lineWidthText;
     private readonly TextBlock _ribbonRadiusText;
     private readonly TextBlock _vectorFieldScaleText;
@@ -221,9 +222,18 @@ public partial class MainWindow : Window
             CacheManifestFileName);
         _cachePayloadPath = _cachePath + CachePayloadSuffix;
 
-        _inMemorySource = CreateInMemorySource();
-        _analyticsProofSource = CreateAnalyticsProofSource();
-        _waterfallSource = CreateWaterfallSource();
+        _inMemorySource = SampleDataFactory.CreateInMemorySource();
+        _analyticsProofSource = SampleDataFactory.CreateAnalyticsProofSource();
+        _waterfallSource = SampleDataFactory.CreateWaterfallSource();
+
+        _recipeContext = new RecipeContext(
+            _surfaceChartView, _waterfallChartView, _scatterChartView, _barChartView,
+            _contourPlotView, _linePlotView, _ribbonPlotView, _vectorFieldPlotView,
+            _heatmapSlicePlotView, _boxPlotView, _histogramPlotView, _functionPlotView,
+            _piePlotView, _ohlcPlotView, _violinPlotView, _polygonPlotView,
+            _inMemorySource, _analyticsProofSource, _waterfallSource,
+            SetActiveChartView);
+
         ConfigureSurfaceFamilyChartView(_surfaceChartView);
         ConfigureSurfaceFamilyChartView(_waterfallChartView);
         ConfigureScatterFamilyChartView(_scatterChartView);
@@ -324,45 +334,10 @@ public partial class MainWindow : Window
 
         UpdateParameterPanel(scenario.Id);
 
-        if (scenario.Id == SurfaceDemoScenarios.StartId)
-        {
-            ApplySource(
-                _surfaceChartView,
-                _inMemorySource,
-                scenario.Label,
-                $"Start here first. {scenario.Description}",
-                "The start-here in-memory path uses a generated 64x48 matrix with an overview-first pyramid.",
-                "No additional assets are used on this path.");
-            return;
-        }
-
+        // Complex scenarios that need special handling
         if (scenario.Id == SurfaceDemoScenarios.CacheId)
         {
             await LoadAndApplyCacheSourceAsync(scenario).ConfigureAwait(false);
-            return;
-        }
-
-        if (scenario.Id == SurfaceDemoScenarios.AnalyticsId)
-        {
-            ApplySource(
-                _surfaceChartView,
-                _analyticsProofSource,
-                scenario.Label,
-                "Repo-owned analytics proof on the same Avalonia shell. Uses explicit/non-uniform coordinates with an independent `ColorField`, keeps pinned-probe workflow (`Shift + LeftClick`), and keeps the built-in `ViewState` + `InteractionQuality` camera truth contract.",
-                "The analytics proof uses a 19x13 explicit grid with non-uniform axis spacing and separate height and color scalar fields, while preserving the same VideraChartView interaction contracts.",
-                "No additional assets are used on this path.");
-            return;
-        }
-
-        if (scenario.Id == SurfaceDemoScenarios.WaterfallId)
-        {
-            ApplySource(
-                _waterfallChartView,
-                _waterfallSource,
-                scenario.Label,
-                "Thin proof on the same Avalonia chart shell. Uses explicit strip spacing while keeping the inherited ViewState, interaction, overlay, and rendering-status workflow aligned to the rendered geometry.",
-                "The waterfall proof expands each logical strip into baseline-data-baseline rows and assigns explicit sweep coordinates so camera, picking, and overlays stay on the same geometry truth.",
-                "No additional assets are used on this path.");
             return;
         }
 
@@ -372,99 +347,9 @@ public partial class MainWindow : Window
             return;
         }
 
-        if (scenario.Id == SurfaceDemoScenarios.BarId)
-        {
-            ApplyBarSource(scenario);
-            return;
-        }
-
-        if (scenario.Id == SurfaceDemoScenarios.ContourId)
-        {
-            ApplyContourSource(scenario);
-            return;
-        }
-
-        if (scenario.Id == SurfaceDemoScenarios.LineId)
-        {
-            ApplyLineSource(scenario);
-            return;
-        }
-
-        if (scenario.Id == SurfaceDemoScenarios.RibbonId)
-        {
-            ApplyRibbonSource(scenario);
-            return;
-        }
-
-        if (scenario.Id == SurfaceDemoScenarios.VectorFieldId)
-        {
-            ApplyVectorFieldSource(scenario);
-            return;
-        }
-
-        if (scenario.Id == SurfaceDemoScenarios.HeatmapSliceId)
-        {
-            ApplyHeatmapSliceSource(scenario);
-            return;
-        }
-
-        if (scenario.Id == SurfaceDemoScenarios.BoxPlotId)
-        {
-            ApplyBoxPlotSource(scenario);
-            return;
-        }
-
-        if (scenario.Id == SurfaceDemoScenarios.HistogramId)
-        {
-            ApplyHistogramSource(scenario);
-            return;
-        }
-
-        if (scenario.Id == SurfaceDemoScenarios.FunctionPlotId)
-        {
-            ApplyFunctionPlotSource(scenario);
-            return;
-        }
-
-        if (scenario.Id == SurfaceDemoScenarios.PieId)
-        {
-            ApplyPieSource(scenario);
-            return;
-        }
-
         if (scenario.Id == SurfaceDemoScenarios.ErrorBarId)
         {
             ApplyErrorBarSource(scenario);
-            return;
-        }
-
-        if (scenario.Id == SurfaceDemoScenarios.OHLCId)
-        {
-            ApplyOHLCSource(scenario);
-            return;
-        }
-
-        if (scenario.Id == SurfaceDemoScenarios.ViolinId)
-        {
-            ApplyViolinSource(scenario);
-            return;
-        }
-
-        if (scenario.Id == SurfaceDemoScenarios.PolygonId)
-        {
-            ApplyPolygonSource(scenario);
-            return;
-        }
-
-        if (scenario.Id == SurfaceDemoScenarios.AnnotationId)
-        {
-            ApplyAnnotationSource(scenario);
-            return;
-        }
-
-        if (scenario.Id == SurfaceDemoScenarios.ReferenceId)
-        {
-            ApplyReferenceSource(scenario);
             return;
         }
 
@@ -508,6 +393,20 @@ public partial class MainWindow : Window
         {
             SetupStreamingWorkspaceScenario(scenario);
             return;
+        }
+
+        // Recipe-driven scenarios
+        var recipe = RecipeRegistry.Get(scenario.Id);
+        if (recipe is not null && _recipeContext is not null)
+        {
+            _activeScatterData = null;
+            var result = recipe.Apply(_recipeContext);
+            _activePlotPathHeading = result.Heading;
+            _activePlotPathDetails = result.Details;
+            _activeDatasetSummary = result.DatasetSummary;
+            _activeAssetSummary = result.AssetSummary;
+            _datasetText.Text = result.DatasetSummary;
+            RefreshActiveProofTexts();
         }
     }
 
@@ -660,191 +559,6 @@ public partial class MainWindow : Window
         RefreshActiveProofTexts();
     }
 
-    private void ApplyBarSource(SurfaceDemoScenario scenario)
-    {
-        var data = CreateSampleBarData();
-        SetActiveChartView(_barChartView);
-        _activeScatterData = null;
-        _barChartView.Plot.Clear();
-        _barChartView.Plot.Add.Bar(data, scenario.Label);
-        _barChartView.FitToData();
-        _activePlotPathHeading = scenario.Label;
-        _activePlotPathDetails = "Grouped bar chart with 3 series and 5 categories. Demonstrates Plot.Add.Bar with configurable per-series colors.";
-        _activeDatasetSummary = "Bar chart proof uses BarChartData with 3 BarSeries of 5 values each in Grouped layout.";
-        _activeAssetSummary = "No additional assets are used on this path.";
-        _datasetText.Text = _activeDatasetSummary;
-        RefreshActiveProofTexts();
-    }
-
-    private void ApplyContourSource(SurfaceDemoScenario scenario)
-    {
-        var field = CreateSampleContourField();
-        SetActiveChartView(_contourPlotView);
-        _activeScatterData = null;
-        _contourPlotView.Plot.Clear();
-        _contourPlotView.Plot.Add.Contour(field, scenario.Label);
-        _contourPlotView.FitToData();
-        _activePlotPathHeading = scenario.Label;
-        _activePlotPathDetails = "Contour plot with marching squares iso-line extraction from a radial scalar field. Demonstrates Plot.Add.Contour.";
-        _activeDatasetSummary = "Contour plot proof uses a 32x32 radial scalar field with 10 default contour levels.";
-        _activeAssetSummary = "No additional assets are used on this path.";
-        _datasetText.Text = _activeDatasetSummary;
-        RefreshActiveProofTexts();
-    }
-
-    private void ApplyLineSource(SurfaceDemoScenario scenario)
-    {
-        SetActiveChartView(_linePlotView);
-        _activeScatterData = null;
-        _linePlotView.Plot.Clear();
-        _activeLineSeries = _linePlotView.Plot.Add.Line(
-            CreateSampleLineXs(),
-            CreateSampleLineYs(),
-            CreateSampleLineZs(),
-            scenario.Label);
-        _linePlotView.FitToData();
-        _activePlotPathHeading = scenario.Label;
-        _activePlotPathDetails = "3D polyline from coordinate arrays. Demonstrates Plot.Add.Line with configurable color and width.";
-        _activeDatasetSummary = "Line chart proof uses 30-point helix polyline with sinusoidal Y values.";
-        _activeAssetSummary = "No additional assets are used on this path.";
-        _datasetText.Text = _activeDatasetSummary;
-        RefreshActiveProofTexts();
-    }
-
-    private void ApplyRibbonSource(SurfaceDemoScenario scenario)
-    {
-        SetActiveChartView(_ribbonPlotView);
-        _activeScatterData = null;
-        _ribbonPlotView.Plot.Clear();
-        _activeRibbonSeries = _ribbonPlotView.Plot.Add.Ribbon(
-            CreateSampleLineXs(),
-            CreateSampleLineYs(),
-            CreateSampleLineZs(),
-            radius: 0.15f,
-            scenario.Label);
-        _ribbonPlotView.FitToData();
-        _activePlotPathHeading = scenario.Label;
-        _activePlotPathDetails = "3D ribbon/tube geometry from coordinate arrays. Demonstrates Plot.Add.Ribbon with configurable radius.";
-        _activeDatasetSummary = "Ribbon chart proof uses 30-point helix path with 0.15 tube radius.";
-        _activeAssetSummary = "No additional assets are used on this path.";
-        _datasetText.Text = _activeDatasetSummary;
-        RefreshActiveProofTexts();
-    }
-
-    private void ApplyVectorFieldSource(SurfaceDemoScenario scenario)
-    {
-        SetActiveChartView(_vectorFieldPlotView);
-        _activeScatterData = null;
-        _vectorFieldPlotView.Plot.Clear();
-        _activeVectorFieldSeries = _vectorFieldPlotView.Plot.Add.VectorField(
-            CreateSampleVectorFieldXs(),
-            CreateSampleVectorFieldYs(),
-            CreateSampleVectorFieldZs(),
-            CreateSampleVectorFieldDxs(),
-            CreateSampleVectorFieldDys(),
-            CreateSampleVectorFieldDzs(),
-            scenario.Label);
-        _vectorFieldPlotView.FitToData();
-        _activePlotPathHeading = scenario.Label;
-        _activePlotPathDetails = "3D vector field with arrow rendering. Demonstrates Plot.Add.VectorField with magnitude-based coloring.";
-        _activeDatasetSummary = "Vector field proof uses 6x6 grid of arrows with radial direction pattern.";
-        _activeAssetSummary = "No additional assets are used on this path.";
-        _datasetText.Text = _activeDatasetSummary;
-        RefreshActiveProofTexts();
-    }
-
-    private void ApplyHeatmapSliceSource(SurfaceDemoScenario scenario)
-    {
-        SetActiveChartView(_heatmapSlicePlotView);
-        _activeScatterData = null;
-        _heatmapSlicePlotView.Plot.Clear();
-        _activeHeatmapSliceSeries = _heatmapSlicePlotView.Plot.Add.HeatmapSlice(
-            CreateSampleHeatmapValues(),
-            HeatmapSliceAxis.Z,
-            0.5,
-            scenario.Label);
-        _heatmapSlicePlotView.FitToData();
-        _activePlotPathHeading = scenario.Label;
-        _activePlotPathDetails = "Heatmap slice from 2D scalar field. Demonstrates Plot.Add.HeatmapSlice with axis/position control.";
-        _activeDatasetSummary = "Heatmap slice proof uses 24x24 sinusoidal scalar field at Z=0.5.";
-        _activeAssetSummary = "No additional assets are used on this path.";
-        _datasetText.Text = _activeDatasetSummary;
-        RefreshActiveProofTexts();
-    }
-
-    private void ApplyBoxPlotSource(SurfaceDemoScenario scenario)
-    {
-        SetActiveChartView(_boxPlotView);
-        _activeScatterData = null;
-        _boxPlotView.Plot.Clear();
-        _boxPlotView.Plot.Add.BoxPlot(CreateSampleBoxPlotData(), scenario.Label);
-        _boxPlotView.FitToData();
-        _activePlotPathHeading = scenario.Label;
-        _activePlotPathDetails = "3D box plot with statistical distribution. Demonstrates Plot.Add.BoxPlot with grouped layout and outlier display.";
-        _activeDatasetSummary = "Box plot proof uses 4 categories with min/Q1/median/Q3/max and optional outliers.";
-        _activeAssetSummary = "No additional assets are used on this path.";
-        _datasetText.Text = _activeDatasetSummary;
-        RefreshActiveProofTexts();
-    }
-
-    private void ApplyHistogramSource(SurfaceDemoScenario scenario)
-    {
-        SetActiveChartView(_histogramPlotView);
-        _activeScatterData = null;
-        _histogramPlotView.Plot.Clear();
-        _histogramPlotView.Plot.Add.Histogram(CreateSampleHistogramValues(), binCount: 25, mode: HistogramMode.Count, name: scenario.Label);
-        _histogramPlotView.FitToData();
-        _activePlotPathHeading = scenario.Label;
-        _activePlotPathDetails = "Histogram with configurable bins and mode. Demonstrates Plot.Add.Histogram with count/density/cumulative modes.";
-        _activeDatasetSummary = "Histogram proof uses 500 Box-Muller normal samples with 25 bins.";
-        _activeAssetSummary = "No additional assets are used on this path.";
-        _datasetText.Text = _activeDatasetSummary;
-        RefreshActiveProofTexts();
-    }
-
-    private void ApplyFunctionPlotSource(SurfaceDemoScenario scenario)
-    {
-        SetActiveChartView(_functionPlotView);
-        _activeScatterData = null;
-        _functionPlotView.Plot.Clear();
-        _functionPlotView.Plot.Add.Function(
-            x => Math.Sin(x) * Math.Exp(-x * 0.1),
-            xMin: 0, xMax: 20, sampleCount: 300,
-            name: scenario.Label);
-        _functionPlotView.FitToData();
-        _activePlotPathHeading = scenario.Label;
-        _activePlotPathDetails = "Function plot evaluating y = sin(x) * exp(-0.1x). Demonstrates Plot.Add.Function with configurable domain and sample count.";
-        _activeDatasetSummary = "Function plot proof evaluates damped sine over [0, 20] with 300 samples.";
-        _activeAssetSummary = "No additional assets are used on this path.";
-        _datasetText.Text = _activeDatasetSummary;
-        RefreshActiveProofTexts();
-    }
-
-    private void ApplyPieSource(SurfaceDemoScenario scenario)
-    {
-        SetActiveChartView(_piePlotView);
-        _activeScatterData = null;
-        _piePlotView.Plot.Clear();
-        _piePlotView.Plot.Add.Pie(
-            new[]
-            {
-                new PieSlice(35, 0xFF38BDF8u, "Engineering"),
-                new PieSlice(25, 0xFFF97316u, "Design"),
-                new PieSlice(20, 0xFF2DD4BFu, "Marketing"),
-                new PieSlice(15, 0xFF8B5CF6u, "Sales"),
-                new PieSlice(5, 0xFFFF6B6B, "Other"),
-            },
-            holeRatio: 0.4,
-            name: scenario.Label);
-        _piePlotView.FitToData();
-        _activePlotPathHeading = scenario.Label;
-        _activePlotPathDetails = "Donut chart with 5 labeled slices, custom colors, and 40% hole ratio. Demonstrates Plot.Add.Pie with PieSlice and holeRatio.";
-        _activeDatasetSummary = "Pie chart proof shows department budget distribution across 5 categories with donut mode.";
-        _activeAssetSummary = "No additional assets are used on this path.";
-        _datasetText.Text = _activeDatasetSummary;
-        RefreshActiveProofTexts();
-    }
-
     private void ApplyErrorBarSource(SurfaceDemoScenario scenario)
     {
         SetActiveChartView(_scatterChartView);
@@ -878,164 +592,6 @@ public partial class MainWindow : Window
         _activePlotPathHeading = scenario.Label;
         _activePlotPathDetails = "Scatter plot with asymmetric X/Y error bars. Demonstrates ErrorBarData with per-point error values, configurable cap size, and color.";
         _activeDatasetSummary = "Error bar proof shows 9 scatter points with random asymmetric errors in both X and Y dimensions.";
-        _activeAssetSummary = "No additional assets are used on this path.";
-        _datasetText.Text = _activeDatasetSummary;
-        RefreshActiveProofTexts();
-    }
-
-    private void ApplyOHLCSource(SurfaceDemoScenario scenario)
-    {
-        SetActiveChartView(_ohlcPlotView);
-        _activeScatterData = null;
-        _ohlcPlotView.Plot.Clear();
-
-        var rng = new Random(42);
-        var bars = new OHLCBar[20];
-        var price = 100d;
-        for (var i = 0; i < bars.Length; i++)
-        {
-            var open = price;
-            var change = (rng.NextDouble() - 0.48) * 6;
-            var close = open + change;
-            var high = Math.Max(open, close) + (rng.NextDouble() * 3);
-            var low = Math.Min(open, close) - (rng.NextDouble() * 3);
-            bars[i] = new OHLCBar(open, high, low, close, i);
-            price = close;
-        }
-
-        _ohlcPlotView.Plot.Add.OHLC(bars, OHLCStyle.Candlestick, name: scenario.Label);
-        _ohlcPlotView.FitToData();
-        _activePlotPathHeading = scenario.Label;
-        _activePlotPathDetails = "Candlestick chart with 20 random bars. Demonstrates Plot.Add.OHLC with OHLCStyle.Candlestick, up/down colors, and wick rendering.";
-        _activeDatasetSummary = "OHLC proof shows 20 generated candlestick bars with random walk price movement.";
-        _activeAssetSummary = "No additional assets are used on this path.";
-        _datasetText.Text = _activeDatasetSummary;
-        RefreshActiveProofTexts();
-    }
-
-    private void ApplyViolinSource(SurfaceDemoScenario scenario)
-    {
-        SetActiveChartView(_violinPlotView);
-        _activeScatterData = null;
-        _violinPlotView.Plot.Clear();
-
-        var groups = new[]
-        {
-            new ViolinGroup(new[] { 1.2, 1.5, 1.8, 2.1, 2.3, 2.5, 2.8, 3.0, 3.2, 3.5 }, 0xFF38BDF8u, "Group A"),
-            new ViolinGroup(new[] { 2.0, 2.3, 2.6, 2.9, 3.1, 3.4, 3.7, 4.0, 4.2, 4.5 }, 0xFFF97316u, "Group B"),
-            new ViolinGroup(new[] { 0.8, 1.0, 1.3, 1.6, 1.9, 2.2, 2.5, 2.8, 3.1, 3.4 }, 0xFF2DD4BFu, "Group C"),
-        };
-
-        _violinPlotView.Plot.Add.Violin(groups, name: scenario.Label);
-        _violinPlotView.FitToData();
-        _activePlotPathHeading = scenario.Label;
-        _activePlotPathDetails = "Violin plot with 3 groups. Demonstrates Plot.Add.Violin with KDE-based distribution visualization.";
-        _activeDatasetSummary = "Violin proof shows 3 groups with 10 samples each, rendered as symmetric KDE shapes.";
-        _activeAssetSummary = "No additional assets are used on this path.";
-        _datasetText.Text = _activeDatasetSummary;
-        RefreshActiveProofTexts();
-    }
-
-    private void ApplyPolygonSource(SurfaceDemoScenario scenario)
-    {
-        SetActiveChartView(_polygonPlotView);
-        _activeScatterData = null;
-        _polygonPlotView.Plot.Clear();
-
-        var vertices = new System.Numerics.Vector3[]
-        {
-            new(0, 0, 0), new(4, 0, 0), new(4, 0, 4),
-            new(2, 0, 6), new(0, 0, 4),
-        };
-
-        _polygonPlotView.Plot.Add.Polygon(vertices, fillColor: 0x8038BDF8u, name: scenario.Label);
-        _polygonPlotView.FitToData();
-        _activePlotPathHeading = scenario.Label;
-        _activePlotPathDetails = "Filled polygon with 5 vertices. Demonstrates Plot.Add.Polygon with fill and stroke colors.";
-        _activeDatasetSummary = "Polygon proof shows a pentagon shape with configurable fill and stroke.";
-        _activeAssetSummary = "No additional assets are used on this path.";
-        _datasetText.Text = _activeDatasetSummary;
-        RefreshActiveProofTexts();
-    }
-
-    private void ApplyAnnotationSource(SurfaceDemoScenario scenario)
-    {
-        SetActiveChartView(_surfaceChartView);
-        _activeScatterData = null;
-        _surfaceChartView.Plot.Clear();
-
-        // Use the in-memory surface as the base
-        _surfaceChartView.Plot.Add.Surface(_inMemorySource, name: "Base Surface");
-
-        // Add text annotations at key points
-        _surfaceChartView.Plot.Add.Text(
-            new System.Numerics.Vector3(16, 0.6f, 12),
-            "Peak",
-            color: 0xFFFF6B6Bu,
-            fontSize: 14d);
-        _surfaceChartView.Plot.Add.Text(
-            new System.Numerics.Vector3(48, 0.3f, 36),
-            "Valley",
-            color: 0xFF38BDF8u,
-            fontSize: 14d);
-
-        // Add an arrow annotation
-        _surfaceChartView.Plot.Add.Arrow(
-            new System.Numerics.Vector3(10, 0.5f, 10),
-            new System.Numerics.Vector3(20, 0.7f, 20),
-            color: 0xFF2DD4BFu,
-            label: "Gradient");
-
-        _surfaceChartView.FitToData();
-        _activePlotPathHeading = scenario.Label;
-        _activePlotPathDetails = "Surface chart with text and arrow annotations. Demonstrates Plot.Add.Text and Plot.Add.Arrow anchored to 3D data coordinates.";
-        _activeDatasetSummary = "Annotation proof shows text labels and arrows rendered on a surface chart.";
-        _activeAssetSummary = "No additional assets are used on this path.";
-        _datasetText.Text = _activeDatasetSummary;
-        RefreshActiveProofTexts();
-    }
-
-    private void ApplyReferenceSource(SurfaceDemoScenario scenario)
-    {
-        SetActiveChartView(_surfaceChartView);
-        _activeScatterData = null;
-        _surfaceChartView.Plot.Clear();
-
-        _surfaceChartView.Plot.Add.Surface(_inMemorySource, name: "Base Surface");
-
-        // Reference line on Y axis (horizontal line)
-        _surfaceChartView.Plot.Add.ReferenceLine(
-            Videra.SurfaceCharts.Core.ReferenceAxis.Y,
-            0.5,
-            color: 0xFFFF0000u,
-            lineWidth: 2d,
-            label: "Threshold");
-
-        // Reference span on X axis
-        _surfaceChartView.Plot.Add.ReferenceSpan(
-            Videra.SurfaceCharts.Core.ReferenceAxis.X,
-            20, 40,
-            color: 0x4000FF00u,
-            label: "Region of Interest");
-
-        // Rectangle shape annotation
-        _surfaceChartView.Plot.Add.Rectangle(
-            new System.Numerics.Vector3(32, 0.4f, 32),
-            10, 10,
-            fillColor: 0x40FFA500u,
-            label: "Zone A");
-
-        // Ellipse shape annotation
-        _surfaceChartView.Plot.Add.Ellipse(
-            new System.Numerics.Vector3(48, 0.3f, 16),
-            12, 8,
-            fillColor: 0x409B59B6u,
-            label: "Zone B");
-
-        _surfaceChartView.FitToData();
-        _activePlotPathHeading = scenario.Label;
-        _activePlotPathDetails = "Surface chart with reference lines, spans, and shape annotations. Demonstrates Plot.Add.ReferenceLine, ReferenceSpan, Rectangle, and Ellipse.";
-        _activeDatasetSummary = "Reference proof shows threshold lines, region spans, and shape overlays on a surface chart.";
         _activeAssetSummary = "No additional assets are used on this path.";
         _datasetText.Text = _activeDatasetSummary;
         RefreshActiveProofTexts();
