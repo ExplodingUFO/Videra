@@ -12,19 +12,15 @@ pwsh -File ./scripts/Export-BeadsRoadmap.ps1
 
 ## Active
 
-- **Videra-7tqx** - v2.64 Native SurfaceCharts Analysis Workspace and Streaming Evidence (epic, P1, in_progress)
+_No matching beads in the exported snapshot._
 
 ## Ready
 
-- **Videra-7tqx.2** - Phase 426 native multi-chart analysis workspace (task, P1, open)
+_No matching beads in the exported snapshot._
 
 ## Blocked
 
-- **Videra-7tqx.3** - Phase 427 linked interaction and selection propagation (task, P1, open)
-- **Videra-7tqx.4** - Phase 428 high-density and streaming data evidence (task, P1, open)
-- **Videra-7tqx.5** - Phase 429 scenario cookbook and package templates (task, P1, open)
-- **Videra-7tqx.6** - Phase 430 CI performance and release-readiness truth (task, P1, open)
-- **Videra-7tqx.7** - Phase 431 v2.64 final verification (task, P1, open)
+_No matching beads in the exported snapshot._
 
 ## Backlog
 
@@ -32,14 +28,14 @@ _No matching beads in the exported snapshot._
 
 ## Recently Closed
 
-- **Videra-7tqx.1** - Phase 425 analysis workspace and streaming inventory (task, P1, closed)
-- **Videra-7tqx.1.4** - Phase 425D inventory CI release-readiness and guardrails (task, P1, closed)
-- **Videra-7tqx.1.2** - Phase 425B inventory demo cookbook and package templates (task, P1, closed)
-- **Videra-7tqx.1.3** - Phase 425C inventory streaming high-density and performance truth (task, P1, closed)
-- **Videra-7tqx.1.1** - Phase 425A inventory chart APIs and workspace seams (task, P1, closed)
-- **Videra-zn7** - v2.63 Native SurfaceCharts Feature and Demo Expansion (epic, P1, closed)
-- **Videra-7ip** - Phase 424 v2.63 final verification (task, P1, closed)
-- **Videra-7ip.2** - Phase 424B run final release readiness evidence (task, P1, closed)
-- **Videra-7ip.1** - Phase 424A close roadmap and scope evidence (task, P1, closed)
-- **Videra-64g** - Phase 423 feature cookbook and validation truth (task, P1, closed)
+- **Videra-2rab** - v2.68 Cleanup, Benchmark & Hardening milestone (epic, P1, closed)
+- **Videra-dmxh** - Phase 463: Final verification & milestone closure (task, P2, closed)
+- **Videra-tc3u** - Phase 461: Consolidate status text & extract parameter panel (task, P2, closed)
+- **Videra-tvjc** - Phase 460: Extract complex scenarios from MainWindow (task, P2, closed)
+- **Videra-sup1** - Phase 462: Benchmark coverage for v2.67 chart types (task, P2, closed)
+- **Videra-mmse** - Phase 459: Fix failing test & delete dead code (task, P2, closed)
+- **Videra-cyxd** - v2.67 ScottPlot5 Feature Parity milestone (epic, P1, closed)
+- **Videra-gpjf** - Phase 458: Verification & Milestone Closure (task, P2, closed)
+- **Videra-yhgk** - Phase 457: Cookbook Recipes for New Features (task, P2, closed)
+- **Videra-iv8w** - Phase 456: Demo Framework Refactor (feature, P2, closed)
 
