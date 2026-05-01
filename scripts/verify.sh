@@ -91,7 +91,7 @@ run_check \
   "Tests" \
   "All tests passed" \
   "Some tests failed" \
-  "$DOTNET_CMD" test "$DOTNET_ROOT_DIR/Videra.slnx" --configuration "$CONFIGURATION" -v "$TEST_VERBOSITY" "${TEST_LOGGER_ARGS[@]}"
+  env VIDERA_BACKEND=software "$DOTNET_CMD" test "$DOTNET_ROOT_DIR/Videra.slnx" --configuration "$CONFIGURATION" -v "$TEST_VERBOSITY" "${TEST_LOGGER_ARGS[@]}"
 
 run_check \
   "Demo Build" \

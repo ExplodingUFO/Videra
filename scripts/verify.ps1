@@ -76,6 +76,7 @@ Invoke-Check "Build ($Configuration)" {
 
 # Step 3: Tests
 Invoke-TestCheck "Tests" {
+    $env:VIDERA_BACKEND = "software"
     dotnet test "$root/Videra.slnx" --configuration $Configuration -v m --logger "console;verbosity=detailed" --logger "trx;LogFilePrefix=verify" --results-directory "$testResultsDirectory"
 } "All tests passed" "Some tests failed"
 
