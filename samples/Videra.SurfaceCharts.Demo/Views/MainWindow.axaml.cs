@@ -232,7 +232,51 @@ public partial class MainWindow : Window
             _heatmapSlicePlotView, _boxPlotView, _histogramPlotView, _functionPlotView,
             _piePlotView, _ohlcPlotView, _violinPlotView, _polygonPlotView,
             _inMemorySource, _analyticsProofSource, _waterfallSource,
-            SetActiveChartView);
+            SetActiveChartView,
+            createColorMap: CreateColorMap,
+            multiPlot3DPanel: _multiPlot3DPanel,
+            analysisWorkspacePanel: _analysisWorkspacePanel,
+            workspaceToolbarPanel: _workspaceToolbarPanel,
+            workspaceChartA: _workspaceChartA,
+            workspaceChartB: _workspaceChartB,
+            workspaceChartC: _workspaceChartC,
+            workspaceChartD: _workspaceChartD,
+            workspaceStatusText: _workspaceStatusText,
+            setWorkspaceService: s => _workspaceService = s,
+            setLinkGroup: g => _activeLinkGroup = g,
+            setPropagator: p => _activePropagator = p,
+            setMultiPlot3D: m => _activeMultiPlot3D = m,
+            disposeWorkspaceState: () =>
+            {
+                _workspaceService?.Dispose();
+                _activeLinkGroup?.Dispose();
+                _activePropagator?.Dispose();
+                _activeLinkGroup = null;
+                _activePropagator = null;
+                _activeMultiPlot3D?.Dispose();
+                _multiPlot3DPanel.Children.Clear();
+            },
+            hideAllCharts: () =>
+            {
+                _surfaceChartView.IsVisible = false;
+                _waterfallChartView.IsVisible = false;
+                _scatterChartView.IsVisible = false;
+                _barChartView.IsVisible = false;
+                _contourPlotView.IsVisible = false;
+                _linePlotView.IsVisible = false;
+                _ribbonPlotView.IsVisible = false;
+                _vectorFieldPlotView.IsVisible = false;
+                _heatmapSlicePlotView.IsVisible = false;
+                _boxPlotView.IsVisible = false;
+                _histogramPlotView.IsVisible = false;
+                _functionPlotView.IsVisible = false;
+                _piePlotView.IsVisible = false;
+                _ohlcPlotView.IsVisible = false;
+                _violinPlotView.IsVisible = false;
+                _polygonPlotView.IsVisible = false;
+                _analysisWorkspacePanel.IsVisible = false;
+                _workspaceToolbarPanel.IsVisible = false;
+            });
 
         ConfigureSurfaceFamilyChartView(_surfaceChartView);
         ConfigureSurfaceFamilyChartView(_waterfallChartView);
@@ -344,54 +388,6 @@ public partial class MainWindow : Window
         if (scenario.Id == SurfaceDemoScenarios.ScatterId)
         {
             ApplySelectedScatterScenario(scenario);
-            return;
-        }
-
-        if (scenario.Id == SurfaceDemoScenarios.ErrorBarId)
-        {
-            ApplyErrorBarSource(scenario);
-            return;
-        }
-
-        if (scenario.Id == SurfaceDemoScenarios.MultiPlot3DId)
-        {
-            SetupMultiPlot3DScenario(scenario);
-            return;
-        }
-
-        if (scenario.Id == SurfaceDemoScenarios.SurfaceStreamingId)
-        {
-            SetupSurfaceStreamingScenario(scenario);
-            return;
-        }
-
-        if (scenario.Id == SurfaceDemoScenarios.WaterfallStreamingId)
-        {
-            SetupWaterfallStreamingScenario(scenario);
-            return;
-        }
-
-        if (scenario.Id == SurfaceDemoScenarios.BarStreamingId)
-        {
-            SetupBarStreamingScenario(scenario);
-            return;
-        }
-
-        if (scenario.Id == SurfaceDemoScenarios.AnalysisWorkspaceId)
-        {
-            ApplyAnalysisWorkspace(scenario);
-            return;
-        }
-
-        if (scenario.Id == SurfaceDemoScenarios.LinkedInteractionId)
-        {
-            SetupLinkedInteractionScenario(scenario);
-            return;
-        }
-
-        if (scenario.Id == SurfaceDemoScenarios.StreamingWorkspaceId)
-        {
-            SetupStreamingWorkspaceScenario(scenario);
             return;
         }
 
@@ -559,201 +555,6 @@ public partial class MainWindow : Window
         RefreshActiveProofTexts();
     }
 
-    private void ApplyErrorBarSource(SurfaceDemoScenario scenario)
-    {
-        SetActiveChartView(_scatterChartView);
-        _scatterChartView.Plot.Clear();
-
-        var xs = new double[] { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
-        var ys = new double[] { 2.1, 3.8, 4.6, 5.0, 4.2, 6.5, 7.8, 8.6, 6.2 };
-        var scatterPoints = xs.Select((x, i) => new ScatterPoint(x, ys[i], 0d)).ToArray();
-        var scatterData = new ScatterChartData(
-            new ScatterChartMetadata(
-                new SurfaceAxisDescriptor("X", "u", 0d, 10d),
-                new SurfaceAxisDescriptor("Y", "u", 0d, 10d),
-                new SurfaceValueRange(0d, 10d)),
-            [new ScatterSeries(scatterPoints, 0xFF38BDF8u, "Measurements")]);
-
-        var scatter = _scatterChartView.Plot.Add.Scatter(scatterData, scenario.Label);
-
-        var rng = new Random(42);
-        var errors = new ErrorBarData(
-            scatterPoints.Select(_ => new ErrorBarEntry(
-                xErrorLow: 0.2 + (rng.NextDouble() * 0.3),
-                xErrorHigh: 0.2 + (rng.NextDouble() * 0.3),
-                yErrorLow: 0.3 + (rng.NextDouble() * 0.4),
-                yErrorHigh: 0.3 + (rng.NextDouble() * 0.4))).ToArray(),
-            color: 0xCCFFFFFFu,
-            capSize: 6d,
-            lineWidth: 1.5d);
-        _scatterChartView.Plot.Add.ErrorBar(errors);
-
-        _scatterChartView.FitToData();
-        _activePlotPathHeading = scenario.Label;
-        _activePlotPathDetails = "Scatter plot with asymmetric X/Y error bars. Demonstrates ErrorBarData with per-point error values, configurable cap size, and color.";
-        _activeDatasetSummary = "Error bar proof shows 9 scatter points with random asymmetric errors in both X and Y dimensions.";
-        _activeAssetSummary = "No additional assets are used on this path.";
-        _datasetText.Text = _activeDatasetSummary;
-        RefreshActiveProofTexts();
-    }
-
-    private void SetupMultiPlot3DScenario(SurfaceDemoScenario scenario)
-    {
-        // Hide all single-chart panels
-        _surfaceChartView.IsVisible = false;
-        _waterfallChartView.IsVisible = false;
-        _scatterChartView.IsVisible = false;
-        _barChartView.IsVisible = false;
-        _contourPlotView.IsVisible = false;
-        _linePlotView.IsVisible = false;
-        _ribbonPlotView.IsVisible = false;
-        _vectorFieldPlotView.IsVisible = false;
-        _heatmapSlicePlotView.IsVisible = false;
-        _boxPlotView.IsVisible = false;
-        _histogramPlotView.IsVisible = false;
-        _functionPlotView.IsVisible = false;
-        _piePlotView.IsVisible = false;
-        _ohlcPlotView.IsVisible = false;
-        _violinPlotView.IsVisible = false;
-        _polygonPlotView.IsVisible = false;
-        _analysisWorkspacePanel.IsVisible = false;
-        _workspaceToolbarPanel.IsVisible = false;
-
-        // Dispose old MultiPlot3D if any
-        _activeMultiPlot3D?.Dispose();
-        _multiPlot3DPanel.Children.Clear();
-        _multiPlot3DPanel.IsVisible = true;
-
-        // Create 2x2 MultiPlot3D grid
-        var grid = new MultiPlot3D(2, 2);
-
-        // Fill with different chart types
-        grid.GetPlot(0, 0).Add.Surface(_inMemorySource, "Surface");
-        grid.GetPlot(0, 0).ColorMap = CreateColorMap(_inMemorySource.Metadata.ValueRange);
-
-        var barData = SampleDataFactory.CreateSampleBarData();
-        grid.GetPlot(0, 1).Add.Bar(barData, "Bar");
-
-        var lineXs = SampleDataFactory.CreateSampleLineXs();
-        var lineYs = SampleDataFactory.CreateSampleLineYs();
-        var lineZs = SampleDataFactory.CreateSampleLineZs();
-        grid.GetPlot(1, 0).Add.Line(lineXs, lineYs, lineZs, "Line");
-
-        var contourField = SampleDataFactory.CreateSampleContourField();
-        grid.GetPlot(1, 1).Add.Contour(contourField, "Contour");
-
-        grid.FitAllToData();
-
-        // Link all cells with camera-only policy
-        grid.LinkAll(SurfaceChartLinkPolicy.CameraOnly);
-
-        _multiPlot3DPanel.Children.Add(grid);
-        _activeMultiPlot3D = grid;
-
-        _activePlotPathHeading = scenario.Label;
-        _activePlotPathDetails =
-            "MultiPlot3D 2x2 subplot grid with 4 different chart types (Surface, Bar, Line, Contour). " +
-            "All cells linked with CameraOnly policy — orbit/zoom on one mirrors to all.";
-        _activeDatasetSummary =
-            $"MultiPlot3D grid: {grid.Rows}x{grid.Columns} = {grid.CellCount} cells.";
-        _activeAssetSummary = "No additional assets are used on this path.";
-        _datasetText.Text = _activeDatasetSummary;
-        RefreshActiveProofTexts();
-    }
-
-    private void SetupSurfaceStreamingScenario(SurfaceDemoScenario scenario)
-    {
-        SetActiveChartView(_surfaceChartView);
-        _activeScatterData = null;
-
-        var matrix = SampleDataFactory.CreateSampleMatrix();
-        var logger = new SurfaceDataLogger3D(matrix, fifoRowCapacity: 200);
-
-        // Simulate streaming: append 3 batches of new rows
-        for (var batch = 0; batch < 3; batch++)
-        {
-            var newRows = SampleDataFactory.CreateStreamingRows(matrix.Metadata.Width, 10, batch);
-            logger.Append(newRows);
-        }
-
-        _surfaceChartView.Plot.Clear();
-        _surfaceChartView.Plot.Add.Surface(logger.Matrix, scenario.Label);
-        _surfaceChartView.Plot.ColorMap = CreateColorMap(logger.Matrix.Metadata.ValueRange);
-        _surfaceChartView.FitToData();
-        _activePlotPathHeading = scenario.Label;
-        _activePlotPathDetails =
-            $"SurfaceDataLogger3D streaming demo. " +
-            $"Appended {logger.AppendBatchCount} batches, {logger.TotalAppendedRowCount} total rows. " +
-            $"FIFO capacity: {logger.FifoRowCapacity?.ToString() ?? "unlimited"}. " +
-            $"Dropped rows: {logger.LastDroppedRowCount}.";
-        _activeDatasetSummary =
-            $"Surface streaming uses SurfaceDataLogger3D with {logger.RowCount} rows, " +
-            $"{logger.ColumnCount} columns. Append batches: {logger.AppendBatchCount}.";
-        _activeAssetSummary = "No additional assets are used on this path.";
-        _datasetText.Text = _activeDatasetSummary;
-        RefreshActiveProofTexts();
-    }
-
-    private void SetupWaterfallStreamingScenario(SurfaceDemoScenario scenario)
-    {
-        SetActiveChartView(_waterfallChartView);
-        _activeScatterData = null;
-
-        var matrix = SampleDataFactory.CreateWaterfallMatrix();
-        var logger = new WaterfallDataLogger3D(matrix, fifoRowCapacity: 100);
-
-        // Simulate streaming: append 2 batches
-        for (var batch = 0; batch < 2; batch++)
-        {
-            var newRows = SampleDataFactory.CreateStreamingRows(matrix.Metadata.Width, 6, batch);
-            logger.Append(newRows);
-        }
-
-        _waterfallChartView.Plot.Clear();
-        _waterfallChartView.Plot.Add.Waterfall(logger.Matrix, scenario.Label);
-        _waterfallChartView.Plot.ColorMap = CreateColorMap(logger.Matrix.Metadata.ValueRange);
-        _waterfallChartView.FitToData();
-        _activePlotPathHeading = scenario.Label;
-        _activePlotPathDetails =
-            $"WaterfallDataLogger3D streaming demo. " +
-            $"Delegates to SurfaceDataLogger3D internally. " +
-            $"Appended {logger.AppendBatchCount} batches, {logger.TotalAppendedRowCount} total rows.";
-        _activeDatasetSummary =
-            $"Waterfall streaming uses WaterfallDataLogger3D with {logger.RowCount} rows, " +
-            $"{logger.ColumnCount} columns. FIFO capacity: {logger.FifoRowCapacity?.ToString() ?? "unlimited"}.";
-        _activeAssetSummary = "No additional assets are used on this path.";
-        _datasetText.Text = _activeDatasetSummary;
-        RefreshActiveProofTexts();
-    }
-
-    private void SetupBarStreamingScenario(SurfaceDemoScenario scenario)
-    {
-        SetActiveChartView(_barChartView);
-        _activeScatterData = null;
-
-        var data = SampleDataFactory.CreateSampleBarData();
-        var logger = new BarDataLogger3D(data);
-
-        // Simulate streaming: append 2 batches of new series
-        logger.Append(
-            new BarSeries([9.0, 14.0, 7.0, 11.0, 5.0], 0xFFE74C3Cu, "Series D"),
-            new BarSeries([6.0, 10.0, 13.0, 9.0, 16.0], 0xFF9B59B6u, "Series E"));
-
-        _barChartView.Plot.Clear();
-        _barChartView.Plot.Add.Bar(logger.Data, scenario.Label);
-        _barChartView.FitToData();
-        _activePlotPathHeading = scenario.Label;
-        _activePlotPathDetails =
-            $"BarDataLogger3D streaming demo. " +
-            $"Appended {logger.AppendBatchCount} batches, {logger.TotalAppendedSeriesCount} total series. " +
-            $"Current series count: {logger.SeriesCount}.";
-        _activeDatasetSummary =
-            $"Bar streaming uses BarDataLogger3D with {logger.SeriesCount} series, " +
-            $"{logger.CategoryCount} categories. Append batches: {logger.AppendBatchCount}.";
-        _activeAssetSummary = "No additional assets are used on this path.";
-        _datasetText.Text = _activeDatasetSummary;
-        RefreshActiveProofTexts();
-    }
 
     private void SetActiveChartView(VideraChartView chartView)
     {
@@ -775,292 +576,6 @@ public partial class MainWindow : Window
         _polygonPlotView.IsVisible = ReferenceEquals(chartView, _polygonPlotView);
         _analysisWorkspacePanel.IsVisible = false;
         _workspaceToolbarPanel.IsVisible = false;
-    }
-
-    private void ApplyAnalysisWorkspace(SurfaceDemoScenario scenario)
-    {
-        // Hide all single-chart panels, show workspace panel.
-        _surfaceChartView.IsVisible = false;
-        _waterfallChartView.IsVisible = false;
-        _scatterChartView.IsVisible = false;
-        _barChartView.IsVisible = false;
-        _contourPlotView.IsVisible = false;
-        _linePlotView.IsVisible = false;
-        _ribbonPlotView.IsVisible = false;
-        _vectorFieldPlotView.IsVisible = false;
-        _heatmapSlicePlotView.IsVisible = false;
-        _boxPlotView.IsVisible = false;
-        _histogramPlotView.IsVisible = false;
-        _functionPlotView.IsVisible = false;
-        _piePlotView.IsVisible = false;
-        _ohlcPlotView.IsVisible = false;
-        _violinPlotView.IsVisible = false;
-        _polygonPlotView.IsVisible = false;
-        _analysisWorkspacePanel.IsVisible = true;
-        _workspaceToolbarPanel.IsVisible = true;
-
-        // Dispose old workspace service, link group, and propagator if any.
-        _workspaceService?.Dispose();
-        _activeLinkGroup?.Dispose();
-        _activePropagator?.Dispose();
-        _activeLinkGroup = null;
-        _activePropagator = null;
-
-        // Restore hidden workspace charts.
-        _workspaceChartC.IsVisible = true;
-        _workspaceChartD.IsVisible = true;
-
-        // Create new workspace service and register 4 charts with different kinds.
-        var service = new SurfaceChartWorkspaceService();
-        service.RegisterCharts(new List<(VideraChartView, string, Plot3DSeriesKind)>
-        {
-            (_workspaceChartA, "Surface A", Plot3DSeriesKind.Surface),
-            (_workspaceChartB, "Bar B", Plot3DSeriesKind.Bar),
-            (_workspaceChartC, "Scatter C", Plot3DSeriesKind.Scatter),
-            (_workspaceChartD, "Contour D", Plot3DSeriesKind.Contour),
-        });
-
-        // Load data into each workspace chart.
-        _workspaceChartA.Plot.Clear();
-        _workspaceChartA.Plot.Add.Surface(_inMemorySource, "Surface A");
-        _workspaceChartA.Plot.ColorMap = CreateColorMap(_inMemorySource.Metadata.ValueRange);
-        _workspaceChartA.FitToData();
-
-        var barData = SampleDataFactory.CreateSampleBarData();
-        _workspaceChartB.Plot.Clear();
-        _workspaceChartB.Plot.Add.Bar(barData, "Bar B");
-        _workspaceChartB.FitToData();
-
-        var scatterScenario = ScatterStreamingScenarios.Get("scatter-replace-100k");
-        var scatterData = SampleDataFactory.CreateScatterSource(scatterScenario);
-        _workspaceChartC.Plot.Clear();
-        _workspaceChartC.Plot.Add.Scatter(scatterData, "Scatter C");
-        _workspaceChartC.FitToData();
-
-        var contourField = SampleDataFactory.CreateSampleContourField();
-        _workspaceChartD.Plot.Clear();
-        _workspaceChartD.Plot.Add.Contour(contourField, "Contour D");
-        _workspaceChartD.FitToData();
-
-        // Set active chart and update workspace status display.
-        service.SetActiveChart(service.GetWorkspaceStatus().Panels[0].ChartId);
-        _workspaceService = service;
-
-        var status = service.GetWorkspaceStatus();
-        _workspaceStatusText.Text =
-            $"Charts: {status.ChartCount} | Active: {status.ActiveChartId ?? "none"} | " +
-            $"Link groups: {status.LinkGroupCount} | All ready: {status.AllReady}\n" +
-            string.Join("\n", status.Panels.Select(p =>
-                $"  {p.Label} ({p.ChartKind}): Ready={p.IsReady}, Series={p.SeriesCount}, Points={p.PointCount}"));
-
-        _activePlotPathHeading = scenario.Label;
-        _activePlotPathDetails = "Multi-chart analysis workspace with 4 charts in a 2x2 grid. Delegates workspace state to SurfaceChartWorkspaceService.";
-        _activeDatasetSummary = "Analysis workspace contains Surface, Bar, Scatter, and Contour charts registered in a SurfaceChartWorkspace.";
-        _activeAssetSummary = "No additional assets are used on this path.";
-        _datasetText.Text = _activeDatasetSummary;
-        RefreshActiveProofTexts();
-    }
-
-    private void SetupLinkedInteractionScenario(SurfaceDemoScenario scenario)
-    {
-        // Hide all single-chart panels, show workspace panel with 2 charts.
-        _surfaceChartView.IsVisible = false;
-        _waterfallChartView.IsVisible = false;
-        _scatterChartView.IsVisible = false;
-        _barChartView.IsVisible = false;
-        _contourPlotView.IsVisible = false;
-        _linePlotView.IsVisible = false;
-        _ribbonPlotView.IsVisible = false;
-        _vectorFieldPlotView.IsVisible = false;
-        _heatmapSlicePlotView.IsVisible = false;
-        _boxPlotView.IsVisible = false;
-        _histogramPlotView.IsVisible = false;
-        _functionPlotView.IsVisible = false;
-        _piePlotView.IsVisible = false;
-        _ohlcPlotView.IsVisible = false;
-        _violinPlotView.IsVisible = false;
-        _polygonPlotView.IsVisible = false;
-        _analysisWorkspacePanel.IsVisible = true;
-        _workspaceToolbarPanel.IsVisible = true;
-
-        // Dispose old workspace service, link group, and propagator if any.
-        _workspaceService?.Dispose();
-        _activeLinkGroup?.Dispose();
-        _activePropagator?.Dispose();
-
-        // Create new workspace service with 2 surface charts.
-        var service = new SurfaceChartWorkspaceService();
-        service.RegisterCharts(new List<(VideraChartView, string, Plot3DSeriesKind)>
-        {
-            (_workspaceChartA, "Linked Surface A", Plot3DSeriesKind.Surface),
-            (_workspaceChartB, "Linked Surface B", Plot3DSeriesKind.Surface),
-        });
-
-        // Load the same data into both charts.
-        _workspaceChartA.Plot.Clear();
-        _workspaceChartA.Plot.Add.Surface(_inMemorySource, "Linked Surface A");
-        _workspaceChartA.Plot.ColorMap = CreateColorMap(_inMemorySource.Metadata.ValueRange);
-        _workspaceChartA.FitToData();
-
-        _workspaceChartB.Plot.Clear();
-        _workspaceChartB.Plot.Add.Surface(_inMemorySource, "Linked Surface B");
-        _workspaceChartB.Plot.ColorMap = CreateColorMap(_inMemorySource.Metadata.ValueRange);
-        _workspaceChartB.FitToData();
-
-        // Hide unused workspace charts.
-        _workspaceChartC.IsVisible = false;
-        _workspaceChartD.IsVisible = false;
-
-        // Create link group with FullViewState policy and probe propagation.
-        var linkGroup = new SurfaceChartLinkGroup(SurfaceChartLinkPolicy.FullViewState);
-        linkGroup.Add(_workspaceChartA);
-        linkGroup.Add(_workspaceChartB);
-
-        var propagator = new SurfaceChartInteractionPropagator(
-            linkGroup,
-            propagateProbe: true);
-
-        // Register link group with workspace.
-        service.RegisterLinkGroup(linkGroup, propagator);
-        service.SetActiveChart(service.GetWorkspaceStatus().Panels[0].ChartId);
-
-        _activeLinkGroup = linkGroup;
-        _activePropagator = propagator;
-        _workspaceService = service;
-
-        // Display link group info in the toolbar.
-        var status = service.GetWorkspaceStatus();
-        var linkedStates = service.GetLinkedInteractionStates();
-        var stateText = linkedStates.Count > 0
-            ? $"Policy: {linkedStates[0].Policy} | Members: {linkedStates[0].MemberCount} | " +
-              $"Probe: {(linkedStates[0].PropagateProbe ? "active" : "inactive")}"
-            : "No link groups";
-
-        _workspaceStatusText.Text =
-            $"Charts: {status.ChartCount} | Active: {status.ActiveChartId ?? "none"} | " +
-            $"Link groups: {status.LinkGroupCount} | All ready: {status.AllReady}\n" +
-            $"Link: {stateText}\n" +
-            string.Join("\n", status.Panels.Select(p =>
-                $"  {p.Label} ({p.ChartKind}): Ready={p.IsReady}, Series={p.SeriesCount}, Points={p.PointCount}"));
-
-        _activePlotPathHeading = scenario.Label;
-        _activePlotPathDetails =
-            "Two linked VideraChartView instances with FullViewState synchronization and probe propagation. " +
-            "Orbit/zoom on one chart mirrors to the other. Hover probe forwards across linked charts.";
-        _activeDatasetSummary = "Linked interaction workspace contains two Surface charts sharing the same data, linked via FullViewState policy.";
-        _activeAssetSummary = "No additional assets are used on this path.";
-        _datasetText.Text = _activeDatasetSummary;
-        RefreshActiveProofTexts();
-    }
-
-    private void SetupStreamingWorkspaceScenario(SurfaceDemoScenario scenario)
-    {
-        // Hide all single-chart panels, show workspace panel with 2 charts.
-        _surfaceChartView.IsVisible = false;
-        _waterfallChartView.IsVisible = false;
-        _scatterChartView.IsVisible = false;
-        _barChartView.IsVisible = false;
-        _contourPlotView.IsVisible = false;
-        _linePlotView.IsVisible = false;
-        _ribbonPlotView.IsVisible = false;
-        _vectorFieldPlotView.IsVisible = false;
-        _heatmapSlicePlotView.IsVisible = false;
-        _boxPlotView.IsVisible = false;
-        _histogramPlotView.IsVisible = false;
-        _functionPlotView.IsVisible = false;
-        _piePlotView.IsVisible = false;
-        _ohlcPlotView.IsVisible = false;
-        _violinPlotView.IsVisible = false;
-        _polygonPlotView.IsVisible = false;
-        _analysisWorkspacePanel.IsVisible = true;
-        _workspaceToolbarPanel.IsVisible = true;
-
-        // Dispose old workspace service, link group, and propagator if any.
-        _workspaceService?.Dispose();
-        _activeLinkGroup?.Dispose();
-        _activePropagator?.Dispose();
-
-        // Create new workspace service with 2 scatter charts.
-        var service = new SurfaceChartWorkspaceService();
-        service.RegisterCharts(new List<(VideraChartView, string, Plot3DSeriesKind)>
-        {
-            (_workspaceChartA, "Replace Scatter", Plot3DSeriesKind.Scatter),
-            (_workspaceChartB, "Append+FIFO Scatter", Plot3DSeriesKind.Scatter),
-        });
-
-        // Create scatter data for chart A: replace mode, 100k points.
-        var replaceScenario = ScatterStreamingScenarios.Get("scatter-replace-100k");
-        var replaceData = SampleDataFactory.CreateScatterSource(replaceScenario);
-        var replaceColumnarSeries = replaceData.ColumnarSeries.Count > 0 ? replaceData.ColumnarSeries[0] : null;
-        _workspaceChartA.Plot.Clear();
-        _workspaceChartA.Plot.Add.Scatter(replaceData, "Replace Scatter");
-        _workspaceChartA.FitToData();
-
-        // Create scatter data for chart B: append+FIFO mode, 100k points, FIFO=100k.
-        var fifoScenario = ScatterStreamingScenarios.Get("scatter-fifo-trim-100k");
-        var fifoData = SampleDataFactory.CreateScatterSource(fifoScenario);
-        var fifoColumnarSeries = fifoData.ColumnarSeries.Count > 0 ? fifoData.ColumnarSeries[0] : null;
-        _workspaceChartB.Plot.Clear();
-        _workspaceChartB.Plot.Add.Scatter(fifoData, "Append+FIFO Scatter");
-        _workspaceChartB.FitToData();
-
-        // Hide unused workspace charts.
-        _workspaceChartC.IsVisible = false;
-        _workspaceChartD.IsVisible = false;
-
-        // Register streaming status for each chart.
-        var chartAId = service.GetWorkspaceStatus().Panels[0].ChartId;
-        var chartBId = service.GetWorkspaceStatus().Panels[1].ChartId;
-
-        if (replaceColumnarSeries is not null)
-        {
-            service.RegisterStreamingStatus(chartAId, new SurfaceChartStreamingStatus
-            {
-                UpdateMode = replaceScenario.UpdateMode.ToString(),
-                RetainedPointCount = replaceColumnarSeries.Count,
-                PickablePointCount = replaceColumnarSeries.Pickable ? replaceColumnarSeries.Count : 0,
-                AppendBatchCount = replaceColumnarSeries.AppendBatchCount,
-                ReplaceBatchCount = replaceColumnarSeries.ReplaceBatchCount,
-                DroppedFifoPointCount = replaceColumnarSeries.TotalDroppedPointCount,
-                EvidenceOnly = true,
-            });
-        }
-
-        if (fifoColumnarSeries is not null)
-        {
-            service.RegisterStreamingStatus(chartBId, new SurfaceChartStreamingStatus
-            {
-                UpdateMode = fifoScenario.UpdateMode.ToString(),
-                RetainedPointCount = fifoColumnarSeries.Count,
-                FifoCapacity = fifoColumnarSeries.FifoCapacity,
-                PickablePointCount = fifoColumnarSeries.Pickable ? fifoColumnarSeries.Count : 0,
-                AppendBatchCount = fifoColumnarSeries.AppendBatchCount,
-                ReplaceBatchCount = fifoColumnarSeries.ReplaceBatchCount,
-                DroppedFifoPointCount = fifoColumnarSeries.TotalDroppedPointCount,
-                EvidenceOnly = true,
-            });
-        }
-
-        service.SetActiveChart(chartAId);
-        _workspaceService = service;
-
-        // Display streaming info in the toolbar.
-        var status = service.GetWorkspaceStatus();
-        _workspaceStatusText.Text =
-            $"Charts: {status.ChartCount} | Active: {status.ActiveChartId ?? "none"} | All ready: {status.AllReady}\n" +
-            string.Join("\n", status.Panels.Select(p =>
-                $"  {p.Label} ({p.ChartKind}): Ready={p.IsReady}, Series={p.SeriesCount}, Points={p.PointCount}"));
-
-        _activePlotPathHeading = scenario.Label;
-        _activePlotPathDetails =
-            "Two VideraChartView instances with different streaming modes (replace and append+FIFO). " +
-            "Workspace tracks per-chart streaming status. Copy streaming evidence to see the full report.";
-        _activeDatasetSummary =
-            "Streaming workspace contains two Scatter charts: one using replace mode (100k points) " +
-            "and one using append+FIFO mode (100k points, FIFO=100k).";
-        _activeAssetSummary = "No additional assets are used on this path.";
-        _datasetText.Text = _activeDatasetSummary;
-        RefreshActiveProofTexts();
     }
 
     private async void OnCopyWorkspaceEvidenceClicked(object? sender, RoutedEventArgs e)

@@ -1,4 +1,6 @@
+using Avalonia.Controls;
 using Videra.SurfaceCharts.Avalonia.Controls;
+using Videra.SurfaceCharts.Avalonia.Controls.Workspace;
 using Videra.SurfaceCharts.Core;
 
 namespace Videra.SurfaceCharts.Demo.Services;
@@ -6,7 +8,7 @@ namespace Videra.SurfaceCharts.Demo.Services;
 /// <summary>
 /// Describes the result of applying a chart recipe.
 /// </summary>
-public sealed record RecipeResult(
+internal sealed record RecipeResult(
     string Heading,
     string Details,
     string DatasetSummary,
@@ -16,7 +18,7 @@ public sealed record RecipeResult(
 /// <summary>
 /// Provides chart views and shared state to recipe implementations.
 /// </summary>
-public sealed class RecipeContext
+internal sealed class RecipeContext
 {
     public RecipeContext(
         VideraChartView surfaceChartView,
@@ -38,7 +40,23 @@ public sealed class RecipeContext
         ISurfaceTileSource inMemorySource,
         ISurfaceTileSource analyticsProofSource,
         ISurfaceTileSource waterfallSource,
-        Action<VideraChartView> setActiveChartView)
+        Action<VideraChartView> setActiveChartView,
+        Func<SurfaceValueRange, SurfaceColorMap>? createColorMap = null,
+        Panel? multiPlot3DPanel = null,
+        Panel? analysisWorkspacePanel = null,
+        Control? workspaceToolbarPanel = null,
+        VideraChartView? workspaceChartA = null,
+        VideraChartView? workspaceChartB = null,
+        VideraChartView? workspaceChartC = null,
+        VideraChartView? workspaceChartD = null,
+        TextBlock? workspaceStatusText = null,
+        Action<SurfaceChartWorkspaceService>? setWorkspaceService = null,
+        Action<SurfaceChartLinkGroup>? setLinkGroup = null,
+        Action<SurfaceChartInteractionPropagator>? setPropagator = null,
+        Action<MultiPlot3D>? setMultiPlot3D = null,
+        Action<string>? updateWorkspaceStatus = null,
+        Action? disposeWorkspaceState = null,
+        Action? hideAllCharts = null)
     {
         SurfaceChartView = surfaceChartView;
         WaterfallChartView = waterfallChartView;
@@ -60,6 +78,22 @@ public sealed class RecipeContext
         AnalyticsProofSource = analyticsProofSource;
         WaterfallSource = waterfallSource;
         SetActiveChartView = setActiveChartView;
+        CreateColorMap = createColorMap;
+        MultiPlot3DPanel = multiPlot3DPanel;
+        AnalysisWorkspacePanel = analysisWorkspacePanel;
+        WorkspaceToolbarPanel = workspaceToolbarPanel;
+        WorkspaceChartA = workspaceChartA;
+        WorkspaceChartB = workspaceChartB;
+        WorkspaceChartC = workspaceChartC;
+        WorkspaceChartD = workspaceChartD;
+        WorkspaceStatusText = workspaceStatusText;
+        SetWorkspaceService = setWorkspaceService;
+        SetLinkGroup = setLinkGroup;
+        SetPropagator = setPropagator;
+        SetMultiPlot3D = setMultiPlot3D;
+        UpdateWorkspaceStatus = updateWorkspaceStatus;
+        DisposeWorkspaceState = disposeWorkspaceState;
+        HideAllCharts = hideAllCharts;
     }
 
     public VideraChartView SurfaceChartView { get; }
@@ -82,12 +116,28 @@ public sealed class RecipeContext
     public ISurfaceTileSource AnalyticsProofSource { get; }
     public ISurfaceTileSource WaterfallSource { get; }
     public Action<VideraChartView> SetActiveChartView { get; }
+    public Func<SurfaceValueRange, SurfaceColorMap>? CreateColorMap { get; }
+    public Panel? MultiPlot3DPanel { get; }
+    public Panel? AnalysisWorkspacePanel { get; }
+    public Control? WorkspaceToolbarPanel { get; }
+    public VideraChartView? WorkspaceChartA { get; }
+    public VideraChartView? WorkspaceChartB { get; }
+    public VideraChartView? WorkspaceChartC { get; }
+    public VideraChartView? WorkspaceChartD { get; }
+    public TextBlock? WorkspaceStatusText { get; }
+    public Action<SurfaceChartWorkspaceService>? SetWorkspaceService { get; }
+    public Action<SurfaceChartLinkGroup>? SetLinkGroup { get; }
+    public Action<SurfaceChartInteractionPropagator>? SetPropagator { get; }
+    public Action<MultiPlot3D>? SetMultiPlot3D { get; }
+    public Action<string>? UpdateWorkspaceStatus { get; }
+    public Action? DisposeWorkspaceState { get; }
+    public Action? HideAllCharts { get; }
 }
 
 /// <summary>
 /// A self-contained chart demo recipe that can be applied to a chart view.
 /// </summary>
-public interface IChartRecipe
+internal interface IChartRecipe
 {
     /// <summary>
     /// Gets the scenario ID this recipe handles.

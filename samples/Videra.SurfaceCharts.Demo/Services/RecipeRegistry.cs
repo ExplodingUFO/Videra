@@ -3,7 +3,7 @@ namespace Videra.SurfaceCharts.Demo.Services;
 /// <summary>
 /// Provides access to all registered chart recipes.
 /// </summary>
-public static class RecipeRegistry
+internal static class RecipeRegistry
 {
     private static readonly List<IChartRecipe> Recipes = [];
     private static bool _initialized;
@@ -98,5 +98,21 @@ public static class RecipeRegistry
         // Annotations & References
         Recipes.Add(new AnnotationRecipe());
         Recipes.Add(new ReferenceRecipe());
+
+        // Error bar
+        Recipes.Add(new ErrorBarRecipe());
+
+        // Streaming
+        Recipes.Add(new SurfaceStreamingRecipe());
+        Recipes.Add(new WaterfallStreamingRecipe());
+        Recipes.Add(new BarStreamingRecipe());
+
+        // MultiPlot3D
+        Recipes.Add(new MultiPlot3DRecipe());
+
+        // Workspace
+        Recipes.Add(new AnalysisWorkspaceRecipe());
+        Recipes.Add(new LinkedInteractionRecipe());
+        Recipes.Add(new StreamingWorkspaceRecipe());
     }
 }
