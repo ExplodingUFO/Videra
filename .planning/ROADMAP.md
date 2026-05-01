@@ -32,10 +32,10 @@ compatibility adapters, or fake validation evidence.
   reference regions, and shape annotations.
 - [x] **Phase 455: SVG & Batch Export** - Add SVG export and batch export API
   with JSON manifest for CI integration.
-- [ ] **Phase 456: Demo Framework Refactor** - Refactor MainWindow into
+- [x] **Phase 456: Demo Framework Refactor** - Refactor MainWindow into
   recipe-driven architecture with IChartRecipe, group navigation, and auto-generated
   parameter panels.
-- [ ] **Phase 457: Cookbook Recipes for New Features** - Add cookbook recipes for
+- [x] **Phase 457: Cookbook Recipes for New Features** - Add cookbook recipes for
   all new chart types, axis features, annotations, and export.
 - [ ] **Phase 458: Verification & Milestone Closure** - Final build verification,
   all requirements check, planning docs update, milestone closure.
@@ -235,13 +235,13 @@ Plans:
 | 448. Pie/Donut Chart | 1/1 | Complete | a4dc5ce |
 | 449. Error Bar Overlay | 1/1 | Complete | f37b30c |
 | 450. OHLC/Candlestick Chart | 1/1 | Complete | 149098c |
-| 451. Violin & Polygon Chart | 0/1 | Not started | — |
-| 452. Axis System Upgrade | 0/1 | Not started | — |
-| 453. Text & Arrow Annotations | 0/1 | Not started | — |
-| 454. Reference Lines, Spans & Shapes | 0/1 | Not started | — |
-| 455. SVG & Batch Export | 0/1 | Not started | — |
-| 456. Demo Framework Refactor | 0/1 | Not started | — |
-| 457. Cookbook Recipes for New Features | 0/1 | Not started | — |
+| 451. Violin & Polygon Chart | 1/1 | Complete | aeec22b |
+| 452. Axis System Upgrade | 1/1 | Complete | ca3a8d1 |
+| 453. Text & Arrow Annotations | 1/1 | Complete | a1755a0 |
+| 454. Reference Lines, Spans & Shapes | 1/1 | Complete | 51d8aa3 |
+| 455. SVG & Batch Export | 1/1 | Complete | dfe7ade |
+| 456. Demo Framework Refactor | 1/1 | Complete | ee605a4 |
+| 457. Cookbook Recipes for New Features | 1/1 | Complete | — |
 | 458. Verification & Milestone Closure | 0/1 | Not started | — |
 
 ---

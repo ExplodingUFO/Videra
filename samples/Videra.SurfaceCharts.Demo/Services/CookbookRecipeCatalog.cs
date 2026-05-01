@@ -580,6 +580,31 @@ internal static class CookbookRecipes
                 chart.FitToData();
                 """),
         new(
+            "Axis features",
+            "DateTime axis and log scale",
+            "Isolated setup path: demonstrates DateTime axis with auto-formatted ticks and logarithmic scale with minor ticks.",
+            ScenarioId: SurfaceDemoScenarios.StartId,
+            ScatterScenarioId: null,
+            Snippet: """
+                // DateTime axis on X with auto-formatted ticks
+                chart.Plot.Axes.X.Label = "Time";
+                chart.Plot.Axes.X.ScaleKind = SurfaceAxisScaleKind.DateTime;
+
+                // Log scale on Y axis
+                chart.Plot.Axes.Y.ScaleKind = SurfaceAxisScaleKind.Log;
+                chart.Plot.Axes.Y.Label = "Value (log)";
+
+                // Axis inversion
+                chart.Plot.Axes.Y.IsInverted = true;
+
+                // Secondary Y axis
+                chart.Plot.Axes.Y2.Label = "Secondary";
+                chart.Plot.Axes.Y2.SetLimits(0, 100);
+
+                chart.Plot.Add.Surface(surfaceSource, name: "Surface");
+                chart.FitToData();
+                """),
+        new(
             "SVG export",
             "Resolution-independent vector output",
             "Exports a chart as SVG for publication-quality vector graphics that scale without pixelation.",
