@@ -36,8 +36,7 @@ public sealed class SurfaceChartsBenchmarkContextTests
     {
         return new SurfaceChartRenderHost(
             softwareBackend: new SurfaceChartSoftwareRenderBackend(),
-            gpuBackend: new SurfaceChartGpuRenderBackend(new BenchmarkGraphicsBackend()),
-            allowSoftwareFallback: false);
+            gpuBackend: new SurfaceChartGpuRenderBackend(new BenchmarkGraphicsBackend()));
     }
 
     private static void AssertGpuContractSnapshot(SurfaceChartRenderSnapshot snapshot)
