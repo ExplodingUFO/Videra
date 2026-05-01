@@ -293,7 +293,9 @@ public partial class VideraChartView
             _chartProjection,
             Plot.OverlayOptions,
             Plot.Series,
-            _runtime.CanInteract);
+            _runtime.CanInteract,
+            Plot.TextAnnotations,
+            Plot.ArrowAnnotations);
         _overlayLayer.InvalidateVisual();
     }
 

@@ -456,6 +456,12 @@ public partial class MainWindow : Window
             return;
         }
 
+        if (scenario.Id == SurfaceDemoScenarios.AnnotationId)
+        {
+            ApplyAnnotationSource(scenario);
+            return;
+        }
+
         if (scenario.Id == SurfaceDemoScenarios.MultiPlot3DId)
         {
             SetupMultiPlot3DScenario(scenario);
@@ -941,6 +947,43 @@ public partial class MainWindow : Window
         _activePlotPathHeading = scenario.Label;
         _activePlotPathDetails = "Filled polygon with 5 vertices. Demonstrates Plot.Add.Polygon with fill and stroke colors.";
         _activeDatasetSummary = "Polygon proof shows a pentagon shape with configurable fill and stroke.";
+        _activeAssetSummary = "No additional assets are used on this path.";
+        _datasetText.Text = _activeDatasetSummary;
+        RefreshActiveProofTexts();
+    }
+
+    private void ApplyAnnotationSource(SurfaceDemoScenario scenario)
+    {
+        SetActiveChartView(_surfaceChartView);
+        _activeScatterData = null;
+        _surfaceChartView.Plot.Clear();
+
+        // Use the in-memory surface as the base
+        _surfaceChartView.Plot.Add.Surface(_inMemorySource, name: "Base Surface");
+
+        // Add text annotations at key points
+        _surfaceChartView.Plot.Add.Text(
+            new System.Numerics.Vector3(16, 0.6f, 12),
+            "Peak",
+            color: 0xFFFF6B6Bu,
+            fontSize: 14d);
+        _surfaceChartView.Plot.Add.Text(
+            new System.Numerics.Vector3(48, 0.3f, 36),
+            "Valley",
+            color: 0xFF38BDF8u,
+            fontSize: 14d);
+
+        // Add an arrow annotation
+        _surfaceChartView.Plot.Add.Arrow(
+            new System.Numerics.Vector3(10, 0.5f, 10),
+            new System.Numerics.Vector3(20, 0.7f, 20),
+            color: 0xFF2DD4BFu,
+            label: "Gradient");
+
+        _surfaceChartView.FitToData();
+        _activePlotPathHeading = scenario.Label;
+        _activePlotPathDetails = "Surface chart with text and arrow annotations. Demonstrates Plot.Add.Text and Plot.Add.Arrow anchored to 3D data coordinates.";
+        _activeDatasetSummary = "Annotation proof shows text labels and arrows rendered on a surface chart.";
         _activeAssetSummary = "No additional assets are used on this path.";
         _datasetText.Text = _activeDatasetSummary;
         RefreshActiveProofTexts();

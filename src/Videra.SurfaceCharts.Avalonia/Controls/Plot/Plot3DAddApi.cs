@@ -525,6 +525,22 @@ public sealed class Plot3DAddApi
         return (PolygonPlot3DSeries)_plot.AddSeries(new PolygonPlot3DSeries(name, data));
     }
 
+    /// <summary>
+    /// Adds a text annotation at a 3D position.
+    /// </summary>
+    public void Text(System.Numerics.Vector3 position, string text, uint color = 0xFFFFFFFFu, double fontSize = 12d)
+    {
+        _plot.AddTextAnnotation(new TextAnnotationData(position, text, color, fontSize));
+    }
+
+    /// <summary>
+    /// Adds an arrow annotation between two 3D positions.
+    /// </summary>
+    public void Arrow(System.Numerics.Vector3 start, System.Numerics.Vector3 end, uint color = 0xFFFFFFFFu, string? label = null)
+    {
+        _plot.AddArrowAnnotation(new ArrowAnnotationData(start, end, color, label: label));
+    }
+
     private static SurfaceMatrix CreateSurfaceMatrix(double[,] values)
     {
         ArgumentNullException.ThrowIfNull(values);

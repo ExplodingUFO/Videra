@@ -12,6 +12,8 @@ public sealed class Plot3D
 {
     private readonly List<Plot3DSeries> _series = [];
     private readonly ReadOnlyCollection<Plot3DSeries> _seriesView;
+    private readonly List<TextAnnotationData> _textAnnotations = [];
+    private readonly List<ArrowAnnotationData> _arrowAnnotations = [];
     private SurfaceColorMap? _colorMap;
     private SurfaceChartOverlayOptions _overlayOptions = SurfaceChartOverlayOptions.Default;
     private Func<int, int, double, Task<RenderTargetBitmap>>? _renderOffscreen;
@@ -42,6 +44,16 @@ public sealed class Plot3D
     /// Gets the series attached to this plot in draw order.
     /// </summary>
     public IReadOnlyList<Plot3DSeries> Series => _seriesView;
+
+    /// <summary>
+    /// Gets the text annotations attached to this plot.
+    /// </summary>
+    public IReadOnlyList<TextAnnotationData> TextAnnotations => _textAnnotations;
+
+    /// <summary>
+    /// Gets the arrow annotations attached to this plot.
+    /// </summary>
+    public IReadOnlyList<ArrowAnnotationData> ArrowAnnotations => _arrowAnnotations;
 
     /// <summary>
     /// Gets a typed snapshot of the series attached to this plot in draw order.
@@ -358,12 +370,62 @@ public sealed class Plot3D
     /// </summary>
     public void Clear()
     {
-        if (_series.Count == 0)
+        if (_series.Count == 0 && _textAnnotations.Count == 0 && _arrowAnnotations.Count == 0)
         {
             return;
         }
 
         _series.Clear();
+        _textAnnotations.Clear();
+        _arrowAnnotations.Clear();
+        NotifyChanged();
+    }
+
+    /// <summary>
+    /// Adds a text annotation to the plot.
+    /// </summary>
+    public void AddTextAnnotation(TextAnnotationData annotation)
+    {
+        ArgumentNullException.ThrowIfNull(annotation);
+        _textAnnotations.Add(annotation);
+        NotifyChanged();
+    }
+
+    /// <summary>
+    /// Adds an arrow annotation to the plot.
+    /// </summary>
+    public void AddArrowAnnotation(ArrowAnnotationData annotation)
+    {
+        ArgumentNullException.ThrowIfNull(annotation);
+        _arrowAnnotations.Add(annotation);
+        NotifyChanged();
+    }
+
+    /// <summary>
+    /// Removes all text annotations from the plot.
+    /// </summary>
+    public void ClearTextAnnotations()
+    {
+        if (_textAnnotations.Count == 0)
+        {
+            return;
+        }
+
+        _textAnnotations.Clear();
+        NotifyChanged();
+    }
+
+    /// <summary>
+    /// Removes all arrow annotations from the plot.
+    /// </summary>
+    public void ClearArrowAnnotations()
+    {
+        if (_arrowAnnotations.Count == 0)
+        {
+            return;
+        }
+
+        _arrowAnnotations.Clear();
         NotifyChanged();
     }
 
@@ -541,7 +603,8 @@ public sealed class Plot3D
     }
 
     /// <summary>
-    /// Captures a chart-local PNG/bitmap snapshot through the Plot-owned contract.
+    /// Captures a chart-local snapshot through the Plot-owned contract.
+    /// Supports both PNG bitmap and SVG vector formats.
     /// </summary>
     /// <param name="request">The snapshot request specifying dimensions, format, and background.</param>
     /// <returns>A result containing the artifact path and manifest on success, or a diagnostic on failure.</returns>
@@ -551,10 +614,10 @@ public sealed class Plot3D
         var stopwatch = System.Diagnostics.Stopwatch.StartNew();
 
         // Validate format
-        if (request.Format != PlotSnapshotFormat.Png)
+        if (request.Format is not (PlotSnapshotFormat.Png or PlotSnapshotFormat.Svg))
         {
             return PlotSnapshotResult.Failed(
-                PlotSnapshotDiagnostic.Create("snapshot.format.unsupported", $"Format '{request.Format}' is not supported. Only Png is currently supported."),
+                PlotSnapshotDiagnostic.Create("snapshot.format.unsupported", $"Format '{request.Format}' is not supported."),
                 stopwatch.Elapsed);
         }
 
@@ -575,7 +638,13 @@ public sealed class Plot3D
                 stopwatch.Elapsed);
         }
 
-        // Validate render bridge
+        // SVG export does not require a render host
+        if (request.Format == PlotSnapshotFormat.Svg)
+        {
+            return await CaptureSvgSnapshotAsync(request, activeSeries, stopwatch).ConfigureAwait(false);
+        }
+
+        // PNG export requires a render bridge
         if (_renderOffscreen is null)
         {
             return PlotSnapshotResult.Failed(
@@ -626,6 +695,48 @@ public sealed class Plot3D
         }
     }
 
+    private async Task<PlotSnapshotResult> CaptureSvgSnapshotAsync(
+        PlotSnapshotRequest request,
+        Plot3DSeries activeSeries,
+        System.Diagnostics.Stopwatch stopwatch)
+    {
+        try
+        {
+            var svg = SvgExporter.ExportPlot(this, request.Width, request.Height);
+            var outputPath = System.IO.Path.ChangeExtension(System.IO.Path.GetRandomFileName(), ".svg");
+
+            var directory = System.IO.Path.GetDirectoryName(outputPath);
+            if (!string.IsNullOrEmpty(directory))
+            {
+                System.IO.Directory.CreateDirectory(directory);
+            }
+
+            await System.IO.File.WriteAllTextAsync(outputPath, svg).ConfigureAwait(false);
+
+            var outputEvidence = CreateOutputEvidence();
+            var datasetEvidence = CreateDatasetEvidence();
+            var seriesIdentity = outputEvidence.ActiveSeriesIdentity ?? $"{activeSeries.Kind}:{activeSeries.Name ?? "<unnamed>"}:{_series.IndexOf(activeSeries)}";
+
+            var manifest = new PlotSnapshotManifest(
+                width: request.Width,
+                height: request.Height,
+                outputEvidenceKind: outputEvidence.EvidenceKind,
+                datasetEvidenceKind: datasetEvidence.EvidenceKind,
+                activeSeriesIdentity: seriesIdentity,
+                format: PlotSnapshotFormat.Svg,
+                background: request.Background,
+                createdUtc: DateTime.UtcNow);
+
+            return PlotSnapshotResult.Success(outputPath, manifest, stopwatch.Elapsed);
+        }
+        catch (Exception ex)
+        {
+            return PlotSnapshotResult.Failed(
+                PlotSnapshotDiagnostic.Create("snapshot.svg.failed", $"SVG export failed: {ex.Message}"),
+                stopwatch.Elapsed);
+        }
+    }
+
     /// <summary>
     /// Captures a chart-local PNG snapshot and writes it to the caller-selected path.
     /// </summary>
@@ -645,6 +756,49 @@ public sealed class Plot3D
         ArgumentException.ThrowIfNullOrWhiteSpace(path);
 
         var request = new PlotSnapshotRequest(width, height, scale, background, PlotSnapshotFormat.Png);
+        var result = await CaptureSnapshotAsync(request).ConfigureAwait(false);
+        if (!result.Succeeded)
+        {
+            return result;
+        }
+
+        var directory = System.IO.Path.GetDirectoryName(path);
+        if (!string.IsNullOrEmpty(directory))
+        {
+            System.IO.Directory.CreateDirectory(directory);
+        }
+
+        try
+        {
+            System.IO.File.Copy(result.Path!, path, overwrite: true);
+        }
+        finally
+        {
+            System.IO.File.Delete(result.Path!);
+        }
+
+        return PlotSnapshotResult.Success(path, result.Manifest!, result.Duration);
+    }
+
+    /// <summary>
+    /// Captures a chart-local SVG snapshot and writes it to the caller-selected path.
+    /// </summary>
+    /// <param name="path">The caller-selected SVG output path.</param>
+    /// <param name="width">The target snapshot width in pixels.</param>
+    /// <param name="height">The target snapshot height in pixels.</param>
+    /// <param name="scale">The DPI scale factor.</param>
+    /// <param name="background">The background behavior for the snapshot.</param>
+    /// <returns>A result containing the caller-selected artifact path and manifest on success, or a diagnostic on failure.</returns>
+    public async Task<PlotSnapshotResult> SaveSvgAsync(
+        string path,
+        int width,
+        int height,
+        double scale = 1d,
+        PlotSnapshotBackground background = PlotSnapshotBackground.Transparent)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(path);
+
+        var request = new PlotSnapshotRequest(width, height, scale, background, PlotSnapshotFormat.Svg);
         var result = await CaptureSnapshotAsync(request).ConfigureAwait(false);
         if (!result.Succeeded)
         {

@@ -22,6 +22,8 @@ internal sealed class SurfaceChartOverlayCoordinator
 
     public SurfaceChartToolbarOverlayState ToolbarState { get; private set; } = SurfaceChartToolbarOverlayState.Empty;
 
+    public SurfaceAnnotationOverlayState AnnotationState { get; private set; } = SurfaceAnnotationOverlayState.Empty;
+
     /// <summary>
     /// Gets or sets a value indicating whether the coordinator is in snapshot mode.
     /// When true, interaction chrome (crosshair, hovered probe, toolbar) is suppressed during rendering.
@@ -38,6 +40,7 @@ internal sealed class SurfaceChartOverlayCoordinator
         LegendState = SurfaceLegendOverlayState.Empty;
         CrosshairState = SurfaceCrosshairOverlayState.Empty;
         ToolbarState = SurfaceChartToolbarOverlayState.Empty;
+        AnnotationState = SurfaceAnnotationOverlayState.Empty;
     }
 
     public void UpdateViewSize(Size viewSize)
@@ -107,7 +110,9 @@ internal sealed class SurfaceChartOverlayCoordinator
         SurfaceChartProjection? chartProjection,
         SurfaceChartOverlayOptions overlayOptions,
         IReadOnlyList<Plot3DSeries>? series = null,
-        bool canInteract = false)
+        bool canInteract = false,
+        IReadOnlyList<TextAnnotationData>? textAnnotations = null,
+        IReadOnlyList<ArrowAnnotationData>? arrowAnnotations = null)
     {
         ArgumentNullException.ThrowIfNull(loadedTiles);
         ArgumentNullException.ThrowIfNull(overlayOptions);
@@ -130,6 +135,10 @@ internal sealed class SurfaceChartOverlayCoordinator
             _viewSize,
             _pointerScreenPosition,
             canInteract);
+        AnnotationState = SurfaceAnnotationOverlayPresenter.CreateState(
+            textAnnotations,
+            arrowAnnotations,
+            chartProjection);
     }
 
     public void Render(DrawingContext context, SurfaceChartProjection? chartProjection)
@@ -138,6 +147,7 @@ internal sealed class SurfaceChartOverlayCoordinator
 
         SurfaceAxisOverlayPresenter.Render(context, AxisState);
         SurfaceLegendOverlayPresenter.Render(context, LegendState);
+        SurfaceAnnotationOverlayPresenter.Render(context, AnnotationState);
 
         if (IsSnapshotMode)
         {

@@ -38,6 +38,7 @@ internal static class SurfaceDemoScenarios
     public const string OHLCId = "ohlc-proof";
     public const string ViolinId = "violin-proof";
     public const string PolygonId = "polygon-proof";
+    public const string AnnotationId = "annotation-proof";
 
     public static IReadOnlyList<SurfaceDemoScenario> All { get; } =
     [
@@ -197,6 +198,12 @@ internal static class SurfaceDemoScenarios
             "Polygon",
             "Polygon",
             "Uses filled polygon geometry with configurable vertices, fill color, and stroke."),
+        new(
+            AnnotationId,
+            "Try next: Annotation proof",
+            "Annotation",
+            "Annotation",
+            "Uses text and arrow annotations anchored to 3D data coordinates on a surface chart."),
     ];
 
     public static SurfaceDemoScenario Get(string id)

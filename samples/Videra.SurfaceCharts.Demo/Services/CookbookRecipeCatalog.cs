@@ -532,5 +532,25 @@ internal static class CookbookRecipes
                 chart.Plot.Add.Polygon(vertices, fillColor: 0x8038BDF8u, name: "Pentagon");
                 chart.FitToData();
                 """),
+        new(
+            "Annotation",
+            "Text and arrow annotations",
+            "Isolated setup path: adds text labels and arrows anchored to 3D data coordinates.",
+            ScenarioId: SurfaceDemoScenarios.AnnotationId,
+            ScatterScenarioId: null,
+            Snippet: """
+                chart.Plot.Add.Surface(surfaceSource, name: "Surface");
+
+                chart.Plot.Add.Text(
+                    new Vector3(16, 0.6f, 12),
+                    "Peak", color: 0xFFFF6B6Bu, fontSize: 14);
+
+                chart.Plot.Add.Arrow(
+                    new Vector3(10, 0.5f, 10),
+                    new Vector3(20, 0.7f, 20),
+                    color: 0xFF2DD4BFu, label: "Gradient");
+
+                chart.FitToData();
+                """),
     ];
 }
