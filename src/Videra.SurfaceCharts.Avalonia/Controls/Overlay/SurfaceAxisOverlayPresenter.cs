@@ -43,6 +43,7 @@ internal static class SurfaceAxisOverlayPresenter
             axisMinimum: metadata.HorizontalAxis.Minimum,
             axisMaximum: metadata.HorizontalAxis.Maximum,
             scaleKind: metadata.HorizontalAxis.ScaleKind,
+            isInverted: metadata.HorizontalAxis.IsInverted,
             start: projection.Project(new Vector3((float)metadata.HorizontalAxis.Minimum, (float)valueRange.Minimum, frontCorner.Z)),
             end: projection.Project(new Vector3((float)metadata.HorizontalAxis.Maximum, (float)valueRange.Minimum, frontCorner.Z)),
             projectedCenter,
@@ -55,7 +56,8 @@ internal static class SurfaceAxisOverlayPresenter
                 overlayOptions.ValueAxisUnitOverride),
             axisMinimum: valueRange.Minimum,
             axisMaximum: valueRange.Maximum,
-            scaleKind: SurfaceAxisScaleKind.Linear,
+            scaleKind: overlayOptions.ValueAxisScaleKind,
+            isInverted: false,
             start: projection.Project(new Vector3(frontCorner.X, (float)valueRange.Minimum, frontCorner.Z)),
             end: projection.Project(new Vector3(frontCorner.X, (float)valueRange.Maximum, frontCorner.Z)),
             projectedCenter,
@@ -69,6 +71,7 @@ internal static class SurfaceAxisOverlayPresenter
             axisMinimum: metadata.VerticalAxis.Minimum,
             axisMaximum: metadata.VerticalAxis.Maximum,
             scaleKind: metadata.VerticalAxis.ScaleKind,
+            isInverted: metadata.VerticalAxis.IsInverted,
             start: projection.Project(new Vector3(frontCorner.X, (float)valueRange.Minimum, (float)metadata.VerticalAxis.Minimum)),
             end: projection.Project(new Vector3(frontCorner.X, (float)valueRange.Minimum, (float)metadata.VerticalAxis.Maximum)),
             projectedCenter,
@@ -76,8 +79,29 @@ internal static class SurfaceAxisOverlayPresenter
 
         var gridLines = CreateGridLines(metadata, projection, valueRange, frontCorner, xAxis, yAxis, zAxis, overlayOptions);
 
+        List<SurfaceAxisState> axes = [xAxis, yAxis, zAxis];
+
+        // Add secondary Y axis if configured
+        if (overlayOptions.SecondaryValueAxisMinimum is { } y2Min && overlayOptions.SecondaryValueAxisMaximum is { } y2Max)
+        {
+            var y2Axis = CreateAxisState(
+                axisKey: "Y2",
+                titleText: FormatAxisTitle(
+                    overlayOptions.SecondaryValueAxisTitleOverride ?? "Y2",
+                    overlayOptions.SecondaryValueAxisUnitOverride),
+                axisMinimum: y2Min,
+                axisMaximum: y2Max,
+                scaleKind: overlayOptions.SecondaryValueAxisScaleKind,
+                isInverted: false,
+                start: projection.Project(new Vector3(frontCorner.X, (float)y2Min, frontCorner.Z)),
+                end: projection.Project(new Vector3(frontCorner.X, (float)y2Max, frontCorner.Z)),
+                projectedCenter,
+                overlayOptions);
+            axes.Add(y2Axis);
+        }
+
         return new SurfaceAxisOverlayState(
-            [xAxis, yAxis, zAxis],
+            axes,
             ResolveGridPlaneKey(overlayOptions.GridPlane),
             gridLines,
             frontCorner.X,
@@ -119,6 +143,7 @@ internal static class SurfaceAxisOverlayPresenter
         double axisMinimum,
         double axisMaximum,
         SurfaceAxisScaleKind scaleKind,
+        bool isInverted,
         Point start,
         Point end,
         Point projectedCenter,
@@ -139,15 +164,18 @@ internal static class SurfaceAxisOverlayPresenter
                 SurfaceAxisTickGenerator.CreateMajorTickValues(axisMinimum, axisMaximum, GetDistance(start, end)),
         };
 
-        var ticks = CreateTicks(axisKey, majorTickValues, start, end, outwardNormal, overlayOptions, scaleKind);
+        var ticks = CreateTicks(axisKey, majorTickValues, start, end, outwardNormal, overlayOptions, scaleKind, isInverted);
         var minorTicks = overlayOptions.ShowMinorTicks
             ? CreateMinorTicks(
-                SurfaceAxisTickGenerator.CreateMinorTickValues(majorTickValues, overlayOptions.MinorTickDivisions),
+                scaleKind == SurfaceAxisScaleKind.Log
+                    ? SurfaceAxisTickGenerator.CreateLogMinorTickValues(majorTickValues, axisMinimum, axisMaximum)
+                    : SurfaceAxisTickGenerator.CreateMinorTickValues(majorTickValues, overlayOptions.MinorTickDivisions),
                 axisMinimum,
                 axisMaximum,
                 start,
                 end,
-                outwardNormal)
+                outwardNormal,
+                isInverted)
             : Array.Empty<SurfaceAxisLineGeometry>();
 
         return new SurfaceAxisState(
@@ -167,7 +195,8 @@ internal static class SurfaceAxisOverlayPresenter
         Point end,
         AvaVector outwardNormal,
         SurfaceChartOverlayOptions overlayOptions,
-        SurfaceAxisScaleKind scaleKind)
+        SurfaceAxisScaleKind scaleKind,
+        bool isInverted)
     {
         List<SurfaceAxisTickState> ticks = [];
         if (tickValues.Count == 0)
@@ -183,6 +212,10 @@ internal static class SurfaceAxisOverlayPresenter
         {
             var t = axisSpan <= 0d ? 0d : (tickValue - axisMinimum) / axisSpan;
             t = Math.Clamp(t, 0d, 1d);
+            if (isInverted)
+            {
+                t = 1d - t;
+            }
 
             var tickStart = Lerp(start, end, t);
             var tickEnd = tickStart + (outwardNormal * TickLength);
@@ -210,7 +243,8 @@ internal static class SurfaceAxisOverlayPresenter
         double axisMaximum,
         Point start,
         Point end,
-        AvaVector outwardNormal)
+        AvaVector outwardNormal,
+        bool isInverted)
     {
         List<SurfaceAxisLineGeometry> ticks = [];
         var axisSpan = axisMaximum - axisMinimum;
@@ -218,6 +252,11 @@ internal static class SurfaceAxisOverlayPresenter
         {
             var t = axisSpan <= 0d ? 0d : (tickValue - axisMinimum) / axisSpan;
             t = Math.Clamp(t, 0d, 1d);
+            if (isInverted)
+            {
+                t = 1d - t;
+            }
+
             var tickStart = Lerp(start, end, t);
             var tickEnd = tickStart + (outwardNormal * MinorTickLength);
             ticks.Add(new SurfaceAxisLineGeometry(tickStart, tickEnd));

@@ -15,7 +15,7 @@ public sealed class SurfaceAxisDescriptor
     /// <exception cref="ArgumentException">Thrown when <paramref name="label"/> is blank or <paramref name="maximum"/> is less than <paramref name="minimum"/>.</exception>
     /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="minimum"/> or <paramref name="maximum"/> is not finite.</exception>
     public SurfaceAxisDescriptor(string label, string? unit, double minimum, double maximum)
-        : this(label, unit, minimum, maximum, SurfaceAxisScaleKind.Linear)
+        : this(label, unit, minimum, maximum, SurfaceAxisScaleKind.Linear, isInverted: false)
     {
     }
 
@@ -30,6 +30,22 @@ public sealed class SurfaceAxisDescriptor
     /// <exception cref="ArgumentException">Thrown when <paramref name="label"/> is blank or <paramref name="maximum"/> is less than <paramref name="minimum"/>.</exception>
     /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="minimum"/> or <paramref name="maximum"/> is not finite, or when <paramref name="scaleKind"/> is Log and <paramref name="minimum"/> or <paramref name="maximum"/> is not positive.</exception>
     public SurfaceAxisDescriptor(string label, string? unit, double minimum, double maximum, SurfaceAxisScaleKind scaleKind)
+        : this(label, unit, minimum, maximum, scaleKind, isInverted: false)
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="SurfaceAxisDescriptor"/> class.
+    /// </summary>
+    /// <param name="label">The axis label.</param>
+    /// <param name="unit">The optional unit for the axis.</param>
+    /// <param name="minimum">The inclusive axis minimum.</param>
+    /// <param name="maximum">The inclusive axis maximum.</param>
+    /// <param name="scaleKind">The axis scale semantics.</param>
+    /// <param name="isInverted">Whether the axis direction is inverted (maximum at origin, minimum at far end).</param>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="label"/> is blank or <paramref name="maximum"/> is less than <paramref name="minimum"/>.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="minimum"/> or <paramref name="maximum"/> is not finite, or when <paramref name="scaleKind"/> is Log and <paramref name="minimum"/> or <paramref name="maximum"/> is not positive.</exception>
+    public SurfaceAxisDescriptor(string label, string? unit, double minimum, double maximum, SurfaceAxisScaleKind scaleKind, bool isInverted)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(label);
 
@@ -70,6 +86,7 @@ public sealed class SurfaceAxisDescriptor
         Minimum = minimum;
         Maximum = maximum;
         ScaleKind = scaleKind;
+        IsInverted = isInverted;
     }
 
     /// <summary>
@@ -96,6 +113,11 @@ public sealed class SurfaceAxisDescriptor
     /// Gets the inclusive maximum axis value.
     /// </summary>
     public double Maximum { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether the axis direction is inverted.
+    /// </summary>
+    public bool IsInverted { get; }
 
     /// <summary>
     /// Gets the span of the axis.

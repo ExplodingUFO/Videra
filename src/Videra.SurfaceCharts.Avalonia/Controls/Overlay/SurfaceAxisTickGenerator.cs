@@ -129,6 +129,43 @@ internal static class SurfaceAxisTickGenerator
         return ticks;
     }
 
+    /// <summary>
+    /// Creates minor tick values for logarithmic axes. Places ticks at 2x, 3x, ..., 9x within each decade.
+    /// </summary>
+    public static IReadOnlyList<double> CreateLogMinorTickValues(
+        IReadOnlyList<double> majorTickValues,
+        double axisMinimum,
+        double axisMaximum)
+    {
+        ArgumentNullException.ThrowIfNull(majorTickValues);
+
+        if (majorTickValues.Count < 2 || axisMinimum <= 0d || axisMaximum <= axisMinimum)
+        {
+            return Array.Empty<double>();
+        }
+
+        List<double> ticks = [];
+        var logMin = Math.Log10(axisMinimum);
+        var logMax = Math.Log10(axisMaximum);
+        var firstDecade = (int)Math.Floor(logMin);
+        var lastDecade = (int)Math.Ceiling(logMax);
+
+        for (var decade = firstDecade; decade <= lastDecade; decade++)
+        {
+            var decadeBase = Math.Pow(10d, decade);
+            for (var multiplier = 2; multiplier <= 9; multiplier++)
+            {
+                var value = decadeBase * multiplier;
+                if (value > axisMinimum && value < axisMaximum)
+                {
+                    ticks.Add(Math.Round(value, 12, MidpointRounding.AwayFromZero));
+                }
+            }
+        }
+
+        return ticks;
+    }
+
     private static double ComputeNiceStep(double roughStep)
     {
         roughStep = Math.Max(roughStep, double.Epsilon);

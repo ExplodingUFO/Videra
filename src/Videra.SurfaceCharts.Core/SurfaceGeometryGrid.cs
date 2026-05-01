@@ -128,14 +128,16 @@ public abstract class SurfaceGeometryGrid
     {
         ArgumentNullException.ThrowIfNull(axis);
 
+        var t = axis.IsInverted ? 1d - normalized : normalized;
+
         return axis.ScaleKind switch
         {
             SurfaceAxisScaleKind.Linear or SurfaceAxisScaleKind.DateTime =>
-                axis.Minimum + (axis.Span * normalized),
+                axis.Minimum + (axis.Span * t),
             SurfaceAxisScaleKind.Log =>
                 Math.Pow(
                     10d,
-                    Math.Log10(axis.Minimum) + ((Math.Log10(axis.Maximum) - Math.Log10(axis.Minimum)) * normalized)),
+                    Math.Log10(axis.Minimum) + ((Math.Log10(axis.Maximum) - Math.Log10(axis.Minimum)) * t)),
             SurfaceAxisScaleKind.ExplicitCoordinates =>
                 throw new InvalidOperationException("Explicit-coordinate axes require explicit grid geometry."),
             _ => throw new ArgumentOutOfRangeException(nameof(axis), "Unsupported axis scale kind.")

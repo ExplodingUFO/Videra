@@ -97,6 +97,41 @@ public sealed class SurfaceChartOverlayOptions
     public string? ValueAxisUnitOverride { get; init; }
 
     /// <summary>
+    /// Gets the scale kind for the value (Y) axis.
+    /// </summary>
+    public Videra.SurfaceCharts.Core.SurfaceAxisScaleKind ValueAxisScaleKind { get; init; }
+
+    /// <summary>
+    /// Gets the optional secondary value-axis title override.
+    /// </summary>
+    public string? SecondaryValueAxisTitleOverride { get; init; }
+
+    /// <summary>
+    /// Gets the optional secondary value-axis unit override.
+    /// </summary>
+    public string? SecondaryValueAxisUnitOverride { get; init; }
+
+    /// <summary>
+    /// Gets the scale kind for the secondary value axis.
+    /// </summary>
+    public Videra.SurfaceCharts.Core.SurfaceAxisScaleKind SecondaryValueAxisScaleKind { get; init; }
+
+    /// <summary>
+    /// Gets the optional custom formatter for the secondary value (Y2) axis tick labels.
+    /// </summary>
+    public Func<double, string>? Y2AxisFormatter { get; init; }
+
+    /// <summary>
+    /// Gets the optional minimum for the secondary value axis.
+    /// </summary>
+    public double? SecondaryValueAxisMinimum { get; init; }
+
+    /// <summary>
+    /// Gets the optional maximum for the secondary value axis.
+    /// </summary>
+    public double? SecondaryValueAxisMaximum { get; init; }
+
+    /// <summary>
     /// Gets the optional depth-axis title override.
     /// </summary>
     public string? DepthAxisTitleOverride { get; init; }
