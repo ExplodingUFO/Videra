@@ -9,4 +9,9 @@ public enum PlotSnapshotFormat
     /// Portable Network Graphics bitmap format.
     /// </summary>
     Png,
+
+    /// <summary>
+    /// Scalable Vector Graphics format producing resolution-independent vector output.
+    /// </summary>
+    Svg,
 }

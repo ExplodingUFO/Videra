@@ -170,8 +170,8 @@ public sealed class Plot3DOutputCapabilityDiagnostic
         return
         [
             Supported("ImageExport", "plot-output.export.image.supported", "Plot3D output evidence supports PNG image export via CaptureSnapshotAsync."),
+            Supported("VectorExport", "plot-output.export.vector.supported", "Plot3D output evidence supports SVG vector export via CaptureSnapshotAsync and SaveSvgAsync."),
             Unsupported("PdfExport", "plot-output.export.pdf.unsupported", "Plot3D output evidence does not implement PDF export."),
-            Unsupported("VectorExport", "plot-output.export.vector.unsupported", "Plot3D output evidence does not implement vector export."),
         ];
     }
 

@@ -116,12 +116,85 @@ public class PlotSnapshotCaptureTests
     }
 
     [Fact]
-    public void CreateUnsupportedExportDiagnostics_VectorExportRemainsUnsupported()
+    public void CreateUnsupportedExportDiagnostics_VectorExportIsSupported()
     {
         var diagnostics = Plot3DOutputCapabilityDiagnostic.CreateUnsupportedExportDiagnostics();
         var vectorExport = diagnostics.First(d => d.Capability == "VectorExport");
 
-        vectorExport.IsSupported.Should().BeFalse();
+        vectorExport.IsSupported.Should().BeTrue();
+    }
+
+    // ── SVG export tests ─────────────────────────────────────────
+
+    [Fact]
+    public async Task CaptureSnapshotAsync_SvgFormat_EmptyPlot_ReturnsFailed()
+    {
+        var plot = CreateEmptyPlot();
+        var request = new PlotSnapshotRequest(1920, 1080, 1.0, PlotSnapshotBackground.Transparent, PlotSnapshotFormat.Svg);
+
+        var result = await plot.CaptureSnapshotAsync(request);
+
+        result.Succeeded.Should().BeFalse();
+        result.Failure.Should().NotBeNull();
+        result.Failure!.DiagnosticCode.Should().Be("snapshot.chart.no-active-series");
+    }
+
+    [Fact]
+    public async Task CaptureSnapshotAsync_SvgFormat_WithScatterData_Succeeds()
+    {
+        var plot = CreatePlotWithSeries();
+        var request = new PlotSnapshotRequest(800, 600, 1.0, PlotSnapshotBackground.Transparent, PlotSnapshotFormat.Svg);
+
+        var result = await plot.CaptureSnapshotAsync(request);
+
+        result.Succeeded.Should().BeTrue();
+        result.Path.Should().EndWith(".svg");
+        result.Manifest.Should().NotBeNull();
+        result.Manifest!.Format.Should().Be(PlotSnapshotFormat.Svg);
+    }
+
+    [Fact]
+    public async Task CaptureSnapshotAsync_SvgFormat_OutputContainsSvgMarkup()
+    {
+        var plot = CreatePlotWithSeries();
+        var request = new PlotSnapshotRequest(800, 600, 1.0, PlotSnapshotBackground.Transparent, PlotSnapshotFormat.Svg);
+
+        var result = await plot.CaptureSnapshotAsync(request);
+
+        result.Succeeded.Should().BeTrue();
+        var svgContent = await File.ReadAllTextAsync(result.Path!);
+        svgContent.Should().Contain("<svg");
+        svgContent.Should().Contain("xmlns=\"http://www.w3.org/2000/svg\"");
+        svgContent.Should().Contain("</svg>");
+    }
+
+    [Fact]
+    public async Task SaveSvgAsync_WritesToSpecifiedPath()
+    {
+        var plot = CreatePlotWithSeries();
+        var tempPath = Path.Combine(Path.GetTempPath(), $"test-{Guid.NewGuid():N}.svg");
+
+        try
+        {
+            var result = await plot.SaveSvgAsync(tempPath, 800, 600);
+
+            result.Succeeded.Should().BeTrue();
+            result.Path.Should().Be(tempPath);
+            File.Exists(tempPath).Should().BeTrue();
+
+            var content = await File.ReadAllTextAsync(tempPath);
+            content.Should().Contain("<svg");
+        }
+        finally
+        {
+            if (File.Exists(tempPath)) File.Delete(tempPath);
+        }
+    }
+
+    [Fact]
+    public void PlotSnapshotFormat_HasSvgValue()
+    {
+        Enum.GetValues<PlotSnapshotFormat>().Should().Contain(PlotSnapshotFormat.Svg);
     }
 
     // ── Helpers ────────────────────────────────────────────────────
