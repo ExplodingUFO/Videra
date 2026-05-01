@@ -374,7 +374,7 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
         };
         var producerAndParserFiles = new[]
         {
-            "samples/Videra.SurfaceCharts.Demo/Views/MainWindow.axaml.cs",
+            "samples/Videra.SurfaceCharts.Demo/Services/SurfaceDemoSupportSummary.cs",
             "smoke/Videra.SurfaceCharts.ConsumerSmoke/Views/MainWindow.axaml.cs",
             "scripts/Invoke-ConsumerSmoke.ps1",
             "scripts/Invoke-VideraDoctor.ps1",
@@ -419,7 +419,7 @@ public sealed class SurfaceChartsRepositoryArchitectureTests
             "Plot3DOutputEvidence.cs"));
         plotOutputEvidence.Should().Contain("plot-output.export.image.supported");
         plotOutputEvidence.Should().Contain("plot-output.export.pdf.unsupported");
-        plotOutputEvidence.Should().Contain("plot-output.export.vector.unsupported");
+        plotOutputEvidence.Should().Contain("plot-output.export.vector.supported");
     }
 
     [Fact]

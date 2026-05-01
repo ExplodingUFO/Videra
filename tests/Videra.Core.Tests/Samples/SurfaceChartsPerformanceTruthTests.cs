@@ -13,7 +13,7 @@ public sealed class SurfaceChartsPerformanceTruthTests
         var demoReadme = Read(repositoryRoot, "samples", "Videra.SurfaceCharts.Demo", "README.md");
         var cutover = Read(repositoryRoot, "docs", "surfacecharts-release-cutover.md");
         var benchmarkGates = Read(repositoryRoot, "docs", "benchmark-gates.md");
-        var mainWindowCodeBehind = Read(repositoryRoot, "samples", "Videra.SurfaceCharts.Demo", "Views", "MainWindow.axaml.cs");
+        var cacheSourceHandler = Read(repositoryRoot, "samples", "Videra.SurfaceCharts.Demo", "Services", "CacheSourceHandler.cs");
         var supportSummary = Read(repositoryRoot, "samples", "Videra.SurfaceCharts.Demo", "Services", "SurfaceDemoSupportSummary.cs");
 
         demoReadme.Should().Contain("support evidence, not stable benchmark guarantees");
@@ -42,7 +42,7 @@ public sealed class SurfaceChartsPerformanceTruthTests
         benchmarkGates.Should().Contain("hard numeric blocker for the committed threshold slice");
 
         supportSummary.Should().Contain("EvidenceOnly: true - values are support evidence, not stable benchmark guarantees.");
-        mainWindowCodeBehind.Should().Contain("there was no scenario/data-path fallback");
+        cacheSourceHandler.Should().Contain("there was no scenario/data-path fallback");
         supportSummary.Should().Contain("no fallback active");
     }
 

@@ -419,14 +419,18 @@ public sealed class SurfaceChartsDemoViewportBehaviorTests
             var statusText = window.FindControl<TextBlock>("StatusText")
                 ?? throw new InvalidOperationException("StatusText is missing.");
 
-            var cacheSourceTaskField = typeof(MainWindow).GetField("_cacheSourceTask", BindingFlags.Instance | BindingFlags.NonPublic);
+            var cacheHandlerField = typeof(MainWindow).GetField("_cacheHandler", BindingFlags.Instance | BindingFlags.NonPublic);
             var inMemorySourceField = typeof(MainWindow).GetField("_inMemorySource", BindingFlags.Instance | BindingFlags.NonPublic);
-            cacheSourceTaskField.Should().NotBeNull();
+            cacheHandlerField.Should().NotBeNull();
             inMemorySourceField.Should().NotBeNull();
+
+            var cacheHandler = cacheHandlerField!.GetValue(window)!;
+            var cacheSourceTaskField = cacheHandler.GetType().GetField("_cacheSourceTask", BindingFlags.Instance | BindingFlags.NonPublic);
+            cacheSourceTaskField.Should().NotBeNull();
 
             var cacheSourceCompletion = new TaskCompletionSource<ISurfaceTileSource>(TaskCreationOptions.RunContinuationsAsynchronously);
             var inMemorySource = (ISurfaceTileSource)inMemorySourceField!.GetValue(window)!;
-            cacheSourceTaskField!.SetValue(window, cacheSourceCompletion.Task);
+            cacheSourceTaskField!.SetValue(cacheHandler, cacheSourceCompletion.Task);
 
             SelectItem(sourceSelector, GetComboBoxItemByContent(sourceSelector, "Explore next: Cache-backed streaming"));
             SelectItem(sourceSelector, GetComboBoxItemByContent(sourceSelector, "Try next: Waterfall proof"));
@@ -467,10 +471,13 @@ public sealed class SurfaceChartsDemoViewportBehaviorTests
             var previousSource = GetActiveSurfaceSource(chartView);
             previousSource.Should().NotBeNull();
 
-            var cacheSourceTaskField = typeof(MainWindow).GetField("_cacheSourceTask", BindingFlags.Instance | BindingFlags.NonPublic);
+            var cacheHandlerField = typeof(MainWindow).GetField("_cacheHandler", BindingFlags.Instance | BindingFlags.NonPublic);
+            cacheHandlerField.Should().NotBeNull();
+            var cacheHandler = cacheHandlerField!.GetValue(window)!;
+            var cacheSourceTaskField = cacheHandler.GetType().GetField("_cacheSourceTask", BindingFlags.Instance | BindingFlags.NonPublic);
             cacheSourceTaskField.Should().NotBeNull();
             cacheSourceTaskField!.SetValue(
-                window,
+                cacheHandler,
                 Task.FromException<ISurfaceTileSource>(new InvalidOperationException("cache manifest sidecar missing")));
 
             var cacheItem = GetComboBoxItemByContent(sourceSelector, "Explore next: Cache-backed streaming");

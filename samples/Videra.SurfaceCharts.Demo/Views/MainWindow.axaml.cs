@@ -160,6 +160,11 @@ public partial class MainWindow : Window
             this.FindControl<TextBlock>("HeatmapPositionText")
                 ?? throw new InvalidOperationException("HeatmapPositionText is missing."));
 
+        this.FindControl<Slider>("LineWidthSlider")!.ValueChanged += _parameterController.OnLineWidthChanged;
+        this.FindControl<Slider>("RibbonRadiusSlider")!.ValueChanged += _parameterController.OnRibbonRadiusChanged;
+        this.FindControl<Slider>("VectorFieldScaleSlider")!.ValueChanged += _parameterController.OnVectorFieldScaleChanged;
+        this.FindControl<Slider>("HeatmapPositionSlider")!.ValueChanged += _parameterController.OnHeatmapPositionChanged;
+
         _allChartViews =
         [
             _surfaceChartView, _waterfallChartView, _scatterChartView, _barChartView,

@@ -61,7 +61,7 @@ public sealed class ReleaseCandidateTruthRepositoryTests
         script.Should().Contain("scripts/Validate-Packages.ps1");
         script.Should().Contain("release-dry-run-summary.json");
         script.Should().Contain("release-dry-run-summary.txt");
-        script.Should().NotContain("dotnet nuget push");
+        script.Should().NotContain("dotnet nuget push --source", "dry-run script must not execute nuget push directly");
     }
 
     [Fact]

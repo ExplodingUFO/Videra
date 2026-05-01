@@ -30,9 +30,9 @@ public sealed class SurfaceChartsHighPerformancePathTests
     [Fact]
     public void DemoInMemorySurfaceFactory_UsesInMemorySurfaceTileSource()
     {
-        var createSource = typeof(MainWindow).GetMethod(
+        var createSource = typeof(SampleDataFactory).GetMethod(
             "CreateInMemorySource",
-            BindingFlags.NonPublic | BindingFlags.Static);
+            BindingFlags.Public | BindingFlags.Static);
 
         createSource.Should().NotBeNull();
         var source = createSource!.Invoke(null, null).Should().BeAssignableTo<ISurfaceTileSource>().Subject;
