@@ -552,5 +552,45 @@ internal static class CookbookRecipes
 
                 chart.FitToData();
                 """),
+        new(
+            "SVG export",
+            "Resolution-independent vector output",
+            "Exports a chart as SVG for publication-quality vector graphics that scale without pixelation.",
+            ScenarioId: SurfaceDemoScenarios.StartId,
+            ScatterScenarioId: null,
+            Snippet: """
+                var result = await chart.Plot.SaveSvgAsync(
+                    "artifacts/surfacecharts/chart.svg",
+                    width: 1200,
+                    height: 800);
+
+                if (!result.Succeeded)
+                {
+                    throw new InvalidOperationException(result.Failure?.Message);
+                }
+                """),
+        new(
+            "Batch export",
+            "Multi-chart export with manifest",
+            "Exports multiple charts in a single batch operation with a JSON manifest for CI integration.",
+            ScenarioId: SurfaceDemoScenarios.StartId,
+            ScatterScenarioId: null,
+            Snippet: """
+                var items = new[]
+                {
+                    new PlotBatchItem(chartA.Plot, "surface"),
+                    new PlotBatchItem(chartB.Plot, "scatter"),
+                };
+                var request = new PlotSnapshotRequest(
+                    1920, 1080, 1.0,
+                    PlotSnapshotBackground.Opaque,
+                    PlotSnapshotFormat.Svg);
+
+                var manifest = await PlotBatchExporter.ExportAsync(
+                    items, "artifacts/batch-export", request);
+
+                Console.WriteLine($"Exported {manifest.SuccessCount}/{manifest.TotalCount} charts");
+                Console.WriteLine($"Manifest: {manifest.AllSucceeded}");
+                """),
     ];
 }

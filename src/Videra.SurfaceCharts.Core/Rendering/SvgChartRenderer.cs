@@ -150,7 +150,6 @@ public static class SvgChartRenderer
         foreach (var bar in scene.Bars)
         {
             var barLeft = bar.Position.X - bar.Size.X / 2f;
-            var barBottom = bar.Position.Y - bar.Size.Y / 2f;
             var barTop = bar.Position.Y + bar.Size.Y / 2f;
 
             var svgX = DefaultMarginLeft + (barLeft - xMin) / xRange * plotWidth;
@@ -210,15 +209,11 @@ public static class SvgChartRenderer
                 sb.AppendFormat(CultureInfo.InvariantCulture, "{0:F2}", y1);
                 sb.Append(' ');
                 sb.AppendFormat(CultureInfo.InvariantCulture, "A {0:F2} {0:F2} 0 {1} 1 ", outerRadius, largeArc);
-                sb.AppendFormat(CultureInfo.InvariantCulture, "{0:F2}", x2);
+                sb.AppendFormat(CultureInfo.InvariantCulture, "{0:F2} {1:F2}", x2, y2);
                 sb.Append(' ');
-                sb.AppendFormat(CultureInfo.InvariantCulture, "{0:F2}", y2);
-                sb.Append(' ');
-                sb.AppendFormat(CultureInfo.InvariantCulture, "L {0:F2} {0:F2} ", ix1, iy1);
+                sb.AppendFormat(CultureInfo.InvariantCulture, "L {0:F2} {1:F2} ", ix1, iy1);
                 sb.AppendFormat(CultureInfo.InvariantCulture, "A {0:F2} {0:F2} 0 {1} 0 ", innerRadius, largeArc);
-                sb.AppendFormat(CultureInfo.InvariantCulture, "{0:F2}", ix2);
-                sb.Append(' ');
-                sb.AppendFormat(CultureInfo.InvariantCulture, "{0:F2}", iy2);
+                sb.AppendFormat(CultureInfo.InvariantCulture, "{0:F2} {1:F2}", ix2, iy2);
                 sb.Append(" Z\" fill=\"");
                 sb.Append(ColorToHex(slice.Color));
                 sb.AppendLine("\" />");
@@ -227,12 +222,12 @@ public static class SvgChartRenderer
             {
                 // Full pie
                 sb.Append("  <path d=\"M ");
-                sb.AppendFormat(CultureInfo.InvariantCulture, "{0:F2} {0:F2}", explodeX, explodeY);
+                sb.AppendFormat(CultureInfo.InvariantCulture, "{0:F2} {1:F2}", explodeX, explodeY);
                 sb.Append(' ');
-                sb.AppendFormat(CultureInfo.InvariantCulture, "L {0:F2} {0:F2}", x1, y1);
+                sb.AppendFormat(CultureInfo.InvariantCulture, "L {0:F2} {1:F2}", x1, y1);
                 sb.Append(' ');
                 sb.AppendFormat(CultureInfo.InvariantCulture, "A {0:F2} {0:F2} 0 {1} 1 ", outerRadius, largeArc);
-                sb.AppendFormat(CultureInfo.InvariantCulture, "{0:F2} {0:F2}", x2, y2);
+                sb.AppendFormat(CultureInfo.InvariantCulture, "{0:F2} {1:F2}", x2, y2);
                 sb.Append(" Z\" fill=\"");
                 sb.Append(ColorToHex(slice.Color));
                 sb.AppendLine("\" />");

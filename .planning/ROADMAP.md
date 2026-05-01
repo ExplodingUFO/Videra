@@ -14,23 +14,23 @@ compatibility adapters, or fake validation evidence.
 
 ## Phases
 
-- [ ] **Phase 447: Histogram & Function Plot** - Add Histogram and Function
+- [x] **Phase 447: Histogram & Function Plot** - Add Histogram and Function
   chart types with data model, renderer, probe strategy, and Plot3D API.
-- [ ] **Phase 448: Pie/Donut Chart** - Add Pie/Donut chart type with slice
+- [x] **Phase 448: Pie/Donut Chart** - Add Pie/Donut chart type with slice
   rendering, labels, explode offset, and donut hole ratio.
-- [ ] **Phase 449: Error Bar Overlay** - Add Error Bar overlay on scatter plots
+- [x] **Phase 449: Error Bar Overlay** - Add Error Bar overlay on scatter plots
   with symmetric/asymmetric X/Y error bars.
-- [ ] **Phase 450: OHLC/Candlestick Chart** - Add OHLC/Candlestick chart type
+- [x] **Phase 450: OHLC/Candlestick Chart** - Add OHLC/Candlestick chart type
   for financial data with up/down colors and wick rendering.
-- [ ] **Phase 451: Violin & Polygon Chart** - Add Violin plot (KDE) and Polygon
+- [x] **Phase 451: Violin & Polygon Chart** - Add Violin plot (KDE) and Polygon
   chart types with configurable rendering.
-- [ ] **Phase 452: Axis System Upgrade** - Add DateTime axis, log scale, tick
+- [x] **Phase 452: Axis System Upgrade** - Add DateTime axis, log scale, tick
   formatting, minor ticks, axis inversion, and multiple Y axes.
-- [ ] **Phase 453: Text & Arrow Annotations** - Add text annotation and arrow
+- [x] **Phase 453: Text & Arrow Annotations** - Add text annotation and arrow
   annotation anchored to data coordinates.
 - [ ] **Phase 454: Reference Lines, Spans & Shapes** - Add reference lines,
   reference regions, and shape annotations.
-- [ ] **Phase 455: SVG & Batch Export** - Add SVG export and batch export API
+- [x] **Phase 455: SVG & Batch Export** - Add SVG export and batch export API
   with JSON manifest for CI integration.
 - [ ] **Phase 456: Demo Framework Refactor** - Refactor MainWindow into
   recipe-driven architecture with IChartRecipe, group navigation, and auto-generated
@@ -231,10 +231,10 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 447. Histogram & Function Plot | 0/1 | Not started | — |
-| 448. Pie/Donut Chart | 0/1 | Not started | — |
-| 449. Error Bar Overlay | 0/1 | Not started | — |
-| 450. OHLC/Candlestick Chart | 0/1 | Not started | — |
+| 447. Histogram & Function Plot | 1/1 | Complete | 0368fb5 |
+| 448. Pie/Donut Chart | 1/1 | Complete | a4dc5ce |
+| 449. Error Bar Overlay | 1/1 | Complete | f37b30c |
+| 450. OHLC/Candlestick Chart | 1/1 | Complete | 149098c |
 | 451. Violin & Polygon Chart | 0/1 | Not started | — |
 | 452. Axis System Upgrade | 0/1 | Not started | — |
 | 453. Text & Arrow Annotations | 0/1 | Not started | — |
