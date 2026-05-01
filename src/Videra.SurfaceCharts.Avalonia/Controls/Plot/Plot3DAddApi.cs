@@ -541,6 +541,38 @@ public sealed class Plot3DAddApi
         _plot.AddArrowAnnotation(new ArrowAnnotationData(start, end, color, label: label));
     }
 
+    /// <summary>
+    /// Adds a reference line at a fixed axis value.
+    /// </summary>
+    public void ReferenceLine(ReferenceAxis axis, double value, uint color = 0xFFFF0000u, double lineWidth = 1.5d, string? label = null)
+    {
+        _plot.AddReferenceLine(new ReferenceLineData(axis, value, color, lineWidth, label));
+    }
+
+    /// <summary>
+    /// Adds a reference span between two axis values.
+    /// </summary>
+    public void ReferenceSpan(ReferenceAxis axis, double start, double end, uint color = 0x40FF0000u, string? label = null)
+    {
+        _plot.AddReferenceSpan(new ReferenceSpanData(axis, start, end, color, label: label));
+    }
+
+    /// <summary>
+    /// Adds a rectangle shape annotation at a 3D position.
+    /// </summary>
+    public void Rectangle(System.Numerics.Vector3 center, double width, double height, uint fillColor = 0x404DA3FFu, string? label = null)
+    {
+        _plot.AddShapeAnnotation(new ShapeAnnotationData(ShapeKind.Rectangle, center, width, height, fillColor, label: label));
+    }
+
+    /// <summary>
+    /// Adds an ellipse shape annotation at a 3D position.
+    /// </summary>
+    public void Ellipse(System.Numerics.Vector3 center, double width, double height, uint fillColor = 0x404DA3FFu, string? label = null)
+    {
+        _plot.AddShapeAnnotation(new ShapeAnnotationData(ShapeKind.Ellipse, center, width, height, fillColor, label: label));
+    }
+
     private static SurfaceMatrix CreateSurfaceMatrix(double[,] values)
     {
         ArgumentNullException.ThrowIfNull(values);

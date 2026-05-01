@@ -24,6 +24,8 @@ internal sealed class SurfaceChartOverlayCoordinator
 
     public SurfaceAnnotationOverlayState AnnotationState { get; private set; } = SurfaceAnnotationOverlayState.Empty;
 
+    public SurfaceReferenceOverlayState ReferenceState { get; private set; } = SurfaceReferenceOverlayState.Empty;
+
     /// <summary>
     /// Gets or sets a value indicating whether the coordinator is in snapshot mode.
     /// When true, interaction chrome (crosshair, hovered probe, toolbar) is suppressed during rendering.
@@ -41,6 +43,7 @@ internal sealed class SurfaceChartOverlayCoordinator
         CrosshairState = SurfaceCrosshairOverlayState.Empty;
         ToolbarState = SurfaceChartToolbarOverlayState.Empty;
         AnnotationState = SurfaceAnnotationOverlayState.Empty;
+        ReferenceState = SurfaceReferenceOverlayState.Empty;
     }
 
     public void UpdateViewSize(Size viewSize)
@@ -112,7 +115,10 @@ internal sealed class SurfaceChartOverlayCoordinator
         IReadOnlyList<Plot3DSeries>? series = null,
         bool canInteract = false,
         IReadOnlyList<TextAnnotationData>? textAnnotations = null,
-        IReadOnlyList<ArrowAnnotationData>? arrowAnnotations = null)
+        IReadOnlyList<ArrowAnnotationData>? arrowAnnotations = null,
+        IReadOnlyList<ReferenceLineData>? referenceLines = null,
+        IReadOnlyList<ReferenceSpanData>? referenceSpans = null,
+        IReadOnlyList<ShapeAnnotationData>? shapeAnnotations = null)
     {
         ArgumentNullException.ThrowIfNull(loadedTiles);
         ArgumentNullException.ThrowIfNull(overlayOptions);
@@ -139,6 +145,15 @@ internal sealed class SurfaceChartOverlayCoordinator
             textAnnotations,
             arrowAnnotations,
             chartProjection);
+
+        var metadata = source?.Metadata;
+        ReferenceState = SurfaceReferenceOverlayPresenter.CreateState(
+            referenceLines,
+            referenceSpans,
+            shapeAnnotations,
+            chartProjection,
+            metadata,
+            metadata?.ValueRange);
     }
 
     public void Render(DrawingContext context, SurfaceChartProjection? chartProjection)
@@ -147,6 +162,7 @@ internal sealed class SurfaceChartOverlayCoordinator
 
         SurfaceAxisOverlayPresenter.Render(context, AxisState);
         SurfaceLegendOverlayPresenter.Render(context, LegendState);
+        SurfaceReferenceOverlayPresenter.Render(context, ReferenceState);
         SurfaceAnnotationOverlayPresenter.Render(context, AnnotationState);
 
         if (IsSnapshotMode)

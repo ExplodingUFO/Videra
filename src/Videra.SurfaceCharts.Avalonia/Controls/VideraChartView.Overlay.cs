@@ -295,7 +295,10 @@ public partial class VideraChartView
             Plot.Series,
             _runtime.CanInteract,
             Plot.TextAnnotations,
-            Plot.ArrowAnnotations);
+            Plot.ArrowAnnotations,
+            Plot.ReferenceLines,
+            Plot.ReferenceSpans,
+            Plot.ShapeAnnotations);
         _overlayLayer.InvalidateVisual();
     }
 

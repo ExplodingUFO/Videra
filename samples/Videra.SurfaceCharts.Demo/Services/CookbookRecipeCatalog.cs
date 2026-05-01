@@ -553,6 +553,33 @@ internal static class CookbookRecipes
                 chart.FitToData();
                 """),
         new(
+            "Reference lines & shapes",
+            "Threshold lines, regions, and shape overlays",
+            "Isolated setup path: adds reference lines, spans, and shape annotations anchored to data coordinates.",
+            ScenarioId: SurfaceDemoScenarios.ReferenceId,
+            ScatterScenarioId: null,
+            Snippet: """
+                chart.Plot.Add.Surface(surfaceSource, name: "Surface");
+
+                chart.Plot.Add.ReferenceLine(
+                    ReferenceAxis.Y, 0.5,
+                    color: 0xFFFF0000u, lineWidth: 2, label: "Threshold");
+
+                chart.Plot.Add.ReferenceSpan(
+                    ReferenceAxis.X, 20, 40,
+                    color: 0x4000FF00u, label: "Region of Interest");
+
+                chart.Plot.Add.Rectangle(
+                    new Vector3(32, 0.4f, 32), 10, 10,
+                    fillColor: 0x40FFA500u, label: "Zone A");
+
+                chart.Plot.Add.Ellipse(
+                    new Vector3(48, 0.3f, 16), 12, 8,
+                    fillColor: 0x409B59B6u, label: "Zone B");
+
+                chart.FitToData();
+                """),
+        new(
             "SVG export",
             "Resolution-independent vector output",
             "Exports a chart as SVG for publication-quality vector graphics that scale without pixelation.",

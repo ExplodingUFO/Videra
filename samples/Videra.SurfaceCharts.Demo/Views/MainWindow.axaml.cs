@@ -462,6 +462,12 @@ public partial class MainWindow : Window
             return;
         }
 
+        if (scenario.Id == SurfaceDemoScenarios.ReferenceId)
+        {
+            ApplyReferenceSource(scenario);
+            return;
+        }
+
         if (scenario.Id == SurfaceDemoScenarios.MultiPlot3DId)
         {
             SetupMultiPlot3DScenario(scenario);
@@ -984,6 +990,52 @@ public partial class MainWindow : Window
         _activePlotPathHeading = scenario.Label;
         _activePlotPathDetails = "Surface chart with text and arrow annotations. Demonstrates Plot.Add.Text and Plot.Add.Arrow anchored to 3D data coordinates.";
         _activeDatasetSummary = "Annotation proof shows text labels and arrows rendered on a surface chart.";
+        _activeAssetSummary = "No additional assets are used on this path.";
+        _datasetText.Text = _activeDatasetSummary;
+        RefreshActiveProofTexts();
+    }
+
+    private void ApplyReferenceSource(SurfaceDemoScenario scenario)
+    {
+        SetActiveChartView(_surfaceChartView);
+        _activeScatterData = null;
+        _surfaceChartView.Plot.Clear();
+
+        _surfaceChartView.Plot.Add.Surface(_inMemorySource, name: "Base Surface");
+
+        // Reference line on Y axis (horizontal line)
+        _surfaceChartView.Plot.Add.ReferenceLine(
+            Videra.SurfaceCharts.Core.ReferenceAxis.Y,
+            0.5,
+            color: 0xFFFF0000u,
+            lineWidth: 2d,
+            label: "Threshold");
+
+        // Reference span on X axis
+        _surfaceChartView.Plot.Add.ReferenceSpan(
+            Videra.SurfaceCharts.Core.ReferenceAxis.X,
+            20, 40,
+            color: 0x4000FF00u,
+            label: "Region of Interest");
+
+        // Rectangle shape annotation
+        _surfaceChartView.Plot.Add.Rectangle(
+            new System.Numerics.Vector3(32, 0.4f, 32),
+            10, 10,
+            fillColor: 0x40FFA500u,
+            label: "Zone A");
+
+        // Ellipse shape annotation
+        _surfaceChartView.Plot.Add.Ellipse(
+            new System.Numerics.Vector3(48, 0.3f, 16),
+            12, 8,
+            fillColor: 0x409B59B6u,
+            label: "Zone B");
+
+        _surfaceChartView.FitToData();
+        _activePlotPathHeading = scenario.Label;
+        _activePlotPathDetails = "Surface chart with reference lines, spans, and shape annotations. Demonstrates Plot.Add.ReferenceLine, ReferenceSpan, Rectangle, and Ellipse.";
+        _activeDatasetSummary = "Reference proof shows threshold lines, region spans, and shape overlays on a surface chart.";
         _activeAssetSummary = "No additional assets are used on this path.";
         _datasetText.Text = _activeDatasetSummary;
         RefreshActiveProofTexts();

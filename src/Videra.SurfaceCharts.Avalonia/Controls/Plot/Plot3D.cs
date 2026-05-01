@@ -14,6 +14,9 @@ public sealed class Plot3D
     private readonly ReadOnlyCollection<Plot3DSeries> _seriesView;
     private readonly List<TextAnnotationData> _textAnnotations = [];
     private readonly List<ArrowAnnotationData> _arrowAnnotations = [];
+    private readonly List<ReferenceLineData> _referenceLines = [];
+    private readonly List<ReferenceSpanData> _referenceSpans = [];
+    private readonly List<ShapeAnnotationData> _shapeAnnotations = [];
     private SurfaceColorMap? _colorMap;
     private SurfaceChartOverlayOptions _overlayOptions = SurfaceChartOverlayOptions.Default;
     private Func<int, int, double, Task<RenderTargetBitmap>>? _renderOffscreen;
@@ -54,6 +57,21 @@ public sealed class Plot3D
     /// Gets the arrow annotations attached to this plot.
     /// </summary>
     public IReadOnlyList<ArrowAnnotationData> ArrowAnnotations => _arrowAnnotations;
+
+    /// <summary>
+    /// Gets the reference lines attached to this plot.
+    /// </summary>
+    public IReadOnlyList<ReferenceLineData> ReferenceLines => _referenceLines;
+
+    /// <summary>
+    /// Gets the reference spans attached to this plot.
+    /// </summary>
+    public IReadOnlyList<ReferenceSpanData> ReferenceSpans => _referenceSpans;
+
+    /// <summary>
+    /// Gets the shape annotations attached to this plot.
+    /// </summary>
+    public IReadOnlyList<ShapeAnnotationData> ShapeAnnotations => _shapeAnnotations;
 
     /// <summary>
     /// Gets a typed snapshot of the series attached to this plot in draw order.
@@ -370,7 +388,8 @@ public sealed class Plot3D
     /// </summary>
     public void Clear()
     {
-        if (_series.Count == 0 && _textAnnotations.Count == 0 && _arrowAnnotations.Count == 0)
+        if (_series.Count == 0 && _textAnnotations.Count == 0 && _arrowAnnotations.Count == 0 &&
+            _referenceLines.Count == 0 && _referenceSpans.Count == 0 && _shapeAnnotations.Count == 0)
         {
             return;
         }
@@ -378,6 +397,9 @@ public sealed class Plot3D
         _series.Clear();
         _textAnnotations.Clear();
         _arrowAnnotations.Clear();
+        _referenceLines.Clear();
+        _referenceSpans.Clear();
+        _shapeAnnotations.Clear();
         NotifyChanged();
     }
 
@@ -426,6 +448,78 @@ public sealed class Plot3D
         }
 
         _arrowAnnotations.Clear();
+        NotifyChanged();
+    }
+
+    /// <summary>
+    /// Adds a reference line to the plot.
+    /// </summary>
+    public void AddReferenceLine(ReferenceLineData referenceLine)
+    {
+        ArgumentNullException.ThrowIfNull(referenceLine);
+        _referenceLines.Add(referenceLine);
+        NotifyChanged();
+    }
+
+    /// <summary>
+    /// Adds a reference span to the plot.
+    /// </summary>
+    public void AddReferenceSpan(ReferenceSpanData referenceSpan)
+    {
+        ArgumentNullException.ThrowIfNull(referenceSpan);
+        _referenceSpans.Add(referenceSpan);
+        NotifyChanged();
+    }
+
+    /// <summary>
+    /// Adds a shape annotation to the plot.
+    /// </summary>
+    public void AddShapeAnnotation(ShapeAnnotationData shapeAnnotation)
+    {
+        ArgumentNullException.ThrowIfNull(shapeAnnotation);
+        _shapeAnnotations.Add(shapeAnnotation);
+        NotifyChanged();
+    }
+
+    /// <summary>
+    /// Removes all reference lines from the plot.
+    /// </summary>
+    public void ClearReferenceLines()
+    {
+        if (_referenceLines.Count == 0)
+        {
+            return;
+        }
+
+        _referenceLines.Clear();
+        NotifyChanged();
+    }
+
+    /// <summary>
+    /// Removes all reference spans from the plot.
+    /// </summary>
+    public void ClearReferenceSpans()
+    {
+        if (_referenceSpans.Count == 0)
+        {
+            return;
+        }
+
+        _referenceSpans.Clear();
+        NotifyChanged();
+    }
+
+    /// <summary>
+    /// Removes all shape annotations from the plot.
+    /// </summary>
+    public void ClearShapeAnnotations()
+    {
+        if (_shapeAnnotations.Count == 0)
+        {
+            return;
+        }
+
+        _shapeAnnotations.Clear();
         NotifyChanged();
     }
 

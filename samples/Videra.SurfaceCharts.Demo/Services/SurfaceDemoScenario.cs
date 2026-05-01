@@ -39,6 +39,7 @@ internal static class SurfaceDemoScenarios
     public const string ViolinId = "violin-proof";
     public const string PolygonId = "polygon-proof";
     public const string AnnotationId = "annotation-proof";
+    public const string ReferenceId = "reference-proof";
 
     public static IReadOnlyList<SurfaceDemoScenario> All { get; } =
     [
@@ -204,6 +205,12 @@ internal static class SurfaceDemoScenarios
             "Annotation",
             "Annotation",
             "Uses text and arrow annotations anchored to 3D data coordinates on a surface chart."),
+        new(
+            ReferenceId,
+            "Try next: Reference lines & shapes",
+            "Reference",
+            "Reference",
+            "Uses reference lines, spans, and shape annotations on a surface chart."),
     ];
 
     public static SurfaceDemoScenario Get(string id)
