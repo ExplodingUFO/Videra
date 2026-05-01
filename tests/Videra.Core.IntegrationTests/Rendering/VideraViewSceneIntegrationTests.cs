@@ -1386,12 +1386,19 @@ public sealed class VideraViewSceneIntegrationTests : IDisposable
         }
     }
 
-    private sealed class NativeTrackingBackend : IGraphicsBackend
+    private sealed class NativeTrackingBackend : IGraphicsBackend, IGraphicsDevice
     {
         private readonly TrackingResourceFactory _resourceFactory = new();
         private readonly TrackingCommandExecutor _commandExecutor = new();
 
         public bool IsInitialized { get; private set; }
+
+        public GraphicsBackendPreference? ActiveBackendPreference => GraphicsBackendPreference.D3D11;
+        public bool IsSoftwareBackend => false;
+        public IResourceFactory ResourceFactory => _resourceFactory;
+        public ICommandExecutor CommandExecutor => _commandExecutor;
+
+        public IRenderSurface CreateRenderSurface() => new NativeTrackingRenderSurface();
 
         public void Initialize(IntPtr windowHandle, int width, int height)
         {
@@ -1427,6 +1434,35 @@ public sealed class VideraViewSceneIntegrationTests : IDisposable
         public void Dispose()
         {
             IsInitialized = false;
+        }
+    }
+
+    private sealed class NativeTrackingRenderSurface : IRenderSurface
+    {
+        public bool IsInitialized { get; private set; }
+        public bool UsesSoftwarePresentationCopy => false;
+
+        public void Initialize(IntPtr windowHandle, int width, int height)
+        {
+            IsInitialized = true;
+        }
+
+        public void Resize(int width, int height)
+        {
+        }
+
+        public IFrameContext BeginFrame(Vector4 clearColor) => new NativeTrackingFrameContext();
+
+        public void Dispose()
+        {
+            IsInitialized = false;
+        }
+    }
+
+    private sealed class NativeTrackingFrameContext : IFrameContext
+    {
+        public void Dispose()
+        {
         }
     }
 

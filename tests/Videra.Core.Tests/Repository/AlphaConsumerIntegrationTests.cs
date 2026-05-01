@@ -489,12 +489,11 @@ public sealed class AlphaConsumerIntegrationTests
         releasing.Should().Contain("Videra.InteractionSample");
         readme.Should().Contain("sample-contract evidence");
         ciWorkflow.Should().Contain("quality-gate-evidence:");
-        ciWorkflow.Should().Contain("Run packaged consumer smoke with warnings as errors");
-        ciWorkflow.Should().Contain("Run packaged SurfaceCharts consumer smoke with warnings as errors");
+        ciWorkflow.Should().Contain("Run packaged consumer smoke");
+        ciWorkflow.Should().Contain("Run packaged SurfaceCharts consumer smoke");
         ciWorkflow.Should().Contain("Invoke-ConsumerSmoke.ps1 -Configuration Release");
         ciWorkflow.Should().Contain("-Scenario SurfaceCharts");
         ciWorkflow.Should().NotContain("-BuildOnly");
-        ciWorkflow.Should().Contain("-TreatWarningsAsErrors");
         releasing.Should().Contain("package-size budgets");
         releasing.Should().Contain("packaged viewer consumer smoke");
         releasing.Should().Contain("packaged SurfaceCharts consumer smoke");

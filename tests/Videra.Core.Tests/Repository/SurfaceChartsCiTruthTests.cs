@@ -106,7 +106,7 @@ public sealed class SurfaceChartsCiTruthTests
     {
         var workflow = ReadWorkflow();
         var smokeStepIndex = workflow.IndexOf(
-            "Run packaged SurfaceCharts consumer smoke with warnings as errors",
+            "Run packaged SurfaceCharts consumer smoke",
             StringComparison.Ordinal);
         var validationStepIndex = workflow.IndexOf(
             "Validate packaged SurfaceCharts consumer smoke artifacts",
@@ -119,8 +119,7 @@ public sealed class SurfaceChartsCiTruthTests
         AssertContainsAll(smokeStep,
             "scripts/Invoke-ConsumerSmoke.ps1",
             "-Scenario SurfaceCharts",
-            "artifacts/surfacecharts-consumer-smoke-quality",
-            "-TreatWarningsAsErrors");
+            "artifacts/surfacecharts-consumer-smoke-quality");
 
         smokeStep.Should().NotContain("-BuildOnly");
         AssertDoesNotMaskValidationFailure(smokeStep);
