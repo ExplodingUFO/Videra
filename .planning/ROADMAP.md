@@ -37,7 +37,7 @@ compatibility adapters, or fake validation evidence.
   parameter panels.
 - [x] **Phase 457: Cookbook Recipes for New Features** - Add cookbook recipes for
   all new chart types, axis features, annotations, and export.
-- [ ] **Phase 458: Verification & Milestone Closure** - Final build verification,
+- [x] **Phase 458: Verification & Milestone Closure** - Final build verification,
   all requirements check, planning docs update, milestone closure.
 
 ## Phase Details
@@ -241,8 +241,8 @@ Plans:
 | 454. Reference Lines, Spans & Shapes | 1/1 | Complete | 51d8aa3 |
 | 455. SVG & Batch Export | 1/1 | Complete | dfe7ade |
 | 456. Demo Framework Refactor | 1/1 | Complete | ee605a4 |
-| 457. Cookbook Recipes for New Features | 1/1 | Complete | — |
-| 458. Verification & Milestone Closure | 0/1 | Not started | — |
+| 457. Cookbook Recipes for New Features | 1/1 | Complete | 021174b |
+| 458. Verification & Milestone Closure | 1/1 | Complete | — |
 
 ---
 

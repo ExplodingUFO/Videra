@@ -215,7 +215,10 @@ public sealed class SurfaceTooltipOverlayTests
             barData: null,
             contourData: null,
             lineData: null,
-            ribbonData: null);
+            ribbonData: null,
+            vectorFieldData: null,
+            heatmapSliceData: null,
+            boxPlotData: null);
     }
 
     private static List<Plot3DSeries> CreateMultiSeries(SurfaceMetadata metadata)
