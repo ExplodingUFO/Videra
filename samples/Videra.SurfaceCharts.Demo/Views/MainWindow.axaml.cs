@@ -1,7 +1,6 @@
 using System.Globalization;
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.Primitives;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Videra.SurfaceCharts.Avalonia.Controls;
@@ -82,23 +81,9 @@ public partial class MainWindow : Window
     private ScatterChartData? _activeScatterData;
     private PlotSnapshotResult? _lastSnapshotResult;
 
-    // Recipe parameter controls
-    private readonly Border _recipeParameterPanel;
-    private readonly StackPanel _lineParamGroup;
-    private readonly StackPanel _ribbonParamGroup;
-    private readonly StackPanel _vectorFieldParamGroup;
-    private readonly StackPanel _heatmapParamGroup;
-
-    // Active series for live parameter updates
-    private LinePlot3DSeries? _activeLineSeries;
-    private RibbonPlot3DSeries? _activeRibbonSeries;
-    private VectorFieldPlot3DSeries? _activeVectorFieldSeries;
-    private HeatmapSlicePlot3DSeries? _activeHeatmapSliceSeries;
+    private readonly RecipeParameterController _parameterController;
+    private readonly VideraChartView[] _allChartViews;
     private RecipeContext? _recipeContext;
-    private readonly TextBlock _lineWidthText;
-    private readonly TextBlock _ribbonRadiusText;
-    private readonly TextBlock _vectorFieldScaleText;
-    private readonly TextBlock _heatmapPositionText;
 
     public MainWindow()
     {
@@ -196,24 +181,33 @@ public partial class MainWindow : Window
             ?? throw new InvalidOperationException("SupportSummaryStatusText is missing.");
         _supportSummaryText = this.FindControl<TextBlock>("SupportSummaryText")
             ?? throw new InvalidOperationException("SupportSummaryText is missing.");
-        _recipeParameterPanel = this.FindControl<Border>("RecipeParameterPanel")
-            ?? throw new InvalidOperationException("RecipeParameterPanel is missing.");
-        _lineParamGroup = this.FindControl<StackPanel>("LineParamGroup")
-            ?? throw new InvalidOperationException("LineParamGroup is missing.");
-        _ribbonParamGroup = this.FindControl<StackPanel>("RibbonParamGroup")
-            ?? throw new InvalidOperationException("RibbonParamGroup is missing.");
-        _vectorFieldParamGroup = this.FindControl<StackPanel>("VectorFieldParamGroup")
-            ?? throw new InvalidOperationException("VectorFieldParamGroup is missing.");
-        _heatmapParamGroup = this.FindControl<StackPanel>("HeatmapParamGroup")
-            ?? throw new InvalidOperationException("HeatmapParamGroup is missing.");
-        _lineWidthText = this.FindControl<TextBlock>("LineWidthText")
-            ?? throw new InvalidOperationException("LineWidthText is missing.");
-        _ribbonRadiusText = this.FindControl<TextBlock>("RibbonRadiusText")
-            ?? throw new InvalidOperationException("RibbonRadiusText is missing.");
-        _vectorFieldScaleText = this.FindControl<TextBlock>("VectorFieldScaleText")
-            ?? throw new InvalidOperationException("VectorFieldScaleText is missing.");
-        _heatmapPositionText = this.FindControl<TextBlock>("HeatmapPositionText")
-            ?? throw new InvalidOperationException("HeatmapPositionText is missing.");
+        _parameterController = new RecipeParameterController(
+            this.FindControl<Border>("RecipeParameterPanel")
+                ?? throw new InvalidOperationException("RecipeParameterPanel is missing."),
+            this.FindControl<StackPanel>("LineParamGroup")
+                ?? throw new InvalidOperationException("LineParamGroup is missing."),
+            this.FindControl<StackPanel>("RibbonParamGroup")
+                ?? throw new InvalidOperationException("RibbonParamGroup is missing."),
+            this.FindControl<StackPanel>("VectorFieldParamGroup")
+                ?? throw new InvalidOperationException("VectorFieldParamGroup is missing."),
+            this.FindControl<StackPanel>("HeatmapParamGroup")
+                ?? throw new InvalidOperationException("HeatmapParamGroup is missing."),
+            this.FindControl<TextBlock>("LineWidthText")
+                ?? throw new InvalidOperationException("LineWidthText is missing."),
+            this.FindControl<TextBlock>("RibbonRadiusText")
+                ?? throw new InvalidOperationException("RibbonRadiusText is missing."),
+            this.FindControl<TextBlock>("VectorFieldScaleText")
+                ?? throw new InvalidOperationException("VectorFieldScaleText is missing."),
+            this.FindControl<TextBlock>("HeatmapPositionText")
+                ?? throw new InvalidOperationException("HeatmapPositionText is missing."));
+
+        _allChartViews =
+        [
+            _surfaceChartView, _waterfallChartView, _scatterChartView, _barChartView,
+            _contourPlotView, _linePlotView, _ribbonPlotView, _vectorFieldPlotView,
+            _heatmapSlicePlotView, _boxPlotView, _histogramPlotView, _functionPlotView,
+            _piePlotView, _ohlcPlotView, _violinPlotView, _polygonPlotView,
+        ];
 
         _cachePath = Path.Combine(
             AppContext.BaseDirectory,
@@ -256,27 +250,7 @@ public partial class MainWindow : Window
                 _activeMultiPlot3D?.Dispose();
                 _multiPlot3DPanel.Children.Clear();
             },
-            hideAllCharts: () =>
-            {
-                _surfaceChartView.IsVisible = false;
-                _waterfallChartView.IsVisible = false;
-                _scatterChartView.IsVisible = false;
-                _barChartView.IsVisible = false;
-                _contourPlotView.IsVisible = false;
-                _linePlotView.IsVisible = false;
-                _ribbonPlotView.IsVisible = false;
-                _vectorFieldPlotView.IsVisible = false;
-                _heatmapSlicePlotView.IsVisible = false;
-                _boxPlotView.IsVisible = false;
-                _histogramPlotView.IsVisible = false;
-                _functionPlotView.IsVisible = false;
-                _piePlotView.IsVisible = false;
-                _ohlcPlotView.IsVisible = false;
-                _violinPlotView.IsVisible = false;
-                _polygonPlotView.IsVisible = false;
-                _analysisWorkspacePanel.IsVisible = false;
-                _workspaceToolbarPanel.IsVisible = false;
-            });
+            hideAllCharts: HideAllCharts);
 
         ConfigureSurfaceFamilyChartView(_surfaceChartView);
         ConfigureSurfaceFamilyChartView(_waterfallChartView);
@@ -376,7 +350,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        UpdateParameterPanel(scenario.Id);
+        _parameterController.UpdateParameterPanel(scenario.Id);
 
         // Complex scenarios that need special handling
         if (scenario.Id == SurfaceDemoScenarios.CacheId)
@@ -558,22 +532,14 @@ public partial class MainWindow : Window
 
     private void SetActiveChartView(VideraChartView chartView)
     {
-        _surfaceChartView.IsVisible = ReferenceEquals(chartView, _surfaceChartView);
-        _waterfallChartView.IsVisible = ReferenceEquals(chartView, _waterfallChartView);
-        _scatterChartView.IsVisible = ReferenceEquals(chartView, _scatterChartView);
-        _barChartView.IsVisible = ReferenceEquals(chartView, _barChartView);
-        _contourPlotView.IsVisible = ReferenceEquals(chartView, _contourPlotView);
-        _linePlotView.IsVisible = ReferenceEquals(chartView, _linePlotView);
-        _ribbonPlotView.IsVisible = ReferenceEquals(chartView, _ribbonPlotView);
-        _vectorFieldPlotView.IsVisible = ReferenceEquals(chartView, _vectorFieldPlotView);
-        _heatmapSlicePlotView.IsVisible = ReferenceEquals(chartView, _heatmapSlicePlotView);
-        _boxPlotView.IsVisible = ReferenceEquals(chartView, _boxPlotView);
-        _histogramPlotView.IsVisible = ReferenceEquals(chartView, _histogramPlotView);
-        _functionPlotView.IsVisible = ReferenceEquals(chartView, _functionPlotView);
-        _piePlotView.IsVisible = ReferenceEquals(chartView, _piePlotView);
-        _ohlcPlotView.IsVisible = ReferenceEquals(chartView, _ohlcPlotView);
-        _violinPlotView.IsVisible = ReferenceEquals(chartView, _violinPlotView);
-        _polygonPlotView.IsVisible = ReferenceEquals(chartView, _polygonPlotView);
+        foreach (var view in _allChartViews) view.IsVisible = ReferenceEquals(view, chartView);
+        _analysisWorkspacePanel.IsVisible = false;
+        _workspaceToolbarPanel.IsVisible = false;
+    }
+
+    private void HideAllCharts()
+    {
+        foreach (var view in _allChartViews) view.IsVisible = false;
         _analysisWorkspacePanel.IsVisible = false;
         _workspaceToolbarPanel.IsVisible = false;
     }
@@ -630,7 +596,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        UpdateInteractionQualityText();
+        _interactionQualityText.Text = ChartStatusFormatter.FormatInteractionQualityText(CreateStatusContext());
     }
 
     private void OnChartViewPropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
@@ -770,216 +736,18 @@ public partial class MainWindow : Window
         }
     }
 
-    private void UpdateViewStateText()
-    {
-        _viewStateText.Text = $"ViewState / camera state\n{CreateViewStateSummary()}";
-    }
-
-    private void UpdateInteractionQualityText()
-    {
-        if (IsScatterProofActive)
-        {
-            var scatter = _activeScatterData;
-            _interactionQualityText.Text =
-                $"Current mode: {_scatterChartView.InteractionQuality}\n" +
-                "Interactive: pointer navigation is active on the unified plot path.\n" +
-                $"Refine: settled plot is ready for {scatter?.PointCount ?? 0} scatter points.";
-            return;
-        }
-
-        if (IsContourProofActive)
-        {
-            var contourStatus = _contourPlotView.ContourRenderingStatus;
-            _interactionQualityText.Text =
-                $"Current mode: {_contourPlotView.InteractionQuality}\n" +
-                "Interactive: pointer navigation is active on the unified plot path.\n" +
-                $"Refine: settled plot is ready for {contourStatus.ExtractedLineCount} contour lines.";
-            return;
-        }
-
-        if (_barChartView.IsVisible)
-        {
-            var barStatus = _barChartView.BarRenderingStatus;
-            _interactionQualityText.Text =
-                $"Current mode: {_barChartView.InteractionQuality}\n" +
-                "Interactive: pointer navigation is active on the unified plot path.\n" +
-                $"Refine: settled plot is ready for {barStatus.BarCount} bars.";
-            return;
-        }
-
-        _interactionQualityText.Text =
-            $"Current mode: {ActiveSurfaceFamilyChartView.InteractionQuality}\n" +
-            "Interactive: lighter requests while orbit, pan, dolly, or focus input is in flight.\n" +
-            "Refine: full settled requests for the current view.";
-    }
-
-    private void UpdateStatusText()
-    {
-        if (IsScatterProofActive)
-        {
-            var scatter = _activeScatterData;
-            _statusText.Text =
-                $"{_activePlotPathHeading}\n" +
-                $"{_activePlotPathDetails}\n" +
-                "Scatter proof is authored through VideraChartView.Plot.Add.Scatter.\n" +
-                $"Current scene: {scatter?.SeriesCount ?? 0} series, {scatter?.PointCount ?? 0} points.\n" +
-                $"Columnar series: {scatter?.ColumnarSeriesCount ?? 0}; Retained columnar points: {scatter?.ColumnarPointCount ?? 0}; Pickable points: {scatter?.PickablePointCount ?? 0}.\n" +
-                $"Streaming appends: {scatter?.StreamingAppendBatchCount ?? 0}; FIFO capacity: {SurfaceDemoSupportSummary.FormatFifoCapacity(scatter?.ConfiguredFifoCapacity)}; Dropped points: {scatter?.StreamingDroppedPointCount ?? 0}.";
-            return;
-        }
-
-        if (IsContourProofActive)
-        {
-            var contourStatus = _contourPlotView.ContourRenderingStatus;
-            _statusText.Text =
-                $"{_activePlotPathHeading}\n" +
-                $"{_activePlotPathDetails}\n" +
-                "Contour proof is authored through VideraChartView.Plot.Add.Contour.\n" +
-                $"Current scene: {contourStatus.LevelCount} levels, {contourStatus.ExtractedLineCount} lines, {contourStatus.TotalSegmentCount} segments.";
-            return;
-        }
-
-        if (_barChartView.IsVisible)
-        {
-            var barStatus = _barChartView.BarRenderingStatus;
-            _statusText.Text =
-                $"{_activePlotPathHeading}\n" +
-                $"{_activePlotPathDetails}\n" +
-                "Bar proof is authored through VideraChartView.Plot.Add.Bar.\n" +
-                $"Current scene: {barStatus.SeriesCount} series, {barStatus.CategoryCount} categories, {barStatus.BarCount} bars, layout {barStatus.Layout}.";
-            return;
-        }
-
-        var dataWindow = ActiveSurfaceFamilyChartView.ViewState.DataWindow;
-        _statusText.Text =
-            $"{_activePlotPathHeading}\n" +
-            $"{_activePlotPathDetails}\n" +
-            "First-chart navigation: Left drag orbit, Right drag pan, Wheel dolly, Ctrl + Left drag focus zoom.\n" +
-            $"Current window: StartX {dataWindow.StartX:0.###}, StartY {dataWindow.StartY:0.###}, Width {dataWindow.Width:0.###}, Height {dataWindow.Height:0.###}";
-    }
-
-    private void UpdateRenderingPathText()
-    {
-        if (IsScatterProofActive)
-        {
-            var scatter = _activeScatterData;
-            _renderingPathText.Text =
-                "Plot path: VideraChartView.Plot.Add.Scatter\n" +
-                $"Plot revision: {_scatterChartView.Plot.Revision}\n" +
-                $"Interaction quality: {_scatterChartView.InteractionQuality}\n" +
-                $"Series: {scatter?.SeriesCount ?? 0}; Points: {scatter?.PointCount ?? 0}\n" +
-                $"Columnar series: {scatter?.ColumnarSeriesCount ?? 0}; Retained columnar points: {scatter?.ColumnarPointCount ?? 0}; Pickable points: {scatter?.PickablePointCount ?? 0}\n" +
-                $"Streaming appends: {scatter?.StreamingAppendBatchCount ?? 0}; Replacements: {scatter?.StreamingReplaceBatchCount ?? 0}; FIFO capacity: {SurfaceDemoSupportSummary.FormatFifoCapacity(scatter?.ConfiguredFifoCapacity)}; Dropped points: {scatter?.StreamingDroppedPointCount ?? 0} (last {scatter?.LastStreamingDroppedPointCount ?? 0})";
-            return;
-        }
-
-        if (IsContourProofActive)
-        {
-            var contourStatus = _contourPlotView.ContourRenderingStatus;
-            _renderingPathText.Text =
-                "Plot path: VideraChartView.Plot.Add.Contour\n" +
-                $"Plot revision: {_contourPlotView.Plot.Revision}\n" +
-                $"Interaction quality: {_contourPlotView.InteractionQuality}\n" +
-                $"Has source: {contourStatus.HasSource}; Is ready: {contourStatus.IsReady}\n" +
-                $"Levels: {contourStatus.LevelCount}; Lines: {contourStatus.ExtractedLineCount}; Segments: {contourStatus.TotalSegmentCount}";
-            return;
-        }
-
-        if (_barChartView.IsVisible)
-        {
-            var barStatus = _barChartView.BarRenderingStatus;
-            _renderingPathText.Text =
-                "Plot path: VideraChartView.Plot.Add.Bar\n" +
-                $"Plot revision: {_barChartView.Plot.Revision}\n" +
-                $"Interaction quality: {_barChartView.InteractionQuality}\n" +
-                $"Has source: {barStatus.HasSource}; Is ready: {barStatus.IsReady}\n" +
-                $"Series: {barStatus.SeriesCount}; Categories: {barStatus.CategoryCount}; Bars: {barStatus.BarCount}; Layout: {barStatus.Layout}";
-            return;
-        }
-
-        var surfaceStatus = ActiveSurfaceFamilyChartView.RenderingStatus;
-        _renderingPathText.Text =
-            $"Active backend: {surfaceStatus.ActiveBackend}\n" +
-            $"Ready: {surfaceStatus.IsReady}\n" +
-            $"Fallback: {SurfaceDemoSupportSummary.CreateFallbackText(surfaceStatus)}\n" +
-            $"Host path: {SurfaceDemoSupportSummary.CreateHostText(surfaceStatus)}\n" +
-            $"Resident tiles: {surfaceStatus.ResidentTileCount}";
-    }
-
-    private void UpdateRenderingDiagnosticsText()
-    {
-        if (IsScatterProofActive)
-        {
-            _renderingDiagnosticsText.Text = SurfaceDemoSupportSummary.CreateScatterRenderingDiagnosticsSummary(_activeScatterData, _scatterChartView);
-            return;
-        }
-
-        if (IsContourProofActive)
-        {
-            var contourStatus = _contourPlotView.ContourRenderingStatus;
-            _renderingDiagnosticsText.Text =
-                $"HasSource: {contourStatus.HasSource}\n" +
-                $"IsReady: {contourStatus.IsReady}\n" +
-                $"LevelCount: {contourStatus.LevelCount}\n" +
-                $"ExtractedLineCount: {contourStatus.ExtractedLineCount}\n" +
-                $"TotalSegmentCount: {contourStatus.TotalSegmentCount}";
-            return;
-        }
-
-        if (_barChartView.IsVisible)
-        {
-            var barStatus = _barChartView.BarRenderingStatus;
-            _renderingDiagnosticsText.Text =
-                $"HasSource: {barStatus.HasSource}\n" +
-                $"IsReady: {barStatus.IsReady}\n" +
-                $"BackendKind: {barStatus.BackendKind}\n" +
-                $"SeriesCount: {barStatus.SeriesCount}\n" +
-                $"CategoryCount: {barStatus.CategoryCount}\n" +
-                $"BarCount: {barStatus.BarCount}\n" +
-                $"Layout: {barStatus.Layout}";
-            return;
-        }
-
-        _renderingDiagnosticsText.Text = SurfaceDemoSupportSummary.CreateSurfaceRenderingDiagnosticsSummary(ActiveSurfaceFamilyChartView.RenderingStatus);
-    }
-
-    private void UpdateOverlayOptionsText()
-    {
-        if (IsScatterProofActive)
-        {
-            _overlayOptionsText.Text =
-                "VideraChartView.Plot exposes `OverlayOptions`.\n" +
-                "This proof path stays direct-scatter only; Plot-level presentation is shared API but scatter overlay rendering is not widened in this demo.";
-            return;
-        }
-
-        if (IsContourProofActive)
-        {
-            _overlayOptionsText.Text =
-                "VideraChartView.Plot exposes `OverlayOptions`.\n" +
-                "This proof path stays direct-contour only; Plot-level presentation is shared API but contour overlay rendering is not widened in this demo.";
-            return;
-        }
-
-        var overlayOptions = ActiveSurfaceFamilyChartView.Plot.OverlayOptions;
-        _overlayOptionsText.Text =
-            "Chart-local `OverlayOptions` keep formatter, minor ticks, grid plane, and axis-side behavior inside `VideraChartView` instead of pushing chart semantics into `VideraView`.\n" +
-            $"Minor ticks: {(overlayOptions.ShowMinorTicks ? "enabled" : "disabled")} (divisions {overlayOptions.MinorTickDivisions})\n" +
-            $"Grid plane: {overlayOptions.GridPlane}\n" +
-            $"Axis side: {overlayOptions.AxisSideMode}\n" +
-            "Formatter: legend and axis labels share the same chart-local numeric formatting contract.";
-    }
-
     private void RefreshActiveProofTexts()
     {
         UpdateScatterScenarioSelectorState();
         UpdateBuiltInInteractionText();
-        UpdateViewStateText();
-        UpdateInteractionQualityText();
-        UpdateRenderingPathText();
-        UpdateRenderingDiagnosticsText();
-        UpdateOverlayOptionsText();
-        UpdateStatusText();
+
+        var ctx = CreateStatusContext();
+        _viewStateText.Text = ChartStatusFormatter.FormatViewStateText(ctx);
+        _interactionQualityText.Text = ChartStatusFormatter.FormatInteractionQualityText(ctx);
+        _renderingPathText.Text = ChartStatusFormatter.FormatRenderingPathText(ctx);
+        _renderingDiagnosticsText.Text = ChartStatusFormatter.FormatRenderingDiagnosticsText(ctx);
+        _overlayOptionsText.Text = ChartStatusFormatter.FormatOverlayOptionsText(ctx);
+        _statusText.Text = ChartStatusFormatter.FormatStatusText(ctx);
         UpdateSupportSummaryText();
     }
 
@@ -1046,7 +814,7 @@ public partial class MainWindow : Window
                 ActivePlotPathDetails: _activePlotPathDetails,
                 ActiveDatasetSummary: _activeDatasetSummary,
                 ActiveAssetSummary: _activeAssetSummary,
-                ViewStateSummary: CreateViewStateSummary()));
+                ViewStateSummary: ChartStatusFormatter.FormatViewStateSummary(CreateStatusContext())));
     }
 
     private VideraChartView GetActiveChartView()
@@ -1077,101 +845,18 @@ public partial class MainWindow : Window
         _ohlcPlotView.IsVisible || _violinPlotView.IsVisible ||
         _polygonPlotView.IsVisible;
 
-    private string CreateViewStateSummary()
+    private ChartStatusContext CreateStatusContext()
     {
-        if (IsScatterProofActive)
-        {
-            return SurfaceDemoSupportSummary.CreateScatterCameraSummary(_activeScatterData, _scatterChartView);
-        }
-
-        if (IsContourProofActive)
-        {
-            var contourStatus = _contourPlotView.ContourRenderingStatus;
-            return $"Contour: HasSource={contourStatus.HasSource}; Levels={contourStatus.LevelCount}; Lines={contourStatus.ExtractedLineCount}; Segments={contourStatus.TotalSegmentCount}";
-        }
-
-        var viewState = ActiveSurfaceFamilyChartView.ViewState;
-        var dataWindow = viewState.DataWindow;
-        var camera = viewState.Camera;
-        return
-            $"Data window StartX {dataWindow.StartX:0.###}, StartY {dataWindow.StartY:0.###}, Width {dataWindow.Width:0.###}, Height {dataWindow.Height:0.###}; " +
-            $"Camera target ({camera.Target.X:0.###}, {camera.Target.Y:0.###}, {camera.Target.Z:0.###}), Yaw {camera.YawDegrees:0.###}, Pitch {camera.PitchDegrees:0.###}, Distance {camera.Distance:0.###}";
+        return new ChartStatusContext(
+            ScatterChartView: _scatterChartView,
+            ContourPlotView: _contourPlotView,
+            BarChartView: _barChartView,
+            ActiveSurfaceFamilyChartView: ActiveSurfaceFamilyChartView,
+            IsScatterProofActive: IsScatterProofActive,
+            IsContourProofActive: IsContourProofActive,
+            ActiveScatterData: _activeScatterData,
+            ActivePlotPathHeading: _activePlotPathHeading,
+            ActivePlotPathDetails: _activePlotPathDetails);
     }
 
-    private void UpdateParameterPanel(string scenarioId)
-    {
-        // Reset all active series references
-        _activeLineSeries = null;
-        _activeRibbonSeries = null;
-        _activeVectorFieldSeries = null;
-        _activeHeatmapSliceSeries = null;
-
-        _lineParamGroup.IsVisible = false;
-        _ribbonParamGroup.IsVisible = false;
-        _vectorFieldParamGroup.IsVisible = false;
-        _heatmapParamGroup.IsVisible = false;
-
-        var hasParams = scenarioId switch
-        {
-            _ when scenarioId == SurfaceDemoScenarios.LineId => ShowLineParams(),
-            _ when scenarioId == SurfaceDemoScenarios.RibbonId => ShowRibbonParams(),
-            _ when scenarioId == SurfaceDemoScenarios.VectorFieldId => ShowVectorFieldParams(),
-            _ when scenarioId == SurfaceDemoScenarios.HeatmapSliceId => ShowHeatmapParams(),
-            _ => false,
-        };
-
-        _recipeParameterPanel.IsVisible = hasParams;
-    }
-
-    private bool ShowLineParams()
-    {
-        _lineParamGroup.IsVisible = true;
-        return true;
-    }
-
-    private bool ShowRibbonParams()
-    {
-        _ribbonParamGroup.IsVisible = true;
-        return true;
-    }
-
-    private bool ShowVectorFieldParams()
-    {
-        _vectorFieldParamGroup.IsVisible = true;
-        return true;
-    }
-
-    private bool ShowHeatmapParams()
-    {
-        _heatmapParamGroup.IsVisible = true;
-        return true;
-    }
-
-    private void OnLineWidthChanged(object? sender, RangeBaseValueChangedEventArgs e)
-    {
-        if (_activeLineSeries is null) return;
-        _activeLineSeries.SetWidth((float)e.NewValue);
-        _lineWidthText.Text = e.NewValue.ToString("0");
-    }
-
-    private void OnRibbonRadiusChanged(object? sender, RangeBaseValueChangedEventArgs e)
-    {
-        if (_activeRibbonSeries is null) return;
-        _activeRibbonSeries.SetRadius((float)e.NewValue);
-        _ribbonRadiusText.Text = e.NewValue.ToString("0.00");
-    }
-
-    private void OnVectorFieldScaleChanged(object? sender, RangeBaseValueChangedEventArgs e)
-    {
-        if (_activeVectorFieldSeries is null) return;
-        _activeVectorFieldSeries.SetScale((float)e.NewValue);
-        _vectorFieldScaleText.Text = e.NewValue.ToString("0.0");
-    }
-
-    private void OnHeatmapPositionChanged(object? sender, RangeBaseValueChangedEventArgs e)
-    {
-        if (_activeHeatmapSliceSeries is null) return;
-        _activeHeatmapSliceSeries.SetPosition(e.NewValue);
-        _heatmapPositionText.Text = e.NewValue.ToString("0.0");
-    }
 }
